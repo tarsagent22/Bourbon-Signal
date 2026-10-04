@@ -27,7 +27,7 @@ test('MM-02 queued A notification after offline logout waits for authentication 
     const request = new Request(input); reads++;
     assert.equal(request.headers.get('authorization'), 'Bearer fixture-B');
     assert.equal(new URL(request.url).pathname, '/api/alerts');
-    assert.equal(new URL(request.url).search, '');
+    assert.equal(new URL(request.url).search, '?summary=1');
     return Response.json({ alerts: [], unreadCount: 0 });
   } });
   assert.deepEqual(await apiB.getMemberAlerts({ fresh: true }), { alerts: [], unreadCount: 0 });

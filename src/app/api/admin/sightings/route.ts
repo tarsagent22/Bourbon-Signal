@@ -161,23 +161,19 @@ export async function PATCH(req: NextRequest) {
     const durableOwned = await repository.listSightingsForReporter(reporterUserId);
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId }));
     const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
-    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards, now);
+    const nextRewards = reconcileMemberRewards(rewardSightings, await signalPoints.readRewardProfile(reporterUserId, privateMetadata.memberRewards), now);
     await signalPoints.reconcileClerkRewards(reporterUserId, nextRewards, mutation.rewardGeneration);
-    await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
-      console.error("Sighting points reconciled, but the Clerk projection failed", error);
-    });
+
   } else {
     const rewardGeneration = await signalPoints.nextRewardGeneration(reporterUserId);
     const nextPrefs = { ...prefs, submittedSightings: nextSightings };
     const durableOwned = await repository.listSightingsForReporter(reporterUserId);
     const legacyOwned = nextSightings.map((sighting) => ({ ...sighting, reporterUserId }));
     const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
-    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards, now);
+    const nextRewards = reconcileMemberRewards(rewardSightings, await signalPoints.readRewardProfile(reporterUserId, privateMetadata.memberRewards), now);
     await signalPoints.reconcileClerkRewards(reporterUserId, nextRewards, rewardGeneration);
     await admin.client.users.updateUserMetadata(reporterUserId, { publicMetadata: { sightingsPreferences: nextPrefs } });
-    await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
-      console.error("Sighting points reconciled, but the Clerk projection failed", error);
-    });
+
   }
   return NextResponse.json({
     ok: true,

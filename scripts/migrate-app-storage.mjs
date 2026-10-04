@@ -171,7 +171,7 @@ const requiredColumns = {
   member_referral_glass_rewards: ['referred_user_id', 'referrer_user_id', 'status', 'earned_at', 'address_confirmed_at', 'shipped_at', 'updated_at'],
   member_referral_scale_migrations: ['migration_key', 'completed_at'],
   signal_point_accounts: ['user_id', 'balance', 'debt', 'created_at', 'updated_at'],
-  signal_point_reward_generations: ['user_id', 'generation', 'reconciled_generation', 'updated_at'],
+  signal_point_reward_generations: ['user_id', 'generation', 'reconciled_generation', 'member_rewards_snapshot', 'updated_at'],
   signal_point_source_balances: ['user_id', 'source_key', 'points', 'revision', 'updated_at'],
   signal_point_ledger: ['id', 'user_id', 'idempotency_key', 'entry_kind', 'points', 'balance_delta', 'debt_delta', 'source_type', 'source_key', 'redemption_id', 'metadata', 'created_at'],
   signal_point_migrations: ['migration_key', 'completed_at', 'details'],

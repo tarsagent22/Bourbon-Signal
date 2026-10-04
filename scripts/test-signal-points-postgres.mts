@@ -116,9 +116,9 @@ try {
   const giftCardRollover = await transaction([{ text: `SELECT item_key,points_cost,active FROM signal_reward_catalog
     WHERE item_key IN ('bourbon_shipping_gift_card_25','bourbon_shipping_gift_card_100') ORDER BY item_key` }]);
   assert.deepEqual(giftCardRollover[1], [
-    { item_key: "bourbon_shipping_gift_card_100", points_cost: 2600, active: true },
+    { item_key: "bourbon_shipping_gift_card_100", points_cost: 2500, active: true },
     { item_key: "bourbon_shipping_gift_card_25", points_cost: 650, active: false },
-  ], "gift card rollover preserves the retired historical SKU while activating $100 at four times the points");
+  ], "gift card rollover preserves the retired historical SKU while activating the current $100 reward price");
   const preservedEmergencyDisable = await transaction([{ text: "SELECT active FROM signal_reward_catalog WHERE item_key='sticker_pack'" }]);
   assert.equal(row(preservedEmergencyDisable).active, false, "schema reapplication preserves an emergency-disabled current SKU");
   await transaction([{ text: "UPDATE signal_reward_catalog SET active=TRUE WHERE item_key='sticker_pack'" }]);

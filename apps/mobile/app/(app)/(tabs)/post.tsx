@@ -63,15 +63,15 @@ function PostComposer({ userId }: { userId: string }) {
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      api.getMemberProfile(),
-      api.listRadarBottles().catch(() => [] as RadarBottleOption[]),
-    ])
-      .then(([result, bottles]) => { if (active) { setProfile(result.profile); setBottleCatalog(bottles); } })
+    void api.getMemberProfile()
+      .then(result => { if (active) setProfile(result.profile); })
       .catch((caught) => {
         if (active) setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Posting access is temporarily unavailable.");
       })
       .finally(() => { if (active) setLoadingProfile(false); });
+    void api.listRadarBottles().then(bottles => { if (active) setBottleCatalog(bottles); }).catch(() => {
+      // Manual bottle entry stays available; the server validates identity and rarity.
+    });
     return () => { active = false; };
   }, [api]);
 

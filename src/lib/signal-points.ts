@@ -15,7 +15,7 @@ export interface SignalRewardCatalogItem {
   key: SignalRewardKey;
   name: string;
   points: number;
-  catalogVersion: 1 | 2 | 3;
+  catalogVersion: 1 | 2 | 3 | 4;
   fulfillmentType: "physical" | "digital";
   usShippingIncluded: boolean;
   glassQuantity?: 1 | 2;
@@ -31,8 +31,8 @@ export const SIGNAL_REWARD_CATALOG: SignalRewardCatalogItem[] = [
   { key: "standard_membership_credit_month", name: "One month on us — Standard Proof", points: 150, catalogVersion: 3, fulfillmentType: "digital", usShippingIncluded: false, membershipCreditCents: 300, eligibleTier: "standard" },
   { key: "barrel_membership_credit_month", name: "One month on us — Barrel Proof", points: 250, catalogVersion: 3, fulfillmentType: "digital", usShippingIncluded: false, membershipCreditCents: 600, eligibleTier: "barrel" },
   { key: "rocks_glass", name: "Bourbon Signal rocks glass", points: 400, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
-  { key: "glencairn", name: "Bourbon Signal Glencairn", points: 450, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
-  { key: "bourbon_shipping_gift_card_100", name: "$100 Caskers gift card", points: 2600, catalogVersion: 2, fulfillmentType: "digital", usShippingIncluded: false },
+  { key: "glencairn", name: "Bourbon Signal Glencairn", points: 500, catalogVersion: 4, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
+  { key: "bourbon_shipping_gift_card_100", name: "$100 Caskers gift card", points: 2500, catalogVersion: 4, fulfillmentType: "digital", usShippingIncluded: false },
 ];
 
 // Hidden, inactive rewards stay recognizable so a lost-response retry can return

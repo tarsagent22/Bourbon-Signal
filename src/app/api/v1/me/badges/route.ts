@@ -5,10 +5,11 @@ import {
 } from "@/lib/featured-badges";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { signalApiError } from "@/lib/signals/signal-api-route";
+import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 const handler = createFeaturedBadgesHandler({
   earnedIds: async (userId) => {
     const user = await (await clerkClient()).users.getUser(userId);
-    const rewards = user.privateMetadata.memberRewards as
+    const rewards = (await createSignalPointsRepository().readRewardProfile(userId, user.privateMetadata.memberRewards)) as
       | { badges?: Array<{ id: string }> }
       | undefined;
     return rewards?.badges?.map((badge) => badge.id) || [];
@@ -17,14 +18,14 @@ const handler = createFeaturedBadgesHandler({
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
     const previous = user.privateMetadata as Record<string, unknown>;
-    const latestRewards = previous.memberRewards as
+    const latestRewards = (await createSignalPointsRepository().readRewardProfile(userId, previous.memberRewards)) as
       | { badges?: Array<{ id: string }> }
       | undefined;
     if (
       ids.some((id) => !latestRewards?.badges?.some((badge) => badge.id === id))
     )
       throw new Error("Badge is no longer earned.");
-    const next = { ...previous, featuredBadgeIds: ids };
+    const next = { ...previous, memberRewards: latestRewards, featuredBadgeIds: ids };
     const repository = createCommunitySightingsRepository();
     await repository.updateReporterBadges(userId, featuredBadgeLabels(next));
     try {
@@ -33,7 +34,7 @@ const handler = createFeaturedBadgesHandler({
       });
     } catch (error) {
       await repository
-        .updateReporterBadges(userId, featuredBadgeLabels(previous))
+        .updateReporterBadges(userId, featuredBadgeLabels({ ...previous, memberRewards: latestRewards }))
         .catch(() => undefined);
       throw error;
     }

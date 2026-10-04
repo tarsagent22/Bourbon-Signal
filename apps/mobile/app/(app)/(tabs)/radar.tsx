@@ -70,7 +70,10 @@ export default function RadarScreen() {
     setLoading(true); setError("");
     try {
       let [nextPreferences, nextAlerts, nextProfile, nextCatalog] = await Promise.all([
-        api.getMemberPreferences({ fresh }), api.getMemberAlerts({ fresh }), api.getMemberProfile({ fresh }), api.listRadarBottles({ fresh }),
+        api.getMemberPreferences({ fresh }).then(value => { if (sequence === loadSequence.current && preferenceMutationAtStart === preferenceMutationEpoch.current) setPreferences(value); return value; }),
+        api.getMemberAlerts({ fresh }).then(value => { if (sequence === loadSequence.current) setAlerts(value); return value; }),
+        api.getMemberProfile({ fresh }).then(value => { if (sequence === loadSequence.current) setProfile(value); return value; }),
+        api.listRadarBottles({ fresh }).then(value => { if (sequence === loadSequence.current) setCatalog(value); return value; }),
       ]);
       if (sequence !== loadSequence.current) return;
       if (preferenceMutationAtStart === preferenceMutationEpoch.current) {
@@ -85,6 +88,7 @@ export default function RadarScreen() {
         initialDestinationChosen.current = true;
         if (requestedSection !== "matches" && radarSetupNeeded(nextPreferences)) setView("settings");
       }
+      setLoading(false);
       setPushError(""); setPushFailedAction(null);
       try {
         const [deviceId, permission] = await Promise.all([radarPushDeviceId(), radarPushPermission().catch(() => "undetermined")]);
@@ -111,7 +115,7 @@ export default function RadarScreen() {
   }, [api, requestedSection]);
 
   useEffect(() => () => { loadSequence.current += 1; }, [api]);
-  useScreenRevalidation(() => load(true));
+  useScreenRevalidation(() => load());
   useEffect(() => { if (requestedSection === "settings") setView("settings"); }, [requestedSection, request]);
   useEffect(() => { if (requestedSection === "matches" && request) { setView("matches"); void load(true); } }, [load, requestedSection, request]);
   useEffect(() => {

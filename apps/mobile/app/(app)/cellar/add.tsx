@@ -89,7 +89,7 @@ export default function AddCellarBottleScreen() {
     let active = true;
     setLoading(true);
     setPreferenceError("");
-    void api.getMemberPreferences({ fresh: true }).then((next) => {
+    void api.getMemberPreferences().then((next) => {
       if (active) setPreferences(next);
     }).catch((caught) => {
       if (active) setPreferenceError(caught instanceof Error ? caught.message : "My Shelf is temporarily unavailable.");

@@ -32,7 +32,7 @@ assert.match(route, /COMMUNITY_SIGHTINGS_DURABLE_CUTOVER\.completed/,
   "the GET cutover must be gated by an explicit verified migration marker");
 assert.match(route, /Math\.min\(limit, 1_000\)/,
   "the aggregate should honor the advertised load-more ceiling");
-assert.match(getBody, /if \(includeRewards\) \{[\s\S]*getBourbonBible\(\)/, "feed-only calls should skip reward catalog work");
+assert.match(getBody, /includeRewards \? Promise\.all\(\[[\s\S]*?getBourbonBible\(\)[\s\S]*?\]\) : Promise\.resolve\(null\)/, "feed-only calls should skip reward catalog work");
 
 assert.match(client, /const \[feedLimit, setFeedLimit\] = useState\(60\)/);
 assert.match(client, /includePreferences: false, includeRewards: false, feedLimit/);

@@ -1,4 +1,5 @@
 import {featuredBadgeLabels} from "@/lib/featured-badges";
+import { sameMemberRewardProfile } from "@/lib/member-rewards-snapshot";
 import { after, NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getBourbonBible, searchBourbonBible, normalizeBottleKey as normalizeBibleBottleKey, type BibleBottle } from "@/lib/bourbonBible";
@@ -167,18 +168,25 @@ async function readCachedLegacyCommunitySnapshot() {
 }
 
 async function persistMemberRewardsBestEffort(client: Awaited<ReturnType<typeof clerkClient>>, userId: string, memberRewards: unknown, rewardGeneration: number) {
-  await createSignalPointsRepository().reconcileClerkRewards(userId, memberRewards, rewardGeneration);
-  const projected = await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards } }).catch((error) => {
-    console.error("Durable sighting rewards reconciled, but Clerk projection failed", error);
-    return null;
-  });
-  if (projected) await createCommunitySightingsRepository().updateReporterBadges(userId, featuredBadgeLabels(projected.privateMetadata as Record<string, unknown>)).catch((error) => {
-    console.error("Featured community badge projection failed", error);
-  });
+  // The growing audit ledger belongs in Neon, not Clerk's size-limited metadata.
+  const result = await createSignalPointsRepository().reconcileClerkRewardsWithStatus(userId, memberRewards, rewardGeneration);
+  if (result.applied) {
+    const user = await client.users.getUser(userId);
+    await createCommunitySightingsRepository().updateReporterBadges(userId, featuredBadgeLabels({ ...user.privateMetadata, memberRewards })).catch((error) => {
+      console.error("Featured community badge projection failed", error);
+    });
+  }
 }
 
 function rewardsNeedPersistence(existing: unknown, next: unknown) {
-  return JSON.stringify(existing ?? null) !== JSON.stringify(next ?? null);
+  return !sameMemberRewardProfile(existing, next);
+}
+
+async function getRewardSightings(userId: string) {
+  const repository = createCommunitySightingsRepository();
+  const owned = await repository.listSightingsForReporter(userId);
+  const counts = voteCounts(await repository.listVotesForSightings(owned.map(sighting => sighting.id)), userId);
+  return owned.map(sighting => ({ ...sighting, ...(counts.get(sighting.id) || { upCount: 0, downCount: 0, myVote: null }) }));
 }
 
 async function getAggregateSightings(
@@ -195,7 +203,7 @@ async function getAggregateSightings(
     includeOwned ? repository.listSightingsForReporter(currentUserId) : Promise.resolve([]),
     repository.countSightingsByIds(legacyIds),
   ]);
-  const durableVotes = await repository.listVotesForSightings(durableFeed.sightings.map((sighting) => sighting.id));
+  const durableVotes = await repository.listVotesForSightings([...new Set([...durableFeed.sightings, ...durableOwned].map((sighting) => sighting.id))]);
   const combinedCounts = voteCounts([...(legacy?.votes || []), ...durableVotes], currentUserId);
   const sightingsById = new Map<string, MemberSighting>();
   const reportersById = new Map<string, LegacyReporter>((legacy?.reporters || []).map((reporter) => [reporter.id, reporter]));
@@ -253,7 +261,7 @@ async function getAggregateSightings(
     .slice(0, Math.max(1, Math.min(limit, 1_000)));
   return {
     sightings: sortedSightings,
-    durableOwned,
+    durableOwned: durableOwned.map(sighting => ({ ...sighting, ...(combinedCounts.get(sighting.id) || { upCount: 0, downCount: 0, myVote: null }) })),
     totalSightings: durableFeed.totalSightings + legacyIds.length - durableLegacyOverlap,
   };
 }
@@ -336,7 +344,18 @@ export async function GET(req: NextRequest) {
     );
   }
   const rewardGeneration = includeRewards ? await createSignalPointsRepository().readRewardGeneration(userId) : 0;
-  const aggregate = await getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit, before, filters: feedFilters });
+  const summaryOnly = includeRewards && url.searchParams.get("summary") === "1";
+  const pointsRepository = createSignalPointsRepository();
+  const [aggregate, rewardContext] = await Promise.all([
+    summaryOnly
+      ? getRewardSightings(userId).then(durableOwned => ({ sightings: [] as MemberSighting[], durableOwned, totalSightings: 0 }))
+      : getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit, before, filters: feedFilters }),
+    includeRewards ? Promise.all([
+      getBourbonBible(),
+      pointsRepository.readAchievementMetrics(userId).catch(() => ({available:false})),
+      pointsRepository.readRewardProfile(userId, user.privateMetadata.memberRewards),
+    ]) : Promise.resolve(null),
+  ]);
 
   const allSightings = aggregate.sightings;
   const previewLimit = entitlements.sightingsPreviewLimit;
@@ -348,12 +367,21 @@ export async function GET(req: NextRequest) {
     const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
     const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
     const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...aggregate.durableOwned]);
-    const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
-    const metrics = await createSignalPointsRepository().readAchievementMetrics(userId).catch(() => ({available:false}));
+    if (!rewardContext) throw new Error("Missing reward context.");
+    const [bible, metrics, existingRewards] = rewardContext;
+    const rewardSightings = normalizeSightingsForRewards(ownedSightings, bible);
     const featuredBadgeIds=Array.isArray(privateMetadata.featuredBadgeIds) ? privateMetadata.featuredBadgeIds.filter((id): id is string=>typeof id==="string").slice(0,3) : [];
-    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards, undefined, metrics);
-    if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
-      await persistMemberRewardsBestEffort(client, userId, nextRewards, rewardGeneration);
+    let nextRewards = reconcileMemberRewards(rewardSightings, existingRewards, undefined, metrics);
+    if (rewardsNeedPersistence(existingRewards, nextRewards)) {
+      const generation = await pointsRepository.advanceRewardGenerationIfCurrent(userId, rewardGeneration);
+      if (generation !== null) {
+        // Read again after allocating the generation: an old snapshot must never revoke newer awards.
+        const latestOwned = await getRewardSightings(userId);
+        const latestSightings = normalizeSightingsForRewards(dedupeSightings([...prefs.submittedSightings, ...latestOwned]), bible);
+        nextRewards = reconcileMemberRewards(latestSightings, await pointsRepository.readRewardProfile(userId, existingRewards), undefined, metrics);
+        await persistMemberRewardsBestEffort(client, userId, nextRewards, generation);
+      }
+      nextRewards = reconcileMemberRewards(rewardSightings, await pointsRepository.readRewardProfile(userId, existingRewards), undefined, metrics);
     }
     rewards = summarizeMemberRewards(rewardSightings, nextRewards, {...metrics,featuredBadgeIds});
   }
@@ -453,7 +481,7 @@ export async function POST(req: NextRequest) {
     sightingType: normalizeSightingType(payload.sightingType),
     reporterUserId: userId,
     reporterDisplayName,
-    reporterBadges: rewardBadgeLabels((user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>),
+    reporterBadges: rewardBadgeLabels({ ...user.privateMetadata, memberRewards: await createSignalPointsRepository().readRewardProfile(userId, user.privateMetadata.memberRewards) }),
     reporterPublicIdentity: publicActor,
     idempotencyFingerprint: idempotencyKey ? idempotentSightingFingerprint({ ...payload, reporterUserId: userId }) : undefined,
     storeTimeZone: typeof payload.storeTimeZone === "string" ? payload.storeTimeZone.slice(0, 80) : undefined,
@@ -510,7 +538,7 @@ export async function POST(req: NextRequest) {
   const duplicate = durableDuplicate || legacyDuplicate;
   if (duplicate) {
     if (idempotencyKey && requestFingerprint) await repository.completeIdempotency(sighting.id, userId, requestFingerprint, duplicate.id);
-    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
+    const nextRewards = reconcileMemberRewards(rewardSightings, await createSignalPointsRepository().readRewardProfile(userId, privateMetadata.memberRewards));
     if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
       after(() => persistMemberRewardsBestEffort(client, userId, nextRewards, observedRewardGeneration));
     }
@@ -544,7 +572,7 @@ export async function POST(req: NextRequest) {
   const authoritativeSightings = await repository.listSightingsForReporter(userId);
   const nextOwnedSightings = dedupeSightings([...prefs.submittedSightings, ...authoritativeSightings]);
   const nextRewardSightings = normalizeSightingsForRewards(nextOwnedSightings, rewardCatalog);
-  const nextRewards = reconcileMemberRewards(nextRewardSightings, privateMetadata.memberRewards);
+  const nextRewards = reconcileMemberRewards(nextRewardSightings, await createSignalPointsRepository().readRewardProfile(userId, privateMetadata.memberRewards));
   await persistMemberRewardsBestEffort(client, userId, nextRewards, savedSighting.rewardGeneration);
   after(async () => {
     try {
@@ -615,9 +643,9 @@ export async function PATCH(req: NextRequest) {
       const durableOwned = await repository.listSightingsForReporter(updatedTarget.reporterUserId);
       const ownedSightings = dedupeSightings([...ownerPrefs.submittedSightings, ...durableOwned]);
       const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
-      const nextOwnerRewards = reconcileMemberRewards(rewardSightings, ownerPrivateMetadata.memberRewards);
+      const nextOwnerRewards = reconcileMemberRewards(rewardSightings, await createSignalPointsRepository().readRewardProfile(updatedTarget.reporterUserId, ownerPrivateMetadata.memberRewards));
       await createSignalPointsRepository().reconcileClerkRewards(updatedTarget.reporterUserId, nextOwnerRewards, voteResult.rewardGeneration);
-      await client.users.updateUserMetadata(updatedTarget.reporterUserId, { privateMetadata: { ...ownerPrivateMetadata, memberRewards: nextOwnerRewards } });
+
       rewards = summarizeMemberRewards(rewardSightings, nextOwnerRewards);
     }
   } catch (error) {

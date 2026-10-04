@@ -3,6 +3,38 @@ import test from "node:test";
 import { preferencesFixture, profileFixture, feedFixture } from './astra-fixtures';
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
+test("concurrent screen reads share token acquisition and pending requests even past the cooldown", async () => {
+  let clock = 0; let tokens = 0; let fetches = 0; let complete!: () => void;
+  const pending = new Promise<void>(resolve => { complete = resolve; });
+  const api = createMobileApi({ baseUrl: "https://pending.example.test", now: () => clock, readCooldownMs: 10,
+    getToken: async () => { tokens++; await Promise.resolve(); return "same-account"; },
+    fetcher: async () => { fetches++; await pending; return Response.json(profileFixture()); },
+  });
+  const first = api.getMemberProfile(); const second = api.getMemberProfile();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(tokens, 1); assert.equal(fetches, 1);
+  clock = 20;
+  const third = api.getMemberProfile();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(fetches, 1, "an unfinished request is not expired by a short read cooldown");
+  complete(); await Promise.all([first, second, third]);
+  await api.getMemberProfile(); assert.equal(fetches, 1);
+  await api.getMemberProfile({ fresh: true }); assert.equal(fetches, 2, "explicit refresh reaches the server");
+});
+
+test("a preference write invalidates related cached profile reads across screens", async () => {
+  let reads = 0;
+  const api = createMobileApi({ baseUrl: "https://cross-screen.example.test", getToken: async () => "same-account",
+    fetcher: async input => {
+      const request = new Request(input);
+      if (new URL(request.url).pathname === "/api/user/preferences") return Response.json(preferencesFixture());
+      reads++; return Response.json(profileFixture({ displayName: `Profile ${reads}` }));
+    },
+  });
+  await api.getMemberProfile(); await api.getMemberProfile(); assert.equal(reads, 1);
+  await api.updateMemberPreferences({ alertMode: "anything_notable" });
+  await api.getMemberProfile(); assert.equal(reads, 2);
+});
 import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalAvailabilityIsCurrent, signalAvailabilityRefreshAt, signalCardStatusLabel, signalCardSummary, signalMemberTagLabel } from "./presentation";
 
 test("sends the selected feed view, bearer auth, and opaque cursor without inspecting it", async () => {

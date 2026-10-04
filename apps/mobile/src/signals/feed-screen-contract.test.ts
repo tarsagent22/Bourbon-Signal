@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-const feed = readFileSync(resolve(process.cwd(), "app/(app)/(tabs)/index.tsx"), "utf8");
+const feed = readFileSync(resolve(process.cwd(), "app/(app)/(tabs)/index.tsx"), "utf8").replaceAll("\r\n", "\n");
 
 function position(fragment: string) {
   const index = feed.indexOf(fragment);
@@ -52,7 +52,7 @@ test("immediate rarity and bottle input invalidate pending Home restore", () => 
 test("auth failures fence overlapping feed requests and identity reloads profile", () => {
   assert.match(feed, /apiError\?\.status === 401 \|\| apiError\?\.status === 403\) \{\s*requestSequence\.current \+= 1;/);
   assert.match(feed, /if \(accessChanged\) \{\s*requestSequence\.current \+= 1;/);
-  assert.match(feed, /useEffect\(\(\) => \{ if \(browsingStorageKey\) void loadProfile\(true\); \}, \[browsingStorageKey, loadProfile\]\)/);
+  assert.match(feed, /useEffect\(\(\) => \{ if \(browsingStorageKey\) void loadProfile\(false\); \}, \[browsingStorageKey, loadProfile\]\)/);
 });
 
 test("snapshot cursor expiry preserves reading position until explicit refresh", () => {

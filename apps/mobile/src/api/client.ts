@@ -179,11 +179,20 @@ export function createMobileApi({
   maxReadCacheEntries?: number;
   now?: () => number;
 }) {
-  const recentReads = new Map<string, { expiresAt: number; promise: Promise<unknown> }>();
+  const recentReads = new Map<string, { expiresAt: number; promise: Promise<unknown>; pending: boolean }>();
   let currentToken: string | null | undefined;
+  let tokenRequest: Promise<string | null> | null = null;
+  function requestToken() {
+    if (!tokenRequest) {
+      const attempt = bounded(() => getToken());
+      tokenRequest = attempt;
+      void attempt.finally(() => { if (tokenRequest === attempt) tokenRequest = null; }).catch(() => undefined);
+    }
+    return tokenRequest;
+  }
   const cacheLimit = Math.max(1, Math.min(256, maxReadCacheEntries));
   function pruneReads() {
-    for (const [key, entry] of recentReads) if (entry.expiresAt <= now()) recentReads.delete(key);
+    for (const [key, entry] of recentReads) if (!entry.pending && entry.expiresAt <= now()) recentReads.delete(key);
     while (recentReads.size > cacheLimit) recentReads.delete(recentReads.keys().next().value!);
   }
   async function bounded<T>(work: (signal: AbortSignal) => Promise<T>): Promise<T> {
@@ -231,25 +240,26 @@ export function createMobileApi({
   }
 
   async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const token = await bounded(() => getToken());
+    const token = await requestToken();
     if (token !== currentToken) { recentReads.clear(); currentToken = token; }
     pruneReads();
     if (options.method && options.method !== "GET") {
-      const payload = await performRequest<T>(path, options, token);
-      for (const key of recentReads.keys()) {
-        if (key.endsWith(` ${path}`)) recentReads.delete(key);
-      }
-      return payload;
+      // Related screens share these reads: a write can change profile, feed, points or preferences.
+      recentReads.clear();
+      try { return await performRequest<T>(path, options, token); }
+      finally { recentReads.clear(); }
     }
     const key = `GET ${path}`;
     const time = now();
     const recent = recentReads.get(key);
-    if (!options.fresh && recent && recent.expiresAt > time) {
+    if (recent && !options.fresh && (recent.pending || recent.expiresAt > time)) {
       recentReads.delete(key); recentReads.set(key, recent);
       return consume(recent.promise as Promise<T>, options.signal);
     }
     const promise = performRequest<T>(path, options, token);
-    recentReads.set(key, { expiresAt: time + readCooldownMs, promise });
+    const entry = { expiresAt: time + readCooldownMs, promise, pending: true };
+    recentReads.set(key, entry);
+    void promise.finally(() => { entry.pending = false; entry.expiresAt = now() + readCooldownMs; }).catch(() => undefined);
     pruneReads();
     void promise.catch((error) => {
       if (error instanceof MobileApiError && error.code === "REQUEST_TIMEOUT" && recentReads.get(key)?.promise === promise) recentReads.delete(key);
@@ -334,7 +344,7 @@ export function createMobileApi({
       return request<MemberPreferences>("/api/user/preferences", { method: "POST", body: patch });
     },
     getMemberAlerts({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
-      return request<MemberAlertsResponse>("/api/alerts", { fresh, signal });
+      return request<MemberAlertsResponse>("/api/alerts?summary=1", { fresh, signal });
     },
     updateMemberAlert(action: "mark_read" | "mark_all_read" | "archive", alertId?: string) {
       return request<MemberAlertsResponse>("/api/alerts", { method: "PATCH", body: { action, ...(alertId ? { alertId } : {}) } });
@@ -357,7 +367,7 @@ export function createMobileApi({
       if (cached && cached.expiresAt > 0 && cached.expiresAt <= Date.now()) bottleCatalogCache.delete(cacheKey);
 
       let loading: Promise<RadarBottleOption[]>;
-      loading = request<{ bottles?: Array<Record<string, unknown>> }>("/api/bottle-catalog", { fresh: true })
+      loading = request<{ bottles?: Array<Record<string, unknown>> }>("/api/bottle-catalog?view=picker", { fresh: true })
         .then((payload) => normalizeBottleOptions(payload.bottles || [], true))
         .then((bottles) => {
           if (bottleCatalogCache.get(cacheKey)?.promise === loading) {
@@ -401,7 +411,7 @@ export function createMobileApi({
       return request<{ok:true;featuredBadgeIds:string[]}>("/api/v1/me/badges",{method:"PATCH",body:{featuredBadgeIds}});
     },
     async getAchievements({ fresh = false }: { fresh?: boolean } = {}) {
-      const result = await request<{ rewards: AchievementSummary }>("/api/sightings?limit=1&rewards=1", { fresh });
+      const result = await request<{ rewards: AchievementSummary }>("/api/sightings?limit=1&rewards=1&summary=1", { fresh });
       return result.rewards;
     },
     getRewardShipping() { return request<{ record: RewardShipping | null; defaultRecipientName: string }>("/api/member/shipping", { fresh: true }); },
@@ -426,7 +436,7 @@ export function createMobileApi({
       if (!/^sighting_[-_a-zA-Z0-9]{1,150}$/.test(sightingId)) {
         throw new MobileApiError("The saved sighting could not be matched to this photo.", 400, "INVALID_SIGHTING_ID");
       }
-      const token = await bounded(() => getToken());
+      const token = await requestToken();
       if (!token) throw new MobileApiError("Your session could not be verified. Return to Signals and retry.", 401, "UNAUTHORIZED");
       return bounded(() => blobUploader(`sighting-proofs/${sightingId}/${timestamp}.jpg`, file, {
         access: "public",

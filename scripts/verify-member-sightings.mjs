@@ -63,7 +63,7 @@ if (!ncExactStores.some((location) => /wake county abc/i.test(`${location.name} 
 }
 
 const api = expectFile('src/app/api/sightings/route.ts');
-for (const phrase of ['getUserList', 'reporterUserId', 'poster cannot vote', 'sightingVotes', 'up', 'down', 'persistMemberRewardsBestEffort', 'Durable sighting rewards reconciled, but Clerk projection failed']) {
+for (const phrase of ['getUserList', 'reporterUserId', 'poster cannot vote', 'sightingVotes', 'up', 'down', 'persistMemberRewardsBestEffort', 'readRewardProfile', 'reconcileClerkRewardsWithStatus']) {
   if (api && !api.includes(phrase)) fail(`Sightings API should include ${phrase}`);
 }
 const entitlements = read('src/lib/entitlements.ts');
@@ -98,8 +98,8 @@ for (const phrase of ['Approve & publish', 'Approve, keep photo private', 'pendi
   if (!adminSightings.includes(phrase)) fail(`Admin sighting review should provide working queue feedback and embedding: ${phrase}`);
 }
 const adminSightingsRoute = read('src/app/api/admin/sightings/route.ts');
-for (const phrase of ['listAllUsers', 'resolveManualReview = true', 'pendingReview: needsSightingReview(updatedSighting)', 'Sighting not found', 'Sighting points reconciled, but the Clerk projection failed', 'publicMetadata: { sightingsPreferences: nextPrefs }']) {
-  if (!adminSightingsRoute.includes(phrase)) fail(`Admin sighting API should provide complete pagination, terminal action semantics, durable reward reconciliation, and a non-blocking Clerk projection: ${phrase}`);
+for (const phrase of ['listAllUsers', 'resolveManualReview = true', 'pendingReview: needsSightingReview(updatedSighting)', 'Sighting not found', 'readRewardProfile', 'reconcileClerkRewards', 'publicMetadata: { sightingsPreferences: nextPrefs }']) {
+  if (!adminSightingsRoute.includes(phrase)) fail(`Admin sighting API should provide complete pagination, terminal action semantics, durable reward reconciliation, and durable achievement snapshots: ${phrase}`);
 }
 const controlRoom = read('src/app/admin/control-room/page.tsx');
 for (const phrase of ['id="sightings"', '<AdminSightingsClient embedded />', 'Member sighting approvals']) {

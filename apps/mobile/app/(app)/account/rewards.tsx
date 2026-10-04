@@ -82,35 +82,35 @@ export default function RewardsScreen() {
     if (sections.some((item) => item.key === params.section))
       setSection(params.section as Section);
   }, [params.section]);
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     const id = ++sequence.current;
     setLoading(true);
     // Independent panels remain usable if a secondary service fails.
-    const [p, a, r, saved] = await Promise.allSettled([
-      api.getSignalPoints({ fresh: true }),
-      api.getAchievements({ fresh: true }),
-      api.getReferralSummary({ fresh: true }),
-      userId ? readRewardValue(userId, "goal") : Promise.resolve(null),
+    const [, a] = await Promise.allSettled([
+      api.getSignalPoints({ fresh }).then(value => {
+        if (id === sequence.current) { setPoints(value); setErrors(current => ({...current, points: ""})); }
+        return value;
+      }).catch(error => {
+        if (id === sequence.current) { setPoints(null); setErrors(current => ({...current, points: "Points and rewards are temporarily unavailable."})); }
+        throw error;
+      }),
+      api.getAchievements({ fresh }).then(value => {
+        if (id === sequence.current) { setAchievements(value); setErrors(current => ({...current, achievements: ""})); }
+        return value;
+      }).catch(error => {
+        if (id === sequence.current) { setAchievements(null); setErrors(current => ({...current, achievements: "Achievements are temporarily unavailable."})); }
+        throw error;
+      }),
+      api.getReferralSummary({ fresh }).then(value => {
+        if (id === sequence.current) { setReferral(value); setErrors(current => ({...current, referral: ""})); }
+        return value;
+      }).catch(error => {
+        if (id === sequence.current) { setReferral(null); setErrors(current => ({...current, referral: "Referral details are temporarily unavailable."})); }
+        throw error;
+      }),
+      (userId ? readRewardValue(userId, "goal") : Promise.resolve(null)).then(value => { if (id === sequence.current) setGoalKey(value); return value; }),
     ]);
     if (id !== sequence.current) return;
-    setPoints(p.status === "fulfilled" ? p.value : null);
-    setAchievements(a.status === "fulfilled" ? a.value : null);
-    setReferral(r.status === "fulfilled" ? r.value : null);
-    setErrors({
-      points:
-        p.status === "rejected"
-          ? "Points and rewards are temporarily unavailable."
-          : "",
-      achievements:
-        a.status === "rejected"
-          ? "Achievements are temporarily unavailable."
-          : "",
-      referral:
-        r.status === "rejected"
-          ? "Referral details are temporarily unavailable."
-          : "",
-    });
-    if (saved.status === "fulfilled") setGoalKey(saved.value);
     setLoading(false);
     if (a.status === "fulfilled" && userId) {
       try {
@@ -135,6 +135,7 @@ export default function RewardsScreen() {
       }
     }
   }, [api, userId]);
+  useEffect(() => () => { sequence.current += 1; }, [api, userId]);
   useScreenRevalidation(load);
   async function selectGoal(key: string) {
     if (!userId || savingGoal) return;
@@ -156,7 +157,7 @@ export default function RewardsScreen() {
       await api.cancelReward(cancelId);
       setCancelId(null);
       setNotice("Redemption canceled. Points have been returned.");
-      await load();
+      await load(true);
     } catch (error) {
       setNotice(
         error instanceof Error
@@ -177,7 +178,7 @@ export default function RewardsScreen() {
       refreshControl={
         <RefreshControl
           refreshing={loading && !!points}
-          onRefresh={() => void load()}
+          onRefresh={() => void load(true)}
           tintColor={colors.accent}
         />
       }
@@ -268,13 +269,13 @@ export default function RewardsScreen() {
           {notice}
         </Text>
       ) : null}
-      {loading && !points && !achievements ? (
-        <LoadingState label="Loading your rewards…" />
+      {loading && ((section === "achievements" && !achievements && !errors.achievements) || (section !== "achievements" && !points && !errors.points)) ? (
+        <LoadingState label={section === "achievements" ? "Loading your badges…" : "Loading your rewards…"} />
       ) : null}
       {section === "rewards" ? (
         <>
           {errors.points ? (
-            <ErrorState message={errors.points} onRetry={() => void load()} />
+            <ErrorState message={errors.points} onRetry={() => void load(true)} />
           ) : null}
           {goal && points ? (
             <RewardCard>
@@ -365,7 +366,7 @@ export default function RewardsScreen() {
           {errors.achievements ? (
             <ErrorState
               message={errors.achievements}
-              onRetry={() => void load()}
+              onRetry={() => void load(true)}
             />
           ) : null}
           {achievements ? (
@@ -473,7 +474,7 @@ export default function RewardsScreen() {
           </RewardCard>
           <Text style={s.heading}>Invite friends</Text>
           {errors.referral ? (
-            <ErrorState message={errors.referral} onRetry={() => void load()} />
+            <ErrorState message={errors.referral} onRetry={() => void load(true)} />
           ) : referral ? (
             <RewardCard>
               <Text style={s.heading}>
@@ -537,7 +538,7 @@ export default function RewardsScreen() {
       {section === "activity" ? (
         <>
           {errors.points ? (
-            <ErrorState message={errors.points} onRetry={() => void load()} />
+            <ErrorState message={errors.points} onRetry={() => void load(true)} />
           ) : null}
           <Text style={s.heading}>Your redemptions</Text>
           {points && !points.redemptions.length ? (

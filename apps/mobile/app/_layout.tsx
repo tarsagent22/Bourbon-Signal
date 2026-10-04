@@ -9,6 +9,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PurchasesProvider } from "../src/membership/PurchasesProvider";
 import { StartupErrorBoundary } from "../src/startup/StartupErrorBoundary";
+import { MobileApiProvider } from "../src/hooks/useMobileApi";
 import { colors } from "../src/theme";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -21,14 +22,14 @@ export default function RootLayout() {
     ) : (
       <SafeAreaProvider>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-          <PurchasesProvider>
+          <MobileApiProvider><PurchasesProvider>
             <StatusBar style="light" />
             <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(app)" options={{ headerShown: false }} />
             </Stack>
-          </PurchasesProvider>
+          </PurchasesProvider></MobileApiProvider>
         </ClerkProvider>
       </SafeAreaProvider>
     )}

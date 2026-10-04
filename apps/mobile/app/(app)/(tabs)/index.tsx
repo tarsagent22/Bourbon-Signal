@@ -404,8 +404,8 @@ export default function SignalFeedScreen() {
     listRef.current?.scrollToOffset({ offset: 0, animated: !motionDisabled });
   }, [motionDisabled, queuedSignals]);
 
-  useEffect(() => { if (browsingStorageKey) void loadProfile(true); }, [browsingStorageKey, loadProfile]);
-  useScreenRevalidation(() => { void loadProfile(true); if (browsingLoaded && !loaded) void load(true); });
+  useEffect(() => { if (browsingStorageKey) void loadProfile(false); }, [browsingStorageKey, loadProfile]);
+  useScreenRevalidation(() => { void loadProfile(false); if (browsingLoaded && !loaded) void load(true); });
   useEffect(() => { if (browsingLoaded && !loaded && !loading && !error) void load(true); }, [browsingLoaded, error, load, loaded, loading]);
   useEffect(() => {
     if (rarityBackfillRef.current.key !== rarityBackfillKey) {

@@ -420,11 +420,11 @@ export async function GET(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const collection = await loadDurableCollection(user).catch(() => null);
+  const [collection, entitlements] = await Promise.all([loadDurableCollection(user).catch(() => null), getServerEntitlements(user.publicMetadata)]);
   if (!collection) {
     return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
   }
-  return NextResponse.json(buildResponseFromMetadata(user, collection, await getServerEntitlements(user.publicMetadata)));
+  return NextResponse.json(buildResponseFromMetadata(user, collection, entitlements));
 }
 
 export async function POST(req: NextRequest) {

@@ -11,6 +11,8 @@ Before application cutover:
 5. Run `backfill:signal-points:apply`. Apply performs two complete oldest-first Clerk scans and compares their member count and snapshot hash. It writes `signal_points_clerk_metadata_v1_verified_complete` only when both passes match, every second-pass member matches PostgreSQL, and there are no errors.
 6. Require `markedComplete: true`, `mismatched: 0`, `secondPass.matchesFirstPass: true`, and `verified === scanned` before application cutover. Member Signal Points reads and redemptions fail closed without the verified-complete marker.
 
-Clerk reward metadata remains a projection after cutover. PostgreSQL reconciliation must succeed before any ongoing sighting reward update is projected back to Clerk.
+Reward profiles now live in `signal_point_reward_generations.member_rewards_snapshot`, committed in the same transaction as their generation-guarded points sources. Existing Clerk profiles are read only as a migration fallback; new reward ledgers are never written to Clerk's size-limited metadata. Previously earned badge dates can also be recovered from the durable award ledger. Account deletion clears the snapshot.
+
+Before deploying this version, run `npx tsx scripts/migrate-member-rewards-snapshot.mts --apply` with the production application database environment, then rerun without `--apply` to verify readiness. This additive migration updates only the snapshot column, reconciliation function, and account anonymization function; it does not rewrite existing redemptions or their price snapshots. Normal catalog synchronization advances Glencairn to 500 points and the $100 Caskers gift card to 2,500 points at catalog version 4.
 
 For deliberate local or test-only work, `SIGNAL_POINTS_ALLOW_UNVERIFIED_CUTOVER=1` bypasses the application gate. The repository rejects that override when `NODE_ENV=production`.

@@ -29,10 +29,10 @@ export default function ProfileScreen() {
   const [savingDisplayName, setSavingDisplayName] = useState(false);
   const [editingDisplayName, setEditingDisplayName] = useState(true);
   useAccessibleStatus(displayNameError || displayNameSuccess);
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     const id = ++sequence.current;
     try {
-      const result = await api.getMemberProfile({ fresh: true });
+      const result = await api.getMemberProfile({ fresh });
       if (id !== sequence.current) return;
       setProfile(result.profile);
       setDisplayNameDraft(result.profile.customDisplayName || "");
@@ -78,7 +78,7 @@ export default function ProfileScreen() {
       contentContainerStyle={memberScreenStyles.content}
     >
       {error ? (
-        <ErrorState message={error} onRetry={() => void load()} />
+        <ErrorState message={error} onRetry={() => void load(true)} />
       ) : !profile ? (
         <LoadingState />
       ) : (
