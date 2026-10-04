@@ -54,7 +54,7 @@ export function membershipCreditEligibility(input: EligibilityInput):
   | { ok: false; error: string } {
   if (!isMembershipCreditRewardKey(input.itemKey)) return { ok: false, error: "Choose an available membership credit." };
   const expectedTier = input.itemKey === "standard_membership_credit_month" ? "standard" : "barrel";
-  if (input.tier !== expectedTier) return { ok: false, error: `An active ${expectedTier === "standard" ? "Standard Proof" : "Barrel Proof"} membership is required.` };
+  if (input.tier !== expectedTier) return { ok: false, error: `An active ${expectedTier === "standard" ? "Standard" : "Barrel Proof"} membership is required.` };
 
   const customerId = text(input.privateMetadata.stripeCustomerId);
   const subscriptionId = text(input.privateMetadata.stripeSubscriptionId);

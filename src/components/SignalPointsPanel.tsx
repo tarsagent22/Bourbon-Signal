@@ -237,7 +237,7 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
   const compactRewardStatus = !data
     ? error || "Checking your points, badges, and rewards."
     : !data.redemptionEligible
-      ? "Keep earning · paid membership required to redeem"
+      ? availableReward ? `${availableReward.name} available` : "Earn a month of Standard with your points"
       : availableReward
         ? `${availableReward.name} available`
         : nextReward
