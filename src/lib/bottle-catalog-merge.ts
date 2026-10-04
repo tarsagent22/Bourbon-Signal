@@ -39,12 +39,6 @@ function variantNumbers(value: string) {
   return Array.from(new Set(normalizeIdentity(value).match(/\b\d+\b/g) || [])).sort();
 }
 
-function variantsAreCompatible(left: BottleCatalogEntry, right: BottleCatalogEntry) {
-  const leftNumbers = variantNumbers(left.canonicalName);
-  const rightNumbers = variantNumbers(right.canonicalName);
-  return leftNumbers.length === 0 || rightNumbers.length === 0 || leftNumbers.join(",") === rightNumbers.join(",");
-}
-
 function intersects(left: Set<string>, right: Set<string>) {
   for (const key of Array.from(left)) {
     if (right.has(key)) return true;
@@ -63,14 +57,27 @@ function intersects(left: Set<string>, right: Set<string>) {
  */
 export function mergeBottleCatalogSources<T extends BottleCatalogEntry>(sources: T[][]): T[] {
   const merged: T[] = [];
+  // Each immutable entry is compared many times. Normalize its identity once,
+  // including newly combined entries, rather than once per pair of bottles.
+  const identities = new WeakMap<T, { id: string; keys: Set<string>; numbers: string }>();
+  const identity = (bottle: T) => {
+    let value = identities.get(bottle);
+    if (!value) {
+      value = { id: canonicalBottleId(bottle.id), keys: identityKeys(bottle), numbers: variantNumbers(bottle.canonicalName).join(",") };
+      identities.set(bottle, value);
+    }
+    return value;
+  };
 
   for (const source of sources) {
     for (const bottle of source) {
-      const bottleKeys = identityKeys(bottle);
+      const bottleIdentity = identity(bottle);
       const matchingIndexes: number[] = [];
       for (let index = 0; index < merged.length; index += 1) {
-        const sameCanonicalId = canonicalBottleId(bottle.id) === canonicalBottleId(merged[index].id);
-        if (sameCanonicalId || (variantsAreCompatible(bottle, merged[index]) && intersects(bottleKeys, identityKeys(merged[index])))) matchingIndexes.push(index);
+        const existingIdentity = identity(merged[index]);
+        const sameCanonicalId = bottleIdentity.id === existingIdentity.id;
+        const compatible = !bottleIdentity.numbers || !existingIdentity.numbers || bottleIdentity.numbers === existingIdentity.numbers;
+        if (sameCanonicalId || (compatible && intersects(bottleIdentity.keys, existingIdentity.keys))) matchingIndexes.push(index);
       }
 
       const existing = matchingIndexes.map((index) => merged[index]);
