@@ -359,7 +359,8 @@ assert.match(nativeSignalFeed, /attempts:\s*backfill\.attempts/, "silent rarity 
 assert.match(nativeSignalFeed, /onEndReached=.*!filters\.rarities\.length/, "short filtered lists must not bypass the silent backfill cap through automatic end-reached events");
 assert.match(nativeSignalFeed, /Load more matching Signals/, "members must retain an explicit continuation after bounded silent enrichment");
 assert.match(nativeSignalFeed, /horizontal/, "rarity chips should scroll instead of wrapping into multiple rows");
-assert.doesNotMatch(nativeSignalFeed, /<Modal|activeFilterCount|Open Signal filters/, "Signal filters must stay directly on the feed instead of hiding in a sheet");
+assert.doesNotMatch(nativeSignalFeed, /<Modal|Open Signal filters/, "Signal filters must stay directly on the feed instead of hiding in a sheet");
+assert.match(nativeSignalFeed, /actionLabel=\{activeFilterCount\(filters\) \? "Clear filters"/, "filtered empty results must offer a direct reset");
 assert.match(nativeSignalFeed, /placeholder="Search bottle name"/, "bottle search must stay directly on the feed");
 assert.match(nativeSignalFeed, /label="State"/, "state selection must stay directly on the feed");
 assert.match(nativeSignalFeed, /label=\{areaLabel\}/, "the dependent area control must keep stable side-by-side geometry");
@@ -374,11 +375,13 @@ assert.match(nativeSignalCard, /signalAvailabilityRefreshAt/, "current availabil
 assert.match(nativeSignalCard, /setTimeout/, "availability expiry should update while a card remains mounted");
 assert.match(nativeSignalCard, /styles\.factsRow/, "price and reported quantity need a compact inline treatment");
 assert.doesNotMatch(nativeSignalCard, /styles\.footer|"Available now"/, "feed rows must avoid an oversized footer and unsupported live-inventory certainty");
-assert.match(nativeSignalCard, /fontFamily: "Fraunces_700Bold"/, "important bottle typography must use the Bourbon Signal brand font");
+assert.match(nativeSignalCard, /fontFamily: fonts\.heading/, "important bottle typography must use the shared brand font");
+assert.match(readFileSync("apps/mobile/src/theme.ts", "utf8"), /bottle: "Fraunces_700Bold"/, "the shared bottle font must remain Fraunces");
 assert.doesNotMatch(nativeSignalCard, /appearance\.sourceLabel|sourceLabel|labelKeyline|statusPill|chevron-right|trustRow|presented\.summary/, "cards must not restore Market labels, redundant banners, chevrons, provenance rows, or raw evidence summaries");
 const memberTabsSource = readFileSync("apps/mobile/src/navigation/member-tabs.ts", "utf8");
 const tabsLayoutSource = readFileSync("apps/mobile/app/(app)/(tabs)/_layout.tsx", "utf8");
-assert.match(tabsLayoutSource, /fontFamily: "Fraunces_700Bold"/, "the fixed Signal Feed brand header must use Fraunces");
+assert.match(tabsLayoutSource, /fontFamily: fonts\.heading/, "the fixed Signal Feed brand header must use the shared heading font");
+assert.match(readFileSync("apps/mobile/src/theme.ts", "utf8"), /heading: "Fraunces_700Bold"/, "the shared heading font must remain Fraunces");
 assert.match(tabsLayoutSource, /accessibilityLabel="Open alert inbox"/, "the Signal Feed bell must open a real alert inbox action");
 assert.match(memberTabsSource, /icon: "plus-circle-outline"/, "Post should use a restrained outlined icon");
 assert.doesNotMatch(tabsLayoutSource, /size \+ 5/, "Post should not visually overpower the primary feed");
