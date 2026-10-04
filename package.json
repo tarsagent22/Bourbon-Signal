@@ -153,7 +153,7 @@
     "test:entitlements": "node --no-warnings --experimental-strip-types scripts/test-entitlements.mts",
     "test:cellar-cohesion": "node --no-warnings --experimental-strip-types scripts/test-cellar-access-policy.mts && node --no-warnings --experimental-strip-types scripts/test-member-collection-entitlements.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-access-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-product-copy.mts",
     "test:member-experience-performance": "tsx scripts/test-member-experience-performance.mts",
-    "test:bottle-rarity-score": "node --no-warnings --experimental-strip-types scripts/test-bottle-rarity-score.mts",
+    "test:bottle-rarity-score": "node --no-warnings --experimental-strip-types scripts/test-bottle-rarity-score.mts && node --no-warnings --experimental-strip-types scripts/test-catalog-merge-equivalence.mts",
     "test:bottle-scarcity": "node --no-warnings --experimental-strip-types scripts/test-bottle-scarcity-classification.mts && node --no-warnings --experimental-strip-types scripts/test-bottle-scarcity-integration.mts && npm run audit:bottle-scarcity",
     "audit:bottle-scarcity": "tsx scripts/audit-bottle-scarcity.mts",
     "test:checkout-attribution": "node --no-warnings --experimental-strip-types scripts/test-checkout-attribution.mts",
