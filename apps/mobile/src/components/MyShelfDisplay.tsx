@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { shelfBottlePlan, type ShelfBottleVariant } from "../cellar/my-shelf-display";
-import { colors } from "../theme";
+import { colors, typeScale } from "../theme";
 
 const SHELF_ART_SCALE = 0.72;
 
@@ -97,6 +97,6 @@ const styles = StyleSheet.create({
   lowerShelf: { bottom: 8 },
   shelfHighlight: { height: 2, marginHorizontal: 3, marginTop: 1, borderRadius: 2, backgroundColor: "rgba(219,162,80,0.32)" },
   empty: { position: "absolute", left: 28, right: 28, bottom: 62, alignItems: "center", gap: 5 },
-  emptyTitle: { color: colors.text, fontSize: 16, lineHeight: 21, fontWeight: "800", textAlign: "center" },
-  emptyDetail: { color: colors.muted, fontSize: 12, lineHeight: 17, textAlign: "center" },
+  emptyTitle: { color: colors.text, fontSize: typeScale.input, lineHeight: 21, fontWeight: "800", textAlign: "center" },
+  emptyDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17, textAlign: "center" },
 });

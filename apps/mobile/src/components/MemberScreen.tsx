@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors } from "../theme";
+import { colors, typeScale, fonts } from "../theme";
 
 export function ScreenIntro({ eyebrow, title, description, aside }: { eyebrow: string; title: string; description: string; aside?: ReactNode }) {
   return (
@@ -37,11 +37,12 @@ export function DataRow({ label, value, last = false }: { label: string; value: 
   );
 }
 
-export function EmptyState({ title, detail }: { title: string; detail: string }) {
+export function EmptyState({ title, detail, actionLabel, onAction }: { title: string; detail: string; actionLabel?: string; onAction?: () => void }) {
   return (
     <MemberCard>
       <Text style={styles.emptyTitle}>{title}</Text>
       <Text style={styles.emptyDetail}>{detail}</Text>
+      {actionLabel && onAction ? <Pressable accessibilityRole="button" onPress={onAction} style={styles.retry}><Text style={styles.retryText}>{actionLabel}</Text></Pressable> : null}
     </MemberCard>
   );
 }
@@ -70,22 +71,22 @@ export const memberScreenStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   intro: { gap: 12, paddingTop: 4 },
   introCopy: { gap: 6, flex: 1 },
-  eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "800", letterSpacing: 1.35 },
-  title: { color: colors.text, fontSize: 30, lineHeight: 34, fontWeight: "800", letterSpacing: -0.5 },
-  description: { color: colors.muted, fontSize: 14, lineHeight: 21, maxWidth: 520 },
+  eyebrow: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 1.35 },
+  title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, lineHeight: 40, fontWeight: "800", letterSpacing: -0.5 },
+  description: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21, maxWidth: 520 },
   card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 16, gap: 10 },
   cardAccent: { borderColor: colors.accent },
   sectionHeading: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10 },
-  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "700" },
-  sectionDetail: { color: colors.muted, fontSize: 12 },
+  sectionTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "700" },
+  sectionDetail: { color: colors.muted, fontSize: typeScale.small },
   row: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 18, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth },
   rowLast: { borderBottomWidth: 0 },
-  rowLabel: { color: colors.muted, fontSize: 14, flex: 1 },
-  rowValue: { color: colors.text, fontSize: 14, fontWeight: "600", textAlign: "right", flexShrink: 1 },
-  emptyTitle: { color: colors.text, fontSize: 16, fontWeight: "700" },
-  emptyDetail: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  rowLabel: { color: colors.muted, fontSize: typeScale.body, flex: 1 },
+  rowValue: { color: colors.text, fontSize: typeScale.body, fontWeight: "600", textAlign: "right", flexShrink: 1 },
+  emptyTitle: { color: colors.text, fontSize: typeScale.input, fontWeight: "700" },
+  emptyDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 19 },
   loading: { minHeight: 140, alignItems: "center", justifyContent: "center", gap: 12 },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
+  error: { color: colors.danger, fontSize: typeScale.body, lineHeight: 20 },
   retry: { alignSelf: "flex-start", borderColor: colors.border, borderWidth: 1, borderRadius: 10, minHeight: 44, paddingHorizontal: 15, alignItems: "center", justifyContent: "center" },
   retryText: { color: colors.text, fontWeight: "700" },
   pressed: { backgroundColor: colors.surfaceRaised },

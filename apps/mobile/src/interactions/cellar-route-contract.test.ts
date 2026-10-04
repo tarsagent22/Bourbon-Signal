@@ -10,11 +10,12 @@ test("Cellar add uses a dedicated native route, local indexed search, and duplic
   const add = read("app/(app)/cellar/add.tsx");
   assert.match(layout, /cellar\/add/);
   assert.match(cellar, /router\.push\(["']\/\(app\)\/cellar\/add["']\)/);
-  assert.match(add, /listBottleCatalog\(\)/, "the complete canonical catalog is prefetched once instead of queried on every keystroke");
-  assert.match(add, /BOTTLE_CATALOG_SEED/, "search has a bundled catalog before the network refresh completes");
-  assert.match(add, /useState<RadarBottleOption\[\]>\(BOTTLE_CATALOG_SEED\)/, "bundled suggestions are available on the first render");
-  assert.match(add, /useMemo\(\(\) => createBottleSearchIndex\(catalog\), \[catalog\]\)/, "the complete catalog is normalized once per catalog load");
-  assert.match(add, /rankBottleCatalog/);
+  const catalog = read("src/hooks/useBottleCatalog.ts");
+  assert.match(add, /useBottleCatalog/);
+  assert.match(catalog, /api.listBottleCatalog/);
+  assert.match(catalog, /seed as RadarBottleOption/);
+  assert.match(catalog, /createBottleSearchIndex/);
+  assert.match(catalog, /rankBottleCatalog/);
   assert.match(add, /collectionMatchForOption/);
   assert.match(add, /exactCustomBottleMatchIndex/);
   assert.match(add, /reconcilePendingCustom:\s*selectedSource === "catalog"/);
@@ -57,7 +58,7 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /styles\.inventory/, "the original centered inventory label remains in the grid card");
   assert.match(cellar, /width !== undefined && \{ width \}/, "three-column cards use explicit width without zero flex-basis collapse");
   assert.match(cellar, /shelfGridLayout\(width, viewMode, fontScale\)/, "grid geometry adapts to phone width and larger text");
-  assert.match(cellar, /tileRating:\s*\{ color: colors\.accent, fontSize: 12/, "small star ratings preserve the requested compact card hierarchy");
+  assert.match(cellar, /tileRating:\s*\{ color: colors\.accent, fontSize: typeScale\.small/, "small star ratings preserve the requested compact card hierarchy");
   assert.doesNotMatch(cellar, /styles\.tileArtwork|styles\.tileCopy|styles\.tileStatus|flexBasis: "auto"/, "the regressed card wrapper and basis override stay removed");
   assert.match(cellar, /viewMode === "grid" \? <WhiskeyTile/);
   assert.match(cellar, /key=\{`cellar-\$\{viewMode\}-\$\{numColumns\}`\}/);

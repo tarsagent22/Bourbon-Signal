@@ -31,6 +31,8 @@ This is a working inventory for Apple’s App Privacy questionnaire. It describe
 
 ## Third-party SDK inventory
 
+Unfinished Post and Add to My Shelf text forms are saved in account-scoped Secure Store entries on the device. They are restored only for that account and form, and cleared after successful submission or explicit discard. Form-draft persistence does not send the draft to a server. Pending photo uploads retain their separate existing retry journal. Startup recovery now offers an explicit system Share action for bounded diagnostics, including app/build/runtime/update identifiers; diagnostics are not automatically transmitted by this action.
+
 - `@clerk/expo`: authentication and secure session lifecycle.
 - `react-native-purchases`: StoreKit product presentation, purchase, restore, and RevenueCat entitlement state.
 - Expo core, Router, Updates, Splash Screen, Secure Store, Linking, Constants, Status Bar, Notifications, Image Picker, Image Manipulator, and File System.

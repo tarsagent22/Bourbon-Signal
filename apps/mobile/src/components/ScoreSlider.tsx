@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
-import { colors } from "../theme";
+import { colors, typeScale, fonts } from "../theme";
 import { scoreFromTrackPageX } from "./score-slider-gesture";
 
 interface ScoreSliderProps {
@@ -171,15 +171,15 @@ export function ScoreSlider({ value, onChange, label = "My rating", onInteractio
 const styles = StyleSheet.create({
   root: { gap: 7 },
   readoutRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  caption: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 1 },
-  readout: { minWidth: 76, minHeight: 44, paddingHorizontal: 10, paddingVertical: 0, textAlign: "right", color: colors.accent, fontSize: 28, fontWeight: "800", borderColor: colors.border, borderWidth: 1, borderRadius: 10, backgroundColor: colors.surface },
+  caption: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 1 },
+  readout: { minWidth: 76, minHeight: 44, paddingHorizontal: 10, paddingVertical: 0, textAlign: "right", color: colors.accent, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "800", borderColor: colors.border, borderWidth: 1, borderRadius: 10, backgroundColor: colors.surface },
   touchTrack: { minHeight: 44, justifyContent: "center" },
   track: { height: 8, borderRadius: 999, backgroundColor: colors.border, position: "relative" },
   fill: { height: 8, borderRadius: 999, backgroundColor: colors.accent },
   thumb: { position: "absolute", top: -8, width: 24, height: 24, marginLeft: -12, borderRadius: 12, borderColor: colors.background, borderWidth: 3, backgroundColor: colors.accent },
   stepRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   stepButton: { minWidth: 64, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: 999, borderColor: colors.border, borderWidth: 1, backgroundColor: colors.surface },
-  stepText: { color: colors.text, fontSize: 13, fontWeight: "800" },
-  range: { color: colors.muted, fontSize: 11 },
+  stepText: { color: colors.text, fontSize: typeScale.small, fontWeight: "800" },
+  range: { color: colors.muted, fontSize: typeScale.caption },
   pressed: { opacity: 0.72 },
 });

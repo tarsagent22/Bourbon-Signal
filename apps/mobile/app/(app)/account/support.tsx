@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 
 const SUPPORT_EMAIL = "support@bourbonsignal.com";
 
@@ -39,12 +39,12 @@ const styles = StyleSheet.create({
   screen: { backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 48, gap: 14 },
   hero: { paddingVertical: 8, gap: 8 },
-  eyebrow: { color: colors.accent, fontSize: 11, lineHeight: 15, fontWeight: "900", letterSpacing: 1.25 },
-  title: { color: colors.text, fontSize: 30, lineHeight: 36, fontWeight: "900", letterSpacing: -0.45 },
-  intro: { color: colors.muted, fontSize: 15, lineHeight: 22 },
+  eyebrow: { color: colors.accent, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "900", letterSpacing: 1.25 },
+  title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, lineHeight: 40, fontWeight: "700", letterSpacing: -0.45 },
+  intro: { color: colors.muted, fontSize: typeScale.input, lineHeight: 22 },
   card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 17, gap: 9 },
   cardTitle: { color: colors.text, fontSize: 17, lineHeight: 22, fontWeight: "800" },
-  body: { color: colors.muted, fontSize: 14, lineHeight: 21 },
-  email: { color: colors.accent, fontSize: 16, lineHeight: 22, fontWeight: "800" },
-  note: { color: colors.danger, fontSize: 13, lineHeight: 19, fontWeight: "600" },
+  body: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21 },
+  email: { color: colors.accent, fontSize: typeScale.input, lineHeight: 22, fontWeight: "800" },
+  note: { color: colors.danger, fontSize: typeScale.small, lineHeight: 19, fontWeight: "600" },
 });

@@ -10,7 +10,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PurchasesProvider } from "../src/membership/PurchasesProvider";
 import { StartupErrorBoundary } from "../src/startup/StartupErrorBoundary";
 import { MobileApiProvider } from "../src/hooks/useMobileApi";
-import { colors } from "../src/theme";
+import { colors, typeScale, fonts } from "../src/theme";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -38,6 +38,6 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   configuration: { flex: 1, justifyContent: "center", padding: 28, backgroundColor: colors.background, gap: 12 },
-  title: { color: colors.text, fontSize: 28, fontWeight: "700" },
-  message: { color: colors.muted, fontSize: 16, lineHeight: 24 },
+  title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" },
+  message: { color: colors.muted, fontSize: typeScale.input, lineHeight: 24 },
 });

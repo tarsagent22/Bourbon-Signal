@@ -27,7 +27,7 @@ import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation"
 import { signOutWithRadarPushDisabled } from "../../../src/push/push-registration";
 import { rewardCatalogSummary } from "../../../src/interactions/member-interactions";
 import { RewardEmblem, rewardStyles as s } from "../../../src/rewards/RewardUI";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 
 export default function AccountScreen() {
   const api = useMobileApi();
@@ -52,10 +52,10 @@ export default function AccountScreen() {
       api.getMemberProfile({ fresh }).then(p => {
         if (id === sequence.current) setProfile(p.profile);
       }).catch(() => {
-        if (id === sequence.current) { setProfile(null); setError("Account details are temporarily unavailable."); }
+        if (id === sequence.current) { setError("Account details are temporarily unavailable."); }
       }),
-      api.getSignalPoints({ fresh }).then(p => { if (id === sequence.current) setPoints(p); }).catch(() => { if (id === sequence.current) setPoints(null); }),
-      api.getAchievements({ fresh }).then(a => { if (id === sequence.current) setBadges(a); }).catch(() => { if (id === sequence.current) setBadges(null); }),
+      api.getSignalPoints({ fresh }).then(p => { if (id === sequence.current) setPoints(p); }).catch(() => { if (id === sequence.current) setError("Points couldn’t refresh. Try again for your latest balance."); }),
+      api.getAchievements({ fresh }).then(a => { if (id === sequence.current) setBadges(a); }).catch(() => { if (id === sequence.current) setError("Badges couldn’t refresh. Try again for your latest progress."); }),
     ]);
     if (id === sequence.current) setLoading(false);
   }, [api]);
@@ -127,7 +127,7 @@ export default function AccountScreen() {
             onPress={() => openRewards()}
             style={{ gap: 8, minHeight: 70 }}
           >
-            <Text style={[s.title, { fontSize: 32 }]}>
+            <Text style={[s.title, { fontSize: typeScale.title, fontFamily: fonts.heading }]}>
               {points ? points.balance : "—"}{" "}
               <Text style={s.muted}>points available</Text>
             </Text>
@@ -243,7 +243,7 @@ export default function AccountScreen() {
         onPress={() => router.push("/(app)/account/delete")}
         style={{ minHeight: 48, justifyContent: "center" }}
       >
-        <Text style={{ color: colors.danger, fontSize: 15 }}>
+        <Text style={{ color: colors.danger, fontSize: typeScale.input }}>
           Delete account
         </Text>
       </Pressable>
@@ -282,7 +282,7 @@ function AccountRow({
         <Text style={s.text}>{label}</Text>
         {detail ? <Text style={s.muted}>{detail}</Text> : null}
       </View>
-      <Text style={{ color: colors.accent, fontSize: 24 }}>›</Text>
+      <Text style={{ color: colors.accent, fontSize: typeScale.title, fontFamily: fonts.heading }}>›</Text>
     </Pressable>
   );
 }

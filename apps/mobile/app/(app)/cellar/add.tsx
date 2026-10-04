@@ -1,3 +1,6 @@
+import { useFormDraft } from "../../../src/hooks/useFormDraft";
+import { DraftNotice } from "../../../src/components/DraftNotice";
+import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -13,8 +16,7 @@ import {
   removeBottleContributionReceipts,
   serializeBottleContributionReceipts,
 } from "../../../src/cellar/contribution-receipts";
-import { collectionMatchForOption, createBottleSearchIndex, rankBottleCatalog } from "../../../src/cellar/bottle-search";
-import bottleCatalogSeed from "../../../src/cellar/bottle-catalog-seed.json";
+import { collectionMatchForOption } from "../../../src/cellar/bottle-search";
 import { EmptyState, ErrorState, LoadingState } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -28,7 +30,7 @@ import {
   TASTE_TAG_OPTIONS,
   upsertCollectionBottle,
 } from "../../../src/interactions/member-interactions";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 
 type AddKind = "sealed" | "just_tasted";
 const KINDS: Array<{ key: AddKind; label: string }> = [
@@ -43,7 +45,6 @@ const CONTEXTS: Array<{ key: NonNullable<MemberCollectionBottle["tastingContext"
   { key: "other", label: "Other" },
 ];
 const COMMON_CUES = TASTE_TAG_OPTIONS.slice(0, 5);
-const BOTTLE_CATALOG_SEED = bottleCatalogSeed as RadarBottleOption[];
 
 function metadataForOption(option: RadarBottleOption, bottles: MemberCollectionBottle[]) {
   const existing = collectionMatchForOption(bottles, option);
@@ -55,6 +56,11 @@ function metadataForOption(option: RadarBottleOption, bottles: MemberCollectionB
 }
 
 export default function AddCellarBottleScreen() {
+  const { userId } = useAuth();
+  return <AccountAddBottle key={userId || "signed-out"} />;
+}
+
+function AccountAddBottle() {
   const api = useMobileApi();
   const { userId } = useAuth();
   const router = useRouter();
@@ -62,7 +68,7 @@ export default function AddCellarBottleScreen() {
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [preferenceError, setPreferenceError] = useState("");
-  const [catalog, setCatalog] = useState<RadarBottleOption[]>(BOTTLE_CATALOG_SEED);
+  const bottleCatalog = useBottleCatalog();
   const [formError, setFormError] = useState("");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<RadarBottleOption | null>(null);
@@ -85,6 +91,22 @@ export default function AddCellarBottleScreen() {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const draftDefaults = { query: "", selectedId: "", selectedName: "", selectedSource: "", custom: false, customName: "", customProof: "", customDetail: "", kind: "sealed", quantity: "1", pricePaid: "", store: "", tastingContext: "bar", isRated: false, rating: 0, tasteTags: [] as string[], notes: "" };
+  const draft = useFormDraft({ owner: userId, form: "add-bottle", defaults: draftDefaults,
+    fields: { query, selectedId: selected?.id || "", selectedName: selected?.name || "", selectedSource: selectedSource || "", custom, customName, customProof, customDetail, kind, quantity, pricePaid, store, tastingContext: tastingContext || "bar", isRated, rating, tasteTags, notes },
+    restore: value => {
+      setQuery(value.query); setSelected(value.selectedId && value.selectedName ? { id: value.selectedId, name: value.selectedName } : null); setSelectedSource(value.selectedSource === "catalog" || value.selectedSource === "recent" ? value.selectedSource : null);
+      setCustom(value.custom); setCustomName(value.customName); setCustomProof(value.customProof); setCustomDetail(value.customDetail); setKind(value.kind === "just_tasted" ? "just_tasted" : "sealed"); setQuantity(value.quantity); setPricePaid(value.pricePaid); setStore(value.store); setShowAcquisition(Boolean(value.pricePaid || value.store));
+      setTastingContext(CONTEXTS.find(context => context.key === value.tastingContext)?.key || "bar"); setIsRated(value.isRated); setRating(Math.min(100, Math.max(0, value.rating))); setTasteTags(value.tasteTags.filter(tag => (TASTE_TAG_OPTIONS as readonly string[]).includes(tag))); setNotes(value.notes);
+    },
+  });
+  function discardDraft() {
+    Alert.alert("Discard this draft?", "Your unfinished bottle entry will be removed from this device.", [
+      { text: "Keep editing", style: "cancel" },
+      { text: "Discard", style: "destructive", onPress: () => { void draft.discard().catch(() => undefined); } },
+    ]);
+  }
+
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -97,9 +119,6 @@ export default function AddCellarBottleScreen() {
       if (active) setLoading(false);
     });
 
-    void api.listBottleCatalog().then((bottles) => {
-      if (active && bottles.length) setCatalog(bottles);
-    }).catch(() => undefined);
     return () => { active = false; };
   }, [api]);
 
@@ -107,8 +126,7 @@ export default function AddCellarBottleScreen() {
 
   const bottles = preferences?.collectionPreferences.bottles || [];
   const needle = query.replace(/\s+/g, " ").trim();
-  const searchIndex = useMemo(() => createBottleSearchIndex(catalog), [catalog]);
-  const results = useMemo(() => needle.length >= 2 ? rankBottleCatalog(searchIndex, needle, 12) : [], [needle, searchIndex]);
+  const results = useMemo(() => needle.length >= 2 ? bottleCatalog.search(needle, 12) : [], [needle, bottleCatalog.search]);
   const recentBottles = useMemo(() => [...bottles]
     .sort((left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt))
     .slice(0, 6), [bottles]);
@@ -250,6 +268,7 @@ export default function AddCellarBottleScreen() {
           Alert.alert("Bottle added", "Your bottle is safe on My Shelf. We’ll keep working on the match in the background.");
         }
       }
+      await draft.clear().catch(() => Alert.alert("Bottle saved", "Your bottle was saved, but this device couldn’t clear its draft. Discard the old draft if it appears again."));
       router.back();
     } catch (caught) {
       if (caught instanceof MobileApiError && caught.status === 409) {
@@ -264,12 +283,15 @@ export default function AddCellarBottleScreen() {
     }
   }
 
+  if (!draft.ready) return <LoadingState label="Restoring your draft…" />;
   return <SafeAreaView edges={["bottom"]} style={styles.screen}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
       <ScrollView scrollEnabled={!ratingDragging} contentContainerStyle={styles.content} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
         <Text style={styles.eyebrow}>MY SHELF</Text>
         <Text accessibilityRole="header" style={styles.title}>Add to My Shelf</Text>
         <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
+        <DraftNotice hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} />
+        {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
         {loading ? <LoadingState label="Opening My Shelf…" /> : null}
         {preferenceError ? <ErrorState message={preferenceError} onRetry={() => {
           setLoading(true);
@@ -355,47 +377,47 @@ function DisclosureRow({ expanded, label, onPress }: { expanded: boolean; label:
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 48, gap: 18 },
-  eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "800", letterSpacing: 1.3 },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
-  description: { color: colors.muted, fontSize: 14, lineHeight: 20 },
-  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800", marginTop: 4 },
+  eyebrow: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 1.3 },
+  title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" },
+  description: { color: colors.muted, fontSize: typeScale.body, lineHeight: 20 },
+  sectionTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800", marginTop: 4 },
   recentSection: { gap: 10 },
   field: { flex: 1, gap: 8 },
-  fieldLabel: { color: colors.text, fontSize: 14, fontWeight: "700" },
-  fieldHelp: { color: colors.muted, fontSize: 12, lineHeight: 18 },
-  catalogError: { color: colors.danger, fontSize: 12, lineHeight: 18 },
-  formError: { color: colors.danger, fontSize: 13, lineHeight: 19 },
-  input: { minHeight: 48, borderColor: colors.border, borderWidth: 1, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
+  fieldLabel: { color: colors.text, fontSize: typeScale.body, fontWeight: "700" },
+  fieldHelp: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18 },
+  catalogError: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 },
+  formError: { color: colors.danger, fontSize: typeScale.small, lineHeight: 19 },
+  input: { minHeight: 48, borderColor: colors.border, borderWidth: 1, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, paddingVertical: 12, fontSize: typeScale.input },
   notes: { minHeight: 100, textAlignVertical: "top" },
   results: { borderColor: colors.border, borderWidth: 1, borderRadius: 12, overflow: "hidden" },
-  nearTitle: { color: colors.accent, padding: 12, fontSize: 12, fontWeight: "800" },
+  nearTitle: { color: colors.accent, padding: 12, fontSize: typeScale.small, fontWeight: "800" },
   result: { minHeight: 56, paddingHorizontal: 14, paddingVertical: 10, justifyContent: "center", borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
-  resultName: { color: colors.text, fontSize: 14, fontWeight: "700" },
-  resultMeta: { color: colors.muted, fontSize: 11, lineHeight: 16 },
+  resultName: { color: colors.text, fontSize: typeScale.body, fontWeight: "700" },
+  resultMeta: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
   cantFind: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  cantFindText: { color: colors.muted, fontSize: 14 },
+  cantFindText: { color: colors.muted, fontSize: typeScale.body },
   outlineButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 14, borderColor: colors.accent, borderWidth: 1, borderRadius: 11 },
   outlineButtonText: { color: colors.accent, fontWeight: "800" },
   customBox: { gap: 14, padding: 14, borderColor: colors.border, borderWidth: 1, borderRadius: 14, backgroundColor: colors.surface },
   selected: { minHeight: 68, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, padding: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   selectedCopy: { flex: 1, gap: 4 },
-  selectedName: { color: colors.text, fontSize: 16, fontWeight: "800" },
+  selectedName: { color: colors.text, fontSize: typeScale.input, fontWeight: "800" },
   target: { minHeight: 44, justifyContent: "center", alignSelf: "flex-start", paddingHorizontal: 8 },
   action: { color: colors.accent, fontWeight: "800" },
   toggles: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   toggle: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 13 },
   toggleActive: { backgroundColor: colors.surfaceRaised, borderColor: colors.accent },
-  toggleText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  toggleText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   toggleTextActive: { color: colors.accent },
   switchRow: { minHeight: 58, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 },
   switchCopy: { flex: 1, gap: 3 },
   disclosureRow: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
-  disclosureGlyph: { color: colors.accent, fontSize: 24 },
+  disclosureGlyph: { color: colors.accent, fontSize: typeScale.title, fontFamily: fonts.heading },
   disclosureBody: { gap: 14 },
   ratingSection: { gap: 16 },
   save: { minHeight: 52, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.accent },
   savePressed: { backgroundColor: colors.accentPressed },
-  saveText: { color: colors.background, fontSize: 15, fontWeight: "900" },
+  saveText: { color: colors.background, fontSize: typeScale.input, fontWeight: "900" },
   disabled: { opacity: 0.45 },
   pressed: { backgroundColor: colors.surfaceRaised },
 });

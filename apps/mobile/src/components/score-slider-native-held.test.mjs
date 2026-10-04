@@ -55,7 +55,7 @@ function harness() {
   const { ScoreSlider } = load('src/components/ScoreSlider.tsx', {
     react, 'react-native': native,
     './score-slider-gesture': load('src/components/score-slider-gesture.ts', {}),
-    '../theme': { colors: {} },
+    '../theme': load('src/theme.ts', {}),
   });
   const nodes = node => node && typeof node === 'object'
     ? [node, ...[node.props?.children].flat(Infinity).flatMap(nodes)] : [];

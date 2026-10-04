@@ -2,7 +2,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs, router } from "expo-router";
 import type { ColorValue } from "react-native";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 import { MEMBER_TABS } from "../../../src/navigation/member-tabs";
 
 const byRoute = new Map(MEMBER_TABS.map((tab) => [tab.route, tab]));
@@ -45,7 +45,7 @@ export default function TabsLayout() {
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border, paddingTop: 4 },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarLabelStyle: { fontSize: typeScale.caption, fontWeight: "600" },
         tabBarHideOnKeyboard: true,
         lazy: true,
         freezeOnBlur: true,
@@ -61,7 +61,7 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  brandTitle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 24, lineHeight: 30, letterSpacing: -0.35 },
+  brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.title, lineHeight: 40, letterSpacing: -0.35 },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
   pressed: { opacity: 0.68 },
 });

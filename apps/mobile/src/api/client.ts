@@ -224,6 +224,10 @@ export function createMobileApi({
     })).catch(() => { throw new MobileApiError("Unable to connect. Check your connection and retry.", 0, "NETWORK_ERROR", true); });
     const raw: unknown = await response.json().catch(() => null);
     const payload = isRecord(raw) ? raw : {};
+    // Older servers can return a degraded catalog with HTTP 200. Never cache it as empty success.
+    if ((path.startsWith("/api/bottles") || path.startsWith("/api/bottle-catalog")) && payload.error) {
+      throw new MobileApiError("The bottle catalog is temporarily unavailable. Please retry.", 503, "CATALOG_UNAVAILABLE", true);
+    }
     if (!response.ok) {
       const structured = payload.error && typeof payload.error === "object" ? payload.error as Record<string, unknown> : null;
       const scalarMessage = typeof payload.error === "string" ? payload.error : null;
@@ -287,8 +291,8 @@ export function createMobileApi({
       if (normalizedBottle) params.set("bottle", normalizedBottle);
       return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`, { fresh });
     },
-    getSignal(id: string) {
-      return request<{ contractVersion: "bourbon-signal/mobile-api@1"; signal: Signal }>(`/api/v1/signals/${encodeURIComponent(id)}`);
+    getSignal(id: string, { fresh = false }: { fresh?: boolean } = {}) {
+      return request<{ contractVersion: "bourbon-signal/mobile-api@1"; signal: Signal }>(`/api/v1/signals/${encodeURIComponent(id)}`, { fresh });
     },
     getHuntOutcome(id: string) {
       return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { fresh: true });
