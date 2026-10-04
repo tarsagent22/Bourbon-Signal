@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     if (membershipReservationId) {
       return NextResponse.json({ error: "Your points remain reserved. Retry this same redemption to finish applying the membership credit." }, { status: 503, headers: PRIVATE_HEADERS });
     }
-    return NextResponse.json({ error: "Redemption is temporarily unavailable; no points were intentionally spent." }, { status: 503, headers: PRIVATE_HEADERS });
+    return NextResponse.json({ error: "The redemption result could not be confirmed. Retry the same request or check your redemption history before starting another." }, { status: 503, headers: PRIVATE_HEADERS });
   }
 }
 

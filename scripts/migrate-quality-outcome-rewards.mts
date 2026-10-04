@@ -1,0 +1,14 @@
+import { readFile } from 'node:fs/promises';
+import { neon } from '@neondatabase/serverless';
+import * as pointsModule from '../src/lib/signal-points-repository.ts';
+const { createSignalPointsRepository } = ('default' in pointsModule ? { ...pointsModule, ...(pointsModule.default as object) } : pointsModule) as typeof import('../src/lib/signal-points-repository.ts');
+const apply = process.argv.includes('--apply');
+const url = process.env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || process.env.BOURBON_QUEUE_DATABASE_URL || process.env.DATABASE_URL;
+if (!url) throw new Error('Reward storage is not configured.');
+await createSignalPointsRepository().assertCutoverVerified();
+const sql = neon(url);
+const prerequisite = await sql`SELECT to_regclass('hunt_outcomes') IS NOT NULL AS ready`;
+if (!prerequisite[0]?.ready) throw new Error('Hunt outcome storage is not ready.');
+if (apply) await sql.query(await readFile(new URL('../src/lib/quality-outcome-rewards.sql',import.meta.url),'utf8'));
+const result = await sql`SELECT to_regprocedure('reconcile_quality_outcome_reward(text,text)') IS NOT NULL AS ready`;
+console.log(JSON.stringify({mode:apply?'apply':'check',qualityOutcomeRewardsReady:result[0]?.ready===true}));

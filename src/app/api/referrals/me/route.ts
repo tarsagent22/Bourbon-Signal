@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
       program: REFERRAL_PROGRAM,
       referrals: {
         total: summary.totalReferrals,
+        awarded: summary.awardedReferrals || 0,
         free: summary.freeReferrals,
         standard: summary.standardReferrals,
         barrel: summary.barrelReferrals,

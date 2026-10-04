@@ -233,16 +233,18 @@ export class SignalPointsRepository {
     await this.assertCutoverVerified();
     await this.ensureCatalog();
     await this.query.query("INSERT INTO signal_point_accounts(user_id) VALUES($1) ON CONFLICT(user_id) DO NOTHING", [userId]);
-    const [accountRows, catalogRows, redemptionRows] = await Promise.all([
+    const [accountRows, catalogRows, redemptionRows, activityRows] = await Promise.all([
       this.query.query("SELECT balance,debt FROM signal_point_accounts WHERE user_id=$1", [userId]),
       this.query.query(`SELECT * FROM signal_reward_catalog WHERE active=TRUE
         AND (item_key NOT IN ('standard_membership_credit_month','barrel_membership_credit_month')
           OR EXISTS (SELECT 1 FROM signal_point_migrations WHERE migration_key='signal_points_membership_credit_v3_ready'))
         ORDER BY points_cost,item_key`),
-      this.query.query("SELECT id,item_key,item_snapshot,details,points_spent,status,created_at,updated_at FROM signal_reward_redemptions WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50", [userId]),
-    ]) as [Array<Record<string, unknown>>, Array<Record<string, unknown>>, Array<Record<string, unknown>>];
+      this.query.query("SELECT r.id,r.item_key,r.item_snapshot,r.details,r.points_spent,r.status,r.created_at,r.updated_at,f.carrier,f.tracking_number FROM signal_reward_redemptions r LEFT JOIN signal_reward_fulfillments f ON f.redemption_id=r.id WHERE r.user_id=$1 ORDER BY r.created_at DESC LIMIT 50", [userId]),
+    this.query.query("SELECT id,entry_kind,points,balance_delta,debt_delta,source_type,metadata,created_at FROM signal_point_ledger WHERE user_id=$1 ORDER BY created_at DESC,id DESC LIMIT 50", [userId]),
+    ]) as Array<Array<Record<string, unknown>>>;
     if (!accountRows[0]) throw new Error("Signal Points account is unavailable.");
     return {
+      activity: activityRows.map(row => ({ id: text(row.id), kind: text(row.entry_kind), points: number(row.points), balanceDelta: number(row.balance_delta), debtDelta: number(row.debt_delta), sourceType: text(row.source_type), reason: text(json(row.metadata).reason), createdAt: text(row.created_at) })),
       balance: number(accountRows[0].balance),
       debt: number(accountRows[0].debt),
       catalog: catalogRows.map((row) => ({
@@ -250,6 +252,7 @@ export class SignalPointsRepository {
         fulfillmentType: text(row.fulfillment_type), inventoryRemaining: row.inventory_remaining == null ? null : number(row.inventory_remaining), options: json(row.option_snapshot),
       })),
       redemptions: redemptionRows.map((row) => ({
+        carrier: text(row.carrier) || null, trackingNumber: text(row.tracking_number) || null,
         id: text(row.id), itemKey: text(row.item_key), itemSnapshot: json(row.item_snapshot), details: json(row.details),
         pointsSpent: number(row.points_spent), status: text(row.status), createdAt: text(row.created_at), updatedAt: text(row.updated_at),
       })),

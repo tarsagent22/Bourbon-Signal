@@ -63,6 +63,7 @@ export interface BadgeProgress {
   current: number;
   target: number;
   earned: boolean;
+  description?: string;
 }
 
 export interface MemberRewardsSummary {
@@ -245,7 +246,7 @@ export function summarizeMemberRewards(sightings: MemberSighting[], existing?: u
     currentWeeklyStreak: rewards.currentWeeklyStreak,
     longestWeeklyStreak: rewards.longestWeeklyStreak,
     badges: rewards.badges,
-    badgeProgress: progress,
+    badgeProgress: progress.map(badge => ({ ...badge, description: badgeDescription(badge.id) })),
     eligibleSightings: eligible.length,
     helpfulSightings: helpful.length,
     photoSightings: photoSightings.length,

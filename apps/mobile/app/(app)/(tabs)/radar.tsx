@@ -112,6 +112,7 @@ export default function RadarScreen() {
 
   useEffect(() => () => { loadSequence.current += 1; }, [api]);
   useScreenRevalidation(() => load(true));
+  useEffect(() => { if (requestedSection === "settings") setView("settings"); }, [requestedSection, request]);
   useEffect(() => { if (requestedSection === "matches" && request) { setView("matches"); void load(true); } }, [load, requestedSection, request]);
   useEffect(() => {
     if (loading || !request || handledPushRequests.current.has(request)) return;

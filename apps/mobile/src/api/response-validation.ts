@@ -41,7 +41,13 @@ const alerts = obj({ alerts: arr(obj({ id: str, signalId: optional(str), bottleN
   rarityTier: nullable(one('limited','allocated','unicorn')), quantity: nullable(num), score: num, priorityClass: one('major','standard'), createdAt: str, readAt: nullable(str), archivedAt: nullable(str) })), unreadCount: num });
 const bottles = obj({ bottles: arr(v => record(v) && [v.canonicalName, v.name, v.bottle].some(str)) });
 const outcome = obj({ contractVersion: mobileVersion, outcome: nullable(obj({ signalId: str, availabilityEpisodeId: str, outcome: one('found_it','gone_when_checked','didnt_go'), sourceType: one('member','retailer','trusted_source','release_source'), stateCode: nullable(str), submittedAt: str, updatedAt: str })) });
+const shipping = obj({ recipientName: str, addressLine1: str, addressLine2: nullable(str), city: str, stateCode: str, postalCode: str, phone: str });
+const achievement = obj({ points: num, currentWeeklyStreak: num, longestWeeklyStreak: num, eligibleSightings: num, helpfulSightings: num, photoSightings: num,
+  badges: arr(obj({ id: str, label: str, tier: optional(str), earnedAt: str, pointsAwarded: num })),
+  badgeProgress: arr(obj({ id: str, label: str, tier: optional(str), current: num, target: num, earned: bool, description: optional(str) })) });
 const checks: Record<string, Check> = {
+  '/api/member/shipping': obj({ record: nullable(shipping), defaultRecipientName: optional(str) }),
+  '/api/signal-points/redemptions': obj({ ok: one(true), redemptionId: optional(str), status: optional(str), balance: optional(num) }),
   '/api/user/preferences': preferencesResponse,
   '/api/v1/me/profile': profile,
   '/api/v1/me/onboarding': obj({ contractVersion: mobileVersion, completed: bool }),
@@ -58,12 +64,13 @@ const checks: Record<string, Check> = {
   '/api/sightings': obj({ ok: one(true), created: bool, sighting: obj({ id: str }) }),
   '/api/sightings/photo': obj({ ok: one(true), photoProof: obj({ url: str, pathname: str, uploadedAt: str, status: one('verified_public') }) }),
   '/api/bottle-contributions': obj({ ok: one(true), contribution: obj({ id: str }) }),
-  '/api/signal-points': obj({ balance: num, debt: num, tier, redemptionEligible: bool, catalog: arr(obj({ key: str, name: str, points: num, fulfillmentType: one('physical','digital') })), redemptions: arr(obj({ id: str, itemKey: str, pointsSpent: num, status: str, createdAt: str, updatedAt: str })) }),
+  '/api/signal-points': obj({ activity: optional(arr(obj({id:str,kind:str,points:num,balanceDelta:num,debtDelta:num,sourceType:str,reason:str,createdAt:str}))), balance: num, debt: num, tier, redemptionEligible: bool, catalog: arr(obj({ key: str, name: str, points: num, fulfillmentType: one('physical','digital'), inventoryRemaining: optional(nullable(num)), options: optional(obj({glassQuantity:optional(num),engravingPointsPerGlass:optional(num),usShippingIncluded:optional(bool),membershipCredit:optional(bool),requiresAge21Attestation:optional(bool)})) })), redemptions: arr(obj({ id: str, itemKey: str, pointsSpent: num, status: str, createdAt: str, updatedAt: str })) }),
   '/api/v1/geography': obj({ contractVersion: mobileVersion, states: arr(obj({ id: str, code: str, name: str })), results: arr(obj({ id: str, level: one('state','county','city','board','store'), state: str, name: str, message: nullable(str), coverage: obj({ engine: obj({ status: one('active','expanding') }), community: obj({ active: bool, recentSightings: num, windowDays: num }) }) })), offset: num, limit: num, hasMore: bool }),
   '/api/v1/signals': obj({ contractVersion: signalVersion, view: one('market','community','all'), signals: arr(signal), marketSummaries: arr(obj({ state: str, areaLabel: str, signalCount: num, bottleNames: strings })), total: num, nextCursor: nullable(str), hasMore: bool, degraded: bool, access: obj({ previewLocked: bool, requiresAccountForFullFeed: bool, memberSignalsAvailable: bool, marketDetailsLocked: bool }) }),
 };
 export function validApiResponse(path: string, value: unknown): boolean {
   const pathname = path.split('?')[0];
+  if (pathname === '/api/sightings' && path.includes('rewards=1')) return obj({ rewards: achievement })(value);
   if (pathname === '/api/referrals/me') return true; // Dedicated referral parser supplies its existing typed error.
   const check = checks[pathname] || (/^\/api\/v1\/signals\/[^/]+\/outcome$/.test(pathname) ? outcome : /^\/api\/v1\/signals\/[^/]+$/.test(pathname) ? obj({ contractVersion: mobileVersion, signal }) : null);
   return !!check && check(value);

@@ -1,6 +1,9 @@
 import { uploadClientBlob, type ClientBlobUploadResult } from "./blob-upload";
 import { validApiResponse } from "./response-validation";
 import type {
+  AchievementSummary,
+  RewardShipping,
+  RewardRedemptionRequest,
   AccountDeletionResponse,
   AppleMembershipReadinessResponse,
   AppleMembershipReconciliationRequest,
@@ -394,6 +397,18 @@ export function createMobileApi({
     async getReferralSummary({ fresh = false }: { fresh?: boolean } = {}) {
       return parseReferralSummary(await request<unknown>("/api/referrals/me", { fresh }));
     },
+    async getAchievements({ fresh = false }: { fresh?: boolean } = {}) {
+      const result = await request<{ rewards: AchievementSummary }>("/api/sightings?limit=1&rewards=1", { fresh });
+      return result.rewards;
+    },
+    getRewardShipping() { return request<{ record: RewardShipping | null; defaultRecipientName: string }>("/api/member/shipping", { fresh: true }); },
+    saveRewardShipping(shipping: RewardShipping) { return request<{ record: RewardShipping }>("/api/member/shipping", { method: "POST", body: { ...shipping, countryCode: "US" } }); },
+    async redeemReward(payload: RewardRedemptionRequest) {
+      const response = await request<{ ok: true; redemptionId: string; status: string; balance: number }>("/api/signal-points/redemptions", { method: "POST", body: payload });
+      if (typeof response.redemptionId !== 'string' || !response.redemptionId || typeof response.status !== 'string' || !Number.isFinite(response.balance)) throw new MobileApiError('The server returned an invalid response. Retry the same redemption.', 502, 'INVALID_RESPONSE', true);
+      return response;
+    },
+    cancelReward(redemptionId: string) { return request<{ ok: true }>("/api/signal-points/redemptions", { method: "PATCH", body: { action: "cancel", redemptionId } }); },
     getSignalPoints({ fresh = false }: { fresh?: boolean } = {}) {
       return request<SignalPointsSummary>("/api/signal-points", { fresh });
     },

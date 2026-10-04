@@ -122,6 +122,7 @@ export default function SignalDetailScreen() {
       const response = await api.setHuntOutcome(id, outcome);
       setHuntOutcomeState(response.outcome?.outcome || outcome);
       setEditingHuntOutcome(false);
+      if (response.reward) setHuntOutcomeError('pending' in response.reward ? 'Update saved. Reward processing is pending; reopen this Signal to retry.' : response.reward.points > 0 ? 'Update saved · 5 points credited for this availability episode. Repeated updates do not earn again.' : 'Update saved. Points apply to the first 3 qualifying retailer/source updates per day.');
     } catch (caught) {
       setHuntOutcomeError(caught instanceof Error ? caught.message : "That outcome could not be saved.");
     } finally {
