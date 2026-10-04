@@ -49,6 +49,7 @@ try {
   assert.throws(() => decryptMembershipCode(ciphertext), "wrong keys fail closed");
   assert.deepEqual(membershipMonthRoute("free",{},{},"ios"),{provider:"apple",audience:"free",tier:"standard"});
   assert.deepEqual(membershipMonthRoute("free",{},{},"web"),{provider:"earned_access",audience:"free",tier:"standard"});
+  assert.deepEqual(membershipMonthRoute("standard",{appleMembershipTier:"standard",appleMembershipStatus:"active",appleMembershipExpiresAt:"2020-01-01T00:00:00Z"},{appleMembershipProductId:"com.bourbonsignal.app.standard.monthly",stripeSubscriptionId:"sub_current"},"web"),{provider:"stripe",audience:"member",tier:"standard"},"expired Apple metadata cannot hide current website billing");
   assert.equal(membershipMonthRoute("bottled-in-bond",{},{},"ios"),null);
   assert.equal(membershipMonthRoute("standard",{giftOrderId:"gift"},{},"web"),null);
   assert.equal(membershipMonthRoute("standard",{appleMembershipTier:"standard",appleMembershipStatus:"active"},{appleMembershipProductId:"com.bourbonsignal.app.standard.annual"},"ios"),null);

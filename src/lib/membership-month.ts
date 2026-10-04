@@ -10,7 +10,7 @@ export function membershipMonthRoute(tier: MembershipTier, metadata: Metadata, p
   if (tier === "free") return { provider: platform === "ios" ? "apple" : "earned_access", audience: "free", tier: "standard" };
   if (metadata.giftOrderId || metadata.directFounderCheckoutAttemptId) return null;
   // An Apple subscription always retains Apple billing authority, even on the website.
-  if (metadata.appleMembershipTier === tier && typeof privateMetadata.appleMembershipProductId === "string") {
+  if (metadata.appleMembershipTier === tier && Date.parse(String(metadata.appleMembershipExpiresAt || "")) > Date.now() && typeof privateMetadata.appleMembershipProductId === "string") {
     if (!(privateMetadata.appleMembershipProductId as string).endsWith(".monthly") || !["active", "trialing", "canceled_period_end"].includes(String(metadata.appleMembershipStatus))) return null;
     return { provider: "apple", audience: "member", tier };
   }
