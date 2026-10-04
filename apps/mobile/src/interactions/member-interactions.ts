@@ -416,7 +416,7 @@ export function rewardAvailability(
 ) {
   const physicalStock = typeof reward.inventoryRemaining === "number" ? ` · ${reward.inventoryRemaining} remaining` : "";
   if (reward.inventoryRemaining === 0) return { label: "Sold out", claimable: false, soldOut: true };
-  if (!member.redemptionEligible) return { label: `Membership required to redeem${physicalStock}`, claimable: false, soldOut: false };
+  if (!(reward.redemptionEligible ?? member.redemptionEligible)) return { label: reward.unavailableReason || `Membership required to redeem${physicalStock}`, claimable: false, soldOut: false };
   if (member.balance < reward.points) return { label: `${reward.points - member.balance} more points needed${physicalStock}`, claimable: false, soldOut: false };
   return { label: `Available to redeem${physicalStock}`, claimable: true, soldOut: false };
 }
@@ -435,10 +435,10 @@ export function rewardCatalogSummary(
     })
     .map(({ reward }) => reward);
   const featuredReward = orderedRewards.find((reward) => rewardAvailability(reward, member).claimable) || null;
-  const nextReward = member.redemptionEligible ? orderedRewards.find((reward) => {
+  const nextReward = orderedRewards.find((reward) => {
     const availability = rewardAvailability(reward, member);
-    return !availability.claimable && !availability.soldOut && reward.points > member.balance;
-  }) || null : null;
+    return (reward.redemptionEligible ?? member.redemptionEligible) && !availability.claimable && !availability.soldOut && reward.points > member.balance;
+  }) || null;
   const nextRewardProgress = nextReward ? {
     remaining: Math.max(0, nextReward.points - member.balance),
     ratio: Math.min(1, Math.max(0, member.balance / Math.max(1, nextReward.points))),

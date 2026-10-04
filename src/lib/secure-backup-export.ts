@@ -50,7 +50,7 @@ const GIFT_TABLES = [
 const SIGNAL_POINT_TABLES = [
   "member_referral_scale_migrations", "signal_point_accounts", "signal_point_reward_generations",
   "signal_point_source_balances", "signal_point_ledger", "signal_point_migrations", "signal_reward_catalog",
-  "signal_reward_redemptions", "signal_reward_redemption_events", "signal_reward_fulfillments",
+  "signal_reward_redemptions", "signal_reward_redemption_events", "signal_reward_fulfillments", "signal_membership_offer_codes",
 ] as const;
 export const BACKUP_TABLES = Array.from(new Set([
   "approved_catalog_bottles", "approved_catalog_locations",

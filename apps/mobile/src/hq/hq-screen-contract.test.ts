@@ -27,7 +27,7 @@ test('rewards use independent server panels and preserve earn-versus-redeem elig
  assert.match(rewards,/id !== sequence.current/);
  assert.match(rewards,/api.getAchievements/);
  assert.match(rewards,/api.getReferralSummary/);
- assert.match(rewards,/Paid membership is\s+required/);
+ assert.match(rewards,/Free members can earn a month of Standard/);
  assert.match(rewards,/redemptionEligible/);
  assert.match(rewards,/inventoryRemaining === 0/);
  assert.match(rewards,/balance >= item.points/);
@@ -44,4 +44,10 @@ test('redemption requires review, address confirmation and a persisted retry ide
  assert.match(redeem,/api.saveRewardShipping/);
  assert.match(redeem,/ageConfirmed/);
  assert.match(redeem,/engravingValid/);
+});
+
+test('Apple reward refresh initializes the lazy purchase provider before restore',()=>{
+ for(const screen of [rewards,redeem]) {
+  assert.match(screen,/purchases\.refresh\(\)\.then\(\(\) => purchases\.restore\(\)\)/);
+ }
 });

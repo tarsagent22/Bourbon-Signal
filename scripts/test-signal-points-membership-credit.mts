@@ -30,8 +30,8 @@ const barrelAnnualPrice = "price_1U3SfyLQlLvo1rCDYCcq0bs2";
 test("membership credits use the approved tier-specific point costs and dollar values", () => {
   const standard = SIGNAL_REWARD_CATALOG.find((item) => item.key === standardKey);
   const barrel = SIGNAL_REWARD_CATALOG.find((item) => item.key === barrelKey);
-  assert.deepEqual({ points: standard?.points, version: standard?.catalogVersion, type: standard?.fulfillmentType, credit: standard?.membershipCreditCents }, { points: 150, version: 3, type: "digital", credit: 300 });
-  assert.deepEqual({ points: barrel?.points, version: barrel?.catalogVersion, type: barrel?.fulfillmentType, credit: barrel?.membershipCreditCents }, { points: 250, version: 3, type: "digital", credit: 600 });
+  assert.deepEqual({ points: standard?.points, version: standard?.catalogVersion, type: standard?.fulfillmentType, credit: standard?.membershipCreditCents }, { points: 150, version: 5, type: "digital", credit: 300 });
+  assert.deepEqual({ points: barrel?.points, version: barrel?.catalogVersion, type: barrel?.fulfillmentType, credit: barrel?.membershipCreditCents }, { points: 250, version: 5, type: "digital", credit: 600 });
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.points, 2500);
 });
 
@@ -41,7 +41,8 @@ test("members see only the membership credit matching their current tier", () =>
   assert.equal(keys("standard").includes(barrelKey), false);
   assert.equal(keys("barrel").includes(barrelKey), true);
   assert.equal(keys("barrel").includes(standardKey), false);
-  assert.equal(keys("free").some((key) => key.includes("membership_credit")), false);
+  assert.equal(keys("free").includes(standardKey), true);
+  assert.equal(keys("free").includes(barrelKey), false);
   assert.equal(keys("bottled-in-bond").some((key) => key.includes("membership_credit")), false);
 });
 
@@ -111,6 +112,6 @@ test("database and route enforce annual limit, atomic fulfillment preparation, a
   assert.match(route, /assertMembershipCreditReady/);
   assert.match(route, /prepareMembershipCreditFulfillment/);
   assert.match(route, /completeMembershipCreditFulfillment/);
-  assert.match(panel, /Applied automatically to your next Stripe invoice/);
+  assert.match(panel, /Credit toward your next Stripe invoice/);
   assert.doesNotMatch(panel, /membershipCredit[\s\S]{0,500}21 or older/i);
 });

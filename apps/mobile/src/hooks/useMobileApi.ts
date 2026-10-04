@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { useAuth } from "@clerk/expo";
 import { createContext, createElement, useContext, useEffect, useMemo, useRef, type PropsWithChildren } from "react";
 import { createMobileApi, MobileApiError } from "../api/client";
@@ -7,7 +8,7 @@ function useAccountMobileApi() {
   const identity = `${userId || ''}:${sessionId || ''}`;
   const current = useRef({ identity, getToken });
   current.current = { identity, getToken };
-  const api = useMemo(() => ({ ...createMobileApi({ getToken: async () => {
+  const api = useMemo(() => ({ ...createMobileApi({ rewardPlatform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web", getToken: async () => {
     if (current.current.identity !== identity) throw new MobileApiError('The account changed. Please retry.', 401, 'SESSION_CHANGED');
     const token = await current.current.getToken();
     if (current.current.identity !== identity) throw new MobileApiError('The account changed. Please retry.', 401, 'SESSION_CHANGED');

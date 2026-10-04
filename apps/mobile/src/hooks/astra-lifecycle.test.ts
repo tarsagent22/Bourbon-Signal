@@ -29,10 +29,12 @@ test('M07: focus/resume hook refreshes only focused screen with latest loader, c
 test('M11: old API handles cannot acquire a new account token after a transition', async () => {
   const h = hooks(); let userId = 'A'; let context: any;
   const { useMobileApi, MobileApiProvider } = loadWithMocks('src/hooks/useMobileApi.ts', {
+    'react-native': {Platform:{OS:'ios'}},
     react: { ...h.react, createContext: () => ({ Provider: 'Provider' }), createElement: (_type: unknown, props: any) => { context = props.value; }, useContext: () => context }, '@clerk/expo': { useAuth: () => ({ userId, sessionId: userId, getToken: async () => userId }) },
-    '../api/client': { createMobileApi: ({ getToken }: any) => ({ token: getToken, clearReadCache() {} }), MobileApiError: class extends Error {} },
+    '../api/client': { createMobileApi: ({ getToken, rewardPlatform }: any) => ({ token: getToken, rewardPlatform, clearReadCache() {} }), MobileApiError: class extends Error {} },
   });
   MobileApiProvider({}); const old = useMobileApi(); assert.equal(old, useMobileApi(), 'screens share the same account client');
+  assert.equal(old.rewardPlatform,'ios','all account reads use native reward eligibility');
   assert.equal(await old.token(), 'A'); userId = 'B'; h.reset(); MobileApiProvider({}); const next = useMobileApi();
   assert.notEqual(old, next); await assert.rejects(old.token()); assert.equal(await next.token(), 'B');
 });

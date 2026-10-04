@@ -63,6 +63,7 @@ const schemaFiles = [
   '../src/lib/founder-shipping-schema.sql',
   '../src/lib/referral-schema.sql',
   '../src/lib/signal-points-schema.sql',
+  '../src/lib/membership-month-schema.sql',
   '../src/lib/membership-trial-schema.sql',
   '../src/lib/apple-membership-schema.sql',
   '../src/lib/gift-schema.sql',

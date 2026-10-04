@@ -165,6 +165,7 @@ export function createMobileApi({
   getToken,
   fetcher = fetch,
   blobUploader = defaultBlobUploader,
+  rewardPlatform,
   readCooldownMs = 10_000,
   requestTimeoutMs = 15_000,
   maxReadCacheEntries = 64,
@@ -174,6 +175,7 @@ export function createMobileApi({
   getToken: () => Promise<string | null>;
   fetcher?: typeof fetch;
   blobUploader?: BlobUploader;
+  rewardPlatform?: "ios" | "android" | "web";
   readCooldownMs?: number;
   requestTimeoutMs?: number;
   maxReadCacheEntries?: number;
@@ -417,13 +419,13 @@ export function createMobileApi({
     getRewardShipping() { return request<{ record: RewardShipping | null; defaultRecipientName: string }>("/api/member/shipping", { fresh: true }); },
     saveRewardShipping(shipping: RewardShipping) { return request<{ record: RewardShipping }>("/api/member/shipping", { method: "POST", body: { ...shipping, countryCode: "US" } }); },
     async redeemReward(payload: RewardRedemptionRequest) {
-      const response = await request<{ ok: true; redemptionId: string; status: string; balance: number }>("/api/signal-points/redemptions", { method: "POST", body: payload });
+      const response = await request<{ ok: true; redemptionId: string; status: string; balance: number; membershipMonth?: import("./types").MembershipMonthDelivery | null }>("/api/signal-points/redemptions", { method: "POST", body: payload });
       if (typeof response.redemptionId !== 'string' || !response.redemptionId || typeof response.status !== 'string' || !Number.isFinite(response.balance)) throw new MobileApiError('The server returned an invalid response. Retry the same redemption.', 502, 'INVALID_RESPONSE', true);
       return response;
     },
     cancelReward(redemptionId: string) { return request<{ ok: true }>("/api/signal-points/redemptions", { method: "PATCH", body: { action: "cancel", redemptionId } }); },
-    getSignalPoints({ fresh = false }: { fresh?: boolean } = {}) {
-      return request<SignalPointsSummary>("/api/signal-points", { fresh });
+    getSignalPoints({ fresh = false, platform = rewardPlatform }: { fresh?: boolean; platform?: "ios" | "android" | "web" } = {}) {
+      return request<SignalPointsSummary>(`/api/signal-points${platform ? `?platform=${platform}` : ""}`, { fresh });
     },
     submitSighting(payload: SightingSubmission, idempotencyKey: string) {
       return request<SightingSubmissionResponse>("/api/sightings", {

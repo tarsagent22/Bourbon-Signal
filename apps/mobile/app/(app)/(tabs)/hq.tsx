@@ -133,11 +133,11 @@ export default function AccountScreen() {
             </Text>
             <Text style={s.muted}>
               {points
-                ? points.redemptionEligible
+                ? (points.redemptionEligible || rewards?.claimableCount)
                   ? rewards?.claimableCount
                     ? `${rewards.claimableCount} reward${rewards.claimableCount === 1 ? "" : "s"} ready to redeem`
                     : "Keep contributing toward your next reward"
-                  : "Earn on any plan · paid membership to redeem"
+                  : "Earn points toward membership and rewards"
                 : "View points and rewards"}
             </Text>
             <Text style={{ color: colors.accent, fontWeight: "800" }}>

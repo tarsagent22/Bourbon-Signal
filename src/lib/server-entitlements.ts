@@ -24,7 +24,7 @@ function stringValue(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-export async function resolveServerEffectiveMembershipTier(input: unknown, now = new Date()): Promise<MembershipTier> {
+async function resolveBaseServerMembershipTier(input: unknown, now = new Date()): Promise<MembershipTier> {
   const giftOrderId = stringValue(metadataValue(input, "giftOrderId"));
   const giftVersion = stringValue(metadataValue(input, "giftEntitlementVersion"));
   const directFounderAttemptId = stringValue(metadataValue(input, "directFounderCheckoutAttemptId"));
@@ -64,6 +64,24 @@ export async function resolveServerEffectiveMembershipTier(input: unknown, now =
   }
 
   return resolveEffectiveMembershipTier(input, now);
+}
+
+export async function resolveServerEffectiveMembershipTier(input: unknown, now = new Date()): Promise<MembershipTier> {
+  const id = stringValue(metadataValue(input, "rewardMembershipRedemptionId"));
+  if (!id) return resolveBaseServerMembershipTier(input, now);
+  const raw = input && typeof input === "object" ? input as Record<string, unknown> : {};
+  const publicMetadata = raw.publicMetadata && typeof raw.publicMetadata === "object" ? raw.publicMetadata as Record<string, unknown> : raw;
+  const clean = { ...raw, ...publicMetadata, rewardMembershipExpiresAt: null, rewardMembershipRedemptionId: null, publicMetadata: { ...publicMetadata, rewardMembershipExpiresAt: null, rewardMembershipRedemptionId: null } };
+  const base = await resolveBaseServerMembershipTier(clean, now);
+  if (base !== "free") return base;
+  try {
+    const { membershipMonthQuery } = await import("./membership-month");
+    const rows = await membershipMonthQuery().query(`SELECT 1 FROM signal_reward_redemptions WHERE id=$1 AND user_id=$2
+      AND item_key='standard_membership_credit_month' AND status='delivered'
+      AND details->>'monthProvider'='earned_access' AND (details->>'accessExpiresAt')::timestamptz>$3`,
+      [id, stringValue(metadataValue(input, "rewardMembershipUserId")), now.toISOString()]);
+    return rows[0] ? "standard" : "free";
+  } catch { return "free"; }
 }
 
 export async function getServerEntitlements(input: unknown, now = new Date()): Promise<TierEntitlements> {

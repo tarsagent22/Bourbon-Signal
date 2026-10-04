@@ -244,7 +244,9 @@ export function resolveEffectiveMembershipTier(input: unknown, now = new Date())
     const rawPlan = metadataValue(input, "plan") ?? metadataValue(input, "billingPlan");
     const status = metadataValue(input, "membershipStatus");
     const tier = normalizeMembershipTier(rawTier);
-    const appleTier = activeAppleMembershipTier(input, now);
+    const expires = metadataValue(input, "rewardMembershipExpiresAt");
+    const earnedTier: MembershipTier = typeof expires === "string" && Date.parse(expires) > now.getTime() && metadataValue(input, "rewardMembershipRedemptionId") ? "standard" : "free";
+    const appleTier = higherMembershipTier(activeAppleMembershipTier(input, now), earnedTier);
     const isAnnualGift = rawPlan === "gift_standard_annual" || rawPlan === "gift_barrel_annual";
     if (isAnnualGift) {
       const baseTier = giftAccessIsCurrent(input, now)

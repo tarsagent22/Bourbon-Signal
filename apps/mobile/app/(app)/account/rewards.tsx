@@ -1,3 +1,4 @@
+import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { useAuth } from "@clerk/expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -6,6 +7,8 @@ import {
   RefreshControl,
   ScrollView,
   Share,
+  Platform,
+  Linking,
   Text,
   View,
 } from "react-native";
@@ -53,6 +56,7 @@ const sections: Array<{ key: Section; label: string }> = [
 
 export default function RewardsScreen() {
   const api = useMobileApi();
+  const purchases = usePurchases();
   const router = useRouter();
   const { userId } = useAuth();
   const params = useLocalSearchParams<{ section?: string }>();
@@ -87,7 +91,7 @@ export default function RewardsScreen() {
     setLoading(true);
     // Independent panels remain usable if a secondary service fails.
     const [, a] = await Promise.allSettled([
-      api.getSignalPoints({ fresh }).then(value => {
+      api.getSignalPoints({ fresh, platform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web" }).then(value => {
         if (id === sequence.current) { setPoints(value); setErrors(current => ({...current, points: ""})); }
         return value;
       }).catch(error => {
@@ -201,7 +205,7 @@ export default function RewardsScreen() {
         ) : null}
         {points && !points.redemptionEligible ? (
           <Text style={s.muted}>
-            Earn on any plan. Paid membership is required to redeem rewards.
+            Earn points on any plan. Free members can earn a month of Standard; other rewards require membership.
           </Text>
         ) : null}
         {points && !points.redemptionEligible ? (
@@ -296,7 +300,7 @@ export default function RewardsScreen() {
           {points?.catalog.map((item) => {
             const soldOut = item.inventoryRemaining === 0;
             const ready =
-              points.redemptionEligible &&
+              (item.redemptionEligible ?? points.redemptionEligible) &&
               !soldOut &&
               points.balance >= item.points;
             return (
@@ -315,8 +319,8 @@ export default function RewardsScreen() {
                     ? "Currently unavailable"
                     : ready
                       ? "Ready to redeem"
-                      : !points.redemptionEligible
-                        ? "Paid membership required to redeem"
+                      : !(item.redemptionEligible ?? points.redemptionEligible)
+                        ? item.unavailableReason || "Membership required for this reward"
                         : `${formatPoints(Math.max(0, item.points - points.balance))} points to go`}
                 </Text>
                 <Text style={s.muted}>
@@ -325,7 +329,7 @@ export default function RewardsScreen() {
                       ? "U.S. shipping included."
                       : "Shipping details at redemption."
                     : item.options?.membershipCredit
-                      ? "For eligible directly billed memberships. Once every 12 months; Apple subscriptions are not eligible."
+                      ? item.membershipMonthProvider === "earned_access" ? "A month of Standard. No payment required and no automatic renewal. Once every 12 months." : item.membershipMonthProvider === "apple" ? "Activate through Apple. Existing subscriptions return to their regular renewal after the free month. Free-user access does not renew. Once every 12 months." : "A credit toward your next Stripe bill or annual renewal. Once every 12 months."
                       : "Delivered by email."}
                 </Text>
                 {ready ? (
@@ -554,7 +558,13 @@ export default function RewardsScreen() {
                     "Reward",
                 )}
               </Text>
-              <Text style={s.text}>{redemptionLabel(item.status)}</Text>
+              <Text style={s.text}>{item.membershipMonth?.provider === "apple" ? "Apple code issued" : redemptionLabel(item.status)}</Text>
+              {item.membershipMonth?.expiresAt ? <Text style={s.muted}>{item.membershipMonth.provider === "apple" ? "Code expires" : "Access ends"} {new Date(item.membershipMonth.expiresAt).toLocaleDateString()}</Text> : null}
+              {item.membershipMonth?.code ? <Text selectable style={s.heading}>{item.membershipMonth.code}</Text> : null}
+              {item.membershipMonth?.redeemUrl ? <>
+                <RewardButton label="Activate with Apple" onPress={() => void Linking.openURL(item.membershipMonth!.redeemUrl!)} />
+                <RewardButton secondary label="Refresh Apple membership" onPress={() => void purchases.refresh().then(() => purchases.restore()).catch(() => setNotice("Apple has not confirmed this reward yet. Try again after redeeming."))} />
+              </> : null}
               <Text style={s.muted}>
                 {item.pointsSpent} points ·{" "}
                 {new Date(item.createdAt).toLocaleDateString()}

@@ -15,6 +15,7 @@ const tier = one('free', 'standard', 'barrel', 'bottled-in-bond');
 const appleProductId = one('com.bourbonsignal.app.standard.monthly', 'com.bourbonsignal.app.standard.annual', 'com.bourbonsignal.app.barrel.monthly', 'com.bourbonsignal.app.barrel.annual');
 const appleMembership = obj({ productId: appleProductId, status: one('trialing','active','canceled_period_end','grace_period','billing_issue','expired','refunded','revoked'),
   environment: one('sandbox','production'), expiresAt: nullable(str), offerState: one('none','introductory_trial','introductory_offer','promotional_offer','unknown'), updatedAt: str });
+const membershipMonth = obj({ provider:one("stripe","apple","earned_access"),code:optional(str),redeemUrl:optional(str),expiresAt:optional(str) });
 const mobileVersion = one('bourbon-signal/mobile-api@1');
 const signalVersion = one('bourbon-signal/signal@1');
 const scope = obj({ type: one('state', 'county', 'city', 'board', 'store'), id: str, state: str, label: str });
@@ -48,7 +49,7 @@ const achievement = obj({ points: num, currentWeeklyStreak: num, longestWeeklySt
   badgeProgress: arr(obj({ id: str, label: str, tier: optional(str), current: num, target: num, earned: bool, description: optional(str),category:optional(str),unit:optional(str),rules:optional(str),pointsAwarded:optional(num),context:optional(str) })) });
 const checks: Record<string, Check> = {
   '/api/member/shipping': obj({ record: nullable(shipping), defaultRecipientName: optional(str) }),
-  '/api/signal-points/redemptions': obj({ ok: one(true), redemptionId: optional(str), status: optional(str), balance: optional(num) }),
+  '/api/signal-points/redemptions': obj({ ok: one(true), redemptionId: optional(str), status: optional(str), balance: optional(num), membershipMonth:optional(nullable(membershipMonth)) }),
   '/api/user/preferences': preferencesResponse,
   '/api/v1/me/profile': profile,
   '/api/v1/me/badges': obj({ok:one(true),featuredBadgeIds:strings}),
@@ -66,7 +67,7 @@ const checks: Record<string, Check> = {
   '/api/sightings': obj({ ok: one(true), created: bool, sighting: obj({ id: str }) }),
   '/api/sightings/photo': obj({ ok: one(true), photoProof: obj({ url: str, pathname: str, uploadedAt: str, status: one('verified_public') }) }),
   '/api/bottle-contributions': obj({ ok: one(true), contribution: obj({ id: str }) }),
-  '/api/signal-points': obj({ activity: optional(arr(obj({id:str,kind:str,points:num,balanceDelta:num,debtDelta:num,sourceType:str,reason:str,createdAt:str}))), balance: num, debt: num, tier, redemptionEligible: bool, catalog: arr(obj({ key: str, name: str, points: num, fulfillmentType: one('physical','digital'), inventoryRemaining: optional(nullable(num)), options: optional(obj({glassQuantity:optional(num),engravingPointsPerGlass:optional(num),usShippingIncluded:optional(bool),membershipCredit:optional(bool),requiresAge21Attestation:optional(bool)})) })), redemptions: arr(obj({ id: str, itemKey: str, pointsSpent: num, status: str, createdAt: str, updatedAt: str })) }),
+  '/api/signal-points': obj({ activity: optional(arr(obj({id:str,kind:str,points:num,balanceDelta:num,debtDelta:num,sourceType:str,reason:str,createdAt:str}))), balance: num, debt: num, tier, redemptionEligible: bool, catalog: arr(obj({ key: str, name: str, points: num, redemptionEligible:optional(bool),unavailableReason:optional(str),membershipMonthProvider:optional(one("stripe","apple","earned_access")), fulfillmentType: one('physical','digital'), inventoryRemaining: optional(nullable(num)), options: optional(obj({glassQuantity:optional(num),engravingPointsPerGlass:optional(num),usShippingIncluded:optional(bool),membershipCredit:optional(bool),requiresAge21Attestation:optional(bool)})) })), redemptions: arr(obj({ id: str, itemKey: str, pointsSpent: num, status: str, createdAt: str, updatedAt: str,membershipMonth:optional(nullable(membershipMonth)) })) }),
   '/api/v1/geography': obj({ contractVersion: mobileVersion, states: arr(obj({ id: str, code: str, name: str })), results: arr(obj({ id: str, level: one('state','county','city','board','store'), state: str, name: str, message: nullable(str), coverage: obj({ engine: obj({ status: one('active','expanding') }), community: obj({ active: bool, recentSightings: num, windowDays: num }) }) })), offset: num, limit: num, hasMore: bool }),
   '/api/v1/signals': obj({ contractVersion: signalVersion, view: one('market','community','all'), signals: arr(signal), marketSummaries: arr(obj({ state: str, areaLabel: str, signalCount: num, bottleNames: strings })), total: num, nextCursor: nullable(str), hasMore: bool, degraded: bool, access: obj({ previewLocked: bool, requiresAccountForFullFeed: bool, memberSignalsAvailable: bool, marketDetailsLocked: bool }) }),
 };

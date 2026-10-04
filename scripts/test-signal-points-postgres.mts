@@ -51,7 +51,7 @@ async function seedShipping(userId: string) {
 
 try {
   await sql.query(`CREATE SCHEMA "${schemaName}"`);
-  for (const file of ["../src/lib/referral-schema.sql", "../src/lib/founder-shipping-schema.sql", "../src/lib/signal-points-schema.sql", "../src/lib/community-sightings-schema.sql"]) {
+  for (const file of ["../src/lib/referral-schema.sql", "../src/lib/founder-shipping-schema.sql", "../src/lib/signal-points-schema.sql", "../src/lib/membership-month-schema.sql", "../src/lib/community-sightings-schema.sql"]) {
     const source = await readFile(new URL(file, import.meta.url), "utf8");
     await transaction(splitSql(source).map((text) => ({ text })));
   }
@@ -290,6 +290,16 @@ try {
   await transaction([{ text: "SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)", params: [randomUUID(), "membership-cancel-member", "standard", "standard_membership_credit_month", "membership-after-cancel", "{}", "membership-cancel@example.com", true] }]);
   const membershipCancelState = await transaction([{ text: "SELECT balance FROM signal_point_accounts WHERE user_id=$1", params: ["membership-cancel-member"] }]);
   assert.equal(row(membershipCancelState).balance, 250, "a pre-fulfillment cancellation restores points and does not consume the annual reward window");
+
+  await transaction([{text:"INSERT INTO signal_point_accounts(user_id,balance) VALUES('free-month-race',1000),('apple-month-a',1000),('apple-month-b',1000)"}]);
+  const monthClaim = (userId:string,key:string,provider:string) => transaction([{text:"SELECT * FROM redeem_signal_membership_month($1,$2,'free','standard_membership_credit_month',$3,$4,$5,'free')",params:[randomUUID(),userId,key,`${userId}@example.com`,provider]}]);
+  const freeMonthRace = await Promise.allSettled([monthClaim("free-month-race","claim-a","earned_access"),monthClaim("free-month-race","claim-b","earned_access")]);
+  assert.equal(freeMonthRace.filter(result=>result.status === "fulfilled").length,1,"simultaneous distinct requests spend once per year");
+  await transaction([{text:"INSERT INTO signal_membership_offer_codes(id,offer_id,batch_id,tier,audience,environment,code_hash,encrypted_code,expires_at) VALUES('one-code','offer','batch','standard','free','PRODUCTION','unique-hash','fixture-ciphertext',NOW()+INTERVAL '1 month')"}]);
+  const codeRace = await Promise.allSettled([monthClaim("apple-month-a","claim-a","apple"),monthClaim("apple-month-b","claim-b","apple")]);
+  assert.equal(codeRace.filter(result=>result.status === "fulfilled").length,1,"one code can be claimed by exactly one account");
+  const codeBalances=await transaction([{text:"SELECT SUM(balance)::int AS total FROM signal_point_accounts WHERE user_id IN ('apple-month-a','apple-month-b')"}]);
+  assert.equal(row(codeBalances).total,1850,"out-of-stock loser retains all points");
 
   console.log("Signal Points Postgres debt, concurrency, retry, cancellation, transition, membership credit, shipping snapshot, and inventory tests passed.");
 } finally {

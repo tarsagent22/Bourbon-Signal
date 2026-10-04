@@ -85,7 +85,7 @@ function statusFromSubscription(subscription: JsonRecord, now: Date): {
   const periodType = stringValue(subscription.period_type).toLowerCase();
   const offerCode = stringValue(subscription.offer_code || subscription.offer_identifier).toLowerCase();
 
-  const offerState: AppleMembershipOfferState = periodType === "trial"
+  const offerState: AppleMembershipOfferState = subscription.verified_offer_type === 3 ? "promotional_offer" : periodType === "trial"
     ? "introductory_trial"
     : periodType === "intro"
       ? "introductory_offer"
@@ -103,7 +103,7 @@ function statusFromSubscription(subscription: JsonRecord, now: Date): {
   }
   if (billingIssueAt) return { status: "billing_issue", offerState, expiresAt, orderedEventAt: billingIssueAt };
   if (unsubscribeAt) return { status: "canceled_period_end", offerState, expiresAt, orderedEventAt: unsubscribeAt };
-  if (periodType === "trial") return { status: "trialing", offerState, expiresAt, orderedEventAt: purchaseAt };
+  if (periodType === "trial" && offerState !== "promotional_offer") return { status: "trialing", offerState, expiresAt, orderedEventAt: purchaseAt };
   return { status: "active", offerState, expiresAt, orderedEventAt: purchaseAt };
 }
 
@@ -157,7 +157,7 @@ export function createRevenueCatSubscriberFetcher(input: {
   apiKey: string;
   fetchImpl?: typeof fetch;
   baseUrl?: string;
-  verifyAppleTransaction?: (input: AppleTransactionLookup) => Promise<{ originalTransactionId: string; revokedAt?: number }>;
+  verifyAppleTransaction?: (input: AppleTransactionLookup) => Promise<{ originalTransactionId: string; revokedAt?: number; offerType?: number; offerIdentifier?: string }>;
 }) {
   const fetchImpl = input.fetchImpl || fetch;
   const baseUrl = (input.baseUrl || "https://api.revenuecat.com/v1").replace(/\/$/, "");
@@ -197,6 +197,8 @@ export function createRevenueCatSubscriberFetcher(input: {
           throw new AppleMembershipError("PROVIDER_RESPONSE_INVALID", "RevenueCat and Apple transaction ownership disagree.");
         }
         subscription.original_transaction_id = verified.originalTransactionId;
+        subscription.verified_offer_type = verified.offerType;
+        subscription.verified_offer_identifier = verified.offerIdentifier;
         if (verified.revokedAt !== undefined) subscription.revoked_at = new Date(verified.revokedAt).toISOString();
       }
     }
