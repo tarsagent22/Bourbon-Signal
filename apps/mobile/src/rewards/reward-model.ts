@@ -83,3 +83,38 @@ export function redemptionLabel(status: string) {
     )[status] || "Processing"
   );
 }
+
+export const formatPoints = (points: number) => points.toLocaleString("en-US");
+export const rewardName = (name: string) =>
+  name
+    .replace(/^Bourbon Signal /u, "")
+    .replace(/^sticker pack$/iu, "Sticker Pack")
+    .replace(/^rocks glass$/iu, "Rocks Glass")
+    .replace(/^Glencairn$/iu, "Glencairn Glass")
+    .replace(/gift card$/iu, "Gift Card");
+export const badgeFamily = (id: string) =>
+  id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, "");
+export const canonicalBadgeId = (id: string) =>
+  /^(spotter|unicorn_hunter)_diamond$/u.test(id)
+    ? id.replace(/_diamond$/u, "_gold")
+    : id;
+export const tierLabel = (tier?: string) =>
+  tier ? tier[0].toUpperCase() + tier.slice(1) : "Milestone";
+export function earnedDescription(description: string) {
+  return description
+    .replace(/^Post /u, "Posted ")
+    .replace(/^Add /u, "Added ")
+    .replace(/^Have /u, "Had ")
+    .replace(/^Make /u, "Made ")
+    .replace(/^Invite /u, "Invited ");
+}
+export function badgeDate(value: string) {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime())
+    ? date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Date unavailable";
+}

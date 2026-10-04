@@ -25,7 +25,7 @@ export interface CanonicalSignal {
       kind: "founder" | "member";
       number: number;
       label: string;
-      displayName?: string;
+      displayName?: string; badges?: string[];
     };
   };
   bottle: {
@@ -326,6 +326,7 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
     number: identity.number,
     label: identity.label,
     ...(customDisplayName ? { displayName: customDisplayName } : {}),
+    ...(Array.isArray(sighting.reporterBadges) ? {badges:sighting.reporterBadges.filter(label=>typeof label==="string").slice(0,3)} : {}),
   } : undefined;
 
   return {

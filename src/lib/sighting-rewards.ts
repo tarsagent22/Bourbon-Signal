@@ -1,3 +1,4 @@
+import { achievementCatalog, achievementDefinition, achievementDescription, canonicalBadgeId, badgeFamily } from "./achievement-catalog.ts";
 import type { MemberSighting } from "@/lib/sightings";
 
 export type SightingVerificationSource = "photo" | "community";
@@ -54,6 +55,7 @@ export interface MemberRewardsProfile {
   currentWeeklyStreak: number;
   longestWeeklyStreak: number;
   lastStreakWeek?: string;
+  moderationRejectedSightingIds?: string[];
 }
 
 export interface BadgeProgress {
@@ -64,6 +66,11 @@ export interface BadgeProgress {
   target: number;
   earned: boolean;
   description?: string;
+  category?: string;
+  unit?: string;
+  rules?: string;
+  pointsAwarded?: number;
+  context?: string;
 }
 
 export interface MemberRewardsSummary {
@@ -77,6 +84,8 @@ export interface MemberRewardsSummary {
   photoSightings: number;
   /** @deprecated Member sightings no longer use verification. Kept for old clients. */
   verifiedSightings: number;
+  featuredBadgeIds?: string[];
+  metricsAvailable?: boolean;
 }
 
 export const ADMIN_EMAILS = new Set(["chandler@bourbonsignal.com", "chandlertodd22@gmail.com"]);
@@ -84,23 +93,9 @@ export const SIGHTING_POINTS_BY_RARITY = { unclassified: 10, limited: 10, alloca
 export const BADGE_POINTS_AWARD = 10;
 export const WEEKLY_STREAK_POINTS_AWARD = 10;
 
-export const BADGE_DESCRIPTIONS = {
-  first_sighting: "Post 1 eligible bottle sighting that remains active.",
-  helpful_neighbor: "Post 1 active sighting that receives at least 3 upvotes and maintains a net score of at least 3.",
-  photo_finish: "Attach a photo to 1 sighting that remains active and is not rejected.",
-  spotter: "Post eligible bottle sightings. Badge tiers unlock at 5, 25, and 50 sightings.",
-  unicorn_hunter: "Post unicorn-tier sightings. Badge tiers unlock at 1, 5, and 15 unicorn sightings.",
-  sharp_eye: "Post active sightings that each receive at least 3 upvotes and maintain a net score of at least 3. Badge tiers unlock at 5, 25, and 75 helpful sightings.",
-  local_scout: "Post eligible sightings with the same recorded state and city. Badge tiers unlock at 5, 15, and 40 sightings in one location.",
-  weekend_warrior: "Post during separate weekend weeks, from Friday at 5 p.m. local time through Sunday. Badge tiers unlock at 3, 8, 20, and 40 weekends.",
-  clean_signal: "Post eligible sightings that remain active. Badge tiers unlock at 10, 25, and 50 active sightings.",
-  streak: "Post at least 1 eligible sighting in consecutive weeks. Badge tiers unlock at 2, 4, and 8 weeks.",
-} as const;
-
-export function badgeDescription(id: string) {
-  const key = id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, "") as keyof typeof BADGE_DESCRIPTIONS;
-  return BADGE_DESCRIPTIONS[key] || "Badge requirements are not available.";
-}
+export const BADGE_DESCRIPTIONS = Object.fromEntries(achievementCatalog.map(item => [item.id,item.description]));
+export const badgeDescription = achievementDescription;
+export interface AchievementMetrics { availabilityUpdates?: number; qualifiedReferrals?: number; available?: boolean; featuredBadgeIds?: string[] }
 
 export function isRewardsAdminEmail(email?: string | null) {
   return Boolean(email && ADMIN_EMAILS.has(email.trim().toLowerCase()));
@@ -189,7 +184,8 @@ function tierProgress(id: string, label: string, current: number, thresholds: Ar
 function normalizeBadgeAward(badge: MemberBadgeAward): MemberBadgeAward {
   if (badge.id === "verified_scout") return { ...badge, id: "helpful_neighbor", label: "Helpful Neighbor" };
   if (/verified/i.test(badge.label)) return { ...badge, label: badge.label.replace(/Verified Scout/gi, "Helpful Neighbor").replace(/verified/gi, "helpful") };
-  return badge;
+  const definition=achievementDefinition(badge.id);
+  return { ...badge, ...(definition ? {label:definition.name} : {}), ...(/^(spotter|unicorn_hunter)_diamond$/u.test(badge.id) ? {tier:"gold" as BadgeTier} : {}) };
 }
 
 function normalizeRewards(input: unknown): MemberRewardsProfile {
@@ -200,6 +196,7 @@ function normalizeRewards(input: unknown): MemberRewardsProfile {
     badges: Array.isArray(source.badges) ? source.badges.filter((badge): badge is MemberBadgeAward => Boolean(badge && typeof badge === "object" && badge.id)).map(normalizeBadgeAward).slice(0, 200) : [],
     currentWeeklyStreak: typeof source.currentWeeklyStreak === "number" ? source.currentWeeklyStreak : 0,
     longestWeeklyStreak: typeof source.longestWeeklyStreak === "number" ? source.longestWeeklyStreak : 0,
+    moderationRejectedSightingIds: Array.isArray(source.moderationRejectedSightingIds) ? source.moderationRejectedSightingIds.filter(id=>typeof id==="string") : [],
     lastStreakWeek: typeof source.lastStreakWeek === "string" ? source.lastStreakWeek : undefined,
   };
 }
@@ -208,14 +205,14 @@ function badgeAward(id: string, label: string, earnedAt: string, tier?: BadgeTie
   return { id, label, tier, earnedAt, pointsAwarded: BADGE_POINTS_AWARD };
 }
 
-export function summarizeMemberRewards(sightings: MemberSighting[], existing?: unknown): MemberRewardsSummary {
+export function summarizeMemberRewards(sightings: MemberSighting[], existing?: unknown, metrics: AchievementMetrics = {}): MemberRewardsSummary {
   const rewards = normalizeRewards(existing);
   const activeSightings = sightings.filter((sighting) => !sighting.rewardState?.removedAt && !sighting.rewardState?.rejectedAt);
   const eligible = activeSightings.filter((sighting) => isEligibleRewardsTier(sighting.rarityTier));
   const helpful = activeSightings.filter((sighting) => communityVerified(Number(sighting.upCount || 0), Number(sighting.downCount || 0)));
   const photoSightings = activeSightings.filter((sighting) => {
     const status = sighting.rewardState?.photoProof?.status;
-    return Boolean(status && status !== "rejected");
+    return Boolean(sighting.rewardState?.photoProof?.url && status && status !== "none" && status !== "rejected");
   });
   const unicornSightings = eligible.filter((sighting) => sighting.rarityTier === "unicorn");
   const weekendWeeks = new Set(eligible.filter((sighting) => isWeekendWarriorWindow(sighting.createdAt, sighting.storeTimeZone)).map((sighting) => localWeekKey(sighting.createdAt, sighting.storeTimeZone)).filter(Boolean));
@@ -226,27 +223,32 @@ export function summarizeMemberRewards(sightings: MemberSighting[], existing?: u
   }
   const bestAreaCount = Math.max(0, ...Array.from(areaCounts.values()));
 
-  const progress: BadgeProgress[] = [
-    { id: "first_sighting", label: "First Sighting", current: Math.min(eligible.length, 1), target: 1, earned: rewards.badges.some((badge) => badge.id === "first_sighting") },
-    { id: "helpful_neighbor", label: "Helpful Neighbor", current: Math.min(helpful.length, 1), target: 1, earned: rewards.badges.some((badge) => badge.id === "helpful_neighbor") },
-    { id: "photo_finish", label: "Photo Finish", current: Math.min(photoSightings.length, 1), target: 1, earned: rewards.badges.some((badge) => badge.id === "photo_finish") },
-    ...tierProgress("spotter", "Spotter", eligible.length, [["bronze", 5], ["silver", 25], ["diamond", 50]], rewards.badges),
-    ...tierProgress("unicorn_hunter", "Unicorn Hunter", unicornSightings.length, [["bronze", 1], ["silver", 5], ["diamond", 15]], rewards.badges),
-    ...tierProgress("sharp_eye", "Sharp Eye", helpful.length, [["bronze", 5], ["silver", 25], ["gold", 75]], rewards.badges),
-    ...tierProgress("local_scout", "Local Scout", bestAreaCount, [["bronze", 5], ["silver", 15], ["gold", 40]], rewards.badges),
-    ...tierProgress("weekend_warrior", "Weekend Warrior", weekendWeeks.size, [["bronze", 3], ["silver", 8], ["gold", 20], ["platinum", 40]], rewards.badges),
-    { id: "clean_signal_bronze", label: "Clean Signal", tier: "bronze", current: Math.min(eligible.length, 10), target: 10, earned: rewards.badges.some((badge) => badge.id === "clean_signal_bronze") },
-    { id: "clean_signal_silver", label: "Clean Signal", tier: "silver", current: Math.min(eligible.length, 25), target: 25, earned: rewards.badges.some((badge) => badge.id === "clean_signal_silver") },
-    { id: "clean_signal_gold", label: "Clean Signal", tier: "gold", current: Math.min(eligible.length, 50), target: 50, earned: rewards.badges.some((badge) => badge.id === "clean_signal_gold") },
-    ...tierProgress("streak", "Streak", rewards.currentWeeklyStreak, [["bronze", 2], ["silver", 4], ["gold", 8]], rewards.badges),
-  ];
+  const bestArea = [...areaCounts].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0]))[0]?.[0];
+  const areaSighting=eligible.find(sighting=>areaKey(sighting)===bestArea);
+  const city=areaSighting ? `${areaSighting.storeCity}, ${areaSighting.storeState}` : undefined;
+  const stores = new Set(eligible.filter(s => s.sightingType === "seen_in_store").map(s => s.storeId || [s.storeName,s.storeAddress,s.storeCity,s.storeState].filter(Boolean).join("|").toLowerCase().trim()).filter(Boolean));
+  const counts: Record<string,number> = {first_sighting:eligible.length,photo_finish:photoSightings.length,spotter:eligible.length,helpful_neighbor:helpful.length,unicorn_hunter:unicornSightings.length,local_scout:bestAreaCount,store_explorer:stores.size,availability_scout:metrics.availabilityUpdates ?? 0,community_builder:metrics.qualifiedReferrals ?? 0,weekend_warrior:weekendWeeks.size,streak:rewards.longestWeeklyStreak};
+  const earned=new Set(rewards.badges.map(badge=>canonicalBadgeId(badge.id)));
+  const progress: BadgeProgress[] = achievementCatalog.flatMap(definition => definition.milestones.map(milestone => {
+    const id=milestone.tier ? `${definition.id}_${milestone.tier}` : definition.id;
+    const isEarned=earned.has(id);
+    return {id,label:definition.name,...(milestone.tier ? {tier:milestone.tier as BadgeTier} : {}),current:isEarned ? milestone.target : Math.min(counts[definition.id] ?? 0,milestone.target),target:milestone.target,earned:isEarned,description:achievementDescription(id),category:definition.category,unit:definition.unit,rules:definition.rules,pointsAwarded:milestone.points,...(definition.id==="local_scout" && city ? {context:city} : {})};
+  }));
 
+  for(const award of rewards.badges) {
+    if(progress.some(item=>item.id===canonicalBadgeId(award.id)))continue;
+    const weekend=award.id==="weekend_warrior_platinum";
+    const target=weekend?40:1;
+    progress.push({id:award.id,label:award.label,...(award.tier?{tier:award.tier}:{}),current:target,target,earned:true,description:weekend?"Post sightings on 40 different weekends.":"Earned this milestone in the original badge program.",category:weekend?"Consistency":"Legacy",unit:weekend?"weekends":"milestones",rules:"This milestone was earned in the original program. It remains in your collection; new progress uses the current badge families.",pointsAwarded:award.pointsAwarded});
+  }
   return {
     points: rewards.points,
     currentWeeklyStreak: rewards.currentWeeklyStreak,
     longestWeeklyStreak: rewards.longestWeeklyStreak,
     badges: rewards.badges,
-    badgeProgress: progress.map(badge => ({ ...badge, description: badgeDescription(badge.id) })),
+    badgeProgress: progress,
+    featuredBadgeIds: (metrics.featuredBadgeIds || []).filter(id => rewards.badges.some(badge=>badge.id===id)).slice(0,3),
+    metricsAvailable: metrics.available !== false,
     eligibleSightings: eligible.length,
     helpfulSightings: helpful.length,
     photoSightings: photoSightings.length,
@@ -281,7 +283,7 @@ function addLedger(rewards: MemberRewardsProfile, entry: Omit<MemberRewardLedger
   rewards.points += entry.points;
 }
 
-function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: MemberSighting[]) {
+function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: MemberSighting[], now: string) {
   const weeks = Array.from(new Set(activeSightings
     .filter((sighting) => isEligibleRewardsTier(sighting.rarityTier))
     .map((sighting) => localWeekKey(sighting.createdAt, sighting.storeTimeZone))
@@ -310,7 +312,11 @@ function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: Memb
     }
   }
 
-  rewards.currentWeeklyStreak = current;
+  const latest=activeSightings.filter(s=>isEligibleRewardsTier(s.rarityTier)).sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];
+  const currentWeek=localWeekKey(now,latest?.storeTimeZone);
+  const previousDate=new Date(`${currentWeek}T00:00:00Z`);previousDate.setUTCDate(previousDate.getUTCDate()-7);
+  const previousWeek=previousDate.toISOString().slice(0,10);
+  rewards.currentWeeklyStreak = weeks[weeks.length-1]===currentWeek || weeks[weeks.length-1]===previousWeek ? current : 0;
   rewards.longestWeeklyStreak = longest;
   rewards.lastStreakWeek = weeks[weeks.length - 1];
   return streakBonusPoints;
@@ -325,9 +331,13 @@ function reconcileSightingBasePoints(rewards: MemberRewardsProfile, sighting: Me
   });
 }
 
-export function reconcileMemberRewards(sightings: MemberSighting[], existing?: unknown, now = new Date().toISOString()) {
+export function reconcileMemberRewards(sightings: MemberSighting[], existing?: unknown, now = new Date().toISOString(), metrics: AchievementMetrics = {}) {
   const rewards = normalizeRewards(existing);
-  const previousBadges = new Map(rewards.badges.map((badge) => [badge.id, badge]));
+  const previousBadges = new Map(rewards.badges.map((badge) => [canonicalBadgeId(badge.id), badge]));
+  const previousBest = rewards.longestWeeklyStreak;
+  const rejectedIds = sightings.filter(sighting=>Boolean(sighting.rewardState?.rejectedAt)).map(sighting=>sighting.id);
+  const moderationChanged = rejectedIds.some(id=>!rewards.moderationRejectedSightingIds?.includes(id));
+  rewards.moderationRejectedSightingIds = rejectedIds;
   deactivateManagedRewards(rewards, now);
   rewards.badges = [];
   rewards.currentWeeklyStreak = 0;
@@ -336,23 +346,35 @@ export function reconcileMemberRewards(sightings: MemberSighting[], existing?: u
 
   const activeSightings = sightings.filter((sighting) => !sighting.rewardState?.removedAt && !sighting.rewardState?.rejectedAt);
   for (const sighting of activeSightings) reconcileSightingBasePoints(rewards, sighting);
-  const streakBonusPoints = updateWeeklyStreak(rewards, activeSightings);
+  const streakBonusPoints = updateWeeklyStreak(rewards, activeSightings, now);
+  if (!moderationChanged) rewards.longestWeeklyStreak=Math.max(previousBest,rewards.longestWeeklyStreak);
 
-  const summary = summarizeMemberRewards(activeSightings, rewards);
+  const summary = summarizeMemberRewards(activeSightings, rewards, metrics);
   const awardIf = (condition: boolean, award: MemberBadgeAward) => {
     if (!condition || rewards.badges.some((badge) => badge.id === award.id)) return;
-    const previous = previousBadges.get(award.id);
+    const previous = previousBadges.get(canonicalBadgeId(award.id));
     const nextAward = previous ? { ...award, earnedAt: previous.earnedAt } : award;
     rewards.badges = [nextAward, ...rewards.badges].slice(0, 200);
     addLedger(rewards, { badgeId: nextAward.id, reason: "badge_v3", points: nextAward.pointsAwarded, createdAt: nextAward.earnedAt });
   };
 
-  awardIf(summary.eligibleSightings >= 1, badgeAward("first_sighting", "First Sighting", now));
-  awardIf(summary.helpfulSightings >= 1, badgeAward("helpful_neighbor", "Helpful Neighbor", now));
-  awardIf(summary.photoSightings >= 1, badgeAward("photo_finish", "Photo Finish", now));
+  // Ordinary expiry, deletion, vote changes and broken streaks do not erase recognition.
+  // Explicit moderation can remove a milestone whose supporting count no longer qualifies.
+  const qualification=new Map(summary.badgeProgress.map(progress=>[progress.id,progress.current>=progress.target]));
+  for(const previous of previousBadges.values()) {
+    const family=badgeFamily(previous.id);
+    const external=family==="availability_scout" || family==="community_builder";
+    const retired=family==="clean_signal" || family==="sharp_eye";
+    if(!moderationChanged || external || (qualification.get(canonicalBadgeId(previous.id)) ?? (retired && summary.eligibleSightings>0))) {
+      rewards.badges.push(previous);
+      addLedger(rewards,{badgeId:previous.id,reason:"badge_v3",points:previous.pointsAwarded,createdAt:previous.earnedAt});
+    }
+  }
   for (const progress of summary.badgeProgress) {
-    if (progress.id === "first_sighting" || progress.id === "helpful_neighbor" || progress.id === "photo_finish") continue;
-    awardIf(progress.current >= progress.target, badgeAward(progress.id, progress.label, now, progress.tier));
+    if(rewards.badges.some(badge=>canonicalBadgeId(badge.id)===progress.id)) continue;
+    const award=badgeAward(progress.id,progress.label,now,progress.tier);
+    award.pointsAwarded=progress.pointsAwarded ?? 0;
+    awardIf(progress.current >= progress.target, award);
   }
 
   const unmanagedPoints = rewards.ledger

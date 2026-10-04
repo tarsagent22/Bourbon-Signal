@@ -36,7 +36,7 @@ export default function AccountScreen() {
   const sequence = useRef(0);
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [points, setPoints] = useState<SignalPointsSummary | null>(null);
-  const [achievements, setAchievements] = useState<AchievementSummary | null>(
+  const [achievements, setBadges] = useState<AchievementSummary | null>(
     null,
   );
   const [error, setError] = useState("");
@@ -61,7 +61,7 @@ export default function AccountScreen() {
       setError("Account details are temporarily unavailable.");
     }
     setPoints(r.status === "fulfilled" ? r.value : null);
-    setAchievements(a.status === "fulfilled" ? a.value : null);
+    setBadges(a.status === "fulfilled" ? a.value : null);
     setLoading(false);
   }, [api]);
   useScreenRevalidation(load);
@@ -123,6 +123,7 @@ export default function AccountScreen() {
             ) : null}
             <Text style={s.label}>{profile.membership.label}</Text>
           </View>
+          {achievements?.featuredBadgeIds?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{achievements.badges.filter(badge=>achievements.featuredBadgeIds?.includes(badge.id)).map(badge=><Text key={badge.id} style={s.label}>{badge.label}{badge.tier?` · ${badge.tier[0].toUpperCase()+badge.tier.slice(1)}`:""}</Text>)}</View>:null}
           <View style={s.line} />
           <Pressable
             accessibilityRole="button"
@@ -156,7 +157,7 @@ export default function AccountScreen() {
       >
         <RewardEmblem rewardKey="achievement" />
         <View style={{ flex: 1, gap: 5 }}>
-          <Text style={s.heading}>Achievements</Text>
+          <Text style={s.heading}>Badges</Text>
           <Text style={s.muted}>
             {achievements
               ? `${achievements.badges.length} badges earned · ${achievements.currentWeeklyStreak}-week streak`

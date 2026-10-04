@@ -55,8 +55,8 @@ let summary = summarizeMemberRewards([
 assert.equal(summary.eligibleSightings, 2);
 assert.equal(summary.verifiedSightings, 0);
 assert.equal(summary.photoSightings, 1);
-assert.equal(summary.badgeProgress.some((badge) => badge.id === 'unicorn_hunter_diamond'), true);
-assert.equal(summary.badgeProgress.some((badge) => badge.id === 'spotter_diamond'), true);
+assert.equal(summary.badgeProgress.some((badge) => badge.id === 'unicorn_hunter_gold'), true);
+assert.equal(summary.badgeProgress.some((badge) => badge.id === 'spotter_gold'), true);
 assert.equal(rewards.badges.some((badge) => /verified/i.test(badge.label)), false, 'sighting badge labels must not use verified language');
 const legacySummary = summarizeMemberRewards([], { badges: [{ id: 'verified_scout', label: 'Verified Scout', earnedAt: '2026-07-04T15:00:00Z', pointsAwarded: 10 }], points: 10, ledger: [], currentWeeklyStreak: 0, longestWeeklyStreak: 0 });
 assert.equal(legacySummary.badges[0].id, 'helpful_neighbor');
@@ -139,8 +139,8 @@ assert.ok(helpfulVerified.badges.some((badge) => badge.id === 'helpful_neighbor'
 const helpfulDowngraded = reconcileMemberRewards([
   sighting('helpful-vote', 'limited', '2026-07-18T14:00:00Z', { upCount: 3, downCount: 1 }),
 ], helpfulVerified, '2026-07-18T17:00:00Z');
-assert.ok(!helpfulDowngraded.badges.some((badge) => badge.id === 'helpful_neighbor'), 'a vote downgrade below community verification revokes Helpful Neighbor');
-assert.ok(!helpfulDowngraded.ledger.some((entry) => entry.badgeId === 'helpful_neighbor' && !entry.revokedAt));
+assert.ok(helpfulDowngraded.badges.some((badge) => badge.id === 'helpful_neighbor'), 'later vote changes do not erase an earned milestone');
+assert.ok(helpfulDowngraded.ledger.some((entry) => entry.badgeId === 'helpful_neighbor' && !entry.revokedAt));
 
 const manySightings = Array.from({ length: 1001 }, (_, index) => sighting(`many-${index}`, 'limited', '2026-07-20T14:00:00Z'));
 const manyRewards = reconcileMemberRewards(manySightings, undefined, '2026-07-20T16:00:00Z');
@@ -150,7 +150,7 @@ assert.equal(summarizeMemberRewards(manySightings, manyRewards).eligibleSighting
 assert.match(adminSightingsRoute, /const durableOwned = await repository\.listSightingsForReporter\(reporterUserId\);[\s\S]*?dedupeSightings\(\[\.\.\.legacyOwned, \.\.\.durableOwned\]\)/, 'legacy admin review must reconcile the complete legacy and durable owner history');
 assert.match(sightingsRoute, /searchBourbonBible/, 'the server must resolve known bottle rarity from the catalog instead of trusting client reward tiers');
 assert.match(sightingsRoute, /needsBottleReview\s*\?\s*"limited"/, 'manual bottles must start at the safe one-point tier');
-assert.match(sightingsRoute, /if \(rewardsNeedPersistence\([\s\S]*?after\(\(\) => persistMemberRewardsBestEffort/, 'GET must persist reward migrations when reconciliation changes metadata');
+assert.match(sightingsRoute, /if \(rewardsNeedPersistence\([\s\S]*?await persistMemberRewardsBestEffort/, 'GET must persist reward migrations when reconciliation changes metadata');
 assert.match(sightingsRoute, /if \(duplicate\) \{[\s\S]*?reconcileMemberRewards/, 'duplicate POST responses must reconcile instead of returning stale totals');
 
 console.log('Sighting rewards policy verified.');

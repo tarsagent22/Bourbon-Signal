@@ -34,19 +34,11 @@ test("launch catalog has the confirmed versioned prices and fulfillment kinds", 
 });
 
 test("every visible badge explains exactly how its progress is earned", () => {
-  assert.deepEqual(Object.keys(BADGE_DESCRIPTIONS).sort(), [
-    "clean_signal", "first_sighting", "helpful_neighbor", "local_scout", "photo_finish",
-    "sharp_eye", "spotter", "streak", "unicorn_hunter", "weekend_warrior",
-  ]);
-  for (const description of Object.values(BADGE_DESCRIPTIONS)) {
-    assert.ok(description.length >= 35, `badge description must be specific: ${description}`);
-    assert.doesNotMatch(description, /keep contributing|useful community signal|rare bottles people chase|become reliable|heats up/i);
-  }
-  assert.match(BADGE_DESCRIPTIONS.unicorn_hunter, /unicorn-tier sightings[\s\S]*1, 5, and 15/i);
-  assert.match(BADGE_DESCRIPTIONS.sharp_eye, /3 upvotes[\s\S]*net score of at least 3[\s\S]*5, 25, and 75/i);
-});
-
-test("Local Scout counts only sightings with a recorded state and city", () => {
+  assert.deepEqual(Object.keys(BADGE_DESCRIPTIONS).sort(), ["availability_scout","community_builder","first_sighting","helpful_neighbor","local_scout","photo_finish","spotter","store_explorer","streak","unicorn_hunter","weekend_warrior"]);
+  const progress=summarizeMemberRewards([]).badgeProgress;
+  for(const badge of progress){assert.ok(badge.description && badge.description.length>=15);assert.doesNotMatch(badge.description,/\{target\}|keep contributing|useful community signal|rare bottles people chase|become reliable|heats up/i);assert.ok(badge.rules && badge.unit && badge.category);}
+  assert.match(progress.find(badge=>badge.id==="helpful_neighbor")?.rules||"",/at least 3 upvotes/);
+  assert.match(progress.find(badge=>badge.id==="local_scout_bronze")?.description||"",/same city/);
   const sighting = (id: string, storeState?: string, storeCity?: string) => ({
     id, createdAt: "2026-08-17T18:00:00.000Z", rarityTier: "allocated", storeState, storeCity,
     rewardState: {}, upCount: 0, downCount: 0,

@@ -43,13 +43,15 @@ const bottles = obj({ bottles: arr(v => record(v) && [v.canonicalName, v.name, v
 const outcome = obj({ contractVersion: mobileVersion, outcome: nullable(obj({ signalId: str, availabilityEpisodeId: str, outcome: one('found_it','gone_when_checked','didnt_go'), sourceType: one('member','retailer','trusted_source','release_source'), stateCode: nullable(str), submittedAt: str, updatedAt: str })) });
 const shipping = obj({ recipientName: str, addressLine1: str, addressLine2: nullable(str), city: str, stateCode: str, postalCode: str, phone: str });
 const achievement = obj({ points: num, currentWeeklyStreak: num, longestWeeklyStreak: num, eligibleSightings: num, helpfulSightings: num, photoSightings: num,
+  featuredBadgeIds: optional(v=>strings(v)&&Array.isArray(v)&&v.length<=3), metricsAvailable: optional(bool),
   badges: arr(obj({ id: str, label: str, tier: optional(str), earnedAt: str, pointsAwarded: num })),
-  badgeProgress: arr(obj({ id: str, label: str, tier: optional(str), current: num, target: num, earned: bool, description: optional(str) })) });
+  badgeProgress: arr(obj({ id: str, label: str, tier: optional(str), current: num, target: num, earned: bool, description: optional(str),category:optional(str),unit:optional(str),rules:optional(str),pointsAwarded:optional(num),context:optional(str) })) });
 const checks: Record<string, Check> = {
   '/api/member/shipping': obj({ record: nullable(shipping), defaultRecipientName: optional(str) }),
   '/api/signal-points/redemptions': obj({ ok: one(true), redemptionId: optional(str), status: optional(str), balance: optional(num) }),
   '/api/user/preferences': preferencesResponse,
   '/api/v1/me/profile': profile,
+  '/api/v1/me/badges': obj({ok:one(true),featuredBadgeIds:strings}),
   '/api/v1/me/onboarding': obj({ contractVersion: mobileVersion, completed: bool }),
   '/api/v1/me/account': obj({ contractVersion: mobileVersion, status: one('cleanup_queued','completed'), requestId: str, accessRevoked: bool, identityDeleted: bool, remainingCleanup: strings }),
   '/api/alerts': alerts,

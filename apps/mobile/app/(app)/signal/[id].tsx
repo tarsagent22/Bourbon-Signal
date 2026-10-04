@@ -151,6 +151,7 @@ export default function SignalDetailScreen() {
           {presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
           {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
           {!presented?.reporter && !memberTag ? <Text style={styles.source}>Community report</Text> : null}
+          {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize:12}}>{badge}</Text>)}</View>:null}
         </View> : <Text style={styles.source}>{signal.source.label}</Text>}
         <Detail label="Location" value={presented?.address || presented?.location || signal.location.state || "Location not specified"} />
         <Detail label="Observed" value={new Date(signal.timing.displayAt).toLocaleString()} />

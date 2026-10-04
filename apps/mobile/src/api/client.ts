@@ -397,6 +397,9 @@ export function createMobileApi({
     async getReferralSummary({ fresh = false }: { fresh?: boolean } = {}) {
       return parseReferralSummary(await request<unknown>("/api/referrals/me", { fresh }));
     },
+    saveFeaturedBadges(featuredBadgeIds: string[]) {
+      return request<{ok:true;featuredBadgeIds:string[]}>("/api/v1/me/badges",{method:"PATCH",body:{featuredBadgeIds}});
+    },
     async getAchievements({ fresh = false }: { fresh?: boolean } = {}) {
       const result = await request<{ rewards: AchievementSummary }>("/api/sightings?limit=1&rewards=1", { fresh });
       return result.rewards;

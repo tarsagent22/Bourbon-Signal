@@ -439,6 +439,10 @@ export class CommunitySightingsRepository {
     };
   }
 
+  async updateReporterBadges(reporterUserId: string, labels: string[]): Promise<void> {
+    await this.query.query(`UPDATE community_sightings SET payload=jsonb_set(payload,'{reporterBadges}',$2::jsonb,true),updated_at=NOW() WHERE reporter_user_id=$1`,[reporterUserId,JSON.stringify(labels.slice(0,3))]);
+  }
+
   async updateReporterDisplayName(
     reporterUserId: string,
     reporterDisplayName: string,
