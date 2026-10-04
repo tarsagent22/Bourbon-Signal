@@ -45,3 +45,9 @@ test('redemption requires review, address confirmation and a persisted retry ide
  assert.match(redeem,/ageConfirmed/);
  assert.match(redeem,/engravingValid/);
 });
+
+test('Apple reward refresh initializes the lazy purchase provider before restore',()=>{
+ for(const screen of [rewards,redeem]) {
+  assert.match(screen,/purchases\.refresh\(\)\.then\(\(\) => purchases\.restore\(\)\)/);
+ }
+});

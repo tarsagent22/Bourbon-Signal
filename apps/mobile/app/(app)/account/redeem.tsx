@@ -244,7 +244,7 @@ export default function RedeemScreen() {
             {result.membershipMonth.code ? <Text selectable style={s.heading}>{result.membershipMonth.code}</Text> : null}
             {result.membershipMonth.redeemUrl ? <>
               <RewardButton label="Activate with Apple" onPress={() => void Linking.openURL(result.membershipMonth!.redeemUrl!)} />
-              <RewardButton secondary label="Refresh Apple membership" onPress={() => void purchases.restore().catch(() => setError("Apple has not confirmed the reward yet. Try again after redeeming."))} />
+              <RewardButton secondary label="Refresh Apple membership" onPress={() => void purchases.refresh().then(() => purchases.restore()).catch(() => setError("Apple has not confirmed the reward yet. Try again after redeeming."))} />
             </> : null}
           </> : null}
           <Text style={s.muted}>{result.balance} points available</Text>
