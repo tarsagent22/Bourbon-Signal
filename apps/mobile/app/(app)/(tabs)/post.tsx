@@ -370,7 +370,7 @@ function PostComposer({ userId }: { userId: string }) {
 
           {preview ? <SignalPreview preview={preview} /> : null}
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-          {success ? <View style={{gap:6}}><Text accessibilityRole="alert" style={styles.success}>{success}</Text><Pressable accessibilityRole="button" onPress={() => router.push({ pathname: "/(app)/account/rewards", params: { section: "achievements" } })} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontWeight:"700"}}>View points & achievements →</Text></Pressable></View> : null}
+          {success ? <View style={{gap:6}}><Text accessibilityRole="alert" style={styles.success}>{success}</Text><Pressable accessibilityRole="button" onPress={() => router.push({ pathname: "/(app)/account/rewards", params: { section: "achievements" } })} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontWeight:"700"}}>View points & badges →</Text></Pressable></View> : null}
 
           <Text style={styles.disclaimer}>Only report what you observed. Availability can change quickly, and manually entered bottles or stores may be reviewed.</Text>
         </View> : null}

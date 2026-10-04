@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 const read=(path:string)=>readFileSync(new URL(path,import.meta.url),'utf8');
 const account=read('../../app/(app)/(tabs)/hq.tsx');
 const rewards=read('../../app/(app)/account/rewards.tsx');
+const badges=read('../rewards/BadgeCollection.tsx');
 const redeem=read('../../app/(app)/account/redeem.tsx');
 const profile=read('../../app/(app)/account/profile.tsx');
 const layout=read('../../app/(app)/_layout.tsx');
@@ -30,7 +31,8 @@ test('rewards use independent server panels and preserve earn-versus-redeem elig
  assert.match(rewards,/redemptionEligible/);
  assert.match(rewards,/inventoryRemaining === 0/);
  assert.match(rewards,/balance >= item.points/);
- assert.match(rewards,/badge.description/);
+ assert.match(rewards,/BadgeCollection/);
+ assert.match(badges,/progress.description/);
  assert.match(rewards,/entry.debtDelta/);
 });
 test('redemption requires review, address confirmation and a persisted retry identity',()=>{

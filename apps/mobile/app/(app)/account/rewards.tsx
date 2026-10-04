@@ -24,7 +24,8 @@ import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation"
 import { useAccessibleStatus } from "../../../src/hooks/useAccessibleStatus";
 import {
   activityLabel,
-  nextAchievements,
+  formatPoints,
+  rewardName,
   redemptionLabel,
   rewardGoal,
 } from "../../../src/rewards/reward-model";
@@ -39,14 +40,15 @@ import {
   RewardEmblem,
   rewardStyles as s,
 } from "../../../src/rewards/RewardUI";
+import { BadgeCollection } from "../../../src/rewards/BadgeCollection";
 import { colors } from "../../../src/theme";
 
 type Section = "rewards" | "achievements" | "earn" | "activity";
 const sections: Array<{ key: Section; label: string }> = [
   { key: "rewards", label: "Rewards" },
-  { key: "achievements", label: "Achievements" },
-  { key: "earn", label: "Earn points" },
-  { key: "activity", label: "Activity" },
+  { key: "achievements", label: "Badges" },
+  { key: "earn", label: "Earn" },
+  { key: "activity", label: "History" },
 ];
 
 export default function RewardsScreen() {
@@ -72,6 +74,8 @@ export default function RewardsScreen() {
   const [newBadge, setNewBadge] = useState("");
   const sequence = useRef(0);
   const [cancelId, setCancelId] = useState<string | null>(null);
+  const [savingFeatures, setSavingFeatures] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [busy, setBusy] = useState(false);
   useAccessibleStatus(notice || newBadge);
   useEffect(() => {
@@ -118,7 +122,7 @@ export default function RewardsScreen() {
           : [];
         setNewBadge(
           latest.length
-            ? `Achievement unlocked: ${latest.map((badge) => badge.label).join(", ")}`
+            ? `Badge earned: ${latest.map((badge) => badge.label).join(", ")}`
             : "",
         );
         await saveRewardValue(
@@ -138,7 +142,7 @@ export default function RewardsScreen() {
     try {
       await saveRewardValue(userId, "goal", key);
       setGoalKey(key);
-      setNotice("Reward goal saved on this device.");
+      setNotice("Reward goal saved.");
     } catch {
       setNotice("Your reward goal could not be saved. Try again.");
     } finally {
@@ -178,51 +182,57 @@ export default function RewardsScreen() {
         />
       }
     >
-      {section !== "achievements" ? (      <View style={[s.card, s.hero]}>
-        <Text style={s.label}>YOUR CONTRIBUTIONS COUNT</Text>
-        <Text style={[s.title, { fontSize: 38 }]}>
-          {points ? points.balance : "—"}{" "}
-          <Text style={s.muted}>Signal Points</Text>
+      <View style={{ gap: 6 }}>
+        <Text accessibilityRole="header" style={s.title}>
+          {section === "achievements"
+            ? "Your badges"
+            : section === "earn"
+              ? "Earn points"
+              : section === "activity"
+                ? "Rewards history"
+                : "Rewards"}
         </Text>
-        <Text style={s.muted}>
-          Share useful finds. Build your reputation. Earn something worth
-          keeping.
-        </Text>
+        {section !== "achievements" ? (
+          <Text style={s.heading}>
+            {points ? formatPoints(points.balance) : "—"}{" "}
+            <Text style={s.muted}>Signal Points available</Text>
+          </Text>
+        ) : null}
         {points && !points.redemptionEligible ? (
-          <>
-            <Text style={s.text}>
-              Earn points and achievements on any plan. Paid membership is
-              required to redeem rewards.
-            </Text>
-            <RewardButton
-              label="Explore membership"
-              secondary
-              onPress={() => router.push("/(app)/account/membership")}
-            />
-          </>
+          <Text style={s.muted}>
+            Earn on any plan. Paid membership is required to redeem rewards.
+          </Text>
+        ) : null}
+        {points && !points.redemptionEligible ? (
+          <RewardButton
+            secondary
+            label="View membership"
+            onPress={() => router.push("/(app)/account/membership")}
+          />
         ) : null}
         {points && points.debt > 0 ? (
           <Text style={s.muted}>
-            {points.debt} points under adjustment. Future earnings settle this
-            before adding to your available balance.
+            {formatPoints(points.debt)} points awaiting adjustment. New points
+            first cover this amount.
           </Text>
         ) : null}
       </View>
-) : <View style={{gap:6}}><Text style={s.title}>Your achievements</Text><Text style={s.muted}>Built by helping the community.</Text></View>}
       {newBadge ? (
         <View style={[s.card, s.row]}>
           <RewardEmblem rewardKey="medal" />
           <View style={{ flex: 1 }}>
             <Text style={s.heading}>{newBadge}</Text>
             <Text style={s.muted}>
-              Your contributions are making a difference.
+              View your collection to see the badge details.
             </Text>
           </View>
         </View>
       ) : null}
-      <View
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
         accessibilityRole="tablist"
-        style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+        contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
       >
         {sections.map((item) => (
           <Pressable
@@ -235,7 +245,7 @@ export default function RewardsScreen() {
             }}
             style={{
               minHeight: 44,
-              paddingHorizontal: 14,
+              paddingHorizontal: 12,
               paddingVertical: 12,
               borderRadius: 24,
               backgroundColor:
@@ -252,7 +262,7 @@ export default function RewardsScreen() {
             </Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
       {notice ? (
         <Text accessibilityRole="alert" style={s.text}>
           {notice}
@@ -268,23 +278,18 @@ export default function RewardsScreen() {
           ) : null}
           {goal && points ? (
             <RewardCard>
-              <Text style={s.label}>YOUR REWARD GOAL</Text>
-              <Text style={s.heading}>
-                {goal.name.replace(/^Bourbon Signal /, "")}
-              </Text>
+              <Text style={s.label}>Your goal</Text>
+              <Text style={s.heading}>{rewardName(goal.name)}</Text>
               <Text style={s.muted}>
-                {points.balance} / {goal.points} points ·{" "}
-                {Math.max(0, goal.points - points.balance)} to go
+                {formatPoints(points.balance)} of {formatPoints(goal.points)}{" "}
+                points ·{" "}
+                {formatPoints(Math.max(0, goal.points - points.balance))} to go
               </Text>
               <ProgressBar
                 value={points.balance}
                 target={goal.points}
                 label={`Progress toward ${goal.name}`}
               />
-              <Text style={s.muted}>
-                Choose any available reward below as your goal. Redeeming
-                another reward reduces this balance.
-              </Text>
             </RewardCard>
           ) : null}
           {points?.catalog.map((item) => {
@@ -298,10 +303,10 @@ export default function RewardsScreen() {
                 <View style={s.row}>
                   <RewardEmblem rewardKey={item.key} />
                   <View style={{ flex: 1, gap: 4 }}>
-                    <Text style={s.heading}>
-                      {item.name.replace(/^Bourbon Signal /, "")}
+                    <Text style={s.heading}>{rewardName(item.name)}</Text>
+                    <Text style={s.label}>
+                      {formatPoints(item.points)} points
                     </Text>
-                    <Text style={s.label}>{item.points} POINTS</Text>
                   </View>
                 </View>
                 <Text style={ready ? s.success : s.muted}>
@@ -311,29 +316,21 @@ export default function RewardsScreen() {
                       ? "Ready to redeem"
                       : !points.redemptionEligible
                         ? "Paid membership required to redeem"
-                        : `${item.points - points.balance} more points needed`}
+                        : `${formatPoints(Math.max(0, item.points - points.balance))} points to go`}
                 </Text>
                 <Text style={s.muted}>
                   {item.fulfillmentType === "physical"
                     ? item.options?.usShippingIncluded
-                      ? "U.S. shipping included · address reviewed before redemption"
-                      : "Physical reward · review shipping before redemption"
+                      ? "U.S. shipping included."
+                      : "Shipping details at redemption."
                     : item.options?.membershipCredit
                       ? "For eligible directly billed memberships. Once every 12 months; Apple subscriptions are not eligible."
-                      : "Digital delivery to your verified account email"}
+                      : "Delivered by email."}
                 </Text>
                 {ready ? (
                   <>
-                    <Text style={s.muted}>
-                      {points.balance - item.points} points remaining after
-                      redemption
-                      {goal && goal.key !== item.key
-                        ? ` · ${Math.max(0, goal.points - (points.balance - item.points))} then needed for your goal`
-                        : ""}
-                      .
-                    </Text>
                     <RewardButton
-                      label={`Redeem for ${item.points} points`}
+                      label={`Redeem · ${formatPoints(item.points)} points`}
                       onPress={() =>
                         router.push({
                           pathname: "/(app)/account/redeem",
@@ -347,11 +344,9 @@ export default function RewardsScreen() {
                   <RewardButton
                     secondary
                     label={
-                      goalKey === item.key
-                        ? "Your selected goal"
-                        : "Save toward this"
+                      goal?.key === item.key ? "Your goal ✓" : "Set as goal"
                     }
-                    disabled={savingGoal || goalKey === item.key}
+                    disabled={savingGoal || goal?.key === item.key}
                     onPress={() => void selectGoal(item.key)}
                   />
                 ) : null}
@@ -360,8 +355,7 @@ export default function RewardsScreen() {
           })}
           {points && !points.catalog.length ? (
             <Text style={s.muted}>
-              The reward catalog is temporarily empty. Your points are still
-              yours.
+              No rewards are available right now. Your points balance is saved.
             </Text>
           ) : null}
         </>
@@ -375,97 +369,47 @@ export default function RewardsScreen() {
             />
           ) : null}
           {achievements ? (
-            <>
-              <RewardCard>
-                <View style={s.spread}>
-                  <Text style={s.heading}>
-                    {achievements.badges.length} badges earned
-                  </Text>
-                  <Text style={s.label}>
-                    {achievements.currentWeeklyStreak}-WEEK STREAK
-                  </Text>
-                </View>
-                <Text style={s.muted}>
-                  {achievements.eligibleSightings} eligible sightings ·{" "}
-                  {achievements.helpfulSightings} helpful sightings · Best
-                  streak: {achievements.longestWeeklyStreak} weeks
-                </Text>
-                <Text style={s.text}>
-                  Your badges stay separate from your spendable points.
-                  Redeeming a reward never spends your achievements.
-                </Text>
-                <RewardButton
-                  label="Post a sighting"
-                  onPress={() => router.push("/(app)/(tabs)/post")}
-                />
-              </RewardCard>
-              <Text style={s.heading}>Earned collection</Text>
-              {!achievements.badges.length ? (
-                <Text style={s.muted}>
-                  Your first badge starts with a useful bottle sighting. Add the
-                  exact store and what you found.
-                </Text>
-              ) : null}
-              {achievements.badges.map((badge) => (
-                <RewardCard key={badge.id}>
-                  <View style={s.row}>
-                    <RewardEmblem rewardKey={badge.id} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={s.heading}>{badge.label}</Text>
-                      <Text style={s.label}>
-                        {badge.tier ? `${badge.tier.toUpperCase()} · ` : ""}
-                        EARNED
-                      </Text>
-                      <Text style={s.muted}>
-                        {new Date(badge.earnedAt).toLocaleDateString()} ·{" "}
-                        {badge.pointsAwarded} points awarded
-                      </Text>
-                    </View>
-                  </View>
-                </RewardCard>
-              ))}
-              <Text style={s.heading}>Your next achievements</Text>
-              {nextAchievements(achievements).map((badge) => (
-                <RewardCard key={badge.id}>
-                  <View style={s.row}>
-                    <RewardEmblem rewardKey={badge.id} earned={false} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={s.heading}>{badge.label}</Text>
-                      <Text style={s.muted}>
-                        {badge.tier ? `${badge.tier} · ` : ""}
-                        {badge.current} / {badge.target}
-                      </Text>
-                    </View>
-                  </View>
-                  <ProgressBar
-                    value={badge.current}
-                    target={badge.target}
-                    label={`${badge.label} ${badge.tier || ""}`}
-                  />
-                  <Text style={s.muted}>
-                    {badge.description ||
-                      "Contribute eligible sightings to progress toward this badge."}
-                  </Text>
-                </RewardCard>
-              ))}
-            </>
+            <BadgeCollection
+              summary={achievements}
+              saving={savingFeatures}
+              onFeature={async (ids) => {
+                setSavingFeatures(true);
+                try {
+                  const result = await api.saveFeaturedBadges(ids);
+                  setAchievements((current) =>
+                    current
+                      ? {
+                          ...current,
+                          featuredBadgeIds: result.featuredBadgeIds,
+                        }
+                      : current,
+                  );
+                } finally {
+                  setSavingFeatures(false);
+                }
+              }}
+            />
           ) : null}
         </>
       ) : null}
       {section === "earn" ? (
         <>
           <RewardCard>
-            <Text style={s.heading}>Make the next hunt better</Text>
-            <Text style={s.text}>
-              Eligible sighting: 10 points{"\n"}Allocated bottle: 20 points
-              {"\n"}Unicorn bottle: 30 points{"\n"}New achievement: 10 points
-              {"\n"}Continue a weekly streak: 10 points
-            </Text>
+            <Text style={s.heading}>Post a sighting</Text>
+            {[
+              ["Standard sighting", "10 points"],
+              ["Allocated bottle sighting", "20 points total"],
+              ["Unicorn bottle sighting", "30 points total"],
+              ["Continue a weekly streak", "+10 points per qualifying week"],
+            ].map(([label, value]) => (
+              <View key={label} style={s.spread}>
+                <Text style={[s.text, { flex: 1 }]}>{label}</Text>
+                <Text style={[s.text, { fontWeight: "700" }]}>{value}</Text>
+              </View>
+            ))}
             <Text style={s.muted}>
-              Use the exact bottle and store. Bottle rarity comes from the
-              catalog. Duplicate posts do not earn twice; removed or rejected
-              contributions can reverse points. A streak continues with at least
-              one eligible sighting in consecutive weeks.
+              Use the bottle and store you found. The catalog determines bottle
+              rarity.
             </Text>
             <RewardButton
               label="Post a sighting"
@@ -473,16 +417,13 @@ export default function RewardsScreen() {
             />
           </RewardCard>
           <RewardCard>
-            <Text style={s.heading}>Keep availability useful</Text>
+            <Text style={s.heading}>Update availability</Text>
             <Text style={s.text}>
-              Earn 5 points for a first-hand “Found it” or “Gone when checked”
-              update on retailer or trusted-source availability.
+              5 points per qualifying update · Up to 3 per day
             </Text>
             <Text style={s.muted}>
-              Up to 3 new qualifying episodes per UTC day. Repeated updates to
-              the same episode do not earn again. “Didn’t go,” removed updates,
-              and community self-reports do not qualify. Open a bottle’s Signal
-              to record what happened.
+              Record “Found it” or “Gone when checked” on a retailer or
+              trusted-source listing. Each listing period earns once.
             </Text>
             <RewardButton
               secondary
@@ -491,21 +432,44 @@ export default function RewardsScreen() {
             />
           </RewardCard>
           <RewardCard>
-            <Text style={s.heading}>Quality earns recognition</Text>
+            <Text style={s.heading}>Badge bonuses</Text>
             <Text style={s.text}>
-              Attach a useful photo for Photo Finish. Helpful Neighbor starts
-              when a sighting receives at least 3 upvotes and a net score of at
-              least 3.
-            </Text>
-            <Text style={s.muted}>
-              Report only what you can support. Helpful updates and accurate
-              store details give other members better information.
+              Some badges award 10 bonus points. Expansion badges recognize your
+              progress without adding points. Each badge’s details show its
+              bonus.
             </Text>
             <RewardButton
               secondary
-              label="View achievement goals"
+              label="View badges"
               onPress={() => setSection("achievements")}
             />
+          </RewardCard>
+          <RewardCard>
+            <Text style={s.heading}>What counts</Text>
+            <Text style={s.text}>
+              Bottle sightings with recorded store details count toward badges.
+              Community endorsement means a sighting received at least 3 upvotes
+              and at least 3 more upvotes than downvotes.
+            </Text>
+            <RewardButton
+              secondary
+              label={showRules ? "Hide points rules" : "View points rules"}
+              onPress={() => setShowRules(!showRules)}
+            />
+            {showRules ? (
+              <Text style={s.muted}>
+                Duplicate posts do not earn twice. Removed or rejected
+                contributions can reverse points. Weekly streaks use
+                Monday–Sunday weeks in the store’s time zone. The first week
+                starts your streak; each consecutive qualifying week earns 10
+                bonus points. Availability awards are limited to 3 new listing
+                periods per UTC day, resetting at midnight UTC. Community
+                self-reports and “Didn’t go” do not qualify. Withdrawing an
+                update reverses its points. Redeeming rewards does not affect
+                earned badges. Rejected supporting contributions can remove a
+                badge.
+              </Text>
+            ) : null}
           </RewardCard>
           <Text style={s.heading}>Invite friends</Text>
           {errors.referral ? (
@@ -513,21 +477,21 @@ export default function RewardsScreen() {
           ) : referral ? (
             <RewardCard>
               <Text style={s.heading}>
-                {referral.referrals.total} joined · {referral.referralPoints}{" "}
+                {referral.referrals.total} joined · {formatPoints(referral.referralPoints)}{" "}
                 points earned
               </Text>
               <Text style={s.text}>
-                Free: {referral.program.pointsByTier.free} points for the first{" "}
+                Free: {formatPoints(referral.program.pointsByTier.free)} points for the first{" "}
                 {referral.program.freeAwardLimit} qualifying referrals{"\n"}
-                Standard: {referral.program.pointsByTier.standard} points{"\n"}
-                Barrel Proof: {referral.program.pointsByTier.barrel} points
+                Standard: {formatPoints(referral.program.pointsByTier.standard)} points{"\n"}
+                Barrel Proof: {formatPoints(referral.program.pointsByTier.barrel)} points
                 {"\n"}Founder:{" "}
-                {referral.program.pointsByTier["bottled-in-bond"]} points
+                {formatPoints(referral.program.pointsByTier["bottled-in-bond"])} points
               </Text>
               <Text style={s.muted}>
-                Points follow the referred member’s qualifying membership.
+                Points are based on your friend’s qualifying membership.
                 {referral.program.upgradeAwardsDifferenceOnly
-                  ? " Upgrades award only the difference."
+                  ? " If they upgrade, you receive the difference."
                   : ""}{" "}
                 Sharing a link alone does not earn points.
               </Text>
@@ -536,9 +500,20 @@ export default function RewardsScreen() {
                 Standard · {referral.referrals.barrel} Barrel Proof ·{" "}
                 {referral.referrals.founder} Founder
               </Text>
-              {referral.referrals.awarded !== undefined ? <Text style={s.muted}>{referral.referrals.awarded} referrals awarded · {Math.max(0,referral.referrals.total-referral.referrals.awarded)} joined without a point award. Free referral limits and qualification rules apply.</Text> : null}
-                <Text style={s.muted}>Joined → qualifying membership → points awarded. Undelivered invitations are not counted.</Text>
-                <Text selectable style={s.muted}>
+              {referral.referrals.awarded !== undefined ? (
+                <Text style={s.muted}>
+                  {referral.referrals.awarded} referrals awarded ·{" "}
+                  {Math.max(
+                    0,
+                    referral.referrals.total - referral.referrals.awarded,
+                  )}{" "}
+                  awaiting an award or outside the referral limit.
+                </Text>
+              ) : null}
+              <Text style={s.muted}>
+                Only qualifying referrals earn points.
+              </Text>
+              <Text selectable style={s.muted}>
                 {referral.referralLink}
               </Text>
               <RewardButton
@@ -566,17 +541,17 @@ export default function RewardsScreen() {
           ) : null}
           <Text style={s.heading}>Your redemptions</Text>
           {points && !points.redemptions.length ? (
-            <Text style={s.muted}>
-              No redemptions yet. Your next reward starts in the catalog.
-            </Text>
+            <Text style={s.muted}>No redemptions yet.</Text>
           ) : null}
           {points?.redemptions.map((item) => (
             <RewardCard key={item.id}>
               <Text style={s.heading}>
-                {item.itemSnapshot?.name ||
-                  points.catalog.find((reward) => reward.key === item.itemKey)
-                    ?.name ||
-                  "Reward"}
+                {rewardName(
+                  item.itemSnapshot?.name ||
+                    points.catalog.find((reward) => reward.key === item.itemKey)
+                      ?.name ||
+                    "Reward",
+                )}
               </Text>
               <Text style={s.text}>{redemptionLabel(item.status)}</Text>
               <Text style={s.muted}>
@@ -631,10 +606,7 @@ export default function RewardsScreen() {
               Points activity is temporarily unavailable. Pull down to refresh.
             </Text>
           ) : !points.activity.length ? (
-            <Text style={s.muted}>
-              No points activity yet. Post your first useful sighting to get
-              started.
-            </Text>
+            <Text style={s.muted}>No points activity yet.</Text>
           ) : (
             points.activity.map((entry) => (
               <RewardCard key={entry.id}>

@@ -1,6 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { ComponentProps, ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { badgeCatalog } from "./badge-catalog";
+import { badgeFamily } from "./reward-model";
 import { colors } from "../theme";
 
 export const rewardStyles = StyleSheet.create({
@@ -137,53 +139,66 @@ export function RewardCard({ children }: { children: ReactNode }) {
   return <View style={rewardStyles.card}>{children}</View>;
 }
 type Icon = ComponentProps<typeof MaterialCommunityIcons>["name"];
+const rewardImages: Record<string, number> = {
+  rocks_glass: require("../../assets/rewards/rocks-glass.png"),
+  glencairn: require("../../assets/rewards/glencairn.png"),
+  sticker_pack: require("../../assets/rewards/sticker-pack.png"),
+};
 export function RewardEmblem({
   rewardKey,
   earned = true,
+  tier,
 }: {
   rewardKey: string;
   earned?: boolean;
+  tier?: string;
 }) {
+  const definition = badgeCatalog.find(
+    (item) => item.id === badgeFamily(rewardKey),
+  );
   const icon: Icon =
-    rewardKey.includes("glass") || rewardKey.includes("glencairn")
-      ? "glass-cocktail"
-      : rewardKey.includes("sticker")
-        ? "sticker-circle-outline"
+    (definition?.icon as Icon) ||
+    (rewardKey.includes("gift")
+      ? "credit-card-outline"
+      : rewardKey.includes("credit")
+        ? "calendar-star"
         : rewardKey.includes("coaster")
           ? "circle-double"
-          : rewardKey.includes("gift")
-            ? "gift-outline"
-            : rewardKey.includes("credit")
-              ? "calendar-star"
-              : rewardKey.includes("photo")
-                ? "camera-outline"
-                : rewardKey.includes("streak")
-                  ? "fire"
-                  : rewardKey.includes("local")
-                    ? "map-marker-star-outline"
-                    : rewardKey.includes("helpful") ||
-                        rewardKey.includes("sharp")
-                      ? "hand-heart-outline"
-                      : "medal-outline";
+          : rewardKey.includes("clean")
+            ? "shield-check-outline"
+            : rewardKey.includes("sharp")
+              ? "eye-outline"
+              : "medal-outline");
+  const tint = earned
+    ? tier === "silver"
+      ? "#D2D5D9"
+      : tier === "bronze"
+        ? "#CC956B"
+        : colors.accent
+    : colors.muted;
   return (
     <View
       accessible={false}
       style={{
         width: 62,
         height: 62,
-        borderRadius: 20,
+        borderRadius: 18,
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: earned ? "#322719" : colors.background,
         borderWidth: 1,
-        borderColor: earned ? colors.accent : colors.border,
+        borderColor: earned ? tint : colors.border,
       }}
     >
-      <MaterialCommunityIcons
-        name={icon}
-        size={32}
-        color={earned ? colors.accent : colors.muted}
-      />
+      {rewardImages[rewardKey] ? (
+        <Image
+          source={rewardImages[rewardKey]}
+          style={{ width: 38, height: 42, tintColor: tint }}
+          resizeMode="contain"
+        />
+      ) : (
+        <MaterialCommunityIcons name={icon} size={32} color={tint} />
+      )}
     </View>
   );
 }

@@ -26,6 +26,8 @@ await db.query("DELETE FROM hunt_outcomes WHERE user_id='other' AND availability
 assert.deepEqual((await db.query('SELECT * FROM reconcile_quality_outcome_reward($1,$2)',['other','one'])).rows[0],{points:0,balance:0},'deleting an update reverses it');
 await db.query("INSERT INTO signal_point_migrations(migration_key) VALUES('signal_points_clerk_metadata_v1_verified_complete') ON CONFLICT DO NOTHING");
 const repository = new SignalPointsRepository({query: async (text, params) => (await db.query(text,params)).rows});
+assert.deepEqual(await repository.readAchievementMetrics('member'),{availabilityUpdates:3,qualifiedReferrals:0,available:true});
+assert.deepEqual(await repository.readAchievementMetrics('other'),{availabilityUpdates:0,qualifiedReferrals:0,available:true},'achievement counts are account scoped and ignore reversed awards');
 const summary = await repository.readMember('member');
 assert.equal(summary.balance,15);
 assert.ok(summary.activity.length>0);

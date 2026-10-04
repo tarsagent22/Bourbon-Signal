@@ -24,7 +24,11 @@ import {
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { useAccessibleStatus } from "../../../src/hooks/useAccessibleStatus";
-import { rewardCost } from "../../../src/rewards/reward-model";
+import {
+  rewardCost,
+  rewardName,
+  formatPoints,
+} from "../../../src/rewards/reward-model";
 import {
   readRewardValue,
   saveRewardValue,
@@ -265,9 +269,13 @@ export default function RedeemScreen() {
           <>
             <RewardCard>
               <RewardEmblem rewardKey={reward.key} />
-              <Text style={s.title}>{reward.name}</Text>
+              <Text style={s.title}>{rewardName(reward.name)}</Text>
               <Text style={s.heading}>{cost} points</Text>
-              <Text style={s.muted}>{pending ? `Current balance: ${points.balance} points. Your saved request may already be recorded.` : `${Math.max(0, points.balance-cost)} points remaining after redemption`}</Text>
+              <Text style={s.muted}>
+                {pending
+                  ? `Current balance: ${points.balance} points. Your saved request may already be recorded.`
+                  : `${formatPoints(Math.max(0, points.balance - cost))} points remaining after redemption`}
+              </Text>
               {!points.redemptionEligible ? (
                 <Text style={s.error}>
                   Paid membership is required to redeem.
@@ -287,8 +295,17 @@ export default function RedeemScreen() {
                   result. The same request will not spend points twice. Check
                   Activity before starting any other redemption.
                 </Text>
-              <RewardButton label="Check redemption history" secondary onPress={() => router.replace({pathname:"/(app)/account/rewards",params:{section:"activity"}})} />
-            </RewardCard>
+                <RewardButton
+                  label="Check redemption history"
+                  secondary
+                  onPress={() =>
+                    router.replace({
+                      pathname: "/(app)/account/rewards",
+                      params: { section: "activity" },
+                    })
+                  }
+                />
+              </RewardCard>
             ) : null}
             {!pending && !review && reward.options?.glassQuantity ? (
               <RewardCard>
@@ -465,7 +482,7 @@ export default function RedeemScreen() {
               <RewardCard>
                 <Text style={s.heading}>Review your redemption</Text>
                 <Text style={s.text}>
-                  {reward.name}
+                  {rewardName(reward.name)}
                   {personal ? `\nEngraving: ${engraving}` : ""}
                   {"\n"}Total: {cost} points
                 </Text>

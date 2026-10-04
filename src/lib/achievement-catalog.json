@@ -1,0 +1,288 @@
+[
+  {
+    "id": "first_sighting",
+    "name": "First Sighting",
+    "category": "Sightings",
+    "unit": "sightings",
+    "description": "Post your first bottle sighting.",
+    "rules": "Duplicate posts and rejected sightings do not count. Previously earned badges remain yours unless the supporting contribution is rejected.",
+    "milestones": [
+      {
+        "tier": null,
+        "target": 1,
+        "points": 10
+      }
+    ],
+    "icon": "flag-outline"
+  },
+  {
+    "id": "spotter",
+    "name": "Spotter",
+    "category": "Sightings",
+    "unit": "sightings",
+    "description": "Post {target} bottle sightings.",
+    "rules": "Duplicate posts and rejected sightings do not count. Previously earned badges remain yours unless the supporting contribution is rejected.",
+    "milestones": [
+      {
+        "tier": "bronze",
+        "target": 5,
+        "points": 10
+      },
+      {
+        "tier": "silver",
+        "target": 25,
+        "points": 10
+      },
+      {
+        "tier": "gold",
+        "target": 50,
+        "points": 10
+      }
+    ],
+    "icon": "binoculars"
+  },
+  {
+    "id": "photo_finish",
+    "name": "Photo Finish",
+    "category": "Sightings",
+    "unit": "photos",
+    "description": "Add photos to {target} bottle sightings.",
+    "rules": "Each sighting with an attached, non-rejected photo counts once. Duplicate posts and rejected sightings do not count. Previously earned badges remain yours unless the supporting contribution is rejected.",
+    "milestones": [
+      {
+        "tier": null,
+        "target": 1,
+        "points": 10
+      },
+      {
+        "tier": "bronze",
+        "target": 5,
+        "points": 0
+      },
+      {
+        "tier": "silver",
+        "target": 25,
+        "points": 0
+      },
+      {
+        "tier": "gold",
+        "target": 50,
+        "points": 0
+      }
+    ],
+    "icon": "camera-outline"
+  },
+  {
+    "id": "helpful_neighbor",
+    "name": "Helpful Neighbor",
+    "category": "Community",
+    "unit": "helpful sightings",
+    "description": "Have {target} sightings marked helpful by the community.",
+    "rules": "A sighting qualifies with at least 3 upvotes and at least 3 more upvotes than downvotes. Votes indicate community endorsement, not independent verification. Duplicate posts and rejected sightings do not count. Previously earned badges remain yours unless the supporting contribution is rejected.",
+    "milestones": [
+      {
+        "tier": null,
+        "target": 1,
+        "points": 10
+      },
+      {
+        "tier": "bronze",
+        "target": 5,
+        "points": 0
+      },
+      {
+        "tier": "silver",
+        "target": 25,
+        "points": 0
+      },
+      {
+        "tier": "gold",
+        "target": 75,
+        "points": 0
+      }
+    ],
+    "icon": "hand-heart-outline"
+  },
+  {
+    "id": "local_scout",
+    "name": "Local Scout",
+    "category": "Exploration",
+    "unit": "sightings",
+    "description": "Post {target} sightings in the same city.",
+    "rules": "Progress uses the city where you have the most counted sightings. The city and state must be recorded. Duplicate posts and rejected sightings do not count. Previously earned badges remain yours unless the supporting contribution is rejected.",
+    "milestones": [
+      {
+        "tier": "bronze",
+        "target": 5,
+        "points": 10
+      },
+      {
+        "tier": "silver",
+        "target": 15,
+        "points": 10
+      },
+      {
+        "tier": "gold",
+        "target": 40,
+        "points": 10
+      }
+    ],
+    "icon": "map-marker-star-outline"
+  },
+  {
+    "id": "store_explorer",
+    "name": "Store Explorer",
+    "category": "Exploration",
+    "unit": "stores",
+    "description": "Post sightings at {target} different stores.",
+    "rules": "Each recorded store counts once, regardless of how many bottles you report there. Duplicate posts and rejected sightings do not count. Previously earned badges remain yours unless the supporting contribution is rejected.",
+    "milestones": [
+      {
+        "tier": "bronze",
+        "target": 3,
+        "points": 0
+      },
+      {
+        "tier": "silver",
+        "target": 10,
+        "points": 0
+      },
+      {
+        "tier": "gold",
+        "target": 25,
+        "points": 0
+      }
+    ],
+    "icon": "store-search-outline"
+  },
+  {
+    "id": "availability_scout",
+    "name": "Availability Scout",
+    "category": "Community",
+    "unit": "updates",
+    "description": "Make {target} qualifying availability updates.",
+    "rules": "Counted updates are Found it or Gone when checked reports that earned availability points on retailer or trusted-source listings. Each listing period counts once. Withdrawn updates do not advance progress.",
+    "milestones": [
+      {
+        "tier": "bronze",
+        "target": 3,
+        "points": 0
+      },
+      {
+        "tier": "silver",
+        "target": 15,
+        "points": 0
+      },
+      {
+        "tier": "gold",
+        "target": 50,
+        "points": 0
+      }
+    ],
+    "icon": "store-check-outline"
+  },
+  {
+    "id": "unicorn_hunter",
+    "name": "Unicorn Hunter",
+    "category": "Sightings",
+    "unit": "sightings",
+    "description": "Post {target} sightings of bottles rated Unicorn.",
+    "rules": "The bottle catalog determines rarity. Manual bottle submissions start at the standard rate until classified. Duplicate posts and rejected sightings do not count. Previously earned badges remain yours unless the supporting contribution is rejected.",
+    "milestones": [
+      {
+        "tier": "bronze",
+        "target": 1,
+        "points": 10
+      },
+      {
+        "tier": "silver",
+        "target": 5,
+        "points": 10
+      },
+      {
+        "tier": "gold",
+        "target": 15,
+        "points": 10
+      }
+    ],
+    "icon": "unicorn-variant"
+  },
+  {
+    "id": "streak",
+    "name": "Weekly Streak",
+    "category": "Consistency",
+    "unit": "weeks",
+    "description": "Post a sighting in {target} consecutive weeks.",
+    "rules": "One counted sighting per week continues the streak. Weeks run Monday through Sunday using the store’s time zone; missing a completed week resets the current streak. Badges use your best streak and remain earned.",
+    "milestones": [
+      {
+        "tier": "bronze",
+        "target": 2,
+        "points": 10
+      },
+      {
+        "tier": "silver",
+        "target": 4,
+        "points": 10
+      },
+      {
+        "tier": "gold",
+        "target": 8,
+        "points": 10
+      }
+    ],
+    "icon": "fire"
+  },
+  {
+    "id": "weekend_warrior",
+    "name": "Weekend Warrior",
+    "category": "Consistency",
+    "unit": "weekends",
+    "description": "Post a sighting on {target} different weekends.",
+    "rules": "A weekend runs from Friday at 5 p.m. through Sunday in the store’s local time. Multiple posts in one weekend count once. Duplicate posts and rejected sightings do not count. Previously earned badges remain yours unless the supporting contribution is rejected.",
+    "milestones": [
+      {
+        "tier": "bronze",
+        "target": 3,
+        "points": 10
+      },
+      {
+        "tier": "silver",
+        "target": 8,
+        "points": 10
+      },
+      {
+        "tier": "gold",
+        "target": 20,
+        "points": 10
+      }
+    ],
+    "icon": "calendar-weekend-outline"
+  },
+  {
+    "id": "community_builder",
+    "name": "Community Builder",
+    "category": "Community",
+    "unit": "referrals",
+    "description": "Invite {target} friends who earn a qualifying referral award.",
+    "rules": "A referral counts after it qualifies for a points award under the referral program. Sharing a link or an unqualified signup does not count. Each referred account counts once.",
+    "milestones": [
+      {
+        "tier": "bronze",
+        "target": 1,
+        "points": 0
+      },
+      {
+        "tier": "silver",
+        "target": 5,
+        "points": 0
+      },
+      {
+        "tier": "gold",
+        "target": 15,
+        "points": 0
+      }
+    ],
+    "icon": "account-group-outline"
+  }
+]

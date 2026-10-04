@@ -1,3 +1,4 @@
+import {featuredBadgeLabels} from "@/lib/featured-badges";
 import { after, NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getBourbonBible, searchBourbonBible, normalizeBottleKey as normalizeBibleBottleKey, type BibleBottle } from "@/lib/bourbonBible";
@@ -111,11 +112,7 @@ function memberFacingBadgeLabel(label: unknown) {
   return label.replace(/Verified Scout/gi, "Helpful Neighbor").replace(/verified/gi, "helpful");
 }
 
-function rewardBadgeLabels(privateMetadata: Record<string, unknown>) {
-  const rewards = privateMetadata.memberRewards && typeof privateMetadata.memberRewards === "object" ? privateMetadata.memberRewards as Record<string, unknown> : {};
-  const badges = Array.isArray(rewards.badges) ? rewards.badges as Array<Record<string, unknown>> : [];
-  return badges.slice(0, 2).map((badge) => [memberFacingBadgeLabel(badge.label), badge.tier].filter(Boolean).join(" "));
-}
+function rewardBadgeLabels(privateMetadata: Record<string,unknown>) { return featuredBadgeLabels(privateMetadata); }
 
 type LegacyReporter = {
   id: string;
@@ -171,8 +168,12 @@ async function readCachedLegacyCommunitySnapshot() {
 
 async function persistMemberRewardsBestEffort(client: Awaited<ReturnType<typeof clerkClient>>, userId: string, memberRewards: unknown, rewardGeneration: number) {
   await createSignalPointsRepository().reconcileClerkRewards(userId, memberRewards, rewardGeneration);
-  await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards } }).catch((error) => {
+  const projected = await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards } }).catch((error) => {
     console.error("Durable sighting rewards reconciled, but Clerk projection failed", error);
+    return null;
+  });
+  if (projected) await createCommunitySightingsRepository().updateReporterBadges(userId, featuredBadgeLabels(projected.privateMetadata as Record<string, unknown>)).catch((error) => {
+    console.error("Featured community badge projection failed", error);
   });
 }
 
@@ -348,11 +349,13 @@ export async function GET(req: NextRequest) {
     const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
     const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...aggregate.durableOwned]);
     const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
-    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
+    const metrics = await createSignalPointsRepository().readAchievementMetrics(userId).catch(() => ({available:false}));
+    const featuredBadgeIds=Array.isArray(privateMetadata.featuredBadgeIds) ? privateMetadata.featuredBadgeIds.filter((id): id is string=>typeof id==="string").slice(0,3) : [];
+    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards, undefined, metrics);
     if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
       await persistMemberRewardsBestEffort(client, userId, nextRewards, rewardGeneration);
     }
-    rewards = summarizeMemberRewards(rewardSightings, nextRewards);
+    rewards = summarizeMemberRewards(rewardSightings, nextRewards, {...metrics,featuredBadgeIds});
   }
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
   return NextResponse.json({

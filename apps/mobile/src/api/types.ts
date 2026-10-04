@@ -7,7 +7,7 @@ export interface Signal {
     type: "member" | "retailer" | "trusted_source" | "release_source";
     label: string;
     reportMode?: "seen_in_store" | "reported_online";
-    actor?: { kind: "founder" | "member"; number: number; label: string; displayName?: string };
+    actor?: { kind: "founder" | "member"; number: number; label: string; displayName?: string; badges?: string[] };
   };
   bottle: { id?: string; name: string; rarity?: "limited" | "allocated" | "unicorn" };
   location: {
@@ -329,7 +329,7 @@ export interface GeographySearchResponse {
     level: MonitoringScopeType;
     state: string;
     name: string;
-    displayName?: string;
+    displayName?: string; badges?: string[];
     subtitle?: string | null;
     storeId?: string;
     address?: string;
@@ -416,7 +416,9 @@ export interface AchievementSummary {
   helpfulSightings: number;
   photoSightings: number;
   badges: Array<{ id: string; label: string; tier?: string; earnedAt: string; pointsAwarded: number }>;
-  badgeProgress: Array<{ id: string; label: string; tier?: string; current: number; target: number; earned: boolean; description?: string }>;
+  badgeProgress: Array<{ id: string; label: string; tier?: string; current: number; target: number; earned: boolean; description?: string; category?: string; unit?: string; rules?: string; pointsAwarded?: number; context?: string }>;
+  featuredBadgeIds?: string[];
+  metricsAvailable?: boolean;
 }
 export interface RewardShipping {
   recipientName: string; addressLine1: string; addressLine2: string | null;

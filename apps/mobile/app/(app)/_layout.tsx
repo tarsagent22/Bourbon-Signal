@@ -12,7 +12,7 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
       <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />
-      <Stack.Screen name="account/rewards" options={{ title: "Rewards", headerBackButtonDisplayMode: "minimal" }} />
+      <Stack.Screen name="account/rewards" options={{ title: "Rewards & Badges", headerBackButtonDisplayMode: "minimal" }} />
       <Stack.Screen name="account/redeem" options={{ title: "Redeem reward", headerBackButtonDisplayMode: "minimal" }} />
       <Stack.Screen name="account/profile" options={{ title: "Edit profile", headerBackButtonDisplayMode: "minimal" }} />
       <Stack.Screen name="account/support" options={{ title: "Support" }} />
