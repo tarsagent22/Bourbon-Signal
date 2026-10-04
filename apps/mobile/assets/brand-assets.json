@@ -1,12 +1,14 @@
 {
   "schemaVersion": "bourbon-signal/native-brand-assets@1",
   "source": {
-    "path": "public/icon-512.png",
-    "sha256": "9fbe13ad5789c61aceecbea4572d10176c02794c07e239b591744f7a7eb38690"
+    "path": "apps/mobile/assets/heritage-b-master.png",
+    "sha256": "3effababd558f301d516454afa90616c25e10e01f492c70ec586d157b9e8e4d2",
+    "concept": "B06 Heritage B",
+    "approval": "Owner selected this exact artwork on 2026-10-04"
   },
   "assets": {
     "icon.png": {
-      "sha256": "92ff1635f2f7c188894a33eb15f69552cf60e9867c4fbb6d4302ab98a4e0297f",
+      "sha256": "3334256bd34986e3aef6de6fc9e632d5c079f7e78c1c67f04855afac49fc4ca0",
       "width": 1024,
       "height": 1024,
       "mode": "RGB"
@@ -18,19 +20,19 @@
       "mode": "RGBA"
     },
     "android-icon-background.png": {
-      "sha256": "58409486902f69d63a484ae69315d22253b49d3410059f399b3d674013c3c8f4",
+      "sha256": "2add8a7777d71461d3833787588259b75817090f74372d0f80749a32ec52482b",
       "width": 512,
       "height": 512,
       "mode": "RGBA"
     },
     "android-icon-foreground.png": {
-      "sha256": "3da459dd264dbb75c6e7b0ab4a8279e5defd1480f1c445a1ccedf347ff4d969b",
+      "sha256": "7c40ed4b4bbfa1bfff4ec15ea0def5807ca8de8db89b72f65302cc71ae3842c8",
       "width": 512,
       "height": 512,
       "mode": "RGBA"
     },
     "android-icon-monochrome.png": {
-      "sha256": "ee2f3a5893287f8f6a0316b51357119f64d0d26287b14d6736cfbabede91401f",
+      "sha256": "9a704a031c5ffe4f13e5ab5f59d9519d2df0a1db89735bbff37fe7dd3cfd9c13",
       "width": 432,
       "height": 432,
       "mode": "RGBA"
@@ -42,10 +44,10 @@
       "mode": "RGBA"
     },
     "favicon.png": {
-      "sha256": "69592e0b668a6d6168ee595ee27d24b7337da877b39da3ed28d273270293df71",
+      "sha256": "946d4e9ef2e5f855e6ec5cd0a86654a4c5b11bf552b8b63dd7e9c4bfdb48f5f4",
       "width": 48,
       "height": 48,
-      "mode": "RGBA"
+      "mode": "RGB"
     }
   }
 }

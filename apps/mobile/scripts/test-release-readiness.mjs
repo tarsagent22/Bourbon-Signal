@@ -191,7 +191,8 @@ assert.deepEqual({ ...png("assets/android-icon-monochrome.png"), colorType: unde
 
 const brandManifest = readJson("assets/brand-assets.json");
 assert.equal(brandManifest.schemaVersion, "bourbon-signal/native-brand-assets@1");
-const sourceMark = readFileSync(resolve(root, "../../public/icon-512.png"));
+assert.equal(brandManifest.source.path, "apps/mobile/assets/heritage-b-master.png");
+const sourceMark = readFileSync(resolve(root, "../../", brandManifest.source.path));
 assert.equal(createHash("sha256").update(sourceMark).digest("hex"), brandManifest.source.sha256);
 for (const [name, expected] of Object.entries(brandManifest.assets)) {
   const bytes = readFileSync(resolve(root, "assets", name));
