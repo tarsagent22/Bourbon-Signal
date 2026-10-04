@@ -2,7 +2,7 @@ import { useAuth } from "@clerk/expo";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -44,26 +44,22 @@ export default function AccountScreen() {
   useAccessibleStatus(error);
   const [signingOut, setSigningOut] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     const id = ++sequence.current;
     setLoading(true);
     setError("");
-    const results = await Promise.allSettled([
-      api.getMemberProfile({ fresh: true }),
-      api.getSignalPoints({ fresh: true }),
-      api.getAchievements({ fresh: true }),
+    await Promise.allSettled([
+      api.getMemberProfile({ fresh }).then(p => {
+        if (id === sequence.current) setProfile(p.profile);
+      }).catch(() => {
+        if (id === sequence.current) { setProfile(null); setError("Account details are temporarily unavailable."); }
+      }),
+      api.getSignalPoints({ fresh }).then(p => { if (id === sequence.current) setPoints(p); }).catch(() => { if (id === sequence.current) setPoints(null); }),
+      api.getAchievements({ fresh }).then(a => { if (id === sequence.current) setBadges(a); }).catch(() => { if (id === sequence.current) setBadges(null); }),
     ]);
-    if (id !== sequence.current) return;
-    const [p, r, a] = results;
-    if (p.status === "fulfilled") setProfile(p.value.profile);
-    else {
-      setProfile(null);
-      setError("Account details are temporarily unavailable.");
-    }
-    setPoints(r.status === "fulfilled" ? r.value : null);
-    setBadges(a.status === "fulfilled" ? a.value : null);
-    setLoading(false);
+    if (id === sequence.current) setLoading(false);
   }, [api]);
+  useEffect(() => () => { sequence.current += 1; }, [api]);
   useScreenRevalidation(load);
   async function logout() {
     if (signingOut) return;
@@ -92,14 +88,14 @@ export default function AccountScreen() {
       refreshControl={
         <RefreshControl
           refreshing={loading && !!profile}
-          onRefresh={() => void load()}
+          onRefresh={() => void load(true)}
           tintColor={colors.accent}
         />
       }
     >
       {loading && !profile ? <LoadingState label="Loading account…" /> : null}
       {error ? (
-        <ErrorState message={error} onRetry={() => void load()} />
+        <ErrorState message={error} onRetry={() => void load(true)} />
       ) : null}
       {profile ? (
         <View style={[s.card, s.hero]}>

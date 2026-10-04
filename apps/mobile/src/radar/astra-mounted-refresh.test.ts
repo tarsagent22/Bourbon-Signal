@@ -8,7 +8,7 @@ test('M07: a second push refreshes mounted Radar and an older reply cannot overw
   const effects: Array<() => unknown> = []; const alertWrites: number[] = []; const completions: Array<(value: unknown) => void> = [];
   const refs: any[] = []; let refIndex = 0; let params: any = {}; let focus!: () => Promise<void>;
   const api = { getMemberPreferences: async () => preferencesFixture(), getMemberProfile: async () => profileFixture(), listRadarBottles: async () => [],
-    getMemberAlerts: ({ fresh }: any) => { assert.equal(fresh,true); return new Promise(resolve => completions.push(resolve)); }, getPushDeviceStatus: async () => ({ enabled: false }) };
+    getMemberAlerts: ({ fresh }: any) => { assert.equal(fresh, completions.length > 0); return new Promise(resolve => completions.push(resolve)); }, getPushDeviceStatus: async () => ({ enabled: false }) };
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
     react: { ...React, useState: (initial: unknown) => [initial, (v: any) => { if (v?.unreadCount !== undefined) alertWrites.push(v.unreadCount); }],
       useEffect: (f: () => unknown) => effects.push(f), useCallback: (f: unknown) => f, useMemo: (f: () => unknown) => f(), useRef: (v: unknown) => refs[refIndex++] ||= { current: v } },

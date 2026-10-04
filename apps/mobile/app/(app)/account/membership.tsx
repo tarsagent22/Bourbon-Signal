@@ -40,9 +40,9 @@ export default function MembershipScreen() {
   selectedRef.current = selected;
   useEffect(() => { carousel.current?.scrollTo({ x: selectedRef.current * stride, animated: false }); }, [stride]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     setLoading(true);
-    try { const response = await api.getMemberProfile({ fresh: true }); setProfile(response.profile); setError(""); }
+    try { const response = await api.getMemberProfile({ fresh }); setProfile(response.profile); setError(""); }
     catch { setProfile(null); setError("We couldn’t load your membership. Please try again."); }
     finally { setLoading(false); }
   }, [api]);

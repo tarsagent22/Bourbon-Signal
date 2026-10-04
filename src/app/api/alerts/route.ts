@@ -46,7 +46,7 @@ function reliabilitySummary(candidates: CandidateAlert[]) {
   };
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -60,6 +60,9 @@ export async function GET() {
     .filter((alert) => alert.sourceType !== "community" || canReadCommunityAlerts)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 
+  if (req.nextUrl.searchParams.get("summary") === "1") {
+    return NextResponse.json({ alerts: userAlerts, unreadCount: userAlerts.filter((alert) => !alert.readAt && !alert.archivedAt).length }, { headers: { "Cache-Control": "private, no-store" } });
+  }
   let candidateAlerts: CandidateAlert[] = [];
   try {
     candidateAlerts = (await readCandidates()).filter((candidate) => asString(candidate.sourceType) !== "community");

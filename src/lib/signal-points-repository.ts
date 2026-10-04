@@ -19,8 +19,8 @@ const CURRENT_REWARD_CATALOG = [
   { key: "standard_membership_credit_month", version: 3, name: "One month on us — Standard Proof", points: 150, fulfillmentType: "digital", options: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "standard", creditCents: 300, rollingLimitDays: 365 } },
   { key: "barrel_membership_credit_month", version: 3, name: "One month on us — Barrel Proof", points: 250, fulfillmentType: "digital", options: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "barrel", creditCents: 600, rollingLimitDays: 365 } },
   { key: "rocks_glass", version: 1, name: "Bourbon Signal rocks glass", points: 400, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
-  { key: "glencairn", version: 1, name: "Bourbon Signal Glencairn", points: 450, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
-  { key: "bourbon_shipping_gift_card_100", version: 2, name: "$100 Caskers gift card", points: 2600, fulfillmentType: "digital", options: { ownerFulfillment: true, requiresAge21Attestation: true, denominationUsd: 100, partner: "Caskers" } },
+  { key: "glencairn", version: 4, name: "Bourbon Signal Glencairn", points: 500, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
+  { key: "bourbon_shipping_gift_card_100", version: 4, name: "$100 Caskers gift card", points: 2500, fulfillmentType: "digital", options: { ownerFulfillment: true, requiresAge21Attestation: true, denominationUsd: 100, partner: "Caskers" } },
 ] as const;
 
 export async function syncCurrentSignalRewardCatalog(query: SignalPointsQuery) {
@@ -166,6 +166,35 @@ export class SignalPointsRepository {
     return generation;
   }
 
+  async readRewardProfile(userId: string, legacy: unknown = undefined) {
+    const rows = await this.query.query("SELECT member_rewards_snapshot FROM signal_point_reward_generations WHERE user_id=$1", [userId]) as Array<Record<string, unknown>>;
+    if (rows[0]?.member_rewards_snapshot) return rows[0].member_rewards_snapshot;
+    // Recover previously earned badge dates when the legacy Clerk projection never saved.
+    const awards = await this.query.query(`SELECT ledger.metadata->>'badgeId' AS id, MIN(ledger.created_at) AS earned_at
+      FROM signal_point_ledger ledger JOIN signal_point_source_balances sources
+        ON sources.user_id=ledger.user_id AND sources.source_key=ledger.source_key AND sources.points>0
+      WHERE ledger.user_id=$1 AND ledger.points>0
+        AND ledger.metadata->>'reason' IN ('badge','badge_v2','badge_v3')
+        AND ledger.metadata->>'badgeId' IS NOT NULL GROUP BY ledger.metadata->>'badgeId'`, [userId]) as Array<Record<string, unknown>>;
+    const previous = json(legacy);
+    if (!awards.length) return legacy;
+    const badges = Array.isArray(previous.badges) ? previous.badges.map(json) : [];
+    return { ...previous, badges: [...badges, ...awards.filter(award => !badges.some(badge => badge.id === award.id)).map(award => ({
+      id: text(award.id), label: text(award.id), earnedAt: text(award.earned_at), pointsAwarded: 10,
+      ...(/_(bronze|silver|gold|diamond)$/.test(text(award.id)) ? { tier: text(award.id).split('_').at(-1) } : {}),
+    }))] };
+
+  }
+
+  async advanceRewardGenerationIfCurrent(userId: string, observed: number) {
+    const rows = await this.query.query(`INSERT INTO signal_point_reward_generations(user_id,generation)
+      VALUES($1,$2::bigint+1)
+      ON CONFLICT(user_id) DO UPDATE SET generation=signal_point_reward_generations.generation+1,updated_at=NOW()
+      WHERE signal_point_reward_generations.generation=$2
+      RETURNING generation`, [userId, observed]) as Array<Record<string, unknown>>;
+    return rows[0] ? number(rows[0].generation) : null;
+  }
+
   async readRewardGeneration(userId: string) {
     const rows = await this.query.query(
       "SELECT generation FROM signal_point_reward_generations WHERE user_id=$1",
@@ -186,7 +215,7 @@ export class SignalPointsRepository {
     }));
     const rows = await this.query.query(
       "SELECT * FROM reconcile_signal_point_source_set($1,$2,$3,$4::jsonb,$5,$6::jsonb)",
-      [userId, CLERK_REWARD_SOURCE_PREFIX, generation, JSON.stringify(targets), `clerk-rewards:${hash}`, JSON.stringify({ snapshotHash: hash })],
+      [userId, CLERK_REWARD_SOURCE_PREFIX, generation, JSON.stringify(targets), `clerk-rewards:${hash}`, JSON.stringify({ snapshotHash: hash, rewardSnapshot: memberRewards })],
     ) as Array<Record<string, unknown>>;
     if (!rows[0]) throw new Error("Signal Points source-set reconciliation did not complete.");
     return {

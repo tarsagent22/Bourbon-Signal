@@ -1,11 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import { siteExportHeaders } from "@/lib/site-engine-contract";
 import { getPublicScarcityLabel, getScarcityBadges } from "@/lib/bottle-scarcity";
 import { BOTTLE_SCARCITY_SOURCE_REGISTRY } from "@/data/bottle-scarcity-overrides";
 
-export async function GET() {
-  const bottles = (await getBourbonBible()).map((bottle) => ({
+export async function GET(req: NextRequest) {
+  const catalog = await getBourbonBible();
+  if (req.nextUrl.searchParams.get("view") === "picker") {
+    const bottles = catalog.map(({ id, canonicalName, brand, producer, proof, ageStatement, availability, nationalTier, aliases }) => ({ id, canonicalName, brand, producer, proof, ageStatement, availability, nationalTier, aliases }));
+    return NextResponse.json({ bottles, total: bottles.length }, { headers: siteExportHeaders("local-export") });
+  }
+  const bottles = catalog.map((bottle) => ({
     id: bottle.id,
     canonicalName: bottle.canonicalName,
     photo: bottle.photo,

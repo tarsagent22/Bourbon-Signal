@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { sameMemberRewardProfile } from "@/lib/member-rewards-snapshot";
 import { BlobNotFoundError, head } from "@vercel/blob";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { getBourbonBible } from "@/lib/bourbonBible";
@@ -60,14 +61,18 @@ async function reconcileAttachedPhotoRewards(
     const durableOwned = await repository.listSightingsForReporter(userId);
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: userId }));
     const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
-    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
+    const nextRewards = reconcileMemberRewards(rewardSightings, await signalPoints.readRewardProfile(userId, privateMetadata.memberRewards));
     const reconciliation = await signalPoints.reconcileClerkRewardsWithStatus(userId, nextRewards, targetGeneration);
     const generationBeforeProjection = await signalPoints.readRewardGeneration(userId);
+    if (!reconciliation.applied && generationBeforeProjection === targetGeneration) {
+      const stored = await signalPoints.readRewardProfile(userId);
+      if (sameMemberRewardProfile(stored, nextRewards)) return;
+    }
     if (!reconciliation.applied || generationBeforeProjection !== targetGeneration) {
       targetGeneration = generationBeforeProjection;
       continue;
     }
-    await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards: nextRewards } });
+
     const generationAfterProjection = await signalPoints.readRewardGeneration(userId);
     if (generationAfterProjection === targetGeneration) return;
     targetGeneration = generationAfterProjection;

@@ -206,9 +206,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
     setLoading(true);
     setError("");
     try {
-      const receiptRead = await readContributionReceipts(receiptStorageKey);
-      if (!mounted.current) return;
-      const nextPreferences = await api.getMemberPreferences({ fresh });
+      const [receiptRead, nextPreferences] = await Promise.all([readContributionReceipts(receiptStorageKey), api.getMemberPreferences({ fresh })]);
       if (!mounted.current || activeUser.current !== userId) return;
       acceptServerPreferences(nextPreferences);
       retryPendingContributions(nextPreferences, receiptRead.receipts);
@@ -221,7 +219,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
     }
   }, [acceptServerPreferences, api, receiptStorageKey, retryPendingContributions, userId]);
 
-  useFocusEffect(useCallback(() => { void load(true); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
 
   const sourceBottles = preferences?.collectionPreferences.bottles || [];
   const collectionAccess = preferences?.collectionAccess;

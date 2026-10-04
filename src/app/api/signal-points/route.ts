@@ -14,9 +14,7 @@ export async function GET() {
   try {
     const { user, userId } = access;
     const repository = createSignalPointsRepository();
-    await repository.assertCutoverVerified();
-    const tier = await resolveServerEffectiveMembershipTier(user.publicMetadata);
-    const [summary, shipping] = await Promise.all([repository.readMember(userId), readFounderShippingForUser(userId)]);
+    const [summary, shipping, tier] = await Promise.all([repository.readMember(userId), readFounderShippingForUser(userId), resolveServerEffectiveMembershipTier(user.publicMetadata)]);
     return NextResponse.json({
       ...summary,
       catalog: membershipCreditCatalogForTier(summary.catalog, tier),

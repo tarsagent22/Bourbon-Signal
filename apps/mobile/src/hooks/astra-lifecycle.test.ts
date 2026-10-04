@@ -27,12 +27,13 @@ test('M07: focus/resume hook refreshes only focused screen with latest loader, c
   blur = focus(); assert.equal(calls.at(-1), 'new'); blur(); cleanups.forEach(f => f?.()); assert.equal(removed, true);
 });
 test('M11: old API handles cannot acquire a new account token after a transition', async () => {
-  const h = hooks(); let userId = 'A';
-  const { useMobileApi } = loadWithMocks('src/hooks/useMobileApi.ts', {
-    react: h.react, '@clerk/expo': { useAuth: () => ({ userId, sessionId: userId, getToken: async () => userId }) },
+  const h = hooks(); let userId = 'A'; let context: any;
+  const { useMobileApi, MobileApiProvider } = loadWithMocks('src/hooks/useMobileApi.ts', {
+    react: { ...h.react, createContext: () => ({ Provider: 'Provider' }), createElement: (_type: unknown, props: any) => { context = props.value; }, useContext: () => context }, '@clerk/expo': { useAuth: () => ({ userId, sessionId: userId, getToken: async () => userId }) },
     '../api/client': { createMobileApi: ({ getToken }: any) => ({ token: getToken, clearReadCache() {} }), MobileApiError: class extends Error {} },
   });
-  const old = useMobileApi(); assert.equal(await old.token(), 'A'); userId = 'B'; h.reset(); const next = useMobileApi();
+  MobileApiProvider({}); const old = useMobileApi(); assert.equal(old, useMobileApi(), 'screens share the same account client');
+  assert.equal(await old.token(), 'A'); userId = 'B'; h.reset(); MobileApiProvider({}); const next = useMobileApi();
   assert.notEqual(old, next); await assert.rejects(old.token()); assert.equal(await next.token(), 'B');
 });
 

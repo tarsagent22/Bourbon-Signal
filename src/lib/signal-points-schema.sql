@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS signal_point_reward_generations (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE signal_point_reward_generations ADD COLUMN IF NOT EXISTS member_rewards_snapshot JSONB;
+
 CREATE OR REPLACE FUNCTION next_community_sighting_reward_generation(p_user_id TEXT)
 RETURNS BIGINT LANGUAGE SQL AS $$
   INSERT INTO signal_point_reward_generations(user_id,generation)
@@ -214,8 +216,8 @@ VALUES
   ('standard_membership_credit_month',3,'One month on us — Standard Proof',150,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"standard","creditCents":300,"rollingLimitDays":365}'::jsonb),
   ('barrel_membership_credit_month',3,'One month on us — Barrel Proof',250,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"barrel","creditCents":600,"rollingLimitDays":365}'::jsonb),
   ('rocks_glass',1,'Bourbon Signal rocks glass',400,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
-  ('glencairn',1,'Bourbon Signal Glencairn',450,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
-  ('bourbon_shipping_gift_card_100',2,'$100 Caskers gift card',2600,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)
+  ('glencairn',4,'Bourbon Signal Glencairn',500,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
+  ('bourbon_shipping_gift_card_100',4,'$100 Caskers gift card',2500,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)
 ON CONFLICT (item_key) DO UPDATE SET
   catalog_version=EXCLUDED.catalog_version,name=EXCLUDED.name,points_cost=EXCLUDED.points_cost,
   fulfillment_type=EXCLUDED.fulfillment_type,option_snapshot=EXCLUDED.option_snapshot,updated_at=NOW()
@@ -359,7 +361,7 @@ BEGIN
     ORDER BY balances.source_key
   LOOP
     PERFORM reconcile_signal_point_source(p_user_id,source.source_key,0,p_idempotency_key,
-      COALESCE(p_metadata,'{}'::jsonb)||jsonb_build_object('generation',p_generation,'omittedFromSourceSet',TRUE));
+      (COALESCE(p_metadata,'{}'::jsonb)-'rewardSnapshot')||jsonb_build_object('generation',p_generation,'omittedFromSourceSet',TRUE));
   END LOOP;
 
   FOR target IN
@@ -370,10 +372,10 @@ BEGIN
       item->>'sourceKey'
   LOOP
     PERFORM reconcile_signal_point_source(p_user_id,target.source_key,target.target_points,p_idempotency_key,
-      COALESCE(p_metadata,'{}'::jsonb)||target.metadata||jsonb_build_object('generation',p_generation,'targetPoints',target.target_points));
+      (COALESCE(p_metadata,'{}'::jsonb)-'rewardSnapshot')||target.metadata||jsonb_build_object('generation',p_generation,'targetPoints',target.target_points));
   END LOOP;
 
-  UPDATE signal_point_reward_generations SET reconciled_generation=p_generation,updated_at=NOW() WHERE user_id=p_user_id;
+  UPDATE signal_point_reward_generations SET reconciled_generation=p_generation,member_rewards_snapshot=COALESCE(p_metadata->'rewardSnapshot',member_rewards_snapshot),updated_at=NOW() WHERE user_id=p_user_id;
   SELECT * INTO account_row FROM signal_point_accounts WHERE user_id=p_user_id;
   RETURN QUERY SELECT account_row.balance,account_row.debt,TRUE,p_generation;
 END $$;
@@ -484,7 +486,7 @@ BEGIN
     INSERT INTO signal_point_ledger(user_id,idempotency_key,entry_kind,points,balance_delta,debt_delta,source_type,source_key,redemption_id,metadata)
     VALUES(redemption_row.user_id,'cancellation:'||redemption_row.id,'cancellation_credit',redemption_row.points_spent,
       spendable_added,-debt_repaid,'redemption_cancellation',redemption_row.item_key,redemption_row.id,
-      COALESCE(p_metadata,'{}'::jsonb)||jsonb_build_object('debtRepaid',debt_repaid,'spendableAdded',spendable_added))
+      (COALESCE(p_metadata,'{}'::jsonb)-'rewardSnapshot')||jsonb_build_object('debtRepaid',debt_repaid,'spendableAdded',spendable_added))
     ON CONFLICT(user_id,idempotency_key) DO NOTHING RETURNING points INTO restored;
     IF COALESCE(restored,0)>0 THEN
       UPDATE signal_point_accounts SET balance=signal_point_accounts.balance+spendable_added,debt=signal_point_accounts.debt-debt_repaid,updated_at=NOW()
@@ -535,7 +537,7 @@ BEGIN
   END IF;
   IF redemption_row.status<>'digital_fulfillment' THEN RAISE EXCEPTION 'Membership credit is not ready for completion'; END IF;
   UPDATE signal_reward_fulfillments SET owner_notes=expected_note,updated_at=NOW() WHERE signal_reward_fulfillments.redemption_id=p_redemption_id;
-  PERFORM transition_signal_reward_redemption(redemption_row.id,p_actor_id,'delivered','system',COALESCE(p_metadata,'{}'::jsonb)||jsonb_build_object('provider','stripe','providerReference',TRIM(p_provider_reference)));
+  PERFORM transition_signal_reward_redemption(redemption_row.id,p_actor_id,'delivered','system',(COALESCE(p_metadata,'{}'::jsonb)-'rewardSnapshot')||jsonb_build_object('provider','stripe','providerReference',TRIM(p_provider_reference)));
   SELECT signal_point_accounts.balance INTO account_balance FROM signal_point_accounts WHERE user_id=redemption_row.user_id;
   RETURN QUERY SELECT redemption_row.id,'delivered'::TEXT,account_balance;
 END $$;
@@ -611,7 +613,7 @@ BEGIN
   UPDATE signal_reward_redemptions SET user_id=p_subject_token,account_email=p_deleted_email,details='{}'::jsonb WHERE user_id=p_user_id;
   UPDATE signal_point_ledger SET user_id=p_subject_token WHERE user_id=p_user_id;
   UPDATE signal_point_source_balances SET user_id=p_subject_token WHERE user_id=p_user_id;
-  UPDATE signal_point_reward_generations SET user_id=p_subject_token WHERE user_id=p_user_id;
+  UPDATE signal_point_reward_generations SET user_id=p_subject_token,member_rewards_snapshot=NULL WHERE user_id=p_user_id;
   DELETE FROM signal_point_accounts WHERE user_id=p_user_id;
   PERFORM set_config('app.account_deletion_request_id','',TRUE);
 END $$;

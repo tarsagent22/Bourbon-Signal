@@ -20,13 +20,13 @@ test("launch catalog has the confirmed versioned prices and fulfillment kinds", 
     standard_membership_credit_month: 150,
     barrel_membership_credit_month: 250,
     rocks_glass: 400,
-    glencairn: 450,
-    bourbon_shipping_gift_card_100: 2600,
+    glencairn: 500,
+    bourbon_shipping_gift_card_100: 2500,
   });
-  assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => !["bourbon_shipping_gift_card_100", "standard_membership_credit_month", "barrel_membership_credit_month"].includes(item.key)).every((item) => item.catalogVersion === 1));
+  assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => !["glencairn", "bourbon_shipping_gift_card_100", "standard_membership_credit_month", "barrel_membership_credit_month"].includes(item.key)).every((item) => item.catalogVersion === 1));
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "standard_membership_credit_month")?.catalogVersion, 3);
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "barrel_membership_credit_month")?.catalogVersion, 3);
-  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.catalogVersion, 2);
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.catalogVersion, 4);
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.name, "$100 Caskers gift card");
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.fulfillmentType, "digital");
   assert.equal(SIGNAL_REWARD_CATALOG.some((item) => item.key === "bourbon_shipping_gift_card_25"), false);
@@ -76,7 +76,7 @@ test("the current reward catalog advances monotonically before member and owner 
   assert.doesNotMatch(catalogUpsert, /active\s*=\s*TRUE/i, "canonical migrations also preserve emergency disables");
   assert.ok(calls[0].params?.includes("bourbon_shipping_gift_card_100"));
   assert.ok(calls[0].params?.includes("$100 Caskers gift card"));
-  assert.ok(calls[0].params?.includes(2));
+  assert.ok(calls[0].params?.includes(4));
   const expectedOptions: Record<string, Record<string, unknown>> = {
     sticker_pack: { usShippingIncluded: true },
     standard_membership_credit_month: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "standard", creditCents: 300, rollingLimitDays: 365 },
@@ -96,8 +96,8 @@ test("the current reward catalog advances monotonically before member and owner 
     `('standard_membership_credit_month',3,'One month on us — Standard Proof',150,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"standard","creditCents":300,"rollingLimitDays":365}'::jsonb)`,
     `('barrel_membership_credit_month',3,'One month on us — Barrel Proof',250,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"barrel","creditCents":600,"rollingLimitDays":365}'::jsonb)`,
     `('rocks_glass',1,'Bourbon Signal rocks glass',400,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
-    `('glencairn',1,'Bourbon Signal Glencairn',450,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
-    `('bourbon_shipping_gift_card_100',2,'$100 Caskers gift card',2600,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)`,
+    `('glencairn',4,'Bourbon Signal Glencairn',500,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
+    `('bourbon_shipping_gift_card_100',4,'$100 Caskers gift card',2500,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)`,
   ]) assert.ok(schema.includes(expectedSqlRow), `canonical SQL catalog row drifted: ${expectedSqlRow}`);
   assert.match(String(calls[0].params?.find((value) => typeof value === "string" && value.startsWith("{") && value.includes("Caskers"))), /"partner":"Caskers"/);
   const repository = read("src/lib/signal-points-repository.ts");
@@ -230,7 +230,7 @@ test("the reduced catalog keeps accessible membership credits, stickers, two gla
   assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_100", { age21Attested: true, accountEmail: "member@example.com" }).ok, true);
   const schema = read("src/lib/signal-points-schema.sql");
   assert.match(read("src/lib/signal-points-repository.ts"), /INSERT INTO signal_point_accounts\(user_id\)[\s\S]*ON CONFLICT\(user_id\) DO NOTHING/, "new members receive a zero-balance account before their first read");
-  assert.match(schema, /bourbon_shipping_gift_card_100[^\n]*2600/);
+  assert.match(schema, /bourbon_shipping_gift_card_100[^\n]*2500/);
   assert.match(schema, /UPDATE signal_reward_catalog SET active=FALSE[\s\S]*item_key='bourbon_shipping_gift_card_25'/i);
   for (const retired of ["coaster_set", "tshirt", "rocks_glass_pair", "glencairn_pair", "hoodie"]) assert.match(schema, new RegExp(retired));
 });
@@ -312,7 +312,8 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   const memberRoute = read("src/app/api/signal-points/route.ts");
   const redemptionRoute = read("src/app/api/signal-points/redemptions/route.ts");
   const adminRoute = read("src/app/api/admin/signal-points/route.ts");
-  assert.match(memberRoute, /requireSignalPointsApiAccess/); assert.match(memberRoute, /503/); assert.match(memberRoute, /assertCutoverVerified/);
+  assert.match(memberRoute, /requireSignalPointsApiAccess/); assert.match(memberRoute, /503/); assert.match(memberRoute, /repository.readMember/);
+  assert.match(read("src/lib/signal-points-repository.ts"), /async readMember[\s\S]*?assertCutoverVerified/);
   assert.doesNotMatch(memberRoute, /privateMetadata|reconcileClerkRewards/);
   assert.doesNotMatch(redemptionRoute, /reconcileClerkRewards/);
   assert.match(redemptionRoute, /membershipCreditEligibility\([\s\S]*privateMetadata/);
@@ -445,16 +446,14 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(ownerQueue, /trackingNumber/);
 });
 
-test("sighting reward projections write PostgreSQL before Clerk", () => {
-  for (const path of [
-    "src/app/api/sightings/route.ts",
-    "src/app/api/sightings/photo/route.ts",
-    "src/app/api/admin/sightings/route.ts",
-  ]) {
+test("sighting reward profiles are durable and never depend on a growing Clerk projection", () => {
+  for (const path of ["src/app/api/sightings/route.ts", "src/app/api/sightings/photo/route.ts", "src/app/api/admin/sightings/route.ts"]) {
     const source = read(path);
-    assert.match(source, /await (?:createSignalPointsRepository\(\)|signalPoints)\.reconcileClerkRewards(?:WithStatus)?\([^;]+;[\s\S]{0,1200}await [^;]*users\.updateUserMetadata/, `${path} writes PostgreSQL before its Clerk projection`);
-    assert.doesNotMatch(source, /await [^;]*users\.updateUserMetadata[\s\S]{0,220}await createSignalPointsRepository\(\)\.reconcileClerkRewards/, `${path} has no Clerk-first reward projection`);
+    assert.match(source, /readRewardProfile/);
+    assert.match(source, /reconcileClerkRewards(?:WithStatus)?/);
+    assert.doesNotMatch(source, /users\.updateUserMetadata\([^;]*privateMetadata: \{[^;]*memberRewards:/);
   }
-  const memberSightings = read("src/app/api/sightings/route.ts");
-  assert.doesNotMatch(memberSightings, /after\(async \(\) => \{[\s\S]{0,300}persistMemberRewardsBestEffort/, "new sightings commit PostgreSQL points before returning success");
+  const schema = read("src/lib/signal-points-schema.sql");
+  assert.match(schema, /member_rewards_snapshot=COALESCE\(p_metadata->'rewardSnapshot'/);
+  assert.match(schema, /member_rewards_snapshot=NULL WHERE user_id=p_user_id/);
 });

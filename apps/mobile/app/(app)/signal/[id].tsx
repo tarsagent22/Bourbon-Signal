@@ -36,12 +36,15 @@ export default function SignalDetailScreen() {
   useEffect(() => {
     let active = true;
     if (!id) return;
-    Promise.allSettled([api.getSignal(id), api.getMemberPreferences()]).then(([signalResult, preferencesResult]) => {
-      if (!active) return;
-      if (signalResult.status === "fulfilled") setSignal(signalResult.value.signal);
-      else setError(signalResult.reason instanceof MobileApiError ? signalResult.reason.message : "This Signal is temporarily unavailable.");
-      if (preferencesResult.status === "fulfilled") setPreferences(preferencesResult.value);
-      else setPreferencesError("Member actions are temporarily unavailable. Pull to refresh from Radar or My Shelf and retry.");
+    void api.getSignal(id).then(result => {
+      if (active) { setSignal(result.signal); setError(""); }
+    }).catch(caught => {
+      if (active) setError(caught instanceof MobileApiError ? caught.message : "This Signal is temporarily unavailable.");
+    });
+    void api.getMemberPreferences().then(result => {
+      if (active) { setPreferences(result); setPreferencesError(""); }
+    }).catch(() => {
+      if (active) setPreferencesError("Member actions are temporarily unavailable. Pull to refresh from Radar or My Shelf and retry.");
     });
     return () => { active = false; };
   }, [api, id]);

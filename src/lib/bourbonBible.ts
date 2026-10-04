@@ -275,14 +275,15 @@ async function buildBourbonBible({ includeApprovedCatalog = true }: { includeApp
   // Engine tiers drive alert priority, not the customer-facing rarity score. Apply
   // live engine data first, then broad inventory editorial metadata, then the most
   // deliberate curated profiles. Signal flags and aliases survive every merge.
-  const approvedBottles: BibleBottleInput[] = includeApprovedCatalog
-    ? await listApprovedBottles().catch((error) => {
+  const [engineBottles, approvedBottles] = await Promise.all([
+    readEngineBibleBottles(),
+    includeApprovedCatalog ? listApprovedBottles().catch((error) => {
       console.error("Approved Bottle Bible catalog unavailable", error);
-      return [];
-    })
-    : [];
-  return mergeBottleCatalogSources([
-    await readEngineBibleBottles(),
+      return [] as BibleBottleInput[];
+    }) : Promise.resolve([] as BibleBottleInput[]),
+  ]);
+  return mergeBottleCatalogSources<BibleBottleInput>([
+    engineBottles,
     readInventoryBibleBottles(),
     approvedBottles,
     SEED_BOTTLES,

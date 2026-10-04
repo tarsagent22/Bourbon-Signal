@@ -32,7 +32,7 @@ test("membership credits use the approved tier-specific point costs and dollar v
   const barrel = SIGNAL_REWARD_CATALOG.find((item) => item.key === barrelKey);
   assert.deepEqual({ points: standard?.points, version: standard?.catalogVersion, type: standard?.fulfillmentType, credit: standard?.membershipCreditCents }, { points: 150, version: 3, type: "digital", credit: 300 });
   assert.deepEqual({ points: barrel?.points, version: barrel?.catalogVersion, type: barrel?.fulfillmentType, credit: barrel?.membershipCreditCents }, { points: 250, version: 3, type: "digital", credit: 600 });
-  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.points, 2600);
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.points, 2500);
 });
 
 test("members see only the membership credit matching their current tier", () => {
