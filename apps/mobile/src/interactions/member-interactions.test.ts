@@ -279,3 +279,13 @@ test('selected editions with a shared canonical key isolate rating, inventory, d
   assert.equal(selected.sealedQuantity,1,'source collection stays immutable');
  }
 });
+
+ test("membership month availability overrides the paid flag without unlocking other rewards",()=>{
+  const summary = rewardCatalogSummary([
+    {key:"standard_membership_credit_month",name:"One Month of Standard",points:150,fulfillmentType:"digital",redemptionEligible:true},
+    {key:"sticker_pack",name:"Sticker Pack",points:75,fulfillmentType:"physical"},
+    {key:"barrel_membership_credit_month",name:"One Month of Barrel Proof",points:250,fulfillmentType:"digital",redemptionEligible:false,unavailableReason:"Awaiting App Store approval."},
+  ],{balance:300,redemptionEligible:false});
+  assert.equal(summary.claimableCount,1);
+  assert.equal(summary.featuredReward?.key,"standard_membership_credit_month");
+ });

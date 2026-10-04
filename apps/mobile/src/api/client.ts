@@ -165,6 +165,7 @@ export function createMobileApi({
   getToken,
   fetcher = fetch,
   blobUploader = defaultBlobUploader,
+  rewardPlatform,
   readCooldownMs = 10_000,
   requestTimeoutMs = 15_000,
   maxReadCacheEntries = 64,
@@ -174,6 +175,7 @@ export function createMobileApi({
   getToken: () => Promise<string | null>;
   fetcher?: typeof fetch;
   blobUploader?: BlobUploader;
+  rewardPlatform?: "ios" | "android" | "web";
   readCooldownMs?: number;
   requestTimeoutMs?: number;
   maxReadCacheEntries?: number;
@@ -422,7 +424,7 @@ export function createMobileApi({
       return response;
     },
     cancelReward(redemptionId: string) { return request<{ ok: true }>("/api/signal-points/redemptions", { method: "PATCH", body: { action: "cancel", redemptionId } }); },
-    getSignalPoints({ fresh = false, platform }: { fresh?: boolean; platform?: "ios" | "android" | "web" } = {}) {
+    getSignalPoints({ fresh = false, platform = rewardPlatform }: { fresh?: boolean; platform?: "ios" | "android" | "web" } = {}) {
       return request<SignalPointsSummary>(`/api/signal-points${platform ? `?platform=${platform}` : ""}`, { fresh });
     },
     submitSighting(payload: SightingSubmission, idempotencyKey: string) {
