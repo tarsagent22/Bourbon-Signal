@@ -51,11 +51,14 @@ assert.match(repository, /ON CONFLICT \(normalized_key\)/);
 assert.doesNotMatch(repository, /ensureSchema|CREATE TABLE|CREATE INDEX/i);
 
 const bottleRoute = readFileSync(new URL("../src/app/api/admin/bottle-contributions/route.ts", import.meta.url), "utf8");
-assert.match(bottleRoute, /upsertApprovedBottle/);
-assert.match(bottleRoute, /catalogBottle/);
+assert.match(bottleRoute, /resolveOwnerBottleSubmission/);
+assert.doesNotMatch(bottleRoute, /upsertApprovedBottle/,'submission resolution does not silently create catalog entries');
+const catalogRoute = readFileSync(new URL('../src/app/api/admin/catalog/route.ts',import.meta.url),'utf8');
+assert.match(catalogRoute,/validateBottleDraft/);
+assert.match(catalogRoute,/saveOwnerBottle/);
 
 const sightingRoute = readFileSync(new URL("../src/app/api/admin/sightings/route.ts", import.meta.url), "utf8");
-assert.match(sightingRoute, /persistApprovedSightingCatalog/);
+assert.doesNotMatch(sightingRoute, /persistApprovedSightingCatalog/,'photo approval must not infer and create bottle entries');
 assert.match(sightingRoute, /catalogResult/);
 
 const bible = readFileSync(new URL("../src/lib/bourbonBible.ts", import.meta.url), "utf8");

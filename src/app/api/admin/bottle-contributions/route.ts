@@ -1,51 +1,96 @@
-import { NextRequest, NextResponse } from "next/server";
 import { requireOwnerApiAccess } from "@/lib/owner-auth";
-import { readBottleContributionQueue, updateBottleContribution } from "@/lib/bottle-contributions";
-import { bottleContributionStatusForAction, isBottleContributionPending } from "@/lib/admin-review";
-import { upsertApprovedBottle } from "@/lib/approved-catalog-service";
-import type { ApprovedBottleAvailability, ApprovedBottleCategory } from "@/lib/approved-catalog";
-
+import { readBottleContributionQueue } from "@/lib/bottle-contributions";
+import { isBottleContributionPending,bottleContributionStatusForAction } from "@/lib/admin-review";
+import { getBottleById } from "@/lib/bourbonBible";
+import { resolveOwnerBottleSubmission } from "@/lib/owner-admin-repository";
+import {
+  adminRecord,
+  adminReason,
+} from "../../../../../shared/owner-admin";
+const headers = { "Cache-Control": "private, no-store" };
 export async function GET() {
   const owner = await requireOwnerApiAccess({ forbidden: "Admin only" });
   if (owner.error) return owner.error;
-  const queue = await readBottleContributionQueue();
-  return NextResponse.json({ ok: true, queue, contributions: queue.contributions });
+  try {
+    const queue = await readBottleContributionQueue();
+    return Response.json(
+      { ok: true, queue, contributions: queue.contributions },
+      { headers },
+    );
+  } catch {
+    return Response.json(
+      { error: "Bottle submissions could not load." },
+      { status: 503, headers },
+    );
+  }
 }
-
-export async function PATCH(req: NextRequest) {
+export async function PATCH(request: Request) {
   const owner = await requireOwnerApiAccess({ forbidden: "Admin only" });
   if (owner.error) return owner.error;
-  const payload = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-  const id = typeof payload.id === "string" ? payload.id : "";
-  const action = typeof payload.action === "string" ? payload.action : "";
-  if (!id) return NextResponse.json({ error: "Missing contribution" }, { status: 400 });
-  const status = bottleContributionStatusForAction(action);
-  if (!status) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  let catalogResult = null;
-  if (action === "confirm_added") {
-    const catalogBottle = payload.catalogBottle && typeof payload.catalogBottle === "object"
-      ? payload.catalogBottle as Record<string, unknown>
-      : null;
-    if (!catalogBottle) return NextResponse.json({ error: "Bottle catalog details are required" }, { status: 400 });
-    catalogResult = await upsertApprovedBottle({
-      canonicalName: String(catalogBottle.canonicalName || ""),
-      brand: String(catalogBottle.brand || ""),
-      category: String(catalogBottle.category || "") as ApprovedBottleCategory,
-      availability: String(catalogBottle.availability || "") as ApprovedBottleAvailability,
-    }, owner.userId, "bottle_queue");
-    const { clearBourbonBibleCache } = await import("@/lib/bourbonBible");
-    clearBourbonBibleCache();
+  const body = adminRecord(await request.json().catch(() => null));
+  if (
+    !["use_match", "confirm_added", "dismiss", "reopen"].includes(
+      String(body.action),
+    )
+  )
+    return Response.json(
+      { error: "Choose a valid submission action." },
+      { status: 400 },
+    );
+  let reason;
+  try {
+    reason = adminReason(body.reason || body.notes);
+  } catch (e) {
+    return Response.json({ error: (e as Error).message }, { status: 400 });
   }
-  const updated = await updateBottleContribution(id, {
-    status,
-    candidateBottleId: typeof payload.candidateBottleId === "string" ? payload.candidateBottleId : undefined,
-    candidateBottleName: typeof payload.candidateBottleName === "string" ? payload.candidateBottleName : undefined,
-    notes: typeof payload.notes === "string" ? payload.notes.slice(0, 1000) : `Marked ${status} by admin.`,
-  });
-  return NextResponse.json({
-    ok: true,
-    pendingReview: isBottleContributionPending(updated.status),
-    contribution: updated,
-    catalogResult,
-  });
+  if (typeof body.expectedUpdatedAt !== "string")
+    return Response.json(
+      { error: "Refresh the submission first." },
+      { status: 400 },
+    );
+  try {
+    const entry = (await readBottleContributionQueue()).contributions.find(
+      (r) => r.id === body.id,
+    );
+    if (!entry)
+      return Response.json({ error: "Submission not found." }, { status: 404 });
+    const bottle = body.candidateBottleId
+      ? await getBottleById(String(body.candidateBottleId))
+      : null;
+    if (["use_match", "confirm_added"].includes(String(body.action)) && !bottle)
+      return Response.json(
+        {
+          error: "Select an existing library bottle or create an entry first.",
+        },
+        { status: 400 },
+      );
+    const status = bottleContributionStatusForAction(body.action)!;
+    const contribution = await resolveOwnerBottleSubmission({
+      id: entry.id,
+      expectedUpdatedAt: body.expectedUpdatedAt,
+      bottleId: bottle?.id || null,
+      bottleName: bottle?.canonicalName || null,
+      actor: owner.userId,
+      reason,
+      status,
+    });
+    return Response.json(
+      {
+        ok: true,
+        pendingReview: isBottleContributionPending(status),
+        contribution,
+      },
+      { headers },
+    );
+  } catch (e) {
+    const conflict = String(e).includes("admin_conflict");
+    return Response.json(
+      {
+        error: conflict
+          ? "This submission changed. Refresh before saving again."
+          : "Submission could not be saved. Refresh to check its current state.",
+      },
+      { status: conflict ? 409 : 503 },
+    );
+  }
 }

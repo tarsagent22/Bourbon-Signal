@@ -58,6 +58,12 @@ const achievement = obj({ points: num, currentWeeklyStreak: num, longestWeeklySt
   badgeProgress: arr(obj({ id: str, label: str, tier: optional(str), current: num, target: num, earned: bool, description: optional(str),category:optional(str),unit:optional(str),rules:optional(str),pointsAwarded:optional(num),context:optional(str) })) });
 const checks: Record<string, Check> = {
   '/api/admin/access': obj({allowed:bool}),
+  '/api/admin/catalog': v=>obj({bottles:arr(obj({id:str,canonicalName:str,version:num})),total:num,nextOffset:nullable(num)})(v)||obj({ok:one(true)})(v),
+  '/api/admin/posts': v=>obj({sightings:arr(obj({id:str,bottleName:str,expected:record})),total:num,nextOffset:nullable(num)})(v)||obj({ok:one(true)})(v),
+  '/api/admin/member-detail': v=>obj({member:obj({id:str,email:str,name:str}),unavailable:strings})(v)||obj({ok:one(true)})(v),
+  '/api/admin/shipping': v=>obj({shipments:arr(obj({userId:str,status:str,updatedAt:str}))})(v)||obj({ok:one(true)})(v),
+  '/api/admin/operations': obj({health:record,states:arr(record),audit:arr(record)}),
+  '/api/admin/pricing': v=>obj({bottles:arr(obj({id:str,name:str})),history:arr(record),health:nullable(record)})(v)||obj({ok:one(true)})(v),
   '/api/admin/overview': obj({checkedAt:str,unavailable:strings,coverage:nullable(num),community:nullable(num),bottles:nullable(num),rewards:nullable(num),founderShipping:nullable(num)}),
   '/api/admin/coverage': v=>obj({requests:arr(obj({id:str,userId:str,stateCode:str,areaLabel:str,status:one('requested','on_radar','improved','closed'),canonicalTargetKey:str,updatedAt:str,review:nullable(obj({internal_note:str,member_update:str,priority:one('normal','high')}))})),automation:record})(v)||obj({ok:one(true)})(v),
   '/api/admin/members': obj({members:arr(obj({id:str,email:str,name:str,tier:str,status:str}))}),

@@ -7,6 +7,7 @@ import type { CommunityContributorModeration } from "@/lib/community-contributor
 import { formatControlRoomDateTime } from "@/lib/control-room-time";
 
 type AdminSighting = MemberSighting & {
+  expected?:MemberSighting;
   reporterEmail?: string;
   reporterName?: string;
   reviewReasons?: string[];
@@ -67,7 +68,7 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
       const res = await fetch("/api/admin/sightings", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ reporterUserId: sighting.reporterUserId, sightingId: sighting.id, action }),
+        body: JSON.stringify({ reporterUserId: sighting.reporterUserId, sightingId: sighting.id, action,expected:sighting.expected,expectedPhotoUrl:sighting.rewardState?.photoProof?.url }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Action failed");
@@ -158,7 +159,7 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
                     </div>
                   ) : null}
                   <div className="admin-actions">
-                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> {workingId === `${sighting.id}:verify_public` ? "Approving…" : addsCatalog ? "Add catalog + approve" : proof ? "Approve & publish" : "Approve sighting"}</button>
+                    {proof?<button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> {workingId === `${sighting.id}:verify_public` ? "Approving…" : "Approve photo for public display"}</button>:<p className="admin-detail">Correct the bottle and store through Community in the app’s Admin workspace.</p>}
                     {proof ? <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "verify_private")}><EyeOff size={14}/> {workingId === `${sighting.id}:verify_private` ? "Approving…" : "Approve, keep photo private"}</button> : null}
                     <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "reject_sighting")}><X size={14}/> {workingId === `${sighting.id}:reject_sighting` ? "Rejecting…" : "Reject sighting"}</button>
                   </div>

@@ -192,7 +192,7 @@
     "test:astra": "node scripts/test-astra-suite.mjs",
     "test:braces-security": "node scripts/check-braces-backport-advisories.cjs",
     "test:collection-value": "tsx scripts/test-collection-value.ts",
-    "test:owner-workspace": "node --test scripts/test-owner-workspace-security.cjs && tsx scripts/test-owner-workspace.ts"
+    "test:owner-workspace": "node --test scripts/test-owner-workspace-security.cjs scripts/test-owner-admin-api.cjs && tsx scripts/test-owner-workspace.ts && tsx scripts/test-owner-admin-records.ts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

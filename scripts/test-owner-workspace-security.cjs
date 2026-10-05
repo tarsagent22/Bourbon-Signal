@@ -21,7 +21,7 @@ test('only the verified primary owner email can access owner APIs and pages',asy
 test('every owner route denies access before reading or mutating its dependencies',async()=>{
  let reads=0;
  const bindings={Response,NextResponse:{json:Response.json},requireOwnerApiAccess:async()=>({error:Response.json({error:'Owner only'},{status:403})}),getCoverageRequestRepository:()=>{reads++;throw Error('unauthorized read');},coverageDatabase:()=>{reads++;throw Error('unauthorized read');}};
- for(const [route,names] of [['coverage',['GET','PATCH']],['pricing',['GET','POST']],['members',['GET']],['overview',['GET']]]){
+ for(const [route,names] of [['coverage',['GET','PATCH']],['pricing',['GET','POST']],['members',['GET']],['overview',['GET']],['catalog',['GET','PATCH']],['posts',['GET','PATCH']],['member-detail',['GET','PATCH']],['shipping',['GET','PATCH']],['operations',['GET']],['bottle-contributions',['GET','PATCH']]]){
   const handlers=functions(`src/app/api/admin/${route}/route.ts`,names,bindings);
   for(const name of names)assert.equal((await handlers[name](new Request('https://example.test/api/admin/'+route,{method:name==='GET'?'GET':'POST',...(name==='GET'?{}:{body:'{}'})}))).status,403);
  }
@@ -55,5 +55,5 @@ test('scheduled pricing health cannot be read without its machine credential',as
 test('all admin pages are covered by the owner layout and native menu uses server capability',()=>{
  assert.match(fs.readFileSync(root+'/src/app/admin/layout.tsx','utf8'),/await requireOwnerPageAccess/);
  assert.match(fs.readFileSync(root+'/apps/mobile/app/(app)/(tabs)/hq.tsx','utf8'),/adminAllowed/);
- assert.match(fs.readFileSync(root+'/apps/mobile/app/(app)/account/admin.tsx','utf8'),/getAdminAccess/);
+ assert.match(fs.readFileSync(root+'/apps/mobile/src/admin/OwnerWorkspace.tsx','utf8'),/getAdminAccess/);
 });

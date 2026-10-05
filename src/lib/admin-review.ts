@@ -1,10 +1,11 @@
 export type BottleContributionReviewStatus = "new" | "matched_existing" | "needs_human" | "rejected" | "added" | "ignored";
-export type BottleContributionReviewAction = "use_match" | "confirm_added" | "dismiss";
+export type BottleContributionReviewAction = "use_match" | "confirm_added" | "dismiss" | "reopen";
 
 export function bottleContributionStatusForAction(action: unknown): BottleContributionReviewStatus | null {
   if (action === "use_match") return "matched_existing";
   if (action === "confirm_added") return "added";
   if (action === "dismiss") return "rejected";
+  if (action === "reopen") return "new";
   return null;
 }
 

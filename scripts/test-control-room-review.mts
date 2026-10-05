@@ -46,7 +46,7 @@ assert.match(bottleRoute, /pendingReview:\s*isBottleContributionPending/);
 assert.match(bottleRoute, /bottleContributionStatusForAction/);
 
 const sightingClient = readFileSync(new URL("../src/app/admin/sightings/AdminSightingsClient.tsx", import.meta.url), "utf8");
-for (const phrase of ["Approve & publish", "Approve, keep photo private", "Reject sighting", "navigator.vibrate"]) assert.match(sightingClient, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+for (const phrase of ["Approve photo for public display", "Approve, keep photo private", "Reject sighting", "navigator.vibrate"]) assert.match(sightingClient, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 for (const phrase of ["Reject photo", ">Remove<", "Mark catalog added"]) assert.doesNotMatch(sightingClient, new RegExp(phrase));
 
 const controlRoom = readFileSync(new URL("../src/app/admin/control-room/page.tsx", import.meta.url), "utf8");

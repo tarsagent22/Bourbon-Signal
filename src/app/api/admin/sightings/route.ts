@@ -7,7 +7,6 @@ import { reconcileMemberRewards, type SightingPhotoReviewStatus } from "@/lib/si
 import { requireOwnerApiAccess, verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { needsSightingReview, reviewReasonLabels } from "@/lib/sighting-review";
-import { persistApprovedSightingCatalog } from "@/lib/approved-catalog-service";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 
 function normalizePrefs(input: unknown): SightingsPreferences {
@@ -60,6 +59,7 @@ export async function GET() {
       const user = sighting.reporterUserId ? usersById.get(sighting.reporterUserId) : undefined;
       return {
         ...sighting,
+        expected:sighting,
         reporterEmail: user ? verifiedPrimaryClerkEmail(user) : "",
         reporterName: user ? ([user.firstName, user.lastName].filter(Boolean).join(" ") || "Member") : "Member",
         reviewReasons: reviewReasonLabels(sighting.reviewState),
@@ -74,7 +74,7 @@ export async function PATCH(req: NextRequest) {
   const adminAccess = await requireOwnerApiAccess({ forbidden: "Admin only" });
   if (adminAccess.error) return adminAccess.error;
   const admin = { client: adminAccess.client, adminUserId: adminAccess.userId };
-  const payload = (await req.json().catch(() => ({}))) as { reporterUserId?: string; sightingId?: string; action?: string; reason?: string };
+  const payload = (await req.json().catch(() => ({}))) as { reporterUserId?: string; sightingId?: string; action?: string; reason?: string;expectedPhotoUrl?:string;expected?:MemberSighting };
   const reporterUserId = String(payload.reporterUserId || "");
   const sightingId = String(payload.sightingId || "");
   if (!reporterUserId || !sightingId) return NextResponse.json({ error: "Missing sighting" }, { status: 400 });
@@ -95,11 +95,9 @@ export async function PATCH(req: NextRequest) {
   let resolveManualReview = false;
   if (payload.action === "verify_public") {
     status = "verified_public";
-    resolveManualReview = true;
   }
   if (payload.action === "verify_private") {
     status = "verified_private";
-    resolveManualReview = true;
   }
   if (payload.action === "reject_photo") status = "rejected";
   if (payload.action === "remove_sighting") remove = true;
@@ -110,9 +108,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
   }
   const targetSighting = sourceSightings.find((sighting) => sighting.id === sightingId)!;
-  const catalogResult = resolveManualReview
-    ? await persistApprovedSightingCatalog(targetSighting, admin.adminUserId)
-    : { bottle: null, location: null };
+  if(status&&!targetSighting.rewardState?.photoProof?.url)return NextResponse.json({error:'This post has no photo evidence to review.'},{status:400});
+  if(payload.expectedPhotoUrl && payload.expectedPhotoUrl!==targetSighting.rewardState?.photoProof?.url)return NextResponse.json({error:'The photo changed. Refresh and review the current evidence.'},{status:409});
+  if(resolveManualReview && (targetSighting.reviewState?.needsBottleReview || targetSighting.reviewState?.needsStoreReview)) return NextResponse.json({error:'Correct the bottle and store in Admin → Community before completing this review.'},{status:400});
+  const catalogResult: {bottle: null;location:null} = { bottle: null, location: null };
   if (catalogResult.bottle) {
     const { clearBourbonBibleCache } = await import("@/lib/bourbonBible");
     clearBourbonBibleCache();
@@ -157,7 +156,8 @@ export async function PATCH(req: NextRequest) {
   if (!updatedSighting) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
   const signalPoints = createSignalPointsRepository();
   if (durableTarget) {
-    const mutation = await repository.updateSighting(updatedSighting);
+    let mutation;
+    try{mutation = await repository.updateSighting(updatedSighting,{expected:payload.expected||targetSighting,actor:admin.adminUserId,action:`photo_${payload.action}`,reason:payload.reason||'Owner reviewed photo evidence'});}catch{return NextResponse.json({error:'This post changed. Refresh before saving again.'},{status:409});}
     const durableOwned = await repository.listSightingsForReporter(reporterUserId);
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId }));
     const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());

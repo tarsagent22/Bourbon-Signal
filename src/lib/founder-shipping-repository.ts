@@ -215,7 +215,7 @@ export class FounderShippingRepository {
     updatedBy: string;
   }): Promise<FounderShippingRecord | null> {
     const rows = await this.query.query(
-      `UPDATE founder_glass_shipping
+      `WITH changed AS (UPDATE founder_glass_shipping
        SET status = $2,
            carrier = $3,
            tracking_number = $4,
@@ -265,7 +265,10 @@ export class FounderShippingRepository {
            OR shipment_notification_claimed_at < NOW() - INTERVAL '15 minutes'
            OR ($2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4)
          )
-       RETURNING *`,
+       RETURNING *), audited AS (
+         INSERT INTO owner_workspace_audit(actor_id,action,target_id,details)
+         SELECT $5,'founder_shipment_update',$1,jsonb_build_object('status',$2::text,'carrier',$3::text,'trackingNumber',$4::text) FROM changed RETURNING id
+       ) SELECT * FROM changed`,
       [input.userId, input.status, input.carrier, input.trackingNumber, input.updatedBy, input.expectedUpdatedAt, input.notificationIdempotencyKey],
     ) as FounderShippingRow[];
     if (rows[0]) return rowToRecord(rows[0]);
