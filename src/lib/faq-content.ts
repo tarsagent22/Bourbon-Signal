@@ -60,9 +60,9 @@ function productFaqItems(): FaqItem[] {
         "Signed-in members can report bottles seen in stores, available inventory, sold-out conditions, and other useful local observations. Photos are optional, and community voting helps identify useful reports. Member Sightings remain clearly labeled as community reports rather than official or verified-retailer inventory. Barrel Proof and Bottled in Bond members can also receive alerts when sightings match their selected bottles and markets.",
     },
     {
-      question: "How does Bottle Check work?",
+      question: "How do I add bottles to My Shelf?",
       answer:
-        "Search a bottle to see its rarity, MSRP, Hunt Score, practical buying guidance, and recent signal history. When local evidence is available, Bottle Check also shows recent locations and activity over the last 30 and 90 days. Bottles with enough member ratings may display a community taste score. Paid members can add uncommon bottles to their watchlist directly from Bottle Check. Free accounts include three checks; paid plans include unlimited checks.",
+        "Search by bottle name when adding to My Shelf. Save bottles you own or whiskies you have tasted, then add a rating, taste notes, and how many bottles you have. If the bottle is missing from the catalog, add it yourself.",
     },
     {
       question: "How do My Shelf and recommendations work?",
