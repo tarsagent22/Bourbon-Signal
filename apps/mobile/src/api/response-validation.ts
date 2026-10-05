@@ -26,7 +26,16 @@ const signal = obj({ contractVersion: signalVersion, id: str, kind: one('availab
   strength: one('best', 'more_activity'), alertEligibility: obj({ inventory: bool, watch: bool }), actions: arr(one('watch_bottle', 'watch_store', 'confirm', 'correct', 'helpful', 'report')) });
 const collectionBottle = obj({ bottleId: str, bottleName: str, canonicalKey: str, rating: num, isRated: bool,
   sealedQuantity: num, openedQuantity: num, finishedCount: num, tastedOnly: bool, addedAt: str, updatedAt: str });
+const nonnegative: Check = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+const sourceUrl: Check = v => typeof v === 'string' && /^https:\/\//.test(v);
+const priceSource = { date: str, source: sourceUrl, label: str };
+const collectionValue = obj({ currency: one('USD'), reviewedAt: str, ownedCount: nonnegative, sealedCount: nonnegative, openedCount: nonnegative,
+  msrp: obj({ total: nullable(nonnegative), pricedCount: nonnegative }),
+  secondary: obj({ low: nullable(nonnegative), high: nullable(nonnegative), pricedCount: nonnegative }),
+  entries: arr(obj({ bottleId: str, name: str, sealedQuantity: nonnegative, openedQuantity: nonnegative,
+    msrp: nullable(obj({ ...priceSource, amount: nonnegative })), secondary: nullable(obj({ ...priceSource, low: nonnegative, high: nonnegative })) })) });
 export const preferencesResponse = obj({
+  collectionValue: optional(nullable(collectionValue)),
   collectionAccess: obj({ canRead: bool, canEditExisting: bool, canAdd: bool, limit: nullable(num), remaining: nullable(num), showCapacityNotice: bool }),
   areaPreferences: obj(Object.fromEntries(['states','ncBoards','gaAreas','tnAreas','vaCities','ohCities','iaCities','idCities','scAreas','caAreas','nvAreas','nyAreas','coAreas','paCounties','paStores'].map(k => [k, strings]))),
   monitoringScopes: arr(scope), notificationPreferences: obj({ rarityTiers: arr(one('unicorn','allocated','limited')),

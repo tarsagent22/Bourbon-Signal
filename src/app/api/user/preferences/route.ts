@@ -50,6 +50,7 @@ import {
 } from "@/lib/member-collection-repository";
 import { countDistinctTrackedBottles } from "@/lib/bottle-check-dossier";
 import { getCellarAccessPolicy, type CellarAccessPolicy } from "@/lib/cellar-access-policy";
+import { collectionValueForMember, type CollectionValue } from "@/lib/collection-value";
 
 export type { CollectionBottlePreference } from "@/lib/member-collection";
 
@@ -74,6 +75,7 @@ export interface AreaPreferences {
 export type AlertMode = "specific_bottles" | "anything_notable";
 
 export interface UserAlertPreferences {
+  collectionValue?: CollectionValue | null;
   entitlements?: {
     canUseCollection: boolean;
     canUseRecommendations: boolean;
@@ -308,6 +310,7 @@ function buildResponseFromMetadata(
       canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
     },
     collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length),
+    collectionValue: collectionValueForMember(entitlements.canUseRecommendations, collectionPreferences.bottles),
     areaPreferences,
     monitoringScopes,
     notificationPreferences,
@@ -402,6 +405,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     qaTier: tier,
     entitlements,
     collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length),
+    collectionValue: collectionValueForMember(entitlements.canUseRecommendations, collectionPreferences.bottles),
     areaPreferences,
     monitoringScopes,
     notificationPreferences,
@@ -719,7 +723,7 @@ export async function POST(req: NextRequest) {
     alertAreaLimit: entitlements.alertAreaLimit,
     trackedBottleLimit: entitlements.trackedBottleLimit,
     canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
-  }, collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length), areaPreferences, monitoringScopes, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
+  }, collectionValue: collectionValueForMember(entitlements.canUseRecommendations, collectionPreferences.bottles), collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length), areaPreferences, monitoringScopes, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
   };
   try {
     const leased = await withMemberAlertLease(userId, write, { requireDurable: true });

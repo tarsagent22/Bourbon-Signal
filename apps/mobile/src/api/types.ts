@@ -227,6 +227,7 @@ export interface CellarAccessPolicy {
 }
 
 export interface MemberPreferences {
+  collectionValue?: import('../cellar/collection-value').CollectionValue | null;
   entitlements?: {
     canUseCollection?: boolean;
     canUseRecommendations?: boolean;

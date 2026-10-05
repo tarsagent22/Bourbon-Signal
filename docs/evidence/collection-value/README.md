@@ -1,0 +1,15 @@
+# Collection value release
+
+Owner-authorized completion of native My Shelf collection values on 2026-10-05.
+
+Barrel Proof and Founder receive a server-calculated `collectionValue` in the existing authenticated preferences GET and POST responses. Free and Standard receive null. The client cannot submit prices or override totals. Existing quantities and membership authority remain unchanged.
+
+The shelf shows a value card beneath Collection stats and before Shelf Highlights. Its button opens a scrollable breakdown with source links and original reference dates. The three-column bottle grid, art and ratings are preserved. The value breakdown progressively reveals 20 holdings at a time; totals always include the whole collection.
+
+MSRP is a reference for full bottles on hand, including open bottles, using the named producer release. Secondary is a low/high reference for sealed modern standard 750 ml bottles only. Finished and tasted-only entries contribute no holdings. Missing prices are excluded; coverage counts show exactly what contributes. A genuinely empty collection is zero; an unpriced collection has null totals and displays “Not priced yet.” No tax, selling fees, remaining-liquid value, historical vintage premium, or private-pick premium is assumed.
+
+Initial manually reviewed snapshot: 11 exact catalog IDs, eight published MSRP references and seven secondary ranges. No legacy undated Bottle Check prices are used. Manufacturer release references are sourced from Buffalo Trace's original 2025 Van Winkle press release, the distillery's Eagle Rare 12 press release syndicated by BevNET, and Russell's Reserve's 2026 release announcement syndicated by PR Newswire. Secondary references are a small reviewed set of public factual market ranges from Bottle Blue Book, with original links and last-observed sale dates. This is a dated reference snapshot, not a live pricing provider integration or complete catalog coverage.
+
+Pricing maintenance: add or update a reviewed exact ID/name record in `src/data/collection-price-references.ts`; include the original price date, HTTPS source and edition/size label. Never use retail asking price as manufacturer MSRP or transfer an edition-specific secondary quote to a generic entry. MSRP references expire after 730 days. Secondary references and this snapshot's review expire after 90 days; update `reviewedAt` in the calculation when rechecking the snapshot. Unrecognized IDs, changed edition/size names, pending canonical matches, invalid/future dates and invalid/reversed price ranges fail closed to unpriced. Run `npm run test:collection-value`; it is also part of `verify:ci`.
+
+Local validation: root and mobile typecheck; collection-value quantity, identity, tier, expiry, malformed-price, wire-contract and catalog-identity tests; full mobile verification including security, release readiness and Android/iOS exports. Browser fixtures use actual mobile components with synthetic account data and substitute native services. Checked Founder/Barrel visibility, Free/Standard basic stats, empty values, breakdown source links, 390px and 320px layouts. Physical iPhone acceptance remains pending.
