@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react';
 import { collectionMoney, secondaryMoney, type CollectionValue } from '../cellar/collection-value';
 import { colors, fonts, typeScale } from '../theme';
 
-export function CollectionValueCard({ value, details = false, onPress }: { value?: CollectionValue | null; details?: boolean; onPress?: () => void }) {
+export function CollectionValueCard({ value, resetKey }: { value?: CollectionValue | null; resetKey?: boolean }) {
   const [entryLimit, setEntryLimit] = useState(20);
-  useEffect(() => setEntryLimit(20), [value]);
+  const [details, setDetails] = useState(false);
+  useEffect(() => { setEntryLimit(20); setDetails(false); }, [value, resetKey]);
   if (!value) return <View style={styles.card}><Text style={styles.title}>Collection value</Text><Text style={styles.copy}>Price estimates are temporarily unavailable. Refresh My Shelf to try again.</Text></View>;
   const content = <>
     <Text accessibilityRole="header" style={styles.title}>Collection value</Text>
@@ -16,7 +17,7 @@ export function CollectionValueCard({ value, details = false, onPress }: { value
     </View>
     <Text style={styles.copy}>{value.openedCount} open bottles excluded from secondary value.</Text>
     <Text style={styles.copy}>Prices reviewed {value.reviewedAt}. Missing prices are excluded.</Text>
-    {!details && onPress ? <Text style={styles.link}>View value breakdown →</Text> : null}
+    <Pressable accessibilityRole="button" accessibilityState={{ expanded: details }} style={styles.source} onPress={() => { setDetails(open => !open); setEntryLimit(20); }}><Text style={styles.link}>{details ? 'Hide pricing breakdown ↑' : 'View pricing breakdown →'}</Text></Pressable>
     {details ? <>
       <Text style={styles.copy}>MSRP uses published full-bottle prices for bottles on hand, including open bottles. It does not estimate the whiskey remaining. Secondary uses recent market references for sealed modern 750 ml bottles. Older vintages, private picks and other sizes need their own prices. Taxes and selling fees are excluded. These are dated references, not live quotes or guaranteed sale prices.</Text>
       {value.entries.length === 0 ? <Text style={styles.copy}>Add bottles to see your collection value.</Text> : value.entries.slice(0, entryLimit).map((entry, index) => <View style={styles.entry} key={`${entry.bottleId}:${index}`}>
@@ -30,7 +31,7 @@ export function CollectionValueCard({ value, details = false, onPress }: { value
       {entryLimit < value.entries.length ? <Pressable accessibilityRole="button" style={styles.source} onPress={() => setEntryLimit(n => n + 20)}><Text style={styles.link}>Show {Math.min(20, value.entries.length - entryLimit)} more bottles</Text></Pressable> : null}
     </> : null}
   </>;
-  return onPress && !details ? <Pressable accessibilityRole="button" accessibilityLabel="Collection value. View MSRP and secondary breakdown" onPress={onPress} style={styles.card}>{content}</Pressable> : <View style={styles.card}>{content}</View>;
+  return <View style={styles.card}>{content}</View>;
 }
 function Source({price}:{price:{label:string;date:string;source:string}}) {
   return <Pressable accessibilityRole="link" accessibilityLabel={`${price.label}, ${price.date}. Open price source`} style={styles.source} onPress={() => { void Linking.openURL(price.source).catch(() => undefined); }}><Text style={styles.link}>{price.label} · {price.date} ↗</Text></Pressable>;

@@ -4,7 +4,7 @@ Owner-authorized completion of native My Shelf collection values on 2026-10-05.
 
 Barrel Proof and Founder receive a server-calculated `collectionValue` in the existing authenticated preferences GET and POST responses. Free and Standard receive null. The client cannot submit prices or override totals. Existing quantities and membership authority remain unchanged.
 
-The shelf shows a value card beneath Collection stats and before Shelf Highlights. Its button opens a scrollable breakdown with source links and original reference dates. The three-column bottle grid, art and ratings are preserved. The value breakdown progressively reveals 20 holdings at a time; totals always include the whole collection.
+The initial release placed a value card on My Shelf. The subsequent owner-approved [stats layout](../shelf-stats-layout/README.md) moves Collection stats below Shelf Highlights and places the value summary at the top of stats, with pricing details collapsed behind View pricing breakdown. The three-column bottle grid, art and ratings are preserved. The value breakdown progressively reveals 20 holdings at a time; totals always include the whole collection.
 
 MSRP is a reference for full bottles on hand, including open bottles, using the named producer release. Secondary is a low/high reference for sealed modern standard 750 ml bottles only. Finished and tasted-only entries contribute no holdings. Missing prices are excluded; coverage counts show exactly what contributes. A genuinely empty collection is zero; an unpriced collection has null totals and displays “Not priced yet.” No tax, selling fees, remaining-liquid value, historical vintage premium, or private-pick premium is assumed.
 

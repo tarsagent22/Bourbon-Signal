@@ -24,7 +24,7 @@ export function CollectionStatisticsSheet({ visible, statistics, ranked, advance
       <View style={styles.header}><Text ref={heading} accessible accessibilityRole="header" style={styles.title}>Collection Statistics</Text><Pressable accessibilityRole="button" accessibilityLabel="Close collection statistics" onPress={onClose} style={styles.close}><Text style={styles.closeText}>Close</Text></Pressable></View>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.copy}>Your whole collection, regardless of search or filters.</Text>
-        {advancedAccess ? <CollectionValueCard value={collectionValue} details /> : null}
+        {advancedAccess ? <CollectionValueCard value={collectionValue} resetKey={visible} /> : null}
         <Stat label="Bottles on hand" value={String(s.ownedBottleCount)} detail={`${s.ownedWhiskeyCount} unique owned entries`} />
         <Stat label="Sealed bottles" value={String(s.sealedBottleCount)} />
         <Stat label="Open bottles" value={String(s.openBottleCount)} />

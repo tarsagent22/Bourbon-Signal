@@ -20,7 +20,6 @@ import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork
 import { CellarGlencairnSilhouette } from "../../../src/components/CellarGlencairnSilhouette";
 import { ShelfCabinet } from "../../../src/components/ShelfCabinet";
 import { CollectionStatisticsSheet } from "../../../src/components/CollectionStatisticsSheet";
-import { CollectionValueCard } from "../../../src/components/CollectionValueCard";
 import { rankedShelfBottles, shelfBottleKey, shelfGridLayout } from "../../../src/cellar/shelf-cabinet";
 import { EmptyState, ErrorState, LoadingState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
@@ -399,13 +398,12 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
           {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to My Shelf" : "Your free shelf is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
         {preferences ? <>
+          <ShelfCabinet bottles={sourceBottles} onBottle={setSelected} />
           <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View your bottle counts, ratings and top-rated bottles" onPress={() => { if (!selected && !refineMode) setStatisticsOpen(true); }} style={({ pressed }) => [styles.statisticsButton, pressed && { opacity: 0.75 }]}>
             <MaterialCommunityIcons accessible={false} name="chart-bar" size={24} color={colors.accent} />
             <Text style={styles.statisticsLink}>Collection stats</Text>
             <MaterialCommunityIcons accessible={false} name="chevron-right" size={22} color={colors.accent} />
           </Pressable>
-          {canUseRecommendations ? <CollectionValueCard value={preferences.collectionValue} onPress={() => setStatisticsOpen(true)} /> : null}
-          <ShelfCabinet bottles={sourceBottles} onBottle={setSelected} />
         </> : null}
         {loading && !preferences ? <LoadingState label="Opening My Shelf…" /> : null}
         {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
