@@ -119,7 +119,8 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
   let auth = { isLoaded: true, isSignedIn: true, userId: 'A', sessionId: 'session-A' };
   const native = { StyleSheet: { create: v => v }, View: 'View', Text: 'Text', ScrollView: 'ScrollView', RefreshControl: 'RefreshControl', ActivityIndicator: 'ActivityIndicator', Pressable: 'Pressable', TextInput: 'TextInput' };
   const Stack = Object.assign(() => null, { Screen: 'Screen' });
-  const layout = loadWithMocks(root + '/apps/mobile/app/(app)/_layout.tsx', { '@clerk/expo': { useAuth: () => auth }, 'expo-router': { Stack, Redirect: 'Redirect' }, 'react-native': native });
+  const layoutIdentity = { current: '' };
+  const layout = loadWithMocks(root + '/apps/mobile/app/(app)/_layout.tsx', { react: { ...React, useRef: () => layoutIdentity }, '@clerk/expo': { useAuth: () => auth }, 'expo-router': { Stack, Redirect: 'Redirect' }, 'react-native': native });
   let currentApi, refresh, instance, index, currentKey;
   const instances = new Map();
   const hooks = { ...React, useRef: v => instance.refs[index++] ||= { current: v }, useState: v => { const owner = instance, i = index++; if (!(i in owner.states)) owner.states[i] = v; return [owner.states[i], value => { if (owner.mounted) owner.states[i] = typeof value === 'function' ? value(owner.states[i]) : value; }]; }, useMemo: f => f(), useCallback: f => f, useEffect: () => {} };
@@ -152,5 +153,8 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
   assert.equal(JSON.stringify(instance.states),before,'late profile, points, achievements and edit results cannot update B');
   render(editor); assert.equal(instance.states[1],null,'B editor never inherits A profile');
   const bKey=currentKey;auth={...auth,sessionId:'session-B-new'};render(account);assert.notEqual(currentKey,bKey);
-  auth={...auth,isSignedIn:false};assert.equal(layout.default().type,'Redirect');
+  const lastSignedInKey=currentKey;
+  auth={...auth,isSignedIn:false,userId:null,sessionId:null};
+  assert.equal(layout.default().type,Stack,'root protected routes own logout, nested navigator stays stable');
+  assert.equal(layout.default().key,lastSignedInKey,'logout never resets the native stack while it is dismissing');
 });
