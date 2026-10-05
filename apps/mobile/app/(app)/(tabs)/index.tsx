@@ -1,5 +1,6 @@
 import { feedRetryAction } from "../../../src/signals/feed-recovery";
 import { EmptyState } from "../../../src/components/MemberScreen";
+import { allowedFeedFilters, canUseDetailedFeedFilters } from "../../../src/signals/feed-access";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect } from "expo-router";
@@ -109,6 +110,7 @@ export default function SignalFeedScreen() {
   const [error, setError] = useState("");
   const [profileError, setProfileError] = useState("");
   const [access, setAccess] = useState<SignalFeedPage["access"] | null>(null);
+  const [marketSummaries, setMarketSummaries] = useState<SignalFeedPage["marketSummaries"]>([]);
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [filtersByView, setFiltersByView] = useState<Record<FeedView, SignalFeedFilters>>({
     market: { ...DEFAULT_SIGNAL_FILTERS },
@@ -121,7 +123,9 @@ export default function SignalFeedScreen() {
   const [areaOptionsError, setAreaOptionsError] = useState("");
   const [loadedBrowsingStorageKey, setLoadedBrowsingStorageKey] = useState("");
   const browsingLoaded = Boolean(browsingStorageKey) && loadedBrowsingStorageKey === browsingStorageKey;
-  const filters = filtersByView[view];
+  const tier = profile?.membership.tier;
+  const detailedFilters = canUseDetailedFeedFilters(tier);
+  const filters = useMemo(() => allowedFeedFilters(filtersByView[view], tier), [filtersByView, view, tier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
   const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities]);
@@ -137,7 +141,7 @@ export default function SignalFeedScreen() {
   const areaLabel = filters.state
     ? areaDirectory?.states.find((state) => state.code === filters.state)?.areaLabel || areaSelectorLabel(filters.state)
     : "Area / Board";
-  const bottleQuery = bottleQueries[view];
+  const bottleQuery = detailedFilters ? bottleQueries[view] : "";
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
   const rarityBackfillRef = useRef({ key: "", attempts: 0 });
@@ -209,6 +213,7 @@ export default function SignalFeedScreen() {
       setCursor(page.nextCursor);
       setHasMore(page.hasMore);
       setAccess(page.access);
+      if (refresh) setMarketSummaries(page.marketSummaries);
       if (refresh) setQueuedSignals([]);
       setLoaded(true);
     } catch (caught) {
@@ -239,6 +244,7 @@ export default function SignalFeedScreen() {
     setCursor(null);
     setHasMore(true);
     setAccess(null);
+    setMarketSummaries([]);
     setError("");
     setLoaded(false);
     setLoading(false);
@@ -255,6 +261,7 @@ export default function SignalFeedScreen() {
     setHighlightedIds([]);
     setCursor(null);
     setHasMore(true);
+    setMarketSummaries([]);
     setError("");
     setLoaded(false);
     setLoading(false);
@@ -289,6 +296,7 @@ export default function SignalFeedScreen() {
     setHasMore(true);
     setAccess(null);
     setProfile(null);
+    setMarketSummaries([]);
     setProfileError("");
     setRemoteAreaState("");
     setRemoteAreaOptions([]);
@@ -298,12 +306,15 @@ export default function SignalFeedScreen() {
     setError("");
     setLoaded(false);
     setLoading(false);
-    void loadHomeBrowsingPreferences(browsingStorageKey).catch(() => null).then((saved) => {
+    void Promise.all([loadHomeBrowsingPreferences(browsingStorageKey).catch(() => null), api.getMemberProfile().catch(() => null)]).then(([saved, member]) => {
       if (!current) return;
       if (saved && mutationAtStart === browsingMutationSequence.current) {
         setView(saved.view);
         setFiltersByView(saved.filtersByView);
         setBottleQueries({ market: saved.filtersByView.market.bottle, community: saved.filtersByView.community.bottle });
+      } else if (!saved && member?.profile.homeState && mutationAtStart === browsingMutationSequence.current) {
+        const initial = { ...DEFAULT_SIGNAL_FILTERS, state: member.profile.homeState };
+        setFiltersByView({ market: initial, community: initial });
       }
       setLoadedBrowsingStorageKey(browsingStorageKey);
     });
@@ -489,7 +500,7 @@ export default function SignalFeedScreen() {
             placeholder={filters.state ? areaLabel : "Area / Board"}
             clearLabel={`Any ${areaLabel.toLowerCase()}`}
             options={areaOptions}
-            disabled={!filters.state}
+            disabled={!filters.state || !detailedFilters}
             onChange={(area) => applyFilters({ ...filters, area })}
           />
         </View>
@@ -503,7 +514,8 @@ export default function SignalFeedScreen() {
         {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
-        <View style={styles.filterInputShell}>
+        {!detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Board/city filters and bottle search · Barrel Proof →</Text></Pressable> : null}
+        {detailedFilters ? <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
             autoCapitalize="words"
@@ -518,7 +530,7 @@ export default function SignalFeedScreen() {
             value={bottleQuery}
           />
           {bottleQuery ? <Pressable accessibilityLabel="Clear bottle search" accessibilityRole="button" hitSlop={8} onPress={() => setBottleQueries((current) => ({ ...current, [view]: "" }))} style={styles.inputClearButton}><MaterialCommunityIcons color={colors.muted} name="close-circle" size={19} /></Pressable> : null}
-        </View>
+        </View> : null}
 
         <ScrollView horizontal keyboardShouldPersistTaps="handled" contentContainerStyle={styles.rarityRow} showsHorizontalScrollIndicator={false} accessibilityLabel="Bottle rarity filters">
           <Pressable
@@ -592,6 +604,19 @@ export default function SignalFeedScreen() {
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
           : filters.rarities.length && loading
             ? <View style={styles.message}><Text style={styles.loadingText}>Finding more matching Signals…</Text></View>
+            : marketLocked && !paidAccessMismatch
+              ? <View style={styles.message}>
+                <Text style={styles.previewTitle}>Find bottles near you</Text>
+                <Text style={styles.previewDetail}>Free membership includes a market overview. Standard unlocks bottle locations and alerts.</Text>
+                {marketSummaries.slice(0, 7).map((summary) => <View key={`${summary.state}:${summary.areaLabel}`} style={styles.summaryCard}>
+                  <Text style={styles.previewTitle}>{summary.areaLabel} · {summary.state}</Text>
+                  <Text style={styles.previewDetail}>{summary.signalCount} bottle report{summary.signalCount === 1 ? "" : "s"} this week</Text>
+                  <Text style={styles.previewDetail}>{summary.bottleNames.join(" · ")}</Text>
+                </View>)}
+                {!marketSummaries.length ? <Text style={styles.previewDetail}>No recent reports in this view. Try another state or check Community.</Text> : null}
+                <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable>
+                <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community →</Text></Pressable>
+              </View>
             : <EmptyState title={view === "community" ? "No member sightings yet" : "No fresh Intel Signals are available right now"}
               detail={activeFilterCount(filters) ? "Try a broader search or clear your filters." : view === "community" ? "Share what you spotted to help nearby members." : "New Signals will appear here as they arrive."}
               actionLabel={activeFilterCount(filters) ? "Clear filters" : view === "community" ? "Post a sighting" : "Refresh feed"}
@@ -622,6 +647,9 @@ export default function SignalFeedScreen() {
 }
 
 const styles = StyleSheet.create({
+  previewTitle: { color: colors.text, fontSize: typeScale.input, fontWeight: "700" },
+  previewDetail: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21, marginTop: 6 },
+  summaryCard: { alignSelf: "stretch", padding: 14, marginTop: 12, backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border },
   screen: { flex: 1, backgroundColor: colors.background },
   homeBackdrop: StyleSheet.absoluteFill,
   feedViewport: { flex: 1, backgroundColor: "transparent" },

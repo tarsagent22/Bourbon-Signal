@@ -454,7 +454,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
             <View style={styles.dnaActionBlock}><Text style={styles.dnaSectionLabel}>ONE NEXT STEP</Text><Text style={styles.capacityDetail}>{bourbonDna.nextAction.detail}</Text><Pressable accessibilityRole="button" onPress={improveBourbonDna} style={({ pressed }) => [styles.dnaAction, pressed && styles.pressed]}><Text style={styles.dnaActionText}>{bourbonDna.nextAction.label}</Text></Pressable></View>
             <Text style={styles.dnaMethod}>Confidence reflects the amount and repetition in your saved ratings—not facts about bottle composition.</Text>
           </View> : null}
-        </View> : <Text style={styles.premiumNote}>Barrel and Founder memberships add Bourbon DNA and personalized collection intelligence; My Shelf stays focused on your bottles.</Text>}
+        </View> : null}
       </View> : null}
       ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "My Shelf is ready"} detail={sourceBottles.length ? "Try a broader search or clear your filters." : "Save a bottle or a whiskey you tasted."} actionLabel={sourceBottles.length ? "Clear filters" : "Add your first bottle"} onAction={() => { if (sourceBottles.length) { setQuery(""); setFilters({ ...DEFAULT_COLLECTION_FILTERS, status: "all" }); } else router.push("/(app)/cellar/add"); }} /> : null}
       style={memberScreenStyles.screen}

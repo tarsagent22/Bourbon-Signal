@@ -152,7 +152,7 @@ function returnedBySource(signals: CanonicalSignal[]) {
   }, { drops: 0, members: 0 });
 }
 
-export function createSignalFeedHandler({ getDrops, getSightings }: { getDrops: SourceReader; getSightings: SourceReader }) {
+export function createSignalFeedHandler({ getDrops, getSightings, getFilterAccess }: { getDrops: SourceReader; getSightings: SourceReader; getFilterAccess?: () => Promise<{ canUseDropFeedFilters: boolean; canUseBottleSearch: boolean; canUseAdvancedFilters: boolean }> }) {
   return async function handleSignalFeed(request: Request) {
     const url = new URL(request.url);
     const unsupported = [...url.searchParams.keys()].filter((key) => !SUPPORTED_QUERY_KEYS.has(key));
@@ -173,6 +173,17 @@ export function createSignalFeedHandler({ getDrops, getSightings }: { getDrops: 
       filters = parseSignalFeedFilters(url);
     } catch (error) {
       return Response.json({ error: error instanceof Error ? error.message : "Invalid Signal filters" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
+    }
+
+    if (getFilterAccess && (filters.area || filters.bottle || filters.freshness)) {
+      try {
+        const access = await getFilterAccess();
+        if ((filters.area && !access.canUseDropFeedFilters) || (filters.bottle && !access.canUseBottleSearch) || (filters.freshness && !access.canUseAdvancedFilters)) {
+          return Response.json({ contractVersion: SIGNAL_API_ERROR_VERSION, error: { code: "FORBIDDEN", message: "Board/city filters and bottle search require Barrel Proof or Founder membership." } }, { status: 403, headers: PRIVATE_SIGNAL_HEADERS });
+        }
+      } catch {
+        return Response.json({ contractVersion: SIGNAL_API_ERROR_VERSION, error: { code: "UPSTREAM_UNAVAILABLE", message: "Membership access could not be checked. Try again.", retryable: true } }, { status: 503, headers: PRIVATE_SIGNAL_HEADERS });
+      }
     }
 
     const rawLimit = url.searchParams.get("limit") || "40";

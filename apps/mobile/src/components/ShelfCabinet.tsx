@@ -8,7 +8,7 @@ import { CellarBottleArtwork } from './CellarBottleArtwork';
 const modes = [{ id: 'rated', label: 'Top rated' }, { id: 'recent', label: 'Recently added' }, { id: 'again', label: 'Buy again' }] as const;
 const emptyCopy: Record<ShowcaseMode, string> = {
   rated: 'Rate a bottle you own to feature it here.',
-  recent: 'Add a bottle to begin your showcase.',
+  recent: 'Add bottles and show off your collection.',
   again: 'Mark an owned bottle “Would buy again” in its tasting notes to feature it here.',
 };
 
@@ -49,7 +49,7 @@ export function ShelfCabinet({ bottles, onBottle }: {
       <View style={styles.names}>
         {featured.map(bottle => <Pressable key={shelfBottleKey(bottle)} accessibilityRole="button" accessibilityLabel={`${bottle.bottleName}. Open details.`} onPress={() => onBottle(bottle)} style={styles.nameSlot}><Text textBreakStrategy="balanced" lineBreakStrategyIOS="standard" style={styles.bottleName}>{highlightName(bottle.bottleName)}</Text></Pressable>)}
       </View>
-    </> : <View style={styles.empty}><Text style={styles.emptyTitle}>{bottles.length ? 'Your next highlight awaits' : 'Make this shelf yours'}</Text><Text style={styles.emptyCopy}>{bottles.length ? emptyCopy[mode] : emptyCopy.recent}</Text></View>}
+    </> : <View style={styles.empty}><Text style={styles.emptyTitle}>{bottles.length ? 'No highlights yet' : 'Add bottles and show off your collection'}</Text>{bottles.length ? <Text style={styles.emptyCopy}>{emptyCopy[mode]}</Text> : null}</View>}
   </View>;
 }
 

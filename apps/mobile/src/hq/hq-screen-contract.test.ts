@@ -19,7 +19,7 @@ test('Account retains native membership, support, deletion and profile destinati
 test('profile edits retain server validation, immutable identity, and accessible feedback',()=>{
  assert.match(profile,/api.updateMemberProfile/);
  assert.match(profile,/maxLength=\{32\}/);
- assert.match(profile,/The tag never changes/);
+ assert.match(profile,/Shown on your Community posts/);
  assert.match(profile,/useAccessibleStatus/);
 });
 test('rewards use independent server panels and preserve earn-versus-redeem eligibility',()=>{

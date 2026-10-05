@@ -4,6 +4,7 @@ import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet
 import { openAppleSubscriptionManagement } from "../../../src/account/subscription-management";
 import type { MemberProfile } from "../../../src/api/types";
 import { ErrorState } from "../../../src/components/MemberScreen";
+import { MembershipTierIcon } from "../../../src/components/MembershipTierIcon";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { MEMBERSHIP_PLANS, membershipActionFor, type MembershipTier } from "../../../src/membership/membership-plans";
 import { usePurchases } from "../../../src/membership/PurchasesProvider";
@@ -12,8 +13,8 @@ import { productIdFor } from "../../../src/membership/purchases";
 import { colors, typeScale, fonts } from "../../../src/theme";
 
 const cards = [
-  { tier: "standard" as const, name: "Standard", description: "Stay on top of the bottles you want, in the places you hunt.", features: ["Full state Intel & community feed", "Alerts for 5 areas & 15 bottles", "Unlimited bottles on My Shelf", "Unlimited bottle intelligence"] },
-  { tier: "barrel" as const, name: "Barrel Proof", description: "Follow every bottle. Find more through the collection you love.", features: ["Everything in Standard", "Unlimited areas & watched bottles", "Advanced filters & community alerts", "Collection insights & recommendations"] },
+  { tier: "standard" as const, name: "Standard", description: "Bottle alerts, the full feed, and room for your whole collection.", features: ["Full state Intel & community feed", "Alerts for 5 areas & 15 bottles", "Unlimited bottles on My Shelf", "Redeem Signal Points for rewards"] },
+  { tier: "barrel" as const, name: "Barrel Proof", description: "More alert options and a taste profile from your collection.", features: ["Everything in Standard", "Unlimited areas & watched bottles", "Advanced filters & community alerts", "Bourbon DNA from your ratings"] },
 ];
 
 export default function MembershipScreen() {
@@ -91,7 +92,6 @@ export default function MembershipScreen() {
     <ScrollView contentContainerStyle={[styles.content, { width: pageWidth }]}>
       <View style={styles.hero}>
         <Text accessibilityRole="header" style={styles.title}>Find your next bottle.</Text>
-        <Text style={styles.subtitle}>A little more signal.{"\n"}A lot more possibility.</Text>
         {!isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
       </View>
       {loading && !profile ? <ActivityIndicator accessibilityLabel="Loading membership" color={colors.accent} /> : null}
@@ -114,7 +114,7 @@ export default function MembershipScreen() {
           const label = included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS === "ios" ? "Check purchase options" : "Available on iPhone";
           return <View key={card.tier} style={[styles.card, { width: cardWidth }, index === 1 && styles.premium]}
             accessibilityElementsHidden={selected !== index} importantForAccessibility={selected !== index ? "no-hide-descendants" : "auto"}>
-            <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{card.name}</Text><View style={styles.medallion} accessible={false}><View style={styles.glassBowl} /><View style={styles.glassStem} /><View style={styles.glassFoot} /></View></View>
+            <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
             <Text style={styles.cardDescription}>{card.description}</Text>
             <View style={styles.priceRow}>{product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <Text style={styles.pricePlaceholder}>Monthly membership</Text>}</View>
             <Text style={styles.billing}>Billed monthly. Cancel anytime.</Text>

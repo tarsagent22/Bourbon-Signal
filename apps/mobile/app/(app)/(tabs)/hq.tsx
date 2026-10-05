@@ -101,7 +101,7 @@ export default function AccountScreen() {
         <View style={[s.card, s.hero]}>
           <View style={s.spread}>
             <Text style={s.title}>
-              {profile.customDisplayName || "Choose a display name"}
+              {profile.customDisplayName || "Your account"}
             </Text>
             <Pressable
               accessibilityRole="button"
