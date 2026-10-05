@@ -28,7 +28,7 @@ await writeFile(backupFile,Buffer.concat([nonce,tag,encrypted]),{flag:'wx',mode:
 const persisted=await readFile(backupFile),readbackCipher=createDecipheriv('aes-256-gcm',key,persisted.subarray(0,12));
 readbackCipher.setAuthTag(persisted.subarray(12,28));
 if(!Buffer.concat([readbackCipher.update(persisted.subarray(28)),readbackCipher.final()]).equals(snapshot))throw new Error('Persisted backup verification failed.');
-const schema=await readFile(new URL('../src/lib/member-number-schema.sql',import.meta.url),'utf8');
+const schema=(await readFile(new URL('../src/lib/member-number-schema.sql',import.meta.url),'utf8')).replace(/^\s*--.*$/gm,'');
 // Functions contain semicolons; split only outside the SQL dollar-quoted bodies.
 const statements=[];let chunk='',inFunction=false;
 for(let i=0;i<schema.length;i++) {
