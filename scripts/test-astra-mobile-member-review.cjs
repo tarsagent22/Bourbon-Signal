@@ -17,6 +17,7 @@ async function load(entry, f = {}, stubs = {}) {
   const m = { exports: {} }; new Function('require', 'module', 'exports', 'f', out.outputFiles[0].text)(req, m, m.exports, f); return m.exports;
 }
 const common = {
+  '@/lib/member-numbers': 'import {ensureMemberNumber as ensure} from '+JSON.stringify(path.join(root,'src/lib/member-numbers.ts'))+';export const ensureMemberNumber=(client,user)=>ensure(client,user,{get:async()=>123,reconcile:async()=>{throw new Error("unexpected signup allocation");}});',
   '@clerk/nextjs/server': 'export const auth=async()=>({userId:"fixture-A"});export const clerkClient=async()=>({users:f.users});',
   '@/lib/server-entitlements': 'export const getServerEntitlements=async()=>f.entitlements;export const resolveServerEffectiveMembershipTier=async()=>"standard";',
   'next/server': 'export const NextRequest=Request;export const NextResponse=Response;',
