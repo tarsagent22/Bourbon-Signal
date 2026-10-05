@@ -4,7 +4,6 @@ import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PurchasesProvider } from "../src/membership/PurchasesProvider";
@@ -24,15 +23,24 @@ export default function RootLayout() {
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
           <MobileApiProvider><PurchasesProvider>
             <StatusBar style="light" />
-            <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(app)" options={{ headerShown: false }} />
-            </Stack>
+            <SessionNavigation />
           </PurchasesProvider></MobileApiProvider>
         </ClerkProvider>
       </SafeAreaProvider>
     )}
+  </StartupErrorBoundary>;
+}
+
+function SessionNavigation() {
+  const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
+  return <StartupErrorBoundary resetOn={`${userId || ''}:${sessionId || ''}`}>
+    <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Protected guard={Boolean(isLoaded && isSignedIn)}>
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
+      </Stack.Protected>
+    </Stack>
   </StartupErrorBoundary>;
 }
 
