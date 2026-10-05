@@ -24,6 +24,7 @@ export interface NormalizedCoverageRequestTarget {
 }
 
 export interface MemberCoverageRequest extends NormalizedCoverageRequestTarget {
+  memberUpdate?: string;
   id: string;
   status: CoverageRequestStatus;
   requestedAt: string;

@@ -1,7 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { NextResponse } from "next/server";
-import { isRewardsAdminEmail } from "@/lib/sighting-rewards";
+import { isAdminEmail } from "../../shared/admin-access";
 
 type ClerkEmailUser = {
   emailAddresses?: Array<{ id?: string; emailAddress?: string; verification?: { status?: string | null } | null }>;
@@ -36,7 +36,7 @@ export async function requireOwnerApiAccess(messages: { unauthorized?: string; f
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const email = verifiedPrimaryClerkEmail(user);
-  if (!isRewardsAdminEmail(email)) return { error: NextResponse.json({ error: messages.forbidden || "Owner only" }, { status: 403 }) };
+  if (!isAdminEmail(email)) return { error: NextResponse.json({ error: messages.forbidden || "Owner only" }, { status: 403 }) };
   return { client, user, userId, email };
 }
 
@@ -45,6 +45,6 @@ export async function requireOwnerPageAccess(redirectUrl: string) {
   if (!userId) redirect(`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`);
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  if (!isRewardsAdminEmail(verifiedPrimaryClerkEmail(user))) notFound();
+  if (!isAdminEmail(verifiedPrimaryClerkEmail(user))) notFound();
   return { client, user, userId };
 }

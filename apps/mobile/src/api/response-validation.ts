@@ -28,7 +28,7 @@ const collectionBottle = obj({ bottleId: str, bottleName: str, canonicalKey: str
   sealedQuantity: num, openedQuantity: num, finishedCount: num, tastedOnly: bool, addedAt: str, updatedAt: str });
 const nonnegative: Check = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const sourceUrl: Check = v => typeof v === 'string' && /^https:\/\//.test(v);
-const priceSource = { date: str, source: sourceUrl, label: str };
+const priceSource = { date: str, source: sourceUrl, label: str, confidence:optional(one('low','medium','high')), evidenceKind:optional(one('completed_sales','market_reference')), observations:optional(arr(obj({amount:nonnegative,date:str,source:sourceUrl}))) };
 const collectionValue = obj({ currency: one('USD'), reviewedAt: str, ownedCount: nonnegative, sealedCount: nonnegative, openedCount: nonnegative,
   msrp: obj({ total: nullable(nonnegative), pricedCount: nonnegative }),
   secondary: obj({ low: nullable(nonnegative), high: nullable(nonnegative), pricedCount: nonnegative }),
@@ -57,6 +57,14 @@ const achievement = obj({ points: num, currentWeeklyStreak: num, longestWeeklySt
   badges: arr(obj({ id: str, label: str, tier: optional(str), earnedAt: str, pointsAwarded: num })),
   badgeProgress: arr(obj({ id: str, label: str, tier: optional(str), current: num, target: num, earned: bool, description: optional(str),category:optional(str),unit:optional(str),rules:optional(str),pointsAwarded:optional(num),context:optional(str) })) });
 const checks: Record<string, Check> = {
+  '/api/admin/access': obj({allowed:bool}),
+  '/api/admin/overview': obj({checkedAt:str,unavailable:strings,coverage:nullable(num),community:nullable(num),bottles:nullable(num),rewards:nullable(num),founderShipping:nullable(num)}),
+  '/api/admin/coverage': v=>obj({requests:arr(obj({id:str,userId:str,stateCode:str,areaLabel:str,status:one('requested','on_radar','improved','closed'),canonicalTargetKey:str,updatedAt:str,review:nullable(obj({internal_note:str,member_update:str,priority:one('normal','high')}))})),automation:record})(v)||obj({ok:one(true)})(v),
+  '/api/admin/members': obj({members:arr(obj({id:str,email:str,name:str,tier:str,status:str}))}),
+  '/api/admin/sightings': v=>obj({sightings:arr(obj({id:str,reporterUserId:str,bottleName:str,reporterName:str,reviewReasons:strings}))})(v)||obj({ok:one(true)})(v),
+  '/api/admin/bottle-contributions': v=>obj({contributions:arr(obj({id:str,status:str}))})(v)||obj({ok:one(true)})(v),
+  '/api/admin/signal-points': v=>obj({queue:arr(obj({id:str,status:str,itemKey:str,accountEmail:str,pointsSpent:num,fulfillmentType:one("physical","digital"),carrier:nullable(str),trackingNumber:nullable(str),shippingAddress:nullable(record)}))})(v)||obj({ok:one(true)})(v),
+  '/api/coverage/requests': v=>obj({requests:arr(obj({id:str,stateCode:str,areaLabel:str,updatedAt:str,status:one('requested','on_radar','improved','closed'),memberUpdate:optional(nullable(str))}))})(v)||obj({request:obj({id:str,status:str})})(v),
   '/api/member/shipping': obj({ record: nullable(shipping), defaultRecipientName: optional(str) }),
   '/api/signal-points/redemptions': obj({ ok: one(true), redemptionId: optional(str), status: optional(str), balance: optional(num), membershipMonth:optional(nullable(membershipMonth)) }),
   '/api/user/preferences': preferencesResponse,

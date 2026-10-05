@@ -10,7 +10,7 @@ import {
   summarizeMemberships,
 } from "../src/lib/company-control-room.ts";
 
-assert.equal(isCompanyControlRoomOwnerEmail("chandler@bourbonsignal.com"), true);
+assert.equal(isCompanyControlRoomOwnerEmail("chandler@bourbonsignal.com"), false);
 assert.equal(isCompanyControlRoomOwnerEmail(" CHANDLERTODD22@GMAIL.COM "), true);
 assert.equal(isCompanyControlRoomOwnerEmail("member@example.com"), false);
 assert.equal(isCompanyControlRoomOwnerEmail(""), false);
@@ -31,7 +31,7 @@ const members = [
   user("founder@example.com", { tier: "bottled-in-bond", membershipStatus: "lifetime", billingPlan: "bib_lifetime" }),
   user("pastdue@example.com", { tier: "standard", membershipStatus: "past_due", billingPlan: "standard_monthly" }),
   user("store@example.com", {}, "retailer"),
-  user("chandler@bourbonsignal.com"),
+  user("chandlertodd22@gmail.com"),
 ];
 
 const standard = classifyCompanyMember(members[1]);
@@ -80,7 +80,7 @@ const demandUsers = [
       areaPreferences: { states: ["NC"] },
     },
   })),
-  user("chandler@bourbonsignal.com", {
+  user("chandlertodd22@gmail.com", {
     bottleAlertPreferences: { bottleNames: ["Weller 12"], bottleKeys: [] },
     areaPreferences: { states: ["NC"] },
   }),

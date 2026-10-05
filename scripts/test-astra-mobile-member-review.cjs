@@ -133,7 +133,7 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
   const editor = loadWithMocks(root + '/apps/mobile/app/(app)/account/profile.tsx', mocks);
   const profile = name => ({ displayName: name, customDisplayName: name, membership: { label: 'Standard' }, entitlements: {}, identity: { label: 'Member #123' } });
   const pending = []; const deferred = () => new Promise(resolve => pending.push(resolve));
-  currentApi = { getMemberProfile: deferred, getSignalPoints: deferred, getAchievements: deferred, updateMemberProfile: deferred };
+  currentApi = { getAdminAccess: deferred, getMemberProfile: deferred, getSignalPoints: deferred, getAchievements: deferred, updateMemberProfile: deferred };
   function render(screen) {
     const key = layout.default().key;
     if (key !== currentKey) { for (const old of instances.values()) old.mounted=false; instances.clear(); currentKey=key; }
@@ -148,7 +148,7 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
   auth={...auth,userId:'B',sessionId:'session-B'}; render(account);
   assert.notEqual(currentKey,aKey,'account changes remount the full member layout');
   const before=JSON.stringify(instance.states);
-  pending[0]({profile:profile('Account A private display')}); pending[1]({balance:12345,catalog:[],redemptions:[]}); pending[2]({badges:[{label:'A private badge'}]}); pending[3]({profile:profile('Account A mutation')});
+  pending[0]({allowed:true}); pending[1]({profile:profile('Account A private display')}); pending[2]({balance:12345,catalog:[],redemptions:[]}); pending[3]({badges:[{label:'A private badge'}]}); pending[4]({profile:profile('Account A mutation')});
   await oldLoad; await new Promise(resolve=>setImmediate(resolve));
   assert.equal(JSON.stringify(instance.states),before,'late profile, points, achievements and edit results cannot update B');
   render(editor); assert.equal(instance.states[1],null,'B editor never inherits A profile');

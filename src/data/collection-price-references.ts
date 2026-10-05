@@ -6,6 +6,7 @@ import type { CollectionPriceReference } from '../lib/collection-value';
 const vanWinkleSource = 'https://cms.buffalotracedistillery.com/wp-content/uploads/2025/11/FINAL_2025-Van-Winkle-Collection-Press-Release.pdf';
 const vw = (amount: number) => ({ amount, date: '2025-09-10', source: vanWinkleSource, label: 'Buffalo Trace · 2025 release MSRP · 750 ml' });
 const market = (low: number, high: number, date: string, id: number) => ({ low, high, date, source: `https://bottlebluebook.com/bottle/${id}/${({579:'Pappy%2BVan%2BWinkle%2B15%2BYear',578:'Pappy%2BVan%2BWinkle%2B20%2BYear',577:'Pappy%2BVan%2BWinkle%2B23%2BYear',67:'Old%2BRip%2BVan%2BWinkle%2B10yr',574:'Weller',759:'Weller'} as Record<number,string>)[id]}`, label: 'Bottle Blue Book · modern 750 ml market reference' });
+const btac = { amount:149.99, date:'2025-10-08', source:'https://cms.buffalotracedistillery.com/wp-content/uploads/2025/11/Buffalo-Trace-Antique-Collection-2025.pdf', label:'Buffalo Trace · 2025 Antique Collection MSRP · 750 ml' };
 export const COLLECTION_PRICE_REFERENCES: readonly CollectionPriceReference[] = [
   { bottleId: 'pappy-van-winkle-15', names: ['Pappy Van Winkle 15 Year'], msrp: vw(239.99), secondary: market(1310,1450,'2026-10-04',579) },
   { bottleId: 'pappy-van-winkle-20', names: ["Pappy Van Winkle's Family Reserve 20Y"], msrp: vw(359.99), secondary: market(1765,1955,'2026-10-04',578) },
@@ -18,4 +19,9 @@ export const COLLECTION_PRICE_REFERENCES: readonly CollectionPriceReference[] = 
   { bottleId: 'weller-cypb', names: ['Weller CYPB'], secondary: { low: 255, high: 285, date: '2026-09-27', source: 'https://bottlebluebook.com/bottle/555/Weller', label: 'Bottle Blue Book · modern 750 ml market reference' } },
   { bottleId: 'russells-reserve-13-year', names: ["Russell's Reserve 13 Year"], msrp: { amount: 200, date: '2026-06-03', label: "Russell's Reserve · Spring 2026 release MSRP · 750 ml", source: 'https://www.prnewswire.com/news-releases/russells-reserve-honors-eddie-russells-45-year-legacy-with-a-cinematic-tribute-and-the-spring-2026-return-of-the-13-year-old-302790216.html' } },
   { bottleId: 'eagle-rare-12', names: ['Eagle Rare 12 Year'], msrp: { amount: 49.99, date: '2025-06-09', label: 'Buffalo Trace · Eagle Rare 12 launch MSRP · 750 ml', source: 'https://www.bevnet.com/pr/2025/06/10/buffalo-trace-distillery-reaches-higher-with-the-introduction-of-eagle-rare-12-a-permanent-new-addition-to-its-awardwinning-portfolio' } },
+  { bottleId: 'george-t-stagg', names: ['George T. Stagg'], msrp: btac },
+  { bottleId: 'william-larue-weller', names: ['William Larue Weller'], msrp: btac },
+  { bottleId: 'eagle-rare-17-year', names: ['Eagle Rare 17 Year'], msrp: btac },
+  { bottleId: 'sazerac-18', names: ['Sazerac 18 Year Rye'], msrp: btac },
+  { bottleId: 'thomas-h-handy', names: ['Thomas H. Handy Sazerac Rye'], msrp: btac },
 ];

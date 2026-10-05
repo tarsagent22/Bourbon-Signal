@@ -43,12 +43,15 @@ export default function AccountScreen() {
   const [loading, setLoading] = useState(true);
   useAccessibleStatus(error);
   const [signingOut, setSigningOut] = useState(false);
+  const [adminAllowed, setAdminAllowed] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const load = useCallback(async (fresh = false) => {
     const id = ++sequence.current;
     setLoading(true);
     setError("");
+    setAdminAllowed(false);
     await Promise.allSettled([
+      api.getAdminAccess().then(a=>{if(id===sequence.current)setAdminAllowed(a.allowed);}).catch(()=>undefined),
       api.getMemberProfile({ fresh }).then(p => {
         if (id === sequence.current) setProfile(p.profile);
       }).catch(() => {
@@ -190,8 +193,14 @@ export default function AccountScreen() {
           onPress={() => openRewards("earn")}
         />
       </View>
+      {adminAllowed ? <View style={s.card}><AccountRow label="Admin" detail="Requests, members, community and rewards" onPress={()=>router.push('/(app)/account/admin')} /></View> : null}
       <Text style={s.label}>SUPPORT & PRIVACY</Text>
       <View style={[s.card, { paddingVertical: 4 }]}>
+        <AccountRow
+          label="Request coverage"
+          detail="Ask us to cover your area or store"
+          onPress={() => router.push('/(app)/account/coverage')}
+        />
         <AccountRow
           label="Support"
           onPress={() => router.push("/(app)/account/support")}

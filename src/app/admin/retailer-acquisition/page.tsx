@@ -11,21 +11,17 @@ import {
 } from "@/lib/retailer-acquisition";
 import { isRetailerAdminEmail } from "@/lib/retailer-admin";
 import { getRetailerProspectRepository } from "@/lib/retailer-prospect-repository";
+import { verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-
-function primaryEmail(user: { emailAddresses?: Array<{ id?: string; emailAddress?: string }>; primaryEmailAddressId?: string | null }) {
-  const emails = user.emailAddresses || [];
-  return (emails.find((email) => email.id === user.primaryEmailAddressId) || emails[0])?.emailAddress?.trim().toLowerCase() || "";
-}
 
 async function requireOwner() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in?redirect_url=/admin/retailer-acquisition");
   const client = await clerkClient();
   const owner = await client.users.getUser(userId);
-  if (!isRetailerAdminEmail(primaryEmail(owner))) notFound();
+  if (!isRetailerAdminEmail(verifiedPrimaryClerkEmail(owner))) notFound();
   return owner;
 }
 

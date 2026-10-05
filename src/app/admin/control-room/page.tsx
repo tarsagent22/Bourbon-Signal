@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
@@ -93,7 +94,7 @@ async function updateCoverageRequestStatus(formData: FormData) {
   if (!userId) redirect("/sign-in?redirect_url=/admin/control-room");
   const client = await clerkClient();
   const owner = await client.users.getUser(userId);
-  const ownerEmail = companyMemberPrimaryEmail(owner);
+  const ownerEmail = verifiedPrimaryClerkEmail(owner);
   if (!isCompanyControlRoomOwnerEmail(ownerEmail)) notFound();
 
   const requestId = fulfillmentText(formData.get("requestId"), 80);
@@ -123,7 +124,7 @@ async function updateFounderGlassFulfillment(formData: FormData) {
   if (!userId) redirect("/sign-in?redirect_url=/admin/control-room");
   const client = await clerkClient();
   const owner = await client.users.getUser(userId);
-  const ownerEmail = companyMemberPrimaryEmail(owner);
+  const ownerEmail = verifiedPrimaryClerkEmail(owner);
   if (!isCompanyControlRoomOwnerEmail(ownerEmail)) notFound();
 
   const shippingUserId = fulfillmentText(formData.get("userId"), 200);
@@ -210,7 +211,7 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
         <header className="cr-header">
           <div>
             <p className="cr-kicker">Private owner view</p>
-            <h1>Company Control Room</h1>
+            <h1>Company Control Room</h1><Link href="/admin">Open your admin workspace →</Link>
             <p className="cr-subtitle">Your review queues first, followed by the few numbers that matter for the business and product.</p>
           </div>
           <div className="cr-checked">

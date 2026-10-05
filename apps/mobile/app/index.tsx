@@ -2,6 +2,7 @@ import { useAuth } from "@clerk/expo";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { BrandLoading } from "../src/components/BrandLoading";
 import { useMobileApi } from "../src/hooks/useMobileApi";
 import { MobileApiError } from "../src/api/client";
 import { colors, typeScale } from "../src/theme";
@@ -57,7 +58,7 @@ export default function EntryScreen() {
 }
 
 function Loading() {
-  return <View accessibilityLabel="Checking account setup" style={styles.center}><ActivityIndicator color={colors.accent} /></View>;
+  return <BrandLoading label="Checking account setup"/>;
 }
 
 const styles = StyleSheet.create({

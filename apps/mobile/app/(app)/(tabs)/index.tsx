@@ -617,10 +617,11 @@ export default function SignalFeedScreen() {
                 <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable>
                 <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community →</Text></Pressable>
               </View>
-            : <EmptyState title={view === "community" ? "No member sightings yet" : "No fresh Intel Signals are available right now"}
+            : <View style={{gap:12}}><EmptyState title={view === "community" ? "No member sightings yet" : "No fresh Intel Signals are available right now"}
               detail={activeFilterCount(filters) ? "Try a broader search or clear your filters." : view === "community" ? "Share what you spotted to help nearby members." : "New Signals will appear here as they arrive."}
               actionLabel={activeFilterCount(filters) ? "Clear filters" : view === "community" ? "Post a sighting" : "Refresh feed"}
-              onAction={() => { if (activeFilterCount(filters)) { setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...DEFAULT_SIGNAL_FILTERS }); } else if (view === "community") router.push("/(app)/(tabs)/post"); else void load(true); }} />}
+              onAction={() => { if (activeFilterCount(filters)) { setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...DEFAULT_SIGNAL_FILTERS }); } else if (view === "community") router.push("/(app)/(tabs)/post"); else void load(true); }} />
+              {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:{state:filters.state}})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
       ListFooterComponent={loaded && loading
         ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
         : error && signals.length

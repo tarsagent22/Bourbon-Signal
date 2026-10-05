@@ -140,7 +140,7 @@ export default function Navigation() {
           ))}
           {canSeeControlRoomNav ? (
             <a
-              href="/admin/control-room"
+              href="/admin"
               className="relative group"
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -153,7 +153,7 @@ export default function Navigation() {
               onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-text-primary)")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-accent-amber)")}
             >
-              Control Room
+              Admin
               <span
                 className="absolute bottom-[-4px] left-0 h-[2px] w-0 group-hover:w-full transition-all duration-300"
                 style={{ backgroundColor: "var(--color-accent-amber)" }}

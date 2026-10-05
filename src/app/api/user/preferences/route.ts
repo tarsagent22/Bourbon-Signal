@@ -51,6 +51,7 @@ import {
 import { countDistinctTrackedBottles } from "@/lib/bottle-check-dossier";
 import { getCellarAccessPolicy, type CellarAccessPolicy } from "@/lib/cellar-access-policy";
 import { collectionValueForMember, type CollectionValue } from "@/lib/collection-value";
+import { reviewedCollectionValue } from "@/lib/collection-price-repository";
 
 export type { CollectionBottlePreference } from "@/lib/member-collection";
 
@@ -290,11 +291,11 @@ function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
   return { submittedSightings, signalReports, sightingVotes };
 }
 
-function buildResponseFromMetadata(
+async function buildResponseFromMetadata(
   user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>,
   collectionPreferences: UserAlertPreferences["collectionPreferences"] = EMPTY_COLLECTION_PREFERENCES,
   entitlements: TierEntitlements = getEntitlements(user.publicMetadata),
-): UserAlertPreferences {
+): Promise<UserAlertPreferences> {
   const monitoringScopes = monitoringScopesFromPreferences(user.publicMetadata?.areaPreferences, user.publicMetadata?.monitoringScopes);
   const areaPreferences = normalizeAreaPreferences(legacyAreaPreferencesFromScopes(monitoringScopes));
   const notificationPreferences = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
@@ -310,7 +311,7 @@ function buildResponseFromMetadata(
       canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
     },
     collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length),
-    collectionValue: collectionValueForMember(entitlements.canUseRecommendations, collectionPreferences.bottles),
+    collectionValue: await reviewedCollectionValue(entitlements.canUseRecommendations, collectionPreferences.bottles),
     areaPreferences,
     monitoringScopes,
     notificationPreferences,
@@ -428,7 +429,7 @@ export async function GET(req: NextRequest) {
   if (!collection) {
     return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
   }
-  return NextResponse.json(buildResponseFromMetadata(user, collection, entitlements));
+  return NextResponse.json(await buildResponseFromMetadata(user, collection, entitlements));
 }
 
 export async function POST(req: NextRequest) {
@@ -490,7 +491,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
   }
   const durableEntitlements = await getServerEntitlements(user.publicMetadata);
-  const existing = buildResponseFromMetadata(user, durableCollection, durableEntitlements);
+  const existing = await buildResponseFromMetadata(user, durableCollection, durableEntitlements);
 
   let displayWrite: ReturnType<typeof collectionDisplayWrite>;
   try { displayWrite = collectionDisplayWrite(payload); }
@@ -723,7 +724,7 @@ export async function POST(req: NextRequest) {
     alertAreaLimit: entitlements.alertAreaLimit,
     trackedBottleLimit: entitlements.trackedBottleLimit,
     canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
-  }, collectionValue: collectionValueForMember(entitlements.canUseRecommendations, collectionPreferences.bottles), collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length), areaPreferences, monitoringScopes, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
+  }, collectionValue: await reviewedCollectionValue(entitlements.canUseRecommendations, collectionPreferences.bottles), collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length), areaPreferences, monitoringScopes, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
   };
   try {
     const leased = await withMemberAlertLease(userId, write, { requireDurable: true });

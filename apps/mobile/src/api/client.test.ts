@@ -3,6 +3,27 @@ import test from "node:test";
 import { preferencesFixture, profileFixture, feedFixture } from './astra-fixtures';
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
+
+test('admin capability fails closed and owner reads never reuse a prior queue', async () => {
+  let fetches=0;
+  let payload:unknown={allowed:false};
+  const api=createMobileApi({baseUrl:'https://admin.example.test',getToken:async()=>'fixture-token',fetcher:async(input)=>{fetches++;assert.equal((input as Request).headers.get('authorization'),'Bearer fixture-token');return Response.json(payload);}});
+  assert.equal((await api.getAdminAccess()).allowed,false);
+  payload={};await assert.rejects(()=>api.getAdminAccess(),e=>e instanceof MobileApiError&&e.code==='INVALID_RESPONSE');
+  payload={requests:[{id:'request',userId:'member',stateCode:'NC',areaLabel:'Raleigh',canonicalTargetKey:'city:NC:raleigh',status:'requested',updatedAt:'2026-10-05',review:null}],automation:{queued:1}};
+  await api.getAdminData('coverage');await api.getAdminData('coverage');assert.equal(fetches,4);
+  payload={requests:[{id:'request',status:'requested'}],automation:{}};
+  await assert.rejects(()=>api.getAdminData('coverage'),e=>e instanceof MobileApiError&&e.code==='INVALID_RESPONSE');
+});
+
+test('coverage requests and review mutations use authenticated POST and PATCH', async () => {
+  const writes:Array<{path:string;method:string;body:unknown}>=[];
+  const api=createMobileApi({baseUrl:'https://admin.example.test',getToken:async()=>'fixture-token',fetcher:async(input)=>{const req=input as Request;writes.push({path:req.url,method:req.method,body:await req.clone().json()});return Response.json(req.method==='POST'?{request:{id:'request',status:'requested'}}:{ok:true});}});
+  await api.submitCoverageRequest({targetType:'city',stateCode:'NC',manualCity:'Raleigh',notificationEnabled:false});
+  await api.saveAdminReview('coverage',{id:'request',status:'on_radar',internalNote:'Private',memberUpdate:'Reviewing stores'});
+  assert.equal(writes[0].method,'POST');assert.match(writes[0].path,/\/api\/coverage\/requests$/);
+  assert.equal(writes[1].method,'PATCH');assert.match(writes[1].path,/\/api\/admin\/coverage$/);
+});
 test("concurrent screen reads share token acquisition and pending requests even past the cooldown", async () => {
   let clock = 0; let tokens = 0; let fetches = 0; let complete!: () => void;
   const pending = new Promise<void>(resolve => { complete = resolve; });

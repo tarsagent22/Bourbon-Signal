@@ -1,4 +1,4 @@
-export interface CollectionPrice { date: string; source: string; label: string }
+export interface CollectionPrice { date: string; source: string; label: string; confidence?: 'low'|'medium'|'high'; evidenceKind?: 'completed_sales'|'market_reference'; observations?:Array<{amount:number;date:string;source:string}> }
 export interface CollectionValue {
   currency: 'USD'; reviewedAt: string;
   ownedCount: number; sealedCount: number; openedCount: number;

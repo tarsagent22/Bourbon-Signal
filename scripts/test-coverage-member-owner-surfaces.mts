@@ -121,7 +121,7 @@ const dashboard = read("src/app/dashboard/page.tsx");
 const explorer = read("src/components/coverage/CoverageExplorer.tsx");
 const requestForm = read("src/components/coverage/CoverageRequestForm.tsx");
 assert.match(memberCard, /\/api\/coverage\/requests/, "member card reads only the authenticated request endpoint");
-for (const label of ["Requested", "On our radar", "Coverage improved", "Closed"]) {
+for (const label of ["Requested", "Under review", "Coverage improved", "Closed"]) {
   assert.match(memberCard, new RegExp(label), `member card includes the ${label} status`);
 }
 assert.match(memberCard, /aria-live=/, "status loading and errors are announced");
