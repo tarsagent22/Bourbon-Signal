@@ -1,3 +1,4 @@
+import { isAdminEmail } from "../../shared/admin-access.ts";
 import { aggregateMemberDemand, type DemandBottleCatalogItem } from "./demand-intelligence.ts";
 import {
   EXPERIMENT_REGISTRY,
@@ -39,10 +40,7 @@ function effectiveTierForMetadata(metadata: Metadata): MembershipTier {
   return "free";
 }
 
-const OWNER_EMAILS = new Set([
-  "chandler@bourbonsignal.com",
-  "chandlertodd22@gmail.com",
-]);
+
 
 const RETAILER_ROLES = new Set(["retailer", "vendor"]);
 
@@ -316,7 +314,7 @@ export function companyMemberPrimaryEmail(user: CompanyMemberUser) {
 }
 
 export function isCompanyControlRoomOwnerEmail(value: unknown) {
-  return OWNER_EMAILS.has(normalizedEmail(value));
+  return isAdminEmail(value);
 }
 
 export function classifyCompanyMember(user: CompanyMemberUser): ClassifiedCompanyMember {

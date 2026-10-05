@@ -12,11 +12,12 @@ export function CollectionValueCard({ value, resetKey }: { value?: CollectionVal
     <Text accessibilityRole="header" style={styles.title}>Collection value</Text>
     <Text style={styles.copy}>Approximate value · USD</Text>
     <View style={styles.prices}>
-      <View style={styles.price}><Text style={styles.label}>MSRP</Text><Text style={styles.amount}>{collectionMoney(value.msrp.total)}</Text><Text style={styles.copy}>{value.msrp.pricedCount} of {value.ownedCount} bottles priced</Text></View>
-      <View style={styles.price}><Text style={styles.label}>Secondary</Text><Text style={styles.amount}>{secondaryMoney(value)}</Text><Text style={styles.copy}>{value.secondary.pricedCount} of {value.sealedCount} sealed bottles priced</Text></View>
+      <View style={styles.price}><Text style={styles.label}>{value.msrp.pricedCount<value.ownedCount?'MSRP · partial':'MSRP'}</Text><Text style={styles.amount}>{collectionMoney(value.msrp.total)}</Text><Text style={styles.copy}>{value.msrp.pricedCount} of {value.ownedCount} bottles priced</Text></View>
+      <View style={styles.price}><Text style={styles.label}>{value.secondary.pricedCount<value.sealedCount?'Secondary · partial':'Secondary'}</Text><Text style={styles.amount}>{secondaryMoney(value)}</Text><Text style={styles.copy}>{value.secondary.pricedCount} of {value.sealedCount} sealed bottles priced</Text></View>
     </View>
     <Text style={styles.copy}>{value.openedCount} open bottles excluded from secondary value.</Text>
     <Text style={styles.copy}>Prices reviewed {value.reviewedAt}. Missing prices are excluded.</Text>
+    {value.msrp.pricedCount<value.ownedCount||value.secondary.pricedCount<value.sealedCount?<Text style={styles.copy}>These totals cover priced bottles only, not your whole collection.</Text>:null}
     <Pressable accessibilityRole="button" accessibilityState={{ expanded: details }} style={styles.source} onPress={() => { setDetails(open => !open); setEntryLimit(20); }}><Text style={styles.link}>{details ? 'Hide pricing breakdown ↑' : 'View pricing breakdown →'}</Text></Pressable>
     {details ? <>
       <Text style={styles.copy}>MSRP uses published full-bottle prices for bottles on hand, including open bottles. It does not estimate the whiskey remaining. Secondary uses recent market references for sealed modern 750 ml bottles. Older vintages, private picks and other sizes need their own prices. Taxes and selling fees are excluded. These are dated references, not live quotes or guaranteed sale prices.</Text>
@@ -27,6 +28,7 @@ export function CollectionValueCard({ value, resetKey }: { value?: CollectionVal
         {entry.sealedQuantity > 0 ? <Text style={styles.copy}>Secondary per sealed bottle: {entry.secondary ? `${collectionMoney(entry.secondary.low)} – ${collectionMoney(entry.secondary.high)}` : 'Not priced yet'}</Text> : null}
         {entry.msrp ? <Source price={entry.msrp} /> : null}
         {entry.secondary && entry.sealedQuantity > 0 ? <Source price={entry.secondary} /> : null}
+        {entry.secondary && entry.sealedQuantity > 0 ? <Text style={styles.copy}>Confidence: {entry.secondary.confidence || 'low'} · {entry.secondary.evidenceKind==='completed_sales'?`${entry.secondary.observations?.length || 0} completed-sale observations`:'market reference'}</Text> : null}
       </View>)}
       {entryLimit < value.entries.length ? <Pressable accessibilityRole="button" style={styles.source} onPress={() => setEntryLimit(n => n + 20)}><Text style={styles.link}>Show {Math.min(20, value.entries.length - entryLimit)} more bottles</Text></Pressable> : null}
     </> : null}

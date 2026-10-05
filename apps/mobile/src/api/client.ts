@@ -300,6 +300,11 @@ export function createMobileApi({
     setHuntOutcome(id: string, outcome: HuntOutcome | null) {
       return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { method: "PUT", body: { outcome } });
     },
+    getAdminAccess() { return request<{allowed:boolean}>("/api/admin/access", {fresh:true}); },
+    getAdminData<T>(section: 'overview'|'coverage'|'members'|'sightings'|'bottle-contributions'|'signal-points', query = '') { return request<T>(`/api/admin/${section}${query}`, {fresh:true}); },
+    saveAdminReview(section: 'coverage'|'sightings'|'bottle-contributions'|'signal-points', body: Record<string,unknown>) { return request<{ok:boolean}>(`/api/admin/${section}`, {method:'PATCH',body}); },
+    getCoverageRequests() { return request<{requests: import('../../../../shared/coverage-requests').CoverageRequestItem[]}>('/api/coverage/requests',{fresh:true}); },
+    submitCoverageRequest(body: Record<string,unknown>) { return request<{request: import('../../../../shared/coverage-requests').CoverageRequestItem}>('/api/coverage/requests',{method:'POST',body}); },
     getMemberProfile({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
       return request<MemberProfile>("/api/v1/me/profile", { fresh, signal });
     },

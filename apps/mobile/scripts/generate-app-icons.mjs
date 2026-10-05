@@ -23,6 +23,9 @@ for (let p = 0; p < info.width * info.height; p++) {
   mono.set([255, 255, 255, alpha], p * 4);
 }
 const raw = { width: info.width, height: info.height, channels: 4 };
+const splash=Buffer.from(mono);
+for(let p=0;p<info.width*info.height;p++){splash[p*4]=243;splash[p*4+1]=234;splash[p*4+2]=217;}
+await sharp(splash,{raw}).resize(512,512).png().toFile(asset('splash-icon.png'));
 const foreground = await sharp(rgba, { raw }).resize(352, 352).png().toBuffer();
 const monochrome = await sharp(mono, { raw }).resize(300, 300).png().toBuffer();
 await sharp({ create: { width: 512, height: 512, channels: 4, background } }).png().toFile(asset('android-icon-background.png'));
@@ -36,4 +39,4 @@ for (const name of Object.keys(manifest.assets)) {
   manifest.assets[name] = { sha256: await sha(asset(name)), width: m.width, height: m.height, mode: m.hasAlpha ? 'RGBA' : 'RGB' };
 }
 await writeFile(asset('brand-assets.json'), JSON.stringify(manifest, null, 2) + '\n');
-console.log('Packaged approved Heritage B launcher icons; splash and notification artwork preserved.');
+console.log('Packaged approved Heritage B launcher icons; Heritage B splash packaged; notification artwork preserved.');

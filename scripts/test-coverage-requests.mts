@@ -470,7 +470,7 @@ assert.match(repositorySource, /ON CONFLICT \(coverage_request_id, baseline_cove
 const completionSource = repositorySource.slice(repositorySource.indexOf("async completeAutomationTask"), repositorySource.indexOf("async retryAutomationJob"));
 assert.match(completionSource, /pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation', 0\)\)[\s\S]*FROM coverage_requests AS request, writer_lock/,
   "task completion must share the serialization lock used by member reopen and owner state changes");
-assert.match(repositorySource, /\[requestId, status, changedBy, now\]/,
+assert.match(repositorySource, /\[requestId, status, changedBy, now,/,
   "owner status inputs must remain parameterized");
 
 const route = read("src/app/api/coverage/requests/route.ts");

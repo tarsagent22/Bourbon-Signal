@@ -13,7 +13,10 @@ test('iOS RevenueCat binary is isolated from recovery runtime 1.1.0 without chan
 });
 test('release entry cannot use the diagnostic fixture', () => {
   assert.equal(pkg.main, 'expo-router/entry');
-  assert.equal(fs.existsSync('metro.config.js'), false);
+  const metro = fs.readFileSync('metro.config.js','utf8');
+  assert.match(metro,/getDefaultConfig/);
+  assert.match(metro,/shared/);
+  assert.doesNotMatch(metro,/native-home|diagnostic|resolveRequest|entryFile/);
 });
 test('secure locked plist parser handles Expo generated XML', () => {
   const plist = require('@expo/plist').default;

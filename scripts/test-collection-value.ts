@@ -36,6 +36,7 @@ assert.ok(!preferencesResponse({...preferencesFixture(),collectionValue:{...valu
 const seed=JSON.parse(readFileSync('apps/mobile/src/cellar/bottle-catalog-seed.json','utf8'));
 for(const r of COLLECTION_PRICE_REFERENCES) assert.ok(seed.some((b:any)=>b.id===r.bottleId&&r.names.includes(b.name)),r.bottleId);
 const route=readFileSync('src/app/api/user/preferences/route.ts','utf8');
-assert.equal((route.match(/collectionValueForMember\(entitlements.canUseRecommendations, collectionPreferences.bottles\)/g)||[]).length,3,'GET, POST and gated QA return recomputed values');
+assert.equal((route.match(/reviewedCollectionValue\(entitlements.canUseRecommendations, collectionPreferences.bottles\)/g)||[]).length,2,'GET and POST use reviewed prices');
+assert.equal((route.match(/collectionValueForMember\(entitlements.canUseRecommendations, collectionPreferences.bottles\)/g)||[]).length,1,'gated QA uses static test prices');
 assert.ok(!route.includes('payload.collectionValue'), 'client prices never supply authoritative totals');
 console.log('Collection value: tier gates, exact identity, quantities, partial coverage, stale/future/invalid prices, wire validation and persisted response paths passed.');

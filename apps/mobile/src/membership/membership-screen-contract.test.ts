@@ -106,11 +106,13 @@ test("the purchase provider does not initialize StoreKit during root startup", (
 test("native legal copy covers Apple and RevenueCat purchase handling without retired product wording", () => {
   const terms = read("app/(app)/account/terms.tsx");
   const privacy = read("app/(app)/account/privacy.tsx");
-  assert.match(terms, /Terms of Service/);
-  assert.match(terms, /Paid subscriptions renew automatically unless canceled/);
-  assert.match(terms, /Billing, cancellations, and refunds/);
-  assert.match(terms, /App Store/);
-  assert.match(privacy, /RevenueCat/);
-  assert.match(privacy, /purchase history|purchase status/);
-  assert.doesNotMatch(`${terms}\n${privacy}`, /Bottle Check|Standard Proof|Bottled in Bond/);
+  const shared = readFileSync(new URL('../../../../shared/legal-content.ts', import.meta.url), 'utf8');
+  assert.match(terms, /TERMS_SECTIONS/);
+  assert.match(privacy, /PRIVACY_SECTIONS/);
+  assert.match(shared, /Paid subscriptions renew automatically unless you cancel/);
+  assert.match(shared, /Memberships and billing/);
+  assert.match(shared, /App Store/);
+  assert.match(shared, /RevenueCat/);
+  assert.match(shared, /subscription status/);
+  assert.doesNotMatch(`${terms}\n${privacy}\n${shared}`, /Bottle Check|Standard Proof|Bottled in Bond/);
 });

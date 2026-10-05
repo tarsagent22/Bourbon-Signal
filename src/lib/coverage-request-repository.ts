@@ -559,6 +559,7 @@ export class CoverageRequestRepository {
     status: CoverageRequestStatus,
     changedBy: string,
     now = new Date().toISOString(),
+    review?: { actorId: string; internalNote: string; memberUpdate: string; priority: "normal" | "high" },
   ): Promise<{
     requestId: string;
     previousStatus: CoverageRequestStatus;
@@ -710,6 +711,16 @@ export class CoverageRequestRepository {
           )
         RETURNING request.id, request.status
       )
+      ${review ? `, saved_review AS (
+        INSERT INTO coverage_request_reviews(request_id,internal_note,member_update,priority,actor_id)
+        SELECT id,$6,$7,$8,$5 FROM updated_request
+        ON CONFLICT(request_id) DO UPDATE SET internal_note=EXCLUDED.internal_note,
+          member_update=EXCLUDED.member_update,priority=EXCLUDED.priority,actor_id=EXCLUDED.actor_id,updated_at=$4::timestamptz
+        RETURNING request_id
+      ), saved_audit AS (
+        INSERT INTO owner_workspace_audit(actor_id,action,target_id,details)
+        SELECT $5,'coverage_review',request_id,jsonb_build_object('status',$2::text,'priority',$8::text) FROM saved_review
+      )` : ""}
       SELECT
         updated_request.id AS request_id,
         owner_status_change.previous_status,
@@ -719,7 +730,7 @@ export class CoverageRequestRepository {
         (SELECT COUNT(*)::int FROM requeued_jobs) AS jobs_queued
       FROM updated_request
       JOIN owner_status_change ON owner_status_change.id = updated_request.id
-    `, [requestId, status, changedBy, now]) as Array<{
+    `, [requestId, status, changedBy, now, ...(review ? [review.actorId,review.internalNote,review.memberUpdate,review.priority] : [])]) as Array<{
       request_id?: unknown;
       previous_status?: unknown;
       status?: unknown;

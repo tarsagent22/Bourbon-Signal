@@ -1,3 +1,4 @@
+import { ADMIN_EMAIL, isAdminEmail } from "../../shared/admin-access.ts";
 import { achievementCatalog, achievementDefinition, achievementDescription, canonicalBadgeId, badgeFamily } from "./achievement-catalog.ts";
 import type { MemberSighting } from "@/lib/sightings";
 
@@ -88,7 +89,7 @@ export interface MemberRewardsSummary {
   metricsAvailable?: boolean;
 }
 
-export const ADMIN_EMAILS = new Set(["chandler@bourbonsignal.com", "chandlertodd22@gmail.com"]);
+export const ADMIN_EMAILS = new Set([ADMIN_EMAIL]);
 export const SIGHTING_POINTS_BY_RARITY = { unclassified: 10, limited: 10, allocated: 20, unicorn: 30 } as const;
 export const BADGE_POINTS_AWARD = 10;
 export const WEEKLY_STREAK_POINTS_AWARD = 10;
@@ -98,7 +99,7 @@ export const badgeDescription = achievementDescription;
 export interface AchievementMetrics { availabilityUpdates?: number; qualifiedReferrals?: number; available?: boolean; featuredBadgeIds?: string[] }
 
 export function isRewardsAdminEmail(email?: string | null) {
-  return Boolean(email && ADMIN_EMAILS.has(email.trim().toLowerCase()));
+  return isAdminEmail(email);
 }
 
 export function isEligibleRewardsTier(tier?: MemberSighting["rarityTier"]) {

@@ -3,8 +3,9 @@ import { COLLECTION_PRICE_REFERENCES } from '../data/collection-price-references
 export interface CollectionPriceReference {
   bottleId: string;
   names: readonly string[];
+  reviewedAt?: string;
   msrp?: { amount: number; date: string; source: string; label: string };
-  secondary?: { low: number; high: number; date: string; source: string; label: string };
+  secondary?: { low: number; high: number; date: string; source: string; label: string; evidenceKind?: 'completed_sales' | 'market_reference'; confidence?: 'low'|'medium'|'high'; observations?: Array<{amount:number;date:string;source:string}> };
 }
 export interface CollectionValue {
   currency: 'USD'; reviewedAt: string;
@@ -32,6 +33,7 @@ export function collectionValueForMember(advancedAccess: boolean, bottles: reado
   let msrpTotal = 0, msrpCount = 0, low = 0, high = 0, secondaryCount = 0;
   const result: CollectionValue = { currency: 'USD', reviewedAt: '2026-10-05', ownedCount: 0, sealedCount: 0, openedCount: 0,
     msrp: { total: null, pricedCount: 0 }, secondary: { low: null, high: null, pricedCount: 0 }, entries: [] };
+  for (const reference of references) if (reference.reviewedAt && validDate(reference.reviewedAt,now.getTime(),730) && reference.reviewedAt>result.reviewedAt) result.reviewedAt=reference.reviewedAt;
   for (const bottle of bottles) {
     const sealedQuantity = quantity(bottle.sealedQuantity), openedQuantity = quantity(bottle.openedQuantity);
     if (!sealedQuantity && !openedQuantity) continue;
@@ -43,7 +45,7 @@ export function collectionValueForMember(advancedAccess: boolean, bottles: reado
     // Unreviewed/old market prices must not silently become current estimates.
     const secondary = reference?.secondary && positive(reference.secondary.low) && positive(reference.secondary.high)
       && reference.secondary.high >= reference.secondary.low && validDate(reference.secondary.date, now.getTime(), 90)
-      && validDate(result.reviewedAt, now.getTime(), 90) ? reference.secondary : null;
+      && validDate(reference.reviewedAt || '2026-10-05', now.getTime(), 90) ? reference.secondary : null;
     if (msrp) { msrpTotal += msrp.amount * (sealedQuantity + openedQuantity); msrpCount += sealedQuantity + openedQuantity; }
     if (secondary && sealedQuantity) { low += secondary.low * sealedQuantity; high += secondary.high * sealedQuantity; secondaryCount += sealedQuantity; }
     result.entries.push({ bottleId: bottle.bottleId, name: bottle.bottleName, sealedQuantity, openedQuantity, msrp, secondary });

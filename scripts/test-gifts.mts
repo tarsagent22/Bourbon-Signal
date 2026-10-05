@@ -281,6 +281,7 @@ assert.deepEqual(vercel.crons, [
   { path: "/api/free-member-day-two/deliver?live=1&cron=v1", schedule: "0 * * * *" },
   { path: "/api/gifts/deliver?live=1&cron=v1", schedule: "0 * * * *" },
   { path: "/api/account-deletion/cleanup", schedule: "15 3 * * *" },
+  { path: "/api/ops/pricing-health", schedule: "45 12 * * *" },
 ], "live gift delivery and reconciliation must have an independent hourly cron while preserving existing lifecycle crons");
 const alertDelivery = read("src/app/api/alerts/deliver/route.ts");
 assert.match(alertDelivery, /runGiftDelivery\(\{ requestLive: true \}\)/);

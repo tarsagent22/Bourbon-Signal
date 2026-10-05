@@ -1,50 +1,8 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { colors, typeScale, fonts } from "../../../src/theme";
-
-const SUPPORT_EMAIL = "support@bourbonsignal.com";
-
-export default function SupportScreen() {
-  return <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-    <View style={styles.hero}>
-      <Text style={styles.eyebrow}>MEMBER SUPPORT</Text>
-      <Text accessibilityRole="header" style={styles.title}>How can we help?</Text>
-      <Text style={styles.intro}>Support information stays inside the app. Include your account email and a short description so we can find the right records.</Text>
-    </View>
-
-    <SupportCard title="Contact support">
-      <Text style={styles.body}>Email the address below from the email associated with your Bourbon Signal account.</Text>
-      <Text selectable selectionColor={colors.accent} style={styles.email}>{SUPPORT_EMAIL}</Text>
-    </SupportCard>
-
-    <SupportCard title="Membership and billing">
-      <Text style={styles.body}>Include the membership shown on Account and the date or invoice involved. Never send a full card number or password.</Text>
-    </SupportCard>
-
-    <SupportCard title="Shipping and rewards">
-      <Text style={styles.body}>Include the reward name or referral-glass issue. Shipping details are requested only when fulfillment is available for your account.</Text>
-    </SupportCard>
-
-    <SupportCard title="Account deletion">
-      <Text style={styles.body}>Send “Account deletion request” from your account email. We will verify the request and explain any subscription, contribution, fraud-prevention, or legally required records that must be retained.</Text>
-      <Text style={styles.note}>Do not include passwords, payment-card details, or other secrets.</Text>
-    </SupportCard>
-  </ScrollView>;
-}
-
-function SupportCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return <View style={styles.card}><Text accessibilityRole="header" style={styles.cardTitle}>{title}</Text>{children}</View>;
-}
-
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.background },
-  content: { padding: 20, paddingBottom: 48, gap: 14 },
-  hero: { paddingVertical: 8, gap: 8 },
-  eyebrow: { color: colors.accent, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "900", letterSpacing: 1.25 },
-  title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, lineHeight: 40, fontWeight: "700", letterSpacing: -0.45 },
-  intro: { color: colors.muted, fontSize: typeScale.input, lineHeight: 22 },
-  card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 17, gap: 9 },
-  cardTitle: { color: colors.text, fontSize: 17, lineHeight: 22, fontWeight: "800" },
-  body: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21 },
-  email: { color: colors.accent, fontSize: typeScale.input, lineHeight: 22, fontWeight: "800" },
-  note: { color: colors.danger, fontSize: typeScale.small, lineHeight: 19, fontWeight: "600" },
-});
+import { Linking, ScrollView, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
+import { useState } from 'react';
+import { workspaceStyles as s, Action } from '../../../src/components/WorkspaceUI';
+import { SUPPORT_EMAIL, SUPPORT_INTRO, SUPPORT_TOPICS } from '../../../../../shared/support-content';
+import { openAppleSubscriptionManagement } from '../../../src/account/subscription-management';
+export default function SupportScreen(){const router=useRouter();const [error,setError]=useState('');const email=()=>void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Bourbon%20Signal%20support&body=${encodeURIComponent(`App ${Constants.nativeAppVersion || Constants.expoConfig?.version} (build ${Constants.nativeBuildVersion || 'unknown'})\n\nDescribe what happened:\n`)}`).catch(()=>setError(`Email couldn't open. Send your message to ${SUPPORT_EMAIL}.`));return <ScrollView style={s.screen} contentContainerStyle={s.content}><Text style={s.title} accessibilityRole="header">How can we help?</Text><Text style={s.copy}>{SUPPORT_INTRO}</Text><Action label="Email support" onPress={email}/><Text selectable style={s.success}>{SUPPORT_EMAIL}</Text>{error?<Text accessibilityRole="alert" style={s.copy}>{error}</Text>:null}{SUPPORT_TOPICS.map(([title,copy],index)=><View key={title} style={s.card}><Text style={s.heading} accessibilityRole="header">{title}</Text><Text style={s.copy}>{copy}</Text>{index===1?<><Action label="Manage Apple subscription" onPress={()=>void openAppleSubscriptionManagement(Linking.openURL).catch(()=>setError('Open the App Store, tap your profile, then Subscriptions.'))}/><Action label="Membership and restore purchases →" onPress={()=>router.push('/(app)/account/membership')}/></>:index===2?<Action label="View rewards →" onPress={()=>router.push('/(app)/account/rewards')}/>:index===3?<><Action label="Edit profile →" onPress={()=>router.push('/(app)/account/profile')}/><Action label="Delete account →" onPress={()=>router.push('/(app)/account/delete')}/><Action label="Privacy policy →" onPress={()=>router.push('/(app)/account/privacy')}/></>:null}</View>)}<View style={s.card}><Text style={s.heading}>Want more coverage?</Text><Text style={s.copy}>Ask us to cover your area or a store you visit.</Text><Action label="Request coverage →" onPress={()=>router.push('/(app)/account/coverage')}/></View></ScrollView>;}

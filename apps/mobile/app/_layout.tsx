@@ -2,6 +2,9 @@ import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
 import { useFonts } from "expo-font";
+import { useEffect } from "react";
+import * as SplashScreen from "expo-splash-screen";
+import { BrandLoading } from "../src/components/BrandLoading";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
@@ -11,12 +14,15 @@ import { StartupErrorBoundary } from "../src/startup/StartupErrorBoundary";
 import { MobileApiProvider } from "../src/hooks/useMobileApi";
 import { colors, typeScale, fonts } from "../src/theme";
 
+void SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ duration: 150, fade: true });
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Fraunces_700Bold });
+  useEffect(()=>{if(fontsLoaded || fontError)void SplashScreen.hideAsync();},[fontsLoaded,fontError]);
   return <StartupErrorBoundary>
-    {!fontsLoaded && !fontError ? null : !publishableKey ? (
+    {!fontsLoaded && !fontError ? <BrandLoading /> : !publishableKey ? (
       <View style={styles.configuration}><Text style={styles.title}>Bourbon Signal</Text><Text style={styles.message}>This development build is missing its Clerk publishable key.</Text></View>
     ) : (
       <SafeAreaProvider>

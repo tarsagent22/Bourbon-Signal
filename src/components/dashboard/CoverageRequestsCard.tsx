@@ -8,7 +8,7 @@ import styles from "./CoverageRequestsCard.module.css";
 
 const STATUS_LABELS: Record<MemberCoverageRequest["status"], string> = {
   requested: "Requested",
-  on_radar: "On our radar",
+  on_radar: "Under review",
   improved: "Coverage improved",
   closed: "Closed",
 };
@@ -107,6 +107,7 @@ export function CoverageRequestsCard({ emptyMode = "compact", marketLabel }: { e
                 <strong>{targetLabel(request)}</strong>
                 <span className={styles.stateCode}>{request.stateCode}</span>
                 <span className={styles.status} data-status={request.status}>{STATUS_LABELS[request.status]}</span>
+                {request.memberUpdate ? <p>{request.memberUpdate}</p> : null}
               </li>
             ))}
           </ul>

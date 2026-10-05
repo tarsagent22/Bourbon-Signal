@@ -181,8 +181,9 @@ assert.match(releaseChecklist, /manual posting without a photo/i);
 const mobileReadme = read("README.md");
 assert.match(mobileReadme, /optional sighting evidence/i);
 assert.doesNotMatch(mobileReadme, /destination-entry|Trip Mode|trip_mode|trip-mode/i);
-assert.match(read("../../src/app/legal/privacy/page.tsx"), /use the mobile app/);
-assert.match(read("../../src/app/support/page.tsx"), /updated="August 21, 2026"/);
+assert.match(read("../../src/app/legal/privacy/page.tsx"), /PRIVACY_SECTIONS/);
+assert.match(read("../../shared/legal-content.ts"), /Delete account in the app/);
+assert.match(read("../../src/app/support/page.tsx"), /SUPPORT_TOPICS/);
 
 assert.deepEqual(png("assets/icon.png"), { width: 1024, height: 1024, colorType: 2 }, "iOS icon must be opaque 1024px RGB");
 assert.deepEqual({ ...png("assets/splash-icon.png"), colorType: undefined }, { width: 512, height: 512, colorType: undefined });
@@ -213,8 +214,10 @@ assert.match(hq, /router\.push\("\/\(app\)\/account\/privacy"\)/);
 assert.doesNotMatch(hq, /Linking|openExternal|https?:\/\//);
 assert.match(appLayout, /name="account\/support"/);
 assert.match(appLayout, /name="account\/privacy"/);
-assert.match(nativeSupport, /support@bourbonsignal\.com/);
-assert.match(nativePrivacy, /12\. Changes to this policy/);
+assert.match(nativeSupport, /SUPPORT_EMAIL/);
+assert.match(read("../../shared/support-content.ts"), /support@bourbonsignal\.com/);
+assert.match(nativePrivacy, /PRIVACY_SECTIONS/);
+assert.match(read("../../shared/legal-content.ts"), /Age and policy changes/);
 assert.match(hq, /ScrollView/, "HQ account controls must remain reachable on compact screens and with larger text");
 assert.equal(existsSync(resolve(root, "app/(app)/(tabs)/account.tsx")), false, "HQ must replace the duplicate Account tab");
 
