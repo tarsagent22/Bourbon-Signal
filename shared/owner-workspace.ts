@@ -5,5 +5,6 @@ export interface OwnerSighting { id:string;reporterUserId:string;bottleName:stri
 export interface OwnerBottle { id:string;bottleName?:string;name?:string;rawName?:string;status:string;notes?:string;candidateBottleId?:string;candidateBottleName?:string }
 export interface OwnerReward { id:string;accountEmail:string;itemKey:string;status:string;pointsSpent:number;fulfillmentType:string;carrier:string|null;trackingNumber:string|null;shippingAddress:Record<string,unknown>|null }
 export function rewardNextStates(item: OwnerReward): string[] {
+  if(['standard_membership_credit_month','barrel_membership_credit_month'].includes(item.itemKey))return [];
   return item.status==='submitted'?['approved','canceled']:item.status==='approved'?[item.fulfillmentType==='digital'?'digital_fulfillment':'packed','canceled']:item.status==='packed'?['shipped']:['shipped','digital_fulfillment'].includes(item.status)?['delivered']:[];
 }

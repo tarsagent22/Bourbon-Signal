@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   const owner = await requireOwnerApiAccess(); if (owner.error) return owner.error;
   try {
     const repository = createSignalPointsRepository();
+    if(request.nextUrl.searchParams.get('view')==='history')return NextResponse.json({queue:await repository.listOwnerRedemptions()},{headers:{'Cache-Control':'private, no-store'}});
     if (request.nextUrl.searchParams.get("view") !== "board") {
       return NextResponse.json({ queue: await repository.listOwnerQueue() }, { headers: { "Cache-Control": "private, no-store" } });
     }

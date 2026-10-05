@@ -27,9 +27,9 @@ function initialDraft(item: BottleContribution): CatalogDraft {
   const words = item.rawName.trim().split(/\s+/);
   return {
     canonicalName: item.rawName,
-    brand: words.slice(0, Math.min(2, words.length)).join(" "),
+    brand: "",
     category: /\brye\b/i.test(item.rawName) ? "rye" : "bourbon",
-    availability: "limited",
+    availability: "common",
   };
 }
 
@@ -75,14 +75,23 @@ export default function AdminBottleQueueClient({ embedded = false }: { embedded?
     setError(null);
     setNotice(null);
     try {
+      let candidateBottleId=item.candidateBottleId;
+      let candidateBottleName=item.candidateBottleName;
+      if(action==='confirm_added'){
+        const created=await fetch('/api/admin/catalog',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({version:0,bottle:drafts[item.id]||initialDraft(item),reason:'Exact bottle identity reviewed by owner'})});
+        const data=await created.json();if(!created.ok)throw new Error(data.error||'Library entry could not be created');
+        candidateBottleId=data.bottle.id;candidateBottleName=data.bottle.canonicalName;
+      }
       const res = await fetch("/api/admin/bottle-contributions", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           id: item.id,
+          expectedUpdatedAt: item.updatedAt,
+          reason: action === 'dismiss' ? 'Invalid entry reviewed by owner' : 'Exact bottle identity reviewed by owner',
           action,
-          candidateBottleId: item.candidateBottleId,
-          candidateBottleName: item.candidateBottleName,
+          candidateBottleId,
+          candidateBottleName,
           ...(action === "confirm_added" ? { catalogBottle: drafts[item.id] || initialDraft(item) } : {}),
         }),
       });

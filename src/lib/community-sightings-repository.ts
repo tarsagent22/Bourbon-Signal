@@ -67,8 +67,8 @@ export interface SightingFeedFilters {
 export class CommunitySightingsRepository {
   private readonly query;
 
-  constructor(url: string) {
-    this.query = neon(url);
+  constructor(url: string | ReturnType<typeof neon>) {
+    this.query = typeof url === 'string' ? neon(url) : url;
   }
 
   async listSightings(limit = 1000): Promise<MemberSighting[]> {
@@ -532,7 +532,16 @@ export class CommunitySightingsRepository {
     return { sighting: stored.payload, rewardGeneration: Number(stored.reward_generation), created: stored.created };
   }
 
-  async updateSighting(sighting: MemberSighting): Promise<SightingMutationResult> {
+  async updateSighting(sighting: MemberSighting, ownerReview?:{expected:MemberSighting;actor:string;action:string;reason:string}): Promise<SightingMutationResult> {
+    if(ownerReview){
+      const rows=await this.query.query(`WITH updated AS MATERIALIZED (
+        UPDATE community_sightings SET payload=$2::jsonb,updated_at=now() WHERE id=$1 AND payload=$3::jsonb RETURNING payload,reporter_user_id
+      ), audited AS (
+        INSERT INTO owner_workspace_audit(actor_id,action,target_id,details) SELECT $4,$5,$1,jsonb_build_object('reason',$6::text,'before',$3::jsonb,'after',payload) FROM updated RETURNING id
+      ) SELECT payload,next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM updated`,[sighting.id,JSON.stringify(sighting),JSON.stringify(ownerReview.expected),ownerReview.actor,ownerReview.action,ownerReview.reason]) as Array<{payload:MemberSighting;reward_generation:number}>;
+      if(!rows[0])throw new Error('This post changed. Refresh before saving again.');
+      return {sighting:rows[0].payload,rewardGeneration:Number(rows[0].reward_generation)};
+    }
     const rows = await this.query.query(
       `WITH locked AS MATERIALIZED (SELECT pg_advisory_xact_lock(hashtext($1))), updated AS MATERIALIZED (
          UPDATE community_sightings

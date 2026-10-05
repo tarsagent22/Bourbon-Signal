@@ -6,9 +6,9 @@ export async function GET() {
   const owner = await requireOwnerApiAccess(); if (owner.error) return owner.error;
   try {
     const repository = getCoverageRequestRepository();
-    const [requests, automation, notes] = await Promise.all([repository.listDemandForOwner(), repository.summarizeActiveAutomationStatusesForOwner(), coverageDatabase().query('SELECT request_id, internal_note, member_update, priority FROM coverage_request_reviews')]);
+    const [requests, automation, notes, jobs] = await Promise.all([repository.listDemandForOwner(), repository.summarizeActiveAutomationStatusesForOwner(), coverageDatabase().query('SELECT request_id, internal_note, member_update, priority FROM coverage_request_reviews'),coverageDatabase().query("SELECT job_key,coverage_request_id,state_code,status,outcome,terminal_result->>'summary' AS summary,updated_at FROM coverage_request_automation_jobs ORDER BY updated_at DESC LIMIT 50")]);
     const reviews = new Map((notes as Array<Record<string, unknown>>).map(n => [n.request_id, n]));
-    return Response.json({ requests: requests.map(r => ({ ...r, review: reviews.get(r.id) || null })), automation }, { headers: { 'Cache-Control': 'private, no-store' } });
+    return Response.json({ requests: requests.map(r => ({ ...r, review: reviews.get(r.id) || null })), automation, jobs }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch { return Response.json({ error: 'Coverage inbox is temporarily unavailable.' }, { status: 503 }); }
 }
 export async function PATCH(request: Request) {

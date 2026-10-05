@@ -4,6 +4,7 @@ import { mergeBottleCatalogSources } from "@/lib/bottle-catalog-merge";
 import { getBottleStateScarcityOverrides } from "@/data/bottle-scarcity-overrides";
 import { mergeStateScarcityOverrides, normalizeBottleScarcity, type BottleScarcity, type ScarcityConfidence, type ScarcityTier } from "@/lib/bottle-scarcity";
 import { listApprovedBottles } from "@/lib/approved-catalog-service";
+import { readOwnerBottleRecords } from "@/lib/owner-admin-repository";
 import { catalogBottlePhoto, type CatalogBottlePhoto } from "./bottle-photos";
 
 export type AvailabilityTier = "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn";
@@ -282,12 +283,20 @@ async function buildBourbonBible({ includeApprovedCatalog = true }: { includeApp
       return [] as BibleBottleInput[];
     }) : Promise.resolve([] as BibleBottleInput[]),
   ]);
-  return mergeBottleCatalogSources<BibleBottleInput>([
+  const records = includeApprovedCatalog ? await readOwnerBottleRecords() : [];
+  const merged = mergeBottleCatalogSources<BibleBottleInput>([
     engineBottles,
     readInventoryBibleBottles(),
     approvedBottles,
     SEED_BOTTLES,
-  ]).map((bottle): BibleBottle => {
+  ]);
+  const overrides = new Map(records.map(r => [r.bottle_id,r]));
+  const additions = records.filter(r => !r.redirect_id && !merged.some(b => b.id === r.bottle_id)).map(r => ({...r.patch,id:r.bottle_id,isSignalTracked:false,isAlertEligible:false,buyerVerdict:'unknown'} as BibleBottleInput));
+  return [...merged,...additions].filter(b => !overrides.get(b.id)?.redirect_id).map((bottle): BibleBottle => {
+    const original=bottle;
+    const patch = overrides.get(original.id)?.patch || {};
+    bottle = {...original,...patch,id:original.id,aliases:Array.isArray(patch.aliases)?patch.aliases as string[]:original.aliases} as BibleBottleInput;
+    if (patch.availability) bottle.nationalTier=normalizeBottleScarcity({availability:bottle.availability}).nationalTier;
     const inheritedTier = normalizeBottleScarcity({ availability: bottle.availability }).nationalTier;
     const engineEvidence = bottle.engineScarcityEvidence;
     const engineCorroboratesTier = engineEvidence?.tier === inheritedTier;
@@ -367,5 +376,9 @@ export async function searchBourbonBible(query: string, limit = 8): Promise<Bibl
 }
 
 export async function getBottleById(id: string) {
-  return (await getBourbonBible()).find((bottle) => bottle.id === id) || null;
+  const catalog=await getBourbonBible();
+  const direct=catalog.find(bottle=>bottle.id===id);
+  if(direct)return direct;
+  const redirect=(await readOwnerBottleRecords()).find(r=>r.bottle_id===id)?.redirect_id;
+  return catalog.find(bottle=>bottle.id===redirect)||null;
 }
