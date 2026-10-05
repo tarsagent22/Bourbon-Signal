@@ -7,14 +7,22 @@ import { colors, typeScale, fonts } from "../theme";
 const STARTUP_DIAGNOSTIC_RELEASE = "startup-diag-stack-v1";
 const MAX_DIAGNOSTIC_LENGTH = 2400;
 
-type State = { error: Error | null; componentStack: string; resetKey: number; showDetails: boolean; shareError: string };
+type Props = PropsWithChildren<{ resetOn?: string }>;
+type State = { error: Error | null; componentStack: string; resetKey: number; showDetails: boolean; shareError: string; identity?: string };
 
 function bounded(value: string | undefined | null) {
   return value?.trim().slice(0, MAX_DIAGNOSTIC_LENGTH) || "Unavailable";
 }
 
-export class StartupErrorBoundary extends Component<PropsWithChildren, State> {
-  state: State = { error: null, componentStack: "", resetKey: 0, showDetails: false, shareError: "" };
+export class StartupErrorBoundary extends Component<Props, State> {
+  state: State = { error: null, componentStack: "", resetKey: 0, showDetails: false, shareError: "", identity: this.props.resetOn };
+
+  static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    if (props.resetOn === state.identity) return null;
+    // A failed member screen must not strand the next signed-out or signed-in
+    // session. Clear only on identity change, preserving diagnostics otherwise.
+    return { identity: props.resetOn, error: null, componentStack: "", showDetails: false, shareError: "" };
+  }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
     return { error };

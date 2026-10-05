@@ -1,14 +1,16 @@
 import { useAuth } from "@clerk/expo";
-import { Redirect, Stack } from "expo-router";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Stack } from "expo-router";
+import { useRef } from "react";
 import { colors } from "../../src/theme";
 
 export default function AppLayout() {
-  const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
-  if (!isLoaded) return <View style={styles.center}><ActivityIndicator color={colors.accent} /></View>;
-  if (!isSignedIn) return <Redirect href="/" />;
+  const { userId, sessionId } = useAuth();
+  const signedInIdentity = useRef("");
+  if (userId && sessionId) signedInIdentity.current = `${userId}:${sessionId}`;
+  // Root Stack.Protected removes the member routes and their history on logout.
+  // Retain the last identity during dismissal, but reset for a new account.
   return (
-    <Stack key={`${userId}:${sessionId}`} screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
+    <Stack key={signedInIdentity.current} screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
       <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />
@@ -24,5 +26,3 @@ export default function AppLayout() {
     </Stack>
   );
 }
-
-const styles = StyleSheet.create({ center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background } });
