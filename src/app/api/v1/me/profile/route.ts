@@ -30,19 +30,18 @@ const patchProfile = createSignalProfilePatchHandler({
     const user = await client.users.getUser(userId);
     const metadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
     const identity = publicSignalIdentityFromMetadata(metadata);
-    if (!identity) throw new Error("A numbered public identity is required.");
     const oldCustomDisplayName = communityDisplayNameFromMetadata(metadata);
-    const oldActor = { ...identity, ...(oldCustomDisplayName ? { displayName: oldCustomDisplayName } : {}) };
     const nextMetadata = { ...metadata, [COMMUNITY_DISPLAY_NAME_METADATA_KEY]: displayName };
-    const nextActor = { ...identity, ...(displayName ? { displayName } : {}) };
-    const repository = createCommunitySightingsRepository();
+    // New members may not have a numbered posting identity yet. That must
+    // not prevent them from setting their own profile name.
+    const repository = identity ? createCommunitySightingsRepository() : null;
 
-    await repository.updateReporterDisplayName(userId, displayName || "", nextActor);
+    if (repository && identity) await repository.updateReporterDisplayName(userId, displayName || "", { ...identity, ...(displayName ? { displayName } : {}) });
     try {
       // Clerk merges owned keys; replaying the read snapshot can undo a concurrent watch delta.
       await client.users.updateUserMetadata(userId, { publicMetadata: { [COMMUNITY_DISPLAY_NAME_METADATA_KEY]: displayName } });
     } catch (error) {
-      await repository.updateReporterDisplayName(userId, oldCustomDisplayName || "", oldActor).catch(() => undefined);
+      if (repository && identity) await repository.updateReporterDisplayName(userId, oldCustomDisplayName || "", { ...identity, ...(oldCustomDisplayName ? { displayName: oldCustomDisplayName } : {}) }).catch(() => undefined);
       throw error;
     }
 

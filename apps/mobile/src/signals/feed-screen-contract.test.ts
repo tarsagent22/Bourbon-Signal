@@ -69,7 +69,7 @@ test("Home location controls say All states and expose one-tap location clearing
 
 test("State and Area remain a stable pair while Area is disabled until State is selected", () => {
   assert.match(feed, /label="State"[\s\S]*?icon="map-marker-outline"/);
-  assert.match(feed, /label=\{areaLabel\}[\s\S]*?disabled=\{!filters\.state\}/);
+  assert.match(feed, /label=\{areaLabel\}[\s\S]*?disabled=\{!filters\.state \|\| !detailedFilters\}/);
   assert.doesNotMatch(feed, /filters\.state \? <OptionChooser/);
   assert.doesNotMatch(feed, /geographySoloRow|filterChooserSolo/);
   assert.match(feed, /accessibilityState=\{\{ expanded, disabled \}\}/);

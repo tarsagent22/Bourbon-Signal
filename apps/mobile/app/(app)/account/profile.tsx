@@ -93,8 +93,7 @@ export default function ProfileScreen() {
                 {profile.customDisplayName || "No display name set"}
               </Text>
               <Text style={styles.muted}>
-                Shown beside {profile.identity?.label || "your member tag"} on
-                Community sightings. The tag never changes.
+                Shown on your Community posts.
               </Text>
             </View>
             <Pressable

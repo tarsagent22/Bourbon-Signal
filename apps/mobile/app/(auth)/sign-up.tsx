@@ -53,7 +53,7 @@ export default function SignUpScreen() {
   }, [stage]); // State loading is explicitly retryable; do not refetch after a successful load.
 
   if (!authLoaded) return <View style={styles.center}><ActivityIndicator color={colors.accent} /></View>;
-  if (isSignedIn && stage !== "onboarding") return <Redirect href="/(app)/(tabs)" />;
+  if (isSignedIn && stage !== "onboarding") return <Redirect href="/" />;
 
   async function createAccount() {
     if (busy || fetchStatus === "fetching") return;
@@ -144,8 +144,8 @@ export default function SignUpScreen() {
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <View style={styles.brand}>
         <Text style={styles.eyebrow}>{stage === "onboarding" ? "SET UP YOUR FREE ACCOUNT" : "CREATE ACCOUNT"}</Text>
-        <Text accessibilityRole="header" style={styles.title}>{stage === "account" ? "Join Bourbon Signal" : stage === "verification" ? "Verify your email" : "Start with your market"}</Text>
-        <Text style={styles.subtitle}>{stage === "account" ? "Create a Free account with no payment and no card required." : stage === "verification" ? `Enter the code sent to ${email.trim()}.` : "Choose the name members see and the state you hunt most."}</Text>
+        <Text accessibilityRole="header" style={styles.title}>{stage === "account" ? "Join Bourbon Signal" : stage === "verification" ? "Verify your email" : "Welcome to Bourbon Signal"}</Text>
+        <Text style={styles.subtitle}>{stage === "account" ? "Create a Free account with no payment and no card required." : stage === "verification" ? `Enter the code sent to ${email.trim()}.` : "Set your display name and home state to get started."}</Text>
       </View>
 
       {stage === "account" ? <View style={styles.form}>

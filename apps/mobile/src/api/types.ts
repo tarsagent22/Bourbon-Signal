@@ -75,6 +75,7 @@ export interface MemberProfile {
     identity: { kind: "founder" | "member"; number: number; label: string } | null;
     displayName: string;
     customDisplayName: string | null;
+    homeState?: string | null;
     feedAreas: {
       states: Array<{
         code: string;

@@ -397,9 +397,8 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
   const lowCoverage = Boolean(editorState && states.find((state) => state.code === editorState.code)?.engineCoverage !== "active");
 
   if (preferences.entitlements?.alertAreaLimit === 0) return <MemberCard>
-    <Text style={styles.listTitle}>Radar alerts start with Standard</Text>
-    <Text style={styles.muted}>Standard includes 5 alert areas and 15 watched bottles. Barrel Proof adds unlimited preferences and Community sighting alerts.</Text>
-    <TextAction label="SEE MEMBERSHIPS" onPress={() => router.push("/(app)/account/membership")} />
+    <Text style={styles.listTitle}>Want alerts when bottles are found in your area?</Text>
+    <TextAction label="Upgrade your membership →" onPress={() => router.push("/(app)/account/membership")} />
   </MemberCard>;
 
   return <View onLayout={(event) => onLayout(event.nativeEvent.layout.y)} style={styles.preferences}>

@@ -21,7 +21,10 @@ function useAccountMobileApi() {
 const MobileApiContext = createContext<ReturnType<typeof useAccountMobileApi> | null>(null);
 export function MobileApiProvider({ children }: PropsWithChildren) {
   const api = useAccountMobileApi();
-  return createElement(MobileApiContext.Provider, { value: api, key: api.accountIdentity }, children);
+  // Changing the provider key remounts Expo Router during Clerk finalization
+  // and sign-out. Keep navigation mounted; the API and protected stack own
+  // account isolation and invalidate old requests when the identity changes.
+  return createElement(MobileApiContext.Provider, { value: api }, children);
 }
 export function useMobileApi() {
   const api = useContext(MobileApiContext);
