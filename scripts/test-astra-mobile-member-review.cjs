@@ -12,12 +12,12 @@ global.fetch = async () => { throw new Error('OFFLINE: external fetch prohibited
 async function load(entry, f = {}, stubs = {}) {
   const out = await build({ absWorkingDir: root, entryPoints: [entry], bundle: true, platform: 'node', format: 'cjs', write: false, packages: 'external', plugins: [{ name: 'offline-only', setup(b) {
     b.onResolve({ filter: /.*/ }, a => stubs[a.path] ? { path: a.path, namespace: 'stub' } : undefined);
-    b.onLoad({ filter: /.*/, namespace: 'stub' }, a => ({ contents: stubs[a.path], loader: 'js' }));
+    b.onLoad({ filter: /.*/, namespace: 'stub' }, a => ({ contents: stubs[a.path], loader: 'js', resolveDir: root }));
   } }] });
   const m = { exports: {} }; new Function('require', 'module', 'exports', 'f', out.outputFiles[0].text)(req, m, m.exports, f); return m.exports;
 }
 const common = {
-  '@/lib/member-numbers': 'import {ensureMemberNumber as ensure} from '+JSON.stringify(path.join(root,'src/lib/member-numbers.ts'))+';export const ensureMemberNumber=(client,user)=>ensure(client,user,{get:async()=>123,reconcile:async()=>{throw new Error("unexpected signup allocation");}});',
+  '@/lib/member-numbers': 'import {ensureMemberNumber as ensure} from '+JSON.stringify(path.join(root,'src/lib/member-numbers.ts').replaceAll('\\','/'))+';export const ensureMemberNumber=(client,user)=>ensure(client,user,{get:async()=>123,reconcile:async()=>{throw new Error("unexpected signup allocation");}});',
   '@clerk/nextjs/server': 'export const auth=async()=>({userId:"fixture-A"});export const clerkClient=async()=>({users:f.users});',
   '@/lib/server-entitlements': 'export const getServerEntitlements=async()=>f.entitlements;export const resolveServerEffectiveMembershipTier=async()=>"standard";',
   'next/server': 'export const NextRequest=Request;export const NextResponse=Response;',
