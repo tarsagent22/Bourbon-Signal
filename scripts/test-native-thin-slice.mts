@@ -364,7 +364,7 @@ assert.match(nativeSignalFeed, /actionLabel=\{activeFilterCount\(filters\) \? "C
 assert.match(nativeSignalFeed, /placeholder="Search bottle name"/, "bottle search must stay directly on the feed");
 assert.match(nativeSignalFeed, /label="State"/, "state selection must stay directly on the feed");
 assert.match(nativeSignalFeed, /label=\{areaLabel\}/, "the dependent area control must keep stable side-by-side geometry");
-assert.match(nativeSignalFeed, /disabled=\{!filters\.state\}/, "area selection must remain disabled until a Home state is selected");
+assert.match(nativeSignalFeed, /disabled=\{!filters\.state \|\| !detailedFilters\}/, "area selection requires a Home state and detailed-filter access");
 assert.doesNotMatch(nativeSignalFeed, /Trip Mode|tripMode|trip-mode/, "Home must not restore the removed Trip Mode feature");
 assert.doesNotMatch(nativeSignalFeed, /Intel gathered from Bourbon Signal sources|Bottle sightings shared by Bourbon Signal members/, "the feed header must not spend vertical space on explanatory paragraphs");
 const nativeSignalCard = readFileSync("apps/mobile/src/components/SignalCard.tsx", "utf8");
