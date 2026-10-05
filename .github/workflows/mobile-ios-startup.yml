@@ -35,8 +35,8 @@ jobs:
           xcodebuild -workspace ios/BourbonSignal.xcworkspace -scheme BourbonSignal -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath native-evidence/build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES ARCHS="$(uname -m)" -quiet > native-evidence/xcodebuild.log 2>&1
       - name: Bundle native Home fixture with explicit seams
         run: |
-          test ! -e metro.config.js
-          trap 'rm -f metro.config.js' EXIT
+          cp metro.config.js native-evidence/production-metro.config.js
+          trap 'cp native-evidence/production-metro.config.js metro.config.js' EXIT
           node -e "require('node:fs').writeFileSync('metro.config.js',\"module.exports = require('./scripts/native-home/metro.config.cjs');\\n\")"
           npx expo export:embed --entry-file scripts/native-home/entry.tsx --platform ios --dev false --bytecode --reset-cache --bundle-output native-evidence/home-fixture.hbc --sourcemap-output native-evidence/home-fixture.map
           python3 - <<'PY'
