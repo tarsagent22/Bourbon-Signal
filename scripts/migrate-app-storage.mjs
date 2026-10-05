@@ -57,6 +57,7 @@ const schemaFiles = [
   '../src/lib/account-deletion-schema.sql',
   '../src/lib/push-ownership-schema.sql',
   '../src/lib/member-collection-schema.sql',
+  '../src/lib/member-number-schema.sql',
   '../src/lib/bottle-contribution-schema.sql',
   '../src/lib/approved-catalog-schema.sql',
   '../src/lib/welcome-local-preview-schema.sql',
@@ -132,6 +133,8 @@ const expected = [
   'member_collection_bottles',
   'member_collection_legacy_backups',
   'member_collection_state',
+  'member_numbers',
+  'member_number_counter',
   'retailer_applications',
   'retailer_stores',
   'retailer_submissions',
@@ -145,6 +148,8 @@ const rows = await sql.query(`
 const found = new Set(rows.map((row) => row.table_name));
 const missing = expected.filter((table) => !found.has(table));
 const requiredColumns = {
+  member_numbers: ['user_id','member_number','signup_created_at','assigned_at'],
+  member_number_counter: ['singleton','last_number'],
   source_lane_heads: ['source_id', 'generation', 'revision', 'lease_owner', 'lease_until', 'next_due_at', 'healthy'],
   source_lane_batches: ['source_id', 'run_id', 'revision', 'digest', 'observed_at', 'accepted_at', 'policy_id', 'accounting'],
   source_lane_subjects: ['source_id', 'subject_id', 'payload'],

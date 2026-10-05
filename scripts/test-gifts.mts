@@ -104,7 +104,6 @@ assert.deepEqual(directFounderRevocationMetadata("2026-08-12T12:00:00.000Z"), {
   directFounderEntitlementVersion: null,
   directFounderPreviousMembership: null,
   founderNumber: null,
-  memberNumber: null,
   membershipUpdatedAt: "2026-08-12T12:00:00.000Z",
 }, "direct Founder revocation must fail closed and clear every Founder authority marker");
 

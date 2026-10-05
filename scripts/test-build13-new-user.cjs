@@ -10,6 +10,7 @@ const { getEntitlements } = req(root + '/src/lib/entitlements.ts');
 
 async function route(entry, fixture) {
   const stubs = {
+    '@/lib/member-numbers': 'export const ensureMemberNumber=async(client,user)=>user;',
     '@clerk/nextjs/server': 'export const auth=async()=>({userId:"new-member"});export const clerkClient=async()=>({users:f.users});',
     '@/lib/server-entitlements': 'export const getServerEntitlements=async()=>f.access;',
     '@/lib/community-sightings-repository': 'export const createCommunitySightingsRepository=()=>{f.repositoryCreated++;return {updateReporterDisplayName:async(...args)=>{f.reporterWrites.push(args);}}};',

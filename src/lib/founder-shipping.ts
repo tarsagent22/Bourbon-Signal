@@ -53,7 +53,7 @@ function metadataValue(metadata: unknown, key: string) {
 export function memberShippingEligibility(metadata: unknown) {
   const tier = resolveEffectiveMembershipTier(metadata);
   const number = founderNumber(metadataValue(metadata, "founderNumber"))
-    || founderNumber(metadataValue(metadata, "memberNumber"));
+    || (metadataValue(metadata, "memberNumberVersion") !== 'signup-order-v1' ? founderNumber(metadataValue(metadata, "memberNumber")) : null);
   const eligible = tier !== "free";
   return {
     eligible,

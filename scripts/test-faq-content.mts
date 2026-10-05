@@ -18,7 +18,7 @@ assert.deepEqual(productFaqs.map((item) => item.question), [
   "How do Bourbon Signal alerts work?",
   "What are verified retailer signals?",
   "What are Member Sightings?",
-  "How does Bottle Check work?",
+  "How do I add bottles to My Shelf?",
   "How do My Shelf and recommendations work?",
   "What is Hunt Outcome?",
   "Why doesn’t every state have the same store-level detail?",
@@ -58,6 +58,7 @@ assert.match(alertLimits?.answer || "", /push notifications/);
 assert.doesNotMatch(alertLimits?.answer || "", /SMS alerts|email delivery/);
 
 assert.doesNotMatch(JSON.stringify([...productFaqs, ...pricingFaqs]), /Release Radar|release-radar/);
+assert.doesNotMatch(JSON.stringify([...productFaqs, ...pricingFaqs]), /Bottle Check|unlimited checks/);
 assert.match(free.answer, /Coverage Map/);
 
 const founder = pricingFaqs.find((item) => item.question.includes("Founder membership"));

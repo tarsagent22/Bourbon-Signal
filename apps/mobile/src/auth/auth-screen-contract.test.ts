@@ -32,11 +32,15 @@ test("verified accounts must resume server-authoritative onboarding before enter
 test("native sign-up uses Clerk email code verification and no social or phone collection", () => {
   for (const contract of [
     /useSignUp/, /signUp\.password/, /signUp\.verifications\.sendEmailCode/, /signUp\.verifications\.verifyEmailCode/, /signUp\.finalize/,
-    /I affirm that I am 21 or older/, /Community display name/, /Home state and starting area/, /See membership options/,
+    /I affirm that I am 21 or older/, /Community display name/, /Home state/, /label="Continue"/,
     /accessibilityRole="alert"/, /accessibilityLabel="Email verification code"/,
   ]) assert.match(signUp, contract);
   assert.doesNotMatch(signUp, /OAuth|social login|phone-pad|phoneNumber/);
-  assert.match(signUp, /Free accounts do not receive alerts/);
+  assert.match(signUp, /SET UP YOUR PROFILE/);
+  const onboardingForm = signUp.slice(signUp.indexOf('{stage === "onboarding" ? <View style={styles.form}>'));
+  assert.doesNotMatch(onboardingForm, /Your Free account|Free accounts do not/);
+  assert.match(signUp, /member\.profile\.membership\.tier === "free"/);
+  assert.match(signUp, /else router\.replace\("\/\(app\)\/\(tabs\)"\)/);
   assert.ok(signUp.indexOf('setStage("onboarding")') < signUp.indexOf("await signUp.finalize()"), "onboarding must own the route before Clerk activates the session");
 });
 

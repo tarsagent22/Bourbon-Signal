@@ -17,6 +17,7 @@ import { addBottleContribution } from "@/lib/bottle-contributions";
 import { COMMUNITY_SIGHTINGS_DURABLE_CUTOVER } from "@/data/community-sightings-cutover";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { publicSignalIdentityFromMetadata } from "@/lib/signals/signal-api-contract";
+import { ensureMemberNumber } from "@/lib/member-numbers";
 import { normalizeSignalRarities } from "@/lib/signals/signal-feed-filters";
 import { idempotentSightingFingerprint, idempotentSightingId, sameIdempotentSighting } from "@/lib/signals/signal-api-idempotency";
 import { communityDisplayNameFromMetadata, communityDisplayNameSeparateFromIdentity } from "@/lib/community-display-name";
@@ -268,7 +269,7 @@ async function getAggregateSightings(
 
 async function requireSightingsEntitlements(userId: string) {
   const client = await clerkClient();
-  const user = await client.users.getUser(userId);
+  const user = await ensureMemberNumber(client, await client.users.getUser(userId));
   return getServerEntitlements(user.publicMetadata);
 }
 
@@ -453,7 +454,7 @@ export async function POST(req: NextRequest) {
   }
 
   const client = await clerkClient();
-  const user = await client.users.getUser(userId);
+  const user = await ensureMemberNumber(client, await client.users.getUser(userId));
   const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(user));
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
   const publicIdentity = publicSignalIdentityFromMetadata(user.publicMetadata);

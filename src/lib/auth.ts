@@ -11,7 +11,9 @@ export function useAuth() {
   const memberTier = isSignedIn ? resolveEffectiveMembershipTier(user?.publicMetadata || null) : "free";
   const entitlements = getEntitlements(user?.publicMetadata || memberTier);
   const isPaidUser = isPaidTier(user?.publicMetadata || memberTier);
-  const rawMemberNumber = Number(user?.publicMetadata?.memberNumber || user?.publicMetadata?.founderNumber || 0);
+  const rawMemberNumber = Number(memberTier === "bottled-in-bond"
+    ? user?.publicMetadata?.founderNumber || (user?.publicMetadata?.memberNumberVersion !== 'signup-order-v1' ? user?.publicMetadata?.memberNumber : 0) || 0
+    : user?.publicMetadata?.memberNumber || 0);
   const memberNumber = Number.isFinite(rawMemberNumber) && rawMemberNumber > 0 ? rawMemberNumber : 0;
 
   useEffect(() => {

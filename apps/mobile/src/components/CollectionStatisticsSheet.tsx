@@ -26,9 +26,7 @@ export function CollectionStatisticsSheet({ visible, statistics, ranked, onClose
         <Stat label="Open bottles" value={String(s.openBottleCount)} />
         <Stat label="Tasted only" value={String(s.tastedOnlyCount)} detail="Saved entries with no bottles on hand" />
         <Stat label="Your average rating" value={s.averageRating == null ? 'Not rated yet' : `${(s.averageRating / 10).toFixed(1)} / 10`} detail={`${s.ratedCount} rated entries across owned and tasted only. Each entry counts once, including a rating of zero; unrated entries do not count.`} />
-        <Stat label="Most-represented distillery" value="Unavailable" detail="No verified distillery data is attached to your collection. Brands and bottlers are not counted as distilleries." />
         <Stat label="Highest personally rated owned" value={s.highestRatedOwned ? `${formatCollectionRating(s.highestRatedOwned)} / 10` : 'Not rated yet'} detail={s.highestRatedOwned ? `${s.highestRatedOwned.bottleName}. Ties retain collection order; up to 20 entries are listed in Top Rated below.` : 'Rate a bottle you own to see it here.'} />
-        <Stat label="Collection worth" value="Coming later" />
         <Text accessibilityRole="header" style={styles.sectionTitle}>Top Rated</Text>
         <Text style={styles.copy}>Your top 20 personally rated owned entries. Full bottle names and inventory, in shelf order.</Text>
         {ranked.length ? ranked.map((bottle, index) => <View key={bottle.bottleId || `${bottle.canonicalKey}:${bottle.bottleName}`} accessible style={styles.row}>

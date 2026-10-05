@@ -28,7 +28,7 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
     features: [
       "Full state Drop Feed",
       "Alerts for up to 5 areas and 15 bottles",
-      "Unlimited Bottle Checks and full Member Sightings",
+      "Full Member Sightings",
       "Unlimited My Shelf",
       "Redeem Signal Points for member rewards",
     ],
@@ -83,7 +83,6 @@ export function isPublicCheckoutPlanId(planId: BillingPlanId): planId is PublicC
 
 export const MEMBERSHIP_COMPARISON_ROWS = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
-  ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
   ["Member Sightings", "Limited", "✓", "✓", "✓"],
   ["Push and in-app alerts", "—", "✓", "✓", "✓"],
   ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],

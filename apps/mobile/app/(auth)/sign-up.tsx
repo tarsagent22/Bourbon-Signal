@@ -131,7 +131,9 @@ export default function SignUpScreen() {
     setError("");
     try {
       await api.completeMobileOnboarding({ displayName: displayName.trim(), age21Affirmed: true, homeState });
-      router.replace({ pathname: "/(app)/account/membership", params: { welcome: "1" } });
+      const member = await api.getMemberProfile({ fresh: true });
+      if (member.profile.membership.tier === "free") router.replace({ pathname: "/(app)/account/membership", params: { welcome: "1" } });
+      else router.replace("/(app)/(tabs)");
     } catch (caught) {
       setError(caught instanceof Error ? `${caught.message} Try again.` : "Your profile could not be saved. Try again.");
     } finally {
@@ -143,7 +145,7 @@ export default function SignUpScreen() {
   return <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <View style={styles.brand}>
-        <Text style={styles.eyebrow}>{stage === "onboarding" ? "SET UP YOUR FREE ACCOUNT" : "CREATE ACCOUNT"}</Text>
+        <Text style={styles.eyebrow}>{stage === "onboarding" ? "SET UP YOUR PROFILE" : "CREATE ACCOUNT"}</Text>
         <Text accessibilityRole="header" style={styles.title}>{stage === "account" ? "Join Bourbon Signal" : stage === "verification" ? "Verify your email" : "Welcome to Bourbon Signal"}</Text>
         <Text style={styles.subtitle}>{stage === "account" ? "Create a Free account with no payment and no card required." : stage === "verification" ? `Enter the code sent to ${email.trim()}.` : "Set your display name and home state to get started."}</Text>
       </View>
@@ -171,15 +173,15 @@ export default function SignUpScreen() {
         <View style={styles.fieldGroup}><Text style={styles.fieldLabel}>Community display name</Text><Text style={styles.fieldHint}>Shown with your separate numbered member tag when you post.</Text>
           <TextInput accessibilityLabel="Community display name" autoCapitalize="words" editable={!busy} maxLength={32} onChangeText={setDisplayName} placeholder="How members will know you" placeholderTextColor={colors.muted} style={styles.input} value={displayName} />
         </View>
-        <View style={styles.fieldGroup}><Text style={styles.fieldLabel}>Home state and starting area</Text><Text style={styles.fieldHint}>Your Free account begins with this statewide feed view.</Text>
+        <View style={styles.fieldGroup}><Text style={styles.fieldLabel}>Home state</Text><Text style={styles.fieldHint}>Start your feed in this state.</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Choose home state and starting area" disabled={busy || statesLoading} onPress={() => setStatePickerOpen(true)} style={({ pressed }) => [styles.select, pressed && styles.pressed]}>
             <Text style={selectedState ? styles.selectText : styles.placeholder}>{statesLoading ? "Loading states…" : selectedState ? `${selectedState.name} (${selectedState.code})` : "Choose a state"}</Text><Text accessible={false} style={styles.chevron}>›</Text>
           </Pressable>
           {!states.length && !statesLoading ? <Pressable accessibilityRole="button" onPress={() => void loadStates()} style={styles.retry}><Text style={styles.linkText}>Try again loading states</Text></Pressable> : null}
         </View>
-        <Text style={styles.notice}>Free accounts do not receive alerts. Your home state starts your feed; alert areas and delivery remain off unless you later choose an eligible membership.</Text>
+        <Text style={styles.notice}>You can change your home state later.</Text>
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-        <PrimaryButton busy={busy} label="See membership options" onPress={completeOnboarding} />
+        <PrimaryButton busy={busy} label="Continue" onPress={completeOnboarding} />
       </View> : null}
     </ScrollView>
 

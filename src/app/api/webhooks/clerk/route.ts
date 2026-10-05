@@ -7,6 +7,7 @@ import { notifyRetailerAccountCreated } from "@/lib/retailer-notifications";
 import { getRetailerRepository } from "@/lib/retailer-repository";
 import { normalizeRetailerApplication } from "@/lib/retailer-portal";
 import { claimReferralAtSignup } from "@/lib/referral-service";
+import { ensureMemberNumber } from "@/lib/member-numbers";
 
 export const dynamic = "force-dynamic";
 
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
   const user = event.data || {};
   const client = user.id ? await clerkClient() : null;
   if (user.id && client) {
-    const currentUser = await client.users.getUser(user.id);
+    const currentUser = await ensureMemberNumber(client, await client.users.getUser(user.id));
     const privateMetadata = currentUser.privateMetadata as Record<string, unknown>;
     const registration = mergeGrowthMilestoneMetadata(
       privateMetadata,
