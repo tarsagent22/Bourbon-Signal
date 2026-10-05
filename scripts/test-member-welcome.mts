@@ -118,7 +118,6 @@ assert.match(pricingSource, /comparison-table/);
 assert.match(pricingSource, /role="table"/);
 for (const feature of [
   "Drop Feed access",
-  "Bottle Checks",
   "Member Sightings",
   "Push and in-app alerts",
   "Alert preference limits",
@@ -129,8 +128,9 @@ for (const feature of [
   "Founder badge + number",
   "Numbered Founder’s glass",
 ]) {
-  assert.ok(pricingTruthSource.includes(feature), `comparison must preserve the complete prior feature row: ${feature}`);
+  assert.ok(pricingTruthSource.includes(feature), `comparison must preserve the active feature row: ${feature}`);
 }
+assert.doesNotMatch(pricingTruthSource, /Bottle Check/, "retired Bottle Check must not be advertised as a membership feature");
 assert.match(pricingSource, /value === "✓"[\s\S]*included[\s\S]*value === "—"[\s\S]*not-included/, "comparison should use the prior checkmark and dash treatment");
 assert.match(pricingSource, /aria-label=\{value === "✓" \? "Included" : value === "—" \? "Not included" : undefined\}/, "symbol-only comparison cells need a single spoken label");
 assert.match(pricingSource, /\.comparison-row span:first-child\s*\{[^}]*position:sticky[^}]*left:0/, "feature labels must persist during horizontal scrolling");
