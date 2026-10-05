@@ -92,12 +92,12 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "What can I do as a free member?",
       answer:
-        "A free account includes a preview of the latest Drop Feed signals, up to three Bottle Checks, the Coverage Map, Member Sightings, and My Shelf. You can submit sightings and help other hunters. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools.",
+        "A free account includes a preview of the latest Drop Feed signals, the Coverage Map, Member Sightings, and My Shelf. You can submit sightings and help other hunters. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools.",
     },
     {
       question: "What is the difference between Standard Proof and Barrel Proof?",
       answer:
-        "Standard Proof includes unlimited My Shelf capacity and is built for alerts and everyday hunting: the full feed, unlimited Bottle Checks, up to five alert areas, up to 15 tracked bottles, and in-app and push delivery. Barrel Proof removes the alert-preference limits and adds Bourbon DNA and personalized collection intelligence, recommendations, local opportunities, Member Sighting alerts.",
+        "Standard Proof includes unlimited My Shelf capacity and is built for alerts and everyday hunting: the full feed, up to five alert areas, up to 15 tracked bottles, and in-app and push delivery. Barrel Proof removes the alert-preference limits and adds Bourbon DNA and personalized collection intelligence, recommendations, local opportunities, Member Sighting alerts.",
     },
     {
       question: "How do alerts and alert limits work?",
@@ -117,7 +117,7 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "Which features are available in each plan?",
       answer:
-        "Free is designed for trying the feed, Bottle Check, the Coverage Map, community sightings, and My Shelf. Standard Proof unlocks the full feed, unlimited Bottle Checks, unlimited My Shelf capacity, saved alerts, bottle tracking, and notification delivery. Barrel Proof adds unlimited alert preferences, Bourbon DNA, personalized collection intelligence, recommendations, and Member Sighting alerts. Bottled in Bond includes the complete paid product as a lifetime Founder membership. The plan cards above show the current prices and exact alert limits.",
+        "Free is designed for trying the feed, the Coverage Map, community sightings, and My Shelf. Standard Proof unlocks the full feed, unlimited My Shelf capacity, saved alerts, bottle tracking, and notification delivery. Barrel Proof adds unlimited alert preferences, Bourbon DNA, personalized collection intelligence, recommendations, and Member Sighting alerts. Bottled in Bond includes the complete paid product as a lifetime Founder membership. The plan cards above show the current prices and exact alert limits.",
     },
   ];
 }

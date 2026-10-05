@@ -2280,7 +2280,7 @@ function PaidMemberDashboard() {
             <section style={{ border: "1px solid rgba(196,148,58,0.22)", borderRadius: 28, padding: "32px", background: "linear-gradient(180deg, rgba(24,18,12,0.92), rgba(11,8,6,0.96))", textAlign: "center", boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>
               <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-accent-amber)", marginBottom: 12 }}>Upgrade required</div>
               <h1 style={{ margin: 0, fontFamily: "var(--font-playfair)", fontSize: "clamp(38px, 7vw, 58px)", color: "var(--color-cream)", lineHeight: 1 }}>Dashboard starts with Standard Proof.</h1>
-              <p style={{ margin: "18px auto 0", maxWidth: 540, fontFamily: "var(--font-dm-sans)", fontSize: 15, lineHeight: 1.7, color: "var(--color-text-secondary)" }}>Free access gets a limited Drop Feed and 3 Bottle Checks. Upgrade for alert setup, member sightings, and dashboard tools.</p>
+              <p style={{ margin: "18px auto 0", maxWidth: 540, fontFamily: "var(--font-dm-sans)", fontSize: 15, lineHeight: 1.7, color: "var(--color-text-secondary)" }}>Free access includes the Drop Feed preview, My Shelf, and Community posting. Upgrade for the full feed and bottle alerts.</p>
               <a href="/pricing" style={{ display: "inline-flex", marginTop: 22, borderRadius: 999, padding: "12px 18px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 800, textDecoration: "none" }}>View memberships</a>
             </section>
             {isSignedIn ? <CoverageRequestsCard emptyMode="compact" /> : null}

@@ -8,13 +8,15 @@ import { PRIVATE_SIGNAL_API_HEADERS, signalApiError } from "@/lib/signals/signal
 import { createSignalProfilePatchHandler } from "@/lib/signals/signal-profile-route";
 import { COMMUNITY_DISPLAY_NAME_METADATA_KEY, communityDisplayNameFromMetadata } from "@/lib/community-display-name";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
+import { ensureMemberNumber } from "@/lib/member-numbers";
 
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return signalApiError(401, "UNAUTHORIZED", "Sign in to continue.");
 
   try {
-    const user = await (await clerkClient()).users.getUser(userId);
+    const client = await clerkClient();
+    const user = await ensureMemberNumber(client, await client.users.getUser(userId));
     const metadata = user.publicMetadata || {};
     const entitlements = await getServerEntitlements(metadata);
     const response = buildSignalMemberProfile(metadata, entitlements);
@@ -27,7 +29,7 @@ export async function GET() {
 const patchProfile = createSignalProfilePatchHandler({
   saveDisplayName: async (userId, displayName) => {
     const client = await clerkClient();
-    const user = await client.users.getUser(userId);
+    const user = await ensureMemberNumber(client, await client.users.getUser(userId));
     const metadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
     const identity = publicSignalIdentityFromMetadata(metadata);
     const oldCustomDisplayName = communityDisplayNameFromMetadata(metadata);

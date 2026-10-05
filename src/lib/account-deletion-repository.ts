@@ -87,6 +87,7 @@ export class PostgresAccountDeletionRepository implements AccountDeletionReposit
       this.database.query(`DELETE FROM alert_baselines WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM clerk_alert_metadata_backups WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM member_collection_state WHERE user_id=$1`, [userId]),
+      this.database.query(`UPDATE member_numbers SET user_id=$2 WHERE user_id=$1`, [userId, subjectToken]),
       this.database.query(`DELETE FROM member_collection_legacy_backups WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM bourbon_recommendation_feedback WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM bourbon_recommendation_feedback_state WHERE user_id=$1`, [userId]),

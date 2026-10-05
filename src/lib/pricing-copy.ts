@@ -5,14 +5,14 @@ export const FOUNDER_PRICE = "$50";
 export const FREE_FEATURES = [
   "Public drop preview",
   "Weekly digest",
-  "Limited Bottle Check lookups",
+  "Basic My Shelf stats",
 ];
 
 export const STANDARD_FEATURES = [
   "5 alert areas",
   "15 tracked bottles",
   "State-level filters",
-  "Full Bottle Check",
+  "Redeem Signal Points for rewards",
   "Read and submit Member Sightings",
 ];
 

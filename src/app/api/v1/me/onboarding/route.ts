@@ -4,6 +4,7 @@ import { communityDisplayNameFromMetadata } from "@/lib/community-display-name";
 import { MobileOnboardingValidationError, prepareMobileOnboarding } from "@/lib/mobile-onboarding";
 import { publicSignalIdentityFromMetadata } from "@/lib/signals/signal-api-contract";
 import { PRIVATE_SIGNAL_API_HEADERS, signalApiError } from "@/lib/signals/signal-api-route";
+import { ensureMemberNumber } from "@/lib/member-numbers";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,8 @@ export async function GET() {
   const { userId } = await auth();
   if (!userId) return signalApiError(401, "UNAUTHORIZED", "Sign in to continue.");
   try {
-    const user = await (await clerkClient()).users.getUser(userId);
+    const client = await clerkClient();
+    const user = await ensureMemberNumber(client, await client.users.getUser(userId));
     const mobileOnboarding = record(record(user.privateMetadata).mobileOnboarding);
     const completedAt = typeof mobileOnboarding.completedAt === "string" ? mobileOnboarding.completedAt : "";
     const onboardingCompleted = Boolean(completedAt && Number.isFinite(Date.parse(completedAt)));
@@ -37,7 +39,7 @@ export async function POST(request: Request) {
     const now = new Date().toISOString();
     const prepared = prepareMobileOnboarding(body, now);
     const client = await clerkClient();
-    const user = await client.users.getUser(userId);
+    const user = await ensureMemberNumber(client, await client.users.getUser(userId));
     const currentPublic = record(user.publicMetadata);
     const currentPrivate = record(user.privateMetadata);
     const previousName = communityDisplayNameFromMetadata(currentPublic);

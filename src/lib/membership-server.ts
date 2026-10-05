@@ -203,7 +203,7 @@ export async function activateMembership(userId: string, input: {
       directFounderPreviousMembership: directPreviousMembership || null,
       subscribedAt: stringValue(user.publicMetadata?.subscribedAt) || now,
       membershipUpdatedAt: now,
-      ...(founderNumber ? { founderNumber, memberNumber: founderNumber } : {}),
+      ...(founderNumber ? { founderNumber } : {}),
       ...(input.stripeCustomerId ? { stripeCustomerId: input.stripeCustomerId } : {}),
     },
   });
@@ -275,7 +275,7 @@ export async function activateGiftMembership(userId: string, order: GiftOrderRec
       giftPreviousMembership: previousMembership,
       subscribedAt: stringValue(publicMetadata.subscribedAt) || now,
       membershipUpdatedAt: now,
-      ...(order.founderNumber ? { founderNumber: order.founderNumber, memberNumber: order.founderNumber } : {}),
+      ...(order.founderNumber ? { founderNumber: order.founderNumber } : {}),
     },
   });
 }

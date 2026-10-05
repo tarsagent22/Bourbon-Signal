@@ -190,7 +190,7 @@ function PricingPageContent() {
             </div>
             <ul>
               <li>Limited Drop Feed access</li>
-              <li>3 Bottle Checks</li>
+              <li>Basic collection stats</li>
               <li>My Shelf</li>
               <li>Coverage Map and Member Sightings</li>
             </ul>

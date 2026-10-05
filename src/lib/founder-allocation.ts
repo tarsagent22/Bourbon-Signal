@@ -7,6 +7,7 @@ export type FounderAllocationMetadata = {
   billingPlan?: unknown;
   founderNumber?: unknown;
   memberNumber?: unknown;
+  memberNumberVersion?: unknown;
 };
 
 export type FounderAllocationUser = {
@@ -30,7 +31,7 @@ export function isFounderMembershipMetadata(metadata: FounderAllocationMetadata 
 }
 
 export function founderNumberFromMetadata(metadata: FounderAllocationMetadata | null | undefined) {
-  return positiveInteger(metadata?.founderNumber) || positiveInteger(metadata?.memberNumber);
+  return positiveInteger(metadata?.founderNumber) || (isFounderMembershipMetadata(metadata) && metadata?.memberNumberVersion !== 'signup-order-v1' ? positiveInteger(metadata?.memberNumber) : null);
 }
 
 export function nextFounderNumber(users: FounderAllocationUser[], currentUserId: string, limit = FOUNDER_SPOT_LIMIT) {

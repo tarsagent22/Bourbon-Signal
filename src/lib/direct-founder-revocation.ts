@@ -9,7 +9,6 @@ export function directFounderRevocationMetadata(now = new Date().toISOString()) 
     directFounderEntitlementVersion: null,
     directFounderPreviousMembership: null,
     founderNumber: null,
-    memberNumber: null,
     membershipUpdatedAt: now,
   } as const;
 }
