@@ -44,10 +44,10 @@ const destinations = [
   "Inbox",
   "Feedback",
   "Community",
-  "Bottle Library",
+  "Bottles",
   "Members",
   "Rewards & Shipping",
-  "Coverage & Operations",
+  "Operations",
 ] as const;
 
 type Destination = (typeof destinations)[number];
@@ -117,7 +117,7 @@ function human(value: unknown) {
         "bottled-in-bond": "Founder",
         barrel: "Barrel Proof",
         standard: "Standard",
-        free: "Free",
+        free: "Free", all: "All", paid: "Paid", joined_desc: "Newest joined", joined_asc: "Oldest joined", activity: "Recent sign-in", name: "Name A–Z",
       } as Record<string, string>
     )[text] || text.replace(/([a-z])([A-Z])/g, "$1 $2").replaceAll("_", " ")
   );
@@ -416,15 +416,6 @@ export default function OwnerWorkspace() {
     [member, setMember] = useState<string | null>(null),
     [communityUser, setCommunityUser] = useState<string | null>(null),
     [rewardUser, setRewardUser] = useState<string | null>(null);
-  const navRef = useRef<ScrollView>(null),
-    navPositions = useRef<Record<string, number>>({});
-  useEffect(() => {
-    navRef.current?.scrollTo({
-      x: Math.max(0, (navPositions.current[section] || 0) - 16),
-      animated: true,
-    });
-  }, [section, access]);
-
   const revoke = useCallback(() => setAccess({ api, allowed: false }), [api]);
   useEffect(() => {
     let live = true;
@@ -463,26 +454,17 @@ export default function OwnerWorkspace() {
 
   return (
     <AdminRevoke.Provider value={revoke}>
-      <View style={s.screen}>
+      <ScrollView style={s.screen} keyboardShouldPersistTaps="handled">
         <View style={ui.top}>
           <Text style={ui.title}>Admin workspace</Text>
           <Text style={ui.small}>
             Find records, make corrections and manage fulfillment.
           </Text>
         </View>
-        <ScrollView
-          ref={navRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ flexGrow: 0, flexShrink: 0, height: 62 }}
-          contentContainerStyle={ui.nav}
-        >
+        <View style={[ui.nav, ui.row]}>
           {destinations.map((v) => (
             <Pressable
               key={v}
-              onLayout={(event) => {
-                navPositions.current[v] = event.nativeEvent.layout.x;
-              }}
               accessibilityRole="button"
               accessibilityState={{ selected: section === v }}
               onPress={() => {
@@ -496,12 +478,8 @@ export default function OwnerWorkspace() {
               </Text>
             </Pressable>
           ))}
-        </ScrollView>
-        <ScrollView
-          key={`${section}-${member || ""}`}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={ui.body}
-        >
+        </View>
+        <View style={ui.body}>
           {section === "Inbox" ? (
             <Inbox api={api} onOpen={setSection} />
           ) : section === "Feedback" ? (
@@ -513,7 +491,7 @@ export default function OwnerWorkspace() {
               userId={communityUser}
               onClear={() => setCommunityUser(null)}
             />
-          ) : section === "Bottle Library" ? (
+          ) : section === "Bottles" ? (
             <Bottles api={api} />
           ) : section === "Members" ? (
             <Members
@@ -539,8 +517,8 @@ export default function OwnerWorkspace() {
           ) : (
             <CoverageOperations api={api} />
           )}
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
     </AdminRevoke.Provider>
   );
 }
@@ -555,9 +533,9 @@ function Inbox({
   const state = useData(api, "overview");
   const rows: [string, string, Destination][] = [
     ["feedback", "New member feedback", "Feedback"],
-    ["coverage", "Coverage requests", "Coverage & Operations"],
+    ["coverage", "Coverage requests", "Operations"],
     ["community", "Posts needing review", "Community"],
-    ["bottles", "Missing bottle submissions", "Bottle Library"],
+    ["bottles", "Missing bottle submissions", "Bottles"],
     ["rewards", "Open reward redemptions", "Rewards & Shipping"],
     ["founderShipping", "Founder shipments", "Rewards & Shipping"],
   ];
@@ -566,14 +544,13 @@ function Inbox({
     <>
       <Text style={s.heading}>Needs attention</Text>
       <Status state={state} />
-      <View style={ui.row}>
-        {rows.map(([key, label, section]) => (
-          <View key={key} style={[s.card, ui.metric]}>
-            <Text style={s.heading}>{state.data?.[key] ?? "—"}</Text>
-            <Text style={ui.small}>{label}</Text>
-            <Action label="Open" onPress={() => onOpen(section)} />
-          </View>
-        ))}
+      <View style={{ gap: 6 }}>
+        {[...rows].sort((a,b) => Number(state.data?.[b[0]] || 0)-Number(state.data?.[a[0]] || 0)).map(([key,label,section]) => {
+          const count = state.data?.[key];
+          return <Pressable key={key} accessibilityRole="button" onPress={() => onOpen(section)} style={[ui.choice, {padding:12}]}>
+            <Text style={count > 0 ? ui.badge : ui.small}>{count == null ? `${label} · Unavailable` : count > 0 ? `Review ${count} ${label.toLowerCase()}` : `${label} · Up to date`} →</Text>
+          </Pressable>;
+        })}
       </View>
       {state.data?.unavailable.length ? (
         <Text style={ui.error}>
@@ -583,16 +560,16 @@ function Inbox({
       <Text style={s.heading}>Find and manage</Text>
       <Action
         label="Search the bottle library"
-        onPress={() => onOpen("Bottle Library")}
+        onPress={() => onOpen("Bottles")}
       />
-      <Action label="Find a member" onPress={() => onOpen("Members")} />
+      <Action label="Browse members" onPress={() => onOpen("Members")} />
       <Action
         label="Open community controls"
         onPress={() => onOpen("Community")}
       />
       <Action
         label="Pricing, service health and change history"
-        onPress={() => onOpen("Coverage & Operations")}
+        onPress={() => onOpen("Operations")}
       />
       <Text style={ui.mini}>Checked {date(state.data?.checkedAt)}</Text>
       <Action label="Refresh inbox" onPress={() => void state.load()} />
@@ -1029,9 +1006,11 @@ function BottleEditor({
   row,
   onClose,
   onSaved,
+  submission,
 }: {
   api: Api;
   row: Row;
+  submission?: Row;
   onClose: () => void;
   onSaved: (b?: Row) => Promise<unknown>;
 }) {
@@ -1043,11 +1022,11 @@ function BottleEditor({
 
   const patch = (key: string, v: unknown) => setDraft({ ...draft, [key]: v });
 
-  async function apply(merge = false) {
+  async function apply(merge = false, later = false) {
     const result = await save.run(
-      "catalog",
+      submission ? "bottle-contributions" : "catalog",
       {
-        id: row.id,
+        ...(submission ? { id:submission.id, expectedUpdatedAt:submission.updatedAt, action:later ? "save_later" : "approve_changes", bottleId:row.id } : { id:row.id }),
         version: row.version || 0,
         bottle: { ...draft, proof: draft.proof === "" ? null : draft.proof },
         reason,
@@ -1062,7 +1041,7 @@ function BottleEditor({
 
   return (
     <View style={s.card}>
-      <Action label="Back to library" onPress={onClose} />
+      <Action label={submission ? "Back to submission" : "Back to library"} onPress={onClose} />
       <Text style={s.heading}>
         {row.id ? "Edit bottle" : "New whiskey entry"}
       </Text>
@@ -1072,6 +1051,9 @@ function BottleEditor({
         ["producer", "Producer"],
         ["proof", "Proof"],
         ["ageStatement", "Age statement"],
+        ["sizeMl", "Bottle size (ml)"],
+        ["sourceUrl", "Identity source URL (HTTPS)"],
+        ["photoEvidenceUrl", "Photo evidence URL (HTTPS)"],
         ["summary", "Description"],
         ["guidance", "Buying guidance"],
       ].map(([key, label]) => (
@@ -1089,7 +1071,7 @@ function BottleEditor({
         value={draft.category}
         onChange={(v) => patch("category", v)}
       />
-      <Text style={ui.mini}>Availability</Text>
+      <Text style={ui.mini}>Catalog rarity class (not store stock)</Text>
       <Tabs
         choices={[
           "common",
@@ -1121,12 +1103,13 @@ function BottleEditor({
       </Text>
       <Saved save={save} />
       <Confirm
-        label={row.id ? "Save library corrections" : "Create library entry"}
+        label={submission ? "Approve with changes" : row.id ? "Save library corrections" : "Create library entry"}
         explanation="These details become available to members in the bottle library."
         busy={save.busy || reason.trim().length < 3}
         onApply={() => apply()}
       />
-      {row.id ? (
+      {submission ? <Action label="Save for later" disabled={save.busy || reason.trim().length < 3} onPress={() => void apply(false,true)} /> : null}
+      {row.id && !submission ? (
         <Action
           label={
             merging
@@ -1243,6 +1226,8 @@ function SubmissionEditor({
       "Submission resolved and linked shelf entries updated.",
     );
 
+  if (creating) return <BottleEditor api={api} submission={row} row={row.reviewDraft || chosen || {version:0,canonicalName:row.rawName,brand:"",category:"bourbon",availability:"common",aliases:[]}} onClose={() => setCreating(false)} onSaved={async () => {await onRefresh();onClose();}} />;
+
   return (
     <View style={s.card}>
       <Action label="Back to submissions" onPress={onClose} />
@@ -1259,28 +1244,10 @@ function SubmissionEditor({
         label={
           creating
             ? "Close new entry"
-            : "No exact match? Create a library entry"
+            : "Review and correct bottle fields"
         }
         onPress={() => setCreating(!creating)}
       />
-      {creating ? (
-        <BottleEditor
-          api={api}
-          row={{
-            version: 0,
-            canonicalName: row.rawName,
-            brand: "",
-            category: "bourbon",
-            availability: "common",
-            aliases: [],
-          }}
-          onClose={() => setCreating(false)}
-          onSaved={async (b) => {
-            if (b) setChosen(b);
-            setCreating(false);
-          }}
-        />
-      ) : null}
       <TextField
         label="Match / dismissal reason"
         value={reason}
@@ -1289,13 +1256,13 @@ function SubmissionEditor({
       />
       <Saved save={save} />
       <Confirm
-        label="Link submission to selected bottle"
+        label="Link to existing bottle"
         explanation="The selected identity is applied to shelf entries carrying this submission receipt. Member ratings, notes, purchase details and quantities are preserved."
         busy={save.busy || !chosen || reason.trim().length < 3}
         onApply={() => act("use_match")}
       />
       <Confirm
-        label="Dismiss invalid submission"
+        label="Reject submission"
         explanation="Closes the submission. The member’s personal shelf record stays available."
         busy={save.busy || reason.trim().length < 3}
         onApply={() => act("dismiss")}
@@ -1325,8 +1292,8 @@ function Members({
   onCommunity: () => void;
   onRewards: () => void;
 }) {
-  const [q, setQ] = useState("");
-  const state = useData(api, "members", `?q=${encodeURIComponent(q)}`);
+  const [q, setQ] = useState(""), [filter,setFilter] = useState("all"), [sort,setSort] = useState("joined_desc"), [offset,setOffset] = useState(0);
+  const state = useData(api, "members", `?q=${encodeURIComponent(q)}&filter=${filter}&sort=${sort}&offset=${offset}`);
 
   if (selected)
     return (
@@ -1341,8 +1308,11 @@ function Members({
 
   return (
     <>
-      <Text style={s.heading}>Find a member</Text>
-      <Search label="Name, email or member number" onSearch={setQ} />
+      <Text style={s.heading}>Members</Text>
+      <Search label="Name, email or member number" onSearch={v => {setQ(v);setOffset(0);}} />
+      <Tabs choices={["all","free","paid","standard","barrel","bottled-in-bond"]} value={filter} onChange={v => {setFilter(v);setOffset(0);}} />
+      <Text style={ui.mini}>Paid includes all premium access. Payment status is shown separately.</Text>
+      <Tabs choices={["joined_desc","joined_asc","activity","name"]} value={sort} onChange={v => {setSort(v);setOffset(0);}} />
       <Status state={state} />
       {state.data?.members.map((r: Row) => (
         <View key={r.id} style={s.card}>
@@ -1352,12 +1322,15 @@ function Members({
           </Text>
           <Text style={ui.badge}>
             {r.numberLabel} #{r.number || "Unassigned"} · {human(r.tier)} ·{" "}
-            {human(r.status)}
+            {r.accessSources?.map(human).join(", ")}
           </Text>
+          <Text style={ui.small}>Billing: {human(r.billingStatus)} · {human(r.billingProvider)}</Text>
+          <Text style={ui.mini}>Joined {date(r.createdAt)} · Last sign-in {date(r.lastSignInAt)}</Text>
           <Action label="Open member details" onPress={() => onSelect(r.id)} />
         </View>
       ))}
-      {q && state.data?.members.length === 0 ? (
+      <Paged data={state.data} offset={offset} onPage={setOffset} />
+      {state.data?.members.length === 0 ? (
         <Empty
           title="No matching members"
           copy="Try their email address or member number."
@@ -1405,7 +1378,7 @@ function MemberDetail({
 
   return (
     <>
-      <Action label="Back to member search" onPress={onClose} />
+      <Action label="Back to members" onPress={onClose} />
       <Status state={state} />
       {m ? (
         <>
@@ -1416,14 +1389,14 @@ function MemberDetail({
             </Text>
             <Text style={ui.badge}>
               {m.numberLabel} #{m.number || "Unassigned"} · {human(m.tier)} ·{" "}
-              {human(m.status)}
+              {m.accessSources?.map(human).join(", ")}
             </Text>
             <Text style={ui.small}>
               Joined {date(m.createdAt)}
               {m.lastSignInAt ? ` · Last sign-in ${date(m.lastSignInAt)}` : ""}
             </Text>
             <Text style={ui.small}>
-              Billing provider: {human(m.billingProvider)}
+              Billing: {human(m.billingStatus)} · {human(m.billingProvider)}
             </Text>
             <Text style={ui.small}>
               {d?.posts?.[0]?.count ?? "—"} community posts
@@ -1452,6 +1425,12 @@ function MemberDetail({
                 <Text style={ui.mini}>{date(a.createdAt)}</Text>
               </View>
             ))}
+          </View>
+          <View style={s.card}>
+            <Text style={s.heading}>Contributions and activity</Text>
+            <Text style={ui.small}>Only records associated with this member ID are included. Historical submissions without an ID are unattributed. Latest 100 records shown.</Text>
+            {d?.activity?.[0]?.activity?.counts?.map((r:Row) => <Text key={`${r.kind}-${r.status}`} style={ui.badge}>{human(r.kind)} · {human(r.status)}: {r.count}</Text>)}
+            {d?.activity?.[0]?.activity?.items?.map((r:Row) => <View key={`${r.kind}-${r.id}`} style={ui.history}><Text style={s.label}>{r.title || human(r.kind)}</Text><Text style={ui.small}>{human(r.kind)} · {human(r.status)} · {date(r.occurred_at)}</Text><Text selectable style={ui.mini}>Record {r.id}</Text></View>)}
           </View>
           <Text style={s.heading}>Reward history</Text>
           <Action label="Manage this member’s rewards" onPress={onRewards} />
@@ -1499,7 +1478,7 @@ function MemberDetail({
               onPress={() => void act("note").catch(() => {})}
             />
             <TextField
-              label="Point correction (+ to add, − to subtract)"
+              label="Point correction (+ to add, âˆ’ to subtract)"
               value={points}
               onChange={(v) => {
                 setPoints(v);
@@ -2076,7 +2055,7 @@ function CoverageEditor({
         ))}
       </View>
       <Action
-        label={high ? "High priority ✓" : "Set high priority"}
+        label={high ? "High priority âœ“" : "Set high priority"}
         onPress={() => setHigh(!high)}
       />
       <Text style={ui.small}>Member preview: {update || "No update yet."}</Text>

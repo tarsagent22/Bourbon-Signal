@@ -6,6 +6,8 @@ CREATE OR REPLACE FUNCTION owner_save_bottle_record(p_id TEXT, p_patch JSONB, p_
 RETURNS BIGINT LANGUAGE plpgsql AS $$
 DECLARE v_version BIGINT; v_before JSONB; v_user TEXT;
 BEGIN
+ PERFORM pg_advisory_xact_lock(hashtextextended('owner-catalog-write',0));
+ IF p_redirect IS NULL AND EXISTS(SELECT 1 FROM owner_bottle_records WHERE bottle_id<>p_id AND redirect_id IS NULL AND lower(patch->>'canonicalName')=lower(p_patch->>'canonicalName')) THEN RAISE EXCEPTION 'duplicate_bottle'; END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended('owner-bottle:' || lock_id,0)) FROM (SELECT DISTINCT unnest(ARRAY[p_id,p_redirect]) AS lock_id ORDER BY lock_id) ids WHERE lock_id IS NOT NULL;
  SELECT version,patch INTO v_version,v_before FROM owner_bottle_records WHERE bottle_id=p_id FOR UPDATE;
  v_before=COALESCE(v_before,p_patch->'_previous');
@@ -76,4 +78,25 @@ BEGIN
  UPDATE bottle_contributions SET status=p_status,payload=v_after,updated_at=now() WHERE id=p_id;
  INSERT INTO owner_workspace_audit(actor_id,action,target_id,details) VALUES(p_actor,'bottle_submission_' || p_status,p_id,jsonb_build_object('reason',p_reason,'before',v_before,'after',v_after));
  RETURN v_after;
+END $$;
+
+-- Review and catalog creation/edit are one transaction. No reward or availability dispatch.
+CREATE OR REPLACE FUNCTION owner_review_bottle_submission(p_id TEXT,p_expected TIMESTAMPTZ,p_bottle TEXT,p_patch JSONB,p_version BIGINT,p_actor TEXT,p_reason TEXT,p_action TEXT)
+RETURNS JSONB LANGUAGE plpgsql AS $$
+DECLARE v_before JSONB; v_after JSONB; v_name TEXT; v_version BIGINT;
+BEGIN
+ PERFORM pg_advisory_xact_lock(hashtextextended('owner-catalog-write',0));
+ SELECT payload INTO v_before FROM bottle_contributions WHERE id=p_id AND updated_at=p_expected FOR UPDATE;
+ IF v_before IS NULL THEN RAISE EXCEPTION 'admin_conflict'; END IF;
+ IF p_action='save_later' THEN
+  v_after=v_before || jsonb_build_object('reviewDraft',p_patch,'notes',p_reason,'updatedAt',now());
+  UPDATE bottle_contributions SET payload=v_after,updated_at=now() WHERE id=p_id;
+  INSERT INTO owner_workspace_audit(actor_id,action,target_id,details) VALUES(p_actor,'bottle_submission_draft',p_id,jsonb_build_object('reason',p_reason,'before',v_before,'after',v_after));
+  RETURN v_after;
+ END IF;
+ IF p_action<>'approve_changes' OR p_patch IS NULL OR p_bottle IS NULL THEN RAISE EXCEPTION 'invalid_review'; END IF;
+ IF v_before->>'status' IN ('added','matched_existing') THEN RAISE EXCEPTION 'admin_conflict'; END IF;
+ v_version=owner_save_bottle_record(p_bottle,p_patch,NULL,p_version,p_actor,p_reason,NULL);
+ v_name=p_patch->>'canonicalName';
+ RETURN owner_resolve_bottle_submission(p_id,p_expected,p_bottle,v_name,p_actor,p_reason,'added');
 END $$;

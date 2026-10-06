@@ -115,7 +115,7 @@ export async function PATCH(request: Request) {
             ]),
           ],
         }
-      : { ...draft };
+      : { ...draft, aliases:[...new Set([...(existing?.aliases || []),existing?.canonicalName || "",...draft.aliases])].filter(Boolean) };
     const id = existing?.id || `owner-${randomUUID()}`;
     const version = await saveOwnerBottle({
       id,

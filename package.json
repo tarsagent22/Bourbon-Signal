@@ -193,7 +193,7 @@
     "test:astra": "node scripts/test-astra-suite.mjs",
     "test:braces-security": "node scripts/check-braces-backport-advisories.cjs",
     "test:collection-value": "tsx scripts/test-collection-value.ts",
-    "test:owner-workspace": "node --test scripts/test-owner-workspace-security.cjs scripts/test-owner-admin-api.cjs && tsx scripts/test-owner-workspace.ts && tsx scripts/test-owner-admin-records.ts",
+    "test:owner-workspace": "node --test scripts/test-owner-workspace-security.cjs scripts/test-owner-admin-api.cjs && tsx scripts/test-owner-workspace.ts && tsx scripts/test-owner-admin-records.ts && tsx scripts/test-admin-member-directory.ts",
     "test:member-feedback": "tsx --test scripts/test-member-feedback.ts"
   },
   "dependencies": {

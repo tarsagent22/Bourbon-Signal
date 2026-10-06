@@ -1,3 +1,4 @@
+import { adminMember } from "@/lib/admin-member-directory";
 import { requireOwnerApiAccess } from "@/lib/owner-auth";
 import {
   classifyCompanyMember,
@@ -29,11 +30,15 @@ export async function GET(request: Request) {
           "SELECT id,action,details,created_at FROM owner_workspace_audit WHERE target_id=$1 ORDER BY id DESC LIMIT 50",
           [id],
         ),
-      posts: () =>
-        coverageDatabase().query(
-          "SELECT count(*)::int AS count FROM community_sightings WHERE reporter_user_id=$1",
-          [id],
-        ),
+      posts: () => coverageDatabase().query("SELECT count(*)::int AS count FROM community_sightings WHERE reporter_user_id=$1",[id]),
+      activity: () => coverageDatabase().query(`WITH activity AS (
+        SELECT id,'posts' AS kind, payload->>'bottleName' AS title,CASE WHEN COALESCE(payload->'rewardState'->>'rejectedAt','')<>'' THEN 'rejected' WHEN COALESCE(payload->'rewardState'->>'removedAt','')<>'' THEN 'removed' WHEN payload->'reviewState'->>'needsBottleReview'='true' OR payload->'reviewState'->>'needsStoreReview'='true' THEN 'pending' ELSE 'published' END AS status,created_at AS occurred_at FROM community_sightings WHERE reporter_user_id=$1
+        UNION ALL SELECT id,'bottles',payload->>'rawName',status,created_at FROM bottle_contributions WHERE payload->>'userId'=$1
+        UNION ALL SELECT id,'stores',payload->>'storeName',CASE WHEN payload->'reviewState'->>'needsStoreReview'='true' THEN 'pending' ELSE 'submitted' END,created_at FROM community_sightings WHERE reporter_user_id=$1 AND (payload->>'storeId' LIKE 'manual-%' OR payload->'reviewState'->>'needsStoreReview'='true')
+        UNION ALL SELECT id,'coverage',area_label,status,requested_at FROM coverage_requests WHERE user_id=$1
+        UNION ALL SELECT id,'feedback',request->>'kind',status,created_at FROM member_feedback WHERE user_id=$1
+        UNION ALL SELECT id,'retailer submissions',store_name,status,created_at FROM retailer_submissions WHERE user_id=$1
+      ) SELECT jsonb_build_object('items',(SELECT COALESCE(jsonb_agg(r),'[]'::jsonb) FROM (SELECT * FROM activity ORDER BY occurred_at DESC,id LIMIT 100) r),'counts',(SELECT COALESCE(jsonb_agg(r),'[]'::jsonb) FROM (SELECT kind,status,count(*)::int AS count FROM activity GROUP BY kind,status ORDER BY kind,status) r)) AS activity`,[id]),
     };
     const values = await Promise.allSettled(
         Object.values(tasks).map((fn) => fn()),
@@ -48,23 +53,7 @@ export async function GET(request: Request) {
       );
     return Response.json(
       {
-        member: {
-          id,
-          email: companyMemberPrimaryEmail(user),
-          name:
-            communityDisplayNameFromMetadata(metadata) ||
-            [user.firstName, user.lastName].filter(Boolean).join(" "),
-          number: metadata.founderNumber || metadata.memberNumber || null,
-          numberLabel: metadata.founderNumber ? "Founder" : "Member",
-          tier: member.effectiveTier,
-          status: member.status,
-          createdAt: user.createdAt,
-          lastSignInAt: user.lastSignInAt,
-          billingProvider:
-            metadata.billingProvider ||
-            metadata.subscriptionProvider ||
-            "Unspecified",
-        },
+        member: adminMember(user),
         ...data,
         unavailable: Object.keys(tasks).filter(
           (_, i) => values[i].status === "rejected",
