@@ -1450,7 +1450,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             if (!isWithinMemberAlertDeliveryWindow(attemptAt, priv.lifecycleTimeZone)) return null;
             const snapshotFresh = evaluateAlertSnapshotSafety({ generatedAt: batch.snapshot.generatedAt, now: attemptAt, maxAgeMinutes: Number(process.env.ALERT_SNAPSHOT_MAX_AGE_MINUTES || 45) }).safe;
             const wanted = new Set(intent.stableKeys);
-            const hidden = candidates.some(candidate=>candidate.sourceType === "community") ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
+            const hidden = candidates.some(candidate=>enumerateUnderlyingAlertChildren(candidate).some(child=>child.sourceType === "community")) ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
             const children = candidates.flatMap(enumerateUnderlyingAlertChildren)
               .filter(child=>CommunitySafetyRepository.candidateVisible(child,hidden))
               .filter((child) => wanted.has(stableUnderlyingAlertKey(child)))
@@ -1512,7 +1512,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       const bottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
       const alertMode = publicMetadata.alertMode;
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
-      const hidden = candidates.some(candidate=>candidate.sourceType === "community") ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
+      const hidden = candidates.some(candidate=>enumerateUnderlyingAlertChildren(candidate).some(child=>child.sourceType === "community")) ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
       const allMatchingPreferenceCandidates = groupCandidatesByLocation(candidates
         .filter(candidate=>CommunitySafetyRepository.candidateVisible(candidate,hidden))
         .filter((candidate) => asString(candidate.sourceType) !== "community" || (entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled))

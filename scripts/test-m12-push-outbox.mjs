@@ -221,6 +221,18 @@ test('actual caller: recipient quiet hours suppress inbox, push, email and SMS w
   assert.equal(result.skippedOutsideDeliveryHours,1);assert.equal(f.inboxes,0);assert.equal(f.sends,0);assert.equal(await f.state(),undefined);
 });
 
+test('actual caller: blocked and reported Community children cannot enter the inbox or push outbox',async()=>{
+  for(const action of ['block','report']) {
+    const f=await callerFixture();
+    Object.assign(f.candidate,{sourceType:'community',id:'community:hidden-post',reporterUserId:'blocked-author'});
+    const safety=new CommunitySafetyRepository(sql);
+    if(action==='block')await safety.block(f.user.id,'blocked-author');
+    else await safety.report(f.user.id,'hidden-post','harassment');
+    const result=await f.run();
+    assert.equal(result.onSiteAlertsCreated,0);assert.equal(f.inboxes,0);assert.equal(f.sends,0);assert.equal(await f.state(),undefined);
+  }
+});
+
 test('actual caller: inbox succeeds, known rejection, second run sends only push with current devices',async()=>{
   const f=await callerFixture();const first=await f.run();assert.equal(first.onSiteAlertsCreated,1);assert.equal(f.inboxes,1);assert.equal(f.sends,1);
   assert.equal((await f.state()).status,'pending');f.user.privateMetadata.pushDevices=['live-v2'];await f.due();
