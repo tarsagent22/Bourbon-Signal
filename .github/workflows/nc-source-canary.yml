@@ -45,8 +45,17 @@ jobs:
           const dossier = JSON.parse(await readFile('out/nc-board-intelligence.json', 'utf8'));
           assert.ok(Date.parse(dossier.generatedAt) >= startedAt, 'Canary requires this attempt, not old artifacts');
           assert.equal(dossier.sourceHealth.statewideFailures.length, 0, 'Statewide NC inputs failed');
-          assert.ok(dossier.durhamStructuredProducts.itemCount > 0, 'Durham public search parser returned no products');
-          assert.ok(dossier.newHanoverPublicProducts.itemCount > 0, 'New Hanover public cards and fallback returned no products');
+          for (const [product, boardName] of [
+            [dossier.durhamStructuredProducts, 'Durham County ABC Board'],
+            [dossier.newHanoverPublicProducts, 'New Hanover County ABC Board'],
+          ]) {
+            if (product.itemCount > 0) continue;
+            assert.notEqual(product.status, 200, `${boardName}: successful source response returned no parsed products`);
+            const board = dossier.sourceHealth.boards.find(row => row.boardName === boardName);
+            assert.ok(board && board.status !== 'healthy', `${boardName}: unavailable products were falsely labeled healthy`);
+            assert.ok(!board.parserWarnings.some(w => w.status === 'parser_drift' || w.parserStatus === 'parser_drift'), `${boardName}: product parser drift`);
+            console.warn(`::warning title=NC public-source access::${boardName} unavailable from this runner (HTTP ${product.status}); correctly recorded as ${board.status}.`);
+          }
           assert.ok(result.signals.length > 0, 'NC precision source emitted no observations');
           console.log(JSON.stringify({ signalCount: result.signals.length, roadblocks: result.roadblocks, sourceHealth: dossier.sourceHealth.statusCounts, shipmentObservedAt: dossier.stockShipped.observedAt }, null, 2));
           JS
