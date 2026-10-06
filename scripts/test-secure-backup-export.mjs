@@ -5,6 +5,7 @@ import test from 'node:test';
 
 import {
   BACKUP_TABLES,
+  collectProductionBackup,
   assertBackupResponseBudget,
   backupRequestMessage,
   encryptBackupPayload,
@@ -102,4 +103,31 @@ test('backup table guard fails closed on an incomplete production schema', () =>
 test('serialized envelope budget accounts for base64 and JSON overhead', () => {
   assert.doesNotThrow(() => assertBackupResponseBudget({ ciphertext: 'a'.repeat(4_300_000) }));
   assert.throws(() => assertBackupResponseBudget({ ciphertext: 'a'.repeat(4_400_000) }), /Vercel response budget/);
+});
+
+test('backup admission measures table and TOAST data while excluding rebuildable indexes', async () => {
+  const oldCommit = process.env.VERCEL_GIT_COMMIT_SHA;
+  process.env.VERCEL_GIT_COMMIT_SHA = 'a'.repeat(40);
+  let dataBytes = 31_000_000;
+  const sql = {
+    async query(text) {
+      if (text.includes('information_schema.tables') && !text.includes('SUM(')) return BACKUP_TABLES.map(table_name => ({table_name}));
+      assert.match(text, /pg_table_size\(/);
+      assert.doesNotMatch(text, /pg_total_relation_size/);
+      return [{total_bytes: String(dataBytes)}];
+    },
+    async transaction() {
+      return [[{snapshot_id:'1:1:'}], ...BACKUP_TABLES.flatMap(() => [[], []])];
+    },
+  };
+  try {
+    const payload = await collectProductionBackup(sql);
+    assert.equal(Object.keys(payload.tables).length, BACKUP_TABLES.length);
+    for (const table of ['account_deletion_requests','apple_memberships','member_push_ownership','alert_push_outbox','source_lane_subjects']) assert.ok(payload.tables[table]);
+    dataBytes = 32_000_001;
+    await assert.rejects(collectProductionBackup(sql), /safe serverless backup budget/);
+  } finally {
+    if (oldCommit === undefined) delete process.env.VERCEL_GIT_COMMIT_SHA;
+    else process.env.VERCEL_GIT_COMMIT_SHA = oldCommit;
+  }
 });
