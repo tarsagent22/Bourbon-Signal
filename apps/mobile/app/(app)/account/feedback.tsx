@@ -35,7 +35,7 @@ export default function FeedbackScreen(){
    {kind==='problem'?<><Text style={s.label}>Steps to reproduce (optional)</Text><TextInput accessibilityLabel="Steps to reproduce" multiline maxLength={1500} editable={!busy} value={steps} onChangeText={setSteps} style={[s.input,{minHeight:100,textAlignVertical:'top'}]}/></>:null}
    <Text style={s.copy}>Private feedback includes your account and app/build information so we can investigate. Do not include passwords, verification codes or payment details.</Text>
    {error?<Text accessibilityRole="alert" style={s.copy}>{error}</Text>:null}
-   <Action label={busy?'Sending…':'Send feedback'} disabled={busy||message.trim().length<10} onPress={()=>void submit()}/>
+   <Action label={busy?'Sending…':'Send feedback'} disabled={busy||Array.from(message.trim()).length<10} onPress={()=>void submit()}/>
   </>}
  </ScrollView></KeyboardAvoidingView>;
 }

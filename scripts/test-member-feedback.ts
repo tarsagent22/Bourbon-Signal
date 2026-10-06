@@ -10,7 +10,7 @@ import {ADMIN_EMAIL} from '../shared/admin-access.ts';
 const input=()=>({id:randomUUID(),kind:'problem',message:'The Radar screen did not refresh.',steps:'Open Radar, pull to refresh.',screen:'Radar',context:{platform:'ios',version:'1.1.0',build:'15',runtime:'1.1.0-ios-iap-1',update:'embedded'}});
 test('feedback rejects spoofed account fields, unknown diagnostics, controls and malformed inputs',()=>{
  assert.ok(feedbackInput(input()));
- for(const changes of [{message:'short'},{message:'x'.repeat(2001)},{kind:'other'},{userId:'owner'},{email:'spoof@example.test'},{id:'invalid'},{steps:'\u0000'},{context:{...input().context,token:'secret'}}])assert.equal(feedbackInput({...input(),...changes}),null);
+ for(const changes of [{message:'short'},{message:'😃'.repeat(5)},{message:'x'.repeat(2001)},{kind:'other'},{userId:'owner'},{email:'spoof@example.test'},{id:'invalid'},{steps:'\u0000'},{context:{...input().context,token:'secret'}}])assert.equal(feedbackInput({...input(),...changes}),null);
 });
 test('durable intake is account-scoped, retry-safe, capped, reviewable and deletable',async()=>{
  const db=new PGlite();try{
