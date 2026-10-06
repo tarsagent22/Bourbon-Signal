@@ -163,7 +163,9 @@ function Tabs({
   choices,
   value,
   onChange,
+  disabled = false,
 }: {
+  disabled?: boolean;
   choices: readonly string[];
   value: string;
   onChange: (v: string) => void;
@@ -174,7 +176,8 @@ function Tabs({
         <Pressable
           key={v}
           accessibilityRole="button"
-          accessibilityState={{ selected: v === value }}
+          accessibilityState={{ selected: v === value, disabled }}
+          disabled={disabled}
           onPress={() => onChange(v)}
           style={[ui.tab, v === value && ui.active]}
         >
@@ -2328,12 +2331,12 @@ function Feedback({api,onMember}:{api:Api;onMember:(id:string)=>void}) {
  const [filter,setFilter]=useState('new'),[offset,setOffset]=useState(0);
  const state=useData(api,'feedback',`?status=${filter}&offset=${offset}`),save=useSave(api,state.load);
  return <><Text style={s.heading}>Member feedback</Text><Text style={ui.small}>Private problem reports and suggestions from Free and paid members. Internal notes are visible only to admins.</Text>
- <Tabs choices={['new','reviewed','planned','resolved','all']} value={filter} onChange={v=>{setOffset(0);setFilter(v);}}/>
+ <Tabs disabled={save.busy} choices={['new','reviewed','planned','resolved','all']} value={filter} onChange={v=>{setOffset(0);setFilter(v);}}/>
  <Status state={state}/>{save.error?<Text accessibilityRole="alert" style={ui.error}>{save.error}</Text>:null}{save.notice?<Text accessibilityLiveRegion="polite" style={ui.notice}>{save.notice}</Text>:null}
- {state.data?.items.map((item:Row)=><FeedbackCard key={`${item.userId}:${item.id}`} item={item} busy={save.busy} onMember={()=>onMember(item.userId)} onSave={(status:string,note:string)=>{void save.run('feedback',{userId:item.userId,id:item.id,status,internalNote:note},'Feedback updated.').catch(()=>{});}}/>)}
+ {state.data?.items.map((item:Row)=><FeedbackCard key={`${item.userId}:${item.id}`} item={item} busy={save.busy||state.loading} onMember={()=>onMember(item.userId)} onSave={(status:string,note:string)=>{void save.run('feedback',{userId:item.userId,id:item.id,status,internalNote:note},'Feedback updated.').catch(()=>{});}}/>)}
  {state.data?.items.length===0?<Empty title="No feedback here" copy="New reports and suggestions will appear here after a member sends them."/>:null}
- <View style={ui.row}>{offset>0?<Action label="Previous feedback" onPress={()=>setOffset(Math.max(0,offset-50))}/>:null}{state.data?.nextOffset!=null?<Action label="Next feedback" onPress={()=>setOffset(state.data!.nextOffset)}/>:null}</View>
- <Action label="Refresh feedback" onPress={()=>void state.load()}/></>;
+ <View style={ui.row}>{offset>0?<Action label="Previous feedback" disabled={save.busy} onPress={()=>setOffset(Math.max(0,offset-50))}/>:null}{state.data?.nextOffset!=null?<Action label="Next feedback" disabled={save.busy} onPress={()=>setOffset(state.data!.nextOffset)}/>:null}</View>
+ <Action label="Refresh feedback" disabled={save.busy||state.loading} onPress={()=>void state.load()}/></>;
 }
 function FeedbackCard({item,busy,onMember,onSave}:{item:Row;busy:boolean;onMember:()=>void;onSave:(status:string,note:string)=>void}) {
  const [note,setNote]=useState(item.internalNote||''),[status,setStatus]=useState(item.status);
@@ -2342,6 +2345,6 @@ function FeedbackCard({item,busy,onMember,onSave}:{item:Row;busy:boolean;onMembe
  <Text style={ui.badge}>{human(item.status)} · {date(item.createdAt)}</Text><Text selectable style={s.copy}>{item.message}</Text>
  {item.screen?<Text style={ui.small}>Screen: {item.screen}</Text>:null}{item.steps?<><Text style={s.label}>Reproduction steps</Text><Text selectable style={ui.small}>{item.steps}</Text></>:null}
  <Text selectable style={ui.small}>{item.memberName}{item.email?` · ${item.email}`:''}</Text><Text style={ui.mini}>{item.context.platform} · App {item.context.version} · Build {item.context.build} · Update {item.context.update}</Text>
- <Action label="Open member" onPress={onMember}/><TextField label="Internal note" value={note} onChange={setNote} multiline/>
- <Tabs choices={['new','reviewed','planned','resolved']} value={status} onChange={setStatus}/><Action label={busy?'Saving…':'Save feedback review'} disabled={busy} onPress={()=>onSave(status,note)}/></View>;
+ <Action label="Open member" disabled={busy} onPress={onMember}/><Text style={s.label}>Internal note</Text><TextInput accessibilityLabel="Internal note" multiline maxLength={1500} editable={!busy} value={note} onChangeText={setNote} style={s.input}/>
+ <Tabs disabled={busy} choices={['new','reviewed','planned','resolved']} value={status} onChange={setStatus}/><Action label={busy?'Saving…':'Save feedback review'} disabled={busy} onPress={()=>onSave(status,note)}/></View>;
 }
