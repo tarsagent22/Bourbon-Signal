@@ -50,6 +50,12 @@ jobs:
       - name: Verify engine reliability and expansion capacity
         run: npm --prefix engine run verify:reliability
 
+      - name: Verify NC source resilience and evidence safety
+        working-directory: engine
+        run: |
+          npm run bible
+          node --test test/nc-*.test.mjs test/astra-review-redirect-controls.test.mjs
+
       - name: Verify generated lifecycle configuration has no drift
         run: npm run verify:state-lifecycle-drift
 

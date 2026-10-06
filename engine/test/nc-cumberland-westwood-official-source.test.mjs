@@ -136,7 +136,9 @@ test('Cumberland source additions remain directory or county-update evidence, ne
 test('candidate URL construction merges every reviewed static row for boards with multiple entries', () => {
   const urls = candidateUrlsForBoard({ boardName: 'New Hanover County ABC Board', website: null });
   assert.equal(urls.includes('https://www.newhanovercountyabc.com/barrels/'), true);
-  assert.equal(urls.includes('https://www.newhanovercountyabc.com/allocated-products/'), true);
+  assert.equal(urls.includes('https://www.newhanovercountyabc.com/bourbon-blast/'), true);
+  assert.equal(urls.includes('https://www.newhanovercountyabc.com/wp-json/wp/v2/posts'), true);
+  assert.equal(urls.includes('https://www.newhanovercountyabc.com/allocated-products/'), false, 'An obsolete 404 is not a pinned source.');
 });
 
 test('Cumberland stays inside the bounded production board-page cohort', () => {

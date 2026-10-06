@@ -112,5 +112,13 @@ export function buildNcBoardCoverageSummary(activeOfficialLocations = [], ncInte
     boardsWithReleasePages: ncIntelligenceRaw.coverage?.withReleasePages || 0,
     boardsWithInventoryPages: ncIntelligenceRaw.coverage?.withInventoryPages || 0,
     sourcePolicy: ncIntelligenceRaw.sourcePolicy,
+    sourceHealth: ncIntelligenceRaw.sourceHealth ? {
+      checkedAt: ncIntelligenceRaw.sourceHealth.checkedAt,
+      statusCounts: ncIntelligenceRaw.sourceHealth.statusCounts,
+      statewideFailures: ncIntelligenceRaw.sourceHealth.statewideFailures || [],
+      affectedBoards: ncIntelligenceRaw.sourceHealth.boards.filter(board => ['partial', 'unreachable'].includes(board.status)),
+      shipmentObservedAt: ncIntelligenceRaw.stockShipped?.observedAt || null,
+      shipmentRetrievedAt: ncIntelligenceRaw.stockShipped?.retrievedAt || null,
+    } : null,
   };
 }

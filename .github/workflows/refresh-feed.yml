@@ -111,6 +111,14 @@ jobs:
           restore-keys: |
             inventory-nc-board-intelligence-${{ runner.os }}-
 
+      - name: Restore NC learned public source routes
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/nc-source-registry.json
+          key: nc-source-registry-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            nc-source-registry-${{ runner.os }}-
+
       - name: Restore browser source artifacts
         uses: actions/cache/restore@v4
         with:
@@ -468,6 +476,13 @@ jobs:
           path: engine/out/nc-board-intelligence.json
           key: inventory-nc-board-intelligence-${{ runner.os }}-${{ github.run_id }}
 
+      - name: Save NC learned public source routes independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/nc-source-registry.json
+          key: nc-source-registry-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Save browser source artifacts
         if: always()
         uses: actions/cache/save@v4
@@ -501,6 +516,7 @@ jobs:
             engine/out/source-usefulness-roi.json
             engine/out/source-usefulness-roi.md
             engine/out/nc-board-intelligence.json
+            engine/out/nc-source-registry.json
             engine/out/control-plane/**
             engine/out/site/stats.json
             engine/out/site/state-health.json

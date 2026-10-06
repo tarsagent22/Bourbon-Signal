@@ -92,3 +92,7 @@ jobs:
         run: |
           echo "Production freshness remains outside the SLO. Recovery dispatch or deduplication does not count as restoration."
           exit 1
+
+      - name: Escalate persistent NC source or parser breakage
+        if: always()
+        run: node scripts/verify-nc-source-health.mjs

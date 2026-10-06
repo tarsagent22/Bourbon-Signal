@@ -114,8 +114,14 @@ export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: sta
     }
   }
 
+  const ncSourceHealth = stats?.body?.ncBoardIntelligence?.sourceHealth || null;
+  for (const source of ncSourceHealth?.statewideFailures || []) warnings.push(`NC statewide source ${source.source}: ${source.status}.`);
+  for (const board of ncSourceHealth?.affectedBoards || []) {
+    warnings.push(`NC source ${board.boardName}: ${board.status}; ${board.failedPageCount} failed route(s), ${board.consecutiveFailures} consecutive failures; ${board.parserWarnings?.length || 0} parser warning(s).`);
+  }
   return {
     ok: failures.length === 0,
+    ncSourceHealth,
     recoveryStates: requiresFullRecovery ? [] : [...recoveryStates].sort(),
     checkedAt: new Date(nowMs).toISOString(),
     snapshotId: stats?.snapshotId || null,
@@ -160,7 +166,7 @@ export async function runProductionWatchdog() {
   report = { ...report, attempts };
   await mkdir(path.dirname(REPORT_PATH), { recursive: true });
   await writeFile(REPORT_PATH, JSON.stringify(report, null, 2));
-  for (const warning of report.warnings || []) console.warn(`::warning title=Bourbon Signal rollback observed::${warning}`);
+  for (const warning of report.warnings || []) console.warn(`::warning title=Bourbon Signal source health::${warning}`);
   console.log(JSON.stringify(report, null, 2));
   if (!report.ok) process.exitCode = 1;
   return report;
