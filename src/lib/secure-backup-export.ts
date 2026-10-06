@@ -53,6 +53,14 @@ const SIGNAL_POINT_TABLES = [
   "signal_reward_redemptions", "signal_reward_redemption_events", "signal_reward_fulfillments", "signal_membership_offer_codes",
 ] as const;
 export const BACKUP_TABLES = Array.from(new Set([
+  "account_deletion_requests", "apple_memberships", "apple_membership_events",
+  "member_numbers", "member_number_counter", "member_push_ownership",
+  "alert_delivery_leases", "alert_recipient_cursor", "alert_push_tickets", "alert_push_outbox",
+  "source_lane_heads", "source_lane_batches", "source_lane_subjects", "source_lane_opportunities",
+  "source_lane_demand", "source_lane_trace", "coverage_request_reviews",
+  "owner_workspace_audit", "owner_bottle_records", "collection_price_health", "collection_price_history",
+  "signal_point_schema_backups", "campaign_preflight_nonces", "campaign_email_clicks",
+  "growth_attribution_daily", "ohlq_worker_artifacts", "ops_backup_export_requests",
   "approved_catalog_bottles", "approved_catalog_locations",
   "alert_baselines", "alert_candidates", "alert_deliveries", "alert_lifecycle_migrations", "alert_lifecycle_states",
   "alert_queue_migrations", "bourbon_recommendation_feedback_state", "clerk_alert_metadata_backups",
@@ -167,7 +175,8 @@ export async function collectProductionBackup(sql: NeonQueryFunction<false, fals
   );
   const selectedTables = requiredBackupTablesForExisting(new Set(tableRows.map((row) => String(row.table_name))));
   const sizeRows = await sql.query(
-    `SELECT COALESCE(SUM(pg_total_relation_size((quote_ident(table_schema) || '.' || quote_ident(table_name))::regclass)), 0)::bigint AS total_bytes
+    // Table data includes TOAST; indexes are rebuilt during recovery and never exported.
+    `SELECT COALESCE(SUM(pg_table_size((quote_ident(table_schema) || '.' || quote_ident(table_name))::regclass)), 0)::bigint AS total_bytes
      FROM information_schema.tables
      WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name = ANY($1::text[])`,
     [selectedTables],
