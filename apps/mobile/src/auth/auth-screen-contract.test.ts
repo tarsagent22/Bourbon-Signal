@@ -29,6 +29,11 @@ test("verified accounts must resume server-authoritative onboarding before enter
   assert.match(signUp, /params\.resume === "onboarding"/);
 });
 
+test("native password recovery keeps reset-code verification, MFA and finalized sessions separate",()=>{
+  for(const contract of [/Forgot password\?/,/signIn\.resetPasswordEmailCode\.sendCode/,/signIn\.resetPasswordEmailCode\.verifyCode/,/signIn\.resetPasswordEmailCode\.submitPassword/,/signOutOfOtherSessions: true/,/needs_new_password/,/Resend verification code/,/Back to sign in/,/signIn\.reset\(\)/])assert.match(signIn,contract);
+  assert.doesNotMatch(signIn,/not available in this development build/);
+});
+
 test("native sign-up uses Clerk email code verification and no social or phone collection", () => {
   for (const contract of [
     /useSignUp/, /signUp\.password/, /signUp\.verifications\.sendEmailCode/, /signUp\.verifications\.verifyEmailCode/, /signUp\.finalize/,

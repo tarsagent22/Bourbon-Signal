@@ -1,4 +1,5 @@
 "use client";
+import CommunitySafetyControls from "@/components/signals/CommunitySafetyControls";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -167,6 +168,7 @@ export default function SightingsClient() {
   const optimisticMemberAccess = !authLoaded || canReadSightings;
   const canEditSightings = authLoaded && isSignedIn && canSubmitSightings;
   const [feedLimit, setFeedLimit] = useState(60);
+  const [hiddenSightings,setHiddenSightings]=useState<Set<string>>(new Set());
   const { bottles } = useBottles(activeTab === "submit" && optimisticMemberAccess);
   const { stores, loading: storesLoading, error: storesError, reload: reloadStores } = useStores(activeTab === "submit" && authLoaded && isSignedIn && canSubmitSightings);
   const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading, previewLimit, totalSightings } = useSightings(authLoaded && isSignedIn && canReadSightings, { includePreferences: false, includeRewards: false, feedLimit });
@@ -295,7 +297,7 @@ export default function SightingsClient() {
     { value: "ALL", label: "All states" },
     ...stateOptions.map((state) => ({ value: state, label: state })),
   ], [stateOptions]);
-  const filteredSightings = useMemo(() => sightings.filter((sighting) => stateFilter === "ALL" || sighting.storeState === stateFilter), [sightings, stateFilter]);
+  const filteredSightings = useMemo(() => sightings.filter((sighting) => !hiddenSightings.has(sighting.id) && (stateFilter === "ALL" || sighting.storeState === stateFilter)), [sightings, stateFilter, hiddenSightings]);
 
   const requestLocation = () => {
     if (!navigator.geolocation) return setGeoStatus("Location is not available in this browser.");
@@ -558,6 +560,7 @@ export default function SightingsClient() {
               const proofUrl = proof?.status !== "rejected" ? (proof?.publicUrl || proof?.url || null) : null;
               return (
                 <article key={sighting.id} className="sighting-card">
+                  <CommunitySafetyControls signalId={`member:${sighting.id}`} onHidden={()=>setHiddenSightings(rows=>new Set([...rows,sighting.id]))} />
                   <div className="sighting-card-kicker"><span className="sighting-eyebrow">{sightingTypeLabel(sighting.sightingType)}</span><span className="sighting-time">Reported {formatAgo(sighting.createdAt)}</span></div>
                   <h3 className="sighting-title">{sighting.bottleName}</h3>
                   <div className="sighting-store-line"><MapPin size={15} aria-hidden="true" /><span>{sighting.storeName}</span></div>

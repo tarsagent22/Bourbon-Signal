@@ -19,21 +19,21 @@ This checklist separates source implementation from Apple configuration and fina
 - [x] Camera and selected-photo evidence prompts follow explicit member action, preserve metadata-stripping, and allow manual posting without a photo after denial.
 - [x] Draft store copy, privacy inventory, reviewer path, release gates, and screenshot specification are version-controlled.
 
-## Apple and RevenueCat configuration — not complete
+## Apple and RevenueCat configuration — observed October 5, 2026
 
-Configured StoreKit and RevenueCat products are required and remain unverified.
+Configured StoreKit and RevenueCat products were inspected live: two monthly products and matching default offerings/entitlements exist. Apple product approval and final-candidate evidence remain pending.
 
-- [ ] Accept all applicable Apple agreements and verify App Store Connect organization/team access.
-- [ ] Create or verify the App Store Connect app record for `com.bourbonsignal.app`.
-- [ ] Create and configure the Standard monthly and Barrel monthly subscriptions. Preserve any existing annual product identifiers only for legacy subscriber lifecycle and restore handling; do not expose them as launch purchase options.
+- [x] Accept all applicable Apple agreements and verify App Store Connect organization/team access.
+- [x] Create or verify the App Store Connect app record for `com.bourbonsignal.app`.
+- [x] Create and configure the Standard monthly and Barrel monthly subscriptions. Preserve any existing annual product identifiers only for legacy subscriber lifecycle and restore handling; do not expose them as launch purchase options.
 - [ ] Configure subscription groups, territories, pricing, tax/category data, localization, review information, and introductory offers as approved.
-- [ ] Configure matching RevenueCat products, entitlements, offerings, webhook/API credentials, and production environment values.
+- [x] Configure matching RevenueCat products, entitlements, offerings, webhook/API credentials, and production environment values.
 - [ ] Prove that product identifiers, eligible offerings, and localized prices returned by StoreKit exactly match source contracts.
 - [ ] Add the real App Store Connect app ID to approved submit configuration after it exists.
 - [ ] Configure organization-owned signing without placing credentials in the repository.
-- [ ] Create a least-privilege App Review account and store credentials only in App Store Connect.
+- [x] Create a least-privilege App Review account and store credentials only in App Store Connect.
 
-Products are not configured or verified by this source pass.
+Both launch products are configured and remain Prepare for Submission. Standard subscription review artwork was missing during inspection.
 
 ## Sandbox and TestFlight evidence — not complete
 
@@ -49,18 +49,18 @@ Products are not configured or verified by this source pass.
 - [ ] Verify push register, dedupe, deep link, disable, sign-out, and cross-account behavior on physical devices.
 - [ ] Verify Terms, Privacy, Support, and permanent deletion with a disposable account.
 
-Sandbox purchase and restore evidence has not been verified.
+Owner-reported evidence: the latest TestFlight candidate worked well and a sandbox purchase granted correct access. This does not establish restore, all lifecycle cases, or push receipt. Those remain unchecked.
 
 ## Final candidate — not complete
 
 - [ ] Run the complete mobile verification suite from a clean install.
 - [ ] Run Expo Doctor and production EAS configuration validation.
-- [ ] Produce the final signed iOS build. No final signed build has been produced by this pass.
+- [ ] Attach and inspect the final signed build. TestFlight build 14 exists; the final changed candidate still needs review and attachment.
 - [ ] Inspect the archive’s privacy manifests, required-reason APIs, SDK signatures, entitlements, permissions, encryption declaration, and development-module exclusions.
 - [ ] Install through TestFlight and complete physical-device QA, accessibility, text scaling, small-screen, offline/retry, and account-switch testing.
 - [ ] Capture and batch-review screenshots at Apple-accepted dimensions. Screenshots have not been captured.
 - [ ] Reconcile App Privacy, age rating, review notes, public URLs, and vendor disclosures against the final build.
-- [ ] Obtain owner approval before TestFlight distribution or App Review submission.
+- [ ] Confirm factual content-rights and privacy declarations with the owner before submission. Engineering and release preparation are already authorized.
 
 ## Local verification commands
 
@@ -70,4 +70,4 @@ Sandbox purchase and restore evidence has not been verified.
     npx expo-doctor
     npx eas-cli config --platform ios --profile production
 
-Do not run a signed production build or submit from an implementation-worker pass unless explicitly authorized.
+The owner has authorized engineering and release preparation. Record exact build/update identifiers and keep physical-device results separate from automated verification.

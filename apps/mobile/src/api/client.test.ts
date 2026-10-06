@@ -4,6 +4,15 @@ import { preferencesFixture, profileFixture, feedFixture } from './astra-fixture
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
 
+test('Community safety mutations and private block reads validate their real wire contracts',async()=>{
+  let payload:unknown={ok:true};
+  const api=createMobileApi({baseUrl:'https://safety.example.test',getToken:async()=>'fixture-token',fetcher:async input=>{assert.equal((input as Request).headers.get('authorization'),'Bearer fixture-token');return Response.json(payload);}});
+  assert.equal((await api.saveCommunitySafety({action:'report',signalId:'member:sighting_fixture',reason:'spam'})).ok,true);
+  payload={blocks:[{id:'user_fixture',label:'Member #42',createdAt:'2026-10-05'}]};assert.equal((await api.getBlockedMembers()).blocks.length,1);
+  payload={};await assert.rejects(()=>api.getBlockedMembers(),e=>e instanceof MobileApiError&&e.code==='INVALID_RESPONSE');
+  payload={ok:false};await assert.rejects(()=>api.saveCommunitySafety({action:'block',signalId:'member:sighting_fixture'}),e=>e instanceof MobileApiError&&e.code==='INVALID_RESPONSE');
+});
+
 test('admin capability fails closed and owner reads never reuse a prior queue', async () => {
   let fetches=0;
   let payload:unknown={allowed:false};

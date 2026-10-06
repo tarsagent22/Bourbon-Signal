@@ -145,8 +145,6 @@ export function buildOpsHealth(input: {
   const deploymentMismatch = Boolean(input.heartbeat && input.currentDeploymentId && input.heartbeat.deploymentId !== input.currentDeploymentId);
   const monitorOnly = process.env.ALERT_MONITOR_ONLY === "1";
   const deliveryChannelsEnabled = process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1"
-    || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1"
-    || process.env.ALERT_SMS_DELIVERY_ENABLED === "1"
     || process.env.ALERT_DELIVERY_ENABLED === "1";
   const cronStatus = !input.heartbeat
     ? "unknown"
@@ -234,8 +232,8 @@ export function buildOpsHealth(input: {
       cronSecretConfigured: Boolean(process.env.CRON_SECRET || process.env.ALERT_DELIVERY_SECRET),
       blobHeartbeatConfigured: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
       onSiteEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
-      emailEnabled: process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
-      smsEnabled: process.env.ALERT_SMS_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
+      emailEnabled: false,
+      smsEnabled: false,
       monitorOnly,
       alertAudit: input.alertAudit,
     },

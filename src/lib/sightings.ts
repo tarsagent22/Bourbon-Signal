@@ -41,6 +41,7 @@ export interface MemberSighting {
   quantityEstimate?: string;
   price?: number | null;
   notes?: string;
+  publicPhotoUrl?: string;
   source: SightingSource;
   sightingType?: SightingType;
   reporterUserId?: string;

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { MemberAlert } from '../api/types';
 import { preferencesFixture } from '../api/astra-fixtures';
-import { partitionRadarAlerts, radarSetupNeeded, radarBottleSummary } from './radar-presentation';
+import { partitionRadarAlerts, radarSetupNeeded, radarBottleSummary,radarSetupStatus } from './radar-presentation';
 
 test('history unread counts cannot inflate current results, and archived items stay hidden', () => {
   const now = new Date('2026-10-03T12:00:00Z');
@@ -20,9 +20,26 @@ test('setup requires locations and only requires a bottle list in specific mode'
   prefs.monitoringScopes = [{ id: 'NC', type: 'state', state: 'NC', label: 'North Carolina' }];
   assert.equal(radarSetupNeeded(prefs), true);
   prefs.alertMode = 'anything_notable';
+  prefs.notificationPreferences.rarityTiers=['allocated'];
   assert.equal(radarSetupNeeded(prefs), false);
   prefs.entitlements = { alertAreaLimit: 0 };
   assert.equal(radarSetupNeeded(prefs), true);
+});
+
+test('Radar explains silent filters, disabled channels and phone registration separately',()=>{
+  const prefs=preferencesFixture();
+  assert.equal(radarSetupStatus(prefs,'Off').title,'Choose an area');
+  prefs.monitoringScopes=[{id:'NC',type:'state',state:'NC',label:'North Carolina'}];
+  assert.equal(radarSetupStatus(prefs,'Off').title,'Choose bottle tiers');
+  prefs.notificationPreferences.rarityTiers=['allocated'];
+  assert.equal(radarSetupStatus(prefs,'Off').title,'Watch your first bottle');
+  prefs.alertMode='anything_notable';
+  assert.match(radarSetupStatus(prefs,'Off').detail,/Phone alerts are off/);
+  prefs.notificationPreferences.onSite.enabled=false;
+  assert.equal(radarSetupStatus(prefs,'Off').title,'Enable an alert channel');
+  assert.equal(radarSetupStatus(prefs,'On').title,'Watch preferences ready');
+  prefs.notificationPreferences.onSite.enabled=true;
+  assert.equal(radarSetupStatus(prefs,'Setup needed').title,'Phone alerts need attention');
 });
 
 test('bottle summary includes tier restrictions even for a specific bottle list', () => {

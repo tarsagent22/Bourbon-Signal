@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Navigation from "@/components/Navigation";
 import HuntOutcomePrompt from "@/components/signals/HuntOutcomePrompt";
+import CommunitySafetyControls from "@/components/signals/CommunitySafetyControls";
 import { createSignalApiClient } from "@/lib/signals/signal-api-client";
 import type { SignalDetailResponse } from "@/lib/signals/signal-api-contract";
 
@@ -11,6 +12,7 @@ export default function SignalDetailClient({ signalId }: { signalId: string }) {
   const api = useMemo(() => createSignalApiClient({ baseUrl: globalThis.location?.origin || "http://localhost" }), []);
   const [detail, setDetail] = useState<SignalDetailResponse | null>(null);
   const [error, setError] = useState("");
+  const [hidden,setHidden]=useState(false);
 
   useEffect(() => {
     let active = true;
@@ -35,7 +37,8 @@ export default function SignalDetailClient({ signalId }: { signalId: string }) {
         <Link href="/#drops" style={{ color: "var(--color-accent-amber)", fontFamily: "var(--font-dm-sans)", fontSize: 13, textDecoration: "none" }}>← Back to Signals</Link>
         {!signal && !error ? <p style={{ color: "var(--color-text-secondary)", marginTop: 28 }}>Loading Signal…</p> : null}
         {error ? <p role="alert" style={{ color: "#D77A61", marginTop: 28 }}>{error}</p> : null}
-        {signal ? (
+        {hidden ? <p role="status">This Community post is hidden. <Link href="/community-safety">Manage blocked members</Link></p> : null}
+        {signal && !hidden ? (
           <article style={{ marginTop: 24, border: "1px solid rgba(245,237,214,0.10)", borderRadius: 22, background: "linear-gradient(180deg, rgba(31,24,17,0.94), rgba(14,11,8,0.98))", boxShadow: "0 20px 60px rgba(0,0,0,0.32)", padding: "clamp(20px, 4vw, 34px)" }}>
             <p style={{ margin: 0, color: "var(--color-accent-amber)", fontFamily: "var(--font-jetbrains)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase" }}>{signal.source.label}</p>
             <h1 style={{ margin: "8px 0 18px", color: "var(--color-cream)", fontFamily: "var(--font-playfair)", fontSize: "clamp(30px, 6vw, 48px)" }}>{signal.bottle.name}</h1>
@@ -48,6 +51,8 @@ export default function SignalDetailClient({ signalId }: { signalId: string }) {
               {signal.availability?.caveat ? <Detail label="Before you go" value={signal.availability.caveat} /> : null}
             </dl>
             <HuntOutcomePrompt signalId={signal.id} signal={{ kind: signal.kind, displayAt: signal.timing.displayAt, expiresAt: signal.timing.expiresAt }} />
+            {signal.evidence.photoUrl ? <img src={signal.evidence.photoUrl} alt="Member sighting photo approved for public display" style={{width:'100%',maxHeight:400,objectFit:'contain'}} /> : null}
+            {signal.source.type === 'member' ? <CommunitySafetyControls signalId={signal.id} onHidden={()=>setHidden(true)} /> : null}
           </article>
         ) : null}
       </main>

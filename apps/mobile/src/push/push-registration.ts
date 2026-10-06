@@ -17,6 +17,7 @@ type PushStatusListener = (status: PushDeviceStatus | null) => void;
 let logoutInProgress = false;
 const operations = new Map<string, Promise<PushDeviceStatus | null>>();
 const statusListeners = new Map<PushStatusListener, string>();
+const recoveryRetryAfter = new Map<string,number>();
 const accountKey = (api: MobileApi) => api.pushAccountId || "legacy";
 const intentKey = (api: MobileApi) => api.pushAccountId ? `${PUSH_ENABLED_KEY}.${api.pushAccountId}` : PUSH_ENABLED_KEY;
 const tokenKey = (api: MobileApi) => `${intentKey(api)}.token`;
@@ -156,12 +157,14 @@ async function registerCurrentRadarPushToken(api: MobileApi, requestPermission: 
 
 export async function enableRadarPush(api: MobileApi) {
   logoutInProgress = false;
+  recoveryRetryAfter.delete(accountKey(api));
   const status = await serializePush(api, () => registerCurrentRadarPushToken(api, true));
   if (!status) throw new Error("Push notifications could not be enabled on this device.");
   return status;
 }
 
 export async function disableRadarPush(api: MobileApi) {
+  recoveryRetryAfter.delete(accountKey(api));
   await rememberIntent(api, false);
   const status = await serializePush(api, async () => {
     await rememberIntent(api, false);
@@ -188,7 +191,13 @@ export async function refreshRadarPushIfEnabled(api: MobileApi, knownStatus?: Pu
       intent = "1";
     }
     if (intent !== "1") return current;
-    return await registerCurrentRadarPushToken(api, false, current) || current;
+    if(Date.now() < (recoveryRetryAfter.get(accountKey(api)) || 0))return current;
+    try {
+      const result=await registerCurrentRadarPushToken(api, false, current) || current;
+      if(result.enabled)recoveryRetryAfter.delete(accountKey(api));
+      else recoveryRetryAfter.set(accountKey(api),Date.now()+60_000);
+      return result;
+    } catch(caught){recoveryRetryAfter.set(accountKey(api),Date.now()+60_000);throw caught;}
   });
 }
 

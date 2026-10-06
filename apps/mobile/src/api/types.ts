@@ -17,7 +17,7 @@ export interface Signal {
     store?: { id?: string; name?: string; address?: string; city?: string; state?: string; zip?: string };
   };
   timing: { observedAt?: string; reportedAt?: string; displayAt: string; scheduledFor?: string; expiresAt?: string };
-  evidence: { summary?: string; photo: boolean; corroborationCount: number; helpfulCount: number; retailerReported: boolean; sourceBacked: boolean };
+  evidence: { summary?: string; photo: boolean; photoUrl?: string; corroborationCount: number; helpfulCount: number; retailerReported: boolean; sourceBacked: boolean };
   strength: "best" | "more_activity";
   availability?: {
     status: "available_now" | "upcoming" | "reported" | "unknown";

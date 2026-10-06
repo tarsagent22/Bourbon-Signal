@@ -17,7 +17,7 @@ import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermissi
 import { signalRouteForRequestedAlert } from "../../../src/push/push-navigation";
 import { colors, typeScale, fonts } from "../../../src/theme";
 
-import { partitionRadarAlerts, radarLocationSummary, radarSetupNeeded } from "../../../src/radar/radar-presentation";
+import { partitionRadarAlerts, radarLocationSummary, radarSetupNeeded, radarSetupStatus } from "../../../src/radar/radar-presentation";
 
 type RadarView = "matches" | "settings";
 const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "matches", label: "Alerts" }, { key: "settings", label: "Alert preferences" }];
@@ -208,6 +208,7 @@ export default function RadarScreen() {
   if (error && !preferences) return <View style={[memberScreenStyles.screen, memberScreenStyles.content]}><ErrorState message={error} onRetry={() => void load(true)} /></View>;
   if (!preferences) return null;
 
+  const setupStatus=radarSetupStatus(preferences,pushReadiness);
   return <ScrollView
     ref={screenScroll}
     automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
@@ -218,6 +219,7 @@ export default function RadarScreen() {
     style={memberScreenStyles.screen}
   >
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setFocusNotifications(false); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
+    {view === "settings" ? <MemberCard><Text style={styles.cardTitle}>{setupStatus.title}</Text><Text style={styles.muted}>{setupStatus.detail}</Text></MemberCard> : null}
     {view === "matches" && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
       <Text style={[styles.noticeText, styles.flex]}>Phone notifications need attention</Text>
       <TextAction label="FIX" onPress={() => { setFocusNotifications(true); setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} />

@@ -23,6 +23,7 @@ import { idempotentSightingFingerprint, idempotentSightingId, sameIdempotentSigh
 import { communityDisplayNameFromMetadata, communityDisplayNameSeparateFromIdentity } from "@/lib/community-display-name";
 import { canonicalSignalFeedAreaSelection, dropFeedStoreQueryMatches } from "@/lib/feed-area-options";
 import { communityVoteAllowed } from "@/lib/community-contributor-standing";
+import { CommunitySafetyRepository, communitySightingVisible } from "@/lib/community-safety";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -38,6 +39,7 @@ function visibleSightingForRequester(sighting: MemberSighting, ownerPointsPrevie
     || communityDisplayNameSeparateFromIdentity(sighting.reporterDisplayName, identity?.label);
   const independentSighting: MemberSighting = {
     ...sighting,
+    publicPhotoUrl: sighting.rewardState?.photoProof?.status === "verified_public" ? approvedCommunityPhoto(sighting.rewardState.photoProof.publicUrl) : undefined,
     reporterDisplayName: displayName || "",
     reporterPublicIdentity: identity ? { ...identity, displayName: displayName || undefined } : undefined,
   };
@@ -56,6 +58,11 @@ async function resolveSubmittedBottle(bottleName: string, bottleId?: string) {
     || bottle.aliases.some((alias) => normalizeBibleBottleKey(alias) === normalizedName);
   const exact = (idMatch && bottleNameMatches(idMatch) ? idMatch : null) || matches.find(bottleNameMatches);
   return exact || null;
+}
+
+function approvedCommunityPhoto(value: unknown) {
+  if(typeof value !== "string")return undefined;
+  try { const url=new URL(value); return url.protocol === "https:" && url.hostname.endsWith(".public.blob.vercel-storage.com") ? url.href : undefined; } catch { return undefined; }
 }
 
 function normalizePrefs(input: unknown): SightingsPreferences {
@@ -284,6 +291,7 @@ export async function GET(req: NextRequest) {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(user));
+  const hidden = await new CommunitySafetyRepository().hiddenFor(userId);
   const entitlements = await getServerEntitlements(user.publicMetadata);
   if (!entitlements.canReadSightings) {
     return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
@@ -296,7 +304,7 @@ export async function GET(req: NextRequest) {
     if (!/^[A-Za-z0-9._:-]{1,160}$/.test(requestedSightingId)) return NextResponse.json({ error: "Invalid sightingId" }, { status: 400 });
     const repository = createCommunitySightingsRepository();
     const stored = await repository.getSighting(requestedSightingId);
-    if (!stored) return NextResponse.json({ sightings: [], states: [], previewLimit: entitlements.sightingsPreviewLimit, totalSightings: 0 });
+    if (!stored || !communitySightingVisible(stored, hidden.blocked, hidden.reported)) return NextResponse.json({ sightings: [], states: [], previewLimit: entitlements.sightingsPreviewLimit, totalSightings: 0 });
     const counts = voteCounts(await repository.listVotesForSightings([requestedSightingId]), userId).get(requestedSightingId);
     const sighting = visibleSightingForRequester({
       ...stored,
@@ -358,7 +366,7 @@ export async function GET(req: NextRequest) {
     ]) : Promise.resolve(null),
   ]);
 
-  const allSightings = aggregate.sightings;
+  const allSightings = aggregate.sightings.filter(sighting=>communitySightingVisible(sighting, hidden.blocked, hidden.reported));
   const previewLimit = entitlements.sightingsPreviewLimit;
   const sightings = (previewLimit === null ? allSightings : allSightings.slice(0, previewLimit))
     .map((sighting) => visibleSightingForRequester(sighting, ownerPointsPreview));

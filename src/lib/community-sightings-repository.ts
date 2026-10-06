@@ -234,7 +234,6 @@ export class CommunitySightingsRepository {
     before: { createdAt: string; id: string } | null = null,
     filters: SightingFeedFilters = {},
   ): Promise<{ sightings: MemberSighting[]; totalSightings: number }> {
-    void currentUserId;
     const states = [...new Set((filters.states || []).map((state) => state.toUpperCase()).filter((state) => /^[A-Z]{2}$/.test(state)))];
     const rarities = [...new Set(filters.rarities || [])];
     const bottle = filters.bottle?.trim().toLowerCase() || null;
@@ -247,6 +246,10 @@ export class CommunitySightingsRepository {
          SELECT payload, created_at, id
          FROM community_sightings
          WHERE (cardinality($4::text[]) = 0 OR UPPER(payload->>'storeState') = ANY($4::text[]))
+           AND COALESCE(payload->'rewardState'->>'removedAt','') = ''
+           AND COALESCE(payload->'rewardState'->>'rejectedAt','') = ''
+           AND NOT EXISTS (SELECT 1 FROM community_member_blocks b WHERE b.user_id=$9 AND b.blocked_user_id=community_sightings.reporter_user_id)
+           AND NOT EXISTS (SELECT 1 FROM community_abuse_reports r WHERE r.user_id=$9 AND r.sighting_id=community_sightings.id)
            AND (cardinality($5::text[]) = 0 OR CASE WHEN payload->>'rarityTier' = 'highly_allocated' THEN 'unicorn' ELSE payload->>'rarityTier' END = ANY($5::text[]))
            AND ($6::text IS NULL OR LOWER(payload->>'bottleName') LIKE '%' || $6::text || '%')
            AND ($7::timestamptz IS NULL OR created_at >= $7::timestamptz)
@@ -263,7 +266,7 @@ export class CommunitySightingsRepository {
        SELECT recent.payload, totals.total_count
        FROM recent CROSS JOIN totals
        ORDER BY recent.created_at DESC, recent.id ASC`,
-      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns],
+      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns, currentUserId],
     ) as Array<{ payload: MemberSighting; total_count: number }>;
     return {
       sightings: rows.map((row) => row.payload),

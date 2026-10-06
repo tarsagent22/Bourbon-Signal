@@ -72,3 +72,18 @@ Screenshots remain blocked until:
 - the exact build used for capture is approved for review preparation.
 
 Real App Review screenshots are intentionally not produced by this Windows implementation pass.
+
+## Simple owner capture handoff
+
+After the final update is verified on your iPhone, send original PNG captures without cropping or captions:
+
+1. Home with useful, real Signals visible.
+2. A Bottle Profile with real retailer/source detail.
+3. Radar with watched bottles and selected areas visible.
+4. My Shelf with representative bottles and ratings.
+5. Account → Membership overview.
+6. Optional: Post composer before submitting, with no private information.
+7. Account → Membership → Standard: real monthly price and purchase button visible.
+8. Account → Membership → Barrel Proof: real monthly price and purchase button visible.
+
+Images 7 and 8 are private subscription-review assets; the others are listing candidates. Use the same phone, appearance and locale. Record the app build/update shown under Account → Privacy & Support → App information. We will check dimensions before selecting the listing slot; send your phone's originals rather than resizing them yourself.

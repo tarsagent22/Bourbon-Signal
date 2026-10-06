@@ -4,6 +4,8 @@ import ts from 'typescript';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as migrationModule from '../../src/lib/alert-queue/clerk-migration.ts';
+import * as safetyModule from '../../src/lib/community-safety.ts';
+const { CommunitySafetyRepository } = ((safetyModule as { default?: unknown }).default || safetyModule) as typeof import('../../src/lib/community-safety.ts');
 const { ensureAlertDeliveryIdentityV2 } = ((migrationModule as { default?: unknown }).default || migrationModule) as typeof import('../../src/lib/alert-queue/clerk-migration.ts');
 const source = readFileSync(new URL('../../src/lib/alert-delivery.ts',import.meta.url),'utf8');
 const code = ts.transpile(source.slice(source.indexOf('export async function deliverPreferenceAlerts(')).replace('export async','async'),{target:ts.ScriptTarget.ES2022});
@@ -16,7 +18,7 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
   const queue={recoverStaleClaims:async()=>0,acquireLease:async()=>true,releaseLease:async()=>{},registerSnapshot:async()=>{},readRecipientCursor:async()=>0,writeRecipientCursor:async()=>{},baseline:async(input:any)=>{events.push('baseline:'+input.channel+':'+input.stableMatchKey);},markBatchDelivered:async()=>{},markFailed:async()=>{},markBatchFailed:async()=>{}};
   const send=async(kind: string)=>{sends.push(kind);events.push('send:'+kind);return {data:{id:'synthetic-accepted'},sid:'synthetic-sid',status:'queued',accepted:1,rejected:0,tickets:[],invalidTokens:[]};};
   const context: any={
-    process:{env:{}},Date,Set,Map,Math,Number,String,createHash,render,
+    process:{env:{}},Date,Set,Map,Math,Number,String,createHash,render,CommunitySafetyRepository,
     pollRuntimeSourceLanes:async()=>{},mergeRuntimeSourceCandidates:async(c:any)=>c,persistRuntimeSourceDemand:async()=>{},
     traceRuntimeSourceCandidates:async(_c:any,stage:string,ch:string)=>{events.push('trace:'+stage+':'+ch);},runtimeSourceCandidatesStillValid:async()=>true,invokeSourceProvider:lane.invokeSourceProvider,
     classifyCompanyMember:()=>({isOwner:false,isRetailer:false}),

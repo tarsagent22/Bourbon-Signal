@@ -89,6 +89,7 @@ export function buildCommunityAlertCandidates(inputs: CommunityAlertSightingInpu
       matchKey: `community:${createHash("sha256").update(sighting.id).digest("hex").slice(0, 24)}`,
       source: "Community sighting",
       sourceType: "community",
+      reporterUserId: sighting.reporterUserId,
       bottle: sighting.bottleName.trim(),
       canonicalName: sighting.bottleName.trim(),
       bottleId: sighting.bottleId,

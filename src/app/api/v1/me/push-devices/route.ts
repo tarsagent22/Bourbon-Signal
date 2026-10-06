@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { persistPushDeviceChange, pushDeviceErrorBody, type PushDeviceErrorCode } from "@/lib/push-device-registration";
+import { commitOwnedPushDeviceChange, persistPushDeviceChange, pushDeviceErrorBody, type PushDeviceErrorCode } from "@/lib/push-device-registration";
 import { normalizePushDevices, type PushPlatform } from "@/lib/push-devices";
 import { isServerPaidTier } from "@/lib/server-entitlements";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
@@ -101,30 +101,18 @@ export async function POST(req: NextRequest) {
       action: body.action!,
       device: { deviceId: body.deviceId!, expoPushToken: body.expoPushToken, platform: body.platform },
       now: new Date().toISOString(),
-      writePrivateDevices: async (pushDevices, pushPreferenceProjection) => {
-        await assertMemberHeld();
-        await assertOwnershipHeld();
+      writeAtomicDeviceAndPreference: async (pushDevices, enabled, pushPreferenceProjection) => {
         const ownership = getPushOwnershipRepository();
-        if (body.action === "register") {
-          const target = pushDevices.find(device => device.deviceId === body.deviceId)!;
-          target.bindingId = randomUUID();
-          revocationToken = target.bindingId;
-          await ownership.bind(userId, target, target.bindingId);
-        } else {
-          // Revoke BEFORE metadata. A partial Clerk failure must not leave a live binding.
-          await ownership.disable(userId, body.deviceId!);
-        }
-        await client.users.updateUserMetadata(userId, { privateMetadata: { pushDevices, pushPreferenceProjection } });
-      },
-      writePublicPushPreference: async (enabled) => {
-        await assertMemberHeld();
-        await client.users.updateUserMetadata(userId, {
-          publicMetadata: { notificationPreferences: { push: { enabled } } },
+        revocationToken = await commitOwnedPushDeviceChange({
+          action:body.action!,deviceId:body.deviceId!,devices:pushDevices,bindingId:randomUUID(),
+          assertHeld:async()=>{await assertMemberHeld();await assertOwnershipHeld();},
+          bind:(device,bindingId)=>ownership.bind(userId,device,bindingId),
+          disable:()=>ownership.disable(userId,body.deviceId!),
+          write:async()=>{await client.users.updateUserMetadata(userId, {
+            privateMetadata: { pushDevices, pushPreferenceProjection },
+            publicMetadata: { notificationPreferences: { push: { enabled } } },
+          });},
         });
-      },
-      writeProjectionState: async (pushPreferenceProjection) => {
-        await assertMemberHeld();
-        await client.users.updateUserMetadata(userId, { privateMetadata: { pushPreferenceProjection } });
       },
     });
   } catch (error) {

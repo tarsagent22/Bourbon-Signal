@@ -738,10 +738,10 @@ export default function BottleCheckPage() {
                   <dl className="bc-fact-grid">
                     <div><dt>MSRP</dt><dd>{typeof bottle.msrp === "number" ? `$${bottle.msrp.toFixed(2)}` : "Not listed"}</dd></div>
                     <div><dt>Proof</dt><dd>{typeof bottle.proof === "number" ? bottle.proof : "Not listed"}</dd></div>
-                    <div><dt>Age</dt><dd>{bottle.ageStatement || "Not stated"}</dd></div>
+                    <div><dt>Age</dt><dd>{bottle.ageStatement?.replace(/^0*(\d+)Y$/i, "$1 years") || "Not stated"}</dd></div>
                     <div><dt>Producer</dt><dd>{bottle.producer || "Not listed"}</dd></div>
                     <div><dt>Type</dt><dd>{bottle.category.replace(/_/g, " ")}</dd></div>
-                    <div><dt>Release pattern</dt><dd>{bottle.releaseCadence}</dd></div>
+                    <div><dt>Release pattern</dt><dd>{bottle.releaseCadence === "unknown" ? "Not stated" : bottle.releaseCadence}</dd></div>
                   </dl>
                 </section>
 

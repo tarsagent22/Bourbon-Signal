@@ -6,6 +6,7 @@ function setup(stored = new Map<string,string>()) {
   let permission = 'granted'; let prompts = 0; let writes = 0; let reads = 0;
   let status: any = { enabled: false, currentDeviceRegistered: false };
   let reply: any = { enabled: true, currentDeviceRegistered: true };
+  let failure: Error | null = null;
   const push = loadWithMocks('src/push/push-registration.ts', {
     'expo-constants': { expoConfig: { extra: { eas: { projectId: 'fixture' } } } },
     'expo-crypto': { randomUUID: () => 'fixture-device' }, 'expo-device': { isDevice: true },
@@ -13,9 +14,20 @@ function setup(stored = new Map<string,string>()) {
     'expo-notifications': { getPermissionsAsync: async () => ({ status: permission }), requestPermissionsAsync: async () => { prompts++; return { status: permission }; }, getExpoPushTokenAsync: async () => ({ data: 'ExpoPushToken[fixture-token]' }), addPushTokenListener: () => ({ remove() {} }), dismissAllNotificationsAsync: async () => {} },
     'expo-secure-store': { getItemAsync: async (k: string) => stored.get(k) ?? null, setItemAsync: async (k: string,v: string) => { stored.set(k,v); }, deleteItemAsync: async (k: string) => { stored.delete(k); } },
   });
-  const api: any = { pushAccountId: 'user_A', getPushDeviceStatus: async () => { reads++; return status; }, registerPushDevice: async () => { writes++; status = reply; return status; }, disablePushDevice: async () => (status = { enabled: false, currentDeviceRegistered: false }), clearReadCache() {} };
-  return { push, api, stored, setStatus: (v: any) => status=v, setReply: (v: any) => reply=v, setPermission: (v: string) => permission=v, counts: () => ({ prompts,writes,reads }) };
+  const api: any = { pushAccountId: 'user_A', getPushDeviceStatus: async () => { reads++; return status; }, registerPushDevice: async () => { writes++; if(failure)throw failure; status = reply; return status; }, disablePushDevice: async () => (status = { enabled: false, currentDeviceRegistered: false }), clearReadCache() {} };
+  return { push, api, stored, setFailure:(v:Error|null)=>failure=v, setStatus: (v: any) => status=v, setReply: (v: any) => reply=v, setPermission: (v: string) => permission=v, counts: () => ({ prompts,writes,reads }) };
 }
+
+test('automatic recovery backs off after provider failure; an explicit Retry can try immediately',async()=>{
+  const f=setup(new Map([['bourbon-signal.push-enabled.user_A','1']]));
+  f.setFailure(new Error('Provider temporarily rate limited'));
+  await assert.rejects(()=>f.push.refreshRadarPushIfEnabled(f.api),/rate limited/);
+  await f.push.refreshRadarPushIfEnabled(f.api);
+  assert.equal(f.counts().writes,1);
+  f.setFailure(null);
+  await f.push.enableRadarPush(f.api);
+  assert.equal(f.counts().writes,2);
+});
 
 test('push opt-in survives deferred sync and restart; healthy reopen does not register again', async () => {
   const first = setup();
