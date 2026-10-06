@@ -310,9 +310,10 @@ export function createMobileApi({
     setHuntOutcome(id: string, outcome: HuntOutcome | null) {
       return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { method: "PUT", body: { outcome } });
     },
+    submitFeedback(body: import('../../../../shared/member-feedback').FeedbackInput) { return request<{ok:true;id:string}>('/api/v1/me/feedback',{method:'POST',body}); },
     getAdminAccess() { return request<{allowed:boolean}>("/api/admin/access", {fresh:true}); },
-    getAdminData<T>(section: 'overview'|'coverage'|'members'|'sightings'|'bottle-contributions'|'signal-points'|'catalog'|'posts'|'member-detail'|'shipping'|'operations'|'pricing', query = '') { return request<T>(`/api/admin/${section}${query}`, {fresh:true}); },
-    saveAdminReview(section: 'coverage'|'sightings'|'bottle-contributions'|'signal-points'|'catalog'|'posts'|'member-detail'|'shipping', body: Record<string,unknown>) { return request<{ok:boolean;[key:string]:unknown}>(`/api/admin/${section}`, {method:'PATCH',body}); },
+    getAdminData<T>(section: 'overview'|'coverage'|'members'|'sightings'|'bottle-contributions'|'signal-points'|'catalog'|'posts'|'member-detail'|'shipping'|'operations'|'pricing'|'feedback', query = '') { return request<T>(`/api/admin/${section}${query}`, {fresh:true}); },
+    saveAdminReview(section: 'coverage'|'sightings'|'bottle-contributions'|'signal-points'|'catalog'|'posts'|'member-detail'|'shipping'|'feedback', body: Record<string,unknown>) { return request<{ok:boolean;[key:string]:unknown}>(`/api/admin/${section}`, {method:'PATCH',body}); },
     saveAdminPrice(body: Record<string,unknown>) { return request<{ok:boolean}>('/api/admin/pricing', {method:'POST',body}); },
     sendAdminShipmentEmail(body: Record<string,unknown>) { return request<{ok:boolean}>('/api/admin/shipping?notify=1', {method:'PATCH',body}); },
     getCoverageRequests() { return request<{requests: import('../../../../shared/coverage-requests').CoverageRequestItem[]}>('/api/coverage/requests',{fresh:true}); },

@@ -96,6 +96,8 @@ const checks: Record<string, Check> = {
 };
 export function validApiResponse(path: string, value: unknown): boolean {
   const pathname = path.split('?')[0];
+  if (pathname === '/api/v1/me/feedback') return obj({ok:one(true),id:str})(value);
+  if (pathname === '/api/admin/feedback') return obj({items:arr(obj({id:str,userId:str,kind:one('problem','suggestion'),message:str,steps:str,screen:str,context:obj({platform:one('ios','android','web'),version:str,build:str,runtime:str,update:str}),memberName:str,email:str,status:one('new','reviewed','planned','resolved'),internalNote:str,createdAt:str,updatedAt:str})),nextOffset:nullable(num)})(value)||obj({ok:one(true)})(value);
   if (pathname === '/api/v1/me/diagnostics') return obj({ok:one(true)})(value);
   if (pathname === '/api/community/safety') return obj({ok:one(true)})(value) || obj({blocks:arr(obj({id:str,label:str,createdAt:str}))})(value);
   if (/^\/api\/v1\/signals\/[^/]+\/actions$/.test(pathname)) return obj({contractVersion:mobileVersion,signal,action:obj({type:one('helpful','confirm','correct','no_longer_there'),active:bool})})(value);
