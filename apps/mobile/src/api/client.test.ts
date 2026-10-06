@@ -825,3 +825,12 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   assert.match(marketAccessibility, /Quantity unknown/);
   assert.doesNotMatch(marketAccessibility, /CityHive|Source backed|exact count is not published|Available now/);
 });
+
+test('feedback writes validate success and owner queues reject incomplete private records',async()=>{
+ let payload:unknown={ok:true,id:'fixture'};
+ const api=createMobileApi({baseUrl:'https://feedback.example.test',getToken:async()=>'fixture',fetcher:async()=>Response.json(payload)});
+ const packet={id:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',kind:'suggestion' as const,message:'Please add more useful filters.',steps:'',screen:'Home',context:{platform:'ios' as const,version:'1.1.0',build:'15',runtime:'test',update:'embedded'}};
+ assert.equal((await api.submitFeedback(packet)).ok,true);payload={ok:false};await assert.rejects(()=>api.submitFeedback(packet),e=>e instanceof MobileApiError&&e.code==='INVALID_RESPONSE');
+ payload={items:[{...packet,userId:'member',memberName:'Member',email:'',status:'new',internalNote:'',createdAt:'today',updatedAt:'today'}],nextOffset:null};assert.equal((await api.getAdminData<{items:unknown[]}>('feedback')).items.length,1);
+ payload={items:[{id:'private'}],nextOffset:null};await assert.rejects(()=>api.getAdminData('feedback'),e=>e instanceof MobileApiError&&e.code==='INVALID_RESPONSE');
+});

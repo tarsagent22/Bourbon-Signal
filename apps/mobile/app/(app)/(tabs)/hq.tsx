@@ -202,7 +202,7 @@ export default function AccountScreen() {
           onPress={() => router.push('/(app)/account/coverage')}
         />
         <AccountRow
-          label="Support"
+          label="Feedback & Support"
           onPress={() => router.push("/(app)/account/support")}
         />
         <AccountRow label="Blocked members" detail="Manage Community safety" onPress={()=>router.push('/(app)/account/blocked-members')} />

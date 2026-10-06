@@ -20,11 +20,12 @@ import Rewards from '../../app/(app)/account/rewards';
 import {StartupErrorBoundary} from '../../src/startup/StartupErrorBoundary';
 import Admin from '../../app/(app)/account/admin';
 import Coverage from '../../app/(app)/account/coverage';
+import Feedback from '../../app/(app)/account/feedback';
 import Support from '../../app/(app)/account/support';
 import Privacy from '../../app/(app)/account/privacy';
 import Terms from '../../app/(app)/account/terms';
 import {BrandLoading} from '../../src/components/BrandLoading';
-const screens={Home,'My Shelf':Shelf,Radar,Post,'Post button':()=> <div style={{width:'100%',background:'#19120f',paddingTop:80}}><PostTabButton onPress={()=>setRoute('Post')}/></div>,'Blocked members':Blocked,'Add bottle':Add,'Bottle Profile':Detail,Account,'Edit profile':Profile,Welcome,'Sign in':SignIn,Membership,Rewards,Admin,Coverage,Support,Privacy,Terms,Loading:BrandLoading};
+const screens={Home,'My Shelf':Shelf,Radar,Post,'Post button':()=> <div style={{width:'100%',background:'#19120f',paddingTop:80}}><PostTabButton onPress={()=>setRoute('Post')}/></div>,'Blocked members':Blocked,'Add bottle':Add,'Bottle Profile':Detail,Account,'Edit profile':Profile,Welcome,'Sign in':SignIn,Membership,Rewards,Admin,Coverage,Support,Feedback,Privacy,Terms,Loading:BrandLoading};
 function Crash(){throw new Error('Synthetic preview error');}
 function Preview(){
  const [route,routeState]=useState('Home');const [width,setWidth]=useState(390);const [fontScale,setScale]=useState(1);const [epoch,setEpoch]=useState(0);const [crash,setCrash]=useState(false);

@@ -68,7 +68,7 @@
     "test:signal-points": "npm run test:membership-month && tsx scripts/test-member-rewards-snapshot.mts && tsx scripts/test-quality-outcome-rewards.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points-membership-credit.mts && node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
     "test:signal-contract": "node --no-warnings --experimental-strip-types scripts/test-signal-contract.mts",
     "test:signal-mobile-api": "node --no-warnings --experimental-strip-types scripts/test-signal-mobile-api.mts",
-    "test:auth-account": "node scripts/test-member-numbers.mjs && node --test scripts/test-build13-new-user.cjs && tsx --test scripts/test-mobile-onboarding.ts scripts/test-account-deletion.ts scripts/test-account-deletion-repository.ts scripts/test-account-deletion-retained-records.mts && node --test scripts/test-account-deletion-contract.mjs",
+    "test:auth-account": "node scripts/test-member-numbers.mjs && node --test scripts/test-build13-new-user.cjs && tsx --test scripts/test-mobile-onboarding.ts scripts/test-account-deletion.ts scripts/test-account-deletion-repository.ts scripts/test-account-deletion-retained-records.mts && node --test scripts/test-account-deletion-contract.mjs && npm run test:member-feedback",
     "test:apple-membership": "tsx --test scripts/test-apple-membership.ts && node scripts/test-apple-membership-contract.mjs",
     "test:hunt-outcomes": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-repository.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-api.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-aggregation.mts",
     "test:product-cohesion-ui": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-ui-policy.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-hunt-suggestions.mts && node --no-warnings --experimental-strip-types scripts/test-product-cohesion-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-launch-product-cohesion-copy.mts",
@@ -193,7 +193,8 @@
     "test:astra": "node scripts/test-astra-suite.mjs",
     "test:braces-security": "node scripts/check-braces-backport-advisories.cjs",
     "test:collection-value": "tsx scripts/test-collection-value.ts",
-    "test:owner-workspace": "node --test scripts/test-owner-workspace-security.cjs scripts/test-owner-admin-api.cjs && tsx scripts/test-owner-workspace.ts && tsx scripts/test-owner-admin-records.ts"
+    "test:owner-workspace": "node --test scripts/test-owner-workspace-security.cjs scripts/test-owner-admin-api.cjs && tsx scripts/test-owner-workspace.ts && tsx scripts/test-owner-admin-records.ts",
+    "test:member-feedback": "tsx --test scripts/test-member-feedback.ts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

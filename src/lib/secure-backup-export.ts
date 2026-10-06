@@ -53,6 +53,7 @@ const SIGNAL_POINT_TABLES = [
   "signal_reward_redemptions", "signal_reward_redemption_events", "signal_reward_fulfillments", "signal_membership_offer_codes",
 ] as const;
 export const BACKUP_TABLES = Array.from(new Set([
+  "member_feedback",
   "account_deletion_requests", "apple_memberships", "apple_membership_events",
   "member_numbers", "member_number_counter", "member_push_ownership",
   "alert_delivery_leases", "alert_recipient_cursor", "alert_push_tickets", "alert_push_outbox",
