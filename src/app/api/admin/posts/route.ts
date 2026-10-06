@@ -1,6 +1,6 @@
 import { requireOwnerApiAccess } from "@/lib/owner-auth";
 import { coverageDatabase } from "@/lib/owner-workspace";
-import { getBottleById, getBourbonBible } from "@/lib/bourbonBible";
+import { getOwnerBottleById as getBottleById, getOwnerBourbonBible as getBourbonBible } from "@/lib/bourbonBible";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { reconcileMemberRewards } from "@/lib/sighting-rewards";

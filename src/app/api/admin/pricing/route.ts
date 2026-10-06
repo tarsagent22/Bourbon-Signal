@@ -2,7 +2,7 @@ import { requireOwnerApiAccess } from '@/lib/owner-auth';
 import { coverageDatabase } from '@/lib/owner-workspace';
 import { readReviewedPrices } from '@/lib/collection-price-repository';
 import { validatePriceReview } from '@/lib/collection-price-review';
-import { getBourbonBible } from '@/lib/bourbonBible';
+import { getOwnerBourbonBible as getBourbonBible } from '@/lib/bourbonBible';
 export async function GET() {
   const owner = await requireOwnerApiAccess(); if (owner.error) return owner.error;
   try {

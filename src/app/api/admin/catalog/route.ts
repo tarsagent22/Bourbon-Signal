@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { requireOwnerApiAccess } from "@/lib/owner-auth";
-import { getBourbonBible, clearBourbonBibleCache } from "@/lib/bourbonBible";
+import { getOwnerBourbonBible, clearBourbonBibleCache } from "@/lib/bourbonBible";
 import {
   readOwnerBottleRecords,
   saveOwnerBottle,
@@ -19,10 +19,8 @@ export async function GET(request: Request) {
     const params = new URL(request.url).searchParams,
       q = (params.get("q") || "").trim().toLowerCase(),
       offset = Math.max(0, Number(params.get("offset")) || 0);
-    const [catalog, records] = await Promise.all([
-      getBourbonBible(),
-      readOwnerBottleRecords(),
-    ]);
+    const records=await readOwnerBottleRecords();
+    const catalog=await getOwnerBourbonBible(records);
     const versions = new Map(
       records.map((r) => [r.bottle_id, Number(r.version)]),
     );
@@ -70,7 +68,7 @@ export async function PATCH(request: Request) {
       { status: 400 },
     );
   try {
-    const catalog = await getBourbonBible(),
+    const catalog = await getOwnerBourbonBible(),
       existing = catalog.find((b) => b.id === body.id);
     if (body.id && !existing)
       return Response.json({ error: "Bottle not found." }, { status: 404 });

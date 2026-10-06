@@ -272,7 +272,7 @@ const BOURBON_BIBLE_CACHE_TTL_MS = 60_000;
 let bourbonBibleCache: { value: BibleBottle[]; expiresAt: number } | null = null;
 let bourbonBibleInFlight: Promise<BibleBottle[]> | null = null;
 
-async function buildBourbonBible({ includeApprovedCatalog = true }: { includeApprovedCatalog?: boolean } = {}) {
+async function buildBourbonBible({ includeApprovedCatalog = true, ownerRecords }: { includeApprovedCatalog?: boolean;ownerRecords?:Awaited<ReturnType<typeof readOwnerBottleRecords>> } = {}) {
   // Engine tiers drive alert priority, not the customer-facing rarity score. Apply
   // live engine data first, then broad inventory editorial metadata, then the most
   // deliberate curated profiles. Signal flags and aliases survive every merge.
@@ -283,7 +283,7 @@ async function buildBourbonBible({ includeApprovedCatalog = true }: { includeApp
       return [] as BibleBottleInput[];
     }) : Promise.resolve([] as BibleBottleInput[]),
   ]);
-  const records = includeApprovedCatalog ? await readOwnerBottleRecords() : [];
+  const records = includeApprovedCatalog ? ownerRecords ?? await readOwnerBottleRecords() : [];
   const merged = mergeBottleCatalogSources<BibleBottleInput>([
     engineBottles,
     readInventoryBibleBottles(),
@@ -342,6 +342,17 @@ async function buildBourbonBible({ includeApprovedCatalog = true }: { includeApp
 
 export async function getStaticBourbonBible() {
   return buildBourbonBible({ includeApprovedCatalog: false });
+}
+// Owner decisions use fresh definitions and the same record snapshot as their
+// edit versions. Public discovery retains its short-lived catalog cache.
+export async function getOwnerBourbonBible(records?:Awaited<ReturnType<typeof readOwnerBottleRecords>>) {
+  return buildBourbonBible({ownerRecords:records});
+}
+export async function getOwnerBottleById(id:string) {
+  const records=await readOwnerBottleRecords();
+  const catalog=await getOwnerBourbonBible(records);
+  const currentId=records.find(r=>r.bottle_id===id)?.redirect_id||id;
+  return catalog.find(b=>b.id===currentId)||null;
 }
 
 export async function getBourbonBible() {
