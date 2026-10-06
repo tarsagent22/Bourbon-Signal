@@ -121,4 +121,5 @@ assert.deepEqual(ncWarnings.recoveryStates, []);
 assert.equal(ncSourceIntegrityFailures(ncWarnings.ncSourceHealth).length, 2, 'Persistent website failure and parser drift need an independent failed check.');
 assert.deepEqual(ncSourceIntegrityFailures(null), []);
 assert.equal(ncSourceIntegrityFailures({ statewideFailures: [{ source: 'NC ABC Board List', status: 'parser_drift' }] }).length, 1);
+assert.equal(ncSourceIntegrityFailures({ affectedBoards: [{ boardName: 'Partial ABC Board', status: 'partial', failedKnownRoutes: [{ url: 'https://board.example/lottery', consecutiveFailures: 3 }] }] }).length, 1, 'A working homepage cannot mask persistent failure of an important known route.');
 console.log('Production watchdog coverage and NC source integrity contracts passed.');

@@ -126,7 +126,7 @@ export function summarizeNcBoardSources(boards, registry = {}, { now = Date.now(
       attemptedPageCount: reports.length,
       successfulPageCount: successes.length,
       failedPageCount: failures.length,
-      failedKnownRoutes: requiredFailures.map(r => ({ url: r.url, status: r.status, error: r.error || null })),
+      failedKnownRoutes: requiredFailures.map(r => ({ url: r.url, status: r.status, error: r.error || null, consecutiveFailures: Number(entry.routes?.[ncRouteKey(r.url)]?.consecutiveFailures || 0) })),
       consecutiveFailures: Math.max(0, ...requiredFailures.map(r => Number(entry.routes?.[ncRouteKey(r.url)]?.consecutiveFailures || 0))),
       lastSuccessfulPageAt: successes.map(r => r.checkedAt).filter(Boolean).sort().at(-1) || null,
       trackedShipmentRows: Number(board.trackedShipmentRows || 0),

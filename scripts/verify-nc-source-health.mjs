@@ -9,6 +9,12 @@ export function ncSourceIntegrityFailures(sourceHealth) {
   for (const board of sourceHealth?.affectedBoards || []) {
     if (board.status === 'unreachable' && Number(board.consecutiveFailures) >= 3) {
       failures.push(`${board.boardName}: official source unreachable for ${board.consecutiveFailures} consecutive checks.`);
+    } else {
+      for (const route of board.failedKnownRoutes || []) {
+        if (Number(route.consecutiveFailures) >= 3 && /inventory|product|stock|lottery|allocat|drops|barrels|releases|search/i.test(new URL(route.url).pathname)) {
+          failures.push(`${board.boardName}: important public route failed ${route.consecutiveFailures} consecutive checks (${route.url}).`);
+        }
+      }
     }
     if ((board.parserWarnings || []).some(warning => warning.status === 'parser_drift' || warning.parserStatus === 'parser_drift')) {
       failures.push(`${board.boardName}: public product markup is present but the parser cannot read it.`);
