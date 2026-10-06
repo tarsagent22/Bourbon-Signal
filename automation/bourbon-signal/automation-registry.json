@@ -146,6 +146,23 @@
       "delivery": "github_only"
     },
     {
+      "id": "github-nc-source-canary",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/nc-source-canary.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "NC source pull requests and manual workflow dispatch",
+      "agent": { "provider": null, "model": null, "reasoning": null },
+      "externalApi": { "classes": ["public_abc_http", "github_actions"], "maxRequestsPerRun": 5000 },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": ["engine/out/nc-source-canary.json", "engine/out/nc-board-intelligence.json", "engine/out/nc-source-registry.json"],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-engine-watchdog",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/engine-watchdog.yml",
