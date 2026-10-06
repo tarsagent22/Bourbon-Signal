@@ -580,7 +580,7 @@ function Inbox({
       />
       <Action label="Find a member" onPress={() => onOpen("Members")} />
       <Action
-        label="Browse all community posts"
+        label="Open community controls"
         onPress={() => onOpen("Community")}
       />
       <Action
@@ -1707,7 +1707,7 @@ function RewardEditor({
             onChange={setNote}
             multiline
           />
-          {row.fulfillmentType === "physical" ? (
+          {row.fulfillmentType === "physical" && row.status === "packed" ? (
             <>
               <TextField
                 label="Carrier"

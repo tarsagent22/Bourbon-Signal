@@ -1,7 +1,7 @@
 import { requireOwnerApiAccess } from "@/lib/owner-auth";
 import { readBottleContributionQueue } from "@/lib/bottle-contributions";
 import { isBottleContributionPending,bottleContributionStatusForAction } from "@/lib/admin-review";
-import { getBottleById } from "@/lib/bourbonBible";
+import { getOwnerBottleById as getBottleById } from "@/lib/bourbonBible";
 import { resolveOwnerBottleSubmission } from "@/lib/owner-admin-repository";
 import {
   adminRecord,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
-import { getBourbonBible } from "@/lib/bourbonBible";
+import { getOwnerBourbonBible as getBourbonBible } from "@/lib/bourbonBible";
 import type { MemberSighting, SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { reconcileMemberRewards, type SightingPhotoReviewStatus } from "@/lib/sighting-rewards";
