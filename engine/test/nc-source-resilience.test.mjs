@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ncRouteKey, ncBoardKey, selectNcBoardRoutes, updateNcBoardRegistry, summarizeNcBoardSources, fetchNcBoardPage, NC_REVIEWED_BOARD_WEBSITES } from '../src/nc-board-discovery.mjs';
+import { ncRouteKey, ncBoardKey, selectNcBoardRoutes, updateNcBoardRegistry, summarizeNcBoardSources, fetchNcBoardPage, ncPublicPageResponse, NC_REVIEWED_BOARD_WEBSITES } from '../src/nc-board-discovery.mjs';
 import { discoverBoardPages, parseDurhamPublicProductCards, parseNewHanoverBarrelItems, ncProductParserHealth, prioritizeNcBoardWebsiteTargets, ncOfficialPricingReportIdentity, ncReviewedPricingReportUrls } from '../src/collectors/north-carolina-intelligence.mjs';
 import { buildNcSourceLedger } from '../src/nc-source-ledger.mjs';
 
@@ -123,6 +123,13 @@ test('modern Durham cards bind NC code, name, price and aggregate counts without
 test('HTTP success with product markers but zero parsed rows is explicit parser drift',()=>{
   assert.equal(ncProductParserHealth('<p><strong>NC Code:</strong> 12345</p>',0).status,'parser_drift');
   assert.equal(ncProductParserHealth('<p>No products currently listed.</p>',0).status,'parsed');
+});
+
+test('small HTTP 202 challenge bodies are access failures rather than successful data or parser drift',()=>{
+  const response=ncPublicPageResponse({ok:true,status:202,text:'<html>Browser challenge</html>'});
+  assert.equal(response.ok,false);
+  assert.match(response.error,/browser challenge/);
+  assert.equal(ncPublicPageResponse({ok:true,status:200,text:'<h1>Products</h1>'}).ok,true);
 });
 
 test('source ledger uses real evidence timestamps rather than a new shipment retrieval stamp',()=>{

@@ -4,7 +4,7 @@ import { readBoundedCollectionBody, fetchCollectionResponse } from '../core/coll
 import path from 'node:path';
 import { inflateRawSync } from 'node:zlib';
 import { extractLinks, stableId, stripHtml, titleCase } from '../core/text.mjs';
-import { NC_REVIEWED_BOARD_WEBSITES, ncBoardKey, ncRouteKey, selectNcBoardRoutes, updateNcBoardRegistry, summarizeNcBoardSources, fetchNcBoardPage } from '../nc-board-discovery.mjs';
+import { NC_REVIEWED_BOARD_WEBSITES, ncBoardKey, ncRouteKey, selectNcBoardRoutes, updateNcBoardRegistry, summarizeNcBoardSources, fetchNcBoardPage, ncPublicPageResponse } from '../nc-board-discovery.mjs';
 
 const OUT = path.resolve('out');
 const NC_STOCK_SHIPPED_DATA_URL = 'https://abc2.nc.gov/Search/StockShippedData';
@@ -313,7 +313,7 @@ async function textFetch(url, options = {}) {
 
 async function safeTextFetch(url, options = {}) {
   try {
-    return await textFetch(url, options);
+    return ncPublicPageResponse(await textFetch(url, options));
   } catch (error) {
     return { ok: false, status: 0, url, contentType: '', text: '', error: error.name === 'AbortError' ? 'timeout' : error.message };
   }

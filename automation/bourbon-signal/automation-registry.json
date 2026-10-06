@@ -152,7 +152,7 @@
       "active": true,
       "ownerLayer": "sensor",
       "executionClass": "script_only",
-      "frequency": "NC source pull requests and manual workflow dispatch",
+      "frequency": "on every NC source pull request and manual workflow dispatch",
       "agent": { "provider": null, "model": null, "reasoning": null },
       "externalApi": { "classes": ["public_abc_http", "github_actions"], "maxRequestsPerRun": 5000 },
       "customerMutation": "none",

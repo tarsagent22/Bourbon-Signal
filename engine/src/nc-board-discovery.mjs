@@ -161,3 +161,10 @@ export async function fetchNcBoardPage(url, { fetchPage, fetchOptions = {}, sign
   // 403/challenges and rate limiting require another public route or later run.
   return { ...response, attemptCount: 1 };
 }
+
+export function ncPublicPageResponse(response) {
+  if (response.status === 202 && String(response.text || '').length < 1000) {
+    return { ...response, ok: false, error: 'Public source returned an HTTP 202 browser challenge; no usable source data.' };
+  }
+  return response;
+}
