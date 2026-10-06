@@ -18,14 +18,19 @@ function canonicalIdentity(value) {
 }
 
 export async function fetchCollectionResponse(value, options = {}) {
-  const { reviewedSeedUrls = [], maxRedirects = 3, ...requestOptions } = options;
+  const { reviewedSeedUrls = [], reviewedRedirectUrls = [], maxRedirects = 3, ...requestOptions } = options;
   if (!Number.isInteger(maxRedirects) || maxRedirects < 0 || maxRedirects > 3) throw new Error('Invalid collection redirect limit');
   let url = new URL(value);
   const seeds = [...CANONICAL_SOURCE_SEEDS, ...reviewedSeedUrls];
   const allowed = new Set(seeds.map(canonicalIdentity));
+  const reviewedDestinations = new Set(reviewedRedirectUrls.map(value => {
+    const destination = requireHttpsCollectionUrl(value);
+    if (!allowed.has(canonicalIdentity(destination))) throw new Error('Reviewed redirect destination requires a reviewed source seed');
+    return destination.href;
+  }));
   // Do not let credential-bearing URLs reach even the strict nonredirect path.
   if (url.username || url.password) throw new Error('Collection URL credentials are forbidden');
-  const identity = url.hostname.replace(/^www\./, '');
+  let identity = url.hostname.replace(/^www\./, '');
   const canonical = allowed.has(identity) && !url.port;
   if (canonical && url.protocol === 'http:') url.protocol = 'https:';
   requireHttpsCollectionUrl(url);
@@ -48,7 +53,10 @@ export async function fetchCollectionResponse(value, options = {}) {
       const location = response.headers.get('location');
       if (!location) throw new Error('Collection redirect missing Location');
       const destination = requireHttpsCollectionUrl(new URL(location, url));
-      if (canonicalIdentity(destination) !== identity) throw new Error('Collection destination outside reviewed source identity');
+      if (canonicalIdentity(destination) !== identity) {
+        if (!reviewedDestinations.has(destination.href)) throw new Error('Collection destination outside reviewed source identity');
+        identity = canonicalIdentity(destination);
+      }
       url = destination;
       continue;
     }

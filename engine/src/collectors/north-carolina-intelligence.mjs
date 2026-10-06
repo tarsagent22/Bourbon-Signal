@@ -4,18 +4,20 @@ import { readBoundedCollectionBody, fetchCollectionResponse } from '../core/coll
 import path from 'node:path';
 import { inflateRawSync } from 'node:zlib';
 import { extractLinks, stableId, stripHtml, titleCase } from '../core/text.mjs';
+import { NC_REVIEWED_BOARD_WEBSITES, ncBoardKey, ncRouteKey, selectNcBoardRoutes, updateNcBoardRegistry, summarizeNcBoardSources, fetchNcBoardPage, ncPublicPageResponse } from '../nc-board-discovery.mjs';
 
 const OUT = path.resolve('out');
 const NC_STOCK_SHIPPED_DATA_URL = 'https://abc2.nc.gov/Search/StockShippedData';
 const NC_STOCK_SHIPPED_PAGE_URL = 'https://abc2.nc.gov/Search/StockShipped';
 const NC_WAREHOUSE_STOCK_URL = 'https://abc2.nc.gov/StoresBoards/Stocks';
 const NC_BOARD_LIST_URL = 'https://abc2.nc.gov/StoresBoards/BoardList';
+const NC_OFFICIAL_REPORT_ORIGIN = 'https://report.abc.nc.gov/';
 const NC_CONTROLLED_DISTRIBUTION_XLSX_URL = 'https://www.abc.nc.gov/local-abc-boards/public-allocated-and-limited-distribution-list/open';
 const NC_PRICE_EXPORT_URL = 'https://abc2.nc.gov/Pricing/ExportData';
 const NC_BOARD_HISTORY_DIR = path.join(OUT, 'history', 'nc-board-intelligence');
 const NC_WAREHOUSE_HISTORY_DIR = path.join(OUT, 'history', 'nc-warehouse');
 const NC_BOARD_WEBSITE_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_MAX || 80);
-const NC_BOARD_WEBSITE_URL_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_URL_MAX || 8);
+const NC_BOARD_WEBSITE_URL_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_URL_MAX || 12);
 const NC_BOARD_WEBSITE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_TIMEOUT_MS || 5000);
 const NEW_HANOVER_BARREL_URL = 'https://www.newhanovercountyabc.com/barrels/';
 const NEW_HANOVER_WORDPRESS_POSTS_URL = 'https://www.newhanovercountyabc.com/wp-json/wp/v2/posts?search=barrel&per_page=100';
@@ -33,7 +35,7 @@ const NC_CONTROLLED_PRODUCT_RE = /bourbon|whiskey|whisky|rye|blanton|weller|eagl
 const NC_CONTROLLED_EXCLUDE_RE = /tequila|vodka|gin|rum|liqueur|cordial|cognac|hennessy|crown royal|cream|wine|beer|cocktail|mezcal|scotch|single malt|irish|brandy|absinthe|schnapps|moonshine/i;
 const RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|bourbon|barrel|drop|specialty|special release|rare|whiskey|whisky|product search|inventory|stock|coming soon|release calendar/i;
 const STRONG_RELEASE_LANGUAGE_RE = /allocated|allocation|lottery|limited|specialty|special release|bourbon blast|barrel pick|release calendar|drops?\b|raffle|rare/i;
-const NEW_HANOVER_BARREL_SPIRIT_RE = /bourbon|whiskey|whisky|rye|jack daniel|old forester|heaven hill|four roses|woodford|still austin|bardstown|yellowstone|wilderness trail|knob creek|elijah craig|ezra brooks/i;
+const NEW_HANOVER_BARREL_SPIRIT_RE = /bourbon|whiskey|whisky|rye|1792|maker[’']?s mark|jack daniel|old forester|heaven hill|four roses|woodford|still austin|bardstown|yellowstone|wilderness trail|knob creek|elijah craig|ezra brooks/i;
 const DURHAM_STRUCTURED_SPIRIT_RE = /bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|old fitz|fitzgerald|michter|willett|pappy|van winkle|parker|little book|heaven hill|four roses|woodford|old forester|knob creek|elijah craig|blood oath|old carter|rock hill|elmer/i;
 const SOURCE_POLICY = 'Official/public online sources only. No community sightings, rumors, secondary forums, or user-submitted reports.';
 
@@ -55,12 +57,12 @@ export function applyNcBoardShipmentPolicy(signal) {
 
 export const NC_STATIC_BOARD_TARGETS = [
   { boardName: 'Wake County ABC Board', urls: ['https://wakeabc.com/search-our-inventory/', 'https://wakeabc.com/search-results/'], capability: 'store_inventory_search' },
-  { boardName: 'Durham County ABC Board', urls: ['https://www.durhamabc.com/drops', 'https://www.durhamabc.com/news'], capability: 'board_drop_posts' },
+  { boardName: 'Durham County ABC Board', urls: ['https://www.durhamabc.com/drops', 'https://www.durhamabc.com/news', 'https://www.durhamabc.com/lottery', 'https://www.durhamabc.com/search', 'https://www.durhamabc.com/specials'], capability: 'board_drop_posts' },
   { boardName: 'Mecklenburg County ABC Board', urls: ['https://www.meckabc.com/store_operations/specialty_products_lottery.php', 'https://www.meckabc.com/products/index.php'], capability: 'lottery_and_product_search' },
   { boardName: 'High Point ABC Board', urls: ['https://www.highpointabc.com/products', 'https://www.highpointabc.com/pages/view-inventory'], capability: 'inventory_or_product_search_page' },
   { boardName: 'Dunn ABC Board', urls: ['https://dunnabc.com/', 'https://dunnabc.com/allocation-policy/', 'https://dunnabc.com/store-locations-hours/'], signalUrls: ['https://dunnabc.com/allocation-policy/'], capability: 'allocation_policy_and_store_directory' },
-  { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/bourbon-blast/', 'https://www.newhanovercountyabc.com/barrels/', 'https://www.newhanovercountyabc.com/sales/', 'https://www.newhanovercountyabc.com/lottery/', 'https://www.newhanovercountyabc.com/feed/', 'https://www.newhanovercountyabc.com/wp-json/wp/v2/posts', 'https://nh.abcgo.app/'], capability: 'board_release_notifications' },
-  { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/allocated-products/'], capability: 'allocated_product_release_page' },
+  { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/bourbon-blast/', 'https://www.newhanovercountyabc.com/sales/', 'https://www.newhanovercountyabc.com/feed/', 'https://nh.abcgo.app/'], capability: 'board_release_notifications' },
+  { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/barrels/', 'https://www.newhanovercountyabc.com/wp-json/wp/v2/posts'], capability: 'official_barrel_pick_item_cards' },
   { boardName: 'Greensboro ABC Board', urls: ['https://www.greensboroabc.com/greensboro-abc-lottery/'], capability: 'lottery_page' },
   { boardName: 'Orange County ABC Board', urls: ['https://orangeabc.com/specialty-lottery/'], capability: 'lottery_page' },
   {
@@ -77,7 +79,7 @@ export const NC_STATIC_BOARD_TARGETS = [
 const STATIC_BOARD_TARGETS = NC_STATIC_BOARD_TARGETS;
 
 const CANDIDATE_PATHS = [
-  '/', '/products', '/product-search', '/inventory', '/search-our-inventory', '/search-results',
+  '/', '/products', '/product-search', '/inventory', '/feed', '/wp-json/wp/v2/posts', '/search-our-inventory', '/search-results',
   '/allocation-policy', '/lottery', '/bourbon-blast', '/barrels', '/sales', '/drops', '/news', '/announcements', '/feed', '/wp-json/wp/v2/posts',
   '/specialty-products', '/limited-release', '/release-calendar', '/pages/view-inventory', '/blog', '/abc-policy-for-allocation-and-sale-of-special-liquors',
   '/store_operations/specialty_products_lottery.php', '/products/index.php', '/sitemap.xml', '/wp-sitemap.xml'
@@ -291,6 +293,7 @@ async function textFetch(url, options = {}) {
     const signal = collectionRequestSignal(AbortSignal.any([timeout.signal, options.signal].filter(Boolean)));
     const fetched = await fetchCollectionResponse(url, {
       reviewedSeedUrls: options.reviewedSeedUrls,
+      reviewedRedirectUrls: options.reviewedRedirectUrls,
       method: options.method || 'GET',
       body: options.body,
       signal,
@@ -310,7 +313,7 @@ async function textFetch(url, options = {}) {
 
 async function safeTextFetch(url, options = {}) {
   try {
-    return await textFetch(url, options);
+    return ncPublicPageResponse(await textFetch(url, options));
   } catch (error) {
     return { ok: false, status: 0, url, contentType: '', text: '', error: error.name === 'AbortError' ? 'timeout' : error.message };
   }
@@ -422,7 +425,7 @@ function interestingLink(link) {
   const hay = `${link.href} ${link.label}`;
   if (!/^https?:/i.test(link.href)) return false;
   if (/facebook|instagram|twitter|x\.com|youtube|tiktok|reddit|discord/i.test(link.href)) return false;
-  return /inventory|product|stock|allocated|allocation|lottery|drop|bourbon|barrel|special|limited|release|news|announcement/i.test(hay);
+  return /inventory|product|stock|allocated|allocation|lottery|drop|bourbon|barrel|special|limited|release|news|announcement|blog|feed|sitemap/i.test(hay);
 }
 
 function normalizedWebOrigin(value) {
@@ -513,7 +516,7 @@ export function ncBoardWebsiteSignalEligible(boardName, sourceUrl) {
   return targets.some((target) => target.signalUrls?.includes(sourceUrl));
 }
 
-export function prioritizeNcBoardWebsiteTargets(boardValues, maxBoards = NC_BOARD_WEBSITE_MAX) {
+export function prioritizeNcBoardWebsiteTargets(boardValues, maxBoards = NC_BOARD_WEBSITE_MAX, registry = {}) {
   const staticOrder = new Map();
   for (const [index, target] of STATIC_BOARD_TARGETS.entries()) {
     const key = boardKey(target.boardName);
@@ -529,7 +532,9 @@ export function prioritizeNcBoardWebsiteTargets(boardValues, maxBoards = NC_BOAR
         if (bOrder === undefined) return -1;
         if (aOrder !== bOrder) return aOrder - bOrder;
       }
-      return Number(b.trackedUnits || 0) - Number(a.trackedUnits || 0) || a.boardName.localeCompare(b.boardName);
+      const aChecked = Date.parse(registry[ncBoardKey(a.boardName)]?.lastCheckedAt || '') || 0;
+      const bChecked = Date.parse(registry[ncBoardKey(b.boardName)]?.lastCheckedAt || '') || 0;
+      return aChecked - bChecked || Number(b.trackedUnits || 0) - Number(a.trackedUnits || 0) || a.boardName.localeCompare(b.boardName);
     })
     .slice(0, Math.max(0, Number(maxBoards) || 0));
 }
@@ -541,6 +546,7 @@ export function candidateUrlsForBoard(board) {
     for (const url of staticTarget.urls || []) urls.add(url);
   }
   if (board.website) {
+    urls.add(board.website);
     for (const p of CANDIDATE_PATHS) {
       try { urls.add(new URL(p, `${board.website}/`).toString()); } catch {}
     }
@@ -558,11 +564,11 @@ function strictBottleMentions(text, bible) {
   return [...new Map(mentions.map((r) => [r.id, r])).values()];
 }
 
-function parseNewHanoverBarrelItems(html = '') {
+export function parseNewHanoverBarrelItems(html = '') {
   const rows = [];
   for (const match of html.matchAll(/NC Code:\s*<\/(?:strong|b)>\s*(\d+)\s*<br\s*\/?>([\s\S]{0,180}?)(?=<\/p>)/gi)) {
     const before = html.slice(Math.max(0, match.index - 1400), match.index);
-    const titleMatches = [...before.matchAll(/<h1[^>]*style=["'][^"']*text-align:\s*center[^"']*["'][^>]*>([\s\S]*?)<\/h1>/gi)];
+    const titleMatches = [...before.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)];
     const titleHtml = titleMatches[titleMatches.length - 1]?.[1] || '';
     const rawName = decodeHtml(stripHtml(titleHtml.replace(/<br\s*\/?\s*>/gi, ' '))).replace(/\s+/g, ' ').trim();
     if (!rawName || !NEW_HANOVER_BARREL_SPIRIT_RE.test(rawName) || /tequila|corazon|herradura|codigo|reposado|a[ñn]ejo|blanco/i.test(rawName)) continue;
@@ -577,6 +583,28 @@ function parseNewHanoverBarrelItems(html = '') {
 
 export function newHanoverProductWatchEligibility() {
   return false;
+}
+
+export function parseDurhamPublicProductCards(html = '', sourceUrl = 'https://www.durhamabc.com/search') {
+  const rows = [];
+  for (const match of String(html).matchAll(/<a\b[^>]*href=["'](\/products\/(\d+)[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+    const card = match[3];
+    const rawName = decodeHtml(stripHtml(card.match(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/i)?.[1] || ''));
+    if (!rawName || !NC_CONTROLLED_PRODUCT_RE.test(rawName) || NC_CONTROLLED_EXCLUDE_RE.test(rawName)) continue;
+    const text = decodeHtml(stripHtml(card));
+    const stock = text.match(/\bIn Stock\s*\(\s*([\d,]+)\s*\)/i);
+    rows.push({ rawName, ncCode: match[2], price: parseMoney(text.match(/\$([\d,]+\.\d{2})/)?.[1]),
+      sourceReportedBoardQuantity: stock ? Number(stock[1].replace(/,/g, '')) : /out of stock/i.test(text) ? 0 : null,
+      sourceUrl: new URL(match[1], sourceUrl).href,
+    });
+  }
+  return [...new Map(rows.map(row => [row.ncCode, row])).values()];
+}
+
+export function ncProductParserHealth(html, parsedCount, expectedPattern = /NC Code:\s*<\/(?:strong|b)>\s*\d+/gi) {
+  const expectedCardCount = [...String(html).matchAll(expectedPattern)].length;
+  return { expectedCardCount, parsedCount, status: expectedCardCount && !parsedCount ? 'parser_drift' : 'parsed',
+    unparsedCardCount: Math.max(0, expectedCardCount - parsedCount) };
 }
 
 export function newHanoverFailureOutcome({ page = {}, fallback = null, fallbackParseError = null } = {}) {
@@ -675,6 +703,7 @@ async function collectBoardDirectory(config, roadblocks, dossier, boards) {
   const res = await safeTextFetch(NC_BOARD_LIST_URL, { timeoutMs: 45000 });
   if (!res.ok) {
     roadblocks.push({ state: config.id, source: 'NC ABC Board List', url: NC_BOARD_LIST_URL, status: res.status, error: res.error || res.text.slice(0, 300), nextRoute: 'Retry official board list page or inspect updated NC ABC board directory markup.' });
+    dossier.boardDirectory = { sourceUrl: NC_BOARD_LIST_URL, status: res.status, parsedBoardCount: 0, health: 'unreachable', observedAt: new Date().toISOString() };
     return;
   }
   let parsed = 0;
@@ -694,7 +723,9 @@ async function collectBoardDirectory(config, roadblocks, dossier, boards) {
     boards.set(boardName, board);
     parsed += 1;
   }
-  dossier.boardDirectory = { sourceUrl: NC_BOARD_LIST_URL, parsedBoardCount: parsed, websiteCount: [...boards.values()].filter((b) => b.website).length, observedAt: new Date().toISOString() };
+  const health = parsed >= 150 ? 'healthy' : 'parser_drift';
+  if (health !== 'healthy') roadblocks.push({ state: config.id, source: 'NC ABC Board List', url: NC_BOARD_LIST_URL, status: res.status, error: `Board directory parsed only ${parsed} boards; expected the statewide directory.`, nextRoute: 'Inspect changed official board directory markup.' });
+  dossier.boardDirectory = { sourceUrl: NC_BOARD_LIST_URL, status: res.status, health, parsedBoardCount: parsed, websiteCount: [...boards.values()].filter((b) => b.website).length, observedAt: new Date().toISOString() };
 }
 
 async function collectCurrentPriceList(config, roadblocks, dossier) {
@@ -894,6 +925,7 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
   dossier.stockShipped = {
     sourceUrl: NC_STOCK_SHIPPED_DATA_URL,
     observedAt,
+    retrievedAt: new Date().toISOString(),
     boardCount: boards.size,
     productCount: json.lookups?.products?.length || 0,
     recordCount: json.records?.length || 0,
@@ -987,15 +1019,43 @@ async function collectWarehouse(config, bible, signals, roadblocks, dossier, con
   return warehouseSignals;
 }
 
-async function discoverBoardPages(board) {
+export function ncOfficialPricingReportIdentity(requestedUrl, finalUrl, seeds) {
+  try {
+    const requested = new URL(requestedUrl);
+    const final = new URL(finalUrl);
+    return ncBoardPageSourceIdentity(requestedUrl, requestedUrl, seeds).verified
+      && /\/(?:monthly-specials|sales)\/?$/i.test(requested.pathname)
+      && final.origin === new URL(NC_OFFICIAL_REPORT_ORIGIN).origin
+      && final.pathname.toLowerCase() === '/build_pdf.aspx'
+      && final.searchParams.get('type') === 'pricing'
+      && final.searchParams.get('report') === 'reduced_retail_list';
+  } catch { return false; }
+}
+
+export function ncReviewedPricingReportUrls(now = new Date()) {
+  return [0, 1].map(offset => {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset, 1));
+    return `${NC_OFFICIAL_REPORT_ORIGIN}build_pdf.aspx?type=pricing&params=1&report=reduced_retail_list&param0=${encodeURIComponent(`${date.getUTCMonth() + 1}/1/${date.getUTCFullYear()}`)}`;
+  });
+}
+
+export async function discoverBoardPages(board, { previous = {}, fetchPage = safeTextFetch } = {}) {
   const reports = [];
   const seedUrls = candidateUrlsForBoard(board);
-  const homeUrls = seedUrls.filter((url) => /\/$/.test(new URL(url).pathname)).slice(0, 1);
-  const homeResponses = await Promise.all(homeUrls.map((url) => safeTextFetch(url, { reviewedSeedUrls: seedUrls, referer: board.website || url, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS })));
+  // Board sales links can redirect to the Commission's public pricing PDFs.
+  // Review that fixed official host explicitly; do not follow arbitrary hosts.
+  const fetchSeeds = [...seedUrls, NC_OFFICIAL_REPORT_ORIGIN];
+  const homeUrls = board.website ? [board.website] : seedUrls.filter((url) => /\/$/.test(new URL(url).pathname)).slice(0, 1);
+  const pageOptions = { reviewedSeedUrls: fetchSeeds, referer: board.website || seedUrls[0], timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS };
+  const retrieve = url => fetchNcBoardPage(url, { fetchPage, fetchOptions: {
+    ...pageOptions,
+    reviewedRedirectUrls: /\/(?:monthly-specials|sales)\/?$/i.test(new URL(url).pathname) ? ncReviewedPricingReportUrls() : [],
+  }, signal: collectionRequestSignal() });
+  const homeResponses = await Promise.all(homeUrls.map(retrieve));
   const discovered = [];
   for (let i = 0; i < homeResponses.length; i += 1) {
     const res = homeResponses[i];
-    const sourceIdentity = ncBoardPageSourceIdentity(homeUrls[i], res.url || homeUrls[i], seedUrls);
+    const sourceIdentity = ncBoardPageSourceIdentity(homeUrls[i], res.url || homeUrls[i], fetchSeeds);
     if (res.ok && sourceIdentity.verified) {
       discovered.push(...extractLinks(res.text, res.url || homeUrls[i])
         .filter(interestingLink)
@@ -1004,8 +1064,23 @@ async function discoverBoardPages(board) {
     }
   }
 
-  const urls = [...new Set([...seedUrls, ...discovered])].slice(0, NC_BOARD_WEBSITE_URL_MAX);
-  const responses = await Promise.all(urls.map((url) => safeTextFetch(url, { reviewedSeedUrls: seedUrls, referer: board.website || url, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS })));
+  const pinned = STATIC_BOARD_TARGETS.filter(t => boardKey(t.boardName) === boardKey(board.boardName)).flatMap(t => t.urls || []);
+  const plan = selectNcBoardRoutes({ pinned: [...homeUrls, ...pinned], discovered, previous, guesses: seedUrls, seeds: seedUrls, limit: NC_BOARD_WEBSITE_URL_MAX });
+  const routes = new Map();
+  for (const url of [...homeUrls, ...plan.urls]) {
+    const key = ncRouteKey(url);
+    if (!routes.has(key)) routes.set(key, url);
+  }
+  const urls = [...routes.values()];
+  const responses = [];
+  // Six boards run together; three pages per board bounds fanout at eighteen
+  // requests instead of sending an entire board crawl simultaneously.
+  for (let i = 0; i < urls.length; i += 3) {
+    responses.push(...await Promise.all(urls.slice(i, i + 3).map(url => {
+      const homeIndex = homeUrls.indexOf(url);
+      return homeIndex >= 0 ? homeResponses[homeIndex] : retrieve(url);
+    })));
+  }
   const directoryIndex = urls.indexOf(CUMBERLAND_STORE_LOCATIONS_URL);
   const directoryResponse = directoryIndex >= 0 ? responses[directoryIndex] : null;
   const westwoodDirectoryEvidence = directoryResponse ? {
@@ -1016,30 +1091,38 @@ async function discoverBoardPages(board) {
   for (let i = 0; i < responses.length; i += 1) {
     const url = urls[i];
     const res = responses[i];
-    const sourceIdentity = ncBoardPageSourceIdentity(url, res.url || url, seedUrls);
-    const verifiedResponse = res.ok && sourceIdentity.verified;
-    const text = stripHtml(res.text).replace(/\s+/g, ' ').trim();
+    const isPricingReport = ncOfficialPricingReportIdentity(url, res.url || url, seedUrls);
+    let sourceIdentity = ncBoardPageSourceIdentity(url, res.url || url, fetchSeeds);
+    if (!sourceIdentity.verified && isPricingReport) {
+      sourceIdentity = { verified: true, reason: null };
+    }
+    const verifiedResponse = res.ok && sourceIdentity.verified && !(res.status === 202 && res.text.length < 1000);
+    const text = isPricingReport ? '' : stripHtml(res.text).replace(/\s+/g, ' ').trim();
     const links = verifiedResponse ? extractLinks(res.text, res.url || url).filter(interestingLink).slice(0, 30) : [];
-    const caps = verifiedResponse ? pageCapability(url, text, links.map((l) => l.label).join(' ')) : [];
+    const caps = verifiedResponse ? isPricingReport ? ['official_state_pricing_report_reference'] : pageCapability(url, text, links.map((l) => l.label).join(' ')) : [];
     const westwoodIdentity = boardKey(board.boardName) === boardKey('Cumberland County ABC Board') && url === CUMBERLAND_WESTWOOD_URL
       ? ncWestwoodOfficialStoreIdentity(url, res.url || url, res.text, seedUrls, westwoodDirectoryEvidence)
       : null;
     if (westwoodIdentity?.verified) caps.push('official_exact_store_directory_page');
-    if (res.ok || links.length) {
-      reports.push({ boardName: board.boardName, url, finalUrl: res.url, ok: verifiedResponse, status: res.status, bytes: res.text.length, contentType: res.contentType, sourceIdentityVerified: sourceIdentity.verified, exactStoreIdentityVerified: westwoodIdentity?.verified ?? null, capabilities: [...new Set(caps)], releaseLanguage: verifiedResponse && RELEASE_LANGUAGE_RE.test(text), strongReleaseLanguage: verifiedResponse && STRONG_RELEASE_LANGUAGE_RE.test(text), interestingLinks: links.slice(0, 12), textSample: verifiedResponse ? text.slice(0, 600) : '', error: res.error || sourceIdentity.reason || westwoodIdentity?.reason || null });
-    }
+    reports.push({ boardName: board.boardName, url, finalUrl: res.url, ok: verifiedResponse, status: res.status, checkedAt: new Date().toISOString(), attemptCount: res.attemptCount || 1, bytes: res.text.length, contentType: res.contentType, sourceIdentityVerified: sourceIdentity.verified, exactStoreIdentityVerified: westwoodIdentity?.verified ?? null, capabilities: [...new Set(caps)], releaseLanguage: verifiedResponse && RELEASE_LANGUAGE_RE.test(text), strongReleaseLanguage: verifiedResponse && STRONG_RELEASE_LANGUAGE_RE.test(text), interestingLinks: links.slice(0, 12), textSample: verifiedResponse ? text.slice(0, 12000) : '', error: res.error || (!res.ok ? `HTTP ${res.status}` : null) || sourceIdentity.reason || westwoodIdentity?.reason || null });
   }
+  reports.registry = updateNcBoardRegistry(previous, reports, { seeds: seedUrls, pinned: [...pinned, ...homeUrls], discovered, cursor: plan.nextCursor });
   return reports;
 }
 
 async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, dossier, boards) {
   const reports = [];
-  const boardList = prioritizeNcBoardWebsiteTargets(boards.values());
+  let previous;
+  try { previous = JSON.parse(await readFile(path.join(OUT, 'nc-board-intelligence.json'), 'utf8')); } catch { previous = null; }
+  let oldRegistry = previous?.sourceRegistry || {};
+  try { oldRegistry = JSON.parse(await readFile(path.join(OUT, 'nc-source-registry.json'), 'utf8')).boards || oldRegistry; } catch { /* First run has no learned routes. */ }
+  const registry = { ...oldRegistry };
+  const boardList = prioritizeNcBoardWebsiteTargets(boards.values(), NC_BOARD_WEBSITE_MAX, oldRegistry);
 
   const batchSize = 6;
   for (let i = 0; i < boardList.length; i += batchSize) {
     const batch = boardList.slice(i, i + batchSize);
-    const results = await Promise.allSettled(batch.map((board) => discoverBoardPages(board)));
+    const results = await Promise.allSettled(batch.map((board) => discoverBoardPages(board, { previous: oldRegistry[ncBoardKey(board.boardName)] || {} })));
     for (let j = 0; j < results.length; j += 1) {
       const board = batch[j];
       const result = results[j];
@@ -1047,9 +1130,10 @@ async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, doss
         roadblocks.push({ state: config.id, source: `NC board website discovery - ${board.boardName}`, url: board.website, status: 0, error: result.reason?.message || String(result.reason), nextRoute: 'Retry with browser automation or inspect board site manually.' });
         continue;
       }
+      registry[ncBoardKey(board.boardName)] = result.value.registry;
       for (const report of result.value) {
         reports.push(report);
-        board.officialPageReports.push({ url: report.url, finalUrl: report.finalUrl, status: report.status, sourceIdentityVerified: report.sourceIdentityVerified, exactStoreIdentityVerified: report.exactStoreIdentityVerified, capabilities: report.capabilities, releaseLanguage: report.releaseLanguage, strongReleaseLanguage: report.strongReleaseLanguage, matchedBottles: [] });
+        board.officialPageReports.push({ url: report.url, finalUrl: report.finalUrl, ok: report.ok, status: report.status, checkedAt: report.checkedAt, error: report.error, sourceIdentityVerified: report.sourceIdentityVerified, exactStoreIdentityVerified: report.exactStoreIdentityVerified, capabilities: report.capabilities, releaseLanguage: report.releaseLanguage, strongReleaseLanguage: report.strongReleaseLanguage, matchedBottles: [] });
         for (const capability of report.capabilities) addCapability(board, capability);
         const matched = strictBottleMentions(`${report.textSample} ${report.url}`, bible);
         board.officialPageReports[board.officialPageReports.length - 1].matchedBottles = matched.map((m) => m.canonical);
@@ -1107,6 +1191,9 @@ async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, doss
   }
 
   dossier.boardWebsiteWatch = reports.map(({ textSample, ...report }) => report);
+  dossier.sourceRegistry = registry;
+  await mkdir(OUT, { recursive: true });
+  await writeFile(path.join(OUT, 'nc-source-registry.json'), JSON.stringify({ version: 1, boards: registry }, null, 2));
 }
 
 async function collectNewHanoverPublicProducts(config, bible, signals, roadblocks, dossier, boards) {
@@ -1151,6 +1238,9 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
 
   if (!rows.length) {
     const failure = newHanoverFailureOutcome({ page, fallback, fallbackParseError });
+    board.parserWarnings = [{ url: NEW_HANOVER_BARREL_URL, status: failure.status, parserStatus: page.ok && fallback?.ok ? 'parser_drift' : 'unreachable', reason: failure.error }];
+    board.officialPageReports.push({ url: NEW_HANOVER_BARREL_URL, ok: false, checkedAt: new Date().toISOString(), status: page.status, error: failure.error, capabilities: [] });
+    if (fallback) board.officialPageReports.push({ url: NEW_HANOVER_WORDPRESS_POSTS_URL, ok: false, checkedAt: new Date().toISOString(), status: fallback.status, error: failure.error, capabilities: [] });
     roadblocks.push({
       state: config.id,
       source: 'New Hanover County ABC barrel-pick item cards',
@@ -1199,7 +1289,9 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
     });
   }
 
-  board.officialPageReports.push({ url: selectedSource, status: selectedStatus, capabilities: ['barrel_program_page', 'official_barrel_pick_item_cards', ...(route === 'wordpress_rest_fallback' ? ['official_wordpress_rest_product_fallback'] : [])], releaseLanguage: true, strongReleaseLanguage: true, matchedBottles: rows.map((row) => row.rawName).slice(0, 20) });
+  const cardHealth = route === 'wordpress_page' ? ncProductParserHealth(page.text, rows.length) : null;
+  if (cardHealth?.unparsedCardCount) board.parserWarnings = [{ url: selectedSource, ...cardHealth }];
+  board.officialPageReports.push({ url: selectedSource, ok: true, checkedAt: new Date().toISOString(), status: selectedStatus, sourceIdentityVerified: true, capabilities: ['barrel_program_page', 'official_barrel_pick_item_cards', ...(route === 'wordpress_rest_fallback' ? ['official_wordpress_rest_product_fallback'] : [])], releaseLanguage: true, strongReleaseLanguage: true, matchedBottles: rows.map((row) => row.rawName).slice(0, 20) });
   dossier.newHanoverPublicProducts = {
     sourceUrl: selectedSource,
     primarySourceUrl: NEW_HANOVER_BARREL_URL,
@@ -1209,6 +1301,7 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
     primaryStatus: page.status,
     fallbackStatus,
     itemCount: rows.length,
+    parserHealth: route === 'wordpress_page' ? ncProductParserHealth(page.text, rows.length) : null,
     bourbonOrWhiskeyItemCount: rows.length,
     items: rows,
     observedAt: new Date().toISOString(),
@@ -1225,14 +1318,52 @@ async function collectDurhamStructuredProducts(config, bible, signals, roadblock
   addCapability(board, 'allocation_policy_page');
   boards.set(boardName, board);
 
-  const res = await safeTextFetch(DURHAM_STRUCTURED_PRODUCTS_URL, { referer: board.website, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS * 2 });
+  const modernResponses = await Promise.all(['bourbon', 'rye', 'whiskey'].map(async term => {
+    const url = `https://www.durhamabc.com/search?q=${term}`;
+    const res = await fetchNcBoardPage(url, { fetchPage: safeTextFetch, fetchOptions: { reviewedSeedUrls: [board.website], referer: board.website, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS * 2 }, signal: collectionRequestSignal() });
+    const checkedAt = new Date().toISOString();
+    const rows = res.ok ? parseDurhamPublicProductCards(res.text, res.url || url) : [];
+    const parserHealth = ncProductParserHealth(res.text, rows.length, /<a\b[^>]*href=["']\/products\/\d+/gi);
+    board.officialPageReports.push({ url, finalUrl: res.url, ok: res.ok, status: res.status, error: res.error || null, checkedAt, capabilities: res.ok ? ['official_public_product_search'] : [], parserHealth });
+    return { url, res, rows, checkedAt, parserHealth };
+  }));
+  const modernRows = [...new Map(modernResponses.flatMap(result => result.rows).map(row => [row.ncCode, row])).values()];
+  if (modernRows.length) {
+    for (const row of modernRows) {
+      const base = signalBase(config, 'Durham ABC official public product search', row.sourceUrl, row.rawName, bible, 0.76);
+      signals.push({ id: stableId([config.id, 'durham-public-product', row.ncCode, row.rawName]), ...base,
+        eventType: 'nc_board_inventory_page_match', locationPrecision: 'board_county', locationName: boardName, county: 'Durham',
+        ncCode: row.ncCode, price: row.price, quantity: null, sourceReportedBoardQuantity: row.sourceReportedBoardQuantity,
+        observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false,
+        inventorySemantics: 'Official Durham public product search reports board-wide availability; individual store quantities, shelf status and release eligibility are unverified.',
+        evidence: `Durham ABC publicly lists ${row.rawName}${row.price ? ` at $${row.price.toFixed(2)}` : ''}${row.sourceReportedBoardQuantity !== null ? ` with ${row.sourceReportedBoardQuantity} reported across its board` : ''}. Confirm the specific store and allocation rules.`,
+        raw: { ...row, precisionCaveat: 'board aggregate; never exact-store inventory' },
+      });
+    }
+    const warnings = modernResponses.filter(result => !result.res.ok || result.parserHealth.status === 'parser_drift');
+    board.parserWarnings = warnings.map(result => ({ url: result.url, status: result.res.status, parserStatus: result.parserHealth.status }));
+    dossier.durhamStructuredProducts = { sourceUrl: 'https://www.durhamabc.com/search', route: 'public_html_product_search',
+      status: 200, itemCount: modernRows.length, items: modernRows, observedAt: new Date().toISOString(),
+      sourceChecks: modernResponses.map(({ url, res, rows, parserHealth, checkedAt }) => ({ url, status: res.status, ok: res.ok, itemCount: rows.length, parserHealth, checkedAt })),
+      note: 'Modern first-party product cards. Counts are board-wide public reporting, not individual-store shelf confirmation.' };
+    addCapability(board, 'official_public_product_search');
+    return;
+  }
+
+  const res = await safeTextFetch(DURHAM_STRUCTURED_PRODUCTS_URL, { reviewedSeedUrls: [board.website], referer: board.website, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS * 2 });
   if (!res.ok) {
+    board.parserWarnings = modernResponses.map(result => ({ url: result.url, status: result.res.status, parserStatus: result.parserHealth.status }));
+    board.officialPageReports.push({ url: DURHAM_STRUCTURED_PRODUCTS_URL, ok: false, status: res.status, checkedAt: new Date().toISOString(), error: res.error || `HTTP ${res.status}`, capabilities: [] });
     roadblocks.push({ state: config.id, source: 'Durham ABC structured allocated product table', url: DURHAM_STRUCTURED_PRODUCTS_URL, status: res.status, error: res.error || res.text.slice(0, 240), nextRoute: 'Retry Durham Wix page and inspect wix-warmup-data / Velo datasets.' });
     dossier.durhamStructuredProducts = { sourceUrl: DURHAM_STRUCTURED_PRODUCTS_URL, status: res.status, itemCount: 0, observedAt: new Date().toISOString() };
     return;
   }
 
   const rows = parseDurhamStructuredProducts(res.text);
+  if (!rows.length) {
+    board.parserWarnings = [{ url: res.url || DURHAM_STRUCTURED_PRODUCTS_URL, status: 'parser_drift', reason: 'Neither modern public product cards nor the legacy structured table could be parsed.' }];
+    roadblocks.push({ state: config.id, source: 'Durham ABC public products', url: res.url || DURHAM_STRUCTURED_PRODUCTS_URL, status: 'parser_drift', error: 'HTTP success without recognized modern or legacy product data.', nextRoute: 'Inspect official public search markup; sibling boards continue.' });
+  }
   for (const row of rows) {
     const base = signalBase(config, 'Durham ABC structured allocated product table', res.url || DURHAM_STRUCTURED_PRODUCTS_URL, row.rawName, bible, 0.76);
     signals.push({
@@ -1247,7 +1378,7 @@ async function collectDurhamStructuredProducts(config, bible, signals, roadblock
       price: row.price,
       observedAt: row.updatedAt || base.fetchedAt,
       canAlertAsInventory: false,
-      canAlertAsWatch: true,
+      canAlertAsWatch: false,
       inventorySemantics: 'Official Durham ABC structured product table from Wix warmup data. Product/price/NC code intelligence only; no store-level shelf quantity is published. Verify rules before driving.',
       evidence: `Durham ABC publishes ${row.rawName}${row.ncCode ? ` (NC Code ${row.ncCode})` : ''}${row.price ? ` at $${row.price.toFixed(2)}` : ''} in a structured allocated-product table. This is official board product intelligence, not exact shelf inventory.`,
       raw: { ...row, sourceUrl: res.url || DURHAM_STRUCTURED_PRODUCTS_URL, precisionCaveat: 'structured official product row; store and shelf quantity not exposed' }
@@ -1277,6 +1408,7 @@ function finalizeBoards(boards) {
       capabilities: [...board.capabilities].filter(Boolean).sort(),
       precisionLevel: board.precisionLevel,
       sourceUrls: [...board.sourceUrls].filter(Boolean).slice(0, 30),
+      parserWarnings: board.parserWarnings || [],
       officialPageReports: board.officialPageReports.slice(0, 30)
     };
   }).sort((a, b) => b.trackedUnits - a.trackedUnits || b.trackedShipmentRows - a.trackedShipmentRows || a.boardName.localeCompare(b.boardName));
@@ -1326,6 +1458,10 @@ async function collectNorthCarolinaIntelligenceDirect(config, bible, collectStor
   const priceByCode = await collectCurrentPriceList(config, roadblocks, dossier);
   const controlledByCode = await collectControlledDistributionList(config, bible, signals, roadblocks, dossier, priceByCode);
   await collectStockShipped(config, bible, signals, roadblocks, dossier, boards, controlledByCode, priceByCode);
+  for (const [boardName, website] of Object.entries(NC_REVIEWED_BOARD_WEBSITES)) {
+    const board = [...boards.values()].find(b => ncBoardKey(b.boardName) === ncBoardKey(boardName));
+    if (board) { board.website = website; board.sourceUrls.add(website); addCapability(board, 'reviewed_official_board_website'); }
+  }
   await collectWarehouse(config, bible, signals, roadblocks, dossier, controlledByCode, priceByCode);
   await collectBoardWebsiteWatch(config, bible, signals, roadblocks, dossier, boards);
   await collectDurhamStructuredProducts(config, bible, signals, roadblocks, dossier, boards);
@@ -1346,7 +1482,28 @@ async function collectNorthCarolinaIntelligenceDirect(config, bible, collectStor
     }
   }
 
+  // Include specialized adapters in the durable route ledger. The final report
+  // for a route wins, so a verified fallback clears an earlier fetch failure.
+  for (const board of boards.values()) {
+    if (!board.officialPageReports.length) continue;
+    const key = ncBoardKey(board.boardName);
+    const previous = dossier.sourceRegistry?.[key] || {};
+    const reports = [...new Map(board.officialPageReports.map(report => [ncRouteKey(report.url), report])).values()];
+    const newChecks = reports.filter(report => report.checkedAt && report.checkedAt !== previous.routes?.[ncRouteKey(report.url)]?.lastCheckedAt);
+    dossier.sourceRegistry ||= {};
+    dossier.sourceRegistry[key] = updateNcBoardRegistry(previous, newChecks, {
+      seeds: candidateUrlsForBoard(board),
+      pinned: reports.filter(report => !previous.routes?.[ncRouteKey(report.url)] || previous.routes[ncRouteKey(report.url)].kind === 'pinned').map(report => report.url),
+      cursor: previous.cursor || 0,
+    });
+  }
+  await writeFile(path.join(OUT, 'nc-source-registry.json'), JSON.stringify({ version: 1, boards: dossier.sourceRegistry || {} }, null, 2));
   dossier.boards = finalizeBoards(boards);
+  dossier.sourceHealth = summarizeNcBoardSources(boards.values(), dossier.sourceRegistry, { shipmentObservedAt: dossier.stockShipped?.observedAt, shipmentRetrievedAt: dossier.stockShipped?.retrievedAt });
+  dossier.sourceHealth.statewideFailures = [
+    ...(dossier.boardDirectory?.health !== 'healthy' ? [{ source: 'NC ABC Board List', status: dossier.boardDirectory?.health || 'missing' }] : []),
+    ...(!dossier.stockShipped?.observedAt ? [{ source: 'NC ABC StockShippedData', status: 'missing_valid_source_extract' }] : []),
+  ];
   dossier.coverage = coverageSummary(boards);
   dossier.signalCounts = signals.reduce((acc, signal) => { acc[signal.eventType] = (acc[signal.eventType] || 0) + 1; return acc; }, {});
   dossier.roadblockCount = roadblocks.length;

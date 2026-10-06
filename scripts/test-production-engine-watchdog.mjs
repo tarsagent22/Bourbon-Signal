@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { evaluateProductionHealth } from './production-engine-watchdog.mjs';
+import { ncSourceIntegrityFailures } from './verify-nc-source-health.mjs';
 
 const nowMs = Date.parse('2026-07-20T02:00:00.000Z');
 
@@ -107,4 +108,18 @@ const unavailable = evaluateProductionHealth({
 assert.equal(unavailable.ok, false);
 assert.deepEqual(unavailable.recoveryStates, [], 'A global stats outage must request full recovery instead of being misclassified as a PA-only collapse.');
 
-console.log('Production watchdog PA coverage contracts passed.');
+const ncStats = statsWithPa({ drops: 1400, stores: 560, bestLocationPrecision: 'store_level' });
+ncStats.body.ncBoardIntelligence = { sourceHealth: { affectedBoards: [
+  { boardName: 'Transient ABC Board', status: 'partial', failedPageCount: 1, consecutiveFailures: 1 },
+  { boardName: 'Broken ABC Board', status: 'unreachable', failedPageCount: 3, consecutiveFailures: 3 },
+  { boardName: 'Changed ABC Board', status: 'partial', parserWarnings: [{ parserStatus: 'parser_drift' }] },
+] } };
+const ncWarnings = evaluateProductionHealth({ nowMs, activeStates: ['PA'], stats: ncStats, stateChecks });
+assert.equal(ncWarnings.ok, true, 'Board problems must not trigger snapshot recovery or mask valid sibling states.');
+assert.equal(ncWarnings.warnings.length, 3);
+assert.deepEqual(ncWarnings.recoveryStates, []);
+assert.equal(ncSourceIntegrityFailures(ncWarnings.ncSourceHealth).length, 2, 'Persistent website failure and parser drift need an independent failed check.');
+assert.deepEqual(ncSourceIntegrityFailures(null), []);
+assert.equal(ncSourceIntegrityFailures({ statewideFailures: [{ source: 'NC ABC Board List', status: 'parser_drift' }] }).length, 1);
+assert.equal(ncSourceIntegrityFailures({ affectedBoards: [{ boardName: 'Partial ABC Board', status: 'partial', failedKnownRoutes: [{ url: 'https://board.example/lottery', consecutiveFailures: 3 }] }] }).length, 1, 'A working homepage cannot mask persistent failure of an important known route.');
+console.log('Production watchdog coverage and NC source integrity contracts passed.');

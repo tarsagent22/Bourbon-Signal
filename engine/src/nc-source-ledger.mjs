@@ -44,7 +44,7 @@ function hasCapability(board, pattern) {
 }
 
 function successfulPages(board) {
-  return (board?.officialPageReports || []).filter((report) => report?.sourceIdentityVerified !== false && Number(report?.status) >= 200 && Number(report?.status) < 300);
+  return (board?.officialPageReports || []).filter((report) => report?.ok !== false && report?.sourceIdentityVerified !== false && Number(report?.status) >= 200 && Number(report?.status) < 300);
 }
 
 function qualificationFor(board, officialStoreCount) {
@@ -128,6 +128,7 @@ export function buildNcSourceLedger(activeOfficialLocations = [], ncIntelligence
   const officialBoards = activeOfficialLocations.filter((location) => location?.state === 'NC' && location?.source === 'NC ABC Commission board list');
   const officialStores = activeOfficialLocations.filter((location) => location?.state === 'NC' && location?.source === 'NC ABC Commission store locator' && location?.searchable !== false);
   const intelligenceByBoard = new Map((ncIntelligenceRaw?.boards || []).map((board) => [normalizeBoard(board.boardName), board]));
+  const operationalByBoard = new Map((ncIntelligenceRaw?.sourceHealth?.boards || []).map(board => [normalizeBoard(board.boardName), board]));
   const storesByBoard = new Map();
 
   for (const store of officialStores) {
@@ -143,9 +144,14 @@ export function buildNcSourceLedger(activeOfficialLocations = [], ncIntelligence
     const intelligence = intelligenceByBoard.get(key) || { boardName: officialBoard.name, capabilities: [], officialPageReports: [] };
     const stores = storesByBoard.get(key) || [];
     const qualification = qualificationFor(intelligence, stores.length);
+    const operational = operationalByBoard.get(key);
     const pages = successfulPages(intelligence);
     const hasCurrentEvidence = pages.length > 0 || Number(intelligence.trackedShipmentRows || 0) > 0;
-    const supportingEvidenceHealth = hasCurrentEvidence
+    const supportingEvidenceHealth = operational && ['partial', 'unreachable', 'not_checked'].includes(operational.status)
+      ? operational.status
+      : operational?.shipmentStatus === 'upstream_stale' && !pages.length && Number(intelligence.trackedShipmentRows || 0) > 0
+        ? 'upstream_stale'
+      : hasCurrentEvidence
       ? 'healthy'
       : intelligence.website
         ? 'watch_only'
@@ -170,12 +176,19 @@ export function buildNcSourceLedger(activeOfficialLocations = [], ncIntelligence
       expectedCadence: cadenceFor(qualification),
       health,
       supportingEvidenceHealth,
+      boardSourceHealth: operational || null,
+      shipmentEvidenceAt: ncIntelligenceRaw?.stockShipped?.observedAt || null,
+      shipmentRetrievedAt: ncIntelligenceRaw?.stockShipped?.retrievedAt || null,
       lastSuccessfulRetrievalAt: qualification === 'direct_inventory_monitored'
         ? null
-        : hasCurrentEvidence
+        : operational
+          ? operational.lastSuccessfulPageAt || (Number(intelligence.trackedShipmentRows || 0) > 0 ? ncIntelligenceRaw?.stockShipped?.retrievedAt || null : null)
+          : hasCurrentEvidence
           ? (ncIntelligenceRaw?.generatedAt || null)
           : (officialBoard.lastVerifiedAt || null),
-      lastSuccessfulSupportingEvidenceAt: hasCurrentEvidence ? (ncIntelligenceRaw?.generatedAt || null) : (officialBoard.lastVerifiedAt || null),
+      lastSuccessfulSupportingEvidenceAt: operational
+        ? operational.lastSuccessfulPageAt || (Number(intelligence.trackedShipmentRows || 0) > 0 ? ncIntelligenceRaw?.stockShipped?.observedAt || null : null)
+        : hasCurrentEvidence ? (ncIntelligenceRaw?.generatedAt || null) : (officialBoard.lastVerifiedAt || null),
       trackedShipmentRows: Number(intelligence.trackedShipmentRows || 0),
       capabilities: unique(intelligence.capabilities || []),
       canAlertAsInventory: false,

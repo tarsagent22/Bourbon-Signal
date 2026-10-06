@@ -59,6 +59,26 @@ test('R1 POST never replays body on canonical redirect',async()=>{
     await assert.rejects(fetchCollectionResponse('https://reviewed.example/',{...options,method:'POST',body:'fixture'}),/method cannot redirect/);assert.equal(calls,1);
   });
 });
+
+test('explicit reviewed cross-host redirects permit only an exact destination',async()=>{
+  const approved='https://report.abc.nc.gov/build_pdf.aspx?type=pricing&report=reduced_retail_list';
+  const reviewed={reviewedSeedUrls:['https://reviewed.example/','https://report.abc.nc.gov/'],reviewedRedirectUrls:[approved]};
+  let calls=0;
+  await fixture(async()=>++calls===1 ? new Response(null,{status:302,headers:{location:approved}}) : new Response('Official report'),async()=>{
+    const result=await fetchCollectionResponse('https://reviewed.example/sales',reviewed);
+    assert.equal(result.url,approved);assert.equal(calls,2);
+  });
+  for(const destination of [`${approved}&unexpected=1`,'https://evil.example/build_pdf.aspx']) {
+    calls=0;
+    await fixture(async()=>{calls++;return new Response(null,{status:302,headers:{location:destination}});},async()=>{
+      await assert.rejects(fetchCollectionResponse('https://reviewed.example/sales',reviewed),/outside reviewed/);assert.equal(calls,1);
+    });
+  }
+  calls=0;
+  await fixture(async()=>{calls++;throw Error('must not fetch');},async()=>{
+    await assert.rejects(fetchCollectionResponse('https://reviewed.example/sales',{...options,reviewedRedirectUrls:[approved]}),/requires a reviewed source seed/);assert.equal(calls,0);
+  });
+});
 test('R1 NC identity agrees with safe Wake topology and rejects userinfo',()=>{
   assert.equal(ncBoardPageSourceIdentity('http://www.wakeabc.com/','https://wakeabc.com/', ['https://wakeabc.com/']).verified,true);
   assert.equal(ncBoardPageSourceIdentity('https://user:secret@wakeabc.com/','https://wakeabc.com/', ['https://wakeabc.com/']).verified,false);

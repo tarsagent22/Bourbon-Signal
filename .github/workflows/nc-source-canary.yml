@@ -1,0 +1,72 @@
+name: NC public-source canary
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/nc-source-canary.yml'
+      - 'engine/src/collectors/north-carolina-intelligence.mjs'
+      - 'engine/src/collectors/precision-probes.mjs'
+      - 'engine/src/core/collection-http.mjs'
+      - 'engine/src/nc-board-discovery.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nc-source-canary-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nc-source-canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install collector dependencies
+        run: npm ci --ignore-scripts && npm --prefix engine ci --ignore-scripts
+      - name: Collect public NC sources without publishing
+        working-directory: engine
+        run: |
+          npm run bible
+          node --input-type=module <<'JS'
+          import { readFile, writeFile } from 'node:fs/promises';
+          import assert from 'node:assert/strict';
+          import { BourbonBible } from './src/core/bible.mjs';
+          import { STATE_SOURCES } from './src/state-sources.mjs';
+          import { collectPrecisionProbes } from './src/collectors/precision-probes.mjs';
+          const startedAt = Date.now();
+          const result = await collectPrecisionProbes(STATE_SOURCES.find(s => s.id === 'NC'), await BourbonBible.load());
+          await writeFile('out/nc-source-canary.json', JSON.stringify(result, null, 2));
+          const dossier = JSON.parse(await readFile('out/nc-board-intelligence.json', 'utf8'));
+          assert.ok(Date.parse(dossier.generatedAt) >= startedAt, 'Canary requires this attempt, not old artifacts');
+          assert.equal(dossier.sourceHealth.statewideFailures.length, 0, 'Statewide NC inputs failed');
+          for (const [product, boardName] of [
+            [dossier.durhamStructuredProducts, 'Durham County ABC Board'],
+            [dossier.newHanoverPublicProducts, 'New Hanover County ABC Board'],
+          ]) {
+            if (product.itemCount > 0) continue;
+            assert.notEqual(product.status, 200, `${boardName}: successful source response returned no parsed products`);
+            const board = dossier.sourceHealth.boards.find(row => row.boardName === boardName);
+            assert.ok(board && board.status !== 'healthy', `${boardName}: unavailable products were falsely labeled healthy`);
+            assert.ok(!board.parserWarnings.some(w => w.status === 'parser_drift' || w.parserStatus === 'parser_drift'), `${boardName}: product parser drift`);
+            console.warn(`::warning title=NC public-source access::${boardName} unavailable from this runner (HTTP ${product.status}); correctly recorded as ${board.status}.`);
+          }
+          assert.ok(result.signals.length > 0, 'NC precision source emitted no observations');
+          console.log(JSON.stringify({ signalCount: result.signals.length, roadblocks: result.roadblocks, sourceHealth: dossier.sourceHealth.statusCounts, shipmentObservedAt: dossier.stockShipped.observedAt }, null, 2));
+          JS
+      - name: Preserve source-check evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nc-source-canary-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            engine/out/nc-source-canary.json
+            engine/out/nc-board-intelligence.json
+            engine/out/nc-source-registry.json
