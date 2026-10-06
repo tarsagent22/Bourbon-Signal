@@ -25,6 +25,13 @@ test('learned routes survive a missing homepage link without trusting a foreign 
   assert.equal(ncRouteKey('https://user:password@board.example/'),null);
 });
 
+test('cold discovery fills unused slots with unique public route guesses',()=>{
+  const plan=selectNcBoardRoutes({pinned:[root],seeds:[root],limit:4,guesses:[root,`${root}#`,`${root}products`,`${root}products#`,`${root}feed`,`${root}wp-json/wp/v2/posts`]});
+  assert.equal(plan.urls.length,4);
+  assert.equal(new Set(plan.urls.map(ncRouteKey)).size,4);
+  assert.ok(plan.urls.includes(`${root}wp-json/wp/v2/posts`));
+});
+
 test('NC discovery fetches real homepage links and records HTTP failures including empty bodies',async()=>{
   const requests=[];
   const reports=await discoverBoardPages({boardName:'Test ABC Board',website:root},{fetchPage:async url=>{

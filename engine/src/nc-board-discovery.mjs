@@ -57,12 +57,17 @@ export function selectNcBoardRoutes({ pinned = [], discovered = [], previous = {
     const bt = Date.parse(previous.routes?.[bk]?.lastCheckedAt || '') || 0;
     return at - bt || rank(a) - rank(b) || a.localeCompare(b);
   });
-  const explorationSlots = Math.min(2, Math.max(0, budget - selected.size));
+  const candidates = [...new Map(guesses.filter(url => ncTrustedRoute(url, seeds))
+    .map(url => [ncRouteKey(url), url])).entries()]
+    .filter(([key]) => !selected.has(key) && !real.has(key)).map(([, url]) => url);
+  const remaining = Math.max(0, budget - selected.size);
+  // Reserve two exploratory slots when real links fill the budget. On a cold
+  // or inaccessible homepage, use otherwise empty slots for unique guesses.
+  const explorationSlots = Math.min(candidates.length, Math.max(Math.min(2, remaining), remaining - sorted.length));
   for (const [, url] of sorted) {
     if (selected.size >= budget - explorationSlots) break;
     add(url);
   }
-  const candidates = guesses.filter(url => ncTrustedRoute(url, seeds) && !selected.has(ncRouteKey(url)));
   const cursor = Math.max(0, Number(previous.cursor) || 0);
   for (let i = 0; i < Math.min(explorationSlots, candidates.length); i++) add(candidates[(cursor + i) % candidates.length]);
   // If exploration has nothing left, use its slots for known public links.

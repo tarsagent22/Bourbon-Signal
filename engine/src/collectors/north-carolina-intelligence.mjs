@@ -79,7 +79,7 @@ export const NC_STATIC_BOARD_TARGETS = [
 const STATIC_BOARD_TARGETS = NC_STATIC_BOARD_TARGETS;
 
 const CANDIDATE_PATHS = [
-  '/', '/products', '/product-search', '/inventory', '/search-our-inventory', '/search-results',
+  '/', '/products', '/product-search', '/inventory', '/feed', '/wp-json/wp/v2/posts', '/search-our-inventory', '/search-results',
   '/allocation-policy', '/lottery', '/bourbon-blast', '/barrels', '/sales', '/drops', '/news', '/announcements', '/feed', '/wp-json/wp/v2/posts',
   '/specialty-products', '/limited-release', '/release-calendar', '/pages/view-inventory', '/blog', '/abc-policy-for-allocation-and-sale-of-special-liquors',
   '/store_operations/specialty_products_lottery.php', '/products/index.php', '/sitemap.xml', '/wp-sitemap.xml'
@@ -1065,7 +1065,7 @@ export async function discoverBoardPages(board, { previous = {}, fetchPage = saf
   }
 
   const pinned = STATIC_BOARD_TARGETS.filter(t => boardKey(t.boardName) === boardKey(board.boardName)).flatMap(t => t.urls || []);
-  const plan = selectNcBoardRoutes({ pinned, discovered, previous, guesses: seedUrls, seeds: seedUrls, limit: NC_BOARD_WEBSITE_URL_MAX });
+  const plan = selectNcBoardRoutes({ pinned: [...homeUrls, ...pinned], discovered, previous, guesses: seedUrls, seeds: seedUrls, limit: NC_BOARD_WEBSITE_URL_MAX });
   const routes = new Map();
   for (const url of [...homeUrls, ...plan.urls]) {
     const key = ncRouteKey(url);
