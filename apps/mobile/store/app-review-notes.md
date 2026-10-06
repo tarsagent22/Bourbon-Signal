@@ -2,9 +2,9 @@
 
 ## Submission status
 
-This draft candidate is not final and is not ready for App Review. The source implements the intended native membership, authentication, push, legal, support, and account-deletion paths, but the App Store Connect products are not configured, sandbox purchase and restore evidence is not verified, review screenshots are not captured, and a final signed build has not been produced.
+This draft candidate is not final and remains pending final device review and submission assets. App Store Connect contains TestFlight build 14 and two configured monthly launch subscriptions. RevenueCat's default offering and entitlements match those products. The owner reported a successful sandbox purchase with the correct access granted on October 5, 2026. Restore and remaining lifecycle behavior have not been established by that report. Public and subscription-review screenshots remain missing, and version 1.1.0 currently has older build 12 attached.
 
-Do not submit these notes as a claim that the unfinished candidate or its Apple products are operational.
+Validate fresh-device reviewer access, push receipt, the final candidate, screenshots, and owner disclosures before submission. This document distinguishes configured products from approved products and owner-reported purchase evidence from a complete sandbox lifecycle run.
 
 ## Reviewer summary
 
@@ -16,7 +16,7 @@ Customer-facing memberships are:
 
 - Free: $0 with no renewal.
 - Standard: $3/month auto-renewing subscription.
-- Barrel: $6/month auto-renewing subscription.
+- Barrel Proof: $6/month auto-renewing subscription.
 - Existing annual members, if any, retain their server-confirmed access and restore/lifecycle handling; annual billing is not offered to new members.
 - Founder: existing lifetime access is honored but is not sold in the app.
 
@@ -29,9 +29,9 @@ These steps describe the implemented navigation. They must be rechecked on the f
 1. Open Bourbon Signal. A new reviewer can choose Create a free account; for full review coverage, sign in with the dedicated App Review account supplied only in App Store Connect.
 2. Review the Home tab, open a Signal's Bottle Profile, and inspect its source-backed detail.
 3. Open Radar to review saved markets, watched bottles, alert channels, and the alert inbox. Push permission appears only after the member explicitly enables Push.
-4. Open Post. Bottle and store are required; optional photo access is requested only after the member chooses evidence. Apple should not submit production community data unless coordinated with Bourbon Signal.
+4. A Community Signal offers Report post and Block member. Blocked members can be managed under Account; reports enter an owner moderation queue. Open Post. Bottle and store are required; optional photo access is requested only after the member chooses evidence. Apple should not submit production community data unless coordinated with Bourbon Signal.
 5. Open Shelf to review saved bottles. A downgrade preserves saved data; only additions above the current plan limit are blocked.
-6. Open Account → Membership. Review Free, Standard, Barrel, and existing Founder presentation; the monthly purchase paths; current lifecycle status; Restore purchases; and Manage subscriptions in the App Store.
+6. Open Account → Membership. Review Free, Standard, Barrel Proof, and existing Founder presentation; the monthly purchase paths; current lifecycle status; Restore purchases; and Manage subscriptions in the App Store.
 7. From Membership, open Terms of Service, Privacy, Membership support, and Delete account.
 8. Account → Privacy & Support → Delete account opens the native deletion flow. The same section exposes Support, Privacy policy, app information, and Sign out.
 
@@ -56,12 +56,12 @@ A signed-in member can open Account → Privacy & Support → Request account de
 
 Before submission:
 
-- configure the two monthly launch subscription products and offerings in App Store Connect and RevenueCat; preserve legacy annual identifiers only when needed for existing subscriber lifecycle and restore handling;
-- create a least-privilege review account with stable representative access;
+- confirm the already-configured two monthly products still match the reviewed candidate and attach their required review screenshots; preserve legacy annual identifiers only for existing subscriber lifecycle and restore;
+- validate the existing least-privilege review account on a fresh device without requiring access to the owner's mailbox;
 - enter credentials and private review-contact details only in App Store Connect;
 - verify monthly purchase, absence of trial claims in this candidate, pending purchase, cancel, renewal, grace/billing retry, refund/revoke, restore, legacy annual restoration if applicable, and Manage Subscriptions in sandbox/TestFlight;
 - capture screenshots from the reviewed candidate; and
-- produce and inspect the final signed build.
+- attach and inspect the reviewed final signed build rather than the older version attachment.
 
 ## Public URLs
 

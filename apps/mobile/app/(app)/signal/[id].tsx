@@ -3,7 +3,7 @@ import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation"
 import { Stack, useLocalSearchParams } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import { presentSignal, signalMemberTagLabel } from "../../../src/api/presentation";
 import type { HuntOutcome, MemberPreferences, Signal } from "../../../src/api/types";
@@ -29,6 +29,17 @@ export default function SignalDetailScreen() {
   const [preferencesError, setPreferencesError] = useState("");
   const [actionError, setActionError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [safetyNotice, setSafetyNotice] = useState("");
+  const [hidden, setHidden] = useState(false);
+
+  async function saveSafety(action:"report"|"block",reason?:"spam"|"misleading"|"harassment"|"inappropriate"|"other") {
+    if(!signal || saving)return;
+    setSaving(true); setActionError("");
+    try { await api.saveCommunitySafety({action,signalId:signal.id,reason}); setHidden(true); setReporting(false); setSafetyNotice(action === "block" ? "Member blocked. Their posts and future Community alerts are hidden. Manage blocked members from Account." : "Report sent for review. This post is hidden from your feed. Contact support@bourbonsignal.com if you need help."); }
+    catch(caught){setActionError(caught instanceof Error?caught.message:"Your change could not be saved.");}
+    finally{setSaving(false);}
+  }
   const [huntOutcome, setHuntOutcomeState] = useState<HuntOutcome | null>(null);
   const [huntOutcomeVisible, setHuntOutcomeVisible] = useState(false);
   const [editingHuntOutcome, setEditingHuntOutcome] = useState(false);
@@ -146,7 +157,8 @@ export default function SignalDetailScreen() {
     <Stack.Screen options={{ title: "Bottle Profile" }} />
     {!signal && !error ? <ActivityIndicator color={colors.accent} /> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
-    {signal ? <>
+    {safetyNotice ? <Text accessibilityRole="alert" style={styles.disclaimer}>{safetyNotice}</Text> : null}
+    {signal && !hidden ? <>
       <Text style={styles.title}>{signal.bottle.name}</Text>
       <View accessibilityLabel="Bottle Profile" style={styles.profileCard}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>Bottle Profile</Text>
@@ -171,6 +183,7 @@ export default function SignalDetailScreen() {
         {presented?.price ? <Detail label="Price" value={presented.price} /> : null}
         {presented?.quantity ? <Detail label="Quantity" value={presented.quantity} /> : null}
         {presented?.summary ? <Detail label="Note" value={presented.summary} /> : null}
+        {signal.evidence.photoUrl ? <Image source={{uri:signal.evidence.photoUrl}} accessibilityLabel="Member sighting photo approved for public display" resizeMode="contain" style={{width:"100%",height:240,borderRadius:12}} /> : null}
         {presented?.caveat ? <Detail label="Caveat" value={presented.caveat} /> : null}
         {signal.source.type === "member" ? <Text style={styles.disclaimer}>Member observations report what someone saw and are not verified retailer inventory.</Text> : null}
       </View>
@@ -179,6 +192,14 @@ export default function SignalDetailScreen() {
         {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
         {canReadCellar ? <ActionButton disabled={inCellar || !canAddToCellar || saving} label={inCellar ? "Already on My Shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => void addToCellar()} /> : null}
         {address ? <ActionButton label="Open in Maps" onPress={() => void openMaps()} /> : null}
+        {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
+      </View> : null}
+      {signal.source.type === "member" ? <View style={styles.actions}>
+        <Text style={styles.actionsTitle}>Community safety</Text>
+        <ActionButton disabled={saving} label="Report this post" onPress={()=>setReporting(value=>!value)} />
+        {reporting ? <View style={styles.actions}>{([{value:"spam",label:"Spam"},{value:"misleading",label:"Misleading availability"},{value:"harassment",label:"Harassment"},{value:"inappropriate",label:"Inappropriate content"},{value:"other",label:"Other concern"}] as const).map(reason=><ActionButton key={reason.value} disabled={saving} label={reason.label} onPress={()=>void saveSafety("report",reason.value)} />)}</View> : null}
+        <ActionButton disabled={saving} label="Block this member" onPress={()=>Alert.alert("Block this member?","Their posts and future Community alerts will be hidden. You can unblock them from Account.",[{text:"Cancel",style:"cancel"},{text:"Block member",style:"destructive",onPress:()=>void saveSafety("block")}])} />
+        <Text style={styles.disclaimer}>Need help? support@bourbonsignal.com</Text>
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
       </View> : null}
       {huntOutcomeVisible ? <View accessibilityLabel="Hunt Outcome" style={styles.huntOutcome}>

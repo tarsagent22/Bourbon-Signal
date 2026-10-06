@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import test from 'node:test';
+import {PGlite} from '@electric-sql/pglite';
+import {CommunitySafetyRepository,communityReportReason,communitySightingVisible} from '../src/lib/community-safety';
+import {CommunitySightingsRepository} from '../src/lib/community-sightings-repository';
+test('Community blocks and reports are account scoped, durable, idempotent, and affect SQL pagination and alerts',async()=>{
+  const db=new PGlite();
+  try{
+    const schema=readFileSync('src/lib/community-safety.sql','utf8');
+    await db.exec(schema);await db.exec(schema);
+    await db.exec('CREATE TABLE community_sightings(id text PRIMARY KEY,reporter_user_id text,created_at timestamptz,payload jsonb)');
+    const sql={query:async(text:string,params:unknown[]=[])=>({rows:(await db.query(text,params)).rows as Record<string,unknown>[]})};
+    const safety=new CommunitySafetyRepository(sql);
+    const feed=new CommunitySightingsRepository({query:async(text:string,params:unknown[]=[])=> (await db.query(text,params)).rows} as never);
+    const sightings=[{id:'s1',reporterUserId:'author1',bottleName:'Bottle one',createdAt:'2026-10-05T12:03:00Z',storeState:'NC'}, {id:'s2',reporterUserId:'author2',bottleName:'Bottle two',createdAt:'2026-10-05T12:02:00Z',storeState:'NC'}, {id:'s3',reporterUserId:'author3',bottleName:'Bottle three',createdAt:'2026-10-05T12:01:00Z',storeState:'NC'}, {id:'removed',reporterUserId:'author4',bottleName:'Removed',createdAt:'2026-10-05T12:04:00Z',rewardState:{removedAt:'2026-10-05T12:05:00Z'}}];
+    for(const sighting of sightings)await db.query('INSERT INTO community_sightings VALUES($1,$2,$3,$4::jsonb)',[sighting.id,sighting.reporterUserId,sighting.createdAt,JSON.stringify(sighting)]);
+    await assert.rejects(()=>safety.block('readerA','readerA'));
+    await safety.block('readerA','author1');await safety.block('readerA','author1');
+    assert.equal((await safety.listBlocks('readerA')).length,1);
+    assert.equal((await safety.listBlocks('readerB')).length,0);
+    assert.equal(await safety.report('readerA','s2','spam'),true);
+    assert.equal(await safety.report('readerA','s2','misleading'),true);
+    assert.equal((await safety.pending()).length,1);
+    assert.deepEqual((await feed.listSightingsFeed('readerA',1)).sightings.map(s=>s.id),['s3']);
+    assert.deepEqual((await feed.listSightingsFeed('readerB',1)).sightings.map(s=>s.id),['s1']);
+    assert.equal((await feed.listSightingsFeed('readerA',1)).totalSightings,1);
+    const hidden=await safety.hiddenFor('readerA');
+    assert.equal(communitySightingVisible(sightings[0],hidden.blocked,hidden.reported),false);
+    assert.equal(communitySightingVisible(sightings[2],hidden.blocked,hidden.reported),true);
+    assert.equal(CommunitySafetyRepository.candidateVisible({sourceType:'community',id:'community:s2',reporterUserId:'author2'},hidden),false);
+    assert.equal(CommunitySafetyRepository.candidateVisible({sourceType:'community',id:'community:new',reporterUserId:'author1'},hidden),false);
+    assert.equal(CommunitySafetyRepository.candidateVisible({sourceType:'engine',id:'trusted'},hidden),true);
+    await safety.unblock('readerB','author1');assert.equal((await safety.listBlocks('readerA')).length,1);
+    await safety.resolve('s2','owner');assert.equal((await safety.pending()).length,0);
+    assert.equal((await safety.hiddenFor('readerA')).reported.has('s2'),true,'review does not silently re-expose the reporter’s hidden post');
+    await safety.unblock('readerA','author1');assert.deepEqual((await feed.listSightingsFeed('readerA',1)).sightings.map(s=>s.id),['s1']);
+    assert.equal(communityReportReason('made-up'),null);assert.equal(communityReportReason('harassment'),'harassment');
+  }finally{await db.close();}
+});

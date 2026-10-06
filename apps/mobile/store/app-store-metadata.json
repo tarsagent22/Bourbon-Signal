@@ -2,15 +2,15 @@
   "schemaVersion": "bourbon-signal/app-store-metadata@2",
   "submissionStatus": "draft_not_ready_for_submission",
   "candidateStatus": "draft_not_ready_for_submission",
-  "buildStatus": "final_signed_build_not_produced",
-  "productConfigurationStatus": "apple_and_revenuecat_products_not_verified",
+  "buildStatus": "testflight_build_14_available_final_candidate_review_pending",
+  "productConfigurationStatus": "two_monthly_products_and_revenuecat_offering_verified_2026_10_05",
   "screenshotStatus": "review_screenshots_not_captured",
-  "sandboxEvidenceStatus": "sandbox_purchase_restore_and_lifecycle_not_verified",
+  "sandboxEvidenceStatus": "owner_reported_purchase_and_access_passed_restore_and_lifecycle_pending",
   "locale": "en-US",
   "name": "Bourbon Signal",
-  "subtitle": "Fresh bourbon intelligence",
+  "subtitle": "Bottle alerts and collections",
   "promotionalText": "See timely bourbon availability Signals, manage Radar preferences, and keep your bourbon hunt organized.",
-  "description": "Bourbon Signal gives members a focused, trustworthy view of timely bourbon availability intelligence. Create a free account in the app, then review Signals and manage your membership from one native experience.\n\nUse the native app to:\n• Review recent availability and release Signals\n• Open details including retailer, timing, price, quantity, and source context when evidence supports them\n• Monitor watched bottles, saved markets, and recent alerts in Radar\n• Post a store sighting with optional photo evidence\n• Keep saved bottles, ratings, and notes on Shelf\n• Review membership, Signal Points, rewards, privacy, support, and account controls\n\niOS members can choose eligible Standard or Barrel subscriptions through Apple, restore purchases, and open App Store subscription management. Free is $0 with no renewal. Existing Founder access is honored but is not sold in the app. Any eligible trial is limited to qualifying monthly products and appears only when both the Bourbon Signal account and Apple confirm eligibility.\n\nAvailability changes quickly. Confirm with the retailer before travel or purchase.",
+  "description": "Bourbon Signal gives members a focused, trustworthy view of timely bourbon availability intelligence. Create a free account in the app, then review Signals and manage your membership from one native experience.\n\nUse the native app to:\n• Review recent availability and release Signals\n• Open details including retailer, timing, price, quantity, and source context when evidence supports them\n• Monitor watched bottles, saved markets, and recent alerts in Radar\n• Post a store sighting with optional photo evidence\n• Keep saved bottles, ratings, and notes on Shelf\n• Review membership, Signal Points, rewards, privacy, support, and account controls\n\niOS members can choose eligible Standard or Barrel Proof subscriptions through Apple, restore purchases, and open App Store subscription management. Free is $0 with no renewal. Existing Founder access is honored but is not sold in the app. Introductory trials are not offered in this candidate.\n\nAvailability changes quickly. Confirm with the retailer before travel or purchase.",
   "keywords": "bourbon,whiskey,availability,retailers,bottles,releases,inventory,rare whiskey",
   "primaryCategory": "FOOD_AND_DRINK",
   "secondaryCategory": "LIFESTYLE",
@@ -21,20 +21,20 @@
   "contentRights": "Confirm all final artwork and product-content rights before submission.",
   "ageRatingNote": "The service is intended for adults age 21 and older and contains alcohol-related product information. Complete Apple's current age-rating questionnaire from observed final-candidate content.",
   "reviewContact": "Pending. Enter organization-controlled contact details only in App Store Connect.",
-  "reviewAccount": "Pending. Create a dedicated least-privilege account and store credentials only in App Store Connect.",
+  "reviewAccount": "Dedicated least-privilege account exists; credentials saved only in App Store Connect. Fresh-device access requires validation.",
   "submissionBlockers": [
-    "configured_storekit_and_revenuecat_products",
     "reviewed_candidate_screenshots",
-    "sandbox_purchase_restore_lifecycle_evidence",
-    "final_signed_build_and_device_qa"
+    "sandbox_restore_lifecycle_and_push_device_evidence",
+    "fresh_device_reviewer_access",
+    "final_candidate_device_qa_and_owner_disclosures"
   ],
   "pendingSubmissionRequirements": [
-    "Configure and approve four Apple subscription products and matching RevenueCat offerings",
-    "Verify localized prices in sandbox; introductory trial presentation remains disabled until true per-Apple-account StoreKit eligibility is implemented",
-    "Verify purchase, pending, cancel, restore, renewal, grace, billing retry, refund, revoke, and expiration behavior",
-    "Capture and approve App Review screenshots from the reviewed candidate",
-    "Create and validate the least-privilege App Review account",
-    "Produce and inspect the final signed build",
-    "Reconcile App Privacy and age-rating answers against that final build"
+    "Attach the reviewed final candidate build rather than older build 12 currently attached to version 1.1.0",
+    "Add both monthly subscription review screenshots and attach the first subscriptions to the version submission",
+    "Verify restore, cancellation, expiration and interrupted purchase behavior; purchase and correct access were reported successful by the owner in TestFlight",
+    "Capture and review real public listing screenshots",
+    "Validate the dedicated reviewer account on a fresh device",
+    "Confirm content rights and reconcile App Privacy with actual collection; age rating is already configured",
+    "Verify physical iPhone push receipt after registration repair"
   ]
 }

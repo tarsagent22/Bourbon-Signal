@@ -52,6 +52,7 @@ import {
 import { matchedNcAbcBoardPreference, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { buildCommunityAlertCandidates, canonicalCommunityStoreKey, COMMUNITY_ALERT_FRESHNESS_HOURS, qualifyCommunitySighting, type CanonicalCommunityStore } from "@/lib/community-alert-candidates";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
+import { CommunitySafetyRepository } from "@/lib/community-safety";
 import { candidateMatchesMonitoringScopes } from "@/lib/monitoring-scope-matcher";
 import { monitoringScopesFromPreferences, type MonitoringScope } from "@/lib/monitoring-scopes";
 import { listApprovedLocations } from "@/lib/approved-catalog-service";
@@ -1449,7 +1450,9 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             if (!isWithinMemberAlertDeliveryWindow(attemptAt, priv.lifecycleTimeZone)) return null;
             const snapshotFresh = evaluateAlertSnapshotSafety({ generatedAt: batch.snapshot.generatedAt, now: attemptAt, maxAgeMinutes: Number(process.env.ALERT_SNAPSHOT_MAX_AGE_MINUTES || 45) }).safe;
             const wanted = new Set(intent.stableKeys);
+            const hidden = candidates.some(candidate=>candidate.sourceType === "community") ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
             const children = candidates.flatMap(enumerateUnderlyingAlertChildren)
+              .filter(child=>CommunitySafetyRepository.candidateVisible(child,hidden))
               .filter((child) => wanted.has(stableUnderlyingAlertKey(child)))
               .filter((child) => asString(child.sourceType) === "community" ? entitlement.canReceiveSightingsAlerts && prefs.sightings.enabled : snapshotFresh)
               .filter((child) => candidatePassesFreshOnSiteGuardrails(child, attemptAt))
@@ -1509,7 +1512,9 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       const bottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
       const alertMode = publicMetadata.alertMode;
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
+      const hidden = candidates.some(candidate=>candidate.sourceType === "community") ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
       const allMatchingPreferenceCandidates = groupCandidatesByLocation(candidates
+        .filter(candidate=>CommunitySafetyRepository.candidateVisible(candidate,hidden))
         .filter((candidate) => asString(candidate.sourceType) !== "community" || (entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled))
         .filter((candidate) => alertRarityIsSelected(candidate.tier ?? candidate.rarityTier, notificationPrefs.rarityTiers))
         .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))

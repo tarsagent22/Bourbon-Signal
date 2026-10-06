@@ -45,10 +45,10 @@ test("store metadata is explicitly a blocked draft for the not-yet-final candida
   const metadata = JSON.parse(read("store/app-store-metadata.json"));
   assert.equal(metadata.candidateStatus, "draft_not_ready_for_submission");
   assert.deepEqual(metadata.submissionBlockers, [
-    "configured_storekit_and_revenuecat_products",
     "reviewed_candidate_screenshots",
-    "sandbox_purchase_restore_lifecycle_evidence",
-    "final_signed_build_and_device_qa",
+    "sandbox_restore_lifecycle_and_push_device_evidence",
+    "fresh_device_reviewer_access",
+    "final_candidate_device_qa_and_owner_disclosures",
   ]);
   assert.match(metadata.description, /create a free account/i);
   assert.match(metadata.description, /manage.*membership/i);

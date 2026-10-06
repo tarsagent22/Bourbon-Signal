@@ -70,7 +70,7 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   postButton: { flex: 1, alignItems: "center", justifyContent: "flex-start", marginTop: -19, minHeight: 76 },
-  postCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#ed7b25", borderWidth: 3, borderColor: colors.surface, alignItems: "center", justifyContent: "center", shadowColor: "#ed7b25", shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 6 },
+  postCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#DDB698", borderWidth: 3, borderColor: colors.surface, alignItems: "center", justifyContent: "center", shadowColor: "#DDB698", shadowOpacity: 0.16, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
   postLabel: { color: colors.text, fontSize: 11, fontWeight: "700", marginTop: 2 },
   brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.title, lineHeight: 40, letterSpacing: -0.35 },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },

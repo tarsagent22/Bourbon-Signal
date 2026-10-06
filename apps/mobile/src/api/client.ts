@@ -297,6 +297,12 @@ export function createMobileApi({
     getHuntOutcome(id: string) {
       return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { fresh: true });
     },
+    saveCommunitySafety(payload: {action:"report"|"block";signalId:string;reason?:"spam"|"misleading"|"harassment"|"inappropriate"|"other"} | {action:"unblock";memberId:string}) {
+      return request<{ok:boolean}>("/api/community/safety",{method:"POST",body:payload});
+    },
+    getBlockedMembers() {
+      return request<{blocks:Array<{id:string;label:string;createdAt:string}>}>("/api/community/safety",{fresh:true});
+    },
     setHuntOutcome(id: string, outcome: HuntOutcome | null) {
       return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { method: "PUT", body: { outcome } });
     },

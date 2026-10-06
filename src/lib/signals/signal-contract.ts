@@ -56,6 +56,7 @@ export interface CanonicalSignal {
   evidence: {
     summary?: string;
     photo: boolean;
+    photoUrl?: string;
     corroborationCount: number;
     helpfulCount: number;
     retailerReported: boolean;
@@ -360,7 +361,8 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
     timing: { reportedAt: displayAt, displayAt },
     evidence: {
       ...(sighting.notes ? { summary: sighting.notes } : {}),
-      photo: false,
+      photo: Boolean(sighting.publicPhotoUrl),
+      ...(sighting.publicPhotoUrl ? {photoUrl:sighting.publicPhotoUrl} : {}),
       corroborationCount: 0,
       helpfulCount,
       retailerReported: false,

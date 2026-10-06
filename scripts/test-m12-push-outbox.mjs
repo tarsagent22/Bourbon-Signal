@@ -16,6 +16,9 @@ function load(path, overrides = {}) {
 const { PostgresPushOutbox, drainPushOutbox } = load('../src/lib/alert-queue/push-outbox.ts', { './runtime': { alertQueueConnectionString: () => { throw Error('NO PRODUCTION DATABASE'); } } });
 const { PostgresPushReceiptRepository } = load('../src/lib/push-receipts.ts', { './alert-queue/runtime': { createProductionAlertQueueSqlExecutor: () => { throw Error('NO PRODUCTION DATABASE'); } }, './alert-queue/postgres-repository': {} });
 const { sendExpoPushMessages, buildExpoPushMessages } = load('../src/lib/push-devices.ts');
+const { CommunitySafetyRepository } = load('../src/lib/community-safety.ts', {
+  './alert-queue/runtime': { createProductionAlertQueueSqlExecutor: () => sql },
+});
 const messages = buildExpoPushMessages(['ExpoPushToken[aaaaaaaaaaaa]'], { id: 'alert', bottleName: 'Bottle', storeLabel: 'Store', matchedArea: 'Area' });
 let providerTicketSequence = 0;
 const result = (accepted, rejected) => ({ accepted, rejected, tickets: Array.from({length:accepted},()=>({id:`provider-ticket-${++providerTicketSequence}`,token:'ExpoPushToken[aaaaaaaaaaaa]'})), invalidTokens: [] });
@@ -28,6 +31,7 @@ test.before(async () => {
   await database.exec('create table member_push_ownership (resource_hash text primary key,user_id text not null,binding_id text not null,expires_at timestamptz not null,updated_at timestamptz not null)');
   const schema = readFileSync(new URL('../src/lib/alert-queue/push-outbox.sql', import.meta.url), 'utf8');
   await database.exec(schema); await database.exec(schema);
+  await database.exec(readFileSync(new URL('../src/lib/community-safety.sql', import.meta.url), 'utf8'));
   repo = new PostgresPushOutbox(sql);
   receiptRepo = new PostgresPushReceiptRepository(sql);
 });
@@ -168,7 +172,7 @@ async function callerFixture() {
     markBatchFailed:async(ids,errorCode,_failedAt,retryAt)=>{for(const row of queueCandidates.values())if(ids.includes(row.id)){row.status=retryAt?'pending':'failed';row.lastErrorCode=errorCode;row.nextAttemptAt=retryAt;}},
   };
   const context={
-    process:{env:{}},Date,Set,Map,Math,Number,String,createHash,
+    process:{env:{}},Date,Set,Map,Math,Number,String,createHash,CommunitySafetyRepository,
     // This fixture exercises the existing non-source-lane push path. Preserve
     // the real final provider boundary, while keeping new source I/O isolated.
     pollRuntimeSourceLanes:async()=>{},traceRuntimeSourceCandidates:async()=>{},persistRuntimeSourceDemand:async()=>{},

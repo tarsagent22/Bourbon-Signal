@@ -5,6 +5,7 @@ import { Eye, EyeOff, RotateCw, X } from "lucide-react";
 import type { MemberSighting } from "@/lib/sightings";
 import type { CommunityContributorModeration } from "@/lib/community-contributor-standing";
 import { formatControlRoomDateTime } from "@/lib/control-room-time";
+import CommunityReportsQueue from './CommunityReportsQueue';
 
 type AdminSighting = MemberSighting & {
   expected?:MemberSighting;
@@ -115,6 +116,7 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
         @media(prefers-reduced-motion:reduce){.admin-button,.admin-card{transition:none}}
       `}</style>
       <div className="admin-wrap">
+        <CommunityReportsQueue />
         {!embedded ? (
           <>
             <div className="admin-kicker">Admin review</div>
