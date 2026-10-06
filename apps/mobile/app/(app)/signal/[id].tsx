@@ -32,6 +32,15 @@ export default function SignalDetailScreen() {
   const [reporting, setReporting] = useState(false);
   const [safetyNotice, setSafetyNotice] = useState("");
   const [hidden, setHidden] = useState(false);
+  const [photoFailed,setPhotoFailed]=useState(false);
+  const [feedbackNotice,setFeedbackNotice]=useState('');
+
+  async function saveFeedback(action:'helpful'|'no_longer_there') {
+    if(!signal||saving)return;setSaving(true);setActionError('');
+    try{const result=await api.actOnSignal(signal.id,action);setSignal(result.signal);setFeedbackNotice(result.action.active?(action==='helpful'?'Marked helpful. Thank you.':'Your availability correction was saved.'):'Your previous feedback was removed.');}
+    catch(caught){setActionError(caught instanceof Error?caught.message:'Feedback could not be saved.');}
+    finally{setSaving(false);}
+  }
 
   async function saveSafety(action:"report"|"block",reason?:"spam"|"misleading"|"harassment"|"inappropriate"|"other") {
     if(!signal || saving)return;
@@ -51,7 +60,7 @@ export default function SignalDetailScreen() {
   const load = useCallback(async (fresh = false) => {
     if (!id) return;
     const request = ++sequence.current;
-    setRefreshing(true);
+    setRefreshing(true);setPhotoFailed(false);
     await Promise.allSettled([
       api.getSignal(id, { fresh }).then(result => {
         if (request === sequence.current) { setSignal(result.signal); setError(""); }
@@ -66,7 +75,7 @@ export default function SignalDetailScreen() {
     ]);
     if (request === sequence.current) setRefreshing(false);
   }, [api, id]);
-  useEffect(() => { setSignal(null); setError(""); void load(); return () => { sequence.current += 1; }; }, [load]);
+  useEffect(() => { setSignal(null); setError(""); setHidden(false);setSafetyNotice('');setPhotoFailed(false);setFeedbackNotice('');void load(); return () => { sequence.current += 1; }; }, [load]);
   useScreenRevalidation(load);
 
   useEffect(() => {
@@ -183,7 +192,7 @@ export default function SignalDetailScreen() {
         {presented?.price ? <Detail label="Price" value={presented.price} /> : null}
         {presented?.quantity ? <Detail label="Quantity" value={presented.quantity} /> : null}
         {presented?.summary ? <Detail label="Note" value={presented.summary} /> : null}
-        {signal.evidence.photoUrl ? <Image source={{uri:signal.evidence.photoUrl}} accessibilityLabel="Member sighting photo approved for public display" resizeMode="contain" style={{width:"100%",height:240,borderRadius:12}} /> : null}
+        {signal.evidence.photoUrl ? photoFailed?<Text style={styles.disclaimer}>The approved photo could not load. Pull to refresh to try again.</Text>:<Image source={{uri:signal.evidence.photoUrl}} onError={()=>setPhotoFailed(true)} accessibilityLabel="Member sighting photo approved for public display" resizeMode="contain" style={{width:"100%",height:240,borderRadius:12}} /> : null}
         {presented?.caveat ? <Detail label="Caveat" value={presented.caveat} /> : null}
         {signal.source.type === "member" ? <Text style={styles.disclaimer}>Member observations report what someone saw and are not verified retailer inventory.</Text> : null}
       </View>
@@ -195,6 +204,10 @@ export default function SignalDetailScreen() {
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
       </View> : null}
       {signal.source.type === "member" ? <View style={styles.actions}>
+        <Text style={styles.actionsTitle}>Community feedback</Text>
+        {signal.actions.includes('helpful')?<ActionButton disabled={saving} label={`Helpful (${signal.evidence.helpfulCount})`} onPress={()=>void saveFeedback('helpful')}/>:null}
+        {signal.actions.includes('correct')?<ActionButton disabled={saving} label="No longer there" onPress={()=>Alert.alert('Did you check this store?','Only mark this if you checked the reported bottle at this store.',[{text:'Cancel',style:'cancel'},{text:'I checked',onPress:()=>void saveFeedback('no_longer_there')}])}/>:null}
+        {feedbackNotice?<Text accessibilityLiveRegion="polite" style={styles.disclaimer}>{feedbackNotice}</Text>:null}
         <Text style={styles.actionsTitle}>Community safety</Text>
         <ActionButton disabled={saving} label="Report this post" onPress={()=>setReporting(value=>!value)} />
         {reporting ? <View style={styles.actions}>{([{value:"spam",label:"Spam"},{value:"misleading",label:"Misleading availability"},{value:"harassment",label:"Harassment"},{value:"inappropriate",label:"Inappropriate content"},{value:"other",label:"Other concern"}] as const).map(reason=><ActionButton key={reason.value} disabled={saving} label={reason.label} onPress={()=>void saveSafety("report",reason.value)} />)}</View> : null}

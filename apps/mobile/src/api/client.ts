@@ -274,6 +274,7 @@ export function createMobileApi({
   }
 
   return {
+    reportNativeDiagnostic(packet:import("../../../../shared/native-diagnostics").NativeDiagnostic){return request<{ok:true}>("/api/v1/me/diagnostics",{method:"POST",body:packet});},
     clearReadCache() { recentReads.clear(); currentToken = undefined; },
     readCacheInfo() { pruneReads(); return { size: recentReads.size, keys: [...recentReads.keys()] }; },
     listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string } = {}) {
@@ -293,6 +294,9 @@ export function createMobileApi({
     },
     getSignal(id: string, { fresh = false }: { fresh?: boolean } = {}) {
       return request<{ contractVersion: "bourbon-signal/mobile-api@1"; signal: Signal }>(`/api/v1/signals/${encodeURIComponent(id)}`, { fresh });
+    },
+    actOnSignal(id:string,action:'helpful'|'no_longer_there') {
+      return request<{signal:Signal;action:{type:'helpful'|'no_longer_there';active:boolean}}>(`/api/v1/signals/${encodeURIComponent(id)}/actions`,{method:'POST',body:{action}});
     },
     getHuntOutcome(id: string) {
       return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { fresh: true });

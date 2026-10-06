@@ -12,6 +12,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PurchasesProvider } from "../src/membership/PurchasesProvider";
 import { StartupErrorBoundary } from "../src/startup/StartupErrorBoundary";
 import { MobileApiProvider } from "../src/hooks/useMobileApi";
+import { useMobileApi } from "../src/hooks/useMobileApi";
+import { reportRenderError } from "../src/startup/report-render-error";
 import { colors, typeScale, fonts } from "../src/theme";
 
 void SplashScreen.preventAutoHideAsync();
@@ -38,8 +40,9 @@ export default function RootLayout() {
 }
 
 function SessionNavigation() {
+  const api=useMobileApi();
   const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
-  return <StartupErrorBoundary resetOn={`${userId || ''}:${sessionId || ''}`}>
+  return <StartupErrorBoundary onRenderError={(error,stack)=>{if(isSignedIn)void reportRenderError(error,stack,api.reportNativeDiagnostic).catch(()=>{});}} resetOn={`${userId || ''}:${sessionId || ''}`}>
     <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />

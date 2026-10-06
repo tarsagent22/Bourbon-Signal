@@ -96,6 +96,9 @@ const checks: Record<string, Check> = {
 };
 export function validApiResponse(path: string, value: unknown): boolean {
   const pathname = path.split('?')[0];
+  if (pathname === '/api/v1/me/diagnostics') return obj({ok:one(true)})(value);
+  if (pathname === '/api/community/safety') return obj({ok:one(true)})(value) || obj({blocks:arr(obj({id:str,label:str,createdAt:str}))})(value);
+  if (/^\/api\/v1\/signals\/[^/]+\/actions$/.test(pathname)) return obj({contractVersion:mobileVersion,signal,action:obj({type:one('helpful','confirm','correct','no_longer_there'),active:bool})})(value);
   if (pathname === '/api/sightings' && path.includes('rewards=1')) return obj({ rewards: achievement })(value);
   if (pathname === '/api/referrals/me') return true; // Dedicated referral parser supplies its existing typed error.
   const check = checks[pathname] || (/^\/api\/v1\/signals\/[^/]+\/outcome$/.test(pathname) ? outcome : /^\/api\/v1\/signals\/[^/]+$/.test(pathname) ? obj({ contractVersion: mobileVersion, signal }) : null);

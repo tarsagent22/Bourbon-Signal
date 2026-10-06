@@ -1,3 +1,4 @@
+import { NativeDiagnosticsRepository } from "@/lib/native-diagnostics";
 import { timingSafeEqual } from "node:crypto";
 import { drainAccountDeletionCleanup } from "@/lib/account-deletion";
 import { createAccountDeletionIdentityProvider } from "@/lib/account-deletion-identity-provider";
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
   if (!authorized(request)) {
     return Response.json({ error: "Unauthorized" }, { status: 401, headers: PRIVATE_SIGNAL_API_HEADERS });
   }
+  await new NativeDiagnosticsRepository().prune();
   const result = await drainAccountDeletionCleanup({
     repository: createAccountDeletionRepository(),
     identityProvider: await createAccountDeletionIdentityProvider(),

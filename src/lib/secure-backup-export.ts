@@ -56,7 +56,7 @@ export const BACKUP_TABLES = Array.from(new Set([
   "approved_catalog_bottles", "approved_catalog_locations",
   "alert_baselines", "alert_candidates", "alert_deliveries", "alert_lifecycle_migrations", "alert_lifecycle_states",
   "alert_queue_migrations", "bourbon_recommendation_feedback_state", "clerk_alert_metadata_backups",
-  "community_sighting_idempotency", "engine_snapshots", "membership_trial_claims",
+  "community_sighting_idempotency", "community_member_blocks", "community_abuse_reports", "native_render_diagnostics", "engine_snapshots", "membership_trial_claims",
   "retailer_acquisition_migrations", "retailer_prospect_approval_packets", "retailer_prospect_contact_evidence",
   "retailer_prospect_message_versions", "retailer_prospect_outreach", "retailer_prospects",
   "retailer_regulator_authorities", "welcome_signal_previews", ...BASE_REQUIRED_TABLES, ...GIFT_TABLES, ...SIGNAL_POINT_TABLES,

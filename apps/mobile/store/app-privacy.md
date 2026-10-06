@@ -22,7 +22,7 @@ This is a working inventory for Apple’s App Privacy questionnaire. It describe
 | Identifiers — User ID | Yes | Yes | App Functionality; Fraud Prevention/Security | Clerk, RevenueCat app-user identity, and Bourbon Signal APIs bind authenticated access and purchase reconciliation to the account. |
 | Identifiers — Device ID | Yes, when push is enabled | Yes | App Functionality | An installation identifier and Expo push token register the current device for Radar notifications. |
 | Purchases — Purchase History | Yes | Yes | App Functionality | StoreKit/RevenueCat purchase, restore, product, offer, environment, expiration, and lifecycle status are reconciled to the account for entitlement and support. |
-| Diagnostics — Other Diagnostic Data | Confirm with final SDK inventory | Potentially | App Functionality; Security | Apple, RevenueCat, Clerk, Expo, and hosting infrastructure may process device, network, request, or SDK diagnostic data. Verify current vendor disclosures and the signed archive. |
+| Diagnostics — Other Diagnostic Data | Yes | Yes | App Functionality; Security | Authenticated mobile screen reports contain a local fingerprint and build/runtime/update identifiers, linked privately for account cleanup. Verify additional Apple, RevenueCat, Clerk and Expo disclosures against the signed archive. |
 | Usage Data — Product Interaction | Yes, when used | Yes | App Functionality; Analytics | Member-chosen Hunt Outcomes and product actions operate member features; analytics must remain first-party, allowlisted, and free of raw private identifiers. |
 | Location — Precise Location | No | — | — | Members search for or enter a retailer manually; no foreground/background location permission is requested. |
 | User Content — Customer Support | Yes, when submitted | Yes | App Functionality; Account Management | Support and authenticated deletion requests are linked to the member for ownership verification and resolution. |
@@ -49,3 +49,7 @@ Unfinished Post and Add to My Shelf text forms are saved in account-scoped Secur
 4. Re-check current Apple, RevenueCat, Clerk, Expo, and Vercel disclosures.
 5. Verify sandbox/TestFlight purchase, restore, offer eligibility, lifecycle transitions, push registration/revocation, photo denial/retry, support, and deletion behavior.
 6. Reconcile this inventory, public Privacy Policy, and App Store Connect answers. If observed collection exceeds this draft, disclose the observed behavior rather than preserving a narrower claim.
+
+## Automatic native screen diagnostics
+
+Signed-in React screen errors send only a locally hashed fingerprint, standard error category, platform, build/runtime/update IDs. The authenticated server associates the report with the account for deletion, caps ten distinct groups per account/hour and one hundred repeated occurrences per group, and removes groups older than thirty days through daily cleanup. Owner Control Room shows aggregate groups without account IDs. Raw messages/stacks, signed-out provider errors, native OS crashes and offline delivery are not covered. No third-party crash SDK was added. The published linked diagnostics inventory must reflect this implementation before submission.

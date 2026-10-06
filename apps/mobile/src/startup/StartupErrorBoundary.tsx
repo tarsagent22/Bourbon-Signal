@@ -7,7 +7,7 @@ import { colors, typeScale, fonts } from "../theme";
 const STARTUP_DIAGNOSTIC_RELEASE = "startup-diag-stack-v1";
 const MAX_DIAGNOSTIC_LENGTH = 2400;
 
-type Props = PropsWithChildren<{ resetOn?: string }>;
+type Props = PropsWithChildren<{ resetOn?: string; onRenderError?: (error:Error,componentStack:string)=>void }>;
 type State = { error: Error | null; componentStack: string; resetKey: number; showDetails: boolean; shareError: string; identity?: string };
 
 function bounded(value: string | undefined | null) {
@@ -31,6 +31,7 @@ export class StartupErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("[Bourbon Signal] startup render error:", error, info.componentStack);
     this.setState({ componentStack: info.componentStack || "" });
+    try { this.props.onRenderError?.(error,info.componentStack || ""); } catch { /* Recovery never depends on reporting. */ }
     // Keep startup failures inside the app instead of handing an uncaught
     // render error to Expo Updates' launch rollback/crash pipeline.
   }

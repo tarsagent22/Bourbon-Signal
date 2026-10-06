@@ -17,6 +17,7 @@ import type { CoverageRequestStatus } from "@/lib/coverage-request";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
 import RetailerAdministration from "@/components/admin/RetailerAdministration";
 import AdminBottleQueueClient from "../bottle-queue/AdminBottleQueueClient";
+import NativeDiagnostics from "@/components/admin/NativeDiagnostics";
 import AdminSightingsClient from "../sightings/AdminSightingsClient";
 import SignalPointsAdminBoard from "@/components/admin/SignalPointsAdminBoard";
 import { getHuntOutcomeRepository } from "@/lib/hunt-outcome-repository";
@@ -265,6 +266,7 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
               <div className="cr-subheading"><div><p>Community</p><h3>Member sighting approvals</h3></div><Link href="/admin/sightings">Open full queue</Link></div>
               <p className="cr-note top">Approve a valid sighting publicly or privately, add any reviewed bottle/location to the catalog, or reject the whole submission.</p>
               <AdminSightingsClient embedded />
+              <NativeDiagnostics />
             </article>
           </div>
         </section>
