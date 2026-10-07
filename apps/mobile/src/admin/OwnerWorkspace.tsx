@@ -480,6 +480,7 @@ export default function OwnerWorkspace() {
           ))}
         </View>
         <View style={ui.body}>
+          {member && section !== "Members" ? <Action label="Back to member profile" onPress={() => setSection("Members")} /> : null}
           {section === "Inbox" ? (
             <Inbox api={api} onOpen={setSection} />
           ) : section === "Feedback" ? (
@@ -498,6 +499,7 @@ export default function OwnerWorkspace() {
               api={api}
               selected={member}
               onSelect={setMember}
+              onActivity={kind => setSection(kind === "bottles" ? "Bottles" : kind === "feedback" ? "Feedback" : kind === "coverage" ? "Operations" : "Community")}
               onCommunity={() => {
                 setCommunityUser(member);
                 setSection("Community");
@@ -1045,6 +1047,7 @@ function BottleEditor({
       <Text style={s.heading}>
         {row.id ? "Edit bottle" : "New whiskey entry"}
       </Text>
+      {submission ? <Text style={ui.small}>Original submission: {submission.rawName} · {submission.userEmail || submission.userId || "Unattributed historical record"}</Text> : null}
       {[
         ["canonicalName", "Exact name, release / batch and size"],
         ["brand", "Brand"],
@@ -1285,12 +1288,14 @@ function Members({
   onSelect,
   onCommunity,
   onRewards,
+  onActivity,
 }: {
   api: Api;
   selected: string | null;
   onSelect: (id: string | null) => void;
   onCommunity: () => void;
   onRewards: () => void;
+  onActivity: (kind:string) => void;
 }) {
   const [q, setQ] = useState(""), [filter,setFilter] = useState("all"), [sort,setSort] = useState("joined_desc"), [offset,setOffset] = useState(0);
   const state = useData(api, "members", `?q=${encodeURIComponent(q)}&filter=${filter}&sort=${sort}&offset=${offset}`);
@@ -1303,6 +1308,7 @@ function Members({
         onClose={() => onSelect(null)}
         onCommunity={onCommunity}
         onRewards={onRewards}
+        onActivity={onActivity}
       />
     );
 
@@ -1346,12 +1352,14 @@ function MemberDetail({
   onClose,
   onCommunity,
   onRewards,
+  onActivity,
 }: {
   api: Api;
   id: string;
   onClose: () => void;
   onCommunity: () => void;
   onRewards: () => void;
+  onActivity: (kind:string) => void;
 }) {
   const state = useData(api, "member-detail", `?id=${encodeURIComponent(id)}`),
     [reason, setReason] = useState(""),
@@ -1430,7 +1438,7 @@ function MemberDetail({
             <Text style={s.heading}>Contributions and activity</Text>
             <Text style={ui.small}>Only records associated with this member ID are included. Historical submissions without an ID are unattributed. Latest 100 records shown.</Text>
             {d?.activity?.[0]?.activity?.counts?.map((r:Row) => <Text key={`${r.kind}-${r.status}`} style={ui.badge}>{human(r.kind)} · {human(r.status)}: {r.count}</Text>)}
-            {d?.activity?.[0]?.activity?.items?.map((r:Row) => <View key={`${r.kind}-${r.id}`} style={ui.history}><Text style={s.label}>{r.title || human(r.kind)}</Text><Text style={ui.small}>{human(r.kind)} · {human(r.status)} · {date(r.occurred_at)}</Text><Text selectable style={ui.mini}>Record {r.id}</Text></View>)}
+            {d?.activity?.[0]?.activity?.items?.map((r:Row) => <View key={`${r.kind}-${r.id}`} style={ui.history}><Text style={s.label}>{r.title || human(r.kind)}</Text><Text style={ui.small}>{human(r.kind)} · {human(r.status)} · {date(r.occurred_at)}</Text><Text selectable style={ui.mini}>Record {r.id}</Text><Action label={`Open ${human(r.kind)} review tools`} onPress={() => onActivity(r.kind)} /></View>)}
           </View>
           <Text style={s.heading}>Reward history</Text>
           <Action label="Manage this member’s rewards" onPress={onRewards} />
