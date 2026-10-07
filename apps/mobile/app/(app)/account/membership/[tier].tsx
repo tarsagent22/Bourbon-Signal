@@ -1,7 +1,7 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { openAppleSubscriptionManagement } from "../../../../src/account/subscription-management";
+import { useSubscriptionManagement } from "../../../../src/hooks/useSubscriptionManagement";
 import type { MemberProfile } from "../../../../src/api/types";
 import { ErrorState, memberScreenStyles } from "../../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../../src/hooks/useMobileApi";
@@ -17,6 +17,7 @@ import { colors, typeScale, fonts } from "../../../../src/theme";
 
 export default function MembershipPlanScreen() {
   const api = useMobileApi();
+  const management = useSubscriptionManagement();
   const purchases = usePurchases();
   const refreshPurchases = purchases.refresh;
   useEffect(() => { void refreshPurchases(); }, [refreshPurchases]);
@@ -57,12 +58,12 @@ export default function MembershipPlanScreen() {
 
   const isCurrentOrIncluded = action?.kind === "current" || action?.kind === "included";
   const purchaseBusy = purchases.status === "purchasing" || purchases.status === "restoring" || purchases.status === "configuring";
-  const canPurchase = Platform.OS === "ios" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
+  const canPurchase = Boolean(management.provider && management.provider !== "stripe") && Platform.OS === "ios" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
   const canRestore = Platform.OS === "ios" && purchases.status === "ready" && purchases.restoreAvailable && !isFree && !isFounder;
   const loadingProducts = purchases.status === "configuring" || purchases.status === "signed_out";
   const displayPrice = isFree ? "$0" : isFounder ? "Lifetime access" : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
   const displayPeriod = storeProduct ? `/${storeProduct.localizedPeriod}` : "";
-  const billingDisclosure = Platform.OS === "ios"
+  const billingDisclosure = management.provider === "stripe" ? "Your membership is billed through Stripe. Manage your plan, payment details, or cancellation below." : Platform.OS === "ios"
     ? "Billed to your Apple ID after confirmation. Manage or cancel in App Store subscriptions."
     : "Apple purchase options are available only in the iOS app. Your Google Play account is not charged, and your server-confirmed membership still works on this device.";
   const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership }) : null;
@@ -75,6 +76,8 @@ export default function MembershipPlanScreen() {
         : "Renews automatically unless canceled before the next billing date.";
 
   async function buy() {
+    if (management.provider === "stripe") { await management.manage(); return; }
+    if (!management.provider) return;
     setShowPurchaseStatus(true);
     if (productId && !canPurchase && action?.kind === "upgrade" && !purchaseBusy) {
       await purchases.refresh();
@@ -104,7 +107,7 @@ export default function MembershipPlanScreen() {
     setSubscriptionBusy(true);
     setError("");
     try {
-      await openAppleSubscriptionManagement(Linking.openURL);
+      await management.manage();
     } catch {
       setError("App Store subscription settings could not be opened. Open the App Store, tap your profile, then Subscriptions.");
     } finally {
@@ -162,7 +165,8 @@ export default function MembershipPlanScreen() {
         {purchases.status !== "ready" && !purchaseBusy && !isFree && !isFounder ? <Pressable accessibilityRole="button" onPress={() => void purchases.refresh()} style={styles.refreshButton}><Text style={styles.refreshText}>Refresh purchase status</Text></Pressable> : null}
       </View> : null}
       <Text style={styles.legalCopy}>{billingDisclosure}</Text>
-      <View style={styles.legalLinks}>
+      {management.error ? <Text accessibilityRole="alert" style={styles.statusBody}>{management.error}</Text> : null}
+    <View style={styles.legalLinks}>
         <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/terms")} style={styles.legalButton}><Text style={styles.legalText}>Terms of Service</Text></Pressable>
         <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/privacy")} style={styles.legalButton}><Text style={styles.legalText}>Privacy</Text></Pressable>
       </View>
@@ -176,8 +180,9 @@ export default function MembershipPlanScreen() {
       <Text style={styles.preservation}>{lifecycle.preservationNotice}</Text>
     </View> : null}
 
+    {management.error ? <Text accessibilityRole="alert" style={styles.statusBody}>{management.error}</Text> : null}
     <View style={styles.legalLinks}>
-      {Platform.OS === "ios" && lifecycle?.manageSubscriptions ? <Pressable accessibilityRole="button" accessibilityState={{ busy: subscriptionBusy, disabled: subscriptionBusy }} disabled={subscriptionBusy} onPress={() => void manageSubscriptions()} style={styles.legalButton}><Text style={styles.legalText}>{subscriptionBusy ? "Opening…" : "Manage subscriptions in the App Store"}</Text></Pressable> : null}
+      {management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" accessibilityState={{ busy: subscriptionBusy, disabled: subscriptionBusy }} disabled={subscriptionBusy} onPress={() => void manageSubscriptions()} style={styles.legalButton}><Text style={styles.legalText}>{subscriptionBusy ? "Opening…" : "Manage membership"}</Text></Pressable> : null}
       <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={styles.legalButton}><Text style={styles.legalText}>Membership support</Text></Pressable>
       <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/delete")} style={styles.legalButton}><Text style={styles.legalText}>Delete account</Text></Pressable>
     </View>

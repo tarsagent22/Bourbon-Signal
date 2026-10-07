@@ -361,8 +361,16 @@ export async function getBourbonBible() {
 
   bourbonBibleInFlight = buildBourbonBible()
     .then((value) => {
-      bourbonBibleCache = { value, expiresAt: Date.now() + BOURBON_BIBLE_CACHE_TTL_MS };
-      return value;
+      // Review evidence is owner-only; ordinary search/detail responses must not
+      // serialize private photo references or administrative source URLs.
+      const publicCatalog = value.map((bottle) => {
+        const record = { ...bottle } as BibleBottle & { sourceUrl?: unknown; photoEvidenceUrl?: unknown };
+        delete record.sourceUrl;
+        delete record.photoEvidenceUrl;
+        return record;
+      });
+      bourbonBibleCache = { value: publicCatalog, expiresAt: Date.now() + BOURBON_BIBLE_CACHE_TTL_MS };
+      return publicCatalog;
     })
     .finally(() => {
       bourbonBibleInFlight = null;

@@ -17,45 +17,57 @@ function stringValue(value: unknown) {
   return typeof value === "string" ? value : null;
 }
 
-function primaryEmail(user: { emailAddresses?: Array<{ id?: string; emailAddress?: string }>; primaryEmailAddressId?: string | null }) {
-  return (user.emailAddresses?.find((item) => item.id === user.primaryEmailAddressId)?.emailAddress || user.emailAddresses?.[0]?.emailAddress || "").trim().toLowerCase();
-}
-
 async function recoverStripeCustomerId(stripe: Stripe, user: { id: string; publicMetadata?: Record<string, unknown>; privateMetadata?: Record<string, unknown>; emailAddresses?: Array<{ id?: string; emailAddress?: string }>; primaryEmailAddressId?: string | null }) {
   const sessionId = stringValue(user.privateMetadata?.stripePaymentSessionId) || stringValue(user.publicMetadata?.stripePaymentSessionId);
   if (sessionId) {
     const session = await stripe.checkout.sessions.retrieve(sessionId).catch(() => null);
     const customerId = stringValue(session?.customer);
-    if (customerId) return { customerId, subscriptionId: stringValue(session?.subscription) };
+    if (customerId && (session?.metadata?.userId || session?.client_reference_id) === user.id) return { customerId, subscriptionId: stringValue(session?.subscription) };
   }
 
-  const email = primaryEmail(user);
-  if (!email) return { customerId: null, subscriptionId: null };
+  // Recover only from a checkout explicitly bound to this authenticated member.
+  // Email alone is not a reliable billing-account association.
   const sessions = await stripe.checkout.sessions.list({ limit: 100 });
   const session = sessions.data.find((item) => {
     const checkoutUserId = stringValue(item.metadata?.userId) || stringValue(item.client_reference_id);
-    const checkoutEmail = (item.customer_details?.email || item.customer_email || "").trim().toLowerCase();
     return item.status === "complete"
       && (item.payment_status === "paid" || item.payment_status === "no_payment_required")
-      && (checkoutUserId === user.id || (!checkoutUserId && checkoutEmail === email));
+      && checkoutUserId === user.id;
   });
-  const sessionCustomerId = stringValue(session?.customer);
-  if (sessionCustomerId) return { customerId: sessionCustomerId, subscriptionId: stringValue(session?.subscription) };
+  return { customerId: stringValue(session?.customer), subscriptionId: stringValue(session?.subscription) };
+}
 
-  const customers = await stripe.customers.search({ query: `email:'${email.replace(/'/g, "\\'")}'`, limit: 1 }).catch(() => null);
-  const customerId = customers?.data[0]?.id || null;
-  return { customerId, subscriptionId: null };
+function providerFor(user: { publicMetadata?: Record<string, unknown>; privateMetadata?: Record<string, unknown> }) {
+  const pub = user.publicMetadata || {}, priv = user.privateMetadata || {};
+  const stripeStatus = stringValue(priv.stripeMembershipStatus) || stringValue(pub.membershipStatus);
+  const subscription = stringValue(priv.stripeSubscriptionId);
+  // Existing Stripe subscribers always manage with Stripe, including payment recovery.
+  if (subscription && !["canceled", "incomplete_expired"].includes(stripeStatus || "")) return "stripe";
+  if (priv.appleMembershipProductId || pub.appleMembershipStatus) return "apple";
+  if (priv.stripeCustomerId || pub.stripeCustomerId || priv.stripePaymentSessionId || pub.stripePaymentSessionId) return "stripe";
+  return "none";
+}
+
+export async function GET() {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Account required." }, { status: 401 });
+  try {
+    const user = await (await clerkClient()).users.getUser(userId);
+    return NextResponse.json({ provider: providerFor(user) }, { headers: { "Cache-Control": "private, no-store" } });
+  } catch {
+    return NextResponse.json({ error: "Membership management is temporarily unavailable." }, { status: 503 });
+  }
 }
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Account required." }, { status: 401 });
 
-  const stripe = getStripeClient();
-  if (!stripe) return NextResponse.json({ error: "Billing portal is not configured." }, { status: 503 });
-
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  if (providerFor(user) === "apple") return NextResponse.json({ provider: "apple", url: "https://apps.apple.com/account/subscriptions" }, { headers: { "Cache-Control": "private, no-store" } });
+  const stripe = getStripeClient();
+  if (!stripe) return NextResponse.json({ error: "Membership management is temporarily unavailable. Please contact support." }, { status: 503 });
   let customerId = stringValue(user.privateMetadata?.stripeCustomerId) || stringValue(user.publicMetadata?.stripeCustomerId);
   let subscriptionId = stringValue(user.privateMetadata?.stripeSubscriptionId);
 
@@ -66,7 +78,7 @@ export async function POST(req: NextRequest) {
     if (customerId) {
       await client.users.updateUserMetadata(userId, {
         publicMetadata: { stripeCustomerId: customerId },
-        privateMetadata: { ...user.privateMetadata, stripeCustomerId: customerId, stripeSubscriptionId: subscriptionId || null },
+        privateMetadata: { stripeCustomerId: customerId, ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}) },
       });
     }
   }
@@ -77,8 +89,8 @@ export async function POST(req: NextRequest) {
 
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: `${appUrl(req)}/dashboard`,
+    return_url: `${appUrl(req)}/settings`,
   });
 
-  return NextResponse.json({ url: session.url });
+  return NextResponse.json({ provider: "stripe", url: session.url }, { headers: { "Cache-Control": "private, no-store" } });
 }

@@ -56,8 +56,8 @@ test("plan review uses native purchases but fails closed until server reconcilia
   assert.match(screen, /disabled/);
   assert.match(screen, /Founder memberships are honored here but are not sold through Apple/);
   assert.match(screen, /deriveMobileMembershipLifecycle/);
-  assert.match(screen, /Manage subscriptions in the App Store/);
-  assert.match(screen, /openAppleSubscriptionManagement/);
+  assert.match(screen, /Manage membership/);
+  assert.match(screen, /useSubscriptionManagement/);
   assert.ok(screen.includes('router.push("/(app)/account/delete")'));
   assert.ok(screen.includes('router.push("/(app)/account/privacy")'));
   assert.ok(screen.includes('router.push("/(app)/account/terms")'));

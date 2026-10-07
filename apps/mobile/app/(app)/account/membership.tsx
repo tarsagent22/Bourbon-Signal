@@ -1,7 +1,7 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
-import { openAppleSubscriptionManagement } from "../../../src/account/subscription-management";
+import { useSubscriptionManagement } from "../../../src/hooks/useSubscriptionManagement";
 import type { MemberProfile } from "../../../src/api/types";
 import { ErrorState } from "../../../src/components/MemberScreen";
 import { MembershipTierIcon } from "../../../src/components/MembershipTierIcon";
@@ -19,6 +19,7 @@ const cards = [
 
 export default function MembershipScreen() {
   const api = useMobileApi();
+  const management = useSubscriptionManagement();
   const router = useRouter();
   const { welcome } = useLocalSearchParams<{ welcome?: string }>();
   const isWelcome = welcome === "1";
@@ -64,7 +65,8 @@ export default function MembershipScreen() {
   async function choose(tier: "standard" | "barrel") {
     const productId = productIdFor(tier, "monthly");
     const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, tier) : null;
-    if (busy || !productId || action?.kind !== "upgrade" || Platform.OS !== "ios") return;
+    if (management.provider === "stripe") { await management.manage(); return; }
+    if (!management.provider || busy || !productId || action?.kind !== "upgrade" || Platform.OS !== "ios") return;
     setAttempted(true);
     await run(async () => {
       if (purchases.status !== "ready" || !purchases.products.some(p => p.productId === productId) || !purchases.eligibleProductIds.includes(productId)) {
@@ -109,9 +111,9 @@ export default function MembershipScreen() {
           const product = purchases.products.find(p => p.productId === productId);
           const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, card.tier) : null;
           const included = action?.kind === "current" || action?.kind === "included";
-          const disabled = busy || !profile || included || Platform.OS !== "ios";
+          const disabled = busy || management.busy || !management.provider || !profile || (management.provider !== "stripe" && (included || Platform.OS !== "ios"));
           const ready = purchases.status === "ready" && Boolean(product && productId && purchases.eligibleProductIds.includes(productId));
-          const label = included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS === "ios" ? "Check purchase options" : "Available on iPhone";
+          const label = management.provider === "stripe" ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS === "ios" ? "Check purchase options" : "Available on iPhone";
           return <View key={card.tier} style={[styles.card, { width: cardWidth }, index === 1 && styles.premium]}
             accessibilityElementsHidden={selected !== index} importantForAccessibility={selected !== index ? "no-hide-descendants" : "auto"}>
             <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
@@ -120,7 +122,7 @@ export default function MembershipScreen() {
             <Text style={styles.billing}>Billed monthly. Cancel anytime.</Text>
             <View style={styles.divider} />
             <View style={styles.features}>{card.features.map(feature => <View key={feature} style={styles.featureRow}><View style={[styles.checkCircle, index === 1 && styles.goldCheck]}><Text accessible={false} style={[styles.check, index === 1 && styles.goldCheckText]}>✓</Text></View><Text style={styles.feature}>{feature}</Text></View>)}</View>
-            <Pressable accessibilityRole="button" accessibilityLabel={ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
+            <Pressable accessibilityRole="button" accessibilityLabel={management.provider !== "stripe" && ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
               accessibilityState={{ disabled, busy }} disabled={disabled} onPress={() => void choose(card.tier)}
               style={({ pressed }) => [styles.subscribe, index === 1 && styles.subscribeGold, disabled && styles.disabled, pressed && styles.pressed]}>
               <Text style={[styles.subscribeText, index === 1 && styles.subscribeGoldText]}>{label}</Text>
@@ -131,7 +133,7 @@ export default function MembershipScreen() {
       <View style={styles.dots} accessible={false}>{cards.map((card,index) => <View key={card.tier} style={[styles.dot, index === selected && styles.dotSelected]} />)}</View>
       <View style={styles.footer}>
         <Pressable accessibilityRole="button" onPress={() => router.replace("/(app)/(tabs)")} style={styles.freeButton}><Text style={styles.freeText}>{currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
-        <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Apple subscriptions are available in the iOS app."}</Text>
+        <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{management.provider === "stripe" ? "Your membership is billed through Stripe. Manage your plan, payment details, or cancellation above." : Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Apple subscriptions are available in the iOS app."}</Text>
         <View style={styles.links}>
           {Platform.OS === "ios" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
           <Pressable accessibilityRole="button" accessibilityLabel="Terms of Service" onPress={() => router.push("/(app)/account/terms")} style={styles.link}><Text style={styles.linkText}>Terms</Text></Pressable>
@@ -142,7 +144,8 @@ export default function MembershipScreen() {
         {showLifecycle ? <View style={styles.lifecycle}><Text style={styles.freeText}>{lifecycle.title}</Text><Text style={styles.status}>{lifecycle.detail}</Text></View> : null}
         {currentTier === "bottled-in-bond" ? <Text style={styles.status}>Your Founder membership includes all Barrel Proof benefits for life.</Text> : null}
         <View style={styles.links}>
-          {Platform.OS === "ios" && lifecycle?.manageSubscriptions ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void run(() => openAppleSubscriptionManagement(Linking.openURL))} style={styles.link}><Text style={styles.linkText}>Manage subscriptions in the App Store</Text></Pressable> : null}
+          {management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" disabled={busy || management.busy} onPress={() => void management.manage()} style={styles.link}><Text style={styles.linkText}>{management.busy ? "Opening…" : "Manage membership"}</Text></Pressable> : null}
+          {management.error ? <Text accessibilityRole="alert" style={styles.status}>{management.error}</Text> : null}
           <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={styles.link}><Text style={styles.linkText}>Membership support</Text></Pressable>
         </View>
       </View>
