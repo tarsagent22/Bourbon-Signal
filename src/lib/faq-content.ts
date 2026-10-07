@@ -39,7 +39,7 @@ function productFaqItems(): FaqItem[] {
     {
       question: "Where is Bourbon Signal coverage available?",
       answer:
-        `Bourbon Signal currently tracks signals across ${markets.length} states: ${markets.join(", ")}. Coverage is not identical in every state. Some markets support exact-store inventory, while others provide control-board deliveries, warehouse observations, lotteries, distillery releases, verified retailer reports, or broader release-watch signals. Each feed card identifies its location precision and signal type so you can tell whether it points to a specific store or a wider market.`,
+        `${markets.join(", ")}. We are always expanding coverage into new states based on member requests.`,
     },
     {
       question: "What do the different feed signals mean—and is availability guaranteed?",
@@ -70,11 +70,6 @@ function productFaqItems(): FaqItem[] {
       question: "How do My Shelf and recommendations work?",
       answer:
         "Every membership includes My Shelf for bottles you own or have tasted, ratings, tasting cues, and private notes. Standard Proof includes unlimited My Shelf capacity. My Shelf can suggest up to three bottles to hunt next, but Radar changes only when you choose the explicit watch action. Barrel Proof and Bottled in Bond add Bourbon DNA, personalized recommendations, and clearly labeled local opportunity context shaped by your collection. Recommendations are suggestions, not guarantees that a bottle is locally available.",
-    },
-    {
-      question: "What is Hunt Outcome?",
-      answer:
-        "Hunt Outcome is an optional, private one-tap question on an expired Signal detail. You can record Found it, Gone when I checked, or Didn’t go, then edit the response quietly. It never changes Community standing or Signal validity, and Bourbon Signal does not publish individual responses or member/store rankings.",
     },
     {
       question: "Why doesn’t every state have the same store-level detail?",

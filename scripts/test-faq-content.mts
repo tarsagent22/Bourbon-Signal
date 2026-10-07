@@ -6,12 +6,14 @@ import { STATE_LIFECYCLE_CONFIG } from "../src/config/stateLifecycle.ts";
 import { TIER_ENTITLEMENTS } from "../src/lib/entitlements.ts";
 
 const faqComponent = await readFile(new URL("../src/components/sections/FAQ.tsx", import.meta.url), "utf8");
-const homePage = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+const homePage = await readFile(new URL("../src/app/LegacyHome.tsx", import.meta.url), "utf8");
 const pricingPage = await readFile(new URL("../src/app/pricing/PricingPageClient.tsx", import.meta.url), "utf8");
 
 const productFaqs = getFaqItems("product");
-assert.equal(productFaqs.length, 10);
+assert.equal(productFaqs.length, 11);
 assert.deepEqual(productFaqs.map((item) => item.question), [
+  "Can I use my website membership in the app?",
+  "Can I manage or cancel my membership in the app?",
   "What is Bourbon Signal?",
   "Where is Bourbon Signal coverage available?",
   "What do the different feed signals mean—and is availability guaranteed?",
@@ -20,14 +22,15 @@ assert.deepEqual(productFaqs.map((item) => item.question), [
   "What are Member Sightings?",
   "How do I add bottles to My Shelf?",
   "How do My Shelf and recommendations work?",
-  "What is Hunt Outcome?",
   "Why doesn’t every state have the same store-level detail?",
 ]);
 
 const coverage = productFaqs.find((item) => item.question.startsWith("Where is"));
-assert.match(coverage?.answer || "", new RegExp(`${STATE_LIFECYCLE_CONFIG.activeStates.length} states`));
+for (const code of STATE_LIFECYCLE_CONFIG.activeStates) {
+  assert.ok(coverage?.answer.includes(STATE_LIFECYCLE_CONFIG.states[code].customerLabel));
+}
 assert.match(coverage?.answer || "", /Maryland \(Montgomery County\)/);
-assert.match(coverage?.answer || "", /location precision and signal type/);
+assert.match(coverage?.answer || "", /expanding coverage into new states based on member requests/);
 
 const signals = productFaqs.find((item) => item.question.startsWith("What do the different"));
 assert.match(signals?.answer || "", /Verified retailer/);

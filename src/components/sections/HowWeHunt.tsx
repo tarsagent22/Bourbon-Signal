@@ -24,7 +24,7 @@ const steps: StepData[] = [
   },
   {
     number: "04",
-    description: "Use source, timing, and location evidence to decide whether a drop fits your hunt",
+    description: "Contribute to the community by reporting bottles you see in your area and earn points that can be redeemed for rewards.",
   },
 ];
 
