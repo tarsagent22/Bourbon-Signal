@@ -14,7 +14,7 @@ import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
-import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals } from "../../../src/signals/home-feed-live";
+import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, sortSignalTimeline } from "../../../src/signals/home-feed-live";
 import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
 import { PushMaintenance, PushResponseHandler } from "../../../src/push/PushResponseHandler";
 import { colors, typeScale } from "../../../src/theme";
@@ -213,7 +213,7 @@ export default function SignalFeedScreen() {
       lastRefreshRef.current = Date.now();
       setSignals((current) => {
         const next = refresh ? page.signals : [...current, ...page.signals];
-        return [...new Map(next.map((signal) => [signal.id, signal])).values()];
+        return sortSignalTimeline(next);
       });
       if (refresh) latestDisplayedBaselineRef.current = page.signals[0]?.timing.displayAt || "";
       setCursor(page.nextCursor);

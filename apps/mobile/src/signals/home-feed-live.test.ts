@@ -69,3 +69,10 @@ test("ticker admits honest recent availability reports only and formats city/sta
   assert.deepEqual(recentTickerSignals([future, old, release, recent], now).map((item) => item.id), ["recent"]);
   assert.equal(tickerLocationLabel(recent), "Raleigh, NC");
 });
+
+test("timestamp corrections and arrival queues preserve chronological order", () => {
+  const current = [signal("a", "2026-10-07T12:00:00Z"), signal("b", "2026-10-07T11:00:00Z")];
+  const updated = signal("b", "2026-10-07T13:00:00Z");
+  assert.deepEqual(reconcileDisplayedSignals(current, [updated, current[0]], false).map(row => row.id), ["b", "a"]);
+  assert.deepEqual(acceptQueuedSignals(current, [signal("c", "2026-10-07T14:00:00Z"), signal("d", "2026-10-07T15:00:00Z")]).map(row => row.id), ["d", "c", "a", "b"]);
+});
