@@ -116,3 +116,10 @@ test("native legal copy covers Apple and RevenueCat purchase handling without re
   assert.match(shared, /subscription status/);
   assert.doesNotMatch(`${terms}\n${privacy}\n${shared}`, /Bottle Check|Standard Proof|Bottled in Bond/);
 });
+
+test("existing Stripe memberships do not display Apple prices or assume a monthly billing term",()=>{
+ const screen=read("app/(app)/account/membership.tsx");
+ assert.match(screen,/management.provider === "stripe" \? undefined : purchases.products.find/);
+ assert.match(screen,/Managed through Stripe. Cancel anytime./);
+ assert.match(screen,/management.provider === "stripe".*management.manage/s);
+});

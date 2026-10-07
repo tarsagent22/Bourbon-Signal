@@ -108,7 +108,7 @@ export default function MembershipScreen() {
         onScroll={event => setSelected(Math.max(0, Math.min(1, Math.round(event.nativeEvent.contentOffset.x / stride))))}>
         {cards.map((card, index) => {
           const productId = productIdFor(card.tier, "monthly");
-          const product = purchases.products.find(p => p.productId === productId);
+          const product = management.provider === "stripe" ? undefined : purchases.products.find(p => p.productId === productId);
           const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, card.tier) : null;
           const included = action?.kind === "current" || action?.kind === "included";
           const disabled = busy || management.busy || !management.provider || !profile || (management.provider !== "stripe" && (included || Platform.OS !== "ios"));
@@ -119,7 +119,7 @@ export default function MembershipScreen() {
             <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
             <Text style={styles.cardDescription}>{card.description}</Text>
             <View style={styles.priceRow}>{product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <Text style={styles.pricePlaceholder}>Monthly membership</Text>}</View>
-            <Text style={styles.billing}>Billed monthly. Cancel anytime.</Text>
+            <Text style={styles.billing}>{management.provider === "stripe" ? "Managed through Stripe. Cancel anytime." : "Billed monthly. Cancel anytime."}</Text>
             <View style={styles.divider} />
             <View style={styles.features}>{card.features.map(feature => <View key={feature} style={styles.featureRow}><View style={[styles.checkCircle, index === 1 && styles.goldCheck]}><Text accessible={false} style={[styles.check, index === 1 && styles.goldCheckText]}>✓</Text></View><Text style={styles.feature}>{feature}</Text></View>)}</View>
             <Pressable accessibilityRole="button" accessibilityLabel={management.provider !== "stripe" && ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
