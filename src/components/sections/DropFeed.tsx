@@ -818,12 +818,13 @@ interface FeedRowProps {
   isNew: boolean;
   index: number;
   isFreeUser: boolean;
+  readOnly?: boolean;
   reportKind?: SignalReportKind;
   onReport?: (drop: GroupedDrop, kind: SignalReportKind) => void;
   onVoteSighting?: (sightingId: string, vote: SightingVoteKind) => void;
 }
 
-function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteSighting }: FeedRowProps) {
+export function FeedRow({ drop, isNew, index, isFreeUser, readOnly = false, reportKind, onReport, onVoteSighting }: FeedRowProps) {
   const visibleLocations = isFreeUser ? drop.locations.slice(0, 1) : drop.locations;
   const hiddenLocationCount = Math.max(drop.locations.length - visibleLocations.length, 0);
   const [expanded, setExpanded] = useState(false);
@@ -924,7 +925,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
     }
   }
 
-  const hasDetails = details.length > 0 || drop.locations.length > 0;
+  const NameTag = readOnly ? "span" : "button";
+  const hasDetails = !readOnly && (details.length > 0 || drop.locations.length > 0);
 
   // Free access includes seven complete signal rows; entitlement gates still
   // limit multi-location and member-only detail below.
@@ -1089,7 +1091,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
 
         <div className="dropfeed-card-footer flex items-center justify-between gap-3" style={{ marginTop: "14px", minHeight: "30px" }}>
           <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }} onClick={(event) => event.stopPropagation()}>
-            {distilleryMeta?.sourceUrl || !isFreeUser ? (
+            {!readOnly && (distilleryMeta?.sourceUrl || !isFreeUser) ? (
               <>
                 {distilleryMeta?.sourceUrl ? (
                   <a className="sighting-chip" href={distilleryMeta.sourceUrl} target="_blank" rel="noreferrer">{distilleryMeta.ctaLabel}</a>
@@ -1134,8 +1136,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
       >
         {/* Center: name + description */}
         <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ marginLeft: "0" }}>
-          <button
-            type="button"
+          <NameTag
+            type={readOnly ? undefined : "button"}
             style={{
               fontFamily: "var(--font-playfair)",
               fontSize: "17px",
@@ -1150,7 +1152,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
             }}
           >
             {drop.displayName}
-          </button>
+          </NameTag>
           <div className="flex items-center gap-2" style={{ marginTop: "2px", flexWrap: "wrap" }}>
             <TierBadge tier={drop.rarity_tier} />
             {retailerAppearance ? (
@@ -1244,7 +1246,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           ) : null}
         </div>
 
-        {distilleryMeta?.sourceUrl || !isFreeUser ? (
+        {!readOnly && (distilleryMeta?.sourceUrl || !isFreeUser) ? (
           <div className="hidden md:flex items-center gap-2" style={{ marginLeft: "10px" }} onClick={(event) => event.stopPropagation()}>
             {distilleryMeta?.sourceUrl ? (
               <a className="sighting-chip" href={distilleryMeta.sourceUrl} target="_blank" rel="noreferrer">{distilleryMeta.ctaLabel}</a>

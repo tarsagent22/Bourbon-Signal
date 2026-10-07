@@ -1,0 +1,5 @@
+"use client";
+export default function AppDownloadCTA({downloadUrl}:{downloadUrl:string|null}){
+ const style={display:'inline-flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--font-dm-sans)',fontSize:15,fontWeight:600,color:'#0D0B0E',background:'linear-gradient(135deg, var(--color-accent-amber), var(--color-accent-gold))',borderRadius:8,padding:'14px 28px',textDecoration:'none',boxShadow:'0 4px 16px rgba(196,135,10,.3)'};
+ return <div id="download" style={{textAlign:'center',scrollMarginTop:88}}>{downloadUrl?<a href={downloadUrl} style={style}>Download the app · App Store</a>:<><span style={style}>Download the app</span><p style={{color:'var(--color-text-secondary)',fontSize:13,lineHeight:1.6,marginTop:10}}>Coming to iPhone. Store links will appear here when the app is available.</p></>}<p style={{color:'var(--color-text-secondary)',fontSize:13,lineHeight:1.6,marginTop:8}}>Android or unable to install? <a href="/web-access" style={{color:'var(--color-accent-gold)'}}>Keep using your web account</a>.</p></div>;
+}

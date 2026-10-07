@@ -105,6 +105,7 @@ function ContinueCheckoutContent() {
           textAlign: "center",
         }}
       >
+        <p style={{color:'var(--color-text-secondary)',fontSize:14,lineHeight:1.6,marginBottom:18}}>Your website membership uses the same account in the app. Download the app when available for the full experience. Billing stays with the provider you choose.</p>
         <p
           style={{
             margin: "0 0 10px",

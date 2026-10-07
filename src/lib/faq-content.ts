@@ -29,6 +29,8 @@ function productFaqItems(): FaqItem[] {
   const markets = coverageMarketLabels();
 
   return [
+    { question: "Can I use my website membership in the app?", answer: "Yes. Sign in with the same email and sign-in method to keep your membership, shelf, ratings, watches, contributions, and earned or gifted access. The full experience is in the app. Download links appear on this website when the app is publicly available. Android users and members who cannot install can continue using existing web tools through the member access link." },
+    { question: "Can I manage or cancel my membership in the app?", answer: "Open Membership, then Manage membership. Website subscriptions open Stripe’s secure billing portal; Apple subscriptions open App Store subscription settings. Manage your existing subscription rather than purchasing another one. Cancellation stops renewal and paid access continues through the current billing period. Free membership has no expiry and new paid memberships do not include a free trial." },
     {
       question: "What is Bourbon Signal?",
       answer:

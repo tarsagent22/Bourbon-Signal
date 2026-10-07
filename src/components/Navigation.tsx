@@ -4,16 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import WatchlistDropdown from "@/components/WatchlistDropdown";
-import MemberAlertsBell from "@/components/MemberAlertsBell";
 import { useAuth } from "@/lib/auth";
 import { controlRoomNavVisibleForUser } from "@/lib/control-room-nav-access";
 
 const navLinks = [
   { label: "Feed", href: "/#drops" },
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Sightings", href: "/sightings" },
-  { label: "Bottle Check", href: "/bottle-check" },
   { label: "Coverage", href: "/coverage" },
 ];
 
@@ -50,13 +45,7 @@ export default function Navigation() {
   const isFounderMember = memberTier === "bottled-in-bond";
   const canSeeControlRoomNav = mounted && isSignedIn && controlRoomNavVisibleForUser(user);
   const founderProfileNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : "#xxx";
-  const availableNavLinks = navLinks.filter((link) => {
-    if (link.href === "/dashboard") return entitlements.canAccessDashboard;
-    return true;
-  });
-  const visibleNavLinks = memberTier === "bottled-in-bond"
-    ? availableNavLinks
-    : [...availableNavLinks, { label: isSignedIn ? "Upgrade" : "Pricing", href: "/pricing" }];
+  const visibleNavLinks = [...navLinks, { label: "Pricing", href: "/pricing" }];
 
   return (
     <>
@@ -172,7 +161,7 @@ export default function Navigation() {
         >
           {mounted && isSignedIn ? (
             <>
-              <MemberAlertsBell />
+
 
               {/* Profile avatar + dropdown */}
               <div ref={profileRef} style={{ position: "relative" }}>
@@ -390,7 +379,7 @@ export default function Navigation() {
           className="flex md:hidden items-center gap-[10px]"
           style={{ marginRight: "4px", flexShrink: 0 }}
         >
-          {mounted && isSignedIn ? <MemberAlertsBell /> : null}
+
           <button
             className="cursor-pointer"
             onClick={() => setMobileOpen(true)}

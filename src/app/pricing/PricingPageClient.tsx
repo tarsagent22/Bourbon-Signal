@@ -146,6 +146,8 @@ function PricingPageContent() {
         <section className="pricing-hero">
           <ScrollReveal>
             <h1>Pick your proof.</h1>
+            <p style={{maxWidth:650,margin:'18px auto 0',fontFamily:'var(--font-dm-sans)',color:'var(--color-text-secondary)',fontSize:15,lineHeight:1.7}}>Sign up and pay here, then use the same account in the app for the full experience. Your membership works across both. Stripe subscriptions can be managed from the website or app; Apple subscriptions stay with Apple. Free membership has no expiry, and paid plans have no free trial.</p>
+            <p style={{marginTop:12,color:'var(--color-accent-gold)',fontSize:14}}><a href="/#download">Download the app when available</a> · <a href="/web-access">Existing web access</a></p>
           </ScrollReveal>
         </section>
 

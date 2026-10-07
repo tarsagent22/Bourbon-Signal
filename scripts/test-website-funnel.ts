@@ -9,9 +9,11 @@ assert.equal(transitionAllowed({},link),false);assert.equal(transitionAllowed({B
 for(const path of ['/api/alerts','/admin','/settings','/api/user/preferences','/support','/legal/privacy'])assert.equal(isInteractiveWebPage(path),false);
 assert.equal(isInteractiveWebPage('/sightings/post'),true);
 const drops=publicMarketingDrops({drops:[{id:'user_private_internal_1',canonical_name:'Exact Bourbon',state:'NC',storeName:'Private store',userEmail:'private@example.test',privateEvidence:'secret',photo:'private-url',quantity:4,sourceUrl:'secret',observed_at:'2026-10-06T12:00:00Z'}]});
-assert.deepEqual(Object.keys(drops[0]),['id','bottle','state','observedAt','location']);assert.doesNotMatch(JSON.stringify(drops),/private|secret|quantity|sourceUrl/);
+assert.deepEqual(Object.keys(drops[0]),['id','bottle','state','observedAt','location','rarity','eventType']);assert.doesNotMatch(JSON.stringify(drops),/private|secret|quantity|sourceUrl/);
 for(const plan of ['standard_monthly','barrel_monthly','bib_lifetime'] as const)assert.deepEqual(membershipTrialEligibility(plan,{},{}),{eligible:false,reason:'retired'});
 assert.equal(membershipTrialMetadata({status:'trialing',plan:'standard_monthly',subscriptionId:'existing',existingPrivateMetadata:{membershipTrialStartedAt:'2026-10-01',membershipTrialSubscriptionId:'existing'},now:'2026-10-06'}).membershipTrialStartedAt,'2026-10-01');
 const checkout=readFileSync('src/app/api/checkout/route.ts','utf8');assert.doesNotMatch(checkout,/trial_period_days|trial_settings/);assert.match(checkout,/existingSubscriptionId/);assert.match(checkout,/appleMembershipStatus/);
-const screen=readFileSync('src/components/AppFunnel.tsx','utf8');assert.doesNotMatch(screen,/<button|<input|onClick|WatchlistDropdown|PostComposer|MemberAlertsBell/);assert.match(screen,/Existing member access/);
+const screen=readFileSync('src/components/sections/PublicDropFeed.tsx','utf8');assert.doesNotMatch(screen,/<button|<input|onClick|WatchlistDropdown|PostComposer|MemberAlertsBell/);assert.match(screen,/readOnly isFreeUser/);
+const home=readFileSync('src/app/LegacyHome.tsx','utf8');assert.ok(home.indexOf('<HeroSection')<home.indexOf('<PublicDropFeed'));assert.ok(home.indexOf('<PublicDropFeed')<home.indexOf('<HowWeHunt'));assert.ok(home.indexOf('<HowWeHunt')<home.indexOf('<FAQ'));
+const nav=readFileSync('src/components/Navigation.tsx','utf8');assert.doesNotMatch(nav,/label: "Dashboard"|label: "Sightings"|label: "Bottle Check"|MemberAlertsBell|WatchlistDropdown/);assert.match(nav,/label: "Pricing"/);assert.match(nav,/label: "Coverage"/);
 console.log('Public feed allowlist/read-only surface, download identity/approval gates, essential API paths, new trial retirement and existing trial preservation passed.');
