@@ -36,7 +36,7 @@ WTlx7v0tH1M33PxeSwMiG5DinWEqRvOVSGL3dKYueoy2Oo+eppaZyM3jd4CRGNL7
 
 const BASE_REQUIRED_TABLES = [
   "bottle_contributions", "bourbon_recommendation_feedback", "community_contributor_moderation",
-  "community_sighting_alert_authority", "community_sighting_votes", "community_sightings",
+  "community_sighting_alert_authority", "community_sighting_votes", "community_sightings", "community_leader_badge_program", "community_leader_badge_periods", "community_leader_badge_awards",
   "coverage_request_automation_jobs", "coverage_requests", "founder_glass_shipping", "hunt_outcomes", "member_collection_bottles",
   "member_collection_legacy_backups", "member_collection_state", "member_referral_codes",
   "member_referral_eligibility_events", "member_referral_glass_rewards", "member_referral_point_ledger",
@@ -116,9 +116,11 @@ export function verifyBackupRequest(input: { timestamp: string; nonce: string; s
 }
 
 export function requiredBackupTablesForExisting(existing: ReadonlySet<string>) {
-  const missing = BACKUP_TABLES.filter((table) => !existing.has(table));
+  const leaderTables = ["community_leader_badge_program", "community_leader_badge_periods", "community_leader_badge_awards"];
+  const required = leaderTables.some(table => existing.has(table)) ? BACKUP_TABLES : BACKUP_TABLES.filter(table => !leaderTables.includes(table));
+  const missing = required.filter((table) => !existing.has(table));
   if (missing.length) throw new Error(`Refusing incomplete production backup; required tables are missing: ${missing.join(", ")}`);
-  return [...BACKUP_TABLES].sort();
+  return [...required].sort();
 }
 
 export async function claimBackupRequest(sql: NeonQueryFunction<false, false>, timestamp: string, nonce: string) {

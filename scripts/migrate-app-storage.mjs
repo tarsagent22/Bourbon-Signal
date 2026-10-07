@@ -74,6 +74,7 @@ const schemaFiles = [
   '../src/lib/retailer-schema.sql',
   '../src/lib/retailer-store-verification.sql',
   '../src/lib/hunt-outcome-schema.sql',
+  '../src/lib/community-leader-badges-schema.sql',
 ];
 const sql = neon(connectionString);
 if (apply) {
@@ -94,6 +95,7 @@ if (check) {
 const expected = [
   'source_lane_heads', 'source_lane_batches', 'source_lane_subjects', 'source_lane_opportunities', 'source_lane_trace', 'source_lane_demand',
   'account_deletion_requests',
+  'community_leader_badge_program', 'community_leader_badge_periods', 'community_leader_badge_awards',
   'member_push_ownership',
   'community_member_blocks', 'community_abuse_reports', 'native_render_diagnostics',
   'approved_catalog_bottles',

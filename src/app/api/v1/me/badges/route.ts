@@ -6,21 +6,26 @@ import {
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { signalApiError } from "@/lib/signals/signal-api-route";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
+import { createCommunityLeaderBadgeQuery, readCommunityLeaderAwards } from "@/lib/community-leader-badges";
+
+async function earnedProfile(userId: string, legacy: unknown) {
+  const [profile, leaders] = await Promise.all([
+    createSignalPointsRepository().readRewardProfile(userId, legacy) as Promise<{ badges?: Array<{ id: string }> } | undefined>,
+    readCommunityLeaderAwards(createCommunityLeaderBadgeQuery(), userId),
+  ]);
+  return { ...profile, badges: [...(profile?.badges || []), ...leaders] };
+}
 const handler = createFeaturedBadgesHandler({
   earnedIds: async (userId) => {
     const user = await (await clerkClient()).users.getUser(userId);
-    const rewards = (await createSignalPointsRepository().readRewardProfile(userId, user.privateMetadata.memberRewards)) as
-      | { badges?: Array<{ id: string }> }
-      | undefined;
+    const rewards = await earnedProfile(userId, user.privateMetadata.memberRewards);
     return rewards?.badges?.map((badge) => badge.id) || [];
   },
   save: async (userId, ids) => {
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
     const previous = user.privateMetadata as Record<string, unknown>;
-    const latestRewards = (await createSignalPointsRepository().readRewardProfile(userId, previous.memberRewards)) as
-      | { badges?: Array<{ id: string }> }
-      | undefined;
+    const latestRewards = await earnedProfile(userId, previous.memberRewards);
     if (
       ids.some((id) => !latestRewards?.badges?.some((badge) => badge.id === id))
     )
