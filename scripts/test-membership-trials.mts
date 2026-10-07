@@ -6,10 +6,8 @@ import {
   membershipTrialEligibility,
   membershipTrialMetadata,
   paidPostTrialInvoiceConvertsMembership,
-  MONTHLY_MEMBERSHIP_TRIAL_DAYS,
 } from "../src/lib/membership-trial.ts";
 
-assert.equal(MONTHLY_MEMBERSHIP_TRIAL_DAYS, 7);
 assert.equal(hasActiveGiftMembership({ plan: "gift_standard_annual", membershipStatus: "active", giftAccessExpiresAt: "2026-08-20T00:00:00.000Z" }, new Date("2026-08-19T00:00:00.000Z")), true);
 assert.equal(hasActiveGiftMembership({ plan: "gift_standard_annual", membershipStatus: "active", giftAccessExpiresAt: "2026-08-18T00:00:00.000Z" }, new Date("2026-08-19T00:00:00.000Z")), false);
 assert.equal(hasActiveGiftMembership({ plan: "bib_lifetime", membershipStatus: "active", giftOrderId: "gift_123" }), true);

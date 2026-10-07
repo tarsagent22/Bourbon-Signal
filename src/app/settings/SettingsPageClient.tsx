@@ -182,7 +182,7 @@ function SettingsPageContent({ ownerPreview }: { ownerPreview?: ReactNode }) {
                 <button className={styles.secondaryButton} type="button" onClick={() => void openBillingPortal("lower_cost_plan")} disabled={billingPending}>{billingPending ? "Opening billing…" : "Review a lower-cost plan"}</button>
                 <button className={styles.billingTextButton} type="button" onClick={() => void openBillingPortal("billing_portal")} disabled={billingPending}>Continue to billing</button>
               </div>
-              <p className={styles.billingNote}>Stripe handles plan changes and cancellation securely. Cancellation stops the next renewal; paid access continues through the current billing period.</p>
+              <p className={styles.billingNote}>Manage plan changes and cancellation securely with the provider where you subscribed: Stripe or Apple. Cancellation stops the next renewal; paid access continues through the current billing period.</p>
             </div>
           ) : null}
         </section>
