@@ -834,3 +834,10 @@ test('feedback writes validate success and owner queues reject incomplete privat
  payload={items:[{...packet,userId:'member',memberName:'Member',email:'',status:'new',internalNote:'',createdAt:'today',updatedAt:'today'}],nextOffset:null};assert.equal((await api.getAdminData<{items:unknown[]}>('feedback')).items.length,1);
  payload={items:[{id:'private'}],nextOffset:null};await assert.rejects(()=>api.getAdminData('feedback'),e=>e instanceof MobileApiError&&e.code==='INVALID_RESPONSE');
 });
+
+test("billing management uses the authenticated account, fresh reads, and POST without accepting a customer id", async () => {
+ const requests:Array<{method:string;auth:string|null;url:string}>=[];
+ const api=createMobileApi({baseUrl:'https://api.example.test',getToken:async()=>'member-token',fetcher:async input=>{const r=input as Request;requests.push({method:r.method,auth:r.headers.get('Authorization'),url:r.url});return Response.json(r.method==='POST'?{provider:'stripe',url:'https://billing.stripe.com/p/session/A'}:{provider:'stripe'});}});
+ await api.getSubscriptionManagement();await api.getSubscriptionManagement();await api.openSubscriptionManagement();
+ assert.deepEqual(requests.map(r=>r.method),['GET','GET','POST']);assert.ok(requests.every(r=>r.auth==='Bearer member-token'&&r.url==='https://api.example.test/api/billing-portal'));
+});

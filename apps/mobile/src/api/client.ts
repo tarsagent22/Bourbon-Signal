@@ -318,6 +318,8 @@ export function createMobileApi({
     sendAdminShipmentEmail(body: Record<string,unknown>) { return request<{ok:boolean}>('/api/admin/shipping?notify=1', {method:'PATCH',body}); },
     getCoverageRequests() { return request<{requests: import('../../../../shared/coverage-requests').CoverageRequestItem[]}>('/api/coverage/requests',{fresh:true}); },
     submitCoverageRequest(body: Record<string,unknown>) { return request<{request: import('../../../../shared/coverage-requests').CoverageRequestItem}>('/api/coverage/requests',{method:'POST',body}); },
+    getSubscriptionManagement() { return request<{provider: "stripe" | "apple" | "none"}>("/api/billing-portal", {fresh:true}); },
+    openSubscriptionManagement() { return request<{provider: "stripe" | "apple"; url:string}>("/api/billing-portal", {method:"POST"}); },
     getMemberProfile({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
       return request<MemberProfile>("/api/v1/me/profile", { fresh, signal });
     },

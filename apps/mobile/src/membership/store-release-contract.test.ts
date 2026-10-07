@@ -32,7 +32,7 @@ test("membership review exposes every native account and Apple support destinati
   const detail = read("app/(app)/account/membership/[tier].tsx");
   const hq = read("app/(app)/(tabs)/hq.tsx");
   const combined = `${overview}\n${detail}\n${hq}`;
-  assert.match(combined, /Manage subscriptions in the App Store/);
+  assert.match(combined, /Manage membership/);
   assert.match(combined, /Restore purchases/);
   assert.match(combined, /Terms of Service/);
   assert.match(combined, /Privacy policy|Privacy/);

@@ -56,8 +56,8 @@ test("plan review uses native purchases but fails closed until server reconcilia
   assert.match(screen, /disabled/);
   assert.match(screen, /Founder memberships are honored here but are not sold through Apple/);
   assert.match(screen, /deriveMobileMembershipLifecycle/);
-  assert.match(screen, /Manage subscriptions in the App Store/);
-  assert.match(screen, /openAppleSubscriptionManagement/);
+  assert.match(screen, /Manage membership/);
+  assert.match(screen, /useSubscriptionManagement/);
   assert.ok(screen.includes('router.push("/(app)/account/delete")'));
   assert.ok(screen.includes('router.push("/(app)/account/privacy")'));
   assert.ok(screen.includes('router.push("/(app)/account/terms")'));
@@ -115,4 +115,11 @@ test("native legal copy covers Apple and RevenueCat purchase handling without re
   assert.match(shared, /RevenueCat/);
   assert.match(shared, /subscription status/);
   assert.doesNotMatch(`${terms}\n${privacy}\n${shared}`, /Bottle Check|Standard Proof|Bottled in Bond/);
+});
+
+test("existing Stripe memberships do not display Apple prices or assume a monthly billing term",()=>{
+ const screen=read("app/(app)/account/membership.tsx");
+ assert.match(screen,/management.provider === "stripe" \? undefined : purchases.products.find/);
+ assert.match(screen,/Managed through Stripe. Cancel anytime./);
+ assert.match(screen,/management.provider === "stripe".*management.manage/s);
 });
