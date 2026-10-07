@@ -35,7 +35,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "runtimeVersion": "1.1.0-android-play-1"
+      "runtimeVersion": "1.1.0-android-play-1",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"

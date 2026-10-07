@@ -34,7 +34,17 @@ Disable the public activation flag to stop new purchases. Existing verified meta
 
 ## Store preparation
 
-Play app ID: `4972388654542435177`; organization developer account verified. App remains Draft. Merchant profile exists; bank verification was pending on inspection. Console requires a signed bundle before subscriptions can be created. A bootstrap bundle is for draft upload only, never rollout. Final release must contain completed provider/Firebase configuration and the current reviewed source.
+Play app ID: `4972388654542435177`; organization developer account verified. App remains Draft. Merchant profile exists; bank verification was pending on the earlier inspection and must be rechecked before launch. Signed version 6 is saved as an internal-test draft, never for rollout. Both US monthly subscriptions are active at $3/$6 with no offers. Final release must contain completed provider/Firebase configuration and the current reviewed source.
+
+Provider setup verified October 7, 2026:
+
+- RevenueCat Play app `app4bff1b83fc` uses the existing membership project, Standard/Barrel entitlements and default monthly packages. Both Google base plans were imported as `<product_id>:monthly` without changing their iOS counterparts.
+- The dedicated Google Cloud/Firebase project is `glowing-baton-510922-f6`. RevenueCat's service identity has app-only Play catalog/order/subscription/store access, plus Cloud Pub/Sub Editor and Monitoring Viewer. Google Play's official notification publisher can publish only to `bourbon-signal-play-subscriptions`.
+- A Play test event was received by RevenueCat. Catalog and base-plan credential checks passed; purchase verification still reports package not found while the app has no rolled-out internal-test release.
+- Firebase Android app `com.bourbonsignal.app` is registered, FCM V1 is enabled, and Analytics is off. `google-services.json` contains public app identifiers, not a service-account private key. Private service keys remain outside tracked source.
+- The Android public RevenueCat SDK key is configured in EAS production/preview. Remote versionCode is 6 so the next auto-incremented build exceeds the bootstrap draft.
+- The signed-in emulator account is included in the Play license-testing list. This does not grant the app's Founder member purchase eligibility.
+- The existing RevenueCat backend webhook still selects the Apple app; expand its app filter only after the Google handler is deployed and configured.
 
 Suggested store copy for owner review:
 
@@ -49,10 +59,10 @@ Owner must review legally binding app-content/data-safety declarations against a
 
 ## Acceptance remaining
 
-1. RevenueCat permission to add/manage app configuration; authenticated provider connection and product inspection.
-2. Google Cloud first-use legal agreement and narrowly scoped service credentials/RTDN permissions.
-3. Firebase/FCM native configuration and final signed AAB; Play Store-enabled test environment, preserving the existing desktop AVD.
-4. Play license tester sign-in and Free test member; sandbox purchase, upgrade, cancellation, renewal, restore, expiration/refund and push receipt.
+1. Deploy/configure the Google backend handler, expand the authenticated webhook app filter and complete Play purchase credential validation.
+2. Configure the separate, messaging-only Expo FCM service credential. A verified subscription test event does not prove Android device push receipt.
+3. Final signed AAB and internal tester track; preserve the existing desktop AVD and isolate the Android Play runtime from iOS.
+4. Free test member; sandbox purchase, upgrade, cancellation, renewal, restore, expiration/refund and Android push receipt.
 5. Store screenshots/listing and owner app-content declarations; internal test release, review and public download prerequisites.
 
 Local unit tests, exports, signed compilation, backend deployment, published OTA, Play internal release and physical-device acceptance are separate evidence layers. None is proof of the others.

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412349241586",
+    "project_id": "glowing-baton-510922-f6",
+    "storage_bucket": "glowing-baton-510922-f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412349241586:android:82785ae8f6926ae97dd86b",
+        "android_client_info": {
+          "package_name": "com.bourbonsignal.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFkY6W_5IHt3CojzX4Hao7TjDIwjElJr4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
