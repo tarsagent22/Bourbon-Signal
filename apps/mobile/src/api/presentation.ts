@@ -90,6 +90,7 @@ export function signalAvailabilityWindow(signal: Signal) {
 }
 
 export function signalAvailabilityIsCurrent(signal: Signal, now = new Date()) {
+  if (signal.historical) return false;
   const window = signalAvailabilityWindow(signal);
   const current = now.getTime();
   return Boolean(window
@@ -223,6 +224,7 @@ export function signalMemberTagLabel(signal: Signal) {
 }
 
 export function signalCardStatusLabel(signal: Signal, now = new Date()) {
+  if (signal.historical) return "Historical report";
   if (signalReportIsStale(signal, now)) return "Availability unconfirmed";
   if (signal.source.type === "member") return "Community report";
   if (signal.kind === "release") return "Release";

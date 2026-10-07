@@ -93,7 +93,7 @@ export function createSignalDetailHandler({ getDrops, getSightings }: { getDrops
     const memberSource = parts.source === "member";
     const path = memberSource
       ? `/api/sightings?sightingId=${encodeURIComponent(parts.rawId)}&rewards=0`
-      : `/api/drops?signalId=${encodeURIComponent(parts.rawId)}&signalSource=${encodeURIComponent(parts.source)}&limit=1`;
+      : `/api/drops?signalId=${encodeURIComponent(parts.rawId)}&signalSource=${encodeURIComponent(parts.source)}&limit=1&signalOrder=canonical`;
     const sourceResponse = await (memberSource ? getSightings : getDrops)(forwardedRequest(request, path, "GET"));
     const sourcePayload = await payloadOf(sourceResponse);
     if (!sourceResponse.ok) return upstreamError(sourceResponse.status);

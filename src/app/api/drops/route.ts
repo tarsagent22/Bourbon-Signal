@@ -1,3 +1,4 @@
+import { createPreparedDropCache } from "@/lib/prepared-drop-cache";
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
 import { NextResponse } from "next/server";
@@ -31,6 +32,8 @@ import {
   resolveDropClassification,
   type DropClassificationBottle,
 } from "@/lib/drop-classification";
+
+const preparedDropCache = createPreparedDropCache<ReturnType<typeof normalizeDropForSite>[]>();
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set<string>(DROP_FEED_CLASSIFICATION_TIERS);
@@ -225,7 +228,7 @@ export async function GET(request: Request) {
     isSignedIn,
     canUseAdvancedFilters: entitlements.canUseAdvancedFilters,
     tierCount: tierFilter.size,
-  }) || scopedFilterHistory;
+  }) || scopedFilterHistory || canonicalSignalOrder;
 
   try {
     const [[dropResult, statsResult], retailerSubmissions] = await Promise.all([
@@ -240,7 +243,8 @@ export async function GET(request: Request) {
       .map((submission) => retailerSubmissionToFeedCard(submission, new Date()))
       .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
     const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
-    const normalizedDrops = [...rawDrops, ...retailerDrops]
+    const preparationKey = JSON.stringify([dropResult.snapshotId || exportPayload?.generatedAt, sourceOverlay.version, classificationIndex.version, retailerFeedSnapshot(retailerSubmissions)]);
+    const normalizedDrops = preparedDropCache.get(preparationKey, () => sortDropsByCanonicalSignalOrder([...rawDrops, ...retailerDrops]
       .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))
       .map((drop) => {
         const classification = resolveDropClassification(drop, classificationIndex);
@@ -253,13 +257,13 @@ export async function GET(request: Request) {
           classification_bottle_id: classification.bottleId,
           national_tier: classification.nationalTier,
         };
-      });
+      })));
     let drops = [...normalizedDrops];
     const degradedStates = degradedEngineStates(statsPayload);
-    const marketSummaries = buildWeeklyMarketSummaries(
+    const marketSummaries = isFreeAccess ? buildWeeklyMarketSummaries(
       normalizedDrops.filter((drop) => isPublicDropFeedEligible(drop, { degradedStateCodes: degradedStates })) as Array<Record<string, unknown>>,
       { stateLabels: ACTIVE_ENGINE_STATE_NAMES },
-    );
+    ) : [];
     const engineFresh = isEngineFresh(statsPayload, exportPayload?.generatedAt);
     // The normal customer feed must never retry around the same degraded-state
     // gate used by Coverage; otherwise it can display rows Coverage rejects.
@@ -408,7 +412,7 @@ export async function GET(request: Request) {
     }
 
     drops = canonicalSignalOrder
-      ? sortDropsByCanonicalSignalOrder(drops)
+      ? drops
       : drops.sort(compareDropFeedNewestFirst);
 
     const total = drops.length;

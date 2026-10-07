@@ -20,7 +20,7 @@ test("Home opens directly on fresh Intel and member sightings", () => {
   assert.ok(toggle < geography && geography < search && search < rarity);
   assert.match(feed, />Intel<\/Text>/);
   assert.match(feed, />Community<\/Text>/);
-  assert.match(feed, /No fresh Intel Signals are available right now/);
+  assert.match(feed, /No Intel Signals match these filters/);
   assert.match(feed, /No member sightings yet/);
   assert.doesNotMatch(feed, /Home overview|Your Bourbon Signal home|OPEN RADAR/);
   assert.doesNotMatch(feed, /Trip Mode|tripMode|trip-mode/);
@@ -129,4 +129,9 @@ test("Home backdrop fills the viewport while the feed and new-signal action clea
   assert.match(feed, /const headerHeight = insets\.top \+ 56/);
   assert.match(feed, /style=\{\[styles\.feedViewport, \{ marginTop: headerHeight \}\]\}/);
   assert.match(feed, /styles\.newSignalsPill, \{ top: headerHeight \+ 8 \}/);
+});
+
+test("unmount fences late network success before it can persist account cache", () => {
+  assert.match(feed, /return \(\) => \{\s*current = false;\s*requestSequence\.current \+= 1;\s*backgroundRequestSequence\.current \+= 1;\s*profileRequestSequence\.current \+= 1;/);
+  assert.match(feed, /requestId !== requestSequence\.current \|\| capturedScope !== scopeKeyRef\.current/);
 });

@@ -46,29 +46,11 @@ export function filterSignalsByRarity<T extends { bottle: { rarity?: string | nu
 }
 
 export function serverSignalFilters(filters: SignalFeedFilters): SignalFeedFilters {
-  return filters.rarities.length ? { ...filters, rarities: [] } : filters;
-}
-
-export function shouldBackfillRarity({
-  rarities,
-  visibleCount,
-  hasMore,
-  loading,
-  error,
-  attempts = 0,
-}: {
-  rarities: readonly SignalRarity[];
-  visibleCount: number;
-  hasMore: boolean;
-  loading: boolean;
-  error: string;
-  attempts?: number;
-}, minimumVisible = 8, maximumAttempts = 3) {
-  return rarities.length > 0 && visibleCount < minimumVisible && hasMore && !loading && !error && attempts < maximumAttempts;
+  return { ...filters, rarities: [...filters.rarities].sort() };
 }
 
 export function activeFilterCount(filters: SignalFeedFilters) {
-  return Number(Boolean(filters.state)) + Number(Boolean(filters.area)) + Number(Boolean(filters.freshness)) + Number(Boolean(filters.bottle.trim()));
+  return Number(Boolean(filters.state)) + Number(Boolean(filters.area)) + Number(Boolean(filters.freshness)) + Number(Boolean(filters.bottle.trim())) + Number(filters.rarities.length > 0);
 }
 
 export function areaSelectorLabel(state: string) {

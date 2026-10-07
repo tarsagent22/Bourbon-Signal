@@ -25,9 +25,9 @@ export function selectDropFeedHistory<T extends Record<string, unknown>>(
   isFresh: (row: T) => boolean,
   isHistoricalEligible: (row: T) => boolean = () => true,
 ): Array<T & { historical?: boolean }> {
-  if (!historicalMode) return rows.filter(isFresh);
+  if (!historicalMode) return rows.filter((row) => row.historical !== true && isFresh(row));
   return rows
-    .map((row) => ({ row, fresh: isFresh(row) }))
+    .map((row) => ({ row, fresh: row.historical !== true && isFresh(row) }))
     .filter(({ row, fresh }) => fresh || isHistoricalEligible(row))
     .map(({ row, fresh }) => ({ ...row, historical: !fresh }));
 }

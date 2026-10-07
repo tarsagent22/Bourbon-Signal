@@ -55,7 +55,7 @@
     "test:drop-feed-store-detail": "node scripts/verify-drop-feed-store-detail-contract.mjs",
     "test:progressive-feed": "node --experimental-strip-types scripts/test-progressive-feed-contract.mjs",
     "test:drop-feed-policy": "node --experimental-strip-types scripts/test-drop-feed-policy.mts",
-    "test:drop-feed-performance": "node --no-warnings --experimental-strip-types scripts/test-drop-feed-performance.mts",
+    "test:drop-feed-performance": "tsx scripts/test-home-timeline.mts && node --test engine/test/home-timeline-history.test.mjs && node --no-warnings --experimental-strip-types scripts/test-drop-feed-performance.mts",
     "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs && node --experimental-strip-types scripts/test-sms-alert-copy.mjs",
     "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs && node --experimental-strip-types scripts/test-alert-run-safety.mts",
     "test:alert-safety": "node --no-warnings --experimental-strip-types --test scripts/test-alert-delivery-window.mts scripts/test-clerk-alert-metadata-capacity.mts && tsx scripts/test-clerk-alert-metadata-repair.mts && tsx scripts/test-clerk-alert-queue-migration.mts && node scripts/test-alert-delivery-safety-contract.mjs && node scripts/test-alert-queue-schema.mjs",

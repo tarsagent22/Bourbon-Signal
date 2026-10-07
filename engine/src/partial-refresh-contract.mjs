@@ -124,6 +124,28 @@ export function mergeHistoricalBoardShipmentDrops({
   return [...normalizedCurrent, ...retained].slice(0, 10000);
 }
 
+// Retain observed bottle events across refreshes; archived rows never become alerts.
+export function mergeHistoricalTimelineDrops({ currentDrops = [], previousDrops = [], now = new Date().toISOString(), historyDays = 30 } = {}) {
+  const current = rowsOf(currentDrops);
+  const currentIds = new Set(current.map(dropIdentity));
+  const cutoff = Date.parse(now) - historyDays * 86_400_000;
+  const retained = rowsOf(previousDrops).filter(drop => {
+    const at = dropEventTime(drop);
+    const id = dropIdentity(drop);
+    if (!id || currentIds.has(id) || !Number.isFinite(at) || at < cutoff || at > Date.parse(now)) return false;
+    // Only previously published bottle evidence; directory, policy, and warehouse rows
+    // cannot be converted into timeline depth by retention.
+    if (drop.eligibleForDropFeed !== true || /catalog|policy|warehouse|out.of.stock/i.test(String(drop.type || drop.event_type || ''))) return false;
+    currentIds.add(id);
+    return true;
+  }).sort((a,b) => dropEventTime(b) - dropEventTime(a)).slice(0, Math.max(0, 10000 - current.length));
+  return [...current, ...retained.map(drop => ({
+    ...retainedDrop(drop, 'historical_timeline'), historical: true,
+    eligibleForDropFeed: true, can_alert_as_inventory: false, can_alert_as_watch: false,
+    inventoryCaveat: 'Historical report. Current availability is unconfirmed; check with the store.',
+  }))];
+}
+
 function locationIdentity(location) {
   return location?.id || [
     String(location?.state || location?.state_code || '').toUpperCase(),

@@ -2,9 +2,15 @@ import type { Signal } from "../api/types";
 
 export const SIGNAL_RECENT_WINDOW_MS = 72 * 60 * 60 * 1_000;
 
-function uniqueById(signals: readonly Signal[]) {
-  return [...new Map(signals.map((signal) => [signal.id, signal])).values()];
+export function sortSignalTimeline(signals: readonly Signal[]) {
+  return [...new Map(signals.map((signal) => [signal.id, signal])).values()].sort((left, right) => {
+    const leftAt = Date.parse(left.timing.displayAt);
+    const rightAt = Date.parse(right.timing.displayAt);
+    const difference = (Number.isFinite(rightAt) ? rightAt : 0) - (Number.isFinite(leftAt) ? leftAt : 0);
+    return difference || left.id.localeCompare(right.id);
+  });
 }
+const uniqueById = sortSignalTimeline;
 
 export function reconcileQueuedSignals(current: readonly Signal[], queued: readonly Signal[], incoming: readonly Signal[], baselineDisplayAt?: string) {
   const currentIds = new Set(current.map((signal) => signal.id));
@@ -27,13 +33,13 @@ export function reconcileDisplayedSignals(current: readonly Signal[], incoming: 
     const displayed = Date.parse(signal.timing.displayAt);
     return Number.isFinite(displayed) ? Math.min(oldest, displayed) : oldest;
   }, Number.POSITIVE_INFINITY);
-  return current.flatMap((signal) => {
+  return sortSignalTimeline(current.flatMap((signal) => {
     const latest = incomingById.get(signal.id);
     if (latest) return [latest];
     if (!hasMore) return [];
     const displayed = Date.parse(signal.timing.displayAt);
     return Number.isFinite(oldestCovered) && Number.isFinite(displayed) && displayed >= oldestCovered ? [] : [signal];
-  });
+  }));
 }
 
 export function acceptQueuedSignals(current: readonly Signal[], queued: readonly Signal[]) {

@@ -351,13 +351,12 @@ assert.doesNotMatch(nativeSignalFeed, /segment:\s*\{[^}]*borderColor:\s*"transpa
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
 assert.match(nativeSignalFeed, /rarityOptionsForView\(view\)/, "rarity filters must remain immediately visible and respect each source schema");
 assert.match(nativeSignalFeed, /data=\{visibleSignals\}/, "rarity changes must synchronously filter the already-mounted Signal cache");
-assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "rarity selection must not force a new server query lens");
+assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "selected rarity is included in the server query");
 assert.match(nativeSignalFeed, /onPress=\{\(\) => applyRarityFilters\(toggleRarity\(filters, option\.value\)\)\}/, "rarity chips must use the non-destructive local transition path");
 assert.doesNotMatch(nativeSignalFeed, /onPress=\{\(\) => applyFilters\(toggleRarity/, "rarity chips must never clear the feed through the remote filter reset path");
-assert.match(nativeSignalFeed, /shouldBackfillRarity/, "sparse rarity results should replenish silently from broad pagination");
-assert.match(nativeSignalFeed, /attempts:\s*backfill\.attempts/, "silent rarity replenishment must honor its bounded page budget");
-assert.match(nativeSignalFeed, /onEndReached=.*!filters\.rarities\.length/, "short filtered lists must not bypass the silent backfill cap through automatic end-reached events");
-assert.match(nativeSignalFeed, /Load more matching Signals/, "members must retain an explicit continuation after bounded silent enrichment");
+assert.doesNotMatch(nativeSignalFeed, /shouldBackfillRarity|rarityBackfillRef/, "rarity is filtered before server pagination");
+assert.match(nativeSignalFeed, /onEndReached=.*void load\(false\)/, "filtered timelines must page like All");
+assert.match(nativeSignalFeed, /homeFeedCache/, "native feed restores account and filter scoped results");
 assert.match(nativeSignalFeed, /horizontal/, "rarity chips should scroll instead of wrapping into multiple rows");
 assert.doesNotMatch(nativeSignalFeed, /<Modal|Open Signal filters/, "Signal filters must stay directly on the feed instead of hiding in a sheet");
 assert.match(nativeSignalFeed, /actionLabel=\{activeFilterCount\(filters\) \? "Clear filters"/, "filtered empty results must offer a direct reset");
