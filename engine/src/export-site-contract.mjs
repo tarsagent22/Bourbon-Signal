@@ -28,7 +28,7 @@ import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verifica
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
-import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, mergePartialRefreshStores, mergeScheduledFallbackEvents, selectFreshRunDrops } from './partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergeHistoricalTimelineDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, mergePartialRefreshStores, mergeScheduledFallbackEvents, selectFreshRunDrops } from './partial-refresh-contract.mjs';
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
 import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
@@ -2351,13 +2351,13 @@ async function main() {
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds || [],
   }).filter((store) => isActiveCustomerStateRow(store, activeStateIds));
-  const drops = mergeHistoricalBoardShipmentDrops({
+  const drops = mergeHistoricalTimelineDrops({ previousDrops, historyDays: HISTORY_DAYS, currentDrops: mergeHistoricalBoardShipmentDrops({
     currentDrops: refreshedDrops,
     currentSourceDrops: freshRunDrops,
     previousDrops,
     bootstrapDrops,
     historyDays: HISTORY_DAYS,
-  }).filter((drop) => isActiveCustomerStateRow(drop, activeStateIds));
+  }) }).filter((drop) => isActiveCustomerStateRow(drop, activeStateIds));
   const events = mergeScheduledFallbackEvents({
     previousEvents,
     currentEvents: buildEvents(historicalSignals, bible),

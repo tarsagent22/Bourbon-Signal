@@ -1,3 +1,4 @@
+import { feedCacheScope, homeFeedCache } from "../../../src/signals/home-feed-cache";
 import { feedRetryAction } from "../../../src/signals/feed-recovery";
 import { EmptyState } from "../../../src/components/MemberScreen";
 import { allowedFeedFilters, canUseDetailedFeedFilters } from "../../../src/signals/feed-access";
@@ -12,7 +13,7 @@ import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/typ
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
-import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
+import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals } from "../../../src/signals/home-feed-live";
 import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
 import { PushMaintenance, PushResponseHandler } from "../../../src/push/PushResponseHandler";
@@ -131,7 +132,7 @@ export default function SignalFeedScreen() {
   const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities]);
   const screenActive = screenFocused && appState === "active";
   const motionDisabled = reduceMotion || screenReaderEnabled;
-  const rarityBackfillKey = JSON.stringify([view, requestFilters.state, requestFilters.area, requestFilters.freshness, requestFilters.bottle, filters.rarities]);
+  const cacheScope = feedCacheScope(view, requestFilters);
   const areaDirectory = profile?.feedAreas;
   const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: `${state.label} (${state.code})` })) || [];
   const staticAreaOptions = areaOptionsForState(areaDirectory, filters.state);
@@ -141,10 +142,12 @@ export default function SignalFeedScreen() {
   const areaLabel = filters.state
     ? areaDirectory?.states.find((state) => state.code === filters.state)?.areaLabel || areaSelectorLabel(filters.state)
     : "Area / Board";
-  const bottleQuery = detailedFilters ? bottleQueries[view] : "";
+  const bottleQuery = tier === undefined || detailedFilters ? bottleQueries[view] : "";
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
-  const rarityBackfillRef = useRef({ key: "", attempts: 0 });
+  const loadedScopeRef = useRef("");
+  const successfulRequestRef = useRef(0);
+  const lastRefreshRef = useRef(0);
   const profileRequestSequence = useRef(0);
   const browsingMutationSequence = useRef(0);
   const backgroundRequestSequence = useRef(0);
@@ -172,10 +175,11 @@ export default function SignalFeedScreen() {
       setLoading(false);
       latestDisplayedBaselineRef.current = "";
     }
+    if (apiError?.status === 401 || apiError?.status === 403) void homeFeedCache.clear(userId || "").catch(() => undefined);
     setError(apiError?.status === 401
       ? "Your session could not be verified. Return to login and try again."
       : apiError?.message || "Signals are temporarily unavailable.");
-  }, []);
+  }, [userId]);
 
   const loadProfile = useCallback(async (fresh = false) => {
     const requestId = ++profileRequestSequence.current;
@@ -199,12 +203,14 @@ export default function SignalFeedScreen() {
     if (refresh && inFlight === "page") requestSequence.current += 1;
     const requestId = ++requestSequence.current;
     requestInFlightRef.current = mode;
-    if (refresh) rarityBackfillRef.current.attempts = 0;
+    const capturedScope = scopeKey;
     setLoading(true);
     setError("");
     try {
       const page = await api.listSignals({ view, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...requestFilters });
-      if (requestId !== requestSequence.current) return;
+      if (requestId !== requestSequence.current || capturedScope !== scopeKeyRef.current) return;
+      successfulRequestRef.current = requestId;
+      lastRefreshRef.current = Date.now();
       setSignals((current) => {
         const next = refresh ? page.signals : [...current, ...page.signals];
         return [...new Map(next.map((signal) => [signal.id, signal])).values()];
@@ -213,11 +219,14 @@ export default function SignalFeedScreen() {
       setCursor(page.nextCursor);
       setHasMore(page.hasMore);
       setAccess(page.access);
-      if (refresh) setMarketSummaries(page.marketSummaries);
+      if (refresh) {
+        setMarketSummaries(page.marketSummaries);
+        void homeFeedCache.save(userId || "", cacheScope, page).catch(() => undefined);
+      }
       if (refresh) setQueuedSignals([]);
       setLoaded(true);
     } catch (caught) {
-      if (requestId !== requestSequence.current) return;
+      if (requestId !== requestSequence.current || capturedScope !== scopeKeyRef.current) return;
       const apiError = caught instanceof MobileApiError ? caught : null;
       if (apiError?.resetCursor && !refresh) {
         setCursor(null);
@@ -230,7 +239,7 @@ export default function SignalFeedScreen() {
         setLoading(false);
       }
     }
-  }, [api, cursor, handleError, hasMore, requestFilters, view]);
+  }, [api, cacheScope, cursor, handleError, hasMore, requestFilters, scopeKey, userId, view]);
 
   const selectView = useCallback((next: FeedView) => {
     if (next === view) return;
@@ -269,14 +278,8 @@ export default function SignalFeedScreen() {
 
   const applyRarityFilters = useCallback((next: SignalFeedFilters) => {
     browsingMutationSequence.current += 1;
-    backgroundRequestSequence.current += 1;
-    setQueuedSignals([]);
-    setHighlightedIds([]);
-    setFiltersByView((current) => ({
-      ...current,
-      [view]: { ...current[view], rarities: [...next.rarities] },
-    }));
-  }, [view]);
+    applyFilters(next);
+  }, [applyFilters]);
 
   useEffect(() => {
     let current = true;
@@ -286,6 +289,7 @@ export default function SignalFeedScreen() {
     profileRequestSequence.current += 1;
     requestInFlightRef.current = null;
     setLoadedBrowsingStorageKey("");
+    loadedScopeRef.current = "";
     setView("market");
     setFiltersByView({ market: { ...DEFAULT_SIGNAL_FILTERS }, community: { ...DEFAULT_SIGNAL_FILTERS } });
     setBottleQueries({ market: "", community: "" });
@@ -306,15 +310,12 @@ export default function SignalFeedScreen() {
     setError("");
     setLoaded(false);
     setLoading(false);
-    void Promise.all([loadHomeBrowsingPreferences(browsingStorageKey).catch(() => null), api.getMemberProfile().catch(() => null)]).then(([saved, member]) => {
+    void loadHomeBrowsingPreferences(browsingStorageKey).catch(() => null).then((saved) => {
       if (!current) return;
       if (saved && mutationAtStart === browsingMutationSequence.current) {
         setView(saved.view);
         setFiltersByView(saved.filtersByView);
         setBottleQueries({ market: saved.filtersByView.market.bottle, community: saved.filtersByView.community.bottle });
-      } else if (!saved && member?.profile.homeState && mutationAtStart === browsingMutationSequence.current) {
-        const initial = { ...DEFAULT_SIGNAL_FILTERS, state: member.profile.homeState };
-        setFiltersByView({ market: initial, community: initial });
       }
       setLoadedBrowsingStorageKey(browsingStorageKey);
     });
@@ -378,7 +379,9 @@ export default function SignalFeedScreen() {
           setSignals(reconcileDisplayedSignals(displayed, scopedIncoming, page.hasMore));
           setQueuedSignals((current) => reconcileQueuedSignals(displayed, current, scopedIncoming, latestDisplayedBaselineRef.current));
         }
+        lastRefreshRef.current = Date.now();
         setAccess(page.access);
+        void homeFeedCache.save(userId || "", cacheScope, page).catch(() => undefined);
       } catch (caught) {
         if (!stopped && requestId === backgroundRequestSequence.current && caught instanceof MobileApiError && (caught.status === 401 || caught.status === 403)) {
           setSignals([]);
@@ -392,14 +395,14 @@ export default function SignalFeedScreen() {
         }
       }
     };
-    void poll();
+    if (Date.now() - lastRefreshRef.current > 30_000) void poll();
     const timer = setInterval(() => { void poll(); }, 60_000);
     return () => {
       stopped = true;
       backgroundRequestSequence.current += 1;
       clearInterval(timer);
     };
-  }, [api, browsingLoaded, error, filters.rarities, handleError, loaded, requestFilters, scopeKey, screenActive, view]);
+  }, [api, browsingLoaded, error, filters.rarities, handleError, loaded, requestFilters, scopeKey, screenActive, cacheScope, userId, view]);
 
   useEffect(() => {
     if (!screenActive || !highlightedIds.length) return undefined;
@@ -418,24 +421,44 @@ export default function SignalFeedScreen() {
   }, [motionDisabled, queuedSignals]);
 
   useEffect(() => { if (browsingStorageKey) void loadProfile(false); }, [browsingStorageKey, loadProfile]);
-  useScreenRevalidation(() => { void loadProfile(false); if (browsingLoaded && !loaded) void load(true); });
-  useEffect(() => { if (browsingLoaded && !loaded && !loading && !error) void load(true); }, [browsingLoaded, error, load, loaded, loading]);
+  useScreenRevalidation(() => { void loadProfile(false); if (browsingLoaded && (error || Date.now() - lastRefreshRef.current > 30_000)) void load(true); });
   useEffect(() => {
-    if (rarityBackfillRef.current.key !== rarityBackfillKey) {
-      rarityBackfillRef.current = { key: rarityBackfillKey, attempts: 0 };
-    }
-    const backfill = rarityBackfillRef.current;
-    if (loaded && shouldBackfillRarity({ rarities: filters.rarities, visibleCount: visibleSignals.length, hasMore, loading, error, attempts: backfill.attempts })) {
-      backfill.attempts += 1;
-      void load(false);
-    }
-  }, [error, filters.rarities, hasMore, load, loaded, loading, rarityBackfillKey, visibleSignals.length]);
+    if (!browsingLoaded || loadedScopeRef.current === scopeKey) return;
+    loadedScopeRef.current = scopeKey;
+    requestSequence.current += 1;
+    requestInFlightRef.current = null;
+    setSignals([]);
+    setQueuedSignals([]);
+    setHighlightedIds([]);
+    setCursor(null);
+    setHasMore(true);
+    setLoaded(false);
+    const restore = (page: SignalFeedPage | null) => {
+      if (!page || loadedScopeRef.current !== scopeKey || scopeKeyRef.current !== scopeKey) return;
+      setSignals(page.signals);
+      setAccess(page.access);
+      setMarketSummaries(page.marketSummaries);
+      setCursor(page.nextCursor);
+      setHasMore(page.hasMore);
+      setLoaded(true);
+      latestDisplayedBaselineRef.current = page.signals[0]?.timing.displayAt || "";
+    };
+    const cached = homeFeedCache.peek(userId || "", cacheScope);
+    restore(cached);
+    const beforeLoad = requestSequence.current + 1;
+    if (!cached) void homeFeedCache.load(userId || "", cacheScope).then(page => {
+      // A disk read can never overwrite a successful or superseding network result.
+      if (requestSequence.current === beforeLoad && successfulRequestRef.current !== beforeLoad) restore(page);
+    });
+    void load(true);
+  }, [browsingLoaded, cacheScope, load, scopeKey, userId]);
   useEffect(() => {
+    if (tier === undefined) return;
     const normalizedBottle = bottleQuery.replace(/\s+/g, " ").trim().slice(0, 100);
     if (normalizedBottle === filters.bottle) return;
     const timer = setTimeout(() => applyFilters({ ...filters, bottle: bottleQuery }), 350);
     return () => clearTimeout(timer);
-  }, [applyFilters, bottleQuery, filters]);
+  }, [applyFilters, bottleQuery, filters, tier]);
   useEffect(() => {
     if (!filters.state || filters.state === "NC") {
       setAreaOptionsLoading(false);
@@ -595,16 +618,14 @@ export default function SignalFeedScreen() {
       renderItem={({ item }) => <SignalCard highlighted={highlightedIds.includes(item.id)} signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
-      onEndReached={() => { if (loaded && signals.length && !filters.rarities.length) void load(false); }}
+      onEndReached={() => { if (loaded && signals.length) void load(false); }}
       onEndReachedThreshold={0.5}
       ListHeaderComponent={header}
-      ListEmptyComponent={!loaded && loading
+      ListEmptyComponent={!loaded && !error
         ? <FeedSkeleton />
         : error
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
-          : filters.rarities.length && loading
-            ? <View style={styles.message}><Text style={styles.loadingText}>Finding more matching Signals…</Text></View>
-            : marketLocked && !paidAccessMismatch
+          : marketLocked && !paidAccessMismatch
               ? <View style={styles.message}>
                 <Text style={styles.previewTitle}>Find bottles near you</Text>
                 <Text style={styles.previewDetail}>Free membership includes a market overview. Standard unlocks bottle locations and alerts.</Text>
@@ -617,7 +638,7 @@ export default function SignalFeedScreen() {
                 <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable>
                 <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community →</Text></Pressable>
               </View>
-            : <View style={{gap:12}}><EmptyState title={view === "community" ? "No member sightings yet" : "No fresh Intel Signals are available right now"}
+            : <View style={{gap:12}}><EmptyState title={view === "community" ? "No member sightings yet" : "No Intel Signals match these filters"}
               detail={activeFilterCount(filters) ? "Try a broader search or clear your filters." : view === "community" ? "Share what you spotted to help nearby members." : "New Signals will appear here as they arrive."}
               actionLabel={activeFilterCount(filters) ? "Clear filters" : view === "community" ? "Post a sighting" : "Refresh feed"}
               onAction={() => { if (activeFilterCount(filters)) { setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...DEFAULT_SIGNAL_FILTERS }); } else if (view === "community") router.push("/(app)/(tabs)/post"); else void load(true); }} />
@@ -626,7 +647,7 @@ export default function SignalFeedScreen() {
         ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
         : error && signals.length
           ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(feedRetryAction(hasMore).refresh)} style={styles.retryTarget}><Text style={styles.retry}>{feedRetryAction(hasMore).label}</Text></Pressable></View>
-          : loaded && filters.rarities.length > 0 && hasMore
+          : loaded && hasMore
             ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Load more matching Signals</Text></Pressable></View>
             : loaded && !hasMore && visibleSignals.length
               ? <Text style={styles.end}>You’re caught up.</Text>

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, filterSummary, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalAreaDirectory, type SignalFeedFilters } from "./feed-filters";
+import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, filterSummary, normalizedFilters, rarityOptionsForView, serverSignalFilters, toggleRarity, type SignalAreaDirectory, type SignalFeedFilters } from "./feed-filters";
 
 const areas: SignalAreaDirectory = {
   states: [
@@ -30,15 +30,10 @@ test("rarity filters synchronously select loaded Signals without reordering them
   assert.deepEqual(filterSignalsByRarity(signals, ["limited", "unicorn"]).map((signal) => signal.id), ["limited-1", "unicorn-1"]);
 });
 
-test("rarity never enters the server query and sparse local results backfill silently", () => {
-  const filters: SignalFeedFilters = { ...DEFAULT_SIGNAL_FILTERS, rarities: ["allocated", "unicorn"], state: "NC", freshness: "7d" };
-  assert.deepEqual(serverSignalFilters(filters), { ...filters, rarities: [] });
-  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 2, hasMore: true, loading: false, error: "" }), true);
-  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 8, hasMore: true, loading: false, error: "" }), false);
-  assert.equal(shouldBackfillRarity({ rarities: [], visibleCount: 0, hasMore: true, loading: false, error: "" }), false);
-  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 0, hasMore: true, loading: true, error: "" }), false);
-  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 0, hasMore: true, loading: false, error: "offline" }), false);
-  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 0, hasMore: true, loading: false, error: "", attempts: 3 }), false);
+test("rarity is sent to the server before pagination", () => {
+  const filters: SignalFeedFilters = { ...DEFAULT_SIGNAL_FILTERS, rarities: ["unicorn", "allocated"], state: "NC", freshness: "7d" };
+  assert.deepEqual(serverSignalFilters(filters), { ...filters, rarities: ["allocated", "unicorn"] });
+  assert.equal(activeFilterCount({ ...DEFAULT_SIGNAL_FILTERS, rarities: ["unicorn"] }), 1);
 });
 
 test("both feeds expose the canonical three rarity tiers", () => {

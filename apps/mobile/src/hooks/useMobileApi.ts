@@ -1,3 +1,4 @@
+import { homeFeedCache } from "../signals/home-feed-cache";
 import { Platform } from "react-native";
 import { useAuth } from "@clerk/expo";
 import { createContext, createElement, useContext, useEffect, useMemo, useRef, type PropsWithChildren } from "react";
@@ -14,7 +15,7 @@ function useAccountMobileApi() {
     if (current.current.identity !== identity) throw new MobileApiError('The account changed. Please retry.', 401, 'SESSION_CHANGED');
     return token;
   } }), pushAccountId: userId || "", accountIdentity: identity }), [identity]);
-  useEffect(() => () => api.clearReadCache(), [api]);
+  useEffect(() => () => { api.clearReadCache(); void homeFeedCache.clear(userId || "").catch(() => undefined); }, [api, userId]);
   return api;
 }
 

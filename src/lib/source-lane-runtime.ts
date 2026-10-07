@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 
 import { aggregateAreaWatchlistDemand, areaWatchlistPriority, type AreaWatchlistDemand } from './demand-intelligence';
 import { buildSourceLaneUsefulness } from '../../engine/src/optimization/source-usefulness-report.mjs';
@@ -52,12 +53,21 @@ export async function runtimeSourceCandidatesStillValid(candidates: Row[]) {
   try { const { policy } = await readRuntimeLaneContext(); return await sourceCandidatesStillValid(repository(), candidates, policy, promotionEnabled()); }
   catch { return false; }
 }
-export async function readRuntimeSourceDropOverlay(drops: Row[], snapshotId: string | null) {
+async function readUncachedSourceDropOverlay(drops: Row[], snapshotId: string | null) {
   if (!storageEnabled()) return { drops, version: 'off' };
   try {
     const repo = repository(), context = await readRuntimeLaneContext();
     return await readSourceLaneDropOverlay(repo, drops, context.policy, context.alerts.snapshotId === snapshotId && promotionEnabled());
   } catch { return { drops: drops.filter(d => !inRegisteredScope(d)), version: 'unavailable' }; }
+}
+
+const readCachedSourceDropOverlay = unstable_cache(
+  async (drops: Row[], snapshotId: string | null, _pollEnabled: boolean) => readUncachedSourceDropOverlay(drops, snapshotId),
+  ['public-source-drop-overlay-v1'], { revalidate: 15 },
+);
+export async function readRuntimeSourceDropOverlay(drops: Row[], snapshotId: string | null) {
+  if (!storageEnabled() || !snapshotId) return readUncachedSourceDropOverlay(drops, snapshotId);
+  return readCachedSourceDropOverlay(drops, snapshotId, promotionEnabled());
 }
 
 async function readRuntimeSourceDemand(): Promise<AreaWatchlistDemand | null> {

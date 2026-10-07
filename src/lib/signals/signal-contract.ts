@@ -16,6 +16,7 @@ export interface CanonicalSignal {
   contractVersion: typeof SIGNAL_CONTRACT_VERSION;
   id: string;
   availabilityEpisodeId?: string;
+  historical?: boolean;
   kind: SignalKind;
   source: {
     type: SignalSourceType;
@@ -248,8 +249,9 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     reportedAt,
     input.timestamp,
   )) || new Date(0).toISOString();
-  const inventoryEligible = boolean(input.can_alert_as_inventory, input.canAlertAsInventory);
-  const watchEligible = boolean(input.canAlertAsWatch) || kind === "release" || inventoryEligible;
+  const historical = input.historical === true;
+  const inventoryEligible = !historical && boolean(input.can_alert_as_inventory, input.canAlertAsInventory);
+  const watchEligible = !historical && (boolean(input.canAlertAsWatch) || kind === "release" || inventoryEligible);
   const retailerReported = type === "retailer";
   const label = type === "retailer"
     ? storeName || "Retailer"
@@ -303,7 +305,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
       sourceBacked: true,
     },
     strength: signalStrength(input, type, scope),
-    ...(signalAvailability(input, kind) ? { availability: signalAvailability(input, kind) } : {}),
+    ...(historical ? { historical: true, availability: { ...signalAvailability(input, kind), status: "reported" as const, label: "Historical report", caveat: "Reported at the time shown. Current availability is unconfirmed; check with the store." } } : signalAvailability(input, kind) ? { availability: signalAvailability(input, kind) } : {}),
     alertEligibility: { inventory: inventoryEligible, watch: watchEligible },
     actions: ["watch_bottle", ...(scope === "exact_store" ? ["watch_store" as const] : []), "helpful", "report"],
   };
