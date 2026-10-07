@@ -136,7 +136,6 @@ export default function HeroSection({ appFunnel = false, downloadUrl = null }: {
               "Live Drop Feed",
               "Drop Alerts",
               "Member Sightings",
-              "Bottle Check",
               "My Shelf",
               "Personalized Bottle Recommendations",
             ].map((item, index, arr) => (

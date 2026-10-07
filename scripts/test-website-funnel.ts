@@ -17,3 +17,13 @@ const screen=readFileSync('src/components/sections/PublicDropFeed.tsx','utf8');a
 const home=readFileSync('src/app/LegacyHome.tsx','utf8');assert.ok(home.indexOf('<HeroSection')<home.indexOf('<PublicDropFeed'));assert.ok(home.indexOf('<PublicDropFeed')<home.indexOf('<HowWeHunt'));assert.ok(home.indexOf('<HowWeHunt')<home.indexOf('<FAQ'));
 const nav=readFileSync('src/components/Navigation.tsx','utf8');assert.doesNotMatch(nav,/label: "Dashboard"|label: "Sightings"|label: "Bottle Check"|MemberAlertsBell|WatchlistDropdown/);assert.match(nav,/label: "Pricing"/);assert.match(nav,/label: "Coverage"/);
 console.log('Public feed allowlist/read-only surface, download identity/approval gates, essential API paths, new trial retirement and existing trial preservation passed.');
+
+const oldFirstSeen='2026-08-01T00:00:00Z',newConfirmation='2026-10-06T23:00:00Z';
+const confirmed=publicMarketingDrops({drops:[{canonical_name:'Current Bourbon',state:'VA',event_type:'store_inventory_result',first_seen_at:oldFirstSeen,timestamp:oldFirstSeen,last_confirmed_at:newConfirmation,store_city:'Alexandria'}]});
+assert.equal(confirmed[0].observedAt,newConfirmation);assert.equal(confirmed[0].confirmedAt,newConfirmation);
+assert.equal(confirmed[0].location,'Alexandria');
+const seven=publicMarketingDrops({drops:Array.from({length:9},(_,i)=>({canonical_name:`Bottle ${i}`,state:'VA',timestamp:`2026-10-0${i+1}T12:00:00Z`}))});assert.equal(seven.length,7);assert.equal(seven[0].bottle,'Bottle 8');
+assert.doesNotMatch(screen,/AppDownloadCTA/);
+const cta=readFileSync('src/components/AppDownloadCTA.tsx','utf8');assert.doesNotMatch(cta,/Coming to iPhone|Keep using your web account/);assert.match(cta,/name:'iOS'/);assert.match(cta,/name:'Android'/);assert.match(cta,/disabled aria-label/);
+assert.doesNotMatch(readFileSync('src/components/sections/HeroSection.tsx','utf8'),/"Bottle Check"/);
+console.log('Seven latest public signals use canonical confirmation timestamps; duplicate CTA and marked text removed.');

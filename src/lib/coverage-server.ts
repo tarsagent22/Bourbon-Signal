@@ -1,4 +1,5 @@
 import "server-only";
+import {readCanonicalPublicCoverage,searchCanonicalPublicCoverage} from "./public-coverage-preview";
 
 import { STATE_LIFECYCLE_CONFIG } from "@/config/stateLifecycle";
 import mississippiKnownStores from "@/config/mississippi-known-stores.json";
@@ -89,11 +90,13 @@ async function readCoverageInputs() {
 }
 
 export async function readCurrentCoverageContract() {
+  if(process.env.VERCEL_ENV === "preview") return readCanonicalPublicCoverage();
   const inputs = await readCoverageInputs();
   return buildCoverageContract(inputs);
 }
 
 export async function searchCurrentCoverageTargets(stateCode: string, query: string) {
+  if(process.env.VERCEL_ENV === "preview") return searchCanonicalPublicCoverage(stateCode,query);
   const inputs = await readCoverageInputs();
   return searchCoverageTargets({ ...inputs, stateCode, query });
 }
