@@ -9,8 +9,10 @@ let signedIn=true; let tier='barrel';let normalizeCount=0;let snapshot='one';
 const now=Date.now();
 const make=(id:string,rarity:string,age:number,state='OH')=>({id,canonical_name:'Example '+id,canonicalName:'Example '+id,bottleName:'Example '+id,state,type:'store_inventory_result',event_type:'store_inventory_result',tier:rarity,rarity_tier:rarity,quantity:4,quantity_in_stock:4,locationPrecision:'store_level',canAlertAsInventory:true,observed_at:new Date(now-age).toISOString(),last_confirmed_at:new Date(now-age).toISOString(),timestamp:new Date(now-age).toISOString()});
 const rows=[...Array.from({length:151},(_,i)=>make('limited-'+i,'limited',i*1000)),make('match-1','allocated',200000),make('match-2','unicorn',300000),make('historical','unicorn',20*86400000)];
+rows.push({...make('private-warehouse','unicorn',0,'NC'),type:'nc_statewide_warehouse_stock',event_type:'nc_statewide_warehouse_stock'});
 const route=loadWithMocks('src/app/api/drops/route.ts',{
  'next/server':{NextResponse:Response},
+ 'next/cache':{unstable_cache:(fn:Function)=>fn},
  '@clerk/nextjs/server':{auth:async()=>({userId:signedIn?'test':null}),clerkClient:async()=>({users:{getUser:async()=>({publicMetadata:{}})}})},
  '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier,feedPreviewLimit:tier==='free'?7:null,canUseAdvancedFilters:tier==='barrel',canUseBottleSearch:tier==='barrel',canUseDropFeedFilters:tier==='barrel'})},
  '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(drops:unknown[])=>({drops,version:'one'})},
@@ -35,6 +37,8 @@ assert.equal(normalizeCount,firstNormalize,'paging and filter changes reuse prep
 const recent=await(await handler(new Request(base+'&freshness=7d'))).json();assert.equal(recent.signals[0].historical,undefined);
 const noState=await(await handler(new Request(base+'&state=NC'))).json();assert.deepEqual(noState.signals,[],'filters must never broaden silently');
 snapshot='two';await handler(new Request(base));assert.equal(normalizeCount,firstNormalize*2,'snapshot replacement invalidates prepared data');
+const diagnostics=await(await route.GET(new Request('https://example.test/api/drops?include=all&limit=500'))).json();
+assert.ok(diagnostics.drops.some((row:any)=>row.id==='private-warehouse'),'authorized diagnostics retain excluded raw rows without persisting them in the public cache');
 tier='free';const free=await(await handler(new Request(base))).json();assert.equal(free.signals.length,0);assert.equal(free.access.marketDetailsLocked,true,'cached public preparation cannot leak paid locations');
 signedIn=false;const anon=await(await handler(new Request(base))).json();assert.equal(anon.signals.length,0);
 let builds=0;const cache=createPreparedDropCache<number>(2,10);cache.get('a',()=>++builds,0);cache.get('a',()=>++builds,1);assert.equal(builds,1);cache.get('a',()=>++builds,11);assert.equal(builds,2);
@@ -51,3 +55,17 @@ assert.equal((await asyncCache.get('snapshot-b',async()=>3)).value,3,'pointer re
 await assert.rejects(asyncCache.get('broken',async()=>{throw Error('failed');}));
 assert.equal((await asyncCache.get('broken',async()=>4)).value,4,'failed attempts can be retried immediately');
 console.log('Complete public preparation coalescing, TTL, pointer replacement and error recovery passed.');
+
+const packs = await import('../src/lib/public-feed-pack.ts');
+const {packPublicFeed,unpackPublicFeed} = ('default' in packs ? {...packs, ...(packs.default as object)} : packs) as typeof import('../src/lib/public-feed-pack.ts');
+const publicRows=[{id:'valid'},{id:'invalid'},{id:'retailer'}];
+const windows=new Map(publicRows.map((row,index)=>[row,{startsAt:index===2?-Infinity:1,endsAt:index===1?NaN:10,inclusiveEnd:index!==2}]));
+const packed=packPublicFeed({normalizedDrops:publicRows,eligible:[publicRows[0],publicRows[2]],freshness:windows,degradedStates:new Set(['SC'])},{snapshot:'one'});
+const restored=unpackPublicFeed(packed);
+assert.equal(restored.eligible[0],restored.normalizedDrops[0],'eligible rows retain reference identity');
+assert.equal(restored.freshness.get(restored.normalizedDrops[2]).startsAt,-Infinity,'retailer start bound survives encoding');
+assert.ok(Number.isNaN(restored.freshness.get(restored.normalizedDrops[1]).endsAt),'invalid dates remain invalid instead of becoming fresh');
+assert.deepEqual([...restored.degradedStates],['SC']);
+const corrupt=JSON.parse(packed);corrupt.hash='broken';assert.throws(()=>unpackPublicFeed(JSON.stringify(corrupt)),/integrity/);
+corrupt.bytes=1;assert.throws(()=>unpackPublicFeed(JSON.stringify(corrupt)),/larger than|limit|integrity/i,'gzip expansion is bounded');
+console.log('Shared cache compression, integrity, exact time bounds and row identity passed.');
