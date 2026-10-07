@@ -18,10 +18,11 @@ test('owner catalog bypasses discovery cache and pairs definitions with their ex
  });
  const cached=await bible.getBourbonBible();
  const old=cached.find(b=>b.id==='makers-mark');assert.ok(old);
- records=[{bottle_id:old.id,patch:{canonicalName:'Reviewed Maker’s Mark 750 ml',aliases:['Reviewed Maker’s Mark']},redirect_id:null,version:1}];
+ records=[{bottle_id:old.id,patch:{canonicalName:'Reviewed Maker’s Mark 750 ml',aliases:['Reviewed Maker’s Mark'],photoEvidenceUrl:'https://private.example/member-photo',sourceUrl:'https://private.example/admin-source'},redirect_id:null,version:1}];
  const snapshot=records;
  const fresh=await bible.getOwnerBourbonBible(snapshot);
  assert.equal(fresh.find(b=>b.id===old.id).canonicalName,'Reviewed Maker’s Mark 750 ml');
+ assert.equal(fresh.find(b=>b.id===old.id).photoEvidenceUrl,'https://private.example/member-photo','owner editing retains private evidence');
  assert.equal((await bible.getBourbonBible()).find(b=>b.id===old.id).canonicalName,old.canonicalName,'test retains a genuinely stale discovery cache');
  records=[...records,{bottle_id:'new-entry',patch:{canonicalName:'New Whiskey 750 ml',brand:'New',category:'bourbon',availability:'common',aliases:['New Whiskey'],summary:'Reviewed',guidance:''},redirect_id:null,version:1}];
  assert.equal((await bible.getOwnerBottleById('new-entry')).id,'new-entry','newly created entries can be matched immediately');
@@ -33,6 +34,8 @@ test('owner catalog bypasses discovery cache and pairs definitions with their ex
  });
  const response=await route.GET(new Request('https://example.test/api/admin/catalog?id=makers-mark'));
  assert.equal(response.status,200);const payload=await response.json();assert.equal(payload.bottles[0].version,1);assert.equal(payload.bottles[0].canonicalName,'Reviewed Maker’s Mark 750 ml');
+ bible.clearBourbonBibleCache();
+ const discovery=(await bible.getBourbonBible()).find(b=>b.id===old.id);assert.ok(discovery);assert.equal(discovery.canonicalName,'Reviewed Maker’s Mark 750 ml');assert.deepEqual(discovery.aliases,['Reviewed Maker’s Mark']);assert.equal('photoEvidenceUrl' in discovery,false);assert.equal('sourceUrl' in discovery,false);assert.doesNotMatch(JSON.stringify(await bible.searchBourbonBible('Reviewed Maker’s Mark')),/private[.]example/);
 });
 test("actual post route corrects mappings atomically, preserves photo review, rejects stale edits and supports removal/history/restore", async () => {
   const db = new PGlite();
