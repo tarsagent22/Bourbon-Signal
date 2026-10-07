@@ -12,5 +12,5 @@ export async function websiteLaunchState(){
  try{const r=await fetch(`https://itunes.apple.com/lookup?id=${APP_STORE_ID}&country=us`,{next:{revalidate:3600},signal:AbortSignal.timeout(5000)});if(r.ok)downloadUrl=verifiedStoreLink(await r.json());}catch{}
  return {downloadUrl,transitionActive:transitionAllowed(process.env,downloadUrl)};
 }
-export const RETIRED_WEB_ROUTES=['/dashboard','/alerts','/radar','/my-shelf','/finder','/bottle-check','/sightings','/events'];
+export const RETIRED_WEB_ROUTES=['/dashboard','/alerts','/radar','/my-shelf','/finder','/bottle-check','/sightings','/events','/web-home','/account/signal-points','/referrals'];
 export function isInteractiveWebPage(path:string){return RETIRED_WEB_ROUTES.some(p=>path===p || path.startsWith(p+'/'));}

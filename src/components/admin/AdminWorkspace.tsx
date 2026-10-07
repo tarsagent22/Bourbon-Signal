@@ -19,7 +19,7 @@ export default function AdminWorkspace(){
   async function load(){const ticket=++sequence.current;setLoading(true);setError('');try{
     if(section==='Overview'){const data=await request<Record<string,unknown>>('/api/admin/overview');if(ticket===sequence.current)setOverview(data);}
     if(section==='Coverage'){const data=await request<OwnerCoverage>('/api/admin/coverage');if(ticket===sequence.current)setCoverage(data);}
-    if(section==='Members'){const data=await request<{members:OwnerMember[]}>(`/api/admin/members?q=${encodeURIComponent(query)}`);if(ticket===sequence.current)setMembers(data.members);}
+
     if(section==='Pricing'){const data=await request<NonNullable<typeof pricing>>('/api/admin/pricing');if(ticket===sequence.current)setPricing(data);}
   }catch(e){if(ticket===sequence.current)setError(e instanceof Error?e.message:'Workspace unavailable');}finally{if(ticket===sequence.current)setLoading(false);}}
   useEffect(()=>{void load();return()=>{sequence.current++;};},[section]);
