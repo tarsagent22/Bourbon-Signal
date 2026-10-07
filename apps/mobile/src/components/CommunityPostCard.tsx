@@ -41,7 +41,7 @@ export function CommunityPostCard({ signal, onPress, highlighted = false }: { si
       {presented.storeName || presented.geography ? <View style={s.location}><MaterialCommunityIcons name="map-marker-outline" size={15} color={colors.muted} /><Text numberOfLines={1} style={s.locationText}>{[presented.storeName, presented.geography].filter(Boolean).join(" · ")}</Text></View> : null}
       <View style={s.footer}>
         {presented.price ? <Text style={s.price}>{presented.price}</Text> : null}
-        {presented.quantity !== "Quantity unknown" ? <Text numberOfLines={1} style={s.member}>{presented.quantity}</Text> : null}
+        {presented.quantity !== "Quantity unknown" ? <Text numberOfLines={1} style={[s.member, { flexShrink: 1 }]}>{presented.quantity}</Text> : null}
         <View style={s.helpful}><MaterialCommunityIcons name="hand-heart-outline" size={14} color={colors.muted} /><Text style={s.member}>{signal.evidence.helpfulCount ? `${signal.evidence.helpfulCount} helpful` : "View post"}</Text></View>
       </View>
     </Pressable>
