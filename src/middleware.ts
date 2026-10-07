@@ -1,3 +1,4 @@
+import {websiteLaunchState,isInteractiveWebPage} from '@/lib/website-transition';
 import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { resolveClerkRecoveryUrl } from "@/lib/clerk-recovery-host";
@@ -56,6 +57,10 @@ export default clerkMiddleware(async (auth, request) => {
     url.hostname = "www.bourbonsignal.com";
     url.port = "";
     return NextResponse.redirect(url, 308);
+  }
+  if (request.method==='GET' && isInteractiveWebPage(url.pathname) && request.cookies.get('bs_web_continuity')?.value!=='1') {
+    const launch=await websiteLaunchState();
+    if(launch.transitionActive)return NextResponse.redirect(new URL('/web-access',request.url));
   }
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
   if (url.pathname === "/api/alerts/manual-send") return NextResponse.next();

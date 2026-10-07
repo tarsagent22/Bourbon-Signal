@@ -22,8 +22,8 @@ export function FreeMemberDayTwoEmail({
   unsubscribeUrl,
   baseUrl = "https://www.bourbonsignal.com",
 }: FreeMemberDayTwoEmailProps) {
-  const pricingUrl = new URL("/pricing?source=day2_trial", baseUrl).toString();
-  const coverageUrl = new URL("/coverage?source=day2_trial", baseUrl).toString();
+  const pricingUrl = new URL("/pricing?source=day2_membership", baseUrl).toString();
+  const coverageUrl = new URL("/coverage?source=day2_membership", baseUrl).toString();
 
   return (
     <Html style={{ backgroundColor: "#0f0c09" }}>
@@ -37,7 +37,7 @@ export function FreeMemberDayTwoEmail({
           <Section style={masthead}>
             <Text style={brand}>BOURBON SIGNAL<span style={brandDot}>.</span></Text>
             <Text style={eyebrow}>YOUR FIRST WEEK</Text>
-            <Text style={headline}>Try the full experience for 7 days</Text>
+            <Text style={headline}>More ways to use Bourbon Signal</Text>
           </Section>
 
           <Section style={content}>
@@ -46,29 +46,29 @@ export function FreeMemberDayTwoEmail({
               Chandler here — by now you&apos;ve had a little time to look around Bourbon Signal. Your free account isn&apos;t going away. You can keep checking the Drop Feed preview, posting Member Sightings, using Bottle Checker and the Coverage Map, and earning Signal Points.
             </Text>
             <Text style={paragraph}>
-              If you want to see whether the paid tools actually help your bourbon hunting, monthly Standard Proof and Barrel Proof memberships now include a <strong style={strong}>7-day free trial</strong>.
+              Free membership stays free. When you want more, <strong style={strong}>Standard Proof is $3/month and Barrel Proof is $6/month</strong>.
             </Text>
 
             <Section style={planCard}>
               <Text style={planKicker}>STANDARD PROOF</Text>
               <Text style={planTitle}>Full feed and personalized alerts</Text>
-              <Text style={planCopy}>Track up to 15 bottles across five alert areas, get push alerts, and use the complete Drop Feed and filters.</Text>
-              <Text style={planPrice}>7 days free, then $3/month.</Text>
+              <Text style={planCopy}>Track up to 15 bottles across five alert areas, get push alerts, and use the complete state Drop Feed.</Text>
+              <Text style={planPrice}>$3/month.</Text>
             </Section>
 
             <Section style={planCardLast}>
               <Text style={planKicker}>BARREL PROOF</Text>
               <Text style={planTitle}>Unlimited tracking and deeper member tools</Text>
               <Text style={planCopy}>Remove bottle and area limits, build your collection, and unlock your taste profile and bottle recommendations.</Text>
-              <Text style={planPrice}>7 days free, then $6/month.</Text>
+              <Text style={planPrice}>$6/month.</Text>
             </Section>
 
             <Text style={trialTerms}>
-              The trial is available once per account on monthly plans. After 7 days, your membership continues at the selected monthly price unless you cancel. Annual and lifetime plans do not include a trial.
+              Paid memberships renew at the selected monthly price unless you cancel. Existing granted access and active trials keep their original terms.
             </Text>
 
             <Section style={primaryAction}>
-              <Button href={pricingUrl} style={button}>Start a 7-day free trial</Button>
+              <Button href={pricingUrl} style={button}>Compare memberships</Button>
             </Section>
 
             <Section style={coverageCard}>

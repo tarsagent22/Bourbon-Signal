@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  if(['active','trialing','grace_period','canceled_period_end'].includes(String(user.publicMetadata.appleMembershipStatus)) && Date.parse(String(user.publicMetadata.appleMembershipExpiresAt))>Date.now()) return NextResponse.json({provider:'apple',url:'https://apps.apple.com/account/subscriptions'});
   let customerId = stringValue(user.privateMetadata?.stripeCustomerId) || stringValue(user.publicMetadata?.stripeCustomerId);
   let subscriptionId = stringValue(user.privateMetadata?.stripeSubscriptionId);
 

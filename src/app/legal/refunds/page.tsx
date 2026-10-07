@@ -38,7 +38,7 @@ export default function RefundsPage() {
         {
           heading: "4. Trials, beta pricing, and promotional plans",
           body: [
-            "We may offer free trials, beta pricing, founding member pricing, coupons, or promotional periods. Promotional terms may be limited to specific users, dates, features, states, or plans and may change or expire.",
+            "We do not currently offer new paid free trials. Existing active trials and previously granted access retain their original terms. Other promotions may be limited to specific users, dates, features, states or plans.",
             "If a trial converts into a paid subscription, the checkout or trial flow will describe the timing and price before billing begins.",
           ],
         },

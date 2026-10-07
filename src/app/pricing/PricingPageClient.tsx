@@ -30,9 +30,8 @@ const checkoutPlanTiers = CHECKOUT_PLAN_TIERS;
 const paidTiers = PAID_MEMBERSHIP_PLANS;
 const comparisonRows = MEMBERSHIP_COMPARISON_ROWS;
 
-function checkoutContinueUrl(plan: PaidPlanId, source = "unknown", trialExpected = false) {
-  const trial = trialExpected ? "&trialOffer=1" : "";
-  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${trial}&registration=1`;
+function checkoutContinueUrl(plan: PaidPlanId, source = "unknown") {
+  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}&registration=1`;
 }
 
 
@@ -44,7 +43,6 @@ function PricingPageContent() {
   const checkoutInFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [founderSpots, setFounderSpots] = useState<{ limit: number; remaining: number | null } | null>(null);
-  const [trialEligibility, setTrialEligibility] = useState<Record<string, { eligible?: boolean }> | null>(null);
 
   const currentTierRank = tierRank[memberTier];
   const checkoutValue = searchParams.get("checkout");
@@ -67,35 +65,6 @@ function PricingPageContent() {
       .catch(() => undefined);
     return () => { cancelled = true; };
   }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!isSignedIn) {
-      setTrialEligibility({ standardMonthly: { eligible: true }, barrelMonthly: { eligible: true } });
-      return;
-    }
-    let cancelled = false;
-    fetch("/api/membership-trial", { cache: "no-store" })
-      .then((res) => res.ok ? res.json() : null)
-      .then((data: Record<string, { eligible?: boolean }> | null) => {
-        if (!cancelled) setTrialEligibility(data || {});
-      })
-      .catch(() => { if (!cancelled) setTrialEligibility({}); });
-    return () => { cancelled = true; };
-  }, [isLoaded, isSignedIn]);
-
-  function planHasTrial(plan: PaidPlanId | null) {
-    if (plan !== "standard_monthly" && plan !== "barrel_monthly") return false;
-    if (!isLoaded || !isSignedIn) return true;
-    if (plan === "standard_monthly") return trialEligibility?.standardMonthly?.eligible === true;
-    return trialEligibility?.barrelMonthly?.eligible === true;
-  }
-
-  function trialPriceCopy(plan: PaidPlanId | null) {
-    if (plan === "standard_monthly") return "7 days free, then $3/month";
-    if (plan === "barrel_monthly") return "7 days free, then $6/month";
-    return "";
-  }
 
   function selectedPlan(tier: PricingTier): PaidPlanId | null {
     if (tier.plan) return tier.plan;
@@ -120,7 +89,7 @@ function PricingPageContent() {
       return;
     }
     if (!isSignedIn) {
-      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, planHasTrial(plan)))}`);
+      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source))}`);
       return;
     }
     if (checkoutInFlight.current) return;
@@ -134,7 +103,6 @@ function PricingPageContent() {
         body: JSON.stringify({
           plan,
           source,
-          trialOfferExpected: planHasTrial(plan),
         }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
@@ -159,7 +127,6 @@ function PricingPageContent() {
     if (tierRank[tier.tier] < currentTierRank) return "Included";
     if (tier.tier === memberTier) return "Current plan";
     if (plan !== null && pendingPlan === plan) return "Opening checkout…";
-    if (planHasTrial(plan)) return "Start 7-day free trial";
     if (!isSignedIn) return tier.tier === "bottled-in-bond" ? "Create account & claim spot" : "Create account & join";
     if (tier.tier === "bottled-in-bond") return "Claim lifetime spot";
     return `Choose ${tier.name}`;
@@ -249,7 +216,6 @@ function PricingPageContent() {
                 <div className="pricing-price-row">
                   <strong>{price.price}</strong>
                   <span>{price.cadence}</span>
-                  {planHasTrial(plan) ? <small>{trialPriceCopy(plan)}</small> : null}
                 </div>
                 <p className="pricing-description">{tier.description}</p>
                 <ul>{tier.features.map((feature) => <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>)}</ul>

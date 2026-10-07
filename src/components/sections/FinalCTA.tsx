@@ -42,7 +42,7 @@ export default function FinalCTA() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Start with a 7-day free trial.
+            Start with Free membership.
           </p>
         </ScrollReveal>
 
@@ -70,7 +70,7 @@ export default function FinalCTA() {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              Plans start at $3/month after the trial.
+              Paid plans start at $3/month.
             </p>
           </div>
         </ScrollReveal>

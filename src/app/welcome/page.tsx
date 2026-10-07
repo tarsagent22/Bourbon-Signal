@@ -258,7 +258,6 @@ export default function WelcomePage() {
   const [localSearchStatus, setLocalSearchStatus] = useState<"idle" | "searching" | "opening">("idle");
   const [localMessage, setLocalMessage] = useState("");
   const [showEarlierSignals, setShowEarlierSignals] = useState(false);
-  const [barrelTrialEligible, setBarrelTrialEligible] = useState<boolean | null>(null);
   const [legacySetupMode, setLegacySetupMode] = useState(false);
   const registrationRecorded = useRef(false);
   const freeValueRecordedFor = useRef(new Set<string>());
@@ -312,21 +311,6 @@ export default function WelcomePage() {
       else registrationRecorded.current = false;
     });
   }, [isLoaded, isSignedIn]);
-
-  useEffect(() => {
-    if (!authenticatedUserId) {
-      setBarrelTrialEligible(null);
-      return;
-    }
-    const controller = new AbortController();
-    void fetch("/api/membership-trial", { signal: controller.signal, cache: "no-store" })
-      .then(async (response) => response.ok ? response.json() : null)
-      .then((payload: { barrelMonthly?: { eligible?: boolean } } | null) => {
-        if (!controller.signal.aborted) setBarrelTrialEligible(payload?.barrelMonthly?.eligible === true);
-      })
-      .catch(() => { if (!controller.signal.aborted) setBarrelTrialEligible(false); });
-    return () => controller.abort();
-  }, [authenticatedUserId]);
 
   useEffect(() => {
     localPreviewGetControllerRef.current?.abort();
@@ -915,21 +899,6 @@ export default function WelcomePage() {
                   <Link href="/sightings?source=welcome-setup">Explore Member Sightings<ArrowUpRight size={16} aria-hidden="true" /></Link>
                 </div>
               </section>
-
-              {barrelTrialEligible === true ? (
-                <section className={`${styles.section} ${styles.trialSection}`} aria-labelledby="membership-next-step-heading">
-                  <div className={styles.trialCard}>
-                    <div>
-                      <h2 id="membership-next-step-heading">Try Barrel Proof free for 7 days</h2>
-                      <span>$6/month after 7 days</span>
-                      <p>Build your Bourbon DNA with personalized collection intelligence.</p>
-                    </div>
-                    <Link href="/checkout/continue?plan=barrel_monthly&source=welcome-trial&trialOffer=1&registration=1">
-                      Start 7-day free trial<ArrowUpRight size={16} aria-hidden="true" />
-                    </Link>
-                  </div>
-                </section>
-              ) : null}
 
               <section className={`${styles.section} ${styles.exploreSection}`} aria-labelledby="explore-heading">
                 <div className={styles.sectionHeading}>

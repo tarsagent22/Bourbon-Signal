@@ -62,20 +62,7 @@ function ContinueCheckoutContent() {
         if (shouldRecordRegistration) {
           await recordGrowthMilestone("registration_completed", { surface: "sign_up" });
         }
-        if (trialOfferExpected && (plan === "standard_monthly" || plan === "barrel_monthly")) {
-          const eligibilityResponse = await fetch("/api/membership-trial", { cache: "no-store" });
-          const eligibility = await eligibilityResponse.json() as {
-            standardMonthly?: { eligible?: boolean };
-            barrelMonthly?: { eligible?: boolean };
-            error?: string;
-          };
-          const eligible = plan === "standard_monthly"
-            ? eligibility.standardMonthly?.eligible === true
-            : eligibility.barrelMonthly?.eligible === true;
-          if (!eligibilityResponse.ok || !eligible) {
-            throw new Error(eligibility.error || "This trial is not available for this account. Return to pricing to choose a regular plan.");
-          }
-        }
+        if(trialOfferExpected) throw new Error("New trials have ended. Return to pricing to review the price before continuing.");
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -48,23 +48,9 @@ export function hasActiveGiftMembership(publicMetadata: Metadata, now = new Date
 }
 
 export function membershipTrialEligibility(
-  plan: BillingPlanId,
-  publicMetadata: Metadata,
-  privateMetadata: Metadata,
-): { eligible: boolean; reason: "eligible" | "plan_ineligible" | "trial_used" | "prior_subscription" } {
-  if (!MONTHLY_TRIAL_PLANS.has(plan)) return { eligible: false, reason: "plan_ineligible" };
-  if (text(privateMetadata, "membershipTrialStartedAt") || text(privateMetadata, "membershipTrialSubscriptionId")) {
-    return { eligible: false, reason: "trial_used" };
-  }
-  if (text(privateMetadata, "stripeSubscriptionId")) return { eligible: false, reason: "prior_subscription" };
-  const publicPlan = text(publicMetadata, "plan") || text(publicMetadata, "billingPlan");
-  if (["bib_lifetime", "lifetime"].includes(publicPlan)) return { eligible: false, reason: "prior_subscription" };
-  const publicStatus = text(publicMetadata, "membershipStatus").toLowerCase();
-  if (DIRECT_SUBSCRIPTION_PLANS.has(publicPlan as BillingPlanId)
-    && ["active", "trialing", "past_due", "unpaid", "canceled", "incomplete", "incomplete_expired"].includes(publicStatus)) {
-    return { eligible: false, reason: "prior_subscription" };
-  }
-  return { eligible: true, reason: "eligible" };
+  _plan: BillingPlanId, _publicMetadata: Metadata, _privateMetadata: Metadata,
+): { eligible: false; reason: "retired" } {
+  return { eligible: false, reason: "retired" };
 }
 
 export function membershipTrialMetadata(input: {
