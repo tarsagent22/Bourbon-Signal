@@ -1,3 +1,5 @@
+import { readOwnerBottleRecords } from "@/lib/owner-admin-repository";
+import { expandCorrectedWatchNames } from "@/lib/admin-watch-aliases";
 import { createHash, randomUUID } from "node:crypto";
 import { render } from "@react-email/render";
 import { invokeSourceProvider } from "@/lib/source-lane";
@@ -1330,6 +1332,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
   const resend = !dryRun && ALERT_EMAIL_DELIVERY_ENABLED ? getResendClient() : null;
   const client = await clerkClient();
+  const correctedBottleRecords = await readOwnerBottleRecords();
 
   // Observational/baseline runs must not consume the live recipient cursor.
   const continueLiveScan = !dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly;
@@ -1509,7 +1512,8 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         continue;
       }
 
-      const bottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
+      const storedBottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
+      const bottlePrefs = {...storedBottlePrefs,bottleNames:expandCorrectedWatchNames([...storedBottlePrefs.bottleNames,...storedBottlePrefs.bottleKeys],correctedBottleRecords,normalizeBottleKey)};
       const alertMode = publicMetadata.alertMode;
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
       const hidden = candidates.some(candidate=>enumerateUnderlyingAlertChildren(candidate).some(child=>child.sourceType === "community")) ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};

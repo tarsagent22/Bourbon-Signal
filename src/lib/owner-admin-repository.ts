@@ -68,3 +68,8 @@ export async function ownerAudit(
     [actor, action, target, JSON.stringify(details)],
   );
 }
+
+export async function reviewOwnerBottleSubmission(input: {id:string; expectedUpdatedAt:string; bottleId:string|null; patch:Record<string,unknown>; version:number; actor:string; reason:string; action:string}) {
+ const rows = await coverageDatabase().query("SELECT owner_review_bottle_submission($1,$2::timestamptz,$3,$4::jsonb,$5::bigint,$6,$7,$8) AS contribution",[input.id,input.expectedUpdatedAt,input.bottleId,JSON.stringify(input.patch),input.version,input.actor,input.reason,input.action]) as Array<{contribution:Record<string,unknown>}>;
+ return rows[0].contribution;
+}

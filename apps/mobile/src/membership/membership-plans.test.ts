@@ -12,17 +12,17 @@ test("mobile plans expose monthly pricing only while preserving Founder lifetime
   const barrel = MEMBERSHIP_PLANS.find((plan) => plan.tier === "barrel");
   const founder = MEMBERSHIP_PLANS.find((plan) => plan.tier === "bottled-in-bond");
 
-  assert.deepEqual(standard?.monthly, { price: "$3", suffix: "/month", trialDays: 7 });
+  assert.deepEqual(standard?.monthly, { price: "$3", suffix: "/month" });
   assert.equal(Object.hasOwn(standard ?? {}, "annual"), false);
-  assert.deepEqual(barrel?.monthly, { price: "$6", suffix: "/month", trialDays: 7 });
+  assert.deepEqual(barrel?.monthly, { price: "$6", suffix: "/month" });
   assert.equal(Object.hasOwn(barrel ?? {}, "annual"), false);
   assert.deepEqual(founder?.lifetime, { price: "$50", suffix: " once" });
   assert.equal(Object.hasOwn(MEMBERSHIP_PLANS.find((plan) => plan.tier === "free") ?? {}, "annual"), false);
 });
 
 test("monthly is the only subscription choice, including for legacy annual route parameters", () => {
-  assert.deepEqual(billingChoiceFor("standard"), { interval: "monthly", price: "$3", suffix: "/month", trialDays: 7 });
-  assert.deepEqual(billingChoiceFor("barrel", "annual"), { interval: "monthly", price: "$6", suffix: "/month", trialDays: 7 });
+  assert.deepEqual(billingChoiceFor("standard"), { interval: "monthly", price: "$3", suffix: "/month" });
+  assert.deepEqual(billingChoiceFor("barrel", "annual"), { interval: "monthly", price: "$6", suffix: "/month" });
   assert.deepEqual(billingChoiceFor("bottled-in-bond"), { interval: "lifetime", price: "$50", suffix: " once" });
 });
 

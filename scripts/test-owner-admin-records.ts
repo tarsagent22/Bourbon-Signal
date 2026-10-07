@@ -295,7 +295,24 @@ async function main() {
     ).rows[0].count,
     1,
   );
+  // Draft save never creates a catalog entry. Approval is atomic with receipt resolution.
+  const submit = {id:'atomic',rawName:'Original member spelling',userId:'member_a',status:'new',context:{privatePhoto:'preserved'}};
+  await db.query("INSERT INTO bottle_contributions VALUES('atomic','atomic','new',$1::jsonb,$2,$2)",[JSON.stringify(submit),stamp]);
+  const beforeLedger = (await db.query<any>("SELECT count(*)::int AS n FROM signal_point_ledger")).rows[0].n;
+  const review = async (expected:string,action:string,patch:any,id='atomic-bottle',version=0) => (await db.query<any>("SELECT owner_review_bottle_submission('atomic',$1,$2,$3::jsonb,$4,'owner','Verified identity',$5) AS result",[expected,id,JSON.stringify(patch),version,action])).rows[0].result;
+  const saved = await review(stamp,'save_later',{canonicalName:'Work in progress',brand:''});
+  assert.equal(saved.rawName,submit.rawName);assert.equal(saved.userId,'member_a');assert.equal(saved.status,'new');
+  assert.equal((await db.query<any>("SELECT count(*)::int AS n FROM owner_bottle_records WHERE bottle_id='atomic-bottle'")).rows[0].n,0);
+  const current = (await db.query<any>("SELECT updated_at::text AS t FROM bottle_contributions WHERE id='atomic'")).rows[0].t;
+  await assert.rejects(()=>review(stamp,'approve_changes',bottle),/admin_conflict/);
+  assert.equal((await db.query<any>("SELECT count(*)::int AS n FROM owner_bottle_records WHERE bottle_id='atomic-bottle'")).rows[0].n,0,'stale approval leaves no orphan catalog record');
+  const approved = await review(current,'approve_changes',{...bottle,canonicalName:'Atomic exact bourbon 750 ml'});
+  assert.equal(approved.status,'added');assert.deepEqual(approved.context,submit.context);assert.equal(approved.rawName,submit.rawName);
+  await assert.rejects(()=>review(current,'approve_changes',bottle),/admin_conflict/);
+  assert.equal((await db.query<any>("SELECT count(*)::int AS n FROM signal_point_ledger")).rows[0].n,beforeLedger,'administrative approvals issue no duplicate rewards');
+  assert.equal((await db.query<any>("SELECT count(*)::int AS n FROM owner_bottle_records WHERE bottle_id='atomic-bottle'")).rows[0].n,1);
   await db.close();
+
   console.log(
     "Owner admin SQL: record preservation, isolated matching, stale-write rollback, merges, immutable point accounting, idempotency, and post audit passed.",
   );

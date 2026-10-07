@@ -192,6 +192,7 @@ async function callerFixture() {
     getUsersPage:async(_c,offset)=>({data:offset?[]:[structuredClone(user)],totalCount:1}),
     getServerEntitlements:async pub=>({tier:pub.paid?'standard':'free',canReceiveSightingsAlerts:true}),
     normalizeNotificationPreferences:v=>v,normalizeAreaPrefs:v=>v,hasSavedAreaPreferences:v=>v?.saved,
+    readOwnerBottleRecords:async()=>[],expandCorrectedWatchNames:names=>names,normalizeBottleKey:s=>s.toLowerCase(),
     normalizeBottleAlertPreferences:v=>({bottleNames:[],bottleKeys:[],...v}),normalizeDeliveryMetadata:v=>v,normalizeAlertInboxMetadata:v=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
     normalizeAlertDeliveryTimeZone:()=> 'UTC',alertDeliveryWindowStatus:()=>({open:true,reason:'open',localHour:12}),isWithinMemberAlertDeliveryWindow:()=>true,
     compactClerkAlertDelivery:v=>v,ensureAlertDeliveryIdentityV2:async()=>({migrated:false,sendCurrentPass:true}),

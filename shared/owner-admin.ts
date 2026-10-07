@@ -9,6 +9,9 @@ export type BottleDraft = {
   aliases: string[];
   summary: string;
   guidance: string;
+  sizeMl?: number | null;
+  sourceUrl?: string;
+  photoEvidenceUrl?: string;
 };
 export function validateBottleDraft(input: unknown): BottleDraft {
   if (!input || typeof input !== "object")
@@ -51,7 +54,15 @@ export function validateBottleDraft(input: unknown): BottleDraft {
         .filter(Boolean)
         .slice(0, 40)
     : [];
+  const sizeMl = r.sizeMl == null || r.sizeMl === "" ? null : Number(r.sizeMl);
+  if (sizeMl !== null && (!Number.isInteger(sizeMl) || sizeMl < 1 || sizeMl > 10000)) throw new Error("Enter size in ml between 1 and 10000.");
+  const url = (key:string) => {
+    const value = clean(key,1000); if (!value) return "";
+    try { const parsed = new URL(value); if (parsed.protocol !== "https:" || parsed.username || parsed.password) throw new Error(); } catch { throw new Error("Source and photo evidence must use HTTPS URLs."); }
+    return value;
+  };
   return {
+    sizeMl, sourceUrl:url("sourceUrl"), photoEvidenceUrl:url("photoEvidenceUrl"),
     canonicalName,
     brand,
     category,

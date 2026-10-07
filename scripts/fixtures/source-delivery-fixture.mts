@@ -38,6 +38,7 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
     normalizeNotificationPreferences:(v:any)=>v,normalizeAreaPrefs:(v:any)=>v,hasSavedAreaPreferences:(v:any)=>v?.saved,
     normalizeAlertDeliveryTimeZone:()=> 'UTC',alertDeliveryWindowStatus:()=>({open:true,reason:'open',localHour:12}),isWithinMemberAlertDeliveryWindow:()=>true,compactClerkAlertDelivery:(v:any)=>v,
     ensureAlertDeliveryIdentityV2,
+    readOwnerBottleRecords:async()=>[],expandCorrectedWatchNames:(names:string[])=>names,normalizeBottleKey:(s:string)=>s.toLowerCase(),
     normalizeBottleAlertPreferences:(v:any)=>v,normalizeDeliveryMetadata:(v:any)=>v,normalizeAlertInboxMetadata:(v:any)=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
     pushPreferenceProjectionAllowsDelivery:()=>true,
     groupCandidatesByLocation:(cs:any)=>cs,enumerateUnderlyingAlertChildren:(c:any)=>[c],stableUnderlyingAlertKey:(c:any)=>c.availabilityEpisodeId,

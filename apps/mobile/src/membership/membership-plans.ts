@@ -4,7 +4,6 @@ export type BillingInterval = "monthly" | "annual" | "lifetime";
 type PriceChoice = {
   price: string;
   suffix: string;
-  trialDays?: number;
   valueNote?: string;
 };
 
@@ -40,7 +39,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     name: "Standard",
     eyebrow: "Core membership",
     description: "Follow your bottles and get alerts for the places you hunt.",
-    monthly: { price: "$3", suffix: "/month", trialDays: 7 },
+    monthly: { price: "$3", suffix: "/month" },
     features: [
       "Full state Intel feed",
       "Alerts for up to 5 areas and 15 bottles",
@@ -55,7 +54,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     eyebrow: "Serious hunters",
     description: "Watch every bottle on your list. Discover more through your collection.",
     recommended: true,
-    monthly: { price: "$6", suffix: "/month", trialDays: 7 },
+    monthly: { price: "$6", suffix: "/month" },
     features: [
       "Everything in Standard",
       "Unlimited areas and watched bottles",
