@@ -44,7 +44,9 @@ function providerFor(user: { publicMetadata?: Record<string, unknown>; privateMe
   // Existing Stripe subscribers always manage with Stripe, including payment recovery.
   if (subscription && !["canceled", "incomplete_expired"].includes(stripeStatus || "")) return "stripe";
   if (priv.appleMembershipProductId || pub.appleMembershipStatus) return "apple";
-  if (priv.stripeCustomerId || pub.stripeCustomerId || priv.stripePaymentSessionId || pub.stripePaymentSessionId) return "stripe";
+  // A saved customer or abandoned checkout is billing history, not an active subscription.
+  // Ended Stripe subscriptions must not prevent a member choosing Apple later.
+  if (["active", "trialing", "past_due", "unpaid"].includes(stripeStatus || "") && priv.stripePlan) return "stripe";
   return "none";
 }
 
