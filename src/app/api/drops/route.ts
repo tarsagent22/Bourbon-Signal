@@ -196,7 +196,7 @@ const readPackedPublicFeed = unstable_cache(async (_identity: string, _classific
     sourceOverlay: { version: prepared.sourceOverlay.version },
     classificationIndex: { version: prepared.classificationIndex.version },
   };
-  return packPublicFeed(prepared, metadata);
+  return packPublicFeed({ ...prepared, normalizedDrops: prepared.eligible }, metadata);
 }, ['public-feed-packed-v1', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 15 });
 async function readSharedPublicPreparation(identity: string) {
   const classification = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]).version;
@@ -300,7 +300,9 @@ export async function GET(request: Request) {
   try {
     const preparationStart = performance.now();
     const identity = await readSiteExportIdentity();
-    const prepared = await publicFeedSnapshotCache.get(identity, () => readSharedPublicPreparation(identity));
+    const prepared = include === "all" && !historicalMode
+      ? { value: { ...await preparePublicFeedSnapshot(), packedBytes: 0 }, hit: false }
+      : await publicFeedSnapshotCache.get(identity, () => readSharedPublicPreparation(identity));
     const { dropResult, retailerVersion, retailerCount, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness } = prepared.value;
     const preparationMs = performance.now() - preparationStart;
     const filterStart = performance.now();

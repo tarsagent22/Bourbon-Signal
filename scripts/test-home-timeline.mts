@@ -9,6 +9,7 @@ let signedIn=true; let tier='barrel';let normalizeCount=0;let snapshot='one';
 const now=Date.now();
 const make=(id:string,rarity:string,age:number,state='OH')=>({id,canonical_name:'Example '+id,canonicalName:'Example '+id,bottleName:'Example '+id,state,type:'store_inventory_result',event_type:'store_inventory_result',tier:rarity,rarity_tier:rarity,quantity:4,quantity_in_stock:4,locationPrecision:'store_level',canAlertAsInventory:true,observed_at:new Date(now-age).toISOString(),last_confirmed_at:new Date(now-age).toISOString(),timestamp:new Date(now-age).toISOString()});
 const rows=[...Array.from({length:151},(_,i)=>make('limited-'+i,'limited',i*1000)),make('match-1','allocated',200000),make('match-2','unicorn',300000),make('historical','unicorn',20*86400000)];
+rows.push({...make('private-warehouse','unicorn',0,'NC'),type:'nc_statewide_warehouse_stock',event_type:'nc_statewide_warehouse_stock'});
 const route=loadWithMocks('src/app/api/drops/route.ts',{
  'next/server':{NextResponse:Response},
  'next/cache':{unstable_cache:(fn:Function)=>fn},
@@ -36,6 +37,8 @@ assert.equal(normalizeCount,firstNormalize,'paging and filter changes reuse prep
 const recent=await(await handler(new Request(base+'&freshness=7d'))).json();assert.equal(recent.signals[0].historical,undefined);
 const noState=await(await handler(new Request(base+'&state=NC'))).json();assert.deepEqual(noState.signals,[],'filters must never broaden silently');
 snapshot='two';await handler(new Request(base));assert.equal(normalizeCount,firstNormalize*2,'snapshot replacement invalidates prepared data');
+const diagnostics=await(await route.GET(new Request('https://example.test/api/drops?include=all&limit=500'))).json();
+assert.ok(diagnostics.drops.some((row:any)=>row.id==='private-warehouse'),'authorized diagnostics retain excluded raw rows without persisting them in the public cache');
 tier='free';const free=await(await handler(new Request(base))).json();assert.equal(free.signals.length,0);assert.equal(free.access.marketDetailsLocked,true,'cached public preparation cannot leak paid locations');
 signedIn=false;const anon=await(await handler(new Request(base))).json();assert.equal(anon.signals.length,0);
 let builds=0;const cache=createPreparedDropCache<number>(2,10);cache.get('a',()=>++builds,0);cache.get('a',()=>++builds,1);assert.equal(builds,1);cache.get('a',()=>++builds,11);assert.equal(builds,2);
