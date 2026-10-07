@@ -219,7 +219,7 @@ export function resolvePreviousMembershipTierAfterDirectFounder(input: unknown) 
   return isMembershipAccessActive(tier, record.status, record.plan) ? tier : "free";
 }
 
-function activeAppleMembershipTier(input: unknown, now: Date) {
+export function activeAppleMembershipTier(input: unknown, now = new Date()) {
   const tier = normalizeMembershipTier(metadataValue(input, "appleMembershipTier"));
   const plan = normalizeBillingPlan(metadataValue(input, "appleMembershipPlan"));
   const status = metadataValue(input, "appleMembershipStatus");
@@ -232,6 +232,22 @@ function activeAppleMembershipTier(input: unknown, now: Date) {
   const expiry = Date.parse(expiresAt);
   return Number.isFinite(expiry) && expiry > now.getTime() ? tier : "free";
 }
+
+export function activeGoogleMembershipTier(input: unknown, now = new Date()) {
+  const tier = normalizeMembershipTier(metadataValue(input, "googleMembershipTier"));
+  const plan = normalizeBillingPlan(metadataValue(input, "googleMembershipPlan"));
+  const status = metadataValue(input, "googleMembershipStatus");
+  const expiresAt = metadataValue(input, "googleMembershipExpiresAt");
+  if (tier === "free" || !plan || plan === "bib_lifetime") return "free" as MembershipTier;
+  if (status !== "trialing" && status !== "active" && status !== "canceled_period_end" && status !== "grace_period") {
+    return "free" as MembershipTier;
+  }
+  if (typeof expiresAt !== "string") return "free" as MembershipTier;
+  if ((plan !== "standard_monthly" && plan !== "barrel_monthly") || BILLING_PLAN_TO_TIER[plan] !== tier) return "free" as MembershipTier;
+  const expiry = Date.parse(expiresAt);
+  return Number.isFinite(expiry) && expiry > now.getTime() ? tier : "free";
+}
+
 
 function higherMembershipTier(left: MembershipTier, right: MembershipTier) {
   const rank: Record<MembershipTier, number> = { free: 0, standard: 1, barrel: 2, "bottled-in-bond": 3 };
@@ -246,7 +262,7 @@ export function resolveEffectiveMembershipTier(input: unknown, now = new Date())
     const tier = normalizeMembershipTier(rawTier);
     const expires = metadataValue(input, "rewardMembershipExpiresAt");
     const earnedTier: MembershipTier = typeof expires === "string" && Date.parse(expires) > now.getTime() && metadataValue(input, "rewardMembershipRedemptionId") ? "standard" : "free";
-    const appleTier = higherMembershipTier(activeAppleMembershipTier(input, now), earnedTier);
+    const appleTier = higherMembershipTier(higherMembershipTier(activeAppleMembershipTier(input, now), activeGoogleMembershipTier(input, now)), earnedTier);
     const isAnnualGift = rawPlan === "gift_standard_annual" || rawPlan === "gift_barrel_annual";
     if (isAnnualGift) {
       const baseTier = giftAccessIsCurrent(input, now)

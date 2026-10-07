@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import { randomUUID } from "node:crypto";
-import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
+import { activeAppleMembershipTier, activeGoogleMembershipTier, FOUNDER_SPOT_LIMIT, normalizeBillingPlan, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
 import { getStripePriceId, LAUNCH_BILLING_PLANS, validateDirectStripePrice } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 import { countFounderMemberships } from "@/lib/founder-allocation";
@@ -182,6 +182,9 @@ export async function POST(req: NextRequest) {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const currentTier = await resolveServerEffectiveMembershipTier(user.publicMetadata);
+  if (planId !== "bib_lifetime" && (activeAppleMembershipTier(user.publicMetadata) !== "free" || activeGoogleMembershipTier(user.publicMetadata) !== "free")) {
+    return NextResponse.json({error:"Manage your existing app-store subscription before starting another subscription."},{status:409});
+  }
   if (hasActiveGiftMembership(user.publicMetadata as Record<string, unknown>)) {
     return NextResponse.json({ error: "Your active gift membership already includes paid access. Choose a plan after the gift period ends." }, { status: 409 });
   }

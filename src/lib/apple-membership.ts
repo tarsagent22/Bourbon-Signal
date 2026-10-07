@@ -1,5 +1,7 @@
 import {
   BILLING_PLAN_TO_TIER,
+  activeGoogleMembershipTier,
+  resolveEffectiveMembershipTier,
   isMembershipAccessActive,
   normalizeBillingPlan,
   normalizeMembershipTier,
@@ -185,6 +187,7 @@ export function projectAppleMembershipMetadata(input: {
   publicMetadata: Record<string, unknown>;
   privateMetadata: Record<string, unknown>;
   now: string;
+  store?: "apple" | "google";
 }) {
   const { membership, publicMetadata, privateMetadata, now } = input;
   assertSnapshot(membership);
@@ -213,6 +216,14 @@ export function projectAppleMembershipMetadata(input: {
     appleMembershipProjectedAt: now,
   };
 
+  if (input.store === "google") {
+    for (const patch of [publicPatch, privatePatch]) {
+      for (const key of Object.keys(patch)) {
+        patch[key.replace(/^apple/, "google")] = patch[key];
+        delete patch[key];
+      }
+    }
+  }
   const rawTier = normalizeMembershipTier(publicMetadata.tier || publicMetadata.membershipTier);
   const rawPlan = stringValue(publicMetadata.plan) || stringValue(publicMetadata.billingPlan);
   const founder = rawTier === "bottled-in-bond" || rawPlan === "bib_lifetime" || Boolean(publicMetadata.directFounderCheckoutAttemptId) || Boolean(publicMetadata.founderNumber);
@@ -229,7 +240,7 @@ export function projectAppleMembershipMetadata(input: {
   return {
     publicMetadata: publicPatch,
     privateMetadata: privatePatch,
-    effectiveTier: underlying.tier,
+    effectiveTier: (() => { const resolved=resolveEffectiveMembershipTier({ ...publicMetadata, ...publicPatch }, new Date(now)); return TIER_PRIORITY[resolved] > TIER_PRIORITY[underlying.tier] ? resolved : underlying.tier; })(),
   };
 }
 
@@ -239,6 +250,7 @@ export function applePurchaseAccountBlocker(publicMetadata: Record<string, unkno
   if (tier === "bottled-in-bond" || plan === "bib_lifetime" || publicMetadata.founderNumber) return "active_founder" as const;
   if (hasActiveGiftMembership(publicMetadata)) return "active_gift" as const;
   if (activeStripeMembership(publicMetadata, privateMetadata)) return "active_stripe_subscription" as const;
+  if (activeGoogleMembershipTier(publicMetadata) !== "free") return "active_google_subscription" as const;
   return null;
 }
 
@@ -298,6 +310,7 @@ export function createAppleMembershipReconciler(dependencies: {
 }
 
 export function createAppleMembershipProjector(dependencies: {
+  store?: "apple" | "google";
   getUser: (userId: string) => Promise<{ publicMetadata?: Record<string, unknown>; privateMetadata?: Record<string, unknown> }>;
   updateUserMetadata: (userId: string, input: { publicMetadata?: Record<string, unknown>; privateMetadata?: Record<string, unknown> }) => Promise<unknown>;
   now?: () => string;
@@ -309,6 +322,7 @@ export function createAppleMembershipProjector(dependencies: {
       const projectionNow = now();
       const projection = projectAppleMembershipMetadata({
         membership: record,
+        store: dependencies.store,
         publicMetadata: user.publicMetadata || {},
         privateMetadata: user.privateMetadata || {},
         now: projectionNow,
@@ -343,6 +357,9 @@ function membershipAuthorityFingerprint(user: { publicMetadata?: Record<string, 
     privateMetadata.stripeMembershipStatus,
     privateMetadata.appleMembershipProductId,
     privateMetadata.appleMembershipProjectedAt,
+    publicMetadata.googleMembershipStatus,
+    publicMetadata.googleMembershipExpiresAt,
+    privateMetadata.googleMembershipProjectedAt,
   ]);
 }
 

@@ -1,3 +1,4 @@
+import {membershipManagedOutsideStore} from "../../../../src/account/subscription-management";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -18,6 +19,9 @@ import { colors, typeScale, fonts } from "../../../../src/theme";
 export default function MembershipPlanScreen() {
   const api = useMobileApi();
   const management = useSubscriptionManagement();
+  const managementOnly = membershipManagedOutsideStore(management.provider,Platform.OS);
+  const billingProviderLabel = management.provider === "google" ? "Google Play" : management.provider === "apple" ? "Apple" : "Stripe";
+  const storeName = Platform.OS === "android" ? "Google Play" : "App Store";
   const purchases = usePurchases();
   const refreshPurchases = purchases.refresh;
   useEffect(() => { void refreshPurchases(); }, [refreshPurchases]);
@@ -53,30 +57,30 @@ export default function MembershipPlanScreen() {
   const isFree = plan.tier === "free";
   const isFounder = plan.tier === "bottled-in-bond";
   const productId = productIdFor(plan.tier, "monthly");
-  const storeProduct = management.provider === "stripe" ? undefined : purchases.products.find((product) => product.productId === productId);
+  const storeProduct = managementOnly ? undefined : purchases.products.find((product) => product.productId === productId);
   const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, plan.tier) : null;
 
   const isCurrentOrIncluded = action?.kind === "current" || action?.kind === "included";
   const purchaseBusy = purchases.status === "purchasing" || purchases.status === "restoring" || purchases.status === "configuring";
-  const canPurchase = Boolean(management.provider && management.provider !== "stripe") && Platform.OS === "ios" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
-  const canRestore = Platform.OS === "ios" && purchases.status === "ready" && purchases.restoreAvailable && !isFree && !isFounder;
+  const canPurchase = Boolean(management.provider && management.provider !== "stripe") && Platform.OS !== "web" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
+  const canRestore = Platform.OS !== "web" && purchases.status === "ready" && purchases.restoreAvailable && !isFree && !isFounder;
   const loadingProducts = purchases.status === "configuring" || purchases.status === "signed_out";
-  const displayPrice = management.provider === "stripe" && !isFree && !isFounder ? "Managed through Stripe" : isFree ? "$0" : isFounder ? "Lifetime access" : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
+  const displayPrice = managementOnly && !isFree && !isFounder ? `Managed through ${billingProviderLabel}` : isFree ? "$0" : isFounder ? "Lifetime access" : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
   const displayPeriod = storeProduct ? `/${storeProduct.localizedPeriod}` : "";
-  const billingDisclosure = management.provider === "stripe" ? "Your membership is billed through Stripe. Manage your plan, payment details, or cancellation below." : Platform.OS === "ios"
+  const billingDisclosure = managementOnly ? `Your membership is billed through ${billingProviderLabel}. Manage your plan, payment details, or cancellation below.` : Platform.OS === "ios"
     ? "Billed to your Apple ID after confirmation. Manage or cancel in App Store subscriptions."
-    : "Apple purchase options are available only in the iOS app. Your Google Play account is not charged, and your server-confirmed membership still works on this device.";
-  const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership }) : null;
+    : "Billed to your Google Play account after confirmation. Manage or cancel in Google Play subscriptions.";
+  const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership, store: Platform.OS === "android" ? "google" : "apple" }) : null;
   const renewalCopy = isFree
     ? "Free membership. No payment or renewal."
     : isFounder
-      ? "Existing Founder access is lifetime access. No Apple purchase is offered."
+      ? "Existing Founder access is lifetime access. No additional purchase is needed."
       : Platform.OS === "ios"
         ? "Renews automatically unless canceled at least 24 hours before the current period ends."
         : "Renews automatically unless canceled before the next billing date.";
 
   async function buy() {
-    if (management.provider === "stripe") { await management.manage(); return; }
+    if (managementOnly) { await management.manage(); return; }
     if (!management.provider) return;
     setShowPurchaseStatus(true);
     if (productId && !canPurchase && action?.kind === "upgrade" && !purchaseBusy) {
@@ -109,7 +113,7 @@ export default function MembershipPlanScreen() {
     try {
       await management.manage();
     } catch {
-      setError("App Store subscription settings could not be opened. Open the App Store, tap your profile, then Subscriptions.");
+      setError("Subscription settings could not be opened. Please try again or contact support.");
     } finally {
       setSubscriptionBusy(false);
     }
@@ -122,7 +126,7 @@ export default function MembershipPlanScreen() {
         : productId
           ? "Check purchase options"
           : isFounder
-            ? "Not sold through Apple"
+            ? "Not sold in this app"
             : action?.label || "Unavailable";
   const purchaseAccessibilityLabel = storeProduct && canPurchase
     ? `Purchase ${plan.name} for ${storeProduct.localizedPrice} per ${storeProduct.localizedPeriod}`
@@ -132,13 +136,13 @@ export default function MembershipPlanScreen() {
     : isFree
       ? "Free membership is included with every Bourbon Signal account."
       : isFounder
-        ? "Founder memberships are honored here but are not sold through Apple."
-        : loadingProducts ? "Connecting to the App Store…"
-          : purchases.status === "ready" ? "Apple will ask you to confirm before you’re charged."
-            : purchases.status === "pending" ? "Apple is still processing your purchase. Your current access is unchanged."
+        ? "Existing Founder memberships are honored here. No additional purchase is needed."
+        : loadingProducts ? `Connecting to ${storeName}…`
+          : purchases.status === "ready" ? `${storeName} will ask you to confirm before you’re charged.`
+            : purchases.status === "pending" ? `${storeName} is still processing your purchase. Your current access is unchanged.`
               : purchases.status === "cancelled" ? "Purchase canceled. You haven’t been charged."
                 : "We couldn’t load purchase options. Try again, or keep exploring with your current plan.";
-  const canCheckOptions = Platform.OS === "ios" && action?.kind === "upgrade" && Boolean(productId) && !canPurchase && !purchaseBusy;
+  const canCheckOptions = Platform.OS !== "web" && action?.kind === "upgrade" && Boolean(productId) && !canPurchase && !purchaseBusy;
 
   return <ScrollView contentContainerStyle={memberScreenStyles.content} style={memberScreenStyles.screen}>
     <Stack.Screen options={{ title: plan.name, headerBackTitle: "Plans" }} />

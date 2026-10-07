@@ -53,7 +53,7 @@ function mappedError(error: unknown) {
 }
 
 export function createAppleMembershipApiHandlers(dependencies: {
-  configuration: () => RevenueCatConfiguration;
+  configuration: (userId?: string) => RevenueCatConfiguration;
   getAccount: (clerkUserId: string) => Promise<{ publicMetadata: Record<string, unknown>; privateMetadata: Record<string, unknown> }>;
   readCurrent: (clerkUserId: string) => Promise<AppleMembershipRecord | null>;
   reconcile: (input: { clerkUserId: string; providerEventId: null }) => Promise<{
@@ -61,9 +61,20 @@ export function createAppleMembershipApiHandlers(dependencies: {
     effectiveTier: "free" | "standard" | "barrel" | "bottled-in-bond";
     membership: AppleMembershipRecord;
   }>;
-}) {
+}, options: {
+  store?: "apple" | "google";
+  accountBlocker?: (pub: Record<string, unknown>, priv: Record<string, unknown>) => string | null;
+  productIds?: readonly string[];
+} = {}) {
+  const accountBlocker = options.accountBlocker || applePurchaseAccountBlocker;
+  const productIds = options.productIds || APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS;
+  const response = async (value: Response) => {
+    if (options.store !== "google") return value;
+    const text = (await value.text()).replaceAll("Apple", "Google Play").replaceAll("APPLE", "GOOGLE").replaceAll("outside Apple", "outside Google Play");
+    return new Response(text, {status:value.status, headers:value.headers});
+  };
   async function readiness(clerkUserId: string) {
-    const configuration = dependencies.configuration();
+    const configuration = dependencies.configuration(clerkUserId);
     if (!configuration.ready) {
       return Response.json({
         contractVersion: CONTRACT_VERSION,
@@ -80,13 +91,13 @@ export function createAppleMembershipApiHandlers(dependencies: {
         dependencies.getAccount(clerkUserId),
         dependencies.readCurrent(clerkUserId),
       ]);
-      const blocker = applePurchaseAccountBlocker(account.publicMetadata, account.privateMetadata);
+      const blocker = accountBlocker(account.publicMetadata, account.privateMetadata);
       return Response.json({
         contractVersion: CONTRACT_VERSION,
         available: !blocker,
         reason: blocker ? "account_ineligible" : "ready",
         ...(blocker ? { blocker } : {}),
-        eligibleProductIds: blocker ? [] : APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
+        eligibleProductIds: blocker ? [] : productIds,
         restoreAvailable: !blocker,
         membership: publicMembership(current),
         trialPolicy: "intro_offers_disabled",
@@ -97,7 +108,7 @@ export function createAppleMembershipApiHandlers(dependencies: {
   }
 
   async function reconcile(request: Request, clerkUserId: string) {
-    const configuration = dependencies.configuration();
+    const configuration = dependencies.configuration(clerkUserId);
     if (!configuration.ready) {
       return errorResponse(503, "BACKEND_NOT_CONFIGURED", "Secure Apple membership reconciliation is not configured.");
     }
@@ -107,7 +118,7 @@ export function createAppleMembershipApiHandlers(dependencies: {
     if (action !== "purchase" && action !== "restore") {
       return errorResponse(400, "INVALID_REQUEST", "Action must be purchase or restore.");
     }
-    if (action === "purchase" && !isAppleMembershipProductId(productId)) {
+    if (action === "purchase" && (typeof productId !== "string" || !productIds.includes(productId))) {
       return errorResponse(422, "PRODUCT_NOT_ALLOWED", "That Apple membership product is not supported.");
     }
     if (action === "restore" && productId !== undefined) {
@@ -115,7 +126,7 @@ export function createAppleMembershipApiHandlers(dependencies: {
     }
     try {
       const account = await dependencies.getAccount(clerkUserId);
-      const blocker = applePurchaseAccountBlocker(account.publicMetadata, account.privateMetadata);
+      const blocker = accountBlocker(account.publicMetadata, account.privateMetadata);
       if (blocker) return errorResponse(409, "ACCOUNT_INELIGIBLE", "This account already has membership authority outside Apple.");
       const result = await dependencies.reconcile({ clerkUserId, providerEventId: null });
       if (action === "purchase" && result.membership.productId !== productId) {
@@ -132,5 +143,5 @@ export function createAppleMembershipApiHandlers(dependencies: {
     }
   }
 
-  return { readiness, reconcile };
+  return { readiness: (id: string) => readiness(id).then(response), reconcile: (request: Request,id: string) => reconcile(request,id).then(response) };
 }

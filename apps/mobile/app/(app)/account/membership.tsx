@@ -1,3 +1,4 @@
+import {membershipManagedOutsideStore} from "../../../src/account/subscription-management";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
@@ -20,6 +21,8 @@ const cards = [
 export default function MembershipScreen() {
   const api = useMobileApi();
   const management = useSubscriptionManagement();
+  const managementOnly = membershipManagedOutsideStore(management.provider,Platform.OS);
+  const billingProviderLabel = management.provider === "google" ? "Google Play" : management.provider === "apple" ? "Apple" : "Stripe";
   const router = useRouter();
   const { welcome } = useLocalSearchParams<{ welcome?: string }>();
   const isWelcome = welcome === "1";
@@ -51,7 +54,7 @@ export default function MembershipScreen() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { if (purchases.profile) setProfile(purchases.profile); }, [purchases.profile]);
   const currentTier = profile ? profile.membership.tier as MembershipTier : null;
-  const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership }) : null;
+  const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership, store: Platform.OS === "android" ? "google" : "apple" }) : null;
   const busy = operationBusy || ["configuring", "purchasing", "restoring"].includes(purchases.status);
   const showLifecycle = lifecycle && !["free", "active", "founder", "provider_unavailable"].includes(lifecycle.state);
 
@@ -65,8 +68,8 @@ export default function MembershipScreen() {
   async function choose(tier: "standard" | "barrel") {
     const productId = productIdFor(tier, "monthly");
     const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, tier) : null;
-    if (management.provider === "stripe") { await management.manage(); return; }
-    if (!management.provider || busy || !productId || action?.kind !== "upgrade" || Platform.OS !== "ios") return;
+    if (managementOnly) { await management.manage(); return; }
+    if (!management.provider || busy || !productId || action?.kind !== "upgrade" || Platform.OS === "web") return;
     setAttempted(true);
     await run(async () => {
       if (purchases.status !== "ready" || !purchases.products.some(p => p.productId === productId) || !purchases.eligibleProductIds.includes(productId)) {
@@ -77,14 +80,14 @@ export default function MembershipScreen() {
     });
   }
   async function restore() {
-    if (busy || Platform.OS !== "ios") return;
+    if (busy || Platform.OS === "web") return;
     setAttempted(true);
     await run(async () => {
       if (purchases.status !== "ready" || !purchases.restoreAvailable) { await refreshPurchases(); return; }
       await purchases.restore();
     });
   }
-  const statusText = purchases.status === "pending" ? "Apple is processing your purchase. Your current access is unchanged."
+  const statusText = purchases.status === "pending" ? `${Platform.OS === "android" ? "Google Play" : "Apple"} is processing your purchase. Your current access is unchanged.`
     : purchases.status === "cancelled" ? "Purchase canceled. You haven’t been charged."
       : attempted && !busy && purchases.status !== "ready" ? "We couldn’t load purchase options. Try again in a moment."
         : "";
@@ -108,21 +111,21 @@ export default function MembershipScreen() {
         onScroll={event => setSelected(Math.max(0, Math.min(1, Math.round(event.nativeEvent.contentOffset.x / stride))))}>
         {cards.map((card, index) => {
           const productId = productIdFor(card.tier, "monthly");
-          const product = management.provider === "stripe" ? undefined : purchases.products.find(p => p.productId === productId);
+          const product = managementOnly ? undefined : purchases.products.find(p => p.productId === productId);
           const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, card.tier) : null;
           const included = action?.kind === "current" || action?.kind === "included";
-          const disabled = busy || management.busy || !management.provider || !profile || (management.provider !== "stripe" && (included || Platform.OS !== "ios"));
+          const disabled = busy || management.busy || !management.provider || !profile || (!managementOnly && (included || Platform.OS === "web"));
           const ready = purchases.status === "ready" && Boolean(product && productId && purchases.eligibleProductIds.includes(productId));
-          const label = management.provider === "stripe" ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS === "ios" ? "Check purchase options" : "Available on iPhone";
+          const label = managementOnly ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS !== "web" ? "Check purchase options" : "Available in the app";
           return <View key={card.tier} style={[styles.card, { width: cardWidth }, index === 1 && styles.premium]}
             accessibilityElementsHidden={selected !== index} importantForAccessibility={selected !== index ? "no-hide-descendants" : "auto"}>
             <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
             <Text style={styles.cardDescription}>{card.description}</Text>
-            <View style={styles.priceRow}>{product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <Text style={styles.pricePlaceholder}>{management.provider === "stripe" ? "Managed through Stripe" : "Monthly membership"}</Text>}</View>
-            <Text style={styles.billing}>{management.provider === "stripe" ? "Managed through Stripe. Cancel anytime." : "Billed monthly. Cancel anytime."}</Text>
+            <View style={styles.priceRow}>{product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <Text style={styles.pricePlaceholder}>{managementOnly ? `Managed through ${billingProviderLabel}` : "Monthly membership"}</Text>}</View>
+            <Text style={styles.billing}>{managementOnly ? `Managed through ${billingProviderLabel}. Cancel anytime.` : "Billed monthly. Cancel anytime."}</Text>
             <View style={styles.divider} />
             <View style={styles.features}>{card.features.map(feature => <View key={feature} style={styles.featureRow}><View style={[styles.checkCircle, index === 1 && styles.goldCheck]}><Text accessible={false} style={[styles.check, index === 1 && styles.goldCheckText]}>✓</Text></View><Text style={styles.feature}>{feature}</Text></View>)}</View>
-            <Pressable accessibilityRole="button" accessibilityLabel={management.provider !== "stripe" && ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
+            <Pressable accessibilityRole="button" accessibilityLabel={!managementOnly && ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
               accessibilityState={{ disabled, busy }} disabled={disabled} onPress={() => void choose(card.tier)}
               style={({ pressed }) => [styles.subscribe, index === 1 && styles.subscribeGold, disabled && styles.disabled, pressed && styles.pressed]}>
               <Text style={[styles.subscribeText, index === 1 && styles.subscribeGoldText]}>{label}</Text>
@@ -133,9 +136,9 @@ export default function MembershipScreen() {
       <View style={styles.dots} accessible={false}>{cards.map((card,index) => <View key={card.tier} style={[styles.dot, index === selected && styles.dotSelected]} />)}</View>
       <View style={styles.footer}>
         <Pressable accessibilityRole="button" onPress={() => router.replace("/(app)/(tabs)")} style={styles.freeButton}><Text style={styles.freeText}>{currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
-        <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{management.provider === "stripe" ? "Your membership is billed through Stripe. Manage your plan, payment details, or cancellation above." : Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Apple subscriptions are available in the iOS app."}</Text>
+        <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{managementOnly ? `Your membership is billed through ${billingProviderLabel}. Manage your plan, payment details, or cancellation above.` : Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Payment is charged to your Google Play account at confirmation."}</Text>
         <View style={styles.links}>
-          {Platform.OS === "ios" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
+          {Platform.OS !== "web" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
           <Pressable accessibilityRole="button" accessibilityLabel="Terms of Service" onPress={() => router.push("/(app)/account/terms")} style={styles.link}><Text style={styles.linkText}>Terms</Text></Pressable>
           <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/privacy")} style={styles.link}><Text style={styles.linkText}>Privacy</Text></Pressable>
         </View>

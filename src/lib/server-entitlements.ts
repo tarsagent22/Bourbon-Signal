@@ -24,6 +24,12 @@ function stringValue(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function withStoreAccess(input: unknown,base:MembershipTier,now:Date) {
+  const native:Record<string,unknown>={tier:base,plan:base==="bottled-in-bond" ? "bib_lifetime" : "",membershipStatus:base==="free" ? "canceled" : "active"};
+  for(const store of ["apple","google"])for(const field of ["Tier","Plan","Status","ExpiresAt"])native[`${store}Membership${field}`]=metadataValue(input,`${store}Membership${field}`);
+  return resolveEffectiveMembershipTier(native,now);
+}
+
 async function resolveBaseServerMembershipTier(input: unknown, now = new Date()): Promise<MembershipTier> {
   const giftOrderId = stringValue(metadataValue(input, "giftOrderId"));
   const giftVersion = stringValue(metadataValue(input, "giftEntitlementVersion"));
@@ -43,12 +49,12 @@ async function resolveBaseServerMembershipTier(input: unknown, now = new Date())
     if (previousTier === "bottled-in-bond" && directFounderAttemptId) {
       try {
         return await repository.directFounderOwnsEffectiveAccess(directFounderAttemptId, directFounderVersion)
-          ? previousTier : resolvePreviousMembershipTierAfterDirectFounder(input);
+          ? previousTier : withStoreAccess(input,resolvePreviousMembershipTierAfterDirectFounder(input),now);
       } catch {
-        return resolvePreviousMembershipTierAfterDirectFounder(input);
+        return withStoreAccess(input,resolvePreviousMembershipTierAfterDirectFounder(input),now);
       }
     }
-    return previousTier;
+    return withStoreAccess(input,previousTier,now);
   }
 
   if (directFounderAttemptId) {
@@ -60,7 +66,7 @@ async function resolveBaseServerMembershipTier(input: unknown, now = new Date())
     } catch {
       // A refunded or disputed direct Founder purchase must not rely on stale Clerk metadata.
     }
-    return resolvePreviousMembershipTierAfterDirectFounder(input);
+    return withStoreAccess(input,resolvePreviousMembershipTierAfterDirectFounder(input),now);
   }
 
   return resolveEffectiveMembershipTier(input, now);

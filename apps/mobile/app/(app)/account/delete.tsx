@@ -1,15 +1,18 @@
+import {useSubscriptionManagement} from "../../../src/hooks/useSubscriptionManagement";
 import { useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import { openAppleSubscriptionManagement } from "../../../src/account/subscription-management";
+import { openAppleSubscriptionManagement,openGoogleSubscriptionManagement } from "../../../src/account/subscription-management";
 import { useAccessibleStatus } from "../../../src/hooks/useAccessibleStatus";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { colors, typeScale, fonts } from "../../../src/theme";
 
 export default function DeleteAccountScreen() {
   const api = useMobileApi();
+  const management = useSubscriptionManagement();
+  const billingProviderLabel = management.provider === "stripe" ? "Stripe" : management.provider === "google" || Platform.OS === "android" ? "Google Play" : "Apple";
   const router = useRouter();
   const { signOut } = useAuth();
   const [confirmation, setConfirmation] = useState("");
@@ -24,9 +27,11 @@ export default function DeleteAccountScreen() {
     setSubscriptionBusy(true);
     setError("");
     try {
-      await openAppleSubscriptionManagement(Linking.openURL);
+      if(management.provider && management.provider!=="none")await management.manage();
+      else if(Platform.OS==="android")await openGoogleSubscriptionManagement(Linking.openURL);
+      else await openAppleSubscriptionManagement(Linking.openURL);
     } catch {
-      setError("App Store subscription settings could not be opened. Open the App Store, tap your profile, then Subscriptions.");
+      setError("Subscription settings could not be opened. Please try again or contact support.");
     } finally {
       setSubscriptionBusy(false);
     }
@@ -73,10 +78,10 @@ export default function DeleteAccountScreen() {
       </View>
 
       <View style={styles.subscriptionPanel}>
-        <Text accessibilityRole="header" style={styles.panelTitle}>Apple subscriptions are separate</Text>
-        <Text style={styles.body}>Bourbon Signal cannot cancel an Apple subscription. Apple billing continues until you cancel it in the App Store. Deleting your account does not cancel Apple billing.</Text>
+        <Text accessibilityRole="header" style={styles.panelTitle}>Subscriptions are separate</Text>
+        <Text style={styles.body}>{`Deleting your Bourbon Signal account does not cancel a subscription billed through ${billingProviderLabel}. Manage or cancel it with the original payment provider first.`}</Text>
         <Pressable accessibilityRole="button" accessibilityState={{ busy: subscriptionBusy, disabled: subscriptionBusy || busy }} disabled={subscriptionBusy || busy} onPress={() => void manageAppleSubscription()} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
-          <Text style={styles.secondaryButtonText}>{subscriptionBusy ? "Opening…" : "Manage subscriptions in the App Store"}</Text>
+          <Text style={styles.secondaryButtonText}>{subscriptionBusy ? "Opening…" : "Manage membership"}</Text>
         </Pressable>
 
       </View>

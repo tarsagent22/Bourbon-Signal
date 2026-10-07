@@ -5,15 +5,15 @@ export function adminMember(user: CompanyMemberUser, now = new Date()) {
   // Unsafe metadata is member-editable and cannot establish membership access.
   const m = user.publicMetadata || {};
   const tier = resolveEffectiveMembershipTier(m, now);
-  const provider = String(m.billingProvider || m.subscriptionProvider || (m.appleMembershipPlan ? 'apple' : user.privateMetadata?.stripeSubscriptionId ? 'stripe' : 'Unspecified'));
-  const status = String(provider === 'apple' ? m.appleMembershipStatus || m.membershipStatus || 'unknown' : user.privateMetadata?.stripeMembershipStatus || m.membershipStatus || 'free');
+  const provider = String(m.billingProvider || m.subscriptionProvider || (m.googleMembershipPlan ? 'google' : m.appleMembershipPlan ? 'apple' : user.privateMetadata?.stripeSubscriptionId ? 'stripe' : 'Unspecified'));
+  const status = String(provider === 'google' ? m.googleMembershipStatus || 'unknown' : provider === 'apple' ? m.appleMembershipStatus || m.membershipStatus || 'unknown' : user.privateMetadata?.stripeMembershipStatus || m.membershipStatus || 'free');
   const billingStatus = provider === "Unspecified" ? "no_subscription_recorded" : status;
   const sources: string[] = [];
   if (tier === 'bottled-in-bond') sources.push('founder');
   if (m.giftOrderId && (!m.giftAccessExpiresAt || Date.parse(String(m.giftAccessExpiresAt)) > now.getTime())) sources.push('gifted');
   if (m.rewardMembershipRedemptionId && Date.parse(String(m.rewardMembershipExpiresAt)) > now.getTime()) sources.push('earned');
   if (status === 'trialing') sources.push('trial');
-  if (tier !== 'free' && ['stripe','apple'].includes(provider) && status !== 'trialing' && !sources.includes('gifted')) sources.push('paid');
+  if (tier !== 'free' && ['stripe','apple','google'].includes(provider) && status !== 'trialing' && !sources.includes('gifted')) sources.push('paid');
   return { id: user.id!, email: companyMemberPrimaryEmail(user), name: communityDisplayNameFromMetadata(m) || [user.firstName,user.lastName].filter(Boolean).join(' '),
     number: m.founderNumber || m.memberNumber || null, numberLabel: m.founderNumber ? 'Founder' : 'Member', tier,
     status, billingStatus, billingProvider: provider, accessSources: tier === 'free' ? ['free'] : sources.length ? sources : ['granted'],

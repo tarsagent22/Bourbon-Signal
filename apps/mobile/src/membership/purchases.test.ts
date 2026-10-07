@@ -134,7 +134,8 @@ test("configuration runs only for an exact authenticated iOS Clerk user without 
   const android = harness();
   const unsupported = createPurchaseCoordinator({ adapter: android.adapter, api: android.api, publicIosApiKey: "appl_public", platform: "android" });
   await unsupported.syncSession({ isLoaded: true, isSignedIn: true, userId: "user_A" });
-  assert.equal(unsupported.getState().status, "unsupported");
+  assert.equal(unsupported.getState().status, "unavailable");
+  assert.match(unsupported.getState().message,/Google Play.*configuration/);
   assert.deepEqual(android.events, []);
 });
 
@@ -287,4 +288,18 @@ test("restore also requires backend reconciliation and refreshed profile", async
   assert.equal(result.profile?.membership.tier, "barrel");
   assert.ok(events.indexOf("restore") < events.indexOf("reconcile:restore:none"));
   assert.ok(events.indexOf("reconcile:restore:none") < events.lastIndexOf("profile:2"));
+});
+
+
+test("Android uses Google backend reconciliation and never grants local purchase success alone",async()=>{
+  const h=harness();
+  h.api.getGoogleMembershipReadiness=h.api.getAppleMembershipReadiness;
+  h.api.reconcileGoogleMembership=h.api.reconcileAppleMembership;
+  h.api.getAppleMembershipReadiness=async()=>{throw new Error("wrong store");};
+  h.api.reconcileAppleMembership=async()=>{throw new Error("wrong store");};
+  const coordinator=createPurchaseCoordinator({adapter:h.adapter,api:h.api,publicIosApiKey:"appl_unused",publicAndroidApiKey:"goog_test_public",platform:"android"});
+  await coordinator.syncSession({isLoaded:true,isSignedIn:true,userId:"member-Google"});
+  assert.equal(coordinator.getState().status,"ready");assert.ok(coordinator.getState().products.every(p=>p.interval==="monthly"));
+  await coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly);
+  assert.equal(coordinator.getState().profile?.membership.tier,"standard");assert.ok(h.events.includes("configure:member-Google:goog_test_public"));assert.ok(h.events.includes(`reconcile:purchase:${APPLE_PRODUCT_IDS.standard.monthly}`));
 });

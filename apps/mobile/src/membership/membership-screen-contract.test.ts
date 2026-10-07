@@ -54,7 +54,7 @@ test("plan review uses native purchases but fails closed until server reconcilia
   assert.match(screen, /canceled before the next billing date/);
 
   assert.match(screen, /disabled/);
-  assert.match(screen, /Founder memberships are honored here but are not sold through Apple/);
+  assert.match(screen, /Existing Founder memberships are honored here/);
   assert.match(screen, /deriveMobileMembershipLifecycle/);
   assert.match(screen, /Manage membership/);
   assert.match(screen, /useSubscriptionManagement/);
@@ -66,7 +66,7 @@ test("plan review uses native purchases but fails closed until server reconcilia
   assert.doesNotMatch(screen, /Standard Proof|Bottled in Bond|Bottle Check/);
 });
 
-test("Apple review paywall leads with benefits and groups localized price, renewal terms, and purchase action", () => {
+test("Store review paywall leads with benefits and groups localized price, renewal terms, and purchase action", () => {
   const screen = read("app/(app)/account/membership/[tier].tsx");
   const purchaseCardStart = screen.indexOf('<View style={styles.purchaseCard}>');
   const benefitsStart = screen.indexOf('<View style={styles.featuresCard}>');
@@ -119,7 +119,7 @@ test("native legal copy covers Apple and RevenueCat purchase handling without re
 
 test("existing Stripe memberships do not display Apple prices or assume a monthly billing term",()=>{
  const screen=read("app/(app)/account/membership.tsx");
- assert.match(screen,/management.provider === "stripe" \? undefined : purchases.products.find/);
- assert.match(screen,/Managed through Stripe. Cancel anytime./);
- assert.match(screen,/management.provider === "stripe".*management.manage/s);
+ assert.match(screen,/managementOnly \? undefined : purchases.products.find/);
+ assert.match(screen,/Managed through \$\{billingProviderLabel\}. Cancel anytime./);
+ assert.match(screen,/managementOnly.*management.manage/s);
 });

@@ -4,7 +4,7 @@ import {useMobileApi} from './useMobileApi';
 import {openMembershipManagement} from '../account/subscription-management';
 export function useSubscriptionManagement(){
  const api=useMobileApi();
- const [provider,setProvider]=useState<'stripe'|'apple'|'none'|null>(null);
+ const [provider,setProvider]=useState<'stripe'|'apple'|'google'|'none'|null>(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState('');
  const lock=useRef(false);
  useEffect(()=>{let current=true;setProvider(null);setError('');void api.getSubscriptionManagement().then(r=>{if(current)setProvider(r.provider);}).catch(()=>{if(current)setError('Membership management is temporarily unavailable. Please try again.');});return()=>{current=false;};},[api]);
