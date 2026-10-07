@@ -317,6 +317,6 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
         ...(view === "community" ? [] : [dropsPayload.lastUpdated]),
         ...(view === "market" ? [] : memberSignals.map((signal) => signal.timing.displayAt)),
       ),
-    }, { status, headers: { ...PRIVATE_SIGNAL_HEADERS, ...(dropsResponse.headers.get("Server-Timing") ? { "Server-Timing": dropsResponse.headers.get("Server-Timing")! } : {}) } });
+    }, { status, headers: { ...PRIVATE_SIGNAL_HEADERS, ...(dropsResponse.headers.get("Server-Timing") ? { "Server-Timing": dropsResponse.headers.get("Server-Timing")! } : {}), ...(dropsResponse.headers.get("X-Public-Feed-Cache-Bytes") ? { "X-Public-Feed-Cache-Bytes": dropsResponse.headers.get("X-Public-Feed-Cache-Bytes")! } : {}) } });
   };
 }

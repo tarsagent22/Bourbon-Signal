@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+import { packPublicFeed, unpackPublicFeed } from "@/lib/public-feed-pack";
 import { createPreparedDropCache, createAsyncPreparedDropCache } from "@/lib/prepared-drop-cache";
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
@@ -177,10 +179,38 @@ async function preparePublicFeedSnapshot() {
   const degradedStates = degradedEngineStates(statsPayload);
   const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, { degradedStateCodes: degradedStates }));
   const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
-  return { dropResult, statsResult, retailerSubmissions, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
+  return { dropResult, statsResult, retailerVersion: retailerFeedSnapshot(retailerSubmissions), retailerCount: retailerSubmissions.length, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
 }
 
-const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof preparePublicFeedSnapshot>>>();
+
+type PublicPreparation = Awaited<ReturnType<typeof preparePublicFeedSnapshot>>;
+const readPackedPublicFeed = unstable_cache(async (_identity: string, _classification: string, _sourceConfig: string) => {
+  const prepared = await preparePublicFeedSnapshot();
+  // Keep only public metadata, with each row stored once. Retailer submission
+  // records and classification lookup maps are not persisted in this cache.
+  const { drops: _rawDrops, ...exportMetadata } = prepared.exportPayload || {};
+  const metadata = {
+    dropResult: { ...prepared.dropResult, payload: exportMetadata },
+    exportPayload: exportMetadata, statsPayload: prepared.statsPayload,
+    retailerVersion: prepared.retailerVersion, retailerCount: prepared.retailerCount,
+    sourceOverlay: { version: prepared.sourceOverlay.version },
+    classificationIndex: { version: prepared.classificationIndex.version },
+  };
+  return packPublicFeed(prepared, metadata);
+}, ['public-feed-packed-v1', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 15 });
+async function readSharedPublicPreparation(identity: string) {
+  const classification = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]).version;
+  const config = JSON.stringify([process.env.SOURCE_LANE_STORAGE_ENABLED, process.env.SOURCE_LANE_POLL_ENABLED]);
+  try {
+    const packed = await readPackedPublicFeed(identity, classification, config);
+    return { ...unpackPublicFeed<PublicPreparation>(packed), packedBytes: Buffer.byteLength(packed) };
+  } catch {
+    // Corrupt/oversized/unavailable cache entries cannot become empty success or
+    // bypass source verification. The normal authoritative preparation remains usable.
+    return { ...await preparePublicFeedSnapshot(), packedBytes: 0 };
+  }
+}
+const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof readSharedPublicPreparation>>>();
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -270,8 +300,8 @@ export async function GET(request: Request) {
   try {
     const preparationStart = performance.now();
     const identity = await readSiteExportIdentity();
-    const prepared = await publicFeedSnapshotCache.get(identity, preparePublicFeedSnapshot);
-    const { dropResult, statsResult, retailerSubmissions, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness } = prepared.value;
+    const prepared = await publicFeedSnapshotCache.get(identity, () => readSharedPublicPreparation(identity));
+    const { dropResult, retailerVersion, retailerCount, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness } = prepared.value;
     const preparationMs = performance.now() - preparationStart;
     const filterStart = performance.now();
     let drops = [...normalizedDrops];
@@ -434,7 +464,7 @@ export async function GET(request: Request) {
 
     const total = drops.length;
     const engineSnapshot = `${String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt))}:source:${sourceOverlay.version}`;
-    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerFeedSnapshot(retailerSubmissions)}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}`;
+    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerVersion}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}`;
     const page = paginateDrops(drops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;
 
@@ -461,9 +491,10 @@ export async function GET(request: Request) {
       {
         headers: {
           ...siteExportHeaders(dropResult.source, dropResult.snapshotId),
-          ...(retailerSubmissions.length > 0 && !isSignedIn
+          ...(retailerCount > 0 && !isSignedIn
             ? { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30", Vary: "Cookie, Authorization" }
             : dropFeedCacheHeaders(isSignedIn)),
+          "X-Public-Feed-Cache-Bytes": String(prepared.value.packedBytes),
           "Server-Timing": `prepare;dur=${preparationMs.toFixed(1)};desc="${prepared.hit ? "cache" : "build"}", filter;dur=${(performance.now() - filterStart).toFixed(1)}`,
           "X-Drops-Source": dropResult.source,
           "X-Drops-Snapshot": snapshot,
