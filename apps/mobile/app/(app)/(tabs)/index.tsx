@@ -319,7 +319,12 @@ export default function SignalFeedScreen() {
       }
       setLoadedBrowsingStorageKey(browsingStorageKey);
     });
-    return () => { current = false; };
+    return () => {
+      current = false;
+      requestSequence.current += 1;
+      backgroundRequestSequence.current += 1;
+      profileRequestSequence.current += 1;
+    };
   }, [browsingStorageKey]);
 
   useEffect(() => {

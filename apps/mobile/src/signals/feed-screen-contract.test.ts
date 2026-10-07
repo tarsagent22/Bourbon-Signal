@@ -130,3 +130,8 @@ test("Home backdrop fills the viewport while the feed and new-signal action clea
   assert.match(feed, /style=\{\[styles\.feedViewport, \{ marginTop: headerHeight \}\]\}/);
   assert.match(feed, /styles\.newSignalsPill, \{ top: headerHeight \+ 8 \}/);
 });
+
+test("unmount fences late network success before it can persist account cache", () => {
+  assert.match(feed, /return \(\) => \{\s*current = false;\s*requestSequence\.current \+= 1;\s*backgroundRequestSequence\.current \+= 1;\s*profileRequestSequence\.current \+= 1;/);
+  assert.match(feed, /requestId !== requestSequence\.current \|\| capturedScope !== scopeKeyRef\.current/);
+});
