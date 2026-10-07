@@ -275,6 +275,7 @@ assert.ok(deliveryRoute.indexOf('if (mode !== "live")') < deliveryRoute.indexOf(
   "the dedicated route must skip every mutation reconciler unless explicit live mode is enabled");
 const vercel = JSON.parse(read("vercel.json"));
 assert.deepEqual(vercel.crons, [
+  { path: "/api/ops/community-leaders", schedule: "30 5 * * *" },
   { path: "/api/alerts/deliver?cron=v3", schedule: "*/5 * * * *" },
   { path: "/api/member-weekly-intelligence/deliver?cron=v1", schedule: "0 14 * * 4" },
   { path: "/api/member-weekly-intelligence/deliver?rescue=1&live=1&cron=retention-v1", schedule: "0 14 * * *" },

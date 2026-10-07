@@ -1,4 +1,5 @@
 import {featuredBadgeLabels} from "@/lib/featured-badges";
+import { createCommunityLeaderBadgeQuery, readCommunityLeaderAwards, validatePublicLeaderBadges } from "@/lib/community-leader-badges";
 import { sameMemberRewardProfile } from "@/lib/member-rewards-snapshot";
 import { after, NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -45,7 +46,8 @@ function visibleSightingForRequester(sighting: MemberSighting, ownerPointsPrevie
   };
   const { idempotencyFingerprint: _idempotencyFingerprint, ...safeSighting } = independentSighting;
   if (ownerPointsPreview) return safeSighting;
-  const { rewardState: _rewardState, reporterBadges: _reporterBadges, ...visible } = safeSighting;
+  // Featured badges are earned, public recognition. Keep reward ledgers and photo proof private.
+  const { rewardState: _rewardState, ...visible } = safeSighting;
   return visible;
 }
 
@@ -122,6 +124,15 @@ function memberFacingBadgeLabel(label: unknown) {
 }
 
 function rewardBadgeLabels(privateMetadata: Record<string,unknown>) { return featuredBadgeLabels(privateMetadata); }
+
+async function reporterEarnedBadgeLabels(userId: string, metadata: Record<string, unknown>) {
+  const [profile, leaders] = await Promise.all([
+    createSignalPointsRepository().readRewardProfile(userId, metadata.memberRewards),
+    readCommunityLeaderAwards(createCommunityLeaderBadgeQuery(), userId),
+  ]);
+  const badges = (profile as { badges?: Array<{ id: string; tier?: string }> } | undefined)?.badges || [];
+  return rewardBadgeLabels({ ...metadata, memberRewards: { badges: [...badges, ...leaders] } });
+}
 
 type LegacyReporter = {
   id: string;
@@ -366,7 +377,7 @@ export async function GET(req: NextRequest) {
     ]) : Promise.resolve(null),
   ]);
 
-  const allSightings = aggregate.sightings.filter(sighting=>communitySightingVisible(sighting, hidden.blocked, hidden.reported));
+  const allSightings = (await validatePublicLeaderBadges(createCommunityLeaderBadgeQuery(), aggregate.sightings)).filter(sighting=>communitySightingVisible(sighting, hidden.blocked, hidden.reported));
   const previewLimit = entitlements.sightingsPreviewLimit;
   const sightings = (previewLimit === null ? allSightings : allSightings.slice(0, previewLimit))
     .map((sighting) => visibleSightingForRequester(sighting, ownerPointsPreview));
@@ -490,7 +501,7 @@ export async function POST(req: NextRequest) {
     sightingType: normalizeSightingType(payload.sightingType),
     reporterUserId: userId,
     reporterDisplayName,
-    reporterBadges: rewardBadgeLabels({ ...user.privateMetadata, memberRewards: await createSignalPointsRepository().readRewardProfile(userId, user.privateMetadata.memberRewards) }),
+    reporterBadges: await reporterEarnedBadgeLabels(userId, user.privateMetadata),
     reporterPublicIdentity: publicActor,
     idempotencyFingerprint: idempotencyKey ? idempotentSightingFingerprint({ ...payload, reporterUserId: userId }) : undefined,
     storeTimeZone: typeof payload.storeTimeZone === "string" ? payload.storeTimeZone.slice(0, 80) : undefined,

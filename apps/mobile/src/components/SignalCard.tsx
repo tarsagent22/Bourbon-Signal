@@ -2,6 +2,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { Signal } from "../api/types";
+import { CommunityPostCard } from "./CommunityPostCard";
 import {
   presentBottleIdentity,
   presentSignal,
@@ -50,6 +51,8 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
   const showStatus = !community || status === "Availability unconfirmed" || upcoming || signal.kind === "release" || signal.kind === "event";
   const reportedMetric = presented.quantity === "Quantity unknown" ? "" : presented.quantity;
   const metric = reportedMetric;
+
+  if (community) return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} />;
 
   return (
     <Pressable

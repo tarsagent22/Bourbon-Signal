@@ -6,6 +6,7 @@ import {
   PRIVATE_SIGNAL_API_HEADERS,
   signalApiError,
 } from "./signals/signal-api-route.ts";
+import { communityLeaderBadge } from "../../shared/community-leader-badges.ts";
 export function featuredBadgeLabels(metadata: Record<string, unknown>) {
   const profile = metadata.memberRewards as
     | { badges?: Array<{ id: string; tier?: string }> }
@@ -18,6 +19,8 @@ export function featuredBadgeLabels(metadata: Record<string, unknown>) {
   return selected.flatMap((id) => {
     const award = profile?.badges?.find((badge) => badge.id === id);
     if (!award) return [];
+    const leader = communityLeaderBadge(id);
+    if (leader) return [leader.label];
     const definition = achievementDefinition(id);
     const name =
       definition?.name ||

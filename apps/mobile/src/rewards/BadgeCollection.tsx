@@ -18,6 +18,7 @@ import {
   rewardStyles as s,
 } from "./RewardUI";
 import { colors } from "../theme";
+import { communityLeaderBadge } from "../../../../shared/community-leader-badges";
 type Progress = AchievementSummary["badgeProgress"][number];
 type Award = AchievementSummary["badges"][number];
 const categoryNames = [
@@ -26,6 +27,7 @@ const categoryNames = [
   "Community",
   "Exploration",
   "Consistency",
+  "Leaders",
   "Legacy",
 ];
 export function BadgeCollection({
@@ -41,8 +43,10 @@ export function BadgeCollection({
   const [selected, setSelected] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const featured = summary.featuredBadgeIds || [];
-  const definition = (id: string) =>
-    badgeCatalog.find((item) => item.id === badgeFamily(id));
+  const definition = (id: string) => {
+    const leader = communityLeaderBadge(id);
+    return leader ? { ...leader, name: leader.label, category: "Leaders" } : badgeCatalog.find((item) => item.id === badgeFamily(id));
+  };
   const progressFor = (id: string) =>
     summary.badgeProgress.filter(
       (item) => badgeFamily(item.id) === badgeFamily(id),
@@ -55,7 +59,8 @@ export function BadgeCollection({
     ...new Set(summary.badges.map((item) => badgeFamily(item.id))),
   ];
   const legacy = earnedFamilies.filter((id) => !definition(id));
-  const families = [...badgeCatalog.map((item) => item.id), ...legacy];
+  const leaders = earnedFamilies.filter((id) => communityLeaderBadge(id));
+  const families = [...badgeCatalog.map((item) => item.id), ...leaders, ...legacy];
   const selectedProgress = selected ? progressFor(selected) : [];
   const selectedAwards = selected
     ? summary.badges.filter(
@@ -246,6 +251,7 @@ export function BadgeCollection({
           ))}
       </ScrollView>
       <Text style={s.heading}>Your badges</Text>
+      <Text style={s.muted}>Monthly and yearly leaders earn dated Most Active and Top Contributor awards. Each calendar period settles 7 days after closing. Tied leaders share recognition; these awards add no points.</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -282,6 +288,7 @@ export function BadgeCollection({
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
         {visible.map(tile)}
       </View>
+      {category === "Leaders" && !leaders.length ? <Text style={s.muted}>Leader awards appear here after a completed month or year. Monthly eligibility requires 5 qualifying contributions across 3 days; yearly eligibility requires 25 across 12 days. Most Active rewards distinct active days. Top Contributor rewards useful sightings, approved photos, helpful endorsements and rewarded availability updates.</Text> : null}
       <Text style={s.muted}>
         Tap a badge to see its requirements and milestones. You can feature up
         to 3 earned badges on your community posts.
