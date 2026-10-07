@@ -1,10 +1,5 @@
 import { adminMember } from "@/lib/admin-member-directory";
 import { requireOwnerApiAccess } from "@/lib/owner-auth";
-import {
-  classifyCompanyMember,
-  companyMemberPrimaryEmail,
-} from "@/lib/company-control-room";
-import { communityDisplayNameFromMetadata } from "@/lib/community-display-name";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { readFounderShippingForUser } from "@/lib/founder-shipping-repository";
@@ -17,9 +12,7 @@ export async function GET(request: Request) {
   const id = new URL(request.url).searchParams.get("id") || "";
   if (!id) return Response.json({ error: "Choose a member." }, { status: 400 });
   try {
-    const user = await owner.client.users.getUser(id),
-      member = classifyCompanyMember(user),
-      metadata = user.publicMetadata;
+    const user = await owner.client.users.getUser(id);
     const tasks = {
       points: () => createSignalPointsRepository().readMember(id),
       shipping: () => readFounderShippingForUser(id),
