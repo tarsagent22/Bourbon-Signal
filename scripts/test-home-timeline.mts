@@ -4,7 +4,7 @@ const {loadWithMocks} = ('default' in harness ? {...harness, ...(harness.default
 import * as routes from '../src/lib/signals/signal-route.ts';
 const {createSignalFeedHandler} = ('default' in routes ? {...routes, ...(routes.default as object)} : routes) as typeof import('../src/lib/signals/signal-route.ts');
 import * as caches from '../src/lib/prepared-drop-cache.ts';
-const {createPreparedDropCache} = ('default' in caches ? {...caches, ...(caches.default as object)} : caches) as typeof import('../src/lib/prepared-drop-cache.ts');
+const {createPreparedDropCache,createAsyncPreparedDropCache} = ('default' in caches ? {...caches, ...(caches.default as object)} : caches) as typeof import('../src/lib/prepared-drop-cache.ts');
 let signedIn=true; let tier='barrel';let normalizeCount=0;let snapshot='one';
 const now=Date.now();
 const make=(id:string,rarity:string,age:number,state='OH')=>({id,canonical_name:'Example '+id,canonicalName:'Example '+id,bottleName:'Example '+id,state,type:'store_inventory_result',event_type:'store_inventory_result',tier:rarity,rarity_tier:rarity,quantity:4,quantity_in_stock:4,locationPrecision:'store_level',canAlertAsInventory:true,observed_at:new Date(now-age).toISOString(),last_confirmed_at:new Date(now-age).toISOString(),timestamp:new Date(now-age).toISOString()});
@@ -14,7 +14,7 @@ const route=loadWithMocks('src/app/api/drops/route.ts',{
  '@clerk/nextjs/server':{auth:async()=>({userId:signedIn?'test':null}),clerkClient:async()=>({users:{getUser:async()=>({publicMetadata:{}})}})},
  '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier,feedPreviewLimit:tier==='free'?7:null,canUseAdvancedFilters:tier==='barrel',canUseBottleSearch:tier==='barrel',canUseDropFeedFilters:tier==='barrel'})},
  '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(drops:unknown[])=>({drops,version:'one'})},
- '@/lib/site-engine-contract':{normalizeDropForSite:(row:object)=>{normalizeCount++;return {...row};},readSiteExportResults:async()=>[{payload:{drops:rows,generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'},{payload:{generatedAt:new Date(now).toISOString()}}],siteExportHeaders:()=>({})},
+ '@/lib/site-engine-contract':{normalizeDropForSite:(row:object)=>{normalizeCount++;return {...row};},readSiteExportIdentity:async()=>snapshot,readSiteExportResults:async()=>[{payload:{drops:rows,generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'},{payload:{generatedAt:new Date(now).toISOString()}}],siteExportHeaders:()=>({})},
  '@/lib/drop-classification':{DROP_FEED_CLASSIFICATION_TIERS:['limited','allocated','unicorn'],getDropClassificationIndex:()=>({version:'one'}),resolveDropClassification:(drop:any)=>({tier:drop.tier,source:'test'})},
  '@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},
 });
@@ -36,3 +36,15 @@ tier='free';const free=await(await handler(new Request(base))).json();assert.equ
 signedIn=false;const anon=await(await handler(new Request(base))).json();assert.equal(anon.signals.length,0);
 let builds=0;const cache=createPreparedDropCache<number>(2,10);cache.get('a',()=>++builds,0);cache.get('a',()=>++builds,1);assert.equal(builds,1);cache.get('a',()=>++builds,11);assert.equal(builds,2);
 console.log('Filtered first page, multi-page history, honest availability, snapshot cache, freshness, geographic isolation and private access passed.');
+
+let time=0;let preparations=0;let finish:(value:number)=>void=()=>{};
+const asyncCache=createAsyncPreparedDropCache<number>(10,()=>time);
+const prepare=()=>{preparations++;return new Promise<number>(resolve=>{finish=resolve;});};
+const waitingA=asyncCache.get('snapshot-a',prepare);const waitingB=asyncCache.get('snapshot-a',prepare);
+await Promise.resolve();assert.equal(preparations,1);time=100;finish(1);
+await Promise.all([waitingA,waitingB]);assert.equal((await asyncCache.get('snapshot-a',async()=>2)).value,1,'slow preparation does not consume its cache lifetime');
+time=111;assert.equal((await asyncCache.get('snapshot-a',async()=>2)).value,2);
+assert.equal((await asyncCache.get('snapshot-b',async()=>3)).value,3,'pointer replacement never reuses prior snapshot');
+await assert.rejects(asyncCache.get('broken',async()=>{throw Error('failed');}));
+assert.equal((await asyncCache.get('broken',async()=>4)).value,4,'failed attempts can be retried immediately');
+console.log('Complete public preparation coalescing, TTL, pointer replacement and error recovery passed.');
