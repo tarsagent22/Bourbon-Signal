@@ -537,22 +537,23 @@ function asTimestamp(value: string | number | Date | undefined) {
   return Date.now();
 }
 
-/** Uses the exact age window shared by the customer drop feed. */
-export function isFreshPublicDrop(input: PublicDropEvidenceInput, asOf?: string | number | Date) {
+export function publicDropFreshnessWindow(input: PublicDropEvidenceInput) {
   const drop = normalizePublicDropEvidenceInput(input);
-  const now = asTimestamp(asOf);
   if (isVerifiedRetailerDrop(drop)) {
-    const expiresAt = Date.parse(String(drop.expiresAt ?? ""));
-    if (drop.retailerSignalState === "upcoming") {
-      const eventAt = Date.parse(String(drop.eventDate ?? drop.startsAt ?? drop.expiresAt ?? ""));
-      return Number.isFinite(eventAt) && eventAt > now;
-    }
-    return Number.isFinite(expiresAt) && expiresAt > now;
+    const end = drop.retailerSignalState === "upcoming"
+      ? Date.parse(String(drop.eventDate ?? drop.startsAt ?? drop.expiresAt ?? ""))
+      : Date.parse(String(drop.expiresAt ?? ""));
+    return { startsAt: Number.NEGATIVE_INFINITY, endsAt: end, inclusiveEnd: false };
   }
   const timestamp = dropFreshnessTime(drop);
-  if (!Number.isFinite(timestamp)) return false;
-  if (timestamp > now + FUTURE_CLOCK_SKEW_MS) return false;
-  return now - timestamp <= maxAgeForPublicDrop(drop);
+  return { startsAt: timestamp - FUTURE_CLOCK_SKEW_MS, endsAt: timestamp + maxAgeForPublicDrop(drop), inclusiveEnd: true };
+}
+
+/** Uses the exact age window shared by the customer drop feed. */
+export function isFreshPublicDrop(input: PublicDropEvidenceInput, asOf?: string | number | Date) {
+  const window = publicDropFreshnessWindow(input);
+  const now = asTimestamp(asOf);
+  return now >= window.startsAt && (window.inclusiveEnd ? now <= window.endsAt : now < window.endsAt);
 }
 
 function publicUpdateBoardKey(drop: PublicDropEvidenceInput) {

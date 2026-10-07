@@ -1,15 +1,15 @@
-import { createPreparedDropCache } from "@/lib/prepared-drop-cache";
+import { createPreparedDropCache, createAsyncPreparedDropCache } from "@/lib/prepared-drop-cache";
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
 import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
+import { normalizeDropForSite, readSiteExportResults, readSiteExportIdentity, siteExportHeaders } from "@/lib/site-engine-contract";
 import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { compareDropFeedNewestFirst, dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { sortDropsByCanonicalSignalOrder } from "@/lib/signals/signal-contract";
-import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
+import { isFreshPublicDrop, publicDropFreshnessWindow, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
 import { ACTIVE_ENGINE_STATE_NAMES } from "@/lib/activeStates";
 import { buildWeeklyMarketSummaries } from "@/lib/signals/signal-market-summary";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
@@ -145,6 +145,43 @@ async function publicRetailerSubmissions() {
   }
 }
 
+async function preparePublicFeedSnapshot() {
+  const [[dropResult, statsResult], retailerSubmissions] = await Promise.all([
+    readSiteExportResults(["drops", "stats"]),
+    publicRetailerSubmissions(),
+  ]);
+  const exportPayload = dropResult.payload;
+  const statsPayload = statsResult.payload;
+  const sourceOverlay = await readRuntimeSourceDropOverlay(Array.isArray(exportPayload?.drops) ? exportPayload.drops : [], dropResult.snapshotId);
+  const rawDrops = sourceOverlay.drops;
+  const retailerDrops = retailerSubmissions
+    .map((submission) => retailerSubmissionToFeedCard(submission, new Date()))
+    .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
+  const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
+  const preparationKey = JSON.stringify([dropResult.snapshotId || exportPayload?.generatedAt, sourceOverlay.version, classificationIndex.version, retailerFeedSnapshot(retailerSubmissions)]);
+  const normalizedDrops = preparedDropCache.get(preparationKey, () => sortDropsByCanonicalSignalOrder([...rawDrops, ...retailerDrops]
+    .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))
+    .map((drop) => {
+      const classification = resolveDropClassification(drop, classificationIndex);
+      return {
+        ...drop,
+        tier: classification.tier,
+        rarity_tier: classification.tier,
+        classification_source: classification.source,
+        classification_state: classification.state,
+        classification_bottle_id: classification.bottleId,
+        national_tier: classification.nationalTier,
+      };
+    })));
+
+  const degradedStates = degradedEngineStates(statsPayload);
+  const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, { degradedStateCodes: degradedStates }));
+  const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
+  return { dropResult, statsResult, retailerSubmissions, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
+}
+
+const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof preparePublicFeedSnapshot>>>();
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const { userId } = await auth();
@@ -231,37 +268,15 @@ export async function GET(request: Request) {
   }) || scopedFilterHistory || canonicalSignalOrder;
 
   try {
-    const [[dropResult, statsResult], retailerSubmissions] = await Promise.all([
-      readSiteExportResults(["drops", "stats"]),
-      publicRetailerSubmissions(),
-    ]);
-    const exportPayload = dropResult.payload;
-    const statsPayload = statsResult.payload;
-    const sourceOverlay = await readRuntimeSourceDropOverlay(Array.isArray(exportPayload?.drops) ? exportPayload.drops : [], dropResult.snapshotId);
-    const rawDrops = sourceOverlay.drops;
-    const retailerDrops = retailerSubmissions
-      .map((submission) => retailerSubmissionToFeedCard(submission, new Date()))
-      .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
-    const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
-    const preparationKey = JSON.stringify([dropResult.snapshotId || exportPayload?.generatedAt, sourceOverlay.version, classificationIndex.version, retailerFeedSnapshot(retailerSubmissions)]);
-    const normalizedDrops = preparedDropCache.get(preparationKey, () => sortDropsByCanonicalSignalOrder([...rawDrops, ...retailerDrops]
-      .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))
-      .map((drop) => {
-        const classification = resolveDropClassification(drop, classificationIndex);
-        return {
-          ...drop,
-          tier: classification.tier,
-          rarity_tier: classification.tier,
-          classification_source: classification.source,
-          classification_state: classification.state,
-          classification_bottle_id: classification.bottleId,
-          national_tier: classification.nationalTier,
-        };
-      })));
+    const preparationStart = performance.now();
+    const identity = await readSiteExportIdentity();
+    const prepared = await publicFeedSnapshotCache.get(identity, preparePublicFeedSnapshot);
+    const { dropResult, statsResult, retailerSubmissions, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness } = prepared.value;
+    const preparationMs = performance.now() - preparationStart;
+    const filterStart = performance.now();
     let drops = [...normalizedDrops];
-    const degradedStates = degradedEngineStates(statsPayload);
     const marketSummaries = isFreeAccess ? buildWeeklyMarketSummaries(
-      normalizedDrops.filter((drop) => isPublicDropFeedEligible(drop, { degradedStateCodes: degradedStates })) as Array<Record<string, unknown>>,
+      eligible as Array<Record<string, unknown>>,
       { stateLabels: ACTIVE_ENGINE_STATE_NAMES },
     ) : [];
     const engineFresh = isEngineFresh(statsPayload, exportPayload?.generatedAt);
@@ -276,13 +291,15 @@ export async function GET(request: Request) {
       // freshness window below, so recent inventory survives while expired rows fail closed.
       // This is deliberately shared with Coverage. The normal default feed is
       // the only evidence pool allowed to establish current customer depth.
-      filtered = filtered.filter((drop) => isPublicDropFeedEligible(drop, {
-        degradedStateCodes: options.filterDegradedStates ? degradedStates : undefined,
-      }));
+      filtered = [...eligible];
       filtered = selectDropFeedHistory(
         filtered,
         historicalMode,
-        (drop) => isFreshEnoughForPublicFeed(drop),
+        (drop) => {
+          const window = freshness.get(drop)!;
+          const now = Date.now();
+          return now >= window.startsAt && (window.inclusiveEnd ? now <= window.endsAt : now < window.endsAt);
+        },
         (drop) => isEligibleHistoricalPublicDrop(drop),
       );
       return filtered;
@@ -447,6 +464,7 @@ export async function GET(request: Request) {
           ...(retailerSubmissions.length > 0 && !isSignedIn
             ? { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30", Vary: "Cookie, Authorization" }
             : dropFeedCacheHeaders(isSignedIn)),
+          "Server-Timing": `prepare;dur=${preparationMs.toFixed(1)};desc="${prepared.hit ? "cache" : "build"}", filter;dur=${(performance.now() - filterStart).toFixed(1)}`,
           "X-Drops-Source": dropResult.source,
           "X-Drops-Snapshot": snapshot,
         },

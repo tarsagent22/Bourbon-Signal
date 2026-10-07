@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { unstable_cache } from "next/cache";
 import { getActiveEngineStateName } from "@/lib/activeStates";
@@ -102,9 +102,21 @@ function remoteExportResult(name: SiteExportName, remote: Awaited<ReturnType<typ
   };
 }
 
+// Cheap identity lookup lets public feed consumers avoid repeatedly loading,
+// decrypting and parsing immutable exports for every filter/page request.
+export async function readSiteExportIdentity() {
+  const mode = String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
+  if (mode !== "off") return `${mode}:${payloadHash(await readActivePointer())}`;
+  const versions = ["drops", "stats"].map(name => {
+    try { const stat = statSync(join(SITE_EXPORT_DIR, `${name}.json`)); return [stat.mtimeMs, stat.size]; }
+    catch { return null; }
+  });
+  return `local:${JSON.stringify(versions)}`;
+}
+
 export async function readSiteExportResults(names: SiteExportName[]): Promise<SiteExportResult[]> {
   const mode = String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
-  const bundled = names.map((name) => readBundledSiteExport(name));
+  const bundled = names.map((name) => mode === "off" || mode === "shadow" ? readBundledSiteExport(name) : null);
   if (mode === "off") {
     return bundled.map((payload) => ({
       payload,
@@ -122,8 +134,9 @@ export async function readSiteExportResults(names: SiteExportName[]): Promise<Si
     const remote = await Promise.all(names.map((name) => pinnedReader.read(name)));
     return remote.map((result, index) => remoteExportResult(names[index], result, bundled[index], mode));
   } catch (error) {
-    if (bundled.some((payload) => !payload)) throw error;
-    return bundled.map((payload) => ({
+    const fallback = names.map((name) => readBundledSiteExport(name));
+    if (fallback.some((payload) => !payload)) throw error;
+    return fallback.map((payload) => ({
       payload,
       source: "cache-fallback" as const,
       snapshotId: null,
@@ -135,7 +148,7 @@ export async function readSiteExportResults(names: SiteExportName[]): Promise<Si
 
 export async function readSiteExportResult(name: SiteExportName): Promise<SiteExportResult> {
   const mode = String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
-  const bundled = readBundledSiteExport(name);
+  let bundled = mode === "off" || mode === "shadow" ? readBundledSiteExport(name) : null;
   if (mode === "off") {
     return { payload: bundled, source: "local-export", snapshotId: null, generatedAt: typeof bundled?.generatedAt === "string" ? bundled.generatedAt : null };
   }
@@ -167,6 +180,7 @@ export async function readSiteExportResult(name: SiteExportName): Promise<SiteEx
       lastRollbackTo: remote.lastRollbackTo,
     };
   } catch (error) {
+    bundled = readBundledSiteExport(name);
     if (!bundled) throw error;
     return {
       payload: bundled,

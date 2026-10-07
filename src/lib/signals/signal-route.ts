@@ -317,6 +317,6 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
         ...(view === "community" ? [] : [dropsPayload.lastUpdated]),
         ...(view === "market" ? [] : memberSignals.map((signal) => signal.timing.displayAt)),
       ),
-    }, { status, headers: PRIVATE_SIGNAL_HEADERS });
+    }, { status, headers: { ...PRIVATE_SIGNAL_HEADERS, ...(dropsResponse.headers.get("Server-Timing") ? { "Server-Timing": dropsResponse.headers.get("Server-Timing")! } : {}) } });
   };
 }
