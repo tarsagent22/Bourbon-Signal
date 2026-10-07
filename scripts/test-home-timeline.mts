@@ -67,5 +67,19 @@ assert.equal(restored.freshness.get(restored.normalizedDrops[2]).startsAt,-Infin
 assert.ok(Number.isNaN(restored.freshness.get(restored.normalizedDrops[1]).endsAt),'invalid dates remain invalid instead of becoming fresh');
 assert.deepEqual([...restored.degradedStates],['SC']);
 const corrupt=JSON.parse(packed);corrupt.hash='broken';assert.throws(()=>unpackPublicFeed(JSON.stringify(corrupt)),/integrity/);
-corrupt.bytes=1;assert.throws(()=>unpackPublicFeed(JSON.stringify(corrupt)),/larger than|limit|integrity/i,'gzip expansion is bounded');
+corrupt.bytes=1;assert.throws(()=>unpackPublicFeed(JSON.stringify(corrupt)),/larger than|limit|integrity/i,'Brotli expansion is bounded');
 console.log('Shared cache compression, integrity, exact time bounds and row identity passed.');
+
+const history = await import('../src/lib/drop-feed-history.ts');
+const {selectDropFeedHistory} = ('default' in history ? {...history, ...(history.default as object)} : history) as typeof import('../src/lib/drop-feed-history.ts');
+const historyRows=[{id:'fresh'},{id:'old'},{id:'blocked'},{id:'reported',historical:true}];
+const isFresh=(row:typeof historyRows[number])=>row.id==='fresh' || row.id==='reported';
+const isEligible=(row:typeof historyRows[number])=>row.id!=='blocked';
+const selected=selectDropFeedHistory(historyRows,true,isFresh,isEligible,false);
+assert.deepEqual(selected.map(row=>row.id),['fresh','old','reported']);
+assert.equal(selected[1],historyRows[1],'selection preserves prepared freshness map keys');
+assert.equal(selected[1].historical,undefined,'selection does not mutate cached rows');
+const decorated=selectDropFeedHistory(selected.slice(1),true,isFresh,isEligible);
+assert.deepEqual(decorated.map(row=>row.historical),[true,true],'only page rows receive historical labels, including explicit reports');
+assert.deepEqual(selectDropFeedHistory(historyRows,false,isFresh,isEligible,false).map(row=>row.id),['fresh'],'live mode still rejects explicit history and expired rows');
+console.log('Historical eligibility, row identity, page decoration and live filtering passed.');

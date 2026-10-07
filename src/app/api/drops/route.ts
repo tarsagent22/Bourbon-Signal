@@ -197,7 +197,7 @@ const readPackedPublicFeed = unstable_cache(async (_identity: string, _classific
     classificationIndex: { version: prepared.classificationIndex.version },
   };
   return packPublicFeed({ ...prepared, normalizedDrops: prepared.eligible }, metadata);
-}, ['public-feed-packed-v1', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 15 });
+}, ['public-feed-packed-v2', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 15 });
 async function readSharedPublicPreparation(identity: string) {
   const classification = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]).version;
   const config = JSON.stringify([process.env.SOURCE_LANE_STORAGE_ENABLED, process.env.SOURCE_LANE_POLL_ENABLED]);
@@ -316,6 +316,11 @@ export async function GET(request: Request) {
     // gate used by Coverage; otherwise it can display rows Coverage rejects.
     const degradedStateFallback = false;
 
+    const requestTime = Date.now();
+    const isFreshPreparedDrop = (drop: typeof drops[number]) => {
+      const window = freshness.get(drop)!;
+      return requestTime >= window.startsAt && (window.inclusiveEnd ? requestTime <= window.endsAt : requestTime < window.endsAt);
+    };
     const applyPublicDropFilters = (items: typeof drops, options: { filterDegradedStates: boolean }) => {
       let filtered = [...items];
       // Do not blank the customer feed solely because the aggregate engine timestamp
@@ -327,12 +332,9 @@ export async function GET(request: Request) {
       filtered = selectDropFeedHistory(
         filtered,
         historicalMode,
-        (drop) => {
-          const window = freshness.get(drop)!;
-          const now = Date.now();
-          return now >= window.startsAt && (window.inclusiveEnd ? now <= window.endsAt : now < window.endsAt);
-        },
+        isFreshPreparedDrop,
         (drop) => isEligibleHistoricalPublicDrop(drop),
+        false,
       );
       return filtered;
     };
@@ -468,7 +470,9 @@ export async function GET(request: Request) {
     const engineSnapshot = `${String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt))}:source:${sourceOverlay.version}`;
     const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerVersion}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}`;
     const page = paginateDrops(drops, { limit, offset, cursor: requestedCursor, snapshot });
-    const pagedDrops = page.items;
+    const pagedDrops = historicalMode
+      ? selectDropFeedHistory(page.items, true, isFreshPreparedDrop, (drop) => isEligibleHistoricalPublicDrop(drop))
+      : page.items;
 
     return NextResponse.json(
       {
