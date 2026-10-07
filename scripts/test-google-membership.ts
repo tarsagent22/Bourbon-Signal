@@ -461,3 +461,26 @@ test("Google expiration cannot block a later Apple purchase or downgrade unrelat
   );
 });
 
+test("disabling new Google purchases preserves authenticated webhook verification", () => {
+  const env = {
+    REVENUECAT_SERVER_API_KEY: "server",
+    REVENUECAT_WEBHOOK_SECRET: "webhook",
+    REVENUECAT_GOOGLE_PRODUCT_IDS: GOOGLE_MEMBERSHIP_PRODUCT_IDS.join(","),
+    REVENUECAT_GOOGLE_TRIAL_POLICY: "intro_offers_disabled",
+    GOOGLE_PLAY_BILLING_ENABLED: "false",
+  };
+  assert.equal(googleMembershipConfiguration(env, "member-A").ready, false);
+  assert.equal(
+    googleMembershipConfiguration(env, "member-A", { verificationOnly: true })
+      .ready,
+    true,
+  );
+  assert.equal(
+    googleMembershipConfiguration(
+      { ...env, REVENUECAT_SERVER_API_KEY: "" },
+      "member-A",
+      { verificationOnly: true },
+    ).ready,
+    false,
+  );
+});

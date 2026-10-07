@@ -70,7 +70,8 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "./plugins/with-worklets-packaging.cjs"
     ],
     "experiments": {
       "typedRoutes": true

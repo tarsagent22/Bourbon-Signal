@@ -66,3 +66,15 @@ test("account deletion schema persists cleanup leases for authenticated-independ
   assert.match(schema, /cleanup_lease_expires_at TIMESTAMPTZ/);
   assert.match(schema, /ADD COLUMN IF NOT EXISTS cleanup_lease_expires_at/);
 });
+
+test('Google ledger joins account cleanup only when installed, using the anonymized subject', async () => {
+ for (const installed of [false,true]) {
+  const statements:Array<{sql:string;params:unknown[]}> = [];
+  let transactionSize=0;
+  const database={query:async(sql:string,params:unknown[]=[])=>{statements.push({sql,params});if(sql.includes('SELECT subject_token'))return [{subject_token:'deleted:subject'}];if(sql.includes("to_regclass('public.google_memberships')"))return [{google_table:installed?'google_memberships':null}];return [];},transaction:async(queries:Promise<unknown>[])=>{transactionSize=queries.length;await Promise.all(queries);return [];}};
+  await new PostgresAccountDeletionRepository(database as never).eraseOwnedProductDataAndDisableDelivery('member-A','delete-A','2026-10-07T20:00:00Z');
+  const updates=statements.filter(s=>/UPDATE google_membership/.test(s.sql));
+  assert.equal(updates.length,installed?2:0);assert.ok(transactionSize>0);
+  for(const update of updates){assert.deepEqual(update.params,['member-A','deleted:subject']);assert.match(update.sql,/WHERE clerk_user_id=\$1/);}
+ }
+});
