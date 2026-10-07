@@ -24,3 +24,5 @@ Verification boundaries: public preview HTTP 200; public feed has 6 projected it
 
 
 Revised browser validation: actual local Next website with preview Clerk configuration passed 320/390/1440 widths, enlarged text, no overflow/runtime errors, no buttons or inputs inside the feed, unavailable store-link suppression, continuity path, public GET 200, query filter 400 and POST 405. The website is preview-only. Production Stripe key is still blank after fresh environment inspection; live billing portal validation requires owner configuration.
+
+The preview includes the shared subscription-management backend and latest support route from the app release. Provider route fixture tests pass with own-account Stripe routing, Apple routing independent of Stripe, and cross-account recovery rejection. No production website alias is assigned by this preview deployment.
