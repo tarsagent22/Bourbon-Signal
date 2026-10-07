@@ -53,7 +53,7 @@ export default function MembershipPlanScreen() {
   const isFree = plan.tier === "free";
   const isFounder = plan.tier === "bottled-in-bond";
   const productId = productIdFor(plan.tier, "monthly");
-  const storeProduct = purchases.products.find((product) => product.productId === productId);
+  const storeProduct = management.provider === "stripe" ? undefined : purchases.products.find((product) => product.productId === productId);
   const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, plan.tier) : null;
 
   const isCurrentOrIncluded = action?.kind === "current" || action?.kind === "included";
