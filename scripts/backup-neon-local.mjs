@@ -104,7 +104,7 @@ const TABLES = [
   'community_sighting_idempotency',
   'community_sighting_alert_authority',
   'community_sighting_votes',
-  'community_sightings',
+  'community_sightings', 'community_leader_badge_program', 'community_leader_badge_periods', 'community_leader_badge_awards',
   'coverage_request_automation_jobs',
   'coverage_requests',
   'engine_snapshots',
@@ -263,6 +263,8 @@ async function main() {
   const requiredForObservedSchema = SIGNAL_POINT_TABLES.some((table) => existing.has(table))
     ? [...giftRequiredForObservedSchema, ...SIGNAL_POINT_TABLES]
     : giftRequiredForObservedSchema;
+  const leaderTables = ['community_leader_badge_program', 'community_leader_badge_periods', 'community_leader_badge_awards'];
+  if (leaderTables.some(table => existing.has(table))) requiredForObservedSchema.push(...leaderTables);
   const missingRequired = requiredForObservedSchema.filter((table) => !existing.has(table));
   if (missingRequired.length) {
     throw new Error(`Refusing incomplete backup; required tables are missing: ${missingRequired.join(', ')}`);

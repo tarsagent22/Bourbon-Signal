@@ -60,6 +60,7 @@ export class PostgresAccountDeletionRepository implements AccountDeletionReposit
       .filter(Boolean);
     if (proofUrls.length > 0) await del(proofUrls);
     const deletedEmail = `${subjectToken.replace(/[^a-zA-Z0-9]/g, "-")}@deleted.invalid`;
+    const leaderStorage = await this.database.query("SELECT to_regclass('community_leader_badge_awards') IS NOT NULL AS ready");
 
     // Older deployments may not have a Google ledger yet. Its presence is checked without
     // changing schema, and existing Google records join the same atomic deletion transaction.
@@ -109,6 +110,7 @@ export class PostgresAccountDeletionRepository implements AccountDeletionReposit
       this.database.query(`DELETE FROM member_feedback WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM community_member_blocks WHERE user_id=$1 OR blocked_user_id=$1`, [userId]),
       this.database.query(`DELETE FROM community_sightings WHERE reporter_user_id=$1`, [userId]),
+      ...(leaderStorage[0]?.ready ? [this.database.query(`DELETE FROM community_leader_badge_awards WHERE user_id=$1`, [userId])] : []),
       this.database.query(`DELETE FROM community_contributor_moderation WHERE reporter_user_id=$1`, [userId]),
 
       this.database.query(`DELETE FROM founder_glass_shipping WHERE user_id=$1`, [userId]),

@@ -1,6 +1,7 @@
 import { ADMIN_EMAIL, isAdminEmail } from "../../shared/admin-access.ts";
 import { achievementCatalog, achievementDefinition, achievementDescription, canonicalBadgeId, badgeFamily } from "./achievement-catalog.ts";
 import type { MemberSighting } from "@/lib/sightings";
+import { communityLeaderBadge } from "../../shared/community-leader-badges.ts";
 
 export type SightingVerificationSource = "photo" | "community";
 export type SightingPhotoReviewStatus = "none" | "pending" | "verified_public" | "verified_private" | "rejected";
@@ -96,7 +97,7 @@ export const WEEKLY_STREAK_POINTS_AWARD = 10;
 
 export const BADGE_DESCRIPTIONS = Object.fromEntries(achievementCatalog.map(item => [item.id,item.description]));
 export const badgeDescription = achievementDescription;
-export interface AchievementMetrics { availabilityUpdates?: number; qualifiedReferrals?: number; available?: boolean; featuredBadgeIds?: string[] }
+export interface AchievementMetrics { availabilityUpdates?: number; qualifiedReferrals?: number; available?: boolean; featuredBadgeIds?: string[]; leaderAwards?: MemberBadgeAward[] }
 
 export function isRewardsAdminEmail(email?: string | null) {
   return isAdminEmail(email);
@@ -242,13 +243,19 @@ export function summarizeMemberRewards(sightings: MemberSighting[], existing?: u
     const target=weekend?40:1;
     progress.push({id:award.id,label:award.label,...(award.tier?{tier:award.tier}:{}),current:target,target,earned:true,description:weekend?"Post sightings on 40 different weekends.":"Earned this milestone in the original badge program.",category:weekend?"Consistency":"Legacy",unit:weekend?"weekends":"milestones",rules:"This milestone was earned in the original program. It remains in your collection; new progress uses the current badge families.",pointsAwarded:award.pointsAwarded});
   }
+  const leaderAwards = (metrics.leaderAwards || []).filter(award => communityLeaderBadge(award.id) && award.pointsAwarded === 0);
+  const badges = [...rewards.badges, ...leaderAwards.filter(award => !rewards.badges.some(existing => existing.id === award.id))];
+  for (const award of leaderAwards) {
+    const definition = communityLeaderBadge(award.id)!;
+    progress.push({ id: award.id, label: definition.label, current: 1, target: 1, earned: true, description: definition.description, category: "Leaders", unit: "awards", rules: definition.rules, pointsAwarded: 0 });
+  }
   return {
     points: rewards.points,
     currentWeeklyStreak: rewards.currentWeeklyStreak,
     longestWeeklyStreak: rewards.longestWeeklyStreak,
-    badges: rewards.badges,
+    badges,
     badgeProgress: progress,
-    featuredBadgeIds: (metrics.featuredBadgeIds || []).filter(id => rewards.badges.some(badge=>badge.id===id)).slice(0,3),
+    featuredBadgeIds: (metrics.featuredBadgeIds || []).filter(id => badges.some(badge=>badge.id===id)).slice(0,3),
     metricsAvailable: metrics.available !== false,
     eligibleSightings: eligible.length,
     helpfulSightings: helpful.length,
@@ -372,6 +379,7 @@ export function reconcileMemberRewards(sightings: MemberSighting[], existing?: u
     }
   }
   for (const progress of summary.badgeProgress) {
+    if (communityLeaderBadge(progress.id)) continue; // Award storage is separate from Signal Points.
     if(rewards.badges.some(badge=>canonicalBadgeId(badge.id)===progress.id)) continue;
     const award=badgeAward(progress.id,progress.label,now,progress.tier);
     award.pointsAwarded=progress.pointsAwarded ?? 0;

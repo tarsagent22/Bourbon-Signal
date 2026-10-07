@@ -20,6 +20,14 @@ import {
 
 const REQUIRED_TABLES = BACKUP_TABLES;
 
+test('leader tables support a pre-migration backup and require the complete group once installed', () => {
+  const leaders = ['community_leader_badge_program','community_leader_badge_periods','community_leader_badge_awards'];
+  const before = new Set(BACKUP_TABLES.filter(table => !leaders.includes(table)));
+  assert.equal(requiredBackupTablesForExisting(before).some(table => leaders.includes(table)), false);
+  before.add(leaders[0]);
+  assert.throws(() => requiredBackupTablesForExisting(before), /community_leader_badge_awards/);
+});
+
 function keyPair() {
   return generateKeyPairSync('rsa', {
     modulusLength: 2048,

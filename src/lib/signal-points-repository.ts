@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
+import { readCommunityLeaderAwards } from "./community-leader-badges.ts";
 import type { MembershipTier } from "@/lib/entitlements";
 import type { SignalRedemptionState } from "@/lib/signal-points";
 
@@ -263,7 +264,8 @@ export class SignalPointsRepository {
     const rows = await this.query.query(`SELECT
       (SELECT COUNT(*) FROM signal_point_source_balances WHERE user_id=$1 AND source_key LIKE 'quality_outcome_v1:%' AND points>0) AS availability_updates,
       (SELECT COUNT(*) FROM member_referrals WHERE referrer_user_id=$1 AND awarded_points>0) AS qualified_referrals`,[userId]) as Array<Record<string,unknown>>;
-    return {availabilityUpdates:number(rows[0]?.availability_updates),qualifiedReferrals:number(rows[0]?.qualified_referrals),available:true};
+    const leaderAwards = await readCommunityLeaderAwards(this.query, userId);
+    return {availabilityUpdates:number(rows[0]?.availability_updates),qualifiedReferrals:number(rows[0]?.qualified_referrals),leaderAwards,available:true};
   }
 
   async readMember(userId: string) {

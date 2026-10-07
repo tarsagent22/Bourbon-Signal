@@ -52,6 +52,16 @@ test('scheduled pricing health cannot be read without its machine credential',as
  assert.equal((await handler.GET(new Request('https://example.test'))).status,401);assert.equal(reads,0);
  const response=await handler.GET(new Request('https://example.test',{headers:{authorization:'Bearer fixture-only'}}));assert.equal(response.status,200);assert.deepEqual(await response.json(),{catalogCount:0});
 });
+
+test('community leader settlement requires its machine credential and returns aggregate counts only',async()=>{
+ let calls=0,fail=false;
+ const handler=functions('src/app/api/ops/community-leaders/route.ts',['GET'],{Response,process:{env:{CRON_SECRET:'fixture-only'}},authorizeOpsBearer:(header,secret)=>header==='Bearer '+secret,createCommunityLeaderBadgeQuery:()=>({query:async text=>{calls++;assert.equal(text,'SELECT * FROM settle_community_leader_badges()');if(fail)throw Error('private member data');return [{settled_periods:1,awards:3,revoked:0}];}})});
+ for(const authorization of [undefined,'Bearer wrong']){const response=await handler.GET(new Request('https://example.test',{headers:authorization?{authorization}:{}}));assert.equal(response.status,401);}
+ assert.equal(calls,0);
+ const request=()=>new Request('https://example.test',{headers:{authorization:'Bearer fixture-only'}});
+ assert.deepEqual(await (await handler.GET(request())).json(),{settled_periods:1,awards:3,revoked:0});
+ fail=true;const response=await handler.GET(request());assert.equal(response.status,503);assert.doesNotMatch(await response.text(),/private member data/);
+});
 test('all admin pages are covered by the owner layout and native menu uses server capability',()=>{
  assert.match(fs.readFileSync(root+'/src/app/admin/layout.tsx','utf8'),/await requireOwnerPageAccess/);
  assert.match(fs.readFileSync(root+'/apps/mobile/app/(app)/(tabs)/hq.tsx','utf8'),/adminAllowed/);

@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { ComponentProps, ReactNode } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { badgeCatalog } from "./badge-catalog";
+import { communityLeaderBadge } from "../../../../shared/community-leader-badges";
 import { badgeFamily } from "./reward-model";
 import { colors, fonts, typeScale } from "../theme";
 
@@ -157,7 +158,7 @@ export function RewardEmblem({
     (item) => item.id === badgeFamily(rewardKey),
   );
   const icon: Icon =
-    (definition?.icon as Icon) ||
+    (communityLeaderBadge(rewardKey)?.icon as Icon) || (definition?.icon as Icon) ||
     (rewardKey.includes("gift")
       ? "credit-card-outline"
       : rewardKey.includes("credit")
