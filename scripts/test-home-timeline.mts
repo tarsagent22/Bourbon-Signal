@@ -20,7 +20,9 @@ const route=loadWithMocks('src/app/api/drops/route.ts',{
 });
 const handler=createSignalFeedHandler({getDrops:(request)=>route.GET(request),getSightings:async()=>Response.json({sightings:[],totalSightings:0,previewLimit:null})});
 const base='https://example.test/api/v1/signals?view=market&limit=1&tiers=allocated,unicorn';
-let page=await (await handler(new Request(base))).json();
+const firstResponse=await handler(new Request(base));
+assert.match(firstResponse.headers.get("Server-Timing") || "", /prepare;dur=.*build/);
+let page=await firstResponse.json();
 assert.equal(page.signals[0].id,'trusted_source:match-1','a match after 151 unselected rows must be returned in the first page');
 assert.equal(page.hasMore,true);
 const firstNormalize=normalizeCount;
@@ -28,6 +30,7 @@ const ids=[page.signals[0].id];
 while(page.nextCursor){page=await(await handler(new Request(base+'&cursor='+encodeURIComponent(page.nextCursor)))).json();ids.push(...page.signals.map((s:any)=>s.id));}
 assert.deepEqual(ids,['trusted_source:match-1','trusted_source:match-2','trusted_source:historical']);
 assert.equal(page.signals[0].historical,true);assert.equal(page.signals[0].availability.status,'reported');assert.equal(page.signals[0].alertEligibility.inventory,false);
+assert.match((await handler(new Request(base))).headers.get("Server-Timing") || "", /desc="cache"/);
 assert.equal(normalizeCount,firstNormalize,'paging and filter changes reuse prepared snapshot data');
 const recent=await(await handler(new Request(base+'&freshness=7d'))).json();assert.equal(recent.signals[0].historical,undefined);
 const noState=await(await handler(new Request(base+'&state=NC'))).json();assert.deepEqual(noState.signals,[],'filters must never broaden silently');

@@ -464,6 +464,7 @@ export async function GET(request: Request) {
           ...(retailerSubmissions.length > 0 && !isSignedIn
             ? { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30", Vary: "Cookie, Authorization" }
             : dropFeedCacheHeaders(isSignedIn)),
+          "Server-Timing": `prepare;dur=${preparationMs.toFixed(1)};desc="${prepared.hit ? "cache" : "build"}", filter;dur=${(performance.now() - filterStart).toFixed(1)}`,
           "X-Drops-Source": dropResult.source,
           "X-Drops-Snapshot": snapshot,
         },
