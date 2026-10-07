@@ -61,7 +61,7 @@ export default function MembershipPlanScreen() {
   const canPurchase = Boolean(management.provider && management.provider !== "stripe") && Platform.OS === "ios" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
   const canRestore = Platform.OS === "ios" && purchases.status === "ready" && purchases.restoreAvailable && !isFree && !isFounder;
   const loadingProducts = purchases.status === "configuring" || purchases.status === "signed_out";
-  const displayPrice = isFree ? "$0" : isFounder ? "Lifetime access" : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
+  const displayPrice = management.provider === "stripe" && !isFree && !isFounder ? "Managed through Stripe" : isFree ? "$0" : isFounder ? "Lifetime access" : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
   const displayPeriod = storeProduct ? `/${storeProduct.localizedPeriod}` : "";
   const billingDisclosure = management.provider === "stripe" ? "Your membership is billed through Stripe. Manage your plan, payment details, or cancellation below." : Platform.OS === "ios"
     ? "Billed to your Apple ID after confirmation. Manage or cancel in App Store subscriptions."
