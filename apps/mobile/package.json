@@ -6,6 +6,7 @@
   "scripts": {
     "postinstall": "node scripts/prepare-native-plist.cjs && patch-package",
     "test:ios-recovery": "node --test scripts/ios-recovery.test.cjs",
+    "test:android-optimization": "node --test scripts/android-release-optimization.test.cjs",
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -19,7 +20,7 @@
     "verify:native-deps": "npm ls react-native-worklets react-native-reanimated expo-modules-core --all",
     "export:android": "expo export --platform android --output-dir dist/android",
     "export:ios": "expo export --platform ios --output-dir dist/ios",
-    "verify": "npm run verify:native-deps && npm run test:braces-security && npm run test:forge-security && npm run test:ios-recovery && npm run verify:reviewed-artwork && npm run typecheck && npm test && npm run test:home-browsing && npm run verify:release-readiness && npm run export:android && npm run export:ios",
+    "verify": "npm run verify:native-deps && npm run test:braces-security && npm run test:forge-security && npm run test:ios-recovery && npm run test:android-optimization && npm run verify:reviewed-artwork && npm run typecheck && npm test && npm run test:home-browsing && npm run verify:release-readiness && npm run export:android && npm run export:ios",
     "test:astra": "node scripts/test-astra-suite.mjs",
     "test:forge-security": "node --test scripts/forge-security.test.cjs",
     "verify:artwork-coverage": "node scripts/verify-label-free-catalog-coverage.mjs",
