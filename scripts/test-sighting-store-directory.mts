@@ -26,6 +26,8 @@ for(const store of raleighStores)assert.ok(raleighMatches.some(match=>match.id==
 assert.ok(searchSightingStoreDirectory(stores,"854 uni","NC").some(s=>/854 Union/i.test(s.address)),"partial street input must find Concord ABC");
 assert.ok(searchSightingStoreDirectory(stores,"2760","NC").some(s=>s.zip?.startsWith("2760")),"ZIP prefixes are searchable");
 assert.ok(searchSightingStoreDirectory(stores,"ABC Raleigh","VA").length===0,"selected state must never broaden");
+assert.ok(stores.filter(store=>store.state==="IL").length>2600,"Illinois must include the verified current off-premises license file");
+assert.ok(searchSightingStoreDirectory(stores,"Binnys","IL").length>20,"Illinois retailer names must be searchable across locations");
 const row={id:"original",state:"NC",name:"ABC Store",address:"123 Main Street, Raleigh, NC 27601",city:"Raleigh"};
 assert.equal(mergeSightingStoreRows([row,{...row,id:"second",address:"123 Main St"}]).length,1,"full and abbreviated address spellings dedupe");
 assert.equal(mergeSightingStoreRows([{...row,address:"Raleigh, NC"}]).length,0,"city-only approvals are not physical stores");

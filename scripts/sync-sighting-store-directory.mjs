@@ -1,4 +1,4 @@
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {directoryId,parseNcBoards,parseNcStores,parseIdahoStores,parseCityHiveDirectory,parseMontgomeryStores} from './lib/sighting-store-directory-sources.mjs';
@@ -8,15 +8,20 @@ const output='src/data/sighting-store-directory.generated.json';
 const root=path.resolve('.');const reports=[];const rows=[];
 async function json(file){return JSON.parse(await readFile(file,'utf8'));}
 async function get(label,url,options={}){
+ if(process.argv.includes('--reuse-source-captures')) {
+  const file=path.join(capture,label+'.txt');const captured=await stat(file);
+  if(Date.now()-captured.mtimeMs>24*60*60*1000)throw Error(`${label}: source capture is older than 24 hours`);
+  const text=await readFile(file,'utf8');return {text,digest:createHash('sha256').update(text).digest('hex'),checkedAt:captured.mtime.toISOString()};
+ }
  const r=await fetch(url,{...options,headers:{'user-agent':'BourbonSignalStoreDirectory/1.0 (+https://bourbonsignal.com)',...options.headers},signal:AbortSignal.timeout(30000)});
  if(!r.ok)throw Error(`${label}: HTTP ${r.status}`);
  const text=await r.text();await mkdir(capture,{recursive:true});await writeFile(path.join(capture,label+'.txt'),text);
- return {text,digest:createHash('sha256').update(text).digest('hex')};
+ return {text,digest:createHash('sha256').update(text).digest('hex'),checkedAt:new Date().toISOString()};
 }
 async function source(label,state,url,parser){
  const res=await get(label,url);const stores=parser(res.text);
  if(!stores.length)throw Error(`${label}: empty store directory`);
- rows.push(...stores);reports.push({label,state,url,count:stores.length,checkedAt:new Date().toISOString(),sha256:res.digest});
+ rows.push(...stores);reports.push({label,state,url,count:stores.length,checkedAt:res.checkedAt,sha256:res.digest});
  console.log(`${label}: ${stores.length} stores`);
 }
 const locator='https://abc2.nc.gov/Search/ABCStoreLocator';
@@ -26,7 +31,7 @@ await Promise.all(Array.from({length:6},async()=>{while(next<boards.length){cons
  const stores=parseNcStores(res.text,board);rows.push(...stores);boardReports.push({id:board.id,name:board.name,count:stores.length,sha256:res.digest});
 }}));
 const ncCount=rows.length;if(ncCount<450||boardReports.length!==boards.length)throw Error('Incomplete statewide NC ABC store capture');
-reports.push({label:'NC ABC Commission store locator',state:'NC',url:locator,count:ncCount,checkedAt:new Date().toISOString(),sha256:initial.digest,boards:boardReports.sort((a,b)=>Number(a.id)-Number(b.id))});
+reports.push({label:'NC ABC Commission store locator',state:'NC',url:locator,count:ncCount,checkedAt:initial.checkedAt,sha256:initial.digest,boards:boardReports.sort((a,b)=>Number(a.id)-Number(b.id))});
 console.log(`NC ABC: ${ncCount} stores; ${boards.length} boards; zero missing responses`);
 const official=await json('engine/out/location-bible-official.json');
 for(const state of ['VA','UT']){
@@ -52,7 +57,7 @@ const wv=await json('engine/data/store-universe/WV.json');
 rows.push(...wv.stores);reports.push({label:'West Virginia ABCA licensed retail directory',state:'WV',url:'https://www.wvabca.com/licensesearch.aspx',count:wv.stores.length,checkedAt:wv.source?.capturedAt||'2026-07-26'});
 const supplemental=process.argv.find(a=>a.startsWith('--supplement-dir='))?.split('=').slice(1).join('=');
 const licenseFiles=process.argv.find(a=>a.startsWith('--license-files-dir='))?.split('=').slice(1).join('=');
-if(licenseFiles){for(const state of ['CA','GA','TX','KY','FL']){
+if(licenseFiles){for(const state of ['CA','GA','TX','KY','FL','IL']){
  const p=await json(path.join(licenseFiles,`store-library-licenses-${state}.json`));
  rows.push(...p.stores);reports.push({label:`${state} official spirits retail licenses`,state,url:p.url,count:p.stores.length,checkedAt:p.checkedAt||new Date().toISOString(),publishedAt:p.publishedAt,sha256:p.sha256});
 }}

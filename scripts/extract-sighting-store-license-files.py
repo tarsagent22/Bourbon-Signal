@@ -2,11 +2,14 @@
 import argparse, csv, hashlib, io, json, re, zipfile
 from collections import Counter
 from pathlib import Path
+from datetime import date, datetime
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--capture-dir',required=True)
+parser.add_argument('--as-of',default=date.today().isoformat())
 args=parser.parse_args()
 capture=Path(args.capture_dir)
+as_of=date.fromisoformat(args.as_of)
 def write(state,rows,url,published=None,source_file=None):
     if not rows: raise ValueError(f'No {state} retail store licenses parsed')
     digest=hashlib.sha256(source_file.read_bytes()).hexdigest() if source_file else None
@@ -96,3 +99,19 @@ if file.exists():
             rows.append({'id':'fl-dbpr-'+r['License Number'],'state':'FL','name':r['DBA'] or r['Owner Name'],'address':', '.join(x for x in [r['Location Address 1'],r['Location Address 2'],r['Location Address 3']] if x),'city':r['Location City'],'zip':r['Location ZIP'][:5],'aliases':[r['Owner Name'],r['License Number']],'source':'Florida DBPR current active package-store liquor licenses','sourceUrl':'https://www2.myfloridalicense.com/alcoholic-beverages-and-tobacco/public-records/'})
     if len(rows)<2000: raise ValueError(f'Incomplete Florida package store licenses: {len(rows)}')
     write('FL',rows,'https://www2.myfloridalicense.com/sto/file_download/extracts/bd4006lic.csv','2026-10-08',file)
+
+file=capture/'store-library-il-licenses-raw.csv'
+if file.exists():
+    rows=[]; excluded=0
+    with file.open(encoding='utf-8-sig',newline='') as f:
+        for r in csv.DictReader(f):
+            if r['license_class']!='1A - RETAILER' or r['retail_type']!='OFF-PREMISES CONSUMPTION': continue
+            try: expiry=datetime.strptime(r['current_expiration_date'],'%m/%d/%Y').date()
+            except ValueError: continue
+            if expiry<as_of or r['acct_state']!='IL': continue
+            city=r['acct_city'].strip()
+            match=re.fullmatch(r'(.*?)\s+'+re.escape(city)+r'\s+IL,?\s+(\d{5})(\d{4})?',r['dba_address'].strip(),re.I)
+            if not city or not match: excluded+=1; continue
+            rows.append({'id':'il-ilcc-'+r['license_number'],'state':'IL','name':r['acct_name'],'address':match[1].strip(),'city':city.title(),'zip':match[2],'county':r['county'],'aliases':[r['license_number']],'source':'Illinois ILCC unexpired off-premises retailer licenses','sourceUrl':'https://ilcc.illinois.gov/content/dam/soi/en/web/ilcc/datasources/ilcc-licenses-daily-export.csv'})
+    print(json.dumps({'ILExcludedIncompleteAddress':excluded,'asOf':as_of.isoformat()}))
+    write('IL',rows,'https://ilcc.illinois.gov/content/dam/soi/en/web/ilcc/datasources/ilcc-licenses-daily-export.csv',as_of.isoformat(),file)
