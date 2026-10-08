@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { setReleaseProperties, useOptimizingRules } = require('../plugins/with-android-release-optimization.cjs');
+const { setReleaseProperties, useOptimizingRules, useCompatibleCompiler } = require('../plugins/with-android-release-optimization.cjs');
 
 test('release optimization replaces conflicting properties without changing unrelated native settings', () => {
   const input = [
@@ -28,4 +28,14 @@ test('SDK optimization preserves application keep rules and survives repeated pr
 
 test('an unsupported future Gradle template cannot silently produce an unoptimized release', () => {
   assert.throws(() => useOptimizingRules('release { proguardFiles "unknown-rules.pro" }'), /template changed/);
+});
+
+test('Kotlin-compatible R8 is loaded before Android plugins without replacing their management', () => {
+  const input = `pluginManagement {\n includeBuild("react-native-gradle-plugin")\n}\nplugins { id("com.facebook.react.settings") }`;
+  const output = useCompatibleCompiler(input);
+  assert.ok(output.includes('classpath("com.android.tools:r8:8.13.19")'));
+  assert.ok(output.includes('includeBuild("react-native-gradle-plugin")'));
+  assert.ok(output.indexOf('classpath("com.android.tools:r8:8.13.19")') < output.indexOf('plugins {'));
+  assert.equal(useCompatibleCompiler(output), output);
+  assert.throws(() => useCompatibleCompiler('plugins { id("unknown") }'), /template changed/);
 });
