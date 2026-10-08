@@ -3,6 +3,8 @@ import {preferencesFixture,profileFixture,feedFixture} from '../../src/api/astra
 import seed from '../../src/cellar/bottle-catalog-seed.json';
 import {MobileApiError} from '../../src/api/client';
 import {collectionValueForMember} from '../../../../src/lib/collection-value';
+import storeDirectory from '../../../../src/data/sighting-store-directory.generated.json';
+import {searchSightingStoreDirectory} from '../../../../src/lib/sighting-store-directory-core';
 export const fixture={route:'Home',tier:'barrel',catalogFailed:false,storeFailed:false,detailFailed:false,alertsFailed:false,empty:false,expired:false,requests:0,displayName:'Chandler',onboarding:false,admin:false};
 export const setRoute=route=>{fixture.route=route;window.dispatchEvent(new Event('fixture-route'));};
 const routeFor=path=>{const p=typeof path==='string'?path:path.pathname;return p.includes('feedback')?'Feedback':p.includes('coverage')?'Coverage':p.includes('support')?'Support':p.includes('privacy')?'Privacy':p.includes('terms')?'Terms':p.includes('/admin')?'Admin':p.includes('membership')?'Membership':p.includes('profile')?'Edit profile':p.includes('sign-in')?'Sign in':p.includes('cellar/add')?'Add bottle':p.includes('signal/')?'Bottle Profile':p.includes('radar')?'Radar':p.includes('post')?'Post':p.includes('(tabs)')?'Home':'Account';};
@@ -54,7 +56,13 @@ const api={
  getSignal:async()=>{if(fixture.detailFailed)throw Error('offline');return {signal:fixture.community?{...signal,id:'member:fixture-sighting',source:{type:'member',label:'Member #42'},actions:['watch_bottle','helpful','correct']}:signal};},getHuntOutcome:async()=>({outcome:null}),setHuntOutcome:async()=>({outcome:null}),
  getMemberAlerts:async()=>{if(fixture.alertsFailed)throw Error('offline');return {alerts:[],unreadCount:0};},
  getPushDeviceStatus:async()=>({supported:true,enabled:false,registeredDeviceCount:0}),
- searchMonitoringGeography:async()=>{if(fixture.storeFailed)throw Error('offline');return {states:[{code:'NC',name:'North Carolina'}],results:[],hasMore:false};},
+ searchMonitoringGeography:async({state='',query='',limit=8,offset=0}={})=>{
+  if(fixture.storeSlow)await new Promise(resolve=>setTimeout(resolve,3000));
+  if(fixture.storeFailed)throw Error('offline');
+  const matches=searchSightingStoreDirectory(storeDirectory.stores,query,state);
+  return {states:[{code:'NC',name:'North Carolina'}],offset,limit,total:matches.length,hasMore:offset+limit<matches.length,
+   results:matches.slice(offset,offset+limit).map(store=>({...store,level:'store',storeId:store.id,subtitle:`${store.city} · ${store.address}`,coverage:{engine:{status:'active'},community:{active:false,recentSightings:0,windowDays:7}},message:null}))};
+ },
  getSignalPoints:async()=>({balance:150,debt:0,catalog:[],redemptions:[],redemptionEligible:true}),
  getAchievements:async()=>({badges:[],badgeProgress:[],currentWeeklyStreak:2}),
  getReferralSummary:async()=>({code:'FIXTURE',referralLink:'https://example.test/referral',referralPoints:0,founderGlassesEarned:0,founderGlassesAwaitingAddress:0,referrals:{total:0,free:0,standard:0,barrel:0,founder:0},program:{pointsByTier:{free:5,standard:50,barrel:100,'bottled-in-bond':200},freeAwardLimit:5,upgradeAwardsDifferenceOnly:true}}),

@@ -57,7 +57,7 @@ import { createCommunitySightingsRepository } from "@/lib/community-sightings-re
 import { CommunitySafetyRepository } from "@/lib/community-safety";
 import { candidateMatchesMonitoringScopes } from "@/lib/monitoring-scope-matcher";
 import { monitoringScopesFromPreferences, type MonitoringScope } from "@/lib/monitoring-scopes";
-import { listApprovedLocations } from "@/lib/approved-catalog-service";
+import { readSightingStoreDirectory } from "@/lib/sighting-store-directory";
 import { normalizeDropSignal } from "@/lib/signals/signal-contract";
 
 export interface AreaPreferences {
@@ -234,19 +234,15 @@ export async function readAlertCandidateBatch(dryRun = true) {
   const result = await readSiteExportResult("alerts");
   let communityCandidates: CandidateAlert[] = [];
   try {
-    const storePayload = await readSiteExport("stores");
-    const storeRows: Array<Record<string, unknown>> = [
-      ...(Array.isArray(storePayload?.stores) ? storePayload.stores as Array<Record<string, unknown>> : []),
-      ...(await listApprovedLocations().catch(() => [])).map((store) => store as unknown as Record<string, unknown>),
-    ];
+    const storeRows = await readSightingStoreDirectory();
     const canonicalStores = new Map<string, CanonicalCommunityStore>();
     for (const store of storeRows) {
       const address = asString(store.address);
-      const state = geographyState(asString(store.state || store.state_code))?.state || "";
-      const city = asString(store.city || store.storeCity);
-      const name = asString(store.name || store.displayLabel);
+      const state = geographyState(asString(store.state))?.state || "";
+      const city = asString(store.city);
+      const name = asString(store.name);
       if (!address || !state || !city || !name) continue;
-      for (const id of [asString(store.id), asString(store.sourceStoreId), asString(store.storeId)].filter(Boolean)) {
+      for (const id of [asString(store.id)]) {
         canonicalStores.set(canonicalCommunityStoreKey(state, id), { id, address, state, city, name });
       }
     }
