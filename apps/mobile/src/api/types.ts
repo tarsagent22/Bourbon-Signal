@@ -344,6 +344,7 @@ export interface GeographySearchResponse {
   offset: number;
   limit: number;
   hasMore: boolean;
+  total?: number;
 }
 
 export interface ReferralSummary {

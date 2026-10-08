@@ -7,7 +7,7 @@ import {
   demandMetroBoardGroupMatchesFields,
   parseDemandMetroAreaQuery,
 } from "@/lib/demand-metro-areas";
-import { listApprovedLocations } from "@/lib/approved-catalog-service";
+import { readSightingStoreDirectory, SIGHTING_STORE_DIRECTORY_VERSION } from "@/lib/sighting-store-directory";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -26,23 +26,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const storesPayload = await readSiteExport("stores");
-    const exportPayload = storesPayload ?? await readSiteExport("locations");
-    const engineStores = Array.isArray(exportPayload?.stores)
-      ? exportPayload.stores
-      : Array.isArray(exportPayload?.locations)
-        ? exportPayload.locations
-        : [];
-    const approvedStores = await listApprovedLocations().catch((error) => {
-      console.error("[api/stores] Approved catalog unavailable:", error);
-      return [];
-    });
-    const storesById = new Map<string, Record<string, unknown>>();
-    for (const store of [...engineStores, ...approvedStores]) {
-      const record = store as Record<string, unknown>;
-      storesById.set(String(record.id || `${record.state}:${record.name}:${record.address || record.city}`), record);
-    }
-    let stores = [...storesById.values()].map((store) => normalizeStoreForSite(store));
+    const exportPayload = await readSiteExport("stores").catch(() => null);
+    let stores = (await readSightingStoreDirectory()).map(store => normalizeStoreForSite({ ...store, locationType: "store", precision: "store", inventoryCapability: "directory_only" }));
 
     if (state) {
       stores = stores.filter((store) => {
@@ -77,14 +62,27 @@ export async function GET(request: Request) {
       });
     }
 
+    const total = stores.length;
+    const offset = Math.max(0, Math.min(100_000, Math.floor(Number(url.searchParams.get("offset"))) || 0));
+    const limit = Math.max(1, Math.min(1000, Math.floor(Number(url.searchParams.get("limit"))) || 1000));
+    const cities = [...new Set(stores.flatMap(store => { const city = (store as Record<string, unknown>).city; return typeof city === "string" && city ? [city] : []; }))].sort();
+    const states = listStates(stores);
+    stores = stores.slice(offset, offset + limit);
     return NextResponse.json(
       {
         ...exportPayload,
         stores,
         locations: stores,
-        total: stores.length,
-        states: listStates(stores),
+        total,
+        count: total,
+        cities,
+        states,
+        offset,
+        limit,
+        hasMore: offset + stores.length < total,
+        nextOffset: offset + stores.length < total ? offset + stores.length : null,
         lastUpdated: exportPayload?.generatedAt ?? new Date().toISOString(),
+        directoryVersion: SIGHTING_STORE_DIRECTORY_VERSION,
       },
       { headers: siteExportHeaders("local-export") }
     );
@@ -99,8 +97,8 @@ export async function GET(request: Request) {
         error: "Engine export temporarily unavailable",
       },
       {
-        status: 200,
-        headers: siteExportHeaders("empty-fallback"),
+        status: 503,
+        headers: { "Cache-Control": "no-store" },
       }
     );
   }

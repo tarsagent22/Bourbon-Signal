@@ -7,7 +7,7 @@ import { useAuth } from '@clerk/expo';
 import { useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Children, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "../../../src/api/types";
@@ -20,6 +20,7 @@ import { type SightingPhotoAsset } from "../../../src/sightings/sighting-photo";
 import { type PhotoJournalEntry } from "../../../src/sightings/photo-journal";
 import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, nativePhotoJournal, retainSightingPhoto, type SightingPhotoSource } from "../../../src/sightings/sighting-photo-native";
 import { colors, typeScale, fonts } from "../../../src/theme";
+import { COVERAGE_STATES } from "../../../../../shared/coverage-states";
 
 type ActivePicker = "bottle" | "store" | null;
 type GeographyResult = GeographySearchResponse["results"][number];
@@ -51,6 +52,10 @@ function PostComposer({ userId }: { userId: string }) {
   const [storeSearching, setStoreSearching] = useState(false);
   const [storeSearchError, setStoreSearchError] = useState("");
   const [storeSearchAttempt, setStoreSearchAttempt] = useState(0);
+  const [storeSearchState, setStoreSearchState] = useState("");
+  const [storeNextOffset, setStoreNextOffset] = useState(0);
+  const [storeHasMore, setStoreHasMore] = useState(false);
+  const [storeTotal, setStoreTotal] = useState<number | null>(null);
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [customQuantity, setCustomQuantity] = useState(false);
@@ -66,6 +71,7 @@ function PostComposer({ userId }: { userId: string }) {
   const [idempotencyReady, setIdempotencyReady] = useState(false);
   const draftBinding = useRef<SightingDraftBinding | null>(null);
   const storeSearchSequence = useRef(0);
+  const storePageInFlight = useRef(false);
 
   const draftDefaults = { bottleName: "", bottleId: "", storeName: "", storeAddress: "", storeCity: "", storeState: "", storeZip: "", selectedStoreId: "", manualStore: false, price: "", quantity: "", customQuantity: false, notes: "" };
   const draft = useFormDraft({ owner: userId, form: "post", defaults: draftDefaults,
@@ -132,6 +138,11 @@ function PostComposer({ userId }: { userId: string }) {
 
   useEffect(() => {
     const query = storeName.replace(/\s+/g, " ").trim();
+    setStoreResults([]);
+    setStoreHasMore(false);
+    setStoreNextOffset(0);
+    setStoreTotal(null);
+    storePageInFlight.current = false;
     if (!canSubmit || manualStore || selectedStore || activePicker !== "store" || query.length < 2) {
       storeSearchSequence.current += 1;
       setStoreResults([]);
@@ -142,17 +153,54 @@ function PostComposer({ userId }: { userId: string }) {
     const sequence = ++storeSearchSequence.current;
     setStoreSearching(true);
     const timer = setTimeout(() => {
-      api.searchMonitoringGeography({ levels: ["store"], query, limit: 6 })
-        .then((response) => response.results.flatMap((entry: GeographyResult) => {
-          const store = approvedStoreFromGeography(entry);
-          return store ? [store] : [];
-        }))
-        .then((results) => { if (storeSearchSequence.current === sequence) setStoreResults(results); })
+      api.searchMonitoringGeography({ levels: ["store"], state: storeSearchState || undefined, query, limit: 8 })
+        .then((response) => {
+          if (storeSearchSequence.current !== sequence) return;
+          setStoreResults(response.results.flatMap((entry: GeographyResult) => {
+            const store = approvedStoreFromGeography(entry);
+            return store ? [store] : [];
+          }));
+          setStoreNextOffset(response.offset + response.results.length);
+          setStoreHasMore(response.hasMore);
+          setStoreTotal(response.total ?? null);
+        })
         .catch(() => { if (storeSearchSequence.current === sequence) setStoreSearchError("Store search couldn’t connect. Try again or enter the store manually."); })
         .finally(() => { if (storeSearchSequence.current === sequence) setStoreSearching(false); });
     }, 250);
     return () => { clearTimeout(timer); if (storeSearchSequence.current === sequence) storeSearchSequence.current += 1; };
-  }, [activePicker, api, canSubmit, manualStore, selectedStore, storeName, storeSearchAttempt]);
+  }, [activePicker, api, canSubmit, manualStore, selectedStore, storeName, storeSearchAttempt, storeSearchState]);
+
+  async function loadMoreStores() {
+    if (storeSearching || storePageInFlight.current || !storeHasMore) return;
+    const sequence = storeSearchSequence.current;
+    storePageInFlight.current = true;
+    setStoreSearching(true);
+    setStoreSearchError("");
+    try {
+      const response = await api.searchMonitoringGeography({ levels: ["store"], state: storeSearchState || undefined, query: storeName.trim(), limit: 8, offset: storeNextOffset });
+      if (storeSearchSequence.current !== sequence) return;
+      const page = response.results.flatMap(entry => {
+        const store = approvedStoreFromGeography(entry);
+        return store ? [store] : [];
+      });
+      setStoreResults(current => [...new Map([...current, ...page].map(store => [`${store.state}:${store.id}`, store])).values()]);
+      setStoreNextOffset(response.offset + response.results.length);
+      setStoreHasMore(response.hasMore);
+      setStoreTotal(response.total ?? null);
+    } catch {
+      if (storeSearchSequence.current === sequence) setStoreSearchError("More stores couldn’t load. Try again.");
+    } finally {
+      if (storeSearchSequence.current === sequence) { storePageInFlight.current = false; setStoreSearching(false); }
+    }
+  }
+
+  function changeStoreSearchState(state: string) {
+    if (state === storeSearchState) return;
+    storeSearchSequence.current += 1;
+    setStoreResults([]);
+    setStoreHasMore(false);
+    setStoreSearchState(state);
+  }
 
   function changeBottleName(value: string) {
     setBottleName(value);
@@ -169,7 +217,7 @@ function PostComposer({ userId }: { userId: string }) {
   function changeStoreName(value: string) {
     storeSearchSequence.current += 1;
     setStoreResults([]);
-    setStoreSearching(false);
+    setStoreSearching(value.trim().length >= 2);
     if (selectedStore) {
       setStoreAddress(""); setStoreCity(""); setStoreState(""); setStoreZip("");
     }
@@ -353,12 +401,19 @@ function PostComposer({ userId }: { userId: string }) {
           <View style={styles.divider} />
           <ComposerSection icon="storefront-outline" title="Find a retailer" required>
             {!manualStore ? <>
-              <Field autoCapitalize="words" autoCorrect={false} label="Store" onChangeText={changeStoreName} onFocus={() => setActivePicker("store")} placeholder="Search retailer, city, or address" value={storeName} />
+              <Field autoCapitalize="words" autoCorrect={false} label="Store" onChangeText={changeStoreName} onFocus={() => setActivePicker("store")} placeholder="Store name, city, address or ZIP" value={storeName} />
+              {activePicker === "store" && !selectedStore ? <ScrollView horizontal keyboardShouldPersistTaps="handled" showsHorizontalScrollIndicator={false} style={styles.storeStateRow} contentContainerStyle={styles.storeStateChips} accessibilityLabel="Store search state">
+                {[{code:"",name:"All states"}, ...COVERAGE_STATES.filter(state=>state.code==="NC"), ...COVERAGE_STATES.filter(state=>state.code!=="NC")].map(state => <Pressable key={state.code} accessibilityRole="button" accessibilityLabel={state.name} accessibilityState={{selected:storeSearchState === state.code}} onPress={() => changeStoreSearchState(state.code)} style={[styles.chip,styles.storeStateChip,storeSearchState === state.code && styles.chipActive]}><Text style={[styles.chipText,storeSearchState === state.code && styles.chipTextActive]}>{state.code || state.name}</Text></Pressable>)}
+              </ScrollView> : null}
               {selectedStore ? <View style={styles.selectedStore}><View style={styles.selectionCopy}><Text style={styles.selectionTitle}>{selectedStore.name}</Text><Text style={styles.selectionSubtitle}>{selectedStore.city}, {selectedStore.state} · {selectedStore.address}</Text></View><Pressable accessibilityLabel="Change selected retailer" accessibilityRole="button" hitSlop={8} onPress={() => { changeStoreName(""); setActivePicker("store"); }}><Text style={styles.textAction}>CHANGE</Text></Pressable></View> : null}
               {activePicker === "store" && storeName.trim().length >= 2 && !selectedStore ? <SuggestionList empty={storeSearching ? undefined : "No approved retailer match yet."} loading={storeSearching}>
-                {storeSearchError ? <ErrorState message={storeSearchError} onRetry={() => setStoreSearchAttempt(value => value + 1)} /> : null}
+                {storeSearchError ? <ErrorState message={storeSearchError} onRetry={() => { if (storeResults.length && storeHasMore) void loadMoreStores(); else setStoreSearchAttempt(value => value + 1); }} /> : null}
                 {!storeSearching && !storeSearchError && storeName.trim().length >= 2 && !storeResults.length ? <Text style={styles.helper}>No matching stores. Try another name or enter the store manually.</Text> : null}
-                {storeResults.map((store) => <SuggestionRow key={`${store.state}:${store.id}`} onPress={() => chooseStore(store)} subtitle={`${store.city}, ${store.state} · ${store.address}`} title={store.name} />)}
+                {storeResults.length > 0 ? <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" style={styles.storeResults}>
+                  {storeResults.map((store) => <SuggestionRow key={`${store.state}:${store.id}`} onPress={() => chooseStore(store)} subtitle={`${store.city}, ${store.state} · ${store.address}`} title={store.name} />)}
+                </ScrollView> : null}
+                {storeResults.length > 0 && storeTotal !== null ? <Text style={styles.helper}>{storeResults.length} of {storeTotal} matching stores</Text> : null}
+                {storeHasMore ? <Pressable accessibilityRole="button" disabled={storeSearching} onPress={() => void loadMoreStores()} style={styles.moreStores}><Text style={styles.manualActionText}>{storeSearching ? "Loading stores…" : "Show more stores"}</Text></Pressable> : null}
               </SuggestionList> : null}
               {!selectedStore ? <Pressable accessibilityRole="button" onPress={startManualStore} style={({ pressed }) => [styles.manualAction, pressed && styles.pressed]}><MaterialCommunityIcons color={colors.accent} name="pencil-outline" size={16} /><Text style={styles.manualActionText}>Enter store manually</Text></Pressable> : null}
             </> : <>
@@ -441,8 +496,8 @@ function SelectionNote({ icon, text }: { icon: React.ComponentProps<typeof Mater
 }
 
 function SuggestionList({ children, empty, loading = false }: React.PropsWithChildren<{ empty?: string; loading?: boolean }>) {
-  const hasChildren = Array.isArray(children) ? children.length > 0 : Boolean(children);
-  return <View style={styles.suggestions}>{loading ? <ActivityIndicator color={colors.accent} size="small" /> : hasChildren ? children : empty ? <Text style={styles.suggestionEmpty}>{empty}</Text> : null}</View>;
+  const hasChildren = Children.toArray(children).length > 0;
+  return <View style={styles.suggestions}>{loading && !hasChildren ? <ActivityIndicator color={colors.accent} size="small" /> : hasChildren ? children : empty ? <Text style={styles.suggestionEmpty}>{empty}</Text> : null}</View>;
 }
 
 function SuggestionRow({ onPress, subtitle, title }: { onPress: () => void; subtitle?: string; title: string }) {
@@ -463,7 +518,7 @@ const styles = StyleSheet.create({
   sectionTitle: { flex: 1, color: colors.text, fontSize: typeScale.input, fontWeight: "800" },
   required: { color: colors.muted, fontSize: typeScale.micro, fontWeight: "800", letterSpacing: 0.9 },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 2 },
-  field: { gap: 6, flex: 1 },
+  field: { gap: 6, flexGrow: 1, flexShrink: 0 },
   label: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700" },
   input: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.background, color: colors.text, fontSize: typeScale.input, paddingHorizontal: 12, paddingVertical: 9 },
   multiline: { minHeight: 72, textAlignVertical: "top" },
@@ -486,6 +541,11 @@ const styles = StyleSheet.create({
   textAction: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "900", letterSpacing: 0.6 },
   manualAction: { minHeight: 38, alignSelf: "flex-start", borderRadius: 9, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 9, marginLeft: -9 },
   manualActionText: { color: colors.accent, fontSize: typeScale.small, fontWeight: "800" },
+  moreStores: { minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
+  storeStateChips: { flexDirection: "row", alignItems: "center", gap: 7, paddingVertical: 4 },
+  storeStateRow: { height: 52, flexGrow: 0, flexShrink: 0 },
+  storeStateChip: { minHeight: 44 },
+  storeResults: { maxHeight: 320, flexGrow: 0 },
   manualHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   priceField: { gap: 6 },
   priceInput: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.background, flexDirection: "row", alignItems: "center", paddingHorizontal: 12 },

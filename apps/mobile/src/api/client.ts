@@ -361,8 +361,8 @@ export function createMobileApi({
     async getSignalAreaOptions(state: string) {
       const stateCode = state.trim().toUpperCase();
       if (!/^[A-Z]{2}$/.test(stateCode)) return [];
-      const payload = await request<{ stores?: Array<{ city?: unknown; state?: unknown }> }>(`/api/stores?state=${encodeURIComponent(stateCode)}`, { fresh: true });
-      const cities = (payload.stores || []).flatMap((store) => {
+      const payload = await request<{ cities?: string[]; stores?: Array<{ city?: unknown; state?: unknown }> }>(`/api/stores?state=${encodeURIComponent(stateCode)}`, { fresh: true });
+      const cities = Array.isArray(payload.cities) ? payload.cities.filter(city => typeof city === "string" && city.trim()) : (payload.stores || []).flatMap((store) => {
         const city = typeof store.city === "string" ? store.city.replace(/\s+/g, " ").trim() : "";
         return city ? [city] : [];
       });
