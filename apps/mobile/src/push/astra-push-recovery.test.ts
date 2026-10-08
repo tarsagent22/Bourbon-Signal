@@ -2,16 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadWithMocks } from '../astra-test-harness';
 
-function setup(stored = new Map<string,string>()) {
+function setup(stored = new Map<string,string>(), device = { isDevice: true, platform: 'ios' }) {
   let permission = 'granted'; let prompts = 0; let writes = 0; let reads = 0;
   let status: any = { enabled: false, currentDeviceRegistered: false };
   let reply: any = { enabled: true, currentDeviceRegistered: true };
   let failure: Error | null = null;
   const push = loadWithMocks('src/push/push-registration.ts', {
     'expo-constants': { expoConfig: { extra: { eas: { projectId: 'fixture' } } } },
-    'expo-crypto': { randomUUID: () => 'fixture-device' }, 'expo-device': { isDevice: true },
-    'react-native': { Platform: { OS: 'ios' } },
-    'expo-notifications': { getPermissionsAsync: async () => ({ status: permission }), requestPermissionsAsync: async () => { prompts++; return { status: permission }; }, getExpoPushTokenAsync: async () => ({ data: 'ExpoPushToken[fixture-token]' }), addPushTokenListener: () => ({ remove() {} }), dismissAllNotificationsAsync: async () => {} },
+    'expo-crypto': { randomUUID: () => 'fixture-device' }, 'expo-device': { isDevice: device.isDevice },
+    'react-native': { Platform: { OS: device.platform } },
+    'expo-notifications': { AndroidImportance: { HIGH: 4 }, setNotificationChannelAsync: async () => {}, getPermissionsAsync: async () => ({ status: permission }), requestPermissionsAsync: async () => { prompts++; return { status: permission }; }, getExpoPushTokenAsync: async () => ({ data: 'ExpoPushToken[fixture-token]' }), addPushTokenListener: () => ({ remove() {} }), dismissAllNotificationsAsync: async () => {} },
     'expo-secure-store': { getItemAsync: async (k: string) => stored.get(k) ?? null, setItemAsync: async (k: string,v: string) => { stored.set(k,v); }, deleteItemAsync: async (k: string) => { stored.delete(k); } },
   });
   const api: any = { pushAccountId: 'user_A', getPushDeviceStatus: async () => { reads++; return status; }, registerPushDevice: async () => { writes++; if(failure)throw failure; status = reply; return status; }, disablePushDevice: async () => (status = { enabled: false, currentDeviceRegistered: false }), clearReadCache() {} };
@@ -27,6 +27,31 @@ test('automatic recovery backs off after provider failure; an explicit Retry can
   f.setFailure(null);
   await f.push.enableRadarPush(f.api);
   assert.equal(f.counts().writes,2);
+});
+
+test('Android emulator can register a provider token and recover without prompting', async () => {
+  const f=setup(new Map(),{isDevice:false,platform:'android'});
+  assert.equal((await f.push.enableRadarPush(f.api)).currentDeviceRegistered,true);
+  assert.equal(f.counts().writes,1);
+  assert.equal(f.counts().prompts,0);
+  assert.equal((await f.push.refreshRadarPushIfEnabled(f.api)).enabled,true);
+  assert.equal(f.counts().writes,1);
+});
+
+test('Android emulator registration still respects denied permission and provider failures', async () => {
+  const denied=setup(new Map(),{isDevice:false,platform:'android'});
+  denied.setPermission('denied');
+  await assert.rejects(()=>denied.push.enableRadarPush(denied.api),/permission was not granted/);
+  assert.equal(denied.counts().writes,0);
+  const failed=setup(new Map(),{isDevice:false,platform:'android'});
+  failed.setFailure(new Error('Provider unavailable'));
+  await assert.rejects(()=>failed.push.enableRadarPush(failed.api),/Provider unavailable/);
+});
+
+test('unsupported iOS simulator keeps its existing physical-device requirement', async () => {
+  const f=setup(new Map(),{isDevice:false,platform:'ios'});
+  await assert.rejects(()=>f.push.enableRadarPush(f.api),/physical device/);
+  assert.equal(f.counts().writes,0);
 });
 
 test('push opt-in survives deferred sync and restart; healthy reopen does not register again', async () => {
