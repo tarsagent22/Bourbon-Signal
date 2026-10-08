@@ -122,7 +122,9 @@ async function configureAndroidRadarChannel() {
 
 async function registerCurrentRadarPushToken(api: MobileApi, requestPermission: boolean, currentStatus?: PushDeviceStatus) {
   if (logoutInProgress) return null;
-  if (!Device.isDevice) {
+  // Google Play Android emulators support FCM. Let the native token provider
+  // determine availability instead of rejecting them before registration.
+  if (!Device.isDevice && Platform.OS !== "android") {
     if (requestPermission) throw new Error("Push notifications require a physical device.");
     return null;
   }
