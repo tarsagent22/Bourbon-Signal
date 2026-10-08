@@ -8,7 +8,7 @@ import {createAsyncPreparedDropCache} from "./prepared-drop-cache";
 
 export const SIGHTING_STORE_DIRECTORY_VERSION = reviewed.generatedAt;
 const reviewedRows = reviewed.stores as Array<Record<string, unknown>>;
-const completeOfficialStates = new Set(["NC", "VA", "UT", "ID", "NY", "CO", "CA", "TX", "KY", "FL"]);
+const completeOfficialStates = new Set(["NC", "VA", "UT", "ID", "NY", "CO", "CA", "TX", "KY", "FL", "SC", "TN"]);
 const officialAddresses = new Set(reviewedRows.filter(row => completeOfficialStates.has(String(row.state))).flatMap(row => {
   const store = normalizeSightingStore(row);
   return store ? [sightingStoreAddressKey(store)] : [];
@@ -42,7 +42,7 @@ const readPackedDirectory = unstable_cache(async () => {
     ...reviewedRows, ...eligible,
   ]);
   const raw = Buffer.from(JSON.stringify(stores));
-  const packed = brotliCompressSync(raw,{params:{[constants.BROTLI_PARAM_QUALITY]:4}}).toString("base64");
+  const packed = brotliCompressSync(raw,{params:{[constants.BROTLI_PARAM_QUALITY]:6}}).toString("base64");
   if (packed.length > 1_900_000) throw Error("Sighting store directory exceeds shared-cache bound");
   return packed;
 }, ["sighting-store-directory-v1", SIGHTING_STORE_DIRECTORY_VERSION], {revalidate:300});

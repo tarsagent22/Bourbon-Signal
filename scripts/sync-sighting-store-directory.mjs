@@ -57,11 +57,11 @@ const wv=await json('engine/data/store-universe/WV.json');
 rows.push(...wv.stores);reports.push({label:'West Virginia ABCA licensed retail directory',state:'WV',url:'https://www.wvabca.com/licensesearch.aspx',count:wv.stores.length,checkedAt:wv.source?.capturedAt||'2026-07-26'});
 const supplemental=process.argv.find(a=>a.startsWith('--supplement-dir='))?.split('=').slice(1).join('=');
 const licenseFiles=process.argv.find(a=>a.startsWith('--license-files-dir='))?.split('=').slice(1).join('=');
-if(licenseFiles){for(const state of ['CA','GA','TX','KY','FL','IL']){
+if(licenseFiles){for(const state of ['CA','GA','TX','KY','FL','IL','SC','TN']){
  const p=await json(path.join(licenseFiles,`store-library-licenses-${state}.json`));
  rows.push(...p.stores);reports.push({label:`${state} official spirits retail licenses`,state,url:p.url,count:p.stores.length,checkedAt:p.checkedAt||new Date().toISOString(),publishedAt:p.publishedAt,sha256:p.sha256});
 }}
-const authoritativeStates=new Set(['NC','VA','UT','ID','NY','CO',...(licenseFiles?['CA','TX','KY','FL']:[])]);
+const authoritativeStates=new Set(['NC','VA','UT','ID','NY','CO',...(licenseFiles?['CA','TX','KY','FL','SC','TN']:[])]);
 for(const name of ['locations','stores']){
  const bundled=await json(`engine/out/site/${name}.json`);
  const live=supplemental?await json(path.join(supplemental,`store-library-live-${name}-before.json`)):null;

@@ -1,6 +1,6 @@
 """Extract only public retail-premises fields from official state license files."""
 import argparse, csv, hashlib, io, json, re, zipfile
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from datetime import date, datetime
 
@@ -115,3 +115,44 @@ if file.exists():
             rows.append({'id':'il-ilcc-'+r['license_number'],'state':'IL','name':r['acct_name'],'address':match[1].strip(),'city':city.title(),'zip':match[2],'county':r['county'],'aliases':[r['license_number']],'source':'Illinois ILCC unexpired off-premises retailer licenses','sourceUrl':'https://ilcc.illinois.gov/content/dam/soi/en/web/ilcc/datasources/ilcc-licenses-daily-export.csv'})
     print(json.dumps({'ILExcludedIncompleteAddress':excluded,'asOf':as_of.isoformat()}))
     write('IL',rows,'https://ilcc.illinois.gov/content/dam/soi/en/web/ilcc/datasources/ilcc-licenses-daily-export.csv',as_of.isoformat(),file)
+
+file=capture/'store-library-sc-public-license-capture.json'
+if file.exists():
+    report=json.loads(file.read_text(encoding='utf-8')); rows=[]
+    if len(report['stores'])!=report['reportedTotal']: raise ValueError('Incomplete SC public result capture')
+    for r in report['stores']:
+        if r['licenseType']!='Retail Liquor Store': raise ValueError('Unexpected SC license class')
+        city=r['city'].strip()
+        match=re.fullmatch(r'(.*?)\s+'+re.escape(city)+r'\s+SC\s+(\d{5})(?:-\d{4})?\s+USA',r['address'].strip(),re.I)
+        if not city or not match or not r['name'].strip(): raise ValueError('Unverified SC physical store address: '+r['licenseNumber'])
+        rows.append({'id':'sc-dor-'+r['licenseNumber'],'state':'SC','name':r['name'],'address':match[1].strip(),'city':city.title(),'zip':match[2],'aliases':[r['licenseNumber']],'source':'South Carolina DOR active Retail Liquor Store licenses','sourceUrl':report['sourceUrl']})
+    write('SC',rows,report['sourceUrl'],report['capturedAt'],file)
+
+file=capture/'store-library-tn-public-license-capture.json'
+if file.exists():
+    report=json.loads(file.read_text(encoding='utf-8')); rows=[]; excluded=[]; grouped=defaultdict(list)
+    if len(report['stores'])!=report['reportedRows']: raise ValueError('Incomplete TN public result capture')
+    geo=json.loads((Path(__file__).resolve().parents[1]/'src/data/us-geography-2025.generated.json').read_text(encoding='utf-8'))
+    def key(value): return re.sub(r'[^a-z0-9]','',value.lower())
+    cities={}
+    for place in geo['places']:
+        if place[1]!='TN': continue
+        city=re.sub(r'\s+(city|town|village|CDP|municipality|borough)$','',place[2],flags=re.I)
+        cities[key(city)]=city
+        cities[key(re.sub(r'^Mount\b','Mt',city))]=city
+        cities[key(re.sub(r'^Fort\b','Ft',city))]=city
+    for r in report['stores']:
+        if r['subType']!='Retail Package Store' or r['status']!='Active' or r['state']!='TN': raise ValueError('Unexpected TN license filter')
+        grouped[r['licenseNumber']].append(r)
+    if len(grouped)!=report['reportedLicenses']: raise ValueError('Incomplete TN unique license capture')
+    for license_number,records in grouped.items():
+        locations={(key(r['address']),key(cities.get(key(r['city']),r['city']))) for r in records}
+        if len(locations)!=1:
+            excluded.append({'id':license_number,'reason':'official active rows disagree on physical address'}); continue
+        r=next((r for r in records if r['name'].strip()),records[0]); city=cities.get(key(r['city']),r['city'].title())
+        if not r['address'].strip() or not city or not (r['name'] or r['legalName']).strip(): raise ValueError('Incomplete TN physical address')
+        aliases=list(dict.fromkeys([value for record in records for value in [record['name'],record['legalName'],record['city']] if value]))
+        rows.append({'id':'tn-abc-'+license_number,'state':'TN','name':r['name'] or r['legalName'],'address':r['address'],'city':city,'county':r['county'],'aliases':aliases,'source':'Tennessee ABC active Retail Package Store licenses','sourceUrl':report['sourceUrl']})
+    (capture/'store-library-tn-excluded.json').write_text(json.dumps(excluded),encoding='utf-8')
+    print(json.dumps({'TNConflictingAddresses':excluded}))
+    write('TN',rows,report['sourceUrl'],report['capturedAt'],file)
