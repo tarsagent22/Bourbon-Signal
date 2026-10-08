@@ -1,6 +1,6 @@
 const { withGradleProperties, withAppBuildGradle, withSettingsGradle } = require('@expo/config-plugins');
 
-const compilerMarker = '// bourbon-signal: R8 supports Clerk Kotlin 2.3 metadata';
+const compilerMarker = '// bourbon-signal: R8 supports Clerk Kotlin 2.4 metadata';
 const compilerConfiguration = `
   ${compilerMarker}
   buildscript {
@@ -9,7 +9,7 @@ const compilerConfiguration = `
       mavenCentral()
     }
     dependencies {
-      classpath("com.android.tools:r8:8.13.19")
+      classpath("com.android.tools:r8:9.1.56")
     }
   }
 `;
@@ -39,7 +39,7 @@ function useCompatibleCompiler(contents) {
   const management = /^pluginManagement\s*\{/m;
   if (!management.test(contents)) throw new Error('Android plugin management template changed; review the R8 compiler before building.');
   // Override the embedded compiler in pluginManagement as documented by R8.
-  // Clerk's serialization dependencies contain Kotlin 2.3 metadata, which the
+  // Clerk's native UI dependencies contain Kotlin 2.4 metadata, which the
   // compiler bundled with AGP 8.12 cannot rewrite correctly during minification.
   return contents.replace(management, match => `${match}${compilerConfiguration}`);
 }

@@ -33,9 +33,9 @@ test('an unsupported future Gradle template cannot silently produce an unoptimiz
 test('Kotlin-compatible R8 is loaded before Android plugins without replacing their management', () => {
   const input = `pluginManagement {\n includeBuild("react-native-gradle-plugin")\n}\nplugins { id("com.facebook.react.settings") }`;
   const output = useCompatibleCompiler(input);
-  assert.ok(output.includes('classpath("com.android.tools:r8:8.13.19")'));
+  assert.ok(output.includes('classpath("com.android.tools:r8:9.1.56")'));
   assert.ok(output.includes('includeBuild("react-native-gradle-plugin")'));
-  assert.ok(output.indexOf('classpath("com.android.tools:r8:8.13.19")') < output.indexOf('plugins {'));
+  assert.ok(output.indexOf('classpath("com.android.tools:r8:9.1.56")') < output.indexOf('plugins {'));
   assert.equal(useCompatibleCompiler(output), output);
   assert.throws(() => useCompatibleCompiler('plugins { id("unknown") }'), /template changed/);
 });
