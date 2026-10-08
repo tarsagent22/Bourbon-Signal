@@ -72,7 +72,8 @@
         }
       ],
       "expo-font",
-      "./plugins/with-worklets-packaging.cjs"
+      "./plugins/with-worklets-packaging.cjs",
+      "./plugins/with-android-release-optimization.cjs"
     ],
     "experiments": {
       "typedRoutes": true
