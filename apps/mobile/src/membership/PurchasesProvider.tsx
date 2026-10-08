@@ -34,15 +34,18 @@ export function PurchasesProvider({ children, adapter: injectedAdapter }: PropsW
   const mobileApi = useMobileApi();
   const apiRef = useRef(mobileApi);
   apiRef.current = mobileApi;
-  const adapter = useMemo(() => injectedAdapter ?? createRevenueCatPurchaseAdapter(), [injectedAdapter]);
+  const adapter = useMemo(() => injectedAdapter ?? createRevenueCatPurchaseAdapter(undefined, Platform.OS === "android" ? "android" : "ios"), [injectedAdapter]);
   const api = useMemo<AppleMembershipApi>(() => ({
     getMemberProfile: (options) => apiRef.current.getMemberProfile(options),
+    getGoogleMembershipReadiness: (options) => apiRef.current.getGoogleMembershipReadiness(options),
+    reconcileGoogleMembership: (input) => apiRef.current.reconcileGoogleMembership(input),
     getAppleMembershipReadiness: (options) => apiRef.current.getAppleMembershipReadiness(options),
     reconcileAppleMembership: (input) => apiRef.current.reconcileAppleMembership(input),
   }), []);
   const coordinator = useMemo(() => createPurchaseCoordinator({
     adapter,
     api,
+    publicAndroidApiKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY || "",
     publicIosApiKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY || "",
     platform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web",
   }), [adapter, api]);

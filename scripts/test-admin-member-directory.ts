@@ -21,3 +21,5 @@ assert.deepEqual(expandCorrectedWatchNames(['Different batch'],records,s=>s.toLo
 console.log('Directory paging, access/billing distinction, expired gifts, earned access, unsafe metadata and exact watch alias continuity passed.');
 const apple=adminMember({id:'apple',publicMetadata:{appleMembershipTier:'barrel',appleMembershipPlan:'barrel_monthly',appleMembershipStatus:'trialing',appleMembershipExpiresAt:'2026-11-01'}},now);
 assert.equal(apple.tier,'barrel');assert.deepEqual(apple.accessSources,['trial']);
+const google=adminMember({id:'google',publicMetadata:{googleMembershipTier:'standard',googleMembershipPlan:'standard_monthly',googleMembershipStatus:'active',googleMembershipExpiresAt:'2026-11-01'}},now);
+assert.equal(google.tier,'standard');assert.equal(google.billingProvider,'google');assert.equal(google.billingStatus,'active');assert.deepEqual(google.accessSources,['paid']);

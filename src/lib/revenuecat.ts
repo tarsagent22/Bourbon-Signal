@@ -15,7 +15,10 @@ import type { AppleTransactionLookup } from "./apple-transaction-verifier.ts";
 export type RevenueCatConfigurationBlocker =
   | "server_credentials_missing"
   | "products_not_configured"
-  | "storekit_trial_policy_unconfirmed";
+  | "storekit_trial_policy_unconfirmed"
+  | "google_products_not_configured"
+  | "google_trial_policy_unconfirmed"
+  | "google_billing_not_activated";
 
 export type RevenueCatConfiguration =
   | { ready: false; blocker: RevenueCatConfigurationBlocker }
@@ -116,7 +119,7 @@ export function normalizeRevenueCatSubscriber(clerkUserId: string, payload: unkn
   }
   const subscriptions = record(subscriber.subscriptions);
   if (!subscriptions) throw new AppleMembershipError("PROVIDER_RESPONSE_INVALID", "RevenueCat returned invalid subscriptions.");
-  const entries = Object.entries(subscriptions);
+  const entries = Object.entries(subscriptions).filter(([, value]) => record(value)?.store !== "play_store");
   const disallowed = entries.find(([productId]) => !isAppleMembershipProductId(productId));
   if (disallowed) throw new AppleMembershipError("PRODUCT_NOT_ALLOWED", "RevenueCat returned a product outside the Apple membership allowlist.");
 
@@ -184,6 +187,7 @@ export function createRevenueCatSubscriberFetcher(input: {
       const subscriptions = record(subscriber.subscriptions);
       for (const [productId, value] of Object.entries(subscriptions || {})) {
         const subscription = record(value);
+        if (subscription?.store === "play_store") continue;
         if (!isAppleMembershipProductId(productId) || !subscription || subscription.store !== "app_store"
           || typeof subscription.is_sandbox !== "boolean") {
           throw new AppleMembershipError("PRODUCT_NOT_ALLOWED", "RevenueCat returned a subscription outside the Apple membership catalog.");
@@ -215,7 +219,7 @@ function authorized(actual: string | null, expected: string) {
 
 export function createRevenueCatWebhookHandler(input: {
   secret: string | null;
-  reconcile: (input: { clerkUserId: string; providerEventId: string }) => Promise<{ outcome: string; effectiveTier: MembershipTierLike }>;
+  reconcile: (input: { clerkUserId: string; providerEventId: string; store?: string }) => Promise<{ outcome: string; effectiveTier: MembershipTierLike }>;
 }) {
   return async function handleRevenueCatWebhook(request: Request) {
     if (!input.secret) return Response.json({ error: "RevenueCat webhook is not configured." }, { status: 503 });
@@ -231,7 +235,8 @@ export function createRevenueCatWebhookHandler(input: {
       return Response.json({ error: "RevenueCat webhook payload is invalid." }, { status: 400 });
     }
     try {
-      const result = await input.reconcile({ clerkUserId, providerEventId });
+      if (event?.store && event.store !== "APP_STORE" && event.store !== "PLAY_STORE") return Response.json({error:"Unsupported subscription store."},{status:409});
+      const result = await input.reconcile({ clerkUserId, providerEventId, ...(event?.store ? {store:String(event.store)} : {}) });
       return Response.json({ received: true, outcome: result.outcome });
     } catch (error) {
       if (error instanceof AppleMembershipError && (error.code === "PURCHASE_OWNED_BY_ANOTHER_ACCOUNT" || error.code === "PROVIDER_EVENT_CONFLICT" || error.code === "PRODUCT_NOT_ALLOWED")) {

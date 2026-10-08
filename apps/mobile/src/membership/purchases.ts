@@ -51,11 +51,13 @@ export interface PurchaseAdapter {
   configure(input: { apiKey: string; appUserId: string }): Promise<void>;
   clearSession(): Promise<void>;
   loadDefaultOffering(): Promise<PurchaseStorePackage[]>;
-  purchase(productId: AppleProductId): Promise<void>;
+  purchase(productId: AppleProductId, replacingProductId?: AppleProductId): Promise<void>;
   restore(): Promise<void>;
 }
 
 export interface AppleMembershipApi {
+  getGoogleMembershipReadiness?(options?: { fresh?: boolean }): Promise<AppleMembershipReadinessResponse>;
+  reconcileGoogleMembership?(input: AppleMembershipReconciliationRequest): Promise<AppleMembershipReconciliationResponse>;
   getMemberProfile(options?: { fresh?: boolean }): Promise<MemberProfile>;
   getAppleMembershipReadiness(options?: { fresh?: boolean }): Promise<AppleMembershipReadinessResponse>;
   reconcileAppleMembership(input: AppleMembershipReconciliationRequest): Promise<AppleMembershipReconciliationResponse>;
@@ -118,10 +120,10 @@ export function mapDefaultOfferingPackages(packages: PurchaseStorePackage[]) {
   return { products, complete: REQUIRED_PURCHASE_PRODUCT_IDS.every((productId) => approved.has(productId)) };
 }
 
-function messageForUnavailable(reason: "key" | "products" | "server") {
-  if (reason === "key") return "Apple purchases are not available in this build because purchase configuration is incomplete.";
-  if (reason === "products") return "Apple purchase options could not be loaded. No purchase was started.";
-  return "Apple purchases are not available until secure account reconciliation is configured. Your current server-confirmed membership is unchanged.";
+function messageForUnavailable(reason: "key" | "products" | "server", label="Apple") {
+  if (reason === "key") return `${label} purchases are not available in this build because purchase configuration is incomplete.`;
+  if (reason === "products") return `${label} purchase options could not be loaded. No purchase was started.`;
+  return `${label} purchases are not available until secure account reconciliation is configured. Your current server-confirmed membership is unchanged.`;
 }
 
 function rank(tier: MembershipTier) {
@@ -132,13 +134,18 @@ export function createPurchaseCoordinator({
   adapter,
   api,
   publicIosApiKey,
+  publicAndroidApiKey="",
   platform,
 }: {
   adapter: PurchaseAdapter;
   api: AppleMembershipApi;
   publicIosApiKey: string;
+  publicAndroidApiKey?: string;
   platform: "ios" | "android" | "web";
 }) {
+  const purchaseLabel=platform==="android" ? "Google Play" : "Apple";
+  const storeLabel=platform==="android" ? "Google Play" : "App Store";
+  const membershipApi=platform==="android" ? {readiness:api.getGoogleMembershipReadiness?.bind(api),reconcile:api.reconcileGoogleMembership?.bind(api)} : {readiness:api.getAppleMembershipReadiness.bind(api),reconcile:api.reconcileAppleMembership.bind(api)};
   let state: PurchaseCoordinatorState = { ...EMPTY_STATE };
   let configuredUserId: string | null = null;
   let sessionRevision = 0;
@@ -151,14 +158,14 @@ export function createPurchaseCoordinator({
   };
 
   const unavailable = (reason: "key" | "products" | "server", profile: MemberProfile["profile"] | null = null, products: ApplePurchaseProduct[] = [], membership: AppleMembershipSummary | null = null) => {
-    publish({ status: "unavailable", message: messageForUnavailable(reason), products, profile, eligibleProductIds: [], restoreAvailable: false, membership });
+    publish({ status: "unavailable", message: messageForUnavailable(reason,purchaseLabel), products, profile, eligibleProductIds: [], restoreAvailable: false, membership });
     return state;
   };
 
   async function applySession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }, revision: number) {
     if (revision !== sessionRevision) return state;
     if (!session.isLoaded) {
-      publish({ ...EMPTY_STATE, status: "configuring", message: "Loading your account before Apple purchases are configured." });
+      publish({ ...EMPTY_STATE, status: "configuring", message: `Loading your account before ${purchaseLabel} purchases are configured.` });
       return state;
     }
     if (!session.isSignedIn || !session.userId) {
@@ -168,19 +175,21 @@ export function createPurchaseCoordinator({
       publish({ ...EMPTY_STATE });
       return state;
     }
-    if (platform !== "ios") {
-      publish({ ...EMPTY_STATE, status: "unsupported", message: "Apple purchases are available only in the iOS app." });
+    if (platform === "web") {
+      publish({ ...EMPTY_STATE, status: "unsupported", message: "Store purchases are available only in the mobile app." });
       return state;
     }
-    if (!publicIosApiKey.trim().startsWith("appl_")) return unavailable("key");
+    const apiKey=platform==="android" ? publicAndroidApiKey : publicIosApiKey;
+    if (!apiKey.trim().startsWith(platform==="android" ? "goog_" : "appl_")) return unavailable("key");
+    if (!membershipApi.readiness || !membershipApi.reconcile) return unavailable("server");
 
     if (configuredUserId && configuredUserId !== session.userId) await adapter.clearSession().catch(() => undefined);
     if (revision !== sessionRevision) return state;
     configuredUserId = null;
-    publish({ ...EMPTY_STATE, status: "configuring", message: "Loading secure Apple purchase options." });
+    publish({ ...EMPTY_STATE, status: "configuring", message: `Loading secure ${purchaseLabel} purchase options.` });
 
     try {
-      await adapter.configure({ apiKey: publicIosApiKey.trim(), appUserId: session.userId });
+      await adapter.configure({ apiKey: apiKey.trim(), appUserId: session.userId });
       configuredUserId = session.userId;
       if (revision !== sessionRevision) return state;
       const profileResponse = await api.getMemberProfile({ fresh: true });
@@ -193,10 +202,11 @@ export function createPurchaseCoordinator({
       }
       if (revision !== sessionRevision || configuredUserId !== session.userId) return state;
       const mapped = mapDefaultOfferingPackages(packages);
+      if (platform==="android") mapped.products=mapped.products.filter(p=>p.interval==="monthly");
       if (!mapped.complete) return unavailable("products", profileResponse.profile);
       let readiness: AppleMembershipReadinessResponse;
       try {
-        readiness = await api.getAppleMembershipReadiness({ fresh: true });
+        readiness = await membershipApi.readiness!({ fresh: true });
       } catch {
         if (revision !== sessionRevision || configuredUserId !== session.userId) return state;
         return unavailable("server", profileResponse.profile, mapped.products);
@@ -206,7 +216,7 @@ export function createPurchaseCoordinator({
       const eligibleProductIds = readiness.eligibleProductIds.filter(isAppleProductId);
       publish({
         status: "ready",
-        message: "Apple purchase options are ready. Paid access appears only after Bourbon Signal confirms it on the server.",
+        message: `${purchaseLabel} purchase options are ready. Paid access appears only after Bourbon Signal confirms it on the server.`,
         products: mapped.products,
         profile: profileResponse.profile,
         eligibleProductIds,
@@ -228,10 +238,10 @@ export function createPurchaseCoordinator({
 
   function assertReady(productId?: AppleProductId) {
     if (state.status !== "ready" && state.status !== "cancelled" && state.status !== "pending" && state.status !== "error") {
-      throw new Error("Apple purchases are not available right now.");
+      throw new Error(`${purchaseLabel} purchases are not available right now.`);
     }
-    if (!configuredUserId || !state.profile) throw new Error("Apple purchases are not available until your account is verified.");
-    if (productId && !state.eligibleProductIds.includes(productId)) throw new Error("This Apple purchase is not available for this account.");
+    if (!configuredUserId || !state.profile) throw new Error(`${purchaseLabel} purchases are not available until your account is verified.`);
+    if (productId && !state.eligibleProductIds.includes(productId)) throw new Error(`This ${purchaseLabel} purchase is not available for this account.`);
     return { revision: sessionRevision, userId: configuredUserId };
   }
 
@@ -247,7 +257,7 @@ export function createPurchaseCoordinator({
     assertSameAccount(operation);
     let reconciliation: AppleMembershipReconciliationResponse;
     try {
-      reconciliation = await api.reconcileAppleMembership(input);
+      reconciliation = await membershipApi.reconcile!(input);
       assertSameAccount(operation);
       const refreshed = await api.getMemberProfile({ fresh: true });
       assertSameAccount(operation);
@@ -256,13 +266,13 @@ export function createPurchaseCoordinator({
         && reconciliation.effectiveTier === tier
         && (tier === "free" || refreshed.profile.membership.paid)
         && (!expectedTier || rank(tier) >= rank(expectedTier));
-      if (!reconciled) throw new Error("Authoritative membership did not match the Apple purchase.");
+      if (!reconciled) throw new Error(`Authoritative membership did not match the ${purchaseLabel} purchase.`);
       publish({
         status: "ready",
         profile: refreshed.profile,
         membership: reconciliation.membership,
         message: tier === "free"
-          ? "No active Apple membership was found. Your server-confirmed Free access is unchanged."
+          ? `No active ${purchaseLabel} membership was found. Your server-confirmed Free access is unchanged.`
           : `${tier === "bottled-in-bond" ? "Founder" : tier === "barrel" ? "Barrel Proof" : "Standard"} access is confirmed.`,
       });
       return state;
@@ -275,9 +285,9 @@ export function createPurchaseCoordinator({
 
   async function purchase(productId: AppleProductId) {
     const operation = assertReady(productId);
-    publish({ status: "purchasing", message: "Waiting for the App Store. Paid access has not changed yet." });
+    publish({ status: "purchasing", message: `Waiting for the ${storeLabel}. Paid access has not changed yet.` });
     try {
-      await adapter.purchase(productId);
+      await adapter.purchase(productId, platform==="android" && state.membership && Date.parse(state.membership.expiresAt || "") > Date.now() && ["active","trialing","canceled_period_end","grace_period"].includes(state.membership.status) ? state.membership.productId : undefined);
     } catch (caught) {
       if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
       if (caught instanceof PurchaseProviderError && caught.code === "cancelled") {
@@ -285,12 +295,12 @@ export function createPurchaseCoordinator({
         return state;
       }
       if (caught instanceof PurchaseProviderError && caught.code === "pending") {
-        publish({ status: "pending", message: "The App Store says this purchase is pending. Access will not change until Bourbon Signal confirms it." });
+        publish({ status: "pending", message: `The ${storeLabel} says this purchase is pending. Access will not change until Bourbon Signal confirms it.` });
         return state;
       }
       publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "network"
-        ? "The App Store could not be reached. Check your connection and try again."
-        : "The App Store could not complete this purchase. No membership change was made." });
+        ? `The ${storeLabel} could not be reached. Check your connection and try again.`
+        : `The ${storeLabel} could not complete this purchase. No membership change was made.` });
       throw caught;
     }
     return reconcile(operation, { action: "purchase", productId }, productIdentity(productId).tier);
@@ -298,15 +308,15 @@ export function createPurchaseCoordinator({
 
   async function restore() {
     const operation = assertReady();
-    if (!state.restoreAvailable) throw new Error("Apple purchase restoration is not available right now.");
-    publish({ status: "restoring", message: "Checking the App Store for previous purchases. Access has not changed yet." });
+    if (!state.restoreAvailable) throw new Error(`${purchaseLabel} purchase restoration is not available right now.`);
+    publish({ status: "restoring", message: `Checking the ${storeLabel} for previous purchases. Access has not changed yet.` });
     try {
       await adapter.restore();
     } catch (caught) {
       if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
       publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "network"
-        ? "The App Store could not be reached. Check your connection and try again."
-        : "Previous Apple purchases could not be restored. Your current membership is unchanged." });
+        ? `The ${storeLabel} could not be reached. Check your connection and try again.`
+        : `Previous ${purchaseLabel} purchases could not be restored. Your current membership is unchanged.` });
       throw caught;
     }
     return reconcile(operation, { action: "restore" });

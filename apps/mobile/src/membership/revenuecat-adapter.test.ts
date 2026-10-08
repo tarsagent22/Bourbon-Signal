@@ -78,3 +78,14 @@ test("RevenueCat adapter maps cancellation, pending, unavailable, and network fa
     );
   }
 });
+
+
+test("Google selects the paid monthly base plan, never its trial offer, and passes replacement identity",async()=>{
+  const {sdk}=sdkHarness();const calls:unknown[]=[];
+  const base={id:"monthly",isBasePlan:true,isPrepaid:false,billingPeriod:{iso8601:"P1M"},pricingPhases:[{price:{amountMicros:3000000,formatted:"$3.00"}}]};
+  const trial={...base,id:"monthly:trial",isBasePlan:false,pricingPhases:[{price:{amountMicros:0,formatted:"Free"}},...base.pricingPhases]};
+  const androidSdk={...sdk,getOfferings:async()=>({current:{availablePackages:[{identifier:"standard-monthly",product:{identifier:"com.bourbonsignal.app.standard.monthly:monthly",priceString:"Free",subscriptionPeriod:"P1M",introPrice:{price:0},subscriptionOptions:[trial,base]}}]}}),purchaseSubscriptionOption:async(option:unknown,change?:unknown)=>{calls.push({option,change});},purchasePackage:async()=>{throw new Error("must not select package's introductory offer");}};
+  const adapter=createRevenueCatPurchaseAdapter(async()=>({default:androidSdk as unknown as typeof sdk}),"android");await adapter.configure({apiKey:"goog_public",appUserId:"member-A"});
+  const offerings=await adapter.loadDefaultOffering();assert.equal(offerings[0].localizedPrice,"$3.00");assert.equal(offerings[0].hasIntroductoryOffer,false);
+  await adapter.purchase("com.bourbonsignal.app.standard.monthly","com.bourbonsignal.app.barrel.monthly");assert.deepEqual(calls,[{option:base,change:{oldProductIdentifier:"com.bourbonsignal.app.barrel.monthly"}}]);
+});

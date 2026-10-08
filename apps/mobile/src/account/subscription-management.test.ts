@@ -16,3 +16,9 @@ test("membership management opens only the provider's secure destination", async
  }
  for(const url of ['https://billing.stripe.com.evil.test/session','http://billing.stripe.com/session','https://user:pass@billing.stripe.com/session']) await assert.rejects(()=>openMembershipManagement({openSubscriptionManagement:async()=>({provider:'stripe',url})},async()=>{}));
 });
+
+
+test("Google management accepts only the app-scoped Google subscriptions destination",async()=>{
+ let opened="";await openMembershipManagement({openSubscriptionManagement:async()=>({provider:"google",url:"https://play.google.com/store/account/subscriptions?package=com.bourbonsignal.app"})},async url=>{opened=url;});assert.match(opened,/play.google.com/);
+ for(const url of ["https://play.google.com.evil.test/store/account/subscriptions?package=com.bourbonsignal.app","http://play.google.com/store/account/subscriptions?package=com.bourbonsignal.app","https://play.google.com/store/apps/details?id=com.bourbonsignal.app","https://play.google.com/store/account/subscriptions?package=other.app"])await assert.rejects(()=>openMembershipManagement({openSubscriptionManagement:async()=>({provider:"google",url})},async()=>{}));
+});

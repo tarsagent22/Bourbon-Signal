@@ -47,7 +47,7 @@ function planName(profile: MemberProfile["profile"]) {
   return PLAN_NAMES[profile.membership.tier];
 }
 
-export function deriveMobileMembershipLifecycle(input: {
+function deriveStoreMembershipLifecycle(input: {
   profile: MemberProfile["profile"];
   purchaseStatus: PurchaseFlowStatus;
   appleMembership: AppleMembershipSummary | null;
@@ -106,4 +106,10 @@ export function monthlyTrialIsEligible(input: {
     && input.interval === "monthly"
     && input.accountEligible === true
     && input.storeEligible === true;
+}
+
+export function deriveMobileMembershipLifecycle(input: Parameters<typeof deriveStoreMembershipLifecycle>[0] & {store?: "apple"|"google"}) {
+  const lifecycle=deriveStoreMembershipLifecycle(input);
+  if(input.store!=="google")return lifecycle;
+  return Object.fromEntries(Object.entries(lifecycle).map(([key,value])=>[key,typeof value==="string" ? value.replaceAll("App Store","Google Play").replaceAll("Apple","Google Play") : value])) as ReturnType<typeof deriveStoreMembershipLifecycle>;
 }

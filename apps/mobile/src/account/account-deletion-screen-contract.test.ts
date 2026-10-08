@@ -15,12 +15,12 @@ test("Account exposes a separated native permanent-deletion destination", () => 
   assert.match(layout, /name="account\/delete"/);
 });
 
-test("deletion requires an explicit typed confirmation and tells Apple subscribers the billing truth", () => {
+test("deletion requires an explicit typed confirmation and tells store subscribers the billing truth", () => {
   assert.match(screen, /Type DELETE to confirm/);
   assert.match(screen, /confirmation\.trim\(\) === "DELETE"/);
   assert.match(screen, /Permanent/);
-  assert.match(screen, /Bourbon Signal cannot cancel an Apple subscription/);
-  assert.match(screen, /Manage subscriptions in the App Store/);
+  assert.match(screen, /does not cancel a subscription billed through/);
+  assert.match(screen, /Manage membership/);
   assert.match(subscriptionManagement, /apps\.apple\.com\/account\/subscriptions/);
   assert.match(screen, /api\.requestAccountDeletion\(\)/);
   assert.match(screen, /accessibilityRole="alert"/);

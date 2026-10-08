@@ -166,10 +166,15 @@ FROM current_membership current
 LIMIT 1`;
 
 export class PostgresAppleMembershipRepository implements AppleMembershipRepository {
-  constructor(private readonly database: QueryExecutor) {}
+  constructor(private readonly database: QueryExecutor, private readonly store: "apple" | "google" = "apple") {}
+
+  private query(sql: string, params?: unknown[]) {
+    // Only a closed provider enum selects ledger tables; no request data enters SQL identifiers.
+    return this.database.query(this.store === "google" ? sql.replaceAll("apple_membership", "google_membership") : sql, params);
+  }
 
   async applyTransition(input: AppleMembershipSnapshot & { providerEventId: string | null; receivedAt: string }) {
-    const rows = await this.database.query(APPLY_TRANSITION_SQL, [
+    const rows = await this.query(APPLY_TRANSITION_SQL, [
       input.clerkUserId,
       input.providerEventId,
       input.environment,
@@ -184,7 +189,7 @@ export class PostgresAppleMembershipRepository implements AppleMembershipReposit
     ]);
     let row = rows[0];
     if (!row && input.providerEventId) {
-      const reserved = await this.database.query(
+      const reserved = await this.query(
         `SELECT membership.*,
                 event.clerk_user_id AS event_clerk_user_id,
                 event.original_transaction_id AS event_original_transaction_id
@@ -213,7 +218,7 @@ export class PostgresAppleMembershipRepository implements AppleMembershipReposit
   }
 
   async markProjected(originalTransactionId: string, clerkUserId: string, projectedAt: string) {
-    await this.database.query(
+    await this.query(
       `UPDATE apple_memberships
        SET projected_at=$3::timestamptz, updated_at=GREATEST(updated_at,$3::timestamptz)
        WHERE original_transaction_id=$1 AND clerk_user_id=$2`,
@@ -222,7 +227,7 @@ export class PostgresAppleMembershipRepository implements AppleMembershipReposit
   }
 
   async readCurrentForUser(clerkUserId: string) {
-    const rows = await this.database.query(
+    const rows = await this.query(
       `SELECT * FROM apple_memberships
        WHERE clerk_user_id=$1
        ORDER BY ordered_event_at DESC, status_priority DESC
@@ -233,7 +238,7 @@ export class PostgresAppleMembershipRepository implements AppleMembershipReposit
   }
 
   async readByOriginalTransactionId(originalTransactionId: string) {
-    const rows = await this.database.query(
+    const rows = await this.query(
       `SELECT * FROM apple_memberships
        WHERE original_transaction_id=$1
        LIMIT 1`,

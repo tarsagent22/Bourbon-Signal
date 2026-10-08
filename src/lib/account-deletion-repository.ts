@@ -62,7 +62,15 @@ export class PostgresAccountDeletionRepository implements AccountDeletionReposit
     const deletedEmail = `${subjectToken.replace(/[^a-zA-Z0-9]/g, "-")}@deleted.invalid`;
     const leaderStorage = await this.database.query("SELECT to_regclass('community_leader_badge_awards') IS NOT NULL AS ready");
 
+    // Older deployments may not have a Google ledger yet. Its presence is checked without
+    // changing schema, and existing Google records join the same atomic deletion transaction.
+    const googleTables=await this.database.query("SELECT to_regclass('public.google_memberships') AS google_table");
+    const googleCleanup=googleTables[0]?.google_table ? [
+      this.database.query("UPDATE google_membership_events SET clerk_user_id=$2 WHERE clerk_user_id=$1",[userId,subjectToken]),
+      this.database.query("UPDATE google_memberships SET clerk_user_id=$2 WHERE clerk_user_id=$1",[userId,subjectToken]),
+    ] : [];
     await this.database.transaction([
+      ...googleCleanup,
       this.database.query(`DELETE FROM member_push_ownership WHERE user_id=$1`, [userId]),
       this.database.query(
         `UPDATE alert_push_tickets

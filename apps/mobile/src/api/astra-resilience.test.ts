@@ -4,14 +4,15 @@ import { createMobileApi, MobileApiError } from './client';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 test('M04: shared catalog attempt expires, aborts transport and permits retry', async () => {
-  let calls = 0; let aborted = false;
+  let calls = 0; let aborted = false; // Keep the fake transport Request alive, as a real fetch would.
+  let transportRequest: Request | undefined;
   const api = createMobileApi({ baseUrl: 'https://deadline.invalid', getToken: async () => 'A', requestTimeoutMs: 20,
     fetcher: async request => { calls++; if (calls > 1) return Response.json({ bottles: [] });
-      new Request(request).signal.addEventListener('abort', () => { aborted = true; });
+      transportRequest = request as Request; transportRequest.signal.addEventListener('abort', () => { aborted = true; });
       return new Promise(() => {});
     } });
   const results = await Promise.race([Promise.allSettled([api.listBottleCatalog(), api.listBottleCatalog()]), sleep(150).then(() => 'hung')]);
-  assert.notEqual(results, 'hung'); assert.equal(calls, 1); assert.equal(aborted, true);
+  assert.notEqual(results, 'hung'); assert.equal(calls, 1); assert.equal(aborted, true); assert.equal(transportRequest?.signal.aborted, true);
   for (const result of results as PromiseSettledResult<unknown>[]) {
     assert.equal(result.status, 'rejected');
     if (result.status === 'rejected') assert.equal(result.reason.code, 'REQUEST_TIMEOUT');

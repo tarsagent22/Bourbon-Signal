@@ -43,6 +43,10 @@ function providerFor(user: { publicMetadata?: Record<string, unknown>; privateMe
   const subscription = stringValue(priv.stripeSubscriptionId);
   // Existing Stripe subscribers always manage with Stripe, including payment recovery.
   if (subscription && !["canceled", "incomplete_expired"].includes(stripeStatus || "")) return "stripe";
+  if (priv.googleMembershipProductId || pub.googleMembershipStatus) {
+    const expired = typeof pub.googleMembershipExpiresAt === "string" && Date.parse(pub.googleMembershipExpiresAt) <= Date.now();
+    if (!expired && !["expired","refunded","revoked"].includes(String(priv.googleMembershipStatus || pub.googleMembershipStatus))) return "google";
+  }
   if (priv.appleMembershipProductId || pub.appleMembershipStatus) return "apple";
   // A saved customer or abandoned checkout is billing history, not an active subscription.
   // Ended Stripe subscriptions must not prevent a member choosing Apple later.
@@ -67,6 +71,7 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  if (providerFor(user) === "google") return NextResponse.json({provider:"google",url:"https://play.google.com/store/account/subscriptions?package=com.bourbonsignal.app"},{headers:{"Cache-Control":"private, no-store"}});
   if (providerFor(user) === "apple") return NextResponse.json({ provider: "apple", url: "https://apps.apple.com/account/subscriptions" }, { headers: { "Cache-Control": "private, no-store" } });
   const stripe = getStripeClient();
   if (!stripe) return NextResponse.json({ error: "Membership management is temporarily unavailable. Please contact support." }, { status: 503 });
