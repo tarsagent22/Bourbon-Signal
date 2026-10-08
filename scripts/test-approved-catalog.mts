@@ -65,7 +65,9 @@ const bible = readFileSync(new URL("../src/lib/bourbonBible.ts", import.meta.url
 assert.match(bible, /listApprovedBottles/);
 
 const storesRoute = readFileSync(new URL("../src/app/api/stores/route.ts", import.meta.url), "utf8");
-assert.match(storesRoute, /listApprovedLocations/);
+assert.match(storesRoute, /readSightingStoreDirectory/);
+const sightingDirectory = readFileSync("src/lib/sighting-store-directory.ts", "utf8");
+assert.match(sightingDirectory, /listApprovedLocations/);
 
 const bottleClient = readFileSync(new URL("../src/app/admin/bottle-queue/AdminBottleQueueClient.tsx", import.meta.url), "utf8");
 for (const phrase of ["Add to Bottle Bible", "Canonical name", "Brand", "Availability"]) assert.match(bottleClient, new RegExp(phrase));

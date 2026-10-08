@@ -58,11 +58,12 @@ assert.equal((await geography.GET(new Request("https://example.test/api/v1/geogr
 const directory=loadWithMocks("src/lib/sighting-store-directory.ts",{
  "next/cache":{unstable_cache:(fn:Function)=>fn},
  "./site-engine-contract":{readSiteExportResults:async()=>{throw Error("offline");},readBundledSiteExport:()=>null},
- "./approved-catalog-service":{listApprovedLocations:async()=>[{id:"bad",state:"NC",name:"Marshville",address:"Marshville, NC",city:"Marshville"}]},
+ "./approved-catalog-service":{listApprovedLocations:async()=>[{id:"bad",state:"NC",name:"Marshville",address:"Marshville, NC",city:"Marshville"},{id:"owner-approved",state:"CA",name:"Owner-approved retailer",address:"123456 Example Street",city:"Example City"}]},
 });
 const fallback=await directory.readSightingStoreDirectory();
 assert.equal(fallback.filter((s:any)=>s.state==="NC").length,466,"an unavailable engine may not erase the independent official directory");
 assert.ok(!fallback.some((s:any)=>s.id==="bad"));
+assert.ok(fallback.some((s:any)=>s.id==="owner-approved"),"owner-approved physical stores must remain selectable alongside official sources");
 let directoryUnavailable=false;
 const storeRoute=loadWithMocks("src/app/api/stores/route.ts",{
  "@/lib/sighting-store-directory":{readSightingStoreDirectory:async()=>{if(directoryUnavailable)throw Error("fixture unavailable");return stores;},SIGHTING_STORE_DIRECTORY_VERSION:data.generatedAt},
