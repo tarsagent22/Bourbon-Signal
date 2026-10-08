@@ -14,7 +14,7 @@ Use this only after the push-receipt migration and matching application release 
 ## Acceptance run
 
 1. With the app foregrounded, create or wait for one fresh, alert-eligible exact-location signal matching the controlled account's Radar area and rarity preferences.
-2. Confirm exactly one notification is received. Tap it and confirm the app opens Radar Matches using the same minimal `{ screen: "radar" }` payload contract used by background and terminated launches; no alert, bottle, store, account, or token identifier belongs in the OS payload.
+2. Confirm exactly one notification is received. A single-bottle preview names the bottle; a grouped preview shows the bottle count and up to two names with a remaining-count suffix. Tap it and confirm the app opens Radar Matches using the same `{ screen: "radar", alertId }` routing contract used by background and terminated launches. The opaque alert ID is resolved only against the signed-in account's inbox; bottle names, store, area, account IDs, and Expo tokens do not belong in routing data.
 3. Repeat with the app backgrounded, using a new bottle/location availability episode. Confirm one notification and the same Radar Matches routing.
 4. Terminate the app and repeat with another new episode. Confirm one notification and the same routing after cold start.
 5. Re-run the delivery worker for each already-used episode. Confirm bottle/location dedupe prevents another notification.
@@ -30,7 +30,8 @@ Use this only after the push-receipt migration and matching application release 
 ## Pass criteria
 
 - Permission is requested only from Radar.
-- Foreground, background, and terminated taps use the same minimal `{ screen: "radar" }` payload and open Radar Matches, which then fetches only the currently authenticated account's alerts.
+- Foreground, background, and terminated taps use the same `{ screen: "radar", alertId }` routing data and open Radar Matches, which then fetches only the currently authenticated account's alerts.
+- Bottle names intentionally appear in visible notification previews. Already-accepted OS/provider notifications can remain visible after logout; logout cannot recall those previews. New sends still require current device ownership and opt-in.
 - Delivery is immediate and area/preference filtered.
 - Bottle/location availability episodes dedupe across retries and regrouping.
 - Provider acceptance never counts as delivery; only a successful Expo receipt does.

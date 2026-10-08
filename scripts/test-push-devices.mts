@@ -24,10 +24,10 @@ assert.deepEqual(enabledPushTokens(disabled), []);
 
 const messages = buildExpoPushMessages([tokenA, tokenA, tokenB], { id: "alert-1", bottleName: "Stagg", storeLabel: "Example Spirits", matchedArea: "Raleigh, NC" });
 assert.equal(messages.length, 2);
-assert.equal(messages[0]?.title, "Bourbon Signal");
-assert.equal(messages[0]?.body, "Open Radar to check your latest matches.");
+assert.equal(messages[0]?.title, "Stagg");
+assert.equal(messages[0]?.body, "New Radar match. Open to view the report.");
 assert.deepEqual(messages[0]?.data, { screen: "radar", alertId: "alert-1" });
-for (const privateValue of ["Stagg", "Example Spirits", "Raleigh, NC"]) assert.equal(JSON.stringify(messages).includes(privateValue), false);
+for (const privateValue of ["Example Spirits", "Raleigh, NC"]) assert.equal(JSON.stringify(messages).includes(privateValue), false);
 assert.equal(messages[0]?.dedupeKey, "alert-1", "server-side alert identity still distinguishes episodes before serialization");
 assert.equal(messages[0]?.priority, "high");
 assert.equal(messages[0]?.sound, "default");
@@ -43,15 +43,37 @@ assert.equal(sent.rejected, 1);
 assert.deepEqual(sent.tickets, [{ id: "ticket-a", token: tokenA }]);
 assert.deepEqual(sent.invalidTokens, [tokenB]);
 assert.equal(Array.isArray(captured), true);
-for (const privateValue of ["Stagg", "Example Spirits", "Raleigh, NC", "dedupeKey"]) assert.equal(JSON.stringify(captured).includes(privateValue), false);
-assert.deepEqual(captured, [tokenA, tokenB].map(to => ({ to, sound: "default", title: "Bourbon Signal", body: "Open Radar to check your latest matches.", data: { screen: "radar", alertId: "alert-1" }, priority: "high" })));
+for (const privateValue of ["Example Spirits", "Raleigh, NC", "dedupeKey", "bottleNames"]) assert.equal(JSON.stringify(captured).includes(privateValue), false);
+assert.deepEqual(captured, [tokenA, tokenB].map(to => ({ to, sound: "default", title: "Stagg", body: "New Radar match. Open to view the report.", data: { screen: "radar", alertId: "alert-1" }, priority: "high" })));
 let otherCaptured: unknown;
 await sendExpoPushMessages(buildExpoPushMessages([tokenA, tokenB], { id: "other-user-alert", bottleName: "Other bottle", storeLabel: "Other store", matchedArea: "Other area" }), (async (_input, init) => {
   otherCaptured = JSON.parse(String(init?.body));
   return Response.json({ data: [{ status: "ok", id: "other-ticket-a" }, { status: "ok", id: "other-ticket-b" }] });
 }) as typeof fetch);
-assert.equal(JSON.stringify(otherCaptured).includes("Other bottle"), false);
+assert.equal((otherCaptured as Array<{ title: string }>)[0]?.title, "Other bottle");
 assert.equal((otherCaptured as Array<{ data: { alertId: string } }>)[0]?.data.alertId, "other-user-alert", "the opaque alert token resolves only against the current authenticated member's alert inbox");
+
+const grouped = buildExpoPushMessages([tokenA], { id: "grouped", bottleName: "Stagg", bottleNames: ["Stagg", "Weller Full Proof", "E.H. Taylor Small Batch", "stagg"], storeLabel: "Private store", matchedArea: "Private area" })[0]!;
+assert.equal(grouped.title, "3 bottles matched your Radar");
+assert.equal(grouped.body, "Stagg · Weller Full Proof · +1 more");
+let groupedWire: any;
+await sendExpoPushMessages([{ ...grouped, title: "Injected title", body: "Private store", data: { ...grouped.data, userId: "private-user" } } as any], (async (_url, init) => {
+  groupedWire = JSON.parse(String(init?.body))[0];
+  return Response.json({ data: [{ status: "ok", id: "grouped-ticket" }] });
+}) as typeof fetch);
+assert.equal(groupedWire.title, grouped.title);
+assert.equal(groupedWire.body, grouped.body);
+assert.deepEqual(groupedWire.data, { screen: "radar", alertId: "grouped" });
+assert.doesNotMatch(JSON.stringify(groupedWire), /Private store|Private area|private-user|Injected title|bottleNames|dedupeKey/);
+
+const dirtyName = buildExpoPushMessages([tokenA], { id: "dirty", bottleName: "  Stagg\n\u202e  ", storeLabel: "unused", matchedArea: "unused" })[0]!;
+assert.equal(dirtyName.title, "Stagg");
+const longName = buildExpoPushMessages([tokenA], { id: "long", bottleName: "🥃".repeat(130), storeLabel: "unused", matchedArea: "unused" })[0]!;
+assert.equal(Array.from(longName.title).length, 100);
+assert.ok(longName.title.endsWith("…"));
+const fallback = buildExpoPushMessages([tokenA], { id: "empty", bottleName: " ", bottleNames: ["", "\n"], storeLabel: "unused", matchedArea: "unused" })[0]!;
+assert.equal(fallback.title, "Bourbon Signal");
+assert.equal(fallback.body, "Open Radar to check your latest matches.");
 
 let requests = 0;
 const many = Array.from({ length: 205 }, () => messages[0]!);
