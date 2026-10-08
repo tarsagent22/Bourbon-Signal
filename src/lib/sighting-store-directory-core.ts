@@ -86,7 +86,9 @@ export function searchSightingStoreDirectory(stores: readonly SightingStoreDirec
     const fields = [name, city, zip, id, storeSearchText(store.address), storeSearchText(store.county), storeSearchText(store.board), store.state.toLowerCase(), ...(store.aliases || []).map(storeSearchText)];
     const words = fields.join(" ").split(" ");
     if (tokens.some(token => !words.some(word => word.startsWith(token)))) return [];
-    const score = !normalized ? 0 : id === normalized ? 1000 : name === normalized ? 900 : city === normalized ? 800 : zip === normalized ? 750 : name.startsWith(normalized) ? 700 : fields.some(field => field.includes(normalized)) ? 600 : 400;
+    const contextualScore = (tokens.some(token => city.split(" ").some(word => word.startsWith(token))) ? 100 : 0)
+      + (tokens.some(token => name.split(" ").some(word => word.startsWith(token))) ? 20 : 0);
+    const score = !normalized ? 0 : id === normalized ? 1000 : name === normalized ? 900 : city === normalized ? 800 : zip === normalized ? 750 : name.startsWith(normalized) ? 700 : fields.some(field => field.includes(normalized)) ? 600 : 400 + contextualScore;
     return [{ store, score }];
   }).sort((a,b) => b.score - a.score || a.store.state.localeCompare(b.store.state) || a.store.city.localeCompare(b.store.city) || a.store.name.localeCompare(b.store.name) || a.store.address.localeCompare(b.store.address) || a.store.id.localeCompare(b.store.id)).map(entry => entry.store);
 }

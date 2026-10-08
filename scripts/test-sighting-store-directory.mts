@@ -21,6 +21,7 @@ assert.ok(searchSightingStoreDirectory(stores,"Lewisville","NC").some(s=>/6850 S
 const raleighMatches=searchSightingStoreDirectory(stores,"ABC Raleigh","NC");
 const raleighStores=stores.filter(s=>s.state==="NC"&&s.city.toLowerCase()==="raleigh");
 assert.ok(raleighStores.length>0);
+assert.ok(raleighMatches.slice(0,raleighStores.length).every(store=>store.city==="Raleigh"),"city matches must rank ahead of unrelated stores on Raleigh-named streets");
 for(const store of raleighStores)assert.ok(raleighMatches.some(match=>match.id===store.id),"word order must not hide a Raleigh ABC store");
 assert.ok(searchSightingStoreDirectory(stores,"854 uni","NC").some(s=>/854 Union/i.test(s.address)),"partial street input must find Concord ABC");
 assert.ok(searchSightingStoreDirectory(stores,"2760","NC").some(s=>s.zip?.startsWith("2760")),"ZIP prefixes are searchable");
