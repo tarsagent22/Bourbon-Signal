@@ -151,7 +151,7 @@ export default function RadarScreen() {
   const watchedKeys = useMemo(() => new Set((preferences?.bottleAlertPreferences.bottleKeys || []).map(canonicalBottleKey)), [preferences]);
   const watchedNames = preferences?.bottleAlertPreferences.bottleNames || [];
   const searchResults = useMemo(() => bottleCatalog.search(query, 30), [bottleCatalog.search, query]);
-  const activeAlerts = alerts.alerts.filter((alert) => !alert.archivedAt);
+  const activeAlerts = alerts.alerts.filter((alert) => !alert.archivedAt && alert.id !== openedNotificationAlert?.id);
   const pushPresentation = radarPushState({ status: pushStatus, permission: pushPermission, preferenceEnabled: Boolean(preferences?.notificationPreferences.push.enabled), error: pushError, statusLoadFailed: pushStatusLoadFailed, failedAction: pushFailedAction });
   const pushReadiness = pushPresentation.readiness;
   const pushRecoveryAction: PushRecoveryAction = pushPresentation.action;
@@ -245,7 +245,7 @@ export default function RadarScreen() {
     {view === "matches" && openedNotificationAlert ? <View>
       <SectionTitle>Opened alert</SectionTitle>
       <Text style={styles.muted}>This is the report from your notification. Its original Signal detail is no longer available.</Text>
-      <AlertCard alert={openedNotificationAlert} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} />
+      <AlertCard alert={openedNotificationAlert} saving={saving} watchedNames={watchedNames} />
     </View> : null}
 
     {view === "matches" && (!alertsLoadFailed || activeAlerts.length > 0) ? <MatchesView alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
@@ -294,7 +294,7 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
   </View>;
 }
 
-function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAlert; saving: boolean; watchedNames: string[]; onMutate: (action: "mark_read" | "archive", alertId: string) => Promise<void> }) {
+function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAlert; saving: boolean; watchedNames: string[]; onMutate?: (action: "mark_read" | "archive", alertId: string) => Promise<void> }) {
   const router = useRouter();
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const route = signalRouteForRequestedAlert([alert], alert.id);
@@ -310,7 +310,7 @@ function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAle
     {stale ? <Text style={styles.stale}>Past alert · availability unconfirmed</Text> : <Text style={styles.fresh}>Recent report · availability unconfirmed</Text>}
     {detailsExpanded ? <View style={styles.stack}><Text style={styles.muted}>Reported {new Date(observedAt).toLocaleString()}</Text><Text style={styles.muted}>{alert.quantity !== null ? `Reported quantity: ${alert.quantity}. ` : ""}Availability can change after a report.</Text></View> : null}
     <SmallButton primary label={detailsExpanded ? "Hide details" : "View details"} onPress={() => { if (route) router.push(route); else setDetailsExpanded(value => !value); }} />
-    <View style={styles.rowActions}>{!alert.readAt ? <SmallButton label="Mark read" disabled={saving} onPress={() => void onMutate("mark_read", alert.id)} /> : null}<SmallButton label="Archive" disabled={saving} onPress={() => void onMutate("archive", alert.id)} /></View>
+    {onMutate ? <View style={styles.rowActions}>{!alert.readAt ? <SmallButton label="Mark read" disabled={saving} onPress={() => void onMutate("mark_read", alert.id)} /> : null}<SmallButton label="Archive" disabled={saving} onPress={() => void onMutate("archive", alert.id)} /></View> : null}
   </MemberCard>;
 }
 

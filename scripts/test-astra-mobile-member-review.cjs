@@ -120,7 +120,7 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
   const native = { StyleSheet: { create: v => v }, View: 'View', Text: 'Text', ScrollView: 'ScrollView', RefreshControl: 'RefreshControl', ActivityIndicator: 'ActivityIndicator', Pressable: 'Pressable', TextInput: 'TextInput' };
   const Stack = Object.assign(() => null, { Screen: 'Screen' });
   const layoutIdentity = { current: '' };
-  const layout = loadWithMocks(root + '/apps/mobile/app/(app)/_layout.tsx', { react: { ...React, useRef: () => layoutIdentity }, '@clerk/expo': { useAuth: () => auth }, 'expo-router': { Stack, Redirect: 'Redirect' }, 'react-native': native, '../../src/activity/useMobileActivity': {useMobileActivity(){}} });
+  const layout = loadWithMocks(root + '/apps/mobile/app/(app)/_layout.tsx', { react: { ...React, useRef: () => layoutIdentity }, '@clerk/expo': { useAuth: () => auth }, 'expo-router': { Stack, Redirect: 'Redirect' }, 'react-native': native, '../../src/activity/useMobileActivity': {useMobileActivity(){}}, '../../src/push/PushResponseHandler': {PushMaintenance(){return null;}} });
   let currentApi, refresh, instance, index, currentKey;
   const instances = new Map();
   const hooks = { ...React, useRef: v => instance.refs[index++] ||= { current: v }, useState: v => { const owner = instance, i = index++; if (!(i in owner.states)) owner.states[i] = v; return [owner.states[i], value => { if (owner.mounted) owner.states[i] = typeof value === 'function' ? value(owner.states[i]) : value; }]; }, useMemo: f => f(), useCallback: f => f, useEffect: () => {} };
@@ -135,7 +135,7 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
   const pending = []; const deferred = () => new Promise(resolve => pending.push(resolve));
   currentApi = { getAdminAccess: deferred, getMemberProfile: deferred, getSignalPoints: deferred, getAchievements: deferred, updateMemberProfile: deferred };
   function render(screen) {
-    const key = layout.default().key;
+    const key = layout.default().props.children[1].key;
     if (key !== currentKey) { for (const old of instances.values()) old.mounted=false; instances.clear(); currentKey=key; }
     if (!instances.has(screen)) instances.set(screen,{key,mounted:true,states:[],refs:[]});
     instance=instances.get(screen); index=0; return screen.default();
@@ -155,6 +155,6 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
   const bKey=currentKey;auth={...auth,sessionId:'session-B-new'};render(account);assert.notEqual(currentKey,bKey);
   const lastSignedInKey=currentKey;
   auth={...auth,isSignedIn:false,userId:null,sessionId:null};
-  assert.equal(layout.default().type,Stack,'root protected routes own logout, nested navigator stays stable');
-  assert.equal(layout.default().key,lastSignedInKey,'logout never resets the native stack while it is dismissing');
+  assert.equal(layout.default().props.children[1].type,Stack,'root protected routes own logout, nested navigator stays stable');
+  assert.equal(layout.default().props.children[1].key,lastSignedInKey,'logout never resets the native stack while it is dismissing');
 });
