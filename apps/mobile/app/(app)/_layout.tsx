@@ -2,6 +2,7 @@ import { useAuth } from "@clerk/expo";
 import { Stack } from "expo-router";
 import { useRef } from "react";
 import { colors } from "../../src/theme";
+import { MobileActivity } from "../../src/activity/MobileActivity";
 
 export default function AppLayout() {
   const { userId, sessionId } = useAuth();
@@ -9,7 +10,8 @@ export default function AppLayout() {
   if (userId && sessionId) signedInIdentity.current = `${userId}:${sessionId}`;
   // Root Stack.Protected removes the member routes and their history on logout.
   // Retain the last identity during dismissal, but reset for a new account.
-  return (
+  return (<>
+    <MobileActivity />
     <Stack key={signedInIdentity.current} screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false, headerBackButtonDisplayMode: "minimal" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
@@ -26,6 +28,6 @@ export default function AppLayout() {
       <Stack.Screen name="account/terms" options={{ title: "Terms" }} />
       <Stack.Screen name="account/membership" options={{ title: "Membership", headerBackTitle: "Account", headerBackButtonDisplayMode: "minimal" }} />
       <Stack.Screen name="account/membership/[tier]" options={{ title: "Review membership", headerBackTitle: "Plans", headerBackButtonDisplayMode: "minimal" }} />
-    </Stack>
+    </Stack></>
   );
 }

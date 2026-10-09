@@ -38,10 +38,12 @@ test('member navigation retains its key during logout and resets when another ac
     '@clerk/expo': { useAuth: () => identity },
     react: { useRef: () => retained },
     'expo-router': { Stack: Object.assign(() => null, { Screen: () => null }) },
+    '../../src/activity/MobileActivity': { MobileActivity: () => null },
   });
-  assert.equal(Layout().key, 'first:session-one');
+  const navigationKey = () => Layout().props.children[1].key;
+  assert.equal(navigationKey(), 'first:session-one');
   identity = { userId: null, sessionId: null };
-  assert.equal(Layout().key, 'first:session-one');
+  assert.equal(navigationKey(), 'first:session-one');
   identity = { userId: 'second', sessionId: 'session-two' };
-  assert.equal(Layout().key, 'second:session-two');
+  assert.equal(navigationKey(), 'second:session-two');
 });
