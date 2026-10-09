@@ -1,4 +1,4 @@
-import { sourceScopeMatches } from '../../engine/src/sources/poll-policy.mjs';
+import { failClosedPollRows } from '../../engine/src/sources/poll-policy.mjs';
 import { readPollProjection, pollCandidatesValid, schedulerEnabled, POLL_SOURCES, tracePollCandidates } from './source-scheduler';
 import { unstable_cache } from "next/cache";
 
@@ -41,7 +41,7 @@ export async function pollRuntimeSourceLanes(dryRun: boolean) {
 const inRegisteredScope = (c: Row) => c.state === 'SC' && c.sourceChain === 'liquor-library'
   && c.storeId === 'liquor-library:45SNB155S1XMP' && SOURCE_LANES.some(s => s.subjects.some(d => d.productId === c.productId));
 export async function mergeRuntimeSourceCandidates(candidates: Row[], alerts: SiteExportResult) {
-  if (schedulerEnabled()) { try { candidates=(await readPollProjection(candidates, 'candidates')).rows; } catch { candidates=candidates.filter(c=>!c.sourcePollId && !POLL_SOURCES.some(source=>sourceScopeMatches(source,c))); } }
+  if (schedulerEnabled()) { try { candidates=(await readPollProjection(candidates, 'candidates')).rows; } catch { candidates=failClosedPollRows(candidates,POLL_SOURCES,'candidates'); } }
   if (!storageEnabled()) return candidates;
   try {
     const context = await readRuntimeLaneContext();
@@ -73,7 +73,7 @@ export async function readRuntimeSourceDropOverlay(drops: Row[], snapshotId: str
   const original = !storageEnabled() || !snapshotId ? await readUncachedSourceDropOverlay(drops, snapshotId) : await readCachedSourceDropOverlay(drops, snapshotId, promotionEnabled());
   if (!schedulerEnabled()) return original;
   try { const poll=await readPollProjection(original.drops, 'drops');return {drops:poll.rows,version:original.version+':'+poll.version}; }
-  catch { return {...original,version:original.version+':poll-unavailable'}; }
+  catch { return {drops:failClosedPollRows(original.drops,POLL_SOURCES,'drops'),version:original.version+':poll-unavailable'}; }
 }
 
 async function readRuntimeSourceDemand(): Promise<AreaWatchlistDemand | null> {

@@ -1,7 +1,7 @@
 import { parseNcDatedAnnouncements } from '../src/collectors/nc-dated-announcements.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { recoveryPolicy, mergePollProjection, validatePollPolicy } from '../src/sources/poll-policy.mjs';
+import { recoveryPolicy, mergePollProjection, validatePollPolicy, failClosedPollRows } from '../src/sources/poll-policy.mjs';
 import { requiresStateAlertSuppression } from '../src/state-failure-isolation.mjs';
 import { buildAnnouncementAlerts, applyAlertPolicyToCandidate } from '../src/export-site-contract.mjs';
 
@@ -68,4 +68,11 @@ test('NC dated event parser requires explicit publication, clock zone and lotter
  assert.equal(parseNcDatedAnnouncements(html(row)).length,1);
  for(const patch of [{datePublished:null},{startDate:'2026-10-10'},{name:'Eagle Rare lottery',endDate:row.startDate}])assert.equal(parseNcDatedAnnouncements(html({...row,...patch})).length,0);
  assert.equal(parseNcDatedAnnouncements(html({...row,name:'Eagle Rare lottery',entryDeadline:row.startDate}))[0].entryDeadline,row.startDate);
+});
+
+test('storage/policy failure never restores owned snapshot stock or deletes unrelated evidence',()=>{
+ const registry=[{id:'fl:abc',state:'FL',chain:'abc'}];
+ const rows=[{id:'owned',state:'FL',sourceChain:'abc',canAlertAsInventory:true},{id:'healthy',state:'NC',canAlertAsWatch:true}];
+ assert.deepEqual(failClosedPollRows(rows,registry,'candidates').map(row=>row.id),['healthy']);
+ const drops=failClosedPollRows(rows,registry,'drops');assert.equal(drops[0].stale,true);assert.equal(drops[0].canAlertAsInventory,false);assert.deepEqual(drops[1],rows[1]);
 });

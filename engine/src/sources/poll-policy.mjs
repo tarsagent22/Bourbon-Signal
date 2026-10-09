@@ -53,3 +53,9 @@ export function validatePollPolicy(jobs,registry,lookup,health,quarantined='') {
       drops:(job.projection.drops || []).map(row=>allowed(row)?row:{...row,stale:true,canAlertAsInventory:false,canAlertAsWatch:false})}};
   });
 }
+
+export function failClosedPollRows(rows,registry,kind) {
+ const owned=row=>registry.some(source=>sourceScopeMatches(source,row));
+ return kind==='candidates'?rows.filter(row=>!owned(row) && !row.sourcePollId)
+  : rows.map(row=>owned(row)?{...row,stale:true,canAlertAsInventory:false,canAlertAsWatch:false}:row);
+}
