@@ -120,7 +120,7 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
   const native = { StyleSheet: { create: v => v }, View: 'View', Text: 'Text', ScrollView: 'ScrollView', RefreshControl: 'RefreshControl', ActivityIndicator: 'ActivityIndicator', Pressable: 'Pressable', TextInput: 'TextInput' };
   const Stack = Object.assign(() => null, { Screen: 'Screen' });
   const layoutIdentity = { current: '' };
-  const layout = loadWithMocks(root + '/apps/mobile/app/(app)/_layout.tsx', { react: { ...React, useRef: () => layoutIdentity }, '@clerk/expo': { useAuth: () => auth }, 'expo-router': { Stack, Redirect: 'Redirect' }, 'react-native': native });
+  const layout = loadWithMocks(root + '/apps/mobile/app/(app)/_layout.tsx', { react: { ...React, useRef: () => layoutIdentity }, '@clerk/expo': { useAuth: () => auth }, 'expo-router': { Stack, Redirect: 'Redirect' }, 'react-native': native, '../../src/activity/useMobileActivity': {useMobileActivity(){}} });
   let currentApi, refresh, instance, index, currentKey;
   const instances = new Map();
   const hooks = { ...React, useRef: v => instance.refs[index++] ||= { current: v }, useState: v => { const owner = instance, i = index++; if (!(i in owner.states)) owner.states[i] = v; return [owner.states[i], value => { if (owner.mounted) owner.states[i] = typeof value === 'function' ? value(owner.states[i]) : value; }]; }, useMemo: f => f(), useCallback: f => f, useEffect: () => {} };

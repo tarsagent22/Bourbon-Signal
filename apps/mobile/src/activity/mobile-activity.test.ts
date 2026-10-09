@@ -23,7 +23,7 @@ test('activity client uses authenticated POST and never caches the write',async(
   }});
   await api.recordMobileActivity({platform:'ios',appVersion:'1.1.0',updateId:null});await api.recordMobileActivity({platform:'ios',appVersion:'1.1.0',updateId:null});assert.equal(calls,2);
 });
-test('native component gates sign-in and web, reports foreground only and removes timers/listeners',()=>{
+test('native hook gates sign-in and web, reports foreground only and removes timers/listeners',()=>{
   let effect:()=>any, listener:(s:string)=>void, timer:()=>void, reports=0, stops=0, removed=0;
   let signedIn=false, platform='ios';
   const state={currentState:'active',addEventListener:(_:string,fn:(s:string)=>void)=>{listener=fn;return {remove:()=>removed++};}};
@@ -31,14 +31,14 @@ test('native component gates sign-in and web, reports foreground only and remove
   globalThis.setInterval=((fn:()=>void)=>{timer=fn;return 1;}) as any;
   globalThis.clearInterval=(()=>{removed++;}) as any;
   try {
-    const {MobileActivity}=loadWithMocks('src/activity/MobileActivity.tsx',{
+    const {useMobileActivity}=loadWithMocks('src/activity/useMobileActivity.ts',{
       react:{useEffect:(fn:()=>any)=>{effect=fn;}},'@clerk/expo':{useAuth:()=>({isLoaded:true,isSignedIn:signedIn,userId:signedIn?'user':null,sessionId:'session'})},
       'expo-constants':{expoConfig:{version:'1.1.0'}},'expo-updates':{updateId:null},'react-native':{AppState:state,Platform:{get OS(){return platform;}}},
       '../hooks/useMobileApi':{useMobileApi:()=>({recordMobileActivity:()=>{}})},'./mobile-activity':{createActivityReporter:()=>({report:()=>reports++,stop:()=>stops++})},
     });
-    MobileActivity();assert.equal(effect!(),undefined);assert.equal(reports,0);
-    signedIn=true;platform='web';MobileActivity();assert.equal(effect!(),undefined);assert.equal(reports,0);
-    platform='ios';MobileActivity();const cleanup=effect!();assert.equal(reports,1);
+    useMobileActivity();assert.equal(effect!(),undefined);assert.equal(reports,0);
+    signedIn=true;platform='web';useMobileActivity();assert.equal(effect!(),undefined);assert.equal(reports,0);
+    platform='ios';useMobileActivity();const cleanup=effect!();assert.equal(reports,1);
     state.currentState='background';timer!();listener!('background');assert.equal(reports,1);
     state.currentState='active';listener!('active');assert.equal(reports,2);cleanup();assert.equal(stops,1);assert.equal(removed,2);
   } finally {globalThis.setInterval=originalSet;globalThis.clearInterval=originalClear;}

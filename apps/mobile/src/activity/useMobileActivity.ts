@@ -6,7 +6,7 @@ import { AppState, Platform } from 'react-native';
 import { useMobileApi } from '../hooks/useMobileApi';
 import { createActivityReporter } from './mobile-activity';
 
-export function MobileActivity() {
+export function useMobileActivity() {
   const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
   const api = useMobileApi();
   useEffect(() => {
@@ -21,5 +21,4 @@ export function MobileActivity() {
     const timer = setInterval(report, 60_000);
     return () => { reporter.stop(); listener.remove(); clearInterval(timer); };
   }, [api, isLoaded, isSignedIn, userId, sessionId]);
-  return null;
 }
