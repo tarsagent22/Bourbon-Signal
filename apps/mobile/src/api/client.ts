@@ -311,6 +311,7 @@ export function createMobileApi({
       return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { method: "PUT", body: { outcome } });
     },
     submitFeedback(body: import('../../../../shared/member-feedback').FeedbackInput) { return request<{ok:true;id:string}>('/api/v1/me/feedback',{method:'POST',body}); },
+    recordMobileActivity(body: { platform: 'ios' | 'android'; appVersion: string; updateId: string | null }) { return request<{ok:boolean}>("/api/v1/me/mobile-activity", {method:'POST',body}); },
     getAdminAccess() { return request<{allowed:boolean}>("/api/admin/access", {fresh:true}); },
     getAdminData<T>(section: 'overview'|'coverage'|'members'|'sightings'|'bottle-contributions'|'signal-points'|'catalog'|'posts'|'member-detail'|'shipping'|'operations'|'pricing'|'feedback', query = '') { return request<T>(`/api/admin/${section}${query}`, {fresh:true}); },
     saveAdminReview(section: 'coverage'|'sightings'|'bottle-contributions'|'signal-points'|'catalog'|'posts'|'member-detail'|'shipping'|'feedback', body: Record<string,unknown>) { return request<{ok:boolean;[key:string]:unknown}>(`/api/admin/${section}`, {method:'PATCH',body}); },

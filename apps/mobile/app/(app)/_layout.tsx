@@ -2,9 +2,11 @@ import { useAuth } from "@clerk/expo";
 import { Stack } from "expo-router";
 import { useRef } from "react";
 import { colors } from "../../src/theme";
+import { useMobileActivity } from "../../src/activity/useMobileActivity";
 
 export default function AppLayout() {
   const { userId, sessionId } = useAuth();
+  useMobileActivity();
   const signedInIdentity = useRef("");
   if (userId && sessionId) signedInIdentity.current = `${userId}:${sessionId}`;
   // Root Stack.Protected removes the member routes and their history on logout.

@@ -117,7 +117,7 @@ function human(value: unknown) {
         "bottled-in-bond": "Founder",
         barrel: "Barrel Proof",
         standard: "Standard",
-        free: "Free", all: "All", paid: "Paid", joined_desc: "Newest joined", joined_asc: "Oldest joined", activity: "Recent sign-in", name: "Name A–Z",
+        free: "Free", all: "All", paid: "Paid", joined_desc: "Newest joined", joined_asc: "Oldest joined", activity: "Recent sign-in", name: "Name A–Z", all_members: "All members", mobile_app_users: "Mobile app users", mobile_activity: "Recent app activity",
       } as Record<string, string>
     )[text] || text.replace(/([a-z])([A-Z])/g, "$1 $2").replaceAll("_", " ")
   );
@@ -1282,6 +1282,15 @@ function SubmissionEditor({
   );
 }
 
+function MobileActivitySummary({ records }: { records?: Row[] }) {
+  if (!records?.length) return <Text style={ui.mini}>No mobile app activity recorded yet</Text>;
+  return <>{records.map(r => <View key={r.platform} style={ui.history}>
+    <Text style={ui.badge}>{r.platform === 'ios' ? 'iOS' : 'Android'} · App {r.appVersion}</Text>
+    <Text style={ui.small}>Last active {new Date(r.lastSeenAt).toLocaleString()}</Text>
+    <Text style={ui.mini}>First seen {new Date(r.firstSeenAt).toLocaleString()}</Text>
+  </View>)}</>;
+}
+
 function Members({
   api,
   selected,
@@ -1298,7 +1307,8 @@ function Members({
   onActivity: (kind:string) => void;
 }) {
   const [q, setQ] = useState(""), [filter,setFilter] = useState("all"), [sort,setSort] = useState("joined_desc"), [offset,setOffset] = useState(0);
-  const state = useData(api, "members", `?q=${encodeURIComponent(q)}&filter=${filter}&sort=${sort}&offset=${offset}`);
+  const [app, setApp] = useState('all');
+  const state = useData(api, "members", `?q=${encodeURIComponent(q)}&filter=${filter}&sort=${sort}&offset=${offset}&app=${app}`);
 
   if (selected)
     return (
@@ -1315,10 +1325,12 @@ function Members({
   return (
     <>
       <Text style={s.heading}>Members</Text>
+      <Tabs choices={['all_members','mobile_app_users']} value={app === 'all' ? 'all_members' : 'mobile_app_users'} onChange={v => {setApp(v === 'all_members' ? 'all' : 'mobile');setSort(v === 'all_members' ? 'joined_desc' : 'mobile_activity');setOffset(0);}} />
+      <Text style={ui.mini}>Shows members who have opened the app while signed in. Activity updates about every five minutes.</Text>
       <Search label="Name, email or member number" onSearch={v => {setQ(v);setOffset(0);}} />
       <Tabs choices={["all","free","paid","standard","barrel","bottled-in-bond"]} value={filter} onChange={v => {setFilter(v);setOffset(0);}} />
       <Text style={ui.mini}>Paid includes all premium access. Payment status is shown separately.</Text>
-      <Tabs choices={["joined_desc","joined_asc","activity","name"]} value={sort} onChange={v => {setSort(v);setOffset(0);}} />
+      <Tabs choices={["joined_desc","joined_asc","activity","mobile_activity","name"]} value={sort} onChange={v => {setSort(v);setOffset(0);}} />
       <Status state={state} />
       {state.data?.members.map((r: Row) => (
         <View key={r.id} style={s.card}>
@@ -1332,6 +1344,7 @@ function Members({
           </Text>
           <Text style={ui.small}>Billing: {human(r.billingStatus)} · {human(r.billingProvider)}</Text>
           <Text style={ui.mini}>Joined {date(r.createdAt)} · Last sign-in {date(r.lastSignInAt)}</Text>
+          <MobileActivitySummary records={r.mobileActivity} />
           <Action label="Open member details" onPress={() => onSelect(r.id)} />
         </View>
       ))}
@@ -1410,6 +1423,7 @@ function MemberDetail({
               {d?.posts?.[0]?.count ?? "—"} community posts
             </Text>
             <Action label="Open community posts" onPress={onCommunity} />
+            <MobileActivitySummary records={m.mobileActivity} />
           </View>
           {d?.unavailable.length ? (
             <Text style={ui.error}>

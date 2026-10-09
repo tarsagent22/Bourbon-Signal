@@ -1,6 +1,7 @@
 import { resolveEffectiveMembershipTier } from './entitlements';
 import { companyMemberPrimaryEmail, type CompanyMemberUser } from './company-control-room';
 import { communityDisplayNameFromMetadata } from './community-display-name';
+import { mobileActivityRecords } from './mobile-activity';
 export function adminMember(user: CompanyMemberUser, now = new Date()) {
   // Unsafe metadata is member-editable and cannot establish membership access.
   const m = user.publicMetadata || {};
@@ -17,15 +18,17 @@ export function adminMember(user: CompanyMemberUser, now = new Date()) {
   return { id: user.id!, email: companyMemberPrimaryEmail(user), name: communityDisplayNameFromMetadata(m) || [user.firstName,user.lastName].filter(Boolean).join(' '),
     number: m.founderNumber || m.memberNumber || null, numberLabel: m.founderNumber ? 'Founder' : 'Member', tier,
     status, billingStatus, billingProvider: provider, accessSources: tier === 'free' ? ['free'] : sources.length ? sources : ['granted'],
-    createdAt: user.createdAt, lastSignInAt: user.lastSignInAt || null };
+    createdAt: user.createdAt, lastSignInAt: user.lastSignInAt || null, mobileActivity: mobileActivityRecords(user.privateMetadata?.mobileActivity) };
 }
 export function directoryPage(users: CompanyMemberUser[], params: URLSearchParams, now = new Date()) {
   const filter = params.get('filter') || 'all', sort = params.get('sort') || 'joined_desc';
   const offset = Number(params.get('offset') || 0), limit = 40;
-  if (!['all','free','paid','standard','barrel','bottled-in-bond'].includes(filter) || !['joined_desc','joined_asc','activity','name'].includes(sort) || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000) throw new Error('Invalid directory filter.');
+  const app = params.get('app') || 'all';
+  if (!['all','mobile'].includes(app)) throw new Error('Invalid app filter.');
+  if (!['all','free','paid','standard','barrel','bottled-in-bond'].includes(filter) || !['joined_desc','joined_asc','activity','mobile_activity','name'].includes(sort) || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000) throw new Error('Invalid directory filter.');
   const q = (params.get('q') || '').trim().toLowerCase().slice(0,100);
-  const found = users.map(u => adminMember(u,now)).filter(m => (filter === 'all' || (filter === 'paid' ? m.tier !== 'free' : m.tier === filter)) && `${m.name} ${m.email} ${m.number || ''}`.toLowerCase().includes(q));
+  const found = users.map(u => adminMember(u,now)).filter(m => (app === 'all' || m.mobileActivity.length > 0) && (filter === 'all' || (filter === 'paid' ? m.tier !== 'free' : m.tier === filter)) && `${m.name} ${m.email} ${m.number || ''}`.toLowerCase().includes(q));
   const time = (v: unknown) => new Date(v as string | number).getTime() || 0;
-  found.sort((a,b) => (sort === 'name' ? a.name.localeCompare(b.name) : sort === 'activity' ? time(b.lastSignInAt)-time(a.lastSignInAt) : sort === 'joined_asc' ? time(a.createdAt)-time(b.createdAt) : time(b.createdAt)-time(a.createdAt)) || a.id.localeCompare(b.id));
+  found.sort((a,b) => (sort === 'name' ? a.name.localeCompare(b.name) : sort === 'mobile_activity' ? time(b.mobileActivity[0]?.lastSeenAt)-time(a.mobileActivity[0]?.lastSeenAt) : sort === 'activity' ? time(b.lastSignInAt)-time(a.lastSignInAt) : sort === 'joined_asc' ? time(a.createdAt)-time(b.createdAt) : time(b.createdAt)-time(a.createdAt)) || a.id.localeCompare(b.id));
   return { members: found.slice(offset,offset+limit), total: found.length, offset, pageSize: limit, nextOffset: offset+limit < found.length ? offset+limit : null };
 }
