@@ -26,7 +26,7 @@ export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Fraunces_700Bold });
   useEffect(()=>{if(fontsLoaded || fontError)void SplashScreen.hideAsync();},[fontsLoaded,fontError]);
   return <StartupErrorBoundary>
-    {!fontsLoaded && !fontError ? <BrandLoading /> : !publishableKey ? (
+    {!publishableKey ? (
       <View style={styles.configuration}><Text style={styles.title}>Bourbon Signal</Text><Text style={styles.message}>This development build is missing its Clerk publishable key.</Text></View>
     ) : (
       <SafeAreaProvider>
@@ -34,7 +34,7 @@ export default function RootLayout() {
           <MobileApiProvider><PurchasesProvider>
             <DeviceTimeZoneCapture />
             <StatusBar style="light" />
-            <SessionNavigation />
+            {fontsLoaded || fontError ? <SessionNavigation /> : <BrandLoading />}
           </PurchasesProvider></MobileApiProvider>
         </ClerkProvider>
       </SafeAreaProvider>

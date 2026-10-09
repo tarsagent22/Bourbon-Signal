@@ -5,7 +5,7 @@ import { allowedFeedFilters, canUseDetailedFeedFilters } from "../../../src/sign
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
@@ -20,6 +20,10 @@ import { colors, typeScale } from "../../../src/theme";
 import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibility";
 
 type FeedView = "market" | "community";
+
+const FeedSignalRow = memo(function FeedSignalRow({ signal, highlighted }: { signal: Signal; highlighted: boolean }) {
+  return <SignalCard highlighted={highlighted} signal={signal} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: signal.id } })} />;
+});
 
 function OptionChooser({
   label,
@@ -652,7 +656,7 @@ export default function SignalFeedScreen() {
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <SignalCard highlighted={highlightedIds.includes(item.id)} signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
+      renderItem={({ item }) => <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}

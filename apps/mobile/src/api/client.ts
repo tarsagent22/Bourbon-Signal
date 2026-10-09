@@ -181,7 +181,7 @@ export function createMobileApi({
   maxReadCacheEntries?: number;
   now?: () => number;
 }) {
-  const recentReads = new Map<string, { expiresAt: number; promise: Promise<unknown>; pending: boolean }>();
+  const recentReads = new Map<string, { expiresAt: number; promise: Promise<unknown>; pending: boolean; fresh: boolean }>();
   let currentToken: string | null | undefined;
   let tokenRequest: Promise<string | null> | null = null;
   function requestToken() {
@@ -250,6 +250,11 @@ export function createMobileApi({
     if (token !== currentToken) { recentReads.clear(); currentToken = token; }
     pruneReads();
     if (options.method && options.method !== "GET") {
+      // Telemetry changes neither membership nor screen data. Do not discard
+      // useful navigation reads when the foreground activity report completes.
+      if (path === "/api/v1/me/mobile-activity" || path === "/api/v1/me/diagnostics") {
+        return performRequest<T>(path, options, token);
+      }
       // Related screens share these reads: a write can change profile, feed, points or preferences.
       recentReads.clear();
       try { return await performRequest<T>(path, options, token); }
@@ -258,12 +263,14 @@ export function createMobileApi({
     const key = `GET ${path}`;
     const time = now();
     const recent = recentReads.get(key);
-    if (recent && !options.fresh && (recent.pending || recent.expiresAt > time)) {
+    // A refresh bypasses an older normal read, but concurrent refresh consumers
+    // can share the same authoritative attempt. Completed refreshes never suppress a new one.
+    if (recent && (options.fresh ? recent.pending && recent.fresh : recent.pending || recent.expiresAt > time)) {
       recentReads.delete(key); recentReads.set(key, recent);
       return consume(recent.promise as Promise<T>, options.signal);
     }
     const promise = performRequest<T>(path, options, token);
-    const entry = { expiresAt: time + readCooldownMs, promise, pending: true };
+    const entry = { expiresAt: time + readCooldownMs, promise, pending: true, fresh: Boolean(options.fresh) };
     recentReads.set(key, entry);
     void promise.finally(() => { entry.pending = false; entry.expiresAt = now() + readCooldownMs; }).catch(() => undefined);
     pruneReads();

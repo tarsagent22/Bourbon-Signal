@@ -65,6 +65,61 @@ test("a preference write invalidates related cached profile reads across screens
   await api.updateMemberPreferences({ alertMode: "anything_notable" });
   await api.getMemberProfile(); assert.equal(reads, 2);
 });
+
+test("overlapping refreshes share one fresh attempt, bypass older reads and preserve consumer cancellation", async () => {
+  const completions: Array<(response: Response) => void> = [];
+  const api = createMobileApi({ getToken: async () => "same-account", fetcher: () => new Promise<Response>(resolve => completions.push(resolve)) });
+  const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+  const older = api.getMemberProfile();
+  await tick();
+  const controller = new AbortController();
+  const first = api.getMemberProfile({ fresh: true, signal: controller.signal });
+  const second = api.getMemberProfile({ fresh: true });
+  await tick();
+  assert.equal(completions.length, 2, "two refresh consumers start just one additional request");
+  controller.abort();
+  await assert.rejects(first, (error: unknown) => error instanceof MobileApiError && error.code === "REQUEST_CANCELLED");
+  completions[1](Response.json(profileFixture({ displayName: "Fresh" })));
+  assert.equal((await second).profile.displayName, "Fresh");
+  completions[0](Response.json(profileFixture({ displayName: "Old" })));
+  await older;
+  assert.equal((await api.getMemberProfile()).profile.displayName, "Fresh", "late normal reads cannot replace the refresh");
+  const next = api.getMemberProfile({ fresh: true });
+  await tick();
+  assert.equal(completions.length, 3, "the next explicit refresh still reaches the server");
+  completions[2](Response.json(profileFixture()));
+  await next;
+});
+
+test("failed older reads cannot evict a successful superseding refresh", async () => {
+  const completions: Array<(response: Response) => void> = [];
+  const api = createMobileApi({ getToken: async () => "same-account", fetcher: () => new Promise<Response>(resolve => completions.push(resolve)) });
+  const older = api.getMemberProfile();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const fresh = api.getMemberProfile({ fresh: true });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  completions[1](Response.json(profileFixture()));
+  await fresh;
+  completions[0](Response.json({ error: "Unavailable" }, { status: 503 }));
+  await assert.rejects(older);
+  await api.getMemberProfile();
+  assert.equal(completions.length, 2);
+});
+
+test("foreground telemetry preserves successful navigation reads without caching the report", async () => {
+  let reads = 0; let reports = 0;
+  const api = createMobileApi({ getToken: async () => "same-account", fetcher: async input => {
+    const request = new Request(input);
+    if (request.method === "POST") { reports++; return Response.json({ ok: true }); }
+    reads++; return Response.json(profileFixture());
+  } });
+  await api.getMemberProfile();
+  await api.recordMobileActivity({ platform: "ios", appVersion: "1.1.0", updateId: null });
+  await api.recordMobileActivity({ platform: "ios", appVersion: "1.1.0", updateId: null });
+  await api.getMemberProfile();
+  assert.equal(reads, 1);
+  assert.equal(reports, 2);
+});
 import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalAvailabilityIsCurrent, signalAvailabilityRefreshAt, signalCardStatusLabel, signalCardSummary, signalMemberTagLabel } from "./presentation";
 
 test("sends the selected feed view, bearer auth, and opaque cursor without inspecting it", async () => {
