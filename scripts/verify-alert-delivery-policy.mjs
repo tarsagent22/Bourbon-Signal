@@ -118,7 +118,7 @@ if (!/const dryRun = options\.dryRun === true \|\| requestedQueueMode === "shado
 }
 
 if (!runSafety.includes('ALERT_FRESHNESS_HARD_CAP_HOURS = 1') || !delivery.includes('resolveAlertFreshnessCapHours')) {
-  fail('Every alert delivery channel must enforce the non-configurable one-hour freshness ceiling.');
+  fail('Inventory alerts must enforce the non-configurable one-hour freshness ceiling.');
 }
 
 if (!delivery.includes('signalFreshnessHoursAt(asString(candidate.signalAt), now)')
@@ -162,11 +162,15 @@ if (!runSafety.includes('resolveAlertSnapshotMaxAgeMinutes') || !runSafety.inclu
 }
 
 const freshnessTable = exportContract.match(/function maxFreshnessForActionability[\s\S]*?const table = \{([\s\S]*?)\n  \};/u)?.[1] || '';
-const widenedFreshness = [...freshnessTable.matchAll(/(?:onSite|email|sms):\s*(\d+(?:\.\d+)?)/gu)]
-  .map((match) => Number(match[1]))
-  .filter((value) => value > 1);
-if (widenedFreshness.length) {
-  fail(`Engine alert policy widens ${widenedFreshness.length} channel freshness window(s) past one hour.`);
+for (const row of freshnessTable.matchAll(/(\w+):\s*\{([^}]+)\}/gu)) {
+  const cap=['board_or_county_lead','distillery_release_watch'].includes(row[1])?168:1;
+  for(const channel of row[2].matchAll(/(onSite|email|sms):\s*(\d+(?:\.\d+)?)/gu)) {
+    const channelCap=cap>1 && channel[1]==='sms'?72:cap;
+    if(Number(channel[2])>channelCap)fail(`Engine ${row[1]} ${channel[1]} freshness exceeds ${channelCap} hours.`);
+  }
+}
+if(!delivery.includes("['board_or_county_lead', 'distillery_release_watch']") || !delivery.includes('candidate.opportunityExpiresAt')) {
+  fail('Non-inventory freshness exceptions require explicit classes and event-expiry checks.');
 }
 
 if (process.exitCode) {

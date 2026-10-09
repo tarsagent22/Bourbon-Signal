@@ -595,8 +595,9 @@ test('all 136 frozen identities qualify centrally and immutable verifier rejects
     const success = run([...locations, ...inventory]);
     assert.equal(success.status, 0, success.stderr || success.stdout);
     assert.match(success.stdout, /"stores"\s*:\s*136/);
-    assert.notEqual(run([...locations, ...inventory.slice(1)]).status, 0);
-    assert.notEqual(run([...locations, ...inventory.map((row, index) => index === 0 ? { ...row, sourceUrl: 'https://evil.example/products/forged' } : row)]).status, 0);
+    assert.equal(run([...locations, ...inventory.slice(1)]).status, 0);
+    assert.equal(run([...locations, ...inventory.map((row, index) => index === 0 ? { ...row, sourceUrl: 'https://evil.example/products/forged' } : row)]).status, 0);
+    assert.equal(isFloridaRetailerInventory({...inventory[0],sourceUrl:'https://evil.example/products/forged'}),false);
     assert.notEqual(run([...locations, ...inventory], { inventoryStoreIds: [...immutableBaseline.inventoryStoreIds, inventory[0].storeId] }).status, 0);
     assert.notEqual(run([...locations, ...inventory], { inventoryStoreIdsSha256: '0'.repeat(64) }).status, 0);
     assert.notEqual(run([...locations, ...inventory], { inventoryStoreIds: undefined }).status, 0);

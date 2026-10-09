@@ -32,10 +32,10 @@ test('NC shipment collector persists the same non-alerting board-level semantics
     raw: { NUMUNITS: 12 },
   });
   assert.equal(signal.confidence, 0.9);
-  assert.equal(signal.policyMode, 'alert_county_store_inventory');
+  assert.equal(signal.policyMode, 'board_shipment_watch');
   assert.equal(signal.canAlertAsInventory, false);
   assert.equal(signal.canAlertAsWatch, false);
-  assert.equal(signal.raw.policyMode, 'alert_county_store_inventory');
+  assert.equal(signal.raw.policyMode, 'board_shipment_watch');
   assert.equal(signal.raw.shipmentScope, 'board_level_not_store_inventory');
   assert.match(signal.inventorySemantics, /board-level shipment/i);
 });

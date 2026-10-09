@@ -90,7 +90,7 @@ BEGIN
    WHERE NOT source_lane_opportunities.closed;
  END LOOP;
  UPDATE source_lane_heads SET revision=h.revision+1,lease_owner=NULL,lease_until=NULL,
- next_due_at=p_now+interval '5 minutes',healthy=(p_accounting->>'unknown')::int=0,
+ next_due_at=p_now+interval '5 minutes',healthy=COALESCE((p_accounting->>'valid')::int,0)>0,
  failures=0,last_reason=CASE WHEN (p_accounting->>'unknown')::int=0 THEN 'accepted' ELSE 'unknown_subject' END,
  accepted_at=clock_timestamp() WHERE source_id=p_source;
  RETURN h.revision+1;

@@ -522,6 +522,7 @@ function abcRoadblock(url, response, error, nextRoute) {
     source: 'ABC Fine Wine & Spirits immutable full-store expansion',
     url,
     status: response?.status || 'failed_closed',
+    retryAfterSeconds: response?.retryAfterSeconds || 0,
     error: response?.error || error,
     nextRoute,
   };
@@ -550,11 +551,15 @@ export async function collectFloridaAbcExpansion({ observedAt, matchBottle, fetc
   if (!inventoryResponse?.ok) {
     return { signals: [], roadblocks: [abcRoadblock(FLORIDA_ABC_SEARCHSPRING_URL, inventoryResponse, `HTTP ${inventoryResponse?.status || 0}`, 'Retry the single bounded Searchspring bourbon request.')] };
   }
+  const inventoryResults=parseJson(inventoryResponse.text)?.results;
+  if (!Array.isArray(inventoryResults) || !validateFloridaAbcSearchspringUniverse(inventoryResults)) {
+    return {signals:[],roadblocks:[abcRoadblock(FLORIDA_ABC_SEARCHSPRING_URL,null,'Invalid Searchspring schema or immutable store identity universe.','Review schema and exact identities before recovery.')]};
+  }
   const signals = collectFloridaAbcExpansionFromPayload({ payload: inventoryResponse.text, observedAt, matchBottle });
   const coveredStores = new Set(signals.map((row) => row.storeId));
   if (coveredStores.size !== FLORIDA_ABC_STORES.length
     || FLORIDA_ABC_STORES.some((store) => !coveredStores.has(store.storeId))) {
-    return { signals: [], roadblocks: [abcRoadblock(FLORIDA_ABC_SEARCHSPRING_URL, inventoryResponse, `Searchspring inventory universe produced policy-qualified rows for ${coveredStores.size} of 126 immutable stores.`, 'Keep the ABC expansion closed until one bounded payload intersects all 126 reviewed store codes.')] };
+    return { signals, roadblocks: [{...abcRoadblock(FLORIDA_ABC_SEARCHSPRING_URL, inventoryResponse, `Searchspring inventory universe produced policy-qualified rows for ${coveredStores.size} of 126 immutable stores.`, 'Publish validated store rows independently; report missing stores as unknown.'),status:'partial_positive_store_coverage'}], inventoryPayload: inventoryResponse.text };
   }
   return { signals, roadblocks: [], inventoryPayload: inventoryResponse.text };
 }

@@ -27,7 +27,8 @@
     "test:whiskey-phase": "tsx --test src/components/label-free-whiskey-phase.test.ts",
     "verify:reviewed-artwork": "node scripts/verify-label-free-catalog-coverage.mjs --allow-unmapped",
     "test:braces-security": "node ../../scripts/check-braces-backport-advisories.cjs",
-    "test:cohesion": "tsx --test src/drafts/form-draft.test.ts src/signals/feed-recovery.test.ts src/api/catalog-recovery.test.ts"
+    "test:cohesion": "tsx --test src/drafts/form-draft.test.ts src/signals/feed-recovery.test.ts src/api/catalog-recovery.test.ts",
+    "test:engine-readiness": "tsx --test src/startup/device-time-zone.test.ts"
   },
   "dependencies": {
     "@clerk/expo": "^4.5.2",

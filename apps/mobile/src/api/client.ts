@@ -430,8 +430,11 @@ export function createMobileApi({
       const suffix = deviceId ? `?deviceId=${encodeURIComponent(deviceId)}` : "";
       return request<PushDeviceStatus>(`/api/v1/me/push-devices${suffix}`, { fresh });
     },
+    saveDeviceTimeZone(timeZone: string) {
+      return request<{ok: boolean}>("/api/user/time-zone", { method: "POST", body: { timeZone } });
+    },
     registerPushDevice(payload: { deviceId: string; expoPushToken: string; platform: "ios" | "android" }) {
-      return request<PushDeviceStatus>("/api/v1/me/push-devices", { method: "POST", body: { action: "register", ...payload } });
+      return request<PushDeviceStatus>("/api/v1/me/push-devices", { method: "POST", body: { action: "register", ...payload, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone } });
     },
     disablePushDevice(deviceId: string) {
       return request<PushDeviceStatus>("/api/v1/me/push-devices", { method: "POST", body: { action: "disable", deviceId } });

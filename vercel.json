@@ -40,6 +40,10 @@
     {
       "path": "/api/ops/pricing-health",
       "schedule": "45 12 * * *"
+    },
+    {
+      "path": "/api/ops/source-scheduler",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

@@ -446,7 +446,8 @@ function candidateCanSendSms(candidate: CandidateAlert) {
 function candidateFreshnessHardCapHours(candidate: CandidateAlert) {
   return asString(candidate.sourceType).toLowerCase() === "community"
     ? COMMUNITY_ALERT_FRESHNESS_HARD_CAP_HOURS
-    : ALERT_FRESHNESS_HARD_CAP_HOURS;
+    : ['board_or_county_lead', 'distillery_release_watch'].includes(asString(candidate.actionabilityClass))
+      ? 168 : ALERT_FRESHNESS_HARD_CAP_HOURS;
 }
 
 function freshnessPolicyHours(candidate: CandidateAlert, channel: "onSite" | "email" | "sms", fallback: number) {
@@ -456,7 +457,7 @@ function freshnessPolicyHours(candidate: CandidateAlert, channel: "onSite" | "em
   return Math.min(
     candidateLimit,
     resolveAlertFreshnessCapHours(
-      ALERT_REALTIME_MAX_FRESHNESS_CONFIGURED_HOURS,
+      candidateFreshnessHardCapHours(candidate) > 2 ? candidateFreshnessHardCapHours(candidate) : ALERT_REALTIME_MAX_FRESHNESS_CONFIGURED_HOURS,
       candidateFreshnessHardCapHours(candidate),
     ),
   );
@@ -479,6 +480,7 @@ export function candidatePassesFreshOnSiteGuardrails(candidate: CandidateAlert, 
   const cautions = candidateDeliveryCautions(candidate);
   const freshnessHours = candidateFreshnessHoursAtDelivery(candidate, now);
 
+  if (candidate.opportunityExpiresAt && (!Number.isFinite(Date.parse(asString(candidate.opportunityExpiresAt))) || Date.parse(asString(candidate.opportunityExpiresAt)) <= Date.parse(now || new Date().toISOString()))) return false;
   if (!candidateCanUseOnSite(candidate)) return false;
   if (["standard", "regular", "common", "core"].includes(asString(candidate.tier).toLowerCase())) return false;
   if (asBoolean(candidate.bootstrap)) return false;
@@ -941,6 +943,7 @@ function memberAlertPassesFinalFreshness(alert: MemberAlertRecord, now: string =
   return alertFreshnessIsDeliverable(
     signalFreshnessHoursAt(alert.signalAt, now),
     alert.freshnessLimitHours,
+    Math.min(168, Math.max(1, alert.freshnessLimitHours || 1)),
   );
 }
 
@@ -1146,7 +1149,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
   const rawEligibleCandidateCount = allCandidates
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite).length;
-  const candidates = (snapshotSafety.safe ? allCandidates : allCandidates.filter((candidate) => asString(candidate.sourceType) === "community"))
+  const candidates = (snapshotSafety.safe ? allCandidates : allCandidates.filter((candidate) => asString(candidate.sourceType) === "community" || Boolean(candidate.sourcePollId) || Boolean(candidate.sourceLaneId)))
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite)
     .filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))
@@ -1453,7 +1456,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             const children = candidates.flatMap(enumerateUnderlyingAlertChildren)
               .filter(child=>CommunitySafetyRepository.candidateVisible(child,hidden))
               .filter((child) => wanted.has(stableUnderlyingAlertKey(child)))
-              .filter((child) => asString(child.sourceType) === "community" ? entitlement.canReceiveSightingsAlerts && prefs.sightings.enabled : snapshotFresh)
+              .filter((child) => asString(child.sourceType) === "community" ? entitlement.canReceiveSightingsAlerts && prefs.sightings.enabled : snapshotFresh || Boolean(child.sourcePollId) || Boolean(child.sourceLaneId))
               .filter((child) => candidatePassesFreshOnSiteGuardrails(child, attemptAt))
               .filter((child) => alertRarityIsSelected(child.tier ?? child.rarityTier, prefs.rarityTiers))
               .filter((child) => candidateMatchesArea(child, areas) && candidateMatchesBottlePrefs(child, pub.alertMode, bottles));

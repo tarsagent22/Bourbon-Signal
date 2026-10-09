@@ -29,6 +29,7 @@ export async function fetchWithMeta(url, options = {}) {
     return {
       ok: res.ok,
       status: res.status,
+      retryAfterSeconds: Math.max(0, Number(res.headers.get("retry-after")) || (Date.parse(res.headers.get("retry-after") || "") - Date.now()) / 1000 || 0),
       statusText: res.statusText,
       url: fetched.url,
       requestedUrl: url,

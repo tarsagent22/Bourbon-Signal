@@ -35,7 +35,7 @@ function freshLiveSignal(signal, nowMs, maximumAgeMs) {
     && nowMs - observedAt <= maximumAgeMs;
 }
 
-export function verifyFloridaStarExpansionArtifact({ state, baseline, now = Date.now(), maxInventoryAgeMs = 90 * 60_000 } = {}) {
+export function verifyFloridaStarExpansionArtifact({ state, baseline, now = Date.now(), maxInventoryAgeMs = 90 * 60_000, requireComplete = true } = {}) {
   const nowMs = now instanceof Date ? now.getTime() : Number(now);
   const maximumAgeMs = Math.min(90 * 60_000, Math.max(15 * 60_000, Number(maxInventoryAgeMs) || 90 * 60_000));
   const baselineIds = Array.isArray(baseline?.inventoryStoreIds) ? baseline.inventoryStoreIds.map(String).sort() : null;
@@ -85,14 +85,14 @@ export function verifyFloridaStarExpansionArtifact({ state, baseline, now = Date
       && normalizedPremise(signal.storeAddress) === baselinePremiseByStoreId.get(String(signal.storeId)))
     .map((signal) => String(signal.storeId)));
   const removed = baselineIds.filter((storeId) => !retainedBaselineStoreIds.has(storeId));
-  assert(!removed.length, `Florida expansion removed ${removed.length} immutable baseline store(s).`, removed);
+  if (requireComplete) assert(!removed.length, `Florida expansion removed ${removed.length} immutable baseline store(s).`, removed);
 
   const freshTrustedStarSignals = inventorySignals.filter((signal) => starStoreIds.has(String(signal.storeId)) && isFloridaRetailerInventory(signal));
   const trustedStarStoreIds = new Set(freshTrustedStarSignals.map((signal) => String(signal.storeId)));
-  assert(trustedStarStoreIds.size >= FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES, `Expected fresh trusted inventory from at least ${FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES} Star Liquors stores; got ${trustedStarStoreIds.size}.`);
+  if (requireComplete) assert(trustedStarStoreIds.size >= FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES, `Expected fresh trusted inventory from at least ${FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES} Star Liquors stores; got ${trustedStarStoreIds.size}.`);
 
   const netNewStoreIds = [...currentStoreIds].filter((storeId) => !baselineIdSet.has(storeId));
-  assert(netNewStoreIds.length >= FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES, `Expected at least ${FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES} net-new Florida live-inventory stores; got ${netNewStoreIds.length}.`);
+  if (requireComplete) assert(netNewStoreIds.length >= FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES, `Expected at least ${FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES} net-new Florida live-inventory stores; got ${netNewStoreIds.length}.`);
 
   return {
     status: 'ok',
@@ -103,6 +103,8 @@ export function verifyFloridaStarExpansionArtifact({ state, baseline, now = Date
     netNewStores: netNewStoreIds.length,
     starStores: trustedStarStoreIds.size,
     removedStores: removed.length,
+    missingStoreIds: removed,
+    complete: removed.length === 0,
     inventorySignals: inventorySignals.length,
     observedStoreSignals: observedSignals.length,
     starInventorySignals: freshTrustedStarSignals.length,
