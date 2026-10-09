@@ -147,7 +147,7 @@ export default function SignUpScreen() {
       <View style={styles.brand}>
         <Text style={styles.eyebrow}>{stage === "onboarding" ? "SET UP YOUR PROFILE" : "CREATE ACCOUNT"}</Text>
         <Text accessibilityRole="header" style={styles.title}>{stage === "account" ? "Join Bourbon Signal" : stage === "verification" ? "Verify your email" : "Welcome to Bourbon Signal"}</Text>
-        <Text style={styles.subtitle}>{stage === "account" ? "Create a Free account with no payment and no card required." : stage === "verification" ? `Enter the code sent to ${email.trim()}.` : "Set your display name and home state to get started."}</Text>
+        <Text style={styles.subtitle}>{stage === "account" ? "Create a Free account with no payment and no card required." : stage === "verification" ? "Enter the one-time code sent to your email address." : "Set your display name and home state to get started."}</Text>
       </View>
 
       {stage === "account" ? <View style={styles.form}>

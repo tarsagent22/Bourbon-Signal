@@ -32,6 +32,7 @@
     "engine:expansion": "node scripts/engine-expansion-speed.mjs",
     "generate:state-lifecycle-types": "node scripts/generate-state-lifecycle-types.mjs",
     "generate:mississippi-known-stores": "node scripts/generate-mississippi-known-stores.mjs",
+    "test:nc-board-localities": "node --no-warnings --experimental-strip-types scripts/test-nc-board-localities.mts",
     "verify:nc-board-registry": "node scripts/sync-nc-abc-board-registry.mjs",
     "update:nc-board-registry": "node scripts/sync-nc-abc-board-registry.mjs --write",
     "verify:state-lifecycle-drift": "node scripts/verify-state-lifecycle-drift.mjs",
