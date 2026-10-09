@@ -5,6 +5,7 @@ import test from "node:test";
 const registration = readFileSync(new URL("./push-registration.ts", import.meta.url), "utf8");
 const pushRegistration = registration;
 const rootLayout = readFileSync(new URL("../../app/_layout.tsx", import.meta.url), "utf8");
+const appLayout = readFileSync(new URL("../../app/(app)/_layout.tsx", import.meta.url), "utf8");
 const tabsIndex = readFileSync(new URL("../../app/(app)/(tabs)/index.tsx", import.meta.url), "utf8");
 const responseHandler = readFileSync(new URL("./PushResponseHandler.tsx", import.meta.url), "utf8");
 const startupBoundary = readFileSync(new URL("../startup/StartupErrorBoundary.tsx", import.meta.url), "utf8");
@@ -20,7 +21,8 @@ test("enabled push registration refreshes its token and listens for token rotati
 
 test("push maintenance is deferred until the authenticated app mounts", () => {
   assert.doesNotMatch(rootLayout, /configureRadarNotifications|flushPendingPushRevocation/);
-  assert.match(tabsIndex, /<PushMaintenance \/>/);
+  assert.match(appLayout, /<PushMaintenance key=/);
+  assert.doesNotMatch(tabsIndex, /<PushMaintenance/);
   assert.match(responseHandler, /flushPendingPushRevocation\(\)\.catch\(\(\) => false\)/);
 });
 
@@ -47,7 +49,9 @@ test("root notification responses use the safe explicit Radar Matches route", ()
   assert.doesNotMatch(responseHandler, /router\.push\("\/\(app\)\/\(tabs\)\/radar"\)/);
 });
 
-test("push response handling is deferred until the authenticated navigator mounts", () => {
-  assert.doesNotMatch(rootLayout, /<PushResponseHandler \/>/);
-  assert.match(tabsIndex, /<PushResponseHandler \/>/);
+test("push responses stay above frozen tabs and wait for authentication/navigation", () => {
+  assert.match(rootLayout, /<PushResponseHandler \/>/);
+  assert.doesNotMatch(tabsIndex, /PushResponseHandler/);
+  assert.match(responseHandler, /useRootNavigationState/);
+  assert.match(responseHandler, /navigationState\?\.key/);
 });

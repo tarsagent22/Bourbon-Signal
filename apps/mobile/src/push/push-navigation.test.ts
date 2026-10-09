@@ -31,3 +31,18 @@ test("the authenticated member alert resolves to the exact qualifying Signal", (
   assert.equal(signalRouteForRequestedAlert([{ id: "alert_123" }], "alert_123"), null);
   assert.equal(signalRouteForRequestedAlert([{ id: "alert_other", signalId: "trusted_source:signal-9" }], "alert_123"), null);
 });
+
+test("failed navigation retains a tap and only successful navigation consumes it", () => {
+  const queue = createPendingPushNavigation();
+  queue.receive("os-1", { screen: "radar", alertId: "alert_123" });
+  assert.equal(queue.take(true, false), null);
+  const route = queue.take(true, true);
+  assert.deepEqual(queue.take(true, true), route);
+  queue.receive("os-2", { screen: "radar", alertId: "alert_456" });
+  assert.equal(queue.acknowledge("os-1"), false, "a newer tap must survive an older acknowledgement");
+  assert.equal(queue.take(true, true)?.params.alert, "alert_456");
+  assert.equal(queue.acknowledge("os-2"), true);
+  assert.equal(queue.take(true, true), null);
+  queue.receive("os-2", { screen: "radar", alertId: "alert_456" });
+  assert.equal(queue.take(true, true), null);
+});

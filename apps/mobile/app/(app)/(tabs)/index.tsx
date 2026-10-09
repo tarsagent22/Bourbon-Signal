@@ -16,7 +16,6 @@ import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation"
 import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, sortSignalTimeline } from "../../../src/signals/home-feed-live";
 import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
-import { PushMaintenance, PushResponseHandler } from "../../../src/push/PushResponseHandler";
 import { colors, typeScale } from "../../../src/theme";
 import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibility";
 
@@ -643,8 +642,6 @@ export default function SignalFeedScreen() {
           style={StyleSheet.absoluteFill}
         />
       </View>
-      <PushMaintenance />
-      <PushResponseHandler />
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
       <FlatList
       ref={listRef}

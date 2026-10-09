@@ -9,9 +9,11 @@ test('M07: pending cold-start push waits for auth/navigation and is consumed onc
   queue.receive('os-1', { screen: 'radar', alertId: 'alert-1' });
   assert.equal(queue.take(false, true), null); assert.equal(queue.take(true, false), null);
   assert.equal(queue.take(true, true)?.params.request, 'os-1');
+  queue.acknowledge('os-1');
   assert.equal(queue.take(true, true), null);
   queue.receive('os-1', { screen: 'radar', alertId: 'alert-1' }); assert.equal(queue.take(true, true), null);
   queue.receive('os-2', { screen: 'radar', alertId: 'alert-1' }); assert.equal(queue.take(true, true)?.params.request, 'os-2');
+  queue.acknowledge('os-2');
   queue.receive('os-3', { screen: 'evil', alertId: 'alert-3' }); assert.equal(queue.take(true, true), null);
 });
 test('M07: mounted Radar, Account and Feed wire focus/resume fresh revalidation', () => {

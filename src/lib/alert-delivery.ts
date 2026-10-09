@@ -2082,6 +2082,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                 group.candidates.map((candidate) => candidate.id),
                 `clerk:${userId}:${group.alertId}`,
                 now,
+                newOnSiteAlerts.find(alert => alert.id === group.alertId),
               );
             } else {
               await failQueuedIntents(group.candidates, new Error("Clerk on-site inbox write failed"));

@@ -4,6 +4,7 @@ import { normalizeNotificationPreferences } from "@/lib/notification-preferences
 import { candidateCanUseOnSite, candidateMatchesArea, candidateMatchesBottlePrefs, candidatePassesFreshOnSiteGuardrails, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs, normalizeBottleAlertPreferences, readAlertCandidates } from "@/lib/alert-delivery";
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { withMemberAlertLease } from "@/lib/alert-queue/member-lease";
+import { readRequestedMemberAlert } from "@/lib/alert-queue/member-alert-lookup";
 
 type CandidateAlert = Record<string, unknown>;
 
@@ -59,6 +60,15 @@ export async function GET(req: NextRequest) {
   const userAlerts = normalizeAlertInboxMetadata(privateMetadata.alertInbox).recent
     .filter((alert) => alert.sourceType !== "community" || canReadCommunityAlerts)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+  const requestedAlert = req.nextUrl.searchParams.get("alert");
+  if (requestedAlert && !userAlerts.some(alert => alert.id === requestedAlert)) {
+    try {
+      const recovered = await readRequestedMemberAlert(userId, requestedAlert);
+      if (recovered && (recovered.sourceType !== "community" || canReadCommunityAlerts)) userAlerts.unshift(recovered);
+    } catch {
+      return NextResponse.json({ error: "This alert couldn’t refresh. Try again." }, { status: 503 });
+    }
+  }
 
   if (req.nextUrl.searchParams.get("summary") === "1") {
     return NextResponse.json({ alerts: userAlerts, unreadCount: userAlerts.filter((alert) => !alert.readAt && !alert.archivedAt).length }, { headers: { "Cache-Control": "private, no-store" } });

@@ -62,7 +62,7 @@ export interface AlertQueueRepository {
   baseline(input: AlertBaselineInput): Promise<void>;
   claim(id: string, workerId: string, claimedAt: string): Promise<AlertCandidateRecord | null>;
   markDelivered(id: string, providerMessageId: string, deliveredAt: string): Promise<void>;
-  markBatchDelivered(ids: string[], providerMessageId: string, deliveredAt: string): Promise<void>;
+  markBatchDelivered(ids: string[], providerMessageId: string, deliveredAt: string, memberAlert?: unknown): Promise<void>;
   markFailed(id: string, errorCode: string, failedAt: string, retryAt?: string): Promise<void>;
   markBatchFailed(ids: string[], errorCode: string, failedAt: string, retryAt?: string): Promise<void>;
   acquireLease(leaseKey: string, owner: string, acquiredAt: string, expiresAt: string): Promise<boolean>;
@@ -185,7 +185,7 @@ export class InMemoryAlertQueueRepository implements AlertQueueRepository {
     record.deliveredAt = deliveredAt;
   }
 
-  async markBatchDelivered(ids: string[], providerMessageId: string, deliveredAt: string) {
+  async markBatchDelivered(ids: string[], providerMessageId: string, deliveredAt: string, memberAlert?: unknown) {
     const uniqueIds = Array.from(new Set(ids));
     const records = uniqueIds.map((id) => this.candidates.get(id));
     if (records.some((record) => !record || record.status !== "claimed")) {
@@ -195,6 +195,7 @@ export class InMemoryAlertQueueRepository implements AlertQueueRepository {
       record.status = "delivered";
       record.providerMessageId = providerMessageId;
       record.deliveredAt = deliveredAt;
+      if (memberAlert) record.payload = { ...record.payload, memberAlert };
     }
   }
 

@@ -74,7 +74,7 @@
     "test:hunt-outcomes": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-repository.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-api.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-aggregation.mts",
     "test:product-cohesion-ui": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-ui-policy.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-hunt-suggestions.mts && node --no-warnings --experimental-strip-types scripts/test-product-cohesion-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-launch-product-cohesion-copy.mts",
     "test:member-state": "tsx --test scripts/test-astra-member-state.ts scripts/test-astra-push-ownership.ts scripts/test-astra-member-lease.ts",
-    "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts && node --test scripts/test-m12-push-outbox.mjs && tsx --test scripts/test-push-receipts.mts && tsx --test scripts/test-push-channel-isolation.mts && tsx --test scripts/test-push-capability-revocation.mts && npm run test:member-state",
+    "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts && node --test scripts/test-m12-push-outbox.mjs && tsx --test scripts/test-push-receipts.mts && tsx --test scripts/test-push-channel-isolation.mts && tsx --test scripts/test-push-capability-revocation.mts && npm run test:member-state && npm run test:notification-navigation",
     "test:nationwide-radar": "node --no-warnings --experimental-strip-types --test scripts/test-nationwide-geography.mts scripts/test-monitoring-scopes.mts scripts/test-community-contributor-standing.mts scripts/test-community-alert-candidates.mts scripts/test-geography-activity.mts scripts/test-nationwide-radar-contracts.mts",
     "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts",
     "test:native-post-composer": "node --no-warnings --experimental-strip-types --test scripts/test-native-post-composer.mts",
@@ -201,7 +201,8 @@
     "test:mobile-activity": "tsx --test scripts/test-mobile-activity.ts",
     "test:engine-dependability": "tsx --test scripts/test-source-scheduler-schema.mts && node --test engine/test/poll-policy.test.mjs && npm --prefix apps/mobile run test:engine-readiness",
     "migrate:source-scheduler": "node scripts/migrate-app-storage.mjs --source-scheduler-only --check",
-    "migrate:source-scheduler:apply": "node scripts/migrate-app-storage.mjs --source-scheduler-only --apply"
+    "migrate:source-scheduler:apply": "node scripts/migrate-app-storage.mjs --source-scheduler-only --apply",
+    "test:notification-navigation": "tsx --test scripts/test-notification-alert-lookup.ts scripts/test-notification-alert-sql.ts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
