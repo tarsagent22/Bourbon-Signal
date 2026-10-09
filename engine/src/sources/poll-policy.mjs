@@ -7,7 +7,7 @@ export function recoveryPolicy(reason, failures = 0, retryAfter = 0) {
     retry: !identity && !dependency && /timeout|transport|http_5\d\d/.test(reason) };
 }
 export function sourceScopeMatches(source, row) {
-  if (row.state !== source.state) return false;
+  if (source.kind === 'oh-probe' || row.state !== source.state) return false;
   if (source.kind === 'nc-shipments') return (row.type || row.eventType) === 'nc_board_shipment_snapshot';
   return row.sourceChain === source.chain;
 }

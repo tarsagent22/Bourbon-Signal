@@ -76,3 +76,11 @@ test('storage/policy failure never restores owned snapshot stock or deletes unre
  assert.deepEqual(failClosedPollRows(rows,registry,'candidates').map(row=>row.id),['healthy']);
  const drops=failClosedPollRows(rows,registry,'drops');assert.equal(drops[0].stale,true);assert.equal(drops[0].canAlertAsInventory,false);assert.deepEqual(drops[1],rows[1]);
 });
+
+test('Ohio dependency readiness never owns or replaces inventory from the signed browser pipeline',()=>{
+ const row={id:'ohlq',state:'OH',observedAt:'2026-10-09T03:00Z'};
+ const sources=[{id:'oh:browser-artifact',kind:'oh-probe',state:'OH',expiryHours:1}];
+ const jobs=[{source_id:'oh:browser-artifact',projection:{probe:true}}];
+ assert.deepEqual(mergePollProjection([row],jobs,sources,'candidates'),[row]);
+ assert.deepEqual(failClosedPollRows([row],sources,'drops'),[row]);
+});
