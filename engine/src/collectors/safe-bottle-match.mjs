@@ -57,4 +57,3 @@ function bottleMatch(raw, bible) {
   const match = bible.match(raw);
   return { match, record: match?.record };
 }
-

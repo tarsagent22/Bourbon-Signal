@@ -122,4 +122,3 @@ export async function collectCaliforniaSource(config, bible, source, observedAt,
   }
   return { signals: sourceSignals, roadblocks: sourceRoadblocks };
 }
-
