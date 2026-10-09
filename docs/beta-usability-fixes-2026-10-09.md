@@ -29,4 +29,6 @@ An additional legacy `test-nationwide-radar-contracts.mts` source-contract check
 
 ## Release status
 
-Not merged or published. The host's guarded release registry contains three existing objective locks for bottle-photo mappings, native signup/membership/push, and the iPhone startup crash. No other task's checkout, objective or release lock was changed. Reconcile the shared lane before preparing the production PR and backend/OTA release. Physical iPhone/Android interaction remains unverified.
+The owner authorized retirement of the obsolete release blockers. All three lock files were archived under their original repositories' `.operator/retired-objectives` directories while holding the shared writer lock. Issue #600 was dismissed as superseded; #598 and #554 were marked resolved after confirming their merged PRs. Every old checkout and branch was preserved, including the staged photo work.
+
+The current patch is registered as objective #706 for guarded backend and iOS OTA release. Physical iPhone/Android interaction remains unverified. Production publication evidence will be recorded separately after release.
