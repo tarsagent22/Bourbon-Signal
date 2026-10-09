@@ -3,12 +3,13 @@ import { demandMetroAreaLabel } from "./demand-metro-areas.ts";
 import { canonicalNcAbcBoardPreference, NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "./nc-abc-boards.ts";
 import { locationLabelsMatch, locationMatchKeys, normalizeLocationText } from "./location-normalization.ts";
 import { geographyState, listMonitoringStates } from "./geography-directory.ts";
+import { ncBoardLocality } from "./nc-board-localities.ts";
 
 type AreaState = { areaOptions?: readonly string[]; customerLabel?: string };
 type AreaConfig = { activeStates: readonly string[]; states: Record<string, AreaState> };
 type DropFeedAreaRequest = { key: "area" | "store"; value: string };
 
-export interface SignalFeedAreaOption { value: string; label: string }
+export interface SignalFeedAreaOption { value: string; label: string; displayName?: string; subtitle?: string }
 export interface SignalFeedStateOption {
   code: string;
   label: string;
@@ -50,8 +51,8 @@ export function buildSignalFeedAreaDirectory(): SignalFeedAreaDirectory {
         engineCoverage: active.has(code) ? "active" as const : "expanding" as const,
         options: getCoveredAreaOptionsForState(code).map((value) => ({
           value,
-          label: code === "NC" && NC_ABC_BOARD_OPTIONS.includes(value) ? formatNcAbcAreaMenuLabel(value) : value,
-        })),
+          ...(code === "NC" && NC_ABC_BOARD_OPTIONS.includes(value) ? ncBoardLocality(value) : { label: value }),
+        })).sort((left, right) => left.label.localeCompare(right.label) || left.value.localeCompare(right.value)),
       }))
       .sort((left, right) => left.label.localeCompare(right.label)),
   };

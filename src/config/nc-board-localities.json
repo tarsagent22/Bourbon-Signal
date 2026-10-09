@@ -1,0 +1,1516 @@
+{
+  "observedAt": "2026-10-09",
+  "storeDirectoryGeneratedAt": "2026-10-08T18:08:21.792Z",
+  "note": "County identifies the board office; cities identify official store addresses. Discovery labels do not change board coverage or alert matching.",
+  "boards": [
+    {
+      "value": "Alamance Municipal ABC",
+      "county": "Alamance County",
+      "cities": [
+        "Graham",
+        "Burlington",
+        "Mebane"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/61"
+    },
+    {
+      "value": "Albemarle ABC",
+      "county": "Stanly County",
+      "cities": [
+        "Albemarle"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/17"
+    },
+    {
+      "value": "Alexander County ABC",
+      "county": "Alexander County",
+      "cities": [
+        "Hickory"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/255"
+    },
+    {
+      "value": "Andrews ABC",
+      "county": "Cherokee County",
+      "cities": [
+        "Andrews"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/30"
+    },
+    {
+      "value": "Angier ABC",
+      "county": "Harnett County",
+      "cities": [
+        "Angier"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/34"
+    },
+    {
+      "value": "Asheboro ABC",
+      "county": "Randolph County",
+      "cities": [
+        "Asheboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/233"
+    },
+    {
+      "value": "Asheville ABC",
+      "county": "Buncombe County",
+      "cities": [
+        "Asheville",
+        "Arden",
+        "Candler"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/35"
+    },
+    {
+      "value": "Beaufort County ABC",
+      "county": "Beaufort County",
+      "cities": [
+        "Washington",
+        "Aurora",
+        "Bath",
+        "Belhaven",
+        "Chocowinity"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/36"
+    },
+    {
+      "value": "Belmont ABC",
+      "county": "Gaston County",
+      "cities": [
+        "Belmont"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/251"
+    },
+    {
+      "value": "Belville ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Belville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/37"
+    },
+    {
+      "value": "Bertie County ABC",
+      "county": "Bertie County",
+      "cities": [
+        "Windsor"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/38"
+    },
+    {
+      "value": "Bessemer City ABC",
+      "county": "Gaston County",
+      "cities": [
+        "Bessemer City"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/39"
+    },
+    {
+      "value": "Black Mountain ABC",
+      "county": "Buncombe County",
+      "cities": [
+        "Black Mountain"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/51"
+    },
+    {
+      "value": "Blowing Rock ABC",
+      "county": "Watauga County",
+      "cities": [
+        "Blowing Rock"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/41"
+    },
+    {
+      "value": "Blue Ridge ABC",
+      "county": "Henderson County",
+      "cities": [
+        "Hendersonville",
+        "Flat Rock",
+        "Laurel Park"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/258"
+    },
+    {
+      "value": "Boiling Spring Lakes ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Boiling Spring Lakes"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/42"
+    },
+    {
+      "value": "Boone ABC",
+      "county": "Watauga County",
+      "cities": [
+        "Boone"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/43"
+    },
+    {
+      "value": "Brevard ABC",
+      "county": "Transylvania County",
+      "cities": [
+        "Brevard",
+        "Pisgah Forest"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/31"
+    },
+    {
+      "value": "Brunswick ABC",
+      "county": "Columbus County",
+      "cities": [
+        "Brunswick"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/44"
+    },
+    {
+      "value": "Brunswick County ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Leland",
+        "Supply"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/45"
+    },
+    {
+      "value": "Bryson City ABC",
+      "county": "Swain County",
+      "cities": [
+        "Bryson City"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/46"
+    },
+    {
+      "value": "Bunn ABC",
+      "county": "Franklin County",
+      "cities": [
+        "Bunn"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/60"
+    },
+    {
+      "value": "Burnsville ABC",
+      "county": "Yancey County",
+      "cities": [
+        "Burnsville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/241"
+    },
+    {
+      "value": "Calabash ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Calabash"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/62"
+    },
+    {
+      "value": "Camden County ABC",
+      "county": "Camden County",
+      "cities": [
+        "Camden",
+        "South Mills"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/63"
+    },
+    {
+      "value": "Canton ABC",
+      "county": "Haywood County",
+      "cities": [
+        "Canton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/64"
+    },
+    {
+      "value": "Carteret County ABC",
+      "county": "Carteret County",
+      "cities": [
+        "Atlantic Beach",
+        "Beaufort",
+        "Cape Carteret",
+        "Emerald Isle",
+        "Morehead City",
+        "Newport"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/2"
+    },
+    {
+      "value": "Caswell County ABC",
+      "county": "Caswell County",
+      "cities": [
+        "Gibsonville",
+        "Pelham",
+        "Semora",
+        "Yanceyville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/65"
+    },
+    {
+      "value": "Catawba County ABC",
+      "county": "Catawba County County",
+      "cities": [
+        "Hickory",
+        "Maiden",
+        "Conover",
+        "Newton",
+        "Terrell"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/32"
+    },
+    {
+      "value": "Catawba Tribal ABC Commission",
+      "county": "Cleveland County",
+      "cities": [],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/260"
+    },
+    {
+      "value": "Chatham County ABC",
+      "county": "Chatham County",
+      "cities": [
+        "Chapel Hill",
+        "Apex",
+        "Moncure"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/67"
+    },
+    {
+      "value": "Cherokee Tribal ABC Commission",
+      "county": "Swain County",
+      "cities": [
+        "Cherokee"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/243"
+    },
+    {
+      "value": "Cherryville ABC",
+      "county": "Gaston County",
+      "cities": [
+        "Cherryville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/55"
+    },
+    {
+      "value": "Chowan County ABC",
+      "county": "Chowan County",
+      "cities": [
+        "Edenton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/68"
+    },
+    {
+      "value": "Clay County ABC",
+      "county": "Clay County",
+      "cities": [
+        "Hayesville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/237"
+    },
+    {
+      "value": "Clinton ABC",
+      "county": "Sampson County",
+      "cities": [
+        "Clinton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/69"
+    },
+    {
+      "value": "Columbus ABC",
+      "county": "Polk County",
+      "cities": [
+        "Columbus"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/70"
+    },
+    {
+      "value": "Concord ABC",
+      "county": "Cabarrus County",
+      "cities": [
+        "Concord",
+        "Kannapolis"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/71"
+    },
+    {
+      "value": "Cramerton ABC",
+      "county": "Gaston County",
+      "cities": [
+        "Belmont",
+        "Cramerton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/227"
+    },
+    {
+      "value": "Craven County ABC",
+      "county": "Craven County",
+      "cities": [
+        "New Bern",
+        "Bridgeton",
+        "Havelock",
+        "Vanceboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/56"
+    },
+    {
+      "value": "Cumberland County ABC",
+      "county": "Cumberland County",
+      "cities": [
+        "Fayetteville",
+        "Hope Mills",
+        "Spring Lake"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/73"
+    },
+    {
+      "value": "Currituck County ABC",
+      "county": "Currituck County",
+      "cities": [
+        "Corolla",
+        "Grandy",
+        "Moyock"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/74"
+    },
+    {
+      "value": "Dare County ABC",
+      "county": "Dare County",
+      "cities": [
+        "Buxton",
+        "Duck",
+        "Kitty Hawk",
+        "Manteo",
+        "Nags Head"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/75"
+    },
+    {
+      "value": "Davidson County ABC",
+      "county": "Davidson County",
+      "cities": [
+        "Winston-Salem"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/253"
+    },
+    {
+      "value": "Dobson ABC",
+      "county": "Surry County",
+      "cities": [
+        "Dobson"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/76"
+    },
+    {
+      "value": "Dunn ABC",
+      "county": "Harnett County",
+      "cities": [
+        "Dunn"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/77"
+    },
+    {
+      "value": "Durham County ABC",
+      "county": "Durham County",
+      "cities": [
+        "Durham",
+        "Morrisville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/78"
+    },
+    {
+      "value": "Eden ABC",
+      "county": "Rockingham County",
+      "cities": [
+        "Eden"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/79"
+    },
+    {
+      "value": "Edgecombe County ABC",
+      "county": "Edgecombe County",
+      "cities": [
+        "Pinetops",
+        "Princeville",
+        "Rocky Mount",
+        "Tarboro",
+        "Whitakers"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/80"
+    },
+    {
+      "value": "Elizabethtown ABC",
+      "county": "Bladen County",
+      "cities": [
+        "Elizabethtown"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/81"
+    },
+    {
+      "value": "Fairmont ABC",
+      "county": "Robeson County",
+      "cities": [
+        "Fairmont"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/85"
+    },
+    {
+      "value": "Fletcher ABC",
+      "county": "Henderson County",
+      "cities": [
+        "Fletcher"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/86"
+    },
+    {
+      "value": "Forest City ABC",
+      "county": "Rutherford County",
+      "cities": [
+        "Forest City"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/205"
+    },
+    {
+      "value": "Franklin ABC",
+      "county": "Macon County",
+      "cities": [
+        "Franklin"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/52"
+    },
+    {
+      "value": "Franklinton ABC",
+      "county": "Franklin County",
+      "cities": [
+        "Franklinton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/88"
+    },
+    {
+      "value": "Gastonia ABC",
+      "county": "Gaston County",
+      "cities": [
+        "Gastonia",
+        "Dallas"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/16"
+    },
+    {
+      "value": "Gates County ABC",
+      "county": "Gates County",
+      "cities": [
+        "Eure",
+        "Sunbury"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/90"
+    },
+    {
+      "value": "Gibsonville ABC",
+      "county": "Guilford County",
+      "cities": [
+        "Gibsonville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/91"
+    },
+    {
+      "value": "Granite Falls ABC",
+      "county": "Caldwell County",
+      "cities": [
+        "Granite Falls"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/92"
+    },
+    {
+      "value": "Granville County ABC",
+      "county": "Granville County",
+      "cities": [
+        "Creedmoor",
+        "Oxford"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/94"
+    },
+    {
+      "value": "Greene County ABC",
+      "county": "Greene County",
+      "cities": [
+        "Snow Hill"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/95"
+    },
+    {
+      "value": "Greensboro ABC",
+      "county": "Guilford County",
+      "cities": [
+        "Greensboro",
+        "Colfax",
+        "Summerfield"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/58"
+    },
+    {
+      "value": "Halifax County ABC",
+      "county": "Halifax County",
+      "cities": [
+        "Enfield",
+        "Littleton",
+        "Roanoke Rapids",
+        "Scotland Neck",
+        "Weldon"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/59"
+    },
+    {
+      "value": "Hamlet ABC",
+      "county": "Richmond County",
+      "cities": [
+        "Hamlet"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/96"
+    },
+    {
+      "value": "Hertford ABC",
+      "county": "Perquimans County",
+      "cities": [
+        "Hertford"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/141"
+    },
+    {
+      "value": "Hertford County ABC",
+      "county": "Hertford County",
+      "cities": [
+        "Ahoskie",
+        "Murfreesboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/98"
+    },
+    {
+      "value": "High Country ABC",
+      "county": "Avery County",
+      "cities": [
+        "Banner Elk"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/99"
+    },
+    {
+      "value": "High Point ABC",
+      "county": "Guilford County",
+      "cities": [
+        "High Point",
+        "Greensboro",
+        "Jamestown"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/100"
+    },
+    {
+      "value": "Highlands ABC",
+      "county": "Macon County",
+      "cities": [
+        "Highlands"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/101"
+    },
+    {
+      "value": "Hoke County ABC",
+      "county": "Hoke County",
+      "cities": [
+        "Raeford"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/102"
+    },
+    {
+      "value": "Hyde County ABC",
+      "county": "Hyde County",
+      "cities": [
+        "Ocracoke",
+        "Swan Quarter"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/103"
+    },
+    {
+      "value": "Indian Trail ABC",
+      "county": "Union County",
+      "cities": [
+        "Indian Trail"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/238"
+    },
+    {
+      "value": "Jackson County ABC",
+      "county": "Jackson County",
+      "cities": [
+        "Cashiers",
+        "Sylva"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/244"
+    },
+    {
+      "value": "Johnston County ABC",
+      "county": "Johnston County",
+      "cities": [
+        "Benson",
+        "Clayton",
+        "Garner",
+        "Kenly",
+        "Princeton",
+        "Selma",
+        "Smithfield"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/105"
+    },
+    {
+      "value": "Jones County ABC",
+      "county": "Jones County",
+      "cities": [
+        "Dover",
+        "Trenton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/106"
+    },
+    {
+      "value": "Kenansville ABC",
+      "county": "Duplin County",
+      "cities": [
+        "Kenansville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/107"
+    },
+    {
+      "value": "Kings Mountain ABC",
+      "county": "Cleveland County",
+      "cities": [
+        "Kings Mountain"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/108"
+    },
+    {
+      "value": "Lake Lure ABC",
+      "county": "Rutherford County",
+      "cities": [
+        "Lake Lure"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/109"
+    },
+    {
+      "value": "Lake Waccamaw ABC",
+      "county": "Columbus County",
+      "cities": [
+        "Lake Waccamaw"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/110"
+    },
+    {
+      "value": "Lenoir City ABC",
+      "county": "Caldwell County",
+      "cities": [
+        "Lenoir"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/113"
+    },
+    {
+      "value": "Lenoir County ABC",
+      "county": "Lenoir County",
+      "cities": [
+        "Kinston",
+        "Pink Hill"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/112"
+    },
+    {
+      "value": "Lexington ABC",
+      "county": "Davidson County",
+      "cities": [
+        "Lexington"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/114"
+    },
+    {
+      "value": "Liberty ABC",
+      "county": "Randolph County",
+      "cities": [
+        "Liberty"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/115"
+    },
+    {
+      "value": "Lillington ABC",
+      "county": "Harnett County",
+      "cities": [
+        "Lillington"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/116"
+    },
+    {
+      "value": "Lincoln County ABC",
+      "county": "Lincoln County",
+      "cities": [
+        "Denver",
+        "Vale"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/218"
+    },
+    {
+      "value": "Lincolnton ABC",
+      "county": "Lincoln County",
+      "cities": [
+        "Lincolnton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/117"
+    },
+    {
+      "value": "Locust ABC",
+      "county": "Stanly County",
+      "cities": [
+        "Locust"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/232"
+    },
+    {
+      "value": "Louisburg ABC",
+      "county": "Franklin County",
+      "cities": [
+        "Louisburg"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/118"
+    },
+    {
+      "value": "Lumberton ABC",
+      "county": "Robeson County",
+      "cities": [
+        "Lumberton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/119"
+    },
+    {
+      "value": "Madison ABC",
+      "county": "Rockingham County",
+      "cities": [
+        "Madison"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/120"
+    },
+    {
+      "value": "Maggie Valley ABC",
+      "county": "Haywood County",
+      "cities": [
+        "Maggie Valley",
+        "Waynesville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/121"
+    },
+    {
+      "value": "Marion ABC",
+      "county": "McDowell County",
+      "cities": [
+        "Marion"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/122"
+    },
+    {
+      "value": "Marshville ABC",
+      "county": "Union County",
+      "cities": [
+        "Marshville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/213"
+    },
+    {
+      "value": "Martin County ABC",
+      "county": "Martin County",
+      "cities": [
+        "Robersonville",
+        "Williamston"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/123"
+    },
+    {
+      "value": "Maxton ABC",
+      "county": "Robeson County",
+      "cities": [
+        "Maxton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/124"
+    },
+    {
+      "value": "Mecklenburg County ABC",
+      "county": "Mecklenburg County",
+      "cities": [
+        "Charlotte",
+        "Matthews",
+        "Cornelius",
+        "Huntersville",
+        "Mint Hill"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/53"
+    },
+    {
+      "value": "Mocksville Cooleemee ABC",
+      "county": "Davie County",
+      "cities": [
+        "Cooleemee",
+        "Mocksville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/252"
+    },
+    {
+      "value": "Monroe ABC",
+      "county": "Union County",
+      "cities": [
+        "Monroe"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/126"
+    },
+    {
+      "value": "Montgomery ABC",
+      "county": "Montgomery County",
+      "cities": [
+        "Biscoe",
+        "Mt. Gilead"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/127"
+    },
+    {
+      "value": "Moore County ABC",
+      "county": "Moore County",
+      "cities": [
+        "Carthage",
+        "Aberdeen",
+        "Pinehurst",
+        "Southern Pines"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/128"
+    },
+    {
+      "value": "Mooresville ABC",
+      "county": "Iredell County",
+      "cities": [
+        "Mooresville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/129"
+    },
+    {
+      "value": "Morganton ABC",
+      "county": "Burke County",
+      "cities": [
+        "Morganton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/130"
+    },
+    {
+      "value": "Mount Airy ABC",
+      "county": "Surry County",
+      "cities": [
+        "Mount Airy"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/131"
+    },
+    {
+      "value": "Mount Holly ABC",
+      "county": "Gaston County",
+      "cities": [
+        "Mt. Holly"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/221"
+    },
+    {
+      "value": "Mount Pleasant ABC",
+      "county": "Cabarrus County",
+      "cities": [
+        "Mt Pleasant"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/132"
+    },
+    {
+      "value": "Murphy ABC",
+      "county": "Cherokee County",
+      "cities": [
+        "Murphy"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/133"
+    },
+    {
+      "value": "Nash County ABC",
+      "county": "Nash County",
+      "cities": [
+        "Rocky Mount",
+        "Bailey",
+        "Battleboro",
+        "Nashville",
+        "Spring Hope"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/134"
+    },
+    {
+      "value": "New Hanover County ABC",
+      "county": "New Hanover County",
+      "cities": [
+        "Wilmington",
+        "Carolina Beach",
+        "Castle Hayne"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/135"
+    },
+    {
+      "value": "Newton Grove ABC",
+      "county": "Sampson County",
+      "cities": [
+        "Newton Grove"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/136"
+    },
+    {
+      "value": "North Wilkesboro ABC",
+      "county": "Wilkes County",
+      "cities": [
+        "North Wilkesboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/137"
+    },
+    {
+      "value": "Northampton County ABC",
+      "county": "Northampton County",
+      "cities": [
+        "Conway",
+        "Garysburg",
+        "Jackson",
+        "Rich Square"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/138"
+    },
+    {
+      "value": "Norwood ABC",
+      "county": "Stanly County",
+      "cities": [
+        "Norwood"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/139"
+    },
+    {
+      "value": "Oak Island ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Oak Island"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/140"
+    },
+    {
+      "value": "Ocean Isle Beach ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Ocean Isle Beach"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/142"
+    },
+    {
+      "value": "Onslow County ABC",
+      "county": "Onslow County",
+      "cities": [
+        "Jacksonville",
+        "Richlands",
+        "Sneads Ferry",
+        "Swansboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/195"
+    },
+    {
+      "value": "Orange County ABC",
+      "county": "Orange County",
+      "cities": [
+        "Chapel Hill",
+        "Hillsborough",
+        "Carrboro",
+        "Durham",
+        "Mebane"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/143"
+    },
+    {
+      "value": "Pamlico County ABC",
+      "county": "Pamlico County",
+      "cities": [
+        "Alliance",
+        "Reelsboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/144"
+    },
+    {
+      "value": "Pasquotank County ABC",
+      "county": "Pasquotank County",
+      "cities": [
+        "Elizabeth City"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/145"
+    },
+    {
+      "value": "Pembroke ABC",
+      "county": "Robeson County",
+      "cities": [
+        "Pembroke"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/148"
+    },
+    {
+      "value": "Pender County ABC",
+      "county": "Pender County",
+      "cities": [
+        "Burgaw",
+        "Hampstead",
+        "Rocky Point",
+        "Surf City"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/149"
+    },
+    {
+      "value": "Person County ABC",
+      "county": "Person County",
+      "cities": [
+        "Roxboro",
+        "Timberlake"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/150"
+    },
+    {
+      "value": "Pilot Mountain ABC",
+      "county": "Surry County",
+      "cities": [
+        "Pilot Mountain"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/235"
+    },
+    {
+      "value": "Pitt County ABC",
+      "county": "Pitt County",
+      "cities": [
+        "Greenville",
+        "Ayden",
+        "Farmville",
+        "Winterville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/151"
+    },
+    {
+      "value": "Pittsboro ABC",
+      "county": "Chatham County",
+      "cities": [
+        "Pittsboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/152"
+    },
+    {
+      "value": "Ramseur ABC",
+      "county": "Randolph County",
+      "cities": [
+        "Ramseur"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/250"
+    },
+    {
+      "value": "Randleman ABC",
+      "county": "Randolph County",
+      "cities": [
+        "Randleman"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/153"
+    },
+    {
+      "value": "Red Springs ABC",
+      "county": "Robeson County",
+      "cities": [
+        "Red Springs"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/154"
+    },
+    {
+      "value": "Reidsville ABC",
+      "county": "Rockingham County",
+      "cities": [
+        "Reidsville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/155"
+    },
+    {
+      "value": "Rockingham ABC",
+      "county": "Richmond County",
+      "cities": [
+        "Rockingham"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/156"
+    },
+    {
+      "value": "Roseboro ABC",
+      "county": "Sampson County",
+      "cities": [
+        "Roseboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/157"
+    },
+    {
+      "value": "Rowan/Kannapolis ABC",
+      "county": "Rowan County",
+      "cities": [
+        "Kannapolis",
+        "Salisbury",
+        "Rockwell"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/158"
+    },
+    {
+      "value": "Rowland ABC",
+      "county": "Robeson County",
+      "cities": [
+        "Rowland"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/159"
+    },
+    {
+      "value": "Rutherfordton ABC",
+      "county": "Rutherford County",
+      "cities": [
+        "Rutherfordton"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/160"
+    },
+    {
+      "value": "Saint Pauls ABC",
+      "county": "Robeson County",
+      "cities": [
+        "Saint Pauls"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/169"
+    },
+    {
+      "value": "Sanford ABC",
+      "county": "Lee County",
+      "cities": [
+        "Sanford"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/161"
+    },
+    {
+      "value": "Scotland County ABC",
+      "county": "Scotland County",
+      "cities": [
+        "Laurinburg"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/163"
+    },
+    {
+      "value": "Shallotte ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Shallotte"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/164"
+    },
+    {
+      "value": "Shelby ABC",
+      "county": "Cleveland County",
+      "cities": [
+        "Shelby"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/165"
+    },
+    {
+      "value": "Siler City ABC",
+      "county": "Chatham County",
+      "cities": [
+        "Siler City"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/166"
+    },
+    {
+      "value": "Southport ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Southport"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/167"
+    },
+    {
+      "value": "Sparta ABC",
+      "county": "Alleghany County",
+      "cities": [
+        "Sparta"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/168"
+    },
+    {
+      "value": "Spruce Pine ABC",
+      "county": "Mitchell County",
+      "cities": [
+        "Spruce Pine"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/236"
+    },
+    {
+      "value": "Statesville ABC",
+      "county": "Iredell County",
+      "cities": [
+        "Statesville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/170"
+    },
+    {
+      "value": "Stokes Municipal ABC",
+      "county": "Stokes County",
+      "cities": [
+        "King",
+        "Walnut Cove"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/257"
+    },
+    {
+      "value": "Sunset Beach ABC",
+      "county": "Brunswick County",
+      "cities": [
+        "Sunset Beach"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/171"
+    },
+    {
+      "value": "Tabor City ABC",
+      "county": "Columbus County",
+      "cities": [
+        "Tabor City"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/173"
+    },
+    {
+      "value": "Taylorsville ABC",
+      "county": "Alexander County",
+      "cities": [
+        "Taylorsville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/259"
+    },
+    {
+      "value": "Thomasville ABC",
+      "county": "Davidson County",
+      "cities": [
+        "Thomasville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/174"
+    },
+    {
+      "value": "Triad Municipal ABC",
+      "county": "Forsyth County",
+      "cities": [
+        "Winston-Salem",
+        "Advance",
+        "Clemmons",
+        "Kernersville",
+        "Lewisville",
+        "Oak Ridge",
+        "Yadkinville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/57"
+    },
+    {
+      "value": "Troutman ABC",
+      "county": "Iredell County",
+      "cities": [
+        "Troutman"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/249"
+    },
+    {
+      "value": "Tryon ABC",
+      "county": "Polk County",
+      "cities": [
+        "Tryon"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/175"
+    },
+    {
+      "value": "Tyrrell County ABC",
+      "county": "Tyrrell County",
+      "cities": [
+        "Columbia"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/176"
+    },
+    {
+      "value": "Valdese ABC",
+      "county": "Burke County",
+      "cities": [
+        "Valdese"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/240"
+    },
+    {
+      "value": "Vance County ABC",
+      "county": "Vance County",
+      "cities": [
+        "Henderson"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/177"
+    },
+    {
+      "value": "Wadesboro ABC",
+      "county": "Anson County",
+      "cities": [
+        "Wadesboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/178"
+    },
+    {
+      "value": "Wake County ABC",
+      "county": "Wake County",
+      "cities": [
+        "Raleigh",
+        "Cary",
+        "Apex",
+        "Garner",
+        "Fuquay Varina",
+        "Holly Springs",
+        "Knightdale",
+        "Morrisville",
+        "Rolesville",
+        "Wake Forest",
+        "Wendell",
+        "Zebulon"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/179"
+    },
+    {
+      "value": "Wallace ABC",
+      "county": "Duplin County",
+      "cities": [
+        "Wallace"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/180"
+    },
+    {
+      "value": "Warren County ABC",
+      "county": "Warren County",
+      "cities": [
+        "Littleton",
+        "Norlina"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/182"
+    },
+    {
+      "value": "Warsaw ABC",
+      "county": "Duplin County",
+      "cities": [
+        "Warsaw"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/183"
+    },
+    {
+      "value": "Washington County ABC",
+      "county": "Washington County",
+      "cities": [
+        "Plymouth"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/184"
+    },
+    {
+      "value": "Waxhaw ABC",
+      "county": "Union County",
+      "cities": [
+        "Waxhaw"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/185"
+    },
+    {
+      "value": "Wayne County ABC",
+      "county": "Wayne County",
+      "cities": [
+        "Goldsboro",
+        "LaGrange",
+        "Mt. Olive"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/54"
+    },
+    {
+      "value": "Waynesville ABC",
+      "county": "Haywood County",
+      "cities": [
+        "Waynesville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/187"
+    },
+    {
+      "value": "Weaverville ABC",
+      "county": "Buncombe County",
+      "cities": [
+        "Weaverville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/234"
+    },
+    {
+      "value": "West Columbus ABC",
+      "county": "Columbus County",
+      "cities": [
+        "Chadbourn"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/196"
+    },
+    {
+      "value": "West Jefferson ABC",
+      "county": "Ashe County",
+      "cities": [
+        "West Jefferson"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/230"
+    },
+    {
+      "value": "Whiteville ABC",
+      "county": "Columbus County",
+      "cities": [
+        "Whiteville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/188"
+    },
+    {
+      "value": "Wilkesboro ABC",
+      "county": "Wilkes County",
+      "cities": [
+        "Wilkesboro"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/189"
+    },
+    {
+      "value": "Wilson County ABC",
+      "county": "Wilson County",
+      "cities": [
+        "Wilson",
+        "Stantonsburg"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/190"
+    },
+    {
+      "value": "Wingate ABC",
+      "county": "Union County",
+      "cities": [
+        "Wingate"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/239"
+    },
+    {
+      "value": "Woodfin ABC",
+      "county": "Buncombe County",
+      "cities": [
+        "Woodfin"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/226"
+    },
+    {
+      "value": "Yadkin Valley ABC",
+      "county": "Surry County",
+      "cities": [
+        "Elkin"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/246"
+    },
+    {
+      "value": "Youngsville ABC",
+      "county": "Franklin County",
+      "cities": [
+        "Youngsville"
+      ],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/193"
+    }
+  ]
+}

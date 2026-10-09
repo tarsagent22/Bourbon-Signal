@@ -82,7 +82,7 @@ export interface MemberProfile {
         code: string;
         label: string;
         areaLabel: "Board" | "City";
-        options: Array<{ value: string; label: string }>;
+        options: Array<{ value: string; label: string; displayName?: string; subtitle?: string }>;
         monitoringLevels?: MonitoringScopeType[];
         engineCoverage?: "active" | "expanding";
       }>;

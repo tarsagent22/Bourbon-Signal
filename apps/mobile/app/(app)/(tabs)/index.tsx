@@ -18,6 +18,7 @@ import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals,
 import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
 import { PushMaintenance, PushResponseHandler } from "../../../src/push/PushResponseHandler";
 import { colors, typeScale } from "../../../src/theme";
+import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibility";
 
 type FeedView = "market" | "community";
 
@@ -30,34 +31,47 @@ function OptionChooser({
   icon,
   disabled = false,
   onChange,
+  onReveal,
+  viewportHeight,
 }: {
   label: string;
   value: string;
   placeholder: string;
   clearLabel?: string;
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; label: string; displayName?: string; subtitle?: string }>;
   icon: string;
   disabled?: boolean;
   onChange: (value: string) => void;
+  onReveal: (node: View) => void;
+  viewportHeight: number;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const selectedLabel = options.find((option) => option.value === value)?.label || placeholder;
+  const [buttonHeight, setButtonHeight] = useState(46);
+  const chooserRef = useRef<View>(null);
+  const pendingReveal = useRef(false);
+  const selectedOption = options.find((option) => option.value === value);
+  const selectedLabel = selectedOption?.displayName || selectedOption?.label || placeholder;
   const visibleOptions = value ? [{ value: "", label: clearLabel || placeholder }, ...options] : options;
   useEffect(() => { if (disabled) setExpanded(false); }, [disabled]);
-  return <View style={[styles.fieldGroup, styles.filterChooser, disabled && styles.filterChooserDisabled]}>
+  return <View ref={chooserRef} collapsable={false} onLayout={() => {
+    if (!pendingReveal.current || !expanded || disabled) return;
+    pendingReveal.current = false;
+    requestAnimationFrame(() => { if (chooserRef.current) onReveal(chooserRef.current); });
+  }} style={[styles.fieldGroup, styles.filterChooser, disabled && styles.filterChooserDisabled]}>
     <Pressable
-      accessibilityLabel={`${label}, ${selectedLabel}`}
+      onLayout={(event) => setButtonHeight(event.nativeEvent.layout.height)}
+      accessibilityLabel={`${label}, ${selectedLabel}${selectedOption?.subtitle ? `, ${selectedOption.subtitle}` : ""}`}
       accessibilityRole="button"
       accessibilityState={{ expanded, disabled }}
       disabled={disabled}
-      onPress={() => setExpanded((current) => !current)}
+      onPress={() => { Keyboard.dismiss(); pendingReveal.current = !expanded; setExpanded(!expanded); }}
       style={({ pressed }) => [styles.chooserButton, pressed && styles.segmentPressed]}
     >
       <MaterialCommunityIcons color={disabled ? colors.border : colors.muted} name={icon as never} size={18} />
-      <Text numberOfLines={1} style={[styles.chooserValue, !value && styles.chooserPlaceholder]}>{selectedLabel}</Text>
+      <View style={styles.chooserText}><Text numberOfLines={selectedOption?.subtitle ? 2 : 1} style={[styles.chooserValue, !value && styles.chooserPlaceholder]}>{selectedLabel}</Text>{selectedOption?.subtitle ? <Text numberOfLines={2} style={styles.chooserSubtitle}>{selectedOption.value}</Text> : null}</View>
       <MaterialCommunityIcons color={disabled ? colors.border : colors.muted} name={expanded ? "chevron-up" : "chevron-down"} size={19} />
     </Pressable>
-    {expanded && !disabled ? <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled style={styles.chooserOptions}>
+    {expanded && !disabled ? <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled style={[styles.chooserOptions, { maxHeight: Math.max(60, Math.min(240, viewportHeight - buttonHeight - 30)) }]}>
       {visibleOptions.map((option) => {
         const selected = option.value === value;
         return <Pressable
@@ -67,7 +81,7 @@ function OptionChooser({
           onPress={() => { onChange(option.value); setExpanded(false); }}
           style={({ pressed }) => [styles.chooserOption, selected && styles.chooserOptionSelected, pressed && styles.segmentPressed]}
         >
-          <Text style={[styles.chooserOptionText, selected && styles.rarityChipTextSelected]}>{option.label}</Text>
+          <View style={styles.chooserText}><Text style={[styles.chooserOptionText, selected && styles.rarityChipTextSelected]}>{option.displayName || option.label}</Text>{"subtitle" in option && option.subtitle ? <Text numberOfLines={3} style={styles.chooserSubtitle}>{option.subtitle}</Text> : null}</View>
           {selected ? <MaterialCommunityIcons color={colors.accent} name="check" size={18} /> : null}
         </Pressable>;
       })}
@@ -119,7 +133,7 @@ export default function SignalFeedScreen() {
   });
   const [bottleQueries, setBottleQueries] = useState<Record<FeedView, string>>({ market: "", community: "" });
   const [remoteAreaState, setRemoteAreaState] = useState("");
-  const [remoteAreaOptions, setRemoteAreaOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [remoteAreaOptions, setRemoteAreaOptions] = useState<Array<{ value: string; label: string; displayName?: string; subtitle?: string }>>([]);
   const [areaOptionsLoading, setAreaOptionsLoading] = useState(false);
   const [areaOptionsError, setAreaOptionsError] = useState("");
   const [loadedBrowsingStorageKey, setLoadedBrowsingStorageKey] = useState("");
@@ -139,9 +153,11 @@ export default function SignalFeedScreen() {
   const areaOptions = filters.state !== "NC" && remoteAreaState === filters.state && remoteAreaOptions.length
     ? remoteAreaOptions
     : staticAreaOptions;
-  const areaLabel = filters.state
+  const areaLabel = filters.state === "NC" ? "Location" : filters.state
     ? areaDirectory?.states.find((state) => state.code === filters.state)?.areaLabel || areaSelectorLabel(filters.state)
-    : "Area / Board";
+    : "Location";
+  const selectedArea = areaOptions.find(option => option.value === filters.area);
+  const selectedAreaLabel = selectedArea?.displayName || selectedArea?.label || filters.area;
   const bottleQuery = tier === undefined || detailedFilters ? bottleQueries[view] : "";
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
@@ -153,6 +169,18 @@ export default function SignalFeedScreen() {
   const backgroundRequestSequence = useRef(0);
   const scopeKeyRef = useRef(scopeKey);
   const listRef = useRef<FlatList<Signal>>(null);
+  const viewportRef = useRef<View>(null);
+  const [viewportHeight, setViewportHeight] = useState(480);
+  const scrollOffset = useRef(0);
+  const revealChooser = useCallback((node: View) => {
+    node.measureInWindow((_x, top, _width, height) => {
+      viewportRef.current?.measureInWindow((_vx, viewportTop, _vw, viewportHeight) => {
+        if (!height || !viewportHeight) return;
+        const offset = dropdownRevealOffset(scrollOffset.current, top, height, viewportTop, viewportHeight);
+        if (Math.abs(offset - scrollOffset.current) > 1) listRef.current?.scrollToOffset({ offset, animated: !motionDisabled });
+      });
+    });
+  }, [motionDisabled]);
   const signalsSnapshotRef = useRef<Signal[]>(signals);
   const accessSnapshotRef = useRef<SignalFeedPage["access"] | null>(access);
   const latestDisplayedBaselineRef = useRef("");
@@ -520,20 +548,24 @@ export default function SignalFeedScreen() {
             clearLabel="All states"
             options={stateOptions}
             onChange={(state) => applyFilters({ ...filters, state, area: "" })}
+            onReveal={revealChooser}
+            viewportHeight={viewportHeight}
           />
           <OptionChooser
             label={areaLabel}
             icon="map-marker-radius-outline"
             value={filters.area}
-            placeholder={filters.state ? areaLabel : "Area / Board"}
+            placeholder={filters.state ? areaLabel : "Location"}
             clearLabel={`Any ${areaLabel.toLowerCase()}`}
             options={areaOptions}
             disabled={!filters.state || !detailedFilters}
             onChange={(area) => applyFilters({ ...filters, area })}
+            onReveal={revealChooser}
+            viewportHeight={viewportHeight}
           />
         </View>
         {filters.state ? <View style={styles.locationSelection}>
-          <Text numberOfLines={1} style={styles.locationSelectionText}>{filters.area ? `${filters.state} · ${filters.area}` : `${filters.state} · All ${areaLabel === "City" ? "cities" : "boards"}`}</Text>
+          <Text numberOfLines={2} style={styles.locationSelectionText}>{filters.area ? `${filters.state} · ${selectedAreaLabel}${filters.state === "NC" && selectedArea?.subtitle ? ` · ${filters.area}` : ""}` : `${filters.state} · All ${areaLabel === "City" ? "cities" : "areas"}`}</Text>
           <Pressable accessibilityLabel="Clear Home location filters" accessibilityRole="button" onPress={() => applyFilters({ ...filters, state: "", area: "" })} style={styles.clearLocationButton}>
             <MaterialCommunityIcons color={colors.accent} name="close" size={17} />
             <Text style={styles.clearLocationText}>Clear</Text>
@@ -541,8 +573,9 @@ export default function SignalFeedScreen() {
         </View> : null}
         {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
+        {filters.state === "NC" && detailedFilters ? <Text style={styles.areaOptionNote}>Choose your local ABC board by county or town.</Text> : null}
 
-        {!detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Board/city filters and bottle search · Barrel Proof →</Text></Pressable> : null}
+        {!detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and bottle search · Barrel Proof →</Text></Pressable> : null}
         {detailedFilters ? <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
@@ -612,12 +645,14 @@ export default function SignalFeedScreen() {
       </View>
       <PushMaintenance />
       <PushResponseHandler />
-      <View style={[styles.feedViewport, { marginTop: headerHeight }]}>
+      <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
       <FlatList
       ref={listRef}
       contentContainerStyle={styles.list}
       data={visibleSignals}
       keyboardShouldPersistTaps="handled"
+      onScroll={(event) => { scrollOffset.current = event.nativeEvent.contentOffset.y; }}
+      scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <SignalCard highlighted={highlightedIds.includes(item.id)} signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
@@ -728,11 +763,13 @@ const styles = StyleSheet.create({
   footerError: { color: colors.danger, textAlign: "center" },
   end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: typeScale.small },
   fieldGroup: { gap: 6 },
-  chooserButton: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", gap: 7 },
-  chooserValue: { color: colors.text, fontSize: typeScale.small, fontWeight: "600", flex: 1 },
+  chooserButton: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, paddingVertical: 9, flexDirection: "row", alignItems: "center", gap: 7 },
+  chooserValue: { color: colors.text, fontSize: typeScale.small, fontWeight: "600" },
   chooserPlaceholder: { color: colors.muted, fontWeight: "500" },
-  chooserOptions: { maxHeight: 190, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
-  chooserOption: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 11, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  chooserText: { flex: 1, minWidth: 0, gap: 3 },
+  chooserSubtitle: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  chooserOptions: { maxHeight: 240, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
+  chooserOption: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 11, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   chooserOptionSelected: { backgroundColor: "#2A1F13" },
   chooserOptionText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "600" },
   areaOptionNote: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, textAlign: "center" },

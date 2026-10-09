@@ -5,6 +5,7 @@ import { createCommunitySightingsRepository } from "@/lib/community-sightings-re
 import { geographyDisplayName, geographyState, listGeographyMatches, listMonitoringStates, type GeographyLevel } from "@/lib/geography-directory";
 import { countCommunityActivity } from "@/lib/geography-community-activity";
 import { NC_ABC_BOARD_OPTIONS } from "@/lib/nc-abc-boards";
+import { ncBoardLocality, ncBoardLocalityMatches } from "@/lib/nc-board-localities";
 import { readSightingStoreDirectory } from "@/lib/sighting-store-directory";
 import { searchSightingStoreDirectory } from "@/lib/sighting-store-directory-core";
 import { PRIVATE_SIGNAL_API_HEADERS, signalApiError } from "@/lib/signals/signal-api-route";
@@ -51,12 +52,12 @@ export async function GET(request: Request) {
     return Boolean(canonical && canonicalCommunityStoreMatches(canonical, row));
   });
   const activeEngineStates = new Set(ACTIVE_ENGINE_STATE_CODES.map((code) => geographyState(code)?.state || code));
-  const decorate = (entry: { id: string; level: ApiLevel; state: string; name: string; subtitle: string | null; rawId?: string; address?: string; city?: string; zip?: string }) => {
+  const decorate = (entry: { id: string; level: ApiLevel; state: string; name: string; subtitle: string | null; displayName?: string; rawId?: string; address?: string; city?: string; zip?: string }) => {
     const count = countCommunityActivity(recentSightings, entry);
     const engineStatus = activeEngineStates.has(entry.state) ? "active" as const : "expanding" as const;
     return {
       id: entry.id, level: entry.level, state: entry.state, name: entry.name,
-      displayName: entry.level === "city" ? geographyDisplayName(entry.name) : entry.name,
+      displayName: entry.displayName || (entry.level === "city" ? geographyDisplayName(entry.name) : entry.name),
       subtitle: entry.subtitle,
       storeId: entry.rawId,
       address: entry.address,
@@ -70,11 +71,14 @@ export async function GET(request: Request) {
     };
   };
   const dynamic = [
-    ...(requestedLevels.includes("board") && (!state || state === "NC") ? NC_ABC_BOARD_OPTIONS.map((name) => ({ id: `board:NC:${slug(name)}`, level: "board" as const, state: "NC", name, subtitle: null })) : []),
-  ].filter((entry) => (!state || entry.state === state) && (!query || `${entry.name} ${entry.subtitle || ""}`.toLowerCase().includes(query.toLowerCase())));
+    ...(requestedLevels.includes("board") && (!state || state === "NC") ? NC_ABC_BOARD_OPTIONS.map((name) => {
+      const locality = ncBoardLocality(name);
+      return { id: `board:NC:${slug(name)}`, level: "board" as const, state: "NC", name, displayName: locality.displayName, subtitle: locality.subtitle || null };
+    }) : []),
+  ].filter((entry) => (!state || entry.state === state) && (!query || ncBoardLocalityMatches(entry.name, query)));
   const storeMatches = requestedLevels.includes("store") ? searchSightingStoreDirectory(stores, query, state).map(store => ({ id: `store:${store.state}:${store.id}`, level: "store" as const, state: store.state, name: store.name, subtitle: `${store.city} · ${store.address}`, rawId: store.id, address: store.address, city: store.city, zip: store.zip })) : [];
   const geographicMatches = [...staticResults.map((entry) => ({ ...entry, name: entry.name, subtitle: null })), ...dynamic]
-    .sort((left, right) => left.state.localeCompare(right.state) || left.level.localeCompare(right.level) || left.name.localeCompare(right.name));
+    .sort((left, right) => left.state.localeCompare(right.state) || left.level.localeCompare(right.level) || ("displayName" in left ? left.displayName : left.name).localeCompare("displayName" in right ? right.displayName : right.name) || left.name.localeCompare(right.name));
   const combined = [...geographicMatches, ...storeMatches];
   const results = combined.slice(offset, offset + limit).map(decorate);
   return Response.json({

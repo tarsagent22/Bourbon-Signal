@@ -30,7 +30,7 @@ for (const reserved of ["", "Bourbon Signal Staff", "Admin", "Founder #12", "Mem
 }
 const areaDirectory = buildSignalFeedAreaDirectory();
 assert.equal(areaDirectory.states.find((state) => state.code === "NC")?.areaLabel, "Board");
-assert.ok(areaDirectory.states.find((state) => state.code === "NC")?.options.some((option) => option.value === "Wake County ABC" && /ABC/.test(option.label)));
+assert.ok(areaDirectory.states.find((state) => state.code === "NC")?.options.some((option) => option.value === "Wake County ABC" && option.displayName === "Wake County" && /Wake County ABC/.test(option.label)));
 assert.equal(areaDirectory.states.find((state) => state.code === "GA")?.areaLabel, "City");
 
 const defaultDisplayProfile = buildSignalMemberProfile(
