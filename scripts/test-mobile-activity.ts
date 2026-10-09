@@ -2,6 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createMobileActivityHandler, mobileActivityRecords, type MobileActivityRecord } from '../src/lib/mobile-activity';
 import { adminMember, directoryPage } from '../src/lib/admin-member-directory';
+import { PGlite } from '@electric-sql/pglite';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { MobileActivityRepository } from '../src/lib/mobile-activity-repository';
+const { moduleFrom } = createRequire(import.meta.url)('./astra-security-test-helpers.cjs');
 const input = { platform: 'ios', appVersion: '1.1.0', updateId: null };
 const req = (body: unknown = input) => new Request('https://example.test/api/v1/me/mobile-activity', { method: 'POST', body: JSON.stringify(body) });
 test('authentication, bounded input, server timestamps and throttle', async () => {
@@ -34,4 +39,55 @@ test('mobile users filter and recency apply before pagination, independent of me
   assert.equal(directoryPage(users,new URLSearchParams('app=mobile&sort=mobile_activity&offset=40')).members.length,10);
   assert.equal(directoryPage(users,new URLSearchParams('app=mobile&filter=free&q=Person%2099')).total,1);
   assert.throws(() => directoryPage(users,new URLSearchParams('app=secret')));
+});
+
+test('durable activity stays bounded, preserves first/latest use and scopes account reads', async () => {
+  const db = new PGlite();
+  try {
+    await db.exec("CREATE TABLE account_deletion_requests(user_id text PRIMARY KEY);" + readFileSync('src/lib/mobile-activity-schema.sql','utf8'));
+    const repository = new MobileActivityRepository({query:async(text,params=[])=>({rows:(await db.query(text,params)).rows as Record<string,unknown>[]})});
+    const record = {...input,platform:'ios' as const,firstSeenAt:'2026-10-08T15:00:00Z',lastSeenAt:'2026-10-08T15:05:00Z'};
+    await repository.save('member-a',record);
+    await repository.save('member-b',{...record,platform:'android'});
+    await repository.save('member-a',{...record,appVersion:'1.1.1',lastSeenAt:'2026-10-08T15:10:00Z'});
+    await repository.save('member-a',{...record,appVersion:'1.0.0',firstSeenAt:'2026-10-08T14:00:00Z'});
+    const saved = (await repository.read('member-a')).ios;
+    assert.equal(saved.appVersion,'1.1.1');assert.equal(Date.parse(saved.firstSeenAt),Date.parse('2026-10-08T14:00:00Z'));assert.equal(Date.parse(saved.lastSeenAt),Date.parse('2026-10-08T15:10:00Z'));
+    assert.deepEqual(Object.keys(await repository.readMany(['member-a'])),['member-a']);
+    assert.equal((await db.query<{count:number}>('SELECT count(*)::int AS count FROM member_mobile_activity')).rows[0].count,2);
+    await db.query('INSERT INTO account_deletion_requests VALUES ($1)',['member-a']);
+    await assert.rejects(repository.save('member-a',record));
+    await db.query('DELETE FROM member_mobile_activity WHERE user_id=$1',['member-a']);
+    await assert.rejects(repository.save('member-a',record));assert.deepEqual(await repository.read('member-a'),{});
+  } finally { await db.close(); }
+});
+
+test('authenticated route saves full-metadata accounts without Clerk writes and fences deletion', async () => {
+  const db = new PGlite();
+  try {
+    await db.exec("CREATE TABLE account_deletion_requests(user_id text PRIMARY KEY);" + readFileSync('src/lib/mobile-activity-schema.sql','utf8'));
+    const sql = {query:async(text:string,params:unknown[]=[])=>({rows:(await db.query(text,params)).rows as Record<string,unknown>[]})};
+    let userId: string|null = 'full-owner', busy=false, lost=false, exists=true, checks=0, metadataWrites=0;
+    const metadata = {olderAccountData:'x'.repeat(8078)};
+    const route = moduleFrom('src/app/api/v1/me/mobile-activity/route.ts',{
+      '@clerk/nextjs/server':{auth:async()=>({userId}),clerkClient:async()=>({users:{getUser:async()=>{if(!exists)throw Error('identity deleted');return {privateMetadata:metadata};},updateUserMetadata:async()=>{metadataWrites++;throw Error('metadata exceeds 8 KB');}}})},
+      '@/lib/mobile-activity':{createMobileActivityHandler},
+      '@/lib/mobile-activity-repository':{MobileActivityRepository:class extends MobileActivityRepository {constructor(){super(sql);}}},
+      '@/lib/alert-queue/member-lease':{withMemberAlertLease:async(id:string,operation:(assertHeld:()=>Promise<void>)=>Promise<Response>,options:{requireDurable:boolean})=>{assert.equal(id,userId);assert.equal(options.requireDurable,true);if(busy)return {acquired:false};return {acquired:true,result:await operation(async()=>{checks++;if(lost)throw Error('lease lost');})};}},
+    });
+    assert.equal((await route.POST(req())).status,200);assert.equal(metadataWrites,0);assert.ok(checks>=2);
+    const rows=await new MobileActivityRepository(sql).readMany(['full-owner']);
+    assert.equal(directoryPage([{id:'full-owner',privateMetadata:metadata}],new URLSearchParams('app=mobile'),new Date(),rows).total,1);
+    userId=null;assert.equal((await route.POST(req())).status,401);
+    userId='other';busy=true;assert.equal((await route.POST(req())).status,503);
+    busy=false;lost=true;assert.equal((await route.POST(req())).status,503);assert.deepEqual(await new MobileActivityRepository(sql).read('other'),{});
+    lost=false;exists=false;assert.equal((await route.POST(req())).status,503);
+    assert.equal(metadata.olderAccountData.length,8078);assert.equal(metadataWrites,0);
+  } finally { await db.close(); }
+});
+
+test('legacy first activity is retained alongside the newer database summary', () => {
+  const legacy={...input,platform:'ios' as const,firstSeenAt:'2026-10-01T12:00:00Z',lastSeenAt:'2026-10-07T12:00:00Z'};
+  const row=adminMember({id:'member',privateMetadata:{mobileActivity:{ios:legacy}}},new Date(),[{...legacy,appVersion:'1.1.1',firstSeenAt:'2026-10-08T12:00:00Z',lastSeenAt:'2026-10-08T12:00:00Z'}]);
+  assert.equal(row.mobileActivity[0].firstSeenAt,legacy.firstSeenAt);assert.equal(row.mobileActivity[0].appVersion,'1.1.1');
 });

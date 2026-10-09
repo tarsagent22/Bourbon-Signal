@@ -5,11 +5,11 @@ export type MobileActivityRecord = MobileActivityInput & { firstSeenAt: string; 
 export function mobileActivityInput(value: unknown): MobileActivityInput {
   const v = value as Partial<MobileActivityInput> | null;
   if (!v || (v.platform !== 'ios' && v.platform !== 'android') || typeof v.appVersion !== 'string' || !/^[0-9][a-zA-Z0-9.+-]{0,39}$/.test(v.appVersion)
-    || (v.updateId !== null && (typeof v.updateId !== 'string' || !/^[a-f0-9-]{36}$/i.test(v.updateId)))) throw new Error('Invalid mobile activity.');
+    || (v.updateId !== null && (typeof v.updateId !== 'string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(v.updateId)))) throw new Error('Invalid mobile activity.');
   return { platform: v.platform, appVersion: v.appVersion, updateId: v.updateId };
 }
 
-// Only server-owned private metadata supplies the owner directory.
+// Both database rows and legacy private metadata are server-owned.
 export function mobileActivityRecords(value: unknown): MobileActivityRecord[] {
   if (!value || typeof value !== 'object') return [];
   return (['ios', 'android'] as const).flatMap(platform => {

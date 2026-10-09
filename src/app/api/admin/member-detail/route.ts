@@ -4,6 +4,7 @@ import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { readFounderShippingForUser } from "@/lib/founder-shipping-repository";
 import { coverageDatabase } from "@/lib/owner-workspace";
+import { MobileActivityRepository } from "@/lib/mobile-activity-repository";
 import { adminRecord, adminReason } from "../../../../../shared/owner-admin";
 const headers = { "Cache-Control": "private, no-store" };
 export async function GET(request: Request) {
@@ -13,6 +14,7 @@ export async function GET(request: Request) {
   if (!id) return Response.json({ error: "Choose a member." }, { status: 400 });
   try {
     const user = await owner.client.users.getUser(id);
+    const mobileActivity = await new MobileActivityRepository().readMany([id]);
     const tasks = {
       points: () => createSignalPointsRepository().readMember(id),
       shipping: () => readFounderShippingForUser(id),
@@ -46,7 +48,7 @@ export async function GET(request: Request) {
       );
     return Response.json(
       {
-        member: adminMember(user),
+        member: adminMember(user,new Date(),mobileActivity[id]),
         ...data,
         unavailable: Object.keys(tasks).filter(
           (_, i) => values[i].status === "rejected",
