@@ -17,9 +17,11 @@ function isLabeledDegraded(row = {}) {
 }
 
 export function requiresStateAlertSuppression(operating) {
+  // Partial source coverage is diagnostic, not authority to veto healthy rows.
+  // Retained whole-state fallback and global identity/schema quarantine still block.
   return operating?.health === 'blocked'
-    || operating?.freshness?.status === 'stale'
-    || Boolean(operating?.fallback?.status && operating.fallback.status !== 'none');
+    || ['last_published', 'full', 'stale'].includes(operating?.fallback?.status)
+    || (operating?.freshness?.status === 'stale' && operating?.fallback?.status !== 'partial');
 }
 
 export function assessStateFailureIsolation({ stateCoverage = null, refreshHealth = null, alerts = [] } = {}) {

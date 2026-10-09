@@ -3,7 +3,6 @@ import type { SqlExecutor } from './alert-queue/postgres-repository';
 import { LIQUOR_LIBRARY_SOURCE, liquorLibraryLocationUrl, liquorLibraryCatalogUrl, liquorLibrarySkuUrl, parseLiquorLibraryLocation, parseLiquorLibraryCatalogPage, parseLiquorLibraryScopedObservation, buildLiquorLibrarySignal } from '../../engine/src/collectors/south-carolina-square.mjs';
 import { availabilityEpisodeIdentity, buildDrops, buildCurrentInventoryAlertsFromDrops, applyAlertPolicyToCandidate } from '../../engine/src/export-site-contract.mjs';
 import { stableId } from '../../engine/src/core/text.mjs';
-import { requiresStateAlertSuppression } from '../../engine/src/state-failure-isolation.mjs';
 import { lifecycleAllowsInventoryAlert } from '../../engine/src/state-lifecycle.mjs';
 
 type Row = Record<string, any>;
@@ -20,9 +19,8 @@ const digest = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).di
 export function sourceLanePolicyAllows(policy: LanePolicy, now: string) {
   const age = Date.parse(now) - Date.parse(policy.generatedAt || '');
   const op = policy.operating;
-  return policy.source === 'remote-snapshot' && Boolean(policy.snapshotId) && Number.isFinite(age) && age >= 0 && age <= 45 * 60_000
-    && op?.state === 'SC' && ['healthy', 'degraded'].includes(op.health) && op.freshness?.status === 'fresh'
-    && op.fallback?.status === 'none' && !requiresStateAlertSuppression(op) && lifecycleAllowsInventoryAlert('SC');
+  return policy.source === 'remote-snapshot' && Boolean(policy.snapshotId) && Number.isFinite(age) && age >= 0 && age <= 7 * 86400_000
+    && op?.state === 'SC' && op.health !== 'blocked' && lifecycleAllowsInventoryAlert('SC');
 }
 export async function invokeSourceProvider<T>(input: { validate: () => Promise<boolean>; send: () => Promise<T>; recordAttempt: (at: string) => Promise<void>; recordFailed?: (at: string) => Promise<void> }): Promise<{ suppressed: true } | { suppressed: false; result: T }> {
   if (!await input.validate()) return { suppressed: true };

@@ -1,3 +1,5 @@
+import { failClosedPollRows } from '../../engine/src/sources/poll-policy.mjs';
+import { readPollProjection, pollCandidatesValid, schedulerEnabled, POLL_SOURCES, tracePollCandidates } from './source-scheduler';
 import { unstable_cache } from "next/cache";
 
 import { aggregateAreaWatchlistDemand, areaWatchlistPriority, type AreaWatchlistDemand } from './demand-intelligence';
@@ -39,6 +41,7 @@ export async function pollRuntimeSourceLanes(dryRun: boolean) {
 const inRegisteredScope = (c: Row) => c.state === 'SC' && c.sourceChain === 'liquor-library'
   && c.storeId === 'liquor-library:45SNB155S1XMP' && SOURCE_LANES.some(s => s.subjects.some(d => d.productId === c.productId));
 export async function mergeRuntimeSourceCandidates(candidates: Row[], alerts: SiteExportResult) {
+  if (schedulerEnabled()) { try { candidates=(await readPollProjection(candidates, 'candidates')).rows; } catch { candidates=failClosedPollRows(candidates,POLL_SOURCES,'candidates'); } }
   if (!storageEnabled()) return candidates;
   try {
     const context = await readRuntimeLaneContext();
@@ -48,6 +51,7 @@ export async function mergeRuntimeSourceCandidates(candidates: Row[], alerts: Si
   } catch { return candidates.filter(c => !inRegisteredScope(c)); }
 }
 export async function runtimeSourceCandidatesStillValid(candidates: Row[]) {
+  if (!await pollCandidatesValid(candidates)) return false;
   if (!storageEnabled()) return !candidates.some(c => c.sourceLaneId);
   if (!candidates.some(inRegisteredScope)) return true;
   try { const { policy } = await readRuntimeLaneContext(); return await sourceCandidatesStillValid(repository(), candidates, policy, promotionEnabled()); }
@@ -66,8 +70,10 @@ const readCachedSourceDropOverlay = unstable_cache(
   ['public-source-drop-overlay-v1'], { revalidate: 15 },
 );
 export async function readRuntimeSourceDropOverlay(drops: Row[], snapshotId: string | null) {
-  if (!storageEnabled() || !snapshotId) return readUncachedSourceDropOverlay(drops, snapshotId);
-  return readCachedSourceDropOverlay(drops, snapshotId, promotionEnabled());
+  const original = !storageEnabled() || !snapshotId ? await readUncachedSourceDropOverlay(drops, snapshotId) : await readCachedSourceDropOverlay(drops, snapshotId, promotionEnabled());
+  if (!schedulerEnabled()) return original;
+  try { const poll=await readPollProjection(original.drops, 'drops');return {drops:poll.rows,version:original.version+':'+poll.version}; }
+  catch { return {drops:failClosedPollRows(original.drops,POLL_SOURCES,'drops'),version:original.version+':poll-unavailable'}; }
 }
 
 async function readRuntimeSourceDemand(): Promise<AreaWatchlistDemand | null> {
@@ -102,6 +108,7 @@ export async function readRuntimeSourceUsefulness() {
 }
 
 export async function traceRuntimeSourceCandidates(candidates: Row[], stage: string, channel = '', at = new Date().toISOString()) {
+  await tracePollCandidates(candidates,stage,channel,at);
   if (!storageEnabled()) return;
   try { await repository().trace(candidates, stage, channel, at); } catch { /* non-authoritative */ }
 }

@@ -1,3 +1,4 @@
+import { ncShipmentWatchEligible } from './nc-shipment-policy.mjs';
 import { locationValue, precisionRank } from './location-precision.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
@@ -94,7 +95,7 @@ const VIRGINIA_EXACT_PREMISES_PRODUCT_CODES = new Set(['016577', '022199', '0184
 function watchAlertsBlockedByStateSemantics(signal, eventType) {
   if (signal.state === 'MD-MONTGOMERY' && /county_inventory_aggregate|county_product|county_allocated|catalog|product_search/i.test(eventType)) return true;
   if (signal.state === 'UT' && /board_inventory_aggregate|catalog|release_document|allocated_release|bottle_inventory_signal/i.test(eventType)) return true;
-  if (signal.state === 'NC' && /nc_board_shipment_snapshot|stock_shipped/i.test(eventType)) return true;
+  if (signal.state === 'NC' && /nc_board_shipment_snapshot|stock_shipped/i.test(eventType)) return !ncShipmentWatchEligible(signal);
   return false;
 }
 

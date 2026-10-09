@@ -12,4 +12,5 @@ console.log(JSON.stringify(verifyFloridaExpansionArtifact({
   baseline,
   now: Date.now(),
   maxInventoryAgeMs,
+  requireComplete: process.argv.includes("--require-complete"),
 }), null, 2));

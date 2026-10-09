@@ -1,3 +1,4 @@
+import { normalizeAlertDeliveryTimeZone } from "@/lib/alert-delivery-window";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
   const requestId = randomUUID();
   const { userId } = await auth();
   if (!userId) return errorResponse(401, "PUSH_PROFILE_LOAD_FAILED", "Sign in to change push registration.", requestId);
-  const body = (await req.json().catch(() => ({}))) as { action?: "register" | "disable"; deviceId?: string; expoPushToken?: string; platform?: PushPlatform };
+  const body = (await req.json().catch(() => ({}))) as { action?: "register" | "disable"; deviceId?: string; expoPushToken?: string; platform?: PushPlatform; timeZone?: unknown };
   if (!body || typeof body.deviceId !== "string" || !body.deviceId.trim() || body.deviceId.length > 120 || (body.action !== "register" && body.action !== "disable") || (body.action === "register" && (typeof body.expoPushToken !== "string" || !["ios", "android"].includes(body.platform || "")))) {
     return errorResponse(400, "PUSH_VALIDATION_FAILED", "A device ID and valid action are required.", requestId);
   }
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
           bind:(device,bindingId)=>ownership.bind(userId,device,bindingId),
           disable:()=>ownership.disable(userId,body.deviceId!),
           write:async()=>{await client.users.updateUserMetadata(userId, {
-            privateMetadata: { pushDevices, pushPreferenceProjection },
+            privateMetadata: { pushDevices, pushPreferenceProjection, ...(normalizeAlertDeliveryTimeZone(body.timeZone) ? { lifecycleTimeZone: normalizeAlertDeliveryTimeZone(body.timeZone) } : {}) },
             publicMetadata: { notificationPreferences: { push: { enabled } } },
           });},
         });

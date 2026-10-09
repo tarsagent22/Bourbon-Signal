@@ -1,3 +1,6 @@
+import { collectCaliforniaSource } from './california-runtime-source.mjs';
+import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
+export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { renameSync } from 'node:fs';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { collectionRequestSignal, throwIfCollectionAborted, withCollectionContext, writeCollectionFile as writeFile } from '../core/collection-context.mjs';
@@ -2391,14 +2394,6 @@ function normalizedBottleText(value) {
     .trim();
 }
 
-export function cityHiveSafeBottleMatch(rawName, bible) {
-  const { match, record } = bottleMatch(rawName, bible);
-  if (!record) return { match, record: null, unsafeReason: 'no_bottle_bible_match' };
-  const unsafeReason = cityHiveUnsafeBottleMatchReason(rawName, record);
-  if (unsafeReason) return { match, record: null, unsafeReason };
-  return { match, record, unsafeReason: null };
-}
-
 const SC_CITYHIVE_EXACT_NAME_MAP = new Map([
   ['elijah craig barrel proof store pick', 'Elijah Craig Barrel Proof'],
 ]);
@@ -2439,44 +2434,6 @@ export function isSafeSouthCarolinaCityHiveBottleOption(option = {}, rawName = '
 
 export function shouldBlockSouthCarolinaCityHivePriority(failedSourceIds = []) {
   return new Set([...failedSourceIds].filter((sourceId) => typeof sourceId === 'string' && sourceId)).size >= 2;
-}
-
-function cityHiveUnsafeBottleMatchReason(rawName, record) {
-  const raw = normalizedBottleText(rawName);
-  const canonical = normalizedBottleText(record.canonical);
-  if (/\b(cream|liqueur|cordial|cocktail|ready to drink)\b/.test(raw) && !/\b(cream|liqueur|cordial|cocktail|ready to drink)\b/.test(canonical)) return 'flavored_or_liqueur_matched_core_bottle';
-  if (/\brye\b/.test(raw) && !/\brye\b/.test(canonical)) return 'rye_matched_non_rye';
-  if (/\bbourbon\b/.test(raw) && /\brye\b/.test(canonical) && !/\brye\b/.test(raw)) return 'bourbon_matched_rye';
-  if (/\bwheated\b/.test(raw) && !/\bwheated\b/.test(canonical)) return 'wheated_matched_non_wheated';
-  if (/\breserve\b/.test(raw) && !/\breserve\b/.test(canonical)) return 'reserve_matched_non_reserve';
-  const rawSpecificPhrases = ['single barrel', 'full proof', 'barrel proof', 'cask strength', 'limited edition', 'small batch select', 'private selection', 'store pick'];
-  for (const phrase of rawSpecificPhrases) {
-    const reviewedHenryMcKennaSingleBarrel = phrase === 'single barrel'
-      && raw === 'henry mckenna single barrel 10 year old bourbon whiskey'
-      && canonical === 'henry mckenna 10 year';
-    if (raw.includes(phrase) && !canonical.includes(phrase) && !reviewedHenryMcKennaSingleBarrel && !(phrase === 'cask strength' && canonical.includes('barrel proof'))) return `specific_raw_modifier_matched_generic:${phrase}`;
-  }
-  const requiredPhrases = [
-    'limited edition', 'batch proof', 'barrel proof', 'single barrel', 'small batch select',
-    'small batch', 'full proof', 'bottled in bond', 'private barrel', 'store pick', 'single barrel select'
-  ];
-  for (const phrase of requiredPhrases) {
-    if (canonical.includes(phrase) && !raw.includes(phrase)) return `missing_modifier:${phrase}`;
-  }
-  if (/\bfour roses\b/.test(canonical) && /\bbarrel strength\b/.test(canonical)) {
-    const hasBarrelStrengthSignal = /\b(barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(raw);
-    if (!hasBarrelStrengthSignal) return 'four_roses_standard_single_barrel_not_barrel_strength';
-  }
-  for (const yearExpression of [...canonical.matchAll(/\b((?:18|19|20)\d{2})\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${yearExpression}\\b`).test(raw)) return `missing_expression:${yearExpression}`;
-  }
-  for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*year\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*(?:year|yr|y)\\b`).test(raw)) return `missing_age:${year}`;
-  }
-  for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*y\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*(?:y|yr|year)\\b`).test(raw)) return `missing_age:${year}y`;
-  }
-  return null;
 }
 
 function kahnsProductTags(product) {
@@ -9122,121 +9079,6 @@ function cachedCaliforniaSignals(cache) {
       artifactPath: CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH,
     },
   }));
-}
-
-async function fetchCaliforniaShopifySource(source, signal) {
-  const products = [];
-  for (let page = 1; page <= source.maxPages; page++) {
-    const separator = source.productsUrl.includes('?') ? '&' : '?';
-    const url = `${source.productsUrl}${separator}page=${page}`;
-    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 30_000, signal });
-    if (!res.ok) return { ...res, url };
-    let payload;
-    try { payload = JSON.parse(res.text); } catch (error) {
-      throw new MalformedSourceError(`${source.sourceLabel} returned malformed Shopify JSON`, { cause: error, status: res.status || 0 });
-    }
-    if (!Array.isArray(payload?.products)) throw new MalformedSourceError(`${source.sourceLabel} Shopify response did not contain a products array`, { status: res.status || 0 });
-    products.push(...payload.products);
-    if (payload.products.length < 250) break;
-    await sleep(CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS);
-  }
-  return { ok: true, status: 200, text: JSON.stringify({ products }), error: null, url: source.productsUrl };
-}
-
-function failedCaliforniaResponse(result, label) {
-  const message = result?.error || `HTTP ${result?.status || 0}`;
-  if (!result || Number(result.status || 0) === 0) return new TransientSourceError(`${label}: ${message}`, { status: result?.status ?? 0 });
-  return sourceErrorForHttp(result.status, `${label}: ${message}`);
-}
-
-async function collectCaliforniaSource(config, bible, source, observedAt, signal) {
-  let fulfillmentPolicyVerified = false;
-  if (source.inventoryEligible) {
-    const policyRes = await textFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000, signal });
-    if (!policyRes.ok) throw failedCaliforniaResponse(policyRes, `${source.sourceLabel} fulfillment policy`);
-    fulfillmentPolicyVerified = verifyCaliforniaFulfillmentPolicy(source, policyRes.text);
-    if (!fulfillmentPolicyVerified) {
-      throw new MalformedSourceError(`${source.sourceLabel} first-party page no longer proves in-store pickup/collection for online orders`, {
-        status: policyRes.status,
-        details: { fulfillmentPolicyUrl: source.fulfillmentPolicyUrl },
-      });
-    }
-  }
-  const res = await fetchCaliforniaShopifySource(source, signal);
-  if (!res.ok) throw failedCaliforniaResponse(res, `${source.sourceLabel} product feed`);
-  const payload = JSON.parse(res.text);
-  const sourceSignals = [];
-  const sourceRoadblocks = [];
-  const parsedRows = parseCaliforniaShopifyProducts(payload);
-  for (const row of parsedRows) {
-      const { match, record, unsafeReason } = cityHiveSafeBottleMatch(row.title, bible);
-      if (!record) continue;
-      const eventType = source.inventoryEligible ? 'retailer_store_inventory_result' : 'retailer_catalog_availability';
-      const productUrl = row.handle ? `https://${source.host}/products/${encodeURIComponent(row.handle)}` : source.productsUrl;
-      sourceSignals.push({
-        id: stableId([config.id, 'san-diego-shopify', source.id, row.productId, row.variantId]),
-        state: config.id,
-        stateCode: 'CA',
-        sourceLabel: source.sourceLabel,
-        sourceUrl: productUrl,
-        sourceChain: source.id,
-        sourceRuntimeId: `ca:${source.id}`,
-        merchantId: source.merchantId,
-        productId: row.productId,
-        variantId: row.variantId,
-        rawName: row.title,
-        canonicalBottleId: record.id,
-        canonicalName: record.canonical,
-        tier: record.tier,
-        confidence: Math.max(source.inventoryEligible ? 0.82 : 0.7, Math.min(0.92, match?.confidence || 0.7)),
-        eventType,
-        locationPrecision: source.inventoryEligible ? 'store_level' : 'store_aggregate',
-        locationName: source.store.name,
-        storeName: source.store.name,
-        storeId: source.store.id,
-        storeAddress: source.store.address,
-        city: source.store.city,
-        stateCode: source.store.stateCode,
-        postalCode: source.store.zip,
-        zip: source.store.zip,
-        quantity: 0,
-        price: row.price,
-        availabilityStatus: source.inventoryEligible ? 'in_stock' : 'retailer_online_available',
-        availabilityLabel: source.inventoryEligible ? 'Available for retailer pickup/order' : 'Available online; local pickup not verified',
-        sourceAvailabilityVerified: true,
-        observedAt,
-        canAlertAsInventory: source.inventoryEligible,
-        canAlertAsWatch: true,
-        inventorySemantics: row.inventorySemantics,
-        evidence: source.inventoryEligible
-          ? `${source.chainName} marks ${row.title} available on its first-party storefront and its separately fetched first-party policy publishes pickup/order fulfillment for the named San Diego premises. Exact quantity is not published.`
-          : `${source.chainName} marks ${row.title} available online. Exact San Diego pickup availability is not established, so this remains watch-only.`,
-        caveat: source.inventoryEligible
-          ? 'Binary first-party retailer availability, not an exact shelf count. Verify pickup availability before driving.'
-          : 'Online catalog availability only; local pickup is not verified.',
-        raw: {
-          chain: source.id,
-          merchantId: source.merchantId,
-          product: { id: row.productId, handle: row.handle, type: row.productType, tags: row.tags },
-          variant: { id: row.variantId, sku: row.sku, size: row.size, available: true, price: row.price },
-          fulfillmentPolicyUrl: source.fulfillmentPolicyUrl,
-          fulfillmentPolicyVerified,
-          matchGuard: unsafeReason,
-        },
-      });
-  }
-  if (!sourceSignals.length) {
-    sourceRoadblocks.push({
-      state: config.id,
-      source: source.sourceLabel,
-      sourceRuntimeId: `ca:${source.id}`,
-      url: source.productsUrl,
-      status: 'reachable_no_safe_inventory_rows',
-      error: `Shopify returned ${payload.products.length} products but no safely matched available bourbon rows survived source, size, format, and bottle guards.`,
-      nextRoute: 'Inspect product titles and variant availability without weakening bottle, format, or premises guards.',
-    });
-  }
-  return { signals: sourceSignals, roadblocks: sourceRoadblocks };
 }
 
 function californiaLastGoodAt(signals, fallback) {

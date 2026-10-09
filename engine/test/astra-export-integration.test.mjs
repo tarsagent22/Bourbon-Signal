@@ -29,16 +29,19 @@ test('E11 composed exporter persists a TX opportunity across unrelated NY public
     assert.equal(closed.alerts.length, 0);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
-test('E04 composed exporter preserves current display rows but obeys partial-state alert isolation', async () => {
+test('E04 composed exporter keeps healthy validated rows alertable despite partial source fallback', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'astra-partial-'));
   try {
     const alerts = await exportFixture(root, { partialRefresh: true, attemptedStateIds: ['TX'], freshStateIds: ['TX'], partialFallbackStateIds: ['TX'], states: [{ state: 'TX', status: 'partial_useful_quality_fallback', signalCount: 1 }] });
-    assert.equal(alerts.alerts.length, 0, 'partial fallback is not permitted to emit eligible alerts');
+    assert.equal(alerts.alerts.length, 1, 'fresh exact-store evidence remains eligible despite a failed sibling source');
+
     const drops = JSON.parse(await readFile(path.join(root, 'site', 'drops.json'), 'utf8'));
     assert.ok(drops.drops.some(drop => drop.state === 'TX'), 'valid current display rows must survive');
     const { assessStateFailureIsolation } = await import('../src/state-failure-isolation.mjs');
     const stats = JSON.parse(await readFile(path.join(root, 'site', 'stats.json'), 'utf8'));
     const isolation = assessStateFailureIsolation({stateCoverage: stats.stateCoverage, refreshHealth: stats.refreshHealth, alerts});
     assert.equal(isolation.ok, true, isolation.issues.join('; '));
+    const stale = await exportFixture(root, {partialRefresh:true,attemptedStateIds:['TX'],freshStateIds:['TX'],partialFallbackStateIds:['TX'],states:[{state:'TX',status:'partial_useful_quality_fallback',signalCount:1}]},[{...signal,observedAt:new Date(Date.now()-3*3600000).toISOString(),stale:true}]);
+    assert.equal(stale.alerts.length,0,'partial isolation cannot rescue stale inventory');
   } finally { await rm(root, { recursive: true, force: true }); }
 });

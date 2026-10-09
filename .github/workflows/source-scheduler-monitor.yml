@@ -1,0 +1,23 @@
+name: Independent source scheduler monitor
+on:
+  schedule:
+    - cron: '3,13,23,33,43,53 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: source-scheduler-monitor
+  cancel-in-progress: false
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check due times and rescue missed source jobs
+        env:
+          SOURCE_SCHEDULER_SECRET: ${{ secrets.SOURCE_SCHEDULER_SECRET }}
+        run: node scripts/monitor-source-scheduler.mjs

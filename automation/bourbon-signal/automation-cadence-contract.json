@@ -21,7 +21,7 @@
   },
   "expectedTotals": {
     "expansionDeterministicRunsPerDay": 20,
-    "deterministicRunsPerDay": 506.0333333333333,
+    "deterministicRunsPerDay": 650.0333333333333,
     "agenticRunsPerWeek": 22,
     "deterministicRunSharePercentApprox": 99.38
   },

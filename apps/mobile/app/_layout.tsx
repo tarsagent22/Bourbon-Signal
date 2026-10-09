@@ -12,6 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PurchasesProvider } from "../src/membership/PurchasesProvider";
 import { StartupErrorBoundary } from "../src/startup/StartupErrorBoundary";
 import { MobileApiProvider } from "../src/hooks/useMobileApi";
+import { DeviceTimeZoneCapture } from "../src/startup/DeviceTimeZoneCapture";
 import { useMobileApi } from "../src/hooks/useMobileApi";
 import { reportRenderError } from "../src/startup/report-render-error";
 import { colors, typeScale, fonts } from "../src/theme";
@@ -30,6 +31,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
           <MobileApiProvider><PurchasesProvider>
+            <DeviceTimeZoneCapture />
             <StatusBar style="light" />
             <SessionNavigation />
           </PurchasesProvider></MobileApiProvider>

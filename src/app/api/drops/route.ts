@@ -125,7 +125,7 @@ function degradedEngineStates(statsPayload: Record<string, unknown> | null | und
         // stale_useful means the engine intentionally retained recent usable rows
         // from the prior successful state run. Do not turn that into a blank UI;
         // individual drop-age gates below still prevent old signals from looking fresh.
-        return !status.startsWith("stale_useful");
+        return !status.startsWith("stale_useful") && !status.startsWith("partial_useful");
       })
       .map((state) => publicEvidenceStateCode(state.state))
       .filter(Boolean),
@@ -156,6 +156,7 @@ async function preparePublicFeedSnapshot() {
   const statsPayload = statsResult.payload;
   const sourceOverlay = await readRuntimeSourceDropOverlay(Array.isArray(exportPayload?.drops) ? exportPayload.drops : [], dropResult.snapshotId);
   const rawDrops = sourceOverlay.drops;
+  const independentlyVerifiedIds = new Set(rawDrops.filter((drop: Record<string, unknown>) => (drop.sourcePollId || drop.sourceLaneId) && drop.stale !== true && (drop.canAlertAsInventory === true || drop.canAlertAsWatch === true)).map((drop: Record<string, unknown>) => String(drop.id)));
   const retailerDrops = retailerSubmissions
     .map((submission) => retailerSubmissionToFeedCard(submission, new Date()))
     .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
@@ -177,7 +178,7 @@ async function preparePublicFeedSnapshot() {
     })));
 
   const degradedStates = degradedEngineStates(statsPayload);
-  const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, { degradedStateCodes: degradedStates }));
+  const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, { degradedStateCodes: independentlyVerifiedIds.has(String((drop as Record<string, unknown>).id)) ? undefined : degradedStates }));
   const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
   return { dropResult, statsResult, retailerVersion: retailerFeedSnapshot(retailerSubmissions), retailerCount: retailerSubmissions.length, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
 }

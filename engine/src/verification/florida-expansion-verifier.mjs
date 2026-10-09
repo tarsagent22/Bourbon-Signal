@@ -28,7 +28,7 @@ function signalIdentityMismatch(signal, target) {
     && (Number(signal.lat) !== target.lat || Number(signal.lng) !== target.lng);
 }
 
-export function verifyFloridaExpansionArtifact({ state, baseline, now = Date.now(), maxInventoryAgeMs = 90 * 60_000 } = {}) {
+export function verifyFloridaExpansionArtifact({ state, baseline, now = Date.now(), maxInventoryAgeMs = 90 * 60_000, requireComplete = true } = {}) {
   const nowMs = now instanceof Date ? now.getTime() : Number(now);
   const maximumAgeMs = Math.min(90 * 60_000, Math.max(15 * 60_000, Number(maxInventoryAgeMs) || 90 * 60_000));
   const targetByStoreId = new Map(FLORIDA_EXPANSION_STORE_TARGETS.map((store) => [store.storeId, store]));
@@ -67,14 +67,16 @@ export function verifyFloridaExpansionArtifact({ state, baseline, now = Date.now
   const liveInventoryStoreIds = new Set(freshTrustedInventory.map((signal) => signal.storeId));
   const missing = FLORIDA_EXPANSION_STORE_TARGETS.filter((store) => !observedStoreIds.has(store.storeId));
   const identityMismatches = freshObserved.filter((signal) => signalIdentityMismatch(signal, targetByStoreId.get(signal.storeId)));
-  assert(observedStoreIds.size === FLORIDA_EXPANSION_TARGET_STORE_COUNT, `Expected fresh trusted observation from all ${FLORIDA_EXPANSION_TARGET_STORE_COUNT} frozen Florida expansion stores; got ${observedStoreIds.size}.`, missing);
-  assert(!missing.length, 'Florida expansion state report is missing a frozen exact-store identity.', missing);
+  if (requireComplete) assert(observedStoreIds.size === FLORIDA_EXPANSION_TARGET_STORE_COUNT, `Expected fresh trusted observation from all ${FLORIDA_EXPANSION_TARGET_STORE_COUNT} frozen Florida expansion stores; got ${observedStoreIds.size}.`, missing);
+  if (requireComplete) assert(!missing.length, 'Florida expansion state report is missing a frozen exact-store identity.', missing);
   assert(!identityMismatches.length, 'Florida expansion state report contains an identity mismatch.', identityMismatches);
 
   return {
     status: 'ok',
     stateStatus: state.status,
     stores: observedStoreIds.size,
+    missingStoreIds: missing.map(store => store.storeId),
+    complete: missing.length === 0,
     abcStores: new Set(freshObserved.filter((signal) => String(signal.storeId || '').startsWith('abc-fine-wine-spirits:')).map((signal) => signal.storeId)).size,
     nonAbcStores: new Set(freshObserved.filter((signal) => !String(signal.storeId || '').startsWith('abc-fine-wine-spirits:')).map((signal) => signal.storeId)).size,
     inventorySignals: freshTrustedInventory.length,

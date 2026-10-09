@@ -201,7 +201,7 @@ test('California collector delegates bounded transient-only retries to the share
   const collectorSource = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
   assert.match(collectorSource, /runSourceAdapters\(californiaAdapters/);
   assert.match(collectorSource, /maxAttempts:\s*Number\(process\.env\.BOURBON_SIGNAL_CA_SOURCE_ATTEMPTS\s*\|\|\s*2\)/);
-  assert.match(collectorSource, /verifyCaliforniaFulfillmentPolicy\(source, policyRes\.text\)/);
+  assert.match(await readFile(new URL('../src/collectors/california-runtime-source.mjs', import.meta.url), 'utf8'), /verifyCaliforniaFulfillmentPolicy\(source, policyRes\.text\)/);
   assert.match(collectorSource, /new MalformedSourceError/);
   assert.doesNotMatch(collectorSource, /async function retryCaliforniaFetch/);
 });

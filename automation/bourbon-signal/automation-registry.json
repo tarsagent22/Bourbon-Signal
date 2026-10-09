@@ -163,6 +163,35 @@
       "delivery": "github_only"
     },
     {
+      "id": "github-source-scheduler-monitor",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/source-scheduler-monitor.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "every 10 minutes",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "customer_domain_http"
+        ],
+        "maxRequestsPerRun": 2
+      },
+      "customerMutation": "internal_state",
+      "promotionDeployment": "snapshot_activation",
+      "silencePolicy": "compact_exception_only",
+      "killSwitch": "SOURCE_SCHEDULER_ENABLED",
+      "artifacts": [
+        "source_scheduler_heartbeat",
+        "source_poll_incidents"
+      ],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-engine-watchdog",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/engine-watchdog.yml",

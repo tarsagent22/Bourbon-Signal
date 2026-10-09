@@ -1544,6 +1544,8 @@ function publicEvent(signal, bible) {
     category,
     eventType: drop.type,
     eventDate,
+    sourceEventAt: signal.sourceEventAt || null,
+    entryDeadline: signal.entryDeadline || signal.deadline || signal.raw?.entryDeadline || signal.raw?.deadline || null,
     eventTime: signal.releaseTime || signal.eventTime || signal.raw?.releaseTime || null,
     sourceType,
     sourceTypeLabel,
@@ -1621,8 +1623,8 @@ function maxFreshnessForActionability(actionabilityClass, channel) {
   const table = {
     store_inventory: { onSite: 1, email: 1, sms: 1 },
     store_delivery_lead: { onSite: 1, email: 1, sms: 1 },
-    board_or_county_lead: { onSite: 1, email: 1, sms: 1 },
-    distillery_release_watch: { onSite: 1, email: 1, sms: 1 },
+    board_or_county_lead: { onSite: 168, email: 168, sms: 72 },
+    distillery_release_watch: { onSite: 168, email: 168, sms: 72 },
     retailer_warehouse_watch: { onSite: 1, email: 1, sms: 1 },
     aggregate_watch: { onSite: 1, email: 0, sms: 0 },
     context_only: { onSite: 0, email: 0, sms: 0 }
@@ -1643,7 +1645,7 @@ function alertDeliveryCaveat(actionabilityClass) {
 function alertChannelPolicy(candidate) {
   const actionabilityClass = candidate.actionabilityClass || alertActionabilityClass(candidate);
   const freshnessHours = Number(candidate.freshnessHours);
-  const hasFreshness = Number.isFinite(freshnessHours);
+  const hasFreshness = Number.isFinite(freshnessHours) && freshnessHours >= 0;
   const tier = String(candidate.tier || '').toLowerCase();
   const priorityClass = String(candidate.priorityClass || '').toLowerCase();
   const blockers = Array.isArray(candidate.blockers) ? candidate.blockers.map((b) => String(b).toLowerCase()) : [];
@@ -2034,7 +2036,36 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
     });
 }
 
-function buildRegionalWatchAlertsFromDrops(drops) {
+// Dated official announcements use the existing event contract and member pipeline.
+// Generic watch pages, undated lotteries and inferred bottle identities stay silent.
+export function buildAnnouncementAlerts(events, now = Date.now()) {
+  return (events || []).filter(e => e.canAlertAsWatch && e.canonicalId && e.locationName
+    && /^official_/.test(e.sourceType || '') && ['lottery','scheduled_release'].includes(e.category)
+    && ['unicorn','allocated','limited'].includes(String(e.tier).toLowerCase()))
+    .filter(e => {
+      const date = Date.parse(e.category === 'lottery' ? e.entryDeadline : e.eventDate);
+      const observed = Date.parse(e.sourceEventAt || e.firstSeenAt || e.observedAt);
+      return Number.isFinite(date) && date > now && date <= now + 90*86400000
+        && Number.isFinite(observed) && observed <= now && now-observed <= 168*3600000;
+    }).map(e => ({
+      id: stableId(['announcement_alert',e.eventKey,e.entryDeadline || e.eventDate]),
+      dedupeKey: stableId(['announcement_alert',e.eventKey,e.entryDeadline || e.eventDate]),
+      matchKey: stableId([e.state,e.canonicalId,e.locationName]),
+      eligibleForDelivery:true, eligibleForOnSite:true, eligibleForEmail:true, eligibleForSms:false,
+      actionabilityClass:'distillery_release_watch', priorityClass:'major',
+      state:e.state, canonicalBottleId:e.canonicalId, bottle:e.bottleName, tier:e.tier,
+      eventType:e.eventType, eventDate:e.eventDate, opportunityExpiresAt:e.entryDeadline || e.eventDate,
+      source:e.source, sourceUrl:e.sourceUrl, locationPrecision:e.locationPrecision, locationName:e.locationName,
+      storeId:e.storeId, storeName:e.storeName, storeAddress:e.storeAddress,
+      signalAt:e.sourceEventAt || e.firstSeenAt || e.observedAt,
+      freshnessHours:(now-Date.parse(e.sourceEventAt || e.firstSeenAt || e.observedAt))/3600000,
+      reliabilityScore:86, score:130, blockers:[], cautions:['announcement_not_shelf_inventory'],
+      availabilityLabel:e.category==='lottery'?'Lottery entry announcement; check eligibility and deadline':'Scheduled release announcement; check purchase rules',
+      evidence:e.evidence, reason:e.category==='lottery'?'Official lottery announcement':'Official scheduled release announcement',
+    }));
+}
+
+export function buildRegionalWatchAlertsFromDrops(drops) {
   return (drops || [])
     .filter((drop) => drop && drop.canAlertAsWatch && !drop.canAlertAsInventory)
     .filter((drop) => ['board_county', 'board_warehouse', 'store_aggregate'].includes(String(drop.locationPrecision || '')))
@@ -2370,7 +2401,7 @@ async function main() {
   const reportedAlertCandidates = buildAlerts({ candidates: freshReportedAlertCandidates.filter((candidate) => activeStateIds.has(candidate.state) && !fallbackStateIds.has(String(candidate.state).toUpperCase())) });
   const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(alertableCurrentDrops);
   const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(alertableCurrentDrops);
-  const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)
+  const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...buildAnnouncementAlerts(events).filter(c => activeStateIds.has(c.state) && !fallbackStateIds.has(c.state)), ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)
     .filter((candidate) => candidate.eligibleForDelivery)
     .sort(alertCandidateSort);
   const cappedAlertCandidates = preservePartialRefreshOpportunities({

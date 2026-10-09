@@ -1,3 +1,5 @@
+import { parseNcDatedAnnouncements } from './nc-dated-announcements.mjs';
+import { ncShipmentWatchEligible } from '../nc-shipment-policy.mjs';
 import { mkdir, readFile, readdir } from 'node:fs/promises';
 import { collectionRequestSignal, throwIfCollectionAborted, withCollectionContext, writeCollectionFile as writeFile } from '../core/collection-context.mjs';
 import { readBoundedCollectionBody, fetchCollectionResponse } from '../core/collection-http.mjs';
@@ -43,13 +45,13 @@ export function applyNcBoardShipmentPolicy(signal) {
   return {
     ...signal,
     confidence: 0.9,
-    policyMode: 'alert_county_store_inventory',
+    policyMode: 'board_shipment_watch',
     canAlertAsInventory: false,
-    canAlertAsWatch: false,
+    canAlertAsWatch: ncShipmentWatchEligible(signal),
     inventorySemantics: 'Board-level shipment intelligence; exact store and shelf status remain unknown.',
     raw: {
       ...(signal.raw || {}),
-      policyMode: 'alert_county_store_inventory',
+      policyMode: 'board_shipment_watch',
       shipmentScope: 'board_level_not_store_inventory',
     },
   };
@@ -852,13 +854,15 @@ function controlledEvidence(controlled) {
   return ` NC ABC also flags this NC Code in its product-control spreadsheet (${controlled.controlledDistributionType.replace(/_/g, ' ')}), which helps distinguish ordinary replenishment from high-demand controlled-product movement.`;
 }
 
-async function collectStockShipped(config, bible, signals, roadblocks, dossier, boards, controlledByCode = new Map(), priceByCode = new Map()) {
+async function collectStockShipped(config, bible, signals, roadblocks, dossier, boards, controlledByCode = new Map(), priceByCode = new Map(), persist = true) {
   const res = await textFetch(NC_STOCK_SHIPPED_DATA_URL, { headers: { accept: 'application/json,*/*' }, referer: NC_STOCK_SHIPPED_PAGE_URL, timeoutMs: 45000 });
   if (!res.ok) {
     roadblocks.push({ state: config.id, source: 'NC ABC Stock Shipped Data', url: NC_STOCK_SHIPPED_DATA_URL, status: res.status, error: res.text.slice(0, 300), nextRoute: 'Retry official StockShippedData JSON endpoint or inspect browser network for changed route.' });
     return [];
   }
-  const json = JSON.parse(res.text);
+  let json;
+  try {json=JSON.parse(res.text);}catch {throw new Error('malformed_stock_shipped_json');}
+  if (!Array.isArray(json.records) || !Array.isArray(json.lookups?.boards)) throw new Error('malformed_stock_shipped_schema');
   const sourceEventAt = isoFromNcExtract(json.metadata?.extractDatetime);
   if (!sourceEventAt) {
     roadblocks.push({
@@ -934,8 +938,8 @@ async function collectStockShipped(config, bible, signals, roadblocks, dossier, 
     priceEnrichedSignalCount: trackedRows.filter((signal) => signal.price || signal.proof || signal.size || signal.supplier).length,
     strictProductPolicy: 'Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.'
   };
-  await mkdir(NC_BOARD_HISTORY_DIR, { recursive: true });
-  await writeFile(path.join(NC_BOARD_HISTORY_DIR, `${tsSlug(new Date())}.json`), JSON.stringify({ generatedAt: new Date().toISOString(), observedAt, signals: trackedRows }, null, 2));
+  if (persist) await mkdir(NC_BOARD_HISTORY_DIR, { recursive: true });
+  if (persist) await writeFile(path.join(NC_BOARD_HISTORY_DIR, `${tsSlug(new Date())}.json`), JSON.stringify({ generatedAt: new Date().toISOString(), observedAt, signals: trackedRows }, null, 2));
   return trackedRows;
 }
 
@@ -1104,7 +1108,7 @@ export async function discoverBoardPages(board, { previous = {}, fetchPage = saf
       ? ncWestwoodOfficialStoreIdentity(url, res.url || url, res.text, seedUrls, westwoodDirectoryEvidence)
       : null;
     if (westwoodIdentity?.verified) caps.push('official_exact_store_directory_page');
-    reports.push({ boardName: board.boardName, url, finalUrl: res.url, ok: verifiedResponse, status: res.status, checkedAt: new Date().toISOString(), attemptCount: res.attemptCount || 1, bytes: res.text.length, contentType: res.contentType, sourceIdentityVerified: sourceIdentity.verified, exactStoreIdentityVerified: westwoodIdentity?.verified ?? null, capabilities: [...new Set(caps)], releaseLanguage: verifiedResponse && RELEASE_LANGUAGE_RE.test(text), strongReleaseLanguage: verifiedResponse && STRONG_RELEASE_LANGUAGE_RE.test(text), interestingLinks: links.slice(0, 12), textSample: verifiedResponse ? text.slice(0, 12000) : '', error: res.error || (!res.ok ? `HTTP ${res.status}` : null) || sourceIdentity.reason || westwoodIdentity?.reason || null });
+    reports.push({ boardName: board.boardName, url, finalUrl: res.url, ok: verifiedResponse, status: res.status, checkedAt: new Date().toISOString(), attemptCount: res.attemptCount || 1, bytes: res.text.length, contentType: res.contentType, sourceIdentityVerified: sourceIdentity.verified, exactStoreIdentityVerified: westwoodIdentity?.verified ?? null, capabilities: [...new Set(caps)], releaseLanguage: verifiedResponse && RELEASE_LANGUAGE_RE.test(text), strongReleaseLanguage: verifiedResponse && STRONG_RELEASE_LANGUAGE_RE.test(text), interestingLinks: links.slice(0, 12), datedAnnouncements: verifiedResponse ? parseNcDatedAnnouncements(res.text) : [], textSample: verifiedResponse ? text.slice(0, 12000) : '', error: res.error || (!res.ok ? `HTTP ${res.status}` : null) || sourceIdentity.reason || westwoodIdentity?.reason || null });
   }
   reports.registry = updateNcBoardRegistry(previous, reports, { seeds: seedUrls, pinned: [...pinned, ...homeUrls], discovered, cursor: plan.nextCursor });
   return reports;
@@ -1140,6 +1144,17 @@ async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, doss
         if (report.strongReleaseLanguage) addCapability(board, 'official_release_language_found');
 
         if (!report.ok) continue;
+        for(const announcement of report.datedAnnouncements || []) {
+          for(const record of strictBottleMentions(`${announcement.name} ${announcement.description}`,bible)) {
+            signals.push({id:stableId(['NC','dated-board-announcement',board.boardName,report.finalUrl,record.id,announcement.eventDate || announcement.entryDeadline]),
+              state:'NC',sourceLabel:`NC board announcement - ${board.boardName}`,sourceUrl:report.finalUrl || report.url,
+              rawName:record.canonical,canonicalName:record.canonical,canonicalBottleId:record.id,tier:record.tier,
+              eventType:announcement.eventType,eventDate:announcement.eventDate,entryDeadline:announcement.entryDeadline,sourceEventAt:announcement.sourceEventAt,
+              observedAt:new Date().toISOString(),locationName:board.boardName,locationPrecision:'board_county',confidence:0.86,
+              canAlertAsInventory:false,canAlertAsWatch:true,inventorySemantics:'Official dated announcement; not live shelf inventory.',
+              evidence:`${board.boardName}: ${announcement.name}. Check the official source for eligibility and purchase rules.`,raw:{announcement}});
+          }
+        }
         const signalEligible = ncBoardWebsiteSignalEligible(board.boardName, report.url);
         if (signalEligible && (report.strongReleaseLanguage || report.capabilities.some((cap) => /lottery|release|drop|allocation|barrel|inventory|product_search/i.test(cap)))) {
           const eventType = eventTypeForReport(report);
@@ -1513,4 +1528,18 @@ async function collectNorthCarolinaIntelligenceDirect(config, bible, collectStor
   const seen = new Map();
   for (const signal of signals) seen.set(signal.id, signal);
   return ncPrecisionResult([...seen.values()], roadblocks);
+}
+
+// Independently scheduled read of the existing official shipment source.
+export async function collectNorthCarolinaShipments(bible, options = {}) {
+  return withCollectionContext(options, async () => {
+    const signals = [], roadblocks = [], dossier = {}, boards = new Map();
+    await collectStockShipped({ id: 'NC' }, bible, signals, roadblocks, dossier, boards, new Map(), new Map(), false);
+    if (roadblocks.length) {
+      const error=new Error(String(roadblocks[0].status));
+      error.status=Number(roadblocks[0].status) || null;throw error;
+    }
+    if (!dossier.stockShipped?.observedAt) throw new Error('missing_extract_datetime');
+    return { signals, accounting: dossier.stockShipped };
+  });
 }

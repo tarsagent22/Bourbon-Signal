@@ -54,10 +54,13 @@ export function parseLiquorLibraryLocation(payload) {
     || exactString(address.street2) !== ''
     || exactString(address.city) !== source.store.city
     || exactString(address.region_code) !== 'SC'
-    || exactString(address.postal_code) !== source.store.zip
     || exactString(address.country_code) !== 'US'
-    || Number(address.latitude) !== source.store.lat
-    || Number(address.longitude) !== source.store.lng) return null;
+    // The retailer corrected the same premises' ZIP+4 and map pin on October 4.
+    // Accept only these two reviewed tuples, never a loose distance match.
+    || ![
+      [source.store.zip, source.store.lat, source.store.lng],
+      ['29582-2938', 33.831474, -78.675491],
+    ].some(([zip,lat,lng]) => exactString(address.postal_code) === zip && Number(address.latitude) === lat && Number(address.longitude) === lng)) return null;
   return source.store;
 }
 

@@ -18,6 +18,19 @@ function splitSql(source) {
   for (let index = 0; index < source.length; index += 1) {
     const char = source[index];
     const next = source[index + 1];
+    if (!quote && !dollarTag && char === '-' && next === '-') {
+      while (index < source.length && source[index] !== '\n') index++;
+      current += '\n';
+      continue;
+    }
+    if (!quote && !dollarTag && char === '/' && next === '*') {
+      const end = source.indexOf('*/', index + 2);
+      if (end < 0) throw new Error('Unterminated SQL comment.');
+      index = end + 1;
+      current += ' ';
+      continue;
+    }
+
     if (!quote && !dollarTag && (char === '$')) {
       const match = source.slice(index).match(/^\$[A-Za-z0-9_]*\$/);
       if (match) {
@@ -52,7 +65,9 @@ function splitSql(source) {
   return statements;
 }
 
+const sourceSchedulerOnly = process.argv.includes("--source-scheduler-only");
 const schemaFiles = [
+  '../src/lib/source-scheduler-schema.sql',
   '../src/lib/source-lane-schema.sql',
   '../src/lib/account-deletion-schema.sql',
   '../src/lib/push-ownership-schema.sql',
@@ -80,7 +95,7 @@ const schemaFiles = [
 const sql = neon(connectionString);
 if (apply) {
   const statements = [];
-  for (const relative of schemaFiles) {
+  for (const relative of (sourceSchedulerOnly ? schemaFiles.filter(file=>file.includes("source-scheduler") || file.includes("source-lane-schema")) : schemaFiles)) {
     const schema = await readFile(new URL(relative, import.meta.url), 'utf8');
     statements.push(...splitSql(schema));
   }
@@ -93,7 +108,17 @@ if (check) {
   // --check is intentionally read-only.
 }
 
+if (sourceSchedulerOnly) {
+  const names=['source_poll_jobs','source_poll_runs','source_poll_incidents','source_scheduler_heartbeat','source_poll_trace'];
+  const rows=await sql.query("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename=ANY($1::text[])",[names]);
+  if (rows.length!==names.length) throw new Error('Source scheduler migration incomplete.');
+  console.log(JSON.stringify({mode:apply?'apply':'check',sourceSchedulerTables:rows.length}));
+
+}
+
+if (!sourceSchedulerOnly) {
 const expected = [
+  'source_poll_jobs', 'source_poll_runs', 'source_poll_incidents', 'source_scheduler_heartbeat','source_poll_trace',
   'source_lane_heads', 'source_lane_batches', 'source_lane_subjects', 'source_lane_opportunities', 'source_lane_trace', 'source_lane_demand',
   'account_deletion_requests',
   'community_leader_badge_program', 'community_leader_badge_periods', 'community_leader_badge_awards',
@@ -641,9 +666,9 @@ const caskersCatalogRows = found.has('signal_reward_catalog') ? await sql.query(
 `) : [];
 const caskersCatalog = caskersCatalogRows[0];
 const invalidSignalCatalog = caskersCatalog
-  && Number(caskersCatalog.catalog_version) === 2
+  && Number(caskersCatalog.catalog_version) === 4
   && caskersCatalog.name === '$100 Caskers gift card'
-  && Number(caskersCatalog.points_cost) === 2600
+  && Number(caskersCatalog.points_cost) === 2500
   && caskersCatalog.fulfillment_type === 'digital'
   && caskersCatalog.option_snapshot?.partner === 'Caskers'
   ? []
@@ -669,4 +694,5 @@ if (schemaProblems.length) {
 }
 console.log(JSON.stringify({ ok: true, mode: apply ? 'apply' : 'check', tables: [...found], indexes: [...availableIndexes] }));
 
+}
 export { splitSql };
