@@ -50,6 +50,6 @@ export function validatePollPolicy(jobs,registry,lookup,health,quarantined='') {
       return !!record && ['limited','allocated','unicorn'].includes(record.tier);
     };
     return {...job,projection:{...job.projection,candidates:(job.projection.candidates || []).filter(allowed),
-      drops:(job.projection.drops || []).map(row=>allowed(row)?row:{...row,canAlertAsInventory:false,canAlertAsWatch:false})}};
+      drops:(job.projection.drops || []).map(row=>allowed(row)?row:{...row,stale:true,canAlertAsInventory:false,canAlertAsWatch:false})}};
   });
 }

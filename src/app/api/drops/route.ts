@@ -125,7 +125,7 @@ function degradedEngineStates(statsPayload: Record<string, unknown> | null | und
         // stale_useful means the engine intentionally retained recent usable rows
         // from the prior successful state run. Do not turn that into a blank UI;
         // individual drop-age gates below still prevent old signals from looking fresh.
-        return !status.startsWith("stale_useful");
+        return !status.startsWith("stale_useful") && !status.startsWith("partial_useful");
       })
       .map((state) => publicEvidenceStateCode(state.state))
       .filter(Boolean),
@@ -177,7 +177,7 @@ async function preparePublicFeedSnapshot() {
     })));
 
   const degradedStates = degradedEngineStates(statsPayload);
-  const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, { degradedStateCodes: degradedStates }));
+  const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, { degradedStateCodes: (drop.sourcePollId || drop.sourceLaneId) && drop.stale !== true && (drop.canAlertAsInventory === true || drop.canAlertAsWatch === true) ? undefined : degradedStates }));
   const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
   return { dropResult, statsResult, retailerVersion: retailerFeedSnapshot(retailerSubmissions), retailerCount: retailerSubmissions.length, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
 }
