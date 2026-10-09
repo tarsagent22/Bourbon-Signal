@@ -92,7 +92,8 @@ export async function runSourceScheduler() {
         .map((c: Row)=>({...c,sourcePollId:source.id,sourcePollRun:owner,sourcePolicySnapshotId:ctx.snapshotId}));
       const projection={drops:drops.map((d: Row)=>({...d,sourcePollId:source.id,sourcePollRun:owner})),candidates,acceptedAt:new Date().toISOString(),policyId:ctx.snapshotId};
       const accounting={collected:result.signals?.length || 0,accepted:signals.length,feed:drops.length,candidates:candidates.length,baseline:!lease.projection,roadblocks:result.roadblocks?.length || 0,...result.accounting};
-      if(signals.length && !drops.length) throw new Error('accepted_evidence_missing_feed');
+      const feedExpected=signals.some((s: Row)=>['limited','allocated','unicorn'].includes(s.tier) && (s.canAlertAsInventory || s.eventType==='nc_board_shipment_snapshot'));
+      if(feedExpected && !drops.length) throw new Error('accepted_evidence_missing_feed');
       const committed=(await executor.query('SELECT source_poll_finish($1,$2,$3,$4::jsonb,$5,$6,$7,$8::jsonb) AS committed',
         [source.id,owner,lease.generation,JSON.stringify(projection),'accepted',0,0,JSON.stringify(accounting)])).rows[0]?.committed;
       if(committed && result.roadblocks?.length) {
