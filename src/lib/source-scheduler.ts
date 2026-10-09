@@ -26,11 +26,11 @@ export const schedulerEnabled = () => process.env.SOURCE_SCHEDULER_ENABLED === '
 const sql = () => createProductionAlertQueueSqlExecutor();
 export async function pollJobs() { return (await sql().query('SELECT * FROM source_poll_jobs ORDER BY source_id')).rows as Row[]; }
 async function context() {
-  const [bottles,drops,health] = await readSiteExportResults(['bottles','drops','state-health']);
+  const [bottles,drops,health,alerts] = await readSiteExportResults(['bottles','drops','state-health','alerts']);
   const age = Date.now()-Date.parse(bottles.generatedAt || '');
-  if (!bottles.snapshotId || bottles.snapshotId!==health.snapshotId || bottles.snapshotId!==drops.snapshotId
+  if (!bottles.snapshotId || bottles.snapshotId!==health.snapshotId || bottles.snapshotId!==drops.snapshotId || bottles.snapshotId!==alerts.snapshotId
     || bottles.source!=='remote-snapshot' || !Number.isFinite(age) || age<0 || age>7*86400000
-    || health.payload?.quarantine || health.payload?.bootstrap) throw new Error('policy_snapshot_unavailable');
+    || health.payload?.quarantine || health.payload?.bootstrap || alerts.payload?.quarantine || alerts.payload?.bootstrap || alerts.payload?.manualRefresh) throw new Error('policy_snapshot_unavailable');
   const records=(Array.isArray(bottles.payload?.bottles) ? bottles.payload.bottles as Row[] : []).map((b: Row)=>({ ...b,id:b.canonical_id || b.id,canonical:b.canonical_name || b.name, normalizedKey:fingerprintName(b.canonical_name || b.name),aliases:b.aliases || [] }));
   const bible=new BourbonBible(records); const lookup=bibleLookup(records);
   return {bible,lookup,drops:Array.isArray(drops.payload?.drops) ? drops.payload.drops as Row[] : [],snapshotId:bottles.snapshotId,health:health.payload};
