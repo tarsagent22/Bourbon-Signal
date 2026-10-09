@@ -666,9 +666,9 @@ const caskersCatalogRows = found.has('signal_reward_catalog') ? await sql.query(
 `) : [];
 const caskersCatalog = caskersCatalogRows[0];
 const invalidSignalCatalog = caskersCatalog
-  && Number(caskersCatalog.catalog_version) === 2
+  && Number(caskersCatalog.catalog_version) === 4
   && caskersCatalog.name === '$100 Caskers gift card'
-  && Number(caskersCatalog.points_cost) === 2600
+  && Number(caskersCatalog.points_cost) === 2500
   && caskersCatalog.fulfillment_type === 'digital'
   && caskersCatalog.option_snapshot?.partner === 'Caskers'
   ? []
