@@ -1,6 +1,7 @@
 import { requireOwnerApiAccess } from '@/lib/owner-auth';
 import { directoryPage } from '@/lib/admin-member-directory';
 import type { CompanyMemberUser } from '@/lib/company-control-room';
+import { MobileActivityRepository } from '@/lib/mobile-activity-repository';
 const headers = { 'Cache-Control':'private, no-store' };
 export async function GET(request: Request) {
   const owner = await requireOwnerApiAccess(); if (owner.error) return owner.error;
@@ -13,6 +14,7 @@ export async function GET(request: Request) {
       users.push(...page.data);
       if (!page.data.length || offset+page.data.length>=page.totalCount) break;
     }
-    return Response.json(directoryPage(users,params),{headers});
+    const activity = await new MobileActivityRepository().readMany(users.flatMap(user => user.id ? [user.id] : []));
+    return Response.json(directoryPage(users,params,new Date(),activity),{headers});
   } catch { return Response.json({error:'Member directory is temporarily unavailable.'},{status:503,headers}); }
 }

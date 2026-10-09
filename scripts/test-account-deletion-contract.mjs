@@ -43,6 +43,7 @@ test("proven immediate cleanup removes owned product data and disables every que
     "member_push_ownership", "alert_push_outbox", "alert_push_tickets", "alert_candidates", "alert_baselines",
     "member_collection_state", "member_collection_legacy_backups", "bourbon_recommendation_feedback_state",
     "hunt_outcomes", "welcome_signal_previews", "community_sightings", "community_sighting_votes",
+    "member_mobile_activity",
   ]) assert.match(repository, new RegExp(table));
   assert.doesNotMatch(repository, /alert_resource_leases/, "deletion must not reference a nonexistent lease table");
   assert.match(repository, /alert_push_outbox[\s\S]*status IN \('pending','unknown','accepted'\)[\s\S]*THEN 'suppressed'/);

@@ -107,6 +107,7 @@ export class PostgresAccountDeletionRepository implements AccountDeletionReposit
       this.database.query(`DELETE FROM owner_workspace_audit WHERE target_id=$1 OR target_id IN (SELECT id FROM community_sightings WHERE reporter_user_id=$1) OR details->'before'->>'userId'=$1 OR details->'after'->>'userId'=$1`, [userId]),
       this.database.query(`DELETE FROM community_abuse_reports WHERE user_id=$1 OR sighting_id IN (SELECT id FROM community_sightings WHERE reporter_user_id=$1)`, [userId]),
       this.database.query(`DELETE FROM native_render_diagnostics WHERE user_id=$1`, [userId]),
+      this.database.query(`DELETE FROM member_mobile_activity WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM member_feedback WHERE user_id=$1`, [userId]),
       this.database.query(`DELETE FROM community_member_blocks WHERE user_id=$1 OR blocked_user_id=$1`, [userId]),
       this.database.query(`DELETE FROM community_sightings WHERE reporter_user_id=$1`, [userId]),

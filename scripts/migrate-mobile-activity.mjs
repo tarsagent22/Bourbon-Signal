@@ -1,0 +1,15 @@
+import { readFile } from 'node:fs/promises';
+import { neon } from '@neondatabase/serverless';
+const apply = process.argv.includes('--apply');
+const connection = process.env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || process.env.BOURBON_QUEUE_DATABASE_URL || process.env.DATABASE_URL;
+if (!connection) throw new Error('Application database is not configured.');
+const sql = neon(connection);
+const prerequisite = await sql.query("SELECT to_regclass('public.account_deletion_requests') IS NOT NULL AS ready");
+if (!prerequisite[0]?.ready) throw new Error('Account deletion storage must exist before activity storage.');
+if (apply) await sql.query(await readFile(new URL('../src/lib/mobile-activity-schema.sql',import.meta.url),'utf8'));
+const columns = await sql.query("SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='member_mobile_activity'");
+const expected = ['user_id','platform','app_version','update_id','first_seen_at','last_seen_at'];
+if (!expected.every(name => columns.some(row => row.column_name === name))) throw new Error('Mobile activity schema is not ready.');
+const constraints = await sql.query("SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conrelid='public.member_mobile_activity'::regclass");
+if (!constraints.some(row => row.definition === 'PRIMARY KEY (user_id, platform)') || !constraints.some(row => row.definition.includes("'ios'") && row.definition.includes("'android'"))) throw new Error('Mobile activity bounds are not enforced.');
+console.log(JSON.stringify({ok:true,mode:apply?'apply':'check',table:'member_mobile_activity',maximumRowsPerAccount:2}));
