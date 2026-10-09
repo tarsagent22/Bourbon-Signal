@@ -61,6 +61,8 @@ export default function RadarScreen() {
   const writeSequence = useRef(0);
   const preferenceMutationEpoch = useRef(0);
   const handledPushRequests = useRef(new Set<string>());
+  const [pushLookupRetry, setPushLookupRetry] = useState(0);
+  const [openedNotificationAlert, setOpenedNotificationAlert] = useState<MemberAlert | null>(null);
   const initialDestinationChosen = useRef(false);
   const [focusNotifications, setFocusNotifications] = useState(false);
   const preferencesY = useRef(0);
@@ -125,11 +127,22 @@ export default function RadarScreen() {
   useEffect(() => { if (requestedSection === "settings") setView("settings"); }, [requestedSection, request]);
   useEffect(() => { if (requestedSection === "matches" && request) { setView("matches"); void load(true); } }, [load, requestedSection, request]);
   useEffect(() => {
-    if (loading || !request || handledPushRequests.current.has(request)) return;
-    handledPushRequests.current.add(request);
-    const route = signalRouteForRequestedAlert(alerts.alerts, requestedAlert);
-    if (route) router.push(route);
-  }, [alerts.alerts, loading, request, requestedAlert, router]);
+    if (!request || !requestedAlert || handledPushRequests.current.has(request)) return;
+    let active = true;
+    setActionError("");
+    setOpenedNotificationAlert(null);
+    void api.getMemberAlerts({ fresh: true, alertId: requestedAlert }).then(value => {
+      if (!active) return;
+      setAlerts(value);
+      const route = signalRouteForRequestedAlert(value.alerts, requestedAlert);
+      const opened = value.alerts.find(alert => alert.id === requestedAlert);
+      if (route) router.push(route);
+      else if (opened) { setOpenedNotificationAlert(opened); screenScroll.current?.scrollTo({ y: 0, animated: false }); }
+      else { setActionError("This alert is no longer available. Your latest alerts are below."); return; }
+      handledPushRequests.current.add(request);
+    }).catch(() => { if (active) setActionError("This alert couldn’t open. Pull down to try again."); });
+    return () => { active = false; };
+  }, [api, request, requestedAlert, router, pushLookupRetry]);
   useEffect(() => {
     let active = true;
     const subscription = watchRadarPushToken(api, (status) => { if (active && status) { setPushStatus(status); setPushStatusLoadFailed(false); setPushError(status.warning ? presentPushIssue(status.warning, "Push settings are syncing.").message : ""); if (!status.warning) setPushFailedAction(null); } });
@@ -138,7 +151,7 @@ export default function RadarScreen() {
   const watchedKeys = useMemo(() => new Set((preferences?.bottleAlertPreferences.bottleKeys || []).map(canonicalBottleKey)), [preferences]);
   const watchedNames = preferences?.bottleAlertPreferences.bottleNames || [];
   const searchResults = useMemo(() => bottleCatalog.search(query, 30), [bottleCatalog.search, query]);
-  const activeAlerts = alerts.alerts.filter((alert) => !alert.archivedAt);
+  const activeAlerts = alerts.alerts.filter((alert) => !alert.archivedAt && alert.id !== openedNotificationAlert?.id);
   const pushPresentation = radarPushState({ status: pushStatus, permission: pushPermission, preferenceEnabled: Boolean(preferences?.notificationPreferences.push.enabled), error: pushError, statusLoadFailed: pushStatusLoadFailed, failedAction: pushFailedAction });
   const pushReadiness = pushPresentation.readiness;
   const pushRecoveryAction: PushRecoveryAction = pushPresentation.action;
@@ -215,7 +228,7 @@ export default function RadarScreen() {
     contentContainerStyle={memberScreenStyles.content}
     keyboardDismissMode="on-drag"
     keyboardShouldPersistTaps="handled"
-    refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void load(true)} tintColor={colors.accent} />}
+    refreshControl={<RefreshControl refreshing={loading} onRefresh={() => { setPushLookupRetry(value => value + 1); void load(true); }} tintColor={colors.accent} />}
     style={memberScreenStyles.screen}
   >
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setFocusNotifications(false); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
@@ -229,6 +242,11 @@ export default function RadarScreen() {
     {view === "settings" && bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
     {saveNotice ? <Text accessibilityLiveRegion="polite" style={styles.fresh}>{saveNotice}</Text> : null}
     {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
+    {view === "matches" && openedNotificationAlert ? <View>
+      <SectionTitle>Opened alert</SectionTitle>
+      <Text style={styles.muted}>This is the report from your notification. Its original Signal detail is no longer available.</Text>
+      <AlertCard alert={openedNotificationAlert} saving={saving} watchedNames={watchedNames} />
+    </View> : null}
 
     {view === "matches" && (!alertsLoadFailed || activeAlerts.length > 0) ? <MatchesView alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
     {view === "settings" ? <WatchlistView
@@ -276,7 +294,7 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
   </View>;
 }
 
-function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAlert; saving: boolean; watchedNames: string[]; onMutate: (action: "mark_read" | "archive", alertId: string) => Promise<void> }) {
+function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAlert; saving: boolean; watchedNames: string[]; onMutate?: (action: "mark_read" | "archive", alertId: string) => Promise<void> }) {
   const router = useRouter();
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const route = signalRouteForRequestedAlert([alert], alert.id);
@@ -292,7 +310,7 @@ function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAle
     {stale ? <Text style={styles.stale}>Past alert · availability unconfirmed</Text> : <Text style={styles.fresh}>Recent report · availability unconfirmed</Text>}
     {detailsExpanded ? <View style={styles.stack}><Text style={styles.muted}>Reported {new Date(observedAt).toLocaleString()}</Text><Text style={styles.muted}>{alert.quantity !== null ? `Reported quantity: ${alert.quantity}. ` : ""}Availability can change after a report.</Text></View> : null}
     <SmallButton primary label={detailsExpanded ? "Hide details" : "View details"} onPress={() => { if (route) router.push(route); else setDetailsExpanded(value => !value); }} />
-    <View style={styles.rowActions}>{!alert.readAt ? <SmallButton label="Mark read" disabled={saving} onPress={() => void onMutate("mark_read", alert.id)} /> : null}<SmallButton label="Archive" disabled={saving} onPress={() => void onMutate("archive", alert.id)} /></View>
+    {onMutate ? <View style={styles.rowActions}>{!alert.readAt ? <SmallButton label="Mark read" disabled={saving} onPress={() => void onMutate("mark_read", alert.id)} /> : null}<SmallButton label="Archive" disabled={saving} onPress={() => void onMutate("archive", alert.id)} /></View> : null}
   </MemberCard>;
 }
 

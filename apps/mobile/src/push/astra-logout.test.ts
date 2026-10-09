@@ -22,6 +22,7 @@ test('MM-02 queued A notification after offline logout waits for authentication 
   // B does not register for push. The already-queued tap opens B's authenticated Radar.
   const route = navigation.take(true, true);
   assert.deepEqual(route, { pathname: '/(app)/(tabs)/radar', params: { section: 'matches', alert: 'A-private-id', request: 'queued-A-os-request' } });
+  navigation.acknowledge('queued-A-os-request');
   let reads = 0;
   const apiB = createMobileApi({ baseUrl: 'https://offline.invalid', getToken: async () => 'fixture-B', fetcher: async input => {
     const request = new Request(input); reads++;

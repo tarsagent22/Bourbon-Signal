@@ -16,6 +16,7 @@ import { DeviceTimeZoneCapture } from "../src/startup/DeviceTimeZoneCapture";
 import { useMobileApi } from "../src/hooks/useMobileApi";
 import { reportRenderError } from "../src/startup/report-render-error";
 import { colors, typeScale, fonts } from "../src/theme";
+import { PushResponseHandler } from "../src/push/PushResponseHandler";
 
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 150, fade: true });
@@ -45,13 +46,14 @@ function SessionNavigation() {
   const api=useMobileApi();
   const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
   return <StartupErrorBoundary onRenderError={(error,stack)=>{if(isSignedIn)void reportRenderError(error,stack,api.reportNativeDiagnostic).catch(()=>{});}} resetOn={`${userId || ''}:${sessionId || ''}`}>
-    <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
+    <><Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Protected guard={Boolean(isLoaded && isSignedIn)}>
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>
+    <PushResponseHandler /></>
   </StartupErrorBoundary>;
 }
 

@@ -230,7 +230,7 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
     if (!result.rows[0]) throw new Error(`Cannot mark unclaimed alert candidate ${id} as delivered`);
   }
 
-  async markBatchDelivered(ids: string[], providerMessageId: string, deliveredAt: string) {
+  async markBatchDelivered(ids: string[], providerMessageId: string, deliveredAt: string, memberAlert?: unknown) {
     const uniqueIds = Array.from(new Set(ids));
     if (!uniqueIds.length) return;
     const result = await this.sql.query(`
@@ -256,10 +256,11 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
         returning candidate_id
       )
       update alert_candidates
-      set status = 'delivered', delivered_at = $3::timestamptz, provider_message_id = $2
+      set status = 'delivered', delivered_at = $3::timestamptz, provider_message_id = $2,
+        payload = case when $4::jsonb is null then payload else payload || jsonb_build_object('memberAlert', $4::jsonb) end
       where id in (select candidate_id from delivery)
       returning id
-    `, [uniqueIds, providerMessageId, deliveredAt]);
+    `, [uniqueIds, providerMessageId, deliveredAt, memberAlert ? JSON.stringify(memberAlert) : null]);
     if (result.rows.length !== uniqueIds.length) throw new Error("Cannot mark alert batch with unclaimed candidates as delivered");
   }
 

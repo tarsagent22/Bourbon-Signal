@@ -46,11 +46,15 @@ export function createPendingPushNavigation() {
     },
     take(signedIn: boolean, navigationReady: boolean) {
       if (!signedIn || !navigationReady || !pending) return null;
+      return pending.route;
+    },
+    acknowledge(requestId: string) {
+      if (!pending || pending.id !== requestId) return false;
       const next = pending;
       pending = null;
       consumed.add(next.id);
       if (consumed.size > 64) consumed.delete(consumed.values().next().value!);
-      return next.route;
+      return true;
     },
   };
 }

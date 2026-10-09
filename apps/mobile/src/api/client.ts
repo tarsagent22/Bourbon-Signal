@@ -380,8 +380,10 @@ export function createMobileApi({
     updateMemberPreferences(patch: MemberPreferencesPatch) {
       return request<MemberPreferences>("/api/user/preferences", { method: "POST", body: patch });
     },
-    getMemberAlerts({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
-      return request<MemberAlertsResponse>("/api/alerts?summary=1", { fresh, signal });
+    getMemberAlerts({ fresh = false, signal, alertId }: { fresh?: boolean; signal?: AbortSignal; alertId?: string } = {}) {
+      const params = new URLSearchParams({ summary: "1" });
+      if (alertId) params.set("alert", alertId);
+      return request<MemberAlertsResponse>(`/api/alerts?${params}`, { fresh, signal });
     },
     updateMemberAlert(action: "mark_read" | "mark_all_read" | "archive", alertId?: string) {
       return request<MemberAlertsResponse>("/api/alerts", { method: "PATCH", body: { action, ...(alertId ? { alertId } : {}) } });
