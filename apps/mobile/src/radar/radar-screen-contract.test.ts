@@ -46,7 +46,7 @@ test("preferences shows continuous sections with sightings beneath phone alerts"
   const community = radar.indexOf('<ToggleRow label="Community sightings"');
   const notifications = radar.indexOf('<SectionTitle>Notifications</SectionTitle>');
   assert.ok(sources < notifications && notifications < community);
-  assert.match(radar, /get notified if a member posts a bottle in an area you watch/);
+  assert.match(radar, /Member sightings in your watched areas/);
 });
 
 test("quiet watch removal offers an atomic Undo without replacing the full watchlist", () => {
@@ -90,7 +90,7 @@ test("current and history stay separate with useful empty states", () => {
 test("Post explains the community and points value", () => {
   const post = readScreen("post");
 
-  assert.match(post, />Share bottle sightings with the community and earn points<\/Text>/);
+  assert.match(post, /description="Share a sighting\. Help your community\. Earn points\."/);
   assert.doesNotMatch(post, /Choose the bottle and retailer\. Add only what you observed\./);
 });
 

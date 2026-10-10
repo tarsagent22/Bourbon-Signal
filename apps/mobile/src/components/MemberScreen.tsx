@@ -1,6 +1,19 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, typeScale, fonts } from "../theme";
+import { colors, typeScale, layout, typography } from "../theme";
+
+export function PageHeading({ title, eyebrow, description }: { title: string; eyebrow?: string; description?: string }) {
+  return <View style={styles.pageHeading}>
+    <View accessible={false} style={styles.brandRule}><View style={styles.brandRuleAccent} /></View>
+    {eyebrow ? <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text> : null}
+    <Text accessibilityRole="header" style={styles.title}>{title}</Text>
+    {description ? <Text style={styles.description}>{description}</Text> : null}
+  </View>;
+}
+
+export function OpenSection({ children }: PropsWithChildren) {
+  return <View style={styles.openSection}>{children}</View>;
+}
 
 export function ScreenIntro({ eyebrow, title, description, aside }: { eyebrow: string; title: string; description: string; aside?: ReactNode }) {
   return (
@@ -64,20 +77,24 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry: () 
 
 export const memberScreenStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 18, paddingBottom: 44, gap: 18 },
+  content: { padding: layout.gutter, paddingBottom: 44, gap: layout.sectionGap },
   section: { gap: 10 },
 });
 
 const styles = StyleSheet.create({
+  pageHeading: { gap: 6, paddingBottom: 4 },
+  brandRule: { height: 1, backgroundColor: colors.border, marginBottom: 12 },
+  brandRuleAccent: { width: 32, height: 2, backgroundColor: colors.accent, marginTop: -1 },
+  openSection: { gap: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 16 },
   intro: { gap: 12, paddingTop: 4 },
   introCopy: { gap: 6, flex: 1 },
-  eyebrow: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 1.35 },
-  title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, lineHeight: 40, fontWeight: "800", letterSpacing: -0.5 },
-  description: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21, maxWidth: 520 },
-  card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 16, gap: 10 },
+  eyebrow: { color: colors.accent, ...typography.eyebrow },
+  title: { color: colors.text, ...typography.page },
+  description: { color: colors.muted, ...typography.body, maxWidth: 520 },
+  card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: layout.cardRadius, padding: 16, gap: 10 },
   cardAccent: { borderColor: colors.accent },
-  sectionHeading: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10 },
-  sectionTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "700" },
+  sectionHeading: { flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 10 },
+  sectionTitle: { color: colors.text, ...typography.section, flexShrink: 1 },
   sectionDetail: { color: colors.muted, fontSize: typeScale.small },
   row: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 18, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth },
   rowLast: { borderBottomWidth: 0 },
@@ -87,7 +104,7 @@ const styles = StyleSheet.create({
   emptyDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 19 },
   loading: { minHeight: 140, alignItems: "center", justifyContent: "center", gap: 12 },
   error: { color: colors.danger, fontSize: typeScale.body, lineHeight: 20 },
-  retry: { alignSelf: "flex-start", borderColor: colors.border, borderWidth: 1, borderRadius: 10, minHeight: 44, paddingHorizontal: 15, alignItems: "center", justifyContent: "center" },
+  retry: { alignSelf: "flex-start", borderColor: colors.border, borderWidth: 1, borderRadius: layout.controlRadius, minHeight: layout.controlHeight, paddingHorizontal: 15, alignItems: "center", justifyContent: "center" },
   retryText: { color: colors.text, fontWeight: "700" },
   pressed: { backgroundColor: colors.surfaceRaised },
 });

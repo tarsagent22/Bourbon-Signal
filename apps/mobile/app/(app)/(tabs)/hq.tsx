@@ -20,6 +20,7 @@ import {
   ErrorState,
   LoadingState,
   memberScreenStyles,
+  PageHeading,
 } from "../../../src/components/MemberScreen";
 import { useAccessibleStatus } from "../../../src/hooks/useAccessibleStatus";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -27,9 +28,12 @@ import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation"
 import { signOutWithRadarPushDisabled } from "../../../src/push/push-registration";
 import { rewardCatalogSummary } from "../../../src/interactions/member-interactions";
 import { RewardEmblem, rewardStyles as s } from "../../../src/rewards/RewardUI";
-import { colors, typeScale, fonts } from "../../../src/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StyleSheet } from "react-native";
+import { colors, typeScale } from "../../../src/theme";
 
 export default function AccountScreen() {
+  const insets = useSafeAreaInsets();
   const api = useMobileApi();
   const router = useRouter();
   const { signOut } = useAuth();
@@ -87,7 +91,7 @@ export default function AccountScreen() {
   return (
     <ScrollView
       style={memberScreenStyles.screen}
-      contentContainerStyle={s.page}
+      contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}
       refreshControl={
         <RefreshControl
           refreshing={loading && !!profile}
@@ -96,14 +100,15 @@ export default function AccountScreen() {
         />
       }
     >
+      <PageHeading title="Account" eyebrow="Bourbon Signal membership" />
       {loading && !profile ? <LoadingState label="Loading account…" /> : null}
       {error ? (
         <ErrorState message={error} onRetry={() => void load(true)} />
       ) : null}
       {profile ? (
-        <View style={[s.card, s.hero]}>
+        <View style={[s.card, s.hero, accountStyles.memberPass]}>
           <View style={s.spread}>
-            <Text style={s.title}>
+            <Text accessibilityRole="header" style={[s.title, accountStyles.memberName]}>
               {profile.customDisplayName || "Your account"}
             </Text>
             <Pressable
@@ -130,10 +135,10 @@ export default function AccountScreen() {
             onPress={() => openRewards()}
             style={{ gap: 8, minHeight: 70 }}
           >
-            <Text style={[s.title, { fontSize: typeScale.title, fontFamily: fonts.heading }]}>
-              {points ? points.balance : "—"}{" "}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", gap: 8 }}>
+              <Text style={s.title}>{points ? points.balance : "—"}</Text>
               <Text style={s.muted}>points available</Text>
-            </Text>
+            </View>
             <Text style={s.muted}>
               {points
                 ? (points.redemptionEligible || rewards?.claimableCount)
@@ -152,7 +157,7 @@ export default function AccountScreen() {
       <Pressable
         accessibilityRole="button"
         onPress={() => openRewards("achievements")}
-        style={[s.card, s.row]}
+        style={[accountStyles.openSection, s.row]}
       >
         <RewardEmblem rewardKey="achievement" />
         <View style={{ flex: 1, gap: 5 }}>
@@ -167,7 +172,7 @@ export default function AccountScreen() {
           </Text>
         </View>
       </Pressable>
-      <View style={[s.card, { paddingVertical: 4 }]}>
+      <View style={accountStyles.openSection}>
         <AccountRow
           label="Membership"
           detail={
@@ -193,9 +198,9 @@ export default function AccountScreen() {
           onPress={() => openRewards("earn")}
         />
       </View>
-      {adminAllowed ? <View style={s.card}><AccountRow label="Admin" detail="Requests, members, community and rewards" onPress={()=>router.push('/(app)/account/admin')} /></View> : null}
+      {adminAllowed ? <View style={accountStyles.openSection}><AccountRow label="Admin" detail="Requests, members, community and rewards" onPress={()=>router.push('/(app)/account/admin')} /></View> : null}
       <Text style={s.label}>SUPPORT & PRIVACY</Text>
-      <View style={[s.card, { paddingVertical: 4 }]}>
+      <View style={accountStyles.openSection}>
         <AccountRow
           label="Request coverage"
           detail="Ask us to cover your area or store"
@@ -285,6 +290,8 @@ function AccountRow({
           alignItems: "center",
           gap: 12,
           opacity: pressed ? 0.7 : 1,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: colors.border,
         },
       ]}
     >
@@ -292,7 +299,13 @@ function AccountRow({
         <Text style={s.text}>{label}</Text>
         {detail ? <Text style={s.muted}>{detail}</Text> : null}
       </View>
-      <Text style={{ color: colors.accent, fontSize: typeScale.title, fontFamily: fonts.heading }}>›</Text>
+      <Text style={{ color: colors.accent, fontSize: 24 }}>›</Text>
     </Pressable>
   );
 }
+
+const accountStyles = StyleSheet.create({
+  openSection: { gap: 4, paddingTop: 4 },
+  memberPass: { borderRadius: 12, borderColor: colors.accentPressed, borderTopWidth: 2 },
+  memberName: { fontSize: 26, lineHeight: 34, flexShrink: 1 },
+});

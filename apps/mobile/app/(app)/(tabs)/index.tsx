@@ -16,7 +16,7 @@ import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation"
 import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, sortSignalTimeline } from "../../../src/signals/home-feed-live";
 import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
-import { colors, typeScale } from "../../../src/theme";
+import { colors, typeScale, layout, typography } from "../../../src/theme";
 import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibility";
 
 type FeedView = "market" | "community";
@@ -71,7 +71,7 @@ function OptionChooser({
       style={({ pressed }) => [styles.chooserButton, pressed && styles.segmentPressed]}
     >
       <MaterialCommunityIcons color={disabled ? colors.border : colors.muted} name={icon as never} size={18} />
-      <View style={styles.chooserText}><Text numberOfLines={selectedOption?.subtitle ? 2 : 1} style={[styles.chooserValue, !value && styles.chooserPlaceholder]}>{selectedLabel}</Text>{selectedOption?.subtitle ? <Text numberOfLines={2} style={styles.chooserSubtitle}>{selectedOption.value}</Text> : null}</View>
+      <View style={styles.chooserText}><Text style={[styles.chooserValue, !value && styles.chooserPlaceholder]}>{selectedLabel}</Text>{selectedOption?.subtitle ? <Text numberOfLines={2} style={styles.chooserSubtitle}>{selectedOption.value}</Text> : null}</View>
       <MaterialCommunityIcons color={disabled ? colors.border : colors.muted} name={expanded ? "chevron-up" : "chevron-down"} size={19} />
     </Pressable>
     {expanded && !disabled ? <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled style={[styles.chooserOptions, { maxHeight: Math.max(60, Math.min(240, viewportHeight - buttonHeight - 30)) }]}>
@@ -723,21 +723,21 @@ const styles = StyleSheet.create({
   newSignalsPill: { position: "absolute", zIndex: 5, top: 8, alignSelf: "center", minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.accent, borderWidth: 1, borderColor: "#F1BC72", shadowColor: "#000", shadowOpacity: 0.32, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
   newSignalsPillPressed: { backgroundColor: colors.accentPressed, transform: [{ scale: 0.98 }] },
   newSignalsText: { color: "#171009", fontSize: typeScale.small, lineHeight: 16, fontWeight: "900" },
-  segmentedControl: { flexDirection: "row", padding: 3, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
-  segment: { flex: 1, minHeight: 44, borderRadius: 11, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 },
-  segmentSelected: { backgroundColor: "#241A10" },
+  segmentedControl: { flexDirection: "row", borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, gap: 16 },
+  segment: { flex: 1, minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, borderBottomWidth: 2, borderBottomColor: "transparent" },
+  segmentSelected: { borderBottomColor: colors.accent },
   segmentPressed: { opacity: 0.78 },
   segmentLabel: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   segmentLabelSelected: { color: colors.text },
   geographyRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 8 },
   locationSelection: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingLeft: 4 },
-  locationSelectionText: { flex: 1, color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 },
+  locationSelectionText: { flex: 1, color: colors.muted, ...typography.caption },
   clearLocationButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3, paddingHorizontal: 6 },
   clearLocationText: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800" },
   filterChooser: { flex: 1, minWidth: 0 },
   filterChooserDisabled: { opacity: 0.48 },
   rarityRow: { flexGrow: 1, gap: 7, paddingRight: 8, justifyContent: "center" },
-  rarityChip: { minHeight: 44, justifyContent: "center", paddingHorizontal: 13, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
+  rarityChip: { minHeight: 44, justifyContent: "center", paddingHorizontal: 13, borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
   rarityChipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" },
   rarityChipText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   rarityChipTextSelected: { color: colors.text },
@@ -765,18 +765,18 @@ const styles = StyleSheet.create({
   footerError: { color: colors.danger, textAlign: "center" },
   end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: typeScale.small },
   fieldGroup: { gap: 6 },
-  chooserButton: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, paddingVertical: 9, flexDirection: "row", alignItems: "center", gap: 7 },
+  chooserButton: { minHeight: 46, borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, paddingVertical: 9, flexDirection: "row", alignItems: "center", gap: 7 },
   chooserValue: { color: colors.text, fontSize: typeScale.small, fontWeight: "600" },
   chooserPlaceholder: { color: colors.muted, fontWeight: "500" },
   chooserText: { flex: 1, minWidth: 0, gap: 3 },
   chooserSubtitle: { color: colors.muted, fontSize: 12, lineHeight: 17 },
-  chooserOptions: { maxHeight: 240, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
+  chooserOptions: { maxHeight: 240, borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
   chooserOption: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 11, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   chooserOptionSelected: { backgroundColor: "#2A1F13" },
   chooserOptionText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "600" },
   areaOptionNote: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, textAlign: "center" },
   areaOptionError: { color: colors.danger, fontSize: typeScale.caption, lineHeight: 15, textAlign: "center" },
-  filterInputShell: { minHeight: 46, flexDirection: "row", alignItems: "center", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingLeft: 12, paddingRight: 6, gap: 7 },
+  filterInputShell: { minHeight: 46, flexDirection: "row", alignItems: "center", borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingLeft: 12, paddingRight: 6, gap: 7 },
   filterInput: { minHeight: 44, flex: 1, color: colors.text, fontSize: typeScale.input, paddingRight: 6 },
   inputClearButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
 });
