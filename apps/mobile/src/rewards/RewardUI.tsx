@@ -4,7 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { badgeCatalog } from "./badge-catalog";
 import { communityLeaderBadge } from "../../../../shared/community-leader-badges";
 import { badgeFamily } from "./reward-model";
-import { colors, fonts, typeScale } from "../theme";
+import { colors, fonts, typeScale, layout, typography } from "../theme";
 
 export const rewardStyles = StyleSheet.create({
   page: { padding: 20, paddingBottom: 44, gap: 20 },
@@ -12,13 +12,13 @@ export const rewardStyles = StyleSheet.create({
     padding: 20,
     gap: 12,
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: layout.cardRadius,
     borderWidth: 1,
     borderColor: colors.border,
   },
   hero: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised },
   title: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.title, lineHeight: 40, fontWeight: "700" },
-  heading: { color: colors.text, fontSize: typeScale.section, fontWeight: "700" },
+  heading: { color: colors.text, ...typography.section },
   text: { color: colors.text, fontSize: typeScale.input, lineHeight: 22 },
   muted: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21 },
   label: {

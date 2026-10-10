@@ -16,12 +16,12 @@ function icon(route: "index" | "radar" | "post" | "cellar" | "hq") {
 }
 
 function BrandTitle() {
-  return <Text numberOfLines={1} style={styles.brandTitle}>Bourbon Signal</Text>;
+  return <Text adjustsFontSizeToFit minimumFontScale={0.75} numberOfLines={1} style={styles.brandTitle}>Bourbon Signal</Text>;
 }
 
 export function PostTabButton({onPress,onLongPress,accessibilityState,testID}:Pick<PressableProps,'onPress'|'onLongPress'|'accessibilityState'|'testID'>) {
   return <Pressable accessibilityRole="button" accessibilityLabel="Post a bottle sighting" accessibilityHint="Opens the post composer" accessibilityState={accessibilityState} testID={testID} onPress={onPress} onLongPress={onLongPress} style={({pressed})=>[styles.postButton,pressed&&styles.pressed]}>
-    <View style={styles.postCircle}><MaterialCommunityIcons name="plus" size={36} color="#21130b"/></View>
+    <View style={styles.postCircle}><MaterialCommunityIcons name="plus" size={28} color="#21130b"/></View>
     <Text style={styles.postLabel}>Post</Text>
   </Pressable>;
 }
@@ -60,19 +60,19 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: AlertInboxButton, headerTransparent: true, headerStyle: { backgroundColor: "transparent" }, tabBarIcon: icon("index") }} />
-      <Tabs.Screen name="radar" options={{ title: "Radar", tabBarIcon: icon("radar") }} />
-      <Tabs.Screen name="post" options={{ title: "Post", tabBarIcon: icon("post"), tabBarButton: props => <PostTabButton {...props}/> }} />
+      <Tabs.Screen name="radar" options={{ headerShown: false, title: "Radar", tabBarIcon: icon("radar") }} />
+      <Tabs.Screen name="post" options={{ headerShown: false, title: "Post", tabBarIcon: icon("post"), tabBarButton: props => <PostTabButton {...props}/> }} />
       <Tabs.Screen name="cellar" options={{ title: "My Shelf", headerShown: false, tabBarIcon: icon("cellar") }} />
-      <Tabs.Screen name="hq" options={{ title: "Account", tabBarIcon: icon("hq") }} />
+      <Tabs.Screen name="hq" options={{ headerShown: false, title: "Account", tabBarIcon: icon("hq") }} />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
   postButton: { flex: 1, alignItems: "center", justifyContent: "flex-start", marginTop: -19, minHeight: 76 },
-  postCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#DDB698", borderWidth: 3, borderColor: colors.surface, alignItems: "center", justifyContent: "center", shadowColor: "#DDB698", shadowOpacity: 0.16, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
+  postCircle: { width: 54, height: 54, borderRadius: 27, backgroundColor: colors.accent, borderWidth: 3, borderColor: colors.surface, alignItems: "center", justifyContent: "center" },
   postLabel: { color: colors.text, fontSize: 11, fontWeight: "700", marginTop: 2 },
-  brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.title, lineHeight: 40, letterSpacing: -0.35 },
+  brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 28, lineHeight: 36, letterSpacing: -0.35 },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
   pressed: { opacity: 0.68 },
 });

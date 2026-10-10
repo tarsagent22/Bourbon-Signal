@@ -45,7 +45,7 @@ import {
   type CollectionStatusFilter,
   updateCollectionBottle,
 } from "../../../src/interactions/member-interactions";
-import { colors, typeScale, fonts } from "../../../src/theme";
+import { colors, typeScale, fonts, layout, typography } from "../../../src/theme";
 import { setBottleWatched } from "../../../src/radar/radar-preferences";
 import { buildCellarHuntSuggestions } from "../../../src/cellar/cellar-hunt-suggestions";
 
@@ -512,7 +512,7 @@ function WhiskeyListRow({ bottle, onPress }: { bottle: MemberCollectionBottle; o
   >
     {kind === "owned" ? <CellarBottleArtwork bottle={bottle} size="list" /> : <CellarGlencairnSilhouette />}
     <View style={styles.listCopy}>
-      <Text numberOfLines={2} style={styles.listName}>{bottle.bottleName}</Text>
+      <Text style={styles.listName}>{bottle.bottleName}</Text>
       <Text numberOfLines={1} style={styles.listInventory}>{statusLabel}</Text>
       <Text style={styles.listRating}>{bottle.isRated ? `Rated ${rating}` : "Unrated"}</Text>
     </View>
@@ -714,9 +714,9 @@ function DisclosureRow({ expanded, label, onPress, summary }: { expanded: boolea
 function Stepper({ label, onChange, value }: { label: string; onChange: (value: number) => void; value: number }) { return <View style={styles.stepper}><Text style={styles.fieldLabel}>{label}</Text><View style={styles.stepperActions}><Pressable accessibilityLabel={`Remove one ${label}`} accessibilityRole="button" onPress={() => onChange(Math.max(0, value - 1))} style={styles.stepButton}><Text style={styles.stepText}>−</Text></Pressable><Text style={styles.stepValue}>{value}</Text><Pressable accessibilityLabel={`Add one ${label}`} accessibilityRole="button" onPress={() => onChange(Math.min(999, value + 1))} style={styles.stepButton}><Text style={styles.stepText}>+</Text></Pressable></View></View>; }
 
 const styles = StyleSheet.create({
-  pageTitle: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" },
+  pageTitle: { color: colors.text, fontSize: typeScale.title, lineHeight: 40, fontFamily: fonts.heading, letterSpacing: -0.5 },
   statistics: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6 },
-  statisticsButton: { minHeight: 56, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", gap: 12 },
+  statisticsButton: { minHeight: 56, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 },
   statisticsLink: { flex: 1, color: colors.text, fontSize: typeScale.input, fontWeight: "700" },
   collectionTabs: { flex: 1, flexDirection: "row", gap: 2, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#302b24" },
   tileArt: { height: 84, width: 80, alignItems: "center", justifyContent: "center", transform: [{ scale: 0.73 }] },
@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 1.2 },
   summaryLine: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" },
   summaryDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17, flexShrink: 1 },
-  addButton: { minHeight: 44, minWidth: 78, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: 8, backgroundColor: colors.accent, paddingHorizontal: 18 },
+  addButton: { minHeight: 44, minWidth: 78, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: layout.controlRadius, backgroundColor: colors.accent, paddingHorizontal: 18 },
   addButtonPressed: { backgroundColor: colors.accentPressed },
   addButtonDisabled: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1 },
   addButtonText: { color: colors.background, fontSize: typeScale.small, fontWeight: "800" },
@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
   capacityNotice: { gap: 4, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 12, backgroundColor: colors.surface, padding: 12 },
   capacityTitle: { color: colors.text, fontSize: typeScale.small, fontWeight: "800" },
   capacityDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17 },
-  dnaCard: { borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, overflow: "hidden" },
+  dnaCard: { borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
   dnaHeader: { minHeight: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 13 },
   dnaCopy: { flex: 1, gap: 3 }, dnaEyebrow: { color: colors.accent, fontSize: typeScale.micro, fontWeight: "900", letterSpacing: 1 }, dnaTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "900" }, dnaSummary: { color: colors.muted, fontSize: typeScale.small }, dnaDetails: { gap: 10, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, padding: 13 },
   dnaConfidence: { gap: 3, borderRadius: 10, backgroundColor: colors.surfaceRaised, padding: 11 },
@@ -744,18 +744,18 @@ const styles = StyleSheet.create({
   dnaTraitName: { color: colors.text, fontSize: typeScale.body, fontWeight: "800" },
   dnaTraitEvidence: { flexShrink: 1, color: colors.muted, fontSize: typeScale.caption, textAlign: "right" },
   dnaActionBlock: { gap: 5, paddingTop: 3 },
-  dnaAction: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 11, paddingHorizontal: 13 },
+  dnaAction: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: layout.controlRadius, paddingHorizontal: 13 },
   dnaActionText: { color: colors.accent, fontSize: typeScale.small, fontWeight: "900" },
   dnaMethod: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, fontStyle: "italic" },
   premiumNote: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
   footer: { gap: 14, paddingTop: 8 },
-  showMoreButton: { minHeight: 48, alignItems: "center", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 13, backgroundColor: "rgba(196,148,58,0.08)" },
+  showMoreButton: { minHeight: layout.controlHeight, alignItems: "center", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: layout.controlRadius, backgroundColor: "rgba(196,148,58,0.08)" },
   showMoreText: { color: colors.accent, fontSize: typeScale.small, fontWeight: "900" },
-  huntNext: { gap: 8, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, padding: 12 }, huntNextHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }, huntNextTitle: { color: colors.text, fontSize: 17, fontWeight: "900" }, huntNextCount: { color: colors.muted, fontSize: typeScale.caption, textTransform: "uppercase", letterSpacing: 0.7 }, huntNextRow: { gap: 9, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 }, huntNextCopy: { gap: 3 }, huntNextName: { color: colors.text, fontSize: typeScale.small, fontWeight: "800" }, huntNextReason: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 }, huntNextButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 999, paddingHorizontal: 12 }, huntNextButtonText: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "900" },
+  huntNext: { gap: 8, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 16 }, huntNextHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }, huntNextTitle: { color: colors.text, fontSize: 17, fontWeight: "900" }, huntNextCount: { color: colors.muted, fontSize: typeScale.caption, textTransform: "uppercase", letterSpacing: 0.7 }, huntNextRow: { gap: 9, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 }, huntNextCopy: { gap: 3 }, huntNextName: { color: colors.text, fontSize: typeScale.small, fontWeight: "800" }, huntNextReason: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 }, huntNextButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: layout.controlRadius, paddingHorizontal: 12 }, huntNextButtonText: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "900" },
   controlRow: { flexDirection: "row", gap: 8 },
   searchField: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: "row", alignItems: "center", paddingLeft: 10, borderRadius: 10, backgroundColor: "#1a1713" },
   search: { flex: 1, minWidth: 0, minHeight: 44, color: colors.text, paddingHorizontal: 6, fontSize: typeScale.small },
-  sortButton: { minHeight: 44, maxWidth: "44%", justifyContent: "center", borderColor: "#594839", borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, paddingHorizontal: 11 },
+  sortButton: { minHeight: 44, maxWidth: "44%", justifyContent: "center", borderColor: "#594839", borderWidth: 1, borderRadius: layout.controlRadius, backgroundColor: colors.surface, paddingHorizontal: 11 },
   sortText: { color: colors.text, fontSize: typeScale.caption, fontWeight: "800" },
   filterBar: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8 },
   quickFilterScroller: { flex: 1 },
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
   viewModeButtonActive: { backgroundColor: "rgba(214,154,74,0.07)", borderBottomWidth: 2, borderBottomColor: colors.accent },
   viewModeText: { color: colors.text, fontSize: typeScale.section, fontWeight: "500" },
   viewModeTextActive: { color: colors.accent },
-  cellarContent: { paddingHorizontal: 10, paddingTop: 0, paddingBottom: 20 },
+  cellarContent: { paddingHorizontal: 10, paddingTop: 16, paddingBottom: 20 },
   gridContent: { gap: 6 },
   gridRow: { gap: 8 },
   gap: { height: 8 },
@@ -791,9 +791,9 @@ const styles = StyleSheet.create({
   inventoryBadge: { backgroundColor: "#25211b", borderRadius: 4, paddingHorizontal: 5, paddingVertical: 3 },
   openBadge: { backgroundColor: "#30271c" },
   inventory: { textAlign: "center", color: "#bdb09e", fontSize: typeScale.micro, lineHeight: 12 },
-  listRow: { minHeight: 92, flexDirection: "row", alignItems: "center", gap: 12, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 10 },
+  listRow: { minHeight: 92, flexDirection: "row", alignItems: "center", gap: 12, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 4, paddingVertical: 10 },
   listCopy: { flex: 1, alignItems: "flex-start", gap: 4 },
-  listName: { color: colors.text, fontSize: typeScale.input, lineHeight: 19, fontWeight: "800" },
+  listName: { color: colors.text, ...typography.bottle },
   listRating: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700" },
   listInventory: { color: colors.text, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "800" },
   pressed: { opacity: 0.72 },
@@ -811,7 +811,7 @@ const styles = StyleSheet.create({
   field: { gap: 7 },
   fieldLabel: { color: colors.text, fontSize: typeScale.body, fontWeight: "700" },
   fieldHelp: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17 },
-  input: { minHeight: 48, borderColor: colors.border, borderWidth: 1, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, paddingVertical: 12, fontSize: typeScale.input },
+  input: { minHeight: layout.controlHeight, borderColor: colors.border, borderWidth: 1, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, paddingVertical: 12, fontSize: typeScale.input },
   notesInput: { minHeight: 100, textAlignVertical: "top" },
   inventoryStateRow: { gap: 4 },
   inventoryState: { color: colors.accent, fontSize: typeScale.input, fontWeight: "800" },

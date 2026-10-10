@@ -1,7 +1,14 @@
 import React from 'react';
-import {useWindowDimensions as actualDimensions} from 'react-native-web';
+import {useWindowDimensions as actualDimensions, Text as NativeText, StyleSheet} from 'react-native-web';
 export * from 'react-native-web';
 export const Responsive=React.createContext({width:390,fontScale:1});
+// Model native font scaling so the fixture's Large text control changes the rendered copy.
+export function Text({style,...props}) {
+ const {fontScale}=React.useContext(Responsive); const resolved=StyleSheet.flatten(style)||{};
+ const scaled={}; if(resolved.fontSize)scaled.fontSize=resolved.fontSize*fontScale;
+ if(resolved.lineHeight)scaled.lineHeight=resolved.lineHeight*fontScale;
+ return <NativeText {...props} style={[style,scaled]}/>;
+}
 export function useWindowDimensions(){return {...actualDimensions(),...React.useContext(Responsive)};}
 export const Alert={alert(title,message,buttons){
   const panel=document.createElement('div'); panel.setAttribute('role','dialog'); panel.setAttribute('aria-label',title);

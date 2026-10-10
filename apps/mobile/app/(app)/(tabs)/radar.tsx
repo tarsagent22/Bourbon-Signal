@@ -5,7 +5,7 @@ import { Alert, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressa
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import type { GeographySearchResponse, MemberAlert, MemberPreferences, MemberPreferencesPatch, MemberProfile, MonitoringScope, MonitoringScopeType, PushDeviceStatus, RadarBottleOption } from "../../../src/api/types";
 import { MobileApiError } from "../../../src/api/client";
-import { ErrorState, LoadingState, MemberCard, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
+import { ErrorState, LoadingState, MemberCard, OpenSection, PageHeading, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
@@ -14,7 +14,7 @@ import { ALERT_RARITY_TIERS, compactWatchedBottles, monitoringScopesChanged, pre
 import { radarPushState, type PushRecoveryAction } from "../../../src/radar/radar-push-state";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
 import { signalRouteForRequestedAlert } from "../../../src/push/push-navigation";
-import { colors, typeScale, fonts } from "../../../src/theme";
+import { colors, typeScale, fonts, layout, typography } from "../../../src/theme";
 
 import { partitionRadarAlerts, radarLocationSummary, radarSetupNeeded, radarSetupStatus } from "../../../src/radar/radar-presentation";
 import { RadarAlertRow } from "../../../src/radar/RadarAlertRow";
@@ -34,6 +34,7 @@ function pushIssue(caught: unknown, fallback: string) {
 }
 
 export default function RadarScreen() {
+  const screenInsets = useSafeAreaInsets();
   const screenScroll = useRef<ScrollView>(null);
   const api = useMobileApi();
   const router = useRouter();
@@ -247,22 +248,23 @@ export default function RadarScreen() {
     } finally { setPushBusy(false); setPushStage(""); }
   }
 
-  if (loading && !preferences) return <View style={memberScreenStyles.screen}><LoadingState label="Loading your Radar…" /></View>;
-  if (error && !preferences) return <View style={[memberScreenStyles.screen, memberScreenStyles.content]}><ErrorState message={error} onRetry={() => void load(true)} /></View>;
+  if (loading && !preferences) return <View style={[memberScreenStyles.screen, { paddingTop: screenInsets.top }]}><LoadingState label="Loading your Radar…" /></View>;
+  if (error && !preferences) return <View style={[memberScreenStyles.screen, memberScreenStyles.content, { paddingTop: screenInsets.top + 16 }]}><ErrorState message={error} onRetry={() => void load(true)} /></View>;
   if (!preferences) return null;
 
   const setupStatus=radarSetupStatus(preferences,pushReadiness);
   return <ScrollView
     ref={screenScroll}
     automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
-    contentContainerStyle={memberScreenStyles.content}
+    contentContainerStyle={[memberScreenStyles.content, { paddingTop: screenInsets.top + 16 }]}
     keyboardDismissMode="on-drag"
     keyboardShouldPersistTaps="handled"
     refreshControl={<RefreshControl refreshing={loading} onRefresh={() => { setPushLookupRetry(value => value + 1); void load(true); }} tintColor={colors.accent} />}
     style={memberScreenStyles.screen}
   >
+    <PageHeading title="Radar" eyebrow="Your bottle intelligence" />
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setFocusNotifications(false); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
-    {view === "settings" ? <MemberCard><Text style={styles.cardTitle}>{setupStatus.title}</Text><Text style={styles.muted}>{setupStatus.detail}</Text></MemberCard> : null}
+    {view === "settings" ? <View style={styles.setupSummary}><View style={styles.signalMarker} /><View style={styles.flex}><Text style={styles.cardTitle}>{setupStatus.title}</Text><Text style={styles.muted}>{setupStatus.detail}</Text></View></View> : null}
     {view === "matches" && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
       <Text style={[styles.noticeText, styles.flex]}>Phone notifications need attention</Text>
       <TextAction label="FIX" onPress={() => { setFocusNotifications(true); setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} />
@@ -456,11 +458,11 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     </View>
     <View onLayout={(event) => onNotificationsLayout(event.nativeEvent.layout.y)} style={styles.section}>
     <SectionTitle>Notifications</SectionTitle>
-    <MemberCard>
+    <OpenSection>
       {pushNeedsAttention ? <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>Phone alerts</Text><Text style={styles.muted}>{pushDetail}</Text></View><TextAction label={pushBusy ? "WORKING…" : pushRecoveryAction === "settings" ? "OPEN SETTINGS" : "RETRY"} disabled={saving || pushBusy} onPress={onRecoverPush} /></View>
         : <ToggleRow label="Phone alerts" detail={pushDetail} disabled={saving || pushBusy} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={(value) => void onTogglePush(value)} />}
-      <ToggleRow label="Community sightings" detail="get notified if a member posts a bottle in an area you watch" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
-    </MemberCard>
+      <ToggleRow label="Community sightings" detail="Member sightings in your watched areas" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
+    </OpenSection>
 
     </View>
 
@@ -478,7 +480,7 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
             </>}
           </ScrollView>
         </View> : <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={compactStateChoice ? undefined : styles.modalKeyboard}>
-          <View style={styles.modalHeader}><View style={styles.flex}><Text numberOfLines={1} style={styles.modalTitle}>{editorState?.name}</Text></View><TextAction label="CANCEL" onPress={() => setEditorState(null)} /></View>
+          <View style={styles.modalHeader}><View style={styles.flex}><Text style={styles.modalTitle}>{editorState?.name}</Text></View><TextAction label="CANCEL" onPress={() => setEditorState(null)} /></View>
           <View style={compactStateChoice ? styles.choiceSheetBody : styles.modalBody}>
             <View style={styles.choiceRow}><Choice label="Entire state" selected={scopeMode === "state"} onPress={() => { setScopeMode("state"); if (editorState) setDraftScopes(setStatewideScope(draftScopes, editorState)); }} /><Choice label="Specific areas" selected={scopeMode === "local"} onPress={() => { setScopeMode("local"); setDraftScopes(scopes => scopes.filter(scope => scope.type !== "state")); }} /></View>
             {scopeMode === "local" ? <Text style={styles.muted}>{selectedInEditor.length} selected{editorState?.code === "NC" && editorLevel === "board" ? " · Choose your local ABC board by county or town." : ""}</Text> : null}
@@ -507,27 +509,29 @@ function SmallButton({ label, onPress, disabled = false, primary = false }: { la
 function TextAction({ label, onPress, disabled = false, danger = false, quiet = false, expanded }: { label: string; onPress: () => void; disabled?: boolean; danger?: boolean; quiet?: boolean; expanded?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ expanded }} disabled={disabled} hitSlop={8} onPress={onPress} style={({ pressed }) => [styles.textActionButton, disabled && styles.disabled, pressed && !disabled && styles.pressed]}><Text style={[styles.textAction, danger && styles.dangerAction, quiet && styles.quietAction]}>{label}</Text></Pressable>; }
 
 const styles = StyleSheet.create({
+  setupSummary: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
+  signalMarker: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent, marginTop: 7 },
   sheetBackdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.55)" },
   choiceSheet: { backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: "hidden" },
   choiceSheetBody: { padding: 18, gap: 12 },
   infoButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   stateList: { padding: 18, gap: 12 },
-  locationSummary: { minHeight: 64, padding: 16, borderRadius: 12, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", gap: 12 },
+  locationSummary: { minHeight: 64, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 },
   compactNotice: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.surface },
   noticeText: { color: colors.accent, fontSize: typeScale.small, lineHeight: 18 },
   emptyAlerts: { minHeight: 60, alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 16 },
-  emptyTitle: { color: colors.muted, fontSize: typeScale.subheading, lineHeight: 24, fontWeight: "600", textAlign: "center" },
-  historyRow: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  emptyTitle: { color: colors.muted, ...typography.section, fontWeight: "600", textAlign: "center" },
+  historyRow: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   preferences: { gap: 28 },
   chevron: { color: colors.accent, fontSize: typeScale.title, fontFamily: fonts.heading },
-  tabs: { flexDirection: "row", padding: 3, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, gap: 3 },
-  tab: { flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, borderRadius: 10, paddingHorizontal: 5 }, tabSelected: { backgroundColor: colors.surfaceRaised }, tabText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700", textAlign: "center" }, tabTextSelected: { color: colors.text },
+  tabs: { flexDirection: "row", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, gap: 16 },
+  tab: { flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center", paddingHorizontal: 4, paddingVertical: 8, borderBottomWidth: 2, borderBottomColor: "transparent" }, tabSelected: { borderBottomColor: colors.accent }, tabText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700", textAlign: "center" }, tabTextSelected: { color: colors.text },
   section: { gap: 12 }, stack: { gap: 6 }, headingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }, alertHeading: { flexDirection: "row", justifyContent: "space-between", gap: 12 }, flex: { flex: 1, gap: 3 },
   cardTitle: { color: colors.text, fontSize: typeScale.input, lineHeight: 21, fontWeight: "700", flex: 1 }, listTitle: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, location: { color: colors.text, fontSize: typeScale.body, lineHeight: 19 }, muted: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17 }, bottleSummary: { color: colors.accent, fontSize: typeScale.small, lineHeight: 17, fontWeight: "600" }, fresh: { color: colors.success, fontSize: typeScale.caption, fontWeight: "700" }, stale: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700" }, priority: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 1 },
-  rowActions: { flexWrap: "wrap", flexDirection: "row", justifyContent: "flex-end", gap: 8 }, smallButton: { minHeight: 44, minWidth: 84, paddingHorizontal: 14, alignItems: "center", justifyContent: "center", borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, smallButtonPrimary: { backgroundColor: colors.accent, borderColor: colors.accent }, smallButtonText: { color: colors.accent, fontSize: typeScale.small, fontWeight: "800" }, smallButtonTextPrimary: { color: colors.background },
-  compactRow: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: 2, paddingVertical: 7 }, input: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, fontSize: typeScale.input },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, chip: { minWidth: 46, minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 11, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface }, chipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, chipText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" }, chipTextSelected: { color: colors.accent },
-  choiceRow: { flexDirection: "row", gap: 8 }, choice: { flex: 1, minHeight: 46, alignItems: "center", justifyContent: "center", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 10 }, choiceSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, choiceText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700", textAlign: "center" }, choiceTextSelected: { color: colors.accent },
-  modalScreen: { flex: 1, backgroundColor: colors.background }, modalKeyboard: { flex: 1 }, modalHeader: { minHeight: 70, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 }, modalTitle: { color: colors.text, fontSize: 21, lineHeight: 26, fontWeight: "800", flexShrink: 1 }, modalBody: { flex: 1, paddingHorizontal: 18, paddingTop: 12, gap: 10 }, resultsList: { flex: 1 }, resultsContent: { gap: 8, paddingBottom: 14 }, levelScroller: { flexGrow: 0, maxHeight: 46, flexShrink: 0 }, levelRow: { gap: 8, paddingVertical: 1 }, levelChip: { minHeight: 44, paddingHorizontal: 13, alignItems: "center", justifyContent: "center", borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, pinnedActions: { minHeight: 62, paddingHorizontal: 18, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 },
+  rowActions: { flexWrap: "wrap", flexDirection: "row", justifyContent: "flex-end", gap: 8 }, smallButton: { minHeight: layout.controlHeight, minWidth: 84, paddingHorizontal: 14, alignItems: "center", justifyContent: "center", borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, smallButtonPrimary: { backgroundColor: colors.accent, borderColor: colors.accent }, smallButtonText: { color: colors.accent, fontSize: typeScale.small, fontWeight: "800" }, smallButtonTextPrimary: { color: colors.background },
+  compactRow: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: 2, paddingVertical: 7 }, input: { minHeight: layout.controlHeight, borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, fontSize: typeScale.input },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, chip: { minWidth: 46, minHeight: layout.controlHeight, alignItems: "center", justifyContent: "center", paddingHorizontal: 11, borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingVertical: 9 }, chipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, chipText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" }, chipTextSelected: { color: colors.accent },
+  choiceRow: { flexDirection: "row", gap: 8 }, choice: { flex: 1, minHeight: layout.controlHeight, alignItems: "center", justifyContent: "center", borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 10, paddingVertical: 9 }, choiceSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, choiceText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700", textAlign: "center" }, choiceTextSelected: { color: colors.accent },
+  modalScreen: { flex: 1, backgroundColor: colors.background }, modalKeyboard: { flex: 1 }, modalHeader: { minHeight: 70, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 }, modalTitle: { color: colors.text, fontSize: 21, lineHeight: 26, fontWeight: "800", flexShrink: 1 }, modalBody: { flex: 1, paddingHorizontal: 18, paddingTop: 12, gap: 10 }, resultsList: { flex: 1 }, resultsContent: { gap: 8, paddingBottom: 14 }, levelScroller: { flexGrow: 0, maxHeight: 56, flexShrink: 0 }, levelRow: { gap: 8, paddingVertical: 1 }, levelChip: { minHeight: layout.controlHeight, paddingHorizontal: 13, alignItems: "center", justifyContent: "center", borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, pinnedActions: { minHeight: 62, paddingHorizontal: 18, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 },
   toggleRow: { minHeight: 56, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }, textActionButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", paddingHorizontal: 2 }, textAction: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 0.5 }, dangerAction: { color: colors.danger }, quietAction: { color: colors.muted }, error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 }, phoneSummary: { minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, locationChoices: { gap: 9, paddingTop: 4 }, undoRow: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 2 }, manageRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 8 }, areaEditor: { gap: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 10 }, areaRow: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 7 }, areaRowSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, areaRowText: { flex: 1, color: colors.text, fontSize: typeScale.small, lineHeight: 18, fontWeight: "600" }, areaSubtitle: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 }, scopeGuidance: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, paddingHorizontal: 2 }, areaState: { color: colors.muted, fontSize: typeScale.micro, fontWeight: "800", letterSpacing: 0.4 }, areaStateSelected: { color: colors.accent }, selectedOverflow: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16, textAlign: "center", paddingVertical: 4 }, disabled: { opacity: 0.45 }, pressed: { opacity: 0.65 },
 });
