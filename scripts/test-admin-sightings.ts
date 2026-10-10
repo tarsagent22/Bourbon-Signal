@@ -4,7 +4,7 @@ import { rankBottleMatches } from "../shared/admin-bottle-matches";
 import { validateBottleDraft } from "../shared/owner-admin";
 import { validateBottleSubmissionResearch } from "../shared/bottle-submission-research";
 import { validateReviewedBottleArtwork } from "../shared/bottle-artwork";
-import { sightingBottleRarity } from "../src/lib/sighting-bottle-rarity";
+import { buildSightingRarityCatalog, sightingBottleRarity } from "../src/lib/sighting-bottle-rarity";
 import { normalizeMemberSightingSignal } from "../src/lib/signals/signal-contract";
 const now = Date.parse("2026-10-10T12:00:00Z");
 const bottle:any = {id:"exact",canonicalName:"Example",brand:"Example",category:"bourbon",availability:"allocated",nationalTier:"allocated",nationalConfidence:"high",aliases:[],stateOverrides:[]};
@@ -14,7 +14,7 @@ test("rarity can remain pending without pretending the bottle is common or limit
   assert.equal(validateBottleDraft({...bottle,rarityPending:true}).nationalConfidence,"low");
   assert.equal(validateBottleDraft({...bottle,rarityPending:false}).nationalConfidence,"high");
   assert.equal(sightingBottleRarity(sighting,{...bottle,rarityPending:true},now).nationalLabel,"Rarity pending");
-  assert.equal(sightingBottleRarity({...sighting,reviewState:{needsBottleReview:true}},bottle,now).pending,true);
+  assert.equal(sightingBottleRarity({...sighting,reviewState:{needsBottleReview:true}},bottle,now).pending,false,"an exact catalog match can supply rarity without changing the post review workflow");
   const result = normalizeMemberSightingSignal({...sighting,bottleId:undefined,rarityTier:"unicorn",reviewState:{needsBottleReview:true}});
   assert.equal(result.bottle.rarityPending,true,"manual rarity cannot masquerade as confirmed catalog rarity");
 });
@@ -44,4 +44,50 @@ test("public art only accepts inspected original asset metadata, never private m
   const art={url:"https://test.public.blob.vercel-storage.com/bottle-artwork/art.png",sha256:"a".repeat(64),reviewedAt:new Date(now).toISOString(),description:"Original transparent bottle illustration"};
   assert.equal(validateReviewedBottleArtwork(art)?.url,art.url);
   for(const url of ["https://test.private.blob.vercel-storage.com/bottle-artwork/a.png","https://test.public.blob.vercel-storage.com/member-photos/a.png","https://test.public.blob.vercel-storage.com.evil.test/bottle-artwork/a.png"]) assert.throws(()=>validateReviewedBottleArtwork({...art,url}));
+});
+
+test("catalog rarity repairs old sightings without treating local confidence as expression rarity", () => {
+  const catalog = buildSightingRarityCatalog([
+    {...bottle, nationalConfidence:"low"},
+    {...bottle,id:"regular",canonicalName:"Standard Bourbon",availability:"common",nationalTier:"regular"},
+    {...bottle,id:"pending",canonicalName:"Undecided",rarityPending:true},
+  ]);
+  const fixed = catalog.present({...sighting,rarityTier:"limited"});
+  assert.equal(fixed.rarityTier,"allocated");
+  assert.equal(fixed.bottleRarity.nationalLabel,"Allocated");
+  assert.equal(fixed.bottleRarity.localEstablished,false);
+  const common = catalog.present({...sighting,bottleName:"Standard Bourbon",bottleId:"regular",rarityTier:"unicorn"});
+  assert.equal(common.rarityTier,undefined);
+  assert.equal(common.bottleRarity.nationalLabel,"Regular availability");
+  assert.equal(catalog.present({...sighting,bottleName:"Undecided",bottleId:"pending"}).bottleRarity.pending,true);
+  assert.equal(catalog.present({...sighting,bottleName:"Example Rye"}).bottleRarity.pending,true,"must not guess a different expression");
+  const ambiguous=buildSightingRarityCatalog([{...bottle,aliases:["Shared"]},{...bottle,id:"second",canonicalName:"Second",aliases:["Shared"]}]);
+  assert.equal(ambiguous.resolve({bottleName:"Shared"}),undefined);
+});
+
+test("reviewed expression aliases preserve rye, age and release identity",()=>{
+ const rye={...bottle,id:"forester-rye",canonicalName:"Old Forester Single Barrel Barrel Strength Rye",aliases:[]};
+ const catalog=buildSightingRarityCatalog([rye,{...bottle,id:"michters-barrel",canonicalName:"Michters barrel"}]);
+ assert.equal(catalog.present({...sighting,bottleName:"Old Forester Single Barrel Rye Barrel Strength",bottleId:undefined}).rarityTier,"allocated");
+ assert.equal(catalog.resolve({bottleName:"Old Forester Single Barrel Barrel Strength Bourbon"}),undefined);
+ assert.equal(catalog.present({...sighting,bottleName:"Michters barrel",bottleId:"michters-barrel"}).bottleRarity.pending,true);
+ assert.equal(catalog.present({...sighting,bottleName:"Old Overholt 12 Year"}).bottleRarity.pending,true);
+});
+
+test("reviewed expression corrections keep displayed labels and filter tiers consistent",async()=>{
+ const {REVIEWED_SIGHTING_RARITY:reviewed}=await import('../src/data/reviewed-sighting-rarity');
+ for(const [id,name,tier,label] of [
+  ['stagg-26b','Stagg 26B','unicorn','Unicorn'],
+  ['bb_9a5c1a3d1ce97178','E.H. Taylor Cured Oak','unicorn','Unicorn'],
+  ['penelope-riviera-cask-finish','Penelope Riviera Cask Finish','limited','Limited availability'],
+  ['penelope-estate-collection-founders-reserve','Penelope Estate Collection Founders Reserve','limited','Limited availability'],
+  ['high-west-midwinter-night-dram-act-13-scene-7','High west midwinter night dram act 13 scene 7','allocated','Allocated'],
+ ] as const) {
+  const corrected={...bottle,id,canonicalName:name,...reviewed[id]};
+  const catalog=buildSightingRarityCatalog([corrected]);
+  const result=catalog.present({...sighting,bottleId:id,bottleName:name});
+  assert.equal(result.rarityTier,tier);
+  assert.equal(result.bottleRarity.nationalLabel,label);
+  assert.equal(catalog.filterTiers[name.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()],tier);
+ }
 });

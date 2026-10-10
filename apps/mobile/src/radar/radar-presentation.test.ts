@@ -46,5 +46,15 @@ test('bottle summary includes tier restrictions even for a specific bottle list'
   const prefs = preferencesFixture();
   prefs.bottleAlertPreferences = { bottleNames: ['Stagg'], bottleKeys: ['stagg'] };
   prefs.notificationPreferences.rarityTiers = ['unicorn', 'allocated'];
-  assert.equal(radarBottleSummary(prefs), '1 watched bottle · Unicorn + Allocated');
+  assert.equal(radarBottleSummary(prefs), '1 watched bottle \u00b7 Unicorn + Allocated');
+});
+
+import { groupRadarReports, radarAlertLocation } from './alert-location';
+test('Radar summarizes a retailer once and groups only the same bottle at the same source and store',()=>{
+ const alert={id:'one',bottleName:'Elijah Craig Barrel Proof',storeLabel:'Wake County ABC - 7200 Sandy Fork Rd., Raleigh, NC 27609',matchedArea:'Wake County ABC',state:'NC',sourceType:'engine',eventType:'restock',rarityTier:'allocated',quantity:1,score:0,priorityClass:'standard',createdAt:'2026-10-10T12:00:00Z',readAt:null,archivedAt:null} as MemberAlert;
+ assert.equal(radarAlertLocation(alert),'Wake County ABC \u00b7 Raleigh, NC');
+ assert.equal(radarAlertLocation({...alert,storeLabel:'Wake County ABC'}),'Wake County ABC \u00b7 NC');
+ const groups=groupRadarReports([alert,{...alert,id:'two'},{...alert,id:'other-bottle',bottleName:'Stagg'},{...alert,id:'other-store',storeLabel:'Another ABC'},{...alert,id:'community',sourceType:'community'}]);
+ assert.deepEqual(groups.map(group=>group.map(item=>item.id)),[['one','two'],['other-bottle'],['other-store'],['community']]);
+ assert.equal(groupRadarReports([alert,{...alert,id:'other-area',matchedArea:'Another monitoring area'}]).length,2,'distinct location scopes must not be hidden in a repeated-report group');
 });

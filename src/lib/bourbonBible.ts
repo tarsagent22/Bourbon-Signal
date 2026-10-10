@@ -1,3 +1,4 @@
+import { REVIEWED_SIGHTING_RARITY } from "../data/reviewed-sighting-rarity";
 import inventoryBottles from "@/data/bourbonBibleInventory.json";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { mergeBottleCatalogSources } from "@/lib/bottle-catalog-merge";
@@ -67,6 +68,9 @@ const SEED_BOTTLES: BibleBottleInput[] = [
   commonBottle("old-forester-1910", "Old Forester 1910 Old Fine Whisky", "Old Forester", ["of1910", "1910", "old forester 1910"], "A sweeter, double-barreled Old Forester expression.", "Good buy if priced normally and you like dessert-style bourbon."),
   commonBottle("elijah-craig-small-batch", "Elijah Craig Small Batch", "Elijah Craig", ["ec small batch", "elijah craig"], "A widely available Heaven Hill small batch bourbon.", "Safe to pass unless you need a reliable shelf bottle."),
   signalBottle("elijah-craig-barrel-proof", "Elijah Craig Barrel Proof", "Elijah Craig", ["ecbp", "elijah craig bp", "elijah craig barrel proof"], "limited", "A batch-released barrel-proof bourbon with strong hunter interest.", "Grab near MSRP if the batch is one you want; it may come and go quickly."),
+  { ...commonBottle("jts-brown", "J. T. S. Brown", "J. T. S. Brown", ["J.T.S. Brown", "JTS Brown", "J T S Brown"], "A standard Heaven Hill bourbon brand.", "Compare the expression and shelf price in your market."), rarityPending: false, nationalConfidence: "medium", scarcitySourceIds: ["heaven-hill-jts-brown"], scarcityLastReviewedAt: "2026-10-10" },
+  { ...signalBottle("high-west-prisoners-share", "High West The Prisoner's Share", "High West", ["The Prisoner's Share", "Prisoner's Share", "Prisoners Share"], "limited", "A limited bourbon and rye blend finished in The Prisoner wine barrels.", "A limited release; compare the price in your market."), category: "american_whiskey", rarityPending: false, nationalConfidence: "high", releaseCadence: "batch", scarcitySourceIds: ["high-west-prisoners-share"], scarcityLastReviewedAt: "2026-10-10" },
+  { ...signalBottle("old-overholt-11-cask-strength-2024", "Old Overholt 11 Year Cask Strength Rye (2024)", "Old Overholt", ["Old Overholt Cask Strength Straight Rye - Aged 11 Years. Bottled Autumn 2024", "Old Overholt Extra Aged Cask Strength 11 Year (2024)"], "limited", "The 11-year cask-strength rye bottled in autumn 2024.", "Keep the age and release year distinct from other Overholt releases."), category: "rye", ageStatement: "11 years", rarityPending: false, nationalConfidence: "medium", releaseCadence: "annual", scarcitySourceIds: ["old-overholt-11-2024"], scarcityLastReviewedAt: "2026-10-10" },
   commonBottle("evan-williams-bottled-in-bond", "Evan Williams Bottled-in-Bond", "Evan Williams", ["ew bib", "evan williams white label"], "A widely available value bottle.", "Safe to pass unless you need a budget staple."),
   commonBottle("russells-reserve-10", "Russell's Reserve 10 Year", "Russell's Reserve", ["russells 10", "russell reserve 10"], "A generally available age-stated Wild Turkey bourbon.", "Fair buy near MSRP; usually not rare."),
   commonBottle("russells-reserve-single-barrel", "Russell's Reserve Single Barrel", "Russell's Reserve", ["russells single barrel", "rr sib", "russell's reserve sib"], "A respected single barrel that can be regional or store-pick dependent.", "Good buy if the price and barrel details appeal to you.", "regional"),
@@ -295,6 +299,8 @@ async function buildBourbonBible({ includeApprovedCatalog = true, ownerRecords }
   const overrides = new Map(records.map(r => [r.bottle_id,r]));
   const additions = records.filter(r => !r.redirect_id && !merged.some(b => b.id === r.bottle_id)).map(r => ({...r.patch,id:r.bottle_id,isSignalTracked:false,isAlertEligible:false,buyerVerdict:'unknown'} as BibleBottleInput));
   return [...merged,...additions].filter(b => !overrides.get(b.id)?.redirect_id).map((bottle): BibleBottle => {
+    const reviewed = REVIEWED_SIGHTING_RARITY[bottle.id as keyof typeof REVIEWED_SIGHTING_RARITY];
+    if (reviewed) bottle = { ...bottle, ...reviewed, scarcitySourceIds: [...reviewed.scarcitySourceIds] };
     const original=bottle;
     const patch = overrides.get(original.id)?.patch || {};
     bottle = {...original,...patch,id:original.id,aliases:Array.isArray(patch.aliases)?patch.aliases as string[]:original.aliases} as BibleBottleInput;

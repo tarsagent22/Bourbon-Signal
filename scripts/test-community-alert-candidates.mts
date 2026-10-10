@@ -73,3 +73,9 @@ test("community candidates are stable, deduped, cautious, and contain no quantit
   assert.doesNotMatch(JSON.stringify(candidates[0]), /unconfirmed/i);
   assert.doesNotMatch(JSON.stringify(candidates[0]), /quantityEstimate|verified stock|in stock/i);
 });
+
+test("regular and unresolved sightings cannot become limited-tier alerts by fallback",()=>{
+ const ordinary=input(valid({bottleName:"Standard Bourbon",rarityTier:undefined}));
+ assert.deepEqual(qualifyCommunitySighting(ordinary,now,canonicalStores),{qualified:false,reason:"no_classified_rarity"});
+ assert.deepEqual(buildCommunityAlertCandidates([ordinary],now,canonicalStores),[]);
+});

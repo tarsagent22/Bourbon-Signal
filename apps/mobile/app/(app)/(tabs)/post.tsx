@@ -386,11 +386,11 @@ function PostComposer({ userId }: { userId: string }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={memberScreenStyles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
-        <PageHeading title="Post a Signal" eyebrow="Community report" description="Share a sighting. Help your community. Earn points." />
+        <PageHeading title="Post a Signal" decorated={false} description="Share a sighting. Help your community. Earn points." />
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
-          {!pendingPhotoAttachment ? <DraftNotice hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} /> : null}
+          {!pendingPhotoAttachment ? <DraftNotice compact hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} /> : null}
           <ComposerSection icon="bottle-tonic-outline" title="Choose a bottle" required>
             {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
             <Field autoCapitalize="words" autoCorrect={false} label="Bottle" onChangeText={changeBottleName} onFocus={() => setActivePicker("bottle")} placeholder="Search bottle catalog" value={bottleName} />
@@ -403,7 +403,7 @@ function PostComposer({ userId }: { userId: string }) {
           <View style={styles.divider} />
           <ComposerSection icon="storefront-outline" title="Find a retailer" required>
             {!manualStore ? <>
-              <Field autoCapitalize="words" autoCorrect={false} label="Store" onChangeText={changeStoreName} onFocus={() => setActivePicker("store")} placeholder="Store name, city, address or ZIP" value={storeName} />
+              {!selectedStore ? <Field autoCapitalize="words" autoCorrect={false} label="Store" onChangeText={changeStoreName} onFocus={() => setActivePicker("store")} placeholder="Store name, city, address or ZIP" value={storeName} /> : null}
               {activePicker === "store" && !selectedStore ? <ScrollView horizontal keyboardShouldPersistTaps="handled" showsHorizontalScrollIndicator={false} style={styles.storeStateRow} contentContainerStyle={styles.storeStateChips} accessibilityLabel="Store search state">
                 {[{code:"",name:"All states"}, ...COVERAGE_STATES.filter(state=>state.code==="NC"), ...COVERAGE_STATES.filter(state=>state.code!=="NC")].map(state => <Pressable key={state.code} accessibilityRole="button" accessibilityLabel={state.name} accessibilityState={{selected:storeSearchState === state.code}} onPress={() => changeStoreSearchState(state.code)} style={[styles.chip,styles.storeStateChip,storeSearchState === state.code && styles.chipActive]}><Text style={[styles.chipText,storeSearchState === state.code && styles.chipTextActive]}>{state.code || state.name}</Text></Pressable>)}
               </ScrollView> : null}

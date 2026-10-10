@@ -58,6 +58,7 @@ function connectionString(env: NodeJS.ProcessEnv = process.env) {
 }
 
 export interface SightingFeedFilters {
+  catalogRarityTiers?: Record<string, string>;
   states?: string[];
   rarities?: string[];
   bottle?: string | null;
@@ -254,7 +255,12 @@ export class CommunitySightingsRepository {
            AND COALESCE(payload->'rewardState'->>'rejectedAt','') = ''
            AND NOT EXISTS (SELECT 1 FROM community_member_blocks b WHERE b.user_id=$9 AND b.blocked_user_id=community_sightings.reporter_user_id)
            AND NOT EXISTS (SELECT 1 FROM community_abuse_reports r WHERE r.user_id=$9 AND r.sighting_id=community_sightings.id)
-           AND (cardinality($5::text[]) = 0 OR CASE WHEN payload->>'rarityTier' = 'highly_allocated' THEN 'unicorn' ELSE payload->>'rarityTier' END = ANY($5::text[]))
+           AND (cardinality($5::text[]) = 0 OR CASE
+             WHEN $13::jsonb IS NOT NULL THEN COALESCE(
+               $13::jsonb->>(COALESCE(payload->>'bottleId','') || '|' || TRIM(REGEXP_REPLACE(LOWER(payload->>'bottleName'), '[^a-z0-9]+', ' ', 'g'))),
+               $13::jsonb->>TRIM(REGEXP_REPLACE(LOWER(payload->>'bottleName'), '[^a-z0-9]+', ' ', 'g')))
+             WHEN payload->>'rarityTier' = 'highly_allocated' THEN 'unicorn'
+             ELSE payload->>'rarityTier' END = ANY($5::text[]))
            AND ($6::text IS NULL OR LOWER(payload->>'bottleName') LIKE '%' || $6::text || '%')
            AND ($10::text IS NULL OR UPPER(payload->>'storeState') = ANY($11::text[])
              OR (NOT $12::boolean AND STRPOS(LOWER(CONCAT_WS(' ', payload->>'bottleName', payload->>'storeName', payload->>'storeAddress', payload->>'storeCity', payload->>'storeZip')), $10::text) > 0))
@@ -272,7 +278,7 @@ export class CommunitySightingsRepository {
        SELECT recent.payload, totals.total_count
        FROM recent CROSS JOIN totals
        ORDER BY recent.created_at DESC, recent.id ASC`,
-      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns, currentUserId, search, searchStates, feedSearchIsStateCode(search || "")],
+      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns, currentUserId, search, searchStates, feedSearchIsStateCode(search || ""), filters.catalogRarityTiers ? JSON.stringify(filters.catalogRarityTiers) : null],
     ) as Array<{ payload: MemberSighting; total_count: number }>;
     return {
       sightings: rows.map((row) => row.payload),

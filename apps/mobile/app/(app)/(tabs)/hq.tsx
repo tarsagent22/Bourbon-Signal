@@ -45,6 +45,7 @@ export default function AccountScreen() {
   );
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   useAccessibleStatus(error);
   const [signingOut, setSigningOut] = useState(false);
   const [adminAllowed, setAdminAllowed] = useState(false);
@@ -94,13 +95,13 @@ export default function AccountScreen() {
       contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}
       refreshControl={
         <RefreshControl
-          refreshing={loading && !!profile}
-          onRefresh={() => void load(true)}
+          refreshing={pullRefreshing}
+          onRefresh={() => { setPullRefreshing(true); void load(true).finally(() => setPullRefreshing(false)); }}
           tintColor={colors.accent}
         />
       }
     >
-      <PageHeading title="Account" eyebrow="Bourbon Signal membership" />
+      <PageHeading title="Account" decorated={false} />
       {loading && !profile ? <LoadingState label="Loading account…" /> : null}
       {error ? (
         <ErrorState message={error} onRetry={() => void load(true)} />
@@ -164,7 +165,7 @@ export default function AccountScreen() {
           <Text style={s.heading}>Badges</Text>
           <Text style={s.muted}>
             {achievements
-              ? `${achievements.badges.length} badges earned · ${achievements.currentWeeklyStreak}-week streak`
+              ? `${achievements.badges.length} badges earned${achievements.currentWeeklyStreak > 0 ? ` · ${achievements.currentWeeklyStreak}-week streak` : ""}`
               : "Badges, milestones, and your next challenge"}
           </Text>
           <Text style={{ color: colors.accent, fontWeight: "700" }}>
@@ -306,6 +307,6 @@ function AccountRow({
 
 const accountStyles = StyleSheet.create({
   openSection: { gap: 4, paddingTop: 4 },
-  memberPass: { borderRadius: 12, borderColor: colors.accentPressed, borderTopWidth: 2 },
+  memberPass: { borderRadius: 12, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
   memberName: { fontSize: 26, lineHeight: 34, flexShrink: 1 },
 });

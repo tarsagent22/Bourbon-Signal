@@ -66,6 +66,7 @@ export function qualifyCommunitySighting(input: CommunityAlertSightingInput, now
     return { qualified: false, reason: "pending_review" };
   }
   if (sighting.rewardState?.removedAt || sighting.rewardState?.rejectedAt) return { qualified: false, reason: "removed_or_rejected" };
+  if (!sighting.rarityTier) return { qualified: false, reason: "no_classified_rarity" };
   const observed = Date.parse(sighting.createdAt);
   const current = Date.parse(now);
   const freshnessHours = (current - observed) / 3_600_000;
@@ -102,7 +103,7 @@ export function buildCommunityAlertCandidates(inputs: CommunityAlertSightingInpu
       locationPrecision: "store_level",
       eventType: "qualified_community_sighting",
       actionabilityClass: "community_store_sighting",
-      tier: sighting.rarityTier || "limited",
+      tier: sighting.rarityTier,
       priorityClass: sighting.rarityTier === "unicorn" ? "major" : "standard",
       reliabilityScore: 70,
       signalAt: sighting.createdAt,
