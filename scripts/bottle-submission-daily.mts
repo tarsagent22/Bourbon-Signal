@@ -37,7 +37,7 @@ try {
         bottleId:c.candidateBottleId || null,bottleVersion:row.bottle_version == null ? null : Number(row.bottle_version),
         source:c.source,location:{storeName:c.context?.storeName,city:c.context?.storeCity,state:c.context?.storeState},
         previousResearch:c.context?.research || null,existingArtwork:existing ? {id:existing.id,name:existing.name,shape:existing.shape} : null};
-    }).filter(job => !(job.status === "added" && job.existingArtwork)).slice(0,25);
+    }).filter(job => !(job.existingArtwork && (job.status === "added" || job.previousResearch))).slice(0,25);
     const output = args.includes("--out") ? option("--out") : ".operator/bottle-research-queue.json";
     await mkdir(path.dirname(output),{recursive:true});
     await writeFile(output,JSON.stringify({generatedAt:new Date().toISOString(),jobs},null,2));
@@ -73,6 +73,7 @@ try {
         if (current.status === "added" && artwork) {
           const record = (await client.query("SELECT patch,version FROM owner_bottle_records WHERE bottle_id=$1",[current.candidateBottleId])).rows[0];
           if (!record || Number(record.version) !== item.bottleVersion || record.patch.artwork) throw new Error("admin_conflict: bottle artwork changed; export again");
+          if (normalize(record.patch.canonicalName) !== normalize(research.canonicalName)) throw new Error("Research must match the approved bottle identity before adding its art.");
           await client.query("SELECT owner_save_bottle_record($1,$2::jsonb,NULL,$3::bigint,$4,$5,NULL)",[current.candidateBottleId,JSON.stringify({...record.patch,artwork}),item.bottleVersion,"codex-bottle-research","Added inspected original label-less artwork"]);
         }
         await client.query("UPDATE bottle_contributions SET payload=jsonb_set(payload,'{context}',COALESCE(payload->'context','{}'::jsonb) || jsonb_build_object('research',$2::jsonb)) || jsonb_build_object('updatedAt',now()),updated_at=now() WHERE id=$1",[item.id,JSON.stringify(enriched)]);
