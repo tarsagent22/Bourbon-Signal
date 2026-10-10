@@ -228,6 +228,7 @@ export interface CellarAccessPolicy {
 }
 
 export interface MemberPreferences {
+  mutedBottles?: { bottles: Array<{ bottleId?: string; bottleName: string }>; version: number };
   collectionValue?: import('../cellar/collection-value').CollectionValue | null;
   entitlements?: {
     canUseCollection?: boolean;
@@ -254,6 +255,7 @@ export interface MemberPreferences {
 }
 
 export interface MemberPreferencesPatch {
+  bottleMuteMutation?: { bottleId?: string; bottleName: string; muted: boolean };
   areaPreferences?: RadarAreaPreferences;
   monitoringScopes?: MonitoringScope[];
   notificationPreferences?: {

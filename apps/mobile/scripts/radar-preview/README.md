@@ -15,6 +15,12 @@ application entry or an OTA payload. Preference changes last until reload.
 Scenarios: `?scenario=current`, `denied`, `free`, `setup`, or `save-error`.
 Default reproduces zero recent alerts with three unread past alerts.
 
+`?scenario=phase1` shows compact single-bottle, grouped, and Community rows.
+It supports the alert action menu, individual bottle muting, Undo, and the
+searchable Muted bottles manager. The fixture stores preferences only until
+reload; server persistence and queued-push filtering are covered separately by
+`npm run test:bottle-mutes` from the repository root.
+
 ## Verification — 2026-10-03
 
 - Mobile `npm test`: 343 main tests and 35 Astra tests pass.

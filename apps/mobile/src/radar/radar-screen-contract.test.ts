@@ -82,8 +82,9 @@ test("current and history stay separate with useful empty states", () => {
   assert.match(radar, /Past alerts \(\{past\.length\}\)/);
   assert.match(radar, /No recent alerts/);
   assert.doesNotMatch(radar, /freshness-qualified|Updated \{lastUpdated\}/);
-  assert.match(radar, /View details/);
-  assert.match(radar, /availability unconfirmed/);
+  const row = readFileSync(resolve(mobileRoot, "src/radar/RadarAlertRow.tsx"), "utf8");
+  assert.match(row, /View details/);
+  assert.match(row, /availability unconfirmed/);
 });
 
 test("Post explains the community and points value", () => {

@@ -3,6 +3,7 @@ import { render } from '@react-email/render';
 import ts from 'typescript';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { createBottleMuteMatcher, normalizeBottleMutes } from '../../src/lib/bottle-mutes.ts';
 import * as migrationModule from '../../src/lib/alert-queue/clerk-migration.ts';
 import * as safetyModule from '../../src/lib/community-safety.ts';
 const { CommunitySafetyRepository } = ((safetyModule as { default?: unknown }).default || safetyModule) as typeof import('../../src/lib/community-safety.ts');
@@ -39,6 +40,7 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
     normalizeAlertDeliveryTimeZone:()=> 'UTC',alertDeliveryWindowStatus:()=>({open:true,reason:'open',localHour:12}),isWithinMemberAlertDeliveryWindow:()=>true,compactClerkAlertDelivery:(v:any)=>v,
     ensureAlertDeliveryIdentityV2,
     readOwnerBottleRecords:async()=>[],expandCorrectedWatchNames:(names:string[])=>names,normalizeBottleKey:(s:string)=>s.toLowerCase(),
+    getBourbonBible:async()=>[],createBottleMuteMatcher,normalizeBottleMutes,
     normalizeBottleAlertPreferences:(v:any)=>v,normalizeDeliveryMetadata:(v:any)=>v,normalizeAlertInboxMetadata:(v:any)=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
     pushPreferenceProjectionAllowsDelivery:()=>true,
     groupCandidatesByLocation:(cs:any)=>cs,enumerateUnderlyingAlertChildren:(c:any)=>[c],stableUnderlyingAlertKey:(c:any)=>c.availabilityEpisodeId,

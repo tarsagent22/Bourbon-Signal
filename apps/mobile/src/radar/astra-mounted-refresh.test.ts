@@ -16,6 +16,8 @@ test('Radar retains preferences and refreshes push status when alerts fail indep
     getPushDeviceStatus: async () => { pushReads++; return { supported: true, enabled: false, registeredDeviceCount: 0 }; },
   };
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
+    '../../../src/radar/RadarAlertRow': { RadarAlertRow: 'RadarAlertRow' },
+    '../../../src/radar/MutedBottles': { MutedBottles: 'MutedBottles' },
     react: { ...React, useState: (value: unknown) => [value, (next: unknown) => writes.push(next)], useEffect() {}, useRef: (value: unknown) => ({ current: value }), useMemo: (fn: () => unknown) => fn(), useCallback: (fn: unknown) => fn },
     'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ push() {} }) },
     'react-native': { StyleSheet: { create: (value: unknown) => value }, View: 'View' },
@@ -41,6 +43,8 @@ test('M07: a second push refreshes mounted Radar and an older reply cannot overw
   const api = { getMemberPreferences: async () => preferencesFixture(), getMemberProfile: async () => profileFixture(), listRadarBottles: async () => [],
     getMemberAlerts: ({ fresh }: any) => { assert.equal(fresh, completions.length > 0); return new Promise(resolve => completions.push(resolve)); }, getPushDeviceStatus: async () => ({ enabled: false }) };
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
+    '../../../src/radar/RadarAlertRow': { RadarAlertRow: 'RadarAlertRow' },
+    '../../../src/radar/MutedBottles': { MutedBottles: 'MutedBottles' },
     react: { ...React, useState: (initial: unknown) => [initial, (v: any) => { if (v?.unreadCount !== undefined) alertWrites.push(v.unreadCount); }],
       useEffect: (f: () => unknown) => effects.push(f), useCallback: (f: unknown) => f, useMemo: (f: () => unknown) => f(), useRef: (v: unknown) => refs[refIndex++] ||= { current: v } },
     'expo-router': { useLocalSearchParams: () => params, useRouter: () => ({ push() {} }) }, 'react-native': { StyleSheet: { create: (v: unknown) => v }, View: 'View' },

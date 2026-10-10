@@ -1,5 +1,7 @@
 import { readOwnerBottleRecords } from "@/lib/owner-admin-repository";
 import { expandCorrectedWatchNames } from "@/lib/admin-watch-aliases";
+import { createBottleMuteMatcher, normalizeBottleMutes } from "@/lib/bottle-mutes";
+import { getBourbonBible } from "@/lib/bourbonBible";
 import { createHash, randomUUID } from "node:crypto";
 import { render } from "@react-email/render";
 import { invokeSourceProvider } from "@/lib/source-lane";
@@ -1332,6 +1334,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
   const resend = !dryRun && ALERT_EMAIL_DELIVERY_ENABLED ? getResendClient() : null;
   const client = await clerkClient();
   const correctedBottleRecords = await readOwnerBottleRecords();
+  const muteCatalog = await getBourbonBible();
 
   // Observational/baseline runs must not consume the live recipient cursor.
   const continueLiveScan = !dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly;
@@ -1448,19 +1451,24 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             const areas = normalizeAreaPrefs(pub.areaPreferences, pub.monitoringScopes);
             if (entitlement.tier === "free" || !prefs.push.enabled || !pushPreferenceProjectionAllowsDelivery(priv.pushPreferenceProjection) || !hasSavedAreaPreferences(areas)) return null;
             const bottles = normalizeBottleAlertPreferences(pub.bottleAlertPreferences);
+            const isMuted = createBottleMuteMatcher(normalizeBottleMutes(priv.mutedBottles), muteCatalog);
             const attemptAt = new Date().toISOString();
             if (!isWithinMemberAlertDeliveryWindow(attemptAt, priv.lifecycleTimeZone)) return null;
             const snapshotFresh = evaluateAlertSnapshotSafety({ generatedAt: batch.snapshot.generatedAt, now: attemptAt, maxAgeMinutes: Number(process.env.ALERT_SNAPSHOT_MAX_AGE_MINUTES || 45) }).safe;
             const wanted = new Set(intent.stableKeys);
+            const wantedChildren = candidates.flatMap(enumerateUnderlyingAlertChildren).filter(child => wanted.has(stableUnderlyingAlertKey(child)));
+            if (new Set(wantedChildren.map(stableUnderlyingAlertKey)).size !== wanted.size) return null;
+            const unmutedKeys = new Set(wantedChildren.filter(child => !isMuted(child)).map(stableUnderlyingAlertKey));
+            if (!unmutedKeys.size) return null;
             const hidden = candidates.some(candidate=>enumerateUnderlyingAlertChildren(candidate).some(child=>child.sourceType === "community")) ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
             const children = candidates.flatMap(enumerateUnderlyingAlertChildren)
               .filter(child=>CommunitySafetyRepository.candidateVisible(child,hidden))
-              .filter((child) => wanted.has(stableUnderlyingAlertKey(child)))
+              .filter((child) => unmutedKeys.has(stableUnderlyingAlertKey(child)))
               .filter((child) => asString(child.sourceType) === "community" ? entitlement.canReceiveSightingsAlerts && prefs.sightings.enabled : snapshotFresh || Boolean(child.sourcePollId) || Boolean(child.sourceLaneId))
               .filter((child) => candidatePassesFreshOnSiteGuardrails(child, attemptAt))
               .filter((child) => alertRarityIsSelected(child.tier ?? child.rarityTier, prefs.rarityTiers))
               .filter((child) => candidateMatchesArea(child, areas) && candidateMatchesBottlePrefs(child, pub.alertMode, bottles));
-            if (new Set(children.map(stableUnderlyingAlertKey)).size !== wanted.size) return null;
+            if (new Set(children.map(stableUnderlyingAlertKey)).size !== unmutedKeys.size) return null;
             if (!await runtimeSourceCandidatesStillValid(children)) return null;
             const groups = groupCandidatesByLocation(children);
             if (groups.length !== 1) return null;
@@ -1514,9 +1522,12 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       const storedBottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
       const bottlePrefs = {...storedBottlePrefs,bottleNames:expandCorrectedWatchNames([...storedBottlePrefs.bottleNames,...storedBottlePrefs.bottleKeys],correctedBottleRecords,normalizeBottleKey)};
       const alertMode = publicMetadata.alertMode;
+      const isMuted = createBottleMuteMatcher(normalizeBottleMutes(privateMetadata.mutedBottles), muteCatalog);
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
       const hidden = candidates.some(candidate=>enumerateUnderlyingAlertChildren(candidate).some(child=>child.sourceType === "community")) ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
       const allMatchingPreferenceCandidates = groupCandidatesByLocation(candidates
+        .flatMap(enumerateUnderlyingAlertChildren)
+        .filter(candidate => !isMuted(candidate))
         .filter(candidate=>CommunitySafetyRepository.candidateVisible(candidate,hidden))
         .filter((candidate) => asString(candidate.sourceType) !== "community" || (entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled))
         .filter((candidate) => alertRarityIsSelected(candidate.tier ?? candidate.rarityTier, notificationPrefs.rarityTiers))

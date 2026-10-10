@@ -1,23 +1,24 @@
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import type { GeographySearchResponse, MemberAlert, MemberPreferences, MemberPreferencesPatch, MemberProfile, MonitoringScope, MonitoringScopeType, PushDeviceStatus, RadarBottleOption } from "../../../src/api/types";
 import { MobileApiError } from "../../../src/api/client";
-import { relativeSignalTime } from "../../../src/api/presentation";
 import { ErrorState, LoadingState, MemberCard, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
-import { ALERT_RARITY_TIERS, alertIsStale, compactWatchedBottles, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
+import { ALERT_RARITY_TIERS, compactWatchedBottles, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { radarPushState, type PushRecoveryAction } from "../../../src/radar/radar-push-state";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
 import { signalRouteForRequestedAlert } from "../../../src/push/push-navigation";
 import { colors, typeScale, fonts } from "../../../src/theme";
 
 import { partitionRadarAlerts, radarLocationSummary, radarSetupNeeded, radarSetupStatus } from "../../../src/radar/radar-presentation";
+import { RadarAlertRow } from "../../../src/radar/RadarAlertRow";
+import { MutedBottles, type MuteBottle } from "../../../src/radar/MutedBottles";
 
 type RadarView = "matches" | "settings";
 const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "matches", label: "Alerts" }, { key: "settings", label: "Alert preferences" }];
@@ -57,8 +58,11 @@ export default function RadarScreen() {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [saveNotice, setSaveNotice] = useState("");
+  const [undoMute, setUndoMute] = useState<{ bottle: MuteBottle; muted: boolean } | null>(null);
+  useEffect(() => { if (!undoMute) return; const timer = setTimeout(() => setUndoMute(null), 8000); return () => clearTimeout(timer); }, [undoMute]);
   const loadSequence = useRef(0);
   const writeSequence = useRef(0);
+  const mutationBusy = useRef(false);
   const preferenceMutationEpoch = useRef(0);
   const handledPushRequests = useRef(new Set<string>());
   const [pushLookupRetry, setPushLookupRetry] = useState(0);
@@ -157,7 +161,8 @@ export default function RadarScreen() {
   const pushRecoveryAction: PushRecoveryAction = pushPresentation.action;
 
   async function savePreferences(patch: MemberPreferencesPatch) {
-    if (!preferences || saving || pushBusy) return null;
+    if (!preferences || saving || pushBusy || mutationBusy.current) return null;
+    mutationBusy.current = true;
     const sequence = ++writeSequence.current;
     preferenceMutationEpoch.current += 1;
     setSaving(true); setActionError(""); setSaveNotice("");
@@ -168,10 +173,11 @@ export default function RadarScreen() {
         setSaveNotice("Saved");
       }
       return saved;
-    } catch {
-      if (sequence === writeSequence.current) setActionError("Radar settings could not be saved. Try again.");
+    } catch (caught) {
+      if (sequence === writeSequence.current) setActionError(caught instanceof MobileApiError && caught.status === 400 ? caught.message : "Radar settings could not be saved. Try again.");
       return null;
     } finally {
+      mutationBusy.current = false;
       preferenceMutationEpoch.current += 1;
       if (sequence === writeSequence.current) setSaving(false);
     }
@@ -179,16 +185,40 @@ export default function RadarScreen() {
 
   async function setWatching(name: string, watched: boolean, preserveAlertMode = false) {
     if (!preferences) return null;
+    const muted = mutedBottleForName(name);
+    if (watched && muted) {
+      const allow = await new Promise<boolean>(resolve => Alert.alert("This bottle is muted", "Allow alerts before watching this bottle?", [{ text: "Cancel", style: "cancel", onPress: () => resolve(false) }, { text: "Allow and watch", onPress: () => resolve(true) }], { cancelable: true, onDismiss: () => resolve(false) }));
+      if (!allow || !await changeMute(muted, false)) return null;
+    }
     try {
       return await savePreferences({ watchlistMutation: bottleWatchMutation(name, watched), ...(watched && !preserveAlertMode ? { alertMode: "specific_bottles" as const } : {}) });
     } catch { setActionError("This watch could not be changed. Try again."); return null; }
   }
 
+  function mutedBottleForName(name: string) {
+    const key = canonicalBottleKey(name);
+    const catalogBottle = bottleCatalog.catalog.find(b => [b.name, ...(b.aliases || [])].some(n => canonicalBottleKey(n) === key));
+    return preferences?.mutedBottles?.bottles.find(b => b.bottleId && catalogBottle ? b.bottleId === catalogBottle.id : canonicalBottleKey(b.bottleName) === key);
+  }
+  async function changeMute(bottle: MuteBottle, muted: boolean, offerUndo = true) {
+    const saved = await savePreferences({ bottleMuteMutation: { ...bottle, muted } });
+    if (!saved) return false;
+    setSaveNotice(muted ? `Alerts stopped for ${bottle.bottleName}` : `Alerts allowed for ${bottle.bottleName}`);
+    if (offerUndo) setUndoMute({ bottle, muted }); else setUndoMute(null);
+    return true;
+  }
+  async function muteAlertBottle(name: string, muted: boolean) {
+    const bottle = bottleCatalog.catalog.find(b => canonicalBottleKey(b.name) === canonicalBottleKey(name) || b.aliases?.some(n => canonicalBottleKey(n) === canonicalBottleKey(name)));
+    return changeMute(mutedBottleForName(name) || { bottleName: name, ...(bottle ? { bottleId: bottle.id } : {}) }, muted);
+  }
+
   async function mutateAlert(action: "mark_read" | "mark_all_read" | "archive", alertId?: string | string[]) {
+    if (saving || pushBusy || mutationBusy.current) return;
+    mutationBusy.current = true;
     setSaving(true); setActionError("");
     try { for (const id of Array.isArray(alertId) ? alertId : [alertId]) setAlerts(await api.updateMemberAlert(action, id)); }
     catch { setActionError("This match could not be updated. Try again."); }
-    finally { setSaving(false); }
+    finally { mutationBusy.current = false; setSaving(false); }
   }
 
   async function togglePush(enabled: boolean) {
@@ -241,14 +271,15 @@ export default function RadarScreen() {
     {sectionError ? <ErrorState message={sectionError} onRetry={() => void load(true)} /> : null}
     {view === "settings" && bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
     {saveNotice ? <Text accessibilityLiveRegion="polite" style={styles.fresh}>{saveNotice}</Text> : null}
+    {undoMute ? <View style={styles.undoRow}><Text style={[styles.muted, styles.flex]}>{undoMute.muted ? "Bottle muted" : "Bottle unmuted"}</Text><TextAction label="UNDO" disabled={saving || pushBusy} onPress={() => void changeMute(undoMute.bottle, !undoMute.muted, false)} /></View> : null}
     {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
     {view === "matches" && openedNotificationAlert ? <View>
       <SectionTitle>Opened alert</SectionTitle>
       <Text style={styles.muted}>This is the report from your notification. Its original Signal detail is no longer available.</Text>
-      <AlertCard alert={openedNotificationAlert} saving={saving} watchedNames={watchedNames} />
+      <AlertCard alert={openedNotificationAlert} saving={saving} watchedNames={watchedNames} onMute={muteAlertBottle} isMuted={name => Boolean(mutedBottleForName(name))} />
     </View> : null}
 
-    {view === "matches" && (!alertsLoadFailed || activeAlerts.length > 0) ? <MatchesView alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
+    {view === "matches" && (!alertsLoadFailed || activeAlerts.length > 0) ? <MatchesView alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} onMute={muteAlertBottle} isMuted={name => Boolean(mutedBottleForName(name))} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
     {view === "settings" ? <WatchlistView
       onNotificationsLayout={(y) => { if (focusNotifications) { screenScroll.current?.scrollTo({ y: preferencesY.current + y, animated: true }); setFocusNotifications(false); } }}
       pushRecoveryAction={pushRecoveryAction}
@@ -272,10 +303,11 @@ export default function RadarScreen() {
       onSetWatching={setWatching}
       onTogglePush={togglePush}
     /> : null}
+    {view === "settings" ? <MutedBottles state={preferences.mutedBottles} saving={saving || pushBusy} search={bottleCatalog.search} onChange={changeMute} /> : null}
   </ScrollView>;
 }
 
-function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOpenWatchlist }: { alerts: MemberAlert[]; saving: boolean; watchedNames: string[]; setupNeeded: boolean; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string | string[]) => Promise<void>; onOpenWatchlist: () => void }) {
+function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOpenWatchlist, onMute, isMuted }: { alerts: MemberAlert[]; saving: boolean; watchedNames: string[]; setupNeeded: boolean; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string | string[]) => Promise<void>; onOpenWatchlist: () => void; onMute: (name: string, muted: boolean) => Promise<boolean>; isMuted: (name: string) => boolean }) {
   const [showPast, setShowPast] = useState(false);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(timer); }, []);
@@ -286,32 +318,16 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
       <Text style={styles.emptyTitle}>{setupNeeded ? "Set up your alerts" : "No recent alerts"}</Text>
       {setupNeeded ? <SmallButton primary label="Choose preferences" onPress={onOpenWatchlist} /> : null}
     </View> : null}
-    {current.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} />)}
+    {current.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />)}
     {past.length ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showPast }} onPress={() => setShowPast(value => !value)} style={styles.historyRow}>
       <Text style={styles.listTitle}>Past alerts ({past.length})</Text><Text style={styles.chevron}>{showPast ? "−" : "+"}</Text>
     </Pressable> : null}
-    {showPast ? past.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} />) : null}
+    {showPast ? past.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />) : null}
   </View>;
 }
 
-function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAlert; saving: boolean; watchedNames: string[]; onMutate?: (action: "mark_read" | "archive", alertId: string) => Promise<void> }) {
-  const router = useRouter();
-  const [detailsExpanded, setDetailsExpanded] = useState(false);
-  const route = signalRouteForRequestedAlert([alert], alert.id);
-  const stale = alertIsStale(alert);
-  const observedAt = alert.signalAt || alert.createdAt;
-  const bottles = memberAlertBottleNames(alert, watchedNames);
-  const grouped = bottles.length > 1;
-  return <MemberCard accent={!alert.readAt && !stale}>
-    <View style={styles.alertHeading}><Text numberOfLines={2} style={styles.cardTitle}>{grouped ? `${bottles.length} bottles` : bottles[0]}</Text><Text style={styles.priority}>{!alert.readAt ? "UNREAD" : ""}</Text></View>
-    {grouped ? <Text numberOfLines={2} style={styles.bottleSummary}>{bottles.slice(0, 3).join(" · ")}{bottles.length > 3 ? ` +${bottles.length - 3} more` : ""}</Text> : null}
-    <Text style={styles.location}>{[alert.storeLabel, alert.matchedArea || alert.state].filter(Boolean).join(" · ")}</Text>
-    <Text style={styles.muted}>{alert.sourceLabel || (alert.sourceType === "community" ? "Community sighting" : "Bourbon Signal")} · {relativeSignalTime(observedAt)}{alert.rarityTier ? ` · ${alert.rarityTier[0]?.toUpperCase()}${alert.rarityTier.slice(1)}` : ""}</Text>
-    {stale ? <Text style={styles.stale}>Past alert · availability unconfirmed</Text> : <Text style={styles.fresh}>Recent report · availability unconfirmed</Text>}
-    {detailsExpanded ? <View style={styles.stack}><Text style={styles.muted}>Reported {new Date(observedAt).toLocaleString()}</Text><Text style={styles.muted}>{alert.quantity !== null ? `Reported quantity: ${alert.quantity}. ` : ""}Availability can change after a report.</Text></View> : null}
-    <SmallButton primary label={detailsExpanded ? "Hide details" : "View details"} onPress={() => { if (route) router.push(route); else setDetailsExpanded(value => !value); }} />
-    {onMutate ? <View style={styles.rowActions}>{!alert.readAt ? <SmallButton label="Mark read" disabled={saving} onPress={() => void onMutate("mark_read", alert.id)} /> : null}<SmallButton label="Archive" disabled={saving} onPress={() => void onMutate("archive", alert.id)} /></View> : null}
-  </MemberCard>;
+function AlertCard(props: React.ComponentProps<typeof RadarAlertRow>) {
+  return <RadarAlertRow {...props} />;
 }
 
 function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, watchedNames, onQuery, onSetWatching }: { catalog: RadarBottleOption[]; preferences: MemberPreferences; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null> }) {
