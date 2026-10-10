@@ -664,7 +664,7 @@ export default function SignalFeedScreen() {
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.feedShade]} />
       <FlatList
-      key={scopeKey}
+      key={JSON.stringify([userId, view])}
       removeClippedSubviews={false}
       initialNumToRender={30}
       maxToRenderPerBatch={30}
