@@ -1,140 +1,82 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Signal } from "../api/types";
 import { CommunityPostCard } from "./CommunityPostCard";
-import {
-  presentBottleIdentity,
-  presentSignal,
-  relativeSignalTime,
-  signalAccessibilityLabel,
-  signalAvailabilityIsCurrent,
-  signalAvailabilityRefreshAt,
-  signalFeedCardAppearance,
-  signalCardStatusLabel,
-  signalMemberTagLabel,
-  signalReporterAttribution,
-} from "../api/presentation";
-import { colors, surfaces, typeScale, fonts } from "../theme";
+import { CellarBottleArtwork } from "./CellarBottleArtwork";
+import { signalRowFacts } from "./signal-row-presentation";
+import { presentBottleIdentity, presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAvailabilityRefreshAt, signalFeedCardAppearance } from "../api/presentation";
+import { colors, typeScale, fonts } from "../theme";
 
 export function SignalCard({ signal, onPress, highlighted = false }: { signal: Signal; onPress: () => void; highlighted?: boolean }) {
   const [now, setNow] = useState(() => new Date());
-
   useEffect(() => {
     const refreshAt = signalAvailabilityRefreshAt(signal, now);
     if (!refreshAt) return undefined;
-
     let timer: ReturnType<typeof setTimeout>;
     const scheduleRefresh = () => {
       const remaining = refreshAt - Date.now();
-      if (remaining <= 0) {
-        setNow(new Date());
-        return;
-      }
+      if (remaining <= 0) { setNow(new Date()); return; }
       timer = setTimeout(scheduleRefresh, Math.min(remaining + 50, 2_147_483_647));
     };
     scheduleRefresh();
     return () => clearTimeout(timer);
   }, [signal.id, signal.timing.displayAt, signal.timing.expiresAt, signal.availability?.status, now]);
-
   const presented = presentSignal(signal);
   const bottleIdentity = presentBottleIdentity(signal.bottle.name);
-  const status = signalCardStatusLabel(signal, now);
+  // Retain identity-bearing expressions while removing generic spirit subtitles.
+  const subtitle = /bottled in bond/i.test(bottleIdentity.subtitle) ? bottleIdentity.subtitle : "";
   const appearance = signalFeedCardAppearance(signal);
-  const reporter = signalReporterAttribution(signal);
-  const community = signal.source.type === "member";
-  const memberTag = signalMemberTagLabel(signal);
-  const availableNow = !community && signalAvailabilityIsCurrent(signal, now);
-  const upcoming = status === "Upcoming"
-    || signal.availability?.status === "upcoming"
-    || (!signal.availability && (signal.kind === "release" || signal.kind === "event"));
-  const showStatus = !community || status === "Availability unconfirmed" || upcoming || signal.kind === "release" || signal.kind === "event";
-  const reportedMetric = presented.quantity === "Quantity unknown" ? "" : presented.quantity;
-  const metric = reportedMetric;
-
-  if (community) return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} />;
-
-  return (
-    <Pressable
-      accessibilityHint="Opens Signal details"
-      accessibilityLabel={signalAccessibilityLabel(signal, now)}
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.card, highlighted && styles.highlighted, pressed && styles.pressed]}
-    >
+  const { quantity: metric, status, showStatus } = signalRowFacts(signal, now);
+  if (signal.source.type === "member") return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} />;
+  return <Pressable accessibilityHint="Opens Signal details" accessibilityLabel={signalAccessibilityLabel(signal, now)} accessibilityRole="button" onPress={onPress}
+    style={({ pressed }) => [styles.card, highlighted && styles.highlighted, pressed && styles.pressed]}>
+    <View accessible={false} importantForAccessibility="no-hide-descendants" style={styles.artwork}>
+      <Image source={require("../../assets/shelf/bottle-contact-shadow.png")} resizeMode="stretch" style={styles.contactShadow} />
+      <CellarBottleArtwork bottle={{ bottleId: signal.bottle.id, bottleName: signal.bottle.name }} size="feed" />
+    </View>
+    <View style={styles.copy}>
       <View style={styles.topline}>
-        <View style={[styles.rarityBadge, { backgroundColor: appearance.keyline }]}>
-          <Text style={[styles.rarityLabel, { color: appearance.accent }]}>{appearance.rarityLabel}</Text>
-        </View>
+        <View style={[styles.rarityBadge, { backgroundColor: appearance.keyline }]}><Text style={[styles.rarityLabel, { color: appearance.accent }]}>{appearance.rarityLabel}</Text></View>
         <Text style={styles.time}>{relativeSignalTime(signal.timing.displayAt, now)}</Text>
       </View>
-
-      <Text numberOfLines={3} style={styles.bottle}>{bottleIdentity.title}</Text>
-      {bottleIdentity.subtitle ? <Text numberOfLines={2} style={styles.bottleSubtitle}>{bottleIdentity.subtitle}</Text> : null}
-
+      <Text style={styles.bottle}>{bottleIdentity.title}</Text>
+      {subtitle ? <Text style={styles.bottleSubtitle}>{subtitle}</Text> : null}
       <View style={styles.details}>
-        {presented.storeName ? <View style={styles.detailRow}>
-          <MaterialCommunityIcons color={colors.muted} name="storefront-outline" size={17} />
-          <Text style={styles.storeName}>{presented.storeName}</Text>
-        </View> : null}
-        {presented.geography ? <View style={styles.detailRow}>
-          <MaterialCommunityIcons color={colors.muted} name="map-marker-outline" size={17} />
-          <Text style={styles.geography}>{presented.geography}</Text>
-        </View> : null}
+        {presented.storeName ? <View style={styles.detailRow}><MaterialCommunityIcons color={colors.muted} name="storefront-outline" size={14} /><Text style={styles.storeName}>{presented.storeName}</Text></View> : null}
+        {presented.geography ? <View style={styles.detailRow}><MaterialCommunityIcons color={colors.muted} name="map-marker-outline" size={14} /><Text style={styles.geography}>{presented.geography}</Text></View> : null}
       </View>
-
-      {presented.price || metric || showStatus ? <View style={styles.factsRow}>
+      <View style={styles.factsRow}>
         {presented.price ? <Text style={styles.price}>{presented.price}</Text> : null}
-        {showStatus ? <View style={styles.statusRow}>
-          <View style={[styles.statusDot, availableNow && styles.availableDot, upcoming && styles.upcomingDot]} />
-          <Text style={[styles.status, availableNow && styles.availableStatus, upcoming && styles.upcomingStatus]}>{status}</Text>
-        </View> : null}
+        {presented.price && metric ? <Text accessible={false} style={styles.metricDot}>·</Text> : null}
         {metric ? <Text style={styles.metricText}>{metric}</Text> : null}
-      </View> : null}
-
-      {community && (reporter || memberTag) ? <View style={styles.authorRow}>
-        {reporter ? <Text numberOfLines={1} style={styles.reporter}>{reporter}</Text> : null}
-        {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
-      </View> : null}
-    </Pressable>
-  );
+      </View>
+      {showStatus ? <Text style={styles.status}>{status}</Text> : null}
+    </View>
+    <MaterialCommunityIcons accessible={false} name="chevron-right" color={colors.accent} size={22} />
+  </Pressable>;
 }
 
 const styles = StyleSheet.create({
-  card: {
-    minHeight: 120,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    gap: 5,
-    backgroundColor: surfaces.feedCard,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(210, 184, 145, 0.20)",
-    borderRadius: 10,
-  },
-  pressed: { opacity: 0.8 },
-  highlighted: { marginHorizontal: -8, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "#2B1E10", borderColor: colors.accentPressed, borderWidth: StyleSheet.hairlineWidth },
-  topline: { minHeight: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  rarityBadge: { minHeight: 22, borderRadius: 7, alignItems: "center", justifyContent: "center", paddingHorizontal: 9 },
-  rarityLabel: { fontSize: typeScale.micro, lineHeight: 12, fontWeight: "900", letterSpacing: 1.05 },
-  time: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "600" },
-  bottle: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.subheading, lineHeight: 23, letterSpacing: -0.2 },
-  bottleSubtitle: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17, fontWeight: "500", marginTop: -4 },
-  factsRow: { minHeight: 24, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  card: { minHeight: 120, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10, paddingHorizontal: 0 },
+  pressed: { opacity: 0.72 },
+  highlighted: { backgroundColor: "rgba(214,154,74,0.10)", borderLeftWidth: 2, borderLeftColor: colors.accent },
+  artwork: { width: 68, minHeight: 104, alignItems: "center", justifyContent: "flex-end" },
+  contactShadow: { position: "absolute", bottom: -2, left: 0, width: 68, height: 10, opacity: 0.75 },
+  copy: { flex: 1, minWidth: 0, gap: 3 },
+  topline: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 6 },
+  rarityBadge: { minHeight: 18, borderRadius: 9, paddingHorizontal: 7, paddingVertical: 2 },
+  rarityLabel: { fontSize: 10, lineHeight: 13, fontWeight: "700", letterSpacing: 0.3 },
+  time: { color: colors.muted, fontSize: typeScale.micro, lineHeight: 15 },
+  bottle: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.subheading, lineHeight: 23 },
+  bottleSubtitle: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
   details: { gap: 1 },
-  detailRow: { minHeight: 20, flexDirection: "row", alignItems: "center", gap: 8 },
-  storeName: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "600", flex: 1 },
-  geography: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18, fontWeight: "500", flex: 1 },
-  statusRow: { minHeight: 18, flexDirection: "row", alignItems: "center", gap: 7, flexShrink: 1 },
-  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.muted },
-  availableDot: { backgroundColor: colors.success },
-  upcomingDot: { backgroundColor: colors.accent },
-  status: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "700", letterSpacing: 0.1, flexShrink: 1 },
-  availableStatus: { color: colors.success },
-  upcomingStatus: { color: colors.accent },
-  reporter: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "600", flexShrink: 1 },
-  authorRow: { minHeight: 22, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 7 },
-  memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
-  memberTagText: { color: colors.text, fontSize: typeScale.micro, lineHeight: 12, fontWeight: "800", letterSpacing: 0.35 },
-  price: { color: colors.text, fontSize: typeScale.small, lineHeight: 18, fontWeight: "800" },
-  metricText: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "700", flexShrink: 1 },
+  detailRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  storeName: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17, flex: 1 },
+  geography: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16, flex: 1 },
+  factsRow: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 6, rowGap: 1 },
+  price: { color: colors.text, fontSize: typeScale.small, lineHeight: 18, fontWeight: "700" },
+  metricDot: { color: colors.muted, fontSize: typeScale.small },
+  metricText: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 17, flexShrink: 1 },
+  status: { color: colors.muted, fontSize: typeScale.micro, lineHeight: 16 },
 });

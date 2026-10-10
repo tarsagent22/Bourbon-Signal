@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "./types";
 import { presentBottleIdentity, presentSignal, signalAccessibilityLabel, signalFeedCardAppearance, signalCardStatusLabel, signalMemberTagLabel, signalReporterAttribution } from "./presentation";
+import { signalRowFacts } from "../components/signal-row-presentation";
 
 function signal(overrides: Partial<Signal> = {}): Signal {
   return {
@@ -20,6 +21,29 @@ function signal(overrides: Partial<Signal> = {}): Signal {
     ...overrides,
   };
 }
+
+test("compact rows qualify counted reports without implying verified inventory", () => {
+  const now = new Date("2026-08-23T13:00:00Z");
+  const counted = signal({ availability: { status: "reported", quantity: 2 } });
+  assert.deepEqual(signalRowFacts(counted, now), { quantity: "2 bottles reported", status: "Reported", showStatus: false });
+  const retailer = signal({ source: { type: "retailer", label: "Retailer" }, availability: { status: "available_now", quantity: 2 } });
+  assert.deepEqual(signalRowFacts(retailer, now), { quantity: "2 bottles retailer-reported", status: "Retailer reports available", showStatus: false });
+  assert.equal(signalRowFacts(signal(), now).showStatus, true, "unknown quantities retain status text");
+});
+
+test("compact counted rows retain stale, historical and exceptional status text", () => {
+  const row = signal({ availability: { status: "reported", quantity: 2 } });
+  const stale = signalRowFacts(row, new Date("2026-08-27T13:00:00Z"));
+  assert.equal(stale.showStatus, true);
+  assert.equal(stale.status, "Availability unconfirmed");
+  assert.equal(signalRowFacts({ ...row, historical: true }).status, "Historical report");
+  const now = new Date("2026-08-23T13:00:00Z");
+  for (const status of ["upcoming", "unknown"] as const) {
+    assert.equal(signalRowFacts(signal({ availability: { status, quantity: 2 } }), now).showStatus, true);
+  }
+  assert.equal(signalRowFacts({ ...row, kind: "event" }, now).status, "Event");
+  assert.equal(signalRowFacts({ ...row, kind: "release" }, now).status, "Release");
+});
 
 test("unknown and zero prices use exact honest copy", () => {
   assert.equal(presentSignal(signal()).price, "Price unknown");

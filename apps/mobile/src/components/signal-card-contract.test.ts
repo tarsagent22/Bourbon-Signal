@@ -20,23 +20,20 @@ test("Signal cards use an editorial rarity-time-title hierarchy without the lega
   assert.match(styleBlock("price"), /fontSize: typeScale\.small/);
 });
 
-test("Signal cards use compact tinted cards with inline price and reported quantity", () => {
+test("Intel uses open illustrated rows with inline price and reported quantity", () => {
   assert.match(card, /name="storefront-outline"/);
   assert.match(card, /name="map-marker-outline"/);
   assert.match(card, /styles\.factsRow/);
-  assert.doesNotMatch(card, /styles\.footer|styles\.metricDot/);
+  assert.doesNotMatch(card, /styles\.footer/);
   assert.match(styleBlock("card"), /minHeight: 120/);
-  assert.match(styleBlock("card"), /paddingVertical: 8/);
-  assert.match(styleBlock("card"), /gap: 5/);
   assert.ok(card.indexOf('styles.details') < card.indexOf('styles.factsRow'), 'store/location precede compact hunting footer');
-  assert.match(card, /styles\.factsRow[\s\S]*styles\.statusRow[\s\S]*styles\.metricText/);
-  assert.match(styleBlock("card"), /backgroundColor: surfaces\.feedCard/);
-  assert.match(styleBlock("card"), /borderWidth: StyleSheet\.hairlineWidth/);
-  assert.match(styleBlock("card"), /borderRadius: 10/);
-  assert.match(styleBlock("card"), /paddingHorizontal: 10/);
+  assert.match(card, /styles\.factsRow[\s\S]*styles\.metricText/);
+  assert.match(card, /<CellarBottleArtwork[\s\S]*size="feed"/);
+  assert.match(card, /name="chevron-right"/);
+  assert.doesNotMatch(styleBlock("card"), /backgroundColor|borderWidth|borderRadius/);
   const feed = readFileSync(resolve(process.cwd(), "app/(app)/(tabs)/index.tsx"), "utf8");
   assert.match(feed, /ItemSeparatorComponent=/);
-  assert.match(feed, /separator: \{ height: 6 \}/);
+  assert.match(feed, /separator: \{ height: StyleSheet\.hairlineWidth/);
   assert.match(styleBlock("bottle"), /fontSize: typeScale\.subheading/);
   assert.doesNotMatch(card, /signalCardSummary|styles\.note/);
   assert.doesNotMatch(card, /"Available now"/);
@@ -44,17 +41,17 @@ test("Signal cards use compact tinted cards with inline price and reported quant
 });
 
 test("Intel cards always state availability in text rather than relying on color", () => {
-  assert.match(card, /const showStatus = !community \|\|/);
+  assert.match(card, /signalRowFacts\(signal, now\)/);
   assert.match(card, /styles\.status/);
-  assert.match(card, /signalCardStatusLabel/);
+  assert.match(card, /signalAccessibilityLabel\(signal, now\)/);
 });
 
 test("Community cards preserve chosen-name attribution and always render the immutable member tag separately", () => {
-  assert.match(card, /signalReporterAttribution/);
-  assert.match(card, /signalMemberTagLabel/);
-  assert.match(card, /memberTag \? <View style=\{styles\.memberTag\}/);
-  assert.match(card, /showStatus \? <View style=\{styles\.statusRow\}/);
-  assert.match(card, /styles\.authorRow/);
+  const community = readFileSync(resolve(process.cwd(), "src/components/CommunityPostCard.tsx"), "utf8");
+  assert.match(card, /<CommunityPostCard signal=\{signal\}/);
+  assert.match(community, /signalMemberTagLabel\(signal\)/);
+  assert.match(community, /signal\.source\.actor\?\.displayName \|\| member/);
+  assert.match(community, /name !== member/);
   assert.match(detail, /signalMemberTagLabel\(signal\)/);
   assert.match(detail, /presented\?\.reporter \? <Text style=\{styles\.reporter\}>Reported by \{presented\.reporter\}/);
   assert.match(detail, /memberTag \? <View style=\{styles\.memberTag\}/);
