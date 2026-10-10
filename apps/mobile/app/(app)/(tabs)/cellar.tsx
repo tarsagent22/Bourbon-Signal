@@ -108,6 +108,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const activeUser = useRef(userId);
   const mounted = useRef(true);
+  const loadSequence = useRef(0);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   activeUser.current = userId;
   useEffect(() => { setPreferences(null); setSelected(null); }, [userId]);
@@ -203,19 +204,26 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   }, [api, persistContributionIds, receiptStorageKey]);
 
   const load = useCallback(async (fresh = false) => {
+    const sequence = ++loadSequence.current;
+    const current = () => mounted.current && activeUser.current === userId && sequence === loadSequence.current;
     setLoading(true);
     setError("");
+    const receipts = readContributionReceipts(receiptStorageKey);
     try {
-      const [receiptRead, nextPreferences] = await Promise.all([readContributionReceipts(receiptStorageKey), api.getMemberPreferences({ fresh })]);
-      if (!mounted.current || activeUser.current !== userId) return;
+      const nextPreferences = await api.getMemberPreferences({ fresh });
+      if (!mounted.current || activeUser.current !== userId || sequence !== loadSequence.current) return;
       acceptServerPreferences(nextPreferences);
-      retryPendingContributions(nextPreferences, receiptRead.receipts);
+      // SecureStore bookkeeping can finish after the shelf is visible.
+      void receipts.then(receiptRead => {
+        if (current()) retryPendingContributions(nextPreferences, receiptRead.receipts);
+      }).catch(() => undefined);
     } catch (caught) {
+      if (!current()) return;
       setError(caught instanceof MobileApiError && caught.status === 401
         ? "Your session could not be verified. Return to Signals and retry."
         : caught instanceof Error ? caught.message : "My Shelf is temporarily unavailable.");
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
   }, [acceptServerPreferences, api, receiptStorageKey, retryPendingContributions, userId]);
 
