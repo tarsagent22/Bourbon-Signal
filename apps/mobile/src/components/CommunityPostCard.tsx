@@ -16,7 +16,7 @@ import {
   communityPhotoUrl,
 } from "./community-post";
 import { CellarBottleArtwork } from "./CellarBottleArtwork";
-import { colors, fonts, surfaces, typeScale } from "../theme";
+import { colors, fonts, typeScale } from "../theme";
 
 export function CommunityPostCard({
   signal,
@@ -99,7 +99,7 @@ export function CommunityPostCard({
                     bottleId: signal.bottle.id,
                     bottleName: signal.bottle.name,
                   }}
-                  size="list"
+                  size="feed"
                 />
               </View>
             )}
@@ -127,20 +127,15 @@ export function CommunityPostCard({
                 {relativeSignalTime(signal.timing.displayAt)}
               </Text>
             </View>
-            <Text numberOfLines={3} style={s.bottle}>
+            <Text style={s.bottle}>
               {signal.bottle.name}
             </Text>
-            {local ? (
+            {local?.localEstablished ? (
               <Text
                 numberOfLines={2}
-                style={[
-                  s.member,
-                  local.localEstablished && { color: colors.accent },
-                ]}
+                style={[s.member, { color: colors.accent }]}
               >
-                {local.localEstablished
-                  ? local.localLabel
-                  : `${local.areaLabel} · ${local.localLabel}`}
+                {local.localLabel}
               </Text>
             ) : null}
           </View>
@@ -157,7 +152,7 @@ export function CommunityPostCard({
               size={15}
               color={colors.muted}
             />
-            <Text numberOfLines={1} style={s.locationText}>
+            <Text style={s.locationText}>
               {[presented.storeName, presented.geography]
                 .filter(Boolean)
                 .join(" · ")}
@@ -174,16 +169,10 @@ export function CommunityPostCard({
             </Text>
           ) : null}
           <View style={s.helpful}>
-            <MaterialCommunityIcons
-              name="hand-heart-outline"
-              size={14}
-              color={colors.muted}
-            />
-            <Text style={s.member}>
-              {signal.evidence.helpfulCount
-                ? `${signal.evidence.helpfulCount} helpful`
-                : "View post"}
-            </Text>
+            {signal.evidence.helpfulCount > 0 ? <>
+              <MaterialCommunityIcons name="hand-heart-outline" size={14} color={colors.muted} />
+              <Text style={s.member}>{`${signal.evidence.helpfulCount} helpful`}</Text>
+            </> : <MaterialCommunityIcons accessible={false} name="chevron-right" size={20} color={colors.accent} />}
           </View>
         </View>
         <View style={s.header}>
@@ -299,17 +288,9 @@ export function CommunityPostCard({
 }
 
 const s = StyleSheet.create({
-  bottleRow: { flexDirection: "row", gap: 11, alignItems: "center" },
+  bottleRow: { flexDirection: "row", gap: 12, alignItems: "center" },
   bottleInfo: { flex: 1, minWidth: 0, gap: 6 },
-  thumbnail: {
-    width: 66,
-    height: 86,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#282018",
-    borderRadius: 10,
-    overflow: "hidden",
-  },
+  thumbnail: { width: 68, height: 104, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   thumbnailPhoto: { width: "100%", height: "100%" },
   rarityLine: {
     flexDirection: "row",
@@ -325,17 +306,8 @@ const s = StyleSheet.create({
     paddingVertical: 4,
   },
   rarityText: { fontSize: 10, lineHeight: 13, fontWeight: "800" },
-  card: {
-    width: "100%",
-    minWidth: 0,
-    padding: 10,
-    gap: 7,
-    backgroundColor: surfaces.feedCard,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(210,184,145,0.24)",
-    borderRadius: 12,
-  },
-  highlighted: { borderColor: colors.accent, backgroundColor: "#241B11" },
+  card: { width: "100%", minWidth: 0, paddingVertical: 12, gap: 7 },
+  highlighted: { borderLeftWidth: 2, borderLeftColor: colors.accent, backgroundColor: "rgba(214,154,74,0.10)" },
   pressed: { opacity: 0.86 },
   header: {
     borderTopWidth: StyleSheet.hairlineWidth,

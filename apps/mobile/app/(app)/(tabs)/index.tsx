@@ -6,7 +6,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, AppState, FlatList, Image, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
@@ -151,7 +151,7 @@ export default function SignalFeedScreen() {
   const motionDisabled = reduceMotion || screenReaderEnabled;
   const cacheScope = feedCacheScope(view, requestFilters);
   const areaDirectory = profile?.feedAreas;
-  const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: `${state.label} (${state.code})` })) || [];
+  const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: state.label })) || [];
   const staticAreaOptions = areaOptionsForState(areaDirectory, filters.state);
   const areaOptions = filters.state !== "NC" && remoteAreaState === filters.state && remoteAreaOptions.length
     ? remoteAreaOptions
@@ -558,7 +558,7 @@ export default function SignalFeedScreen() {
             label={areaLabel}
             icon="map-marker-radius-outline"
             value={filters.area}
-            placeholder={filters.state ? areaLabel : "Location"}
+            placeholder={filters.state ? "All areas" : "Location"}
             clearLabel={`Any ${areaLabel.toLowerCase()}`}
             options={areaOptions}
             disabled={!filters.state || !detailedFilters}
@@ -567,16 +567,10 @@ export default function SignalFeedScreen() {
             viewportHeight={viewportHeight}
           />
         </View>
-        {filters.state ? <View style={styles.locationSelection}>
-          <Text numberOfLines={2} style={styles.locationSelectionText}>{filters.area ? `${filters.state} · ${selectedAreaLabel}${filters.state === "NC" && selectedArea?.subtitle ? ` · ${filters.area}` : ""}` : `${filters.state} · All ${areaLabel === "City" ? "cities" : "areas"}`}</Text>
-          <Pressable accessibilityLabel="Clear Home location filters" accessibilityRole="button" onPress={() => applyFilters({ ...filters, state: "", area: "" })} style={styles.clearLocationButton}>
-            <MaterialCommunityIcons color={colors.accent} name="close" size={17} />
-            <Text style={styles.clearLocationText}>Clear</Text>
-          </Pressable>
-        </View> : null}
+
         {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
-        {filters.state === "NC" && detailedFilters ? <Text style={styles.areaOptionNote}>Choose your local ABC board by county or town.</Text> : null}
+
 
         {!detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search · Barrel Proof →</Text></Pressable> : null}
         {detailedFilters ? <View style={styles.filterInputShell}>
@@ -606,21 +600,31 @@ export default function SignalFeedScreen() {
           >
             <Text style={[styles.rarityChipText, filters.rarities.length === 0 && styles.rarityChipTextSelected]}>All</Text>
           </Pressable>
-          {rarityOptionsForView(view).map((option) => {
+          {rarityOptionsForView(view).slice().sort((left, right) => left.value === "allocated" ? -1 : right.value === "allocated" ? 1 : 0).map((option) => {
             const selected = filters.rarities.includes(option.value);
             return (
               <Pressable
                 key={option.value}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
+                accessibilityRole="checkbox"
+                accessibilityLabel={option.label}
+                accessibilityState={{ checked: selected }}
+                aria-checked={selected}
+                accessibilityHint="Toggle this rarity independently"
                 onPress={() => applyRarityFilters(toggleRarity(filters, option.value))}
                 style={({ pressed }) => [styles.rarityChip, selected && styles.rarityChipSelected, pressed && styles.segmentPressed]}
               >
-                <Text style={[styles.rarityChipText, selected && styles.rarityChipTextSelected]}>{option.label}</Text>
+                {selected ? <MaterialCommunityIcons accessible={false} name="check" color={colors.accent} size={13} /> : null}<Text style={[styles.rarityChipText, selected && styles.rarityChipTextSelected]}>{option.label}</Text>
               </Pressable>
             );
           })}
         </ScrollView>
+        {filters.state ? <View style={styles.locationSelection}>
+          <Text numberOfLines={2} style={styles.locationSelectionText}>{filters.area ? `${filters.state} · ${selectedAreaLabel}${filters.state === "NC" && selectedArea?.subtitle ? ` · ${filters.area}` : ""}` : `${filters.state} · All ${areaLabel === "City" ? "cities" : "areas"}`}</Text>
+          <Pressable accessibilityLabel="Clear Home location filters" accessibilityRole="button" onPress={() => applyFilters({ ...filters, state: "", area: "" })} style={styles.clearLocationButton}>
+            <MaterialCommunityIcons color={colors.accent} name="close" size={17} />
+            <Text style={styles.clearLocationText}>Clear</Text>
+          </Pressable>
+        </View> : null}
       </>
 
       {profileError ? (
@@ -646,6 +650,7 @@ export default function SignalFeedScreen() {
           source={require("../../../assets/home-shelf-background.jpg")}
           style={StyleSheet.absoluteFill}
         />
+        <Image source={require("../../../assets/home-feed-shade.png")} resizeMode="stretch" style={StyleSheet.absoluteFill} />
       </View>
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
       <FlatList
@@ -718,17 +723,17 @@ const styles = StyleSheet.create({
   homeBackdrop: StyleSheet.absoluteFill,
   feedViewport: { flex: 1, backgroundColor: "transparent" },
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 64 },
-  separator: { height: 6 },
+  separator: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(210,184,145,0.12)", marginLeft: 78 },
   header: { gap: 8, marginBottom: 4 },
   newSignalsPill: { position: "absolute", zIndex: 5, top: 8, alignSelf: "center", minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.accent, borderWidth: 1, borderColor: "#F1BC72", shadowColor: "#000", shadowOpacity: 0.32, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
   newSignalsPillPressed: { backgroundColor: colors.accentPressed, transform: [{ scale: 0.98 }] },
   newSignalsText: { color: "#171009", fontSize: typeScale.small, lineHeight: 16, fontWeight: "900" },
-  segmentedControl: { flexDirection: "row", borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, gap: 16 },
-  segment: { flex: 1, minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, borderBottomWidth: 2, borderBottomColor: "transparent" },
-  segmentSelected: { borderBottomColor: colors.accent },
+  segmentedControl: { flexDirection: "row", padding: 2, borderRadius: 26, backgroundColor: "rgba(17,14,11,0.72)", borderColor: "rgba(210,184,145,0.22)", borderWidth: StyleSheet.hairlineWidth },
+  segment: { flex: 1, minHeight: 44, borderRadius: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingVertical: 8 },
+  segmentSelected: { backgroundColor: "rgba(214,154,74,0.15)" },
   segmentPressed: { opacity: 0.78 },
   segmentLabel: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
-  segmentLabelSelected: { color: colors.text },
+  segmentLabelSelected: { color: colors.accent },
   geographyRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 8 },
   locationSelection: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingLeft: 4 },
   locationSelectionText: { flex: 1, color: colors.muted, ...typography.caption },
@@ -736,11 +741,11 @@ const styles = StyleSheet.create({
   clearLocationText: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800" },
   filterChooser: { flex: 1, minWidth: 0 },
   filterChooserDisabled: { opacity: 0.48 },
-  rarityRow: { flexGrow: 1, gap: 7, paddingRight: 8, justifyContent: "center" },
-  rarityChip: { minHeight: 44, justifyContent: "center", paddingHorizontal: 13, borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
-  rarityChipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" },
-  rarityChipText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
-  rarityChipTextSelected: { color: colors.text },
+  rarityRow: { flexGrow: 1, gap: 6, paddingRight: 2, paddingVertical: 3 },
+  rarityChip: { flexGrow: 1, minWidth: 44, minHeight: 44, flexDirection: "row", gap: 4, alignItems: "center", justifyContent: "center", paddingHorizontal: 8, paddingVertical: 8, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(210,184,145,0.18)", backgroundColor: "rgba(17,14,11,0.78)" },
+  rarityChipSelected: { borderColor: colors.accent, backgroundColor: "rgba(214,154,74,0.13)" },
+  rarityChipText: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "600" },
+  rarityChipTextSelected: { color: colors.accent },
   inlineError: { borderRadius: 12, borderColor: colors.danger, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.surface },
   inlineErrorText: { color: colors.danger, fontSize: typeScale.small, lineHeight: 17 },
   summaryList: { gap: 12 },
@@ -765,7 +770,7 @@ const styles = StyleSheet.create({
   footerError: { color: colors.danger, textAlign: "center" },
   end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: typeScale.small },
   fieldGroup: { gap: 6 },
-  chooserButton: { minHeight: 46, borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, paddingVertical: 9, flexDirection: "row", alignItems: "center", gap: 7 },
+  chooserButton: { minHeight: 44, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(210,184,145,0.22)", backgroundColor: "rgba(12,10,8,0.86)", paddingHorizontal: 11, paddingVertical: 8, flexDirection: "row", alignItems: "center", gap: 7 },
   chooserValue: { color: colors.text, fontSize: typeScale.small, fontWeight: "600" },
   chooserPlaceholder: { color: colors.muted, fontWeight: "500" },
   chooserText: { flex: 1, minWidth: 0, gap: 3 },
@@ -776,7 +781,7 @@ const styles = StyleSheet.create({
   chooserOptionText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "600" },
   areaOptionNote: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, textAlign: "center" },
   areaOptionError: { color: colors.danger, fontSize: typeScale.caption, lineHeight: 15, textAlign: "center" },
-  filterInputShell: { minHeight: 46, flexDirection: "row", alignItems: "center", borderRadius: layout.controlRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingLeft: 12, paddingRight: 6, gap: 7 },
-  filterInput: { minHeight: 44, flex: 1, color: colors.text, fontSize: typeScale.input, paddingRight: 6 },
+  filterInputShell: { minHeight: 44, flexDirection: "row", alignItems: "center", borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(210,184,145,0.22)", backgroundColor: "rgba(17,14,11,0.82)", paddingLeft: 12, paddingRight: 6, gap: 7 },
+  filterInput: { minHeight: 44, flex: 1, color: colors.text, fontSize: typeScale.body, paddingRight: 6 },
   inputClearButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
 });

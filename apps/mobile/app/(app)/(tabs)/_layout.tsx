@@ -15,7 +15,7 @@ function icon(route: "index" | "radar" | "post" | "cellar" | "hq") {
   );
 }
 
-function BrandTitle() {
+export function BrandTitle() {
   return <Text adjustsFontSizeToFit minimumFontScale={0.75} numberOfLines={1} style={styles.brandTitle}>Bourbon Signal</Text>;
 }
 
@@ -26,7 +26,7 @@ export function PostTabButton({onPress,onLongPress,accessibilityState,testID}:Pi
   </Pressable>;
 }
 
-function AlertInboxButton() {
+export function AlertInboxButton() {
   return (
     <Pressable
       accessibilityHint="Opens Radar matches"
@@ -70,9 +70,9 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   postButton: { flex: 1, alignItems: "center", justifyContent: "flex-start", marginTop: -19, minHeight: 76 },
-  postCircle: { width: 54, height: 54, borderRadius: 27, backgroundColor: colors.accent, borderWidth: 3, borderColor: colors.surface, alignItems: "center", justifyContent: "center" },
+  postCircle: { width: 54, height: 54, borderRadius: 27, backgroundColor: "#DDB698", borderWidth: 3, borderColor: colors.surface, alignItems: "center", justifyContent: "center" },
   postLabel: { color: colors.text, fontSize: 11, fontWeight: "700", marginTop: 2 },
-  brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 28, lineHeight: 36, letterSpacing: -0.35 },
+  brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 30, lineHeight: 38, letterSpacing: -0.35 },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
   pressed: { opacity: 0.68 },
 });

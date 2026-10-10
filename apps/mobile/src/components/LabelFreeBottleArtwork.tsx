@@ -4,14 +4,14 @@ import type { LabelFreeShape } from './label-free-bottle-artwork';
 import { LABEL_FREE_ARTWORK as artwork } from './label-free-artwork-assets';
 
 export function LabelFreeBottleArtwork({ shape, size = 'grid' }: {
-  shape: LabelFreeShape; size?: 'grid' | 'list' | 'detail' | 'showcase';
+  shape: LabelFreeShape; size?: 'grid' | 'list' | 'detail' | 'showcase' | 'feed';
 }) {
   const phase = useRef(new Animated.Value(0)).current;
   const [reduceMotion, setReduceMotion] = useState(true);
   const [active, setActive] = useState(AppState.currentState === 'active');
   const detail = size === 'detail';
-  const width = detail ? 180 : size === 'showcase' ? 88 : size === 'grid' ? 80 : 44;
-  const height = detail ? 270 : size === 'showcase' ? 148 : size === 'grid' ? 116 : 62;
+  const width = detail ? 180 : size === 'feed' ? 64 : size === 'showcase' ? 88 : size === 'grid' ? 80 : 44;
+  const height = detail ? 270 : size === 'feed' ? 102 : size === 'showcase' ? 148 : size === 'grid' ? 116 : 62;
   useEffect(() => {
     if (!detail) return;
     let mounted = true;
