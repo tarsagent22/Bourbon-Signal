@@ -1,3 +1,4 @@
+import { feedSearchIsStateCode, feedSearchStateCodes, normalizeFeedSearch } from "@/lib/signals/feed-search";
 import { neon } from "@neondatabase/serverless";
 import type { MemberSighting, SightingVoteKind } from "@/lib/sightings";
 import { dropFeedAreaSearchNeedles } from "@/lib/feed-area-options";
@@ -60,6 +61,7 @@ export interface SightingFeedFilters {
   states?: string[];
   rarities?: string[];
   bottle?: string | null;
+  search?: string | null;
   since?: string | null;
   area?: string | null;
 }
@@ -236,6 +238,8 @@ export class CommunitySightingsRepository {
   ): Promise<{ sightings: MemberSighting[]; totalSightings: number }> {
     const states = [...new Set((filters.states || []).map((state) => state.toUpperCase()).filter((state) => /^[A-Z]{2}$/.test(state)))];
     const rarities = [...new Set(filters.rarities || [])];
+    const search = normalizeFeedSearch(filters.search) || null;
+    const searchStates = search ? feedSearchStateCodes(search) : [];
     const bottle = filters.bottle?.trim().toLowerCase() || null;
     const since = filters.since || null;
     const areaPatterns = filters.area
@@ -252,6 +256,8 @@ export class CommunitySightingsRepository {
            AND NOT EXISTS (SELECT 1 FROM community_abuse_reports r WHERE r.user_id=$9 AND r.sighting_id=community_sightings.id)
            AND (cardinality($5::text[]) = 0 OR CASE WHEN payload->>'rarityTier' = 'highly_allocated' THEN 'unicorn' ELSE payload->>'rarityTier' END = ANY($5::text[]))
            AND ($6::text IS NULL OR LOWER(payload->>'bottleName') LIKE '%' || $6::text || '%')
+           AND ($10::text IS NULL OR UPPER(payload->>'storeState') = ANY($11::text[])
+             OR (NOT $12::boolean AND STRPOS(LOWER(CONCAT_WS(' ', payload->>'bottleName', payload->>'storeName', payload->>'storeAddress', payload->>'storeCity', payload->>'storeZip')), $10::text) > 0))
            AND ($7::timestamptz IS NULL OR created_at >= $7::timestamptz)
            AND (cardinality($8::text[]) = 0 OR LOWER(CONCAT_WS(' ', payload->>'storeName', payload->>'storeAddress', payload->>'storeCity')) LIKE ANY($8::text[]))
        ), recent AS MATERIALIZED (
@@ -266,7 +272,7 @@ export class CommunitySightingsRepository {
        SELECT recent.payload, totals.total_count
        FROM recent CROSS JOIN totals
        ORDER BY recent.created_at DESC, recent.id ASC`,
-      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns, currentUserId],
+      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns, currentUserId, search, searchStates, feedSearchIsStateCode(search || "")],
     ) as Array<{ payload: MemberSighting; total_count: number }>;
     return {
       sightings: rows.map((row) => row.payload),

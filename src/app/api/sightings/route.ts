@@ -1,3 +1,4 @@
+import { sightingFeedSearchMatches } from "@/lib/signals/feed-search";
 import {featuredBadgeLabels} from "@/lib/featured-badges";
 import { createCommunityLeaderBadgeQuery, readCommunityLeaderAwards, validatePublicLeaderBadges } from "@/lib/community-leader-badges";
 import { sameMemberRewardProfile } from "@/lib/member-rewards-snapshot";
@@ -228,6 +229,7 @@ async function getAggregateSightings(
   const reportersById = new Map<string, LegacyReporter>((legacy?.reporters || []).map((reporter) => [reporter.id, reporter]));
   const filterStates = new Set(filters.states || []);
   const filterRarities = new Set(filters.rarities || []);
+  const filterSearch = filters.search || "";
   const filterBottle = filters.bottle?.trim().toLowerCase() || "";
   const filterSince = filters.since ? Date.parse(filters.since) : Number.NaN;
   const filterArea = filters.area?.trim() || "";
@@ -243,7 +245,7 @@ async function getAggregateSightings(
       query: filterArea,
       fields: [sighting.storeName, sighting.storeAddress, sighting.storeCity],
     });
-    return beforeMatch && stateMatch && rarityMatch && bottleMatch && sinceMatch && areaMatch;
+    return beforeMatch && stateMatch && rarityMatch && bottleMatch && sinceMatch && areaMatch && sightingFeedSearchMatches(sighting, filterSearch);
   });
   for (const sighting of eligibleLegacySightings) sightingsById.set(sighting.id, sighting);
   for (const sighting of durableFeed.sightings) sightingsById.set(sighting.id, sighting);
@@ -328,6 +330,9 @@ export async function GET(req: NextRequest) {
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
   const requestedState = (url.searchParams.get("state") || "").trim().toUpperCase();
+  const requestedSearch = (url.searchParams.get("search") || "").replace(/\s+/g, " ").trim();
+  if (requestedSearch.length > 100 || /[\u0000-\u001F\u007F]/.test(requestedSearch)) return NextResponse.json({ error: "Invalid feed search" }, { status: 400 });
+  if (requestedSearch && !entitlements.canUseBottleSearch) return NextResponse.json({ error: "Feed search requires Barrel Proof or Founder membership." }, { status: 403 });
   const requestedBottle = (url.searchParams.get("bottle") || "").replace(/\s+/g, " ").trim();
   const requestedArea = (url.searchParams.get("area") || "").replace(/\s+/g, " ").trim();
   const requestedSince = url.searchParams.get("since");
@@ -346,6 +351,7 @@ export async function GET(req: NextRequest) {
     states: requestedState ? [requestedState] : [],
     rarities: requestedRarities,
     bottle: requestedBottle || null,
+    search: requestedSearch || null,
     since: requestedSince || null,
     area: canonicalArea,
   };

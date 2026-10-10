@@ -238,7 +238,7 @@ export default function SignalFeedScreen() {
     setLoading(true);
     setError("");
     try {
-      const page = await api.listSignals({ view, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...requestFilters });
+      const page = await api.listSignals({ view, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
       if (requestId !== requestSequence.current || capturedScope !== scopeKeyRef.current) return;
       successfulRequestRef.current = requestId;
       lastRefreshRef.current = Date.now();
@@ -396,7 +396,7 @@ export default function SignalFeedScreen() {
     const poll = async () => {
       const requestId = ++backgroundRequestSequence.current;
       try {
-        const page = await api.listSignals({ view, limit: 30, cursor: null, fresh: true, ...requestFilters });
+        const page = await api.listSignals({ view, limit: 30, cursor: null, fresh: true, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
         if (stopped || requestId !== backgroundRequestSequence.current || capturedScope !== scopeKeyRef.current) return;
         const scopedIncoming = filterSignalsByRarity(page.signals, filters.rarities);
         const accessChanged = JSON.stringify(accessSnapshotRef.current) !== JSON.stringify(page.access);
@@ -578,7 +578,7 @@ export default function SignalFeedScreen() {
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
         {filters.state === "NC" && detailedFilters ? <Text style={styles.areaOptionNote}>Choose your local ABC board by county or town.</Text> : null}
 
-        {!detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and bottle search · Barrel Proof →</Text></Pressable> : null}
+        {!detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search · Barrel Proof →</Text></Pressable> : null}
         {detailedFilters ? <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
@@ -587,13 +587,14 @@ export default function SignalFeedScreen() {
             blurOnSubmit
             onChangeText={(value) => { browsingMutationSequence.current += 1; setBottleQueries((current) => ({ ...current, [view]: value })); }}
             onSubmitEditing={() => Keyboard.dismiss()}
-            placeholder="Search bottle name"
+            accessibilityLabel="Search bottles or locations"
+            placeholder="Search bottles or locations"
             placeholderTextColor={colors.muted}
             returnKeyType="search"
             style={styles.filterInput}
             value={bottleQuery}
           />
-          {bottleQuery ? <Pressable accessibilityLabel="Clear bottle search" accessibilityRole="button" hitSlop={8} onPress={() => setBottleQueries((current) => ({ ...current, [view]: "" }))} style={styles.inputClearButton}><MaterialCommunityIcons color={colors.muted} name="close-circle" size={19} /></Pressable> : null}
+          {bottleQuery ? <Pressable accessibilityLabel="Clear feed search" accessibilityRole="button" hitSlop={8} onPress={() => setBottleQueries((current) => ({ ...current, [view]: "" }))} style={styles.inputClearButton}><MaterialCommunityIcons color={colors.muted} name="close-circle" size={19} /></Pressable> : null}
         </View> : null}
 
         <ScrollView horizontal keyboardShouldPersistTaps="handled" contentContainerStyle={styles.rarityRow} showsHorizontalScrollIndicator={false} accessibilityLabel="Bottle rarity filters">

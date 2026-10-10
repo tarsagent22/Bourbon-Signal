@@ -360,7 +360,7 @@ assert.match(nativeSignalFeed, /homeFeedCache/, "native feed restores account an
 assert.match(nativeSignalFeed, /horizontal/, "rarity chips should scroll instead of wrapping into multiple rows");
 assert.doesNotMatch(nativeSignalFeed, /<Modal|Open Signal filters/, "Signal filters must stay directly on the feed instead of hiding in a sheet");
 assert.match(nativeSignalFeed, /actionLabel=\{activeFilterCount\(filters\) \? "Clear filters"/, "filtered empty results must offer a direct reset");
-assert.match(nativeSignalFeed, /placeholder="Search bottle name"/, "bottle search must stay directly on the feed");
+assert.match(nativeSignalFeed, /placeholder="Search bottles or locations"/, "feed search must stay directly on the feed");
 assert.match(nativeSignalFeed, /label="State"/, "state selection must stay directly on the feed");
 assert.match(nativeSignalFeed, /label=\{areaLabel\}/, "the dependent area control must keep stable side-by-side geometry");
 assert.match(nativeSignalFeed, /disabled=\{!filters\.state \|\| !detailedFilters\}/, "area selection requires a Home state and detailed-filter access");

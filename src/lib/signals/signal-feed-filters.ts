@@ -11,6 +11,7 @@ export interface SignalFeedFilters {
   area: string | null;
   freshness: SignalFreshnessWindow | null;
   bottle: string | null;
+  search?: string;
 }
 
 export const EMPTY_SIGNAL_FEED_FILTERS: SignalFeedFilters = {
@@ -46,7 +47,10 @@ export function parseSignalFeedFilters(url: URL): SignalFeedFilters {
   if (rawFreshness && !freshnessSet.has(rawFreshness)) throw new Error("freshness must be 24h, 7d, or 30d");
   const rawBottle = (url.searchParams.get("bottle") || "").replace(/\s+/g, " ").trim();
   if (rawBottle.length > 100) throw new Error("bottle must be at most 100 characters");
+  const search = (url.searchParams.get("search") || "").replace(/\s+/g, " ").trim();
+  if (search.length > 100 || /[\u0000-\u001F\u007F]/.test(search)) throw new Error("search must be at most 100 characters without control characters");
   return {
+    ...(search ? { search } : {}),
     rarities: normalizeSignalRarities(url.searchParams.getAll("tiers")),
     state: rawState || null,
     area,

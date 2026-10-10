@@ -1,3 +1,4 @@
+import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
 import { unstable_cache } from "next/cache";
 import { packPublicFeed, unpackPublicFeed } from "@/lib/public-feed-pack";
 import { createPreparedDropCache, createAsyncPreparedDropCache } from "@/lib/prepared-drop-cache";
@@ -244,6 +245,8 @@ export async function GET(request: Request) {
   // come from the requested market; otherwise a saved/selected NC lens can look
   // completely blank even when the engine has current or historical NC signals.
   const state = normalizeStateCodeParam(url.searchParams.get("state"));
+  const search = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("search")?.replace(/\s+/g, " ").trim();
+  if (search && (search.length > 100 || /[\u0000-\u001F\u007F]/.test(search))) return NextResponse.json({ error: "Invalid feed search" }, { status: 400 });
   const bottle = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("bottle")?.toLowerCase().trim();
   const store = !entitlements.canUseDropFeedFilters ? undefined : url.searchParams.get("store")?.toLowerCase().trim();
   const areaQuery = url.searchParams.get("area");
@@ -290,6 +293,7 @@ export async function GET(request: Request) {
     area: appliedAreaFilter ? areaQuery : undefined,
     store,
     bottle,
+    search,
   });
   const historicalMode = historicalDropFeedEnabled({
     requested: url.searchParams.get("history") === "1",
@@ -428,6 +432,8 @@ export async function GET(request: Request) {
       drops = drops.filter((drop) => tierFilter.has(dropRarityTier(drop)));
     }
 
+
+    if (search) drops = drops.filter((drop) => dropFeedSearchMatches(drop as Record<string, unknown>, search));
 
     if (bottle) {
       drops = drops.filter(

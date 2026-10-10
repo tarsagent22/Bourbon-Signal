@@ -164,6 +164,17 @@ test("serializes normalized Signal filters for server-side pagination", async ()
   assert.equal(params.get("bottle"), "Weller");
 });
 
+test("sends bottle or location search separately from the legacy bottle-only filter", async () => {
+  const requests: Request[] = [];
+  const api = createMobileApi({ baseUrl: "https://search.example.test", getToken: async () => "session-token", fetcher: async request => { requests.push(new Request(request)); return Response.json(feedFixture()); } });
+  await api.listSignals({ view: "market", search: "  Wake   County  ", state: "NC" });
+  await api.listSignals({ view: "community", search: "Raleigh" });
+  assert.equal(new URL(requests[0].url).searchParams.get("search"), "Wake County");
+  assert.equal(new URL(requests[0].url).searchParams.get("bottle"), null);
+  assert.equal(new URL(requests[0].url).searchParams.get("state"), "NC");
+  assert.equal(new URL(requests[1].url).searchParams.get("search"), "Raleigh");
+});
+
 test("updates the public Community display name through the member profile endpoint", async () => {
   let captured: Request | null = null;
   const api = createMobileApi({

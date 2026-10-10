@@ -284,7 +284,7 @@ export function createMobileApi({
     reportNativeDiagnostic(packet:import("../../../../shared/native-diagnostics").NativeDiagnostic){return request<{ok:true}>("/api/v1/me/diagnostics",{method:"POST",body:packet});},
     clearReadCache() { recentReads.clear(); currentToken = undefined; },
     readCacheInfo() { pruneReads(); return { size: recentReads.size, keys: [...recentReads.keys()] }; },
-    listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string } = {}) {
+    listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle, search }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string; search?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (view && view !== "all") params.set("view", view);
       if (cursor) params.set("cursor", cursor);
@@ -295,6 +295,8 @@ export function createMobileApi({
       const normalizedArea = area?.replace(/\s+/g, " ").trim();
       if (normalizedState && normalizedArea) params.set("area", normalizedArea);
       if (freshness) params.set("freshness", freshness);
+      const normalizedSearch = search?.replace(/\s+/g, " ").trim().slice(0, 100);
+      if (normalizedSearch) params.set("search", normalizedSearch);
       const normalizedBottle = bottle?.replace(/\s+/g, " ").trim();
       if (normalizedBottle) params.set("bottle", normalizedBottle);
       return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`, { fresh });
