@@ -6,7 +6,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, AppState, FlatList, Image, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
@@ -660,7 +660,6 @@ export default function SignalFeedScreen() {
           source={require("../../../assets/home-shelf-background.jpg")}
           style={StyleSheet.absoluteFill}
         />
-        <Image source={require("../../../assets/home-feed-shade.png")} resizeMode="stretch" style={StyleSheet.absoluteFill} />
       </View>
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.feedShade]} />

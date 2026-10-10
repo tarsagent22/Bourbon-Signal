@@ -148,8 +148,9 @@ assert.ok(manyRewards.points >= 10010, 'the audit-ledger cap cannot truncate pos
 assert.equal(summarizeMemberRewards(manySightings, manyRewards).eligibleSightings, 1001);
 
 assert.match(adminSightingsRoute, /const durableOwned = await repository\.listSightingsForReporter\(reporterUserId\);[\s\S]*?dedupeSightings\(\[\.\.\.legacyOwned, \.\.\.durableOwned\]\)/, 'legacy admin review must reconcile the complete legacy and durable owner history');
-assert.match(sightingsRoute, /searchBourbonBible/, 'the server must resolve known bottle rarity from the catalog instead of trusting client reward tiers');
-assert.match(sightingsRoute, /needsBottleReview\s*\?\s*"limited"/, 'manual bottles must start at the safe one-point tier');
+assert.match(sightingsRoute, /buildSightingRarityCatalog\(await getBourbonBible\(\)\)\.resolve/, 'the server must resolve exact catalog identities instead of trusting client reward tiers');
+assert.match(sightingsRoute, /needsBottleReview\s*\?\s*undefined/, 'unreviewed rarity must not masquerade as a Limited classification');
+assert.match(sightingsRoute, /normalizeSightingsForRewards\(ownedSightings, rewardCatalog\)/, 'posting rewards retain their separate normalization policy');
 assert.match(sightingsRoute, /if \(rewardsNeedPersistence\([\s\S]*?await persistMemberRewardsBestEffort/, 'GET must persist reward migrations when reconciliation changes metadata');
 assert.match(sightingsRoute, /if \(duplicate\) \{[\s\S]*?reconcileMemberRewards/, 'duplicate POST responses must reconcile instead of returning stale totals');
 
