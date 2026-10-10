@@ -7,7 +7,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const output = path.join(root, 'dist/radar-preview');
 await mkdir(output, { recursive: true });
-await build({ entryPoints: [path.join(here, 'entry.jsx')], outfile: path.join(output, 'app.js'), bundle: true, platform: 'browser', jsx: 'automatic', define: { 'process.env.NODE_ENV': '"development"', __DEV__: 'true' }, plugins: [{ name: 'offline-boundaries', setup(b) {
+await build({ entryPoints: [path.join(here, 'entry.jsx')], outfile: path.join(output, 'app.js'), bundle: true, platform: 'browser', jsx: 'automatic', define: { 'process.env.NODE_ENV': '"development"', __DEV__: 'true', global: 'globalThis' }, plugins: [{ name: 'offline-boundaries', setup(b) {
   b.onResolve({ filter: /^react-native$/ }, () => ({ path: fileURLToPath(import.meta.resolve('react-native-web')) }));
   b.onResolve({ filter: /^@expo\/vector-icons\/MaterialCommunityIcons$/ }, () => ({ path: path.resolve(here, '../community-preview/icons.tsx') }));
   b.onResolve({ filter: /^(expo-router|react-native-safe-area-context)$|\/(useMobileApi|useScreenRevalidation)$|\/push\/push-registration$/ }, () => ({ path: path.join(here, 'fixture.tsx') }));
