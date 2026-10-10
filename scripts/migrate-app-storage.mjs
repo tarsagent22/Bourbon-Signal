@@ -72,6 +72,7 @@ const schemaFiles = [
   '../src/lib/account-deletion-schema.sql',
   '../src/lib/push-ownership-schema.sql',
   '../src/lib/member-collection-schema.sql',
+  '../src/lib/bottle-mutes-schema.sql',
   '../src/lib/member-number-schema.sql',
   '../src/lib/bottle-contribution-schema.sql',
   '../src/lib/approved-catalog-schema.sql',

@@ -11,6 +11,7 @@ async function route(f: any) {
   const stubs: Record<string, string> = {
     '@clerk/nextjs/server': 'export const auth = async()=>({userId:f.userId}); export const clerkClient=async()=>({users:f.users});',
     '@/lib/server-entitlements': 'export const getServerEntitlements=async()=>f.entitlements;',
+    '@/lib/bottle-mutes-repository': 'export const readBottleMutes=async()=>({bottles:[],version:0}); export const saveBottleMutes=async()=>{};',
     '@/lib/member-collection-repository': 'export const getMemberCollectionRepository=()=>({getForUser:async()=>({bottles:[],version:0})}); export class MemberCollectionConflictError extends Error{}; export class MemberCollectionLimitError extends Error{};',
     '@/lib/preview-qa': 'export const isQaPreviewRequest=()=>false; export const getQaPreviewTierFromRequest=()=>"free"; export const QA_PREVIEW_PREFERENCES={};',
     '@/lib/alert-queue/member-lease': 'export const withMemberAlertLease=(id,op,options)=>f.lease(id,op,options);',

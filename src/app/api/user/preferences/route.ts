@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { collectionDisplayWrite, readShelfStyle, type ShelfStyle } from "@/lib/collection-display-preferences";
 import { withMemberAlertLease } from "@/lib/alert-queue/member-lease";
+import { applyBottleMuteMutation, BottleMuteError, type BottleMuteState, type BottleMuteMutation } from "@/lib/bottle-mutes";
+import { readBottleMutes, saveBottleMutes } from "@/lib/bottle-mutes-repository";
+import { getBourbonBible } from "@/lib/bourbonBible";
 import { applyWatchlistWrite, normalizeWatchlist, WatchlistError, type WatchlistMutation } from "@/lib/watchlist-state";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import {
@@ -76,6 +79,7 @@ export interface AreaPreferences {
 export type AlertMode = "specific_bottles" | "anything_notable";
 
 export interface UserAlertPreferences {
+  mutedBottles?: BottleMuteState;
   collectionValue?: CollectionValue | null;
   entitlements?: {
     canUseCollection: boolean;
@@ -108,6 +112,7 @@ export interface UserAlertPreferences {
 export type UserAlertPreferencePatch = Omit<Partial<UserAlertPreferences>, "notificationPreferences"> & {
   notificationPreferences?: NotificationPreferencesPatch;
   watchlistMutation?: WatchlistMutation;
+  bottleMuteMutation?: BottleMuteMutation;
 };
 
 const EMPTY_AREA_PREFERENCES: AreaPreferences = {
@@ -302,6 +307,7 @@ async function buildResponseFromMetadata(
   const alertMode = normalizeAlertMode(user.publicMetadata?.alertMode);
   const bottleAlertPreferences = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
   return {
+    mutedBottles: await readBottleMutes(user.id),
     entitlements: {
       canUseCollection: entitlements.canUseCollection,
       canUseRecommendations: entitlements.canUseRecommendations,
@@ -429,7 +435,8 @@ export async function GET(req: NextRequest) {
   if (!collection) {
     return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
   }
-  return NextResponse.json(await buildResponseFromMetadata(user, collection, entitlements));
+  try { return NextResponse.json(await buildResponseFromMetadata(user, collection, entitlements)); }
+  catch { return NextResponse.json({ error: "Alert preferences storage is temporarily unavailable." }, { status: 503 }); }
 }
 
 export async function POST(req: NextRequest) {
@@ -492,6 +499,21 @@ export async function POST(req: NextRequest) {
   }
   const durableEntitlements = await getServerEntitlements(user.publicMetadata);
   const existing = await buildResponseFromMetadata(user, durableCollection, durableEntitlements);
+
+  // Intent-based mutation, under the same lease as delivery. Old clients cannot replace this list.
+  if (payload.bottleMuteMutation !== undefined) {
+    if (Object.keys(payload).some(key => key !== "bottleMuteMutation")) return NextResponse.json({ error: "Save bottle muting separately from other preferences.", code: "ambiguous_mute_write" }, { status: 400 });
+    try {
+      const current = existing.mutedBottles!;
+      const mutedBottles = applyBottleMuteMutation(current, payload.bottleMuteMutation, await getBourbonBible());
+      await assertHeld();
+      await saveBottleMutes(userId, mutedBottles, current.version);
+      return NextResponse.json({ ...existing, mutedBottles });
+    } catch (error) {
+      if (error instanceof BottleMuteError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+      throw error;
+    }
+  }
 
   let displayWrite: ReturnType<typeof collectionDisplayWrite>;
   try { displayWrite = collectionDisplayWrite(payload); }

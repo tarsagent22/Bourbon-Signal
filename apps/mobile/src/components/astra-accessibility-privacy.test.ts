@@ -37,6 +37,8 @@ test('M13: mounted Radar exposes push and sightings without retired channels', (
   const prefs = preferencesFixture(); prefs.notificationPreferences.sms.available = true; prefs.notificationPreferences.sms.enabled = true;
   const states: any[] = ['settings',prefs,profileFixture({ feedAreas: { states: [{ code: 'AZ', label: 'Arizona', engineCoverage: 'active' }] } } as any)];
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
+    '../../../src/radar/RadarAlertRow': { RadarAlertRow: 'RadarAlertRow' },
+    '../../../src/radar/MutedBottles': { MutedBottles: 'MutedBottles' },
     'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ push() {} }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({}), SafeAreaView: 'SafeAreaView' },
     react: { ...React, useState: (initial: unknown) => { const slot = index++; if (!(slot in states)) states[slot] = typeof initial === 'function' ? (initial as Function)() : initial; return [states[slot], (value: unknown) => { states[slot] = typeof value === 'function' ? (value as Function)(states[slot]) : value; }]; }, useEffect() {}, useRef: (v: unknown) => ({ current: v }), useMemo: (f: () => unknown) => f(), useCallback: (f: unknown) => f },

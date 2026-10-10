@@ -25,6 +25,8 @@ function fixture(users, overrides = {}) {
     persistRuntimeSourceDemand: async (members, complete) => { demandCalls.push({ members, complete }); },
     classifyCompanyMember: () => ({ isOwner: false, isRetailer: false }),
     readOwnerBottleRecords:async()=>[],expandCorrectedWatchNames:names=>names,normalizeBottleKey:s=>s.toLowerCase(),
+    getBourbonBible:async()=>[],normalizeBottleMutes:()=>({bottles:[],version:0}),createBottleMuteMatcher:()=>()=>false,
+    readBottleMutes:async()=>({bottles:[],version:0}),
     normalizeBottleAlertPreferences: () => ({ bottleNames: [], bottleKeys: [] }), candidateMatchesArea: () => false,
     process: { env: {} }, Date, Set, Map, Math, Number, String,
     assertAlertDeliveryAuthorized: () => {}, readAlertCandidateBatch: async () => ({ candidates: [], snapshot: { snapshotId: 'fixture', generatedAt: new Date().toISOString() } }),

@@ -69,8 +69,10 @@ export class PostgresAccountDeletionRepository implements AccountDeletionReposit
       this.database.query("UPDATE google_membership_events SET clerk_user_id=$2 WHERE clerk_user_id=$1",[userId,subjectToken]),
       this.database.query("UPDATE google_memberships SET clerk_user_id=$2 WHERE clerk_user_id=$1",[userId,subjectToken]),
     ] : [];
+    const muteTable = await this.database.query("SELECT to_regclass('public.member_bottle_mutes') AS mute_table");
     await this.database.transaction([
       ...googleCleanup,
+      ...(muteTable[0]?.mute_table ? [this.database.query("DELETE FROM member_bottle_mutes WHERE user_id=$1", [userId])] : []),
       this.database.query(`DELETE FROM member_push_ownership WHERE user_id=$1`, [userId]),
       this.database.query(
         `UPDATE alert_push_tickets
