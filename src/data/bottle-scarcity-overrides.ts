@@ -5,6 +5,8 @@ import type { ScarcityTier, StateScarcityOverride } from "@/lib/bottle-scarcity"
  * State systems establish local handling; they never set a national tier by themselves.
  */
 export const BOTTLE_SCARCITY_SOURCE_REGISTRY = {
+  "high-west-prisoners-share": { type: "producer", label: "High West limited releases", url: "https://highwest.com/pages/limited-releases" },
+  "old-overholt-11-2024": { type: "release_listing", label: "Old Overholt 11 Year Cask Strength 2024 release", url: "https://distiller.com/lists/new-spirit-releases-october-4-2024" },
   "blade-bow-solera-12-annual-release": { type: "producer", label: "Blade and Bow limited annual Solera Reserve release", url: "https://www.multivu.com/diageo/9404251-en-blade-and-bow-unveils-new-limited-annual-expression-12-year-old-solera-reserve" },
   "penelope-estate-single-barrel": { type: "producer", label: "Penelope Estate Collection", url: "https://penelopebourbon.com/estate-collection/" },
   "heaven-hill-jts-brown": { type: "producer", label: "Heaven Hill J. T. S. Brown", url: "https://bottledinbond.heavenhilldistillery.com/" },

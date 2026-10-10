@@ -12,3 +12,10 @@ export const REVIEWED_SIGHTING_RARITY = {
     sourceUrl: "https://penelopebourbon.com/estate-collection/",
   },
 } as const;
+
+export const REVIEWED_SIGHTING_ALIASES: Record<string, string[]> = {
+  "old forester single barrel barrel strength rye": ["Old Forester Single Barrel Rye Barrel Strength"],
+};
+
+// The current catalog entry does not identify a Michter's expression.
+export const AMBIGUOUS_SIGHTING_BOTTLE_IDS = new Set(["michters-barrel"]);

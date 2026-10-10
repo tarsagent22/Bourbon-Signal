@@ -1,11 +1,11 @@
 import { sightingFeedSearchMatches } from "@/lib/signals/feed-search";
-import { buildSightingRarityCatalog } from "@/lib/sighting-bottle-rarity";
+import { buildSightingRarityCatalog, sightingCatalogRarityPending } from "@/lib/sighting-bottle-rarity";
 import {featuredBadgeLabels} from "@/lib/featured-badges";
 import { createCommunityLeaderBadgeQuery, readCommunityLeaderAwards, validatePublicLeaderBadges } from "@/lib/community-leader-badges";
 import { sameMemberRewardProfile } from "@/lib/member-rewards-snapshot";
 import { after, NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { getBourbonBible, searchBourbonBible, normalizeBottleKey as normalizeBibleBottleKey, type BibleBottle } from "@/lib/bourbonBible";
+import { getBourbonBible } from "@/lib/bourbonBible";
 import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository, type DurableSightingVote, type SightingFeedFilters } from "@/lib/community-sightings-repository";
 import { getEntitlements } from "@/lib/entitlements";
@@ -55,13 +55,7 @@ function visibleSightingForRequester(sighting: MemberSighting, ownerPointsPrevie
 
 
 async function resolveSubmittedBottle(bottleName: string, bottleId?: string) {
-  const matches = await searchBourbonBible(bottleName, 12);
-  const normalizedName = normalizeBibleBottleKey(bottleName);
-  const idMatch = matches.find((bottle) => bottle.id === bottleId);
-  const bottleNameMatches = (bottle: BibleBottle) => normalizeBibleBottleKey(bottle.canonicalName) === normalizedName
-    || bottle.aliases.some((alias) => normalizeBibleBottleKey(alias) === normalizedName);
-  const exact = (idMatch && bottleNameMatches(idMatch) ? idMatch : null) || matches.find(bottleNameMatches);
-  return exact || null;
+  return buildSightingRarityCatalog(await getBourbonBible()).resolve({ bottleName, bottleId }) || null;
 }
 
 function approvedCommunityPhoto(value: unknown) {
@@ -467,7 +461,7 @@ export async function POST(req: NextRequest) {
   const requestedBottleId = typeof payload.bottleId === "string" ? payload.bottleId.slice(0, 160) : undefined;
   const catalogBottle = requestedBottleName ? await resolveSubmittedBottle(requestedBottleName, requestedBottleId) : null;
   const reviewInput = payload.reviewState && typeof payload.reviewState === "object" ? payload.reviewState : {};
-  const needsBottleReview = Boolean(reviewInput.needsBottleReview || reviewInput.manualBottleName || !catalogBottle);
+  const needsBottleReview = Boolean(reviewInput.needsBottleReview || reviewInput.manualBottleName || sightingCatalogRarityPending(catalogBottle || undefined));
   const bottleName = catalogBottle?.canonicalName || requestedBottleName;
   const bottleId = catalogBottle?.id || normalizeBottleKey(bottleName);
   const rarityTier = needsBottleReview ? undefined : buildSightingRarityCatalog(catalogBottle ? [catalogBottle] : []).tier(catalogBottle || undefined);

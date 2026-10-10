@@ -64,3 +64,12 @@ test("catalog rarity repairs old sightings without treating local confidence as 
   const ambiguous=buildSightingRarityCatalog([{...bottle,aliases:["Shared"]},{...bottle,id:"second",canonicalName:"Second",aliases:["Shared"]}]);
   assert.equal(ambiguous.resolve({bottleName:"Shared"}),undefined);
 });
+
+test("reviewed expression aliases preserve rye, age and release identity",()=>{
+ const rye={...bottle,id:"forester-rye",canonicalName:"Old Forester Single Barrel Barrel Strength Rye",aliases:[]};
+ const catalog=buildSightingRarityCatalog([rye,{...bottle,id:"michters-barrel",canonicalName:"Michters barrel"}]);
+ assert.equal(catalog.present({...sighting,bottleName:"Old Forester Single Barrel Rye Barrel Strength",bottleId:undefined}).rarityTier,"allocated");
+ assert.equal(catalog.resolve({bottleName:"Old Forester Single Barrel Barrel Strength Bourbon"}),undefined);
+ assert.equal(catalog.present({...sighting,bottleName:"Michters barrel",bottleId:"michters-barrel"}).bottleRarity.pending,true);
+ assert.equal(catalog.present({...sighting,bottleName:"Old Overholt 12 Year"}).bottleRarity.pending,true);
+});
