@@ -34,7 +34,8 @@ test("compact rows qualify counted reports without implying verified inventory",
 test("compact bottle names retain rye and bottled-in-bond identity qualifiers", () => {
   assert.deepEqual(signalRowBottleIdentity("Example Single Barrel Kentucky Straight Rye Whiskey"), { title: "Example Single Barrel", subtitle: "Kentucky Straight Rye Whiskey" });
   assert.equal(signalRowBottleIdentity("Example Small Batch Bottled in Bond").subtitle, "Small Batch Bottled in Bond");
-  assert.deepEqual(signalRowBottleIdentity("Blanton's Original Single Barrel Kentucky Straight Bourbon Whiskey 750ml"), { title: "Blanton's Original Single Barrel", subtitle: "" });
+  assert.deepEqual(signalRowBottleIdentity("Blanton's Original Single Barrel Kentucky Straight Bourbon Whiskey 750ml"), { title: "Blanton's Original Single Barrel", subtitle: "750ml" });
+  assert.deepEqual(signalRowBottleIdentity("Example Bourbon 375ml"), { title: "Example Bourbon", subtitle: "375ml" });
 });
 
 test("compact counted rows retain stale, historical and exceptional status text", () => {

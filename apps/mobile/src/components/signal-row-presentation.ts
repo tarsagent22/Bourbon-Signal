@@ -3,7 +3,8 @@ import { presentBottleIdentity, presentSignal, signalCardStatusLabel } from "../
 
 export function signalRowBottleIdentity(name: string) {
   const identity = presentBottleIdentity(name);
-  return { title: identity.title, subtitle: /bottled in bond|rye/i.test(identity.subtitle) ? identity.subtitle : "" };
+  const volume = identity.subtitle.match(/\d+(?:\.\d+)?\s?(?:ml|l)$/i)?.[0] || "";
+  return { title: identity.title, subtitle: /bottled in bond|rye/i.test(identity.subtitle) ? identity.subtitle : volume };
 }
 
 // Counted reports can carry their attribution on the same line. Exceptional
