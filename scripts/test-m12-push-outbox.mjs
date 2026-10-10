@@ -194,6 +194,7 @@ async function callerFixture() {
     normalizeNotificationPreferences:v=>v,normalizeAreaPrefs:v=>v,hasSavedAreaPreferences:v=>v?.saved,
     readOwnerBottleRecords:async()=>[],expandCorrectedWatchNames:names=>names,normalizeBottleKey:s=>s.toLowerCase(),
     getBourbonBible:async()=>[],normalizeBottleMutes:()=>({bottles:[],version:0}),createBottleMuteMatcher:()=>()=>false,
+    readBottleMutes:async()=>({bottles:[],version:0}),
     normalizeBottleAlertPreferences:v=>({bottleNames:[],bottleKeys:[],...v}),normalizeDeliveryMetadata:v=>v,normalizeAlertInboxMetadata:v=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
     normalizeAlertDeliveryTimeZone:()=> 'UTC',alertDeliveryWindowStatus:()=>({open:true,reason:'open',localHour:12}),isWithinMemberAlertDeliveryWindow:()=>true,
     compactClerkAlertDelivery:v=>v,ensureAlertDeliveryIdentityV2:async()=>({migrated:false,sendCurrentPass:true}),

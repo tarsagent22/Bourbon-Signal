@@ -32,6 +32,7 @@ function fixture(extra = {}) {
 }
 async function watchApi(f) {
   const preferences = await load('src/app/api/user/preferences/route.ts', f, { ...common,
+    '@/lib/bottle-mutes-repository': 'export const readBottleMutes=async()=>({bottles:[],version:0});export const saveBottleMutes=async()=>{};',
     '@/lib/member-collection-repository': 'export const getMemberCollectionRepository=()=>({getForUser:async()=>({bottles:[],version:0})});export class MemberCollectionConflictError extends Error{};export class MemberCollectionLimitError extends Error{};',
     '@/lib/preview-qa': 'export const isQaPreviewRequest=()=>false;export const getQaPreviewTierFromRequest=()=>"standard";export const QA_PREVIEW_PREFERENCES={};',
     '@/lib/alert-queue/member-lease': 'export const withMemberAlertLease=async(id,op)=>({acquired:true,result:await op(async()=>{})});',

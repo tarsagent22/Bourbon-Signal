@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { collectionDisplayWrite, readShelfStyle, type ShelfStyle } from "@/lib/collection-display-preferences";
 import { withMemberAlertLease } from "@/lib/alert-queue/member-lease";
-import { applyBottleMuteMutation, normalizeBottleMutes, BottleMuteError, type BottleMuteState, type BottleMuteMutation } from "@/lib/bottle-mutes";
+import { applyBottleMuteMutation, BottleMuteError, type BottleMuteState, type BottleMuteMutation } from "@/lib/bottle-mutes";
+import { readBottleMutes, saveBottleMutes } from "@/lib/bottle-mutes-repository";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import { applyWatchlistWrite, normalizeWatchlist, WatchlistError, type WatchlistMutation } from "@/lib/watchlist-state";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -306,7 +307,7 @@ async function buildResponseFromMetadata(
   const alertMode = normalizeAlertMode(user.publicMetadata?.alertMode);
   const bottleAlertPreferences = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
   return {
-    mutedBottles: normalizeBottleMutes(user.privateMetadata?.mutedBottles),
+    mutedBottles: await readBottleMutes(user.id),
     entitlements: {
       canUseCollection: entitlements.canUseCollection,
       canUseRecommendations: entitlements.canUseRecommendations,
@@ -434,7 +435,8 @@ export async function GET(req: NextRequest) {
   if (!collection) {
     return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
   }
-  return NextResponse.json(await buildResponseFromMetadata(user, collection, entitlements));
+  try { return NextResponse.json(await buildResponseFromMetadata(user, collection, entitlements)); }
+  catch { return NextResponse.json({ error: "Alert preferences storage is temporarily unavailable." }, { status: 503 }); }
 }
 
 export async function POST(req: NextRequest) {
@@ -502,14 +504,10 @@ export async function POST(req: NextRequest) {
   if (payload.bottleMuteMutation !== undefined) {
     if (Object.keys(payload).some(key => key !== "bottleMuteMutation")) return NextResponse.json({ error: "Save bottle muting separately from other preferences.", code: "ambiguous_mute_write" }, { status: 400 });
     try {
-      const mutedBottles = applyBottleMuteMutation(normalizeBottleMutes(user.privateMetadata?.mutedBottles), payload.bottleMuteMutation, await getBourbonBible());
-      const privateMetadata = { ...(user.privateMetadata || {}), mutedBottles };
-      const bytes = (privateValue: unknown) => Buffer.byteLength(JSON.stringify({ publicMetadata: user.publicMetadata, privateMetadata: privateValue, unsafeMetadata: user.unsafeMetadata }), "utf8");
-      if (bytes(privateMetadata) > 8000 && bytes(privateMetadata) > bytes(user.privateMetadata)) {
-        return NextResponse.json({ error: "Your saved preferences are full. Allow alerts for a muted bottle before adding another.", code: "mute_storage_full" }, { status: 400 });
-      }
+      const current = existing.mutedBottles!;
+      const mutedBottles = applyBottleMuteMutation(current, payload.bottleMuteMutation, await getBourbonBible());
       await assertHeld();
-      await client.users.updateUserMetadata(userId, { privateMetadata: { mutedBottles } });
+      await saveBottleMutes(userId, mutedBottles, current.version);
       return NextResponse.json({ ...existing, mutedBottles });
     } catch (error) {
       if (error instanceof BottleMuteError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });

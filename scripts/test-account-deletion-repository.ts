@@ -10,6 +10,7 @@ test("account cleanup uses Neon's non-interactive transaction array and deletes 
     query: async (text: string) => {
       sql.push(text);
       if (text.includes("SELECT subject_token")) return [{ subject_token: "deleted:subject" }];
+      if (text.includes("AS mute_table")) return [{ mute_table: "member_bottle_mutes" }];
       return [];
     },
     transaction: async (queries: unknown) => {
@@ -27,6 +28,7 @@ test("account cleanup uses Neon's non-interactive transaction array and deletes 
   assert.match(allSql, /status IN \('pending','claimed','failed'\)/);
   assert.doesNotMatch(allSql, /alert_candidates[\s\S]*status='suppressed'/);
   assert.match(allSql, /DELETE FROM founder_glass_shipping/);
+  assert.match(allSql, /DELETE FROM member_bottle_mutes WHERE user_id=\$1/);
   assert.match(allSql, /UPDATE apple_memberships SET clerk_user_id=\$2/);
   assert.match(allSql, /UPDATE coverage_requests SET user_id=\$2/);
   assert.match(allSql, /DELETE FROM retailer_applications/);

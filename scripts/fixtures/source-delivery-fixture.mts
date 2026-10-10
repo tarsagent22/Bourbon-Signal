@@ -15,6 +15,7 @@ const code = ts.transpile(source.slice(source.indexOf('export async function del
 // authority and tracing are supplied by the caller's real SQL repository.
 export function deliveryFixture(candidates: any[], lane: any, overrides: any = {}, channel = 'email') {
   const events: any[] = [], sends: any[] = [];
+  let muteState = { bottles: [], version: 0 } as import('../../src/lib/bottle-mutes.ts').BottleMuteState;
   const prefs={push:{enabled:channel==='push'},onSite:{enabled:channel==='onSite'},email:{enabled:channel==='email',mode:'all'},sms:{enabled:channel==='sms',verified:true,phone:'+15555550123',mode:'all'},sightings:{enabled:true},rarityTiers:['allocated']};
   const user={id:'synthetic-member',publicMetadata:{paid:true,notificationPreferences:prefs,areaPreferences:{saved:true},bottleAlertPreferences:{bottleNames:[],bottleKeys:[]}},privateMetadata:{alertDelivery:{dedupeIdentityVersion:2,durableBaselineVersion:1,recent:[]},pushDevices:['synthetic-device'],lifecycleTimeZone:'UTC'}};
   const queue={recoverStaleClaims:async()=>0,acquireLease:async()=>true,releaseLease:async()=>{},registerSnapshot:async()=>{},readRecipientCursor:async()=>0,writeRecipientCursor:async()=>{},baseline:async(input:any)=>{events.push('baseline:'+input.channel+':'+input.stableMatchKey);},markBatchDelivered:async()=>{},markFailed:async()=>{},markBatchFailed:async()=>{}};
@@ -42,6 +43,7 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
     ensureAlertDeliveryIdentityV2,
     readOwnerBottleRecords:async()=>[],expandCorrectedWatchNames:(names:string[])=>names,normalizeBottleKey:(s:string)=>s.toLowerCase(),
     getBourbonBible:async()=>[],createBottleMuteMatcher,normalizeBottleMutes,
+    readBottleMutes:async()=>structuredClone(muteState),
     normalizeBottleAlertPreferences:(v:any)=>v,normalizeDeliveryMetadata:(v:any)=>v,normalizeAlertInboxMetadata:(v:any)=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
     pushPreferenceProjectionAllowsDelivery:()=>true,
     groupCandidatesByLocation:(cs:any)=>cs,enumerateUnderlyingAlertChildren:(c:any)=>[c],stableUnderlyingAlertKey:(c:any)=>c.availabilityEpisodeId,
@@ -63,5 +65,5 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
   };
   Object.assign(context,overrides);
   const ctx=vm.createContext(context);vm.runInContext(code,ctx);
-  return {context:ctx,events,sends,user,run:(options={})=>ctx.deliverPreferenceAlerts({}, {queueMode:'active',...options})};
+  return {context:ctx,events,sends,user,setMutes:(state: typeof muteState)=>{muteState=state;},run:(options={})=>ctx.deliverPreferenceAlerts({}, {queueMode:'active',...options})};
 }

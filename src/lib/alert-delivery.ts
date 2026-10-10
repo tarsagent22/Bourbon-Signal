@@ -1,6 +1,7 @@
 import { readOwnerBottleRecords } from "@/lib/owner-admin-repository";
 import { expandCorrectedWatchNames } from "@/lib/admin-watch-aliases";
-import { createBottleMuteMatcher, normalizeBottleMutes } from "@/lib/bottle-mutes";
+import { createBottleMuteMatcher } from "@/lib/bottle-mutes";
+import { readBottleMutes } from "@/lib/bottle-mutes-repository";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import { createHash, randomUUID } from "node:crypto";
 import { render } from "@react-email/render";
@@ -1451,7 +1452,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             const areas = normalizeAreaPrefs(pub.areaPreferences, pub.monitoringScopes);
             if (entitlement.tier === "free" || !prefs.push.enabled || !pushPreferenceProjectionAllowsDelivery(priv.pushPreferenceProjection) || !hasSavedAreaPreferences(areas)) return null;
             const bottles = normalizeBottleAlertPreferences(pub.bottleAlertPreferences);
-            const isMuted = createBottleMuteMatcher(normalizeBottleMutes(priv.mutedBottles), muteCatalog);
+            const isMuted = createBottleMuteMatcher(await readBottleMutes(userId), muteCatalog);
             const attemptAt = new Date().toISOString();
             if (!isWithinMemberAlertDeliveryWindow(attemptAt, priv.lifecycleTimeZone)) return null;
             const snapshotFresh = evaluateAlertSnapshotSafety({ generatedAt: batch.snapshot.generatedAt, now: attemptAt, maxAgeMinutes: Number(process.env.ALERT_SNAPSHOT_MAX_AGE_MINUTES || 45) }).safe;
@@ -1522,7 +1523,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       const storedBottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
       const bottlePrefs = {...storedBottlePrefs,bottleNames:expandCorrectedWatchNames([...storedBottlePrefs.bottleNames,...storedBottlePrefs.bottleKeys],correctedBottleRecords,normalizeBottleKey)};
       const alertMode = publicMetadata.alertMode;
-      const isMuted = createBottleMuteMatcher(normalizeBottleMutes(privateMetadata.mutedBottles), muteCatalog);
+      const isMuted = createBottleMuteMatcher(await readBottleMutes(userId), muteCatalog);
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
       const hidden = candidates.some(candidate=>enumerateUnderlyingAlertChildren(candidate).some(child=>child.sourceType === "community")) ? await new CommunitySafetyRepository().hiddenFor(userId) : {blocked:new Set<string>(),reported:new Set<string>()};
       const allMatchingPreferenceCandidates = groupCandidatesByLocation(candidates
