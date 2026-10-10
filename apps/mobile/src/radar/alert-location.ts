@@ -12,7 +12,7 @@ export function groupRadarReports(alerts: MemberAlert[]) {
   const groups = new Map<string, MemberAlert[]>();
   for (const alert of alerts) {
     const names = alert.bottleNames?.length ? alert.bottleNames.slice().sort() : [alert.bottleName || alert.id];
-    const key = JSON.stringify([names, alert.storeLabel, alert.state, alert.sourceType]);
+    const key = JSON.stringify([names, alert.storeLabel, alert.state, alert.matchedArea, alert.sourceType]);
     const group = groups.get(key);
     if (group) group.push(alert); else groups.set(key, [alert]);
   }

@@ -56,4 +56,5 @@ test('Radar summarizes a retailer once and groups only the same bottle at the sa
  assert.equal(radarAlertLocation({...alert,storeLabel:'Wake County ABC'}),'Wake County ABC \u00b7 NC');
  const groups=groupRadarReports([alert,{...alert,id:'two'},{...alert,id:'other-bottle',bottleName:'Stagg'},{...alert,id:'other-store',storeLabel:'Another ABC'},{...alert,id:'community',sourceType:'community'}]);
  assert.deepEqual(groups.map(group=>group.map(item=>item.id)),[['one','two'],['other-bottle'],['other-store'],['community']]);
+ assert.equal(groupRadarReports([alert,{...alert,id:'other-area',matchedArea:'Another monitoring area'}]).length,2,'distinct location scopes must not be hidden in a repeated-report group');
 });
