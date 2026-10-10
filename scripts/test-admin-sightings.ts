@@ -73,3 +73,21 @@ test("reviewed expression aliases preserve rye, age and release identity",()=>{
  assert.equal(catalog.present({...sighting,bottleName:"Michters barrel",bottleId:"michters-barrel"}).bottleRarity.pending,true);
  assert.equal(catalog.present({...sighting,bottleName:"Old Overholt 12 Year"}).bottleRarity.pending,true);
 });
+
+test("reviewed expression corrections keep displayed labels and filter tiers consistent",async()=>{
+ const {REVIEWED_SIGHTING_RARITY:reviewed}=await import('../src/data/reviewed-sighting-rarity');
+ for(const [id,name,tier,label] of [
+  ['stagg-26b','Stagg 26B','unicorn','Unicorn'],
+  ['bb_9a5c1a3d1ce97178','E.H. Taylor Cured Oak','unicorn','Unicorn'],
+  ['penelope-riviera-cask-finish','Penelope Riviera Cask Finish','limited','Limited availability'],
+  ['penelope-estate-collection-founders-reserve','Penelope Estate Collection Founders Reserve','limited','Limited availability'],
+  ['high-west-midwinter-night-dram-act-13-scene-7','High west midwinter night dram act 13 scene 7','allocated','Allocated'],
+ ]) {
+  const corrected={...bottle,id,canonicalName:name,...reviewed[id]};
+  const catalog=buildSightingRarityCatalog([corrected]);
+  const result=catalog.present({...sighting,bottleId:id,bottleName:name});
+  assert.equal(result.rarityTier,tier);
+  assert.equal(result.bottleRarity.nationalLabel,label);
+  assert.equal(catalog.filterTiers[name.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()],tier);
+ }
+});
