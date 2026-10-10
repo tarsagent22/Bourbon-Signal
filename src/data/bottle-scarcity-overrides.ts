@@ -5,16 +5,15 @@ import type { ScarcityTier, StateScarcityOverride } from "@/lib/bottle-scarcity"
  * State systems establish local handling; they never set a national tier by themselves.
  */
 export const BOTTLE_SCARCITY_SOURCE_REGISTRY = {
-  "eht-cured-oak-special-release": { type: "producer", label: "E.H. Taylor Cured Oak special release", url: "https://www.buffalotracedistillery.com/our-brands/e-h-taylor-jr/e-h-taylor-jr-cured-oak/" },
-  "catalog-stagg-expression": { type: "catalog_baseline", label: "Reviewed Stagg expression baseline", url: "https://www.bourbonsignal.com/api/bottle-catalog?view=picker" },
-  "high-west-midwinter-act-13": { type: "producer", label: "High West A Midwinter Night's Dram Act 13", url: "https://ship.highwest.com/collections/limited-release" },
-  "penelope-cooper-series": { type: "producer", label: "Penelope Cooper Series limited releases", url: "https://shop.penelopebourbon.com/collections/cooper-series" },
-  "penelope-estate-collection": { type: "producer", label: "Penelope Estate Collection limited editions", url: "https://shop.penelopebourbon.com/collections/founders-reserve" },
-  "high-west-prisoners-share": { type: "producer", label: "High West limited releases", url: "https://highwest.com/pages/limited-releases" },
-  "old-overholt-11-2024": { type: "release_listing", label: "Old Overholt 11 Year Cask Strength 2024 release", url: "https://distiller.com/lists/new-spirit-releases-october-4-2024" },
-  "blade-bow-solera-12-annual-release": { type: "producer", label: "Blade and Bow limited annual Solera Reserve release", url: "https://www.multivu.com/diageo/9404251-en-blade-and-bow-unveils-new-limited-annual-expression-12-year-old-solera-reserve" },
-  "penelope-estate-single-barrel": { type: "producer", label: "Penelope Estate Collection", url: "https://penelopebourbon.com/estate-collection/" },
-  "heaven-hill-jts-brown": { type: "producer", label: "Heaven Hill J. T. S. Brown", url: "https://bottledinbond.heavenhilldistillery.com/" },
+  "eht-cured-oak-special-release": { type: "official_producer", label: "E.H. Taylor Cured Oak special release", url: "https://www.buffalotracedistillery.com/our-brands/e-h-taylor-jr/e-h-taylor-jr-cured-oak/" },
+  "high-west-midwinter-act-13": { type: "official_producer", label: "High West A Midwinter Night's Dram Act 13", url: "https://ship.highwest.com/collections/limited-release" },
+  "penelope-cooper-series": { type: "official_producer", label: "Penelope Cooper Series limited releases", url: "https://shop.penelopebourbon.com/collections/cooper-series" },
+  "penelope-estate-collection": { type: "official_producer", label: "Penelope Estate Collection limited editions", url: "https://shop.penelopebourbon.com/collections/founders-reserve" },
+  "high-west-prisoners-share": { type: "official_producer", label: "High West limited releases", url: "https://highwest.com/pages/limited-releases" },
+  "old-overholt-11-2024": { type: "verified_retailer", label: "Old Overholt 11 Year Cask Strength retail listing", url: "https://www.caskers.com/old-overholt-cask-strength-11-year-old-straight-rye-whiskey/" },
+  "blade-bow-solera-12-annual-release": { type: "official_producer", label: "Blade and Bow limited annual Solera Reserve release", url: "https://www.multivu.com/diageo/9404251-en-blade-and-bow-unveils-new-limited-annual-expression-12-year-old-solera-reserve" },
+  "penelope-estate-single-barrel": { type: "official_producer", label: "Penelope Estate Collection", url: "https://penelopebourbon.com/estate-collection/" },
+  "heaven-hill-jts-brown": { type: "official_producer", label: "Heaven Hill J. T. S. Brown", url: "https://bottledinbond.heavenhilldistillery.com/" },
   "engine-verified-inventory-signals": {
     type: "verified_signal",
     label: "Bourbon Signal verified multi-state inventory observations",

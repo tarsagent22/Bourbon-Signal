@@ -9,8 +9,8 @@ export const REVIEWED_SIGHTING_RARITY = {
   "stagg-26b": {
     // A batch identifier does not turn the existing Stagg expression into a
     // different rarity. Follow the app's reviewed Stagg baseline.
-    availability: "unicorn", nationalTier: "unicorn", nationalConfidence: "medium",
-    scarcitySourceIds: ["catalog-stagg-expression"], scarcityLastReviewedAt: "2026-10-10",
+    availability: "unicorn", nationalTier: "unicorn", nationalConfidence: "low",
+    scarcitySourceIds: [], scarcityLastReviewedAt: "2026-10-10",
     sourceUrl: "https://www.bourbonsignal.com/api/bottle-catalog?view=picker",
   },
   "high-west-midwinter-night-dram-act-13-scene-7": {
