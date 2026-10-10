@@ -730,7 +730,7 @@ const styles = StyleSheet.create({
   newSignalsText: { color: "#171009", fontSize: typeScale.small, lineHeight: 16, fontWeight: "900" },
   segmentedControl: { flexDirection: "row", padding: 2, borderRadius: 26, backgroundColor: "rgba(17,14,11,0.72)", borderColor: "rgba(210,184,145,0.22)", borderWidth: StyleSheet.hairlineWidth },
   segment: { flex: 1, minHeight: 44, borderRadius: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingVertical: 8 },
-  segmentSelected: { backgroundColor: "rgba(214,154,74,0.15)", borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(214,154,74,0.28)" },
+  segmentSelected: { backgroundColor: "rgba(214,154,74,0.15)" },
   segmentPressed: { opacity: 0.78 },
   segmentLabel: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   segmentLabelSelected: { color: colors.accent },
