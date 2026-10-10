@@ -44,6 +44,13 @@ export class BottleContributionRepository {
            'status', bottle_contributions.status,
            'createdAt', bottle_contributions.payload->'createdAt',
            'duplicateCount', COALESCE((bottle_contributions.payload->>'duplicateCount')::int, 1) + 1,
+           'sightingReceipts', COALESCE(bottle_contributions.payload->'sightingReceipts',
+             CASE WHEN bottle_contributions.payload->'context'->>'sightingId' IS NOT NULL AND bottle_contributions.payload->>'userId' IS NOT NULL
+               THEN jsonb_build_array(jsonb_build_object('id',bottle_contributions.payload->'context'->>'sightingId','userId',bottle_contributions.payload->>'userId'))
+               ELSE '[]'::jsonb END) || COALESCE(EXCLUDED.payload->'sightingReceipts','[]'::jsonb),
+           'context', COALESCE(EXCLUDED.payload->'context','{}'::jsonb) ||
+             CASE WHEN bottle_contributions.payload->'context'->'research' IS NOT NULL
+               THEN jsonb_build_object('research',bottle_contributions.payload->'context'->'research') ELSE '{}'::jsonb END,
            'candidateBottleId', COALESCE(bottle_contributions.payload->'candidateBottleId', EXCLUDED.payload->'candidateBottleId'),
            'candidateBottleName', COALESCE(bottle_contributions.payload->'candidateBottleName', EXCLUDED.payload->'candidateBottleName'),
            'confidence', COALESCE(bottle_contributions.payload->'confidence', EXCLUDED.payload->'confidence')

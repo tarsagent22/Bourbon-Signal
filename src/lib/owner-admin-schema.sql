@@ -73,6 +73,15 @@ BEGIN
     payload=payload || jsonb_build_object('bottleId',p_bottle,'bottleName',p_name,'pendingCanonicalMatch',false,'updatedAt',now()),updated_at=now()
    WHERE bottle_contribution_id=p_id RETURNING user_id
   ) UPDATE member_collection_state SET version=version+1,updated_at=now() WHERE user_id IN(SELECT user_id FROM changed);
+  UPDATE community_sightings SET payload=payload || jsonb_build_object(
+    'bottleId',p_bottle,'bottleName',p_name,
+    'reviewState',(COALESCE(payload->'reviewState','{}'::jsonb)-'manualBottleName'-'manualBottleRarityTier') ||
+      jsonb_build_object('needsBottleReview',false,'reviewedAt',now(),'reviewedBy',p_actor,
+        'reviewNote','Bottle matched to the library.')),
+    updated_at=now()
+  WHERE (id=v_before->'context'->>'sightingId' AND reporter_user_id=v_before->>'userId')
+    OR EXISTS(SELECT 1 FROM jsonb_array_elements(COALESCE(v_before->'sightingReceipts','[]'::jsonb)) receipt
+      WHERE receipt->>'id'=community_sightings.id AND receipt->>'userId'=community_sightings.reporter_user_id);
  END IF;
  v_after=v_before || jsonb_build_object('status',p_status,'candidateBottleId',p_bottle,'candidateBottleName',p_name,'notes',p_reason,'updatedAt',now());
  UPDATE bottle_contributions SET status=p_status,payload=v_after,updated_at=now() WHERE id=p_id;

@@ -33,6 +33,8 @@ export interface CanonicalSignal {
     id?: string;
     name: string;
     rarity?: SignalRarityTier;
+    scarcity?: import("../../../shared/sighting-bottle-rarity").SightingBottleRarity;
+    rarityPending?: boolean;
   };
   location: {
     scope: SignalLocationScope;
@@ -345,6 +347,8 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
     bottle: {
       ...(sighting.bottleId ? { id: sighting.bottleId } : {}),
       name: sighting.bottleName || "Unknown bottle",
+      rarityPending: sighting.bottleRarity?.pending ?? (!sighting.bottleId || sighting.reviewState?.needsBottleReview === true),
+      ...(sighting.bottleRarity ? { scarcity: sighting.bottleRarity } : {}),
       ...(signalRarity(sighting.rarityTier) ? { rarity: signalRarity(sighting.rarityTier) } : {}),
     },
     location: {

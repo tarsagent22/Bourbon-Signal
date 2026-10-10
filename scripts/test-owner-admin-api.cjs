@@ -237,3 +237,34 @@ test("actual post route corrects mappings atomically, preserves photo review, re
     await db.close();
   }
 });
+
+
+test('submission research must be audited and artwork stays bound to the researched identity',async()=>{
+ const art={url:'https://test.public.blob.vercel-storage.com/bottle-artwork/original.png',sha256:'a'.repeat(64),reviewedAt:'2026-10-10T12:00:00Z',description:'Inspected original bottle art'};
+ const trusted={canonicalName:'Exact Bourbon',artwork:art};let audited=false;let patch;
+ const entry={id:'submission',rawName:'Exact',status:'new',updatedAt:'2026-10-10T12:00:00Z',context:{research:{canonicalName:'Injected',artwork:art}}};
+ const route=moduleFrom('src/app/api/admin/bottle-contributions/route.ts',{
+  '@/lib/admin-review':moduleFrom('src/lib/admin-review.ts'),
+  '@/lib/owner-auth':{requireOwnerApiAccess:async()=>({userId:'owner'})},
+  '@/lib/bottle-contributions':{readBottleContributionQueue:async()=>({contributions:[entry]})},
+  '@/lib/bourbonBible':{getOwnerBourbonBible:async()=>[],clearBourbonBibleCache:()=>{}},
+  '@/lib/owner-admin-repository':{reviewOwnerBottleSubmission:async args=>{patch=args.patch;return {...entry,status:'added'};}},
+  '@/lib/owner-workspace':{coverageDatabase:()=>({query:async()=>audited?[{target_id:entry.id,research:trusted}]:[]})},
+ });
+ let data=await (await route.GET()).json();assert.equal(data.contributions[0].context.research,undefined,'member payload is not a trusted recommendation');
+ const apply=async name=>route.PATCH(new Request('https://example.test/api/admin/bottle-contributions',{method:'PATCH',body:JSON.stringify({id:entry.id,action:'approve_changes',expectedUpdatedAt:entry.updatedAt,version:0,reason:'Confirm submission',bottle:{canonicalName:name,brand:'Exact',category:'bourbon',availability:'common',rarityPending:true}})}));
+ assert.equal((await apply('Exact Bourbon')).status,200);assert.equal(patch.artwork,undefined);
+ audited=true;data=await (await route.GET()).json();assert.equal(data.contributions[0].context.research.canonicalName,'Exact Bourbon');
+ assert.equal((await apply('Exact Bourbon')).status,200);assert.equal(patch.artwork.url,art.url);
+ assert.equal((await apply('Different Expression')).status,200);assert.equal(patch.artwork,undefined,'editing the identity cannot borrow another expression artwork');
+});
+
+test('public artwork delivery exposes only reviewed decorative blob assets',async()=>{
+ let bottle;const route=moduleFrom('src/app/api/v1/bottle-artwork/[id]/route.ts',{'@/lib/bourbonBible':{getBottleById:async()=>bottle}});
+ const request=()=>route.GET(new Request('https://example.test/api/v1/bottle-artwork/owner-test'),{params:Promise.resolve({id:'owner-test'})});
+ assert.equal((await request()).status,404);
+ bottle={artwork:{url:'https://test.public.blob.vercel-storage.com/member-photo/private.png',sha256:'a'.repeat(64),reviewedAt:'2026-10-10T12:00:00Z',description:'Not decorative'}};
+ assert.equal((await request()).status,503);
+ bottle.artwork.url='https://test.public.blob.vercel-storage.com/bottle-artwork/clean.png';
+ const response=await request();assert.equal(response.status,302);assert.equal(response.headers.get('Location'),bottle.artwork.url);
+});

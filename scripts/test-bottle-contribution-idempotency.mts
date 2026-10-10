@@ -173,3 +173,13 @@ test("repository fails when a conflict cannot be replayed", async () => {
   const repository = new BottleContributionRepository(query);
   await assert.rejects(repository.insertOrReplayContribution(contribution()), /Unable to persist or replay bottle contribution/);
 });
+
+
+test("member evidence cannot inject trusted research, art or another reporter receipt", async () => {
+  const dependencies = {repository:{upsertContribution:async (c: BottleContribution)=>c,insertOrReplayContribution:async(c: BottleContribution)=>c},candidateMatcher:async()=>null};
+  const result = await addBottleContribution({rawName:"New bottle",source:"sighting",userId:"real-member",context:{sightingId:"their-post",notes:"Member evidence",research:{confidence:"high",artwork:{url:"https://evil.test"}},sightingReceipts:[{id:"other-post",userId:"other-member"}]}},dependencies);
+  assert.equal(result.context?.research,undefined);
+  assert.equal(result.context?.sightingReceipts,undefined);
+  assert.equal(result.context?.notes,"Member evidence");
+  assert.deepEqual(result.sightingReceipts,[{id:"their-post",userId:"real-member"}]);
+});

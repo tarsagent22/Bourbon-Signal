@@ -9,6 +9,7 @@ import {
 
 import {
   Image,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,7 +22,7 @@ import * as Crypto from "expo-crypto";
 
 import { useMobileApi } from "../hooks/useMobileApi";
 
-import { Action, workspaceStyles as s } from "../components/WorkspaceUI";
+import { workspaceStyles as baseStyles } from "../components/WorkspaceUI";
 
 import { LoadingState } from "../components/MemberScreen";
 
@@ -32,6 +33,52 @@ import {
   type CoverageStatus,
 } from "../../../../shared/coverage-requests";
 
+const s = {
+  ...baseStyles,
+  card: { ...baseStyles.card, padding: 14, gap: 9, borderRadius: 12 },
+  heading: { ...baseStyles.heading, fontSize: 19 },
+};
+function Action({
+  label,
+  onPress,
+  disabled = false,
+  selected = false,
+  primary = false,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  selected?: boolean;
+  primary?: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled, selected }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: 44,
+        paddingHorizontal: 13,
+        paddingVertical: 11,
+        borderRadius: 9,
+        justifyContent: "center",
+        backgroundColor: primary ? "#E3AD70" : selected ? "#38291B" : "#211C17",
+        opacity: disabled || pressed ? 0.5 : 1,
+      })}
+    >
+      <Text
+        style={{
+          fontSize: 15,
+          fontWeight: "700",
+          color: primary ? "#21170D" : selected ? "#FFD29B" : "#DDD0BE",
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 type Row = Record<string, any>;
 
 type Api = ReturnType<typeof useMobileApi>;
@@ -108,6 +155,7 @@ export const ownerStyles = StyleSheet.create({
 
 const ui = ownerStyles;
 const AdminRevoke = createContext<() => void>(() => {});
+const AdminNotice = createContext<(message: string) => void>(() => {});
 
 function human(value: unknown) {
   const text = String(value ?? "");
@@ -117,7 +165,16 @@ function human(value: unknown) {
         "bottled-in-bond": "Founder",
         barrel: "Barrel Proof",
         standard: "Standard",
-        free: "Free", all: "All", paid: "Paid", joined_desc: "Newest joined", joined_asc: "Oldest joined", activity: "Recent sign-in", name: "Name A–Z", all_members: "All members", mobile_app_users: "Mobile app users", mobile_activity: "Recent app activity",
+        free: "Free",
+        all: "All",
+        paid: "Paid",
+        joined_desc: "Newest joined",
+        joined_asc: "Oldest joined",
+        activity: "Recent sign-in",
+        name: "Name A–Z",
+        all_members: "All members",
+        mobile_app_users: "Mobile app users",
+        mobile_activity: "Recent app activity",
       } as Record<string, string>
     )[text] || text.replace(/([a-z])([A-Z])/g, "$1 $2").replaceAll("_", " ")
   );
@@ -192,12 +249,14 @@ function Tabs({
 
 function Search({
   label,
+  initialQuery = "",
   onSearch,
 }: {
   label: string;
+  initialQuery?: string;
   onSearch: (q: string) => void;
 }) {
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
   return (
     <View style={{ gap: 8 }}>
       <TextInput
@@ -314,6 +373,7 @@ function Status({ state }: { state: ReturnType<typeof useData> }) {
 }
 
 function useSave(api: Api, refresh: () => Promise<unknown>) {
+  const announce = useContext(AdminNotice);
   const revoke = useContext(AdminRevoke);
 
   const [busy, setBusy] = useState(false),
@@ -335,6 +395,7 @@ function useSave(api: Api, refresh: () => Promise<unknown>) {
             ? await api.sendAdminShipmentEmail(body)
             : await api.saveAdminReview(part, body);
       setNotice(message);
+      announce(message);
       await refresh();
       return result;
     } catch (e) {
@@ -353,8 +414,16 @@ function useSave(api: Api, refresh: () => Promise<unknown>) {
 function Saved({ save }: { save: ReturnType<typeof useSave> }) {
   return (
     <>
-      {save.error ? <Text style={ui.error}>{save.error}</Text> : null}
-      {save.notice ? <Text style={ui.notice}>{save.notice}</Text> : null}
+      {save.error ? (
+        <Text accessibilityRole="alert" style={ui.error}>
+          {save.error}
+        </Text>
+      ) : null}
+      {save.notice ? (
+        <Text accessibilityLiveRegion="polite" style={ui.notice}>
+          {save.notice}
+        </Text>
+      ) : null}
     </>
   );
 }
@@ -413,6 +482,8 @@ export default function OwnerWorkspace() {
   const api = useMobileApi(),
     [access, setAccess] = useState<{ api: Api; allowed: boolean } | null>(null),
     [section, setSection] = useState<Destination>("Inbox"),
+    [groupView, setGroupView] = useState(""),
+    [announcement, setAnnouncement] = useState(""),
     [member, setMember] = useState<string | null>(null),
     [communityUser, setCommunityUser] = useState<string | null>(null),
     [rewardUser, setRewardUser] = useState<string | null>(null);
@@ -452,75 +523,104 @@ export default function OwnerWorkspace() {
     setSection("Members");
   };
 
+  const openGroup = (destination: Destination, view = "") => {
+    setGroupView(view);
+    setSection(destination);
+    setMember(null);
+    setCommunityUser(null);
+    setRewardUser(null);
+  };
   return (
     <AdminRevoke.Provider value={revoke}>
-      <ScrollView style={s.screen} keyboardShouldPersistTaps="handled">
-        <View style={ui.top}>
-          <Text style={ui.title}>Admin workspace</Text>
-          <Text style={ui.small}>
-            Find records, make corrections and manage fulfillment.
-          </Text>
-        </View>
-        <View style={[ui.nav, ui.row]}>
-          {destinations.map((v) => (
-            <Pressable
-              key={v}
-              accessibilityRole="button"
-              accessibilityState={{ selected: section === v }}
-              onPress={() => {
-                setSection(v);
-                if (v !== "Members") setMember(null);
-              }}
-              style={[ui.tab, section === v && ui.active]}
-            >
-              <Text style={[ui.tabText, section === v && ui.activeText]}>
-                {v}
+      <AdminNotice.Provider value={setAnnouncement}>
+        <ScrollView style={s.screen} keyboardShouldPersistTaps="handled">
+          <View style={ui.top}>
+            {section !== "Inbox" ? (
+              <Action label="‹ Admin home" onPress={() => openGroup("Inbox")} />
+            ) : null}
+            <Text style={ui.title}>
+              {section === "Inbox"
+                ? "Admin"
+                : section === "Operations"
+                  ? "Coverage & operations"
+                  : section}
+            </Text>
+            {section === "Inbox" ? (
+              <Text style={ui.small}>
+                Review what needs attention. Keep everything moving.
               </Text>
-            </Pressable>
-          ))}
-        </View>
-        <View style={ui.body}>
-          {member && section !== "Members" ? <Action label="Back to member profile" onPress={() => setSection("Members")} /> : null}
-          {section === "Inbox" ? (
-            <Inbox api={api} onOpen={setSection} />
-          ) : section === "Feedback" ? (
-            <Feedback api={api} onMember={openMember}/>
-          ) : section === "Community" ? (
-            <Community
-              api={api}
-              onMember={openMember}
-              userId={communityUser}
-              onClear={() => setCommunityUser(null)}
-            />
-          ) : section === "Bottles" ? (
-            <Bottles api={api} />
-          ) : section === "Members" ? (
-            <Members
-              api={api}
-              selected={member}
-              onSelect={setMember}
-              onActivity={kind => setSection(kind === "bottles" ? "Bottles" : kind === "feedback" ? "Feedback" : kind === "coverage" ? "Operations" : "Community")}
-              onCommunity={() => {
-                setCommunityUser(member);
-                setSection("Community");
-              }}
-              onRewards={() => {
-                setRewardUser(member);
-                setSection("Rewards & Shipping");
-              }}
-            />
-          ) : section === "Rewards & Shipping" ? (
-            <Rewards
-              api={api}
-              onMember={openMember}
-              userId={rewardUser}
-              onClear={() => setRewardUser(null)}
-            />
-          ) : (
-            <CoverageOperations api={api} />
-          )}
-        </View>
-      </ScrollView>
+            ) : null}
+          </View>
+          <View style={ui.body}>
+            {announcement ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss saved confirmation"
+                onPress={() => setAnnouncement("")}
+              >
+                <Text accessibilityLiveRegion="polite" style={ui.notice}>
+                  {announcement} ×
+                </Text>
+              </Pressable>
+            ) : null}
+            {member && section !== "Members" ? (
+              <Action
+                label="Back to member profile"
+                onPress={() => setSection("Members")}
+              />
+            ) : null}
+            {section === "Inbox" ? (
+              <Inbox api={api} onOpen={openGroup} />
+            ) : section === "Feedback" ? (
+              <Feedback api={api} onMember={openMember} />
+            ) : section === "Community" ? (
+              <Community
+                api={api}
+                onMember={openMember}
+                userId={communityUser}
+                onClear={() => setCommunityUser(null)}
+              />
+            ) : section === "Bottles" ? (
+              <Bottles api={api} initialView={groupView || "Missing bottles"} />
+            ) : section === "Members" ? (
+              <Members
+                api={api}
+                selected={member}
+                onSelect={setMember}
+                onActivity={(kind) =>
+                  setSection(
+                    kind === "bottles"
+                      ? "Bottles"
+                      : kind === "feedback"
+                        ? "Feedback"
+                        : kind === "coverage"
+                          ? "Operations"
+                          : "Community",
+                  )
+                }
+                onCommunity={() => {
+                  setCommunityUser(member);
+                  setSection("Community");
+                }}
+                onRewards={() => {
+                  setRewardUser(member);
+                  setSection("Rewards & Shipping");
+                }}
+              />
+            ) : section === "Rewards & Shipping" ? (
+              <Rewards
+                initialView={groupView || "Open rewards"}
+                api={api}
+                onMember={openMember}
+                userId={rewardUser}
+                onClear={() => setRewardUser(null)}
+              />
+            ) : (
+              <CoverageOperations api={api} />
+            )}
+          </View>
+        </ScrollView>
+      </AdminNotice.Provider>
     </AdminRevoke.Provider>
   );
 }
@@ -530,51 +630,131 @@ function Inbox({
   onOpen,
 }: {
   api: Api;
-  onOpen: (s: Destination) => void;
+  onOpen: (section: Destination, view?: string) => void;
 }) {
   const state = useData(api, "overview");
-  const rows: [string, string, Destination][] = [
-    ["feedback", "New member feedback", "Feedback"],
-    ["coverage", "Coverage requests", "Operations"],
-    ["community", "Posts needing review", "Community"],
-    ["bottles", "Missing bottle submissions", "Bottles"],
-    ["rewards", "Open reward redemptions", "Rewards & Shipping"],
-    ["founderShipping", "Founder shipments", "Rewards & Shipping"],
+  const rows: [string, string, string, Destination, string][] = [
+    [
+      "bottles",
+      "Bottle submissions",
+      "Confirm new bottles or match an existing entry",
+      "Bottles",
+      "Missing bottles",
+    ],
+    [
+      "community",
+      "Community posts",
+      "Check bottle details, locations and photos",
+      "Community",
+      "",
+    ],
+    [
+      "feedback",
+      "Member feedback",
+      "Read issues and requests from members",
+      "Feedback",
+      "",
+    ],
+    [
+      "coverage",
+      "Coverage requests",
+      "Manage investigations and member updates",
+      "Operations",
+      "",
+    ],
+    [
+      "rewards",
+      "Reward orders",
+      "Prepare outstanding rewards",
+      "Rewards & Shipping",
+      "Open rewards",
+    ],
+    [
+      "founderShipping",
+      "Founder shipments",
+      "Prepare and track founder orders",
+      "Rewards & Shipping",
+      "Founder shipments",
+    ],
   ];
-
+  const pending = rows.filter(
+    ([key]) => state.data?.[key] == null || state.data[key] > 0,
+  );
   return (
     <>
       <Text style={s.heading}>Needs attention</Text>
       <Status state={state} />
-      <View style={{ gap: 6 }}>
-        {[...rows].sort((a,b) => Number(state.data?.[b[0]] || 0)-Number(state.data?.[a[0]] || 0)).map(([key,label,section]) => {
-          const count = state.data?.[key];
-          return <Pressable key={key} accessibilityRole="button" onPress={() => onOpen(section)} style={[ui.choice, {padding:12}]}>
-            <Text style={count > 0 ? ui.badge : ui.small}>{count == null ? `${label} · Unavailable` : count > 0 ? `Review ${count} ${label.toLowerCase()}` : `${label} · Up to date`} →</Text>
-          </Pressable>;
-        })}
+      {state.data && !pending.length ? (
+        <Empty
+          title="You're caught up"
+          copy="Browse a group below to manage existing records."
+        />
+      ) : null}
+      <View style={{ gap: 8 }}>
+        {pending.map(([key, label, detail, destination, view]) => (
+          <Pressable
+            key={key}
+            accessibilityRole="button"
+            accessibilityLabel={`${label}: ${state.data?.[key] ?? "unavailable"}`}
+            onPress={() => onOpen(destination, view)}
+            style={[
+              s.card,
+              { flexDirection: "row", alignItems: "center", gap: 12 },
+            ]}
+          >
+            <View
+              style={{
+                width: 37,
+                height: 37,
+                borderRadius: 10,
+                backgroundColor: "#38291B",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text style={ui.badge}>{state.data?.[key] ?? "—"}</Text>
+            </View>
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text style={s.label}>{label}</Text>
+              <Text style={ui.mini}>{detail}</Text>
+            </View>
+            <Text style={ui.badge}>›</Text>
+          </Pressable>
+        ))}
       </View>
-      {state.data?.unavailable.length ? (
+      {state.data?.unavailable?.length ? (
         <Text style={ui.error}>
-          Some queues are unavailable. A dash means they could not refresh.
+          Some groups could not refresh. Try again before making changes.
         </Text>
       ) : null}
-      <Text style={s.heading}>Find and manage</Text>
-      <Action
-        label="Search the bottle library"
-        onPress={() => onOpen("Bottles")}
-      />
-      <Action label="Browse members" onPress={() => onOpen("Members")} />
-      <Action
-        label="Open community controls"
-        onPress={() => onOpen("Community")}
-      />
-      <Action
-        label="Pricing, service health and change history"
-        onPress={() => onOpen("Operations")}
-      />
-      <Text style={ui.mini}>Checked {date(state.data?.checkedAt)}</Text>
-      <Action label="Refresh inbox" onPress={() => void state.load()} />
+      <Text style={s.heading}>Browse by group</Text>
+      <View style={{ gap: 2 }}>
+        {destinations
+          .filter((d) => d !== "Inbox")
+          .map((d) => (
+            <Pressable
+              key={d}
+              accessibilityRole="button"
+              onPress={() => onOpen(d, d === "Bottles" ? "Library" : "")}
+              style={{
+                minHeight: 48,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderBottomWidth: 1,
+                borderBottomColor: "#302820",
+                paddingHorizontal: 4,
+              }}
+            >
+              <Text style={s.label}>
+                {d === "Operations" ? "Coverage & operations" : d}
+              </Text>
+              <Text style={ui.small}>›</Text>
+            </Pressable>
+          ))}
+      </View>
+      <Text style={ui.mini}>Updated {date(state.data?.checkedAt)}</Text>
+      <Action label="Refresh" onPress={() => void state.load()} />
     </>
   );
 }
@@ -583,13 +763,19 @@ function BottlePicker({
   api,
   onChoose,
   chosen,
+  initialQuery = "",
 }: {
   api: Api;
   onChoose: (b: Row) => void;
   chosen?: Row | null;
+  initialQuery?: string;
 }) {
-  const [query, setQuery] = useState("");
-  const state = useData(api, "catalog", `?q=${encodeURIComponent(query)}`);
+  const [query, setQuery] = useState(initialQuery);
+  const state = useData(
+    api,
+    "catalog",
+    `?q=${encodeURIComponent(query)}&suggest=1`,
+  );
 
   return (
     <View style={{ gap: 10 }}>
@@ -597,7 +783,7 @@ function BottlePicker({
       {chosen ? (
         <Text style={ui.badge}>Selected: {chosen.canonicalName}</Text>
       ) : null}
-      <Search label="Search bottle name, brand or alias" onSearch={setQuery} />
+      <Search label="Search bottle name, brand or alias" initialQuery={initialQuery} onSearch={setQuery} />
       <Status state={state} />
       {state.data?.bottles.slice(0, 8).map((b: Row) => (
         <Pressable
@@ -617,8 +803,8 @@ function BottlePicker({
       ))}
       {state.data?.bottles.length === 0 ? (
         <Text style={ui.small}>
-          No match. Create the exact entry in Bottle Library, then select it
-          here.
+          No matching bottle found. Try a shorter name or add this as a new
+          bottle.
         </Text>
       ) : null}
     </View>
@@ -703,10 +889,7 @@ function Community({
                   ? "Needs review"
                   : "Live post"}
             </Text>
-            <Action
-              label="Open post and controls"
-              onPress={() => setSelected(r)}
-            />
+            <Action label="Review post" onPress={() => setSelected(r)} />
           </View>
         ))
       )}
@@ -760,7 +943,8 @@ function PostEditor({
         : null,
     ),
     [reason, setReason] = useState(""),
-    [photoLoaded, setPhotoLoaded] = useState(false),[photoFailed,setPhotoFailed]=useState(false);
+    [photoLoaded, setPhotoLoaded] = useState(false),
+    [photoFailed, setPhotoFailed] = useState(false);
   const save = useSave(api, onRefresh);
   const proof = row.rewardState?.photoProof;
 
@@ -824,12 +1008,22 @@ function PostEditor({
             accessibilityLabel="Post photo evidence"
             style={ui.photo}
             resizeMode="contain"
-            onLoad={() => {setPhotoLoaded(true);setPhotoFailed(false);}}
-            onError={() => {setPhotoLoaded(false);setPhotoFailed(true);}}
+            onLoad={() => {
+              setPhotoLoaded(true);
+              setPhotoFailed(false);
+            }}
+            onError={() => {
+              setPhotoLoaded(false);
+              setPhotoFailed(true);
+            }}
           />
           <Text style={ui.small}>
             Photo: {human(proof.status || "pending")}
-            {photoFailed?" · Photo could not load. Reopen the post to retry.":!photoLoaded ? " · Waiting for photo to load" : ""}
+            {photoFailed
+              ? " · Photo could not load. Reopen the post to retry."
+              : !photoLoaded
+                ? " · Waiting for photo to load"
+                : ""}
           </Text>
         </>
       ) : null}
@@ -901,7 +1095,14 @@ function PostEditor({
         </>
       ) : null}
 
-      {proof?<Confirm label="Reject photo evidence" explanation="Photo verification is removed and related rewards are recalculated." busy={save.busy||reason.trim().length<3} onApply={()=>photo('reject_photo')}/>:null}
+      {proof ? (
+        <Confirm
+          label="Reject photo evidence"
+          explanation="Photo verification is removed and related rewards are recalculated."
+          busy={save.busy || reason.trim().length < 3}
+          onApply={() => photo("reject_photo")}
+        />
+      ) : null}
       {row.rewardState?.removedAt || row.rewardState?.rejectedAt ? (
         <Confirm
           label="Restore post"
@@ -921,8 +1122,14 @@ function PostEditor({
   );
 }
 
-function Bottles({ api }: { api: Api }) {
-  const [view, setView] = useState("Library"),
+function Bottles({
+  api,
+  initialView = "Library",
+}: {
+  api: Api;
+  initialView?: string;
+}) {
+  const [view, setView] = useState(initialView),
     [q, setQ] = useState(""),
     [offset, setOffset] = useState(0),
     [selected, setSelected] = useState<Row | null>(null);
@@ -955,7 +1162,7 @@ function Bottles({ api }: { api: Api }) {
             }}
           />
           <Action
-            label="Create a library entry"
+            label="Add bottle"
             onPress={() =>
               setSelected({
                 version: 0,
@@ -963,6 +1170,7 @@ function Bottles({ api }: { api: Api }) {
                 brand: "",
                 category: "bourbon",
                 availability: "common",
+                rarityPending: true,
                 aliases: [],
               })
             }
@@ -984,7 +1192,7 @@ function Bottles({ api }: { api: Api }) {
               <View key={b.id} style={s.card}>
                 <Text style={s.label}>{b.canonicalName}</Text>
                 <Text style={ui.small}>
-                  {b.brand} · {human(b.category)} · {human(b.availability)}
+                  {b.brand} · {human(b.category)} · {b.rarityPending ? "Rarity pending" : human(b.availability)}
                   {b.proof ? ` · ${b.proof} proof` : ""}
                 </Text>
                 <Action
@@ -1017,7 +1225,10 @@ function BottleEditor({
   onSaved: (b?: Row) => Promise<unknown>;
 }) {
   const [draft, setDraft] = useState<Row>({ ...row }),
-    [reason, setReason] = useState(""),
+    [reason, setReason] = useState(
+      submission ? "Confirmed member bottle submission" : "",
+    ),
+    [detailsOpen, setDetailsOpen] = useState(false),
     [merging, setMerging] = useState(false),
     [target, setTarget] = useState<Row | null>(null);
   const save = useSave(api, async () => {});
@@ -1028,26 +1239,47 @@ function BottleEditor({
     const result = await save.run(
       submission ? "bottle-contributions" : "catalog",
       {
-        ...(submission ? { id:submission.id, expectedUpdatedAt:submission.updatedAt, action:later ? "save_later" : "approve_changes", bottleId:row.id } : { id:row.id }),
+        ...(submission
+          ? {
+              id: submission.id,
+              expectedUpdatedAt: submission.updatedAt,
+              action: later ? "save_later" : "approve_changes",
+              bottleId: row.id,
+            }
+          : { id: row.id }),
         version: row.version || 0,
         bottle: { ...draft, proof: draft.proof === "" ? null : draft.proof },
-        reason,
+        reason: reason.trim() || "Confirmed member bottle submission",
         ...(merge
           ? { redirectId: target?.id, targetVersion: target?.version }
           : {}),
       },
-      "Library entry saved.",
+      later
+        ? "Draft saved. The library is unchanged."
+        : submission
+          ? "Bottle added and original sighting and shelf entries linked."
+          : "Library changes saved.",
     );
     if (result) await onSaved(result.bottle as Row);
   }
 
   return (
     <View style={s.card}>
-      <Action label={submission ? "Back to submission" : "Back to library"} onPress={onClose} />
+      <Action
+        label={submission ? "Back to submission" : "Back to library"}
+        onPress={onClose}
+      />
       <Text style={s.heading}>
         {row.id ? "Edit bottle" : "New whiskey entry"}
       </Text>
-      {submission ? <Text style={ui.small}>Original submission: {submission.rawName} · {submission.userEmail || submission.userId || "Unattributed historical record"}</Text> : null}
+      {submission ? (
+        <Text style={ui.small}>
+          Original submission: {submission.rawName} ·{" "}
+          {submission.userEmail ||
+            submission.userId ||
+            "Unattributed historical record"}
+        </Text>
+      ) : null}
       {[
         ["canonicalName", "Exact name, release / batch and size"],
         ["brand", "Brand"],
@@ -1059,22 +1291,43 @@ function BottleEditor({
         ["photoEvidenceUrl", "Photo evidence URL (HTTPS)"],
         ["summary", "Description"],
         ["guidance", "Buying guidance"],
-      ].map(([key, label]) => (
-        <TextField
-          key={key}
-          label={label}
-          value={draft[key]}
-          onChange={(v) => patch(key, v)}
-          multiline={key === "summary" || key === "guidance"}
-        />
-      ))}
+      ]
+        .filter(
+          ([key]) => detailsOpen || ["canonicalName", "brand"].includes(key),
+        )
+        .map(([key, label]) => (
+          <TextField
+            key={key}
+            label={label}
+            value={draft[key]}
+            onChange={(v) => patch(key, v)}
+            multiline={key === "summary" || key === "guidance"}
+          />
+        ))}
+      <Action
+        label={
+          detailsOpen
+            ? "Hide optional details"
+            : "Add proof, age, size or sources"
+        }
+        onPress={() => setDetailsOpen(!detailsOpen)}
+      />
       <Text style={ui.mini}>Category</Text>
       <Tabs
         choices={["bourbon", "rye", "american_whiskey"]}
         value={draft.category}
         onChange={(v) => patch("category", v)}
       />
-      <Text style={ui.mini}>Catalog rarity class (not store stock)</Text>
+      <Text style={ui.mini}>National rarity</Text>
+      <Action
+        label={
+          draft.rarityPending
+            ? "Rarity pending · choose later"
+            : "Leave rarity pending"
+        }
+        selected={!!draft.rarityPending}
+        onPress={() => patch("rarityPending", true)}
+      />
       <Tabs
         choices={[
           "common",
@@ -1085,33 +1338,50 @@ function BottleEditor({
           "highly_allocated",
           "unicorn",
         ]}
-        value={draft.availability}
-        onChange={(v) => patch("availability", v)}
+        value={draft.rarityPending ? "" : draft.availability}
+        onChange={(v) =>
+          setDraft({ ...draft, availability: v, rarityPending: false })
+        }
       />
-      <TextField
+      {detailsOpen ? <TextField
         label="Aliases (one per line)"
         value={(draft.aliases || []).join("\n")}
         onChange={(v) => patch("aliases", v.split("\n"))}
         multiline
-      />
-      <TextField
+      /> : null}
+      {!submission || detailsOpen ? <TextField
         label="Reason for library change"
         value={reason}
         onChange={setReason}
         multiline
-      />
-      <Text style={ui.small}>
-        Existing entry IDs stay stable. Linked shelf entries retain their
-        quantities, ratings, purchase information and notes.
-      </Text>
+      /> : null}
       <Saved save={save} />
-      <Confirm
-        label={submission ? "Approve with changes" : row.id ? "Save library corrections" : "Create library entry"}
-        explanation="These details become available to members in the bottle library."
-        busy={save.busy || reason.trim().length < 3}
-        onApply={() => apply()}
+      <Action
+        primary
+        label={
+          save.busy
+            ? "Saving…"
+            : submission
+              ? "Add to bottle library"
+              : row.id
+                ? "Save bottle changes"
+                : "Add to bottle library"
+        }
+        disabled={
+          save.busy ||
+          String(draft.canonicalName || "").trim().length < 2 ||
+          String(draft.brand || "").trim().length < 2 ||
+          (!submission && reason.trim().length < 3)
+        }
+        onPress={() => void apply().catch(() => {})}
       />
-      {submission ? <Action label="Save for later" disabled={save.busy || reason.trim().length < 3} onPress={() => void apply(false,true)} /> : null}
+      {submission ? (
+        <Action
+          label="Save for later"
+          disabled={save.busy || reason.trim().length < 3}
+          onPress={() => void apply(false, true).catch(() => {})}
+        />
+      ) : null}
       {row.id && !submission ? (
         <Action
           label={
@@ -1211,11 +1481,14 @@ function SubmissionEditor({
   onClose: () => void;
   onRefresh: () => Promise<unknown>;
 }) {
-  const [chosen, setChosen] = useState<Row | null>(null),
-    [reason, setReason] = useState(""),
-    [creating, setCreating] = useState(false);
+  const [chosen, setChosen] = useState<Row | null>(null);
+  const [reason, setReason] = useState("");
+  const [mode, setMode] = useState<"review" | "add" | "match" | "reject">(
+    "review",
+  );
   const save = useSave(api, onRefresh);
-
+  const pending = ["new", "needs_human"].includes(row.status);
+  const research = row.context?.research;
   const act = (action: string) =>
     save.run(
       "bottle-contributions",
@@ -1224,58 +1497,183 @@ function SubmissionEditor({
         expectedUpdatedAt: row.updatedAt,
         action,
         candidateBottleId: chosen?.id,
-        reason,
+        reason:
+          reason.trim() ||
+          (action === "use_match"
+            ? `Matched to ${chosen?.canonicalName}`
+            : "Reopened for review"),
       },
-      "Submission resolved and linked shelf entries updated.",
+      action === "use_match"
+        ? "Bottle matched. The original sighting and linked shelf entries are updated."
+        : action === "dismiss"
+          ? "Submission rejected. The member's shelf entry is preserved."
+          : "Submission reopened.",
     );
-
-  if (creating) return <BottleEditor api={api} submission={row} row={row.reviewDraft || chosen || {version:0,canonicalName:row.rawName,brand:"",category:"bourbon",availability:"common",aliases:[]}} onClose={() => setCreating(false)} onSaved={async () => {await onRefresh();onClose();}} />;
-
+  if (mode === "add")
+    return (
+      <BottleEditor
+        api={api}
+        submission={row}
+        row={
+          row.reviewDraft || {
+            version: 0,
+            canonicalName: research?.canonicalName || row.rawName,
+            brand: research?.brand || "",
+            category: research?.category || "bourbon",
+            availability: research?.availability || "common",
+            rarityPending: !research?.availability,
+            aliases: [],
+            sourceUrl: research?.sources?.[0]?.url || "",
+          }
+        }
+        onClose={() => setMode("review")}
+        onSaved={async () => {
+          await onRefresh();
+          onClose();
+        }}
+      />
+    );
   return (
     <View style={s.card}>
-      <Action label="Back to submissions" onPress={onClose} />
+      <Action label="‹ Submissions" disabled={save.busy} onPress={onClose} />
       <Text style={s.heading}>{row.rawName}</Text>
       <Text style={ui.small}>
-        From {human(row.source)} · {row.userEmail || "Member submission"} ·{" "}
-        {human(row.status)}
+        {row.userEmail || "Member submission"} · {date(row.createdAt)}
       </Text>
-      {row.notes ? (
-        <Text style={ui.small}>Previous review: {row.notes}</Text>
+      <Text style={ui.small}>
+        {row.source === "sighting"
+          ? "Submitted with a community sighting"
+          : row.source === "collection"
+            ? "Added to a member's shelf"
+            : "Submitted from bottle search"}
+      </Text>
+      {row.context?.storeName ? (
+        <Text style={ui.small}>
+          {[
+            row.context.storeName,
+            row.context.storeCity,
+            row.context.storeState,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </Text>
       ) : null}
-      <BottlePicker api={api} chosen={chosen} onChoose={setChosen} />
-      <Action
-        label={
-          creating
-            ? "Close new entry"
-            : "Review and correct bottle fields"
-        }
-        onPress={() => setCreating(!creating)}
-      />
-      <TextField
-        label="Match / dismissal reason"
-        value={reason}
-        onChange={setReason}
-        multiline
-      />
+      {row.sighting?.notes ? (
+        <Text style={s.copy}>{row.sighting.notes}</Text>
+      ) : null}
+      {row.sighting?.photoUrl ? (
+        <Image
+          source={{ uri: row.sighting.photoUrl }}
+          style={ui.photo}
+          resizeMode="contain"
+          accessibilityLabel="Submitted bottle photo"
+        />
+      ) : null}
+      {research ? (
+        <View style={ui.choice}>
+          <Text style={s.label}>Research recommendation</Text>
+          <Text style={ui.badge}>
+            {research.availability
+              ? human(research.availability)
+              : "Rarity pending"}
+          </Text>
+          <Text style={ui.small}>{research.summary}</Text>
+          <Text style={ui.mini}>
+            Evidence: {research.confidence} · {date(research.researchedAt)}
+          </Text>
+          {research.sources?.map((source: Row) => (
+            <Action
+              key={source.url}
+              label={source.title}
+              onPress={() => void Linking.openURL(source.url).catch(() => {})}
+            />
+          ))}
+        </View>
+      ) : (
+        <Text style={ui.small}>
+          Research pending. You can confirm the bottle now and set rarity later.
+        </Text>
+      )}
+      {row.notes ? (
+        <Text style={ui.small}>Review note: {row.notes}</Text>
+      ) : null}
       <Saved save={save} />
-      <Confirm
-        label="Link to existing bottle"
-        explanation="The selected identity is applied to shelf entries carrying this submission receipt. Member ratings, notes, purchase details and quantities are preserved."
-        busy={save.busy || !chosen || reason.trim().length < 3}
-        onApply={() => act("use_match")}
-      />
-      <Confirm
-        label="Reject submission"
-        explanation="Closes the submission. The member’s personal shelf record stays available."
-        busy={save.busy || reason.trim().length < 3}
-        onApply={() => act("dismiss")}
-      />
-      {!["new", "needs_human"].includes(row.status) ? (
-        <Confirm
+      {pending && mode === "review" ? (
+        <>
+          <Action
+            primary
+            label="Add to bottle library"
+            onPress={() => setMode("add")}
+          />
+          <Text style={ui.mini}>
+            Confirm its name and brand. Rarity can wait.
+          </Text>
+          <Action
+            label="Match existing bottle"
+            onPress={() => setMode("match")}
+          />
+          {row.candidateBottleName ? (
+            <Text style={ui.mini}>
+              Possible match: {row.candidateBottleName}
+            </Text>
+          ) : null}
+          <Action label="Reject submission" onPress={() => setMode("reject")} />
+        </>
+      ) : null}
+      {mode === "match" ? (
+        <>
+          <BottlePicker
+            api={api}
+            initialQuery={row.rawName}
+            chosen={chosen}
+            onChoose={setChosen}
+          />
+          <Text style={ui.small}>
+            Matching corrects the original sighting and linked shelf entries.
+            Member notes, quantities and attribution stay intact.
+          </Text>
+          <Action
+            primary
+            label={
+              save.busy
+                ? "Matching…"
+                : chosen
+                  ? `Match to ${chosen.canonicalName}`
+                  : "Select a match above"
+            }
+            disabled={save.busy || !chosen}
+            onPress={() => void act("use_match").catch(() => {})}
+          />
+        </>
+      ) : null}
+      {mode === "reject" ? (
+        <>
+          <TextField
+            label="Reason for rejection"
+            value={reason}
+            onChange={setReason}
+            multiline
+          />
+          <Confirm
+            label="Reject submission"
+            explanation="Rejects this proposed library addition. The member's personal shelf record and original sighting stay available."
+            busy={save.busy || reason.trim().length < 3}
+            onApply={() => act("dismiss")}
+          />
+        </>
+      ) : null}
+      {mode !== "review" ? (
+        <Action
+          label="Cancel"
+          disabled={save.busy}
+          onPress={() => setMode("review")}
+        />
+      ) : null}
+      {!pending ? (
+        <Action
           label="Reopen submission"
-          explanation="Returns this submission to the missing-bottle review queue."
-          busy={save.busy || reason.trim().length < 3}
-          onApply={() => act("reopen")}
+          disabled={save.busy}
+          onPress={() => void act("reopen").catch(() => {})}
         />
       ) : null}
     </View>
@@ -1283,12 +1681,25 @@ function SubmissionEditor({
 }
 
 function MobileActivitySummary({ records }: { records?: Row[] }) {
-  if (!records?.length) return <Text style={ui.mini}>No mobile app activity recorded yet</Text>;
-  return <>{records.map(r => <View key={r.platform} style={ui.history}>
-    <Text style={ui.badge}>{r.platform === 'ios' ? 'iOS' : 'Android'} · App {r.appVersion}</Text>
-    <Text style={ui.small}>Last active {new Date(r.lastSeenAt).toLocaleString()}</Text>
-    <Text style={ui.mini}>First seen {new Date(r.firstSeenAt).toLocaleString()}</Text>
-  </View>)}</>;
+  if (!records?.length)
+    return <Text style={ui.mini}>No mobile app activity recorded yet</Text>;
+  return (
+    <>
+      {records.map((r) => (
+        <View key={r.platform} style={ui.history}>
+          <Text style={ui.badge}>
+            {r.platform === "ios" ? "iOS" : "Android"} · App {r.appVersion}
+          </Text>
+          <Text style={ui.small}>
+            Last active {new Date(r.lastSeenAt).toLocaleString()}
+          </Text>
+          <Text style={ui.mini}>
+            First seen {new Date(r.firstSeenAt).toLocaleString()}
+          </Text>
+        </View>
+      ))}
+    </>
+  );
 }
 
 function Members({
@@ -1304,11 +1715,18 @@ function Members({
   onSelect: (id: string | null) => void;
   onCommunity: () => void;
   onRewards: () => void;
-  onActivity: (kind:string) => void;
+  onActivity: (kind: string) => void;
 }) {
-  const [q, setQ] = useState(""), [filter,setFilter] = useState("all"), [sort,setSort] = useState("joined_desc"), [offset,setOffset] = useState(0);
-  const [app, setApp] = useState('all');
-  const state = useData(api, "members", `?q=${encodeURIComponent(q)}&filter=${filter}&sort=${sort}&offset=${offset}&app=${app}`);
+  const [q, setQ] = useState(""),
+    [filter, setFilter] = useState("all"),
+    [sort, setSort] = useState("joined_desc"),
+    [offset, setOffset] = useState(0);
+  const [app, setApp] = useState("all");
+  const state = useData(
+    api,
+    "members",
+    `?q=${encodeURIComponent(q)}&filter=${filter}&sort=${sort}&offset=${offset}&app=${app}`,
+  );
 
   if (selected)
     return (
@@ -1325,12 +1743,58 @@ function Members({
   return (
     <>
       <Text style={s.heading}>Members</Text>
-      <Tabs choices={['all_members','mobile_app_users']} value={app === 'all' ? 'all_members' : 'mobile_app_users'} onChange={v => {setApp(v === 'all_members' ? 'all' : 'mobile');setSort(v === 'all_members' ? 'joined_desc' : 'mobile_activity');setOffset(0);}} />
-      <Text style={ui.mini}>Shows members who have opened the app while signed in. Activity updates about every five minutes.</Text>
-      <Search label="Name, email or member number" onSearch={v => {setQ(v);setOffset(0);}} />
-      <Tabs choices={["all","free","paid","standard","barrel","bottled-in-bond"]} value={filter} onChange={v => {setFilter(v);setOffset(0);}} />
-      <Text style={ui.mini}>Paid includes all premium access. Payment status is shown separately.</Text>
-      <Tabs choices={["joined_desc","joined_asc","activity","mobile_activity","name"]} value={sort} onChange={v => {setSort(v);setOffset(0);}} />
+      <Tabs
+        choices={["all_members", "mobile_app_users"]}
+        value={app === "all" ? "all_members" : "mobile_app_users"}
+        onChange={(v) => {
+          setApp(v === "all_members" ? "all" : "mobile");
+          setSort(v === "all_members" ? "joined_desc" : "mobile_activity");
+          setOffset(0);
+        }}
+      />
+      <Text style={ui.mini}>
+        Shows members who have opened the app while signed in. Activity updates
+        about every five minutes.
+      </Text>
+      <Search
+        label="Name, email or member number"
+        onSearch={(v) => {
+          setQ(v);
+          setOffset(0);
+        }}
+      />
+      <Tabs
+        choices={[
+          "all",
+          "free",
+          "paid",
+          "standard",
+          "barrel",
+          "bottled-in-bond",
+        ]}
+        value={filter}
+        onChange={(v) => {
+          setFilter(v);
+          setOffset(0);
+        }}
+      />
+      <Text style={ui.mini}>
+        Paid includes all premium access. Payment status is shown separately.
+      </Text>
+      <Tabs
+        choices={[
+          "joined_desc",
+          "joined_asc",
+          "activity",
+          "mobile_activity",
+          "name",
+        ]}
+        value={sort}
+        onChange={(v) => {
+          setSort(v);
+          setOffset(0);
+        }}
+      />
       <Status state={state} />
       {state.data?.members.map((r: Row) => (
         <View key={r.id} style={s.card}>
@@ -1342,8 +1806,12 @@ function Members({
             {r.numberLabel} #{r.number || "Unassigned"} · {human(r.tier)} ·{" "}
             {r.accessSources?.map(human).join(", ")}
           </Text>
-          <Text style={ui.small}>Billing: {human(r.billingStatus)} · {human(r.billingProvider)}</Text>
-          <Text style={ui.mini}>Joined {date(r.createdAt)} · Last sign-in {date(r.lastSignInAt)}</Text>
+          <Text style={ui.small}>
+            Billing: {human(r.billingStatus)} · {human(r.billingProvider)}
+          </Text>
+          <Text style={ui.mini}>
+            Joined {date(r.createdAt)} · Last sign-in {date(r.lastSignInAt)}
+          </Text>
           <MobileActivitySummary records={r.mobileActivity} />
           <Action label="Open member details" onPress={() => onSelect(r.id)} />
         </View>
@@ -1372,7 +1840,7 @@ function MemberDetail({
   onClose: () => void;
   onCommunity: () => void;
   onRewards: () => void;
-  onActivity: (kind:string) => void;
+  onActivity: (kind: string) => void;
 }) {
   const state = useData(api, "member-detail", `?id=${encodeURIComponent(id)}`),
     [reason, setReason] = useState(""),
@@ -1450,9 +1918,31 @@ function MemberDetail({
           </View>
           <View style={s.card}>
             <Text style={s.heading}>Contributions and activity</Text>
-            <Text style={ui.small}>Only records associated with this member ID are included. Historical submissions without an ID are unattributed. Latest 100 records shown.</Text>
-            {d?.activity?.[0]?.activity?.counts?.map((r:Row) => <Text key={`${r.kind}-${r.status}`} style={ui.badge}>{human(r.kind)} · {human(r.status)}: {r.count}</Text>)}
-            {d?.activity?.[0]?.activity?.items?.map((r:Row) => <View key={`${r.kind}-${r.id}`} style={ui.history}><Text style={s.label}>{r.title || human(r.kind)}</Text><Text style={ui.small}>{human(r.kind)} · {human(r.status)} · {date(r.occurred_at)}</Text><Text selectable style={ui.mini}>Record {r.id}</Text><Action label={`Open ${human(r.kind)} review tools`} onPress={() => onActivity(r.kind)} /></View>)}
+            <Text style={ui.small}>
+              Only records associated with this member ID are included.
+              Historical submissions without an ID are unattributed. Latest 100
+              records shown.
+            </Text>
+            {d?.activity?.[0]?.activity?.counts?.map((r: Row) => (
+              <Text key={`${r.kind}-${r.status}`} style={ui.badge}>
+                {human(r.kind)} · {human(r.status)}: {r.count}
+              </Text>
+            ))}
+            {d?.activity?.[0]?.activity?.items?.map((r: Row) => (
+              <View key={`${r.kind}-${r.id}`} style={ui.history}>
+                <Text style={s.label}>{r.title || human(r.kind)}</Text>
+                <Text style={ui.small}>
+                  {human(r.kind)} · {human(r.status)} · {date(r.occurred_at)}
+                </Text>
+                <Text selectable style={ui.mini}>
+                  Record {r.id}
+                </Text>
+                <Action
+                  label={`Open ${human(r.kind)} review tools`}
+                  onPress={() => onActivity(r.kind)}
+                />
+              </View>
+            ))}
           </View>
           <Text style={s.heading}>Reward history</Text>
           <Action label="Manage this member’s rewards" onPress={onRewards} />
@@ -1590,16 +2080,18 @@ function Details({ values }: { values: Row | undefined }) {
 
 function Rewards({
   api,
+  initialView = "Open rewards",
   onMember,
   userId,
   onClear,
 }: {
   api: Api;
+  initialView?: string;
   onMember: (id: string) => void;
   userId: string | null;
   onClear: () => void;
 }) {
-  const [view, setView] = useState("Open rewards"),
+  const [view, setView] = useState(initialView),
     [q, setQ] = useState("");
   const state = useData(
     api,
@@ -1971,9 +2463,8 @@ function Coverage({ api }: { api: Api }) {
     <>
       <Text style={s.heading}>Coverage requests</Text>
       <Text style={ui.small}>
-        Requested queues investigation. Under review pauses it for your review.
-        Member updates appear in request history. Coverage is marked improved
-        only after verified production evidence.
+        Choose what happens next, then save. Investigations run through the
+        coverage workflow; results appear below.
       </Text>
       <Tabs
         choices={["Open", "All requests"]}
@@ -2000,7 +2491,7 @@ function Coverage({ api }: { api: Api }) {
             {r.review?.priority === "high" ? " · High priority" : ""}
           </Text>
           <Action
-            label={expanded === r.id ? "Close request" : "Review request"}
+            label={expanded === r.id ? "Hide details" : "Review request"}
             onPress={() => setExpanded(expanded === r.id ? null : r.id)}
           />
           {expanded === r.id ? (
@@ -2060,16 +2551,17 @@ function CoverageEditor({
         onChange={setUpdate}
         multiline
       />
+      <Text style={s.label}>What happens next?</Text>
       <View style={ui.row}>
         {(["requested", "on_radar", "closed"] as const).map((value) => (
           <Action
             key={value}
             label={
               value === "requested"
-                ? "Queue investigation"
+                ? "Investigate"
                 : value === "on_radar"
-                  ? "Pause for review"
-                  : "Close request"
+                  ? "Hold"
+                  : "Close"
             }
             selected={status === value}
             onPress={() => setStatus(value)}
@@ -2083,17 +2575,34 @@ function CoverageEditor({
       <Text style={ui.small}>Member preview: {update || "No update yet."}</Text>
       <Saved save={save} />
       <Action
-        label="Save review"
+        primary
+        label={
+          save.busy
+            ? "Saving…"
+            : status === "requested"
+              ? "Save and queue investigation"
+              : status === "on_radar"
+                ? "Save and hold request"
+                : "Save and close request"
+        }
         disabled={save.busy || row.status === "improved"}
         onPress={() =>
           void save
-            .run("coverage", {
-              id: row.id,
-              status,
-              internalNote: note,
-              memberUpdate: update,
-              priority: high ? "high" : "normal",
-            })
+            .run(
+              "coverage",
+              {
+                id: row.id,
+                status,
+                internalNote: note,
+                memberUpdate: update,
+                priority: high ? "high" : "normal",
+              },
+              status === "requested"
+                ? "Request queued for investigation."
+                : status === "on_radar"
+                  ? "Request placed on hold."
+                  : "Request closed.",
+            )
             .catch(() => {})
         }
       />
@@ -2328,24 +2837,163 @@ function Operations({ api, history }: { api: Api; history: boolean }) {
   );
 }
 
-function Feedback({api,onMember}:{api:Api;onMember:(id:string)=>void}) {
- const [filter,setFilter]=useState('new'),[offset,setOffset]=useState(0);
- const state=useData(api,'feedback',`?status=${filter}&offset=${offset}`),save=useSave(api,state.load);
- return <><Text style={s.heading}>Member feedback</Text><Text style={ui.small}>Private problem reports and suggestions from Free and paid members. Internal notes are visible only to admins.</Text>
- <Tabs disabled={save.busy} choices={['new','reviewed','planned','resolved','all']} value={filter} onChange={v=>{setOffset(0);setFilter(v);}}/>
- <Status state={state}/>{save.error?<Text accessibilityRole="alert" style={ui.error}>{save.error}</Text>:null}{save.notice?<Text accessibilityLiveRegion="polite" style={ui.notice}>{save.notice}</Text>:null}
- {state.data?.items.map((item:Row)=><FeedbackCard key={`${item.userId}:${item.id}`} item={item} busy={save.busy||state.loading} onMember={()=>onMember(item.userId)} onSave={(status:string,note:string)=>{void save.run('feedback',{userId:item.userId,id:item.id,status,internalNote:note},'Feedback updated.').catch(()=>{});}}/>)}
- {state.data?.items.length===0?<Empty title="No feedback here" copy="New reports and suggestions will appear here after a member sends them."/>:null}
- <View style={ui.row}>{offset>0?<Action label="Previous feedback" disabled={save.busy} onPress={()=>setOffset(Math.max(0,offset-50))}/>:null}{state.data?.nextOffset!=null?<Action label="Next feedback" disabled={save.busy} onPress={()=>setOffset(state.data!.nextOffset)}/>:null}</View>
- <Action label="Refresh feedback" disabled={save.busy||state.loading} onPress={()=>void state.load()}/></>;
+function Feedback({
+  api,
+  onMember,
+}: {
+  api: Api;
+  onMember: (id: string) => void;
+}) {
+  const [filter, setFilter] = useState("new"),
+    [offset, setOffset] = useState(0);
+  const state = useData(api, "feedback", `?status=${filter}&offset=${offset}`),
+    save = useSave(api, state.load);
+  return (
+    <>
+      <Text style={s.heading}>Member feedback</Text>
+      <Text style={ui.small}>
+        Private problem reports and suggestions from Free and paid members.
+        Internal notes are visible only to admins.
+      </Text>
+      <Tabs
+        disabled={save.busy}
+        choices={["new", "reviewed", "planned", "resolved", "all"]}
+        value={filter}
+        onChange={(v) => {
+          setOffset(0);
+          setFilter(v);
+        }}
+      />
+      <Status state={state} />
+      {save.error ? (
+        <Text accessibilityRole="alert" style={ui.error}>
+          {save.error}
+        </Text>
+      ) : null}
+      {save.notice ? (
+        <Text accessibilityLiveRegion="polite" style={ui.notice}>
+          {save.notice}
+        </Text>
+      ) : null}
+      {state.data?.items.map((item: Row) => (
+        <FeedbackCard
+          key={`${item.userId}:${item.id}`}
+          item={item}
+          busy={save.busy || state.loading}
+          onMember={() => onMember(item.userId)}
+          onSave={(status: string, note: string) => {
+            void save
+              .run(
+                "feedback",
+                {
+                  userId: item.userId,
+                  id: item.id,
+                  status,
+                  internalNote: note,
+                },
+                "Feedback updated.",
+              )
+              .catch(() => {});
+          }}
+        />
+      ))}
+      {state.data?.items.length === 0 ? (
+        <Empty
+          title="No feedback here"
+          copy="New reports and suggestions will appear here after a member sends them."
+        />
+      ) : null}
+      <View style={ui.row}>
+        {offset > 0 ? (
+          <Action
+            label="Previous feedback"
+            disabled={save.busy}
+            onPress={() => setOffset(Math.max(0, offset - 50))}
+          />
+        ) : null}
+        {state.data?.nextOffset != null ? (
+          <Action
+            label="Next feedback"
+            disabled={save.busy}
+            onPress={() => setOffset(state.data!.nextOffset)}
+          />
+        ) : null}
+      </View>
+      <Action
+        label="Refresh feedback"
+        disabled={save.busy || state.loading}
+        onPress={() => void state.load()}
+      />
+    </>
+  );
 }
-function FeedbackCard({item,busy,onMember,onSave}:{item:Row;busy:boolean;onMember:()=>void;onSave:(status:string,note:string)=>void}) {
- const [note,setNote]=useState(item.internalNote||''),[status,setStatus]=useState(item.status);
- useEffect(()=>{setNote(item.internalNote||'');setStatus(item.status);},[item.internalNote,item.status]);
- return <View style={s.card}><Text style={s.heading}>{item.kind==='problem'?'Problem report':'Suggestion'}</Text>
- <Text style={ui.badge}>{human(item.status)} · {date(item.createdAt)}</Text><Text selectable style={s.copy}>{item.message}</Text>
- {item.screen?<Text style={ui.small}>Screen: {item.screen}</Text>:null}{item.steps?<><Text style={s.label}>Reproduction steps</Text><Text selectable style={ui.small}>{item.steps}</Text></>:null}
- <Text selectable style={ui.small}>{item.memberName}{item.email?` · ${item.email}`:''}</Text><Text style={ui.mini}>{item.context.platform} · App {item.context.version} · Build {item.context.build} · Update {item.context.update}</Text>
- <Action label="Open member" disabled={busy} onPress={onMember}/><Text style={s.label}>Internal note</Text><TextInput accessibilityLabel="Internal note" multiline maxLength={1500} editable={!busy} value={note} onChangeText={setNote} style={s.input}/>
- <Tabs disabled={busy} choices={['new','reviewed','planned','resolved']} value={status} onChange={setStatus}/><Action label={busy?'Saving…':'Save feedback review'} disabled={busy} onPress={()=>onSave(status,note)}/></View>;
+function FeedbackCard({
+  item,
+  busy,
+  onMember,
+  onSave,
+}: {
+  item: Row;
+  busy: boolean;
+  onMember: () => void;
+  onSave: (status: string, note: string) => void;
+}) {
+  const [note, setNote] = useState(item.internalNote || ""),
+    [status, setStatus] = useState(item.status);
+  useEffect(() => {
+    setNote(item.internalNote || "");
+    setStatus(item.status);
+  }, [item.internalNote, item.status]);
+  return (
+    <View style={s.card}>
+      <Text style={s.heading}>
+        {item.kind === "problem" ? "Problem report" : "Suggestion"}
+      </Text>
+      <Text style={ui.badge}>
+        {human(item.status)} · {date(item.createdAt)}
+      </Text>
+      <Text selectable style={s.copy}>
+        {item.message}
+      </Text>
+      {item.screen ? <Text style={ui.small}>Screen: {item.screen}</Text> : null}
+      {item.steps ? (
+        <>
+          <Text style={s.label}>Reproduction steps</Text>
+          <Text selectable style={ui.small}>
+            {item.steps}
+          </Text>
+        </>
+      ) : null}
+      <Text selectable style={ui.small}>
+        {item.memberName}
+        {item.email ? ` · ${item.email}` : ""}
+      </Text>
+      <Text style={ui.mini}>
+        {item.context.platform} · App {item.context.version} · Build{" "}
+        {item.context.build} · Update {item.context.update}
+      </Text>
+      <Action label="Open member" disabled={busy} onPress={onMember} />
+      <Text style={s.label}>Internal note</Text>
+      <TextInput
+        accessibilityLabel="Internal note"
+        multiline
+        maxLength={1500}
+        editable={!busy}
+        value={note}
+        onChangeText={setNote}
+        style={s.input}
+      />
+      <Tabs
+        disabled={busy}
+        choices={["new", "reviewed", "planned", "resolved"]}
+        value={status}
+        onChange={setStatus}
+      />
+      <Action
+        label={busy ? "Saving…" : "Save feedback review"}
+        disabled={busy}
+        onPress={() => onSave(status, note)}
+      />
+    </View>
+  );
 }
