@@ -14,7 +14,7 @@ test("Signal cards use an editorial rarity-time-title hierarchy without the lega
   assert.match(card, /appearance\.rarityLabel/);
   assert.doesNotMatch(card, /appearance\.sourceLabel|sourceLabel|labelKeyline/);
   assert.match(card, /relativeSignalTime/);
-  assert.match(card, /presentBottleIdentity\(signal\.bottle\.name\)/);
+  assert.match(card, /signalRowBottleIdentity\(signal\.bottle\.name\)/);
   assert.match(card, /styles\.bottleSubtitle/);
   assert.match(styleBlock("bottle"), /fontFamily: fonts\.heading/);
   assert.match(styleBlock("price"), /fontSize: typeScale\.small/);

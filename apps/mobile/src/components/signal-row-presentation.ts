@@ -1,5 +1,10 @@
 import type { Signal } from "../api/types";
-import { presentSignal, signalCardStatusLabel } from "../api/presentation";
+import { presentBottleIdentity, presentSignal, signalCardStatusLabel } from "../api/presentation";
+
+export function signalRowBottleIdentity(name: string) {
+  const identity = presentBottleIdentity(name);
+  return { title: identity.title, subtitle: /bottled in bond|rye/i.test(identity.subtitle) ? identity.subtitle : "" };
+}
 
 // Counted reports can carry their attribution on the same line. Exceptional
 // states (historical, stale, upcoming, unavailable) always keep their own label.

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "./types";
 import { presentBottleIdentity, presentSignal, signalAccessibilityLabel, signalFeedCardAppearance, signalCardStatusLabel, signalMemberTagLabel, signalReporterAttribution } from "./presentation";
-import { signalRowFacts } from "../components/signal-row-presentation";
+import { signalRowBottleIdentity, signalRowFacts } from "../components/signal-row-presentation";
 
 function signal(overrides: Partial<Signal> = {}): Signal {
   return {
@@ -29,6 +29,12 @@ test("compact rows qualify counted reports without implying verified inventory",
   const retailer = signal({ source: { type: "retailer", label: "Retailer" }, availability: { status: "available_now", quantity: 2 } });
   assert.deepEqual(signalRowFacts(retailer, now), { quantity: "2 bottles retailer-reported", status: "Retailer reports available", showStatus: false });
   assert.equal(signalRowFacts(signal(), now).showStatus, true, "unknown quantities retain status text");
+});
+
+test("compact bottle names retain rye and bottled-in-bond identity qualifiers", () => {
+  assert.deepEqual(signalRowBottleIdentity("Example Single Barrel Kentucky Straight Rye Whiskey"), { title: "Example Single Barrel", subtitle: "Kentucky Straight Rye Whiskey" });
+  assert.equal(signalRowBottleIdentity("Example Small Batch Bottled in Bond").subtitle, "Small Batch Bottled in Bond");
+  assert.deepEqual(signalRowBottleIdentity("Blanton's Original Single Barrel Kentucky Straight Bourbon Whiskey 750ml"), { title: "Blanton's Original Single Barrel", subtitle: "" });
 });
 
 test("compact counted rows retain stale, historical and exceptional status text", () => {

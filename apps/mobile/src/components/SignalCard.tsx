@@ -4,8 +4,8 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Signal } from "../api/types";
 import { CommunityPostCard } from "./CommunityPostCard";
 import { CellarBottleArtwork } from "./CellarBottleArtwork";
-import { signalRowFacts } from "./signal-row-presentation";
-import { presentBottleIdentity, presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAvailabilityRefreshAt, signalFeedCardAppearance } from "../api/presentation";
+import { signalRowBottleIdentity, signalRowFacts } from "./signal-row-presentation";
+import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAvailabilityRefreshAt, signalFeedCardAppearance } from "../api/presentation";
 import { colors, typeScale, fonts } from "../theme";
 
 export function SignalCard({ signal, onPress, highlighted = false }: { signal: Signal; onPress: () => void; highlighted?: boolean }) {
@@ -23,9 +23,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
     return () => clearTimeout(timer);
   }, [signal.id, signal.timing.displayAt, signal.timing.expiresAt, signal.availability?.status, now]);
   const presented = presentSignal(signal);
-  const bottleIdentity = presentBottleIdentity(signal.bottle.name);
-  // Retain identity-bearing expressions while removing generic spirit subtitles.
-  const subtitle = /bottled in bond/i.test(bottleIdentity.subtitle) ? bottleIdentity.subtitle : "";
+  const bottleIdentity = signalRowBottleIdentity(signal.bottle.name);
   const appearance = signalFeedCardAppearance(signal);
   const { quantity: metric, status, showStatus } = signalRowFacts(signal, now);
   if (signal.source.type === "member") return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} />;
@@ -41,7 +39,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
         <Text style={styles.time}>{relativeSignalTime(signal.timing.displayAt, now)}</Text>
       </View>
       <Text style={styles.bottle}>{bottleIdentity.title}</Text>
-      {subtitle ? <Text style={styles.bottleSubtitle}>{subtitle}</Text> : null}
+      {bottleIdentity.subtitle ? <Text style={styles.bottleSubtitle}>{bottleIdentity.subtitle}</Text> : null}
       <View style={styles.details}>
         {presented.storeName ? <View style={styles.detailRow}><MaterialCommunityIcons color={colors.muted} name="storefront-outline" size={14} /><Text style={styles.storeName}>{presented.storeName}</Text></View> : null}
         {presented.geography ? <View style={styles.detailRow}><MaterialCommunityIcons color={colors.muted} name="map-marker-outline" size={14} /><Text style={styles.geography}>{presented.geography}</Text></View> : null}
