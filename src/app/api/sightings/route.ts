@@ -389,7 +389,8 @@ export async function GET(req: NextRequest) {
   const previewLimit = entitlements.sightingsPreviewLimit;
   const rarityCatalog = new Map((await getBourbonBible().catch(() => [] as BibleBottle[])).map(b => [b.id, b]));
   const sightings = (previewLimit === null ? allSightings : allSightings.slice(0, previewLimit))
-    .map((sighting) => visibleSightingForRequester({ ...sighting, bottleRarity: sightingBottleRarity(sighting, rarityCatalog.get(sighting.bottleId || "")) }, ownerPointsPreview));
+    .map((sighting) => ({ ...sighting, bottleRarity: sightingBottleRarity(sighting, rarityCatalog.get(sighting.bottleId || "")) }))
+    .map((sighting) => visibleSightingForRequester(sighting, ownerPointsPreview));
   let rewards: MemberRewardsSummary | null = null;
   if (includeRewards) {
     const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
