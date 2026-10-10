@@ -67,7 +67,7 @@
     "test:app-loading": "tsx scripts/test-app-loading.mts",
     "test:membership-month": "tsx scripts/test-membership-month.mts",
     "test:signal-points": "npm run test:membership-month && tsx scripts/test-member-rewards-snapshot.mts && tsx scripts/test-quality-outcome-rewards.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points-membership-credit.mts && node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
-    "test:feed-location-search": "node --no-warnings --experimental-strip-types --test scripts/test-feed-location-search.mts",
+    "test:feed-location-search": "node --no-warnings --experimental-strip-types --test scripts/test-feed-location-search.mts && tsx --test scripts/test-feed-location-search-sql.ts",
     "test:signal-contract": "node --no-warnings --experimental-strip-types scripts/test-signal-contract.mts",
     "test:signal-mobile-api": "node --no-warnings --experimental-strip-types scripts/test-signal-mobile-api.mts",
     "test:auth-account": "node scripts/test-member-numbers.mjs && node --test scripts/test-build13-new-user.cjs && tsx --test scripts/test-mobile-onboarding.ts scripts/test-account-deletion.ts scripts/test-account-deletion-repository.ts scripts/test-account-deletion-retained-records.mts && node --test scripts/test-account-deletion-contract.mjs && npm run test:member-feedback",
