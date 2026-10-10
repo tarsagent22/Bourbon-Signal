@@ -5,6 +5,9 @@ import type { ScarcityTier, StateScarcityOverride } from "@/lib/bottle-scarcity"
  * State systems establish local handling; they never set a national tier by themselves.
  */
 export const BOTTLE_SCARCITY_SOURCE_REGISTRY = {
+  "blade-bow-solera-12-annual-release": { type: "producer", label: "Blade and Bow limited annual Solera Reserve release", url: "https://www.multivu.com/diageo/9404251-en-blade-and-bow-unveils-new-limited-annual-expression-12-year-old-solera-reserve" },
+  "penelope-estate-single-barrel": { type: "producer", label: "Penelope Estate Collection", url: "https://penelopebourbon.com/estate-collection/" },
+  "heaven-hill-jts-brown": { type: "producer", label: "Heaven Hill J. T. S. Brown", url: "https://bottledinbond.heavenhilldistillery.com/" },
   "engine-verified-inventory-signals": {
     type: "verified_signal",
     label: "Bourbon Signal verified multi-state inventory observations",

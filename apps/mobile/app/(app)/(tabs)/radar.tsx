@@ -1,3 +1,4 @@
+import { groupRadarReports } from "../../../src/radar/alert-location";
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -262,7 +263,7 @@ export default function RadarScreen() {
     refreshControl={<RefreshControl refreshing={loading} onRefresh={() => { setPushLookupRetry(value => value + 1); void load(true); }} tintColor={colors.accent} />}
     style={memberScreenStyles.screen}
   >
-    <PageHeading title="Radar" eyebrow="Your bottle intelligence" />
+    <PageHeading title="Radar" decorated={false} />
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setFocusNotifications(false); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {view === "settings" ? <View style={styles.setupSummary}><View style={styles.signalMarker} /><View style={styles.flex}><Text style={styles.cardTitle}>{setupStatus.title}</Text><Text style={styles.muted}>{setupStatus.detail}</Text></View></View> : null}
     {view === "matches" && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
@@ -320,12 +321,17 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
       <Text style={styles.emptyTitle}>{setupNeeded ? "Set up your alerts" : "No recent alerts"}</Text>
       {setupNeeded ? <SmallButton primary label="Choose preferences" onPress={onOpenWatchlist} /> : null}
     </View> : null}
-    {current.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />)}
+    {groupRadarReports(current).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />)}
     {past.length ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showPast }} onPress={() => setShowPast(value => !value)} style={styles.historyRow}>
       <Text style={styles.listTitle}>Past alerts ({past.length})</Text><Text style={styles.chevron}>{showPast ? "−" : "+"}</Text>
     </Pressable> : null}
-    {showPast ? past.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />) : null}
+    {showPast ? groupRadarReports(past).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />) : null}
   </View>;
+}
+
+function ReportGroup({ reports, ...props }: Omit<React.ComponentProps<typeof RadarAlertRow>, "alert"> & { reports: MemberAlert[] }) {
+  const [expanded, setExpanded] = useState(false);
+  return <View>{(expanded ? reports : reports.slice(0, 1)).map(alert => <AlertCard key={alert.id} alert={alert} {...props} />)}{reports.length > 1 ? <TextAction expanded={expanded} label={expanded ? "Hide earlier reports" : `${reports.length - 1} earlier report${reports.length === 2 ? "" : "s"}`} onPress={() => setExpanded(value => !value)} /> : null}</View>;
 }
 
 function AlertCard(props: React.ComponentProps<typeof RadarAlertRow>) {

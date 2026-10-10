@@ -384,6 +384,8 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
 
   return <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: colors.background }}>
     <FlatList
+      contentInsetAdjustmentBehavior="never"
+      automaticallyAdjustContentInsets={false}
       key={`cellar-${viewMode}-${numColumns}`}
       numColumns={numColumns}
       columnWrapperStyle={viewMode === "grid" && numColumns > 1 ? styles.gridRow : undefined}
@@ -777,7 +779,7 @@ const styles = StyleSheet.create({
   viewModeButtonActive: { backgroundColor: "rgba(214,154,74,0.07)", borderBottomWidth: 2, borderBottomColor: colors.accent },
   viewModeText: { color: colors.text, fontSize: typeScale.section, fontWeight: "500" },
   viewModeTextActive: { color: colors.accent },
-  cellarContent: { paddingHorizontal: 10, paddingTop: 16, paddingBottom: 20 },
+  cellarContent: { paddingHorizontal: 10, paddingTop: 8, paddingBottom: 20 },
   gridContent: { gap: 6 },
   gridRow: { gap: 8 },
   gap: { height: 8 },

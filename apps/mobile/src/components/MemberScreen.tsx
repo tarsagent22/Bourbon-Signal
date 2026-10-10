@@ -2,9 +2,9 @@ import type { PropsWithChildren, ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, typeScale, layout, typography } from "../theme";
 
-export function PageHeading({ title, eyebrow, description }: { title: string; eyebrow?: string; description?: string }) {
+export function PageHeading({ title, eyebrow, description, decorated = true }: { title: string; eyebrow?: string; description?: string; decorated?: boolean }) {
   return <View style={styles.pageHeading}>
-    <View accessible={false} style={styles.brandRule}><View style={styles.brandRuleAccent} /></View>
+    {decorated ? <View accessible={false} style={styles.brandRule}><View style={styles.brandRuleAccent} /></View> : null}
     {eyebrow ? <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text> : null}
     <Text accessibilityRole="header" style={styles.title}>{title}</Text>
     {description ? <Text style={styles.description}>{description}</Text> : null}

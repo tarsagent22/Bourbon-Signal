@@ -77,8 +77,8 @@ test("phone recovery retains action-specific retry and removes ambiguous count b
 
 test("current and history stay separate with useful empty states", () => {
   const radar = readScreen("radar");
-  assert.match(radar, /current\.map\(\(alert\)/);
-  assert.match(radar, /showPast \? past\.map/);
+  assert.match(radar, /groupRadarReports\(current\)\.map/);
+  assert.match(radar, /showPast \? groupRadarReports\(past\)\.map/);
   assert.match(radar, /Past alerts \(\{past\.length\}\)/);
   assert.match(radar, /No recent alerts/);
   assert.doesNotMatch(radar, /freshness-qualified|Updated \{lastUpdated\}/);

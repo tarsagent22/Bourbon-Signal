@@ -1,5 +1,5 @@
 import { sightingFeedSearchMatches } from "@/lib/signals/feed-search";
-import { sightingBottleRarity } from "@/lib/sighting-bottle-rarity";
+import { buildSightingRarityCatalog } from "@/lib/sighting-bottle-rarity";
 import {featuredBadgeLabels} from "@/lib/featured-badges";
 import { createCommunityLeaderBadgeQuery, readCommunityLeaderAwards, validatePublicLeaderBadges } from "@/lib/community-leader-badges";
 import { sameMemberRewardProfile } from "@/lib/member-rewards-snapshot";
@@ -13,7 +13,7 @@ import { getServerEntitlements } from "@/lib/server-entitlements";
 import { canUseMemberSightingBoundary } from "@/lib/signals/sighting-pagination-policy";
 import { isRewardsAdminEmail, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
 import { verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
-import { memberSightingTierForAvailability, normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
+import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { isLikelyDuplicateSighting, isSameReporterCanonicalDuplicateSighting, sanitizeManualSightingField, SIGHTING_DUPLICATE_WINDOW_MS } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 import { addBottleContribution } from "@/lib/bottle-contributions";
@@ -237,7 +237,8 @@ async function getAggregateSightings(
   const eligibleLegacySightings = (legacy?.sightings || []).filter((sighting) => {
     const beforeMatch = !before || sighting.createdAt < before.createdAt || (sighting.createdAt === before.createdAt && sighting.id > before.id);
     const stateMatch = !filterStates.size || filterStates.has(String(sighting.storeState || "").toUpperCase());
-    const sightingRarity = String(sighting.rarityTier || "") === "highly_allocated" ? "unicorn" : String(sighting.rarityTier || "");
+    const rarityKey = String(sighting.bottleName || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    const sightingRarity = filters.catalogRarityTiers ? filters.catalogRarityTiers[`${sighting.bottleId || ""}|${rarityKey}`] || filters.catalogRarityTiers[rarityKey] : String(sighting.rarityTier || "") === "highly_allocated" ? "unicorn" : String(sighting.rarityTier || "");
     const rarityMatch = !filterRarities.size || filterRarities.has(sightingRarity);
     const bottleMatch = !filterBottle || String(sighting.bottleName || "").toLowerCase().includes(filterBottle);
     const sinceMatch = !Number.isFinite(filterSince) || Date.parse(sighting.createdAt) >= filterSince;
@@ -322,7 +323,7 @@ export async function GET(req: NextRequest) {
     const counts = voteCounts(await repository.listVotesForSightings([requestedSightingId]), userId).get(requestedSightingId);
     const sighting = visibleSightingForRequester({
       ...stored,
-      bottleRarity: sightingBottleRarity(stored, (await getBourbonBible()).find(b => b.id === stored.bottleId)),
+      ...buildSightingRarityCatalog(await getBourbonBible()).present(stored),
       upCount: counts?.upCount || 0,
       downCount: counts?.downCount || 0,
       myVote: counts?.myVote || null,
@@ -349,7 +350,9 @@ export async function GET(req: NextRequest) {
   if (requestedArea && !canonicalArea) return NextResponse.json({ error: "Invalid area filter" }, { status: 400 });
   if (requestedBottle.length > 100) return NextResponse.json({ error: "Invalid bottle filter" }, { status: 400 });
   if (requestedSince && !Number.isFinite(Date.parse(requestedSince))) return NextResponse.json({ error: "Invalid since timestamp" }, { status: 400 });
+  const rarityCatalog = buildSightingRarityCatalog(await getBourbonBible());
   const feedFilters: SightingFeedFilters = {
+    catalogRarityTiers: rarityCatalog.filterTiers,
     states: requestedState ? [requestedState] : [],
     rarities: requestedRarities,
     bottle: requestedBottle || null,
@@ -387,9 +390,8 @@ export async function GET(req: NextRequest) {
 
   const allSightings = (await validatePublicLeaderBadges(createCommunityLeaderBadgeQuery(), aggregate.sightings)).filter(sighting=>communitySightingVisible(sighting, hidden.blocked, hidden.reported));
   const previewLimit = entitlements.sightingsPreviewLimit;
-  const rarityCatalog = new Map((await getBourbonBible().catch(() => [] as BibleBottle[])).map(b => [b.id, b]));
   const sightings = (previewLimit === null ? allSightings : allSightings.slice(0, previewLimit))
-    .map((sighting) => ({ ...sighting, bottleRarity: sightingBottleRarity(sighting, rarityCatalog.get(sighting.bottleId || "")) }))
+    .map(rarityCatalog.present)
     .map((sighting) => visibleSightingForRequester(sighting, ownerPointsPreview));
   let rewards: MemberRewardsSummary | null = null;
   if (includeRewards) {
@@ -468,7 +470,7 @@ export async function POST(req: NextRequest) {
   const needsBottleReview = Boolean(reviewInput.needsBottleReview || reviewInput.manualBottleName || !catalogBottle);
   const bottleName = catalogBottle?.canonicalName || requestedBottleName;
   const bottleId = catalogBottle?.id || normalizeBottleKey(bottleName);
-  const rarityTier = needsBottleReview ? "limited" : memberSightingTierForAvailability(catalogBottle?.availability);
+  const rarityTier = needsBottleReview ? undefined : buildSightingRarityCatalog(catalogBottle ? [catalogBottle] : []).tier(catalogBottle || undefined);
   const storeName = sanitizeManualSightingField(payload.storeName, 180);
   const storeAddress = sanitizeManualSightingField(payload.storeAddress, 220);
   const storeId = sanitizeManualSightingField(payload.storeId, 160);

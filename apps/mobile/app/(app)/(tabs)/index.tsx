@@ -600,7 +600,7 @@ export default function SignalFeedScreen() {
           >
             <Text style={[styles.rarityChipText, filters.rarities.length === 0 && styles.rarityChipTextSelected]}>All</Text>
           </Pressable>
-          {rarityOptionsForView(view).slice().sort((left, right) => left.value === "allocated" ? -1 : right.value === "allocated" ? 1 : 0).map((option) => {
+          {rarityOptionsForView(view).slice().sort((left, right) => ["unicorn", "allocated", "limited"].indexOf(left.value) - ["unicorn", "allocated", "limited"].indexOf(right.value)).map((option) => {
             const selected = filters.rarities.includes(option.value);
             return (
               <Pressable
@@ -641,6 +641,16 @@ export default function SignalFeedScreen() {
     </View>
   );
 
+  const feedFooter = loaded && loading
+        ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
+        : error && signals.length
+          ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(feedRetryAction(hasMore).refresh)} style={styles.retryTarget}><Text style={styles.retry}>{feedRetryAction(hasMore).label}</Text></Pressable></View>
+          : loaded && hasMore
+            ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Load more matching Signals</Text></Pressable></View>
+            : loaded && !hasMore && visibleSignals.length
+              ? <Text style={styles.end}>You’re caught up.</Text>
+              : null;
+
   return (
     <View style={styles.screen}>
       <View pointerEvents="none" style={styles.homeBackdrop}>
@@ -653,7 +663,14 @@ export default function SignalFeedScreen() {
         <Image source={require("../../../assets/home-feed-shade.png")} resizeMode="stretch" style={StyleSheet.absoluteFill} />
       </View>
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.feedShade]} />
       <FlatList
+      key={scopeKey}
+      removeClippedSubviews={false}
+      initialNumToRender={30}
+      maxToRenderPerBatch={30}
+      contentInsetAdjustmentBehavior="never"
+      automaticallyAdjustContentInsets={false}
       ref={listRef}
       contentContainerStyle={styles.list}
       data={visibleSignals}
@@ -662,7 +679,7 @@ export default function SignalFeedScreen() {
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />}
+      renderItem={({ item, index }) => index === visibleSignals.length - 1 ? <View><FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />{feedFooter}</View> : <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}
@@ -690,15 +707,7 @@ export default function SignalFeedScreen() {
               actionLabel={activeFilterCount(filters) ? "Clear filters" : view === "community" ? "Post a sighting" : "Refresh feed"}
               onAction={() => { if (activeFilterCount(filters)) { setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...DEFAULT_SIGNAL_FILTERS }); } else if (view === "community") router.push("/(app)/(tabs)/post"); else void load(true); }} />
               {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:{state:filters.state}})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
-      ListFooterComponent={loaded && loading
-        ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
-        : error && signals.length
-          ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(feedRetryAction(hasMore).refresh)} style={styles.retryTarget}><Text style={styles.retry}>{feedRetryAction(hasMore).label}</Text></Pressable></View>
-          : loaded && hasMore
-            ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Load more matching Signals</Text></Pressable></View>
-            : loaded && !hasMore && visibleSignals.length
-              ? <Text style={styles.end}>You’re caught up.</Text>
-              : null}
+      ListFooterComponent={!visibleSignals.length ? feedFooter : null}
     />
       </View>
       {queuedSignals.length ? <Pressable
@@ -722,7 +731,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   homeBackdrop: StyleSheet.absoluteFill,
   feedViewport: { flex: 1, backgroundColor: "transparent" },
-  list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 64 },
+  feedShade: { backgroundColor: "rgba(8,6,4,0.64)" },
+  list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20 },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(210,184,145,0.12)", marginLeft: 78 },
   header: { gap: 8, marginBottom: 4 },
   newSignalsPill: { position: "absolute", zIndex: 5, top: 8, alignSelf: "center", minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.accent, borderWidth: 1, borderColor: "#F1BC72", shadowColor: "#000", shadowOpacity: 0.32, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
@@ -765,7 +775,7 @@ const styles = StyleSheet.create({
   retry: { color: colors.accent, fontWeight: "800" },
   retryTarget: { minWidth: 80, minHeight: 44, alignItems: "center", justifyContent: "center" },
   empty: { color: colors.muted, textAlign: "center", padding: 32, lineHeight: 20 },
-  footer: { padding: 20, alignItems: "center", gap: 8 },
+  footer: { paddingTop: 12, paddingBottom: 8, alignItems: "center", gap: 8 },
   loadingText: { color: colors.muted, fontSize: typeScale.small },
   footerError: { color: colors.danger, textAlign: "center" },
   end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: typeScale.small },

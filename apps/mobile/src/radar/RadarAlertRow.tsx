@@ -8,6 +8,7 @@ import { relativeSignalTime } from "../api/presentation";
 import { signalRouteForRequestedAlert } from "../push/push-navigation";
 import { alertIsStale, memberAlertBottleNames } from "./radar-preferences";
 import { colors, fonts, typeScale } from "../theme";
+import { radarAlertLocation } from "./alert-location";
 import { radarSwipeDestination, radarSwipeShouldStart } from "./radar-row-gesture";
 
 export function RadarAlertRow({ alert, saving, watchedNames, onMutate, onMute, isMuted }: {
@@ -48,12 +49,13 @@ export function RadarAlertRow({ alert, saving, watchedNames, onMutate, onMute, i
         <View style={[s.dot, unread && s.unread]} />
         <Pressable accessibilityRole="button" accessibilityLabel={`${bottles.join(", ")}, ${alert.storeLabel}, ${unread ? "unread, " : ""}View details`} accessibilityState={{ expanded }} accessibilityHint="Expands this alert. Swipe left for read and archive actions." onPress={() => { closeSwipe(); setExpanded(v => !v); }} style={s.copy}>
           <Text style={s.bottle}>{bottles.length > 1 ? `${bottles[0]} +${bottles.length - 1}` : bottles[0]}</Text>
-          <Text style={s.location}>{[alert.storeLabel, alert.matchedArea || alert.state].filter(Boolean).join(" · ")}</Text>
+          <Text style={s.location}>{radarAlertLocation(alert)}</Text>
           <Text style={s.meta}>{stale ? "Past report" : alert.sourceType === "community" ? "Community sighting" : "Bottle report"} · {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text>
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={`Actions for ${bottles[0]}`} disabled={saving} onPress={() => { closeSwipe(); setMuteError(""); setChooseBottles(false); setMenu(true); }} style={s.menuButton}><MaterialCommunityIcons name="dots-horizontal" color={colors.muted} size={22} /></Pressable>
       </View>
       {expanded ? <View style={s.details}>
+        <Text style={s.detailText}>{alert.storeLabel}</Text>
         {bottles.length > 1 ? <Text style={s.detailText}>{bottles.join("\n")}</Text> : null}
         <Text style={s.detailText}>{alert.sourceLabel || (alert.sourceType === "community" ? "Community" : "Bourbon Signal")} · {new Date(alert.signalAt || alert.createdAt).toLocaleString()}</Text>
         <Text style={s.detailText}>{alert.quantity !== null ? `Reported quantity: ${alert.quantity} · ` : ""}availability unconfirmed</Text>
