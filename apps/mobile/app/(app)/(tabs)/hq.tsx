@@ -45,6 +45,7 @@ export default function AccountScreen() {
   );
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   useAccessibleStatus(error);
   const [signingOut, setSigningOut] = useState(false);
   const [adminAllowed, setAdminAllowed] = useState(false);
@@ -94,8 +95,8 @@ export default function AccountScreen() {
       contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}
       refreshControl={
         <RefreshControl
-          refreshing={loading && !!profile}
-          onRefresh={() => void load(true)}
+          refreshing={pullRefreshing}
+          onRefresh={() => { setPullRefreshing(true); void load(true).finally(() => setPullRefreshing(false)); }}
           tintColor={colors.accent}
         />
       }

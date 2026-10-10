@@ -56,6 +56,7 @@ export default function RadarScreen() {
   const [pushFailedAction, setPushFailedAction] = useState<"enable" | "disable" | null>(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -260,7 +261,7 @@ export default function RadarScreen() {
     contentContainerStyle={[memberScreenStyles.content, { paddingTop: screenInsets.top + 16 }]}
     keyboardDismissMode="on-drag"
     keyboardShouldPersistTaps="handled"
-    refreshControl={<RefreshControl refreshing={loading} onRefresh={() => { setPushLookupRetry(value => value + 1); void load(true); }} tintColor={colors.accent} />}
+    refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); setPushLookupRetry(value => value + 1); void load(true).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} />}
     style={memberScreenStyles.screen}
   >
     <PageHeading title="Radar" decorated={false} />

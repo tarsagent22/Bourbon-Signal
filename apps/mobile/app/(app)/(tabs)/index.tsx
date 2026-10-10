@@ -124,6 +124,7 @@ export default function SignalFeedScreen() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [profileError, setProfileError] = useState("");
@@ -680,7 +681,7 @@ export default function SignalFeedScreen() {
       keyExtractor={(item) => item.id}
       renderItem={({ item, index }) => index === visibleSignals.length - 1 ? <View><FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />{feedFooter}</View> : <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
-      refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
+      refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}
       onEndReachedThreshold={0.5}
       ListHeaderComponent={header}

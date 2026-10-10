@@ -113,6 +113,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   activeUser.current = userId;
   useEffect(() => { setPreferences(null); setSelected(null); }, [userId]);
   const [loading, setLoading] = useState(true);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<CellarViewMode>("grid");
@@ -394,7 +395,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
       keyExtractor={shelfBottleKey}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-      refreshControl={<RefreshControl refreshing={loading && Boolean(preferences)} onRefresh={() => void load(true)} tintColor={colors.accent} />}
+      refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void load(true).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} />}
       renderItem={({ item }) => viewMode === "grid" ? <WhiskeyTile bottle={item} onPress={() => setSelected(item)} width={tileWidth} /> : <WhiskeyListRow bottle={item} onPress={() => setSelected(item)} />}
       ItemSeparatorComponent={numColumns === 1 ? () => <View style={styles.gap} /> : undefined}
       ListHeaderComponent={<View style={styles.header}>
