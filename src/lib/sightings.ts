@@ -28,6 +28,7 @@ export interface SightingReviewState {
 }
 
 export interface MemberSighting {
+  bottleRarity?: import("../../shared/sighting-bottle-rarity").SightingBottleRarity;
   id: string;
   bottleName: string;
   bottleId?: string;

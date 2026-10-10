@@ -1,4 +1,5 @@
 import { sightingFeedSearchMatches } from "@/lib/signals/feed-search";
+import { sightingBottleRarity } from "@/lib/sighting-bottle-rarity";
 import {featuredBadgeLabels} from "@/lib/featured-badges";
 import { createCommunityLeaderBadgeQuery, readCommunityLeaderAwards, validatePublicLeaderBadges } from "@/lib/community-leader-badges";
 import { sameMemberRewardProfile } from "@/lib/member-rewards-snapshot";
@@ -321,6 +322,7 @@ export async function GET(req: NextRequest) {
     const counts = voteCounts(await repository.listVotesForSightings([requestedSightingId]), userId).get(requestedSightingId);
     const sighting = visibleSightingForRequester({
       ...stored,
+      bottleRarity: sightingBottleRarity(stored, (await getBourbonBible()).find(b => b.id === stored.bottleId)),
       upCount: counts?.upCount || 0,
       downCount: counts?.downCount || 0,
       myVote: counts?.myVote || null,
@@ -385,7 +387,9 @@ export async function GET(req: NextRequest) {
 
   const allSightings = (await validatePublicLeaderBadges(createCommunityLeaderBadgeQuery(), aggregate.sightings)).filter(sighting=>communitySightingVisible(sighting, hidden.blocked, hidden.reported));
   const previewLimit = entitlements.sightingsPreviewLimit;
+  const rarityCatalog = new Map((await getBourbonBible().catch(() => [] as BibleBottle[])).map(b => [b.id, b]));
   const sightings = (previewLimit === null ? allSightings : allSightings.slice(0, previewLimit))
+    .map((sighting) => ({ ...sighting, bottleRarity: sightingBottleRarity(sighting, rarityCatalog.get(sighting.bottleId || "")) }))
     .map((sighting) => visibleSightingForRequester(sighting, ownerPointsPreview));
   let rewards: MemberRewardsSummary | null = null;
   if (includeRewards) {

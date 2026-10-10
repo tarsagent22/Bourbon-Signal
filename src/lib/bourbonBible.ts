@@ -11,6 +11,7 @@ export type AvailabilityTier = "common" | "regional" | "seasonal" | "limited" | 
 export type BuyerVerdict = "safe_to_pass" | "fair_buy" | "good_buy" | "grab_at_msrp" | "special_find" | "unknown";
 
 export interface BibleBottle extends BottleScarcity {
+  artwork?: import("../../shared/bottle-artwork").ReviewedBottleArtwork;
   id: string;
   canonicalName: string;
   photo?: CatalogBottlePhoto;
@@ -21,6 +22,7 @@ export interface BibleBottle extends BottleScarcity {
   ageStatement?: string | null;
   msrp?: number | null;
   availability: AvailabilityTier;
+  rarityPending?: boolean;
   buyerVerdict: BuyerVerdict;
   aliases: string[];
   isSignalTracked?: boolean;

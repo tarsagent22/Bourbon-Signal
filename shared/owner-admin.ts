@@ -1,4 +1,6 @@
+import { validateReviewedBottleArtwork, type ReviewedBottleArtwork } from "./bottle-artwork";
 export type BottleDraft = {
+  artwork?: ReviewedBottleArtwork;
   canonicalName: string;
   brand: string;
   producer: string;
@@ -6,6 +8,8 @@ export type BottleDraft = {
   proof: number | null;
   ageStatement: string;
   availability: string;
+  rarityPending: boolean;
+  nationalConfidence: "low" | "high";
   aliases: string[];
   summary: string;
   guidance: string;
@@ -62,11 +66,15 @@ export function validateBottleDraft(input: unknown): BottleDraft {
     return value;
   };
   return {
+    artwork: validateReviewedBottleArtwork(r.artwork),
     sizeMl, sourceUrl:url("sourceUrl"), photoEvidenceUrl:url("photoEvidenceUrl"),
     canonicalName,
     brand,
     category,
     availability,
+    rarityPending: r.rarityPending === true,
+    // An explicit owner selection is a reviewed classification; pending is never inferred.
+    nationalConfidence: r.rarityPending === true ? "low" : "high",
     proof,
     producer: clean("producer"),
     ageStatement: clean("ageStatement", 100),

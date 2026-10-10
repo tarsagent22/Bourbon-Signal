@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { rankBottleMatches } from "../../../../../shared/admin-bottle-matches";
 import { requireOwnerApiAccess } from "@/lib/owner-auth";
 import { getOwnerBourbonBible, clearBourbonBibleCache } from "@/lib/bourbonBible";
 import {
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
     const versions = new Map(
       records.map((r) => [r.bottle_id, Number(r.version)]),
     );
-    const found = catalog
+    const found = params.get("suggest") === "1" ? rankBottleMatches(catalog, q) : catalog
       .filter((b) =>
         [b.canonicalName, b.brand, b.producer, ...b.aliases]
           .join(" ")
@@ -115,7 +116,7 @@ export async function PATCH(request: Request) {
             ]),
           ],
         }
-      : { ...draft, aliases:[...new Set([...(existing?.aliases || []),existing?.canonicalName || "",...draft.aliases])].filter(Boolean) };
+      : { ...draft, artwork: draft.artwork || existing?.artwork, aliases:[...new Set([...(existing?.aliases || []),existing?.canonicalName || "",...draft.aliases])].filter(Boolean) };
     const id = existing?.id || `owner-${randomUUID()}`;
     const version = await saveOwnerBottle({
       id,

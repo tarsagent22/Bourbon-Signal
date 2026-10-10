@@ -16,6 +16,7 @@ export interface BottleContribution {
   userId?: string;
   userEmail?: string;
   context?: Record<string, unknown>;
+  sightingReceipts?: Array<{ id: string; userId: string }>;
   status: BottleContributionStatus;
   duplicateCount: number;
   candidateBottleId?: string;
@@ -138,7 +139,10 @@ export async function addBottleContribution(input: {
     source: input.source,
     userId: input.userId,
     userEmail: input.userEmail,
-    context: input.context || {},
+    // Member context is descriptive evidence, never trusted research or reviewed artwork.
+    context: Object.fromEntries(Object.entries(input.context || {}).filter(([key,value]) => ["sightingId","storeName","storeCity","storeState","rarityTier","proof","ageStatement","sizeMl","notes","sourceUrl"].includes(key) && ["string","number","boolean"].includes(typeof value)).map(([key,value]) => [key,typeof value === "string" ? value.slice(0,1000) : value])),
+    sightingReceipts: input.source === "sighting" && input.userId && typeof input.context?.sightingId === "string"
+      ? [{id: input.context.sightingId, userId: input.userId}] : [],
     status: candidate?.confidence === "high" ? "matched_existing" : "new",
     duplicateCount: 1,
     candidateBottleId: candidate?.bottleId,
