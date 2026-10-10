@@ -53,7 +53,9 @@ function normalizedCursorFilters(value: unknown, allowMissingArea = false): Sign
   if (rawArea !== null && !area) return null;
   if (!(filters.freshness === null || SIGNAL_FRESHNESS_WINDOWS.includes(filters.freshness as never))) return null;
   if (!(filters.bottle === null || (typeof filters.bottle === "string" && filters.bottle.length > 0 && filters.bottle.length <= 100))) return null;
+  if (filters.search !== undefined && (typeof filters.search !== "string" || !filters.search.trim() || filters.search.length > 100 || /[\u0000-\u001F\u007F]/.test(filters.search))) return null;
   return {
+    ...(filters.search ? { search: filters.search as string } : {}),
     rarities,
     state: state as string | null,
     area,

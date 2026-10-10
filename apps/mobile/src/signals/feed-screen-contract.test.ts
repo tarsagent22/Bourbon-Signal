@@ -14,7 +14,7 @@ function position(fragment: string) {
 test("Home opens directly on fresh Intel and member sightings", () => {
   const toggle = position('accessibilityLabel="Signal feed view"');
   const geography = position('accessibilityLabel="Signal geography filters"');
-  const search = position('placeholder="Search bottle name"');
+  const search = position('placeholder="Search bottles or locations"');
   const rarity = position('accessibilityLabel="Bottle rarity filters"');
 
   assert.ok(toggle < geography && geography < search && search < rarity);
@@ -28,6 +28,12 @@ test("Home opens directly on fresh Intel and member sightings", () => {
   assert.doesNotMatch(feed, /Open Signal filters|Filter Signals|filterOpen|filterSheet/);
   assert.doesNotMatch(feed, /canUseFilters/);
   assert.match(feed, /showsVerticalScrollIndicator=\{false\}/);
+});
+
+test("Home searches bottles or locations on initial pages and background refresh", () => {
+  assert.match(feed, /accessibilityLabel="Search bottles or locations"/);
+  assert.match(feed, /accessibilityLabel="Clear feed search"/);
+  assert.equal((feed.match(/bottle: undefined, search: requestFilters\.bottle/g) || []).length, 2);
 });
 
 test("Home restores user-scoped browsing filters without touching Radar preferences", () => {

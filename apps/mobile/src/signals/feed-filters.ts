@@ -13,6 +13,7 @@ export interface SignalFeedFilters {
   state: string;
   area: string;
   freshness: SignalFreshness;
+  // Retain the persisted key for existing Home browsing preferences; sent as feed search.
   bottle: string;
 }
 

@@ -39,7 +39,7 @@ type LegacySightingsPayload = {
   previewLimit?: number | null;
 };
 
-const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "area", "freshness", "bottle"]);
+const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "area", "freshness", "bottle", "search"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -116,6 +116,7 @@ function sourceRequest(request: Request, path: string, options: { limit: number;
       url.searchParams.set("area", options.filters.area);
     }
   }
+  if (options.filters.search) url.searchParams.set("search", options.filters.search);
   if (options.filters.bottle) url.searchParams.set("bottle", options.filters.bottle);
   if (options.since) url.searchParams.set("since", options.since);
   if (path === "/api/drops") url.searchParams.set("signalOrder", "canonical");
@@ -175,11 +176,11 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
       return Response.json({ error: error instanceof Error ? error.message : "Invalid Signal filters" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
     }
 
-    if (getFilterAccess && (filters.area || filters.bottle || filters.freshness)) {
+    if (getFilterAccess && (filters.area || filters.bottle || filters.search || filters.freshness)) {
       try {
         const access = await getFilterAccess();
-        if ((filters.area && !access.canUseDropFeedFilters) || (filters.bottle && !access.canUseBottleSearch) || (filters.freshness && !access.canUseAdvancedFilters)) {
-          return Response.json({ contractVersion: SIGNAL_API_ERROR_VERSION, error: { code: "FORBIDDEN", message: "Board/city filters and bottle search require Barrel Proof or Founder membership." } }, { status: 403, headers: PRIVATE_SIGNAL_HEADERS });
+        if ((filters.area && !access.canUseDropFeedFilters) || ((filters.bottle || filters.search) && !access.canUseBottleSearch) || (filters.freshness && !access.canUseAdvancedFilters)) {
+          return Response.json({ contractVersion: SIGNAL_API_ERROR_VERSION, error: { code: "FORBIDDEN", message: "Board/city filters and feed search require Barrel Proof or Founder membership." } }, { status: 403, headers: PRIVATE_SIGNAL_HEADERS });
         }
       } catch {
         return Response.json({ contractVersion: SIGNAL_API_ERROR_VERSION, error: { code: "UPSTREAM_UNAVAILABLE", message: "Membership access could not be checked. Try again.", retryable: true } }, { status: 503, headers: PRIVATE_SIGNAL_HEADERS });

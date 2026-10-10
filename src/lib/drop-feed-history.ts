@@ -12,8 +12,9 @@ export function scopedDropFeedHistoryEnabled(input: {
   area?: string | null;
   store?: string | null;
   bottle?: string | null;
+  search?: string | null;
 }) {
-  return [input.state, input.area, input.store, input.bottle].some((value) => {
+  return [input.state, input.area, input.store, input.bottle, input.search].some((value) => {
     const normalized = String(value || "").trim();
     return normalized.length > 0 && normalized.toUpperCase() !== "ALL";
   });
