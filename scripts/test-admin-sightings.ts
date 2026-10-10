@@ -82,7 +82,7 @@ test("reviewed expression corrections keep displayed labels and filter tiers con
   ['penelope-riviera-cask-finish','Penelope Riviera Cask Finish','limited','Limited availability'],
   ['penelope-estate-collection-founders-reserve','Penelope Estate Collection Founders Reserve','limited','Limited availability'],
   ['high-west-midwinter-night-dram-act-13-scene-7','High west midwinter night dram act 13 scene 7','allocated','Allocated'],
- ]) {
+ ] as const) {
   const corrected={...bottle,id,canonicalName:name,...reviewed[id]};
   const catalog=buildSightingRarityCatalog([corrected]);
   const result=catalog.present({...sighting,bottleId:id,bottleName:name});
