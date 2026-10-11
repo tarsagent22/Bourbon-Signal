@@ -1,3 +1,4 @@
+import { parseRecentStores, recentStoresKey, rememberStore } from "../../../src/sightings/recent-stores";
 import { useFormDraft } from "../../../src/hooks/useFormDraft";
 import { DraftNotice } from "../../../src/components/DraftNotice";
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
@@ -48,6 +49,8 @@ function PostComposer({ userId }: { userId: string }) {
   const [storeCity, setStoreCity] = useState("");
   const [storeState, setStoreState] = useState("");
   const [storeZip, setStoreZip] = useState("");
+  const [recentStores, setRecentStores] = useState<PostStoreSelection[]>([]);
+  const [showDetails, setShowDetails] = useState(false);
   const [selectedStore, setSelectedStore] = useState<PostStoreSelection | null>(null);
   const [manualStore, setManualStore] = useState(false);
   const [storeResults, setStoreResults] = useState<PostStoreSelection[]>([]);
@@ -84,6 +87,8 @@ function PostComposer({ userId }: { userId: string }) {
       setManualStore(value.manualStore); setPrice(value.price); setQuantity(value.quantity); setCustomQuantity(value.customQuantity); setNotes(value.notes);
     },
   });
+  useEffect(() => { if (draft.ready && (price || quantity || notes || selectedPhoto)) setShowDetails(true); }, [draft.ready]);
+  useEffect(() => { if (pendingPhotoAttachment) setShowDetails(true); }, [pendingPhotoAttachment]);
   function discardDraft() {
     Alert.alert("Discard this draft?", "Your unfinished text will be removed from this device.", [
       { text: "Keep editing", style: "cancel" },
@@ -120,6 +125,17 @@ function PostComposer({ userId }: { userId: string }) {
     return () => { active = false; };
   }, [draftStorageKey, journal]);
 
+  useEffect(() => {
+    let active = true;
+    void SecureStore.getItemAsync(recentStoresKey(userId)).then(raw => { if (active) setRecentStores(parseRecentStores(raw)); }).catch(() => undefined);
+    return () => { active = false; };
+  }, [userId]);
+  function saveRecentStore() {
+    const next = rememberStore(recentStores, { id: selectedStore?.id || null, name: storeName, address: storeAddress, city: storeCity, state: storeState, zip: storeZip || undefined });
+    setRecentStores(next);
+    void SecureStore.setItemAsync(recentStoresKey(userId), JSON.stringify(next)).catch(() => undefined);
+  }
+
   const canSubmit = profile?.entitlements.canSubmitSignals === true;
   const bottleSuggestions = useMemo(() => bottleCatalog.search(bottleName, 5), [bottleCatalog.search, bottleName]);
   const requiredComplete = useMemo(() => isPostRequiredComplete({ bottleName, storeName, storeAddress, storeCity, storeState }), [bottleName, storeAddress, storeCity, storeName, storeState]);
@@ -136,7 +152,7 @@ function PostComposer({ userId }: { userId: string }) {
     notes,
     reporter: profile?.displayName || profile?.identity?.label,
   }), [bottleName, notes, price, profile?.displayName, profile?.identity?.label, quantity, selectedBottleRarity, storeAddress, storeCity, storeName, storeState]);
-  const actionDisabled = pendingPhotoAttachment ? photoBusy || submitting : !requiredComplete || !idempotencyReady || submitting || photoBusy;
+  const actionDisabled = pendingPhotoAttachment ? photoBusy || submitting : !requiredComplete || !draft.ready || !idempotencyReady || submitting || photoBusy;
 
   useEffect(() => {
     const query = storeName.replace(/\s+/g, " ").trim();
@@ -229,6 +245,7 @@ function PostComposer({ userId }: { userId: string }) {
   }
 
   function chooseStore(store: PostStoreSelection) {
+    setManualStore(!store.id);
     setSelectedStore(store);
     setStoreName(store.name);
     setStoreAddress(store.address);
@@ -255,6 +272,8 @@ function PostComposer({ userId }: { userId: string }) {
   }
 
   function resetComposer() {
+    saveRecentStore();
+    setShowDetails(false);
     void draft.clear().catch(() => undefined);
     setBottleName(""); setBottleId(null); setStoreName(""); setStoreAddress(""); setStoreCity(""); setStoreState(""); setStoreZip("");
     setSelectedStore(null); setManualStore(false); setStoreResults([]); setPrice(""); setQuantity(""); setCustomQuantity(false); setNotes(""); setActivePicker(null);
@@ -306,7 +325,7 @@ function PostComposer({ userId }: { userId: string }) {
     setPendingPhotoAttachment(null);
     setPhotoMessage("");
     resetComposer();
-    setSuccess("Signal posted with photo evidence. Thanks for helping nearby members.");
+    setSuccess("Signal posted with photo.");
     await prepareNextDraft();
   }
 
@@ -373,7 +392,7 @@ function PostComposer({ userId }: { userId: string }) {
       } else {
         const result = await api.submitSighting(built.payload, requestBinding.key);
         resetComposer();
-        setSuccess(result.duplicate ? "That Signal was already saved. You are all set." : "Signal posted. Thanks for helping nearby members.");
+        setSuccess(result.duplicate ? "This Signal is already posted." : "Signal posted.");
         await prepareNextDraft();
       }
     } catch (caught) {
@@ -386,7 +405,7 @@ function PostComposer({ userId }: { userId: string }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={memberScreenStyles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
-        <PageHeading title="Post a Signal" decorated={false} description="Share a sighting. Help your community. Earn points." />
+        <PageHeading title="Post a Signal" decorated={false} description="Post the bottle and where you saw it." />
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
@@ -401,7 +420,11 @@ function PostComposer({ userId }: { userId: string }) {
           </ComposerSection>
 
           <View style={styles.divider} />
-          <ComposerSection icon="storefront-outline" title="Find a retailer" required>
+          <ComposerSection icon="storefront-outline" title="Choose a store" required>
+            {!storeName.trim() && recentStores.length ? <View style={{ gap: 6 }}>
+              <Text style={styles.label}>Recent stores</Text>
+              {recentStores.map(store => <SuggestionRow key={[store.state, store.name, store.address].join("|")} title={store.name} subtitle={`${store.city}, ${store.state} · ${store.address}`} onPress={() => chooseStore(store)} />)}
+            </View> : null}
             {!manualStore ? <>
               {!selectedStore ? <Field autoCapitalize="words" autoCorrect={false} label="Store" onChangeText={changeStoreName} onFocus={() => setActivePicker("store")} placeholder="Store name, city, address or ZIP" value={storeName} /> : null}
               {activePicker === "store" && !selectedStore ? <ScrollView horizontal keyboardShouldPersistTaps="handled" showsHorizontalScrollIndicator={false} style={styles.storeStateRow} contentContainerStyle={styles.storeStateChips} accessibilityLabel="Store search state">
@@ -427,7 +450,10 @@ function PostComposer({ userId }: { userId: string }) {
           </ComposerSection>
 
           <View style={styles.divider} />
-          <ComposerSection icon="text-box-outline" title="Details">
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: showDetails || Boolean(pendingPhotoAttachment) }} onPress={() => setShowDetails(value => !value)} style={styles.manualAction}>
+            <Text style={styles.manualActionText}>{showDetails ? "Hide optional details" : "Add price, quantity, notes or photo"}</Text>
+          </Pressable>
+          {showDetails || pendingPhotoAttachment ? <ComposerSection icon="text-box-outline" title="Details">
             <View style={styles.priceField}><Text style={styles.label}>Shelf price</Text><View style={styles.priceInput}><Text style={styles.currency}>$</Text><TextInput accessibilityLabel="Shelf price" keyboardType="decimal-pad" onChangeText={setPrice} placeholder="69.99" placeholderTextColor={colors.muted} style={styles.priceTextInput} value={price} /></View></View>
             <View style={styles.field}><Text style={styles.label}>Quantity seen</Text><View style={styles.chips}>{POST_QUANTITY_CHOICES.map((choice) => <Pressable accessibilityRole="button" accessibilityState={{ selected: !customQuantity && quantity === choice }} key={choice} onPress={() => { setCustomQuantity(false); setQuantity(choice); }} style={[styles.chip, !customQuantity && quantity === choice && styles.chipActive]}><Text style={[styles.chipText, !customQuantity && quantity === choice && styles.chipTextActive]}>{choice}</Text></Pressable>)}<Pressable accessibilityRole="button" accessibilityState={{ selected: customQuantity }} onPress={() => { setCustomQuantity(true); setQuantity(""); }} style={[styles.chip, customQuantity && styles.chipActive]}><Text style={[styles.chipText, customQuantity && styles.chipTextActive]}>Other</Text></Pressable></View></View>
             {customQuantity ? <Field accessibilityLabel="Custom quantity seen" label="Custom quantity" onChangeText={setQuantity} placeholder="Example: 2 behind counter" value={quantity} /> : null}
@@ -448,7 +474,7 @@ function PostComposer({ userId }: { userId: string }) {
               {photoMessage ? <Text accessibilityRole="alert" style={styles.photoMessage}>{photoMessage}</Text> : null}
               <Text style={styles.photoDisclosure}>Evidence may appear publicly with this sighting. Photos are resized, re-encoded, and stripped of embedded metadata before upload.</Text>
             </View>
-          </ComposerSection>
+          </ComposerSection> : null}
 
           {preview ? <SignalPreview preview={preview} /> : null}
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
@@ -459,7 +485,7 @@ function PostComposer({ userId }: { userId: string }) {
         {!canSubmit && error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       </ScrollView>
       {canSubmit ? <View style={styles.actionFooter}>
-        {!requiredComplete ? <Text style={styles.actionHint}>Choose a bottle and retailer to continue.</Text> : null}
+        {!requiredComplete ? <Text style={styles.actionHint}>Choose a bottle and store to continue.</Text> : null}
         <Pressable accessibilityRole="button" accessibilityState={{ disabled: actionDisabled }} disabled={actionDisabled} onPress={submit} style={({ pressed }) => [styles.submit, actionDisabled && styles.submitDisabled, pressed && !actionDisabled && styles.submitPressed]}>
           {submitting || photoBusy ? <ActivityIndicator color={colors.background} /> : <><MaterialCommunityIcons color={actionDisabled ? colors.muted : colors.background} name={pendingPhotoAttachment ? "cloud-upload-outline" : "broadcast"} size={18} /><Text style={[styles.submitText, actionDisabled && styles.submitTextDisabled]}>{pendingPhotoAttachment ? "Retry photo upload" : "Post Signal"}</Text></>}
         </Pressable>

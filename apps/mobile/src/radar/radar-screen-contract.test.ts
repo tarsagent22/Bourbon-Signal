@@ -87,10 +87,10 @@ test("current and history stay separate with useful empty states", () => {
   assert.match(row, /availability unconfirmed/);
 });
 
-test("Post explains the community and points value", () => {
+test("Post asks for the bottle and sighting location", () => {
   const post = readScreen("post");
 
-  assert.match(post, /description="Share a sighting\. Help your community\. Earn points\."/);
+  assert.match(post, /description="Post the bottle and where you saw it\."/);
   assert.doesNotMatch(post, /Choose the bottle and retailer\. Add only what you observed\./);
 });
 

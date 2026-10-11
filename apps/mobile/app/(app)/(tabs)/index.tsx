@@ -1,10 +1,11 @@
 import { feedCacheScope, homeFeedCache } from "../../../src/signals/home-feed-cache";
+import { feedEmptyState } from "../../../src/signals/feed-empty-state";
 import { feedRetryAction } from "../../../src/signals/feed-recovery";
 import { EmptyState } from "../../../src/components/MemberScreen";
 import { allowedFeedFilters, canUseDetailedFeedFilters } from "../../../src/signals/feed-access";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, AppState, FlatList, Image, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -112,6 +113,7 @@ export default function SignalFeedScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + 56;
   const { userId } = useAuth();
+  const { view: requestedView } = useLocalSearchParams<{ view?: string }>();
   const browsingStorageKey = homeBrowsingStorageKey(userId);
   const [view, setView] = useState<FeedView>("market");
   const [signals, setSignals] = useState<Signal[]>([]);
@@ -176,6 +178,17 @@ export default function SignalFeedScreen() {
   const viewportRef = useRef<View>(null);
   const [viewportHeight, setViewportHeight] = useState(480);
   const scrollOffset = useRef(0);
+  const savedOffsets = useRef(new Map<string, number>());
+  const pendingOffset = useRef<number | null>(null);
+  const listContentHeight = useRef(0);
+  const emptyFeed = feedEmptyState(view, filters);
+  const restoreScrollPosition = useCallback(() => {
+    if (!loaded || pendingOffset.current === null || !listContentHeight.current) return;
+    const offset = Math.max(0, Math.min(pendingOffset.current, listContentHeight.current - viewportHeight));
+    pendingOffset.current = null;
+    listRef.current?.scrollToOffset({ offset, animated: false });
+  }, [loaded, scopeKey, viewportHeight]);
+  useEffect(() => { const frame = requestAnimationFrame(restoreScrollPosition); return () => cancelAnimationFrame(frame); }, [restoreScrollPosition]);
   const revealChooser = useCallback((node: View) => {
     node.measureInWindow((_x, top, _width, height) => {
       viewportRef.current?.measureInWindow((_vx, viewportTop, _vw, viewportHeight) => {
@@ -322,6 +335,8 @@ export default function SignalFeedScreen() {
     requestInFlightRef.current = null;
     setLoadedBrowsingStorageKey("");
     loadedScopeRef.current = "";
+    savedOffsets.current.clear();
+    pendingOffset.current = null;
     setView("market");
     setFiltersByView({ market: { ...DEFAULT_SIGNAL_FILTERS }, community: { ...DEFAULT_SIGNAL_FILTERS } });
     setBottleQueries({ market: "", community: "" });
@@ -458,10 +473,16 @@ export default function SignalFeedScreen() {
   }, [motionDisabled, queuedSignals]);
 
   useEffect(() => { if (browsingStorageKey) void loadProfile(false); }, [browsingStorageKey, loadProfile]);
+  useEffect(() => {
+    if (!browsingLoaded || (requestedView !== "community" && requestedView !== "market")) return;
+    selectView(requestedView);
+    router.setParams({ view: undefined });
+  }, [browsingLoaded, requestedView, selectView]);
   useScreenRevalidation(() => { void loadProfile(false); if (browsingLoaded && (error || Date.now() - lastRefreshRef.current > 30_000)) void load(true); });
   useEffect(() => {
     if (!browsingLoaded || loadedScopeRef.current === scopeKey) return;
     loadedScopeRef.current = scopeKey;
+    pendingOffset.current = savedOffsets.current.get(scopeKey) || 0;
     requestSequence.current += 1;
     requestInFlightRef.current = null;
     setSignals([]);
@@ -670,15 +691,17 @@ export default function SignalFeedScreen() {
       <FlatList
       key={JSON.stringify([userId, view])}
       removeClippedSubviews={false}
-      initialNumToRender={30}
-      maxToRenderPerBatch={30}
+      initialNumToRender={8}
+      maxToRenderPerBatch={6}
+      windowSize={7}
       contentInsetAdjustmentBehavior="never"
       automaticallyAdjustContentInsets={false}
       ref={listRef}
       contentContainerStyle={styles.list}
       data={visibleSignals}
       keyboardShouldPersistTaps="handled"
-      onScroll={(event) => { scrollOffset.current = event.nativeEvent.contentOffset.y; }}
+      onScroll={(event) => { scrollOffset.current = event.nativeEvent.contentOffset.y; if (pendingOffset.current === null) { savedOffsets.current.delete(scopeKey); savedOffsets.current.set(scopeKey, scrollOffset.current); if (savedOffsets.current.size > 8) savedOffsets.current.delete(savedOffsets.current.keys().next().value!); } }}
+      onContentSizeChange={(_width, height) => { listContentHeight.current = height; restoreScrollPosition(); }}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
@@ -705,10 +728,18 @@ export default function SignalFeedScreen() {
                 <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable>
                 <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community →</Text></Pressable>
               </View>
-            : <View style={{gap:12}}><EmptyState title={view === "community" ? "No member sightings yet" : "No Intel Signals match these filters"}
-              detail={activeFilterCount(filters) ? "Try a broader search or clear your filters." : view === "community" ? "Share what you spotted to help nearby members." : "New Signals will appear here as they arrive."}
-              actionLabel={activeFilterCount(filters) ? "Clear filters" : view === "community" ? "Post a sighting" : "Refresh feed"}
-              onAction={() => { if (activeFilterCount(filters)) { setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...DEFAULT_SIGNAL_FILTERS }); } else if (view === "community") router.push("/(app)/(tabs)/post"); else void load(true); }} />
+            : <View style={{gap:12}}><EmptyState title={emptyFeed.title} detail={emptyFeed.detail} actionLabel={emptyFeed.actionLabel}
+              onAction={() => {
+                switch (emptyFeed.action) {
+                  case "search": setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...filters, bottle: "" }); break;
+                  case "time": applyFilters({ ...filters, freshness: null }); break;
+                  case "rarity": applyFilters({ ...filters, rarities: [] }); break;
+                  case "area": applyFilters({ ...filters, area: "" }); break;
+                  case "state": applyFilters({ ...filters, state: "", area: "" }); break;
+                  case "post": router.push("/(app)/(tabs)/post"); break;
+                  case "community": selectView("community"); break;
+                }
+              }} />
               {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:{state:filters.state}})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
       ListFooterComponent={!visibleSignals.length ? feedFooter : null}
     />
