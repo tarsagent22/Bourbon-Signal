@@ -1,9 +1,17 @@
 import type { Signal } from "../api/types";
 
 export const SIGNAL_RECENT_WINDOW_MS = 72 * 60 * 60 * 1_000;
+const listingKey = (signal: Signal) => signal.source.type !== "member" && signal.availabilityEpisodeId ? `episode:${signal.availabilityEpisodeId}` : signal.id;
 
 export function sortSignalTimeline(signals: readonly Signal[]) {
-  return [...new Map(signals.map((signal) => [signal.id, signal])).values()].sort((left, right) => {
+  const listings = new Map<string, Signal>();
+  for (const signal of signals) {
+    const key = listingKey(signal);
+    const prior = listings.get(key);
+    const checked = (row: Signal) => Date.parse(row.timing.lastCheckedAt || row.timing.observedAt || row.timing.displayAt) || 0;
+    if (!prior || checked(signal) >= checked(prior)) listings.set(key, signal);
+  }
+  return [...listings.values()].sort((left, right) => {
     const leftAt = Date.parse(left.timing.displayAt);
     const rightAt = Date.parse(right.timing.displayAt);
     const difference = (Number.isFinite(rightAt) ? rightAt : 0) - (Number.isFinite(leftAt) ? leftAt : 0);
@@ -13,28 +21,28 @@ export function sortSignalTimeline(signals: readonly Signal[]) {
 const uniqueById = sortSignalTimeline;
 
 export function reconcileQueuedSignals(current: readonly Signal[], queued: readonly Signal[], incoming: readonly Signal[], baselineDisplayAt?: string) {
-  const currentIds = new Set(current.map((signal) => signal.id));
-  const incomingById = new Map(incoming.map((signal) => [signal.id, signal]));
+  const currentIds = new Set(current.map(listingKey));
+  const incomingById = new Map(incoming.map((signal) => [listingKey(signal), signal]));
   const baseline = Date.parse(baselineDisplayAt || current[0]?.timing.displayAt || "");
   const newlyReported = incoming.filter((signal) => {
     const displayed = Date.parse(signal.timing.displayAt);
-    return !currentIds.has(signal.id) && (!Number.isFinite(baseline) || (Number.isFinite(displayed) && displayed >= baseline));
+    return !currentIds.has(listingKey(signal)) && (!Number.isFinite(baseline) || (Number.isFinite(displayed) && displayed >= baseline));
   });
   const stillPresent = queued.flatMap((signal) => {
-    const latest = incomingById.get(signal.id);
+    const latest = incomingById.get(listingKey(signal));
     return latest ? [latest] : [];
   });
   return uniqueById([...newlyReported, ...stillPresent]);
 }
 
 export function reconcileDisplayedSignals(current: readonly Signal[], incoming: readonly Signal[], hasMore: boolean) {
-  const incomingById = new Map(incoming.map((signal) => [signal.id, signal]));
+  const incomingById = new Map(incoming.map((signal) => [listingKey(signal), signal]));
   const oldestCovered = incoming.reduce((oldest, signal) => {
     const displayed = Date.parse(signal.timing.displayAt);
     return Number.isFinite(displayed) ? Math.min(oldest, displayed) : oldest;
   }, Number.POSITIVE_INFINITY);
   return sortSignalTimeline(current.flatMap((signal) => {
-    const latest = incomingById.get(signal.id);
+    const latest = incomingById.get(listingKey(signal));
     if (latest) return [latest];
     if (!hasMore) return [];
     const displayed = Date.parse(signal.timing.displayAt);
@@ -43,7 +51,7 @@ export function reconcileDisplayedSignals(current: readonly Signal[], incoming: 
 }
 
 export function acceptQueuedSignals(current: readonly Signal[], queued: readonly Signal[]) {
-  return uniqueById([...queued, ...current]);
+  return uniqueById([...current, ...queued]);
 }
 
 export function recentTickerSignals(signals: readonly Signal[], now = new Date()) {

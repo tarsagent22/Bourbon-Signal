@@ -5,7 +5,7 @@ import type { Signal } from "../api/types";
 import { CommunityPostCard } from "./CommunityPostCard";
 import { CellarBottleArtwork } from "./CellarBottleArtwork";
 import { signalRowBottleIdentity, signalRowFacts } from "./signal-row-presentation";
-import { presentSignal, signalAccessibilityLabel, signalAvailabilityRefreshAt, signalFeedCardAppearance } from "../api/presentation";
+import { presentSignal, signalAccessibilityLabel, signalAvailabilityRefreshAt, signalFeedCardAppearance, signalListingPresentation } from "../api/presentation";
 import { reportAge } from "../signals/report-age";
 import { useReportClock } from "../hooks/useReportClock";
 import { colors, typeScale, fonts } from "../theme";
@@ -15,6 +15,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
   const [boundaryNow, setNow] = useState(() => new Date());
   const now = clock.getTime() > boundaryNow.getTime() ? clock : boundaryNow;
   const age = reportAge(signal, now);
+  const listing = signalListingPresentation(signal, now);
   useEffect(() => {
     const refreshAt = signalAvailabilityRefreshAt(signal, now);
     if (!refreshAt) return undefined;
@@ -54,7 +55,8 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
         {presented.price && metric ? <Text accessible={false} style={styles.metricDot}>·</Text> : null}
         {metric ? <Text style={styles.metricText}>{metric}</Text> : null}
       </View>
-      {age.older ? <Text style={styles.status}>{signal.historical ? "Historical report" : "Older report · Availability may have changed"}</Text> : showStatus ? <Text style={styles.status}>{status}</Text> : null}
+      {age.older ? <Text style={styles.status}>{signal.historical ? "Historical report" : "Older check · Availability may have changed"}</Text> : listing || showStatus ? <Text style={styles.status}>{listing?.status || status}</Text> : null}
+      {listing?.firstSpotted ? <Text style={styles.status}>{listing.firstSpotted}</Text> : null}
     </View>
     <MaterialCommunityIcons accessible={false} name="chevron-right" color={colors.accent} size={22} />
   </Pressable>;

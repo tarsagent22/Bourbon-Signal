@@ -42,7 +42,7 @@ async function main() {
   const stores = (storesPayload.stores || []).filter((store) => store.state === 'PA');
   const locations = (locationsPayload.locations || []).filter((location) => location.state === 'PA');
   const staleExactDrops = exactDrops.filter((drop) => ageHours(drop.observedAt) > MAX_AGE_HOURS);
-  const falseFreshExactDrops = exactDrops.filter((drop) => drop.firstSeenAt && drop.lastConfirmedAt && drop.firstSeenAt !== drop.lastConfirmedAt && (drop.displayAt === drop.lastConfirmedAt || drop.timestampBasis === 'last_confirmed_at'));
+  const falseFreshExactDrops = exactDrops.filter((drop) => !(['price_drop', 'price_change'].includes(drop.listingChange) && drop.listingChangedAt === drop.displayAt) && drop.firstSeenAt && drop.lastConfirmedAt && drop.firstSeenAt !== drop.lastConfirmedAt && (drop.displayAt === drop.lastConfirmedAt || drop.timestampBasis === 'last_confirmed_at'));
   const missingStoreIds = exactDrops.filter((drop) => !drop.storeId);
   const storeIds = new Set(stores.map((store) => String(store.id)).filter(Boolean));
   const unmatchedDropStores = exactDrops.filter((drop) => drop.storeId && !storeIds.has(String(drop.storeId)));

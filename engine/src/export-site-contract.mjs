@@ -498,7 +498,7 @@ export function publicSignal(signal, bible, freshness = null) {
   const eventAt = freshness?.eventAt || null;
   const firstSeenAt = freshness?.firstSeenAt || signal.observedAt || null;
   const lastConfirmedAt = freshness?.lastConfirmedAt || signal.observedAt || null;
-  const displayAt = eventAt || firstSeenAt || lastConfirmedAt;
+  const displayAt = freshness?.listingChangedAt || eventAt || firstSeenAt || lastConfirmedAt;
   const timestampBasis = eventAt ? 'source_event_at' : firstSeenAt ? 'first_seen_at' : 'last_confirmed_at';
   return {
     id: signal.key || signal.sourceSignalId || signal.id,
@@ -552,6 +552,8 @@ export function publicSignal(signal, bible, freshness = null) {
     availabilityEpisodeId: freshness?.availabilityEpisodeId || null,
     availabilityEpisodeStartedAt: freshness?.availabilityEpisodeStartedAt || null,
     availabilityEpisodeKind: freshness?.availabilityEpisodeKind || null,
+    listingChangedAt: freshness?.listingChangedAt || null,
+    listingChange: freshness?.listingChange || null,
     displayAt,
     timestampBasis,
     locationPrecision: signal.locationPrecision,
@@ -789,7 +791,8 @@ export function availabilityEpisodeIdentity(signal) {
     || signal.locationName
     || signal.storeName;
   if (!source || !bottle || !location) return '';
-  return stableId(['availability_subject', signal.state || signal.stateCode || '', source, bottle, location]);
+  const variant = signal.variantId || signal.optionId || signal.raw?.variant?.id || signal.raw?.option?.option_id;
+  return stableId(['availability_subject', signal.state || signal.stateCode || '', source, bottle, location, ...(variant ? [variant] : [])]);
 }
 
 function availabilityEpisodeId(subjectId, startedAt) {
@@ -811,6 +814,9 @@ function seededAvailabilityEpisode(drop, subjectId) {
     checkpointAt: Date.parse(checkpointAt),
     hasEverAvailable: true,
     lastUnavailableAt: null,
+    price: Number.isFinite(Number(drop.price)) && Number(drop.price) > 0 ? Number(drop.price) : null,
+    listingChangedAt: drop.listingChangedAt || startedAt,
+    listingChange: drop.listingChange || drop.availabilityEpisodeKind || 'first_detection',
   };
 }
 
@@ -835,6 +841,7 @@ export function buildAvailabilityEpisodeIndex(signals = [], { previousDrops = []
       subjectId: availabilityEpisodeIdentity(signal),
       state: explicitAvailabilityState(signal),
       observedAt: availabilityObservationAt(signal),
+      price: Number.isFinite(Number(signal.price)) && Number(signal.price) > 0 ? Number(signal.price) : null,
     }))
     .filter((entry) => entry.subjectId && entry.state && entry.observedAt)
     .sort((left, right) => Date.parse(left.observedAt) - Date.parse(right.observedAt) || left.order - right.order);
@@ -876,14 +883,23 @@ export function buildAvailabilityEpisodeIndex(signals = [], { previousDrops = []
         lastConfirmedAt: observation.observedAt,
         checkpointAt: observedTime,
         hasEverAvailable: true,
+        price: observation.price,
+        listingChangedAt: observation.observedAt,
+        listingChange: kind,
       });
       continue;
     }
 
+    const priceChanged = observation.price !== null && existing.price != null && observation.price !== existing.price;
     index.set(observation.subjectId, {
       ...existing,
       lastConfirmedAt: observation.observedAt,
       checkpointAt: observedTime,
+      price: observation.price ?? existing.price,
+      ...(priceChanged ? {
+        listingChangedAt: observation.observedAt,
+        listingChange: observation.price < existing.price ? 'price_drop' : 'price_change',
+      } : {}),
     });
   }
   return index;
@@ -955,6 +971,8 @@ function buildFreshnessIndex(historicalSignals = [], currentSignals = [], previo
       availabilityEpisodeStartedAt: episode.startedAt,
       availabilityEpisodeKind: episode.kind,
       availabilityEpisodeAvailable: episode.available,
+      listingChangedAt: episode.listingChangedAt,
+      listingChange: episode.listingChange,
     });
   }
   return index;

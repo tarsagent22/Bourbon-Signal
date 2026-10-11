@@ -1,10 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "../api/types";
-import { signalAccessibilityLabel } from "../api/presentation";
+import { signalAccessibilityLabel, signalListingPresentation, signalAvailabilityIsCurrent } from "../api/presentation";
 import { reportAge } from "./report-age";
 const now = new Date("2026-10-10T15:00:00Z");
 const signal = (timing: Signal["timing"], patch: Partial<Signal> = {}) => ({ kind: "availability", source: { type: "member" }, timing, ...patch } as Signal);
+
+test("old discoveries with fresh engine checks remain available without claiming new discoveries", () => {
+  const listing = signal({ firstSpottedAt: "2026-10-08T15:00:00Z", displayAt: "2026-10-08T15:00:00Z", lastCheckedAt: "2026-10-10T14:48:00Z" }, { source: { type: "trusted_source", label: "Trusted source" }, evidence: { photo: false, corroborationCount: 0, helpfulCount: 0, retailerReported: false, sourceBacked: true }, availability: { status: "available_now" } });
+  assert.equal(reportAge(listing, now).label, "Last checked 12 minutes ago");
+  assert.equal(reportAge(listing, now).older, false);
+  assert.equal(signalAvailabilityIsCurrent(listing, now), true);
+  assert.equal(signalListingPresentation(listing, now)?.status, "Still listed available");
+  assert.match(signalListingPresentation(listing, now)?.firstSpotted || "", /First spotted Oct 8/);
+  const changed = { ...listing, listingChange: "price_drop" as const, timing: { ...listing.timing, displayAt: "2026-10-10T14:48:00Z" } };
+  assert.equal(signalListingPresentation(changed, now)?.status, "Price dropped · Still listed available");
+  assert.equal(signalListingPresentation({ ...changed, historical: true }, now)?.status, "Historical report");
+});
 test("an updated feed time cannot make a two-day-old sighting look fresh", () => {
   const age = reportAge(signal({ observedAt: "2026-10-08T15:00:00Z", reportedAt: now.toISOString(), displayAt: now.toISOString() }), now);
   assert.equal(age.label, "Seen 2 days ago"); assert.equal(age.older, true);

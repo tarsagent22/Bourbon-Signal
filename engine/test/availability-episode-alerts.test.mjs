@@ -44,6 +44,27 @@ test('quantity changes and reconfirmations retain one episode identity', () => {
   assert.equal(reconfirmation.lastConfirmedAt, '2026-08-29T12:30:00.000Z');
 });
 
+test('only a known price change advances listing time, and the next check preserves it', () => {
+  const rows = observations('reconfirmation');
+  const first = { ...rows[0], price: 100 };
+  const reduced = { ...rows[1], price: 90 };
+  const check = { ...reduced, observedAt: '2026-08-29T13:00:00.000Z' };
+  const state = buildAvailabilityEpisodeIndex([first, reduced, check]).get(availabilityEpisodeIdentity(first));
+  assert.equal(state.firstSeenAt, first.observedAt);
+  assert.equal(state.lastConfirmedAt, check.observedAt);
+  assert.equal(state.listingChangedAt, reduced.observedAt);
+  assert.equal(state.listingChange, 'price_drop');
+  const missingPrice = buildAvailabilityEpisodeIndex([first, { ...check, price: 0 }]).get(availabilityEpisodeIdentity(first));
+  assert.equal(missingPrice.listingChangedAt, first.observedAt);
+  assert.equal(missingPrice.listingChange, 'first_detection');
+  const previous = { ...fixture.identity, availabilityEpisodeId: state.id, firstSeenAt: state.firstSeenAt, lastConfirmedAt: state.lastConfirmedAt, listingChangedAt: state.listingChangedAt, listingChange: state.listingChange, price: 90 };
+  const next = { ...check, observedAt: '2026-08-29T14:00:00.000Z' };
+  const resumed = buildAvailabilityEpisodeIndex([next], { previousDrops: [previous] }).get(availabilityEpisodeIdentity(next));
+  assert.equal(resumed.id, state.id);
+  assert.equal(resumed.listingChangedAt, reduced.observedAt, 'snapshot seeding must preserve the last meaningful change');
+  assert.notEqual(availabilityEpisodeIdentity({ ...first, variantId: '750ml' }), availabilityEpisodeIdentity({ ...first, variantId: '1l' }), 'different bottle sizes must not share an episode');
+});
+
 test('only explicit unavailable evidence closes an episode and makes a later available observation a restock', () => {
   const first = episode('firstDetection');
   const restock = episode('restock');
@@ -106,6 +127,23 @@ test('current drop projection consumes explicit unavailable evidence from engine
   assert.equal(drop.availabilityEpisodeStartedAt, restockedAt);
   assert.equal(drop.firstSeenAt, restockedAt);
   assert.equal(drop.lastConfirmedAt, restockedAt);
+  assert.equal(drop.listingChangedAt, restockedAt);
+  assert.equal(drop.listingChange, 'restock');
+});
+
+test('public inventory export keeps first discovery and latest check around a price change', () => {
+  const start = new Date(Date.now() - 3 * 60 * 60_000).toISOString();
+  const changed = new Date(Date.now() - 60 * 60_000).toISOString();
+  const checked = new Date().toISOString();
+  const base = { ...fixture.identity, state: 'VA', id: 'price-projection', rawName: 'Eagle Rare 10 Year', canonicalName: 'Eagle Rare 10 Year', tier: 'allocated', canAlertAsInventory: true, sourceAvailabilityVerified: true, quantityIsExact: true, availabilityStatus: 'in_stock', quantity: 2 };
+  const history = [{ ...base, observedAt: start, price: 100 }, { ...base, observedAt: changed, price: 90 }, { ...base, observedAt: checked, price: 90 }];
+  const record = { id: base.canonicalBottleId, canonical: base.canonicalName, aliases: [], tier: base.tier };
+  const bible = { byId: new Map([[record.id, record]]), byName: new Map() };
+  const [drop] = buildDrops([history.at(-1)], bible, [history.at(-1)], [], history);
+  assert.equal(drop.firstSeenAt, start);
+  assert.equal(drop.lastConfirmedAt, checked);
+  assert.equal(drop.displayAt, changed);
+  assert.equal(drop.listingChange, 'price_drop');
 });
 
 test('engine alert projection dedupes mutable metadata by availability episode', () => {

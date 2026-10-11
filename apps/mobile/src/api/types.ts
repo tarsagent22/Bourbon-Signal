@@ -17,7 +17,8 @@ export interface Signal {
     state?: string;
     store?: { id?: string; name?: string; address?: string; city?: string; state?: string; zip?: string };
   };
-  timing: { observedAt?: string; reportedAt?: string; displayAt: string; scheduledFor?: string; expiresAt?: string };
+  listingChange?: "first_detection" | "restock" | "price_drop" | "price_change";
+  timing: { observedAt?: string; reportedAt?: string; displayAt: string; firstSpottedAt?: string; lastCheckedAt?: string; scheduledFor?: string; expiresAt?: string };
   evidence: { summary?: string; photo: boolean; photoUrl?: string; corroborationCount: number; helpfulCount: number; retailerReported: boolean; sourceBacked: boolean };
   strength: "best" | "more_activity";
   availability?: {

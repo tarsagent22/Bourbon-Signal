@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "../api/types";
-import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, recentTickerSignals, tickerLocationLabel } from "./home-feed-live";
+import { sortSignalTimeline, acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, recentTickerSignals, tickerLocationLabel } from "./home-feed-live";
 
 function signal(id: string, displayAt: string, overrides: Partial<Signal> = {}): Signal {
   return {
@@ -28,6 +28,15 @@ test("background reconciliation queues only genuinely new current-scope ids and 
   const second = reconcileQueuedSignals(current, first, [signal("d", "2026-09-05T14:00:00.000Z"), current[0]]);
   assert.deepEqual(second.map((item) => item.id), ["d"], "withdrawn pending rows must disappear before acceptance");
   assert.deepEqual(reconcileQueuedSignals(current, second, [second[0], second[0], current[0]]).map((item) => item.id), ["d"]);
+});
+
+test("rechecks replace an episode card without resurfacing it or announcing a new listing", () => {
+  const first = signal("first", "2026-10-08T12:00:00Z", { availabilityEpisodeId: "episode-1" });
+  const fresh = signal("new-store", "2026-10-10T12:00:00Z", { availabilityEpisodeId: "episode-2" });
+  const checked = { ...first, id: "rechecked", timing: { ...first.timing, lastCheckedAt: "2026-10-11T12:00:00Z" } };
+  assert.deepEqual(sortSignalTimeline([first, fresh, checked]).map(row => row.id), ["new-store", "rechecked"]);
+  assert.deepEqual(reconcileQueuedSignals([fresh, first], [], [fresh, checked]), []);
+  assert.deepEqual(reconcileDisplayedSignals([fresh, first], [fresh, checked], false).map(row => row.id), ["new-store", "rechecked"]);
 });
 
 test("accepting queued rows prepends without duplicating the visible feed or disturbing later pages", () => {
