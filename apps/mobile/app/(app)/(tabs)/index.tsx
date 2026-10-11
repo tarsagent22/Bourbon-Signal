@@ -6,7 +6,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, AppState, FlatList, Image, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
@@ -663,7 +663,10 @@ export default function SignalFeedScreen() {
         />
       </View>
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
-      <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.feedShade]} />
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <Image source={require("../../../assets/home-header-fade.png")} resizeMode="stretch" style={styles.feedFade} />
+        <View style={styles.feedShade} />
+      </View>
       <FlatList
       key={JSON.stringify([userId, view])}
       removeClippedSubviews={false}
@@ -680,7 +683,7 @@ export default function SignalFeedScreen() {
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
       renderItem={({ item, index }) => index === visibleSignals.length - 1 ? <View><FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />{feedFooter}</View> : <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />}
-      ItemSeparatorComponent={() => <View style={styles.separator} />}
+      ItemSeparatorComponent={() => <View style={[styles.separator, view === "community" && styles.communitySeparator]} />}
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}
       onEndReachedThreshold={0.5}
@@ -731,9 +734,11 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   homeBackdrop: StyleSheet.absoluteFill,
   feedViewport: { flex: 1, backgroundColor: "transparent" },
-  feedShade: { backgroundColor: "rgba(8,6,4,0.64)" },
+  feedFade: { width: "100%", height: 120 },
+  feedShade: { flex: 1, backgroundColor: "rgba(8,6,4,0.64)" },
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20 },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(210,184,145,0.12)", marginLeft: 78 },
+  communitySeparator: { marginLeft: 0 },
   header: { gap: 8, marginBottom: 4 },
   newSignalsPill: { position: "absolute", zIndex: 5, top: 8, alignSelf: "center", minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.accent, borderWidth: 1, borderColor: "#F1BC72", shadowColor: "#000", shadowOpacity: 0.32, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
   newSignalsPillPressed: { backgroundColor: colors.accentPressed, transform: [{ scale: 0.98 }] },
