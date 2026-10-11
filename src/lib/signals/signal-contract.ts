@@ -299,7 +299,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
       ...(observedAt ? { observedAt } : {}),
       ...(reportedAt ? { reportedAt } : {}),
       displayAt,
-      ...(kind === "availability" && type !== "member" ? {
+      ...(kind === "availability" && type === "trusted_source" ? {
         firstSpottedAt: text(input.availabilityEpisodeStartedAt, input.availability_episode_started_at, input.first_seen_at, input.firstSeenAt, reportedAt, displayAt),
         lastCheckedAt: text(input.last_confirmed_at, input.lastConfirmedAt, observedAt, displayAt),
       } : {}),

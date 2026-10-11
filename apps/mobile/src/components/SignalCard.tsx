@@ -55,7 +55,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
         {presented.price && metric ? <Text accessible={false} style={styles.metricDot}>·</Text> : null}
         {metric ? <Text style={styles.metricText}>{metric}</Text> : null}
       </View>
-      {age.older ? <Text style={styles.status}>{signal.historical ? "Historical report" : "Older check · Availability may have changed"}</Text> : listing || showStatus ? <Text style={styles.status}>{listing?.status || status}</Text> : null}
+      {age.older ? <Text style={styles.status}>{signal.historical ? "Historical report" : listing ? "Older check · Availability may have changed" : "Older report · Availability may have changed"}</Text> : listing || showStatus ? <Text style={styles.status}>{listing?.status || status}</Text> : null}
       {listing?.firstSpotted ? <Text style={styles.status}>{listing.firstSpotted}</Text> : null}
     </View>
     <MaterialCommunityIcons accessible={false} name="chevron-right" color={colors.accent} size={22} />

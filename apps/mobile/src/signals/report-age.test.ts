@@ -22,6 +22,9 @@ test("an updated feed time cannot make a two-day-old sighting look fresh", () =>
   assert.equal(age.label, "Seen 2 days ago"); assert.equal(age.older, true);
 });
 test("online reports, releases, and future scheduled events do not claim an in-store sighting", () => {
+  const retailer = signal({ displayAt: "2026-10-10T14:40:00Z" }, { source: { type: "retailer", label: "Retailer" } });
+  assert.equal(reportAge(retailer, now).label, "Reported 20 minutes ago");
+  assert.equal(signalListingPresentation(retailer, now), null, "retailer submissions must not claim an engine recheck");
   assert.equal(reportAge(signal({ displayAt: "2026-10-10T14:40:00Z" }, { source: { type: "member", label: "Member", reportMode: "reported_online" } }), now).label, "Reported 20 minutes ago");
   assert.equal(reportAge(signal({ reportedAt: "2026-10-10T14:00:00Z", displayAt: "2026-10-15T15:00:00Z" }, { kind: "event" }), now).label, "Posted 1 hour ago");
   assert.equal(reportAge(signal({ displayAt: "2026-10-15T15:00:00Z" }), now).label, "Time not available");

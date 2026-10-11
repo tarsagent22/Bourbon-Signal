@@ -188,7 +188,7 @@ export default function SignalDetailScreen() {
           {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize: typeScale.small}}>{badge}</Text>)}</View>:null}
         </View> : <Text style={styles.source}>{signal.source.label}</Text>}
         <Detail label="Location" value={presented?.address || presented?.location || signal.location.state || "Location not specified"} />
-        <Detail label={signal.kind === "availability" && signal.source.type !== "member" ? "Last checked" : "Reported"} value={reportAge(signal).value ? new Date(reportAge(signal).value!).toLocaleString() : "Time not available"} />
+        <Detail label={signal.kind === "availability" && signal.source.type === "trusted_source" ? "Last checked" : "Reported"} value={reportAge(signal).value ? new Date(reportAge(signal).value!).toLocaleString() : "Time not available"} />
         {signal.timing.firstSpottedAt ? <Detail label="First spotted" value={new Date(signal.timing.firstSpottedAt).toLocaleString()} /> : null}
         {presented?.availability ? <Detail label="Availability" value={presented.availability} /> : null}
         {presented?.price ? <Detail label="Price" value={presented.price} /> : null}
