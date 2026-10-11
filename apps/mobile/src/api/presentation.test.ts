@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "./types";
 import { presentBottleIdentity, presentSignal, signalAccessibilityLabel, signalFeedCardAppearance, signalCardStatusLabel, signalMemberTagLabel, signalReporterAttribution } from "./presentation";
-import { signalRowBottleIdentity, signalRowFacts } from "../components/signal-row-presentation";
+import { signalRowBottleIdentity, signalRowFacts, signalRowTimeLabel } from "../components/signal-row-presentation";
 
 function signal(overrides: Partial<Signal> = {}): Signal {
   return {
@@ -28,7 +28,10 @@ test("compact rows qualify counted reports without implying verified inventory",
   assert.deepEqual(signalRowFacts(counted, now), { quantity: "2 bottles reported", status: "Reported", showStatus: false });
   const retailer = signal({ source: { type: "retailer", label: "Retailer" }, availability: { status: "available_now", quantity: 2 } });
   assert.deepEqual(signalRowFacts(retailer, now), { quantity: "2 bottles retailer-reported", status: "Retailer reports available", showStatus: false });
-  assert.equal(signalRowFacts(signal(), now).showStatus, true, "unknown quantities retain status text");
+  assert.equal(signalRowFacts(signal(), now).showStatus, false, "bare Reported adds no useful status even when quantity is unknown");
+  assert.equal(signalRowTimeLabel(counted, new Date("2026-08-23T18:00:00Z")), "Checked 6h ago");
+  assert.equal(signalRowTimeLabel(retailer, now), "Reported 1 hour ago", "retailer attribution keeps its existing timing");
+  assert.match(signalAccessibilityLabel(counted, now), /Last checked 1 hour ago/, "screen readers retain the full check time");
 });
 
 test("compact bottle names retain rye and bottled-in-bond identity qualifiers", () => {
@@ -50,6 +53,10 @@ test("compact counted rows retain stale, historical and exceptional status text"
   }
   assert.equal(signalRowFacts({ ...row, kind: "event" }, now).status, "Event");
   assert.equal(signalRowFacts({ ...row, kind: "release" }, now).status, "Release");
+  const changed = signal({ availability: { status: "available_now", quantity: 2 }, listingChange: "price_drop" });
+  assert.equal(signalRowFacts(changed, now).showStatus, true);
+  assert.match(signalRowFacts(changed, now).status, /^Price dropped/);
+  assert.match(signalRowFacts({ ...changed, listingChange: "restock" }, now).status, /^Back in stock/);
 });
 
 test("unknown and zero prices use exact honest copy", () => {
