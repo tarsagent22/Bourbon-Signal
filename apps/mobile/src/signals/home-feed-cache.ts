@@ -5,7 +5,7 @@ export interface FeedCacheStorage { read(owner: string): Promise<string | null>;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 type Entry = { scope: string; savedAt: number; page: SignalFeedPage };
 export function feedCacheScope(view: SignalFeedView, filters: SignalFeedFilters) {
-  return JSON.stringify([view, filters.state, filters.area, filters.freshness, filters.bottle, [...filters.rarities].sort()]);
+  return JSON.stringify(['listing-continuity-v1', view, filters.state, filters.area, filters.freshness, filters.bottle, [...filters.rarities].sort()]);
 }
 export function createHomeFeedCache(storage: FeedCacheStorage, now = Date.now) {
   const memory = new Map<string, Entry[]>();
