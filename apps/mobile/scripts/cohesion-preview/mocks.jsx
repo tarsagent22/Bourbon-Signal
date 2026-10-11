@@ -1,14 +1,15 @@
 import React from 'react';
 import {preferencesFixture,profileFixture,feedFixture} from '../../src/api/astra-fixtures';
 import seed from '../../src/cellar/bottle-catalog-seed.json';
+import {canonicalBottleKey} from '../../src/interactions/member-interactions';
 import {MobileApiError} from '../../src/api/client';
 import {collectionValueForMember} from '../../../../src/lib/collection-value';
 import storeDirectory from '../../../../src/data/sighting-store-directory.generated.json';
 import {searchSightingStoreDirectory} from '../../../../src/lib/sighting-store-directory-core';
 export const fixture={route:'Home',tier:'barrel',catalogFailed:false,storeFailed:false,detailFailed:false,alertsFailed:false,empty:false,expired:false,requests:0,displayName:'Chandler',onboarding:false,admin:false};
 export const setRoute=route=>{fixture.route=route;window.dispatchEvent(new Event('fixture-route'));};
-const routeFor=path=>{const p=typeof path==='string'?path:path.pathname;return p.includes('feedback')?'Feedback':p.includes('coverage')?'Coverage':p.includes('support')?'Support':p.includes('privacy')?'Privacy':p.includes('terms')?'Terms':p.includes('/admin')?'Admin':p.includes('membership')?'Membership':p.includes('profile')?'Edit profile':p.includes('sign-in')?'Sign in':p.includes('cellar/add')?'Add bottle':p.includes('signal/')?'Bottle Profile':p.includes('radar')?'Radar':p.includes('post')?'Post':p.includes('(tabs)')?'Home':'Account';};
-export const router={push(path){fixture.feedbackKind=path?.params?.kind;setRoute(routeFor(path));},replace(path){setRoute(routeFor(path));},back(){setRoute('My Shelf');}};
+const routeFor=path=>{const p=typeof path==='string'?path:path.pathname;return p.endsWith('/setup')?'Setup': p.includes('feedback')?'Feedback':p.includes('coverage')?'Coverage':p.includes('support')?'Support':p.includes('privacy')?'Privacy':p.includes('terms')?'Terms':p.includes('/admin')?'Admin':p.includes('membership')?'Membership':p.includes('profile')?'Edit profile':p.includes('sign-in')?'Sign in':p.includes('cellar/add')?'Add bottle':p.includes('signal/')?'Bottle Profile':p.includes('radar')?'Radar':p.includes('post')?'Post':p.includes('(tabs)')?'Home':'Account';};
+export const router={push(path){fixture.feedbackKind=path?.params?.kind;setRoute(routeFor(path));},replace(path){setRoute(routeFor(path));},back(){setRoute('My Shelf');},setParams(){}};
 export function useRouter(){return router;}
 export function useLocalSearchParams(){return {id:'fixture-signal',resume:'onboarding',kind:fixture.feedbackKind};}
 export function useFocusEffect(callback){React.useEffect(callback,[callback]);}
@@ -47,16 +48,19 @@ const api={
  getCoverageRequests:async()=>({requests:coverageRows.filter(r=>r.userId==='fixture-member-1').map(r=>({...r,memberUpdate:r.review?.member_update}))}),
  submitCoverageRequest:async body=>{const row={...body,id:'new-fixture-request',userId:'fixture-member-1',areaLabel:body.manualCity||body.manualCounty||body.stateCode,status:'requested',canonicalTargetKey:'test-new',requestedAt:'2026-10-05',updatedAt:'2026-10-05'};coverageRows.push(row);return {request:row};},
  getMemberPreferences:async()=>({...preferences,collectionValue:collectionValueForMember(['barrel','bottled-in-bond'].includes(fixture.tier),fixture.empty?[]:preferences.collectionPreferences.bottles,new Date('2026-10-05')),entitlements:{...preferences.entitlements,alertAreaLimit:fixture.tier==='free'?0:fixture.tier==='standard'?5:null,canUseRecommendations:['barrel','bottled-in-bond'].includes(fixture.tier)},collectionPreferences:{...preferences.collectionPreferences,bottles:fixture.empty?[]:preferences.collectionPreferences.bottles}}),
- updateMemberPreferences:async patch=>{preferences={...preferences,...patch};return preferences;},
+ updateMemberPreferences:async patch=>{
+  if(patch.watchlistMutation){const {bottleName,watched}=patch.watchlistMutation; const names=preferences.bottleAlertPreferences.bottleNames.filter(name=>name!==bottleName);if(watched)names.push(bottleName);patch={...patch,bottleAlertPreferences:{bottleNames:names,bottleKeys:names.map(canonicalBottleKey)}};delete patch.watchlistMutation;}
+  preferences={...preferences,...patch};return api.getMemberPreferences();},
  getMemberProfile:async()=>profileFixture({customDisplayName:fixture.displayName,homeState:'NC',membership:{tier:fixture.tier,label:fixture.tier,paid:fixture.tier!=='free'},feedAreas:{states:[{code:'NC',label:'North Carolina',areaLabel:'Board',options:[{value:'Triad Municipal ABC',label:'Triad Municipal ABC'},{value:'Wake County ABC',label:'Wake County ABC'}]}]}}),
  updateMemberProfile:async({displayName})=>{fixture.displayName=displayName;return api.getMemberProfile();},
  completeMobileOnboarding:async({displayName,homeState})=>{fixture.displayName=displayName;fixture.onboarding=true;return {completed:true};},
  listBottleCatalog:async()=>{if(fixture.catalogFailed)throw Error('offline');return seed;},
- listSignals:async({cursor,view="market",...filters}={})=>{fixture.lastFeedFilters={view,...filters};fixture.requests++;if(cursor&&fixture.expired){fixture.expired=false;throw new MobileApiError('Feed expired',409,'CURSOR_EXPIRED',true,true);}const locked=fixture.tier==='free';return {...feedFixture(),signals:locked||fixture.empty?[]:names.map((name,i)=>({...signal,id:`fixture-${i}`,availability:{...signal.availability,quantity:i+1},source:view==="community"?{type:"member",label:"Founder #13",actor:{kind:"founder",number:13,label:"Founder #13",displayName:"Jeff"}}:signal.source,bottle:{...signal.bottle,id:seed.find(b=>b.name===name)?.id,name,rarity:['allocated','limited','unicorn'][i%3]}})),marketSummaries:locked&&!fixture.empty?[{state:'NC',areaLabel:'North Carolina',signalCount:12,bottleNames:['Eagle Rare','Willett']}]:[],access:{...feedFixture().access,marketDetailsLocked:locked,previewLocked:locked},nextCursor:fixture.more&&!cursor?'page2':fixture.expired?'expired':null,hasMore:(fixture.more&&!cursor)||fixture.expired};},
+ listSignals:async({cursor,view="market",...filters}={})=>{fixture.lastFeedFilters={view,...filters};fixture.requests++;if(cursor&&fixture.expired){fixture.expired=false;throw new MobileApiError('Feed expired',409,'CURSOR_EXPIRED',true,true);}const locked=fixture.tier==='free';return {...feedFixture(),signals:locked||fixture.empty?[]:names.map((name,i)=>({...signal,id:`fixture-${i}`,availability:{...signal.availability,quantity:i+1},source:view==="community"?{type:"member",label:"Founder #13",actor:{kind:"founder",number:13,label:"Founder #13",displayName:"Jeff"}}:signal.source,timing:{...signal.timing,...(fixture.oldReports?{observedAt:new Date(Date.now()-48*3600000).toISOString()}: {})},bottle:{...signal.bottle,id:seed.find(b=>b.name===name)?.id,name,rarity:['allocated','limited','unicorn'][i%3]}})),marketSummaries:locked&&!fixture.empty?[{state:'NC',areaLabel:'North Carolina',signalCount:12,bottleNames:['Eagle Rare','Willett']}]:[],access:{...feedFixture().access,marketDetailsLocked:locked,previewLocked:locked},nextCursor:fixture.more&&!cursor?'page2':fixture.expired?'expired':null,hasMore:(fixture.more&&!cursor)||fixture.expired};},
  getSignal:async()=>{if(fixture.detailFailed)throw Error('offline');return {signal:fixture.community?{...signal,id:'member:fixture-sighting',source:{type:'member',label:'Member #42'},actions:['watch_bottle','helpful','correct']}:signal};},getHuntOutcome:async()=>({outcome:null}),setHuntOutcome:async()=>({outcome:null}),
  getMemberAlerts:async()=>{if(fixture.alertsFailed)throw Error('offline');return {alerts:fixture.repeatAlerts?[0,1,2].map(i=>({id:'repeat-'+i,bottleName:'Elijah Craig Barrel Proof',storeLabel:'Wake County ABC - 7200 Sandy Fork Rd., Raleigh, NC 27609',matchedArea:'Wake County ABC',state:'NC',sourceType:'engine',eventType:'restock',rarityTier:'limited',quantity:2,score:0,priorityClass:'standard',signalAt:new Date(Date.now()-(i+1)*3600000).toISOString(),createdAt:new Date(Date.now()-(i+1)*3600000).toISOString(),freshnessLimitHours:24,readAt:null,archivedAt:null})):[],unreadCount:fixture.repeatAlerts?3:0};},
  getPushDeviceStatus:async()=>({supported:true,enabled:false,registeredDeviceCount:0}),
- searchMonitoringGeography:async({state='',query='',limit=8,offset=0}={})=>{
+ searchMonitoringGeography:async({state='',query='',limit=8,offset=0,levels=[]}={})=>{
+  if(levels.includes('board')||levels.includes('city')){const rows=[{id:'board:wake',state:'NC',level:'board',name:'Wake County ABC'},{id:'board:triad',state:'NC',level:'board',name:'Triad Municipal ABC'}].filter(row=>row.name.toLowerCase().includes(query.toLowerCase()));return {states:[],offset,limit,total:rows.length,hasMore:false,results:rows};}
   if(fixture.storeSlow)await new Promise(resolve=>setTimeout(resolve,3000));
   if(fixture.storeFailed)throw Error('offline');
   const matches=searchSightingStoreDirectory(storeDirectory.stores,query,state);
@@ -71,7 +75,7 @@ const api={
 export function useMobileApi(){return api;}
 export const radarPushDeviceId=async()=>'fixture-device';export const radarPushPermission=async()=>'granted';
 export const refreshRadarPushIfEnabled=async()=>null;export const watchRadarPushToken=()=>({remove(){}});
-export const enableRadarPush=async()=>null;export const disableRadarPush=async()=>null;export const signOutWithRadarPushDisabled=async(_,signOut)=>signOut();
+export const enableRadarPush=async()=>({enabled:true,currentDeviceRegistered:true});export const disableRadarPush=async()=>null;export const signOutWithRadarPushDisabled=async(_,signOut)=>signOut();
 export const PushMaintenance=()=>null;export const PushResponseHandler=()=>null;
 export const nativePhotoJournal=()=>({load:async()=>null});
 export const chooseSightingPhoto=async()=>({error:'Photo actions require a native device.'});

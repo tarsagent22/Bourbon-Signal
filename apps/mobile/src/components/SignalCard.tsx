@@ -5,11 +5,16 @@ import type { Signal } from "../api/types";
 import { CommunityPostCard } from "./CommunityPostCard";
 import { CellarBottleArtwork } from "./CellarBottleArtwork";
 import { signalRowBottleIdentity, signalRowFacts } from "./signal-row-presentation";
-import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAvailabilityRefreshAt, signalFeedCardAppearance } from "../api/presentation";
+import { presentSignal, signalAccessibilityLabel, signalAvailabilityRefreshAt, signalFeedCardAppearance } from "../api/presentation";
+import { reportAge } from "../signals/report-age";
+import { useReportClock } from "../hooks/useReportClock";
 import { colors, typeScale, fonts } from "../theme";
 
 export function SignalCard({ signal, onPress, highlighted = false }: { signal: Signal; onPress: () => void; highlighted?: boolean }) {
-  const [now, setNow] = useState(() => new Date());
+  const clock = useReportClock();
+  const [boundaryNow, setNow] = useState(() => new Date());
+  const now = clock.getTime() > boundaryNow.getTime() ? clock : boundaryNow;
+  const age = reportAge(signal, now);
   useEffect(() => {
     const refreshAt = signalAvailabilityRefreshAt(signal, now);
     if (!refreshAt) return undefined;
@@ -26,9 +31,9 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
   const bottleIdentity = signalRowBottleIdentity(signal.bottle.name);
   const appearance = signalFeedCardAppearance(signal);
   const { quantity: metric, status, showStatus } = signalRowFacts(signal, now);
-  if (signal.source.type === "member") return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} />;
+  if (signal.source.type === "member") return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} now={now} />;
   return <Pressable accessibilityHint="Opens Signal details" accessibilityLabel={signalAccessibilityLabel(signal, now)} accessibilityRole="button" onPress={onPress}
-    style={({ pressed }) => [styles.card, highlighted && styles.highlighted, pressed && styles.pressed]}>
+    style={({ pressed }) => [styles.card, age.older && styles.older, highlighted && styles.highlighted, pressed && styles.pressed]}>
     <View accessible={false} importantForAccessibility="no-hide-descendants" style={styles.artwork}>
       <Image source={require("../../assets/shelf/bottle-contact-shadow.png")} resizeMode="stretch" style={styles.contactShadow} />
       <CellarBottleArtwork bottle={{ bottleId: signal.bottle.id, bottleName: signal.bottle.name }} size="feed" />
@@ -36,7 +41,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
     <View style={styles.copy}>
       <View style={styles.topline}>
         <View style={[styles.rarityBadge, { backgroundColor: appearance.keyline }]}><Text style={[styles.rarityLabel, { color: appearance.accent }]}>{appearance.rarityLabel}</Text></View>
-        <Text style={styles.time}>{relativeSignalTime(signal.timing.displayAt, now)}</Text>
+        <Text style={styles.time}>{age.label}</Text>
       </View>
       <Text style={styles.bottle}>{bottleIdentity.title}</Text>
       {bottleIdentity.subtitle ? <Text style={styles.bottleSubtitle}>{bottleIdentity.subtitle}</Text> : null}
@@ -49,7 +54,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
         {presented.price && metric ? <Text accessible={false} style={styles.metricDot}>·</Text> : null}
         {metric ? <Text style={styles.metricText}>{metric}</Text> : null}
       </View>
-      {showStatus ? <Text style={styles.status}>{status}</Text> : null}
+      {age.older ? <Text style={styles.status}>{signal.historical ? "Historical report" : "Older report · Availability may have changed"}</Text> : showStatus ? <Text style={styles.status}>{status}</Text> : null}
     </View>
     <MaterialCommunityIcons accessible={false} name="chevron-right" color={colors.accent} size={22} />
   </Pressable>;
@@ -58,6 +63,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
 const styles = StyleSheet.create({
   card: { minHeight: 120, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10, paddingHorizontal: 0 },
   pressed: { opacity: 0.72 },
+  older: { opacity: 0.78 },
   highlighted: { backgroundColor: "rgba(214,154,74,0.10)", borderLeftWidth: 2, borderLeftColor: colors.accent },
   artwork: { width: 68, minHeight: 104, alignItems: "center", justifyContent: "flex-end" },
   contactShadow: { position: "absolute", bottom: -2, left: 0, width: 68, height: 10, opacity: 0.75 },

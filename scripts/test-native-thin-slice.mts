@@ -359,7 +359,8 @@ assert.match(nativeSignalFeed, /onEndReached=.*void load\(false\)/, "filtered ti
 assert.match(nativeSignalFeed, /homeFeedCache/, "native feed restores account and filter scoped results");
 assert.match(nativeSignalFeed, /horizontal/, "rarity chips should scroll instead of wrapping into multiple rows");
 assert.doesNotMatch(nativeSignalFeed, /<Modal|Open Signal filters/, "Signal filters must stay directly on the feed instead of hiding in a sheet");
-assert.match(nativeSignalFeed, /actionLabel=\{activeFilterCount\(filters\) \? "Clear filters"/, "filtered empty results must offer a direct reset");
+assert.match(nativeSignalFeed, /actionLabel=\{emptyFeed\.actionLabel\}/, "empty results must offer a direct action for the current filters");
+assert.match(nativeSignalFeed, /case "area": applyFilters\(\{ \.\.\.filters, area: "" \}\)/, "empty area results broaden the area while preserving the state and other filters");
 assert.match(nativeSignalFeed, /placeholder="Search bottles or locations"/, "feed search must stay directly on the feed");
 assert.match(nativeSignalFeed, /label="State"/, "state selection must stay directly on the feed");
 assert.match(nativeSignalFeed, /label=\{areaLabel\}/, "the dependent area control must keep stable side-by-side geometry");

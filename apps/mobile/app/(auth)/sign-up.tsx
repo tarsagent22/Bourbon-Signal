@@ -133,7 +133,7 @@ export default function SignUpScreen() {
       await api.completeMobileOnboarding({ displayName: displayName.trim(), age21Affirmed: true, homeState });
       const member = await api.getMemberProfile({ fresh: true });
       if (member.profile.membership.tier === "free") router.replace({ pathname: "/(app)/account/membership", params: { welcome: "1" } });
-      else router.replace("/(app)/(tabs)");
+      else router.replace("/(app)/setup");
     } catch (caught) {
       setError(caught instanceof Error ? `${caught.message} Try again.` : "Your profile could not be saved. Try again.");
     } finally {

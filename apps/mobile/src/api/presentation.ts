@@ -32,6 +32,18 @@ export function signalAccessibilityTime(value: string, now = new Date()) {
   return `${amount} ${unit}${amount === 1 ? "" : "s"} ago`;
 }
 
+// Observation time describes the sighting. Display time may be a later update
+// or a future event, so it must not make old inventory look newly observed.
+export function reportAge(signal: Signal, now = new Date()) {
+  const value = [signal.timing.observedAt, signal.timing.reportedAt, signal.timing.displayAt]
+    .find(time => time && Number.isFinite(Date.parse(time)));
+  const label = signal.kind !== "availability" ? "Posted" : signal.source.type === "member" && signal.source.reportMode !== "reported_online" ? "Seen" : "Reported";
+  if (!value || Date.parse(value) > now.getTime()) return { label: "Time not available", older: false, value: null };
+  const age = signalAccessibilityTime(value, now);
+  const older = signal.kind === "availability" && (Boolean(signal.historical) || now.getTime() - Date.parse(value) >= 24 * 60 * 60 * 1000);
+  return { label: `${label} ${age === "Now" ? "just now" : age}`, older, value };
+}
+
 function normalizedQuantityLabel(signal: Signal) {
   const raw = signal.availability?.quantityLabel?.trim() || "";
   if (signal.source.type === "member") {
@@ -267,7 +279,7 @@ export function signalAccessibilityLabel(signal: Signal, now = new Date()) {
     status === "Reported" || status === "Community report" ? "" : status,
     signalMemberTagLabel(signal),
     signalReporterAttribution(signal),
-    signalAccessibilityTime(signal.timing.displayAt, now),
+    reportAge(signal, now).label,
     presented.price,
     presented.quantity,
     signalCardSummary(signal),

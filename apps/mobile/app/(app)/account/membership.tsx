@@ -135,7 +135,7 @@ export default function MembershipScreen() {
       </ScrollView>
       <View style={styles.dots} accessible={false}>{cards.map((card,index) => <View key={card.tier} style={[styles.dot, index === selected && styles.dotSelected]} />)}</View>
       <View style={styles.footer}>
-        <Pressable accessibilityRole="button" onPress={() => router.replace("/(app)/(tabs)")} style={styles.freeButton}><Text style={styles.freeText}>{currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={() => { if (isWelcome) router.replace("/(app)/setup"); else router.replace("/(app)/(tabs)"); }} style={styles.freeButton}><Text style={styles.freeText}>{currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
         <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{managementOnly ? `Your membership is billed through ${billingProviderLabel}. Manage your plan, payment details, or cancellation above.` : Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Payment is charged to your Google Play account at confirmation."}</Text>
         <View style={styles.links}>
           {Platform.OS !== "web" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}

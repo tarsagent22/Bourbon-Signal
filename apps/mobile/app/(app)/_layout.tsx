@@ -15,6 +15,7 @@ export default function AppLayout() {
   return (
     <><PushMaintenance key={signedInIdentity.current} /><Stack key={signedInIdentity.current} screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false, headerBackButtonDisplayMode: "minimal" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="setup" options={{ title: "Getting started" }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
       <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />
       <Stack.Screen name="account/rewards" options={{ title: "Rewards & Badges", headerBackButtonDisplayMode: "minimal" }} />

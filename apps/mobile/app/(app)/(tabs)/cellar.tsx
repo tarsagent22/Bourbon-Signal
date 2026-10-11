@@ -1,6 +1,7 @@
 import { useAuth } from "@clerk/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, findNodeHandle, Alert, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, useWindowDimensions, View } from "react-native";
@@ -109,6 +110,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const activeUser = useRef(userId);
   const mounted = useRef(true);
   const loadSequence = useRef(0);
+  const shelfLoadInFlight = useRef(false);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   activeUser.current = userId;
   useEffect(() => { setPreferences(null); setSelected(null); }, [userId]);
@@ -205,6 +207,8 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   }, [api, persistContributionIds, receiptStorageKey]);
 
   const load = useCallback(async (fresh = false) => {
+    if (!fresh && shelfLoadInFlight.current) return;
+    shelfLoadInFlight.current = true;
     const sequence = ++loadSequence.current;
     const current = () => mounted.current && activeUser.current === userId && sequence === loadSequence.current;
     setLoading(true);
@@ -224,11 +228,11 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
         ? "Your session could not be verified. Return to Signals and retry."
         : caught instanceof Error ? caught.message : "My Shelf is temporarily unavailable.");
     } finally {
-      if (current()) setLoading(false);
+      if (current()) { shelfLoadInFlight.current = false; setLoading(false); }
     }
   }, [acceptServerPreferences, api, receiptStorageKey, retryPendingContributions, userId]);
 
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  useScreenRevalidation(() => { void load(); });
 
   const sourceBottles = preferences?.collectionPreferences.bottles || [];
   const collectionAccess = preferences?.collectionAccess;
@@ -468,7 +472,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
           </View> : null}
         </View> : null}
       </View> : null}
-      ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "My Shelf is ready"} detail={sourceBottles.length ? "Try a broader search or clear your filters." : "Save a bottle or a whiskey you tasted."} actionLabel={sourceBottles.length ? "Clear filters" : "Add your first bottle"} onAction={() => { if (sourceBottles.length) { setQuery(""); setFilters({ ...DEFAULT_COLLECTION_FILTERS, status: "all" }); } else router.push("/(app)/cellar/add"); }} /> : null}
+      ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No bottles match" : "No bottles on your shelf yet"} detail={sourceBottles.length ? "Try a broader search or clear your filters." : "Add a bottle you own or one you’ve tasted."} actionLabel={sourceBottles.length ? "Clear filters" : "Add your first bottle"} onAction={() => { if (sourceBottles.length) { setQuery(""); setFilters({ ...DEFAULT_COLLECTION_FILTERS, status: "all" }); } else router.push("/(app)/cellar/add"); }} /> : null}
       style={memberScreenStyles.screen}
     />
     <CollectionStatisticsSheet visible={statisticsOpen} statistics={statistics} ranked={ranked} advancedAccess={canUseRecommendations} collectionValue={preferences?.collectionValue} onClose={closeStatistics} onDismiss={restoreStatisticsFocus} />

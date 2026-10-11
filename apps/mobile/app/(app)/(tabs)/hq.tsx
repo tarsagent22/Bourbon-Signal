@@ -193,6 +193,7 @@ export default function AccountScreen() {
             })
           }
         />
+        <AccountRow label="Set up alerts" detail="Choose an area, watch bottles, and enable notifications" onPress={() => router.push("/(app)/setup")} />
         <AccountRow
           label="Invite friends"
           detail="Share your link and earn referral points"

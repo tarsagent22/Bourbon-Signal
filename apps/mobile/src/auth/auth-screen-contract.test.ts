@@ -45,7 +45,7 @@ test("native sign-up uses Clerk email code verification and no social or phone c
   const onboardingForm = signUp.slice(signUp.indexOf('{stage === "onboarding" ? <View style={styles.form}>'));
   assert.doesNotMatch(onboardingForm, /Your Free account|Free accounts do not/);
   assert.match(signUp, /member\.profile\.membership\.tier === "free"/);
-  assert.match(signUp, /else router\.replace\("\/\(app\)\/\(tabs\)"\)/);
+  assert.match(signUp, /else router\.replace\("\/\(app\)\/setup"\)/);
   assert.ok(signUp.indexOf('setStage("onboarding")') < signUp.indexOf("await signUp.finalize()"), "onboarding must own the route before Clerk activates the session");
 });
 
