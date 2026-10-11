@@ -1,5 +1,12 @@
 import type { Signal } from "../api/types";
-import { presentBottleIdentity, presentSignal, signalCardStatusLabel } from "../api/presentation";
+import { presentBottleIdentity, presentSignal, signalCardStatusLabel, signalListingPresentation, relativeSignalTime, reportAge } from "../api/presentation";
+
+export function signalRowTimeLabel(signal: Signal, now = new Date()) {
+  const age = reportAge(signal, now);
+  return signal.kind === "availability" && signal.source.type === "trusted_source" && age.value
+    ? `Checked ${relativeSignalTime(age.value, now).replace(/^Now$/, "now")}`
+    : age.label;
+}
 
 export function signalRowBottleIdentity(name: string) {
   const identity = presentBottleIdentity(name);
@@ -18,5 +25,10 @@ export function signalRowFacts(signal: Signal, now = new Date()) {
   const quantity = counted && routine
     ? `${raw} ${status.startsWith("Retailer") ? "retailer-reported" : "reported"}`
     : raw;
-  return { quantity, status, showStatus: !counted || !routine };
+  const listing = signalListingPresentation(signal, now);
+  const displayedStatus = listing?.status || status;
+  const showStatus = listing
+    ? displayedStatus !== "Reported" && (!counted || !routine || displayedStatus !== status)
+    : !counted || !routine;
+  return { quantity, status: displayedStatus, showStatus };
 }

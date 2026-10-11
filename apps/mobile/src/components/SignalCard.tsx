@@ -4,7 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Signal } from "../api/types";
 import { CommunityPostCard } from "./CommunityPostCard";
 import { CellarBottleArtwork } from "./CellarBottleArtwork";
-import { signalRowBottleIdentity, signalRowFacts } from "./signal-row-presentation";
+import { signalRowBottleIdentity, signalRowFacts, signalRowTimeLabel } from "./signal-row-presentation";
 import { presentSignal, signalAccessibilityLabel, signalAvailabilityRefreshAt, signalFeedCardAppearance, signalListingPresentation } from "../api/presentation";
 import { reportAge } from "../signals/report-age";
 import { useReportClock } from "../hooks/useReportClock";
@@ -42,7 +42,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
     <View style={styles.copy}>
       <View style={styles.topline}>
         <View style={[styles.rarityBadge, { backgroundColor: appearance.keyline }]}><Text style={[styles.rarityLabel, { color: appearance.accent }]}>{appearance.rarityLabel}</Text></View>
-        <Text style={styles.time}>{age.label}</Text>
+        <Text style={styles.time}>{signalRowTimeLabel(signal, now)}</Text>
       </View>
       <Text style={styles.bottle}>{bottleIdentity.title}</Text>
       {bottleIdentity.subtitle ? <Text style={styles.bottleSubtitle}>{bottleIdentity.subtitle}</Text> : null}
@@ -55,7 +55,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
         {presented.price && metric ? <Text accessible={false} style={styles.metricDot}>·</Text> : null}
         {metric ? <Text style={styles.metricText}>{metric}</Text> : null}
       </View>
-      {age.older ? <Text style={styles.status}>{signal.historical ? "Historical report" : listing ? "Older check · Availability may have changed" : "Older report · Availability may have changed"}</Text> : listing || showStatus ? <Text style={styles.status}>{listing?.status || status}</Text> : null}
+      {age.older ? <Text style={styles.status}>{signal.historical ? "Historical report" : listing ? "Older check · Availability may have changed" : "Older report · Availability may have changed"}</Text> : showStatus ? <Text style={styles.status}>{status}</Text> : null}
       {listing?.firstSpotted ? <Text style={styles.status}>{listing.firstSpotted}</Text> : null}
     </View>
     <MaterialCommunityIcons accessible={false} name="chevron-right" color={colors.accent} size={22} />
