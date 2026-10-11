@@ -176,7 +176,7 @@ export default function MembershipPlanScreen() {
       </View>
     </View>
 
-    {params.welcome === "1" ? <Pressable accessibilityRole="button" onPress={() => router.replace("/(app)/(tabs)")} style={styles.secondaryButton}><Text style={styles.secondaryText}>{profile?.membership.paid ? "Continue to Bourbon Signal" : "Continue with Free"}</Text></Pressable> : null}
+    {params.welcome === "1" ? <Pressable accessibilityRole="button" onPress={() => router.replace("/(app)/setup")} style={styles.secondaryButton}><Text style={styles.secondaryText}>{profile?.membership.paid ? "Continue to Bourbon Signal" : "Continue with Free"}</Text></Pressable> : null}
 
     {lifecycle && !["free", "provider_unavailable", "active", "founder"].includes(lifecycle.state) ? <View style={styles.statusCard}>
       <Text accessibilityRole="header" style={styles.statusTitle}>{lifecycle.title}</Text>

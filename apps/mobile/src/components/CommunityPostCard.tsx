@@ -4,7 +4,6 @@ import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Signal } from "../api/types";
 import {
   presentSignal,
-  relativeSignalTime,
   signalAccessibilityLabel,
   signalMemberTagLabel,
   signalFeedCardAppearance,
@@ -16,17 +15,21 @@ import {
   communityPhotoUrl,
 } from "./community-post";
 import { CellarBottleArtwork } from "./CellarBottleArtwork";
+import { reportAge } from "../signals/report-age";
 import { colors, fonts, typeScale } from "../theme";
 
 export function CommunityPostCard({
   signal,
   onPress,
   highlighted = false,
+  now = new Date(),
 }: {
   signal: Signal;
   onPress: () => void;
   highlighted?: boolean;
+  now?: Date;
 }) {
+  const age = reportAge(signal, now);
   const [failed, setFailed] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [badgesOpen, setBadgesOpen] = useState(false);
@@ -53,11 +56,12 @@ export function CommunityPostCard({
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={signalAccessibilityLabel(signal)}
+        accessibilityLabel={signalAccessibilityLabel(signal, now)}
         accessibilityHint="Opens this community post"
         onPress={onPress}
         style={({ pressed }) => [
           s.card,
+          age.older && { opacity: 0.78 },
           highlighted && s.highlighted,
           pressed && s.pressed,
         ]}
@@ -99,9 +103,10 @@ export function CommunityPostCard({
             </Pressable>
           ) : null}
           <Text style={s.time}>
-            {relativeSignalTime(signal.timing.displayAt)}
+            {age.label}
           </Text>
         </View>
+        {age.older ? <Text style={s.member}>Older sighting · Availability may have changed</Text> : null}
         <View style={s.bottleRow}>
           <View style={s.thumbnail}>
             {photoUrl && !failed ? (

@@ -20,8 +20,8 @@ test("Home opens directly on fresh Intel and member sightings", () => {
   assert.ok(toggle < geography && geography < search && search < rarity);
   assert.match(feed, />Intel<\/Text>/);
   assert.match(feed, />Community<\/Text>/);
-  assert.match(feed, /No Intel Signals match these filters/);
-  assert.match(feed, /No member sightings yet/);
+  assert.match(feed, /feedEmptyState\(view, filters\)/);
+  assert.match(readFileSync(resolve(process.cwd(), "src/signals/feed-empty-state.ts"), "utf8"), /No member sightings yet/);
   assert.doesNotMatch(feed, /Home overview|Your Bourbon Signal home|OPEN RADAR/);
   assert.doesNotMatch(feed, /Trip Mode|tripMode|trip-mode/);
   assert.doesNotMatch(feed, /getMemberPreferences|getMemberAlerts|radarWatchlistSummary|radarMonitoringSummary/);
@@ -86,7 +86,7 @@ test("Signal Feed keeps Intel terminology while preserving the internal market t
   assert.match(feed, /type FeedView = "market" \| "community"/);
   assert.match(feed, />Intel<\/Text>/);
   assert.doesNotMatch(feed, />Market<\/Text>|Market Signals|market intelligence/);
-  assert.match(feed, /Clear filters/);
+  assert.match(feed, /case "area": applyFilters\(\{ \.\.\.filters, area: "" \}\)/);
 });
 
 test("inline filters stay mounted and receive the first tap while search is focused", () => {

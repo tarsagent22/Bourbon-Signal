@@ -1,3 +1,4 @@
+import { reportAge } from "../../../src/signals/report-age";
 import { ErrorState } from "../../../src/components/MemberScreen";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -187,7 +188,7 @@ export default function SignalDetailScreen() {
           {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize: typeScale.small}}>{badge}</Text>)}</View>:null}
         </View> : <Text style={styles.source}>{signal.source.label}</Text>}
         <Detail label="Location" value={presented?.address || presented?.location || signal.location.state || "Location not specified"} />
-        <Detail label="Observed" value={new Date(signal.timing.displayAt).toLocaleString()} />
+        <Detail label="Reported" value={reportAge(signal).value ? new Date(reportAge(signal).value!).toLocaleString() : "Time not available"} />
         {presented?.availability ? <Detail label="Availability" value={presented.availability} /> : null}
         {presented?.price ? <Detail label="Price" value={presented.price} /> : null}
         {presented?.quantity ? <Detail label="Quantity" value={presented.quantity} /> : null}
