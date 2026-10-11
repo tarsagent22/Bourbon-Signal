@@ -62,6 +62,46 @@ export function CommunityPostCard({
           pressed && s.pressed,
         ]}
       >
+        <View style={s.header}>
+          <View style={s.identity}>
+            <Text numberOfLines={1} style={s.name}>
+              {name}
+            </Text>
+            {name !== member ? (
+              <Text numberOfLines={1} style={s.member}>
+                {member}
+              </Text>
+            ) : null}
+          </View>
+          {badges.length ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Earned badges: ${badges.join(", ")}. View badge details`}
+              onPress={(event) => {
+                event.stopPropagation();
+                setBadgesOpen(true);
+              }}
+              style={s.badges}
+              hitSlop={6}
+            >
+              {badges.map((label) => (
+                <View
+                  key={label}
+                  style={[s.badge, / · \d{4}$/.test(label) && s.yearBadge]}
+                >
+                  <MaterialCommunityIcons
+                    name={communityBadgeIcon(label)}
+                    size={15}
+                    color={colors.accent}
+                  />
+                </View>
+              ))}
+            </Pressable>
+          ) : null}
+          <Text style={s.time}>
+            {relativeSignalTime(signal.timing.displayAt)}
+          </Text>
+        </View>
         <View style={s.bottleRow}>
           <View style={s.thumbnail}>
             {photoUrl && !failed ? (
@@ -123,9 +163,6 @@ export function CommunityPostCard({
                   {rarity}
                 </Text>
               </View>
-              <Text style={s.time}>
-                {relativeSignalTime(signal.timing.displayAt)}
-              </Text>
             </View>
             <Text style={s.bottle}>
               {signal.bottle.name}
@@ -175,43 +212,7 @@ export function CommunityPostCard({
             </> : <MaterialCommunityIcons accessible={false} name="chevron-right" size={20} color={colors.accent} />}
           </View>
         </View>
-        <View style={s.header}>
-          <View style={s.identity}>
-            <Text numberOfLines={1} style={s.name}>
-              {name}
-            </Text>
-            {name !== member ? (
-              <Text numberOfLines={1} style={s.member}>
-                {member}
-              </Text>
-            ) : null}
-          </View>
-          {badges.length ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Earned badges: ${badges.join(", ")}. View badge details`}
-              onPress={(event) => {
-                event.stopPropagation();
-                setBadgesOpen(true);
-              }}
-              style={s.badges}
-              hitSlop={6}
-            >
-              {badges.map((label) => (
-                <View
-                  key={label}
-                  style={[s.badge, / · \d{4}$/.test(label) && s.yearBadge]}
-                >
-                  <MaterialCommunityIcons
-                    name={communityBadgeIcon(label)}
-                    size={15}
-                    color={colors.accent}
-                  />
-                </View>
-              ))}
-            </Pressable>
-          ) : null}
-        </View>
+
       </Pressable>
       <Modal
         visible={photoOpen && !!photoUrl}
@@ -310,9 +311,7 @@ const s = StyleSheet.create({
   highlighted: { borderLeftWidth: 2, borderLeftColor: colors.accent, backgroundColor: "rgba(214,154,74,0.10)" },
   pressed: { opacity: 0.86 },
   header: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-    paddingTop: 6,
+    paddingBottom: 4,
     minHeight: 28,
     flexDirection: "row",
     alignItems: "center",
@@ -327,6 +326,7 @@ const s = StyleSheet.create({
   },
   name: {
     color: colors.text,
+    flexShrink: 1,
     fontSize: typeScale.small,
     lineHeight: 18,
     fontWeight: "800",
