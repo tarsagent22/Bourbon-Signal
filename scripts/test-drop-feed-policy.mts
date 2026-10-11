@@ -43,7 +43,7 @@ assert.equal(dropDisplayTime({
   timestamp: firstSeen,
   first_seen_at: firstSeen,
   last_confirmed_at: lastConfirmed,
-}), lastConfirmed, "live inventory cards must display their latest confirmation instead of looking days old");
+}), firstSeen, "unchanged inventory must preserve discovery chronology while freshness uses confirmation");
 assert.equal(dropDisplayTime({
   event_type: "release_watch",
   timestamp_basis: "first_seen_at",
@@ -83,7 +83,7 @@ assert.equal(dropDisplayTime({
   last_confirmed_at: "",
   lastConfirmedAt: lastConfirmed,
   firstSeenAt: firstSeen,
-}), lastConfirmed, "inventory confirmation must use a valid camel-case alias when the snake-case field is empty");
+}), firstSeen, "valid first-seen time must survive empty confirmation aliases");
 
 const chronologicalFeed = [
   { id: "equal-b", timestamp: "2026-08-08T15:00:00.000Z" },
@@ -119,12 +119,12 @@ const chronologicalFeed = [
 assert.deepEqual(
   chronologicalFeed.map((drop) => drop.id),
   [
-    "newest-confirmed-inventory",
     "newer-board",
     "scheduled-release",
     "older-exact-store",
     "equal-a",
     "equal-b",
+    "newest-confirmed-inventory",
     "invalid-a",
     "invalid-z",
     "scheduled-undated",

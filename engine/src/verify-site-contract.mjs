@@ -179,6 +179,7 @@ const falseFreshInventoryDrops = (drops.drops || []).filter((drop) => {
   const timestampBasis = drop.timestampBasis || drop.timestamp_basis;
   if (!type.includes('inventory')) return false;
   if (!firstSeenAt || !lastConfirmedAt || firstSeenAt === lastConfirmedAt) return false;
+  if (['price_drop', 'price_change'].includes(drop.listingChange) && drop.listingChangedAt === displayAt) return false;
   return timestampBasis === 'last_confirmed_at' || displayAt === lastConfirmedAt;
 });
 if (falseFreshInventoryDrops.length) {

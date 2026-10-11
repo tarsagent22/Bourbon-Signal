@@ -16,6 +16,7 @@ export interface CanonicalSignal {
   contractVersion: typeof SIGNAL_CONTRACT_VERSION;
   id: string;
   availabilityEpisodeId?: string;
+  listingChange?: "first_detection" | "restock" | "price_drop" | "price_change";
   historical?: boolean;
   kind: SignalKind;
   source: {
@@ -53,6 +54,8 @@ export interface CanonicalSignal {
     observedAt?: string;
     reportedAt?: string;
     displayAt: string;
+    firstSpottedAt?: string;
+    lastCheckedAt?: string;
     scheduledFor?: string;
     expiresAt?: string;
   };
@@ -269,6 +272,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     contractVersion: SIGNAL_CONTRACT_VERSION,
     id: prefixedId(type, rawId),
     ...(availabilityEpisodeId ? { availabilityEpisodeId } : {}),
+    ...(["first_detection", "restock", "price_drop", "price_change"].includes(String(input.listingChange || input.availabilityEpisodeKind || "")) ? { listingChange: String(input.listingChange || input.availabilityEpisodeKind) as CanonicalSignal["listingChange"] } : {}),
     kind,
     source: { type, label },
     bottle: {
@@ -295,6 +299,10 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
       ...(observedAt ? { observedAt } : {}),
       ...(reportedAt ? { reportedAt } : {}),
       displayAt,
+      ...(kind === "availability" && type === "trusted_source" ? {
+        firstSpottedAt: text(input.availabilityEpisodeStartedAt, input.availability_episode_started_at, input.first_seen_at, input.firstSeenAt, reportedAt, displayAt),
+        lastCheckedAt: text(input.last_confirmed_at, input.lastConfirmedAt, observedAt, displayAt),
+      } : {}),
       ...(scheduledFor ? { scheduledFor } : {}),
       ...(text(input.expiresAt, input.expires_at) ? { expiresAt: text(input.expiresAt, input.expires_at)! } : {}),
     },
@@ -395,7 +403,15 @@ export function compareCanonicalSignalsNewestFirst(left: CanonicalSignal, right:
 }
 
 export function sortDropsByCanonicalSignalOrder<T extends Record<string, unknown>>(drops: T[]) {
-  return drops
+  const listings = new Map<string, T>();
+  for (const drop of drops) {
+    const episode = text(drop.availabilityEpisodeId, drop.availability_episode_id);
+    const key = episode ? `episode:${episode}` : `row:${listings.size}`;
+    const prior = listings.get(key);
+    const observed = (row: T) => Date.parse(text(row.observed_at, row.observedAt, row.last_confirmed_at, row.lastConfirmedAt) || "") || 0;
+    if (!prior || observed(drop) >= observed(prior)) listings.set(key, drop);
+  }
+  return [...listings.values()]
     .map((drop) => ({ drop, signal: normalizeDropSignal(drop) }))
     .sort((left, right) => compareCanonicalSignalsNewestFirst(left.signal, right.signal))
     .map(({ drop }) => drop);

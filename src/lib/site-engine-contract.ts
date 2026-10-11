@@ -333,7 +333,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const exportedDisplayAt = firstNonEmptyString(drop.displayAt, drop.display_at) || eventAt || firstSeenAt || lastConfirmedAt;
   const exportedTimestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
   const anchorRepeatedInventoryToFirstSeen = shouldAnchorInventoryToFirstSeen(type) && firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt;
-  const publicDisplayAt = anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt;
+  const publicDisplayAt = firstNonEmptyString(drop.listingChangedAt, drop.listing_changed_at) || (anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt);
   const publicTimestampBasis = anchorRepeatedInventoryToFirstSeen ? (eventAt ? "source_event_at" : "first_seen_at") : exportedTimestampBasis;
   const scheduledReleaseCopy = getScheduledReleaseSignalCopy(drop);
 

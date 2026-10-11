@@ -5,6 +5,7 @@ import {
   buildCanonicalSignalFeed,
   normalizeDropSignal,
   normalizeMemberSightingSignal,
+  sortDropsByCanonicalSignalOrder,
 } from "../src/lib/signals/signal-contract.ts";
 import { createSignalFeedHandler } from "../src/lib/signals/signal-route.ts";
 import { SIGNAL_RARITY_TIERS, normalizeSignalRarities, parseSignalFeedFilters } from "../src/lib/signals/signal-feed-filters.ts";
@@ -73,6 +74,15 @@ assert.deepEqual(engineSignal.bottle, { id: "bottle-1", name: "Example Bourbon" 
 assert.equal(engineSignal.location.scope, "exact_store");
 assert.equal(engineSignal.location.store?.name, "Example Spirits");
 assert.equal(engineSignal.timing.displayAt, "2026-08-20T20:05:00.000Z");
+const ongoingDrop = { id: "ongoing", availabilityEpisodeId: "ongoing-episode", event_type: "store_inventory_result", firstSeenAt: "2026-08-18T12:00:00Z", lastConfirmedAt: "2026-08-20T20:05:00Z", observedAt: "2026-08-20T20:05:00Z", canAlertAsInventory: true };
+const ongoing = normalizeDropSignal(ongoingDrop);
+assert.equal(ongoing.timing.displayAt, ongoingDrop.firstSeenAt, "a recheck cannot advance feed chronology");
+assert.equal(ongoing.timing.firstSpottedAt, ongoingDrop.firstSeenAt);
+assert.equal(ongoing.timing.lastCheckedAt, ongoingDrop.lastConfirmedAt);
+const reducedDrop = { ...ongoingDrop, id: "changed-price", listingChange: "price_drop", listingChangedAt: "2026-08-20T20:00:00Z" };
+assert.equal(normalizeDropSignal(reducedDrop).timing.displayAt, reducedDrop.listingChangedAt);
+assert.equal(normalizeDropSignal(reducedDrop).listingChange, "price_drop");
+assert.deepEqual(sortDropsByCanonicalSignalOrder([{ ...ongoingDrop, id: "old", observedAt: "2026-08-19T12:00:00Z" }, ongoingDrop, { ...ongoingDrop, id: "another-store", availabilityEpisodeId: "another-episode" }]).map(row => row.id), ["another-store", "ongoing"], "one latest card per episode before pagination, while another store stays separate");
 assert.equal(engineSignal.strength, "best");
 assert.equal(engineSignal.alertEligibility.inventory, true);
 assert.equal(engineSignal.availability?.quantity, 3);

@@ -147,9 +147,14 @@ export async function pollSourceLane(input: { repository: SourceLaneRepository; 
       if (!signal) { unknown++; continue; }
       const current = { ...signal, sourceRuntimeId: 'precision:sc' };
       const drops = (buildDrops as (...args: any[]) => Row[])([current], bible, [current], [], [current]);
-      // Current inventory is a separately dated projection, including the silent
-      // positive baseline. Confirmation must never move the episode in the feed.
-      for (const drop of drops) Object.assign(drop, { observedAt: episodeAt, firstSeenAt: episodeAt, displayAt: episodeAt,
+      const previousPrice = Number(prior?.sourceDrop?.price), currentPrice = Number(current.price);
+      const priceChanged = !opening && Number.isFinite(previousPrice) && previousPrice > 0 && Number.isFinite(currentPrice) && currentPrice > 0 && previousPrice !== currentPrice;
+      const listingChangedAt = priceChanged ? observedAt : opening || !prior ? episodeAt : prior.sourceDrop?.listingChangedAt || episodeAt;
+      const listingChange = priceChanged ? currentPrice < previousPrice ? 'price_drop' : 'price_change' : opening || !prior ? baseline ? 'first_detection' : 'restock' : prior.sourceDrop?.listingChange || (baseline ? 'first_detection' : 'restock');
+      // Availability and alert episode clocks survive routine checks; a known
+      // price change has its own feed time without opening a new alert episode.
+      for (const drop of drops) Object.assign(drop, { observedAt: episodeAt, firstSeenAt: episodeAt, displayAt: listingChangedAt,
+        listingChangedAt, listingChange,
         lastConfirmedAt: observedAt, availabilityEpisodeId: episodeId, availabilityEpisodeStartedAt: episodeAt,
         availabilityEpisodeKind: baseline ? 'initial' : 'restock' });
       subject.sourceDrop = drops[0] || null;

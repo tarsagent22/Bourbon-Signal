@@ -104,8 +104,11 @@ export function dropDisplayTime(drop: Record<string, unknown>) {
 
   const scheduledAt = firstValidTimestamp(drop.releaseDate, drop.eventDate, drop.startsAt, ...eventTimes);
   if (isScheduledReleaseSignal(drop)) return scheduledAt;
-  const confirmedAt = firstValidTimestamp(...confirmationTimes);
-  if (isInventorySignal(drop) && confirmedAt) return confirmedAt;
+  if (isInventorySignal(drop)) return firstValidTimestamp(
+    drop.listingChangedAt, drop.listing_changed_at,
+    drop.availabilityEpisodeStartedAt, drop.availability_episode_started_at,
+    ...firstSeenTimes, ...eventTimes, ...timestamps, ...confirmationTimes,
+  );
   if (basis === "source_event_at") return firstValidTimestamp(...eventTimes, ...firstSeenTimes, ...confirmationTimes, ...timestamps);
   if (basis === "first_seen_at") return firstValidTimestamp(...firstSeenTimes, ...eventTimes, ...confirmationTimes, ...timestamps);
   return firstValidTimestamp(...confirmationTimes, ...firstSeenTimes, ...eventTimes, ...timestamps);

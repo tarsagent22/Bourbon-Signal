@@ -20,6 +20,13 @@ test('account and full filter scope isolation, immediate memory and restart reco
   assert.equal(feedCacheScope('market',{...DEFAULT_SIGNAL_FILTERS,rarities:['unicorn','allocated']}),scope);
   assert.deepEqual(await createHomeFeedCache(storage).load('user_A',scope),page);
 });
+test('a cache from the old confirmation ordering cannot restore rows or continuation cursors', async () => {
+  const { storage } = setup();
+  const filters = { ...DEFAULT_SIGNAL_FILTERS, rarities: ['allocated', 'unicorn'] as typeof DEFAULT_SIGNAL_FILTERS.rarities };
+  const legacyScope = JSON.stringify(['market', filters.state, filters.area, filters.freshness, filters.bottle, [...filters.rarities].sort()]);
+  await createHomeFeedCache(storage).save('user_A', legacyScope, { ...page, nextCursor: 'old-confirmation-order' });
+  assert.equal(await createHomeFeedCache(storage).load('user_A', feedCacheScope('market', filters)), null);
+});
 test('outages preserve cache, confirmed empty invalidates scope, and auth clear deletes disk', async () => {
   const {storage,disk}=setup(); const cache=createHomeFeedCache(storage);
   await cache.save('user_A',scope,page);

@@ -35,6 +35,12 @@ export function signalAccessibilityTime(value: string, now = new Date()) {
 // Observation time describes the sighting. Display time may be a later update
 // or a future event, so it must not make old inventory look newly observed.
 export function reportAge(signal: Signal, now = new Date()) {
+  if (signal.kind === "availability" && signal.source.type === "trusted_source") {
+    const value = signalLastCheckedAt(signal);
+    if (!value || Date.parse(value) > now.getTime()) return { label: "Check time not available", older: false, value: null };
+    const age = signalAccessibilityTime(value, now);
+    return { label: `Last checked ${age === "Now" ? "just now" : age}`, older: Boolean(signal.historical) || now.getTime() - Date.parse(value) >= 24 * 60 * 60 * 1000, value };
+  }
   const value = [signal.timing.observedAt, signal.timing.reportedAt, signal.timing.displayAt]
     .find(time => time && Number.isFinite(Date.parse(time)));
   const label = signal.kind !== "availability" ? "Posted" : signal.source.type === "member" && signal.source.reportMode !== "reported_online" ? "Seen" : "Reported";
@@ -42,6 +48,28 @@ export function reportAge(signal: Signal, now = new Date()) {
   const age = signalAccessibilityTime(value, now);
   const older = signal.kind === "availability" && (Boolean(signal.historical) || now.getTime() - Date.parse(value) >= 24 * 60 * 60 * 1000);
   return { label: `${label} ${age === "Now" ? "just now" : age}`, older, value };
+}
+
+export function signalLastCheckedAt(signal: Signal) {
+  return [signal.timing.lastCheckedAt, signal.timing.observedAt, signal.timing.displayAt]
+    .find(value => value && Number.isFinite(Date.parse(value))) || null;
+}
+
+export function signalListingPresentation(signal: Signal, now = new Date()) {
+  if (signal.kind !== "availability" || signal.source.type !== "trusted_source") return null;
+  const first = [signal.timing.firstSpottedAt, signal.timing.reportedAt, signal.timing.displayAt]
+    .find(value => value && Number.isFinite(Date.parse(value)) && Date.parse(value) <= now.getTime());
+  const checked = signalLastCheckedAt(signal);
+  const repeated = Boolean(first && checked && Date.parse(checked) > Date.parse(first));
+  const firstSpotted = first ? `First spotted ${new Date(first).toLocaleDateString(undefined, { month: "short", day: "numeric", ...(new Date(first).getFullYear() !== now.getFullYear() ? { year: "numeric" as const } : {}) })}` : "";
+  const changedAt = Date.parse(signal.timing.displayAt);
+  const recentChange = changedAt <= now.getTime() && now.getTime() - changedAt < 24 * 60 * 60 * 1000;
+  const change = recentChange ? { restock: "Back in stock", price_drop: "Price dropped", price_change: "Price changed", first_detection: "New listing" }[signal.listingChange || "first_detection"] : "";
+  const status = signalCardStatusLabel(signal, now);
+  const listed = signal.availability?.status === "available_now" && signalAvailabilityIsCurrent(signal, now)
+    ? repeated ? "Still listed available" : "Listed available"
+    : status;
+  return { firstSpotted, status: change && signalAvailabilityIsCurrent(signal, now) ? `${change} · ${listed}` : listed };
 }
 
 function normalizedQuantityLabel(signal: Signal) {
@@ -94,7 +122,7 @@ function retailerQualified(signal: Signal) {
 
 export function signalAvailabilityWindow(signal: Signal) {
   if (signal.availability?.status !== "available_now") return null;
-  const startsAt = Date.parse(signal.timing.displayAt);
+  const startsAt = Date.parse(signal.kind === "availability" && signal.source.type === "trusted_source" ? signalLastCheckedAt(signal) || signal.timing.displayAt : signal.timing.displayAt);
   if (!Number.isFinite(startsAt)) return null;
   const explicitExpiry = signal.timing.expiresAt ? Date.parse(signal.timing.expiresAt) : Number.NaN;
   const endsAt = Number.isFinite(explicitExpiry) ? explicitExpiry : startsAt + 24 * 60 * 60 * 1_000;
@@ -123,7 +151,7 @@ export function signalAvailabilityRefreshAt(signal: Signal, now = new Date()) {
   }
 
   if (signal.kind === "availability") {
-    const observed = Date.parse(signal.timing.displayAt);
+    const observed = Date.parse(signal.source.type === "trusted_source" ? signalLastCheckedAt(signal) || signal.timing.displayAt : signal.timing.displayAt);
     const staleAt = observed + 72 * 60 * 60 * 1_000;
     if (Number.isFinite(staleAt) && current < staleAt) candidates.push(staleAt);
   }
@@ -224,7 +252,7 @@ export function signalFeedCardAppearance(signal: Signal) {
 
 export function signalReportIsStale(signal: Signal, now = new Date()) {
   if (signal.kind !== "availability") return false;
-  const observed = Date.parse(signal.timing.displayAt);
+  const observed = Date.parse(signal.source.type === "trusted_source" ? signalLastCheckedAt(signal) || signal.timing.displayAt : signal.timing.displayAt);
   const current = now.getTime();
   return Number.isFinite(observed) && Number.isFinite(current) && current - observed >= 72 * 60 * 60 * 1_000;
 }
@@ -276,10 +304,11 @@ export function signalAccessibilityLabel(signal: Signal, now = new Date()) {
   return [
     signal.bottle.name,
     location,
-    status === "Reported" || status === "Community report" ? "" : status,
+    signalListingPresentation(signal, now)?.status || (status === "Reported" || status === "Community report" ? "" : status),
     signalMemberTagLabel(signal),
     signalReporterAttribution(signal),
     reportAge(signal, now).label,
+    signalListingPresentation(signal, now)?.firstSpotted,
     presented.price,
     presented.quantity,
     signalCardSummary(signal),
