@@ -155,6 +155,29 @@ test('R1 reconfirmation preserves every episode clock, expiry and provider laten
   assert.equal(evidence.isFreshPublicDrop(normalized,at(25)),true,'fresh confirmed inventory passes the real public freshness gate');
 });
 
+test('price changes advance durable feed time without reopening alert episodes', async t => {
+  const { repo, source, at, policy, poll } = await setup(t);
+  await poll(0, 0); await poll(1, 3);
+  const before = (await repo.inspect()).opportunities;
+  await poll(2, 3, { fetcher: transport(source, 3, 40) });
+  await poll(3, 3, { fetcher: transport(source, 3, 40) });
+  const feed = await lane.readSourceLaneDropOverlay(repo, [], policy(3), true, at(3));
+  for (const drop of feed.drops) {
+    assert.equal(drop.firstSeenAt, at(1));
+    assert.equal(drop.lastConfirmedAt, at(3));
+    assert.equal(drop.displayAt, at(2));
+    assert.equal(drop.listingChangedAt, at(2));
+    assert.equal(drop.listingChange, 'price_drop');
+  }
+  const after = (await repo.inspect()).opportunities;
+  assert.equal(after.length, before.length);
+  for (const row of after) {
+    const original = before.find(prior => prior.episode_id === row.episode_id)!;
+    assert.deepEqual(row.observed_at, original.observed_at);
+    assert.deepEqual(row.expires_at, original.expires_at);
+  }
+});
+
 test('R2 fresh positive baseline is canonical feed evidence but never an alert opportunity', async t => {
   const {repo,at,policy,poll,source} = await setup(t);
   await poll(0,3);
