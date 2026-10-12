@@ -627,7 +627,7 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "every 5 minutes",
+      "frequency": "every 30 minutes",
       "delivery": "local",
       "agent": {
         "provider": null,
@@ -637,8 +637,7 @@
       "externalApi": {
         "classes": [
           "production_coverage_queue",
-          "local_kanban",
-          "engine_ops_outbox"
+          "local_kanban"
         ],
         "maxRequestsPerRun": 8
       },
@@ -648,8 +647,7 @@
       "killSwitch": "cron_pause:0af9a869e52a",
       "artifacts": [
         "coverage_request_automation_jobs",
-        "coverage_expansion_terminal_results",
-        "engine_ops_delivery_receipts"
+        "coverage_expansion_terminal_results"
       ]
     },
     {

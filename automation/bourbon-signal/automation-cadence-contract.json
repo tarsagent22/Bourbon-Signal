@@ -17,13 +17,13 @@
     "neonEncryptedBackup": 1,
     "morningBrief": 1,
     "schedulerReconciliation": 1,
-    "coverageRequestCompletionLane": 288
+    "coverageRequestCompletionLane": 48
   },
   "expectedTotals": {
     "expansionDeterministicRunsPerDay": 20,
-    "deterministicRunsPerDay": 650.0333333333333,
+    "deterministicRunsPerDay": 410.0333333333333,
     "agenticRunsPerWeek": 22,
-    "deterministicRunSharePercentApprox": 99.38
+    "deterministicRunSharePercentApprox": 99.24
   },
   "codingAgentPolicy": {
     "profile": "bourbonbot",

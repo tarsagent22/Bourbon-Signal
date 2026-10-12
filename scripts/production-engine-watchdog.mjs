@@ -45,6 +45,7 @@ async function getJson(route) {
   }
 }
 
+/** @param {{nowMs?: number, activeStates?: string[], stats?: any, stateChecks?: any[], opsHealth?: any}} options */
 export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: states = [], stats, stateChecks = [], opsHealth = null } = {}) {
   const failures = [];
   const warnings = [];
@@ -115,6 +116,16 @@ export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: sta
   }
 
   const ncSourceHealth = stats?.body?.ncBoardIntelligence?.sourceHealth || null;
+  const recoveryPriorityStates = (stats?.body?.refreshHealth?.states || [])
+    .filter((row) => recoveryStates.has(row.state)
+      && Number(row.evidenceFreshness?.inventory?.totalCount || 0) > 0
+      && row.evidenceFreshness?.inventory?.freshCount === 0)
+    .map((row) => row.state).sort();
+  const sourceRecoveryActions = (ncSourceHealth?.affectedBoards || [])
+    .filter((board) => Number(board.consecutiveFailures || 0) >= 4 || board.parserWarnings?.length)
+    .map((board) => ({ state: 'NC', source: board.boardName,
+      action: (board.failedKnownRoutes || []).some((route) => [401, 403].includes(route.status)) ? 'review_access' : board.parserWarnings?.length ? 'review_parser' : 'review_source',
+      consecutiveFailures: Number(board.consecutiveFailures || 0) }));
   for (const source of ncSourceHealth?.statewideFailures || []) warnings.push(`NC statewide source ${source.source}: ${source.status}.`);
   for (const board of ncSourceHealth?.affectedBoards || []) {
     warnings.push(`NC source ${board.boardName}: ${board.status}; ${board.failedPageCount} failed route(s), ${board.consecutiveFailures} consecutive failures; ${board.parserWarnings?.length || 0} parser warning(s).`);
@@ -122,6 +133,8 @@ export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: sta
   return {
     ok: failures.length === 0,
     ncSourceHealth,
+    sourceRecoveryActions,
+    recoveryPriorityStates: requiresFullRecovery ? [] : recoveryPriorityStates,
     recoveryStates: requiresFullRecovery ? [] : [...recoveryStates].sort(),
     checkedAt: new Date(nowMs).toISOString(),
     snapshotId: stats?.snapshotId || null,

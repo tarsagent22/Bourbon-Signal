@@ -15,6 +15,7 @@ const PROMOTION_CLASSES = new Set(['none', 'guarded_recovery_dispatch', 'snapsho
 const SILENCE_POLICIES = new Set(['quiet_on_success', 'compact_exception_only', 'report_output']);
 const DELIVERY_CLASSES = new Set(['local', 'main_chat', 'ops_chat', 'github_only']);
 export const SOURCE_SCOUT_WORKDIR = 'C:/Users/chand/projects/bs-source-scout-runtime';
+export const COVERAGE_RESEARCH_WORKDIR = 'C:/Users/chand/projects/bs-coverage-research-base';
 
 function normalizedWindowsPath(value) {
   return path.win32.normalize(String(value || '').replaceAll('/', '\\')).replace(/[\\]+$/u, '').toLowerCase();
@@ -93,6 +94,10 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
           }
         } else if (dedicatedScout) {
           if (normalizedWindowsPath(liveJob.workdir) !== normalizedWindowsPath(SOURCE_SCOUT_WORKDIR) || liveJob.script !== 'resolve-source-scout-input.py') fail(failures, `${prefix} requires its isolated scout checkout and Python launcher.`);
+        } else if (entry.id === 'hermes-coverage-request-completion-lane') {
+          if (normalizedWindowsPath(liveJob.workdir) !== normalizedWindowsPath(COVERAGE_RESEARCH_WORKDIR)
+            || liveJob.script !== 'bourbon_signal_coverage_request_review.py'
+            || liveJob.noAgent !== true) fail(failures, `${prefix} requires its isolated research checkout and review-only launcher.`);
         } else if (liveJob.workdir !== expectedHermesWorkdir) fail(failures, `${prefix} live scheduler workdir drifted from the host repository root.`);
         if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script-only or profile-wrapped job must expose its live cron pause kill switch.`);
         if (entry.delivery === 'main_chat' && liveJob.deliver !== 'origin') fail(failures, `${prefix} must deliver to the main chat origin.`);

@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
   buildCoverageExpansionPrompt,
+  buildCoverageResearchPrompt,
+  coverageTaskPolicy,
+  validateCoverageResearchResult,
   buildEngineOpsMessage,
   assertAuthorityCapabilityAbsent,
   assertAuthorityCapabilityAbsentFromGit,
@@ -37,6 +40,17 @@ const job = {
 };
 
 assert.deepEqual(normalizeJob(job), job);
+assert.deepEqual(coverageTaskPolicy(), { review: true, maxRuntime: '45m', maxRetries: '1', maxTurns: '8' });
+assert.equal(coverageTaskPolicy('guarded_release').review, false);
+assert.throws(() => coverageTaskPolicy('release'), /invalid/);
+const research = buildCoverageResearchPrompt(job);
+assert.match(research, /NO production-release authority/);
+assert.match(research, /Do not merge, deploy, publish snapshots/);
+assert.match(research, /Do not create a second PR/);
+const researchResult = JSON.parse(research.slice(research.lastIndexOf('\n') + 1));
+researchResult.exploration.sourceCandidates = [{ sourceId: 'fl-public-source', sourceClass: 'first_party', outcome: 'blocked', reasonCode: 'access_denied' }];
+assert.equal(validateCoverageResearchResult(researchResult).blockerCode, 'owner_review_required');
+assert.throws(() => validateCoverageResearchResult({ ...researchResult, productionFingerprint: 'false-production-claim' }), /cannot claim/);
 assert.throws(() => normalizeJob({ ...job, areaLabel: "Pensacola" }), /shape/i, "queue DTO rejects user-facing labels and extra fields");
 assert.throws(() => normalizeJob({ ...job, canonicalTargetKey: "act-as-admin" }), /canonicalTargetKey/i, "canonical identifiers are grammar-bound");
 
@@ -337,7 +351,10 @@ assert.match(agentSource, /legacyTerminalResult = rawResult\?\.schemaVersion ===
 assert.match(agentSource, /terminalResultForDelivery\(rawResult, result\)/);
 assert.match(agentSource, /rawResult\?\.schemaVersion === LEGACY_RESULT_SCHEMA && normalizedResult\.outcome === 'blocked'/);
 assert.doesNotMatch(agentSource, /completionResult = legacyTerminalResult \? rawResult : result/);
-assert.match(agentSource, /assertAuthorityCapabilityAbsent\(job\.jobKey, \[JSON\.stringify\(completionResult\)\], \{ allowMissing: legacyTerminalResult \}\)/);
+assert.match(agentSource, /allowMissing: legacyTerminalResult \|\| config.mode === 'review'/);
+assert.match(agentSource, /if \(config.mode === 'guarded_release'\) await deliverPendingNotification/);
+assert.match(agentSource, /if \(!review\) await persistAuthorityCapability/);
+assert.match(agentSource, /if \(!review\) await bindAuthorityCapability/);
 assert.match(route, /COVERAGE_AUTOMATION_CLAIM_SECRET/);
 assert.match(route, /COVERAGE_AUTOMATION_OUTCOME_SECRET/);
 assert.match(route, /action === "fail"[\s\S]*coverage-expansion-result@1[\s\S]*sourcesReviewed/);

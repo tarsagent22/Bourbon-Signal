@@ -411,6 +411,40 @@ function parseJson(text, label) {
   try { return JSON.parse(text); } catch { throw new Error(`${label} did not return JSON.`); }
 }
 
+export function coverageTaskPolicy(mode = 'review') {
+  if (!['review', 'guarded_release'].includes(mode)) throw new Error('Coverage automation mode is invalid.');
+  const review = mode === 'review';
+  return { review, maxRuntime: review ? '45m' : '8h', maxRetries: review ? '1' : '3', maxTurns: review ? '8' : '50' };
+}
+
+export function validateCoverageResearchResult(raw) {
+  const result = normalizeTaskTerminalResult(raw);
+  if (result.outcome !== 'blocked' || result.pullRequest || result.refresh || result.productionFingerprint
+    || result.requesterNotification.ready) throw new Error('Review-only automation cannot claim a production improvement.');
+  return result;
+}
+
+export function buildCoverageResearchPrompt(rawJob) {
+  const job = normalizeJob(rawJob);
+  const blankMetrics = { baselineExactStoreRows: 0, productionExactStoreRows: 0, baselineLiveStores: 0, productionLiveStores: 0, baselineCustomerCards: 0, productionCustomerCards: 0 };
+  const terminal = { schemaVersion: RESULT_SCHEMA, outcome: 'blocked', headline: 'Coverage research is ready for owner review.', productionFingerprint: null, pullRequest: null, ci: { status: 'not_applicable' }, refresh: null, metrics: blankMetrics, canonicalVerification: { verified: false, url: null }, exploration: { sourceCandidates: [], knownSourceUniverseComplete: true, secondPass: 'not_required' }, requesterNotification: { ready: false, reasonCode: 'blocked' }, blockerCode: 'owner_review_required', limitations: ['No production coverage change has been made.'] };
+  return `Research coverage for canonical target ${job.canonicalTargetKey} (${job.stateCode}).
+
+The owner authorized automatic checking and research, with review before release. This task has NO production-release authority. Do not retrieve, persist, or request a release capability. Do not merge, deploy, publish snapshots, run production mutations, change request status, or send messages to members or Engine Ops.
+
+Job key: ${job.jobKey}
+Request ID: ${job.coverageRequestId}
+Request version: ${job.requestVersion}
+Baseline fingerprint: ${job.baselineCoverageFingerprint}
+
+Check current canonical production coverage and the exact requested geography. Distinguish known stores from fresh bottle inventory. Research the bounded known public source universe and record stable source IDs, classes, outcomes, and reason codes. Respect access controls; stop at sources that require credentials or unsupported browser access. Reuse a recent audit of this exact target when its evidence is still valid. Limit this task to eight turns and 45 minutes.
+
+Prepare a specific recommendation and, if a safe source change is clear, a local tested patch. A draft PR may be created only if the shared release lane is empty; otherwise retain the patch in this task's workspace. Do not create a second PR. Record evidence URLs and any draft PR reference in task attachments or comments, not in member payloads. Keep fresh inventory, board shipment information, and store directories distinct.
+
+Complete this research task with the JSON contract below, replacing the headline, limitations, metrics, and sourceCandidates with verified observations. Complete the known-source audit before setting knownSourceUniverseComplete true. Never invent production gains or a merge commit. Outcome remains blocked with owner_review_required even when research succeeds: production changes await owner review. If the audit cannot be completed within the budget, block the task with a concrete explanation; do not falsely claim a complete audit.
+${JSON.stringify(terminal)}`;
+}
+
 function runtimeConfigPath() {
   return process.env.BOURBON_SIGNAL_COVERAGE_AUTOMATION_CONFIG
     || path.join(hermesHome(), 'automation', 'coverage-request-agent-config.json');
@@ -545,9 +579,13 @@ export async function assertAuthorityCapabilityAbsentFromGit(jobKey, { baseSha, 
 
 async function loadRuntimeConfig() {
   const raw = parseJson(await readFile(runtimeConfigPath(), 'utf8'), 'Coverage automation config');
-  const config = strictObject(raw, 'config', ['baseUrl', 'claimSecret', 'outcomeSecret', 'engineOpsTarget', 'board', 'project', 'assignee']);
+  const mode = process.env.BOURBON_SIGNAL_COVERAGE_MODE || raw.mode || 'review';
+  if (!['review', 'guarded_release'].includes(mode)) throw new Error('Coverage automation mode is invalid.');
+  const { mode: _mode, ...legacy } = raw;
+  const config = strictObject(legacy, 'config', ['baseUrl', 'claimSecret', 'outcomeSecret', 'engineOpsTarget', 'board', 'project', 'assignee']);
   const baseUrl = cleanText(config.baseUrl, 'baseUrl', 100, /^https:\/\/www\.bourbonsignal\.com$/);
   return {
+    mode,
     baseUrl,
     claimSecret: cleanText(config.claimSecret, 'claimSecret', 200, /^[a-zA-Z0-9_-]{32,200}$/),
     outcomeSecret: cleanText(config.outcomeSecret, 'outcomeSecret', 200, /^[a-zA-Z0-9_-]{32,200}$/),
@@ -579,20 +617,21 @@ async function post(config, secret, payload, { allowConflict = false } = {}) {
 async function createTask(config, job, authorityCapability) {
   const suffix = createHash('sha256').update(job.jobKey).digest('hex').slice(0, 12);
   const branch = `coverage/${job.stateCode.toLowerCase()}-${suffix}`;
-  await persistAuthorityCapability(job.jobKey, authorityCapability);
-  const body = buildCoverageExpansionPrompt(job);
+  const { review, maxRuntime, maxRetries, maxTurns } = coverageTaskPolicy(config.mode);
+  if (!review) await persistAuthorityCapability(job.jobKey, authorityCapability);
+  const body = review ? buildCoverageResearchPrompt(job) : buildCoverageExpansionPrompt(job);
   const output = runHermes([
-    'kanban', '--board', config.board, 'create', `Coverage expansion: ${job.canonicalTargetKey}`,
+    'kanban', '--board', config.board, 'create', `${review ? 'Coverage research' : 'Coverage expansion'}: ${job.canonicalTargetKey}`,
     '--body', body, '--assignee', config.assignee, '--project', config.project,
     '--workspace', 'worktree', '--branch', branch, '--priority', '100',
-    '--idempotency-key', job.jobKey, '--max-runtime', '8h', '--max-retries', '3',
+    '--idempotency-key', job.jobKey, '--max-runtime', maxRuntime, '--max-retries', maxRetries,
     '--created-by', 'coverage-request-automation', '--skill', 'bourbon-signal-product-engineering',
-    '--skill', 'vercel-production-release-safety', '--goal', '--goal-max-turns', '50', '--json',
+    '--skill', 'vercel-production-release-safety', '--goal', '--goal-max-turns', maxTurns, '--json',
   ]);
   const parsed = parseJson(output, 'Kanban create');
   const taskId = String(parsed.id || parsed.task?.id || '');
   if (!/^t_[a-zA-Z0-9]+$/.test(taskId)) throw new Error('Kanban create did not return a valid task id.');
-  await bindAuthorityCapability(job.jobKey, taskId);
+  if (!review) await bindAuthorityCapability(job.jobKey, taskId);
   return taskId;
 }
 
@@ -645,15 +684,15 @@ async function processJob(config) {
   if (!claimed.payload.job) return false;
   const job = normalizeJob(claimed.payload.job);
   if (job.status === 'claimed') {
-    if (!claimed.payload.leaseToken || !claimed.payload.authorityCapability) return false;
+    if (!claimed.payload.leaseToken || (config.mode !== 'review' && !claimed.payload.authorityCapability)) return false;
     const leaseToken = cleanText(claimed.payload.leaseToken, 'leaseToken', 36, /^[a-f0-9-]{36}$/);
-    const authorityCapability = cleanText(claimed.payload.authorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
+    const authorityCapability = config.mode === 'review' ? null : cleanText(claimed.payload.authorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
     const taskId = await createTask(config, job, authorityCapability);
     await post(config, config.claimSecret, { action: 'attach', jobKey: job.jobKey, leaseToken, taskId });
     return true;
   }
   if (job.status !== 'running' || !job.taskId) return false;
-  await bindAuthorityCapability(job.jobKey, job.taskId);
+  if (config.mode !== 'review') await bindAuthorityCapability(job.jobKey, job.taskId);
   let task;
   try {
     task = readTask(config, job.taskId);
@@ -672,7 +711,7 @@ async function processJob(config) {
   try {
     rawResult = parseJson(String(task.result || ''), 'Kanban terminal result');
     legacyTerminalResult = rawResult?.schemaVersion === LEGACY_RESULT_SCHEMA;
-    result = normalizeTaskTerminalResult(rawResult);
+    result = config.mode === 'review' ? validateCoverageResearchResult(rawResult) : normalizeTaskTerminalResult(rawResult);
     if ((task.status === 'blocked') !== (result.outcome === 'blocked')) throw new Error('Kanban terminal status and structured outcome disagree.');
   } catch (error) {
     console.error(`Coverage terminal result rejected for ${job.taskId}: ${error instanceof Error ? error.message : 'unknown validation failure'}`);
@@ -682,7 +721,7 @@ async function processJob(config) {
   }
   const completionResult = terminalResultForDelivery(rawResult, result);
   try {
-    await assertAuthorityCapabilityAbsent(job.jobKey, [JSON.stringify(completionResult)], { allowMissing: legacyTerminalResult });
+    await assertAuthorityCapabilityAbsent(job.jobKey, [JSON.stringify(completionResult)], { allowMissing: legacyTerminalResult || config.mode === 'review' });
   } catch {
     await post(config, config.outcomeSecret, { action: 'fail', jobKey: job.jobKey, taskId: job.taskId, failureCode: 'automation_terminal_contract_failure' });
     await removeAuthorityCapability(job.jobKey);
@@ -711,7 +750,7 @@ export async function runCoverageRequestAgent() {
   if (!release) return;
   try {
     const config = await loadRuntimeConfig();
-    await deliverPendingNotification(config);
+    if (config.mode === 'guarded_release') await deliverPendingNotification(config);
     await processJob(config);
   } finally {
     await release();
