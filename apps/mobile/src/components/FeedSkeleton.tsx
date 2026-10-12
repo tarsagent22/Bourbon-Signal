@@ -40,6 +40,8 @@ export function FeedSkeleton({ community = false }: { community?: boolean }) {
   const sweep = progress.interpolate({ inputRange: [0, 1], outputRange: [-110, width + 110] });
   const copyLeft = community ? 48 : 78;
   const copyWidth = Math.max(40, width - copyLeft - 22);
+  const summaryWidth = Math.min(100, Math.max(20, copyWidth - 80));
+  const summaryLeft = copyLeft + copyWidth - summaryWidth;
   return <View accessible accessibilityRole="progressbar" accessibilityLabel={community ? "Loading Community" : "Loading Intel"} accessibilityState={{ busy: true }}
     onLayout={event => setWidth(event.nativeEvent.layout.width)}>
     <View accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden pointerEvents="none">
@@ -49,6 +51,7 @@ export function FeedSkeleton({ community = false }: { community?: boolean }) {
           <Shape sweep={sweep} left={20} style={{ left: 20, top: 61, width: 28, height: 76, borderRadius: 7 }} />
         </>}
         <Shape sweep={sweep} left={copyLeft} style={{ left: copyLeft, top: 12, width: 74, height: 16, borderRadius: 8 }} />
+        {!community ? <Shape sweep={sweep} left={summaryLeft} style={{ left: summaryLeft, top: 14, width: summaryWidth, height: 11, borderRadius: 4 }} /> : null}
         <Shape sweep={sweep} left={copyLeft} style={{ left: copyLeft, top: 37, width: copyWidth * 0.91, height: 20, borderRadius: 4 }} />
         <Shape sweep={sweep} left={copyLeft} style={{ left: copyLeft, top: 67, width: copyWidth * 0.76, height: 12, borderRadius: 4 }} />
         <Shape sweep={sweep} left={copyLeft} style={{ left: copyLeft, top: 88, width: copyWidth * 0.37, height: 11, borderRadius: 4 }} />
@@ -61,7 +64,7 @@ export function FeedSkeleton({ community = false }: { community?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  row: { height: 174 },
+  row: { height: 156 },
   communityRow: { height: 174 },
   shape: { position: "absolute", overflow: "hidden", backgroundColor: "rgba(185,170,152,0.075)" },
   light: { position: "absolute", top: 0, bottom: 0, width: 98, flexDirection: "row" },
