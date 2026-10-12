@@ -21,7 +21,7 @@ with tempfile.TemporaryDirectory() as temp:
         probe.bind(("127.0.0.1", 0))
         test_broker_port = probe.getsockname()[1]
     source = source.replace("BROKER_PORT = 47683", f"BROKER_PORT = {test_broker_port}")
-    canonical_line = '    host_root = (Path.home() / "AppData" / "Local" / "hermes") if os.name == "nt" else (Path.home() / ".hermes")'
+    canonical_line = '    host_root = Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex"))'
     assert canonical_line in source
     assert "socket.SO_REUSEADDR" in source
     parent_spawn = source.index("return subprocess.run(arguments, cwd=repo, env=environment", source.index("register_objective_repository(repo, operator)"))
@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory() as temp:
     assert "BOURBON_SIGNAL_RELEASE_LANE_VALIDATED" in source
     assert "os.kill(owner_pid, 0)" not in source
     assert "assert_broker(inheritance_token)" in source
-    isolated_script.write_text(source.replace(canonical_line, f"    host_root = Path({str(repo / 'hermes')!r})"), encoding="utf-8")
+    isolated_script.write_text(source.replace(canonical_line, f"    host_root = Path({str(repo / 'codex')!r})"), encoding="utf-8")
     spec = spec_from_file_location("release_lane_lock_isolated", isolated_script)
     module = module_from_spec(spec)
     assert spec and spec.loader
