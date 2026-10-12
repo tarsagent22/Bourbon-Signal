@@ -37,9 +37,9 @@ export function signalAccessibilityTime(value: string, now = new Date()) {
 export function reportAge(signal: Signal, now = new Date()) {
   if (signal.kind === "availability" && signal.source.type === "trusted_source") {
     const value = signalLastCheckedAt(signal);
-    if (!value || Date.parse(value) > now.getTime()) return { label: "Check time not available", older: false, value: null };
+    if (!value || Date.parse(value) > now.getTime()) return { label: "Report time not available", older: false, value: null };
     const age = signalAccessibilityTime(value, now);
-    return { label: `Last checked ${age === "Now" ? "just now" : age}`, older: Boolean(signal.historical) || now.getTime() - Date.parse(value) >= 24 * 60 * 60 * 1000, value };
+    return { label: `Last reported ${age === "Now" ? "just now" : age}`, older: Boolean(signal.historical) || now.getTime() - Date.parse(value) >= 24 * 60 * 60 * 1000, value };
   }
   const value = [signal.timing.observedAt, signal.timing.reportedAt, signal.timing.displayAt]
     .find(time => time && Number.isFinite(Date.parse(time)));

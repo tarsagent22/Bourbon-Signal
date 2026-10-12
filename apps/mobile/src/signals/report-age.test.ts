@@ -8,7 +8,7 @@ const signal = (timing: Signal["timing"], patch: Partial<Signal> = {}) => ({ kin
 
 test("old discoveries with fresh engine checks remain available without claiming new discoveries", () => {
   const listing = signal({ firstSpottedAt: "2026-10-08T15:00:00Z", displayAt: "2026-10-08T15:00:00Z", lastCheckedAt: "2026-10-10T14:48:00Z" }, { source: { type: "trusted_source", label: "Trusted source" }, evidence: { photo: false, corroborationCount: 0, helpfulCount: 0, retailerReported: false, sourceBacked: true }, availability: { status: "available_now" } });
-  assert.equal(reportAge(listing, now).label, "Last checked 12 minutes ago");
+  assert.equal(reportAge(listing, now).label, "Last reported 12 minutes ago");
   assert.equal(reportAge(listing, now).older, false);
   assert.equal(signalAvailabilityIsCurrent(listing, now), true);
   assert.equal(signalListingPresentation(listing, now)?.status, "Still listed available");
