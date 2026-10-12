@@ -765,12 +765,21 @@ export async function verifyAuthority(jobKey, taskId = process.env.HERMES_KANBAN
   return true;
 }
 
-export async function runCoverageRequestAgent() {
+function releaseLaneIsBusyDefault() {
+  const result = spawnSync('gh', ['pr', 'list', '--repo', 'tarsagent22/Bourbon-Signal', '--state', 'open', '--json', 'number'], { encoding: 'utf8', timeout: 30_000, windowsHide: true, shell: false });
+  if (result.error || result.status !== 0) throw new Error('Unable to verify the release lane; coverage work remains queued.');
+  const pulls = parseJson(result.stdout, 'Release lane');
+  if (!Array.isArray(pulls)) throw new Error('Invalid release lane response; coverage work remains queued.');
+  return pulls.length > 0;
+}
+
+export async function runCoverageRequestAgent({ releaseLaneIsBusy = releaseLaneIsBusyDefault } = {}) {
   const release = await acquireLock();
   if (!release) return;
   try {
     const config = await loadRuntimeConfig();
     if (config.mode === 'guarded_release') await deliverPendingNotification(config);
+    if (config.mode === 'guarded_release' && await releaseLaneIsBusy()) return;
     await processJob(config);
   } finally {
     await release();

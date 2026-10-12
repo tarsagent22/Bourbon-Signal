@@ -71,6 +71,10 @@ async function testReviewDispatcher() {
     globalThis.fetch = async (_url, init) => { calls.push(JSON.parse(String(init?.body)).action); return Response.json({ job: null }); };
     await runCoverageRequestAgent();
     assert.deepEqual(calls, ['claim'], 'Research checks never claim or send outbound notifications, even with an old release config.');
+    calls.length = 0;
+    process.env.BOURBON_SIGNAL_COVERAGE_MODE = 'guarded_release';
+    await runCoverageRequestAgent({ releaseLaneIsBusy: () => true });
+    assert.deepEqual(calls, ['claim_notification'], 'An occupied release lane keeps new coverage work queued, without a failed result.');
   } finally {
     globalThis.fetch = previous.fetch;
     for (const [key, value] of Object.entries({ HERMES_HOME: previous.home, BOURBON_SIGNAL_COVERAGE_AUTOMATION_CONFIG: previous.config, BOURBON_SIGNAL_COVERAGE_MODE: previous.mode })) {
