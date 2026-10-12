@@ -118,7 +118,7 @@
     "watchdog:engine": "node scripts/production-engine-watchdog.mjs",
     "test:production-engine-watchdog": "node scripts/test-production-engine-watchdog.mjs",
     "test:site-engine-stats": "node --no-warnings --experimental-strip-types scripts/test-site-engine-stats.mts",
-    "test:coverage": "node --no-warnings --experimental-strip-types scripts/test-coverage-contract.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-strength.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-public-surface.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-requests.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-member-owner-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-request-automation.mts && node scripts/test-codex-coverage.mjs",
+    "test:coverage": "node --no-warnings --experimental-strip-types scripts/test-coverage-contract.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-strength.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-public-surface.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-requests.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-member-owner-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-request-automation.mts && node scripts/test-codex-coverage.mjs && node --no-warnings --experimental-strip-types scripts/test-coverage-nightly.mts",
     "test:coverage-depth": "node --no-warnings --experimental-strip-types scripts/test-coverage-depth-freshness.mts && node --no-warnings --experimental-strip-types scripts/audit-coverage-depth.mts --check && node --no-warnings --experimental-strip-types scripts/audit-coverage-depth.mts --check --retailer-fixture=scripts/fixtures/coverage-retailer-audit-fixture.json",
     "report:coverage-depth": "node --no-warnings --experimental-strip-types scripts/audit-coverage-depth.mts",
     "test:nc-board-completeness": "node --no-warnings --experimental-strip-types scripts/test-nc-board-completeness.mts && tsx scripts/test-nc-board-feed-normalization.mts && tsx scripts/test-nc-board-alert-matching.mts",
@@ -205,7 +205,8 @@
     "migrate:source-scheduler": "node scripts/migrate-app-storage.mjs --source-scheduler-only --check",
     "migrate:source-scheduler:apply": "node scripts/migrate-app-storage.mjs --source-scheduler-only --apply",
     "test:bottle-mutes": "tsx --test scripts/test-bottle-mutes.ts",
-    "test:notification-navigation": "tsx --test scripts/test-notification-alert-lookup.ts scripts/test-notification-alert-sql.ts"
+    "test:notification-navigation": "tsx --test scripts/test-notification-alert-lookup.ts scripts/test-notification-alert-sql.ts",
+    "test:coverage-nightly": "node --no-warnings --experimental-strip-types scripts/test-coverage-nightly.mts && node scripts/test-codex-coverage.mjs && npm --prefix engine run bible && node --test engine/test/source-scoped-refresh.test.mjs"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

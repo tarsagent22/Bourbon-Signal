@@ -699,7 +699,7 @@
       "active": true,
       "ownerLayer": "operator",
       "executionClass": "agent",
-      "frequency": "every 30 minutes",
+      "frequency": "daily at 01:00 America/New_York; work window ends 07:00",
       "delivery": "main_chat",
       "agent": {
         "provider": "codex-app",
@@ -712,7 +712,7 @@
           "github",
           "canonical_production"
         ],
-        "maxRequestsPerRun": 50
+        "maxRequestsPerRun": 20000
       },
       "customerMutation": "internal_state",
       "promotionDeployment": "operator_only",
@@ -721,7 +721,9 @@
       "artifacts": [
         "coverage_request_automation_jobs",
         "codex_coverage_claims",
-        "codex_report_receipts"
+        "codex_report_receipts",
+        "codex_nightly_coverage_ledger",
+        "source_refresh_verification"
       ]
     }
   ],

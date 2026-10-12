@@ -1,4 +1,5 @@
 import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
+import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
@@ -7587,7 +7588,8 @@ export async function runIsolatedSouthCarolinaSourceLane({ name, source, run }, 
 
 async function collectSouthCarolina(config, bible) {
   const observedAt = new Date().toISOString();
-  const laneRun = await runBoundedSourceLanes([
+  const scope = sourceRefreshScope();
+  const lanes = [
     { name: 'cityhive', domain: 'sc-cityhive-group', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'cityhive', source: 'South Carolina CityHive exact-store inventory platform', run: () => collectSouthCarolinaCityHive(config, bible, observedAt) }, config) },
     { name: 'da-brown-bag', domain: 'dabrownbag.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'da-brown-bag', source: 'Da Brown Bag Clover public inventory API', run: () => collectSouthCarolinaDaBrownBag(config, bible, observedAt) }, config) },
     { name: 'taste-liquors', domain: 'tasteliquors.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'taste-liquors', source: TASTE_SOURCE, run: () => collectTasteLiquors(config, bible, observedAt, { fetchPage: url => textFetch(url, { maxBytes: 1024 * 1024, timeoutMs: 15000, maxRedirects: 0 }), pause: sleep }) }, config) },
@@ -7597,7 +7599,13 @@ async function collectSouthCarolina(config, bible) {
     { name: 'discount-liquor-fort-mill', domain: 'editmysite.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'discount-liquor-fort-mill', source: DISCOUNT_LIQUOR_SOURCE.sourceLabel, run: () => collectSouthCarolinaDiscountLiquor(config, bible, observedAt) }, config) },
     { name: 'all-american', domain: 'aalmauldin.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'all-american', source: SC_ALL_AMERICAN_SOURCE_LABEL, run: () => collectSouthCarolinaAllAmerican(config, bible, observedAt) }, config) },
     { name: 'phase1-myrtle', domain: 'sc-myrtle-watch-group', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'phase1-myrtle', source: 'South Carolina phase-one Myrtle Beach sources', run: () => collectSouthCarolinaPhase1Myrtle(config, bible, observedAt) }, config) },
-  ], { concurrency: 3 });
+  ];
+  const laneRun = await runBoundedSourceLanes(lanes.filter(lane => !scope.length || scope.includes(lane.name)).map(lane => ({
+    ...lane, run: async () => {
+      const result = await lane.run();
+      return { ...result, signals: (result.signals || []).map(row => ({ ...row, leafSourceRuntimeId: `sc:${lane.name}` })) };
+    },
+  })), { concurrency: 3 });
   return {
     signals: laneRun.results.flatMap((result) => result.value.signals || []),
     roadblocks: laneRun.results.flatMap((result) => result.value.roadblocks || []),

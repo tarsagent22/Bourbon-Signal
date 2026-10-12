@@ -33,13 +33,13 @@
     "morningBrief": 1,
     "schedulerReconciliation": 1,
     "coverageRequestCompletionLane": 0,
-    "codexCoverageRequests": 48
+    "codexCoverageRequests": 1
   },
   "expectedTotals": {
     "expansionDeterministicRunsPerDay": 20,
     "deterministicRunsPerDay": 362.0333333333333,
-    "agenticRunsPerWeek": 358,
-    "deterministicRunSharePercentApprox": 87.62
+    "agenticRunsPerWeek": 29,
+    "deterministicRunSharePercentApprox": 98.87
   },
   "codingAgentPolicy": {
     "profile": "bourbonbot",

@@ -4,6 +4,7 @@ import { ALL_STATE_SOURCES } from './state-sources.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { collectState } from './collectors/generic-state.mjs';
 import { sourceRuntimeOptionsFromArtifacts } from './sources/source-runtime-state.mjs';
+import { sourceRefreshScope, mergeSourceScopedReport } from './source-scoped-refresh.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -20,7 +21,14 @@ async function main() {
   const previousFile = process.env.BOURBON_SIGNAL_PREVIOUS_STATE_FILE || outputFile;
   const previous = await readFile(previousFile, 'utf8').then(JSON.parse).catch(() => null);
   const sourceHistory = await readFile(SOURCE_RUN_HISTORY, 'utf8').then(JSON.parse).catch(() => null);
-  const report = await collectState(config, bible, sourceRuntimeOptionsFromArtifacts({ previousReport: previous, sourceHistory }));
+  const scope = sourceRefreshScope();
+  if (scope.length && config.id !== 'SC') throw new Error('Source-scoped collection is restricted to SC.');
+  if (scope.length && !previous) throw new Error('Source-scoped refresh cannot start without its prior state report.');
+  const candidate = scope.length
+    ? await collectState({ ...config, sources: [], apiCandidates: [] }, bible,
+      sourceRuntimeOptionsFromArtifacts({ previousReport: null, sourceHistory: null }))
+    : await collectState(config, bible, sourceRuntimeOptionsFromArtifacts({ previousReport: previous, sourceHistory }));
+  const report = scope.length ? mergeSourceScopedReport(previous, candidate, scope) : candidate;
   await writeFile(outputFile, JSON.stringify(report, null, 2));
   console.log(JSON.stringify({ state: config.id, status: report.status, signalCount: report.signals.length, roadblockCount: report.roadblocks.length }));
 }
