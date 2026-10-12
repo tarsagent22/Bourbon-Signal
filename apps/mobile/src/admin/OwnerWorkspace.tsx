@@ -2817,6 +2817,18 @@ function Operations({ api, history }: { api: Api; history: boolean }) {
             </Text>
             <Text style={ui.small}>{health.release?.reason || ""}</Text>
           </View>
+          <View style={s.card}>
+            <Text style={s.heading}>New member setup</Text>
+            {state.data?.setup ? <>
+              <Text style={ui.small}>Accounts created in the last 30 days{state.data.setup.complete ? "" : " · Partial count"}</Text>
+              <Text style={ui.badge}>{state.data.setup.appOpened} of {state.data.setup.accounts} opened the app</Text>
+              <Text style={ui.badge}>{state.data.setup.areaSaved} saved an area · {state.data.setup.watchlistSaved} chose bottles or all notable finds</Text>
+              <Text style={ui.badge}>{state.data.setup.setupComplete} of {state.data.setup.alertMembers} members with alert access finished setup</Text>
+              <Text style={ui.small}>Next step: {state.data.setup.missingArea} need an area, {state.data.setup.missingWatchlist} need a watchlist, {state.data.setup.missingPush} need phone alerts.</Text>
+              <Text style={ui.small}>{state.data.setup.activityAfter24Hours} of {state.data.setup.eligibleForLaterActivity} had app activity at least 24 hours after their first visit.</Text>
+              <Text style={ui.small}>Phone alert settings do not confirm notification delivery.</Text>
+            </> : <Text style={ui.small}>Setup counts are temporarily unavailable.</Text>}
+          </View>
           {state.data?.states.map((r: Row, i: number) => (
             <View key={r.stateCode || r.state || i} style={s.card}>
               <Text style={s.label}>

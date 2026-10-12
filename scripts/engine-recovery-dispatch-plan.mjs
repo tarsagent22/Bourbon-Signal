@@ -34,6 +34,7 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
     const plans = incidentStates.map((state) => planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: [state] }, runs, headSha, now }));
     plans.sort((a, b) => Number(b.dispatch) - Number(a.dispatch)
       || (a.priorAttempts || 0) - (b.priorAttempts || 0)
+      || Number((watchdog?.recoveryPriorityStates || []).includes(b.states[0])) - Number((watchdog?.recoveryPriorityStates || []).includes(a.states[0]))
       || String(a.nextEligibleAt || '').localeCompare(String(b.nextEligibleAt || ''))
       || a.states[0].localeCompare(b.states[0]));
     const selected = plans[0];

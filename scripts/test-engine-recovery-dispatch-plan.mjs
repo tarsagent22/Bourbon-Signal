@@ -11,6 +11,16 @@ const watchdog = {
 };
 const headSha = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
+test('prioritizes inventory outages without bypassing active refreshes or backoff', () => {
+  const prioritized = { ...watchdog, recoveryStates: ['AL', 'NC'], recoveryPriorityStates: ['NC'] };
+  const first = planEngineRecovery({ watchdog: prioritized, runs: [], headSha, now: '2026-07-31T05:00:00Z' });
+  assert.deepEqual(first.states, ['NC']);
+  const attempts = [{ event: 'workflow_dispatch', displayTitle: `Inventory recovery ${first.incidentKey}`, status: 'completed', createdAt: '2026-07-31T04:59:00Z' }];
+  const next = planEngineRecovery({ watchdog: prioritized, runs: attempts, headSha, now: '2026-07-31T05:00:00Z' });
+  assert.deepEqual(next.states, ['AL'], 'An eligible sibling gets a turn while the priority state waits.');
+  assert.equal(planEngineRecovery({ watchdog: prioritized, runs: [{ status: 'in_progress' }], headSha }).dispatch, false);
+});
+
 test('holds the same completed full-recovery incident inside the bounded backoff window', () => {
   const first = planEngineRecovery({ watchdog, runs: [], headSha });
   assert.equal(first.dispatch, true);

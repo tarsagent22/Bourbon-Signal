@@ -87,8 +87,8 @@ def unlock_file(handle) -> None:
 
 
 def shared_release_lane_directory(repo: Path) -> Path:
-    host_root = (Path.home() / "AppData" / "Local" / "hermes") if os.name == "nt" else (Path.home() / ".hermes")
-    return (host_root / "kanban" / "boards" / "bourbon-signal-coverage" / "release-lane").resolve()
+    host_root = Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex"))
+    return (host_root / "operations" / "bourbon-signal" / "release-lane").resolve()
 
 
 def objective_registry_target(repo: Path, shared: Path) -> Path:

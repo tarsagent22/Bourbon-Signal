@@ -3,6 +3,21 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const { PGlite } = require("@electric-sql/pglite");
 const { moduleFrom, root } = require("./astra-security-test-helpers.cjs");
+test('operations setup counts remain owner-only and failures do not hide service health', async () => {
+ let allowed=false, reads=0;
+ const route=moduleFrom('src/app/api/admin/operations/route.ts',{
+  '@/lib/owner-auth':{requireOwnerApiAccess:async()=>allowed?{client:{users:{getUserList:async()=>{throw Error('temporary member service failure');}}}}:{error:Response.json({error:'Forbidden'},{status:403})}},
+  '@/lib/ops-health':{buildOpsHealth:()=>({ok:true}),readAlertDeliveryHeartbeat:async()=>null},
+  '@/lib/site-engine-contract':{readSiteExport:async()=>{reads++;return {}; }},
+  '@/lib/owner-workspace':{coverageDatabase:()=>({query:async()=>[]})},
+  '@/lib/member-setup-progress':{buildMemberSetupProgress:()=>({accounts:0})},
+  '@/lib/mobile-activity-repository':{MobileActivityRepository:class {async readMany(){return {};}}},
+ });
+ assert.equal((await route.GET()).status,403);assert.equal(reads,0);
+ allowed=true;
+ const response=await route.GET();assert.equal(response.status,200);
+ assert.deepEqual(await response.json(),{health:{ok:true},states:[],audit:[],setup:null});
+});
 test('owner catalog bypasses discovery cache and pairs definitions with their exact edit-version snapshot',async()=>{
  let records=[];
  const readRecords=async()=>records;

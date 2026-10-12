@@ -1,3 +1,5 @@
+import { normalizeTerminalResult, normalizeTaskTerminalResult, terminalResultForDelivery, normalizeJob } from './coverage-result-contract.mjs';
+export { normalizeTerminalResult, normalizeTaskTerminalResult, terminalResultForDelivery, normalizeJob } from './coverage-result-contract.mjs';
 import { createHash } from 'node:crypto';
 import { mkdir, open, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
@@ -47,255 +49,6 @@ function boundedInteger(value, label) {
   return value;
 }
 
-export function normalizeTerminalResult(value) {
-  const root = strictObject(value, 'result', [
-    'schemaVersion', 'outcome', 'headline', 'productionFingerprint', 'pullRequest', 'ci',
-    'refresh', 'metrics', 'canonicalVerification', 'exploration', 'requesterNotification', 'blockerCode', 'limitations',
-  ]);
-  if (root.schemaVersion !== RESULT_SCHEMA) throw new Error('result schemaVersion is invalid.');
-  if (!['improved', 'engine_improved', 'blocked'].includes(root.outcome)) throw new Error('result outcome is invalid.');
-  const headline = cleanText(root.headline, 'headline', 240);
-  const productionFingerprint = root.productionFingerprint === null ? null : cleanText(root.productionFingerprint, 'productionFingerprint', 240, /^[a-zA-Z0-9:|.,_/@+ -]+$/);
-  const pullRequest = root.pullRequest === null ? null : strictObject(root.pullRequest, 'pullRequest', ['number', 'url', 'mergeCommit']);
-  if (pullRequest) {
-    boundedInteger(pullRequest.number, 'pullRequest.number');
-    cleanText(pullRequest.url, 'pullRequest.url', 300, /^https:\/\/github\.com\/tarsagent22\/Bourbon-Signal\/pull\/\d+\/?$/);
-    if (new URL(pullRequest.url).pathname.replace(/\/$/, '').split('/').at(-1) !== String(pullRequest.number)) throw new Error('pullRequest URL does not match pullRequest.number.');
-    cleanText(pullRequest.mergeCommit, 'pullRequest.mergeCommit', 40, /^[a-f0-9]{40}$/);
-  }
-  const ci = strictObject(root.ci, 'ci', ['status']);
-  if (!['passed', 'not_applicable'].includes(ci.status)) throw new Error('ci.status is invalid.');
-  const refresh = root.refresh === null ? null : strictObject(root.refresh, 'refresh', ['runId', 'url', 'artifactDigest']);
-  if (refresh) {
-    cleanText(refresh.runId, 'refresh.runId', 30, /^\d+$/);
-    cleanText(refresh.url, 'refresh.url', 300, /^https:\/\/github\.com\/tarsagent22\/Bourbon-Signal\/actions\/runs\/\d+\/?$/);
-    if (new URL(refresh.url).pathname.replace(/\/$/, '').split('/').at(-1) !== refresh.runId) throw new Error('refresh URL does not match refresh.runId.');
-    cleanText(refresh.artifactDigest, 'refresh.artifactDigest', 71, /^sha256:[a-f0-9]{64}$/);
-  }
-  const metricKeys = ['baselineExactStoreRows', 'productionExactStoreRows', 'baselineLiveStores', 'productionLiveStores', 'baselineCustomerCards', 'productionCustomerCards'];
-  const metrics = strictObject(root.metrics, 'metrics', metricKeys);
-  for (const key of metricKeys) boundedInteger(metrics[key], `metrics.${key}`);
-  const canonical = strictObject(root.canonicalVerification, 'canonicalVerification', ['verified', 'url']);
-  if (typeof canonical.verified !== 'boolean') throw new Error('canonicalVerification.verified is invalid.');
-  if (canonical.url !== null) cleanText(canonical.url, 'canonicalVerification.url', 300, /^https:\/\/www\.bourbonsignal\.com\/(?:api\/(?:drops|stats|coverage)|coverage)(?:\/|\?|$)/);
-  if (!Array.isArray(root.limitations) || root.limitations.length > 10) throw new Error('limitations is invalid.');
-  const limitations = root.limitations.map((entry, index) => cleanText(entry, `limitations[${index}]`, 240));
-  const explorationValue = strictObject(root.exploration, 'exploration', ['sourceCandidates', 'knownSourceUniverseComplete', 'secondPass']);
-  if (!Array.isArray(explorationValue.sourceCandidates) || explorationValue.sourceCandidates.length > 50) throw new Error('exploration.sourceCandidates is invalid.');
-  const sourceCandidates = explorationValue.sourceCandidates.map((entry, index) => {
-    const candidate = strictObject(entry, `exploration.sourceCandidates[${index}]`, ['sourceId', 'sourceClass', 'outcome', 'reasonCode']);
-    const sourceClass = cleanText(candidate.sourceClass, `exploration.sourceCandidates[${index}].sourceClass`, 32, /^(first_party|delegated_marketplace|official_directory|other_public)$/);
-    const candidateOutcome = cleanText(candidate.outcome, `exploration.sourceCandidates[${index}].outcome`, 32, /^(adopted|viable_not_adopted|rejected|blocked)$/);
-    return {
-      sourceId: cleanText(candidate.sourceId, `exploration.sourceCandidates[${index}].sourceId`, 80, /^[a-z0-9][a-z0-9:-]*$/),
-      sourceClass,
-      outcome: candidateOutcome,
-      reasonCode: cleanText(candidate.reasonCode, `exploration.sourceCandidates[${index}].reasonCode`, 80, /^[a-z0-9][a-z0-9_-]*$/),
-    };
-  });
-  if (new Set(sourceCandidates.map((candidate) => candidate.sourceId)).size !== sourceCandidates.length) throw new Error('exploration.sourceCandidates contains duplicate source identities.');
-  if (typeof explorationValue.knownSourceUniverseComplete !== 'boolean') throw new Error('exploration.knownSourceUniverseComplete is invalid.');
-  if (!['not_required', 'completed'].includes(explorationValue.secondPass)) throw new Error('exploration.secondPass is invalid.');
-  const exploration = {
-    sourceCandidates,
-    knownSourceUniverseComplete: explorationValue.knownSourceUniverseComplete,
-    secondPass: explorationValue.secondPass,
-  };
-  const requesterNotificationValue = strictObject(root.requesterNotification, 'requesterNotification', ['ready', 'reasonCode']);
-  if (typeof requesterNotificationValue.ready !== 'boolean') throw new Error('requesterNotification.ready is invalid.');
-  const requesterNotification = {
-    ready: requesterNotificationValue.ready,
-    reasonCode: cleanText(requesterNotificationValue.reasonCode, 'requesterNotification.reasonCode', 80, /^[a-z0-9][a-z0-9_-]*$/),
-  };
-  const blockerCode = root.blockerCode === null ? null : cleanText(root.blockerCode, 'blockerCode', 80, /^[a-z0-9_-]+$/);
-  if (root.outcome !== 'blocked' && blockerCode !== null) throw new Error('non-blocked results must not contain blockerCode.');
-  if (root.outcome === 'improved') {
-    const materialTargetGain = metrics.productionExactStoreRows > metrics.baselineExactStoreRows
-      || metrics.productionLiveStores > metrics.baselineLiveStores;
-    if (!pullRequest || ci.status !== 'passed' || !refresh || !canonical.verified || !canonical.url || !productionFingerprint || !materialTargetGain) {
-      throw new Error('improved result lacks production proof or a material target-level gain in exact-store rows or live stores.');
-    }
-    if (!exploration.knownSourceUniverseComplete) throw new Error('improved result lacks a complete known-source universe audit.');
-    if (!sourceCandidates.some((candidate) => candidate.outcome === 'adopted')) throw new Error('improved result lacks adopted-source evidence.');
-    if (metrics.productionLiveStores <= 1 && exploration.secondPass !== 'completed') throw new Error('sparse improved result lacks a second discovery pass.');
-  }
-  if (root.outcome === 'engine_improved' && (!pullRequest || ci.status !== 'passed' || !refresh || !canonical.verified || !canonical.url)) {
-    throw new Error('engine_improved result lacks production proof.');
-  }
-  const trustedAutomationFailure = blockerCode === 'automation_terminal_contract_failure' || blockerCode === 'automation_task_missing';
-  if (root.outcome === 'blocked' && (!blockerCode
-    || (!trustedAutomationFailure && (sourceCandidates.length < 1 || !exploration.knownSourceUniverseComplete))
-    || ci.status !== 'not_applicable')) {
-    throw new Error('blocked result requires a complete applicable source-universe audit.');
-  }
-  const materialTargetGain = metrics.productionExactStoreRows > metrics.baselineExactStoreRows
-    || metrics.productionLiveStores > metrics.baselineLiveStores;
-  const customerPathImproved = metrics.productionCustomerCards > metrics.baselineCustomerCards;
-  const sparseSecondPassComplete = metrics.productionLiveStores > 1 || exploration.secondPass === 'completed';
-  const expectedNotificationReady = Boolean(root.outcome === 'improved'
-    && materialTargetGain
-    && customerPathImproved
-    && exploration.knownSourceUniverseComplete
-    && sparseSecondPassComplete
-    && canonical.verified
-    && canonical.url
-    && refresh
-    && pullRequest
-    && ci.status === 'passed');
-  if (requesterNotification.ready !== expectedNotificationReady) throw new Error('requesterNotification.ready does not match production and exploration evidence.');
-  const expectedNotificationReason = expectedNotificationReady
-    ? 'production_verified_material_gain'
-    : trustedAutomationFailure
-      ? 'automation_failure'
-      : root.outcome === 'blocked'
-        ? 'blocked'
-        : root.outcome === 'engine_improved'
-          ? 'engine_only'
-          : !materialTargetGain
-            ? 'material_gain_missing'
-            : !customerPathImproved
-              ? 'customer_path_not_improved'
-              : !exploration.knownSourceUniverseComplete
-                ? 'source_universe_incomplete'
-                : !sparseSecondPassComplete
-                  ? 'second_pass_required'
-                  : 'production_proof_incomplete';
-  if (requesterNotification.reasonCode !== expectedNotificationReason) throw new Error('requesterNotification.reasonCode does not match the terminal evidence.');
-  return { ...root, headline, productionFingerprint, limitations, exploration, requesterNotification, blockerCode };
-}
-
-function normalizeLegacyTerminalResult(value) {
-  const root = strictObject(value, 'legacy result', [
-    'schemaVersion', 'outcome', 'headline', 'productionFingerprint', 'pullRequest', 'ci',
-    'refresh', 'metrics', 'canonicalVerification', 'sourcesReviewed', 'blockerCode', 'limitations',
-  ]);
-  if (root.schemaVersion !== LEGACY_RESULT_SCHEMA) throw new Error('legacy result schemaVersion is invalid.');
-  if (!['improved', 'engine_improved', 'blocked'].includes(root.outcome)) throw new Error('legacy result outcome is invalid.');
-  const headline = cleanText(root.headline, 'legacy headline', 240);
-  const productionFingerprint = root.productionFingerprint === null ? null : cleanText(root.productionFingerprint, 'legacy productionFingerprint', 240, /^[a-zA-Z0-9:|.,_/@+ -]+$/);
-  const pullRequest = root.pullRequest === null ? null : strictObject(root.pullRequest, 'legacy pullRequest', ['number', 'url', 'mergeCommit']);
-  if (pullRequest) {
-    boundedInteger(pullRequest.number, 'legacy pullRequest.number');
-    cleanText(pullRequest.url, 'legacy pullRequest.url', 300, /^https:\/\/github\.com\/tarsagent22\/Bourbon-Signal\/pull\/\d+\/?$/);
-    if (new URL(pullRequest.url).pathname.replace(/\/$/, '').split('/').at(-1) !== String(pullRequest.number)) throw new Error('legacy pullRequest URL does not match its number.');
-    cleanText(pullRequest.mergeCommit, 'legacy pullRequest.mergeCommit', 40, /^[a-f0-9]{40}$/);
-  }
-  const ci = strictObject(root.ci, 'legacy ci', ['status']);
-  if (!['passed', 'not_applicable'].includes(ci.status)) throw new Error('legacy ci.status is invalid.');
-  const refresh = root.refresh === null ? null : strictObject(root.refresh, 'legacy refresh', ['runId', 'url', 'artifactDigest']);
-  if (refresh) {
-    cleanText(refresh.runId, 'legacy refresh.runId', 30, /^\d+$/);
-    cleanText(refresh.url, 'legacy refresh.url', 300, /^https:\/\/github\.com\/tarsagent22\/Bourbon-Signal\/actions\/runs\/\d+\/?$/);
-    if (new URL(refresh.url).pathname.replace(/\/$/, '').split('/').at(-1) !== refresh.runId) throw new Error('legacy refresh URL does not match its run id.');
-    cleanText(refresh.artifactDigest, 'legacy refresh.artifactDigest', 71, /^sha256:[a-f0-9]{64}$/);
-  }
-  const metricKeys = ['baselineExactStoreRows', 'productionExactStoreRows', 'baselineLiveStores', 'productionLiveStores', 'baselineCustomerCards', 'productionCustomerCards'];
-  const metrics = strictObject(root.metrics, 'legacy metrics', metricKeys);
-  for (const key of metricKeys) boundedInteger(metrics[key], `legacy metrics.${key}`);
-  const canonical = strictObject(root.canonicalVerification, 'legacy canonicalVerification', ['verified', 'url']);
-  if (typeof canonical.verified !== 'boolean') throw new Error('legacy canonicalVerification.verified is invalid.');
-  if (canonical.url !== null) cleanText(canonical.url, 'legacy canonicalVerification.url', 300, /^https:\/\/www\.bourbonsignal\.com\/(?:api\/(?:drops|stats|coverage)|coverage)(?:\/|\?|$)/);
-  if (!Array.isArray(root.limitations) || root.limitations.length > 10) throw new Error('legacy limitations is invalid.');
-  const limitations = root.limitations.map((entry, index) => cleanText(entry, `legacy limitations[${index}]`, 240));
-  const sourcesReviewed = boundedInteger(root.sourcesReviewed, 'legacy sourcesReviewed');
-  const blockerCode = root.blockerCode === null ? null : cleanText(root.blockerCode, 'legacy blockerCode', 80, /^[a-z0-9_-]+$/);
-  const gain = metrics.productionExactStoreRows > metrics.baselineExactStoreRows
-    || metrics.productionLiveStores > metrics.baselineLiveStores
-    || metrics.productionCustomerCards > metrics.baselineCustomerCards;
-  if (root.outcome === 'improved' && (!pullRequest || ci.status !== 'passed' || !refresh || !canonical.verified || !canonical.url || !productionFingerprint || !gain)) {
-    throw new Error('legacy improved result lacks production proof or a measured gain.');
-  }
-  if (root.outcome === 'engine_improved' && (!pullRequest || ci.status !== 'passed' || !refresh || !canonical.verified || !canonical.url)) {
-    throw new Error('legacy engine_improved result lacks production proof.');
-  }
-  const trustedAutomationFailure = blockerCode === 'automation_terminal_contract_failure' || blockerCode === 'automation_task_missing';
-  if (root.outcome === 'blocked' && (!blockerCode || (!trustedAutomationFailure && sourcesReviewed < 1) || ci.status !== 'not_applicable')) {
-    throw new Error('legacy blocked result lacks applicable blocker evidence.');
-  }
-  return { ...root, headline, productionFingerprint, limitations, sourcesReviewed, blockerCode };
-}
-
-export function terminalResultForDelivery(rawResult, normalizedResult) {
-  if (rawResult?.schemaVersion === LEGACY_RESULT_SCHEMA && normalizedResult.outcome === 'blocked') return rawResult;
-  return normalizedResult;
-}
-
-export function normalizeTaskTerminalResult(value) {
-  const candidate = value?.refresh && typeof value.refresh.artifactDigest === 'string' && /^[a-f0-9]{64}$/.test(value.refresh.artifactDigest)
-    ? { ...value, refresh: { ...value.refresh, artifactDigest: `sha256:${value.refresh.artifactDigest}` } }
-    : value;
-  if (candidate?.schemaVersion !== LEGACY_RESULT_SCHEMA) return normalizeTerminalResult(candidate);
-  const legacy = normalizeLegacyTerminalResult(candidate);
-  const trustedAutomationFailure = legacy.blockerCode === 'automation_terminal_contract_failure' || legacy.blockerCode === 'automation_task_missing';
-  const migrated = {
-    schemaVersion: RESULT_SCHEMA,
-    outcome: legacy.outcome === 'improved' ? 'engine_improved' : legacy.outcome,
-    headline: legacy.headline,
-    productionFingerprint: legacy.productionFingerprint,
-    pullRequest: legacy.pullRequest,
-    ci: legacy.ci,
-    refresh: legacy.refresh,
-    metrics: legacy.metrics,
-    canonicalVerification: legacy.canonicalVerification,
-    exploration: {
-      sourceCandidates: Array.from({ length: Math.min(legacy.sourcesReviewed, 50) }, (_, index) => ({
-        sourceId: `legacy-source-${index + 1}`,
-        sourceClass: 'other_public',
-        outcome: 'rejected',
-        reasonCode: 'legacy_contract_unclassified',
-      })),
-      knownSourceUniverseComplete: false,
-      secondPass: 'not_required',
-    },
-    requesterNotification: {
-      ready: false,
-      reasonCode: trustedAutomationFailure ? 'automation_failure' : legacy.outcome === 'blocked' ? 'blocked' : 'engine_only',
-    },
-    blockerCode: legacy.blockerCode,
-    limitations: [...legacy.limitations, 'Legacy task result was conservatively migrated; requester notification remains gated.'].slice(0, 10),
-  };
-  const normalized = normalizeTerminalResult({
-    ...migrated,
-    exploration: { ...migrated.exploration, knownSourceUniverseComplete: true },
-  });
-  return { ...normalized, exploration: migrated.exploration };
-}
-
-export function normalizeJob(value, { includeResult = false } = {}) {
-  const keys = ['jobKey', 'coverageRequestId', 'requestVersion', 'targetType', 'stateCode', 'areaKey', 'storeId', 'canonicalTargetKey', 'baselineCoverageFingerprint', 'status', 'taskId'];
-  if (includeResult) keys.push('terminalResult', 'deliveryUncertain');
-  const job = strictObject(value, 'job', keys);
-  const normalized = {
-    jobKey: cleanText(job.jobKey, 'jobKey', 340, /^[a-zA-Z0-9:|._/@+-]+$/),
-    coverageRequestId: cleanText(job.coverageRequestId, 'coverageRequestId', 80, /^[a-f0-9-]+$/),
-    requestVersion: cleanText(job.requestVersion, 'requestVersion', 40, /^[0-9T:.-]+Z$/),
-    targetType: cleanText(job.targetType, 'targetType', 12, /^(state|county|city|store)$/),
-    stateCode: cleanText(job.stateCode, 'stateCode', 2, /^[A-Z]{2}$/),
-    areaKey: job.areaKey === null ? null : cleanText(job.areaKey, 'areaKey', 80, /^[a-z0-9:-]+$/),
-    storeId: job.storeId === null ? null : cleanText(job.storeId, 'storeId', 160, /^[a-z0-9:-]+$/),
-    canonicalTargetKey: cleanText(job.canonicalTargetKey, 'canonicalTargetKey', 180, /^[a-zA-Z0-9:-]+$/),
-    baselineCoverageFingerprint: cleanText(job.baselineCoverageFingerprint, 'baselineCoverageFingerprint', 240, /^[a-zA-Z0-9:|.,_/@+ -]+$/),
-    status: cleanText(job.status, 'status', 32, /^[a-z_]+$/),
-    taskId: job.taskId === null ? null : cleanText(job.taskId, 'taskId', 82, /^t_[a-zA-Z0-9]+$/),
-  };
-  const expectedCanonical = normalized.targetType === 'state'
-    ? `state:${normalized.stateCode}`
-    : normalized.targetType === 'county' || normalized.targetType === 'city'
-      ? `${normalized.targetType}:${normalized.stateCode}:${normalized.areaKey || ''}`
-      : null;
-  if ((expectedCanonical && normalized.canonicalTargetKey !== expectedCanonical)
-    || (!expectedCanonical && !normalized.canonicalTargetKey.startsWith(`store:${normalized.stateCode}:`))) {
-    throw new Error('canonicalTargetKey does not match the normalized target identity.');
-  }
-  if (includeResult) {
-    normalized.terminalResult = job.terminalResult?.schemaVersion === LEGACY_RESULT_SCHEMA
-      ? normalizeLegacyTerminalResult(job.terminalResult)
-      : normalizeTerminalResult(job.terminalResult);
-    normalized.deliveryUncertain = job.deliveryUncertain === true;
-  }
-  return normalized;
-}
-
 export function buildCoverageExpansionPrompt(job, options = {}) {
   const target = job.canonicalTargetKey;
   const authorityCommand = `node automation/bourbon-signal/coverage-request-agent.mjs --verify-authority ${job.jobKey}`;
@@ -316,6 +69,8 @@ AUTHENTICATED REQUEST
 
 STAGE 1 — EXPLORATION
 1. Reconcile current origin/main, open PRs, the objective lock, and the immutable production baseline before editing. Work only in this task's isolated worktree and branch.
+   First check whether current coverage already satisfies the exact requested geography. For a fully covered state or city, finish with outcome blocked, blockerCode already_covered, requesterNotification {ready:false,reasonCode:blocked}, no PR or refresh, and a completed evidence audit. The trusted completion endpoint independently verifies live coverage before closing it. Do not use this code for partial, stale, directory-only, or shipment-only coverage. County and store requests require target-level expansion proof.
+   Reuse valid recent source audits for overlapping requests and combine duplicate source work. Work in this immutable request attempt only; never reuse a finished task from an older request version.
 2. Build a bounded audit of the known lawful source universe. Record every reviewed source with a stable lowercase source ID, source class, outcome, and reason code. Keep first-party inventory, delegated marketplaces, official directories, and other public evidence distinct.
 3. Perform broad lawful discovery without bypassing access controls, authentication, robots restrictions, bot protection, licensing, or explicit denials.
 4. Implement the highest-yield defensible expansion. Keep configured stores, collected signals, exact-store rows, customer cards, alert-grade evidence, and outbound alerts distinct. Never invent quantity, pickup, delivery, or fulfillment claims.
@@ -399,6 +154,19 @@ export function buildEngineOpsMessage(job, result) {
   return lines.join('\n');
 }
 
+export function buildOwnerCompletionReport(job, result) {
+  const area = (job.areaKey || '').replace(/[-:]/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+  const target = area ? `${area}${job.targetType === 'county' ? ' County' : ''}, ${job.stateCode}` : job.stateCode;
+  const complete = result.outcome === 'improved' && result.requesterNotification?.ready === true || result.blockerCode === 'already_covered';
+  const lines = [`${complete ? 'Complete' : 'Failed'} — ${target}`, result.headline];
+  if (result.outcome === 'improved') lines.push(`Current stores: ${result.metrics.productionLiveStores}.`);
+  if (result.outcome === 'engine_improved') lines.push('The engine fix is live, but this coverage request is not fulfilled.');
+  if (result.pullRequest) lines.push(`Change: ${result.pullRequest.url}`);
+  if (result.canonicalVerification?.verified && result.canonicalVerification.url) lines.push(`Coverage: ${result.canonicalVerification.url}`);
+  lines.push(...result.limitations.map(line => `• ${line}`));
+  return lines.join('\n');
+}
+
 function runHermes(args, timeout = 90_000) {
   const command = process.env.HERMES_COMMAND || 'hermes';
   const result = spawnSync(command, args, { encoding: 'utf8', timeout, windowsHide: true, shell: false });
@@ -409,6 +177,44 @@ function runHermes(args, timeout = 90_000) {
 
 function parseJson(text, label) {
   try { return JSON.parse(text); } catch { throw new Error(`${label} did not return JSON.`); }
+}
+
+export function coverageTaskPolicy(mode = 'review') {
+  if (!['review', 'guarded_release'].includes(mode)) throw new Error('Coverage automation mode is invalid.');
+  const review = mode === 'review';
+  return { review, maxRuntime: review ? '45m' : '2h', maxRetries: '1', maxTurns: review ? '8' : '24' };
+}
+
+export function coverageTaskIdentity(job) {
+  return createHash('sha256').update(`${job.jobKey}|${job.requestVersion}`).digest('hex').slice(0, 32);
+}
+
+export function validateCoverageResearchResult(raw) {
+  const result = normalizeTaskTerminalResult(raw);
+  if (result.outcome !== 'blocked' || result.pullRequest || result.refresh || result.productionFingerprint
+    || result.requesterNotification.ready) throw new Error('Review-only automation cannot claim a production improvement.');
+  return result;
+}
+
+export function buildCoverageResearchPrompt(rawJob) {
+  const job = normalizeJob(rawJob);
+  const blankMetrics = { baselineExactStoreRows: 0, productionExactStoreRows: 0, baselineLiveStores: 0, productionLiveStores: 0, baselineCustomerCards: 0, productionCustomerCards: 0 };
+  const terminal = { schemaVersion: RESULT_SCHEMA, outcome: 'blocked', headline: 'Coverage research is ready for owner review.', productionFingerprint: null, pullRequest: null, ci: { status: 'not_applicable' }, refresh: null, metrics: blankMetrics, canonicalVerification: { verified: false, url: null }, exploration: { sourceCandidates: [], knownSourceUniverseComplete: true, secondPass: 'not_required' }, requesterNotification: { ready: false, reasonCode: 'blocked' }, blockerCode: 'owner_review_required', limitations: ['No production coverage change has been made.'] };
+  return `Research coverage for canonical target ${job.canonicalTargetKey} (${job.stateCode}).
+
+The owner authorized automatic checking and research, with review before release. This task has NO production-release authority. Do not retrieve, persist, or request a release capability. Do not merge, deploy, publish snapshots, run production mutations, change request status, or send messages to members or Engine Ops.
+
+Job key: ${job.jobKey}
+Request ID: ${job.coverageRequestId}
+Request version: ${job.requestVersion}
+Baseline fingerprint: ${job.baselineCoverageFingerprint}
+
+Check current canonical production coverage and the exact requested geography. Distinguish known stores from fresh bottle inventory. Research the bounded known public source universe and record stable source IDs, classes, outcomes, and reason codes. Respect access controls; stop at sources that require credentials or unsupported browser access. Reuse a recent audit of this exact target when its evidence is still valid. Limit this task to eight turns and 45 minutes.
+
+Prepare a specific recommendation and, if a safe source change is clear, a local tested patch. A draft PR may be created only if the shared release lane is empty; otherwise retain the patch in this task's workspace. Do not create a second PR. Record evidence URLs and any draft PR reference in task attachments or comments, not in member payloads. Keep fresh inventory, board shipment information, and store directories distinct.
+
+Complete this research task with the JSON contract below, replacing the headline, limitations, metrics, and sourceCandidates with verified observations. Complete the known-source audit before setting knownSourceUniverseComplete true. Never invent production gains or a merge commit. Outcome remains blocked with owner_review_required even when research succeeds: production changes await owner review. If the audit cannot be completed within the budget, block the task with a concrete explanation; do not falsely claim a complete audit.
+${JSON.stringify(terminal)}`;
 }
 
 function runtimeConfigPath() {
@@ -545,9 +351,13 @@ export async function assertAuthorityCapabilityAbsentFromGit(jobKey, { baseSha, 
 
 async function loadRuntimeConfig() {
   const raw = parseJson(await readFile(runtimeConfigPath(), 'utf8'), 'Coverage automation config');
-  const config = strictObject(raw, 'config', ['baseUrl', 'claimSecret', 'outcomeSecret', 'engineOpsTarget', 'board', 'project', 'assignee']);
+  const mode = process.env.BOURBON_SIGNAL_COVERAGE_MODE || raw.mode || 'review';
+  if (!['review', 'guarded_release'].includes(mode)) throw new Error('Coverage automation mode is invalid.');
+  const { mode: _mode, ...legacy } = raw;
+  const config = strictObject(legacy, 'config', ['baseUrl', 'claimSecret', 'outcomeSecret', 'engineOpsTarget', 'board', 'project', 'assignee']);
   const baseUrl = cleanText(config.baseUrl, 'baseUrl', 100, /^https:\/\/www\.bourbonsignal\.com$/);
   return {
+    mode,
     baseUrl,
     claimSecret: cleanText(config.claimSecret, 'claimSecret', 200, /^[a-zA-Z0-9_-]{32,200}$/),
     outcomeSecret: cleanText(config.outcomeSecret, 'outcomeSecret', 200, /^[a-zA-Z0-9_-]{32,200}$/),
@@ -577,22 +387,24 @@ async function post(config, secret, payload, { allowConflict = false } = {}) {
 }
 
 async function createTask(config, job, authorityCapability) {
-  const suffix = createHash('sha256').update(job.jobKey).digest('hex').slice(0, 12);
+  const identity = coverageTaskIdentity(job);
+  const suffix = identity.slice(0, 12);
   const branch = `coverage/${job.stateCode.toLowerCase()}-${suffix}`;
-  await persistAuthorityCapability(job.jobKey, authorityCapability);
-  const body = buildCoverageExpansionPrompt(job);
+  const { review, maxRuntime, maxRetries, maxTurns } = coverageTaskPolicy(config.mode);
+  if (!review) await persistAuthorityCapability(job.jobKey, authorityCapability);
+  const body = review ? buildCoverageResearchPrompt(job) : buildCoverageExpansionPrompt(job);
   const output = runHermes([
-    'kanban', '--board', config.board, 'create', `Coverage expansion: ${job.canonicalTargetKey}`,
+    'kanban', '--board', config.board, 'create', `${review ? 'Coverage research' : 'Coverage expansion'}: ${job.canonicalTargetKey}`,
     '--body', body, '--assignee', config.assignee, '--project', config.project,
     '--workspace', 'worktree', '--branch', branch, '--priority', '100',
-    '--idempotency-key', job.jobKey, '--max-runtime', '8h', '--max-retries', '3',
+    '--idempotency-key', `coverage-${identity}`, '--max-runtime', maxRuntime, '--max-retries', maxRetries,
     '--created-by', 'coverage-request-automation', '--skill', 'bourbon-signal-product-engineering',
-    '--skill', 'vercel-production-release-safety', '--goal', '--goal-max-turns', '50', '--json',
+    '--skill', 'vercel-production-release-safety', '--goal', '--goal-max-turns', maxTurns, '--json',
   ]);
   const parsed = parseJson(output, 'Kanban create');
   const taskId = String(parsed.id || parsed.task?.id || '');
   if (!/^t_[a-zA-Z0-9]+$/.test(taskId)) throw new Error('Kanban create did not return a valid task id.');
-  await bindAuthorityCapability(job.jobKey, taskId);
+  if (!review) await bindAuthorityCapability(job.jobKey, taskId);
   return taskId;
 }
 
@@ -632,7 +444,7 @@ async function deliverPendingNotification(config) {
   if (!claimed.payload.job) return false;
   const job = normalizeJob(claimed.payload.job, { includeResult: true });
   const token = cleanText(claimed.payload.notificationToken, 'notificationToken', 36, /^[a-f0-9-]{36}$/);
-  const message = buildEngineOpsMessage(job, job.terminalResult);
+  const message = buildOwnerCompletionReport(job, job.terminalResult);
   const sent = parseJson(runHermes(['send', '--to', config.engineOpsTarget, '--json', message], 60_000), 'Engine Ops send');
   if (sent.success !== true) throw new Error('Engine Ops delivery was not accepted.');
   const messageId = platformMessageId(sent);
@@ -645,15 +457,15 @@ async function processJob(config) {
   if (!claimed.payload.job) return false;
   const job = normalizeJob(claimed.payload.job);
   if (job.status === 'claimed') {
-    if (!claimed.payload.leaseToken || !claimed.payload.authorityCapability) return false;
+    if (!claimed.payload.leaseToken || (config.mode !== 'review' && !claimed.payload.authorityCapability)) return false;
     const leaseToken = cleanText(claimed.payload.leaseToken, 'leaseToken', 36, /^[a-f0-9-]{36}$/);
-    const authorityCapability = cleanText(claimed.payload.authorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
+    const authorityCapability = config.mode === 'review' ? null : cleanText(claimed.payload.authorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
     const taskId = await createTask(config, job, authorityCapability);
     await post(config, config.claimSecret, { action: 'attach', jobKey: job.jobKey, leaseToken, taskId });
     return true;
   }
   if (job.status !== 'running' || !job.taskId) return false;
-  await bindAuthorityCapability(job.jobKey, job.taskId);
+  if (config.mode !== 'review') await bindAuthorityCapability(job.jobKey, job.taskId);
   let task;
   try {
     task = readTask(config, job.taskId);
@@ -672,7 +484,7 @@ async function processJob(config) {
   try {
     rawResult = parseJson(String(task.result || ''), 'Kanban terminal result');
     legacyTerminalResult = rawResult?.schemaVersion === LEGACY_RESULT_SCHEMA;
-    result = normalizeTaskTerminalResult(rawResult);
+    result = config.mode === 'review' ? validateCoverageResearchResult(rawResult) : normalizeTaskTerminalResult(rawResult);
     if ((task.status === 'blocked') !== (result.outcome === 'blocked')) throw new Error('Kanban terminal status and structured outcome disagree.');
   } catch (error) {
     console.error(`Coverage terminal result rejected for ${job.taskId}: ${error instanceof Error ? error.message : 'unknown validation failure'}`);
@@ -682,13 +494,13 @@ async function processJob(config) {
   }
   const completionResult = terminalResultForDelivery(rawResult, result);
   try {
-    await assertAuthorityCapabilityAbsent(job.jobKey, [JSON.stringify(completionResult)], { allowMissing: legacyTerminalResult });
+    await assertAuthorityCapabilityAbsent(job.jobKey, [JSON.stringify(completionResult)], { allowMissing: legacyTerminalResult || config.mode === 'review' });
   } catch {
     await post(config, config.outcomeSecret, { action: 'fail', jobKey: job.jobKey, taskId: job.taskId, failureCode: 'automation_terminal_contract_failure' });
     await removeAuthorityCapability(job.jobKey);
     return true;
   }
-  await post(config, config.outcomeSecret, { action: 'complete', jobKey: job.jobKey, taskId: job.taskId, terminalResult: completionResult });
+  await post(config, config.outcomeSecret, { action: result.blockerCode === 'already_covered' ? 'complete_existing' : 'complete', jobKey: job.jobKey, taskId: job.taskId, terminalResult: completionResult });
   await removeAuthorityCapability(job.jobKey);
   return true;
 }
@@ -706,28 +518,29 @@ export async function verifyAuthority(jobKey, taskId = process.env.HERMES_KANBAN
   return true;
 }
 
-export async function runCoverageRequestAgent() {
+function releaseLaneIsBusyDefault() {
+  const result = spawnSync('gh', ['pr', 'list', '--repo', 'tarsagent22/Bourbon-Signal', '--state', 'open', '--json', 'number'], { encoding: 'utf8', timeout: 30_000, windowsHide: true, shell: false });
+  if (result.error || result.status !== 0) throw new Error('Unable to verify the release lane; coverage work remains queued.');
+  const pulls = parseJson(result.stdout, 'Release lane');
+  if (!Array.isArray(pulls)) throw new Error('Invalid release lane response; coverage work remains queued.');
+  return pulls.length > 0;
+}
+
+export async function runCoverageRequestAgent({ releaseLaneIsBusy = releaseLaneIsBusyDefault } = {}) {
   const release = await acquireLock();
   if (!release) return;
   try {
     const config = await loadRuntimeConfig();
-    await deliverPendingNotification(config);
+    if (config.mode === 'guarded_release') await deliverPendingNotification(config);
+    if (config.mode === 'guarded_release' && await releaseLaneIsBusy()) return;
     await processJob(config);
   } finally {
     await release();
   }
 }
 
-const isDirect = process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+const isDirect = import.meta.url === pathToFileURL(path.resolve(process.argv[1] || '')).href;
 if (isDirect) {
-  const [mode, jobKey, third, fourth] = process.argv.slice(2);
-  const legacyAuthorityCapability = typeof third === 'string' && /^[a-zA-Z0-9_-]{43}$/.test(third) ? third : null;
-  const taskId = legacyAuthorityCapability ? (fourth || process.env.HERMES_KANBAN_TASK) : (third || process.env.HERMES_KANBAN_TASK);
-  const action = mode === '--verify-authority'
-    ? verifyAuthority(jobKey, taskId, legacyAuthorityCapability)
-    : runCoverageRequestAgent();
-  action.catch((error) => {
-    console.error(`Coverage request automation failed: ${error instanceof Error ? error.message : String(error)}`);
-    process.exitCode = 1;
-  });
+  console.error('Coverage execution through this legacy dispatcher is disabled. Use codex-coverage.mjs.');
+  process.exitCode = 1;
 }

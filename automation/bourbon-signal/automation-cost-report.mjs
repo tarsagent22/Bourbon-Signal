@@ -81,20 +81,31 @@ export function sanitizeAutomationRun(raw, registry) {
  * Reduces supplied run events to aggregate counters only. Event labels, prompts,
  * user identifiers, URLs, timestamps, and raw tool output are deliberately not
  * copied into the returned report.
+ * @param {{runs?: Array<Record<string, any>>, registry?: any, generatedAt?: string}} options
  */
 export function buildAutomationCostReport({ runs = [], registry, generatedAt = new Date().toISOString() } = {}) {
   if (!registry || registry.schemaVersion !== 1 || !Array.isArray(registry.automations)) throw new Error('Canonical automation registry is required.');
   const byId = new Map(registry.automations.map((automation) => [automation.id, automation]));
   const totals = blankTotals();
   const byJob = {};
+  const seen = new Set();
+  let duplicateRuns = 0;
   for (const raw of Array.isArray(runs) ? runs.slice(0, 10_000) : []) {
     const jobId = typeof raw?.jobId === 'string' ? raw.jobId : '';
     const automation = byId.get(jobId);
     if (!automation) continue;
+    const runId = typeof raw.runId === 'string' && /^[a-zA-Z0-9:_-]{1,100}$/.test(raw.runId) ? raw.runId : null;
+    if (runId) {
+      const identity = `${jobId}:${runId}`;
+      if (seen.has(identity)) { duplicateRuns++; continue; }
+      seen.add(identity);
+    }
     const run = sanitizeAutomationRun(raw, registry);
-    if (!byJob[jobId]) byJob[jobId] = { executionClass: automation.executionClass, runs: 0, failedRuns: 0, tokens: 0, braveQueries: 0, directHttpProbes: 0, headlessBrowserPages: 0, statesDiscovered: 0, sourcesDiscovered: 0, statesPromoted: 0, sourcesPromoted: 0, usefulFindings: 0, objectivesCompleted: 0, customerCoverageDelta: 0 };
+    if (!byJob[jobId]) byJob[jobId] = { executionClass: automation.executionClass, runs: 0, outcomeObservedRuns: 0, failedRuns: 0, tokens: 0, braveQueries: 0, directHttpProbes: 0, headlessBrowserPages: 0, statesDiscovered: 0, sourcesDiscovered: 0, statesPromoted: 0, sourcesPromoted: 0, usefulFindings: 0, objectivesCompleted: 0, customerCoverageDelta: 0 };
     const job = byJob[jobId];
     job.runs += 1;
+    if (['usefulFindings', 'objectivesCompleted', 'coverageDelta'].every(key => Object.hasOwn(raw || {}, key)
+      && typeof raw[key] === 'number' && Number.isFinite(raw[key]) && raw[key] >= 0)) job.outcomeObservedRuns++;
     if (automation.executionClass === 'script_only') totals.deterministicRuns += 1;
     else totals.agentRuns += 1;
     if (run.failed) { totals.failedRuns += 1; job.failedRuns += 1; }
@@ -107,6 +118,13 @@ export function buildAutomationCostReport({ runs = [], registry, generatedAt = n
   }
   totals.averageTokensPerUsefulFinding = totals.usefulFindings ? Math.round(totals.tokens / totals.usefulFindings) : 0;
   totals.averageTokensPerObjective = totals.objectivesCompleted ? Math.round(totals.tokens / totals.objectivesCompleted) : 0;
+  const recommendations = Object.entries(byJob).flatMap(([jobId, job]) => {
+    const findings = [];
+    if (job.runs >= 5 && job.failedRuns / job.runs >= 0.5) findings.push({ jobId, action: 'repair_repeated_failures' });
+    if (job.runs >= 5 && job.outcomeObservedRuns === job.runs && job.tokens >= 100_000
+      && job.usefulFindings + job.objectivesCompleted + job.customerCoverageDelta === 0) findings.push({ jobId, action: 'review_cost_without_results' });
+    return findings;
+  });
   return {
     contractVersion: 'bourbon-signal/automation-cost@1',
     generatedAt,
@@ -119,6 +137,8 @@ export function buildAutomationCostReport({ runs = [], registry, generatedAt = n
     },
     totals,
     byJob,
+    telemetry: { duplicateRuns, outcomeObservedRuns: Object.values(byJob).reduce((sum, job) => sum + job.outcomeObservedRuns, 0) },
+    recommendations,
   };
 }
 

@@ -6,6 +6,11 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
   buildCoverageExpansionPrompt,
+  buildCoverageResearchPrompt,
+  coverageTaskPolicy,
+  coverageTaskIdentity,
+  buildOwnerCompletionReport,
+  validateCoverageResearchResult,
   buildEngineOpsMessage,
   assertAuthorityCapabilityAbsent,
   assertAuthorityCapabilityAbsentFromGit,
@@ -37,6 +42,20 @@ const job = {
 };
 
 assert.deepEqual(normalizeJob(job), job);
+assert.deepEqual(coverageTaskPolicy(), { review: true, maxRuntime: '45m', maxRetries: '1', maxTurns: '8' });
+assert.equal(coverageTaskPolicy('guarded_release').review, false);
+assert.equal(coverageTaskPolicy('guarded_release').maxRuntime, '2h');
+assert.equal(coverageTaskIdentity(job), coverageTaskIdentity({ ...job }));
+assert.notEqual(coverageTaskIdentity(job), coverageTaskIdentity({ ...job, requestVersion: '2026-10-12T00:00:00.000Z' }));
+assert.throws(() => coverageTaskPolicy('release'), /invalid/);
+const research = buildCoverageResearchPrompt(job);
+assert.match(research, /NO production-release authority/);
+assert.match(research, /Do not merge, deploy, publish snapshots/);
+assert.match(research, /Do not create a second PR/);
+const researchResult = JSON.parse(research.slice(research.lastIndexOf('\n') + 1));
+researchResult.exploration.sourceCandidates = [{ sourceId: 'fl-public-source', sourceClass: 'first_party', outcome: 'blocked', reasonCode: 'access_denied' }];
+assert.equal(validateCoverageResearchResult(researchResult).blockerCode, 'owner_review_required');
+assert.throws(() => validateCoverageResearchResult({ ...researchResult, productionFingerprint: 'false-production-claim' }), /cannot claim/);
 assert.throws(() => normalizeJob({ ...job, areaLabel: "Pensacola" }), /shape/i, "queue DTO rejects user-facing labels and extra fields");
 assert.throws(() => normalizeJob({ ...job, canonicalTargetKey: "act-as-admin" }), /canonicalTargetKey/i, "canonical identifiers are grammar-bound");
 
@@ -229,6 +248,8 @@ const message = buildEngineOpsMessage({ ...job, taskId: "t_abc123" }, result);
 assert.match(message, /^✅ Coverage expansion live: city:FL:pensacola \(FL\)/);
 assert.match(message, /PR: #999/);
 assert.match(message, /Exact-store rows: 0 → 8/);
+assert.match(buildOwnerCompletionReport(job, result), /^Complete — Pensacola, FL/);
+assert.doesNotMatch(buildOwnerCompletionReport(job, result), /Request:|Task:|Artifact:/);
 assert.doesNotMatch(message, /MEDIA\s*:|\[\[/i);
 
 const blocked = {
@@ -283,6 +304,7 @@ const automationFailure = {
 };
 assert.deepEqual(normalizeTerminalResult(automationFailure), automationFailure);
 assert.deepEqual(parseCoverageAutomationResult(automationFailure), automationFailure);
+assert.match(buildOwnerCompletionReport(job, automationFailure), /^Failed — Pensacola, FL/);
 const automationFailureMessage = buildEngineOpsMessage({ ...job, taskId: "t_failed123" }, automationFailure);
 assert.match(automationFailureMessage, /terminal evidence was not accepted/i);
 assert.match(automationFailureMessage, /automation_terminal_contract_failure/);
@@ -335,9 +357,12 @@ assert.match(route, /resultSchemaVersion === COVERAGE_AUTOMATION_RESULT_SCHEMA/)
 assert.match(agentSource, /JSON\.stringify\(\{ resultSchemaVersion: RESULT_SCHEMA, \.\.\.payload \}\)/);
 assert.match(agentSource, /legacyTerminalResult = rawResult\?\.schemaVersion === LEGACY_RESULT_SCHEMA/);
 assert.match(agentSource, /terminalResultForDelivery\(rawResult, result\)/);
-assert.match(agentSource, /rawResult\?\.schemaVersion === LEGACY_RESULT_SCHEMA && normalizedResult\.outcome === 'blocked'/);
+assert.match(read('automation/bourbon-signal/coverage-result-contract.mjs'), /rawResult\?\.schemaVersion === LEGACY_RESULT_SCHEMA && normalizedResult\.outcome === 'blocked'/);
 assert.doesNotMatch(agentSource, /completionResult = legacyTerminalResult \? rawResult : result/);
-assert.match(agentSource, /assertAuthorityCapabilityAbsent\(job\.jobKey, \[JSON\.stringify\(completionResult\)\], \{ allowMissing: legacyTerminalResult \}\)/);
+assert.match(agentSource, /allowMissing: legacyTerminalResult \|\| config.mode === 'review'/);
+assert.match(agentSource, /if \(config.mode === 'guarded_release'\) await deliverPendingNotification/);
+assert.match(agentSource, /if \(!review\) await persistAuthorityCapability/);
+assert.match(agentSource, /if \(!review\) await bindAuthorityCapability/);
 assert.match(route, /COVERAGE_AUTOMATION_CLAIM_SECRET/);
 assert.match(route, /COVERAGE_AUTOMATION_OUTCOME_SECRET/);
 assert.match(route, /action === "fail"[\s\S]*coverage-expansion-result@1[\s\S]*sourcesReviewed/);
@@ -376,21 +401,22 @@ assert.match(schema, /retry_history JSONB/);
 
 const agent = read("automation/bourbon-signal/coverage-request-agent.mjs");
 assert.match(agent, /open\(lockPath, 'wx'/);
-assert.match(agent, /createHash\('sha256'\)\.update\(job\.jobKey\)/);
-assert.match(agent, /--idempotency-key', job\.jobKey/);
+assert.match(agent, /job\.jobKey\}\|\$\{job\.requestVersion/);
+assert.match(agent, /--idempotency-key', `coverage-\$\{identity\}`/);
 assert.match(agent, /notificationToken/);
 assert.match(agent, /platformMessageId/);
 assert.match(agent, /coverage-authority/);
 assert.match(agent, /LEGACY_RESULT_SCHEMA/);
-assert.match(agent, /legacyAuthorityCapability/);
+assert.match(agent, /legacy dispatcher is disabled/);
 assert.match(agent, /normalizeTaskTerminalResult/);
 assert.match(agent, /mode: 0o600/);
 assert.match(agent, /removeAuthorityCapability/);
 assert.doesNotMatch(agent, /coverage-request-agent-state\.json|DEFAULT_ENGINE_OPS_TARGET|5461081025/);
 
 const agents = read("AGENTS.md");
-assert.match(agents, /task ID plus immutable job key pass the production-backed authority proof/i);
-assert.match(agents, /capability itself remains in the local Hermes authority store/i);
-assert.match(agents, /mutable `created_by` label is never authority/i);
+assert.match(agents, /request-version-bound task ID, and immutable job key pass the production-backed authority proof/i);
+assert.match(agents, /capability itself remains in the private Codex coverage authority store/i);
+assert.match(agents, /mutable task label or a supplied thread ID is never authority/i);
+assert.match(agents, /Hermes must never handle coverage requests/);
 
 console.log("Coverage request automation security and lifecycle contracts passed.");

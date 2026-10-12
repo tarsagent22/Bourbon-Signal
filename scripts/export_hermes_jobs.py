@@ -25,6 +25,8 @@ def normalized_windows_path(value: str) -> str:
 
 
 def is_managed_job(job: dict) -> bool:
+    if job.get("id") == "0af9a869e52a":
+        return False  # App coverage is exclusively owned by the Codex heartbeat.
     workdir = str(job.get("workdir") or "")
     if job.get("id") == SOURCE_SCOUT_JOB_ID:
         return normalized_windows_path(workdir) == normalized_windows_path(SOURCE_SCOUT_WORKDIR)

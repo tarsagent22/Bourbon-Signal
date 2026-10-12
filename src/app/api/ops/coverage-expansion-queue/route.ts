@@ -3,13 +3,15 @@ import { NextResponse } from "next/server";
 import { authorizeOpsBearer } from "@/lib/ops-auth";
 import { COVERAGE_AUTOMATION_RESULT_SCHEMA, parseCoverageAutomationCompletionResult } from "@/lib/coverage-automation-result";
 import { getCoverageRequestRepository, type CoverageAutomationJob } from "@/lib/coverage-request-repository";
+import { readCurrentCoverageContract, searchCurrentCoverageTargets } from "@/lib/coverage-server";
+import { existingCoverageVerified } from "@/lib/coverage-existing-proof";
 
 export const dynamic = "force-dynamic";
 
 const CONTRACT_VERSION = "bourbon-signal/coverage-expansion-queue@2";
 const MAX_BODY_BYTES = 32_768;
 const OPAQUE = /^[a-zA-Z0-9:|._/@+-]{1,340}$/;
-const TASK_ID = /^t_[a-zA-Z0-9]{4,80}$/;
+const TASK_ID = /^cx_[a-f0-9]{32}$/;
 
 function response(body: unknown, status = 200) {
   return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store, max-age=0" } });
@@ -103,12 +105,17 @@ export async function POST(request: Request) {
     const action = opaque(input.action, "action", /^[a-z_]{3,40}$/);
     const repository = getCoverageRequestRepository();
 
-    if (action === "claim" || action === "attach") {
+    if (action === "peek" || action === "claim" || action === "attach") {
       if (!authorizeOpsBearer(request.headers.get("authorization"), claimSecret())) return response({ error: "Unauthorized" }, 401);
-    } else if (action === "complete" || action === "fail" || action === "retry" || action === "claim_notification" || action === "ack_notification") {
+    } else if (action === "complete" || action === "complete_existing" || action === "fail" || action === "retry" || action === "claim_notification" || action === "ack_notification") {
       if (!authorizeOpsBearer(request.headers.get("authorization"), outcomeSecret())) return response({ error: "Unauthorized" }, 401);
     } else if (action !== "verify_authority") {
       return response({ error: "Unsupported coverage automation action." }, 400);
+    }
+
+    if (action === "peek") {
+      const job = await repository.peekAutomationJob();
+      return response({ contractVersion: CONTRACT_VERSION, job: job ? publicJob(job) : null });
     }
 
     if (action === "claim") {
@@ -190,8 +197,32 @@ export async function POST(request: Request) {
       return response({ contractVersion: CONTRACT_VERSION, job: publicJob(job, true, wantsCurrentResult) });
     }
 
+    if (action === "complete_existing") {
+      const bound = await repository.readBoundAutomationJob(jobKey, taskId);
+      if (!bound) return response({ error: "Coverage task binding is stale." }, 409);
+      const contract = await readCurrentCoverageContract();
+      const state = contract.states.find(row => row.code === bound.stateCode);
+      const results = bound.targetType === 'city' && bound.areaKey
+        ? await searchCurrentCoverageTargets(bound.stateCode, bound.areaKey.replace(/-/g, ' ')) : [];
+      if (!existingCoverageVerified(bound, state, results)) return response({ error: "Current coverage does not satisfy this exact target." }, 409);
+      const terminalResult = parseCoverageAutomationCompletionResult({
+        schemaVersion: COVERAGE_AUTOMATION_RESULT_SCHEMA, outcome: 'blocked',
+        headline: 'Current coverage was independently verified. Closed as already covered.',
+        productionFingerprint: null, pullRequest: null, ci: { status: 'not_applicable' }, refresh: null,
+        metrics: { baselineExactStoreRows: 0, productionExactStoreRows: 0, baselineLiveStores: 0, productionLiveStores: 0, baselineCustomerCards: 0, productionCustomerCards: 0 },
+        canonicalVerification: { verified: true, url: 'https://www.bourbonsignal.com/api/coverage' },
+        exploration: { sourceCandidates: [{ sourceId: 'canonical-coverage', sourceClass: 'first_party', outcome: 'adopted', reasonCode: 'existing_coverage_verified' }], knownSourceUniverseComplete: true, secondPass: 'not_required' },
+        requesterNotification: { ready: false, reasonCode: 'blocked' }, blockerCode: 'already_covered',
+        limitations: ['Existing coverage was verified; no expansion or new inventory gain is claimed.'],
+      });
+      const completed = await repository.completeAutomationTask(jobKey, taskId, terminalResult);
+      if (!completed) return response({ error: 'Coverage request changed during verification.' }, 409);
+      return response({ contractVersion: CONTRACT_VERSION, job: publicJob(completed, true, wantsCurrentResult) });
+    }
+
     if (action === "complete") {
       const terminalResult = parseCoverageAutomationCompletionResult(input.terminalResult);
+      if (terminalResult.blockerCode === 'already_covered') return response({ error: 'Existing coverage requires independent server verification.' }, 400);
       const job = await repository.completeAutomationTask(jobKey, taskId, terminalResult);
       if (!job) return response({ error: "Coverage automation result is stale or not bound to this task." }, 409);
       return response({ contractVersion: CONTRACT_VERSION, job: publicJob(job, true, wantsCurrentResult) });

@@ -103,7 +103,7 @@ with tempfile.TemporaryDirectory() as directory:
     worktree = projects / "Bourbon-Signal-operator-test"
     (repo / ".operator").mkdir(parents=True)
     worktree.mkdir()
-    isolated_release_root = projects / "hermes" / "kanban" / "boards" / "bourbon-signal-coverage" / "release-lane"
+    isolated_release_root = projects / "codex" / "operations" / "bourbon-signal" / "release-lane"
     operator.shared_release_lane_directory = lambda *args, **kwargs: isolated_release_root
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
         probe.bind(("127.0.0.1", 0))
@@ -111,10 +111,10 @@ with tempfile.TemporaryDirectory() as directory:
     operator.BROKER_PORT = test_broker_port
     wrapper_source = (ROOT / "scripts" / "run-with-release-lane-lock.py").read_text(encoding="utf-8")
     wrapper_source = wrapper_source.replace("BROKER_PORT = 47683", f"BROKER_PORT = {test_broker_port}")
-    canonical_line = '    host_root = (Path.home() / "AppData" / "Local" / "hermes") if os.name == "nt" else (Path.home() / ".hermes")'
+    canonical_line = '    host_root = Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex"))'
     assert canonical_line in wrapper_source
     isolated_wrapper = projects / "run-with-release-lane-lock.py"
-    isolated_wrapper.write_text(wrapper_source.replace(canonical_line, f"    host_root = Path({str(projects / 'hermes')!r})"), encoding="utf-8")
+    isolated_wrapper.write_text(wrapper_source.replace(canonical_line, f"    host_root = Path({str(projects / 'codex')!r})"), encoding="utf-8")
     operator.EXPECTED_REPO = repo.resolve()
     original_load_env = operator.load_env
     operator.load_env = lambda: {"PATH": "fixture", "GH_TOKEN": "secret", "VERCEL_TOKEN": "secret", "DATABASE_URL": "secret", "BRAVE_SEARCH_API_KEY": "secret"}
