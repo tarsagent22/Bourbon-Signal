@@ -37,11 +37,11 @@ export function parseTastePickupPage(html, url) {
     || offer?.['@type'] !== 'Offer' || offer.priceCurrency !== 'USD' || offer.availability !== 'https://schema.org/InStock'
     || offer.seller?.name !== TASTE_STORE.name || offer.seller?.url !== url
     || !Number.isFinite(price) || price <= 0 || price > 100000
-    || !ids.length || new Set(ids).size !== 1 || !button || /\bdisabled(?:\s|=|>)/i.test(button[0])
+    || !ids.length || new Set(ids).size !== 1 || !button || /\bdisabled(?:\s|=|>)|aria-disabled=["']true["']/i.test(button[0])
     || normalized(stripHtml(button[1])) !== 'add to cart'
     || !/In-Store Pickup (?:Only|Available)/i.test(visible)
     || !headings.length || headings.some(heading => heading !== normalized(product.name))
-    || /gift\s*card|gift\s*basket|bundle|tasting|raffle|lottery|\bset\b|\bpack\b/i.test(product.name)) return null;
+    || /gift\s*card|gift\s*basket|bundle|tasting|raffle|lottery|sample|miniature|\b(?:50|100|200)\s*ml\b|\bset\b|\bpack\b/i.test(product.name)) return null;
   return { schemaVersion: 1, pageDigest: createHash('sha256').update(html).digest('hex'), productId: ids[0], name: product.name, price, url, storeId: TASTE_STORE.id,
     storeName: store.name, street: address.streetAddress, city: address.addressLocality, state: address.addressRegion,
     zip: address.postalCode, availability: 'in_stock', pickupAvailable: true, cartAvailable: true };

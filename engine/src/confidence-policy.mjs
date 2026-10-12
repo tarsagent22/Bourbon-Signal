@@ -116,7 +116,7 @@ const TEXAS_CITYHIVE_POLICY = {
 
 const SOUTH_CAROLINA_RETAILER_POLICY = {
   maxAlertMode: 'alert_retailer_store_inventory_caveat',
-  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, Southern Spirits Shopify, Discount Liquor Square Online, and identity-bound Dunes Liquor runtime-store inventory) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.',
+  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, Southern Spirits Shopify, Taste Liquors public pickup offers, Discount Liquor Square Online, and identity-bound Dunes Liquor runtime-store inventory) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.',
   defaultCadence: 'daily-60m'
 };
 
