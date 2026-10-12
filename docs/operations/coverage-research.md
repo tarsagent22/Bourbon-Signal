@@ -1,17 +1,37 @@
-# Automatic coverage completion
+# Codex coverage requests
 
-The owner authorized automatic handling through release on October 12, 2026. This replaces the previous research-only policy. New member requests enter the existing production queue and receive one final Complete or Failed report through the configured operations channel. Routine progress messages and customer emails are not sent.
+The owner authorizes automatic coverage handling through release, with one final Complete or Failed report in the Codex chat. Hermes must not execute, schedule, delegate, release, or report on app coverage requests.
 
-Hermes job `0af9a869e52a` checks every 30 minutes using `bourbon_signal_coverage_request_complete.py`. The launcher forces `BOURBON_SIGNAL_COVERAGE_MODE=guarded_release` and runs the standalone dispatcher installed at `HERMES_HOME/automation/coverage-request-agent.mjs`. Keep the installed file identical to tested repository source. The gateway and scheduled job run on this Windows machine; it must stay online and awake. No always-on cloud worker has been provisioned.
+The native Codex heartbeat is `bourbon-signal-coverage-requests`, attached to the existing owner chat and scheduled every 30 minutes. It uses the chat's configured model. Keep the computer on and the Codex app running. This is a local automation, not an always-on cloud worker.
 
-The coverage project uses `C:/Users/chand/projects/bs-coverage-research-base`, with an isolated worktree per attempt. Immutable job key plus request version determines task identity. Reopened attempts cannot return an old finished task. Queue leases serialize work; overlapping requests reuse valid source research. Each worker has two hours, 24 turns, and one retry. Waiting for an occupied release lane is not proof of a failed source.
+The old Hermes schedule `0af9a869e52a` is paused. Its running worker was reclaimed and terminated, and its remaining unfinished board tasks were archived or blocked. The three old Python launchers and the legacy Node entry point are disabled. The scheduler export and active automation registry no longer assign coverage to Hermes.
 
-A worker checks exact geography and current evidence, implements a defensible fix, tests and reviews it, and releases only through the existing production-backed capability and shared release-lane guard. Completion requires production verification and a useful target-level gain. Directories, shipment leads, stale reports, merges, and workflow success alone do not establish current inventory coverage.
+## Queue and authority
 
-If a state or city is already fully covered, the trusted completion endpoint independently checks current canonical coverage and closes the request. Ordinary worker results cannot forge this closure. County and store requests require target-level expansion proof; broad state evidence cannot close them. To preserve the current database contract, verified existing coverage is stored with the internal blocked outcome and `already_covered` code, while its request is closed and its owner report says Complete. No new inventory gain is claimed.
+Use `node automation/bourbon-signal/codex-coverage.mjs claim` from the real repository. The helper waits when the release lane is occupied. It otherwise acquires the production lease, derives a `cx_` task ID from the current Codex thread, immutable job key, and request version, attaches it, and verifies production-backed authority. A restarted attempt cannot use an older request version's identity. Existing requests, baseline metrics, retries, source evidence, and member privacy must be preserved.
 
-A bounded unsuccessful attempt produces Failed with a reason and limitations. Engine-only changes are not reported as a fulfilled coverage request. Failed coverage remains unfulfilled in the member system and does not restart continuously. The notification outbox stores a delivery receipt and refuses automatic duplicate sends after an uncertain delivery.
+Configuration and capabilities live outside Git in `CODEX_HOME/operations/bourbon-signal`. The private config is bound to the owner chat. Never print credentials or capabilities, copy them into prompts, or put them in Git. The retired Hermes credentials are replaced before the production deployment. New queue bindings accept only Codex task IDs.
 
-Pause with `hermes cron pause 0af9a869e52a`. Pausing future checks does not stop a worker already running. Keep unrelated paused jobs paused. Customer messages and changes outside coverage remain separate from this authority.
+The helper outputs safe job metadata. Check current canonical coverage for the exact target. For a fully covered state or city, run `complete-existing <jobKey>`; the server independently verifies current evidence before closing it. An uncertain, partial, stale, directory-only, or shipment-only result cannot close a request. County and store requests require target-level proof of a useful expansion.
 
-On October 11, twelve open requests were audited. Virginia statewide, Sterling, and Glen Allen were closed as already covered. Nine remaining requests cover South Carolina, Indiana, Massachusetts, North Carolina statewide, and Forsyth, Nash, Edgecombe, Jones, and Onslow counties. Research-only attempt failures were superseded before enabling completion; historical evidence remains in retry history.
+For expansion, research a bounded set of lawful sources, reuse valid recent research for overlapping requests, implement and test the fix in an isolated worktree, and complete an independent review. Do not bypass access controls. Bound an attempt to two hours of active work and one retry. Waiting for another release remains pending and does not establish a source failure. Preserve a useful local patch while waiting.
+
+## Release
+
+The standing authorization applies only to authenticated coverage work. The shared writer lock, current main, sole PR, objective ownership, authority leakage checks, exact reviewed head, required checks, and production verification remain mandatory. No force pushes, quality overrides, unreviewed customer messages, or releases outside coverage.
+
+Before admission, save the reviewed PR body with the exact standalone line `Authority immutable job key: <jobKey>`. Run `verify-authority <jobKey> <taskId>`, then use:
+
+    python scripts/run-with-release-lane-lock.py -- node scripts/verify-release-lane.mjs --phase=admission --create-pr --push-head --expected-main=<sha> --expected-head=<sha> --head=<branch> --title=<title> --body-file=.operator/coverage-pr-body.md --job-key=<jobKey> --task-id=<taskId>
+
+After creation, preserve published history. If main advances, merge current main into the branch and rerun checks and review. Use the same guarded merge with `--phase=merge --pr=<number> --expected-head=<sha> --task-id=<taskId> --apply` under the shared writer lock. A merge is not completion: run the targeted production refresh, hash its immutable artifact, and verify canonical coverage and the customer path for the requested geography.
+
+## Completion and final reports
+
+Write the existing version-two terminal evidence contract to an ignored local JSON file. Run `complete <jobKey> <resultFile>`. A successful result needs verified material coverage and customer-path gains. Engine-only work is not a fulfilled request. A failed attempt needs a plain reason and bounded source-audit evidence; do not fabricate a complete audit or production gain. Member email remains a separate action.
+
+Run `report` to prepare the next final report. Return its text exactly in the final Codex message. Preparing text does not prove delivery. On the next scheduled run, use the app's `read_thread` tool to find that actual final message, with its ID, text, thread ID, and completion time. Save that evidence to an ignored JSON file with fields `threadId`, `messageId`, `phase`, `completedAt`, and `text`. Run `ack-report <receiptKey> <proofFile>`. The helper rejects wrong-thread, old, commentary, or unrelated messages. It records the native message ID and replays an acknowledgement safely.
+
+Always reconcile a prepared report before claiming another notification. Do not resend when delivery cannot be established. No routine progress reports, customer messages, Telegram delivery, or Hermes notifications. Run quietly when no new final result exists. Keep the heartbeat active for future app requests.
+
+Three earlier requests were closed as already covered: Virginia statewide, Sterling, and Glen Allen. The nine remaining requests cover South Carolina, Indiana, Massachusetts, North Carolina statewide, and Forsyth, Nash, Edgecombe, Jones, and Onslow counties. Their prior attempts remain in history. One earlier South Carolina failure report was sent during the original switch; it is not a result from the new Codex completion run.

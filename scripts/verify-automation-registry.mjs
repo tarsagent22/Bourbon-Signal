@@ -15,7 +15,6 @@ const PROMOTION_CLASSES = new Set(['none', 'guarded_recovery_dispatch', 'snapsho
 const SILENCE_POLICIES = new Set(['quiet_on_success', 'compact_exception_only', 'report_output']);
 const DELIVERY_CLASSES = new Set(['local', 'main_chat', 'ops_chat', 'github_only']);
 export const SOURCE_SCOUT_WORKDIR = 'C:/Users/chand/projects/bs-source-scout-runtime';
-export const COVERAGE_RESEARCH_WORKDIR = 'C:/Users/chand/projects/bs-coverage-research-base';
 
 function normalizedWindowsPath(value) {
   return path.win32.normalize(String(value || '').replaceAll('/', '\\')).replace(/[\\]+$/u, '').toLowerCase();
@@ -66,7 +65,7 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
     if (entry.executionClass === 'script_only' && (entry.agent?.provider !== null || entry.agent?.model !== null)) fail(failures, `${prefix} script_only jobs cannot declare an agent model.`);
     if (entry.executionClass !== 'script_only' && (!entry.agent?.provider || !entry.agent?.model)) fail(failures, `${prefix} agentic jobs require provider and model.`);
     if (entry.executionClass === 'script_only' && entry.agent?.reasoning !== null) fail(failures, `${prefix} script_only jobs cannot declare reasoning.`);
-    if (entry.executionClass !== 'script_only' && !['low', 'xhigh'].includes(entry.agent?.reasoning)) fail(failures, `${prefix} agentic jobs must declare low or xhigh reasoning.`);
+    if (entry.executionClass !== 'script_only' && entry.platform !== 'codex_heartbeat' && !['low', 'xhigh'].includes(entry.agent?.reasoning)) fail(failures, `${prefix} agentic jobs must declare low or xhigh reasoning.`);
     if (!isPlainObject(entry.externalApi) || !Array.isArray(entry.externalApi.classes) || !Number.isInteger(entry.externalApi.maxRequestsPerRun) || entry.externalApi.maxRequestsPerRun < 0) fail(failures, `${prefix} needs a bounded externalApi declaration.`);
     if (!MUTATION_CLASSES.has(entry.customerMutation)) fail(failures, `${prefix} has invalid customerMutation.`);
     if (!PROMOTION_CLASSES.has(entry.promotionDeployment)) fail(failures, `${prefix} has invalid promotionDeployment.`);
@@ -94,10 +93,6 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
           }
         } else if (dedicatedScout) {
           if (normalizedWindowsPath(liveJob.workdir) !== normalizedWindowsPath(SOURCE_SCOUT_WORKDIR) || liveJob.script !== 'resolve-source-scout-input.py') fail(failures, `${prefix} requires its isolated scout checkout and Python launcher.`);
-        } else if (entry.id === 'hermes-coverage-request-completion-lane') {
-          if (normalizedWindowsPath(liveJob.workdir) !== normalizedWindowsPath(COVERAGE_RESEARCH_WORKDIR)
-            || liveJob.script !== 'bourbon_signal_coverage_request_complete.py'
-            || liveJob.noAgent !== true) fail(failures, `${prefix} requires its isolated coverage checkout and completion launcher.`);
         } else if (liveJob.workdir !== expectedHermesWorkdir) fail(failures, `${prefix} live scheduler workdir drifted from the host repository root.`);
         if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script-only or profile-wrapped job must expose its live cron pause kill switch.`);
         if (entry.delivery === 'main_chat' && liveJob.deliver !== 'origin') fail(failures, `${prefix} must deliver to the main chat origin.`);
@@ -112,7 +107,13 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
         if (entry.script && liveJob.script !== entry.script) fail(failures, `${prefix} script drifted from the scheduler metadata.`);
       }
       hermesIds.add(entry.hermesJobId);
+    } else if (entry.platform === 'codex_heartbeat') {
+      if (entry.automationId !== 'bourbon-signal-coverage-requests'
+        || entry.agent?.provider !== 'codex-app' || entry.agent?.model !== 'thread-default'
+        || entry.agent?.reasoning !== null || entry.killSwitch !== `codex_pause:${entry.automationId}`
+        || entry.hermesJobId || entry.executionClass !== 'agent' || entry.delivery !== 'main_chat') fail(failures, `${prefix} must use the native Codex coverage heartbeat and thread defaults.`);
     } else fail(failures, `${prefix} has an invalid platform.`);
+    if (entry.platform === 'hermes_job' && /coverage-request/i.test(entry.id)) fail(failures, 'App coverage requests must never be assigned to Hermes.');
     if (/watchdog/i.test(String(entry.id)) && entry.executionClass !== 'script_only') fail(failures, `${prefix} watchdogs must be script_only.`);
   }
   for (const workflowPath of workflowPaths) if (!githubPaths.has(workflowPath)) fail(failures, `Active GitHub workflow is unclassified: ${workflowPath}.`);

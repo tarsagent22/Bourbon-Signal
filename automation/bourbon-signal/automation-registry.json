@@ -153,13 +153,27 @@
       "ownerLayer": "sensor",
       "executionClass": "script_only",
       "frequency": "on every NC source pull request and manual workflow dispatch",
-      "agent": { "provider": null, "model": null, "reasoning": null },
-      "externalApi": { "classes": ["public_abc_http", "github_actions"], "maxRequestsPerRun": 5000 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "public_abc_http",
+          "github_actions"
+        ],
+        "maxRequestsPerRun": 5000
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "github_workflow_disable",
-      "artifacts": ["engine/out/nc-source-canary.json", "engine/out/nc-board-intelligence.json", "engine/out/nc-source-registry.json"],
+      "artifacts": [
+        "engine/out/nc-source-canary.json",
+        "engine/out/nc-board-intelligence.json",
+        "engine/out/nc-source-registry.json"
+      ],
       "delivery": "github_only"
     },
     {
@@ -621,38 +635,6 @@
       ]
     },
     {
-      "id": "hermes-coverage-request-completion-lane",
-      "platform": "hermes_job",
-      "hermesJobId": "0af9a869e52a",
-      "active": true,
-      "ownerLayer": "deterministic",
-      "executionClass": "script_only",
-      "frequency": "every 30 minutes",
-      "delivery": "local",
-      "agent": {
-        "provider": null,
-        "model": null,
-        "reasoning": null
-      },
-      "externalApi": {
-        "classes": [
-          "production_coverage_queue",
-          "local_kanban",
-          "engine_ops_outbox"
-        ],
-        "maxRequestsPerRun": 8
-      },
-      "customerMutation": "internal_state",
-      "promotionDeployment": "none",
-      "silencePolicy": "quiet_on_success",
-      "killSwitch": "cron_pause:0af9a869e52a",
-      "artifacts": [
-        "coverage_request_automation_jobs",
-        "coverage_expansion_terminal_results",
-        "engine_ops_delivery_receipts"
-      ]
-    },
-    {
       "id": "hermes-neon-local-backup",
       "platform": "hermes_job",
       "hermesJobId": "3cdc1e546a0e",
@@ -709,6 +691,38 @@
         "astra_regressions"
       ],
       "delivery": "github_only"
+    },
+    {
+      "id": "codex-coverage-requests",
+      "platform": "codex_heartbeat",
+      "automationId": "bourbon-signal-coverage-requests",
+      "active": true,
+      "ownerLayer": "operator",
+      "executionClass": "agent",
+      "frequency": "every 30 minutes",
+      "delivery": "main_chat",
+      "agent": {
+        "provider": "codex-app",
+        "model": "thread-default",
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "production_coverage_queue",
+          "github",
+          "canonical_production"
+        ],
+        "maxRequestsPerRun": 50
+      },
+      "customerMutation": "internal_state",
+      "promotionDeployment": "operator_only",
+      "silencePolicy": "report_output",
+      "killSwitch": "codex_pause:bourbon-signal-coverage-requests",
+      "artifacts": [
+        "coverage_request_automation_jobs",
+        "codex_coverage_claims",
+        "codex_report_receipts"
+      ]
     }
   ],
   "timezone": "America/New_York"

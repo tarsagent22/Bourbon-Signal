@@ -159,21 +159,6 @@
       "reasoning": null,
       "safetyHash": null,
       "profileSafetyHash": null
-    },
-    {
-      "jobId": "0af9a869e52a",
-      "name": "Bourbon Signal coverage completion",
-      "schedule": "every 30m",
-      "deliver": "local",
-      "noAgent": true,
-      "script": "bourbon_signal_coverage_request_complete.py",
-      "workdir": "C:\\Users\\chand\\projects\\bs-coverage-research-base",
-      "active": true,
-      "provider": null,
-      "model": null,
-      "reasoning": null,
-      "safetyHash": null,
-      "profileSafetyHash": null
     }
   ]
 }

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const CONTRACT_VERSION = "bourbon-signal/coverage-expansion-queue@2";
 const MAX_BODY_BYTES = 32_768;
 const OPAQUE = /^[a-zA-Z0-9:|._/@+-]{1,340}$/;
-const TASK_ID = /^t_[a-zA-Z0-9]{4,80}$/;
+const TASK_ID = /^cx_[a-f0-9]{32}$/;
 
 function response(body: unknown, status = 200) {
   return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store, max-age=0" } });
@@ -105,12 +105,17 @@ export async function POST(request: Request) {
     const action = opaque(input.action, "action", /^[a-z_]{3,40}$/);
     const repository = getCoverageRequestRepository();
 
-    if (action === "claim" || action === "attach") {
+    if (action === "peek" || action === "claim" || action === "attach") {
       if (!authorizeOpsBearer(request.headers.get("authorization"), claimSecret())) return response({ error: "Unauthorized" }, 401);
     } else if (action === "complete" || action === "complete_existing" || action === "fail" || action === "retry" || action === "claim_notification" || action === "ack_notification") {
       if (!authorizeOpsBearer(request.headers.get("authorization"), outcomeSecret())) return response({ error: "Unauthorized" }, 401);
     } else if (action !== "verify_authority") {
       return response({ error: "Unsupported coverage automation action." }, 400);
+    }
+
+    if (action === "peek") {
+      const job = await repository.peekAutomationJob();
+      return response({ contractVersion: CONTRACT_VERSION, job: job ? publicJob(job) : null });
     }
 
     if (action === "claim") {

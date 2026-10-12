@@ -2,9 +2,24 @@
   "contractVersion": "bourbon-signal/automation-cadence@1",
   "timezone": "America/New_York",
   "notificationRoutes": {
-    "mainChat": ["daily_company_brief", "weekly_strategy_review", "owner_decisions"],
-    "opsChat": ["agentic_implementation_changes", "semantic_review_changes", "scheduler_drift", "morning_scorecard_errors"],
-    "localSilent": ["routine_discovery", "routine_probe", "routine_shadow", "routine_browser", "successful_watchdogs"]
+    "mainChat": [
+      "daily_company_brief",
+      "weekly_strategy_review",
+      "owner_decisions"
+    ],
+    "opsChat": [
+      "agentic_implementation_changes",
+      "semantic_review_changes",
+      "scheduler_drift",
+      "morning_scorecard_errors"
+    ],
+    "localSilent": [
+      "routine_discovery",
+      "routine_probe",
+      "routine_shadow",
+      "routine_browser",
+      "successful_watchdogs"
+    ]
   },
   "dailyCadence": {
     "knownSourceProbe": 8,
@@ -17,13 +32,14 @@
     "neonEncryptedBackup": 1,
     "morningBrief": 1,
     "schedulerReconciliation": 1,
-    "coverageRequestCompletionLane": 48
+    "coverageRequestCompletionLane": 0,
+    "codexCoverageRequests": 48
   },
   "expectedTotals": {
     "expansionDeterministicRunsPerDay": 20,
-    "deterministicRunsPerDay": 410.0333333333333,
-    "agenticRunsPerWeek": 22,
-    "deterministicRunSharePercentApprox": 99.24
+    "deterministicRunsPerDay": 362.0333333333333,
+    "agenticRunsPerWeek": 358,
+    "deterministicRunSharePercentApprox": 87.62
   },
   "codingAgentPolicy": {
     "profile": "bourbonbot",

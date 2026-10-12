@@ -16,7 +16,7 @@ test('already-covered completion requires live exact-target proof and a current 
     '@/lib/coverage-server': { readCurrentCoverageContract: async () => ({ states: [{ code: 'VA', health: 'current', freshness: { currentInventoryStores: 50 } }] }), searchCurrentCoverageTargets: async () => [{ kind: 'city', stateCode: 'VA', canonicalTargetKey: covered ? job.canonicalTargetKey : 'city:VA:richmond', status: 'covered' }] },
     '@/lib/coverage-existing-proof': moduleFrom('src/lib/coverage-existing-proof.ts'),
   }, new Map(), { COVERAGE_AUTOMATION_OUTCOME_SECRET: 'test-secret' });
-  const request = (action, authorized = true, terminalResult) => new Request('https://example.test/api/ops/coverage-expansion-queue', { method: 'POST', headers: { Authorization: authorized ? 'Bearer test-secret' : 'Bearer invalid' }, body: JSON.stringify({ action, jobKey: 'coverage-request:test', taskId: 't_test1234', resultSchemaVersion: 'bourbon-signal/coverage-expansion-result@2', terminalResult }) });
+  const request = (action, authorized = true, terminalResult) => new Request('https://example.test/api/ops/coverage-expansion-queue', { method: 'POST', headers: { Authorization: authorized ? 'Bearer test-secret' : 'Bearer invalid' }, body: JSON.stringify({ action, jobKey: 'coverage-request:test', taskId: 'cx_' + 'a'.repeat(32), resultSchemaVersion: 'bourbon-signal/coverage-expansion-result@2', terminalResult }) });
   try {
     assert.equal((await route.POST(request('complete_existing', false))).status, 401);
     assert.equal((await route.POST(request('complete_existing'))).status, 409);

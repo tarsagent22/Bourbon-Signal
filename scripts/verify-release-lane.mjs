@@ -1,10 +1,8 @@
 import { assertCurrentMain, validateReleaseAdmission } from './lib/release-lane-policy.mjs';
-import { assertAuthorityCapabilityAbsent, assertAuthorityCapabilityAbsentFromGit, verifyAuthority } from '../automation/bourbon-signal/coverage-request-agent.mjs';
+import { assertAuthorityCapabilityAbsent, assertAuthorityCapabilityAbsentFromGit, verifyAuthority, assertActiveCodexTaskProcess, codexCoverageHome } from '../automation/bourbon-signal/codex-coverage.mjs';
 import { mkdir, readFile, readdir, realpath, rename, unlink, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { realpathSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { createConnection } from 'node:net';
 import path from 'node:path';
 
@@ -43,72 +41,16 @@ function commandSucceeds(command, args) {
   }
 }
 
-function canonicalHermesHome() {
-  return process.platform === 'win32'
-    ? path.join(homedir(), 'AppData', 'Local', 'hermes')
-    : path.join(homedir(), '.hermes');
-}
-
-function parentProcessId(pid) {
-  const output = process.platform === 'win32'
-    ? commandOutput('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `(Get-CimInstance Win32_Process -Filter "ProcessId = ${pid}").ParentProcessId`])
-    : commandOutput('ps', ['-o', 'ppid=', '-p', String(pid)]);
-  const parent = Number(output.trim());
-  return Number.isInteger(parent) && parent > 0 && parent !== pid ? parent : null;
-}
-
-function isDescendantProcess(descendantPid, ancestorPid) {
-  let current = descendantPid;
-  for (let depth = 0; depth < 64 && current; depth += 1) {
-    if (current === ancestorPid) return true;
-    current = parentProcessId(current);
-  }
-  return false;
-}
-
-function assertActiveKanbanTaskProcess(taskId) {
-  const board = process.env.HERMES_KANBAN_BOARD || '';
-  if (board !== 'bourbon-signal-coverage' || process.env.HERMES_KANBAN_TASK !== taskId || !process.env.HERMES_KANBAN_TASK) {
-    fail('coverage merge requires broker-injected Kanban worker context.');
-  }
-  const database = path.join(canonicalHermesHome(), 'kanban', 'boards', 'bourbon-signal-coverage', 'kanban.db');
-  const brokerDatabase = process.env.HERMES_KANBAN_DB || '';
-  try {
-    const canonical = realpathSync(database);
-    const injected = realpathSync(brokerDatabase);
-    const normalize = (value) => process.platform === 'win32' ? value.toLowerCase() : value;
-    if (normalize(canonical) !== normalize(injected)) fail('coverage release requires the canonical broker-pinned Kanban database.');
-  } catch {
-    fail('coverage release requires the canonical broker-pinned Kanban database.');
-  }
-  if (!commandSucceeds('hermes', ['kanban', '--board', 'bourbon-signal-coverage', 'heartbeat', taskId, '--note', 'coverage release authority check'])) {
-    fail('coverage release could not refresh the authenticated Kanban worker heartbeat.');
-  }
-  const query = [
-    'import json,sqlite3,sys',
-    'connection=sqlite3.connect(sys.argv[1])',
-    'row=connection.execute("SELECT status, worker_pid, claim_expires, last_heartbeat_at FROM tasks WHERE id=?", (sys.argv[2],)).fetchone()',
-    'print(json.dumps({"status":row[0],"workerPid":row[1],"claimExpires":row[2],"heartbeat":row[3]}) if row else "")',
-  ].join(';');
-  const raw = commandOutput('python', ['-c', query, database, taskId]);
-  let task;
-  try { task = JSON.parse(raw); } catch { fail('coverage merge could not verify the active Kanban worker claim.'); }
-  const workerPid = Number(task?.workerPid);
-  const claimExpires = Number(task?.claimExpires) * 1_000;
-  const heartbeat = Number(task?.heartbeat) * 1_000;
-  if (task?.status !== 'running' || !Number.isInteger(workerPid) || workerPid <= 0
-    || !Number.isFinite(claimExpires) || claimExpires <= Date.now()
-    || !Number.isFinite(heartbeat) || heartbeat < Date.now() - 15 * 60_000
-    || !isDescendantProcess(process.pid, workerPid)) {
-    fail('coverage merge caller is not a live descendant of the task worker holding the current Kanban claim.');
-  }
+async function assertActiveCodexCoverageTask(jobKey, taskId) {
+  if (process.env.HERMES_KANBAN_TASK || process.env.HERMES_KANBAN_BOARD) fail('Hermes coverage releases are disabled by the owner.');
+  await assertActiveCodexTaskProcess(jobKey, taskId);
 }
 
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || commandOutput('gh', ['auth', 'token']);
 const phase = option('phase', 'ci');
 
 function sharedReleaseLaneDirectory() {
-  return path.join(canonicalHermesHome(), 'kanban', 'boards', 'bourbon-signal-coverage', 'release-lane');
+  return path.join(codexCoverageHome(), 'release-lane');
 }
 
 function coverageBindingPath(prNumber) {
@@ -352,13 +294,13 @@ async function createCoveragePullRequest({ expectedMain, mainSha, pulls }) {
   const title = option('title');
   const bodyFile = option('body-file');
   const jobKey = option('job-key');
-  const taskId = option('task-id', process.env.HERMES_KANBAN_TASK || '');
+  const taskId = option('task-id', process.env.BOURBON_SIGNAL_COVERAGE_TASK_ID || '');
   const expectedHead = option('expected-head');
   if (!/^[a-zA-Z0-9._/-]{1,180}$/.test(head)) fail('--head=<branch> is invalid.');
   if (!title || title.length > 200 || /[\u0000-\u001f\u007f]/.test(title)) fail('--title=<text> is invalid.');
   if (!/^coverage-request:[a-zA-Z0-9:|._/@+-]{20,320}$/.test(jobKey)) fail('--job-key=<immutable job key> is invalid.');
-  if (!/^t_[a-zA-Z0-9]{4,80}$/.test(taskId)) fail('release admission requires the authenticated Kanban task ID.');
-  assertActiveKanbanTaskProcess(taskId);
+  if (!/^cx_[a-f0-9]{32}$/.test(taskId)) fail('release admission requires the authenticated Codex coverage task ID.');
+  await assertActiveCodexCoverageTask(jobKey, taskId);
   if (!/^[a-f0-9]{40}$/.test(expectedHead)) fail('--expected-head=<40-character SHA> is required.');
   if (!bodyFile || path.isAbsolute(bodyFile) || bodyFile.split(/[\\/]+/).includes('..')) fail('--body-file must be a repository-relative path.');
   const bodyPath = await realpath(path.resolve(bodyFile));
@@ -541,14 +483,14 @@ if (phase === 'admission') {
   if (!expectedHead || pull.head?.sha !== expectedHead) fail(`PR #${prNumber} head changed; expected ${expectedHead || 'an explicit SHA'}, found ${pull.head?.sha || 'unknown'}.`);
   const binding = await readJsonFile(coverageBindingPath(prNumber), { optional: true });
   const coverageBranch = String(pull.head?.ref || '').startsWith('coverage/');
-  const coverageWorker = process.env.HERMES_KANBAN_BOARD === 'bourbon-signal-coverage';
+  const coverageWorker = Boolean(process.env.BOURBON_SIGNAL_COVERAGE_TASK_ID);
   if (binding || coverageBranch || coverageWorker) {
     if (!binding) fail(`PR #${prNumber} is a coverage release without a durable lock-held admission binding.`);
     if (binding.contractVersion !== 'bourbon-signal/coverage-release-binding@1'
       || Number(binding.prNumber) !== prNumber
       || binding.headRef !== pull.head?.ref
       || !/^coverage-request:[a-zA-Z0-9:|._/@+-]{20,320}$/.test(String(binding.jobKey || ''))
-      || !/^t_[a-zA-Z0-9]{4,80}$/.test(String(binding.taskId || ''))) {
+      || !/^cx_[a-f0-9]{32}$/.test(String(binding.taskId || ''))) {
       fail(`PR #${prNumber} has an invalid durable coverage release binding.`);
     }
     if (!/^[a-f0-9]{40}$/i.test(String(binding.admittedHead || ''))
@@ -557,9 +499,9 @@ if (phase === 'admission') {
     }
     const jobKey = binding.jobKey;
     if (!bodyHasJobKey(pull.body, jobKey)) fail(`PR #${prNumber} body no longer matches its durable coverage authority binding.`);
-    const taskId = option('task-id', process.env.HERMES_KANBAN_TASK || '');
-    if (!/^t_[a-zA-Z0-9]{4,80}$/.test(taskId) || binding.taskId !== taskId) fail('coverage merge requires the authenticated bound Kanban task ID.');
-    assertActiveKanbanTaskProcess(taskId);
+    const taskId = option('task-id', process.env.BOURBON_SIGNAL_COVERAGE_TASK_ID || '');
+    if (!/^cx_[a-f0-9]{32}$/.test(taskId) || binding.taskId !== taskId) fail('coverage merge requires the authenticated bound Codex coverage task ID.');
+    await assertActiveCodexCoverageTask(jobKey, taskId);
     if (!commandSucceeds('git', ['merge-base', '--is-ancestor', mainSha, expectedHead])) fail('the final coverage head does not contain current main.');
     await assertAuthorityCapabilityAbsent(jobKey, pullMetadataValues(pull));
     await assertPullDiscussionCapabilityAbsent(jobKey, prNumber);

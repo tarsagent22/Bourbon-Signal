@@ -357,7 +357,7 @@ assert.match(route, /resultSchemaVersion === COVERAGE_AUTOMATION_RESULT_SCHEMA/)
 assert.match(agentSource, /JSON\.stringify\(\{ resultSchemaVersion: RESULT_SCHEMA, \.\.\.payload \}\)/);
 assert.match(agentSource, /legacyTerminalResult = rawResult\?\.schemaVersion === LEGACY_RESULT_SCHEMA/);
 assert.match(agentSource, /terminalResultForDelivery\(rawResult, result\)/);
-assert.match(agentSource, /rawResult\?\.schemaVersion === LEGACY_RESULT_SCHEMA && normalizedResult\.outcome === 'blocked'/);
+assert.match(read('automation/bourbon-signal/coverage-result-contract.mjs'), /rawResult\?\.schemaVersion === LEGACY_RESULT_SCHEMA && normalizedResult\.outcome === 'blocked'/);
 assert.doesNotMatch(agentSource, /completionResult = legacyTerminalResult \? rawResult : result/);
 assert.match(agentSource, /allowMissing: legacyTerminalResult \|\| config.mode === 'review'/);
 assert.match(agentSource, /if \(config.mode === 'guarded_release'\) await deliverPendingNotification/);
@@ -407,15 +407,16 @@ assert.match(agent, /notificationToken/);
 assert.match(agent, /platformMessageId/);
 assert.match(agent, /coverage-authority/);
 assert.match(agent, /LEGACY_RESULT_SCHEMA/);
-assert.match(agent, /legacyAuthorityCapability/);
+assert.match(agent, /legacy dispatcher is disabled/);
 assert.match(agent, /normalizeTaskTerminalResult/);
 assert.match(agent, /mode: 0o600/);
 assert.match(agent, /removeAuthorityCapability/);
 assert.doesNotMatch(agent, /coverage-request-agent-state\.json|DEFAULT_ENGINE_OPS_TARGET|5461081025/);
 
 const agents = read("AGENTS.md");
-assert.match(agents, /task ID plus immutable job key pass the production-backed authority proof/i);
-assert.match(agents, /capability itself remains in the local Hermes authority store/i);
-assert.match(agents, /mutable `created_by` label is never authority/i);
+assert.match(agents, /request-version-bound task ID, and immutable job key pass the production-backed authority proof/i);
+assert.match(agents, /capability itself remains in the private Codex coverage authority store/i);
+assert.match(agents, /mutable task label or a supplied thread ID is never authority/i);
+assert.match(agents, /Hermes must never handle coverage requests/);
 
 console.log("Coverage request automation security and lifecycle contracts passed.");

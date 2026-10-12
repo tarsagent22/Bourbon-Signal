@@ -294,6 +294,21 @@ export class CoverageRequestRepository {
     return rowToMemberRequest(row);
   }
 
+  async peekAutomationJob(now = new Date().toISOString()): Promise<CoverageAutomationJob | null> {
+    const rows = await this.database.query(`
+      SELECT job.*, CASE WHEN job.status = 'claimed' AND job.lease_expires_at <= $1::timestamptz
+        THEN 'queued' ELSE job.status END AS status
+      FROM coverage_request_automation_jobs AS job
+      JOIN coverage_requests AS request ON request.id = job.coverage_request_id
+      WHERE job.status IN ('queued', 'claimed', 'running')
+        AND request.status = 'requested' AND request.updated_at = job.request_version
+        AND request.baseline_coverage_fingerprint = job.baseline_coverage_fingerprint
+      ORDER BY CASE WHEN job.status = 'running' THEN 0 WHEN job.status = 'claimed' THEN 1 ELSE 2 END, job.created_at ASC
+      LIMIT 1
+    `, [now]) as CoverageAutomationJobRow[];
+    return rows[0] ? rowToAutomationJob(rows[0]) : null;
+  }
+
   async claimAutomationJob(
     leaseToken: string,
     now = new Date().toISOString(),
