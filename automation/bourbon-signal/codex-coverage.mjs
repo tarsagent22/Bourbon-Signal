@@ -5,6 +5,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { normalizeJob, normalizeTaskTerminalResult, terminalResultForDelivery } from './coverage-result-contract.mjs';
+import { groupNightlyJobs, nightlyDate, nightlyBudget, nextNightlyJob } from './coverage-nightly-policy.mjs';
 
 const SCHEMA = 'bourbon-signal/coverage-expansion-result@2';
 const BASE = 'https://www.bourbonsignal.com';
@@ -104,7 +105,7 @@ export async function assertAuthorityCapabilityAbsentFromGit(jobKey, { baseSha, 
   }
 }
 
-export async function claimCoverageRequest({ releaseLaneIsBusy } = {}) {
+export async function claimCoverageRequest({ releaseLaneIsBusy, jobKey } = {}) {
   const settings = await config();
   const busy = releaseLaneIsBusy || (() => {
     const result = spawnSync('gh', ['pr', 'list', '--repo', 'tarsagent22/Bourbon-Signal', '--state', 'open', '--json', 'number'], { encoding: 'utf8', timeout: 30_000, windowsHide: true });
@@ -129,18 +130,23 @@ export async function claimCoverageRequest({ releaseLaneIsBusy } = {}) {
     if (pending.taskId !== taskId) return { status: 'waiting_for_active_worker' };
     await assertActiveCodexTaskProcess(pending.jobKey, taskId);
     await verifyAuthority(pending.jobKey, taskId);
-    return { status: 'running', job: pending, taskId };
+    const context = await readJson(contextPath(pending.jobKey));
+    return { status: 'running', job: pending, taskId, ...(context.progress ? { progress: context.progress } : {}) };
   }
   if (pending.status === 'claimed') return { status: 'waiting_for_active_worker' };
   if (await busy()) return { status: 'waiting_for_release_lane' };
-  const claimed = await post(settings.claimSecret, { action: 'claim' });
+  const claimed = await post(settings.claimSecret, { action: 'claim', ...(jobKey ? { jobKey } : {}) });
   if (!claimed.value.job) return { status: 'empty' };
   let job = normalizeJob(claimed.value.job);
   const taskId = codexCoverageTaskId(job, settings.threadId);
   if (job.status === 'claimed' && claimed.value.leaseToken && claimed.value.authorityCapability) {
     if (!/^[a-zA-Z0-9_-]{43}$/.test(claimed.value.authorityCapability) || !UUID.test(claimed.value.leaseToken)) throw new Error('Invalid claimed authority.');
+    let previous;
+    try { previous = await readJson(contextPath(job.jobKey)); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (previous) validateCodexCoverageContext(previous, job.jobKey, taskId, settings.threadId);
     const record = { schemaVersion: 1, threadId: settings.threadId, taskId, job,
-      authorityCapability: claimed.value.authorityCapability, startedAt: new Date().toISOString(), status: 'running' };
+      authorityCapability: claimed.value.authorityCapability, startedAt: previous?.startedAt || new Date().toISOString(), status: 'running',
+      ...(previous?.progress ? { progress: previous.progress } : {}) };
     await atomicJson(contextPath(job.jobKey), record);
     const attached = await post(settings.claimSecret, { action: 'attach', jobKey: job.jobKey, taskId, leaseToken: claimed.value.leaseToken });
     job = normalizeJob(attached.value.job);
@@ -149,7 +155,8 @@ export async function claimCoverageRequest({ releaseLaneIsBusy } = {}) {
   if (job.status !== 'running' || job.taskId !== taskId) throw new Error('A different worker holds the current coverage request.');
   await assertActiveCodexTaskProcess(job.jobKey, taskId);
   await verifyAuthority(job.jobKey, taskId);
-  return { status: 'running', job, taskId };
+  const context = await readJson(contextPath(job.jobKey));
+  return { status: 'running', job, taskId, ...(context.progress ? { progress: context.progress } : {}) };
 }
 
 export async function completeCoverageRequest(jobKey, rawResult, alreadyCovered = false) {
@@ -162,7 +169,9 @@ export async function completeCoverageRequest(jobKey, rawResult, alreadyCovered 
   const completed = await post(settings.outcomeSecret, { action: existing ? 'complete_existing' : 'complete', jobKey,
     taskId: record.taskId, ...(result ? { terminalResult: terminalResultForDelivery(rawResult, result) } : {}) }, existing);
   if (completed.status === 409) return { completed: false, status: 409 };
-  await atomicJson(contextPath(jobKey), { ...record, status: 'complete', completedAt: new Date().toISOString() });
+  await atomicJson(contextPath(jobKey), { ...record, status: 'complete', completedAt: new Date().toISOString(),
+    terminalResult: completed.value.job.terminalResult });
+  await updateNightlyEntry(jobKey, { status: 'complete' });
   return { completed: true, job: normalizeJob(completed.value.job, { includeResult: true }) };
 }
 
@@ -187,13 +196,13 @@ export function validateCodexReportProof(record, proof) {
   return `codex:${proof.messageId}`;
 }
 
-export async function prepareCoverageReport() {
+export async function prepareCoverageReport({ claimNext = false } = {}) {
   const settings = await config();
   const directory = path.join(codexCoverageHome(), 'reports');
   await mkdir(directory, { recursive: true });
   for (const name of (await readdir(directory)).filter(name => /^[a-f0-9]{64}\.json$/.test(name))) {
     const existing = await readJson(path.join(directory, name));
-    if (existing.status === 'prepared') {
+    if (existing.status === 'prepared' && !claimNext) {
       if (existing.threadId !== settings.threadId) throw new Error('A prepared report belongs to a different Codex thread.');
       return { status: 'prepared', receiptKey: name.slice(0, -5), text: existing.text, preparedAt: existing.preparedAt };
     }
@@ -210,6 +219,138 @@ export async function prepareCoverageReport() {
   await atomicJson(reportPath(receiptKey), { schemaVersion: 1, jobKey: job.jobKey, threadId: settings.threadId,
     notificationToken: claimed.value.notificationToken, text, preparedAt: new Date().toISOString(), status: 'prepared' });
   return { status: 'prepared', receiptKey, text };
+}
+
+export async function listCoverageJobs() {
+  const settings = await config();
+  const result = await post(settings.claimSecret, { action: 'list' });
+  if (!Array.isArray(result.value.jobs) || result.value.jobs.length > 5000) throw new Error('Invalid coverage backlog.');
+  return result.value.jobs.map(job => normalizeJob(job));
+}
+
+function nightlyPath() { return path.join(codexCoverageHome(), 'nightly', `${nightlyDate()}.json`); }
+
+export async function startCoverageNight() {
+  const settings = await config();
+  let ledger;
+  try { ledger = await readJson(nightlyPath()); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (ledger) {
+    if (ledger.threadId !== settings.threadId) throw new Error('Foreign nightly ledger.');
+    return { ...ledger, budget: nightlyBudget(ledger) };
+  }
+  const jobs = await listCoverageJobs();
+  ledger = { schemaVersion: 1, threadId: settings.threadId, date: nightlyDate(), startedAt: new Date().toISOString(),
+    groups: groupNightlyJobs(jobs), entries: {}, snapshotCount: jobs.length };
+  await atomicJson(nightlyPath(), ledger);
+  return { ...ledger, budget: nightlyBudget(ledger) };
+}
+
+async function updateNightlyEntry(jobKey, changes) {
+  let ledger;
+  try { ledger = await readJson(nightlyPath()); } catch (error) { if (error.code === 'ENOENT') return; throw error; }
+  await config();
+  if (ledger.threadId !== process.env.CODEX_THREAD_ID) throw new Error('Foreign nightly ledger.');
+  ledger.entries[jobKey] = { ...ledger.entries[jobKey], ...changes, updatedAt: new Date().toISOString() };
+  await atomicJson(nightlyPath(), ledger);
+}
+
+export async function nextCoverageNightJob(options = {}) {
+  const ledger = await startCoverageNight();
+  if (!ledger.budget.canStart) return { status: 'night_window_ended', budget: ledger.budget };
+  const job = nextNightlyJob(ledger);
+  if (!job) return { status: 'night_complete', snapshotCount: ledger.snapshotCount };
+  const result = await claimCoverageRequest({ ...options, jobKey: job.jobKey });
+  if (result.status === 'empty') {
+    await updateNightlyEntry(job.jobKey, { status: 'superseded' });
+    return { status: 'superseded', jobKey: job.jobKey };
+  }
+  if (result.status === 'running') {
+    const entry = ledger.entries[result.job.jobKey];
+    const startedAt = entry?.startedAt || new Date().toISOString();
+    await updateNightlyEntry(result.job.jobKey, { status: 'running', startedAt });
+    return { ...result, budget: nightlyBudget(ledger, startedAt), researchGroup: result.job.stateCode };
+  }
+  return result;
+}
+
+export async function checkpointCoverageRequest(jobKey, progress) {
+  const allowed = new Set(['stage', 'workspace', 'branch', 'pullRequest', 'headSha', 'refreshRunId', 'evidenceFile']);
+  if (!progress || typeof progress !== 'object' || Array.isArray(progress)
+    || Object.keys(progress).some(key => !allowed.has(key))
+    || !/^[a-z_]{3,80}$/.test(progress.stage || '')
+    || (progress.pullRequest != null && (!Number.isSafeInteger(progress.pullRequest) || progress.pullRequest < 1))
+    || (progress.headSha != null && !/^[a-f0-9]{40}$/.test(progress.headSha))
+    || Object.values(progress).some(value => typeof value === 'string' && (value.length > 500 || /[\r\n\x00]/.test(value)))) {
+    throw new Error('Invalid coverage progress checkpoint.');
+  }
+  await config();
+  const record = await readJson(contextPath(jobKey));
+  await verifyAuthority(jobKey, record.taskId);
+  await assertAuthorityCapabilityAbsent(jobKey, [JSON.stringify(progress)]);
+  await atomicJson(contextPath(jobKey), { ...record, progress, updatedAt: new Date().toISOString() });
+  await updateNightlyEntry(jobKey, { status: 'running', progress });
+  return { saved: true, stage: progress.stage };
+}
+
+export async function deferCoverageRequest(jobKey, reason, { releaseLaneIsBusy } = {}) {
+  if (!releaseLaneIsBusy && !/^[a-f0-9]{16}$/.test(process.env.BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID || '')) {
+    throw new Error('Deferral requires the shared release-lane writer lock.');
+  }
+  if (!['research_budget', 'night_window_ended', 'source_wait', 'verification_wait'].includes(reason)) throw new Error('Invalid deferral reason.');
+  const settings = await config();
+  const record = await readJson(contextPath(jobKey));
+  await verifyAuthority(jobKey, record.taskId);
+  const busy = releaseLaneIsBusy || (() => {
+    const result = gitCommandPulls();
+    return result.length > 0;
+  });
+  // A PR must retain its live authority until merged and verified. It cannot be abandoned to claim unrelated work.
+  if (await busy()) return { status: 'waiting_for_release_lane', deferred: false };
+  const result = await post(settings.outcomeSecret, { action: 'defer', jobKey, taskId: record.taskId, reason }, true);
+  if (result.status === 409) return { status: 'stale', deferred: false };
+  await atomicJson(contextPath(jobKey), { ...record, status: 'deferred', deferredAt: new Date().toISOString(), reason });
+  await updateNightlyEntry(jobKey, { status: 'deferred', reason });
+  return { status: 'deferred', deferred: true };
+}
+
+function gitCommandPulls() {
+  const result = spawnSync('gh', ['pr', 'list', '--repo', 'tarsagent22/Bourbon-Signal', '--state', 'open', '--json', 'number'], { encoding: 'utf8', timeout: 30_000, windowsHide: true });
+  if (result.status !== 0) throw new Error('Release lane could not be verified.');
+  const pulls = JSON.parse(result.stdout);
+  if (!Array.isArray(pulls)) throw new Error('Invalid release lane response.');
+  return pulls;
+}
+
+export async function prepareNightlyReports() {
+  const settings = await config();
+  const directory = path.join(codexCoverageHome(), 'reports');
+  await mkdir(directory, { recursive: true });
+  const reports = [];
+  for (const name of (await readdir(directory)).filter(name => /^[a-f0-9]{64}\.json$/.test(name))) {
+    const record = await readJson(path.join(directory, name));
+    if (record.status === 'prepared') {
+      if (record.threadId !== settings.threadId) throw new Error('Foreign prepared report.');
+      reports.push({ receiptKey: name.slice(0, -5), text: record.text, preparedAt: record.preparedAt });
+    }
+  }
+  // Replays return the exact prepared set; do not acquire more receipts until delivery is reconciled.
+  if (!reports.length) {
+    for (let index = 0; index < 5000; index++) {
+      const report = await prepareCoverageReport({ claimNext: true });
+      if (report.status === 'delivery_uncertain') {
+        if (!reports.length) return { status: 'delivery_uncertain', reports };
+        break; // Previously acquired fresh receipts can be delivered without repeating the uncertain older result.
+      }
+      if (report.status === 'empty') break;
+      reports.push(report);
+    }
+  }
+  let ledger;
+  try { ledger = await readJson(nightlyPath()); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const pending = ledger ? ledger.snapshotCount - Object.values(ledger.entries).filter(entry => ['complete', 'superseded'].includes(entry.status)).length : 0;
+  const text = reports.length || pending > 0 ? ['Overnight coverage results', ...reports.map(report => report.text),
+    ...(pending > 0 ? [`Pending: ${pending} request(s) remain for a later run; no completion is claimed.`] : [])].join('\n\n') : null;
+  return { status: reports.length ? 'prepared' : pending > 0 ? 'pending' : 'empty', reports, text, pending };
 }
 
 export async function acknowledgeCoverageReport(receiptKey, proof) {
@@ -248,12 +389,17 @@ async function main() {
     const [command, jobKey, file] = process.argv.slice(2);
     let result;
     if (command === 'claim') result = await claimCoverageRequest();
+    else if (command === 'nightly') result = await startCoverageNight();
+    else if (command === 'next') result = await nextCoverageNightJob();
+    else if (command === 'defer') result = await deferCoverageRequest(jobKey, file);
+    else if (command === 'checkpoint') result = await checkpointCoverageRequest(jobKey, await readJson(path.resolve(file)));
+    else if (command === 'reports') result = await prepareNightlyReports();
     else if (command === 'verify-authority') result = { authorized: await verifyAuthority(jobKey, file) };
     else if (command === 'complete') result = await completeCoverageRequest(jobKey, await readJson(path.resolve(file)));
     else if (command === 'complete-existing') result = await completeCoverageRequest(jobKey, null, true);
     else if (command === 'report') result = await prepareCoverageReport();
     else if (command === 'ack-report') result = await acknowledgeCoverageReport(jobKey, await readJson(path.resolve(file)));
-    else throw new Error('Use claim, verify-authority, complete, complete-existing, report, or ack-report.');
+    else throw new Error('Use nightly, next, checkpoint, defer, reports, claim, verify-authority, complete, complete-existing, report, or ack-report.');
     console.log(JSON.stringify(result));
   } finally { await release(); }
 }

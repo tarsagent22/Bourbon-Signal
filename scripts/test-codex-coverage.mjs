@@ -3,9 +3,10 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { claimCoverageRequest, completeCoverageRequest, prepareCoverageReport, acknowledgeCoverageReport,
   codexCoverageHome, codexCoverageTaskId, validateCodexCoverageContext, validateCodexReportProof,
-  assertAuthorityCapabilityAbsentFromGit } from '../automation/bourbon-signal/codex-coverage.mjs';
+  assertAuthorityCapabilityAbsentFromGit, prepareNightlyReports, deferCoverageRequest } from '../automation/bourbon-signal/codex-coverage.mjs';
 
 const directory = await mkdtemp(path.join(tmpdir(), 'bs-codex-coverage-'));
 const previous = { home: process.env.CODEX_HOME, thread: process.env.CODEX_THREAD_ID, fetch: globalThis.fetch };
@@ -46,6 +47,8 @@ try {
   assert.equal(claimed.taskId, taskId);
   peekJob = { ...job, status: 'running', taskId };
   assert.equal((await claimCoverageRequest({ releaseLaneIsBusy: () => true })).status, 'running', 'An active task must resume while its own PR is open.');
+  assert.equal((await deferCoverageRequest(job.jobKey, 'research_budget', { releaseLaneIsBusy: () => true })).deferred, false,
+    'An open PR keeps its active request and production authority.');
   assert.doesNotMatch(JSON.stringify(claimed), new RegExp(capability));
   assert.notEqual(taskId, codexCoverageTaskId({ ...job, requestVersion: '2026-10-13T10:00:00.000Z' }, threadId));
   const record = { threadId, taskId, job, authorityCapability: capability };
@@ -76,6 +79,34 @@ try {
   await acknowledgeCoverageReport(report.receiptKey, proof);
   assert.equal((await acknowledgeCoverageReport(report.receiptKey, proof)).replayed, true);
   assert.equal(calls.filter(action => action === 'ack_notification').length, 1);
+  const batchJobs = ['sterling', 'glen-allen'].map((area, index) => {
+    const nextJob = { ...job, jobKey: job.jobKey.replace('abcdef0123456789', `abcdef012345678${index}`), areaKey: area,
+      canonicalTargetKey: `city:VA:${area}`, status: 'notification_pending' };
+    return { ...nextJob, taskId: codexCoverageTaskId(nextJob, threadId) };
+  });
+  for (const batchJob of batchJobs) {
+    await writeFile(path.join(codexCoverageHome(), 'claims', `${createHash('sha256').update(batchJob.jobKey).digest('hex')}.json`),
+      JSON.stringify({ threadId, job: batchJob, taskId: batchJob.taskId, authorityCapability: capability, status: 'complete' }));
+  }
+  let batchClaims = 0;
+  const acknowledged = [];
+  globalThis.fetch = async (_url, options) => {
+    const input = JSON.parse(options.body);
+    if (input.action === 'claim_notification') {
+      const batchJob = batchJobs[batchClaims++];
+      return Response.json({ job: batchJob ? { ...batchJob, terminalResult: result, deliveryUncertain: false } : null,
+        notificationToken: batchJob ? `44444444-4444-4444-8444-44444444444${batchClaims}` : null });
+    }
+    if (input.action === 'ack_notification') { acknowledged.push(input.jobKey); return Response.json({ acknowledged: true }); }
+    throw Error('Unexpected batch action');
+  };
+  const batch = await prepareNightlyReports();
+  assert.equal(batch.reports.length, 2); assert.match(batch.text, /Sterling/); assert.match(batch.text, /Glen Allen/);
+  assert.equal((await prepareNightlyReports()).reports.length, 2);
+  assert.equal(batchClaims, 3, 'Replaying an unacknowledged batch does not claim or resend another report.');
+  const batchProof = { ...proof, text: batch.text, messageId: 'msg_batch123456789', completedAt: new Date(Date.now() + 1000).toISOString() };
+  for (const receipt of batch.reports) await acknowledgeCoverageReport(receipt.receiptKey, batchProof);
+  assert.equal(new Set(acknowledged).size, 2, 'One actual final message acknowledges every contained receipt.');
   const text = await readFile(new URL('../automation/bourbon-signal/codex-coverage.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(text, /\bhermes\b|kanban|telegram/i, 'Codex coverage has no legacy runtime or reporting dependency.');
   console.log('Codex queue binding, authority leakage, exact coverage, and final-message receipt checks passed.');

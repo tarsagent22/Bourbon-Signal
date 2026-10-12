@@ -105,12 +105,17 @@ export async function POST(request: Request) {
     const action = opaque(input.action, "action", /^[a-z_]{3,40}$/);
     const repository = getCoverageRequestRepository();
 
-    if (action === "peek" || action === "claim" || action === "attach") {
+    if (action === "peek" || action === "list" || action === "claim" || action === "attach") {
       if (!authorizeOpsBearer(request.headers.get("authorization"), claimSecret())) return response({ error: "Unauthorized" }, 401);
-    } else if (action === "complete" || action === "complete_existing" || action === "fail" || action === "retry" || action === "claim_notification" || action === "ack_notification") {
+    } else if (action === "complete" || action === "complete_existing" || action === "defer" || action === "fail" || action === "retry" || action === "claim_notification" || action === "ack_notification") {
       if (!authorizeOpsBearer(request.headers.get("authorization"), outcomeSecret())) return response({ error: "Unauthorized" }, 401);
     } else if (action !== "verify_authority") {
       return response({ error: "Unsupported coverage automation action." }, 400);
+    }
+
+    if (action === "list") {
+      const jobs = await repository.listAutomationJobs();
+      return response({ contractVersion: CONTRACT_VERSION, jobs: jobs.map(job => publicJob(job)) });
     }
 
     if (action === "peek") {
@@ -120,7 +125,9 @@ export async function POST(request: Request) {
 
     if (action === "claim") {
       const leaseToken = randomUUID();
-      const job = await repository.claimAutomationJob(leaseToken);
+      const preferredJobKey = input.jobKey == null ? null : opaque(input.jobKey, "jobKey");
+      const now = new Date().toISOString();
+      const job = await repository.claimAutomationJob(leaseToken, now, new Date(Date.parse(now) + 5 * 60_000).toISOString(), preferredJobKey);
       return response({
         contractVersion: CONTRACT_VERSION,
         job: job ? publicJob(job) : null,
@@ -150,6 +157,13 @@ export async function POST(request: Request) {
     }
 
     const taskId = opaque(input.taskId, "taskId", TASK_ID);
+
+    if (action === "defer") {
+      const reason = opaque(input.reason, "reason", /^(?:research_budget|night_window_ended|source_wait|verification_wait)$/);
+      const job = await repository.deferAutomationJob(jobKey, taskId, reason);
+      if (!job) return response({ error: "Coverage deferral is stale or not bound to this task." }, 409);
+      return response({ contractVersion: CONTRACT_VERSION, job: publicJob(job) });
+    }
 
     if (action === "retry") {
       const job = await repository.retryAutomationJob(jobKey, taskId);

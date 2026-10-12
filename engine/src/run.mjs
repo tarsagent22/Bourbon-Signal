@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { ALL_STATE_SOURCES, STATE_SOURCES } from './state-sources.mjs';
+import { sourceRefreshScope } from './source-scoped-refresh.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
 import { ensureBrowserCdp, killBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
@@ -516,6 +517,7 @@ function buildSourceHealth(summary, reports, browserPreflight) {
 }
 
 async function main() {
+  sourceRefreshScope(); // Reject unsupported scopes before collecting or replacing any state artifacts.
   await mkdir(STATES_OUT, { recursive: true });
   const browserPreflight = await runBrowserPreflight();
   const allReports = [];

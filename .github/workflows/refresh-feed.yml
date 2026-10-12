@@ -15,6 +15,10 @@ on:
         description: "Optional comma-separated state ids to refresh"
         required: false
         default: ""
+      sources:
+        description: "Optional reviewed SC source lane ids; publish fresh target inventory independently and retain siblings as stale context"
+        required: false
+        default: ""
       va_required_store_id:
         description: "Optional comma-separated Virginia ABC store ids that must each have fresh customer-visible inventory before targeted VA publication"
         required: false
@@ -58,6 +62,8 @@ jobs:
       BOURBON_SIGNAL_DISABLED_STATES: ${{ vars.BOURBON_SIGNAL_DISABLED_STATES }}
       BOURBON_SIGNAL_QUARANTINED_STATES: ${{ vars.BOURBON_SIGNAL_QUARANTINED_STATES }}
       BOURBON_SIGNAL_VA_REQUIRED_STORE_ID: ${{ inputs.va_required_store_id || '' }}
+      BOURBON_SIGNAL_REFRESH_SOURCES: ${{ inputs.sources || '' }}
+      BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
     steps:
       - name: Checkout current production engine
         uses: actions/checkout@v4
@@ -70,6 +76,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci && npm --prefix engine ci
+
+      - name: Validate source-scoped dispatch before collection
+        if: ${{ inputs.sources != '' }}
+        run: node --input-type=module -e "import {sourceRefreshScope} from './engine/src/source-scoped-refresh.mjs'; sourceRefreshScope(); if (process.env.FORCE_ALL === 'true') throw Error('Source refresh cannot force all states');"
+        env:
+          FORCE_ALL: ${{ inputs.force_all_states || 'false' }}
 
       - name: Validate Virginia required-store dispatch
         if: ${{ inputs.va_required_store_id != '' }}
@@ -145,7 +157,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
-        run: node scripts/hydrate-state-reports.mjs
+        run: |
+          if [ -n "$BOURBON_SIGNAL_REFRESH_SOURCES" ]; then
+            BOURBON_SIGNAL_RUN_STATES='' node scripts/hydrate-state-reports.mjs
+          else
+            node scripts/hydrate-state-reports.mjs
+          fi
+
+      - name: Require published baseline for source-scoped refresh
+        if: ${{ inputs.sources != '' }}
+        env:
+          PUBLISHED_CACHE_KEY: ${{ steps.published-site-cache.outputs.cache-matched-key }}
+        run: node -e "if (!process.env.PUBLISHED_CACHE_KEY) throw Error('Source refresh requires a restored published baseline');"
 
       - name: Preserve last-published state partitions for scheduled verifier isolation
         if: ${{ !inputs.states }}
@@ -207,6 +230,9 @@ jobs:
             if [ "$status" -eq 0 ]; then
               exit 0
             fi
+            if [ -n "$BOURBON_SIGNAL_REFRESH_SOURCES" ]; then
+              exit "$status"
+            fi
             if [ "$attempt" -eq 1 ]; then
               echo "Refresh attempt failed with status $status; retrying once on the same runner from validated checkpoints."
               sleep 15
@@ -250,14 +276,19 @@ jobs:
         run: npm run verify:in
 
       - name: Verify targeted South Carolina All American inventory
-        if: ${{ inputs.states && contains(inputs.states, 'SC') }}
+        if: ${{ inputs.states && contains(inputs.states, 'SC') && !inputs.sources }}
         working-directory: engine
         run: npm run verify:sc-all-american
 
       - name: Verify complete targeted South Carolina inventory
-        if: ${{ inputs.states && contains(inputs.states, 'SC') }}
+        if: ${{ inputs.states && contains(inputs.states, 'SC') && !inputs.sources }}
         working-directory: engine
         run: npm run verify:sc
+
+      - name: Verify dispatched source inventory and customer-visible rows
+        if: ${{ inputs.sources != '' }}
+        working-directory: engine
+        run: node src/verify-source-refresh.mjs
 
       - name: Verify Georgia scheduled lane or isolate an explicit last-known fallback
         if: ${{ !inputs.states }}
@@ -404,7 +435,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           incident_key="superseded-${GITHUB_SHA:0:20}"
-          gh workflow run refresh-feed.yml --ref main -f force_all_states=true -f incident_key="$incident_key"
+          if [ -n "$BOURBON_SIGNAL_REFRESH_SOURCES" ]; then
+            gh workflow run refresh-feed.yml --ref main -f states="$BOURBON_SIGNAL_RUN_STATES" -f sources="$BOURBON_SIGNAL_REFRESH_SOURCES" -f incident_key="$incident_key"
+          else
+            gh workflow run refresh-feed.yml --ref main -f force_all_states=true -f incident_key="$incident_key"
+          fi
 
       - name: Fail refresh rejected by release guard
         if: steps.release-guard.outcome == 'failure'
@@ -524,3 +559,4 @@ jobs:
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
             engine/out/states/*.json
+            engine/out/source-refresh-verification.json

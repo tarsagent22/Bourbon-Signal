@@ -445,7 +445,8 @@ test('Grand Strand store universe expands without overstating static storefronts
 test('targeted South Carolina expansion forces a complete bounded first-party source pass', () => {
   assert.match(refreshWorkflow, /BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE:[^\n]*contains\(inputs\.states, 'SC'\)[^\n]*'1'/);
   assert.match(refreshWorkflow, /BOURBON_SIGNAL_SC_FORCE_PHASE1_LIVE:[^\n]*contains\(inputs\.states, 'SC'\)[^\n]*'1'/);
-  assert.match(collector, /async function collectSouthCarolina[\s\S]*runBoundedSourceLanes\(\[/);
+  assert.match(collector, /async function collectSouthCarolina[\s\S]*const lanes = \[[\s\S]*runBoundedSourceLanes\(lanes\.filter/);
+  assert.match(collector, /!scope\.length \|\| scope\.includes\(lane\.name\)/, 'Full-state runs keep every lane while reviewed source runs select only their cohort.');
   assert.match(collector, /\{ name: 'cityhive', domain: 'sc-cityhive-group'/);
   assert.match(collector, /\{ name: 'all-american', domain: 'aalmauldin\.com'/);
   assert.match(collector, /stateKey === 'SC' \? 420_000/);
@@ -457,6 +458,8 @@ test('targeted South Carolina expansion forces a complete bounded first-party so
   assert.match(collector, /Da Brown Bag searches failed for \$\{failures\.length\}/);
   assert.doesNotMatch(verifier, /Missing Da Brown Bag Clover inventory rows/);
   assert.match(refreshWorkflow, /Verify complete targeted South Carolina inventory[\s\S]*npm run verify:sc/);
+  assert.match(refreshWorkflow, /Verify complete targeted South Carolina inventory[\s\S]{0,180}!inputs\.sources/);
+  assert.match(refreshWorkflow, /Verify dispatched source inventory and customer-visible rows[\s\S]*verify-source-refresh\.mjs/);
   assert.match(liveProbe, /process\.env\.GH_TOKEN \|\| process\.env\.GITHUB_TOKEN/);
 });
 

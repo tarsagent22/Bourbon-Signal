@@ -1,0 +1,10 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import { sourceRefreshScope, verifySourceScopedEvidence } from './source-scoped-refresh.mjs';
+const ids = sourceRefreshScope();
+if (!ids.length) throw new Error('An explicit source refresh scope is required.');
+const read = async file => JSON.parse(await readFile(file, 'utf8'));
+const report = await read('out/states/SC.json');
+const drops = await read('out/site/drops.json');
+const result = verifySourceScopedEvidence(report, drops.drops, ids);
+await writeFile('out/source-refresh-verification.json', JSON.stringify(result, null, 2));
+console.log(JSON.stringify(result));

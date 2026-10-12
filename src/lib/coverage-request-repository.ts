@@ -294,6 +294,22 @@ export class CoverageRequestRepository {
     return rowToMemberRequest(row);
   }
 
+  async listAutomationJobs(now = new Date().toISOString()): Promise<CoverageAutomationJob[]> {
+    const rows = await this.database.query(`
+      SELECT job.*, CASE WHEN job.status = 'claimed' AND job.lease_expires_at <= $1::timestamptz
+        THEN 'queued' ELSE job.status END AS status
+      FROM coverage_request_automation_jobs AS job
+      JOIN coverage_requests AS request ON request.id = job.coverage_request_id
+      WHERE job.status IN ('queued', 'claimed', 'running')
+        AND request.status = 'requested' AND request.updated_at = job.request_version
+        AND request.baseline_coverage_fingerprint = job.baseline_coverage_fingerprint
+      ORDER BY CASE WHEN job.status = 'running' THEN 0 WHEN job.status = 'claimed' THEN 1 ELSE 2 END, job.created_at ASC
+      LIMIT 5001
+    `, [now]) as CoverageAutomationJobRow[];
+    if (rows.length > 5000) throw new Error('Coverage backlog exceeds the nightly snapshot limit.');
+    return rows.map(rowToAutomationJob);
+  }
+
   async peekAutomationJob(now = new Date().toISOString()): Promise<CoverageAutomationJob | null> {
     const rows = await this.database.query(`
       SELECT job.*, CASE WHEN job.status = 'claimed' AND job.lease_expires_at <= $1::timestamptz
@@ -313,6 +329,7 @@ export class CoverageRequestRepository {
     leaseToken: string,
     now = new Date().toISOString(),
     leaseExpiresAt = new Date(Date.parse(now) + 5 * 60_000).toISOString(),
+    preferredJobKey: string | null = null,
   ): Promise<CoverageAutomationJob | null> {
     const rows = await this.database.query(`
       WITH writer_lock AS (
@@ -326,12 +343,17 @@ export class CoverageRequestRepository {
         LIMIT 1
       ), candidate AS (
         SELECT job.job_key
-        FROM coverage_request_automation_jobs AS job, writer_lock
+        FROM coverage_request_automation_jobs AS job
+        JOIN coverage_requests AS request ON request.id = job.coverage_request_id
+        CROSS JOIN writer_lock
         WHERE (
           job.status = 'queued'
           OR (job.status = 'claimed' AND job.lease_expires_at <= $2::timestamptz)
         )
           AND job.task_id IS NULL
+          AND request.status = 'requested' AND request.updated_at = job.request_version
+          AND request.baseline_coverage_fingerprint = job.baseline_coverage_fingerprint
+          AND ($4::text IS NULL OR job.job_key = $4)
           AND NOT EXISTS (SELECT 1 FROM active)
         ORDER BY job.created_at ASC
         FOR UPDATE SKIP LOCKED
@@ -347,7 +369,7 @@ export class CoverageRequestRepository {
       UNION ALL
       SELECT * FROM claimed
       LIMIT 1
-    `, [leaseToken, now, leaseExpiresAt]) as CoverageAutomationJobRow[];
+    `, [leaseToken, now, leaseExpiresAt, preferredJobKey]) as CoverageAutomationJobRow[];
     return rows[0] ? rowToAutomationJob(rows[0]) : null;
   }
 
@@ -382,6 +404,26 @@ export class CoverageRequestRepository {
         AND request.baseline_coverage_fingerprint = job.baseline_coverage_fingerprint
       LIMIT 1
     `, [jobKey, taskId]) as CoverageAutomationJobRow[];
+    return rows[0] ? rowToAutomationJob(rows[0]) : null;
+  }
+
+  async deferAutomationJob(jobKey: string, taskId: string, reason: string, now = new Date().toISOString()): Promise<CoverageAutomationJob | null> {
+    const rows = await this.database.query(`
+      WITH writer_lock AS (
+        SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation', 0))
+      )
+      UPDATE coverage_request_automation_jobs AS job
+      SET status = 'queued', task_id = NULL, lease_token = NULL, lease_expires_at = NULL,
+          retry_history = job.retry_history || jsonb_build_array(jsonb_build_object(
+            'event', 'nightly_deferred', 'taskId', $2::text, 'reason', $3::text, 'deferredAt', $4::timestamptz)),
+          updated_at = $4::timestamptz
+      FROM coverage_requests AS request, writer_lock
+      WHERE job.job_key = $1 AND job.task_id = $2 AND job.status = 'running'
+        AND request.id = job.coverage_request_id AND request.status = 'requested'
+        AND request.updated_at = job.request_version
+        AND request.baseline_coverage_fingerprint = job.baseline_coverage_fingerprint
+      RETURNING job.*
+    `, [jobKey, taskId, reason, now]) as CoverageAutomationJobRow[];
     return rows[0] ? rowToAutomationJob(rows[0]) : null;
   }
 
