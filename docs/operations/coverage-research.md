@@ -18,6 +18,8 @@ For expansion, research a bounded set of lawful sources, reuse valid recent rese
 
 ## Release
 
+On this Windows host, invoke release wrappers with the bundled Codex Python executable at `C:/Users/chand/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe`. Do not use a Python executable inside a Hermes installation, even when it appears first on PATH.
+
 The standing authorization applies only to authenticated coverage work. The shared writer lock, current main, sole PR, objective ownership, authority leakage checks, exact reviewed head, required checks, and production verification remain mandatory. No force pushes, quality overrides, unreviewed customer messages, or releases outside coverage.
 
 Before admission, save the reviewed PR body with the exact standalone line `Authority immutable job key: <jobKey>`. Run `verify-authority <jobKey> <taskId>`, then use:

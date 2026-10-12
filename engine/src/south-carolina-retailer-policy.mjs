@@ -1,3 +1,4 @@
+import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 const SOUTHERN_SPIRITS_SOURCE = 'Southern Spirits Shopify products feed';
 const SOUTHERN_SPIRITS_STORE_ID = 'southern-spirits:southern-spirits-indian-land';
 const SOUTHERN_SPIRITS_ADDRESS = '9989 charlotte hwy indian land sc 29707';
@@ -552,6 +553,7 @@ export function isSouthCarolinaCityHiveInventory(signal, nowMs = Date.now()) {
 }
 
 export function hasSouthCarolinaPositiveInventoryEvidence(signal) {
+  if (isTasteSignal(signal)) return isTasteInventory(signal);
   if (isSouthCarolinaAllAmericanSignal(signal)) return isSouthCarolinaAllAmericanInventory(signal);
   if (isSouthCarolinaSouthernSpiritsSignal(signal)) return isSouthCarolinaSouthernSpiritsInventory(signal);
   if (signal?.eventType === 'cityhive_store_inventory_result' || /CityHive/i.test(String(signal?.sourceLabel || signal?.source || ''))) {

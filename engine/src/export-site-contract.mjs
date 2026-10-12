@@ -1,3 +1,4 @@
+import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -303,10 +304,11 @@ function isTennesseeCityHiveInventory(signal) {
 }
 
 function isSouthCarolinaAllowedRetailerSource(signal) {
-  return /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Dunes Liquor|Southern Spirits|All American Liquor/i.test(String(signal.sourceLabel || signal.source || ''));
+  return /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Dunes Liquor|Southern Spirits|All American Liquor|Taste Liquors/i.test(String(signal.sourceLabel || signal.source || ''));
 }
 
 function isSouthCarolinaRetailerInventory(signal) {
+  if (isTasteSignal(signal)) return isTasteInventory(signal);
   if (isSouthCarolinaDunesSignal(signal)) return isSouthCarolinaDunesInventory(signal);
   if (isSouthCarolinaLiquorLibrarySignal(signal)) return isSouthCarolinaLiquorLibraryInventory(signal);
   if (isSouthCarolinaDiscountLiquorSignal(signal)) return isSouthCarolinaDiscountLiquorInventory(signal);
@@ -399,7 +401,7 @@ export function publicSignal(signal, bible, freshness = null) {
   const isTnCityHiveInventory = isTennesseeCityHiveInventory(signal);
   const isTnRetailerInventory = isTennesseeRetailerInventory(signal);
   const isScRetailerInventory = isSouthCarolinaRetailerInventory(signal);
-  const isScSouthernBinaryInventory = isSouthCarolinaSouthernSpiritsInventory(signal);
+  const isScSouthernBinaryInventory = isSouthCarolinaSouthernSpiritsInventory(signal) || isTasteInventory(signal);
   const isAzRetailerInventory = isArizonaRetailerInventory(signal);
   const isFlRetailerInventory = isFloridaRetailerInventory(signal);
   const isGaRetailerInventory = isGeorgiaRetailerInventory(signal);
@@ -440,7 +442,7 @@ export function publicSignal(signal, bible, freshness = null) {
               ? 'Indiana is a private retail market. Identity-bound first-party retailer inventory and verified store-orderability rows may alert with a verify-before-driving caveat; binary availability is not an exact shelf count.'
               : signal.inventorySemantics;
   const staleFallback = signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true;
-  const exactScRetailerIdentityAllowed = (!isSouthCarolinaSouthernSpiritsSignal(signal) || isSouthCarolinaSouthernSpiritsInventory(signal))
+  const exactScRetailerIdentityAllowed = (!isTasteSignal(signal) || isTasteInventory(signal)) && (!isSouthCarolinaSouthernSpiritsSignal(signal) || isSouthCarolinaSouthernSpiritsInventory(signal))
     && (!isSouthCarolinaDunesSignal(signal) || isSouthCarolinaDunesInventory(signal))
     && (!isSouthCarolinaAllAmericanSignal(signal) || isSouthCarolinaAllAmericanInventory(signal))
     && (!isSouthCarolinaLiquorLibrarySignal(signal) || isSouthCarolinaLiquorLibraryInventory(signal))
@@ -1192,6 +1194,7 @@ function isUserFacingDropSignal(signal) {
       && Boolean(signal.canonicalBottleId);
   }
   if (isSouthCarolinaDunesSignal(signal)) return isSouthCarolinaDunesInventory(signal);
+  if (isTasteSignal(signal)) return isTasteInventory(signal);
   if (isSouthCarolinaSouthernSpiritsSignal(signal)) return isSouthCarolinaSouthernSpiritsInventory(signal);
   if (type.includes('out_of_stock') || type.includes('out-of-stock')) return false;
   if (type.includes('lottery') || type.includes('raffle') || type.includes('tasting')) return false;
@@ -1945,10 +1948,10 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
         && Number(drop.quantity || 0) === 0
         && drop.quantityIsExact === false
         && isSouthCarolinaCityHiveInventory(drop);
-      const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(drop)
+      const southCarolinaBinaryBaseline = isTasteInventory(drop) || isSouthCarolinaSouthernSpiritsInventory(drop)
         || southCarolinaInStoreBaseline
         || southCarolinaCityHiveBinaryBaseline;
-      const binaryRetailerOrderability = (drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)) || floridaBinaryBaseline || isSouthCarolinaSouthernSpiritsInventory(drop) || (
+      const binaryRetailerOrderability = (drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)) || floridaBinaryBaseline || isTasteInventory(drop) || isSouthCarolinaSouthernSpiritsInventory(drop) || (
         (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
         && Number(drop.quantity || 0) === 0
@@ -2003,6 +2006,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       leafSourceRuntimeId: drop.leafSourceRuntimeId || null,
       merchantId: drop.merchantId || null,
       productId: drop.productId || null,
+      sourceProductBinding: drop.sourceProductBinding || null,
       productHandle: drop.productHandle || null,
       variantId: drop.variantId || null,
       variantAvailable: typeof drop.variantAvailable === 'boolean' ? drop.variantAvailable : null,
@@ -2017,6 +2021,8 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       storeId: drop.storeId || null,
       storeAddress: drop.storeAddress,
       city: drop.city || null,
+      lat: drop.lat ?? null,
+      lng: drop.lng ?? null,
       postalCode: drop.zip || null,
       zip: drop.zip || null,
       quantity: drop.quantity || 0,
