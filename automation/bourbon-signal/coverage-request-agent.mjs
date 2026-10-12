@@ -316,6 +316,8 @@ AUTHENTICATED REQUEST
 
 STAGE 1 — EXPLORATION
 1. Reconcile current origin/main, open PRs, the objective lock, and the immutable production baseline before editing. Work only in this task's isolated worktree and branch.
+   First check whether current coverage already satisfies the exact requested geography. For a fully covered state or city, finish with outcome blocked, blockerCode already_covered, requesterNotification {ready:false,reasonCode:blocked}, no PR or refresh, and a completed evidence audit. The trusted completion endpoint independently verifies live coverage before closing it. Do not use this code for partial, stale, directory-only, or shipment-only coverage. County and store requests require target-level expansion proof.
+   Reuse valid recent source audits for overlapping requests and combine duplicate source work. Work in this immutable request attempt only; never reuse a finished task from an older request version.
 2. Build a bounded audit of the known lawful source universe. Record every reviewed source with a stable lowercase source ID, source class, outcome, and reason code. Keep first-party inventory, delegated marketplaces, official directories, and other public evidence distinct.
 3. Perform broad lawful discovery without bypassing access controls, authentication, robots restrictions, bot protection, licensing, or explicit denials.
 4. Implement the highest-yield defensible expansion. Keep configured stores, collected signals, exact-store rows, customer cards, alert-grade evidence, and outbound alerts distinct. Never invent quantity, pickup, delivery, or fulfillment claims.
@@ -399,6 +401,19 @@ export function buildEngineOpsMessage(job, result) {
   return lines.join('\n');
 }
 
+export function buildOwnerCompletionReport(job, result) {
+  const area = (job.areaKey || '').replace(/[-:]/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+  const target = area ? `${area}${job.targetType === 'county' ? ' County' : ''}, ${job.stateCode}` : job.stateCode;
+  const complete = result.outcome === 'improved' && result.requesterNotification?.ready === true || result.blockerCode === 'already_covered';
+  const lines = [`${complete ? 'Complete' : 'Failed'} — ${target}`, result.headline];
+  if (result.outcome === 'improved') lines.push(`Current stores: ${result.metrics.productionLiveStores}.`);
+  if (result.outcome === 'engine_improved') lines.push('The engine fix is live, but this coverage request is not fulfilled.');
+  if (result.pullRequest) lines.push(`Change: ${result.pullRequest.url}`);
+  if (result.canonicalVerification?.verified && result.canonicalVerification.url) lines.push(`Coverage: ${result.canonicalVerification.url}`);
+  lines.push(...result.limitations.map(line => `• ${line}`));
+  return lines.join('\n');
+}
+
 function runHermes(args, timeout = 90_000) {
   const command = process.env.HERMES_COMMAND || 'hermes';
   const result = spawnSync(command, args, { encoding: 'utf8', timeout, windowsHide: true, shell: false });
@@ -414,7 +429,11 @@ function parseJson(text, label) {
 export function coverageTaskPolicy(mode = 'review') {
   if (!['review', 'guarded_release'].includes(mode)) throw new Error('Coverage automation mode is invalid.');
   const review = mode === 'review';
-  return { review, maxRuntime: review ? '45m' : '8h', maxRetries: review ? '1' : '3', maxTurns: review ? '8' : '50' };
+  return { review, maxRuntime: review ? '45m' : '2h', maxRetries: '1', maxTurns: review ? '8' : '24' };
+}
+
+export function coverageTaskIdentity(job) {
+  return createHash('sha256').update(`${job.jobKey}|${job.requestVersion}`).digest('hex').slice(0, 32);
 }
 
 export function validateCoverageResearchResult(raw) {
@@ -615,7 +634,8 @@ async function post(config, secret, payload, { allowConflict = false } = {}) {
 }
 
 async function createTask(config, job, authorityCapability) {
-  const suffix = createHash('sha256').update(job.jobKey).digest('hex').slice(0, 12);
+  const identity = coverageTaskIdentity(job);
+  const suffix = identity.slice(0, 12);
   const branch = `coverage/${job.stateCode.toLowerCase()}-${suffix}`;
   const { review, maxRuntime, maxRetries, maxTurns } = coverageTaskPolicy(config.mode);
   if (!review) await persistAuthorityCapability(job.jobKey, authorityCapability);
@@ -624,7 +644,7 @@ async function createTask(config, job, authorityCapability) {
     'kanban', '--board', config.board, 'create', `${review ? 'Coverage research' : 'Coverage expansion'}: ${job.canonicalTargetKey}`,
     '--body', body, '--assignee', config.assignee, '--project', config.project,
     '--workspace', 'worktree', '--branch', branch, '--priority', '100',
-    '--idempotency-key', job.jobKey, '--max-runtime', maxRuntime, '--max-retries', maxRetries,
+    '--idempotency-key', `coverage-${identity}`, '--max-runtime', maxRuntime, '--max-retries', maxRetries,
     '--created-by', 'coverage-request-automation', '--skill', 'bourbon-signal-product-engineering',
     '--skill', 'vercel-production-release-safety', '--goal', '--goal-max-turns', maxTurns, '--json',
   ]);
@@ -671,7 +691,7 @@ async function deliverPendingNotification(config) {
   if (!claimed.payload.job) return false;
   const job = normalizeJob(claimed.payload.job, { includeResult: true });
   const token = cleanText(claimed.payload.notificationToken, 'notificationToken', 36, /^[a-f0-9-]{36}$/);
-  const message = buildEngineOpsMessage(job, job.terminalResult);
+  const message = buildOwnerCompletionReport(job, job.terminalResult);
   const sent = parseJson(runHermes(['send', '--to', config.engineOpsTarget, '--json', message], 60_000), 'Engine Ops send');
   if (sent.success !== true) throw new Error('Engine Ops delivery was not accepted.');
   const messageId = platformMessageId(sent);
@@ -727,7 +747,7 @@ async function processJob(config) {
     await removeAuthorityCapability(job.jobKey);
     return true;
   }
-  await post(config, config.outcomeSecret, { action: 'complete', jobKey: job.jobKey, taskId: job.taskId, terminalResult: completionResult });
+  await post(config, config.outcomeSecret, { action: result.blockerCode === 'already_covered' ? 'complete_existing' : 'complete', jobKey: job.jobKey, taskId: job.taskId, terminalResult: completionResult });
   await removeAuthorityCapability(job.jobKey);
   return true;
 }

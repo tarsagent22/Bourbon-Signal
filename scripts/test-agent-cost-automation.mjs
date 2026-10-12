@@ -65,7 +65,7 @@ assert.ok(readFileSync(resolve('scripts/export_hermes_jobs.py'), 'utf8').include
 assert.equal(registry.schemaVersion, 1);
 const wrongCoverageRuntime = structuredClone(hermesSnapshot);
 wrongCoverageRuntime.jobs.find(job => job.jobId === '0af9a869e52a').script = 'bourbon_signal_coverage_request_agent.py';
-assert.ok(verifyAutomationRegistry(registry, { hermesJobs: wrongCoverageRuntime }).failures.some(failure => /review-only launcher/.test(failure)), 'Research scheduling must reject the old release launcher.');
+assert.ok(verifyAutomationRegistry(registry, { hermesJobs: wrongCoverageRuntime }).failures.some(failure => /completion launcher/.test(failure)), 'Completion scheduling must reject a launcher without a forced policy.');
 assert.equal(registry.timezone, 'America/New_York');
 assert.equal(cadence.timezone, 'America/New_York');
 const shadowCron = readFileSync(resolve('.github/workflows/state-expansion-shadow.yml'), 'utf8').match(/cron:\s*["']([^"']+)["']/)?.[1];
@@ -105,7 +105,7 @@ assert.deepEqual([codingOperator.noAgent, codingOperator.script, codingOperator.
 assert.match(codingOperator.profileSafetyHash || '', /^[a-f0-9]{64}$/);
 assert.equal(codingOperator.workdir, 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-operator-base');
 const coverageResearchJob = hermesSnapshot.jobs.find(job => job.jobId === '0af9a869e52a');
-assert.equal(coverageResearchJob.script, 'bourbon_signal_coverage_request_review.py');
+assert.equal(coverageResearchJob.script, 'bourbon_signal_coverage_request_complete.py');
 assert.equal(coverageResearchJob.workdir.replace(/\\+/g, '/'), 'C:/Users/chand/projects/bs-coverage-research-base');
 assert.ok(hermesSnapshot.jobs.filter((job) => job !== codingOperator && job !== sourceScoutJob && job !== coverageResearchJob).every((job) => job.workdir === 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous'), 'Other jobs must use the authoritative automation checkout.');
 for (const job of hermesSnapshot.jobs.filter((row) => !row.noAgent)) {

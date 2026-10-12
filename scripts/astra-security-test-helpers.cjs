@@ -13,7 +13,7 @@ function functions(file, names, bindings = {}) {
   vm.runInContext(ts.transpile(text, { target: ts.ScriptTarget.ES2022 }), context, { filename: file });
   return context;
 }
-function moduleFrom(file, stubs = {}, cache = new Map()) {
+function moduleFrom(file, stubs = {}, cache = new Map(), env = {}) {
   const full = path.resolve(root, file);
   if (cache.has(full)) return cache.get(full);
   const exports = {};
@@ -25,12 +25,12 @@ function moduleFrom(file, stubs = {}, cache = new Map()) {
     if (id.startsWith('./') || id.startsWith('../')) {
       let target = path.resolve(path.dirname(full), id);
       if (!path.extname(target)) target += '.ts';
-      return moduleFrom(target, stubs, cache);
+      return moduleFrom(target, stubs, cache, env);
     }
     throw new Error(`Unstubbed import (network blocked): ${id} in ${file}`);
   };
   vm.runInNewContext(ts.transpileModule(text, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true, jsx: ts.JsxEmit.ReactJSX } }).outputText,
-    { exports, require: requireLocal, console, Date, URL, Response, Request, process: { env: { STRIPE_SECRET_KEY: 'offline-fixture', STRIPE_WEBHOOK_SECRET: 'offline-fixture' }, cwd: () => root }, setTimeout, clearTimeout, setInterval, clearInterval, Buffer }, { filename: full });
+    { exports, require: requireLocal, console, Date, URL, Response, Request, process: { env: { STRIPE_SECRET_KEY: 'offline-fixture', STRIPE_WEBHOOK_SECRET: 'offline-fixture', ...env }, cwd: () => root }, setTimeout, clearTimeout, setInterval, clearInterval, Buffer }, { filename: full });
   return exports;
 }
 module.exports = { functions, moduleFrom, root };

@@ -637,7 +637,8 @@
       "externalApi": {
         "classes": [
           "production_coverage_queue",
-          "local_kanban"
+          "local_kanban",
+          "engine_ops_outbox"
         ],
         "maxRequestsPerRun": 8
       },
@@ -647,7 +648,8 @@
       "killSwitch": "cron_pause:0af9a869e52a",
       "artifacts": [
         "coverage_request_automation_jobs",
-        "coverage_expansion_terminal_results"
+        "coverage_expansion_terminal_results",
+        "engine_ops_delivery_receipts"
       ]
     },
     {

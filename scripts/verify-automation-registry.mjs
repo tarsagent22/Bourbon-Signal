@@ -96,8 +96,8 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
           if (normalizedWindowsPath(liveJob.workdir) !== normalizedWindowsPath(SOURCE_SCOUT_WORKDIR) || liveJob.script !== 'resolve-source-scout-input.py') fail(failures, `${prefix} requires its isolated scout checkout and Python launcher.`);
         } else if (entry.id === 'hermes-coverage-request-completion-lane') {
           if (normalizedWindowsPath(liveJob.workdir) !== normalizedWindowsPath(COVERAGE_RESEARCH_WORKDIR)
-            || liveJob.script !== 'bourbon_signal_coverage_request_review.py'
-            || liveJob.noAgent !== true) fail(failures, `${prefix} requires its isolated research checkout and review-only launcher.`);
+            || liveJob.script !== 'bourbon_signal_coverage_request_complete.py'
+            || liveJob.noAgent !== true) fail(failures, `${prefix} requires its isolated coverage checkout and completion launcher.`);
         } else if (liveJob.workdir !== expectedHermesWorkdir) fail(failures, `${prefix} live scheduler workdir drifted from the host repository root.`);
         if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script-only or profile-wrapped job must expose its live cron pause kill switch.`);
         if (entry.delivery === 'main_chat' && liveJob.deliver !== 'origin') fail(failures, `${prefix} must deliver to the main chat origin.`);

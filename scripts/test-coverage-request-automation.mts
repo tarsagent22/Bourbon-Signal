@@ -8,6 +8,8 @@ import {
   buildCoverageExpansionPrompt,
   buildCoverageResearchPrompt,
   coverageTaskPolicy,
+  coverageTaskIdentity,
+  buildOwnerCompletionReport,
   validateCoverageResearchResult,
   buildEngineOpsMessage,
   assertAuthorityCapabilityAbsent,
@@ -42,6 +44,9 @@ const job = {
 assert.deepEqual(normalizeJob(job), job);
 assert.deepEqual(coverageTaskPolicy(), { review: true, maxRuntime: '45m', maxRetries: '1', maxTurns: '8' });
 assert.equal(coverageTaskPolicy('guarded_release').review, false);
+assert.equal(coverageTaskPolicy('guarded_release').maxRuntime, '2h');
+assert.equal(coverageTaskIdentity(job), coverageTaskIdentity({ ...job }));
+assert.notEqual(coverageTaskIdentity(job), coverageTaskIdentity({ ...job, requestVersion: '2026-10-12T00:00:00.000Z' }));
 assert.throws(() => coverageTaskPolicy('release'), /invalid/);
 const research = buildCoverageResearchPrompt(job);
 assert.match(research, /NO production-release authority/);
@@ -243,6 +248,8 @@ const message = buildEngineOpsMessage({ ...job, taskId: "t_abc123" }, result);
 assert.match(message, /^✅ Coverage expansion live: city:FL:pensacola \(FL\)/);
 assert.match(message, /PR: #999/);
 assert.match(message, /Exact-store rows: 0 → 8/);
+assert.match(buildOwnerCompletionReport(job, result), /^Complete — Pensacola, FL/);
+assert.doesNotMatch(buildOwnerCompletionReport(job, result), /Request:|Task:|Artifact:/);
 assert.doesNotMatch(message, /MEDIA\s*:|\[\[/i);
 
 const blocked = {
@@ -297,6 +304,7 @@ const automationFailure = {
 };
 assert.deepEqual(normalizeTerminalResult(automationFailure), automationFailure);
 assert.deepEqual(parseCoverageAutomationResult(automationFailure), automationFailure);
+assert.match(buildOwnerCompletionReport(job, automationFailure), /^Failed — Pensacola, FL/);
 const automationFailureMessage = buildEngineOpsMessage({ ...job, taskId: "t_failed123" }, automationFailure);
 assert.match(automationFailureMessage, /terminal evidence was not accepted/i);
 assert.match(automationFailureMessage, /automation_terminal_contract_failure/);
@@ -393,8 +401,8 @@ assert.match(schema, /retry_history JSONB/);
 
 const agent = read("automation/bourbon-signal/coverage-request-agent.mjs");
 assert.match(agent, /open\(lockPath, 'wx'/);
-assert.match(agent, /createHash\('sha256'\)\.update\(job\.jobKey\)/);
-assert.match(agent, /--idempotency-key', job\.jobKey/);
+assert.match(agent, /job\.jobKey\}\|\$\{job\.requestVersion/);
+assert.match(agent, /--idempotency-key', `coverage-\$\{identity\}`/);
 assert.match(agent, /notificationToken/);
 assert.match(agent, /platformMessageId/);
 assert.match(agent, /coverage-authority/);

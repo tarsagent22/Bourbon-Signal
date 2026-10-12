@@ -2,12 +2,21 @@ import assert from 'node:assert/strict';
 import { buildMemberSetupProgress } from '../src/lib/member-setup-progress.ts';
 import { buildAutomationCostReport } from '../automation/bourbon-signal/automation-cost-report.mjs';
 import { evaluateProductionHealth } from './production-engine-watchdog.mjs';
+import { existingCoverageVerified } from '../src/lib/coverage-existing-proof';
 import { runCoverageRequestAgent } from '../automation/bourbon-signal/coverage-request-agent.mjs';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const now = new Date('2026-10-11T12:00:00Z');
+const target = { targetType: 'city', stateCode: 'VA', canonicalTargetKey: 'city:VA:sterling' };
+const coverage = { code: 'VA', health: 'current', coverageDepth: 'deep', coverageStatus: 'available', freshness: { currentInventoryStores: 50 } };
+const evidence = [{ kind: 'city', stateCode: 'VA', canonicalTargetKey: target.canonicalTargetKey, status: 'covered' }];
+assert.equal(existingCoverageVerified(target, coverage, evidence), true);
+assert.equal(existingCoverageVerified(target, coverage, [{ ...evidence[0], canonicalTargetKey: 'city:VA:richmond' }]), false);
+assert.equal(existingCoverageVerified(target, { ...coverage, health: 'stale' }, evidence), false);
+assert.equal(existingCoverageVerified({ ...target, targetType: 'state' }, { ...coverage, coverageDepth: 'focused' }), false);
+assert.equal(existingCoverageVerified(target, { ...coverage, freshness: { currentInventoryStores: 0 } }, evidence), false);
 const activity = { platform: 'ios' as const, appVersion: '1.1.0', updateId: null,
   firstSeenAt: '2026-10-09T10:00:00Z', lastSeenAt: '2026-10-11T10:00:00Z' };
 const paid = { membershipTier: 'standard', membershipStatus: 'active',

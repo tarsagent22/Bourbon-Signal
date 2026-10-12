@@ -358,6 +358,18 @@ export class CoverageRequestRepository {
     return rows[0] ? rowToAutomationJob(rows[0]) : null;
   }
 
+  async readBoundAutomationJob(jobKey: string, taskId: string): Promise<CoverageAutomationJob | null> {
+    const rows = await this.database.query(`
+      SELECT job.* FROM coverage_request_automation_jobs AS job
+      JOIN coverage_requests AS request ON request.id = job.coverage_request_id
+      WHERE job.job_key = $1 AND job.task_id = $2 AND job.status = 'running'
+        AND request.status = 'requested' AND request.updated_at = job.request_version
+        AND request.baseline_coverage_fingerprint = job.baseline_coverage_fingerprint
+      LIMIT 1
+    `, [jobKey, taskId]) as CoverageAutomationJobRow[];
+    return rows[0] ? rowToAutomationJob(rows[0]) : null;
+  }
+
   async completeAutomationTask<TerminalResult extends { outcome: unknown }>(
     jobKey: string,
     taskId: string,
@@ -388,6 +400,7 @@ export class CoverageRequestRepository {
         UPDATE coverage_requests AS request
         SET
           status = CASE
+            WHEN $3::jsonb->>'blockerCode' = 'already_covered' THEN 'closed'
             WHEN $4 = 'improved' AND COALESCE($3::jsonb->'requesterNotification'->>'ready', 'false') = 'true' THEN 'improved'
             ELSE 'on_radar'
           END,
