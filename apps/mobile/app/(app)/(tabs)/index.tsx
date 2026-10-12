@@ -11,6 +11,7 @@ import { AccessibilityInfo, AppState, FlatList, Image, ImageBackground, Keyboard
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
+import { FeedSkeleton } from "../../../src/components/FeedSkeleton";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
@@ -91,21 +92,6 @@ function OptionChooser({
       })}
     </ScrollView> : null}
   </View>;
-}
-
-function FeedSkeleton() {
-  return (
-    <View accessibilityLabel="Loading Signals" style={styles.skeletonList}>
-      {[0, 1, 2].map((item) => (
-        <View key={item} style={styles.skeletonCard}>
-          <View style={styles.skeletonTop} />
-          <View style={styles.skeletonTitle} />
-          <View style={styles.skeletonLine} />
-          <View style={styles.skeletonShort} />
-        </View>
-      ))}
-    </View>
-  );
 }
 
 export default function SignalFeedScreen() {
@@ -712,7 +698,7 @@ export default function SignalFeedScreen() {
       onEndReachedThreshold={0.5}
       ListHeaderComponent={header}
       ListEmptyComponent={!loaded && !error
-        ? <FeedSkeleton />
+        ? <FeedSkeleton community={view === "community"} />
         : error
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
           : marketLocked && !paidAccessMismatch
@@ -800,12 +786,6 @@ const styles = StyleSheet.create({
   unlockCopy: { flex: 1, gap: 3 },
   unlockTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: "800" },
   unlockText: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
-  skeletonList: { gap: 12 },
-  skeletonCard: { height: 132, borderRadius: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, padding: 14, gap: 11 },
-  skeletonTop: { width: 80, height: 15, borderRadius: 8, backgroundColor: colors.surfaceRaised },
-  skeletonTitle: { width: "68%", height: 20, borderRadius: 7, backgroundColor: colors.surfaceRaised },
-  skeletonLine: { width: "84%", height: 14, borderRadius: 7, backgroundColor: colors.surfaceRaised },
-  skeletonShort: { width: "45%", height: 12, borderRadius: 6, backgroundColor: colors.surfaceRaised },
   message: { alignItems: "center", gap: 12, padding: 28 },
   error: { color: colors.danger, textAlign: "center" },
   retry: { color: colors.accent, fontWeight: "800" },

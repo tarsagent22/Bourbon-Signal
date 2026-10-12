@@ -29,9 +29,9 @@ test("compact rows qualify counted reports without implying verified inventory",
   const retailer = signal({ source: { type: "retailer", label: "Retailer" }, availability: { status: "available_now", quantity: 2 } });
   assert.deepEqual(signalRowFacts(retailer, now), { quantity: "2 bottles retailer-reported", status: "Retailer reports available", showStatus: false });
   assert.equal(signalRowFacts(signal(), now).showStatus, false, "bare Reported adds no useful status even when quantity is unknown");
-  assert.equal(signalRowTimeLabel(counted, new Date("2026-08-23T18:00:00Z")), "Checked 6h ago");
+  assert.equal(signalRowTimeLabel(counted, new Date("2026-08-23T18:00:00Z")), "Last reported 6 hours ago");
   assert.equal(signalRowTimeLabel(retailer, now), "Reported 1 hour ago", "retailer attribution keeps its existing timing");
-  assert.match(signalAccessibilityLabel(counted, now), /Last checked 1 hour ago/, "screen readers retain the full check time");
+  assert.match(signalAccessibilityLabel(counted, now), /Last reported 1 hour ago/, "screen readers retain the full report time");
 });
 
 test("compact bottle names retain rye and bottled-in-bond identity qualifiers", () => {

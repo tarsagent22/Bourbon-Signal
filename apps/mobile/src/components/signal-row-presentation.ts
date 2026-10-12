@@ -1,11 +1,8 @@
 import type { Signal } from "../api/types";
-import { presentBottleIdentity, presentSignal, signalCardStatusLabel, signalListingPresentation, relativeSignalTime, reportAge } from "../api/presentation";
+import { presentBottleIdentity, presentSignal, signalCardStatusLabel, signalListingPresentation, reportAge } from "../api/presentation";
 
 export function signalRowTimeLabel(signal: Signal, now = new Date()) {
-  const age = reportAge(signal, now);
-  return signal.kind === "availability" && signal.source.type === "trusted_source" && age.value
-    ? `Checked ${relativeSignalTime(age.value, now).replace(/^Now$/, "now")}`
-    : age.label;
+  return reportAge(signal, now).label;
 }
 
 export function signalRowBottleIdentity(name: string) {
