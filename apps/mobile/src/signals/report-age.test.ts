@@ -12,7 +12,7 @@ test("old discoveries with fresh engine checks remain available without claiming
   assert.equal(reportAge(listing, now).older, false);
   assert.equal(signalAvailabilityIsCurrent(listing, now), true);
   assert.equal(signalListingPresentation(listing, now)?.status, "Still listed available");
-  assert.match(signalListingPresentation(listing, now)?.firstSpotted || "", /First spotted Oct 8/);
+  assert.match(signalListingPresentation(listing, now)?.firstSpotted || "", /First reported Oct 8/);
   const changed = { ...listing, listingChange: "price_drop" as const, timing: { ...listing.timing, displayAt: "2026-10-10T14:48:00Z" } };
   assert.equal(signalListingPresentation(changed, now)?.status, "Price dropped · Still listed available");
   assert.equal(signalListingPresentation({ ...changed, historical: true }, now)?.status, "Historical report");

@@ -1,8 +1,19 @@
 import type { Signal } from "../api/types";
-import { presentBottleIdentity, presentSignal, signalCardStatusLabel, signalListingPresentation, reportAge } from "../api/presentation";
+import { presentBottleIdentity, presentSignal, signalCardStatusLabel, signalListingPresentation, reportAge, relativeSignalTime } from "../api/presentation";
 
 export function signalRowTimeLabel(signal: Signal, now = new Date()) {
   return reportAge(signal, now).label;
+}
+
+export function signalRowReportSummary(signal: Signal, now = new Date()) {
+  const quantity = presentSignal(signal).quantity;
+  const counted = /^\d+ bottles?$/.test(quantity);
+  const age = reportAge(signal, now);
+  const time = age.value ? relativeSignalTime(age.value, now).replace(/^Now$/, "just now") : "Time unknown";
+  return {
+    label: signal.kind === "availability" ? `${counted ? quantity : "Report"} · ${time}` : age.label,
+    quantityInSummary: signal.kind === "availability" && counted,
+  };
 }
 
 export function signalRowBottleIdentity(name: string) {

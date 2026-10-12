@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "./types";
 import { presentBottleIdentity, presentSignal, signalAccessibilityLabel, signalFeedCardAppearance, signalCardStatusLabel, signalMemberTagLabel, signalReporterAttribution } from "./presentation";
-import { signalRowBottleIdentity, signalRowFacts, signalRowTimeLabel } from "../components/signal-row-presentation";
+import { signalRowBottleIdentity, signalRowFacts, signalRowTimeLabel, signalRowReportSummary } from "../components/signal-row-presentation";
 
 function signal(overrides: Partial<Signal> = {}): Signal {
   return {
@@ -32,6 +32,25 @@ test("compact rows qualify counted reports without implying verified inventory",
   assert.equal(signalRowTimeLabel(counted, new Date("2026-08-23T18:00:00Z")), "Last reported 6 hours ago");
   assert.equal(signalRowTimeLabel(retailer, now), "Reported 1 hour ago", "retailer attribution keeps its existing timing");
   assert.match(signalAccessibilityLabel(counted, now), /Last reported 1 hour ago/, "screen readers retain the full report time");
+});
+
+test("corner reports pair quantity with the latest observation rather than the original discovery", () => {
+  const now = new Date("2026-10-12T18:00:00Z");
+  const row = signal({ timing: { displayAt: "2026-10-10T12:00:00Z", firstSpottedAt: "2026-10-10T12:00:00Z", lastCheckedAt: "2026-10-12T12:00:00Z" }, availability: { status: "reported", quantity: 6 } });
+  assert.deepEqual(signalRowReportSummary(row, now), { label: "6 bottles · 6h ago", quantityInSummary: true });
+  assert.match(signalAccessibilityLabel(row, now), /Last reported 6 hours ago/);
+  assert.match(signalAccessibilityLabel(row, now), /First reported Oct 10/);
+  assert.equal(signalRowReportSummary({ ...row, availability: { status: "reported", quantity: 1 } }, now).label, "1 bottle · 6h ago");
+  assert.equal(signalRowReportSummary({ ...row, availability: { status: "reported", quantity: 0 } }, now).label, "0 bottles · 6h ago");
+});
+
+test("corner reports do not invent quantities or turn descriptive source text into bottle counts", () => {
+  const now = new Date("2026-08-23T18:00:00Z");
+  assert.deepEqual(signalRowReportSummary(signal(), now), { label: "Report · 6h ago", quantityInSummary: false });
+  const descriptive = signal({ availability: { status: "reported", quantityLabel: "2 behind counter" } });
+  assert.equal(signalRowReportSummary(descriptive, now).quantityInSummary, false);
+  assert.equal(signalRowFacts(descriptive, now).quantity, "Reported: 2 behind counter");
+  assert.equal(signalRowReportSummary(signal({ timing: { displayAt: "invalid" }, availability: { status: "reported", quantity: 2 } }), now).label, "2 bottles · Time unknown");
 });
 
 test("compact bottle names retain rye and bottled-in-bond identity qualifiers", () => {

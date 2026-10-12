@@ -61,7 +61,7 @@ export function signalListingPresentation(signal: Signal, now = new Date()) {
     .find(value => value && Number.isFinite(Date.parse(value)) && Date.parse(value) <= now.getTime());
   const checked = signalLastCheckedAt(signal);
   const repeated = Boolean(first && checked && Date.parse(checked) > Date.parse(first));
-  const firstSpotted = first ? `First spotted ${new Date(first).toLocaleDateString(undefined, { month: "short", day: "numeric", ...(new Date(first).getFullYear() !== now.getFullYear() ? { year: "numeric" as const } : {}) })}` : "";
+  const firstSpotted = first ? `First reported ${new Date(first).toLocaleDateString(undefined, { month: "short", day: "numeric", ...(new Date(first).getFullYear() !== now.getFullYear() ? { year: "numeric" as const } : {}) })}` : "";
   const changedAt = Date.parse(signal.timing.displayAt);
   const recentChange = changedAt <= now.getTime() && now.getTime() - changedAt < 24 * 60 * 60 * 1000;
   const change = recentChange ? { restock: "Back in stock", price_drop: "Price dropped", price_change: "Price changed", first_detection: "New listing" }[signal.listingChange || "first_detection"] : "";
