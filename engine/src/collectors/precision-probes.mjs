@@ -1,3 +1,4 @@
+import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
@@ -7589,6 +7590,7 @@ async function collectSouthCarolina(config, bible) {
   const laneRun = await runBoundedSourceLanes([
     { name: 'cityhive', domain: 'sc-cityhive-group', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'cityhive', source: 'South Carolina CityHive exact-store inventory platform', run: () => collectSouthCarolinaCityHive(config, bible, observedAt) }, config) },
     { name: 'da-brown-bag', domain: 'dabrownbag.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'da-brown-bag', source: 'Da Brown Bag Clover public inventory API', run: () => collectSouthCarolinaDaBrownBag(config, bible, observedAt) }, config) },
+    { name: 'taste-liquors', domain: 'tasteliquors.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'taste-liquors', source: TASTE_SOURCE, run: () => collectTasteLiquors(config, bible, observedAt, { fetchPage: url => textFetch(url, { maxBytes: 1024 * 1024, timeoutMs: 15000, maxRedirects: 0 }), pause: sleep }) }, config) },
     { name: 'southern-spirits', domain: 'southernspirits.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'southern-spirits', source: 'Southern Spirits Shopify products feed', run: () => collectSouthCarolinaSouthernSpirits(config, bible, observedAt) }, config) },
     { name: 'dunes', domain: 'dunesliquor.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'dunes', source: SC_DUNES_SOURCE_LABEL, run: () => collectSouthCarolinaDunes(config, bible, observedAt) }, config) },
     { name: 'liquor-library', domain: 'editmysite.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'liquor-library', source: LIQUOR_LIBRARY_SOURCE.sourceLabel, run: () => collectSouthCarolinaLiquorLibrary(config, bible, observedAt) }, config) },

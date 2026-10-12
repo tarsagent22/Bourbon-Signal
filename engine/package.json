@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Bourbon Signal active-market data engine and site export pipeline.",
   "scripts": {
+    "test:sc-taste": "node --test test/sc-taste-liquors.test.mjs",
     "run": "node src/run.mjs",
     "aggregate:states": "node src/aggregate-state-reports.mjs",
     "probe": "node src/probe.mjs",
