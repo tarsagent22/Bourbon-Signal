@@ -3,7 +3,7 @@ import { stableId, stripHtml } from '../core/text.mjs';
 import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 
 export const TASTE_SOURCE = 'Taste Liquors Columbia public pickup availability';
-export const TASTE_STORE = Object.freeze({ id: 'taste-liquors:100384', name: 'Taste Liquors', address: '2722 N Lake Dr, Columbia, SC 29212', city: 'Columbia', zip: '29212' });
+export const TASTE_STORE = Object.freeze({ id: 'taste-liquors:100384', name: 'Taste Liquors', address: '2722 N Lake Dr, Columbia, SC 29212', city: 'Columbia', zip: '29212', lat: 34.0973639, lng: -81.2207862 });
 const BASE = 'https://tasteliquors.com';
 const normalized = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
@@ -34,6 +34,7 @@ export function parseTastePickupPage(html, url) {
   if (store.name !== TASTE_STORE.name || store.url !== `${BASE}/` || store['@id'] !== `${BASE}/`
     || address?.streetAddress !== '2722 N Lake Dr' || address?.addressLocality !== 'Columbia'
     || address?.addressRegion !== 'SC' || address?.postalCode !== '29212' || address?.addressCountry !== 'US'
+    || store.geo?.['@type'] !== 'GeoCoordinates' || Number(store.geo.latitude) !== TASTE_STORE.lat || Number(store.geo.longitude) !== TASTE_STORE.lng
     || offer?.['@type'] !== 'Offer' || offer.priceCurrency !== 'USD' || offer.availability !== 'https://schema.org/InStock'
     || offer.seller?.name !== TASTE_STORE.name || offer.seller?.url !== url
     || !Number.isFinite(price) || price <= 0 || price > 100000
@@ -44,7 +45,7 @@ export function parseTastePickupPage(html, url) {
     || /gift\s*card|gift\s*basket|bundle|tasting|raffle|lottery|sample|miniature|\b(?:50|100|200)\s*ml\b|\bset\b|\bpack\b/i.test(product.name)) return null;
   return { schemaVersion: 1, pageDigest: createHash('sha256').update(html).digest('hex'), productId: ids[0], name: product.name, price, url, storeId: TASTE_STORE.id,
     storeName: store.name, street: address.streetAddress, city: address.addressLocality, state: address.addressRegion,
-    zip: address.postalCode, availability: 'in_stock', pickupAvailable: true, cartAvailable: true };
+    zip: address.postalCode, lat: TASTE_STORE.lat, lng: TASTE_STORE.lng, availability: 'in_stock', pickupAvailable: true, cartAvailable: true };
 }
 
 export function buildTasteSignal(proof, bible, observedAt) {
@@ -58,7 +59,7 @@ export function buildTasteSignal(proof, bible, observedAt) {
     rawName: proof.name, canonicalBottleId: record.id, canonicalName: record.canonical,
     eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level', locationName: TASTE_STORE.name,
     storeName: TASTE_STORE.name, storeId: TASTE_STORE.id, storeAddress: TASTE_STORE.address, city: TASTE_STORE.city,
-    zip: TASTE_STORE.zip, postalCode: TASTE_STORE.zip, price: proof.price, quantity: 0, storeQty: 0,
+    zip: TASTE_STORE.zip, postalCode: TASTE_STORE.zip, lat: TASTE_STORE.lat, lng: TASTE_STORE.lng, price: proof.price, quantity: 0, storeQty: 0,
     quantityIsExact: false, quantitySemantics: 'binary_retailer_in_stock', availabilityStatus: 'in_stock',
     availabilityLabel: 'Retailer reports availability — exact quantity unavailable', sourceAvailabilityVerified: true,
     pickupOfferVerified: true, orderabilityOfferVerified: true, observedAt, confidence: Math.max(0.8, match?.confidence || 0),
@@ -89,6 +90,7 @@ export function isTasteInventory(signal, nowMs = Date.now()) {
     && proof.checkedAt === (signal.observedAt || signal.lastConfirmedAt)
     && [proof.canonicalBottleId, stableId(['SC', TASTE_SOURCE, proof.name])].includes(signal.canonicalBottleId || signal.canonicalId)
     && proof.storeId === TASTE_STORE.id && proof.storeName === TASTE_STORE.name
+    && signal.lat === TASTE_STORE.lat && signal.lng === TASTE_STORE.lng && proof.lat === TASTE_STORE.lat && proof.lng === TASTE_STORE.lng
     && proof.street === '2722 N Lake Dr' && proof.city === 'Columbia' && proof.state === 'SC' && proof.zip === '29212'
     && /^\d+$/.test(proof.productId || '') && String(signal.productId) === proof.productId
     && signal.sourceUrl === proof.url && tasteProductUrl(proof.url)
@@ -117,6 +119,6 @@ export async function collectTasteLiquors(config, bible, observedAt, { fetchPage
     if (signal) signals.push(signal);
   }
   if (!signals.length) roadblocks.push({ state: config.id, source: TASTE_SOURCE, url: `${BASE}/`, status: 'no_verified_pickup_inventory', error: 'No exact-premise, in-stock product with current pickup proof survived filtering.' });
-  else signals.unshift({ id: stableId(['SC', TASTE_STORE.id, 'location']), state: 'SC', stateCode: 'SC', eventType: 'retailer_store_location', sourceLabel: TASTE_SOURCE, sourceUrl: `${BASE}/`, sourceChain: 'taste-liquors', rawName: TASTE_STORE.name, locationPrecision: 'store_level', locationName: TASTE_STORE.name, storeName: TASTE_STORE.name, storeId: TASTE_STORE.id, storeAddress: TASTE_STORE.address, city: TASTE_STORE.city, zip: TASTE_STORE.zip, postalCode: TASTE_STORE.zip, observedAt, confidence: 0.95, canAlertAsInventory: false, canAlertAsWatch: false });
+  else signals.unshift({ id: stableId(['SC', TASTE_STORE.id, 'location']), state: 'SC', stateCode: 'SC', eventType: 'retailer_store_location', sourceLabel: TASTE_SOURCE, sourceUrl: `${BASE}/`, sourceChain: 'taste-liquors', rawName: TASTE_STORE.name, locationPrecision: 'store_level', locationName: TASTE_STORE.name, storeName: TASTE_STORE.name, storeId: TASTE_STORE.id, storeAddress: TASTE_STORE.address, city: TASTE_STORE.city, zip: TASTE_STORE.zip, postalCode: TASTE_STORE.zip, lat: TASTE_STORE.lat, lng: TASTE_STORE.lng, observedAt, confidence: 0.95, canAlertAsInventory: false, canAlertAsWatch: false });
   return { signals, roadblocks };
 }

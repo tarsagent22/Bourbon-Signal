@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { buildTasteSignal, collectTasteLiquors, isTasteInventory, parseTastePickupPage } from '../src/collectors/south-carolina-taste.mjs';
-import { buildCurrentInventoryAlertsFromDrops, buildDrops } from '../src/export-site-contract.mjs';
+import { buildAlerts, buildCurrentInventoryAlertsFromDrops, buildDrops } from '../src/export-site-contract.mjs';
 import { canonicalizeSignal, candidateFromChange } from '../src/operational-report.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
 const url = 'https://tasteliquors.com/columbia-liquor-delivery/1792-small-batch-750ml.html';
-const store = { '@type': 'LiquorStore', '@id': 'https://tasteliquors.com/', url: 'https://tasteliquors.com/', name: 'Taste Liquors', address: { streetAddress: '2722 N Lake Dr', addressLocality: 'Columbia', addressRegion: 'SC', postalCode: '29212', addressCountry: 'US' } };
+const store = { '@type': 'LiquorStore', '@id': 'https://tasteliquors.com/', url: 'https://tasteliquors.com/', name: 'Taste Liquors', geo: { '@type': 'GeoCoordinates', latitude: '34.09736390', longitude: '-81.22078620' }, address: { streetAddress: '2722 N Lake Dr', addressLocality: 'Columbia', addressRegion: 'SC', postalCode: '29212', addressCountry: 'US' } };
 const product = { '@type': 'Product', name: '1792 Small Batch - 750mL', offers: { '@type': 'Offer', priceCurrency: 'USD', price: '37.81', availability: 'https://schema.org/InStock', seller: { name: 'Taste Liquors', url } } };
 function page({ product: p = product, store: s = store, button = '<button data-test="add-to-cart-button-available">Add to Cart</button>', pickup = 'In-Store Pickup Available', heading = p.name } = {}) {
   return `<script type="application/ld+json">${JSON.stringify(s)}</script><script type="application/ld+json">${JSON.stringify(p)}</script><h1>${heading}</h1><span>${pickup}</span>${button}<script>product_id: 326806</script>`;
@@ -44,7 +44,8 @@ test('fresh pickup availability survives the customer and alert projections with
   assert.equal(isTasteInventory(alerts[0]), true); assert.equal(alerts[0].quantity, 0); assert.equal(alerts[0].eligibleForEmail, false); assert.equal(alerts[0].eligibleForSms, false);
   assert.ok(alerts[0].gates.includes('verified_binary_orderability'));
   const candidate = candidateFromChange({ type: 'new_signal', key: normalized.key, before: null, after: normalized });
-  assert.equal(candidate.eligibleForEmail, false); assert.equal(candidate.eligibleForSms, false);
+  assert.equal(isTasteInventory(candidate), false, 'unbound historical candidates fail closed');
+  assert.deepEqual(buildAlerts({ candidates: [candidate] }), []);
 });
 
 test('forged bindings and stale proof cannot reach the feed or become inventory alerts', () => {
@@ -52,7 +53,7 @@ test('forged bindings and stale proof cannot reach the feed or become inventory 
     r => { r.state = r.stateCode = 'NC'; }, r => { r.sourceUrl = 'https://example.com/product'; },
     r => { r.storeId = 'taste-liquors:other'; }, r => { r.storeAddress = 'Elsewhere, SC 29212'; },
     r => { r.sourceLabel = 'Forged'; }, r => { r.sourceChain = 'forged'; },
-    r => { r.productId = '99999'; }, r => { r.canonicalBottleId = 'other'; }, r => { r.price = 1; },
+    r => { r.productId = '99999'; }, r => { r.canonicalBottleId = 'other'; }, r => { r.price = 1; }, r => { r.lat = 35; },
     r => { r.quantity = r.storeQty = 1; r.quantityIsExact = true; },
     r => { r.sourceProductBinding.pickupAvailable = false; }, r => { r.sourceProductBinding.availability = 'out_of_stock'; },
     r => { r.observedAt = new Date(Date.now() - 3 * 3600000).toISOString(); },

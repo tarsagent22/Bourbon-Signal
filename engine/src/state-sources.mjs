@@ -373,7 +373,6 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=bourbon', label: 'Moss Creek Village Spirits & Wine CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://rollerswineandspirits.com/shop/?subtype=bourbon', label: 'Rollers Wine & Spirits CityHive bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://dabrownbag.com/wp-json/moo-clover/v1/search/bourbon', label: 'Da Brown Bag Clover bourbon stockCount API', precisionOnly: true },
-      { kind: 'html', url: 'https://tasteliquors.com/', label: 'Taste Liquors Columbia public pickup availability', precisionOnly: true },
       { kind: 'json', url: 'https://southernspirits.com/products.json?limit=250', label: 'Southern Spirits Shopify product availability feed', precisionOnly: true },
       { kind: 'api', url: 'https://www.aalmauldin.com/wp-json/wc/store/v1/products?search=blanton&per_page=20', label: 'All American Liquor Mauldin WooCommerce in-store availability', precisionOnly: true },
       { kind: 'api', url: 'https://www.yourliquorlibrary.com/shop/whisky/2', label: 'Liquor Library North Myrtle Beach Square exact-store inventory', precisionOnly: true },

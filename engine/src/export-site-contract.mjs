@@ -2021,6 +2021,8 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       storeId: drop.storeId || null,
       storeAddress: drop.storeAddress,
       city: drop.city || null,
+      lat: drop.lat ?? null,
+      lng: drop.lng ?? null,
       postalCode: drop.zip || null,
       zip: drop.zip || null,
       quantity: drop.quantity || 0,

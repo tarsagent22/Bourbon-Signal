@@ -4,7 +4,7 @@ This attempt reviewed the repository's 40 South Carolina retailer leads, the act
 
 ## Adopted source
 
-Taste Liquors publishes a single Columbia pickup premise at 2722 N Lake Dr, SC 29212. Its current public product pages contain a matching LiquorStore identity, Product offer with explicit InStock status, positive USD price, matching heading and product ID, pickup availability, and an active product cart control. A bounded live probe returned four safe Bottle Bible matches: Van Winkle Special Reserve 12 Year, Eagle Rare 17 Year, William Larue Weller, and 1792 Small Batch. Prices are retailer prices, including high collector prices; no MSRP or shelf guarantee is claimed.
+Taste Liquors publishes a single Columbia pickup premise at 2722 N Lake Dr, SC 29212. Its current public product pages contain a matching LiquorStore identity and reviewed map coordinates, Product offer with explicit InStock status, positive USD price, matching heading and product ID, pickup availability, and an active product cart control. A bounded live probe returned four safe Bottle Bible matches: Van Winkle Special Reserve 12 Year, Eagle Rare 17 Year, William Larue Weller, and 1792 Small Batch. Prices are retailer prices, including high collector prices; no MSRP or shelf guarantee is claimed.
 
 - [Storefront](https://tasteliquors.com/)
 - [1792 Small Batch pickup page](https://tasteliquors.com/columbia-liquor-delivery/1792-small-batch-750ml.html)
@@ -24,3 +24,4 @@ The collector reads at most twelve product pages after one catalog request, with
 - Remaining historical directory leads lacked current inventory proof in this review. Shipping advertisements, special-order promises, national catalogs, and producer store lists were excluded from exact-store inventory.
 
 Raw captures, probe timestamps, request status codes, the live collector result, and their SHA-256 manifest are retained in ignored operator artifacts. The source has not fulfilled the request until the exact release is merged, refreshed in production, and its new store and customer-visible rows are verified.
+The existing Mississippi byte-pinned shared operational reporter and state registry remain unchanged. Taste is an isolated child collector of the existing SC lane. Unbound historical change candidates are withheld; current source-bound customer drops retain their pickup proof.

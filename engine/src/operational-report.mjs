@@ -1,4 +1,3 @@
-import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -421,11 +420,10 @@ export function candidateFromChange(change, bootstrap = false) {
   if (isSouthCarolinaAllAmericanSignal(sig) && !isSouthCarolinaAllAmericanInventory(sig)) {
     blockers.push('all_american_exact_identity_unverified');
   }
-  if (isTasteSignal(sig) && !isTasteInventory(sig)) blockers.push('taste_exact_pickup_identity_unverified');
   const eligibleForDelivery = blockers.length === 0 && reliability.eligibleForDelivery;
   const signalAt = authoritativeSignalTimestamp(sig);
   const southCarolinaAllAmericanBaseline = isSouthCarolinaAllAmericanInventory(sig);
-  const southCarolinaBinaryBaseline = isTasteInventory(sig) || isSouthCarolinaSouthernSpiritsInventory(sig) || southCarolinaAllAmericanBaseline;
+  const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(sig) || southCarolinaAllAmericanBaseline;
   const gates = [...(reliability.gates || [])];
   if (southCarolinaAllAmericanBaseline && !gates.includes('verified_binary_in_store_availability')) {
     gates.push('verified_binary_in_store_availability');
@@ -449,7 +447,6 @@ export function candidateFromChange(change, bootstrap = false) {
     sourceChain: sig.sourceChain,
     merchantId: sig.merchantId,
     productId: sig.productId,
-    sourceProductBinding: sig.sourceProductBinding || null,
     sku: sig.sku,
     sourceProductProofId: sig.sourceProductProofId,
     sourceProductProofSku: sig.sourceProductProofSku,
