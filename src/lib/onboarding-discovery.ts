@@ -1,9 +1,11 @@
+import { ONBOARDING_BOTTLES } from '../../shared/onboarding-bottles';
 import type { OnboardingDraft } from '../../shared/mobile-onboarding.ts';
 export const STARTER_BOTTLE_IDS = ['makers-mark', 'woodford-reserve', 'woodford-double-oaked', 'knob-creek-9', 'wild-turkey-101', 'wild-turkey-rare-breed', 'four-roses-single-barrel', 'old-forester-100', 'old-forester-1910', 'elijah-craig-small-batch', '1792-small-batch', 'redwood-empire-pipe-dream'];
 export interface StarterCandidate { id: string; name: string; proof?: number; msrp?: number | null; tags: string[]; family?: string; brand?: string; tagWeights?: Partial<Record<string, number>> }
-const flavorTags: Record<string, string[]> = { 'Caramel': ['Caramel', 'Sweet', 'Dessert'], 'Vanilla': ['Vanilla'], 'Fruit': ['Cherry', 'Dark fruit', 'Grape'], 'Oak': ['Oak', 'Leather'], 'Spice': ['Spice'], 'Honey': ['Honey'], 'Sweet & caramel': ['Sweet', 'Caramel', 'Honey', 'Dessert'], 'Fruit & vanilla': ['Cherry', 'Dark fruit', 'Vanilla', 'Grape'], 'Oak & spice': ['Oak', 'Spice', 'Leather'] };
-const NOTE_TAGS = new Set(['Vanilla', 'Caramel', 'Honey', 'Oak', 'Spice', 'Cherry', 'Dark fruit', 'Grape', 'Citrus', 'Apple', 'Chocolate', 'Cocoa', 'Nutty', 'Peanut', 'Toffee', 'Tobacco', 'Leather', 'Smoke']);
+const flavorTags: Record<string, string[]> = { 'Caramel': ['Caramel', 'Sweet', 'Dessert'], 'Vanilla': ['Vanilla'], 'Fruit': ['Fruit', 'Cherry', 'Dark fruit', 'Grape', 'Apple', 'Citrus'], 'Oak': ['Oak', 'Leather'], 'Spice': ['Spice'], 'Honey': ['Honey'], 'Sweet & caramel': ['Sweet', 'Caramel', 'Honey', 'Dessert'], 'Fruit & vanilla': ['Cherry', 'Dark fruit', 'Vanilla', 'Grape'], 'Oak & spice': ['Oak', 'Spice', 'Leather'] };
+const NOTE_TAGS = new Set(['Fruit', 'Vanilla', 'Caramel', 'Honey', 'Oak', 'Spice', 'Cherry', 'Dark fruit', 'Grape', 'Citrus', 'Apple', 'Chocolate', 'Cocoa', 'Nutty', 'Peanut', 'Toffee', 'Tobacco', 'Leather', 'Smoke']);
 export function starterSuggestions(candidates: StarterCandidate[], draft: OnboardingDraft) {
+  candidates = candidates.map(bottle => { const curated = ONBOARDING_BOTTLES[bottle.id]; return curated ? { ...bottle, tags: curated.notes, tagWeights: bottle.tagWeights } : bottle; });
   const desired = draft.flavors.flatMap(flavor => flavorTags[flavor] || []);
   const liked = candidates.find(bottle => bottle.id === draft.likedBottleId);
   const ranked = candidates.filter(bottle => STARTER_BOTTLE_IDS.includes(bottle.id) && bottle.id !== liked?.id)
@@ -17,8 +19,15 @@ export function starterSuggestions(candidates: StarterCandidate[], draft: Onboar
       const preferred = (matched.length ? matched : shared).filter(tag => NOTE_TAGS.has(tag)).sort((a, b) => weight(b) - weight(a));
       const supporting = bottle.tags.filter(tag => NOTE_TAGS.has(tag)).sort((a, b) => weight(b) - weight(a));
       const cues = [...new Set([...preferred, ...supporting])];
-      const reason = cues.length ? `Notes of ${cues.slice(0, 3).map(tag => tag.toLowerCase()).join(', ')}.` : 'A classic bourbon to explore.';
-      return { ...bottle, reason, score };
+      const list = (items: string[]) => items.length < 2 ? items[0] : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+      const selectedFlavors = draft.flavors.filter(flavor => (flavorTags[flavor] || []).some(tag => bottle.tags.includes(tag))).map(flavor => flavor.toLowerCase());
+      const reason = selectedFlavors.length ? `For the ${list(selectedFlavors)} flavors you chose.`
+        : liked && shared.some(tag => NOTE_TAGS.has(tag)) ? `Shares ${list(shared.filter(tag => NOTE_TAGS.has(tag)).slice(0, 2).map(tag => tag.toLowerCase()))} notes with ${liked.name}.`
+        : draft.flavors.length || liked ? 'A different style to compare.' : '';
+      const curated = ONBOARDING_BOTTLES[bottle.id];
+      const notes = cues.slice(0, 3);
+      const description = curated?.description || (notes.length ? `${list(notes)}.` : '');
+      return { ...bottle, reason, description, notes, score };
     }).sort((a, b) => b.score - a.score || STARTER_BOTTLE_IDS.indexOf(a.id) - STARTER_BOTTLE_IDS.indexOf(b.id));
   const picks: typeof ranked = [];
   while (picks.length < 3 && ranked.length) {

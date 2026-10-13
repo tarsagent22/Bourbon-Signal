@@ -116,7 +116,7 @@ export interface MobileOnboardingStatusResponse {
   draft?: import('../../../../shared/mobile-onboarding').OnboardingDraft | null;
 }
 export interface OnboardingDiscovery {
-  suggestions: Array<{ id: string; name: string; proof?: number; msrp?: number | null; reason: string }>;
+  suggestions: Array<{ id: string; name: string; proof?: number; msrp?: number | null; reason: string; description?: string; notes?: string[] }>;
   signals: Signal[];
   signalsUnavailable: boolean;
 }

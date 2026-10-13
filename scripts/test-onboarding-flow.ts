@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { EMPTY_ONBOARDING, normalizeOnboardingDraft, beginnerPath, communityAlertsIncluded, usefulOnboardingCoverage, onboardingFlavorSelections } from '../shared/mobile-onboarding';
+import { EMPTY_ONBOARDING, normalizeOnboardingDraft, beginnerPath, communityAlertsIncluded, usefulOnboardingCoverage, onboardingCoveragePresentation, onboardingFlavorSelections } from '../shared/mobile-onboarding';
 import { createSignalFeedHandler } from '../src/lib/signals/signal-route';
 import { starterSuggestions } from '../src/lib/onboarding-discovery';
 import { TIER_ENTITLEMENTS } from '../src/lib/entitlements';
@@ -22,13 +22,18 @@ test('Community is readable by Free, but Community alerts remain Barrel-only', (
   assert.equal(TIER_ENTITLEMENTS.free.canUseStateFilter, false);
   for (const tier of ['free', 'standard', 'barrel', 'bottled-in-bond'] as const) assert.equal(communityAlertsIncluded(tier), TIER_ENTITLEMENTS[tier].canReceiveSightingsAlerts);
 });
-test('a merely active or stale state does not receive the stronger onboarding coverage pitch', () => {
+test('established coverage stays stable through delays, failures, and quiet periods', () => {
   const state = { code: 'NC', summary: '', coverageStatus: 'available' as const, coverageStrength: 'strong' as const, health: 'current' as const };
   assert.equal(usefulOnboardingCoverage(state), true);
   assert.equal(usefulOnboardingCoverage({ ...state, coverageStrength: 'moderate' }), true);
   assert.equal(usefulOnboardingCoverage({ ...state, coverageStrength: 'sparse' }), false);
-  assert.equal(usefulOnboardingCoverage({ ...state, health: 'temporarily-limited' }), false);
-  assert.equal(usefulOnboardingCoverage({ ...state, coverageStatus: 'not-available' }), false);
+  assert.equal(usefulOnboardingCoverage({ ...state, health: 'temporarily-limited' }), true);
+  assert.equal(usefulOnboardingCoverage({ ...state, coverageStatus: 'not-available' }), true);
+  for (const health of ['current', 'intermittent', 'temporarily-limited', 'no-recent-update'] as const) {
+    const display = onboardingCoveragePresentation({ ...state, health, coverageStatus: 'not-available', customerSummary: 'internal collector_delay' });
+    assert.equal(display.label, 'Strong coverage'); assert.equal(display.canRequest, false); assert.doesNotMatch(display.description, /delay|collector|inventory|internal/);
+  }
+  assert.equal(onboardingCoveragePresentation({ ...state, coverageStrength: 'sparse' }).canRequest, true);
 });
 test('Free filtering is rejected before source reads; Standard state selection remains allowed', async () => {
   let reads = 0;
@@ -125,4 +130,16 @@ test('resumed legacy taste choices remain visible and allow all new choices with
   const restored = onboardingFlavorSelections(saved.flavors);
   assert.deepEqual(restored, ['Caramel', 'Fruit', 'Vanilla', 'Oak', 'Spice']);
   assert.ok(normalizeOnboardingDraft({ ...saved, flavors: [...restored, 'Honey'] }));
+});
+
+
+test('curated recommendations explain actual choices and never claim personalization without an answer', () => {
+  const candidates = [{ id: 'old-forester-100', name: 'Old Forester 100 Proof', proof: 100, tags: [] }, { id: 'four-roses-single-barrel', name: 'Four Roses Single Barrel', proof: 100, tags: [] }];
+  const picks = starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Oak'], proof: 'bold' });
+  assert.equal(picks[0].id, 'old-forester-100'); assert.match(picks[0].reason, /oak.*chose/);
+  assert.match(picks[0].description, /cherry.*citrus.*oak/i);
+  assert.notEqual(picks[0].description, picks[1].description);
+  assert.equal(starterSuggestions(candidates, EMPTY_ONBOARDING)[0].reason, '');
+  assert.equal(starterSuggestions(candidates, { ...EMPTY_ONBOARDING, proof: 'gentle' }).length, 0);
+  assert.doesNotMatch(picks.map(pick => pick.description).join(' '), /classic bourbon to explore|bolder pour/);
 });

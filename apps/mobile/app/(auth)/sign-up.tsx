@@ -46,7 +46,7 @@ export default function SignUpScreen() {
     });
   }
   const verifying = stage !== 'account';
-  return <OnboardingFrame title={verifying ? 'Check your inbox.' : 'Create your account.'} eyebrow={verifying ? 'VERIFY YOUR EMAIL' : 'CREATE ACCOUNT'}
+  return <OnboardingFrame title={verifying ? 'Check your inbox.' : 'Create your account.'}
     description={verifying ? `Enter the code sent to ${email}.` : 'Free to join. No card needed.'} transitionKey={stage}
     footer={<OnboardingButton secondary label={verifying ? 'Use a different email' : 'Already have an account? Log in'} disabled={busy} onPress={() => { if (verifying) { void run(async () => { await signUp.reset(); setStage('account'); setCode(''); }); } else router.replace('/(auth)/sign-in'); }} />}>
     {verifying ? <>

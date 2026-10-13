@@ -6,8 +6,8 @@ import { colors, fonts } from '../theme';
 export function BrandMark({ large = false }: { large?: boolean }) {
   return <Image accessible={false} source={require('../../assets/splash-icon.png')} style={large ? s.logoLarge : s.logo} resizeMode="contain" />;
 }
-export function OnboardingFrame({ children, title, description, eyebrow, step, footer, transitionKey, largeMark = false, onBack, backDisabled = false }: PropsWithChildren<{
-  title: string; description?: string; eyebrow?: string; step?: number; footer?: React.ReactNode; transitionKey?: string | number; largeMark?: boolean; onBack?: () => void; backDisabled?: boolean;
+export function OnboardingFrame({ children, title, description, eyebrow, step, footer, transitionKey, largeMark = false, onBack, backDisabled = false, context, scrollEnabled = true, obscured = false }: PropsWithChildren<{
+  title: string; description?: string; eyebrow?: string; step?: number; footer?: React.ReactNode; transitionKey?: string | number; largeMark?: boolean; onBack?: () => void; backDisabled?: boolean; context?: string; scrollEnabled?: boolean; obscured?: boolean;
 }>) {
   const insets = useSafeAreaInsets(); const scroll = useRef<ScrollView>(null); const opacity = useRef(new Animated.Value(1)).current;
   const [reduceMotion, setReduceMotion] = useState(true); const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -25,16 +25,16 @@ export function OnboardingFrame({ children, title, description, eyebrow, step, f
   }, [transitionKey, reduceMotion, opacity]);
   const progress = step !== undefined && step !== 4 && step !== 8;
   const total = step !== undefined && step >= 5 ? 3 : 4; const current = step !== undefined && step >= 5 ? step - 4 : (step || 0) + 1;
-  return <View style={[s.screen, { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right }]}>
+  return <View aria-hidden={obscured} accessibilityElementsHidden={obscured} importantForAccessibility={obscured ? 'no-hide-descendants' : 'auto'} style={[s.screen, { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right }]}>
     <View style={s.chrome}>
       {largeMark ? null : onBack ? <Pressable accessibilityRole="button" accessibilityLabel="Back" disabled={backDisabled} onPress={onBack} style={[s.back, backDisabled && s.disabled]}><Text style={s.backText}>‹</Text></Pressable> : <BrandMark />}
       <Text style={[s.wordmark, largeMark && { textAlign: 'center', fontSize: 15 }]}>Bourbon Signal</Text>
-      {progress ? <Text accessibilityLabel={`${step! >= 5 ? 'Alert setup' : 'Introduction'}, ${current} of ${total}`} style={s.counter}>{current} / {total}</Text> : null}
+      {context ? <Text style={s.counter}>{context}</Text> : progress ? <Text accessibilityLabel={`${step! >= 5 ? 'Alert setup' : 'Introduction'}, ${current} of ${total}`} style={s.counter}>{current} / {total}</Text> : null}
     </View>
     {progress ? <View accessible={false} style={s.progress}><View style={[s.progressActive, { width: `${current / total * 100}%` }]} /></View> : null}
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView ref={scroll} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={[s.page, largeMark && s.welcomePage, { paddingBottom: 24 + (footer ? 0 : insets.bottom) }]}>
-        <Animated.View style={{ opacity, gap: 22 }}>
+      <ScrollView ref={scroll} scrollEnabled={scrollEnabled} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={[s.page, largeMark && s.welcomePage, { paddingBottom: 24 + (footer ? 0 : insets.bottom) }]}>
+        <Animated.View style={{ opacity, gap: 20 }}>
           {largeMark ? <View style={s.welcomeMark}><BrandMark large /></View> : null}
           <View style={s.heading}>{eyebrow ? <Text style={s.eyebrow}>{eyebrow}</Text> : null}<Text accessibilityRole="header" style={[s.title, largeMark && s.welcomeTitle]}>{title}</Text>{description ? <Text style={s.copy}>{description}</Text> : null}</View>
           <View style={s.body}>{children}</View>
@@ -54,9 +54,13 @@ export function Choice({ title, detail, selected, onPress, multiple = false, dis
 export function FlavorChip({ title, selected, onPress, disabled }: { title: string; selected: boolean; onPress: () => void; disabled?: boolean }) {
   return <Pressable accessibilityRole="checkbox" accessibilityLabel={title} accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.chip, selected && s.chipSelected, pressed && s.pressed]}><Text style={[s.chipText, selected && { color: '#F5DBAF' }]}>{selected ? '✓  ' : '+  '}{title}</Text></Pressable>;
 }
-export function ExampleSighting({ notification = false }: { notification?: boolean }) {
-  if (notification) return <View style={[s.example, { gap: 10, padding: 14 }]}><View style={[s.row, { justifyContent: 'space-between' }]}><Text style={s.eyebrow}>BOURBON SIGNAL</Text><Text style={s.exampleLabel}>Example alert</Text></View><View style={s.row}><CellarBottleArtwork bottle={{ bottleId: 'wild-turkey-rare-breed', bottleName: 'Wild Turkey Rare Breed' }} size="list" /><View style={{ flex: 1, gap: 4 }}><Text style={s.label}>Wild Turkey Rare Breed was spotted.</Text><Text style={s.small}>Oak Street Liquor · $59.99</Text></View></View></View>;
-  return <View style={s.example}><View style={[s.row, { justifyContent: 'space-between' }]}><Text style={s.eyebrow}>COMMUNITY SIGHTING</Text><Text style={s.exampleLabel}>Example</Text></View><View style={s.row}><CellarBottleArtwork bottle={{ bottleId: 'wild-turkey-rare-breed', bottleName: 'Wild Turkey Rare Breed' }} size="feed" /><View style={{ flex: 1, gap: 4 }}><Text style={s.label}>Wild Turkey Rare Breed</Text><Text style={s.small}>Oak Street Liquor · $59.99</Text></View></View><View style={s.exampleRule} /><Text style={s.small}>{notification ? 'Your chosen bottle. Your chosen area.' : 'Shared by a member · Just now'}</Text></View>;
+export function ExampleSighting({ notification = false, compact = false, state = '', bottleId = 'wild-turkey-rare-breed', bottleName = 'Wild Turkey Rare Breed' }: { notification?: boolean; compact?: boolean; state?: string; bottleId?: string; bottleName?: string }) {
+  const location = state === 'NC' ? 'An ABC store in North Carolina' : state ? `A store in ${state}` : 'A store near you';
+  return <View style={[s.example, notification && { padding: 14, gap: 10 }]}>
+    <View style={[s.row, { justifyContent: 'space-between' }]}><Text style={s.label}>{notification ? 'Bourbon Signal' : 'Community'}</Text><Text style={s.exampleLabel}>{notification ? 'Example alert' : 'Example sighting'}</Text></View>
+    <View style={s.row}><CellarBottleArtwork bottle={{ bottleId, bottleName }} size={notification ? 'list' : 'feed'} /><View style={{ flex: 1, gap: 6 }}><Text style={s.label}>{notification ? `${bottleName} was spotted.` : bottleName}</Text><Text style={s.small}>{location}</Text>{!notification ? <Text style={s.small}>Bottle · Store · Price · Photo</Text> : null}</View></View>
+    {!notification && !compact ? <><View style={s.exampleRule} /><Text style={s.small}>A member shares what they found. You see where to look.</Text></> : null}
+  </View>;
 }
 export const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#10100E', overflow: 'hidden' },
@@ -64,7 +68,7 @@ export const s = StyleSheet.create({
   wordmark: { color: '#EAE1D2', fontFamily: fonts.heading, fontSize: 17, flex: 1 }, logo: { width: 34, height: 34 }, logoLarge: { width: 96, height: 96 },
   back: { minWidth: 34, minHeight: 44, alignItems: 'flex-start', justifyContent: 'center' }, backText: { color: '#D9C6A7', fontSize: 36, lineHeight: 38 }, counter: { color: '#AFA99C', fontSize: 12, fontWeight: '500', fontVariant: ['tabular-nums'] },
   progress: { height: 2, backgroundColor: '#2B2A24', marginHorizontal: 24 }, progressActive: { height: 2, backgroundColor: '#BD9560' },
-  page: { flexGrow: 1, width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 26 }, welcomePage: { justifyContent: 'center', paddingTop: 12 }, welcomeMark: { alignItems: 'center' }, heading: { gap: 10 }, eyebrow: { color: '#BD9560', fontSize: 10, fontWeight: '700', letterSpacing: 1.7 },
+  page: { flexGrow: 1, width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 26 }, welcomePage: { justifyContent: 'center', paddingTop: 12 }, welcomeMark: { alignItems: 'center', paddingVertical: 12 }, heading: { gap: 10 }, eyebrow: { color: '#BD9560', fontSize: 10, fontWeight: '700', letterSpacing: 1.7 },
   title: { color: '#F1E9DC', fontFamily: fonts.heading, fontSize: 30, lineHeight: 36, letterSpacing: -0.5 }, welcomeTitle: { fontSize: 38, lineHeight: 43, textAlign: 'center' }, copy: { color: '#B9B3A7', fontSize: 15, lineHeight: 23 }, small: { color: '#AFA99C', fontSize: 12, lineHeight: 18 },
   body: { gap: 14 }, footer: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 10, gap: 2, backgroundColor: '#10100E', borderTopWidth: StyleSheet.hairlineWidth, borderColor: '#2B2A24' }, keyboardBar: { paddingHorizontal: 24, minHeight: 40, alignItems: 'flex-end', justifyContent: 'center', backgroundColor: '#10100E' }, label: { color: '#EBE3D6', fontSize: 15, lineHeight: 21, fontWeight: '600' },
   input: { minHeight: 52, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#48463C', borderRadius: 10, backgroundColor: '#1A1B17', color: '#F1E9DC', fontSize: 16 }, button: { minHeight: 52, backgroundColor: '#D5AD73', borderRadius: 10, padding: 14, justifyContent: 'center', alignItems: 'center' }, buttonText: { color: '#181A14', fontSize: 15, fontWeight: '700' },
