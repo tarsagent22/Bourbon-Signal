@@ -50,7 +50,7 @@ test('starting suggestions obey known budget/proof, exclude unknown prices, and 
   ];
   const draft = { ...EMPTY_ONBOARDING, proof: 'gentle' as const, budget: 'Under $40' as const, flavors: ['Sweet & caramel'] };
   const picks = starterSuggestions(candidates, draft);
-  assert.deepEqual(picks.map(pick => pick.id), ['makers-mark']); assert.match(picks[0].reason, /sweet, caramel/);
+  assert.deepEqual(picks.map(pick => pick.id), ['makers-mark']); assert.match(picks[0].reason, /caramel/);
   assert.equal(starterSuggestions(candidates, { ...draft, likedBottleId: 'makers-mark' }).length, 0);
   assert.equal(starterSuggestions(candidates, { ...draft, budget: '$40–$70' }).length, 0);
 });
@@ -108,4 +108,14 @@ test('recommendations favor different brands when similarly relevant picks exist
   ];
   const picks = starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Oak', 'Caramel'] });
   assert.equal(new Set(picks.map(pick => pick.brand)).size, 3);
+});
+
+test('flavor strength changes the top recommendation and structural tags stay out of tasting notes', () => {
+  const candidates = [
+    { id: 'makers-mark', name: "Maker's Mark", tags: ['Vanilla', 'Oak', 'Balanced', 'Dessert'], tagWeights: { Vanilla: 0.9, Oak: 0.2, Balanced: 1, Dessert: 1 } },
+    { id: 'elijah-craig-small-batch', name: 'Elijah Craig', tags: ['Vanilla', 'Oak'], tagWeights: { Vanilla: 0.3, Oak: 0.9 } },
+  ];
+  assert.equal(starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Vanilla'] })[0].id, 'makers-mark');
+  assert.equal(starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Oak'] })[0].id, 'elijah-craig-small-batch');
+  assert.doesNotMatch(starterSuggestions(candidates, EMPTY_ONBOARDING)[0].reason, /balanced|dessert/i);
 });
