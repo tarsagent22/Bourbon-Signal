@@ -19,6 +19,7 @@ export default function SignInScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationStrategy, setVerificationStrategy] = useState<VerificationStrategy | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -149,10 +150,10 @@ export default function SignInScreen() {
       : "Verification code";
 
   return (
-    <OnboardingFrame eyebrow="MEMBER ACCESS" title={resetStep ? "Let's get you back in." : verificationStrategy ? "One more step." : "Welcome back."} description={resetStep ? "Recover access to your Bourbon Signal account." : verificationStrategy ? "Verify your account to continue." : "Your shelf, sightings, and bottle alerts are waiting."}>
+    <OnboardingFrame onBack={() => router.replace("/(auth)/welcome")} title={resetStep ? "Let's get you back in." : verificationStrategy ? "One more step." : "Welcome back."} description={resetStep ? "Recover access to your Bourbon Signal account." : verificationStrategy ? "Verify your account to continue." : "Sign in to your account."}>
       {resetStep ? <View style={styles.form}>
         <Text style={styles.subtitle}>{resetStep === "email" ? "Reset your password using your account email." : resetStep === "code" ? "Enter the reset code sent to your email." : "Choose a new password. Other signed-in sessions will be signed out."}</Text>
-        {resetStep === "email" ? <TextInput accessibilityLabel="Recovery email address" autoCapitalize="none" autoComplete="email" keyboardType="email-address" value={email} onChangeText={setEmail} placeholder="Email" placeholderTextColor={colors.muted} style={styles.input} /> : resetStep === "code" ? <TextInput accessibilityLabel="Password reset code" autoComplete="one-time-code" keyboardType="number-pad" value={verificationCode} onChangeText={setVerificationCode} placeholder="Reset code" placeholderTextColor={colors.muted} style={styles.input} /> : <TextInput accessibilityLabel="New password" autoCapitalize="none" autoComplete="new-password" secureTextEntry value={password} onChangeText={setPassword} placeholder="New password" placeholderTextColor={colors.muted} style={styles.input} />}
+        {resetStep === "email" ? <TextInput accessibilityLabel="Recovery email address" autoCapitalize="none" autoComplete="email" autoCorrect={false} spellCheck={false} keyboardType="email-address" value={email} onChangeText={setEmail} placeholder="Email" placeholderTextColor={colors.muted} style={styles.input} /> : resetStep === "code" ? <TextInput accessibilityLabel="Password reset code" autoComplete="one-time-code" keyboardType="number-pad" value={verificationCode} onChangeText={setVerificationCode} placeholder="Reset code" placeholderTextColor={colors.muted} style={styles.input} /> : <TextInput accessibilityLabel="New password" autoCapitalize="none" autoComplete="new-password" secureTextEntry value={password} onChangeText={setPassword} placeholder="New password" placeholderTextColor={colors.muted} style={styles.input} />}
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
         {notice ? <Text style={styles.subtitle}>{notice}</Text> : null}
         <Pressable accessibilityRole="button" disabled={submitting} accessibilityState={{ disabled: submitting, busy: submitting }} onPress={() => void resetPassword()} style={[styles.button, submitting && styles.disabled]}><Text style={styles.buttonText}>{submitting ? "Working…" : resetStep === "email" ? "Send reset code" : resetStep === "code" ? "Verify reset code" : "Save new password"}</Text></Pressable>
@@ -171,8 +172,8 @@ export default function SignInScreen() {
         </View>
       ) : (
         <View style={styles.form}>
-          <TextInput accessibilityLabel="Email address" accessibilityHint={error || "Enter the email address for your member account."} autoCapitalize="none" autoComplete="email" keyboardType="email-address" placeholder="Email" placeholderTextColor={colors.muted} value={email} onChangeText={setEmail} style={styles.input} />
-          <TextInput accessibilityLabel="Password" accessibilityHint={error || "Enter your account password."} autoCapitalize="none" autoComplete="current-password" placeholder="Password" placeholderTextColor={colors.muted} secureTextEntry value={password} onChangeText={setPassword} onSubmitEditing={submit} style={styles.input} />
+          <Text style={onboardingStyles.label}>Email address</Text><TextInput accessibilityLabel="Email address" accessibilityHint={error || "Enter the email address for your member account."} autoCapitalize="none" autoComplete="email" autoCorrect={false} spellCheck={false} keyboardType="email-address" placeholder="Email" placeholderTextColor={colors.muted} value={email} onChangeText={setEmail} style={styles.input} />
+          <Text style={onboardingStyles.label}>Password</Text><View style={[styles.input, onboardingStyles.row, { paddingVertical: 0, paddingRight: 4 }]}><TextInput accessibilityLabel="Password" accessibilityHint={error || "Enter your account password."} autoCapitalize="none" autoCorrect={false} spellCheck={false} autoComplete="current-password" placeholder="Password" placeholderTextColor={colors.muted} secureTextEntry={!showPassword} value={password} onChangeText={setPassword} onSubmitEditing={submit} style={{ flex: 1, minHeight: 50, fontSize: 16, color: '#F1E9DC' }} /><Pressable accessibilityRole="button" accessibilityLabel={showPassword ? 'Hide password' : 'Show password'} disabled={submitting} onPress={() => setShowPassword(value => !value)} style={{ minHeight: 44, padding: 10, justifyContent: 'center' }}><Text style={onboardingStyles.link}>{showPassword ? 'Hide' : 'Show'}</Text></Pressable></View>
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           {notice ? <Text style={styles.subtitle}>{notice}</Text> : null}
           <Pressable accessibilityRole="button" accessibilityState={{ disabled: submitting, busy: submitting }} disabled={submitting} onPress={submit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, submitting && styles.disabled]}><Text style={styles.buttonText}>{submitting ? "Signing in…" : "Sign in"}</Text></Pressable>
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
   brand: { gap: 10 }, eyebrow: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 1.4 },
   title: {fontFamily: fonts.heading,  color: colors.text, fontSize: typeScale.title, fontWeight: "700" }, subtitle: { color: colors.muted, fontSize: typeScale.input, lineHeight: 24 },
   form: { gap: 14 }, input: onboardingStyles.input,
-  error: { color: colors.danger, lineHeight: 20 }, button: { minHeight: 52, justifyContent: "center", alignItems: "center", borderRadius: 12, backgroundColor: colors.accent },
-  buttonPressed: { backgroundColor: colors.accentPressed }, disabled: { opacity: 0.6 }, buttonText: { color: "#1B1208", fontSize: typeScale.input, fontWeight: "800" },
-  linkButton: { minHeight: 44, alignItems: "center", justifyContent: "center" }, linkText: { color: colors.accent, fontSize: typeScale.input, fontWeight: "800" },
+  error: { color: colors.danger, lineHeight: 20 }, button: onboardingStyles.button,
+  buttonPressed: { backgroundColor: colors.accentPressed }, disabled: { opacity: 0.6 }, buttonText: onboardingStyles.buttonText,
+  linkButton: { minHeight: 44, alignItems: "center", justifyContent: "center" }, linkText: onboardingStyles.secondaryText,
 });

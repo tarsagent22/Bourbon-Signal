@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { EMPTY_ONBOARDING, normalizeOnboardingDraft, beginnerPath, communityAlertsIncluded, usefulOnboardingCoverage } from '../shared/mobile-onboarding';
+import { EMPTY_ONBOARDING, normalizeOnboardingDraft, beginnerPath, communityAlertsIncluded, usefulOnboardingCoverage, onboardingFlavorSelections } from '../shared/mobile-onboarding';
 import { createSignalFeedHandler } from '../src/lib/signals/signal-route';
 import { starterSuggestions } from '../src/lib/onboarding-discovery';
 import { TIER_ENTITLEMENTS } from '../src/lib/entitlements';
@@ -50,7 +50,7 @@ test('starting suggestions obey known budget/proof, exclude unknown prices, and 
   ];
   const draft = { ...EMPTY_ONBOARDING, proof: 'gentle' as const, budget: 'Under $40' as const, flavors: ['Sweet & caramel'] };
   const picks = starterSuggestions(candidates, draft);
-  assert.deepEqual(picks.map(pick => pick.id), ['makers-mark']); assert.match(picks[0].reason, /sweet and caramel/);
+  assert.deepEqual(picks.map(pick => pick.id), ['makers-mark']); assert.match(picks[0].reason, /caramel/);
   assert.equal(starterSuggestions(candidates, { ...draft, likedBottleId: 'makers-mark' }).length, 0);
   assert.equal(starterSuggestions(candidates, { ...draft, budget: '$40–$70' }).length, 0);
 });
@@ -93,4 +93,36 @@ test('invalid setup and unauthenticated writes cannot complete an account', asyn
   assert.equal((await h.post({ displayName: 'Oak', homeState: 'NC', age21Affirmed: false })).status, 400);
   assert.equal(h.user.privateMetadata.mobileOnboarding, undefined);
   h.signOut(); assert.equal((await h.post({ action: 'save', draft: EMPTY_ONBOARDING })).status, 401);
+});
+
+
+test('new flavor selections and legacy drafts resume without discarding progress', () => {
+  for (const flavors of [['Caramel', 'Vanilla', 'Fruit', 'Oak', 'Spice', 'Honey'], ['Sweet & caramel', 'Oak & spice']]) assert.deepEqual(normalizeOnboardingDraft({ ...EMPTY_ONBOARDING, step: 2, flavors })?.flavors, flavors);
+});
+test('recommendations favor different brands when similarly relevant picks exist', () => {
+  const candidates = [
+    { id: 'woodford-reserve', name: 'Woodford Reserve', brand: 'Woodford', tags: ['Oak', 'Caramel'] },
+    { id: 'woodford-double-oaked', name: 'Double Oaked', brand: 'Woodford', tags: ['Oak', 'Caramel'] },
+    { id: 'makers-mark', name: "Maker's Mark", brand: 'Maker', tags: ['Caramel'] },
+    { id: 'knob-creek-9', name: 'Knob Creek', brand: 'Knob', tags: ['Oak'] },
+  ];
+  const picks = starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Oak', 'Caramel'] });
+  assert.equal(new Set(picks.map(pick => pick.brand)).size, 3);
+});
+
+test('flavor strength changes the top recommendation and structural tags stay out of tasting notes', () => {
+  const candidates = [
+    { id: 'makers-mark', name: "Maker's Mark", tags: ['Vanilla', 'Oak', 'Balanced', 'Dessert'], tagWeights: { Vanilla: 0.9, Oak: 0.2, Balanced: 1, Dessert: 1 } },
+    { id: 'elijah-craig-small-batch', name: 'Elijah Craig', tags: ['Vanilla', 'Oak'], tagWeights: { Vanilla: 0.3, Oak: 0.9 } },
+  ];
+  assert.equal(starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Vanilla'] })[0].id, 'makers-mark');
+  assert.equal(starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Oak'] })[0].id, 'elijah-craig-small-batch');
+  assert.doesNotMatch(starterSuggestions(candidates, EMPTY_ONBOARDING)[0].reason, /balanced|dessert/i);
+});
+
+test('resumed legacy taste choices remain visible and allow all new choices without hidden fields exceeding the draft bound', () => {
+  const saved = normalizeOnboardingDraft({ ...EMPTY_ONBOARDING, step: 2, flavors: ['Sweet & caramel', 'Fruit & vanilla', 'Oak & spice'] })!;
+  const restored = onboardingFlavorSelections(saved.flavors);
+  assert.deepEqual(restored, ['Caramel', 'Fruit', 'Vanilla', 'Oak', 'Spice']);
+  assert.ok(normalizeOnboardingDraft({ ...saved, flavors: [...restored, 'Honey'] }));
 });

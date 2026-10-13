@@ -29,7 +29,8 @@ export const api = {
     const row = { state: input.state || 'NC', coverage: { engine: { status: expanding ? 'expanding' : 'active' }, community: { active: false, recentSightings: 0, windowDays: 30 } }, message: null };
     return { results: input.levels[0] === 'state' ? [{ ...row, id: `state:${input.state}`, name: 'North Carolina', level: 'state' }] : [{ ...row, id: `${input.levels[0]}:raleigh`, name: 'Raleigh', level: input.levels[0] }, { ...row, id: `${input.levels[0]}:durham`, name: 'Durham', level: input.levels[0] }], states: [], hasMore: false };
   },
-  async getOnboardingDiscovery() { return { suggestions: bottles.slice(0, 2).map(bottle => ({ ...bottle, reason: 'A starting suggestion for sweet and caramel flavors.', msrp: 35 })), signals: [], signalsUnavailable: false }; },
+  async getSignalPoints() { return { catalog: [{ key: 'glencairn', name: 'Bourbon Signal Glencairn', points: 500 }] }; },
+  async getOnboardingDiscovery() { return { suggestions: bottles.slice(0, 2).map(bottle => ({ ...bottle, reason: 'Notes of caramel, vanilla, oak.', msrp: 35 })), signals: [], signalsUnavailable: false }; },
   async submitCoverageRequest(body: any) { (window as any).coverageSubmitted = body; return { request: { id: 'preview-request' } }; },
   async getPushDeviceStatus() { return { enabled: false, currentDeviceRegistered: false }; },
 };
@@ -45,7 +46,7 @@ export function useRouter() { return router; }
 export function Redirect() { return null; }
 const router = { push(route: any) { if (String(route).includes('cellar/add')) { prefs.collectionPreferences.bottles.push({ bottleId: 'makers-mark', bottleName: "Maker's Mark", tastedOnly: false } as any); window.dispatchEvent(new Event('preview-shelf')); } else navigate(route); }, replace: navigate };
 function navigate(route: any) { const value = typeof route === 'string' ? route : route.pathname; if (value.includes('sign-in')) location.href = '?screen=sign-in'; else if (value.includes('sign-up')) location.href = '?screen=sign-up'; else { (window as any).completedRoute = value; window.dispatchEvent(new Event('preview-finished')); } }
-export function useSafeAreaInsets() { return { top: 10, bottom: 10, left: 0, right: 0 }; }
+export function useSafeAreaInsets() { return { top: Number(query.get('inset') || 54), bottom: 34, left: 0, right: 0 }; }
 export const SafeAreaView = View;
 const storage = new Map<string, string>();
 export async function getItemAsync(key: string) { return storage.get(key) || null; }

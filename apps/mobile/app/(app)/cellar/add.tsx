@@ -2,9 +2,9 @@ import { useFormDraft } from "../../../src/hooks/useFormDraft";
 import { DraftNotice } from "../../../src/components/DraftNotice";
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { useAuth } from "@clerk/expo";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
@@ -64,6 +64,8 @@ function AccountAddBottle() {
   const api = useMobileApi();
   const { userId } = useAuth();
   const router = useRouter();
+  const { onboardingBottleId } = useLocalSearchParams<{ onboardingBottleId?: string }>();
+  const prefilled = useRef(false);
   const receiptStorageKey = bottleContributionReceiptsStorageKey(userId);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [loading, setLoading] = useState(true);
@@ -164,6 +166,14 @@ function AccountAddBottle() {
     setTastingContext(existing?.tastingContext || "bar");
     setFormError("");
   }
+
+  useEffect(() => {
+    if (prefilled.current || !draft.ready || loading || !onboardingBottleId) return;
+    if (draft.hasContent || selected || custom) { prefilled.current = true; return; }
+    const bottle = bottleCatalog.catalog.find(item => item.id === onboardingBottleId);
+    if (!bottle) return;
+    prefilled.current = true; choose(bottle);
+  }, [draft.ready, draft.hasContent, loading, onboardingBottleId, bottleCatalog.catalog, selected, custom]);
 
   function chooseRecent(bottle: MemberCollectionBottle) {
     choose({ id: bottle.bottleId, name: bottle.bottleName }, "recent");
