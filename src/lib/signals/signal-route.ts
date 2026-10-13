@@ -26,6 +26,7 @@ type LegacyDropsPayload = {
   total?: number;
   previewLocked?: boolean;
   requiresAccountForFullFeed?: boolean;
+  marketDetailsLocked?: boolean;
   lastUpdated?: string;
   snapshot?: string;
   hasMore?: boolean;
@@ -153,7 +154,7 @@ function returnedBySource(signals: CanonicalSignal[]) {
   }, { drops: 0, members: 0 });
 }
 
-export function createSignalFeedHandler({ getDrops, getSightings, getFilterAccess }: { getDrops: SourceReader; getSightings: SourceReader; getFilterAccess?: () => Promise<{ canUseDropFeedFilters: boolean; canUseBottleSearch: boolean; canUseAdvancedFilters: boolean }> }) {
+export function createSignalFeedHandler({ getDrops, getSightings, getFilterAccess }: { getDrops: SourceReader; getSightings: SourceReader; getFilterAccess?: () => Promise<{ canUseStateFilter?: boolean; canUseDropFeedFilters: boolean; canUseBottleSearch: boolean; canUseAdvancedFilters: boolean }> }) {
   return async function handleSignalFeed(request: Request) {
     const url = new URL(request.url);
     const unsupported = [...url.searchParams.keys()].filter((key) => !SUPPORTED_QUERY_KEYS.has(key));
@@ -176,9 +177,12 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
       return Response.json({ error: error instanceof Error ? error.message : "Invalid Signal filters" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
     }
 
-    if (getFilterAccess && (filters.area || filters.bottle || filters.search || filters.freshness)) {
+    if (getFilterAccess && (filters.state || filters.rarities.length || filters.area || filters.bottle || filters.search || filters.freshness)) {
       try {
         const access = await getFilterAccess();
+        if (access.canUseStateFilter === false) {
+          return Response.json({ contractVersion: SIGNAL_API_ERROR_VERSION, error: { code: "FORBIDDEN", message: "Feed filters require a paid membership." } }, { status: 403, headers: PRIVATE_SIGNAL_HEADERS });
+        }
         if ((filters.area && !access.canUseDropFeedFilters) || ((filters.bottle || filters.search) && !access.canUseBottleSearch) || (filters.freshness && !access.canUseAdvancedFilters)) {
           return Response.json({ contractVersion: SIGNAL_API_ERROR_VERSION, error: { code: "FORBIDDEN", message: "Board/city filters and feed search require Barrel Proof or Founder membership." } }, { status: 403, headers: PRIVATE_SIGNAL_HEADERS });
         }
@@ -233,7 +237,7 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
     const drops = dropStatus === "ready" && dropsValid ? rawDrops.map(normalizeDropSignal) : [];
     const visibleSightings = memberStatus === "ready" && sightingsValid ? rawSightings : [];
     const memberSignals = visibleSightings.map(normalizeMemberSightingSignal);
-    const marketDetailsLocked = view !== "community" && Boolean(dropsPayload.requiresAccountForFullFeed);
+    const marketDetailsLocked = view !== "community" && (typeof dropsPayload.marketDetailsLocked === "boolean" ? dropsPayload.marketDetailsLocked : Boolean(dropsPayload.requiresAccountForFullFeed));
     const selectedDrops = view === "community" || marketDetailsLocked ? [] : drops;
     const selectedMemberSignals = view === "market" ? [] : memberSignals;
     const combined = buildCanonicalSignalFeed({ drops: selectedDrops, memberSightings: selectedMemberSignals, dropStatus, memberStatus });
@@ -260,12 +264,12 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
     const consumed = returnedBySource(signals);
     const dropPreviewLocked = Boolean(dropsPayload.previewLocked) || Boolean(dropsPayload.requiresAccountForFullFeed);
     const accessPreviewLocked = view === "market"
-      ? marketDetailsLocked
+      ? dropPreviewLocked
       : view === "community"
         ? memberPreviewLocked
         : dropPreviewLocked || memberPreviewLocked;
     const requiresAccountForFullFeed = view === "market"
-      ? marketDetailsLocked
+      ? Boolean(dropsPayload.requiresAccountForFullFeed)
       : view === "community"
         ? memberPreviewLocked
         : Boolean(dropsPayload.requiresAccountForFullFeed) || memberPreviewLocked;

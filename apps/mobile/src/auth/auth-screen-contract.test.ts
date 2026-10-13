@@ -8,9 +8,10 @@ const entry = read("../../app/index.tsx");
 const signIn = read("../../app/(auth)/sign-in.tsx");
 const signUp = read("../../app/(auth)/sign-up.tsx");
 const authLayout = read("../../app/(auth)/_layout.tsx");
+const onboarding = read("../../app/(app)/onboarding.tsx");
 
 test("entry routes signed-out members to native auth and keeps the existing sign-in and MFA contracts", () => {
-  assert.match(entry, /"\/\(auth\)\/sign-in"/);
+  assert.match(entry, /"\/\(auth\)\/welcome"/);
   for (const contract of [
     /useSignIn/, /signIn\.password/, /signIn\.mfa\.sendEmailCode/, /signIn\.mfa\.sendPhoneCode/,
     /signIn\.mfa\.verifyEmailCode/, /signIn\.mfa\.verifyPhoneCode/, /signIn\.mfa\.verifyTOTP/,
@@ -24,9 +25,8 @@ test("entry routes signed-out members to native auth and keeps the existing sign
 test("verified accounts must resume server-authoritative onboarding before entering the app", () => {
   assert.match(entry, /getMobileOnboardingStatus/);
   assert.match(entry, /status\.completed/);
-  assert.match(entry, /resume: "onboarding"/);
-  assert.match(signUp, /useLocalSearchParams/);
-  assert.match(signUp, /params\.resume === "onboarding"/);
+  assert.match(entry, /"\/\(app\)\/onboarding"/);
+  assert.match(onboarding, /status\.completed/);
 });
 
 test("native password recovery keeps reset-code verification, MFA and finalized sessions separate",()=>{
@@ -37,30 +37,27 @@ test("native password recovery keeps reset-code verification, MFA and finalized 
 test("native sign-up uses Clerk email code verification and no social or phone collection", () => {
   for (const contract of [
     /useSignUp/, /signUp\.password/, /signUp\.verifications\.sendEmailCode/, /signUp\.verifications\.verifyEmailCode/, /signUp\.finalize/,
-    /I affirm that I am 21 or older/, /Community display name/, /Home state/, /label="Continue"/,
+    /I affirm that I am 21 or older/,
     /accessibilityRole="alert"/, /accessibilityLabel="Email verification code"/,
   ]) assert.match(signUp, contract);
   assert.doesNotMatch(signUp, /OAuth|social login|phone-pad|phoneNumber/);
-  assert.match(signUp, /SET UP YOUR PROFILE/);
-  const onboardingForm = signUp.slice(signUp.indexOf('{stage === "onboarding" ? <View style={styles.form}>'));
-  assert.doesNotMatch(onboardingForm, /Your Free account|Free accounts do not/);
-  assert.match(signUp, /member\.profile\.membership\.tier === "free"/);
-  assert.match(signUp, /else router\.replace\("\/\(app\)\/setup"\)/);
-  assert.ok(signUp.indexOf('setStage("onboarding")') < signUp.indexOf("await signUp.finalize()"), "onboarding must own the route before Clerk activates the session");
+  assert.match(onboarding, /Community display name/);
+  assert.match(onboarding, /Home state/);
+  assert.ok(signUp.indexOf("setStage('onboarding')") < signUp.indexOf("await signUp.finalize()"));
 });
 
 test("sign-up exposes retryable busy and error states without logging credentials or PII", () => {
   assert.match(signUp, /ActivityIndicator/);
   assert.match(signUp, /editable=\{!busy\}/);
-  assert.match(signUp, /caught instanceof Error/);
+  assert.match(signUp, /clerkMessage\(caught\)/);
   assert.match(signUp, /Try again/);
   assert.doesNotMatch(signUp, /console\.(?:log|warn|error)/);
 });
 
 test("successful onboarding introduces memberships without changing returning-user routing", () => {
-  const saved = signUp.indexOf("await api.completeMobileOnboarding");
-  const destination = signUp.indexOf('pathname: "/(app)/account/membership", params: { welcome: "1" }');
-  assert.ok(saved >= 0 && destination > saved);
+  assert.match(onboarding, /action: 'profile'/);
+  assert.match(onboarding, /action: 'complete'/);
+  assert.match(onboarding, /Continue without alerts/);
   assert.match(entry, /destination === "app".*Redirect href="\/\(app\)\/\(tabs\)"/);
   const membership = read("../../app/(app)/account/membership.tsx");
   assert.match(membership, /Continue with Free/);

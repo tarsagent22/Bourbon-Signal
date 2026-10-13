@@ -50,8 +50,8 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
   free: {
     tier: "free",
     label: "Free",
-    feedPreviewLimit: 7,
-    sightingsPreviewLimit: 2,
+    feedPreviewLimit: 6,
+    sightingsPreviewLimit: null,
     bottleCheckLimit: 3,
     alertAreaLimit: 0,
     trackedBottleLimit: 0,

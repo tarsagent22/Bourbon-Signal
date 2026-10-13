@@ -14,7 +14,7 @@ const route=loadWithMocks('src/app/api/drops/route.ts',{
  'next/server':{NextResponse:Response},
  'next/cache':{unstable_cache:(fn:Function)=>fn},
  '@clerk/nextjs/server':{auth:async()=>({userId:signedIn?'test':null}),clerkClient:async()=>({users:{getUser:async()=>({publicMetadata:{}})}})},
- '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier,feedPreviewLimit:tier==='free'?7:null,canUseAdvancedFilters:tier==='barrel',canUseBottleSearch:tier==='barrel',canUseDropFeedFilters:tier==='barrel'})},
+ '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier,feedPreviewLimit:tier==='free'?6:null,canUseAdvancedFilters:tier==='barrel',canUseBottleSearch:tier==='barrel',canUseDropFeedFilters:tier==='barrel'})},
  '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(drops:unknown[])=>({drops,version:'one'})},
  '@/lib/site-engine-contract':{normalizeDropForSite:(row:object)=>{normalizeCount++;return {...row};},readSiteExportIdentity:async()=>snapshot,readSiteExportResults:async()=>[{payload:{drops:rows,generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'},{payload:{generatedAt:new Date(now).toISOString()}}],siteExportHeaders:()=>({})},
  '@/lib/drop-classification':{DROP_FEED_CLASSIFICATION_TIERS:['limited','allocated','unicorn'],getDropClassificationIndex:()=>({version:'one'}),resolveDropClassification:(drop:any)=>({tier:drop.tier,source:'test'})},
@@ -39,7 +39,10 @@ const noState=await(await handler(new Request(base+'&state=NC'))).json();assert.
 snapshot='two';await handler(new Request(base));assert.equal(normalizeCount,firstNormalize*2,'snapshot replacement invalidates prepared data');
 const diagnostics=await(await route.GET(new Request('https://example.test/api/drops?include=all&limit=500'))).json();
 assert.ok(diagnostics.drops.some((row:any)=>row.id==='private-warehouse'),'authorized diagnostics retain excluded raw rows without persisting them in the public cache');
-tier='free';const free=await(await handler(new Request(base))).json();assert.equal(free.signals.length,0);assert.equal(free.access.marketDetailsLocked,true,'cached public preparation cannot leak paid locations');
+tier='free';const free=await(await handler(new Request('https://example.test/api/v1/signals?view=market&limit=30'))).json();assert.equal(free.signals.length,6);assert.equal(free.access.marketDetailsLocked,false,'Free previews show real signal cards');assert.equal(free.hasMore,false,'Free cannot paginate beyond the six-card preview');assert.equal(free.access.previewLocked,true);
+assert.equal((await route.GET(new Request('https://example.test/api/drops?state=NC'))).status,403,'Free state filtering cannot bypass the global preview');
+const freeDetailPool=await(await route.GET(new Request('https://example.test/api/drops?signalId=match-1&signalSource=trusted_source&limit=1&signalOrder=canonical'))).json();
+assert.equal(freeDetailPool.drops.length,6);assert.equal(freeDetailPool.drops.some((drop:any)=>drop.id==='match-1'),false,'Free detail IDs cannot expose a card outside the current global preview');
 signedIn=false;const anon=await(await handler(new Request(base))).json();assert.equal(anon.signals.length,0);
 let builds=0;const cache=createPreparedDropCache<number>(2,10);cache.get('a',()=>++builds,0);cache.get('a',()=>++builds,1);assert.equal(builds,1);cache.get('a',()=>++builds,11);assert.equal(builds,2);
 console.log('Filtered first page, multi-page history, honest availability, snapshot cache, freshness, geographic isolation and private access passed.');

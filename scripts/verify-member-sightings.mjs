@@ -67,14 +67,14 @@ for (const phrase of ['getUserList', 'reporterUserId', 'poster cannot vote', 'si
   if (api && !api.includes(phrase)) fail(`Sightings API should include ${phrase}`);
 }
 const entitlements = read('src/lib/entitlements.ts');
-if (!/sightingsPreviewLimit:\s*2/.test(entitlements)) fail('Free membership must expose only the two newest Member Sightings.');
+if (!/free:\s*\{[\s\S]*?sightingsPreviewLimit:\s*null/.test(entitlements)) fail('Free membership must expose the complete Community feed.');
 if (api && !/entitlements\.sightingsPreviewLimit/.test(api)) fail('Sightings API must enforce its dedicated server-side preview limit instead of the Drop Feed preview limit.');
 
 const hook = read('src/hooks/useSightings.ts');
 for (const phrase of ['/api/sightings', 'voteSighting', 'addSignalReport']) {
   if (!hook.includes(phrase)) fail(`useSightings should include ${phrase}`);
 }
-if (!/next\.slice\(0, previewLimit\)/.test(hook)) fail('A Free member submitting a sighting must still retain only the two-item client preview.');
+if (!/next\.slice\(0, previewLimit\)/.test(hook)) fail('Sightings must respect any non-null server preview limit.');
 
 const dropFeed = read('src/components/sections/DropFeed.tsx');
 for (const phrase of ['Member sighting', 'sighting.rarityTier', 'lastUpdated', 'Refreshed']) {

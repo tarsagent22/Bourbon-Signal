@@ -6,5 +6,6 @@ export function canUseDetailedFeedFilters(tier: MemberProfile["profile"]["member
 }
 
 export function allowedFeedFilters(filters: SignalFeedFilters, tier: MemberProfile["profile"]["membership"]["tier"] | undefined): SignalFeedFilters {
-  return tier === undefined || canUseDetailedFeedFilters(tier) ? filters : { ...filters, area: "", bottle: "", freshness: null };
+  if (tier === "free" || tier === undefined) return { ...filters, state: "", area: "", bottle: "", freshness: null, rarities: [] };
+  return canUseDetailedFeedFilters(tier) ? filters : { ...filters, area: "", bottle: "", freshness: null };
 }

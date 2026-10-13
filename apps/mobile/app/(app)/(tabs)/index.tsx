@@ -132,6 +132,7 @@ export default function SignalFeedScreen() {
   const browsingLoaded = Boolean(browsingStorageKey) && loadedBrowsingStorageKey === browsingStorageKey;
   const tier = profile?.membership.tier;
   const detailedFilters = canUseDetailedFeedFilters(tier);
+  const filtersAllowed = Boolean(profile?.membership.paid);
   const filters = useMemo(() => allowedFeedFilters(filtersByView[view], tier), [filtersByView, view, tier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
@@ -561,6 +562,7 @@ export default function SignalFeedScreen() {
             onChange={(state) => applyFilters({ ...filters, state, area: "" })}
             onReveal={revealChooser}
             viewportHeight={viewportHeight}
+            disabled={!filtersAllowed}
           />
           <OptionChooser
             label={areaLabel}
@@ -580,7 +582,7 @@ export default function SignalFeedScreen() {
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
 
-        {!detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search · Barrel Proof →</Text></Pressable> : null}
+        {!filtersAllowed && profile ? <><Text style={styles.areaOptionNote}>{view === "market" ? "Intel preview · Six recent signals · All states" : "Community sightings · All states"}</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>State filters and bottle alerts · Standard →</Text></Pressable></> : !detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search · Barrel Proof →</Text></Pressable> : null}
         {detailedFilters ? <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
@@ -603,8 +605,9 @@ export default function SignalFeedScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ selected: filters.rarities.length === 0 }}
+            disabled={!filtersAllowed}
             onPress={() => applyRarityFilters({ ...filters, rarities: [] })}
-            style={({ pressed }) => [styles.rarityChip, filters.rarities.length === 0 && styles.rarityChipSelected, pressed && styles.segmentPressed]}
+            style={({ pressed }) => [styles.rarityChip, filters.rarities.length === 0 && styles.rarityChipSelected, !filtersAllowed && { opacity: 0.5 }, pressed && styles.segmentPressed]}
           >
             <Text style={[styles.rarityChipText, filters.rarities.length === 0 && styles.rarityChipTextSelected]}>All</Text>
           </Pressable>
@@ -615,11 +618,12 @@ export default function SignalFeedScreen() {
                 key={option.value}
                 accessibilityRole="checkbox"
                 accessibilityLabel={option.label}
-                accessibilityState={{ checked: selected }}
+                accessibilityState={{ checked: selected, disabled: !filtersAllowed }}
+                disabled={!filtersAllowed}
                 aria-checked={selected}
                 accessibilityHint="Toggle this rarity independently"
                 onPress={() => applyRarityFilters(toggleRarity(filters, option.value))}
-                style={({ pressed }) => [styles.rarityChip, selected && styles.rarityChipSelected, pressed && styles.segmentPressed]}
+                style={({ pressed }) => [styles.rarityChip, selected && styles.rarityChipSelected, !filtersAllowed && { opacity: 0.5 }, pressed && styles.segmentPressed]}
               >
                 {selected ? <MaterialCommunityIcons accessible={false} name="check" color={colors.accent} size={13} /> : null}<Text style={[styles.rarityChipText, selected && styles.rarityChipTextSelected]}>{option.label}</Text>
               </Pressable>
@@ -656,7 +660,7 @@ export default function SignalFeedScreen() {
           : loaded && hasMore
             ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Load more matching Signals</Text></Pressable></View>
             : loaded && !hasMore && visibleSignals.length
-              ? <Text style={styles.end}>You’re caught up.</Text>
+              ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>You’ve reached the end of your Intel preview.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts →</Text></Pressable></View> : <Text style={styles.end}>You’re caught up.</Text>
               : null;
 
   return (

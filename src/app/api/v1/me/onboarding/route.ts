@@ -5,6 +5,7 @@ import { MobileOnboardingValidationError, prepareMobileOnboarding } from "@/lib/
 import { publicSignalIdentityFromMetadata } from "@/lib/signals/signal-api-contract";
 import { PRIVATE_SIGNAL_API_HEADERS, signalApiError } from "@/lib/signals/signal-api-route";
 import { ensureMemberNumber } from "@/lib/member-numbers";
+import { normalizeOnboardingDraft } from "../../../../../../shared/mobile-onboarding";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export async function GET() {
     return Response.json({
       contractVersion: "bourbon-signal/mobile-api@1",
       completed: onboardingCompleted,
+      draft: normalizeOnboardingDraft(mobileOnboarding.draft),
     }, { headers: PRIVATE_SIGNAL_API_HEADERS });
   } catch {
     return signalApiError(503, "ONBOARDING_UNAVAILABLE", "Account setup status could not be checked. Try again.", true);
@@ -37,7 +39,11 @@ export async function POST(request: Request) {
   try {
     const body = record(await request.json().catch(() => null));
     const now = new Date().toISOString();
-    const prepared = prepareMobileOnboarding(body, now);
+    const action = body.action ?? "complete";
+    if (!["save", "profile", "complete"].includes(String(action))) return signalApiError(400, "INVALID_ONBOARDING", "Choose a valid setup action.");
+    const draft = body.draft === undefined ? null : normalizeOnboardingDraft(body.draft);
+    if ((action !== "complete" || body.draft !== undefined) && !draft) return signalApiError(400, "INVALID_ONBOARDING", "Your setup could not be saved. Check your answers.");
+    const prepared = action === "save" ? null : prepareMobileOnboarding(body, now);
     const client = await clerkClient();
     const user = await ensureMemberNumber(client, await client.users.getUser(userId));
     const currentPublic = record(user.publicMetadata);
@@ -45,6 +51,10 @@ export async function POST(request: Request) {
     const previousName = communityDisplayNameFromMetadata(currentPublic);
     const identity = publicSignalIdentityFromMetadata(currentPublic);
     const existingOnboarding = record(currentPrivate.mobileOnboarding);
+    if (!prepared) {
+      await client.users.updateUserMetadata(userId, { privateMetadata: { mobileOnboarding: { ...existingOnboarding, draft, updatedAt: now } } });
+      return Response.json({ contractVersion: "bourbon-signal/mobile-api@1", completed: Boolean(existingOnboarding.completedAt), draft }, { headers: PRIVATE_SIGNAL_API_HEADERS });
+    }
     const firstAffirmedAt = typeof existingOnboarding.age21AffirmedAt === "string"
       && Number.isFinite(Date.parse(existingOnboarding.age21AffirmedAt))
       ? existingOnboarding.age21AffirmedAt
@@ -56,10 +66,14 @@ export async function POST(request: Request) {
     }
     try {
       await client.users.updateUserMetadata(userId, {
-        publicMetadata: prepared.publicMetadata,
+        publicMetadata: { ...prepared.publicMetadata, memberProfile: { ...record(currentPublic.memberProfile), ...prepared.publicMetadata.memberProfile } },
         privateMetadata: {
           mobileOnboarding: {
+            ...existingOnboarding,
             ...prepared.privateMetadata.mobileOnboarding,
+            version: draft ? 2 : 1,
+            completedAt: action === "complete" ? now : existingOnboarding.completedAt || null,
+            ...(draft ? { draft } : {}),
             age21AffirmedAt: firstAffirmedAt,
           },
         },
@@ -77,7 +91,8 @@ export async function POST(request: Request) {
 
     return Response.json({
       contractVersion: "bourbon-signal/mobile-api@1",
-      completed: true,
+      completed: action === "complete" || Boolean(existingOnboarding.completedAt),
+      draft,
     }, { headers: PRIVATE_SIGNAL_API_HEADERS });
   } catch (error) {
     if (error instanceof MobileOnboardingValidationError) {

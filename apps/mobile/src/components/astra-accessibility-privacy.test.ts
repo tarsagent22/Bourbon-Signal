@@ -19,6 +19,7 @@ function renderSignIn(strategy: string | null = null) {
     '@clerk/expo': { useAuth: () => ({ isLoaded: true, isSignedIn: false }), useSignIn: () => ({ signIn: {}, fetchStatus: 'idle' }) },
     'expo-router': { Redirect: 'Redirect', useRouter: () => ({ push() {} }) }, 'react-native': native,
     '../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} },
+    '../../src/onboarding/OnboardingUI': { OnboardingFrame: ({ children }: any) => React.createElement('Frame', {}, children), s: { input: {} } },
     react: { ...React, useState: (initial: unknown) => [index < state.length ? state[index++] : (index++, initial), () => {}], useEffect() {} },
   });
   return nodes(module.default());

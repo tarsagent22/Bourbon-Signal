@@ -101,16 +101,24 @@ export interface MobileOnboardingRequest {
   displayName: string;
   age21Affirmed: true;
   homeState: string;
+  action?: "profile" | "complete";
+  draft?: import('../../../../shared/mobile-onboarding').OnboardingDraft;
 }
 
 export interface MobileOnboardingResponse {
   contractVersion: "bourbon-signal/mobile-api@1";
-  completed: true;
+  completed: boolean;
 }
 
 export interface MobileOnboardingStatusResponse {
   contractVersion: "bourbon-signal/mobile-api@1";
   completed: boolean;
+  draft?: import('../../../../shared/mobile-onboarding').OnboardingDraft | null;
+}
+export interface OnboardingDiscovery {
+  suggestions: Array<{ id: string; name: string; proof?: number; msrp?: number | null; reason: string }>;
+  signals: Signal[];
+  signalsUnavailable: boolean;
 }
 
 export interface AccountDeletionResponse {

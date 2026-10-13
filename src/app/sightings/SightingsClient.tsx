@@ -490,7 +490,7 @@ export default function SightingsClient() {
 
         {activeTab === "submit" ? (
           <section style={{ borderRadius: "var(--radius-feature)", background: "var(--surface-soft)", padding: 22, boxShadow: "0 24px 64px rgba(0,0,0,0.24)" }}>
-            {isLimitedFeedPreview ? <div className="sighting-empty-panel" style={{ margin: "0 0 18px", textAlign: "center" }}><strong>Help the community scout</strong><span>Free members can post sightings. Upgrade when you want the full member feed and alert stack.</span></div> : null}
+            {isLimitedFeedPreview ? <div className="sighting-empty-panel" style={{ margin: "0 0 18px", textAlign: "center" }}><strong>Help the community scout</strong><span>Read and share Community sightings. Upgrade when you want bottle alerts.</span></div> : null}
             <div style={{ display: "grid", gap: 14 }}>
               <section className="sighting-step-card" data-complete={Boolean(selectedBottleId || (isManualBottle && manualBottleConfirmed))}>
                 <div className="sighting-step-head"><span className="sighting-step-number">01</span><div><strong>Bottle</strong><span>Search first. If we do not have it yet, add the bottle name and keep going.</span></div></div>
@@ -572,7 +572,7 @@ export default function SightingsClient() {
                 </article>
               );
             })}</div>
-            {isLimitedFeedPreview && totalSightings > filteredSightings.length ? <div className="sighting-empty-panel" style={{ textAlign: "center" }}><strong>Upgrade to see every sighting</strong><span>Free members can preview the two newest reports. Standard Proof and above unlock the full member sightings feed.</span><a href="/pricing" className="sighting-submit" style={{ width: "fit-content", margin: "14px auto 0", textDecoration: "none" }}>Upgrade to see more</a></div> : null}
+            {isLimitedFeedPreview && totalSightings > filteredSightings.length ? <div className="sighting-empty-panel" style={{ textAlign: "center" }}><strong>More sightings are available</strong><span>Refresh to load the latest Community reports.</span></div> : null}
             {!isLimitedFeedPreview && sightings.length < totalSightings && feedLimit < 1_000 ? <div className="sighting-empty-panel" style={{ textAlign: "center" }}><button type="button" className="sighting-submit" style={{ width: "fit-content", margin: "0 auto" }} onClick={() => setFeedLimit((current) => Math.min(current + 60, 1_000))}>Load more sightings</button></div> : null}
             {!loading && filteredSightings.length === 0 ? <div className="sighting-empty-panel"><strong>{stateFilter === "ALL" ? "No member sightings yet." : `No ${stateFilter} sightings yet.`}</strong><span>When a member reports a bottle, it will appear here newest-first with its source caveat and voting. Be the first to add useful field intel.</span></div> : null}
           </section>

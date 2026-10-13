@@ -327,6 +327,7 @@ export function createMobileApi({
     saveAdminPrice(body: Record<string,unknown>) { return request<{ok:boolean}>('/api/admin/pricing', {method:'POST',body}); },
     sendAdminShipmentEmail(body: Record<string,unknown>) { return request<{ok:boolean}>('/api/admin/shipping?notify=1', {method:'PATCH',body}); },
     getCoverageRequests() { return request<{requests: import('../../../../shared/coverage-requests').CoverageRequestItem[]}>('/api/coverage/requests',{fresh:true}); },
+    getCoverageSummary() { return request<{ states: import('../../../../shared/mobile-onboarding').OnboardingCoverageState[] }>('/api/coverage', { fresh: true }); },
     submitCoverageRequest(body: Record<string,unknown>) { return request<{request: import('../../../../shared/coverage-requests').CoverageRequestItem}>('/api/coverage/requests',{method:'POST',body}); },
     getSubscriptionManagement() { return request<{provider: "stripe" | "apple" | "google" | "none"}>("/api/billing-portal", {fresh:true}); },
     openSubscriptionManagement() { return request<{provider: "stripe" | "apple" | "google"; url:string}>("/api/billing-portal", {method:"POST"}); },
@@ -339,6 +340,10 @@ export function createMobileApi({
     completeMobileOnboarding(payload: MobileOnboardingRequest) {
       return request<MobileOnboardingResponse>("/api/v1/me/onboarding", { method: "POST", body: payload });
     },
+    saveOnboardingDraft(draft: import('../../../../shared/mobile-onboarding').OnboardingDraft) {
+      return request<MobileOnboardingStatusResponse>("/api/v1/me/onboarding", { method: "POST", body: { action: "save", draft } });
+    },
+    getOnboardingDiscovery() { return request<import('./types').OnboardingDiscovery>('/api/v1/me/onboarding/discovery', { fresh: true }); },
     getMobileOnboardingStatus({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
       return request<MobileOnboardingStatusResponse>("/api/v1/me/onboarding", { fresh, signal });
     },
