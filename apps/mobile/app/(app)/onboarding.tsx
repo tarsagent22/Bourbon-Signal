@@ -20,7 +20,7 @@ import { CoverageRequestSheet } from '../../src/onboarding/CoverageRequestSheet'
 import { Choice, FlavorChip, ExampleSighting, OnboardingButton, OnboardingFrame, s } from '../../src/onboarding/OnboardingUI';
 import { enableRadarPush, radarPushPermission, radarPushDeviceId } from '../../src/push/push-registration';
 import { bottleWatchMutation, watchedBottleCount } from '../../src/radar/radar-preferences';
-import { colors } from '../../src/theme';
+import { colors, fonts } from '../../src/theme';
 
 export default function OnboardingScreen() {
   const { userId } = useAuth(); return userId ? <MemberOnboarding key={userId} owner={userId} /> : <BrandLoading />;
@@ -236,8 +236,8 @@ function MemberOnboarding({ owner }: { owner: string }) {
       </> : null}
       {draft.step === 1 || draft.step === 5 ? <>
         <Text style={s.label}>Shopping state</Text><Pressable accessibilityRole="button" accessibilityLabel={stateName ? `Shopping state: ${stateName}` : 'Choose a state'} disabled={working} onPress={() => { setStateQuery(''); setStatePicker(true); }} style={[s.input, s.row, { justifyContent: 'space-between' }]}><Text style={s.label}>{stateName || 'Choose a state'}</Text><Text style={s.link}>⌄</Text></Pressable>
-        {coverageLoading ? <Text style={s.small}>Checking coverage…</Text> : coverageError ? <><Text style={s.small}>{coverageError}</Text><OnboardingButton secondary label="Retry coverage check" onPress={() => setCoverageAttempt(value => value + 1)} /></> : draft.homeState && coverage ? <View style={{ gap: 8, paddingVertical: 12 }}>
-          <Text style={s.label}>{usefulOnboardingCoverage(coverage) ? `Tracking in ${stateName}` : coverage.coverageStrength === 'strong' || coverage.coverageStrength === 'moderate' ? 'Tracking is established here. Updates are delayed.' : `More coverage for ${stateName}`}</Text>
+        {coverageLoading ? <Text style={s.small}>Checking coverage…</Text> : coverageError ? <><Text style={s.small}>{coverageError}</Text><OnboardingButton secondary label="Retry coverage check" onPress={() => setCoverageAttempt(value => value + 1)} /></> : draft.homeState && coverage ? <View style={[s.panel, { gap: 14, padding: 22, marginTop: 10 }]}><View style={[s.row, { justifyContent: 'space-between' }]}><Text accessible={false} style={{ fontFamily: fonts.heading, fontSize: 56, color: '#D6C19B' }}>{draft.homeState}</Text><Text style={s.eyebrow}>{usefulOnboardingCoverage(coverage) ? 'TRACKING AVAILABLE' : coverage.coverageStrength === 'strong' || coverage.coverageStrength === 'moderate' ? 'UPDATES DELAYED' : 'HELP US EXPAND'}</Text></View>
+          <Text style={s.label}>{usefulOnboardingCoverage(coverage) ? 'Bottle tracking is available.' : coverage.coverageStrength === 'strong' || coverage.coverageStrength === 'moderate' ? 'Tracking is established here. Updates are delayed.' : `More coverage for ${stateName}`}</Text>
           {usefulOnboardingCoverage(coverage) ? <Text style={s.small}>{coverage.customerSummary || coverage.summary}</Text> : <>
             <Text style={s.small}>{coverage.coverageStrength === 'strong' || coverage.coverageStrength === 'moderate' ? 'We’ll show the time of each report so you can judge how recent it is.' : 'Help us improve coverage in your state by letting us know what areas to focus on.'}</Text>
             <OnboardingButton secondary label="Request coverage →" onPress={() => setCoverageRequest(true)} />
