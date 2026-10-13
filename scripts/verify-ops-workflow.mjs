@@ -348,8 +348,10 @@ for (const phrase of ['bottleCheckLimit', 'BOTTLE_CHECK_USAGE_STORAGE_KEY', 'rem
   if (!bottleCheckPage.includes(phrase)) fail(`Bottle Check should enforce/communicate the Free 3-check preview limit (${phrase}).`);
 }
 const sightingsClient = read('src/app/sightings/SightingsClient.tsx');
-if (!/isLimitedFeedPreview/.test(sightingsClient) || !/Free members can post sightings/.test(sightingsClient) || !/Upgrade to see more/.test(sightingsClient)) {
-  fail('Member Sightings page should let Free members submit sightings while showing a two-post feed preview with an upgrade CTA.');
+const freeCommunityPolicy = entitlements.match(/free:\s*\{([\s\S]*?)\n\s*\},/)?.[1] || '';
+if (!/sightingsPreviewLimit:\s*null/.test(freeCommunityPolicy) || !/canSubmitSightings:\s*true/.test(freeCommunityPolicy)
+  || !/addSighting\(sighting\)/.test(sightingsClient) || /Free members can preview the two newest reports/.test(sightingsClient)) {
+  fail('Free members must be able to read the full Community feed and submit sightings without a two-post preview paywall.');
 }
 const userPreferencesRoute = read('src/app/api/user/preferences/route.ts');
 if (!/canReceiveSightingsAlerts/.test(userPreferencesRoute) || !/sightings:\s*\{\s*enabled:\s*false\s*\}/.test(userPreferencesRoute)) {
