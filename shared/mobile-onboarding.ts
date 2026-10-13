@@ -6,10 +6,10 @@ export const INTEREST_OPTIONS = [
   { key: 'hunter', title: 'Active Hunter', detail: 'I regularly look for specific or allocated bottles' },
   { key: 'unsure', title: 'Not Sure Yet', detail: 'A little guidance would help' },
 ] as const;
-export const FLAVOR_OPTIONS = ['Sweet & caramel', 'Fruit & vanilla', 'Oak & spice'] as const;
+export const FLAVOR_OPTIONS = ['Caramel', 'Vanilla', 'Fruit', 'Oak', 'Spice', 'Honey'] as const;
 export const PROOF_OPTIONS = [
-  { key: 'gentle', title: 'Lower proof', detail: 'Under 100 proof / 50% ABV' },
-  { key: 'bold', title: 'Higher proof', detail: '100 proof / 50% ABV and above' },
+  { key: 'gentle', title: 'Gentler', detail: 'Less alcohol heat · under 100 proof' },
+  { key: 'bold', title: 'Bolder', detail: 'More alcohol intensity · 100 proof and above' },
   { key: 'any', title: 'No preference', detail: 'Help me explore' },
 ] as const;
 export const BUDGET_OPTIONS = ['Under $40', '$40–$70', 'No preference'] as const;
@@ -52,7 +52,7 @@ export function normalizeOnboardingDraft(value: unknown): OnboardingDraft | null
     if (typeof v[key] !== 'string' || v[key].length > max || /[\u0000-\u001f\u007f]/.test(v[key])) return null;
   }
   if (v.homeState && !COVERAGE_STATES.some(state => state.code === v.homeState)) return null;
-  if (!Array.isArray(v.flavors) || v.flavors.length > 3 || !v.flavors.every(flavor => FLAVOR_OPTIONS.some(option => option === flavor))) return null;
+  if (!Array.isArray(v.flavors) || v.flavors.length > 6 || !v.flavors.every(flavor => [...FLAVOR_OPTIONS, 'Sweet & caramel', 'Fruit & vanilla', 'Oak & spice'].some(option => option === flavor))) return null;
   return { version: 2, step: Number(v.step), displayName: String(v.displayName).trim(), homeState: String(v.homeState),
     interest: v.interest as BourbonInterest, flavors: [...new Set(v.flavors as string[])], proof: v.proof as OnboardingDraft['proof'],
     budget: v.budget as OnboardingDraft['budget'], likedBottleId: String(v.likedBottleId), likedBottleName: String(v.likedBottleName) };

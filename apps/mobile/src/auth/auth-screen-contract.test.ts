@@ -42,7 +42,7 @@ test("native sign-up uses Clerk email code verification and no social or phone c
   ]) assert.match(signUp, contract);
   assert.doesNotMatch(signUp, /OAuth|social login|phone-pad|phoneNumber/);
   assert.match(onboarding, /Community display name/);
-  assert.match(onboarding, /Home state/);
+  assert.match(onboarding, /Shopping state/);
   assert.ok(signUp.indexOf("setStage('onboarding')") < signUp.indexOf("await signUp.finalize()"));
 });
 

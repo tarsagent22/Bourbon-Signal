@@ -6,7 +6,7 @@ import { ActivityIndicator, AppState, Image, Linking, Modal, Pressable, ScrollVi
 import { COVERAGE_STATES } from '../../../../shared/coverage-states';
 import { normalizeCommunityDisplayName } from '../../../../shared/community-display-name';
 import { BUDGET_OPTIONS, EMPTY_ONBOARDING, FLAVOR_OPTIONS, INTEREST_OPTIONS, PROOF_OPTIONS, beginnerPath, communityAlertsIncluded, normalizeOnboardingDraft, usefulOnboardingCoverage, type OnboardingCoverageState, type OnboardingDraft } from '../../../../shared/mobile-onboarding';
-import type { GeographySearchResponse, MemberPreferences, MemberProfile, MonitoringScope, MonitoringScopeType, OnboardingDiscovery } from '../../src/api/types';
+import type { GeographySearchResponse, MemberPreferences, MemberProfile, MonitoringScope, MonitoringScopeType, OnboardingDiscovery, SignalRewardItem } from '../../src/api/types';
 import { BrandLoading } from '../../src/components/BrandLoading';
 import { CellarBottleArtwork } from '../../src/components/CellarBottleArtwork';
 import { draftKey, readDraft, writeDraft } from '../../src/drafts/form-draft';
@@ -17,7 +17,7 @@ import { canonicalBottleKey } from '../../src/interactions/member-interactions';
 import { productIdFor } from '../../src/membership/purchases';
 import { usePurchases } from '../../src/membership/PurchasesProvider';
 import { CoverageRequestSheet } from '../../src/onboarding/CoverageRequestSheet';
-import { Choice, OnboardingButton, OnboardingFrame, s } from '../../src/onboarding/OnboardingUI';
+import { Choice, FlavorChip, ExampleSighting, OnboardingButton, OnboardingFrame, s } from '../../src/onboarding/OnboardingUI';
 import { enableRadarPush, radarPushPermission, radarPushDeviceId } from '../../src/push/push-registration';
 import { bottleWatchMutation, watchedBottleCount } from '../../src/radar/radar-preferences';
 import { colors } from '../../src/theme';
@@ -35,6 +35,11 @@ function MemberOnboarding({ owner }: { owner: string }) {
   const [coverage, setCoverage] = useState<OnboardingCoverageState | null>(null); const [coverageLoading, setCoverageLoading] = useState(false); const [coverageError, setCoverageError] = useState(''); const [coverageAttempt, setCoverageAttempt] = useState(0);
   const [bottleQuery, setBottleQuery] = useState(''); const [discovery, setDiscovery] = useState<OnboardingDiscovery | null>(null); const [discovering, setDiscovering] = useState(false);
   const [tasteAdvanced, setTasteAdvanced] = useState(false);
+  const [tasteStage, setTasteStage] = useState<'bottle' | 'flavors'>('bottle');
+  const [selectedPick, setSelectedPick] = useState<OnboardingDiscovery['suggestions'][number] | null>(null);
+  const [pickOpen, setPickOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'standard' | 'barrel'>('standard');
+  const [reward, setReward] = useState<SignalRewardItem | null>(null);
   const [localAreas, setLocalAreas] = useState(false); const [areaLevel, setAreaLevel] = useState<MonitoringScopeType>('city'); const [areaQuery, setAreaQuery] = useState('');
   const [areas, setAreas] = useState<GeographySearchResponse['results']>([]); const [areaLoading, setAreaLoading] = useState(false); const [areaError, setAreaError] = useState(''); const [areaOffset, setAreaOffset] = useState(0); const [areaHasMore, setAreaHasMore] = useState(false); const [areaAttempt, setAreaAttempt] = useState(0);
   const [selectedScopes, setSelectedScopes] = useState<MonitoringScope[]>([]); const [mode, setMode] = useState<MemberPreferences['alertMode']>('anything_notable');
@@ -85,6 +90,12 @@ function MemberOnboarding({ owner }: { owner: string }) {
     const timer = setTimeout(save, 300); const subscription = AppState.addEventListener('change', state => { if (state !== 'active') { clearTimeout(timer); save(); } });
     return () => { clearTimeout(timer); subscription.remove(); save(); };
   }, [draft, ready, storageKey]);
+  useEffect(() => {
+    if (!ready || draft.step !== 3) return;
+    let live = true;
+    void api.getSignalPoints().then(result => { if (live) setReward(result.catalog.find(item => item.key === 'glencairn' && item.inventoryRemaining !== 0) || null); }).catch(() => undefined);
+    return () => { live = false; };
+  }, [api, ready, draft.step]);
   const refreshPurchases = purchases.refresh;
   useEffect(() => { if (ready && draft.step === 4 && !paid) void refreshPurchases(); }, [ready, draft.step, paid, refreshPurchases]);
   useEffect(() => {
@@ -157,7 +168,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
     });
   }
   async function showSuggestions() {
-    await run(async () => { setDiscovering(true); try { await persist(draft); setDiscovery(await api.getOnboardingDiscovery()); } finally { setDiscovering(false); } });
+    await run(async () => { setDiscovering(true); try { const nextDraft = { ...draft, budget: 'No preference' as const }; await persist(nextDraft); setDraft(nextDraft); setDiscovery(await api.getOnboardingDiscovery()); } finally { setDiscovering(false); } });
   }
   async function watchBottle(name: string, enabled: boolean) {
     await run(async () => { const saved = await api.updateMemberPreferences({ watchlistMutation: bottleWatchMutation(name, enabled) }); setPreferences(saved); });
@@ -188,74 +199,96 @@ function MemberOnboarding({ owner }: { owner: string }) {
     setSelectedScopes(scopes => scopes.some(scope => scope.id === row.id) ? scopes.filter(scope => scope.id !== row.id) : [...scopes, { id: row.id, type: row.level, state: row.state, label: row.name }]);
   }
   if (!ready || !profile || !preferences) return error ? <OnboardingFrame title="Let's try that again." description={error}><OnboardingButton label="Retry setup" onPress={() => void load()} /></OnboardingFrame> : <BrandLoading label="Opening account setup" />;
-  const titles = ['What should we call you?', 'Where do you usually shop?', beginnerPath(draft.interest) ? 'Find your kind of whiskey.' : 'Make yourself at home.', 'A good find is worth sharing.', 'Get the next signal.', 'Choose your alert areas.', 'What are you looking for?', 'Get alerts on your phone.', 'You’re ready to explore.'];
-  const descriptions = ['Other members will see this name when you post bottle sightings.', 'Choose your home state. You can change it later.', beginnerPath(draft.interest) ? 'Tell us a little about what you enjoy. It’s fine if you’re still figuring it out.' : 'Start your shelf with a bottle you own. Ratings are optional.', 'Community sightings help everyone see what’s showing up in stores.', 'Get push notifications when matching bottles are found in your selected areas.', 'Your state is already selected. Cover it all, or choose specific places.', 'Choose broad alerts or build a list of bottles you want.', 'Your phone will ask for permission after you tap Enable notifications.', 'Here’s what you’ve set up. You can change it later in Radar.'];
+  const tasting = draft.step === 2 && beginnerPath(draft.interest);
+  const titles = ['A little about you.', 'Where do you shop?', tasting ? discovery ? 'Your first picks.' : tasteStage === 'bottle' ? 'What have you enjoyed?' : 'What sounds good?' : 'Start your shelf.', 'Share a find. Get rewarded.', 'Know when it’s found.', 'Where should we watch?', 'Which bottles?', 'Let the finds come to you.', 'Your alerts are set.'];
+  const descriptions = ['Choose the name members will see on your sightings.', 'Choose the state you shop in most.', tasting ? discovery ? 'Chosen from the flavors and bottles you like.' : tasteStage === 'bottle' ? 'Pick a whiskey you liked, or start with flavors.' : 'Choose any flavors you enjoy. Unsure? We’ll help you explore.' : 'Add a bottle you own. Rate it if you like.', 'Help another member find their next bottle.', 'Get a push alert when a matching bottle is found in your area.', 'Your membership is active. Start with your state or choose local areas.', 'Watch notable finds or choose specific bottles.', 'Choose what reaches your phone.', 'You can change these choices in Radar.'];
   const canSkip = draft.step === 2 || draft.step === 5 || draft.step === 6;
-  const continueLabel = draft.step === 4 ? (paid ? 'Set up my alerts' : 'Continue without alerts →') : draft.step === 8 ? 'Open Bourbon Signal' : 'Continue';
+  const shelfStart = draft.step === 2 && !beginnerPath(draft.interest) && !owned.length && preferences.collectionAccess.canAdd;
+  const continueLabel = shelfStart ? 'Add your first bottle' : tasting && !discovery ? tasteStage === 'bottle' ? 'Choose flavors' : 'Find my bottles' : draft.step === 4 ? paid ? 'Set up my alerts' : 'Continue without alerts →' : draft.step === 8 ? 'Open Bourbon Signal' : 'Continue';
+  async function primary() {
+    if (shelfStart) { await run(async () => { await persist(draft); router.push('/(app)/cellar/add'); }); }
+    else if (tasting && !discovery) { if (tasteStage === 'bottle') { setBottleQuery(''); setTasteStage('flavors'); } else await showSuggestions(); }
+    else await next();
+  }
+  function back() {
+    if (tasting && discovery) { setDiscovery(null); setTasteStage('flavors'); }
+    else if (tasting && tasteStage === 'flavors') setTasteStage('bottle');
+    else void run(() => go(draft.step - 1));
+  }
+  const product = purchases.products.find(item => item.productId === productIdFor(selectedPlan, 'monthly'));
+  const eligible = Boolean(product && purchases.eligibleProductIds.includes(product.productId));
   return <>
-    <OnboardingFrame title={titles[draft.step]} description={descriptions[draft.step]} step={draft.step} transitionKey={`${draft.step}-${Boolean(discovery)}`} eyebrow={draft.step >= 5 && draft.step <= 7 ? `ALERT SETUP · ${draft.step - 4} OF 3` : draft.step === 8 ? 'WELCOME TO BOURBON SIGNAL' : `GETTING STARTED · ${draft.step + 1} OF 5`}
+    <OnboardingFrame title={titles[draft.step]} description={descriptions[draft.step]} step={draft.step} transitionKey={`${draft.step}-${tasteStage}-${Boolean(discovery)}`} onBack={draft.step > 0 ? back : undefined} backDisabled={working}
+      eyebrow={draft.step === 4 ? 'OPTIONAL · BOTTLE ALERTS' : draft.step >= 5 && draft.step <= 7 ? 'ALERT SETUP' : draft.step === 8 ? 'READY WHEN YOU ARE' : undefined}
       footer={<>
         {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}{storageError ? <Text accessibilityRole="alert" style={s.error}>{storageError}</Text> : null}
-        {draft.step === 7 ? <><OnboardingButton label="Enable notifications" busy={working} onPress={() => void enableNotifications()} /><OnboardingButton secondary label="Maybe later" disabled={working} onPress={() => void run(async () => { const status = await api.getPushDeviceStatus(await radarPushDeviceId(), { fresh: true }).catch(() => null); setPushReady(Boolean(status?.enabled && status.currentDeviceRegistered && !status.warning)); await go(8); })} /></> : <OnboardingButton label={continueLabel} secondary={draft.step === 4 && !paid} busy={working} disabled={(draft.step === 0 && !draft.displayName.trim()) || (draft.step === 1 && !draft.homeState)} onPress={() => void next()} />}
-        {canSkip ? <OnboardingButton secondary label={draft.step === 2 ? 'Do this later' : 'Set up alerts later'} disabled={working} onPress={() => void run(async () => { if (draft.step === 2) await go(3); else await finish(); })} /> : null}
-        {draft.step > 0 ? <OnboardingButton secondary label="Back" disabled={working} onPress={() => void run(() => go(draft.step - 1))} /> : null}
+        {draft.step === 7 ? <><OnboardingButton label="Enable notifications" busy={working} onPress={() => void enableNotifications()} /><OnboardingButton secondary label="Maybe later" disabled={working} onPress={() => void run(async () => { const status = await api.getPushDeviceStatus(await radarPushDeviceId(), { fresh: true }).catch(() => null); setPushReady(Boolean(status?.enabled && status.currentDeviceRegistered && !status.warning)); await go(8); })} /></> : draft.step === 4 && !paid ? <>
+          <OnboardingButton label={eligible && purchases.status === 'ready' ? `Choose ${selectedPlan === 'standard' ? 'Standard' : 'Barrel Proof'}` : 'Check purchase options'} busy={working} disabled={purchases.status === 'unsupported'} onPress={() => void purchase(selectedPlan)} />
+          <OnboardingButton secondary label="Continue without alerts →" disabled={working} onPress={() => void next()} />
+        </> : <><OnboardingButton label={continueLabel} busy={working || discovering} disabled={(draft.step === 0 && !draft.displayName.trim()) || (draft.step === 1 && !draft.homeState)} onPress={() => void primary()} />
+        {canSkip && !discovery ? <OnboardingButton secondary label={draft.step === 2 ? 'Skip for now' : 'Set up alerts later'} disabled={working} onPress={() => void run(async () => { if (draft.step === 2) await go(3); else await finish(); })} /> : null}</>}
       </>}>
       {draft.step === 0 ? <>
         <Text style={s.label}>Display name</Text><TextInput accessibilityLabel="Community display name" autoCapitalize="words" maxLength={32} value={draft.displayName} onChangeText={displayName => edit({ displayName })} placeholder="How members will know you" placeholderTextColor={colors.muted} style={s.input} editable={!working} />
         <Text style={[s.label, { marginTop: 10 }]}>Which sounds most like you?</Text>
         {INTEREST_OPTIONS.map(option => <Choice key={option.key} title={option.title} detail={option.detail} selected={draft.interest === option.key} onPress={() => edit({ interest: option.key })} disabled={working} />)}
-        <Text style={s.small}>This helps us tailor your introduction. You can explore every part of the app.</Text>
+
       </> : null}
       {draft.step === 1 || draft.step === 5 ? <>
-        <Text style={s.label}>Home state</Text><OnboardingButton label={stateName || 'Choose a state'} onPress={() => { setStateQuery(''); setStatePicker(true); }} disabled={working} />
-        {coverageLoading ? <Text style={s.small}>Checking tracking coverage…</Text> : coverageError ? <><Text style={s.small}>{coverageError}</Text><OnboardingButton secondary label="Retry coverage check" onPress={() => setCoverageAttempt(value => value + 1)} /></> : coverage ? <View style={s.panel}>
-          <Text style={s.label}>{usefulOnboardingCoverage(coverage) ? `Explore bottle activity in ${stateName}` : coverage.coverageStrength === 'strong' || coverage.coverageStrength === 'moderate' ? 'Tracking updates are limited right now.' : 'Tracking coverage is growing here.'}</Text>
-          <Text style={s.copy}>{usefulOnboardingCoverage(coverage) ? 'See bottles tracked by Bourbon Signal alongside sightings shared by members.' : 'Help us improve coverage in your state by letting us know what areas to focus on.'}</Text>
-          {usefulOnboardingCoverage(coverage) ? <Text style={s.small}>{coverage.customerSummary || coverage.summary}</Text> : <OnboardingButton secondary label="Request coverage →" onPress={() => setCoverageRequest(true)} />}
-        </View> : draft.homeState ? <><Text style={s.small}>We don’t have a coverage summary for this state yet.</Text><OnboardingButton secondary label="Request coverage →" onPress={() => setCoverageRequest(true)} /></> : null}
-        {draft.step === 1 ? <Text style={s.small}>Free Intel previews show recent signals across all states. A paid membership lets you choose a state.</Text> : null}
+        <Text style={s.label}>Shopping state</Text><Pressable accessibilityRole="button" accessibilityLabel={stateName ? `Shopping state: ${stateName}` : 'Choose a state'} disabled={working} onPress={() => { setStateQuery(''); setStatePicker(true); }} style={[s.input, s.row, { justifyContent: 'space-between' }]}><Text style={s.label}>{stateName || 'Choose a state'}</Text><Text style={s.link}>⌄</Text></Pressable>
+        {coverageLoading ? <Text style={s.small}>Checking coverage…</Text> : coverageError ? <><Text style={s.small}>{coverageError}</Text><OnboardingButton secondary label="Retry coverage check" onPress={() => setCoverageAttempt(value => value + 1)} /></> : draft.homeState && coverage ? <View style={{ gap: 8, paddingVertical: 12 }}>
+          <Text style={s.label}>{usefulOnboardingCoverage(coverage) ? `Tracking in ${stateName}` : coverage.coverageStrength === 'strong' || coverage.coverageStrength === 'moderate' ? 'Tracking is established here. Updates are delayed.' : `More coverage for ${stateName}`}</Text>
+          {usefulOnboardingCoverage(coverage) ? <Text style={s.small}>{coverage.customerSummary || coverage.summary}</Text> : <>
+            <Text style={s.small}>{coverage.coverageStrength === 'strong' || coverage.coverageStrength === 'moderate' ? 'We’ll show the time of each report so you can judge how recent it is.' : 'Help us improve coverage in your state by letting us know what areas to focus on.'}</Text>
+            <OnboardingButton secondary label="Request coverage →" onPress={() => setCoverageRequest(true)} />
+          </>}
+        </View> : draft.homeState ? <><Text style={s.small}>Tracking coverage hasn’t been confirmed here yet.</Text><OnboardingButton secondary label="Request coverage →" onPress={() => setCoverageRequest(true)} /></> : null}
       </> : null}
-      {draft.step === 2 && beginnerPath(draft.interest) ? <>
-        {!discovery ? <>
-        <Text style={s.label}>Tried a whiskey you liked?</Text><TextInput accessibilityLabel="Search for a whiskey you enjoyed" placeholder="Search a bottle, or leave this blank" placeholderTextColor={colors.muted} style={s.input} value={bottleQuery || draft.likedBottleName} onChangeText={value => { setBottleQuery(value); edit({ likedBottleId: '', likedBottleName: '' }); }} editable={!working} />
-        {bottleQuery.trim() ? catalog.search(bottleQuery, 4).map(bottle => <Choice key={bottle.id} title={bottle.name} selected={draft.likedBottleId === bottle.id} onPress={() => { edit({ likedBottleId: bottle.id, likedBottleName: bottle.name }); setBottleQuery(''); }} />) : null}
-        <OnboardingButton secondary label="Not yet / clear choice" onPress={() => { setBottleQuery(''); edit({ likedBottleId: '', likedBottleName: '' }); }} />
-        <Text style={s.label}>What flavors sound appealing?</Text>{FLAVOR_OPTIONS.map(flavor => <Choice multiple key={flavor} title={flavor} selected={draft.flavors.includes(flavor)} onPress={() => edit({ flavors: draft.flavors.includes(flavor) ? draft.flavors.filter(value => value !== flavor) : [...draft.flavors, flavor] })} />)}
-        <OnboardingButton secondary label="I’m not sure" onPress={() => edit({ flavors: [] })} />
-        <OnboardingButton secondary label={tasteAdvanced ? 'Hide strength and budget' : 'Strength and budget (optional)'} onPress={() => setTasteAdvanced(value => !value)} />
-        {tasteAdvanced ? <><Text style={s.label}>Preferred strength</Text><Text style={s.small}>Proof is twice the alcohol percentage. Choose No preference if you’re unsure.</Text>{PROOF_OPTIONS.map(option => <Choice key={option.key} title={option.title} detail={option.detail} selected={draft.proof === option.key} onPress={() => edit({ proof: option.key })} />)}
-        <Text style={s.label}>Bottle budget</Text>{BUDGET_OPTIONS.map(budget => <Choice key={budget} title={budget} selected={draft.budget === budget} onPress={() => edit({ budget })} />)}<Text style={s.small}>Budget uses known MSRP. Local prices and availability vary.</Text>
-        </> : null}
-        <OnboardingButton label="Show my starting suggestions" busy={discovering || working} onPress={() => void showSuggestions()} />
-        </> : <OnboardingButton secondary label="Change my answers" disabled={working} onPress={() => setDiscovery(null)} />}
-        {discovery ? <>
-          <Text accessibilityRole="header" style={s.label}>A few bottles to explore</Text><Text style={s.small}>These are starting suggestions, not a complete taste profile. Your ratings can shape Bourbon DNA with Barrel Proof.</Text>
-          {!discovery.suggestions.length ? <Text style={s.copy}>No starting bottles match those options with the price and proof information we have. Try No preference.</Text> : discovery.suggestions.map(bottle => <View key={bottle.id} style={s.panel}><View style={s.row}><CellarBottleArtwork bottle={{ bottleId: bottle.id, bottleName: bottle.name }} size="list" /><View style={{ flex: 1, gap: 6 }}><Text style={s.label}>{bottle.name}</Text><Text style={s.small}>{bottle.reason}</Text>{bottle.proof ? <Text style={s.small}>{bottle.proof} proof · {bottle.proof / 2}% ABV</Text> : null}{bottle.msrp ? <Text style={s.small}>MSRP ${bottle.msrp.toFixed(2)}</Text> : null}</View></View></View>)}
-          <Text style={s.label}>Recent signals in {stateName}</Text>
-          {discovery.signalsUnavailable ? <Text style={s.small}>Recent signals could not load. Your bottle suggestions are still available.</Text> : !discovery.signals.length ? <Text style={s.small}>No recent matching signals were found. That doesn’t mean these bottles are unavailable in stores.</Text> : discovery.signals.map(signal => <View key={signal.id} style={s.panel}><Text style={s.label}>{signal.bottle.name}</Text><Text style={s.copy}>{signal.location.store?.name || signal.location.label || signal.location.state}</Text><Text style={s.small}>Reported {new Date(signal.timing.displayAt).toLocaleString()}{signal.availability?.price !== undefined ? ` · $${signal.availability.price.toFixed(2)}` : ''}</Text><Text style={s.small}>Availability can change. Check before making a trip.</Text></View>)}
-        </> : null}
+      {tasting ? <>
+        {!discovery ? tasteStage === 'bottle' ? <>
+          <Text style={s.label}>A bottle you liked</Text><TextInput accessibilityLabel="Search for a whiskey you enjoyed" placeholder="Search whiskey" placeholderTextColor={colors.muted} style={s.input} value={bottleQuery || draft.likedBottleName} autoCorrect={false} spellCheck={false} onChangeText={value => { setBottleQuery(value); edit({ likedBottleId: '', likedBottleName: '' }); }} editable={!working} />
+          {bottleQuery.trim() ? catalog.search(bottleQuery, 4).map(bottle => <Choice key={bottle.id} title={bottle.name} selected={draft.likedBottleId === bottle.id} onPress={() => { edit({ likedBottleId: bottle.id, likedBottleName: bottle.name }); setBottleQuery(''); }} />) : null}
+          {bottleQuery.trim() && !catalog.search(bottleQuery, 4).length ? <Text style={s.small}>No matches. Try a brand or choose flavors instead.</Text> : null}
+          {catalog.error ? <OnboardingButton secondary label="Retry bottle search" onPress={catalog.retry} /> : null}
+          <OnboardingButton secondary label={draft.likedBottleId ? 'Clear selection' : 'I haven’t tried any'} onPress={() => { setBottleQuery(''); edit({ likedBottleId: '', likedBottleName: '' }); setTasteStage('flavors'); }} />
+          <View style={{ alignItems: 'center', paddingVertical: 20 }}><CellarBottleArtwork bottle={{ bottleId: draft.likedBottleId || 'makers-mark', bottleName: draft.likedBottleName || "Maker's Mark" }} size="showcase" /></View>
+        </> : <>
+          {draft.likedBottleName ? <Text style={s.small}>You enjoyed {draft.likedBottleName}.</Text> : null}
+          <View style={s.chipGrid}>{FLAVOR_OPTIONS.map(flavor => <FlavorChip key={flavor} title={flavor} selected={draft.flavors.includes(flavor)} disabled={working} onPress={() => edit({ flavors: draft.flavors.includes(flavor) ? draft.flavors.filter(value => value !== flavor) : [...draft.flavors, flavor] })} />)}</View>
+          <OnboardingButton secondary label="Help me explore" onPress={() => edit({ flavors: [] })} />
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: tasteAdvanced }} onPress={() => setTasteAdvanced(value => !value)} style={[s.row, { minHeight: 48, justifyContent: 'space-between', borderTopWidth: 1, borderColor: '#35392F', marginTop: 12 }]}><Text style={s.label}>Strength preference</Text><Text style={s.link}>{tasteAdvanced ? '−' : '+ Optional'}</Text></Pressable>
+          {tasteAdvanced ? <>{PROOF_OPTIONS.map(option => <Choice key={option.key} title={option.title} detail={option.detail} selected={draft.proof === option.key} onPress={() => edit({ proof: option.key })} />)}</> : null}
+        </> : <>
+          {discovery.suggestions.length ? discovery.suggestions.map((bottle, index) => <Pressable key={bottle.id} accessibilityRole="button" accessibilityLabel={`Explore ${bottle.name}`} disabled={working} onPress={() => { setSelectedPick(bottle); setPickOpen(true); }} style={[s.panel, { backgroundColor: index === 0 ? '#252D20' : '#191E17', paddingVertical: index === 0 ? 22 : 14 }]}>
+            <View style={s.row}><CellarBottleArtwork bottle={{ bottleId: bottle.id, bottleName: bottle.name }} size={index === 0 ? "showcase" : "feed"} /><View style={{ flex: 1, gap: 10 }}><Text style={s.eyebrow}>{index === 0 ? 'YOUR FIRST PICK' : 'ALSO WORTH A TRY'}</Text><Text style={[s.label, { fontSize: 18, lineHeight: 24 }]}>{bottle.name}</Text><Text style={s.small}>{bottle.reason}</Text>{bottle.proof ? <Text style={s.small}>{bottle.proof < 100 ? 'Gentler strength' : 'Bolder strength'} · {bottle.proof} proof</Text> : null}<Text style={s.link}>Explore bottle →</Text></View></View>
+          </Pressable>) : <><Text style={s.copy}>No bottles match that strength yet. Try another preference.</Text></>}
+          {discovery.signals.length ? <><Text style={s.label}>Spotted in {stateName}</Text>{discovery.signals.map(signal => <View key={signal.id} style={s.panel}><Text style={s.label}>{signal.bottle.name}</Text><Text style={s.small}>{signal.location.store?.name || signal.location.label || signal.location.state}</Text><Text style={s.small}>Reported {new Date(signal.timing.displayAt).toLocaleString()}</Text></View>)}</> : null}
+          <OnboardingButton secondary label="Change preferences" onPress={() => { setDiscovery(null); setTasteStage('flavors'); }} />
+        </>}
       </> : null}
       {draft.step === 2 && !beginnerPath(draft.interest) ? <>
-        {owned.length ? <View style={s.panel}><Text style={s.label}>Your shelf is taking shape.</Text><ScrollView horizontal contentContainerStyle={{ gap: 18 }} showsHorizontalScrollIndicator={false}>{owned.slice(0, 6).map(bottle => <View key={bottle.bottleId} style={{ width: 92, gap: 8, alignItems: 'center' }}><CellarBottleArtwork bottle={bottle} size="grid" /><Text style={[s.small, { textAlign: 'center' }]}>{bottle.bottleName}</Text></View>)}</ScrollView></View> : <View style={s.panel}><CellarBottleArtwork bottle={{ bottleName: '' }} size="grid" /><Text style={s.copy}>One bottle is enough to start. You can add more whenever you like.</Text></View>}
-        <OnboardingButton label={owned.length ? 'Add another bottle' : 'Add your first bottle'} disabled={working || !preferences.collectionAccess.canAdd} onPress={() => void run(async () => { await persist(draft); router.push('/(app)/cellar/add'); })} />
-        {!preferences.collectionAccess.canAdd ? <Text style={s.small}>Your current shelf allowance is full. You can continue setup.</Text> : null}<Text style={s.small}>Add bottles you own here. You’ll choose bottles to watch separately during alert setup.</Text>
+        {owned.length ? <View style={s.panel}><Text style={s.label}>Your shelf is taking shape.</Text><ScrollView horizontal contentContainerStyle={{ gap: 18 }} showsHorizontalScrollIndicator={false}>{owned.slice(0, 6).map(bottle => <View key={bottle.bottleId} style={{ width: 92, gap: 8, alignItems: 'center' }}><CellarBottleArtwork bottle={bottle} size="grid" /><Text style={[s.small, { textAlign: 'center' }]}>{bottle.bottleName}</Text></View>)}</ScrollView></View> : <View style={[s.panel, { alignItems: 'center', paddingVertical: 24 }]}><Text style={s.eyebrow}>YOUR SHELF STARTS WITH ONE</Text><CellarBottleArtwork bottle={{ bottleId: 'wild-turkey-rare-breed', bottleName: 'Wild Turkey Rare Breed' }} size="showcase" /><Text style={s.small}>Bottle illustration · Add the bottles you own</Text></View>}
+        <OnboardingButton secondary label={owned.length ? 'Add another bottle' : 'Browse bottles'} disabled={working || !preferences.collectionAccess.canAdd} onPress={() => void run(async () => { await persist(draft); router.push('/(app)/cellar/add'); })} />
+        {!preferences.collectionAccess.canAdd ? <Text style={s.small}>Your current shelf allowance is full. You can continue setup.</Text> : null}
       </> : null}
       {draft.step === 3 ? <>
-        <View style={s.panel}><Text style={s.eyebrow}>COMMUNITY SIGHTINGS</Text><Text style={s.label}>Bottle · Store · Price · Time</Text><Text style={s.copy}>A sighting tells other members what you found and where. A photo adds useful detail.</Text></View>
-        <Text style={s.label}>Share a find. Earn Signal Points.</Text><Text style={s.copy}>Earn points for eligible sightings and other contributions. Free members can collect points; paid members can redeem them for rewards.</Text>
-        <View style={[s.panel, s.row]}><Image accessible={false} source={require('../../assets/rewards/glencairn.png')} style={{ width: 70, height: 78 }} resizeMode="contain" /><View style={{ flex: 1, gap: 6 }}><Text style={s.label}>Glasses, stickers, and more</Text><Text style={s.small}>See the current rewards and point requirements in Account → Rewards & Badges.</Text></View></View>
-        <Text style={s.small}>You don’t need to post now. When you do, share accurate details and check when a sighting was reported before making a trip.</Text>
+        <ExampleSighting />
+        <View style={{ gap: 6 }}><Text style={s.label}>Post a sighting. Earn Signal Points.</Text><Text style={s.small}>Everyone can earn points. Standard and Barrel Proof members can exchange them for rewards.</Text></View>
+        {reward ? <View style={[s.panel, s.row, { backgroundColor: '#29251C' }]}><Image accessible={false} source={require('../../assets/rewards/glencairn.png')} style={{ width: 72, height: 88 }} resizeMode="contain" /><View style={{ flex: 1, gap: 6 }}><Text style={s.eyebrow}>A REWARD TO WORK TOWARD</Text><Text style={s.label}>{reward.name}</Text><Text style={s.link}>{reward.points.toLocaleString()} Signal Points</Text></View></View> : <Text style={s.small}>Rewards include Bourbon Signal glassware and stickers.</Text>}
       </> : null}
       {draft.step === 4 ? <>
-        {paid ? <View style={s.panel}><Text style={s.label}>{profile.membership.label} is active.</Text><Text style={s.copy}>Your membership includes bottle alerts. Let’s choose where and what to watch.</Text></View> : <>
-          {(['standard', 'barrel'] as const).map(tier => {
-            const id = productIdFor(tier, 'monthly'); const product = purchases.products.find(item => item.productId === id);
-            const eligible = Boolean(id && product && purchases.eligibleProductIds.includes(id));
-            return <View key={tier} style={[s.panel, tier === 'barrel' && { borderColor: colors.accent }]}><Text style={s.eyebrow}>{tier === 'standard' ? 'STANDARD' : 'BARREL PROOF'}</Text><Text style={s.label}>{product ? `${product.localizedPrice} / ${product.localizedPeriod}` : 'Monthly membership'}</Text><Text style={s.copy}>{tier === 'standard' ? 'Push alerts for 5 areas and 15 bottles. Full Intel feed, unlimited shelf bottles, and reward redemption.' : 'Everything in Standard, plus unlimited areas and watched bottles, advanced feed filters, Community push alerts, and Bourbon DNA.'}</Text><Text style={s.small}>Billed monthly. Automatically renews until canceled. Cancel anytime through your app store.</Text><OnboardingButton label={eligible && purchases.status === 'ready' ? `Choose ${tier === 'standard' ? 'Standard' : 'Barrel Proof'}` : 'Check purchase options'} busy={working} disabled={purchases.status === 'unsupported'} onPress={() => void purchase(tier)} /></View>;
-          })}
+        {paid ? <View style={s.panel}><Text style={s.label}>{profile.membership.label} is active.</Text><Text style={s.copy}>Next: choose your areas, bottles, and notifications.</Text></View> : <>
+          <ExampleSighting notification />
+          <View style={{ flexDirection: 'row', gap: 8 }}>{(['standard', 'barrel'] as const).map(tier => {
+            const planProduct = purchases.products.find(item => item.productId === productIdFor(tier, 'monthly'));
+            return <Pressable key={tier} accessibilityRole="radio" accessibilityLabel={tier === 'standard' ? 'Standard membership' : 'Barrel Proof membership'} accessibilityState={{ checked: selectedPlan === tier, disabled: working }} disabled={working} onPress={() => setSelectedPlan(tier)} style={[s.choice, { flex: 1, flexDirection: 'column', alignItems: 'flex-start', gap: 8 }, selectedPlan === tier && s.choiceSelected]}><Text style={s.eyebrow}>{tier === 'standard' ? 'STANDARD' : 'BARREL PROOF'}</Text><Text style={s.label}>{planProduct?.localizedPrice || 'See store price'}</Text><Text style={s.small}>{planProduct ? `per ${planProduct.localizedPeriod}` : 'Monthly'}</Text><View accessible={false} style={[s.selection, selectedPlan === tier && s.selectionActive]}>{selectedPlan === tier ? <Text style={s.selectionCheck}>✓</Text> : null}</View></Pressable>;
+          })}</View>
+          <View style={{ gap: 10 }}>
+            {(selectedPlan === 'standard' ? ['Push alerts for 5 areas and 15 bottles', 'Full bottle feed and unlimited shelf', 'Exchange points for rewards'] : ['Unlimited alert areas and watched bottles', 'Community sighting alerts', 'Advanced filters and Bourbon DNA', 'Everything in Standard']).map(benefit => <View key={benefit} style={s.row}><Text style={s.link}>✓</Text><Text style={[s.small, { flex: 1, color: '#D8D3C5' }]}>{benefit}</Text></View>)}
+          </View>
+          <Text style={s.small}>Choose a plan, then set up your alerts. Renews monthly until canceled. Cancel in your app store.</Text>
           {purchases.message && purchases.status !== 'ready' ? <Text accessibilityRole="alert" style={s.small}>{purchases.message}</Text> : null}
-          <OnboardingButton secondary label="Restore purchases" disabled={working || !purchases.restoreAvailable} onPress={() => void run(async () => { await persist(draft); await purchases.restore(); const latest = await refreshMember(); if (latest.member.membership.paid) await go(5); })} />
-          <View style={s.row}><OnboardingButton secondary label="Terms" onPress={() => router.push('/(app)/account/terms')} /><OnboardingButton secondary label="Privacy" onPress={() => router.push('/(app)/account/privacy')} /></View>
+          <View style={[s.row, { justifyContent: 'center', flexWrap: 'wrap', gap: 0 }]}><OnboardingButton secondary label="Restore purchases" disabled={working || !purchases.restoreAvailable} onPress={() => void run(async () => { await persist(draft); await purchases.restore(); const latest = await refreshMember(); if (latest.member.membership.paid) await go(5); })} /><OnboardingButton secondary label="Terms" onPress={() => router.push('/(app)/account/terms')} /><OnboardingButton secondary label="Privacy" onPress={() => router.push('/(app)/account/privacy')} /></View>
         </>}
       </> : null}
       {draft.step === 5 ? <>
@@ -282,15 +315,23 @@ function MemberOnboarding({ owner }: { owner: string }) {
         </> : null}
       </> : null}
       {draft.step === 7 ? <>
-        <View style={s.panel}><Text style={s.label}>Bottle alerts</Text><Text style={s.copy}>{mode === 'anything_notable' ? 'Matching notable bottles' : 'Your watched bottles'} in your saved alert areas.</Text></View>
-        {communityIncluded ? <View style={[s.panel, s.row]}><View style={{ flex: 1, gap: 8 }}><Text style={s.label}>Community sighting alerts</Text><Text style={s.small}>Include matching finds shared by members. Included with Barrel Proof.</Text></View><Switch accessibilityLabel="Community sighting alerts" value={community} disabled={working} onValueChange={setCommunity} trackColor={{ true: colors.accent, false: colors.border }} /></View> : <Text style={s.small}>Community sighting alerts are included with Barrel Proof. Standard includes tracked bottle alerts.</Text>}
+        <ExampleSighting notification />
+        {communityIncluded ? <View style={[s.panel, s.row]}><View style={{ flex: 1, gap: 8 }}><Text style={s.label}>Community sighting alerts</Text><Text style={s.small}>Include matching finds shared by members. Included with Barrel Proof.</Text></View><Switch accessibilityLabel="Community sighting alerts" value={community} disabled={working} onValueChange={setCommunity} trackColor={{ true: colors.accent, false: colors.border }} /></View> : <Text style={s.small}>Your tracked bottle alerts are included with Standard.</Text>}
         {permissionDenied ? <><Text style={s.error}>Notifications are off in your phone settings. You can allow them now or set up alerts later in Radar.</Text><OnboardingButton secondary label="Open phone settings" onPress={() => void Linking.openSettings().catch(() => setError('Open your phone Settings to allow notifications.'))} /></> : null}
       </> : null}
       {draft.step === 8 ? <>
         <View style={s.panel}><Text style={s.label}>Your alert areas</Text><Text style={s.copy}>{preferences.monitoringScopes.map(scope => `${scope.label} (${scope.state})`).join(', ') || 'Set up later in Radar'}</Text><Text style={s.label}>Your bottle alerts</Text><Text style={s.copy}>{preferences.alertMode === 'anything_notable' ? 'Anything notable in your selected areas' : preferences.bottleAlertPreferences.bottleNames.join(', ') || 'No watched bottles yet'}</Text><Text style={s.label}>Notifications</Text><Text style={pushReady ? s.success : s.small}>{pushReady ? 'Enabled on this phone' : 'Set up later in Radar'}</Text>{communityIncluded ? <Text style={s.small}>Community alerts: {preferences.notificationPreferences.sightings.enabled ? 'On' : 'Off'}</Text> : null}</View>
       </> : null}
     </OnboardingFrame>
-    <Modal visible={statePicker} animationType="fade" onRequestClose={() => setStatePicker(false)}><OnboardingFrame title="Choose your state." eyebrow="HOME STATE" footer={<OnboardingButton secondary label="Close" onPress={() => setStatePicker(false)} />}><TextInput accessibilityLabel="Search states" value={stateQuery} onChangeText={setStateQuery} style={s.input} placeholder="Search states" placeholderTextColor={colors.muted} />{COVERAGE_STATES.filter(state => `${state.name} ${state.code}`.toLowerCase().includes(stateQuery.toLowerCase())).map(state => <Choice key={state.code} title={state.name} selected={draft.homeState === state.code} onPress={() => { edit({ homeState: state.code }); setAreaOffset(0); setAreas([]); setAreaQuery(''); setStatePicker(false); }} />)}</OnboardingFrame></Modal>
+    <Modal visible={pickOpen} animationType="fade" onRequestClose={() => setPickOpen(false)}>
+      {selectedPick ? <OnboardingFrame title={selectedPick.name} eyebrow="YOUR BOTTLE PICK" onBack={() => setPickOpen(false)} footer={<OnboardingButton label="Back to my picks" onPress={() => setPickOpen(false)} />}>
+        <View style={{ alignItems: 'center', paddingVertical: 8 }}><CellarBottleArtwork bottle={{ bottleId: selectedPick.id, bottleName: selectedPick.name }} size="detail" /></View>
+        <Text style={s.copy}>{selectedPick.reason}</Text>{selectedPick.proof ? <Text style={s.small}>{selectedPick.proof} proof · {selectedPick.proof < 100 ? 'A gentler place to start' : 'A fuller, bolder pour'}</Text> : null}
+        {preferences.collectionAccess.canAdd ? <OnboardingButton label="Add to my shelf" disabled={working} onPress={() => void run(async () => { await persist(draft); const id = selectedPick.id; setPickOpen(false); router.push({ pathname: '/(app)/cellar/add', params: { onboardingBottleId: id } }); })} /> : null}
+        {paid ? <OnboardingButton secondary label={watched.has(canonicalBottleKey(selectedPick.name)) ? 'Remove from watched bottles' : 'Watch this bottle'} disabled={working || (!watched.has(canonicalBottleKey(selectedPick.name)) && typeof bottleLimit === 'number' && watchedBottleCount(preferences) >= bottleLimit)} onPress={() => void watchBottle(selectedPick.name, !watched.has(canonicalBottleKey(selectedPick.name)))} /> : null}
+      </OnboardingFrame> : null}
+    </Modal>
+    <Modal visible={statePicker} animationType="fade" onRequestClose={() => setStatePicker(false)}><OnboardingFrame title="Choose your state." eyebrow="SHOPPING STATE" footer={<OnboardingButton secondary label="Close" onPress={() => setStatePicker(false)} />}><TextInput accessibilityLabel="Search states" value={stateQuery} onChangeText={setStateQuery} style={s.input} placeholder="Search states" placeholderTextColor={colors.muted} />{COVERAGE_STATES.filter(state => `${state.name} ${state.code}`.toLowerCase().includes(stateQuery.toLowerCase())).map(state => <Choice key={state.code} title={state.name} selected={draft.homeState === state.code} onPress={() => { edit({ homeState: state.code }); setAreaOffset(0); setAreas([]); setAreaQuery(''); setStatePicker(false); }} />)}</OnboardingFrame></Modal>
     {coverageRequest ? <CoverageRequestSheet key={draft.homeState} state={draft.homeState} visible onClose={() => setCoverageRequest(false)} /> : null}
   </>;
 }

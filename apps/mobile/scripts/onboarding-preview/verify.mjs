@@ -9,8 +9,9 @@ const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const checks = []; const errors = [];
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 page.on('pageerror', error => errors.push(error.message));
-async function open(query) { await page.goto(`http://127.0.0.1:5187/?${query}`); await page.locator('text=LOCAL PREVIEW').waitFor(); }
+async function open(query) { await page.goto(`http://127.0.0.1:5188/?${query}`); await page.locator('text=LOCAL PREVIEW').waitFor(); }
 async function capture(name) {
+  await page.waitForTimeout(350); // Let the authored modal fade finish before visual evidence.
   await page.screenshot({ path: path.join(output, `${name}.png`), fullPage: true });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `${name}: no horizontal overflow`);
   checks.push(name);
@@ -39,15 +40,18 @@ assert.equal(await page.evaluate(() => window.coverageSubmitted.stateCode), 'NC'
 await capture('coverage-request-success');
 await page.getByRole('button', { name: 'Back to setup' }).click();
 await page.getByRole('button', { name: 'Continue', exact: true }).click();
-await page.getByRole('button', { name: 'Show my starting suggestions' }).click();
-await page.getByText('A few bottles to explore', { exact: true }).waitFor(); await capture('starter-suggestions');
+await page.getByRole('button', { name: 'Choose flavors' }).click();
+await page.getByRole('checkbox', { name: 'Caramel', exact: true }).click();
+await page.getByRole('button', { name: 'Find my bottles' }).click();
+await page.getByRole('heading', { name: 'Your first picks.' }).waitFor(); await capture('starter-suggestions');
 await page.getByRole('button', { name: 'Continue', exact: true }).click();
 await page.getByRole('button', { name: 'Continue', exact: true }).click();
 await page.getByRole('button', { name: 'Continue without alerts →' }).click();
 await page.getByText('Setup complete · Feed opened').waitFor(); checks.push('beginner-free-completion');
 await open('step=4');
+await page.getByRole('radio', { name: 'Barrel Proof membership' }).click();
 await page.getByRole('button', { name: 'Choose Barrel Proof' }).click();
-await page.getByRole('heading', { name: 'Choose your alert areas.' }).waitFor();
+await page.getByRole('heading', { name: 'Where should we watch?' }).waitFor();
 await page.getByRole('button', { name: 'Continue', exact: true }).click();
 await page.getByRole('radio', { name: /Only specific bottles/ }).click();
 await page.getByRole('textbox', { name: 'Search bottles to watch' }).fill('Stagg');
@@ -63,9 +67,40 @@ await page.getByRole('button', { name: 'Enable notifications' }).click(); await 
 await page.getByRole('button', { name: 'Maybe later' }).click(); await page.getByRole('button', { name: 'Open Bourbon Signal' }).waitFor(); checks.push('standard-denied-permission-and-deferred-setup');
 for (const status of ['cancelled', 'pending']) {
   await open(`step=4&purchase=${status}`); await page.getByRole('button', { name: 'Choose Standard' }).click();
-  await page.getByRole('heading', { name: 'Get the next signal.' }).waitFor();
+  await page.getByRole('heading', { name: 'Know when it’s found.' }).waitFor();
   await page.getByRole('button', { name: 'Continue without alerts →' }).click(); await page.getByText('Setup complete · Feed opened').waitFor(); checks.push(`purchase-${status}-keeps-free-access`);
 }
 await open('step=4&purchase=loading'); await page.getByRole('button', { name: 'Continue without alerts →' }).click(); await page.getByText('Setup complete · Feed opened').waitFor(); checks.push('store-loading-does-not-block-free-completion');
+for (const [width, height] of [[320, 640], [390, 844]]) {  await page.setViewportSize({ width, height });
+  await open('step=2&interest=starting&inset=54');
+  const header = page.getByText('Bourbon Signal', { exact: true }).first();
+  const before = await header.boundingBox();
+  await page.getByRole('textbox', { name: 'Search for a whiskey you enjoyed' }).fill('Maker');
+  await page.setViewportSize({ width, height: 480 });
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('preview-keyboard', { detail: true })));
+  await page.getByRole('button', { name: 'Dismiss keyboard' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Choose flavors', exact: true }).count(), 0, 'full footer yields to typing');
+  assert.ok((await header.boundingBox()).y >= 54, 'header stays below status bar');
+  await page.getByRole('radio', { name: "Maker's Mark", exact: true }).click();
+  await page.getByRole('button', { name: 'Dismiss keyboard' }).click();
+  await page.setViewportSize({ width, height });
+  await page.getByRole('button', { name: 'Choose flavors' }).click();
+  for (const flavor of ['Caramel', 'Oak']) await page.getByRole('checkbox', { name: flavor, exact: true }).click();
+  await page.getByRole('button', { name: 'Find my bottles' }).click();
+  await page.getByRole('button', { name: /Explore .*Double Oaked/ }).click();
+  await page.getByRole('button', { name: 'Add to my shelf' }).waitFor();
+  await capture(`bottle-detail-${width}-${height}`);
+  await page.getByRole('button', { name: 'Back to my picks' }).click();
+  await capture(`compact-results-${width}-${height}`);
+  await page.mouse.wheel(0, 900);
+  assert.ok((await header.boundingBox()).y >= before.y - 1, 'scrolling never moves header into status bar');
+  assert.equal(await page.getByText(/MSRP/).count(), 0, 'unqualified prices are not displayed');
+  checks.push(`keyboard-safe-area-results-${width}`);
+}
+await open('screen=sign-up');
+await page.locator('input[aria-label="Create password"]').fill('a-password');
+await page.getByRole('button', { name: 'Show password' }).click();
+assert.equal(await page.getByRole('textbox', { name: 'Create password' }).evaluate(element => element.type), 'text');
+checks.push('password-visibility');
 assert.deepEqual(errors, []); await writeFile(path.join(output, 'results.json'), JSON.stringify({ checks, errors }, null, 2));
 await browser.close(); console.log(`${checks.length} browser checks passed. ${output}`);

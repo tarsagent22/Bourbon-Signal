@@ -5,7 +5,7 @@ import { copyFile, mkdir, writeFile } from 'node:fs/promises';
 const here = path.dirname(fileURLToPath(import.meta.url)); const root = path.resolve(here, '../..'); const output = path.join(root, 'dist/onboarding-preview');
 await mkdir(output, { recursive: true });
 await build({ entryPoints: [path.join(here, 'entry.tsx')], outfile: path.join(output, 'app.js'), bundle: true, platform: 'browser', jsx: 'automatic', loader: { '.png': 'file', '.jpg': 'file', '.webp': 'file' }, define: { 'process.env.NODE_ENV': '"development"', __DEV__: 'true', global: 'globalThis' }, plugins: [{ name: 'offline-boundaries', setup(b) {
-  b.onResolve({ filter: /^react-native$/ }, () => ({ path: fileURLToPath(import.meta.resolve('react-native-web')) }));
+  b.onResolve({ filter: /^react-native$/ }, () => ({ path: path.join(here, 'native-preview.mjs') }));
   b.onResolve({ filter: /^(@clerk\/expo|expo-router|expo-secure-store|react-native-safe-area-context)$|\/(useMobileApi|useAccessibleStatus)$|\/membership\/PurchasesProvider$|\/push\/push-registration$/ }, () => ({ path: path.join(here, 'fixture.tsx') }));
 } }] });
 await copyFile(path.join(root, 'node_modules/@expo-google-fonts/fraunces/700Bold/Fraunces_700Bold.ttf'), path.join(output, 'fraunces.ttf'));

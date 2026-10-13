@@ -50,7 +50,7 @@ test('starting suggestions obey known budget/proof, exclude unknown prices, and 
   ];
   const draft = { ...EMPTY_ONBOARDING, proof: 'gentle' as const, budget: 'Under $40' as const, flavors: ['Sweet & caramel'] };
   const picks = starterSuggestions(candidates, draft);
-  assert.deepEqual(picks.map(pick => pick.id), ['makers-mark']); assert.match(picks[0].reason, /sweet and caramel/);
+  assert.deepEqual(picks.map(pick => pick.id), ['makers-mark']); assert.match(picks[0].reason, /sweet, caramel/);
   assert.equal(starterSuggestions(candidates, { ...draft, likedBottleId: 'makers-mark' }).length, 0);
   assert.equal(starterSuggestions(candidates, { ...draft, budget: '$40–$70' }).length, 0);
 });
@@ -93,4 +93,19 @@ test('invalid setup and unauthenticated writes cannot complete an account', asyn
   assert.equal((await h.post({ displayName: 'Oak', homeState: 'NC', age21Affirmed: false })).status, 400);
   assert.equal(h.user.privateMetadata.mobileOnboarding, undefined);
   h.signOut(); assert.equal((await h.post({ action: 'save', draft: EMPTY_ONBOARDING })).status, 401);
+});
+
+
+test('new flavor selections and legacy drafts resume without discarding progress', () => {
+  for (const flavors of [['Caramel', 'Vanilla', 'Fruit', 'Oak', 'Spice', 'Honey'], ['Sweet & caramel', 'Oak & spice']]) assert.deepEqual(normalizeOnboardingDraft({ ...EMPTY_ONBOARDING, step: 2, flavors })?.flavors, flavors);
+});
+test('recommendations favor different brands when similarly relevant picks exist', () => {
+  const candidates = [
+    { id: 'woodford-reserve', name: 'Woodford Reserve', brand: 'Woodford', tags: ['Oak', 'Caramel'] },
+    { id: 'woodford-double-oaked', name: 'Double Oaked', brand: 'Woodford', tags: ['Oak', 'Caramel'] },
+    { id: 'makers-mark', name: "Maker's Mark", brand: 'Maker', tags: ['Caramel'] },
+    { id: 'knob-creek-9', name: 'Knob Creek', brand: 'Knob', tags: ['Oak'] },
+  ];
+  const picks = starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Oak', 'Caramel'] });
+  assert.equal(new Set(picks.map(pick => pick.brand)).size, 3);
 });
