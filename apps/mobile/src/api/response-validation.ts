@@ -77,6 +77,8 @@ const checks: Record<string, Check> = {
   '/api/v1/me/profile': profile,
   '/api/v1/me/badges': obj({ok:one(true),featuredBadgeIds:strings}),
   '/api/v1/me/onboarding': obj({ contractVersion: mobileVersion, completed: bool }),
+  '/api/v1/me/onboarding/discovery': obj({ suggestions: arr(obj({ id: str, name: str, proof: optional(num), msrp: optional(nullable(num)), reason: str })), signals: arr(signal), signalsUnavailable: bool }),
+  '/api/coverage': obj({ contractVersion: one('bourbon-signal/coverage@3'), states: arr(obj({ code: str, coverageStrength: one('strong','moderate','sparse','none'), coverageStatus: one('available','not-available'), health: one('current','intermittent','temporarily-limited','no-recent-update'), summary: str, customerSummary: optional(str) })) }),
   '/api/v1/me/account': obj({ contractVersion: mobileVersion, status: one('cleanup_queued','completed'), requestId: str, accessRevoked: bool, identityDeleted: bool, remainingCleanup: strings }),
   '/api/alerts': alerts,
   '/api/bottles': bottles, '/api/bottle-catalog': bottles,

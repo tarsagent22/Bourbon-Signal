@@ -90,11 +90,11 @@ test('Barrel and Founder NC board requests reach the drop source as an exact sto
     assert.equal(source.searchParams.get('store'),'Triad Municipal ABC');
   }
 });
-test('state browsing stays available to Standard and Free', async () => {
+test('state browsing stays available to Standard while Free previews remain global', async () => {
   for (const tier of ['free','standard']) {
     let source;
     const api = createSignalFeedHandler({getFilterAccess:async()=>getEntitlements(tier),getDrops:async(request)=>{source=new URL(request.url);return Response.json({drops:[],total:0});},getSightings:async()=>Response.json({sightings:[],totalSightings:0})});
-    assert.equal((await api(new Request('https://fixture.invalid/api/v1/signals?view=market&state=NC'))).status, 200);
-    assert.equal(source.searchParams.get('state'),'NC');
+    assert.equal((await api(new Request('https://fixture.invalid/api/v1/signals?view=market&state=NC'))).status, tier === 'free' ? 403 : 200);
+    if (tier === 'free') assert.equal(source, undefined); else assert.equal(source.searchParams.get('state'),'NC');
   }
 });

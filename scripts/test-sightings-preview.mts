@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { TIER_ENTITLEMENTS } from "../src/lib/entitlements.ts";
 
-assert.equal(TIER_ENTITLEMENTS.free.sightingsPreviewLimit, 2, "Free members may see only the two newest Member Sightings");
+assert.equal(TIER_ENTITLEMENTS.free.sightingsPreviewLimit, null, "Free members can read the complete Community feed");
 for (const tier of ["standard", "barrel", "bottled-in-bond"] as const) {
   assert.equal(TIER_ENTITLEMENTS[tier].sightingsPreviewLimit, null, `${tier} should retain the full Member Sightings feed`);
 }
-assert.equal(TIER_ENTITLEMENTS.free.feedPreviewLimit, 7, "the separate Drop Feed preview must remain unchanged");
+assert.equal(TIER_ENTITLEMENTS.free.feedPreviewLimit, 6, "Free Intel has a six-card preview");
 
 const api = readFileSync("src/app/api/sightings/route.ts", "utf8");
 assert.match(api, /const previewLimit = entitlements\.sightingsPreviewLimit/);
@@ -17,7 +17,6 @@ assert.match(hook, /next\.slice\(0, previewLimit\)/, "submitting a sighting must
 
 const client = readFileSync("src/app/sightings/SightingsClient.tsx", "utf8");
 assert.match(client, /entitlements\.sightingsPreviewLimit/);
-assert.match(client, /Free members can preview the two newest reports/);
-assert.match(client, /Upgrade to see more/);
+assert.doesNotMatch(client, /Free members can preview the two newest reports/);
 
-console.log("Member Sightings two-item preview contract passed.");
+console.log("Full Community access and six-card Intel preview contract passed.");

@@ -1,0 +1,71 @@
+import { createRequire } from 'node:module';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const output = path.resolve('../../.operator/onboarding-qa'); await mkdir(output, { recursive: true });
+const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const checks = []; const errors = [];
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+page.on('pageerror', error => errors.push(error.message));
+async function open(query) { await page.goto(`http://127.0.0.1:5187/?${query}`); await page.locator('text=LOCAL PREVIEW').waitFor(); }
+async function capture(name) {
+  await page.screenshot({ path: path.join(output, `${name}.png`), fullPage: true });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `${name}: no horizontal overflow`);
+  checks.push(name);
+}
+for (const width of [390, 320]) {
+  await page.setViewportSize({ width, height: 844 });
+  for (const screen of ['welcome', 'sign-in', 'sign-up']) { await open(`screen=${screen}`); await page.getByRole('button').first().waitFor(); await capture(`${screen}-${width}`); }
+  for (const [step, tier, interest] of [[0, 'free', 'starting'], [1, 'free', 'starting'], [2, 'free', 'hunter'], [3, 'free', 'starting'], [4, 'free', 'starting'], [5, 'standard', 'hunter'], [6, 'barrel', 'hunter'], [7, 'barrel', 'hunter'], [8, 'barrel', 'hunter']]) {
+    await open(`step=${step}&tier=${tier}&interest=${interest}`); await page.getByRole('heading').first().waitFor(); await capture(`page-${step}-${tier}-${width}`);
+  }
+}
+await page.setViewportSize({ width: 390, height: 844 });
+await open('step=2&interest=hunter');
+await page.getByRole('button', { name: 'Add your first bottle' }).click(); await page.getByText('Your shelf is taking shape.', { exact: true }).waitFor(); await capture('shelf-first-bottle');
+await open('step=0&coverage=weak');
+await page.getByRole('textbox', { name: 'Community display name' }).fill('Bourbon Signal Support');
+await page.getByRole('button', { name: 'Continue', exact: true }).click(); await page.getByText('That name is reserved or could mislead other members.', { exact: true }).waitFor(); checks.push('reserved-name-rejected-before-state-step');
+await page.getByRole('textbox', { name: 'Community display name' }).fill('Oak Street');
+await page.getByRole('radio', { name: /Just Getting Started/ }).click();
+await page.getByRole('button', { name: 'Continue', exact: true }).click();
+await page.getByRole('button', { name: 'Request coverage →' }).click();
+await page.getByRole('textbox', { name: 'City to cover' }).fill('Raleigh');
+await page.getByRole('button', { name: 'Submit coverage request' }).click();
+await page.getByRole('heading', { name: 'Request received.' }).waitFor();
+assert.equal(await page.evaluate(() => window.coverageSubmitted.stateCode), 'NC');
+await capture('coverage-request-success');
+await page.getByRole('button', { name: 'Back to setup' }).click();
+await page.getByRole('button', { name: 'Continue', exact: true }).click();
+await page.getByRole('button', { name: 'Show my starting suggestions' }).click();
+await page.getByText('A few bottles to explore', { exact: true }).waitFor(); await capture('starter-suggestions');
+await page.getByRole('button', { name: 'Continue', exact: true }).click();
+await page.getByRole('button', { name: 'Continue', exact: true }).click();
+await page.getByRole('button', { name: 'Continue without alerts →' }).click();
+await page.getByText('Setup complete · Feed opened').waitFor(); checks.push('beginner-free-completion');
+await open('step=4');
+await page.getByRole('button', { name: 'Choose Barrel Proof' }).click();
+await page.getByRole('heading', { name: 'Choose your alert areas.' }).waitFor();
+await page.getByRole('button', { name: 'Continue', exact: true }).click();
+await page.getByRole('radio', { name: /Only specific bottles/ }).click();
+await page.getByRole('textbox', { name: 'Search bottles to watch' }).fill('Stagg');
+await page.getByRole('checkbox', { name: 'Stagg' }).click();
+await page.getByRole('button', { name: 'Continue', exact: true }).click();
+await page.getByRole('switch', { name: 'Community sighting alerts' }).click();
+await page.getByRole('button', { name: 'Enable notifications' }).click();
+await page.getByText('Enabled on this phone', { exact: true }).waitFor(); await capture('paid-alert-summary');
+await page.getByRole('button', { name: 'Open Bourbon Signal' }).click(); await page.getByText('Setup complete · Feed opened').waitFor(); checks.push('barrel-purchase-and-alert-setup');
+await open('step=7&tier=standard&push=denied');
+assert.equal(await page.getByRole('switch', { name: 'Community sighting alerts' }).count(), 0);
+await page.getByRole('button', { name: 'Enable notifications' }).click(); await page.getByRole('button', { name: 'Open phone settings' }).waitFor();
+await page.getByRole('button', { name: 'Maybe later' }).click(); await page.getByRole('button', { name: 'Open Bourbon Signal' }).waitFor(); checks.push('standard-denied-permission-and-deferred-setup');
+for (const status of ['cancelled', 'pending']) {
+  await open(`step=4&purchase=${status}`); await page.getByRole('button', { name: 'Choose Standard' }).click();
+  await page.getByRole('heading', { name: 'Get the next signal.' }).waitFor();
+  await page.getByRole('button', { name: 'Continue without alerts →' }).click(); await page.getByText('Setup complete · Feed opened').waitFor(); checks.push(`purchase-${status}-keeps-free-access`);
+}
+await open('step=4&purchase=loading'); await page.getByRole('button', { name: 'Continue without alerts →' }).click(); await page.getByText('Setup complete · Feed opened').waitFor(); checks.push('store-loading-does-not-block-free-completion');
+assert.deepEqual(errors, []); await writeFile(path.join(output, 'results.json'), JSON.stringify({ checks, errors }, null, 2));
+await browser.close(); console.log(`${checks.length} browser checks passed. ${output}`);

@@ -327,6 +327,9 @@ export async function GET(req: NextRequest) {
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
   const requestedState = (url.searchParams.get("state") || "").trim().toUpperCase();
+  if (!entitlements.canUseStateFilter && ["state", "tiers", "area", "bottle", "search", "since"].some(key => url.searchParams.getAll(key).some(value => value.trim()))) {
+    return NextResponse.json({ error: "Feed filters require a paid membership." }, { status: 403 });
+  }
   const requestedSearch = (url.searchParams.get("search") || "").replace(/\s+/g, " ").trim();
   if (requestedSearch.length > 100 || /[\u0000-\u001F\u007F]/.test(requestedSearch)) return NextResponse.json({ error: "Invalid feed search" }, { status: 400 });
   if (requestedSearch && !entitlements.canUseBottleSearch) return NextResponse.json({ error: "Feed search requires Barrel Proof or Founder membership." }, { status: 403 });

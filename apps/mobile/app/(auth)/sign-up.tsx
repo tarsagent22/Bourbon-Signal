@@ -1,210 +1,63 @@
-import { useAuth, useSignUp } from "@clerk/expo";
-import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useMobileApi } from "../../src/hooks/useMobileApi";
-import { useAccessibleStatus } from "../../src/hooks/useAccessibleStatus";
-import { colors, typeScale, fonts } from "../../src/theme";
-
-type Stage = "account" | "verification" | "onboarding";
-type StateOption = { code: string; name: string };
+import { useAuth, useSignUp } from '@clerk/expo';
+import { Redirect, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, Linking, Pressable, Text, TextInput, View } from 'react-native';
+import { useAccessibleStatus } from '../../src/hooks/useAccessibleStatus';
+import { OnboardingButton, OnboardingFrame, s } from '../../src/onboarding/OnboardingUI';
+import { colors } from '../../src/theme';
 
 function clerkMessage(caught: unknown) {
-  const clerkError = caught as { errors?: Array<{ longMessage?: string; message?: string }> };
-  return clerkError.errors?.[0]?.longMessage || clerkError.errors?.[0]?.message || "We could not create your account. Try again.";
+  const error = caught as { errors?: Array<{ longMessage?: string; message?: string }> };
+  return error.errors?.[0]?.longMessage || error.errors?.[0]?.message || 'We could not create your account. Try again.';
 }
-
 export default function SignUpScreen() {
-  const { isLoaded: authLoaded, isSignedIn } = useAuth();
-  const { signUp, fetchStatus } = useSignUp();
-  const api = useMobileApi();
-  const router = useRouter();
-  const params = useLocalSearchParams<{ resume?: string }>();
-  const [stage, setStage] = useState<Stage>(() => params.resume === "onboarding" ? "onboarding" : "account");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [age21Affirmed, setAge21Affirmed] = useState(false);
-  const [code, setCode] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [homeState, setHomeState] = useState("");
-  const [states, setStates] = useState<StateOption[]>([]);
-  const [statePickerOpen, setStatePickerOpen] = useState(false);
-  const [statesLoading, setStatesLoading] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  useAccessibleStatus(error);
-
-  async function loadStates() {
-    if (statesLoading) return;
-    setStatesLoading(true);
-    setError("");
-    try {
-      const response = await api.searchMonitoringGeography({ levels: ["state"], limit: 60, fresh: true });
-      setStates(response.states.map(({ code: stateCode, name }) => ({ code: stateCode, name })));
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "State options could not be loaded. Try again.");
-    } finally {
-      setStatesLoading(false);
-    }
+  const { isLoaded, isSignedIn } = useAuth(); const { signUp, fetchStatus } = useSignUp(); const router = useRouter();
+  const [stage, setStage] = useState<'account' | 'verification' | 'onboarding'>('account');
+  const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [code, setCode] = useState('');
+  const [age21Affirmed, setAge21Affirmed] = useState(false); const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(''); const [notice, setNotice] = useState('');
+  useAccessibleStatus(error || notice);
+  if (!isLoaded) return <View style={[s.screen, { justifyContent: 'center' }]}><ActivityIndicator color={colors.accent} /></View>;
+  if (isSignedIn) return <Redirect href="/" />;
+  async function run(action: () => Promise<void>) {
+    if (busy || fetchStatus === 'fetching') return;
+    setBusy(true); setError(''); setNotice('');
+    try { await action(); } catch (caught) { setError(clerkMessage(caught)); } finally { setBusy(false); }
   }
-
-  useEffect(() => {
-    if (stage === "onboarding" && !states.length) void loadStates();
-  }, [stage]); // State loading is explicitly retryable; do not refetch after a successful load.
-
-  if (!authLoaded) return <View style={styles.center}><ActivityIndicator color={colors.accent} /></View>;
-  if (isSignedIn && stage !== "onboarding") return <Redirect href="/" />;
-
   async function createAccount() {
-    if (busy || fetchStatus === "fetching") return;
-    if (!email.trim() || !password) {
-      setError("Enter an email address and password.");
-      return;
-    }
-    if (!age21Affirmed) {
-      setError("You must affirm that you are 21 or older.");
-      return;
-    }
-    setBusy(true);
-    setError("");
-    try {
-      const attempt = await signUp.password({ emailAddress: email.trim(), password });
-      if (attempt.error) throw { errors: [attempt.error] };
-      const sent = await signUp.verifications.sendEmailCode();
-      if (sent.error) throw { errors: [sent.error] };
-      setCode("");
-      setStage("verification");
-    } catch (caught) {
-      setError(clerkMessage(caught));
-    } finally {
-      setBusy(false);
-    }
+    if (!email.trim() || !password) { setError('Enter an email address and password.'); return; }
+    if (!age21Affirmed) { setError('You must affirm that you are 21 or older.'); return; }
+    await run(async () => {
+      const attempt = await signUp.password({ emailAddress: email.trim(), password }); if (attempt.error) throw { errors: [attempt.error] };
+      const sent = await signUp.verifications.sendEmailCode(); if (sent.error) throw { errors: [sent.error] };
+      setCode(''); setStage('verification');
+    });
   }
-
   async function verifyEmail() {
-    if (busy || fetchStatus === "fetching" || !code.trim()) return;
-    setBusy(true);
-    setError("");
-    try {
-      const verification = await signUp.verifications.verifyEmailCode({ code: code.trim() });
-      if (verification.error) throw { errors: [verification.error] };
-      if (signUp.status !== "complete") {
-        setError("Email verification is not complete. Check the code and try again.");
-        return;
-      }
-      setStage("onboarding");
-      const finalized = await signUp.finalize();
-      if (finalized.error) throw { errors: [finalized.error] };
-    } catch (caught) {
-      setStage("verification");
-      setError(clerkMessage(caught));
-    } finally {
-      setBusy(false);
-    }
+    if (!code.trim()) { setError('Enter the code sent to your email.'); return; }
+    await run(async () => {
+      const result = await signUp.verifications.verifyEmailCode({ code: code.trim() }); if (result.error) throw { errors: [result.error] };
+      if (signUp.status !== 'complete') { setError('Email verification is not complete. Check the code and try again.'); return; }
+      setStage('onboarding');
+      const finalized = await signUp.finalize(); if (finalized.error) { setStage('verification'); throw { errors: [finalized.error] }; }
+      router.replace('/');
+    });
   }
-
-  async function resendCode() {
-    if (busy || fetchStatus === "fetching") return;
-    setBusy(true);
-    setError("");
-    try {
-      const sent = await signUp.verifications.sendEmailCode();
-      if (sent.error) throw { errors: [sent.error] };
-    } catch (caught) {
-      setError(clerkMessage(caught));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function completeOnboarding() {
-    if (busy) return;
-    if (!displayName.trim()) {
-      setError("Enter a Community display name.");
-      return;
-    }
-    if (!homeState) {
-      setError("Choose your home state and starting area.");
-      return;
-    }
-    setBusy(true);
-    setError("");
-    try {
-      await api.completeMobileOnboarding({ displayName: displayName.trim(), age21Affirmed: true, homeState });
-      const member = await api.getMemberProfile({ fresh: true });
-      if (member.profile.membership.tier === "free") router.replace({ pathname: "/(app)/account/membership", params: { welcome: "1" } });
-      else router.replace("/(app)/setup");
-    } catch (caught) {
-      setError(caught instanceof Error ? `${caught.message} Try again.` : "Your profile could not be saved. Try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const selectedState = states.find((state) => state.code === homeState);
-  return <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
-    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <View style={styles.brand}>
-        <Text style={styles.eyebrow}>{stage === "onboarding" ? "SET UP YOUR PROFILE" : "CREATE ACCOUNT"}</Text>
-        <Text accessibilityRole="header" style={styles.title}>{stage === "account" ? "Join Bourbon Signal" : stage === "verification" ? "Verify your email" : "Welcome to Bourbon Signal"}</Text>
-        <Text style={styles.subtitle}>{stage === "account" ? "Create a Free account with no payment and no card required." : stage === "verification" ? "Enter the one-time code sent to your email address." : "Set your display name and home state to get started."}</Text>
-      </View>
-
-      {stage === "account" ? <View style={styles.form}>
-        <TextInput accessibilityLabel="Email address" autoCapitalize="none" autoComplete="email" editable={!busy} keyboardType="email-address" onChangeText={setEmail} placeholder="Email" placeholderTextColor={colors.muted} style={styles.input} value={email} />
-        <TextInput accessibilityLabel="Create password" autoCapitalize="none" autoComplete="new-password" editable={!busy} onChangeText={setPassword} onSubmitEditing={() => void createAccount()} placeholder="Password" placeholderTextColor={colors.muted} secureTextEntry style={styles.input} value={password} />
-        <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: age21Affirmed, disabled: busy }} disabled={busy} onPress={() => setAge21Affirmed((value) => !value)} style={({ pressed }) => [styles.checkboxRow, pressed && styles.pressed]}>
-          <View style={[styles.checkbox, age21Affirmed && styles.checkboxChecked]}><Text accessible={false} style={styles.checkmark}>{age21Affirmed ? "✓" : ""}</Text></View>
-          <Text style={styles.checkboxLabel}>I affirm that I am 21 or older.</Text>
-        </Pressable>
-        {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-        <PrimaryButton busy={busy} label="Create Free account" onPress={createAccount} />
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => router.replace("/(auth)/sign-in")} style={styles.linkButton}><Text style={styles.linkText}>Already a member? Sign in</Text></Pressable>
-      </View> : null}
-
-      {stage === "verification" ? <View style={styles.form}>
-        <TextInput accessibilityLabel="Email verification code" autoCapitalize="none" autoComplete="one-time-code" editable={!busy} keyboardType="number-pad" onChangeText={setCode} onSubmitEditing={() => void verifyEmail()} placeholder="Verification code" placeholderTextColor={colors.muted} style={styles.input} value={code} />
-        {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-        <PrimaryButton busy={busy} label="Verify email" onPress={verifyEmail} />
-        <Pressable accessibilityRole="button" disabled={busy} onPress={() => void resendCode()} style={styles.linkButton}><Text style={styles.linkText}>Send a new code</Text></Pressable>
-      </View> : null}
-
-      {stage === "onboarding" ? <View style={styles.form}>
-        <View style={styles.fieldGroup}><Text style={styles.fieldLabel}>Community display name</Text><Text style={styles.fieldHint}>Shown with your separate numbered member tag when you post.</Text>
-          <TextInput accessibilityLabel="Community display name" autoCapitalize="words" editable={!busy} maxLength={32} onChangeText={setDisplayName} placeholder="How members will know you" placeholderTextColor={colors.muted} style={styles.input} value={displayName} />
-        </View>
-        <View style={styles.fieldGroup}><Text style={styles.fieldLabel}>Home state</Text><Text style={styles.fieldHint}>Start your feed in this state.</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Choose home state and starting area" disabled={busy || statesLoading} onPress={() => setStatePickerOpen(true)} style={({ pressed }) => [styles.select, pressed && styles.pressed]}>
-            <Text style={selectedState ? styles.selectText : styles.placeholder}>{statesLoading ? "Loading states…" : selectedState ? `${selectedState.name} (${selectedState.code})` : "Choose a state"}</Text><Text accessible={false} style={styles.chevron}>›</Text>
-          </Pressable>
-          {!states.length && !statesLoading ? <Pressable accessibilityRole="button" onPress={() => void loadStates()} style={styles.retry}><Text style={styles.linkText}>Try again loading states</Text></Pressable> : null}
-        </View>
-        <Text style={styles.notice}>You can change your home state later.</Text>
-        {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-        <PrimaryButton busy={busy} label="Continue" onPress={completeOnboarding} />
-      </View> : null}
-    </ScrollView>
-
-    <Modal animationType="slide" onRequestClose={() => setStatePickerOpen(false)} presentationStyle="pageSheet" visible={statePickerOpen}>
-      <View style={styles.modal}><View style={styles.modalHeader}><Text accessibilityRole="header" style={styles.modalTitle}>Choose your state</Text><Pressable accessibilityRole="button" onPress={() => setStatePickerOpen(false)} style={styles.done}><Text style={styles.linkText}>Close</Text></Pressable></View>
-        <ScrollView>{states.map((state) => <Pressable accessibilityRole="radio" accessibilityState={{ selected: homeState === state.code }} key={state.code} onPress={() => { setHomeState(state.code); setStatePickerOpen(false); setError(""); }} style={({ pressed }) => [styles.stateRow, pressed && styles.pressed]}><Text style={styles.stateName}>{state.name}</Text><Text style={styles.stateCode}>{state.code}</Text></Pressable>)}</ScrollView>
-      </View>
-    </Modal>
-  </KeyboardAvoidingView>;
+  const verifying = stage !== 'account';
+  return <OnboardingFrame title={verifying ? 'Check your inbox.' : 'Your next find\nstarts here.'} eyebrow={verifying ? 'VERIFY YOUR EMAIL' : 'CREATE ACCOUNT'}
+    description={verifying ? `Enter the code sent to ${email}.` : 'Create your Free account. No payment or card required.'} transitionKey={stage}
+    footer={<OnboardingButton secondary label={verifying ? 'Use a different email' : 'Already have an account? Log in'} disabled={busy} onPress={() => { if (verifying) { void run(async () => { await signUp.reset(); setStage('account'); setCode(''); }); } else router.replace('/(auth)/sign-in'); }} />}>
+    {verifying ? <>
+      <Text style={s.label}>Verification code</Text><TextInput accessibilityLabel="Email verification code" autoCapitalize="none" autoComplete="one-time-code" editable={!busy} keyboardType="number-pad" value={code} onChangeText={setCode} onSubmitEditing={() => void verifyEmail()} style={s.input} placeholder="Enter code" placeholderTextColor={colors.muted} />
+      <OnboardingButton label="Verify email" busy={busy} onPress={() => void verifyEmail()} />
+      <OnboardingButton secondary label="Send a new code" disabled={busy} onPress={() => void run(async () => { const sent = await signUp.verifications.sendEmailCode(); if (sent.error) throw { errors: [sent.error] }; setNotice('A new code was sent.'); })} />
+    </> : <>
+      <Text style={s.label}>Email address</Text><TextInput accessibilityLabel="Email address" autoCapitalize="none" autoComplete="email" keyboardType="email-address" editable={!busy} value={email} onChangeText={setEmail} style={s.input} placeholder="you@example.com" placeholderTextColor={colors.muted} />
+      <Text style={s.label}>Password</Text><TextInput accessibilityLabel="Create password" autoCapitalize="none" autoComplete="new-password" secureTextEntry editable={!busy} value={password} onChangeText={setPassword} onSubmitEditing={() => void createAccount()} style={s.input} placeholder="Create a password" placeholderTextColor={colors.muted} />
+      <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: age21Affirmed, disabled: busy }} disabled={busy} onPress={() => setAge21Affirmed(value => !value)} style={[s.row, { minHeight: 48 }]}><View accessible={false} style={[s.selection, age21Affirmed && s.selectionActive]}>{age21Affirmed ? <Text style={s.selectionCheck}>✓</Text> : null}</View><Text style={[s.copy, { flex: 1 }]}>I affirm that I am 21 or older.</Text></Pressable>
+      <OnboardingButton label="Create account" busy={busy} onPress={() => void createAccount()} />
+      <Text style={s.small}>By creating an account, you agree to our <Text accessibilityRole="link" onPress={() => void Linking.openURL('https://www.bourbonsignal.com/terms').catch(() => setError('Terms could not open. Try again.'))} style={{ color: colors.accent }}>Terms</Text> and <Text accessibilityRole="link" onPress={() => void Linking.openURL('https://www.bourbonsignal.com/privacy').catch(() => setError('Privacy Policy could not open. Try again.'))} style={{ color: colors.accent }}>Privacy Policy</Text>.</Text>
+    </>}
+    {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}{notice ? <Text accessibilityRole="alert" style={s.success}>{notice}</Text> : null}
+  </OnboardingFrame>;
 }
-
-function PrimaryButton({ busy, label, onPress }: { busy: boolean; label: string; onPress: () => void | Promise<void> }) {
-  return <Pressable accessibilityRole="button" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={() => void onPress()} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, busy && styles.disabled]}>{busy ? <ActivityIndicator accessibilityLabel={`${label} in progress`} color={colors.background} /> : <Text style={styles.buttonText}>{label}</Text>}</Pressable>;
-}
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background }, center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
-  content: { flexGrow: 1, justifyContent: "center", padding: 24, paddingVertical: 48, gap: 30 }, brand: { gap: 9 }, eyebrow: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "900", letterSpacing: 1.25 },
-  title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, lineHeight: 40, fontWeight: "700" }, subtitle: { color: colors.muted, fontSize: typeScale.input, lineHeight: 22 }, form: { gap: 14 }, fieldGroup: { gap: 7 },
-  fieldLabel: { color: colors.text, fontSize: typeScale.input, fontWeight: "800" }, fieldHint: { color: colors.muted, fontSize: typeScale.small, lineHeight: 19 }, input: { minHeight: 52, borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 16, fontSize: typeScale.input },
-  checkboxRow: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12 }, checkbox: { width: 24, height: 24, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }, checkboxChecked: { backgroundColor: colors.accent, borderColor: colors.accent }, checkmark: { color: colors.background, fontSize: typeScale.input, fontWeight: "900" }, checkboxLabel: { flex: 1, color: colors.text, fontSize: typeScale.input, lineHeight: 21 },
-  button: { minHeight: 52, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.accent }, buttonPressed: { backgroundColor: colors.accentPressed }, buttonText: { color: colors.background, fontSize: typeScale.input, fontWeight: "900" }, disabled: { opacity: 0.55 }, pressed: { opacity: 0.72 },
-  linkButton: { minHeight: 44, alignItems: "center", justifyContent: "center" }, linkText: { color: colors.accent, fontSize: typeScale.body, fontWeight: "800" }, error: { color: colors.danger, fontSize: typeScale.body, lineHeight: 20 }, notice: { color: colors.muted, fontSize: typeScale.small, lineHeight: 19, backgroundColor: colors.surfaceRaised, borderRadius: 12, padding: 13 },
-  select: { minHeight: 52, borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, selectText: { color: colors.text, fontSize: typeScale.input }, placeholder: { color: colors.muted, fontSize: typeScale.input }, chevron: { color: colors.accent, fontSize: typeScale.title, fontFamily: fonts.heading }, retry: { minHeight: 44, justifyContent: "center", alignSelf: "flex-start" },
-  modal: { flex: 1, backgroundColor: colors.background, paddingTop: 22 }, modalHeader: { minHeight: 64, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth }, modalTitle: { color: colors.text, fontSize: 21, fontWeight: "900" }, done: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 }, stateRow: { minHeight: 56, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth }, stateName: { color: colors.text, fontSize: typeScale.input }, stateCode: { color: colors.muted, fontSize: typeScale.body, fontWeight: "800" },
-});

@@ -27,8 +27,8 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     eyebrow: "Start hunting",
     description: "Explore live signals, contribute sightings, and keep a small My Shelf collection.",
     features: [
-      "7-item Intel preview",
-      "2 newest Community Signals",
+      "6 recent Intel Signals across all states",
+      "Full Community feed",
       "3 bottle intelligence lookups",
       "10 bottles on My Shelf",
       "Post Community Signals and earn points",
@@ -43,7 +43,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     features: [
       "Full state Intel feed",
       "Alerts for up to 5 areas and 15 bottles",
-      "Unlimited bottle intelligence and Community Signals",
+      "Unlimited bottle intelligence lookups",
       "Unlimited My Shelf",
       "Redeem Signal Points for member rewards",
     ],

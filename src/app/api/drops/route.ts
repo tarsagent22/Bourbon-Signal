@@ -221,11 +221,15 @@ export async function GET(request: Request) {
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
   const entitlements = await getServerEntitlements(user?.publicMetadata || null);
   const isFreeAccess = !isSignedIn || entitlements.tier === "free";
+  if (isFreeAccess && ["state", "tier", "tiers", "rarity", "area", "store", "search", "bottle", "since", "board", "city", "county"].some(key => url.searchParams.getAll(key).some(value => value.trim()))) {
+    return NextResponse.json({ error: "Feed filters require a paid membership." }, { status: 403 });
+  }
   const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
-  const limit = resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit);
+  const requestedSignalId = String(url.searchParams.get("signalId") || "").slice(0, 240);
+  // A Free detail lookup can resolve only a card from the same global preview.
+  const limit = isFreeAccess && requestedSignalId ? previewLimit : resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit);
   const offset = isFreeAccess ? 0 : Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
   const requestedCursor = isFreeAccess ? null : url.searchParams.get("cursor");
-  const requestedSignalId = String(url.searchParams.get("signalId") || "").slice(0, 240);
   const requestedSignalSource = String(url.searchParams.get("signalSource") || "");
   const canonicalSignalOrder = url.searchParams.get("signalOrder") === "canonical";
   if (requestedSignalId && !/^[A-Za-z0-9._:-]{1,240}$/.test(requestedSignalId)) {
@@ -240,10 +244,7 @@ export async function GET(request: Request) {
       { status: 400, headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" } },
     );
   }
-  // State selection is a browsing/acquisition control, not a paid-only advanced filter.
-  // Free and signed-out users still receive the capped preview, but the preview must
-  // come from the requested market; otherwise a saved/selected NC lens can look
-  // completely blank even when the engine has current or historical NC signals.
+  // Free previews remain global. Paid state selection filters before pagination.
   const state = normalizeStateCodeParam(url.searchParams.get("state"));
   const search = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("search")?.replace(/\s+/g, " ").trim();
   if (search && (search.length > 100 || /[\u0000-\u001F\u007F]/.test(search))) return NextResponse.json({ error: "Invalid feed search" }, { status: 400 });
@@ -412,7 +413,7 @@ export async function GET(request: Request) {
     if (include !== "all" || historicalMode) {
       drops = applyPublicDropFilters(drops, { filterDegradedStates: true });
     }
-    if (requestedSignalId) {
+    if (requestedSignalId && !isFreeAccess) {
       drops = drops.filter((drop) => {
         const record = drop as unknown as Record<string, unknown>;
         const storedId = String(record.id ?? record.eventId ?? record.canonical_id ?? record.canonicalId ?? "");
@@ -495,6 +496,7 @@ export async function GET(request: Request) {
         marketSummaries,
         previewLocked: isFreeAccess && total > pagedDrops.length,
         requiresAccountForFullFeed: isFreeAccess,
+        marketDetailsLocked: false,
         lastUpdated: engineRunTimestamp(statsPayload, exportPayload?.generatedAt),
         engineFresh,
         degradedStatesFiltered: Array.from(degradedStates),

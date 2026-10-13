@@ -28,7 +28,7 @@ test('the root owns protected route removal while the nested navigator stays mou
   assert.match(root, /resetOn=/);
   assert.doesNotMatch(member, /Redirect|if \(!isSignedIn\)/);
   const entry = readFileSync('app/index.tsx', 'utf8');
-  assert.match(entry, /if \(!isSignedIn\) return <Redirect href="\/\(auth\)\/sign-in"/);
+  assert.match(entry, /if \(!isSignedIn\) return <Redirect href="\/\(auth\)\/welcome"/);
 });
 
 test('member navigation retains its key during logout and resets when another account signs in', () => {

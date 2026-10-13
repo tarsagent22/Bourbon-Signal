@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { colors, typeScale, fonts } from "../../src/theme";
 import { useAccessibleStatus } from "../../src/hooks/useAccessibleStatus";
+import { OnboardingFrame, s as onboardingStyles } from "../../src/onboarding/OnboardingUI";
 
 type VerificationStrategy = "email_code" | "phone_code" | "totp" | "backup_code";
 
@@ -148,9 +149,7 @@ export default function SignInScreen() {
       : "Verification code";
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.keyboard}>
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.container}>
-      <View style={styles.brand}><Text style={styles.eyebrow}>MEMBER ACCESS</Text><Text style={styles.title}>Bourbon Signal</Text><Text style={styles.subtitle}>Fresh bourbon availability intelligence, powered by trusted sources and members.</Text></View>
+    <OnboardingFrame eyebrow="MEMBER ACCESS" title={resetStep ? "Let's get you back in." : verificationStrategy ? "One more step." : "Welcome back."} description={resetStep ? "Recover access to your Bourbon Signal account." : verificationStrategy ? "Verify your account to continue." : "Your shelf, sightings, and bottle alerts are waiting."}>
       {resetStep ? <View style={styles.form}>
         <Text style={styles.subtitle}>{resetStep === "email" ? "Reset your password using your account email." : resetStep === "code" ? "Enter the reset code sent to your email." : "Choose a new password. Other signed-in sessions will be signed out."}</Text>
         {resetStep === "email" ? <TextInput accessibilityLabel="Recovery email address" autoCapitalize="none" autoComplete="email" keyboardType="email-address" value={email} onChangeText={setEmail} placeholder="Email" placeholderTextColor={colors.muted} style={styles.input} /> : resetStep === "code" ? <TextInput accessibilityLabel="Password reset code" autoComplete="one-time-code" keyboardType="number-pad" value={verificationCode} onChangeText={setVerificationCode} placeholder="Reset code" placeholderTextColor={colors.muted} style={styles.input} /> : <TextInput accessibilityLabel="New password" autoCapitalize="none" autoComplete="new-password" secureTextEntry value={password} onChangeText={setPassword} placeholder="New password" placeholderTextColor={colors.muted} style={styles.input} />}
@@ -181,7 +180,7 @@ export default function SignInScreen() {
           <Pressable accessibilityRole="button" disabled={submitting} onPress={() => { setPassword(""); setError(""); setNotice(""); setResetStep("email"); }} style={styles.linkButton}><Text style={styles.linkText}>Forgot password?</Text></Pressable>
         </View>
       )}
-    </ScrollView></KeyboardAvoidingView>
+    </OnboardingFrame>
   );
 }
 
@@ -192,7 +191,7 @@ const styles = StyleSheet.create({
   configuration: { flex: 1, justifyContent: "center", backgroundColor: colors.background, padding: 28, gap: 12 },
   brand: { gap: 10 }, eyebrow: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 1.4 },
   title: {fontFamily: fonts.heading,  color: colors.text, fontSize: typeScale.title, fontWeight: "700" }, subtitle: { color: colors.muted, fontSize: typeScale.input, lineHeight: 24 },
-  form: { gap: 14 }, input: { minHeight: 52, borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 16, fontSize: typeScale.input },
+  form: { gap: 14 }, input: onboardingStyles.input,
   error: { color: colors.danger, lineHeight: 20 }, button: { minHeight: 52, justifyContent: "center", alignItems: "center", borderRadius: 12, backgroundColor: colors.accent },
   buttonPressed: { backgroundColor: colors.accentPressed }, disabled: { opacity: 0.6 }, buttonText: { color: "#1B1208", fontSize: typeScale.input, fontWeight: "800" },
   linkButton: { minHeight: 44, alignItems: "center", justifyContent: "center" }, linkText: { color: colors.accent, fontSize: typeScale.input, fontWeight: "800" },

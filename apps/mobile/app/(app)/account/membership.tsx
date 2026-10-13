@@ -14,7 +14,7 @@ import { productIdFor } from "../../../src/membership/purchases";
 import { colors, typeScale, fonts } from "../../../src/theme";
 
 const cards = [
-  { tier: "standard" as const, name: "Standard", description: "Bottle alerts, the full feed, and room for your whole collection.", features: ["Full state Intel & community feed", "Alerts for 5 areas & 15 bottles", "Unlimited bottles on My Shelf", "Redeem Signal Points for rewards"] },
+  { tier: "standard" as const, name: "Standard", description: "Bottle alerts, the full feed, and room for your whole collection.", features: ["Full Intel feed & state selection", "Alerts for 5 areas & 15 bottles", "Unlimited bottles on My Shelf", "Redeem Signal Points for rewards"] },
   { tier: "barrel" as const, name: "Barrel Proof", description: "More alert options and a taste profile from your collection.", features: ["Everything in Standard", "Unlimited areas & watched bottles", "Advanced filters & community alerts", "Bourbon DNA from your ratings"] },
 ];
 
