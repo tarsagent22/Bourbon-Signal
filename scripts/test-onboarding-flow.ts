@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { EMPTY_ONBOARDING, normalizeOnboardingDraft, beginnerPath, communityAlertsIncluded, usefulOnboardingCoverage } from '../shared/mobile-onboarding';
+import { EMPTY_ONBOARDING, normalizeOnboardingDraft, beginnerPath, communityAlertsIncluded, usefulOnboardingCoverage, onboardingFlavorSelections } from '../shared/mobile-onboarding';
 import { createSignalFeedHandler } from '../src/lib/signals/signal-route';
 import { starterSuggestions } from '../src/lib/onboarding-discovery';
 import { TIER_ENTITLEMENTS } from '../src/lib/entitlements';
@@ -118,4 +118,11 @@ test('flavor strength changes the top recommendation and structural tags stay ou
   assert.equal(starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Vanilla'] })[0].id, 'makers-mark');
   assert.equal(starterSuggestions(candidates, { ...EMPTY_ONBOARDING, flavors: ['Oak'] })[0].id, 'elijah-craig-small-batch');
   assert.doesNotMatch(starterSuggestions(candidates, EMPTY_ONBOARDING)[0].reason, /balanced|dessert/i);
+});
+
+test('resumed legacy taste choices remain visible and allow all new choices without hidden fields exceeding the draft bound', () => {
+  const saved = normalizeOnboardingDraft({ ...EMPTY_ONBOARDING, step: 2, flavors: ['Sweet & caramel', 'Fruit & vanilla', 'Oak & spice'] })!;
+  const restored = onboardingFlavorSelections(saved.flavors);
+  assert.deepEqual(restored, ['Caramel', 'Fruit', 'Vanilla', 'Oak', 'Spice']);
+  assert.ok(normalizeOnboardingDraft({ ...saved, flavors: [...restored, 'Honey'] }));
 });

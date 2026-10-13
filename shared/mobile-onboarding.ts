@@ -30,6 +30,10 @@ export const EMPTY_ONBOARDING: OnboardingDraft = {
   version: 2, step: 0, displayName: '', homeState: '', interest: 'unsure',
   flavors: [], proof: 'any', budget: 'No preference', likedBottleId: '', likedBottleName: '',
 };
+export function onboardingFlavorSelections(flavors: string[]) {
+  const legacy: Record<string, string[]> = { 'Sweet & caramel': ['Caramel'], 'Fruit & vanilla': ['Fruit', 'Vanilla'], 'Oak & spice': ['Oak', 'Spice'] };
+  return [...new Set(flavors.flatMap(flavor => legacy[flavor] || [flavor]))].filter(flavor => FLAVOR_OPTIONS.some(option => option === flavor));
+}
 export function beginnerPath(interest: BourbonInterest) { return interest === 'starting' || interest === 'unsure'; }
 export function communityAlertsIncluded(tier: string) { return tier === 'barrel' || tier === 'bottled-in-bond'; }
 export interface OnboardingCoverageState {

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Image, Linking, Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { COVERAGE_STATES } from '../../../../shared/coverage-states';
 import { normalizeCommunityDisplayName } from '../../../../shared/community-display-name';
-import { BUDGET_OPTIONS, EMPTY_ONBOARDING, FLAVOR_OPTIONS, INTEREST_OPTIONS, PROOF_OPTIONS, beginnerPath, communityAlertsIncluded, normalizeOnboardingDraft, usefulOnboardingCoverage, type OnboardingCoverageState, type OnboardingDraft } from '../../../../shared/mobile-onboarding';
+import { EMPTY_ONBOARDING, FLAVOR_OPTIONS, INTEREST_OPTIONS, PROOF_OPTIONS, beginnerPath, communityAlertsIncluded, normalizeOnboardingDraft, onboardingFlavorSelections, usefulOnboardingCoverage, type OnboardingCoverageState, type OnboardingDraft } from '../../../../shared/mobile-onboarding';
 import type { GeographySearchResponse, MemberPreferences, MemberProfile, MonitoringScope, MonitoringScopeType, OnboardingDiscovery, SignalRewardItem } from '../../src/api/types';
 import { BrandLoading } from '../../src/components/BrandLoading';
 import { CellarBottleArtwork } from '../../src/components/CellarBottleArtwork';
@@ -71,7 +71,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
       if (status.completed) { router.replace('/(app)/(tabs)'); return; }
       const saved = normalizeOnboardingDraft(local) || normalizeOnboardingDraft(status.draft) || { ...EMPTY_ONBOARDING };
       const step = !member.profile.membership.paid && saved.step > 4 ? 4 : saved.step;
-      setDraft({ ...saved, step }); setProfile(member.profile); setPreferences(prefs); setMode(prefs.alertMode);
+      setDraft({ ...saved, flavors: onboardingFlavorSelections(saved.flavors), step }); setProfile(member.profile); setPreferences(prefs); setMode(prefs.alertMode);
       setCommunity(communityAlertsIncluded(member.profile.membership.tier) && prefs.notificationPreferences.sightings.enabled);
       setSelectedScopes(prefs.monitoringScopes); setLocalAreas(prefs.monitoringScopes.some(scope => scope.type !== 'state'));
       if (member.profile.membership.paid && step === 8) {
