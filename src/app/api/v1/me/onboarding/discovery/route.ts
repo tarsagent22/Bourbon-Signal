@@ -19,7 +19,7 @@ export async function GET() {
     const candidates = bible.filter(bottle => STARTER_BOTTLE_IDS.includes(bottle.id) || bottle.id === draft.likedBottleId).map(bottle => {
       const knowledge = lookupBourbonKnowledge({ name: bottle.canonicalName, ...bottle });
       return { id: bottle.id, name: bottle.canonicalName, proof: bottle.proof, msrp: bottle.msrp,
-        brand: bottle.brand, tagWeights: knowledge?.tags as Record<string, number> | undefined, tags: Object.keys(knowledge?.tags || {}), family: knowledge?.family };
+        brand: bottle.brand, tagWeights: knowledge?.tags, tags: Object.keys(knowledge?.tags || {}), family: knowledge?.family };
     });
     // Catalog prices do not carry bottle-volume provenance; do not present or budget-filter them here.
     const suggestions = starterSuggestions(candidates, { ...draft, budget: 'No preference' }).map(({ msrp: _price, tagWeights: _weights, ...bottle }) => bottle);
