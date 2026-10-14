@@ -1,17 +1,18 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { preferencesFixture, profileFixture } from '../../src/api/astra-fixtures';
+import { starterSuggestions } from '../../../../src/lib/onboarding-discovery';
 import { EMPTY_ONBOARDING } from '../../../../shared/mobile-onboarding';
 const query = new URLSearchParams(location.search);
 let tier = query.get('tier') || 'free';
-let draft = { ...EMPTY_ONBOARDING, step: Number(query.get('step') || 0), displayName: Number(query.get('step')) > 0 ? 'Oak Street' : '', homeState: 'NC', interest: query.get('interest') || 'starting' };
+let draft = { ...EMPTY_ONBOARDING, step: Number(query.get('step') || 0), displayName: Number(query.get('step')) > 0 ? 'Oak Street' : '', homeState: 'NC', interest: query.get('interest') || 'starting', flavors: (query.get('flavors') || '').split(',').filter(Boolean), likedBottleId: query.get('liked') || '', likedBottleName: query.get('liked') === 'makers-mark' ? "Maker's Mark" : '' };
 let completed = false;
 let prefs = preferencesFixture({ alertMode: 'anything_notable', monitoringScopes: [], entitlements: { alertAreaLimit: tier === 'standard' ? 5 : null, trackedBottleLimit: tier === 'standard' ? 15 : null }, collectionAccess: { canRead: true, canEditExisting: true, canAdd: true, limit: 10, remaining: 10, showCapacityNotice: false } });
-const bottles = [{ id: 'makers-mark', name: "Maker's Mark", proof: 90 }, { id: 'woodford-double-oaked', name: 'Woodford Reserve Double Oaked', proof: 90.4 }, { id: 'stagg', name: 'Stagg', rarity: 'unicorn' }];
+const bottles = [{ id: 'makers-mark', name: "Maker's Mark", proof: 90 }, { id: 'woodford-double-oaked', name: 'Woodford Reserve Double Oaked', proof: 90.4 }, { id: 'buffalo-trace', name: 'Buffalo Trace', proof: 90 }, { id: 'woodford-reserve', name: 'Woodford Reserve', proof: 90.4 }, { id: 'four-roses-single-barrel', name: 'Four Roses Single Barrel', proof: 100 }, { id: 'old-forester-100', name: 'Old Forester 100 Proof', proof: 100 }, { id: 'stagg', name: 'Stagg', rarity: 'unicorn' }];
 function profile() { return profileFixture({ homeState: draft.homeState, membership: { tier: tier as any, label: tier === 'barrel' ? 'Barrel Proof' : tier === 'standard' ? 'Standard' : 'Free', paid: tier !== 'free', hasBetaAccess: false } }); }
 export const api = {
   async getMemberProfile() { return profile(); }, async getMemberPreferences() { return structuredClone(prefs); },
-  async getCoverageSummary() { return { states: [{ code: 'NC', coverageStrength: query.get('coverage') === 'weak' ? 'sparse' : 'strong', coverageStatus: 'available', health: 'current', summary: 'Tracking covers selected ABC boards and stores, with coverage varying by area.' }, { code: 'AK', coverageStrength: 'none', coverageStatus: 'not-available', health: 'no-recent-update', summary: 'Tracking coverage is growing here.' }] }; },
+  async getCoverageSummary() { return { states: [{ code: 'NC', coverageStrength: query.get('coverage') === 'weak' ? 'sparse' : 'strong', coverageStatus: 'available', health: query.get('coverage') === 'delayed' ? 'temporarily-limited' : 'current', summary: 'Tracking covers selected ABC boards and stores, with coverage varying by area.' }, { code: 'AK', coverageStrength: 'none', coverageStatus: 'not-available', health: 'no-recent-update', summary: 'Tracking coverage is growing here.' }] }; },
   async getMobileOnboardingStatus() { return { completed, draft: structuredClone(draft) }; },
   async saveOnboardingDraft(next: any) { draft = structuredClone(next); return { completed: false, draft }; },
   async completeMobileOnboarding(body: any) { draft = body.draft; completed = body.action === 'complete'; return { completed }; },
@@ -22,6 +23,7 @@ export const api = {
     if (patch.watchlistMutation) { const m = patch.watchlistMutation; prefs.bottleAlertPreferences.bottleNames = prefs.bottleAlertPreferences.bottleNames.filter(name => name !== m.bottleName); if (m.watched) prefs.bottleAlertPreferences.bottleNames.push(m.bottleName); }
     if (patch.notificationPreferences) for (const [key, value] of Object.entries(patch.notificationPreferences)) (prefs.notificationPreferences as any)[key] = Array.isArray(value) ? value : { ...(prefs.notificationPreferences as any)[key], ...(value as object) };
     if (patch.collectionPreferences) prefs.collectionPreferences = patch.collectionPreferences;
+    (window as any).previewPreferences = structuredClone(prefs);
     return structuredClone(prefs);
   },
   async searchMonitoringGeography(input: any) {
@@ -30,7 +32,7 @@ export const api = {
     return { results: input.levels[0] === 'state' ? [{ ...row, id: `state:${input.state}`, name: 'North Carolina', level: 'state' }] : [{ ...row, id: `${input.levels[0]}:raleigh`, name: 'Raleigh', level: input.levels[0] }, { ...row, id: `${input.levels[0]}:durham`, name: 'Durham', level: input.levels[0] }], states: [], hasMore: false };
   },
   async getSignalPoints() { return { catalog: [{ key: 'glencairn', name: 'Bourbon Signal Glencairn', points: 500 }] }; },
-  async getOnboardingDiscovery() { return { suggestions: bottles.slice(0, 2).map(bottle => ({ ...bottle, reason: 'Notes of caramel, vanilla, oak.', msrp: 35 })), signals: [], signalsUnavailable: false }; },
+  async getOnboardingDiscovery() { return { suggestions: starterSuggestions(bottles.map(bottle => ({ ...bottle, brand: bottle.name.split(' ')[0], tags: [], })), draft as any), signals: [], signalsUnavailable: false }; },
   async submitCoverageRequest(body: any) { (window as any).coverageSubmitted = body; return { request: { id: 'preview-request' } }; },
   async getPushDeviceStatus() { return { enabled: false, currentDeviceRegistered: false }; },
 };

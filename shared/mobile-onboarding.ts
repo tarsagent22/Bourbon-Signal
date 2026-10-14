@@ -39,11 +39,10 @@ export function communityAlertsIncluded(tier: string) { return tier === 'barrel'
 export interface OnboardingCoverageState {
   code: string; coverageStrength: 'strong' | 'moderate' | 'sparse' | 'none';
   coverageStatus: 'available' | 'not-available'; health: 'current' | 'intermittent' | 'temporarily-limited' | 'no-recent-update';
-  customerSummary?: string; summary: string;
+  customerSummary?: string; summary: string; sourceLabel?: string | null;
 }
 export function usefulOnboardingCoverage(state: OnboardingCoverageState) {
-  return state.coverageStatus === 'available' && (state.coverageStrength === 'strong' || state.coverageStrength === 'moderate')
-    && (state.health === 'current' || state.health === 'intermittent');
+  return state.coverageStrength === 'strong' || state.coverageStrength === 'moderate';
 }
 export function normalizeOnboardingDraft(value: unknown): OnboardingDraft | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -60,4 +59,14 @@ export function normalizeOnboardingDraft(value: unknown): OnboardingDraft | null
   return { version: 2, step: Number(v.step), displayName: String(v.displayName).trim(), homeState: String(v.homeState),
     interest: v.interest as BourbonInterest, flavors: [...new Set(v.flavors as string[])], proof: v.proof as OnboardingDraft['proof'],
     budget: v.budget as OnboardingDraft['budget'], likedBottleId: String(v.likedBottleId), likedBottleName: String(v.likedBottleName) };
+}
+
+// Established breadth is deliberately independent of collector health and freshness.
+export function onboardingCoveragePresentation(state: OnboardingCoverageState) {
+  const level = state.coverageStrength === 'strong' ? 3 : state.coverageStrength === 'moderate' ? 2 : state.coverageStrength === 'sparse' ? 1 : 0;
+  return { level, label: ['Coverage coming next', 'Limited coverage', 'Growing coverage', 'Strong coverage'][level],
+    description: level === 3 ? state.code === 'NC' ? 'ABC board and selected store tracking, plus member sightings.' : 'Bottle tracking and sightings shared by members.'
+      : level === 2 ? 'Bottle tracking in selected areas, alongside member sightings.'
+      : 'Help us improve coverage in your state by letting us know what areas to focus on.',
+    canRequest: level < 2 };
 }

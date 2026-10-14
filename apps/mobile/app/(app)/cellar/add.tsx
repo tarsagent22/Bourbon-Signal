@@ -46,13 +46,19 @@ const CONTEXTS: Array<{ key: NonNullable<MemberCollectionBottle["tastingContext"
 ];
 const COMMON_CUES = TASTE_TAG_OPTIONS.slice(0, 5);
 
+export function formatShelfAge(age: string | null | undefined) {
+  if (!age) return '';
+  const encoded = age.match(/^0*(\d+)(?:\.0+)?Y$/i);
+  return encoded ? `${Number(encoded[1])} years` : age;
+}
+
 function metadataForOption(option: RadarBottleOption, bottles: MemberCollectionBottle[]) {
   const existing = collectionMatchForOption(bottles, option);
   if (existing) {
     if (collectionDisplayKind(existing) === "owned") return `Already owned · ${collectionInventoryLabel(existing) || "Inventory on hand"}`;
     return `Tasted only · ${existing.isRated ? `${formatCollectionRating(existing)} rating` : "Unrated"}`;
   }
-  return [option.proof ? `${option.proof} proof` : "", option.ageStatement || ""].filter(Boolean).join(" · ") || "Whiskey catalog";
+  return [option.proof ? `${option.proof} proof` : "", formatShelfAge(option.ageStatement)].filter(Boolean).join(" · ") || "Whiskey catalog";
 }
 
 export default function AddCellarBottleScreen() {
@@ -315,7 +321,7 @@ function AccountAddBottle() {
           <Field label="Whiskey"><TextInput
             accessibilityLabel="Search bottles"
             autoCapitalize="none"
-            autoFocus
+            autoFocus={!onboardingBottleId}
             clearButtonMode="while-editing"
             onChangeText={(value) => {
               setQuery(value);
