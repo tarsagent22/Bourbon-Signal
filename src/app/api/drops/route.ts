@@ -3,6 +3,8 @@ import { unstable_cache } from "next/cache";
 import { packPublicFeed, unpackPublicFeed } from "@/lib/public-feed-pack";
 import { createPreparedDropCache, createAsyncPreparedDropCache } from "@/lib/prepared-drop-cache";
 import { getServerEntitlements } from "@/lib/server-entitlements";
+import { getEntitlements } from "@/lib/entitlements";
+import { authorizeEngineFeedVerification, ENGINE_FEED_VERIFICATION_HEADER, engineFeedCountPayload } from "@/lib/engine-feed-verification";
 import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
 import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -216,10 +218,13 @@ const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const { userId } = await auth();
-  const isSignedIn = Boolean(userId);
+  const verificationHeader = request.headers.get(ENGINE_FEED_VERIFICATION_HEADER);
+  const isEngineVerification = authorizeEngineFeedVerification(url, verificationHeader, process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "");
+  if (verificationHeader && !isEngineVerification) return NextResponse.json({ error: "Unauthorized engine count verification." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+  const { userId } = isEngineVerification ? { userId: null } : await auth();
+  const isSignedIn = Boolean(userId) || isEngineVerification;
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
-  const entitlements = await getServerEntitlements(user?.publicMetadata || null);
+  const entitlements = isEngineVerification ? getEntitlements("standard") : await getServerEntitlements(user?.publicMetadata || null);
   const isFreeAccess = !isSignedIn || entitlements.tier === "free";
   if (isFreeAccess && ["state", "tier", "tiers", "rarity", "area", "store", "search", "bottle", "since", "board", "city", "county"].some(key => url.searchParams.getAll(key).some(value => value.trim()))) {
     return NextResponse.json({ error: "Feed filters require a paid membership." }, { status: 403 });
@@ -477,6 +482,12 @@ export async function GET(request: Request) {
     const total = drops.length;
     const engineSnapshot = `${String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt))}:source:${sourceOverlay.version}`;
     const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerVersion}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}:listingOrder:1`;
+    // The worker sees only aggregate counts from the normal member feed pipeline.
+    // Its signed scope cannot request cards, other filters, detail, or history.
+    if (isEngineVerification) return NextResponse.json(
+      engineFeedCountPayload(state || "", total, snapshot, engineRunTimestamp(statsPayload, exportPayload?.generatedAt)),
+      { headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization, X-Bourbon-Signal-Engine-Verification" } },
+    );
     const page = paginateDrops(drops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = historicalMode
       ? selectDropFeedHistory(page.items, true, isFreshPreparedDrop, (drop) => isEligibleHistoricalPublicDrop(drop))
