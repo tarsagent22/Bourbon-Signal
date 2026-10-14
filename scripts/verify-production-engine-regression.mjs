@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { randomBytes } from 'node:crypto';
 import { selectVerificationStates } from './production-verification-scope.mjs';
 import { hiddenDegradedEngineStates, isDropExpectedInLiveFeed, liveDropTotalMeetsRegressionFloor, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
+import { ENGINE_FEED_COUNT_CONTRACT, ENGINE_FEED_VERIFICATION_HEADER, signEngineFeedVerification } from '../src/lib/engine-feed-verification.ts';
 
 const ROOT = process.cwd();
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
@@ -19,16 +21,21 @@ function readJson(relPath, fallback = null) {
 }
 async function getJson(route) {
   const url = new URL(route, BASE_URL);
-  url.searchParams.set('_bs_verify', `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  url.searchParams.set('_bs_verify', `${Date.now()}-${randomBytes(8).toString('hex')}`);
+  const verificationHeaders = url.pathname === '/api/drops'
+    ? { [ENGINE_FEED_VERIFICATION_HEADER]: signEngineFeedVerification(url, process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '') }
+    : {};
   const res = await fetch(url, {
-    headers: { 'user-agent': 'BourbonSignalRegressionGuard/1.0', 'cache-control': 'no-cache' },
+    headers: { 'user-agent': 'BourbonSignalRegressionGuard/1.0', 'cache-control': 'no-cache', ...verificationHeaders },
     cache: 'no-store',
     signal: AbortSignal.timeout(30_000),
   });
   const text = await res.text();
   let json = null;
   try { json = JSON.parse(text); } catch {}
-  return { ok: res.ok, status: res.status, json, text: json ? undefined : text.slice(0, 300), url: url.toString() };
+  const countContractMatches = url.pathname !== '/api/drops'
+    || json?.contractVersion === ENGINE_FEED_COUNT_CONTRACT && json?.state === url.searchParams.get('state');
+  return { ok: res.ok && countContractMatches, status: res.status, json, text: json ? undefined : text.slice(0, 300), url: url.toString() };
 }
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 function fail(message) { failures.push(message); }
