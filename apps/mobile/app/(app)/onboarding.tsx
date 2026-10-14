@@ -235,7 +235,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
   const product = purchases.products.find(item => item.productId === productIdFor(selectedPlan, 'monthly'));
   const eligible = Boolean(product && purchases.eligibleProductIds.includes(product.productId));
   return <>
-    <OnboardingFrame obscured={pickOpen || shelfOpen || statePicker || coverageRequest} title={titles[draft.step]} description={descriptions[draft.step]} step={draft.step} context={tasting ? discovery ? '3 / 4 · Recommendations' : tasteStage === 'bottle' ? '3 / 4 · Taste, 1 of 2' : '3 / 4 · Taste, 2 of 2' : undefined} transitionKey={`${draft.step}-${tasteStage}-${Boolean(discovery)}`} onBack={draft.step > 0 ? back : undefined} backDisabled={working}
+    <OnboardingFrame obscured={pickOpen || shelfOpen || statePicker || coverageRequest} title={titles[draft.step]} description={descriptions[draft.step]} step={draft.step} context={tasting ? discovery ? 'Recommendations' : tasteStage === 'bottle' ? 'Taste · 1 of 2' : 'Taste · 2 of 2' : undefined} transitionKey={`${draft.step}-${tasteStage}-${Boolean(discovery)}`} onBack={draft.step > 0 ? back : undefined} backDisabled={working}
 
       footer={<>
         {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}{storageError ? <Text accessibilityRole="alert" style={s.error}>{storageError}</Text> : null}

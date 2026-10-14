@@ -29,9 +29,10 @@ export function OnboardingFrame({ children, title, description, eyebrow, step, f
     <View style={s.chrome}>
       {largeMark ? null : onBack ? <Pressable accessibilityRole="button" accessibilityLabel="Back" disabled={backDisabled} onPress={onBack} style={[s.back, backDisabled && s.disabled]}><Text style={s.backText}>‹</Text></Pressable> : <BrandMark />}
       <Text style={[s.wordmark, largeMark && { textAlign: 'center', fontSize: 15 }]}>Bourbon Signal</Text>
-      {context ? <Text style={s.counter}>{context}</Text> : progress ? <Text accessibilityLabel={`${step! >= 5 ? 'Alert setup' : 'Introduction'}, ${current} of ${total}`} style={s.counter}>{current} / {total}</Text> : null}
+      {progress ? <Text accessibilityLabel={`${step! >= 5 ? 'Alert setup' : 'Introduction'}, ${current} of ${total}`} style={s.counter}>{current} / {total}</Text> : null}
     </View>
     {progress ? <View accessible={false} style={s.progress}><View style={[s.progressActive, { width: `${current / total * 100}%` }]} /></View> : null}
+    {context ? <Text style={[s.counter, { paddingHorizontal: 24, paddingTop: 8, width: '100%', maxWidth: 520, alignSelf: 'center' }]}>{context}</Text> : null}
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView ref={scroll} scrollEnabled={scrollEnabled} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={[s.page, largeMark && s.welcomePage, { paddingBottom: 24 + (footer ? 0 : insets.bottom) }]}>
         <Animated.View style={{ opacity, gap: 20 }}>
