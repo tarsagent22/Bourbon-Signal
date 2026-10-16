@@ -44,12 +44,14 @@ export function buyingScore({ bottle, askingPrice, reports, scope, collection = 
   const personal = collection.find(entry => !entry.pendingCanonicalMatch && entry.bottleId === bottle.id && entry.isRated && Number.isFinite(entry.rating) && entry.rating >= 0 && entry.rating <= 100);
   const fitPoints = personal ? Math.round(personal.rating * 0.3) : bottle.proof == null ? 15 : bottle.proof <= 100 ? 24 : bottle.proof <= 115 ? 18 : 12;
   const localPoints = price && local.median ? price <= local.median ? 10 : 3 : 5;
-  let score = pricePoints + fitPoints + localPoints;
+  const rawScore = pricePoints + fitPoints + localPoints;
+  let score = rawScore;
   if (!price) score = Math.min(score, 65);
   if (!reference) score = Math.min(score, 59);
   if (!msrp) score = Math.min(score, local.median ? 79 : 59);
   if (personal && personal.rating < 50) score = Math.min(score, 45);
   if (parsed.kind === 'invalid') score = Math.min(score, 59);
+  const adjustment = score < rawScore ? personal && personal.rating < 50 ? 'Your own rating is below 5/10, so the score is capped at 45.' : !msrp && local.median ? 'Local prices alone cannot establish MSRP; the score is capped at 79.' : 'Missing or invalid price evidence limits this score.' : null;
   const preliminary = !price || !reference || parsed.kind === 'invalid';
   const verdict = parsed.kind === 'invalid' ? 'Check the shelf price' : !price ? 'Check the price first' : !reference ? 'Compare before buying' : score >= 80 ? 'A good buy at this price' : score >= 65 ? 'Worth considering' : score >= 50 ? 'Try a pour first' : 'Pass at this price';
   const confidence = preliminary || !msrp ? 'Limited evidence' : local.count >= 3 ? 'Stronger price evidence' : 'MSRP-based estimate';
@@ -58,6 +60,6 @@ export function buyingScore({ bottle, askingPrice, reports, scope, collection = 
     personal ? `You rated this bottle ${(personal.rating / 10).toFixed(1)}/10.` : bottle.proof == null ? 'Proof is not verified yet, so beginner suitability is uncertain.' : bottle.proof <= 100 ? `${bottle.proof} proof · a lower-heat starting point than barrel-strength bottles.` : `${bottle.proof} proof · expect more alcohol heat; try a pour if you’re new to this strength.`,
     local.median ? `${local.count} stores reported prices of $${local.low!.toFixed(2)}–$${local.high!.toFixed(2)} in the last 7 days.` : `Fewer than 3 recent, distinct-store prices in ${scope.area || scope.state || 'a selected state'}; no local price benchmark yet.`,
   ];
-  return { score: Math.max(0, Math.min(100, score)), verdict, confidence, preliminary, reasons, local, price, reference,
+  return { score: Math.max(0, Math.min(100, score)), verdict, confidence, preliminary, reasons, local, price, reference, adjustment,
     factors: [{ label: 'Price', points: pricePoints, max: 60 }, { label: personal ? 'Your rating' : 'Beginner fit', points: fitPoints, max: 30 }, { label: 'Local price', points: localPoints, max: 10 }] };
 }

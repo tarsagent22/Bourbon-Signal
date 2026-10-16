@@ -115,4 +115,5 @@ test('region changes affect the local comparison and expensive local samples do 
   const va = buyingScore({ bottle: guideBottle, askingPrice: '60', reports, scope: { state: 'VA', area: '' }, now: guideNow });
   assert.ok(nc.score > va.score); assert.equal(nc.reference, 40); assert.ok(nc.score < 65);
   assert.ok(guide('30', reports, { msrp: null }).score < 80);
+  assert.match(guide('30', reports, { msrp: null }).adjustment || '', /capped at 79/);
 });
