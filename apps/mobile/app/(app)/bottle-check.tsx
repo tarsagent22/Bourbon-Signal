@@ -18,6 +18,7 @@ export default function BottleCheckScreen() {
   const router = useRouter(); const api = useMobileApi(); const catalog = useBottleCatalog();
   const [mode, setMode] = useState<'scan' | 'search'>('scan');
   const [query, setQuery] = useState(''); const [matches, setMatches] = useState<RadarBottleOption[]>([]);
+  const [scanSession, setScanSession] = useState(0);
   const [focused, setFocused] = useState(false); const [help, setHelp] = useState(false);
   const helpTouched = useRef(false);
   const [profile, setProfile] = useState<MemberProfile['profile'] | null>(null);
@@ -99,9 +100,10 @@ export default function BottleCheckScreen() {
           <Text style={s.note}>Rule-based guidance · Price 60%, beginner fit or your rating 30%, local price 10%. Reported prices are a sample, not live stock or a resale forecast.</Text>
           <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/bottle/[id]', params: { id: bottle.id } })} style={s.secondary}><Text style={s.link}>Bottle details & shelf actions →</Text></Pressable>
         </> : <>
-          <View accessibilityRole="radiogroup" accessibilityLabel="Bottle lookup method" style={s.modes}>{(['scan', 'search'] as const).map(value => <Pressable key={value} accessibilityRole="radio" accessibilityState={{ checked: mode === value }} onPress={() => { setMode(value); setMatches([]); }} style={[s.mode, mode === value && s.selected]}><MaterialCommunityIcons name={value === 'scan' ? 'line-scan' : 'magnify'} size={18} color={mode === value ? colors.accent : colors.muted} /><Text style={mode === value ? s.link : s.copy}>{value === 'scan' ? 'Scan a bottle' : 'Search by name'}</Text></Pressable>)}</View>
-          {mode === 'scan' ? <NativeBottleScanner active={focused && !selected && !editingRegion} catalog={catalog.catalog} onMatches={setMatches} /> : <TextInput accessibilityLabel="Search bottles" value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} placeholder="Bottle, producer, or expression" placeholderTextColor={colors.muted} style={s.input} />}
+          <View accessibilityRole="radiogroup" accessibilityLabel="Bottle lookup method" style={s.modes}>{(['scan', 'search'] as const).map(value => <Pressable key={value} accessibilityRole="radio" accessibilityState={{ checked: mode === value }} onPress={() => { setMode(value); setMatches([]); setScanSession(session => session + 1); }} style={[s.mode, mode === value && s.selected]}><MaterialCommunityIcons name={value === 'scan' ? 'line-scan' : 'magnify'} size={18} color={mode === value ? colors.accent : colors.muted} /><Text style={mode === value ? s.link : s.copy}>{value === 'scan' ? 'Scan a bottle' : 'Search by name'}</Text></Pressable>)}</View>
+          {mode === 'scan' ? <NativeBottleScanner key={scanSession} active={focused && !selected && !editingRegion} catalog={catalog.catalog} onMatches={setMatches} /> : <TextInput accessibilityLabel="Search bottles" value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} placeholder="Bottle, producer, or expression" placeholderTextColor={colors.muted} style={s.input} />}
           {catalog.error ? <View><Text style={s.note}>{catalog.error}</Text><Pressable accessibilityRole="button" onPress={catalog.retry} style={s.textButton}><Text style={s.link}>Refresh catalog</Text></Pressable></View> : null}
+          {mode === 'scan' && matches.length ? <Pressable accessibilityRole="button" onPress={() => { setMatches([]); setScanSession(value => value + 1); }} style={s.secondary}><Text style={s.link}>Scan another</Text></Pressable> : null}
           {results.length ? <Text accessibilityRole="header" style={s.section}>{mode === 'scan' ? 'Confirm your bottle' : 'Choose your bottle'}</Text> : null}
         </>}
       </View>}

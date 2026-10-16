@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createLabelIndex, matchBottleLabel, normalizeBarcode } from './label-matching';
 import { createScanLoop } from './scan-loop';
+import { scanGuide, scanCrop } from './scan-guide';
+import { createCandidateLatch } from './scan-candidates';
+import seed from '../cellar/bottle-catalog-seed.json';
 import { compareBottlePrice } from '../../../../shared/bottle-profile';
 import { validApiResponse } from '../api/response-validation';
 
@@ -37,6 +40,56 @@ test('barcodes require valid check digits and normalize UPC-A to EAN-13', () => 
   assert.equal(normalizeBarcode('036000291452'), '0036000291452');
   assert.equal(normalizeBarcode('0036000291452'), '0036000291452');
   for (const code of ['036000291453', 'not-a-code', '123', 'https://example.com']) assert.equal(normalizeBarcode(code), null);
+});
+
+test('portrait scan guide maps exactly into cover-cropped portrait and landscape captures', () => {
+  for (const view of [{ width: 280, height: 380 }, { width: 353, height: 380 }, { width: 740, height: 380 }]) {
+    const guide = scanGuide(view);
+    assert.ok(guide.height > guide.width * 1.5);
+    for (const picture of [{ width: 3024, height: 4032 }, { width: 4032, height: 3024 }, { width: 1080, height: 1920 }]) {
+      const crop = scanCrop(picture, view);
+      assert.ok(crop.width > 0 && crop.height > crop.width);
+      assert.ok(crop.originX >= 0 && crop.originY >= 0 && crop.originX + crop.width <= picture.width && crop.originY + crop.height <= picture.height);
+      const scale = Math.max(view.width / picture.width, view.height / picture.height);
+      assert.ok(Math.abs(crop.originX * scale - (picture.width * scale - view.width) / 2 - guide.left) < 1);
+      assert.ok(Math.abs(crop.originY * scale - (picture.height * scale - view.height) / 2 - guide.top) < 1);
+      assert.ok(Math.abs(crop.width * scale - guide.width) < 1);
+    }
+  }
+});
+
+test('scan waits for agreement and holds results through blank frames, reordering and different bottles', () => {
+  const latch = createCandidateLatch();
+  const one = catalog[0], two = catalog[1];
+  assert.equal(latch.observe([one, two]), null);
+  assert.equal(latch.observe([]), null);
+  assert.equal(latch.observe([one, two]), null);
+  assert.equal(latch.observe([two, one]), null);
+  assert.deepEqual(latch.observe([two, one]), [two, one]);
+  for (const matches of [[], [one], [two], [one, two]]) assert.equal(latch.observe(matches), null);
+  assert.equal(latch.verified([one]), null);
+  const rescan = createCandidateLatch();
+  assert.equal(rescan.observe([one]), null);
+  assert.deepEqual(rescan.observe([one]), [one]);
+  assert.deepEqual(createCandidateLatch().verified([one]), [one]);
+});
+
+test('everyday rye scan gaps exist offline and explicit expressions avoid conflicting candidates', () => {
+  const liveIndex = createLabelIndex(seed);
+  for (const [text, id] of [
+    ['WILD TURKEY 101 KENTUCKY STRAIGHT RYE WHISKEY', 'wild-turkey-101-rye'],
+    ['WILD TURKEY RARE BREED RYE BARREL PROOF', 'wild-turkey-rare-breed-rye'],
+    ['NEW RIFF KENTUCKY STRAIGHT RYE WHISKEY BOTTLED IN BOND', 'new-riff-bottled-in-bond-rye'],
+    ['GREEN RIVER KENTUCKY STRAIGHT RYE WHISKEY', 'green-river-rye'],
+  ]) {
+    const results = matchBottleLabel(liveIndex, text);
+    assert.equal(results[0]?.id, id);
+    assert.ok(results.every(bottle => /rye/i.test(bottle.name)));
+  }
+  const taylor = matchBottleLabel(liveIndex, 'COLONEL E H TAYLOR SMALL BATCH KENTUCKY STRAIGHT BOURBON WHISKEY');
+  assert.equal(taylor[0]?.id, 'eh-taylor-small-batch');
+  assert.deepEqual(taylor.map(bottle => bottle.id), ['eh-taylor-small-batch']);
+  assert.ok(matchBottleLabel(liveIndex, 'FOUR ROSES SINGLE BARREL HIGH RYE BOURBON').some(bottle => bottle.id === 'four-roses-single-barrel'));
 });
 test('price comparison handles partial data, invalid money and fractional premiums', () => {
   assert.equal(compareBottlePrice('47.97', 40).kind, 'compared');
