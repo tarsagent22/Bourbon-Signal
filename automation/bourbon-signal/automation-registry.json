@@ -177,6 +177,35 @@
       "delivery": "github_only"
     },
     {
+      "id": "github-ma-source-preflight",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/ma-source-preflight.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "manual workflow dispatch for native Codex coverage preflight",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "public_retailer_http",
+          "github_actions"
+        ],
+        "maxRequestsPerRun": 4
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": [
+        "engine/out/ma-source-preflight/evidence.json"
+      ],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-source-scheduler-monitor",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/source-scheduler-monitor.yml",
