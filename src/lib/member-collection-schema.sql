@@ -34,3 +34,17 @@ CREATE INDEX IF NOT EXISTS member_collection_bottles_canonical_rating_idx
   WHERE rating > 0;
 CREATE INDEX IF NOT EXISTS member_collection_bottles_user_updated_idx
   ON member_collection_bottles (user_id, updated_at DESC);
+
+-- Observation timestamps are server-generated. Never backfill a value from today's prices.
+CREATE TABLE IF NOT EXISTS member_collection_history (
+  id BIGSERIAL PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES member_collection_state(user_id) ON DELETE CASCADE,
+  collection_version BIGINT NOT NULL CHECK (collection_version >= 0),
+  observed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  kind TEXT NOT NULL CHECK (kind IN ('inventory', 'valuation')),
+  inventory JSONB NOT NULL,
+  value JSONB,
+  fingerprint TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS member_collection_history_user_time_idx
+  ON member_collection_history (user_id, observed_at DESC, id DESC);

@@ -37,32 +37,35 @@ export default function BottleProfileScreen() {
     void api.listSignals({ bottle: bottle.name, limit: 5 }).then(result => { if (active) setReports(result.signals.filter(signal => signal.bottle.id ? signal.bottle.id === bottle.id : signal.bottle.name.toLowerCase() === bottle.name.toLowerCase())); }).catch(() => { if (active) setReportError('Reports couldn’t load. Check Home for availability.'); });
     return () => { active = false; };
   }, [api, bottle]);
-  const personal = bottle && preferences ? bottleProfileState({ id: bottle.id, name: bottle.name }, preferences) : null;
-  const shelfEntry = bottle && preferences ? collectionBottleForIdentity({ id: bottle.id, name: bottle.name }, preferences.collectionPreferences.bottles) : null;
+  const savedIdentity = preferences?.collectionPreferences.bottles.find(entry => entry.bottleId === id || entry.canonicalKey === id);
+  const identity = bottle ? { id: bottle.id, name: bottle.name } : savedIdentity ? { id: savedIdentity.bottleId, name: savedIdentity.bottleName } : null;
+  const personal = identity && preferences ? bottleProfileState(identity, preferences) : null;
+  const shelfEntry = identity && preferences ? collectionBottleForIdentity(identity, preferences.collectionPreferences.bottles) : null;
   async function toggleWatch() {
-    if (!bottle || !preferences || !personal || saving) return;
+    if (!identity || !preferences || !personal || saving) return;
     setSaving(true); setMemberError('');
-    try { setPreferences(await api.updateMemberPreferences({ watchlistMutation: bottleWatchMutation(bottle.name, !personal.isWatched), ...(!personal.isWatched ? { alertMode: 'specific_bottles' as const } : {}) })); }
+    try { setPreferences(await api.updateMemberPreferences({ watchlistMutation: bottleWatchMutation(identity.name, !personal.isWatched), ...(!personal.isWatched ? { alertMode: 'specific_bottles' as const } : {}) })); }
     catch (caught) { setMemberError(caught instanceof Error ? caught.message : 'Radar couldn’t save.'); }
     finally { setSaving(false); }
   }
-  return <ScrollView style={s.page} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing && Boolean(bottle)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
+  return <ScrollView style={s.page} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing && Boolean(identity)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
     <Stack.Screen options={{ title: 'Bottle Profile' }} />
-    {!bottle && !error ? <ActivityIndicator color={colors.accent} /> : null}
-    {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
-    {bottle ? <>
-      <BottleProfileHero identity={{ id: bottle.id, name: bottle.name }} details={bottle} personal={personal} />
+    {!identity && !error ? <ActivityIndicator color={colors.accent} /> : null}
+    {error && !identity ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
+    {identity ? <>
+      <BottleProfileHero identity={identity} details={bottle} personal={personal} />
       <View style={s.actions}>
-        <Action label={personal?.inCellar ? 'Edit your shelf' : preferences?.collectionAccess.canAdd === false ? 'Free shelf is full' : 'Add to My Shelf'} disabled={!preferences || (!personal?.inCellar && !preferences.collectionAccess.canAdd)} primary onPress={() => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || bottle.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: bottle.id } })} />
-        <Action label={saving ? 'Saving…' : personal?.isWatched ? 'Remove from Radar' : 'Watch in Radar'} disabled={!preferences || saving} onPress={() => void toggleWatch()} />
-        <Action label="Post a Sighting" onPress={() => router.push({ pathname: '/(app)/(tabs)/post', params: { scanBottleId: bottle.id } })} />
+        <Action label={personal?.inCellar ? 'Edit your shelf' : preferences?.collectionAccess.canAdd === false ? 'Free shelf is full' : 'Add to My Shelf'} disabled={!preferences || (!personal?.inCellar && !preferences.collectionAccess.canAdd)} primary onPress={() => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } })} />
+        {bottle ? <Action label={saving ? 'Saving…' : personal?.isWatched ? 'Remove from Radar' : 'Watch in Radar'} disabled={!preferences || saving} onPress={() => void toggleWatch()} /> : null}
+        {bottle ? <Action label="Post a Sighting" onPress={() => router.push({ pathname: '/(app)/(tabs)/post', params: { scanBottleId: identity.id } })} /> : null}
       </View>
       {memberError ? <Text accessibilityRole="alert" style={s.copy}>{memberError}</Text> : null}
-      <BottlePriceCheck key={bottle.id} msrp={bottle.msrp} />
-      <View style={s.reports}><Text accessibilityRole="header" style={s.section}>Reported availability</Text><Text style={s.copy}>Source reports and member observations. Check with the store before driving.</Text>
+      <BottlePriceCheck key={identity.id} msrp={bottle?.msrp ?? null} />
+      {bottle ? <View style={s.reports}><Text accessibilityRole="header" style={s.section}>Reported availability</Text><Text style={s.copy}>Source reports and member observations. Check with the store before driving.</Text>
         {reports.map(report => <Pressable key={report.id} accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/signal/[id]', params: { id: report.id } })} style={s.report}><View style={{ flex: 1, gap: 4 }}><Text style={s.reportName}>{report.location.store?.name || report.location.label || report.source.label}</Text><Text style={s.note}>{[report.location.store?.city, report.location.state].filter(Boolean).join(', ')} · Reported {new Date(report.timing.displayAt).toLocaleDateString()}</Text></View><Text style={s.price}>{report.availability?.price != null ? `$${report.availability.price.toFixed(2)}` : 'View →'}</Text></Pressable>)}
         {!reports.length ? <Text style={s.copy}>{reportError || 'No reports to show here. This does not establish whether the bottle is available locally.'}</Text> : null}
-      </View>
+      </View> : null}
+      {!bottle ? <Text style={s.copy}>Catalog details aren’t available for this saved entry. Your shelf details remain editable.</Text> : null}
     </> : null}
   </ScrollView>;
 }

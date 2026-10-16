@@ -77,7 +77,7 @@
     "test:member-state": "tsx --test scripts/test-astra-member-state.ts scripts/test-astra-push-ownership.ts scripts/test-astra-member-lease.ts",
     "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts && node --test scripts/test-m12-push-outbox.mjs && tsx --test scripts/test-push-receipts.mts && tsx --test scripts/test-push-channel-isolation.mts && tsx --test scripts/test-push-capability-revocation.mts && npm run test:member-state && npm run test:notification-navigation",
     "test:nationwide-radar": "node --no-warnings --experimental-strip-types --test scripts/test-nationwide-geography.mts scripts/test-monitoring-scopes.mts scripts/test-community-contributor-standing.mts scripts/test-community-alert-candidates.mts scripts/test-geography-activity.mts scripts/test-nationwide-radar-contracts.mts",
-    "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts && npm run test:bottle-profile",
+    "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts && npm run test:bottle-profile && npm run test:collection-history",
     "test:native-post-composer": "node --no-warnings --experimental-strip-types --test scripts/test-native-post-composer.mts",
     "verify:mobile": "npm --prefix apps/mobile ci && npm --prefix apps/mobile run verify",
     "test:main-feed-composer": "node --no-warnings --experimental-strip-types scripts/test-main-feed-composer.mts",
@@ -212,7 +212,8 @@
     "test:labeled-artwork": "tsx --test scripts/test-labeled-bottle-art.mts",
     "artwork:labeled:audit": "node scripts/audit-labeled-bottle-art.mjs",
     "artwork:labeled:complete": "node scripts/audit-labeled-bottle-art.mjs --require-complete",
-    "test:bottle-profile": "node --no-warnings --experimental-strip-types --test scripts/test-bottle-profile-route.mts"
+    "test:bottle-profile": "node --no-warnings --experimental-strip-types --test scripts/test-bottle-profile-route.mts",
+    "test:collection-history": "tsx scripts/test-collection-history.mts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
@@ -225,6 +226,7 @@
     "@types/three": "^0.183.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.5.0",
+    "braces": "file:vendor/braces",
     "d3-geo": "^3.1.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
@@ -237,11 +239,10 @@
     "three": "^0.183.2",
     "topojson-client": "^3.1.0",
     "us-atlas": "^3.0.1",
-    "zustand": "^5.0.12",
-    "braces": "file:vendor/braces"
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.5.8",
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/d3-geo": "^3.1.0",
     "@types/node": "^22",

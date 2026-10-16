@@ -1,5 +1,7 @@
 import { uploadClientBlob, type ClientBlobUploadResult } from "./blob-upload";
 import type { BottleProfile } from '../../../../shared/bottle-profile';
+import type { CollectionHistory } from '../../../../shared/collection-history';
+import type { CollectionValue } from '../cellar/collection-value';
 import { validApiResponse } from "./response-validation";
 import type {
   AchievementSummary,
@@ -104,6 +106,8 @@ function normalizeBottleOptions(rows: Array<Record<string, unknown>>, sortByName
       producer: typeof raw.producer === "string" ? raw.producer : typeof raw.distillery === "string" ? raw.distillery : undefined,
       proof: typeof raw.proof === "number" && Number.isFinite(raw.proof) ? raw.proof : undefined,
       ageStatement: typeof raw.ageStatement === "string" || raw.ageStatement === null ? raw.ageStatement : undefined,
+      nationalTier: ['regular', 'limited', 'allocated', 'highly_allocated', 'unicorn'].includes(String(raw.nationalTier)) ? raw.nationalTier as RadarBottleOption['nationalTier'] : undefined,
+      rarityPending: raw.rarityPending === true || raw.nationalConfidence === 'low',
     });
   }
   const bottles = [...unique.values()];
@@ -287,6 +291,9 @@ export function createMobileApi({
     readCacheInfo() { pruneReads(); return { size: recentReads.size, keys: [...recentReads.keys()] }; },
     getBottleProfile(id: string, { fresh = false } = {}) {
       return request<{ bottle: BottleProfile }>(`/api/v1/bottles/${encodeURIComponent(id)}`, { fresh });
+    },
+    getCollectionHistory() {
+      return request<{ collectionVersion: number; value: CollectionValue; history: CollectionHistory }>('/api/v1/me/collection-history', { fresh: true });
     },
     listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle, search }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string; search?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });

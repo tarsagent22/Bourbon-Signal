@@ -21,7 +21,7 @@ import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork
 import { CellarGlencairnSilhouette } from "../../../src/components/CellarGlencairnSilhouette";
 import { ShelfCabinet } from "../../../src/components/ShelfCabinet";
 import { CollectionStatisticsSheet } from "../../../src/components/CollectionStatisticsSheet";
-import { rankedShelfBottles, shelfBottleKey, shelfGridLayout } from "../../../src/cellar/shelf-cabinet";
+import { shelfBottleKey, shelfGridLayout } from "../../../src/cellar/shelf-cabinet";
 import { EmptyState, ErrorState, LoadingState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -247,7 +247,6 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const canAddToCollection = collectionAccess?.canAdd === true;
   const summary = useMemo(() => collectionSummary(sourceBottles), [sourceBottles]);
   const statistics = useMemo(() => collectionStatistics(sourceBottles), [sourceBottles]);
-  const ranked = useMemo(() => rankedShelfBottles(sourceBottles), [sourceBottles]);
   const bottles = useMemo(() => filterAndSortCollection(sourceBottles, query, sort, filters), [filters, query, sort, sourceBottles]);
   const { columns: numColumns, tileWidth } = shelfGridLayout(width, viewMode, fontScale);
   const refinementCount = activeCollectionRefinementCount(filters, sort);
@@ -422,7 +421,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
         </View>
         {preferences ? <>
           <ShelfCabinet bottles={sourceBottles} onBottle={item => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId}})} />
-          <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View your bottle counts, ratings and top-rated bottles" onPress={() => { if (!selected && !refineMode) setStatisticsOpen(true); }} style={({ pressed }) => [styles.statisticsButton, pressed && { opacity: 0.75 }]}>
+          <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View collection value, history and personal collection insights" onPress={() => { if (!selected && !refineMode) setStatisticsOpen(true); }} style={({ pressed }) => [styles.statisticsButton, pressed && { opacity: 0.75 }]}>
             <MaterialCommunityIcons accessible={false} name="chart-bar" size={24} color={colors.accent} />
             <Text style={styles.statisticsLink}>Collection stats</Text>
             <MaterialCommunityIcons accessible={false} name="chevron-right" size={22} color={colors.accent} />
@@ -483,7 +482,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
       ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No bottles match" : "No bottles on your shelf yet"} detail={sourceBottles.length ? "Try a broader search or clear your filters." : "Add a bottle you own or one you’ve tasted."} actionLabel={sourceBottles.length ? "Clear filters" : "Add your first bottle"} onAction={() => { if (sourceBottles.length) { setQuery(""); setFilters({ ...DEFAULT_COLLECTION_FILTERS, status: "all" }); } else router.push("/(app)/cellar/add"); }} /> : null}
       style={memberScreenStyles.screen}
     />
-    <CollectionStatisticsSheet visible={statisticsOpen} statistics={statistics} ranked={ranked} advancedAccess={canUseRecommendations} collectionValue={preferences?.collectionValue} onClose={closeStatistics} onDismiss={restoreStatisticsFocus} />
+    <CollectionStatisticsSheet visible={statisticsOpen} statistics={statistics} bottles={sourceBottles} collectionVersion={preferences?.collectionPreferences.version || 0} advancedAccess={canUseRecommendations} collectionValue={preferences?.collectionValue} onClose={closeStatistics} onDismiss={restoreStatisticsFocus} />
     <RefineSheet filters={filters} mode={refineMode} onChange={setFilters} onClose={() => setRefineMode(null)} onSort={setSort} sort={sort} />
     <BottleEditor bottle={selected} busy={mutating} onClose={() => setSelected(null)} onDelete={requestDelete} onInventoryAction={applyInventoryAction} onSave={saveBottle} />
   </SafeAreaView>;

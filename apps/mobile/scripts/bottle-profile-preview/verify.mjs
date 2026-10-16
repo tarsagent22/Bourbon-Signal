@@ -26,6 +26,10 @@ try {
   await page.getByRole('button', { name: 'View Eagle Rare 10 Year' }).waitFor(); await capture('bottle-check-search');
   await page.getByRole('button', { name: 'View Eagle Rare 10 Year' }).click();
   assert.equal(await page.evaluate(() => window.lastRoute.pathname), '/(app)/bottle/[id]');
+  await open('owned=1&catalog=missing');
+  await page.getByText('Catalog details aren’t available for this saved entry. Your shelf details remain editable.').waitFor();
+  await page.getByRole('button', { name: 'Edit your shelf' }).click();
+  assert.equal(await page.evaluate(() => window.lastRoute.params.editBottleId), 'eagle-rare-10');
   await page.setViewportSize({ width: 320, height: 740 }); await open('owned=1'); await capture('small-screen-profile');
   assert.deepEqual(errors, []);
   await writeFile(path.join(output, 'result.json'), JSON.stringify({ passed: true, sourcePreview: true, physicalDeviceTested: false, checks: ['profile', 'price comparison', 'shelf edit navigation', 'post navigation', 'historical report copy', 'catalog search', 'small viewport'], errors }, null, 2));
