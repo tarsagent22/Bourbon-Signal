@@ -13,18 +13,21 @@ const catalog = [
   { id: 'of1910', name: 'Old Forester 1910 Old Fine Whisky' },
   { id: 'of1920', name: 'Old Forester 1920 Prohibition Style' },
   { id: '1792-small-batch', name: '1792 Small Batch' },
+  { id: '1792-bib', name: '1792 Bottled in Bond', aliases: ['Bottled in Bond'] },
+  { id: 'er25', name: 'Eagle Rare 25Y', aliases: ['Eagle Rare'] },
 ];
 const index = createLabelIndex(catalog);
 test('label candidates survive multiline label boilerplate', () => {
   assert.equal(matchBottleLabel(index, 'FREY RANCH\nFARMERS + DISTILLERS\nSTRAIGHT BOURBON WHISKEY\nNEVADA GROWN')[0]?.id, 'frey');
   assert.equal(matchBottleLabel(index, 'HEAVEN HILL\nBOTTLED-IN-BOND\n7 YEARS\nKENTUCKY STRAIGHT BOURBON WHISKEY\n100 PROOF')[0]?.id, 'hh7');
+  assert.ok(!matchBottleLabel(index, 'HEAVEN HILL BOTTLED IN BOND 7 YEARS').some(item => item.id.startsWith('1792')));
   assert.equal(matchBottleLabel(index, '1792\nSMALL BATCH\nKENTUCKY STRAIGHT BOURBON WHISKEY')[0]?.id, '1792-small-batch');
 });
 test('explicit age excludes other ages even if they share a short alias', () => {
   assert.deepEqual(matchBottleLabel(index, 'EAGLE RARE\nAGED 10 YEARS\nKENTUCKY STRAIGHT BOURBON').map(item => item.id), ['er10']);
 });
 test('incomplete labels expose alternatives instead of inventing an exact release', () => {
-  assert.deepEqual(new Set(matchBottleLabel(index, 'EAGLE RARE').map(item => item.id)), new Set(['er10', 'er17']));
+  assert.deepEqual(new Set(matchBottleLabel(index, 'EAGLE RARE').map(item => item.id)), new Set(['er10', 'er17', 'er25']));
   assert.equal(matchBottleLabel(index, 'OLD FORESTER\n1910\nOLD FINE WHISKY')[0]?.id, 'of1910');
 });
 test('generic label text and unrelated words return no candidates', () => {

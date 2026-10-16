@@ -14,7 +14,9 @@ export function matchBottleLabel(index: ReturnType<typeof createLabelIndex>, tex
   const observed = new Set(normalized.split(' '));
   const observedAges = [...normalized.matchAll(/\b(\d{1,2})\s*(?:years?|yr)\b/g)].map(match => match[1]);
   const ranked = index.map(({ bottle, names }) => {
-    const bottleAge = normalize(bottle.ageStatement || '').match(/^(\d{1,2})(?:y| year)/)?.[1] || normalize(bottle.name).match(/\b(\d{1,2})\s*year\b/)?.[1];
+    const numericBrand = normalize(bottle.name).match(/^(\d{3,4})\b/)?.[1];
+    if (numericBrand && !observed.has(numericBrand)) return { bottle, score: 0 };
+    const bottleAge = normalize(bottle.ageStatement || '').match(/^(\d{1,2})(?:y| year)/)?.[1] || normalize(bottle.name).match(/\b(\d{1,2})(?:\s*year\b|y\b)/)?.[1];
     if (bottleAge && observedAges.length && !observedAges.includes(String(Number(bottleAge)))) return { bottle, score: 0 };
     const score = Math.max(...names.map(name => {
       const tokens = [...new Set(name.split(' ').filter(token => !generic.has(token) && token.length > 1))];
