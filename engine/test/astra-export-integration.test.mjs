@@ -45,3 +45,33 @@ test('E04 composed exporter keeps healthy validated rows alertable despite parti
     assert.equal(stale.alerts.length,0,'partial isolation cannot rescue stale inventory');
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test('state quality rejection publishes siblings, retains original evidence clocks, and suppresses rejected alerts', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'quality-isolation-'));
+  try {
+    const signals = Array.from({ length: 5 }, (_, i) => ({ ...signal, id: `fixture-${i}`, merchantId: String(i + 1).repeat(24), storeId: `twin-liquors:${String(i + 1).repeat(24)}`, storeName: `Store ${i}`, locationName: `Store ${i}`, storeAddress: `${i + 1} Fixture St, Austin, TX 78701`, sourceUrl: `https://twinliquors.com/product/fixture-${i}` }));
+    const summary = { partialRefresh: false, attemptedStateIds: ['TX', 'NY'], freshStateIds: ['TX', 'NY'], states: [{ state: 'TX', status: 'useful', signalCount: 5, roadblockCount: 0 }, { state: 'NY', status: 'useful', signalCount: 0 }] };
+    await exportFixture(root, summary, signals);
+    const prior = JSON.parse(await readFile(path.join(root, 'site', 'drops.json'), 'utf8'));
+    const firstRun = prior.runId;
+    await exportFixture(root, { ...summary, states: summary.states.map(row => row.state === 'TX' ? { ...row, roadblockCount: 10 } : row) }, signals.map(row => ({ ...row, sourceUrl: 'https://twinliquors.com/product/common' })));
+    const drops = JSON.parse(await readFile(path.join(root, 'site', 'drops.json'), 'utf8'));
+    const quality = JSON.parse(await readFile(path.join(root, 'site', 'state-quality.json'), 'utf8'));
+    const health = JSON.parse(await readFile(path.join(root, 'site', 'state-health.json'), 'utf8'));
+    const alerts = JSON.parse(await readFile(path.join(root, 'site', 'alerts.json'), 'utf8'));
+    assert.notEqual(drops.runId, firstRun, 'publication must advance despite the rejected candidate');
+    assert.deepEqual(quality.rejectedPartitions.map(row => row.state), ['TX']);
+    assert.ok(drops.drops.filter(row => row.state === 'TX').length > 0);
+    for (const row of drops.drops.filter(row => row.state === 'TX')) {
+      const before = prior.drops.find(item => item.id === row.id);
+      assert.ok(before);
+      assert.equal(row.lastConfirmedAt, before.lastConfirmedAt);
+      assert.equal(row.sourceStale, true);
+      assert.equal(row.canAlertAsInventory, false);
+      assert.equal(row.canAlertAsWatch, false);
+    }
+    assert.equal(alerts.alerts.some(row => row.state === 'TX'), false);
+    assert.notEqual(health.states.find(row => row.state === 'TX').fallback.status, 'none');
+    assert.equal(health.states.find(row => row.state === 'NY').fallback.status, 'none');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});

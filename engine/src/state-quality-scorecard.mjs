@@ -404,6 +404,15 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
   return { ok: failures.length === 0, failures, warnings };
 }
 
+// Use the unchanged admission guard for each partition. A rejected candidate
+// must be replaced by stale prior evidence before anything is published.
+export function rejectedStateQualityPartitions(previous, current) {
+  return (current?.states || []).flatMap((row) => {
+    const result = compareStateQuality(previous, { ...current, states: [row] });
+    return result.ok ? [] : [{ state: row.state, failures: result.failures, candidate: row }];
+  });
+}
+
 export function buildStateQualityInputs({ stateCoverage, drops, alerts }) {
   const coverageRows = Array.isArray(stateCoverage?.states) ? stateCoverage.states : [];
   return coverageRows.map((coverage) => {

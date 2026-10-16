@@ -156,7 +156,7 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(exporter, /comparisonFallbackStateIds[\s\S]*partialFallbackStateIds/);
   assert.match(exporter, /partial_fallback_current_plus_stale/);
   assert.match(exporter, /currentInput:\s*current\?\.input/);
-  assert.match(exporter, /const comparableStateQuality = partialFallbackStateIds\.length[\s\S]*states:[\s\S]*filter/);
+  assert.match(exporter, /const comparableStateQuality = comparisonFallbackStateIds\.length[\s\S]*states:[\s\S]*filter/);
   const runner = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(runner, /degraded_previous_report_retry/);
   assert.match(runner, /previousReport\.stale === true/);

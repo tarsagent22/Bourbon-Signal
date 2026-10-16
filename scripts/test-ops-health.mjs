@@ -30,6 +30,13 @@ assert.equal(healthy.release.commit, 'commit-current');
 assert.equal(healthy.engine.status, 'healthy');
 assert.equal(healthy.engine.staleAfterMinutes, 45);
 
+const staleAndDegraded = buildOpsHealth({ heartbeat, engineGeneratedAt: new Date(now.getTime() - 66 * 3_600_000).toISOString(), refreshHealth: { degradedStateCount: 3 }, currentDeploymentId: 'dpl_current' });
+assert.equal(staleAndDegraded.ok, false, 'degraded states cannot hide an overdue collection');
+assert.equal(staleAndDegraded.engine.status, 'stale');
+const publicationDelayed = buildOpsHealth({ heartbeat, engineGeneratedAt: recent, refreshHealth: { degradedStateCount: 3 }, currentDeploymentId: 'dpl_current', snapshot: { snapshotId: 's', dataSource: 'remote-snapshot', exportGeneratedAt: recent, snapshotUploadedAt: null, snapshotActivatedAt: null, productionObservedAt: recent } });
+assert.equal(publicationDelayed.ok, false);
+assert.equal(publicationDelayed.engine.freshnessStage, 'publisher_delay');
+
 const missingHeartbeat = buildOpsHealth({
   heartbeat: null,
   engineGeneratedAt: recent,

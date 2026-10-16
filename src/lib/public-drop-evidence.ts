@@ -5,6 +5,9 @@ import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 const MAX_INVENTORY_DROP_AGE_MS = 72 * HOUR_MS;
+// Retention keeps useful history; current inventory follows the engine's
+// two-hour confirmation policy. Publication never extends this clock.
+const CURRENT_INVENTORY_AGE_MS = 2 * HOUR_MS;
 const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
 const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
 const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
@@ -556,6 +559,18 @@ export function isFreshPublicDrop(input: PublicDropEvidenceInput, asOf?: string 
   return now >= window.startsAt && (window.inclusiveEnd ? now <= window.endsAt : now < window.endsAt);
 }
 
+export function isCurrentInventoryEvidence(input: PublicDropEvidenceInput, asOf?: string | number | Date) {
+  const drop = normalizePublicDropEvidenceInput(input);
+  if (sourceStale(drop) || !isFreshPublicDrop(drop, asOf)) return false;
+  // Ohio's existing presentation policy is outside this recovery's scope.
+  if (stateCode(drop) === "OH" || isVerifiedRetailerDrop(drop)) return true;
+  const confirmed = drop.lastConfirmedAt ?? drop.last_confirmed_at ?? drop.inventoryCheckedAt
+    ?? drop.observedAt ?? drop.observed_at;
+  const timestamp = typeof confirmed === "string" ? Date.parse(confirmed) : Number.NaN;
+  const age = asTimestamp(asOf) - timestamp;
+  return Number.isFinite(age) && age >= -FUTURE_CLOCK_SKEW_MS && age <= CURRENT_INVENTORY_AGE_MS;
+}
+
 function publicUpdateBoardKey(drop: PublicDropEvidenceInput) {
   const type = text(drop.event_type ?? drop.type, 160).toLowerCase();
   const precision = text(drop.location_precision ?? drop.locationPrecision, 120).toLowerCase();
@@ -619,11 +634,11 @@ export function derivePublicDropEvidence(
     byState.set(state, bucket);
 
     const fresh = isFreshPublicDrop(drop, asOf);
-    const current = fresh && !sourceStale(drop);
+    const exactInventory = exactStoreInventoryCandidate(drop);
+    const current = exactInventory ? isCurrentInventoryEvidence(drop, asOf) : fresh && !sourceStale(drop);
     if (current) bucket.freshPublicSignalCount += 1;
     else bucket.stalePublicSignalCount += 1;
 
-    const exactInventory = exactStoreInventoryCandidate(drop);
     if (current && !exactInventory) addFreshPublicUpdateScope(bucket, drop);
     if (!exactInventory) continue;
 

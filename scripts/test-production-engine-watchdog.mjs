@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { evaluateProductionHealth } from './production-engine-watchdog.mjs';
+import { evaluateProductionHealth, getJson } from './production-engine-watchdog.mjs';
+import { authorizeEngineFeedVerification } from '../src/lib/engine-feed-verification.ts';
 import { ncSourceIntegrityFailures } from './verify-nc-source-health.mjs';
 
 const nowMs = Date.parse('2026-07-20T02:00:00.000Z');
@@ -55,6 +56,19 @@ const healthy = evaluateProductionHealth({
 });
 assert.equal(healthy.ok, true, healthy.failures.join('\n'));
 assert.deepEqual(healthy.recoveryStates, []);
+
+const republishedOldCollection = statsWithPa({ drops: 1400, stores: 560, bestLocationPrecision: 'store_level' });
+republishedOldCollection.body.engineGeneratedAt = new Date(nowMs - 66 * 3_600_000).toISOString();
+assert.equal(evaluateProductionHealth({ nowMs, activeStates: ['PA'], stats: republishedOldCollection, stateChecks }).ok, false);
+assert.equal(evaluateProductionHealth({ nowMs, activeStates: ['PA'], stats: statsWithPa({ drops: 1400, stores: 560, bestLocationPrecision: 'store_level' }), stateChecks, opsHealth: { ok: false, status: 503, body: { ok: false, engine: { freshnessStage: 'activation_delay' } } } }).ok, false);
+const key = 'watchdog-test-key-'.repeat(3);
+const verified = await getJson('/api/drops?state=PA&limit=1', { verificationKey: key, fetchImpl: async (url, options) => {
+  assert.equal(authorizeEngineFeedVerification(url, options.headers['x-bourbon-signal-engine-verification'], key), true);
+  return new Response(JSON.stringify({ contractVersion: 'bourbon-signal/engine-feed-count@1', state: 'PA', total: 1400, snapshot: 'signed-snapshot' }), { headers: { 'x-engine-snapshot': 'signed-snapshot' } });
+} });
+assert.equal(verified.ok, true);
+const wrongContract = await getJson('/api/drops?state=PA&limit=1', { verificationKey: key, fetchImpl: async () => new Response(JSON.stringify({ total: 1400 })) });
+assert.equal(wrongContract.ok, false);
 
 const aggregateOnly = statsWithPa({ drops: 1200, stores: 500, bestLocationPrecision: 'store_level' });
 aggregateOnly.body.by_state.PA.exactStoreDrops = 1;

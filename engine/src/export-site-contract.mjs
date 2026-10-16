@@ -12,7 +12,7 @@ import { precisionRank } from './location-precision.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { getStateLifecycle, lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
-import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality, mergePartialRefreshStateQuality, scopeStateQualityForRefresh } from './state-quality-scorecard.mjs';
+import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality, mergePartialRefreshStateQuality, scopeStateQualityForRefresh, rejectedStateQualityPartitions } from './state-quality-scorecard.mjs';
 import { loadComparableStateQualityBaseline } from './state-quality-baseline.mjs';
 import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
@@ -2312,11 +2312,17 @@ function buildSoutheastReadiness(summary, signals) {
   };
 }
 
-async function main() {
+async function main({ rejectedQualityStates = [] } = {}) {
   await mkdir(SITE_OUT, { recursive: true });
   const snapshot = await readJson(path.join(OUT, 'current-snapshot.json'), { signals: [] });
   const snapshots = await recentSnapshots();
   const summary = await readJson(path.join(OUT, 'summary.json'), {});
+  const rejected = new Set(rejectedQualityStates.map((row) => row.state));
+  summary.fallbackStateIds = [...new Set([...(summary.fallbackStateIds || []), ...rejected])];
+  summary.freshStateIds = (summary.freshStateIds || []).filter((state) => !rejected.has(state));
+  summary.states = (summary.states || []).map((state) => rejected.has(state.state)
+    ? { ...state, stale: true, status: 'stale_useful_quality_fallback', staleReason: 'State quality admission failed; only prior nonalertable evidence is retained.' }
+    : state);
   const biblePayload = await readJson(path.join(OUT, 'bourbon-bible.json'), { records: [] });
   const bible = bibleLookup(biblePayload.records || []);
   const alerts = await readJson(path.join(OUT, 'alert-candidates.json'), { candidates: [] });
@@ -2507,11 +2513,11 @@ async function main() {
     ? new Set(comparisonAttemptedStateIds)
     : null;
   const scopedStateQuality = scopeStateQualityForRefresh(stateQuality, comparisonSummary);
-  const comparableStateQuality = partialFallbackStateIds.length
+  const comparableStateQuality = comparisonFallbackStateIds.length
     ? {
         ...scopedStateQuality,
         states: (scopedStateQuality.states || []).filter((state) =>
-          !partialFallbackStateIds.includes(String(state.state).toUpperCase())),
+          !comparisonFallbackStateIds.includes(String(state.state).toUpperCase())),
       }
     : scopedStateQuality;
   const stateQualityRegression = compareStateQuality(previousStateQuality, comparableStateQuality);
@@ -2522,8 +2528,21 @@ async function main() {
   stateQuality.regression = stateQualityRegression;
   stateQuality.runId = runIdentity.runId;
   stateQuality.engineGeneratedAt = runIdentity.engineGeneratedAt;
-  if (!stateQualityRegression.ok && process.env.BOURBON_SIGNAL_ALLOW_STATE_QUALITY_REGRESSION !== '1') {
-    throw new Error(`State quality regression blocked site export: ${stateQualityRegression.failures.join(' ')}`);
+  stateQuality.rejectedPartitions = rejectedQualityStates;
+  if (!stateQualityRegression.ok) {
+    const failures = rejectedStateQualityPartitions(previousStateQuality, comparableStateQuality);
+    if (!failures.length || failures.some((row) => rejected.has(row.state))) {
+      throw new Error(`State quality regression could not be isolated: ${stateQualityRegression.failures.join(' ')}`);
+    }
+    const excluded = new Set([...comparisonFallbackStateIds, ...failures.map(row => row.state)]);
+    const attempted = summary.attemptedStateIds || summary.freshStateIds || [];
+    if (!attempted.some(state => !excluded.has(String(state).toUpperCase()))) {
+      throw new Error(`State quality regression blocked site export: no admitted attempted partition. ${stateQualityRegression.failures.join(' ')}`);
+    }
+    console.warn(`State quality rejected candidate partitions; retaining stale last-good evidence: ${failures.map((row) => row.state).join(', ')}.`);
+    // Nothing has been written yet. Rebuild every customer artifact with the
+    // rejected partitions excluded from fresh rows and all alert candidates.
+    return main({ rejectedQualityStates: [...rejectedQualityStates, ...failures] });
   }
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const ncBoardCoverageSummary = buildNcBoardCoverageSummary(locations, ncIntelligenceRaw);

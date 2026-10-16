@@ -166,13 +166,11 @@ export function buildOpsHealth(input: {
   }) : null;
   const engineStatus = failedStateCount > 0
     ? "failed"
-    : degradedStateCount > 0 || staleStateCount > 0
-      ? "degraded"
-      : pipeline && pipeline.freshnessStage !== "healthy"
+    : pipeline && pipeline.freshnessStage !== "healthy"
         ? "stale"
-      : engineAgeMinutes !== null && engineAgeMinutes <= ENGINE_STALE_AFTER_MINUTES
-      ? "healthy"
-      : engineAgeMinutes === null ? "unknown" : "stale";
+      : engineAgeMinutes === null ? "unknown"
+      : engineAgeMinutes > ENGINE_STALE_AFTER_MINUTES ? "stale"
+      : degradedStateCount > 0 || staleStateCount > 0 ? "degraded" : "healthy";
   const ok = (cronStatus === "healthy" || cronStatus === "monitoring") && (engineStatus === "healthy" || engineStatus === "degraded");
 
   return {
