@@ -34,6 +34,10 @@ This refresh collects only selected cohorts and retains other observations as ex
 
 The old Hermes schedule `0af9a869e52a` is paused. Its running worker was reclaimed and terminated, and its remaining unfinished board tasks were archived or blocked. The three old Python launchers and the legacy Node entry point are disabled. The scheduler export and active automation registry no longer assign coverage to Hermes.
 
+### Massachusetts source preflight
+
+Before a Massachusetts integration, run the manual `ma-source-preflight.yml` workflow on the reviewed deployed main. It makes four fixed, unauthenticated public GETs to Norfolk Wine & Spirits and retains response hashes, HTTP status and selected product flags in an immutable Actions artifact. It sends no orders or customer messages, cannot accept arbitrary URLs, and does not collect or publish app inventory. Verify the artifact run/head and review the first-party contact, pickup policy and product identity separately. A reachable catalog is research evidence; Massachusetts still requires its normal integration, promotion and live customer verification before any request can be completed.
+
 ## Queue and authority
 
 Use `node automation/bourbon-signal/codex-coverage.mjs claim` from the real repository. The helper waits when the release lane is occupied. It otherwise acquires the production lease, derives a `cx_` task ID from the current Codex thread, immutable job key, and request version, attaches it, and verifies production-backed authority. A restarted attempt cannot use an older request version's identity. Existing requests, baseline metrics, retries, source evidence, and member privacy must be preserved.
