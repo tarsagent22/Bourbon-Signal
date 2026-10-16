@@ -529,6 +529,7 @@ export default function SignalFeedScreen() {
 
   const header = (
     <View style={styles.header}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Bottle Check: scan or search a bottle" onPress={() => router.push("/(app)/bottle-check")} style={{alignSelf:"flex-end",flexDirection:"row",gap:7,alignItems:"center",minHeight:44,paddingHorizontal:4}}><MaterialCommunityIcons name="line-scan" size={19} color={colors.accent}/><Text style={{color:colors.accent,fontSize:13,fontWeight:"600"}}>Bottle Check</Text></Pressable>
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"

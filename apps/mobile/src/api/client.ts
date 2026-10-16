@@ -1,4 +1,5 @@
 import { uploadClientBlob, type ClientBlobUploadResult } from "./blob-upload";
+import type { BottleProfile } from '../../../../shared/bottle-profile';
 import { validApiResponse } from "./response-validation";
 import type {
   AchievementSummary,
@@ -284,6 +285,9 @@ export function createMobileApi({
     reportNativeDiagnostic(packet:import("../../../../shared/native-diagnostics").NativeDiagnostic){return request<{ok:true}>("/api/v1/me/diagnostics",{method:"POST",body:packet});},
     clearReadCache() { recentReads.clear(); currentToken = undefined; },
     readCacheInfo() { pruneReads(); return { size: recentReads.size, keys: [...recentReads.keys()] }; },
+    getBottleProfile(id: string, { fresh = false } = {}) {
+      return request<{ bottle: BottleProfile }>(`/api/v1/bottles/${encodeURIComponent(id)}`, { fresh });
+    },
     listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle, search }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string; search?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (view && view !== "all") params.set("view", view);

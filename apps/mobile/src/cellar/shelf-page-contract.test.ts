@@ -13,7 +13,8 @@ test('actual native My Shelf mounts rated cabinet and default three-column grid'
  assert.match(page,/<ShelfCabinet/); assert.doesNotMatch(page,/<MyShelfDisplay/); assert.match(page,/shelfGridLayout\(width, viewMode, fontScale\)/);
  assert.match(page,/collectionSummary\(sourceBottles\)/); assert.match(page,/collectionDisplayKind\(bottle\)/);
  assert.match(page,/<CellarGlencairnSilhouette/); assert.match(page,/<ScoreSlider/);
- assert.match(page,/onPress=\{\(\) => setSelected\(item\)\}/);
+ assert.match(page,/pathname:"\/\(app\)\/bottle\/\[id\]"/);
+ assert.match(page,/item.pendingCanonicalMatch \? setSelected\(item\)/);
  assert.doesNotMatch(page,/saveShelfStyle|styleSaving|\bonStyle=/);
 });
 

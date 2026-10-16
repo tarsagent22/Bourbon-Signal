@@ -1,0 +1,7 @@
+{
+  "name": "bottle-label-reader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "On-device bottle label text recognition for Bourbon Signal",
+  "license": "UNLICENSED"
+}

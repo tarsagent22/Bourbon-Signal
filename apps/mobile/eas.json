@@ -27,6 +27,12 @@
       "autoIncrement": true,
       "environment": "production",
       "channel": "production"
+    },
+    "scanner-preview": {
+      "distribution": "store",
+      "environment": "production",
+      "channel": "scanner-preview",
+      "autoIncrement": true
     }
   },
   "submit": {

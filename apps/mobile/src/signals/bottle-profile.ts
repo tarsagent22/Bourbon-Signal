@@ -1,7 +1,7 @@
 import type { MemberCollectionBottle, MemberPreferences, Signal } from "../api/types";
 import { canonicalBottleKey } from "../interactions/member-interactions";
 
-function collectionBottleForIdentity(identity: Signal["bottle"], bottles: MemberCollectionBottle[]) {
+export function collectionBottleForIdentity(identity: Signal["bottle"], bottles: MemberCollectionBottle[]) {
   const key = canonicalBottleKey(identity.name);
   return bottles.find((bottle) => Boolean(identity.id) && (bottle.bottleId === identity.id || bottle.canonicalKey === identity.id))
     || bottles.find((bottle) => canonicalBottleKey(bottle.canonicalKey || bottle.bottleName) === key

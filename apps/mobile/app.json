@@ -8,7 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "runtimeVersion": "1.1.0-ios-iap-1",
+      "runtimeVersion": "1.1.0-ios-scan-1",
       "supportsTablet": false,
       "bundleIdentifier": "com.bourbonsignal.app",
       "config": {
@@ -35,7 +35,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "runtimeVersion": "1.1.0-android-play-1",
+      "runtimeVersion": "1.1.0-android-scan-1",
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -58,7 +58,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.",
-          "cameraPermission": "Allow Bourbon Signal to use your camera for optional sighting evidence that may appear publicly with your Signal.",
+          "cameraPermission": "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.",
           "microphonePermission": false
         }
       ],
@@ -73,7 +73,16 @@
       ],
       "expo-font",
       "./plugins/with-worklets-packaging.cjs",
-      "./plugins/with-android-release-optimization.cjs"
+      "./plugins/with-android-release-optimization.cjs",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

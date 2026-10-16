@@ -1,6 +1,6 @@
 import { useAuth } from "@clerk/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -123,6 +123,14 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const [filters, setFilters] = useState<CollectionFilters>({ ...DEFAULT_COLLECTION_FILTERS, status: "owned" });
   const [refineMode, setRefineMode] = useState<"filters" | "sort" | null>(null);
   const [selected, setSelected] = useState<MemberCollectionBottle | null>(null);
+  const { editBottleId } = useLocalSearchParams<{ editBottleId?: string }>();
+  const editRequest = useRef('');
+  useEffect(() => {
+    if (!editBottleId) { editRequest.current = ''; return; }
+    if (!preferences || editRequest.current === editBottleId) return;
+    const bottle = preferences.collectionPreferences.bottles.find(item => item.bottleId === editBottleId);
+    if (bottle) { editRequest.current = editBottleId; setSelected(bottle); router.setParams({ editBottleId: '' }); }
+  }, [editBottleId, preferences, router]);
   const [mutating, setMutating] = useState(false);
   const [savingWatchKey, setSavingWatchKey] = useState("");
   const [dnaExpanded, setDnaExpanded] = useState(false);
@@ -400,7 +408,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void load(true).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} />}
-      renderItem={({ item }) => viewMode === "grid" ? <WhiskeyTile bottle={item} onPress={() => setSelected(item)} width={tileWidth} /> : <WhiskeyListRow bottle={item} onPress={() => setSelected(item)} />}
+      renderItem={({ item }) => viewMode === "grid" ? <WhiskeyTile bottle={item} onPress={() => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId}})} width={tileWidth} /> : <WhiskeyListRow bottle={item} onPress={() => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId}})} />}
       ItemSeparatorComponent={numColumns === 1 ? () => <View style={styles.gap} /> : undefined}
       ListHeaderComponent={<View style={styles.header}>
         <View style={styles.topRow}>
@@ -413,7 +421,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
           {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to My Shelf" : "Your free shelf is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
         {preferences ? <>
-          <ShelfCabinet bottles={sourceBottles} onBottle={setSelected} />
+          <ShelfCabinet bottles={sourceBottles} onBottle={item => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId}})} />
           <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View your bottle counts, ratings and top-rated bottles" onPress={() => { if (!selected && !refineMode) setStatisticsOpen(true); }} style={({ pressed }) => [styles.statisticsButton, pressed && { opacity: 0.75 }]}>
             <MaterialCommunityIcons accessible={false} name="chart-bar" size={24} color={colors.accent} />
             <Text style={styles.statisticsLink}>Collection stats</Text>
