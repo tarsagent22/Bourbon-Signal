@@ -37,16 +37,16 @@ test("compact rows qualify counted reports without implying verified inventory",
 test("corner reports pair quantity with the latest observation rather than the original discovery", () => {
   const now = new Date("2026-10-12T18:00:00Z");
   const row = signal({ timing: { displayAt: "2026-10-10T12:00:00Z", firstSpottedAt: "2026-10-10T12:00:00Z", lastCheckedAt: "2026-10-12T12:00:00Z" }, availability: { status: "reported", quantity: 6 } });
-  assert.deepEqual(signalRowReportSummary(row, now), { label: "6 bottles · 6h ago", quantityInSummary: true });
+  assert.deepEqual(signalRowReportSummary(row, now), { label: "6 bottles · Checked 6h ago", quantityInSummary: true });
   assert.match(signalAccessibilityLabel(row, now), /Last reported 6 hours ago/);
   assert.match(signalAccessibilityLabel(row, now), /First reported Oct 10/);
-  assert.equal(signalRowReportSummary({ ...row, availability: { status: "reported", quantity: 1 } }, now).label, "1 bottle · 6h ago");
-  assert.equal(signalRowReportSummary({ ...row, availability: { status: "reported", quantity: 0 } }, now).label, "0 bottles · 6h ago");
+  assert.equal(signalRowReportSummary({ ...row, availability: { status: "reported", quantity: 1 } }, now).label, "1 bottle · Checked 6h ago");
+  assert.equal(signalRowReportSummary({ ...row, availability: { status: "reported", quantity: 0 } }, now).label, "0 bottles · Checked 6h ago");
 });
 
 test("corner reports do not invent quantities or turn descriptive source text into bottle counts", () => {
   const now = new Date("2026-08-23T18:00:00Z");
-  assert.deepEqual(signalRowReportSummary(signal(), now), { label: "Report · 6h ago", quantityInSummary: false });
+  assert.deepEqual(signalRowReportSummary(signal(), now), { label: "Reported 6h ago", quantityInSummary: false });
   const descriptive = signal({ availability: { status: "reported", quantityLabel: "2 behind counter" } });
   assert.equal(signalRowReportSummary(descriptive, now).quantityInSummary, false);
   assert.equal(signalRowFacts(descriptive, now).quantity, "Reported: 2 behind counter");

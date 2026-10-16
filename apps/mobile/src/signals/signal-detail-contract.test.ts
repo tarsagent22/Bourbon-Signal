@@ -6,7 +6,7 @@ import test from "node:test";
 const detail = readFileSync(resolve(process.cwd(), "app/(app)/signal/[id].tsx"), "utf8");
 
 test("Signal detail is the unified Bottle Profile route", () => {
-  assert.match(detail, /Stack\.Screen options=\{\{ title: "Bottle Profile" \}\}/);
+  assert.match(detail, /Stack\.Screen options=\{\{ title: "Bottle Profile"[, ]/);
   assert.match(detail, /BottleProfileHero identity=\{signal.bottle\}/);
   assert.match(detail, /BottlePriceCheck/);
   assert.match(detail, /Last reported availability/);

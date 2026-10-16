@@ -6,6 +6,7 @@ import type { MemberPreferences, Signal } from '../../../src/api/types';
 import { useMobileApi } from '../../../src/hooks/useMobileApi';
 import { useScreenRevalidation } from '../../../src/hooks/useScreenRevalidation';
 import { BottleProfileHero } from '../../../src/components/BottleProfileHero';
+import { ProfileBackButton } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { ErrorState } from '../../../src/components/MemberScreen';
 import { bottleProfileState, collectionBottleForIdentity } from '../../../src/signals/bottle-profile';
@@ -49,11 +50,13 @@ export default function BottleProfileScreen() {
     finally { setSaving(false); }
   }
   return <ScrollView style={s.page} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing && Boolean(identity)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
-    <Stack.Screen options={{ title: 'Bottle Profile' }} />
+    <Stack.Screen options={{ title: 'Bottle Profile', headerLeft: () => <ProfileBackButton /> }} />
     {!identity && !error ? <ActivityIndicator color={colors.accent} /> : null}
     {error && !identity ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {identity ? <>
-      <BottleProfileHero identity={identity} details={bottle} personal={personal} />
+      <BottleProfileHero identity={identity} details={bottle} personal={personal}
+        onShelf={preferences && (personal?.inCellar || preferences.collectionAccess.canAdd) ? () => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } }) : undefined}
+        onWatch={bottle && preferences && !saving ? () => void toggleWatch() : undefined} />
       <View style={s.actions}>
         <Action label={personal?.inCellar ? 'Edit your shelf' : preferences?.collectionAccess.canAdd === false ? 'Free shelf is full' : 'Add to My Shelf'} disabled={!preferences || (!personal?.inCellar && !preferences.collectionAccess.canAdd)} primary onPress={() => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } })} />
         {bottle ? <Action label={saving ? 'Saving…' : personal?.isWatched ? 'Remove from Radar' : 'Watch in Radar'} disabled={!preferences || saving} onPress={() => void toggleWatch()} /> : null}

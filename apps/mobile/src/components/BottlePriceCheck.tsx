@@ -8,7 +8,7 @@ export function BottlePriceCheck({ msrp, initialPrice = '' }: { msrp: number | n
   const [price, setPrice] = useState(initialPrice);
   const result = compareBottlePrice(price, msrp);
   return <View style={s.section}>
-    <View style={s.heading}><Text accessibilityRole="header" style={s.title}>Price context</Text><Text style={s.reference}>{msrp != null ? `MSRP $${msrp.toFixed(2)}` : 'MSRP unavailable'}</Text></View>
+    {msrp != null ? <View style={s.heading}><Text accessibilityRole="header" style={s.title}>Price context</Text><Text style={s.reference}>{`MSRP $${msrp.toFixed(2)}`}</Text></View> : null}
     <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={() => setExpanded(value => !value)} style={s.trigger}><Text style={s.triggerText}>{expanded ? 'Close price check' : 'Check a price'} <Text> {expanded ? '−' : '+'}</Text></Text></Pressable>
     {expanded ? <View style={s.body}>
       <Text style={s.caption}>What’s the shelf price?</Text>

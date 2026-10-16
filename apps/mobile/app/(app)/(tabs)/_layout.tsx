@@ -41,6 +41,15 @@ export function AlertInboxButton() {
   );
 }
 
+export function HomeHeaderActions() {
+  return <View style={styles.headerActions}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Bottle Check: scan or search a bottle" onPress={() => router.push("/(app)/bottle-check")} style={({ pressed }) => [styles.scanButton, pressed && styles.pressed]}>
+      <MaterialCommunityIcons name="line-scan" size={23} color={colors.accent} />
+    </Pressable>
+    <AlertInboxButton />
+  </View>;
+}
+
 export default function TabsLayout() {
   return (
     <Tabs
@@ -59,7 +68,7 @@ export default function TabsLayout() {
         freezeOnBlur: true,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: AlertInboxButton, headerTransparent: true, headerStyle: { backgroundColor: "transparent" }, tabBarIcon: icon("index") }} />
+      <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: HomeHeaderActions, headerTransparent: true, headerStyle: { backgroundColor: "transparent" }, tabBarIcon: icon("index") }} />
       <Tabs.Screen name="radar" options={{ headerShown: false, title: "Radar", tabBarIcon: icon("radar") }} />
       <Tabs.Screen name="post" options={{ headerShown: false, title: "Post", tabBarIcon: icon("post"), tabBarButton: props => <PostTabButton {...props}/> }} />
       <Tabs.Screen name="cellar" options={{ title: "My Shelf", headerShown: false, tabBarIcon: icon("cellar") }} />
@@ -72,7 +81,9 @@ const styles = StyleSheet.create({
   postButton: { flex: 1, alignItems: "center", justifyContent: "flex-start", marginTop: -19, minHeight: 76 },
   postCircle: { width: 54, height: 54, borderRadius: 27, backgroundColor: "#DDB698", borderWidth: 3, borderColor: colors.surface, alignItems: "center", justifyContent: "center" },
   postLabel: { color: colors.text, fontSize: 11, fontWeight: "700", marginTop: 2 },
-  brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 30, lineHeight: 38, letterSpacing: -0.35 },
+  brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 26, lineHeight: 34, letterSpacing: -0.35 },
+  headerActions: { flexDirection: "row", alignItems: "center" },
+  scanButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
   pressed: { opacity: 0.68 },
 });

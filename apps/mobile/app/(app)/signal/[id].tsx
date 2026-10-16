@@ -1,5 +1,6 @@
 import type { BottleProfile } from '../../../../../shared/bottle-profile';
 import { BottleProfileHero } from '../../../src/components/BottleProfileHero';
+import { ProfileBackButton } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { reportAge } from "../../../src/signals/report-age";
 import { ErrorState } from "../../../src/components/MemberScreen";
@@ -175,18 +176,19 @@ export default function SignalDetailScreen() {
   }
 
   return <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing && Boolean(signal)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
-    <Stack.Screen options={{ title: "Bottle Profile" }} />
+    <Stack.Screen options={{ title: "Bottle Profile", headerLeft: () => <ProfileBackButton /> }} />
     {!signal && !error ? <ActivityIndicator color={colors.accent} /> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {safetyNotice ? <Text accessibilityRole="alert" style={styles.disclaimer}>{safetyNotice}</Text> : null}
     {signal && !hidden ? <>
-      <BottleProfileHero identity={signal.bottle} details={bottleDetails} personal={bottleProfile} />
-      <BottlePriceCheck key={signal.id} msrp={bottleDetails?.msrp ?? null} initialPrice={signal.availability?.price?.toFixed(2) || ''} />
+      <BottleProfileHero identity={signal.bottle} details={bottleDetails} personal={bottleProfile}
+        onShelf={canReadCellar && (inCellar || canAddToCellar) && !saving ? () => shelfEntry ? router.push({ pathname: "/(app)/(tabs)/cellar", params: { editBottleId: shelfEntry.bottleId } }) : signal.bottle.id ? router.push({ pathname: "/(app)/cellar/add", params: { bottleId: signal.bottle.id } }) : void addToCellar() : undefined}
+        onWatch={canWatch && preferences && !saving ? () => void toggleRadarWatch() : undefined} />
       <View style={styles.signalSection}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>{signal.historical ? "Last reported availability" : signal.kind === "availability" ? "Store report" : signal.kind === "release" ? "Release details" : "Event details"}</Text>
         <Text style={styles.source}>{signalCardStatusLabel(signal)}</Text>
         {signal.location.store?.name ? <Text style={styles.storeName}>{signal.location.store.name}</Text> : null}
-        <View style={styles.reportFigures}>{presented?.price ? <View style={styles.reportFigure}><Text style={styles.label}>Reported price</Text><Text style={styles.reportPrice}>{presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
+        <View style={styles.reportFigures}>{presented?.price ? <View style={styles.reportFigure}>{signal.availability?.price != null ? <Text style={styles.label}>Reported price</Text> : null}<Text style={signal.availability?.price == null ? styles.disclaimer : styles.reportPrice}>{signal.availability?.price == null && presented.price === "Price unknown" ? "Price not reported" : presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
         {signal.source.type === "member" ? <View style={styles.authorRow}>
           {presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
           {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
@@ -205,6 +207,7 @@ export default function SignalDetailScreen() {
         {presented?.caveat && !/stale|not alertable|last.known|before driving/i.test(presented.caveat) ? <Detail label="Source note" value={presented.caveat} /> : null}
         {signal.source.type === "member" ? <Text style={styles.disclaimer}>Member observations report what someone saw and are not verified retailer inventory.</Text> : null}
       </View>
+      <BottlePriceCheck key={signal.id} msrp={bottleDetails?.msrp ?? null} initialPrice={signal.availability?.price?.toFixed(2) || ''} />
       {actionCount ? <View style={styles.actions}>
         <Text style={styles.actionsTitle}>Actions</Text>
         {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
