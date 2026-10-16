@@ -72,6 +72,6 @@ test('storage failures do not suppress valid network data; stalled network resol
 test('My Shelf no longer requests legacy catalog photos or bundles photo pilots', () => {
   const component = readFileSync(new URL('../components/CellarBottleArtwork.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(component, /useBottlePhoto|force-cache|assets\/bottles\/photos/);
-  assert.match(component, /resolveLabelFreeBottleArtwork\(bottle\)/);
+  assert.match(component, /resolveLabeledBottleArtwork\(bottle, catalog\)/);
   assert.match(component, /<CellarBottleSilhouette size=\{size\}/);
 });

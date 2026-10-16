@@ -152,9 +152,9 @@ test("Cellar uses the bounded bottle-art resolver while retaining its universal 
   const bottle = read("src/components/CellarBottleSilhouette.tsx");
   const artwork = read("src/components/CellarBottleArtwork.tsx");
   const glencairn = read("src/components/CellarGlencairnSilhouette.tsx");
-  assert.match(bottle, /shape="neutral" size=\{size\}/);
+  assert.match(bottle, /neutral-labeled\.png/);
   assert.doesNotMatch(artwork, /useBottlePhoto|assets\/bottles\/photos|LegacyBottleArtwork/);
-  assert.match(artwork, /resolveLabelFreeBottleArtwork\(bottle\)/);
+  assert.match(artwork, /resolveLabeledBottleArtwork\(bottle, catalog\)/);
   assert.match(artwork, /<CellarBottleSilhouette size=\{size\}/);
   assert.match(glencairn, /const glencairnArtwork = require\("\.\.\/\.\.\/assets\/icons\/cellar-glencairn\.png"\)/);
   assert.doesNotMatch(glencairn, /bottleId|canonicalKey|assets\/cellar|Record<|Map\(/);

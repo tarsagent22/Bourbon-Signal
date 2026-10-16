@@ -1,0 +1,7 @@
+{
+  "prompt": "Use case: precise-object-edit. Image1 is the current neutral fallback bottle illustration in Bourbon Signal. Preserve this exact complete upright bottle, wooden cork, glass proportions, warm amber liquid, premium studio rendering, front framing, and transparent alpha exterior. Add one realistic small cream rectangular paper label centered on the front body, with a thin charcoal border and the simple word WHISKEY in small clean black serif type. No brand, age, proof, invented logo, medallion, or decorative imagery. The label must look like understated physical printed paper, not a floating badge. This is a generic placeholder, not a real product. Single bottle only; no scene, floor, shadow or background. Generous transparent padding.",
+  "path": "C:\\Users\\chand\\.codex\\generated_images\\01a1428f-7d36-78b2-9372-591cb935efa7\\exec-bea1ffc2-5e2b-4ac9-9343-e675a4b8c12a.png",
+  "reviewed": true,
+  "reference": "apps/mobile/assets/bottles/label-free-v3/bare-neutral.png",
+  "reviewNotes": "Inspected complete original neutral bottle silhouette, cork, glass and amber render. Added simple cream paper WHISKEY label; generic placeholder has no brand or product claims. Transparent exterior preserved."
+}

@@ -6,13 +6,27 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { LABELED_BOTTLE_ARTWORK, resolveLabeledBottleArtwork: resolve } = require('../shared/labeled-bottle-artwork.ts') as typeof import('../shared/labeled-bottle-artwork');
 import catalog from '../apps/mobile/src/cellar/bottle-catalog-seed.json';
+import ownerCatalog from '../shared/labeled-owner-bottles.json';
 const { catalogBottlePhoto } = require('../src/lib/bottle-photos.ts') as typeof import('../src/lib/bottle-photos');
+
+test('every previously illustrated catalog and public owner bottle has labeled artwork', () => {
+  const historical = [1,2,3,4,5,6].flatMap(n => JSON.parse(readFileSync(new URL(`../apps/mobile/assets/bottles/label-free-v${n}/catalog.json`, import.meta.url),'utf8')).products);
+  const expected = [...historical,...ownerCatalog].map(row => row.id).sort();
+  assert.deepEqual(LABELED_BOTTLE_ARTWORK.entries.map(row => row.catalogId).sort(),expected);
+  const fallback = readFileSync(new URL('../apps/mobile/src/components/CellarBottleSilhouette.tsx',import.meta.url),'utf8');
+  assert.match(fallback,/neutral-labeled\.png/);
+  assert.doesNotMatch(fallback,/LabelFreeBottleArtwork|label-free-artwork-assets/);
+  const neutral = readFileSync(new URL('../apps/mobile/assets/bottles/neutral-labeled.png',import.meta.url));
+  assert.equal(neutral.readUInt32BE(16),400);
+  assert.equal(neutral.readUInt32BE(20),600);
+  assert.equal(neutral[25],6);
+});
 
 test('labeled illustrations preserve exact catalog identities and immutable native/web assets', () => {
   const provenance = JSON.parse(readFileSync(new URL('../apps/mobile/assets/bottles/labeled-v1/provenance.json', import.meta.url), 'utf8'));
   const registry = readFileSync(new URL('../apps/mobile/src/components/labeled-artwork-assets.ts', import.meta.url), 'utf8');
   for (const row of LABELED_BOTTLE_ARTWORK.entries) {
-    assert.equal(catalog.find(bottle => bottle.id === row.catalogId)?.name, row.displayName);
+    assert.equal([...catalog,...ownerCatalog].find(bottle => bottle.id === row.catalogId)?.name, row.displayName);
     for (const identity of [{bottleId:row.catalogId}, {bottleId:`bible-${row.catalogId}`}, ...row.exactNames.map(bottleName => ({bottleName})), {bottleId:row.catalogId,bottleName:row.displayName}]) {
       assert.equal(resolve(identity, catalog)?.sha256, row.sha256);
     }
@@ -48,8 +62,8 @@ test('matching glass does not approve a different expression label', () => {
 
 test('labeled images take priority in the shared renderer, retaining its motion and sizing behavior', () => {
   const component = readFileSync(new URL('../apps/mobile/src/components/CellarBottleArtwork.tsx',import.meta.url),'utf8');
-  assert.ok(component.indexOf('if (labeled)') < component.indexOf('if (!shape'));
-  assert.ok(component.indexOf('if (labeled)') < component.indexOf('if (shape)'));
+  assert.ok(component.indexOf('if (labeled)') < component.indexOf("if (bottle.bottleId?.startsWith('owner-')"));
+  assert.doesNotMatch(component,/LabelFreeBottleArtwork|resolveLabelFreeBottleArtwork|label-free-artwork/);
   assert.match(component,/resolveLabeledBottleArtwork\(bottle, catalog\)/);
   const renderer = readFileSync(new URL('../apps/mobile/src/components/BottleArtworkImage.tsx',import.meta.url),'utf8');
   assert.match(renderer,/resizeMode="contain"/);
