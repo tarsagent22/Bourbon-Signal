@@ -23,3 +23,15 @@ test('redirected catalog identity is returned as canonical and nonfinite prices 
   const handler = createBottleProfileHandler({ authenticate: async () => 'member', readBottle: async () => ({ ...bottle, msrp: Infinity, proof: NaN }) });
   const payload = await (await handler('old-id')).json(); assert.equal(payload.bottle.id, bottle.id); assert.equal(payload.bottle.msrp, null); assert.equal(payload.bottle.proof, null);
 });
+
+test('state context uses source-backed overrides and rejects unknown regions without leaking private evidence', async () => {
+  const override = { jurisdiction: 'AL', tier: 'allocated', confidence: 'medium', reason: 'Synthetic official allocation fixture', officialAllocationStatus: 'state_allocated', verifiedOpportunityCount: 0, coverageDenominator: 0, evidenceWindow: { start: '2026-05-01', end: '2026-08-03' }, sourceIds: ['official-al-master-list'], lastReviewedAt: '2026-08-03' } as const;
+  const handler = createBottleProfileHandler({ authenticate: async () => 'member', readBottle: async () => ({ ...bottle, stateOverrides: [{ ...override, sourceIds: [...override.sourceIds] }] }) });
+  const al = await (await handler(bottle.id, 'AL')).json();
+  assert.equal(al.bottle.marketRarity.state, 'AL'); assert.equal(al.bottle.marketRarity.tier, 'allocated');
+  assert.match(al.bottle.marketRarity.sources[0].url, /^https:\/\/alabcboard.gov/);
+  assert.equal((await (await handler(bottle.id, 'NC')).json()).bottle.marketRarity, null);
+  assert.equal((await handler(bottle.id, 'XX')).status, 400);
+  const weak = createBottleProfileHandler({ authenticate: async () => 'member', readBottle: async () => ({ ...bottle, stateOverrides: [{ ...override, confidence: 'low', sourceIds: [...override.sourceIds] }] }) });
+  assert.equal((await (await weak(bottle.id, 'AL')).json()).bottle.marketRarity, null);
+});

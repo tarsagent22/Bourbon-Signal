@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { ActivityIndicator, FlatList, Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Keyboard, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottleProfile } from '../../../../shared/bottle-profile';
 import { COVERAGE_STATES } from '../../../../shared/coverage-states';
@@ -16,6 +16,7 @@ import { colors, fonts } from '../../src/theme';
 const HELP_KEY = 'bottle-check-guidance-v2';
 export default function BottleCheckScreen() {
   const router = useRouter(); const api = useMobileApi(); const catalog = useBottleCatalog();
+  const [showSources, setShowSources] = useState(false);
   const [mode, setMode] = useState<'scan' | 'search'>('scan');
   const [query, setQuery] = useState(''); const [matches, setMatches] = useState<RadarBottleOption[]>([]);
   const [scanSession, setScanSession] = useState(0);
@@ -43,9 +44,9 @@ export default function BottleCheckScreen() {
   useEffect(() => {
     let active = true; setDetails(null); setDetailsError('');
     if (!selected) return;
-    void api.getBottleProfile(selected.id).then(result => { if (active) setDetails(result.bottle); }).catch(() => { if (active) setDetailsError('Using saved bottle details. MSRP could not refresh.'); });
+    void api.getBottleProfile(selected.id, { state: scope.state }).then(result => { if (active) setDetails(result.bottle); }).catch(() => { if (active) setDetailsError('Using saved bottle details. MSRP could not refresh.'); });
     return () => { active = false; };
-  }, [api, selected?.id, retry]);
+  }, [api, selected?.id, scope.state, retry]);
   useEffect(() => {
     let active = true; setReports([]); setReportError(''); setLoading(false);
     if (!selected || !scope.state) return;
@@ -68,7 +69,7 @@ export default function BottleCheckScreen() {
   const regionName = COVERAGE_STATES.find(state => state.code === scope.state)?.name;
   const areaOptions = cityOptions;
   const dismissHelp = () => { helpTouched.current = true; setHelp(false); void SecureStore.setItemAsync(HELP_KEY, 'dismissed').catch(() => undefined); };
-  const selectBottle = (item: RadarBottleOption) => { Keyboard.dismiss(); setSelected(item); setAskingPrice(''); setMatches([]); };
+  const selectBottle = (item: RadarBottleOption) => { Keyboard.dismiss(); setSelected(item); setAskingPrice(''); setMatches([]); setShowSources(false); };
   return <View style={s.page}>
     <Stack.Screen options={{ title: 'Bottle Check', presentation: 'modal', headerLeft: () => <Pressable accessibilityRole="button" accessibilityLabel="Close Bottle Check" onPress={() => router.back()} style={s.iconButton}><MaterialCommunityIcons name="close" size={23} color={colors.text} /></Pressable>, headerRight: () => <Pressable accessibilityRole="button" accessibilityLabel="Bottle Check help" onPress={() => { helpTouched.current = true; setHelp(value => !value); }} style={s.iconButton}><MaterialCommunityIcons name="help-circle-outline" size={22} color={colors.muted} /></Pressable> }} />
     <FlatList keyboardShouldPersistTaps="handled" data={results} keyExtractor={item => item.id} contentContainerStyle={s.content}
@@ -83,21 +84,28 @@ export default function BottleCheckScreen() {
           {profile?.homeState ? <Pressable accessibilityRole="button" onPress={() => { locationTouched.current = true; setScope({ state: profile.homeState!, area: '' }); setEditingRegion(false); }} style={s.textButton}><Text style={s.link}>Reset to home state</Text></Pressable> : null}
         </View> : null}
         {profileError && !scope.state ? <Text style={s.note}>{profileError}</Text> : null}
-        {help ? <View style={s.help}><View style={s.helpCopy}><Text style={s.helpTitle}>{selected ? 'Read the score' : 'Point. Confirm. Compare.'}</Text><Text style={s.note}>{selected ? 'Add the shelf price. The score weighs price, proof or your rating, and recent prices in your selected region. It’s a guide, not a tasting score.' : 'Center one front label, then choose the exact bottle. Search works too. Add the shelf price for a buying score. Photos aren’t saved or posted.'}</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Dismiss Bottle Check tips" onPress={dismissHelp} style={s.iconButton}><MaterialCommunityIcons name="close" size={20} color={colors.muted} /></Pressable></View> : null}
+        {help ? <View style={s.help}><View style={s.helpCopy}><Text style={s.helpTitle}>{selected ? 'Read the score' : 'Point. Confirm. Compare.'}</Text><Text style={s.note}>{selected ? 'Published reviews provide the starting assessment. Price and verified rarity add buying context. Confidence describes the evidence; your shelf price is optional.' : 'Center one front label, then choose the exact bottle. Search works too. See published reviews and buying context automatically. A shelf price is optional. Photos aren’t saved or posted.'}</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Dismiss Bottle Check tips" onPress={dismissHelp} style={s.iconButton}><MaterialCommunityIcons name="close" size={20} color={colors.muted} /></Pressable></View> : null}
         {selected && bottle && decision ? <>
           <Pressable accessibilityRole="button" onPress={() => { setSelected(null); setDetails(null); setReports([]); setAskingPrice(''); }} style={s.textButton}><Text style={s.link}>← Check another bottle</Text></Pressable>
-          <View style={s.bottleHeading}><View style={s.bottleArt}><CellarBottleArtwork bottle={{ bottleId: bottle.id, bottleName: bottle.name }} size="showcase" /></View><View style={s.bottleCopy}><Text style={s.eyebrow}>BUYING GUIDE</Text><Text accessibilityRole="header" style={s.bottleName}>{bottle.name}</Text><Text style={s.note}>{[bottle.proof ? `${bottle.proof} proof` : '', bottle.age?.replace(/^0*(\d+)Y$/i, '$1 years')].filter(Boolean).join(' · ')}</Text></View></View>
-          <View style={s.priceEntry}><Text style={s.inputLabel}>Shelf price</Text><View style={s.priceInput}><Text style={s.currency}>$</Text><TextInput accessibilityLabel="Bottle Check shelf price in US dollars" keyboardType="decimal-pad" value={askingPrice} onChangeText={setAskingPrice} placeholder="Enter price" placeholderTextColor={colors.muted} maxLength={12} style={s.priceText} returnKeyType="done" onSubmitEditing={Keyboard.dismiss} /></View></View>
-          <View style={s.scoreCard} accessibilityLiveRegion="polite"><View style={s.scoreLine}><View style={s.scoreCircle}><Text style={s.score}>{decision.score}</Text><Text style={s.scoreOutOf}>/ 100</Text></View><View style={s.verdictCopy}><Text style={s.eyebrow}>{decision.preliminary ? 'PRELIMINARY SCORE' : 'BUY SCORE'}</Text><Text accessibilityRole="header" style={s.verdict}>{decision.verdict}</Text><Text style={s.note}>{decision.confidence}</Text></View></View>
-            <View style={s.factorRow}>{decision.factors.map(factor => <View key={factor.label} style={s.factor}><Text style={s.factorLabel}>{factor.label}</Text><View style={s.factorTrack}><View style={[s.factorFill, { width: `${factor.points / factor.max * 100}%` }]} /></View><Text style={s.note}>{factor.points}/{factor.max}</Text></View>)}</View>
-            {decision.adjustment ? <Text style={s.note}>{decision.adjustment}</Text> : null}
+          <View style={s.bottleHeading}><View style={s.bottleArt}><CellarBottleArtwork bottle={{ bottleId: bottle.id, bottleName: bottle.name }} size="showcase" /></View><View style={s.bottleCopy}><Text style={s.eyebrow}>BOTTLE ASSESSMENT</Text><Text accessibilityRole="header" style={s.bottleName}>{bottle.name}</Text><Text style={s.note}>{[bottle.proof ? `${bottle.proof} proof` : '', bottle.age?.replace(/^0*(\d+)Y$/i, '$1 years')].filter(Boolean).join(' · ')}</Text></View></View>
+
+          <View style={s.scoreCard} accessibilityLiveRegion="polite"><View style={s.scoreLine}><View style={s.scoreCircle}><Text testID="bottle-assessment-score" style={s.score}>{decision.score == null ? '\u2014' : decision.score}</Text><Text style={s.scoreOutOf}>/ 100</Text></View><View style={s.verdictCopy}><Text style={s.eyebrow}>{decision.automatic ? 'AUTOMATIC ASSESSMENT' : 'PRICE-ADJUSTED ASSESSMENT'}</Text><Text accessibilityRole="header" style={s.verdict}>{decision.verdict}</Text><Text style={s.note}>{decision.confidence}</Text><Text style={s.note}>{decision.priceBasis}{decision.price != null ? ` \u00b7 $${decision.price.toFixed(2)}` : ''}</Text></View></View>
+            <View style={s.factorRow}>{decision.factors.map(factor => <View key={factor.label} style={s.factor}><Text style={s.factorLabel}>{factor.label}</Text><View style={s.factorTrack}><View style={[s.factorFill, { width: `${factor.points == null ? 0 : factor.points / factor.max * 100}%` }]} /></View><Text style={s.note}>{factor.points == null ? 'Not verified' : `${factor.points.toFixed(1)}/${factor.max}`}</Text></View>)}</View>
+            {decision.adjustment ? <Text style={s.note}>{decision.priceAdjustment < 0 ? 'A price premium lowers this assessment.' : decision.rarityAdjustment > 0 ? 'Includes a small adjustment for a verified find.' : 'Built from published reviews.'}</Text> : null}
           </View>
-          <Text accessibilityRole="header" style={s.section}>Why this score</Text>
+          <View style={s.priceEntry}><Text style={s.inputLabel}>Shelf price (optional)</Text><View style={s.priceInput}><Text style={s.currency}>$</Text><TextInput accessibilityLabel="Bottle Check shelf price in US dollars" keyboardType="decimal-pad" value={askingPrice} onChangeText={setAskingPrice} placeholder="Enter price" placeholderTextColor={colors.muted} maxLength={12} style={s.priceText} returnKeyType="done" onSubmitEditing={Keyboard.dismiss} /></View></View>
+          <Text accessibilityRole="header" style={s.section}>Why this assessment</Text>
           {decision.reasons.map((reason, index) => <View key={index} style={s.reason}><MaterialCommunityIcons name={index === 0 ? 'tag-outline' : index === 1 ? 'glass-tulip' : 'map-marker-outline'} color={colors.accent} size={19} /><Text style={[s.copy, { flex: 1 }]}>{reason}</Text></View>)}
-          {bottle.rarity && !bottle.rarity.pending ? <Text style={s.note}>National classification: {bottle.rarity.label}. Rarity does not raise the buying score.</Text> : null}
+          {decision.personalNote ? <Text style={s.note}>{decision.personalNote}</Text> : null}
+          {decision.producerFacts ? <Text style={s.note}>Producer facts: {[decision.producerFacts.proof ? `${decision.producerFacts.proof} proof` : '', decision.producerFacts.ageYears ? `${decision.producerFacts.ageYears} years` : '', decision.producerFacts.process || ''].filter(Boolean).join(' \u00b7 ')}</Text> : null}
           {loading ? <View style={s.reason}><ActivityIndicator size="small" color={colors.accent} /><Text style={s.note}>Checking prices in your region…</Text></View> : null}
           {detailsError || reportError ? <View><Text style={s.note}>{[detailsError, reportError].filter(Boolean).join(' ')}</Text><Pressable accessibilityRole="button" onPress={() => setRetry(value => value + 1)} style={s.textButton}><Text style={s.link}>Retry lookup</Text></Pressable></View> : null}
-          <Text style={s.note}>Rule-based guidance · Price 60%, beginner fit or your rating 30%, local price 10%. Reported prices are a sample, not live stock or a resale forecast.</Text>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: showSources }} onPress={() => setShowSources(value => !value)} style={s.textButton}><Text style={s.link}>Sources & scoring {showSources ? '\u2212' : '+'}</Text></Pressable>
+          {showSources ? <View style={{ gap: 10 }}>
+            <Text style={s.note}>Expert and consumer groups contribute equally when both are available. Consumer stars are converted to a 100-point scale; groups are opinions, not objective tasting facts. No age or proof bonus. Price changes the score by -45 to +5; verified find value adds up to 5. Missing reviews never receive placeholder points.</Text>
+            <Text style={s.note}>{decision.adjustment}</Text><Text style={s.note}>Each publisher counts once per group. Consumer samples need at least 100 reviews. Source checks expire after a year. Ratings from one platform do not establish agreement across independent publishers. This is a transparent guide, not a calibrated prediction of personal enjoyment or live stock.</Text>
+            {decision.sources.map((source, index) => <Pressable key={`${source.url}-${index}`} accessibilityRole="link" accessibilityLabel={`Open ${source.label}`} onPress={() => { void Linking.openURL(source.url).catch(() => undefined); }} style={s.textButton}><Text style={s.link}>{source.label}</Text><Text style={s.note}>Checked {source.checkedAt}</Text></Pressable>)}
+          </View> : null}
           <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/bottle/[id]', params: { id: bottle.id } })} style={s.secondary}><Text style={s.link}>Bottle details & shelf actions →</Text></Pressable>
         </> : <>
           <View accessibilityRole="radiogroup" accessibilityLabel="Bottle lookup method" style={s.modes}>{(['scan', 'search'] as const).map(value => <Pressable key={value} accessibilityRole="radio" accessibilityState={{ checked: mode === value }} onPress={() => { setMode(value); setMatches([]); setScanSession(session => session + 1); }} style={[s.mode, mode === value && s.selected]}><MaterialCommunityIcons name={value === 'scan' ? 'line-scan' : 'magnify'} size={18} color={mode === value ? colors.accent : colors.muted} /><Text style={mode === value ? s.link : s.copy}>{value === 'scan' ? 'Scan a bottle' : 'Search by name'}</Text></Pressable>)}</View>
