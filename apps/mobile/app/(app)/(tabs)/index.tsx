@@ -529,7 +529,6 @@ export default function SignalFeedScreen() {
 
   const header = (
     <View style={styles.header}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Bottle Check: scan or search a bottle" onPress={() => router.push("/(app)/bottle-check")} style={{alignSelf:"flex-end",flexDirection:"row",gap:7,alignItems:"center",minHeight:44,paddingHorizontal:4}}><MaterialCommunityIcons name="line-scan" size={19} color={colors.accent}/><Text style={{color:colors.accent,fontSize:13,fontWeight:"600"}}>Bottle Check</Text></Pressable>
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"
@@ -569,7 +568,7 @@ export default function SignalFeedScreen() {
             label={areaLabel}
             icon="map-marker-radius-outline"
             value={filters.area}
-            placeholder={filters.state ? "All areas" : "Location"}
+            placeholder={filters.state ? "All areas" : "Select state first"}
             clearLabel={`Any ${areaLabel.toLowerCase()}`}
             options={areaOptions}
             disabled={!filters.state || !detailedFilters}
@@ -671,7 +670,7 @@ export default function SignalFeedScreen() {
           accessibilityIgnoresInvertColors
           resizeMode="cover"
           source={require("../../../assets/home-shelf-background.jpg")}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, { opacity: 0.55 }]}
         />
       </View>
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
@@ -757,7 +756,7 @@ const styles = StyleSheet.create({
   homeBackdrop: StyleSheet.absoluteFill,
   feedViewport: { flex: 1, backgroundColor: "transparent" },
   feedFade: { width: "100%", height: 120 },
-  feedShade: { flex: 1, backgroundColor: "rgba(8,6,4,0.64)" },
+  feedShade: { flex: 1, backgroundColor: colors.background },
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20 },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(210,184,145,0.12)", marginLeft: 78 },
   communitySeparator: { marginLeft: 0 },
@@ -777,7 +776,7 @@ const styles = StyleSheet.create({
   clearLocationButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3, paddingHorizontal: 6 },
   clearLocationText: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800" },
   filterChooser: { flex: 1, minWidth: 0 },
-  filterChooserDisabled: { opacity: 0.48 },
+  filterChooserDisabled: { opacity: 0.72 },
   rarityRow: { flexGrow: 1, gap: 6, paddingRight: 2, paddingVertical: 3 },
   rarityChip: { flexGrow: 1, minWidth: 44, minHeight: 44, flexDirection: "row", gap: 4, alignItems: "center", justifyContent: "center", paddingHorizontal: 8, paddingVertical: 8, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(210,184,145,0.18)", backgroundColor: "rgba(17,14,11,0.78)" },
   rarityChipSelected: { borderColor: colors.accent, backgroundColor: "rgba(214,154,74,0.13)" },
