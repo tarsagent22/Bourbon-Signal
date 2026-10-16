@@ -35,6 +35,7 @@ export async function runStateRecoveryPlanner(argv = process.argv.slice(2)) {
     failedStateIds,
     attempt: option(argv, '--attempt', '0'),
     maxAttempts: option(argv, '--max-attempts', String(MAX_STATE_RECOVERY_ATTEMPTS)),
+    excludedStateIds: option(argv, '--exclude-states', process.env.BOURBON_SIGNAL_RECOVERY_EXCLUDED_STATES || 'OH').split(','),
   });
   const githubOutput = option(argv, '--github-output') || process.env.GITHUB_OUTPUT;
   if (githubOutput) {

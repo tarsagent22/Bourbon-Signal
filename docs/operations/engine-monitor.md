@@ -22,7 +22,7 @@ The installer copies just the runner and policy module into the stable local ope
 
 This host must be powered on with the owner signed in. Waking from sleep cannot start a powered-off machine. GitHub's existing cloud schedules remain a fallback. A dedicated cloud controller would require an independently provisioned runner or repository-scoped GitHub App credential; do not describe the Windows task as independent of the host.
 
-The cloud watchdog explicitly excludes Ohio from targeted recovery. An excluded-only source incident must never turn into a full refresh. Genuine global pipeline recovery still uses the normal guarded refresh path.
+Both the cloud watchdog and the refresh workflow's post-publication recovery planner explicitly exclude Ohio from targeted recovery. An excluded-only source incident must never turn into a full refresh. Genuine global pipeline recovery still uses the normal guarded refresh path.
 
 ## Evidence and final review
 
