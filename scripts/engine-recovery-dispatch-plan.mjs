@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { ACTIVE_RUN_STATES } from './lib/engine-monitor-policy.mjs';
 
 const BASE_RECOVERY_BACKOFF_MS = 15 * 60_000;
 const MAX_RECOVERY_BACKOFF_MS = 2 * 60 * 60_000;
@@ -23,15 +24,18 @@ function matchingIncident(run, title) {
     && String(run?.displayTitle || '') === title;
 }
 
-export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().toISOString() }) {
-  const incidentStates = [...new Set((watchdog?.recoveryStates || []).map((state) => String(state).trim()).filter(Boolean))].sort();
-  if (incidentStates.some((state) => !/^[A-Z]{2}(?:-[A-Z]+)?$/.test(state))) throw new Error('Invalid recovery state identifier.');
+export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().toISOString(), excludedStates = [] }) {
+  const requestedStates = [...new Set((watchdog?.recoveryStates || []).map((state) => String(state).trim()).filter(Boolean))].sort();
+  if (requestedStates.some((state) => !/^[A-Z]{2}(?:-[A-Z]+)?$/.test(state))) throw new Error('Invalid recovery state identifier.');
   if (!/^[a-f0-9]{40}$/i.test(String(headSha || ''))) throw new Error('Invalid main revision.');
   const nowMs = validTime(now);
   if (nowMs == null) throw new Error('Invalid recovery planning time.');
+  const incidentStates = requestedStates.filter(state => !excludedStates.includes(state));
+  if (requestedStates.length && !incidentStates.length) return { dispatch: false, reason: 'excluded_recovery_states',
+    incidentKey: 'excluded-states', mode: 'targeted', states: [], deferredStates: [], excludedStates: requestedStates };
   const mode = incidentStates.length ? 'targeted' : 'full';
   if (incidentStates.length > 1) {
-    const plans = incidentStates.map((state) => planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: [state] }, runs, headSha, now }));
+    const plans = incidentStates.map((state) => planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: [state] }, runs, headSha, now, excludedStates }));
     plans.sort((a, b) => Number(b.dispatch) - Number(a.dispatch)
       || (a.priorAttempts || 0) - (b.priorAttempts || 0)
       || Number((watchdog?.recoveryPriorityStates || []).includes(b.states[0])) - Number((watchdog?.recoveryPriorityStates || []).includes(a.states[0]))
@@ -57,7 +61,7 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
   const states = selectedState ? [selectedState] : [];
   const deferredStates = incidentStates.filter((state) => state !== selectedState);
   const planIdentity = { incidentKey, mode, states, deferredStates };
-  const active = (runs || []).find((run) => run?.status === 'queued' || run?.status === 'in_progress');
+  const active = (runs || []).find((run) => ACTIVE_RUN_STATES.has(run?.status));
   if (active) return { dispatch: false, reason: 'active_refresh', priorRunId: active.databaseId || null, ...planIdentity };
   const lastAttempt = matchingAttempts.at(-1) || null;
   if (matchingAttempts.length >= MAX_MATCHING_INCIDENT_ATTEMPTS && lastAttempt?.observedAtMs != null) {
@@ -114,7 +118,8 @@ async function main() {
   if (!watchdogPath || !runsPath || !headSha) throw new Error('Usage: --watchdog <json> --runs <json> --head-sha <sha>');
   const watchdog = JSON.parse(await readFile(path.resolve(watchdogPath), 'utf8'));
   const runs = JSON.parse(await readFile(path.resolve(runsPath), 'utf8'));
-  process.stdout.write(`${JSON.stringify(planEngineRecovery({ watchdog, runs, headSha }))}\n`);
+  const excludedStates = String(process.env.BOURBON_SIGNAL_RECOVERY_EXCLUDED_STATES || 'OH').split(',').map(state => state.trim().toUpperCase()).filter(Boolean);
+  process.stdout.write(`${JSON.stringify(planEngineRecovery({ watchdog, runs, headSha, excludedStates }))}\n`);
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {

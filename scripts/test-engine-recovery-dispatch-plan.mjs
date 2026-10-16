@@ -11,6 +11,14 @@ const watchdog = {
 };
 const headSha = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
+test('excluded Ohio recovery stays excluded without becoming a full refresh', () => {
+  const only = planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: ['OH'] }, runs: [], headSha, excludedStates: ['OH'] });
+  assert.equal(only.dispatch, false); assert.equal(only.reason, 'excluded_recovery_states');
+  const mixed = planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: ['OH','MS'] }, runs: [], headSha, excludedStates: ['OH'] });
+  assert.deepEqual(mixed.states, ['MS']);
+  assert.equal(planEngineRecovery({ watchdog, runs: [], headSha, excludedStates: ['OH'] }).mode, 'full');
+});
+
 test('prioritizes inventory outages without bypassing active refreshes or backoff', () => {
   const prioritized = { ...watchdog, recoveryStates: ['AL', 'NC'], recoveryPriorityStates: ['NC'] };
   const first = planEngineRecovery({ watchdog: prioritized, runs: [], headSha, now: '2026-07-31T05:00:00Z' });
@@ -62,9 +70,11 @@ test('deduplicates a matching targeted recovery but not an unrelated full failur
 });
 
 test('does not queue behind an already active refresh', () => {
-  const plan = planEngineRecovery({ watchdog, headSha, runs: [{ event: 'schedule', status: 'in_progress', conclusion: null, headSha, displayTitle: 'Production inventory refresh' }] });
-  assert.equal(plan.dispatch, false);
-  assert.equal(plan.reason, 'active_refresh');
+  for (const status of ['queued', 'pending', 'waiting', 'requested', 'in_progress']) {
+    const plan = planEngineRecovery({ watchdog, headSha, runs: [{ event: 'schedule', status, conclusion: null, headSha, displayTitle: 'Production inventory refresh' }] });
+    assert.equal(plan.dispatch, false);
+    assert.equal(plan.reason, 'active_refresh');
+  }
 });
 
 test('isolates one recovery state per run so a failed source cannot block sibling states', () => {
