@@ -49,13 +49,13 @@ export default function BottleCheckScreen() {
     let active = true; setReports([]); setReportError(''); setLoading(false);
     if (!selected || !scope.state) return;
     setLoading(true);
-    void api.listSignals({ bottle: selected.name, state: scope.state, area: scope.area, limit: 100, fresh: true }).then(result => {
+    void api.listSignals({ bottle: selected.name, state: scope.state, limit: 100, fresh: true }).then(result => {
       if (!active) return;
       if (result.degraded || result.access?.marketDetailsLocked || result.access?.previewLocked) setReportError('Local price evidence is limited for this lookup.');
       else setReports(result.signals);
     }).catch(() => { if (active) setReportError('Local prices couldn’t load. This estimate uses available bottle details.'); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [api, selected?.id, scope.state, scope.area, retry]);
+  }, [api, selected?.id, scope.state, retry]);
   useEffect(() => {
     let active = true; setCityOptions([]);
     if (editingRegion && draftState) void api.getSignalAreaOptions(draftState).then(options => { if (active) setCityOptions(options); }).catch(() => undefined);
