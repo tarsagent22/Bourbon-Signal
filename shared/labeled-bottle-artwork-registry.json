@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "revision": "e5424121c219fee76f60a92e0c408f8265edf124ab27ac7193c2d1284f3d8b27",
+  "entries": [
+    {
+      "catalogId": "1792-small-batch",
+      "displayName": "1792 Small Batch",
+      "exactNames": [
+        "1792 Small Batch",
+        "1792 Small Batch Bourbon"
+      ],
+      "sha256": "7934554cc7b3b7a34d1750454148dc2c52b5848178e84fc3bcfb5dadf813dfe9",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "bb_71e0a5ef723ea82c",
+      "displayName": "Michter's US 1 Straight Bourbon Small Batch",
+      "exactNames": [
+        "Michter's US 1 Straight Bourbon Small Batch"
+      ],
+      "sha256": "1603df8307c6493b43172aa366cabfc7e3643ee7caaf3e59aba301e41f42da0f",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "blantons-single-barrel",
+      "displayName": "Blanton's Single Barrel",
+      "exactNames": [
+        "Blanton's Single Barrel",
+        "Blanton's Original Single Barrel",
+        "Blantons",
+        "Blanton's",
+        "Blanton"
+      ],
+      "sha256": "ef6fc656896518cd3a806b4fede2c4be472235040d71bf52ba58b4bbe867b9a3",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "buffalo-trace-bourbon",
+      "displayName": "Buffalo Trace Bourbon",
+      "exactNames": [
+        "Buffalo Trace Bourbon",
+        "Buffalo Trace",
+        "Buffalo Trace Kentucky Straight Bourbon"
+      ],
+      "sha256": "15ee029350a26d5abd43111b395a1c1ffaef0056aedf29fe743c126f72fbf75b",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "e-h-taylor-jr-straight-rye-whiskey",
+      "displayName": "E.H. Taylor Jr. Straight Rye Whiskey",
+      "exactNames": [
+        "E.H. Taylor Jr. Straight Rye Whiskey",
+        "E.H. Taylor Straight Rye",
+        "E.H. Taylor Rye"
+      ],
+      "sha256": "08271b84ac74026ed15b46471f53189e9eb086ebb522180752e0bdda6da29c33",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "eagle-rare-10",
+      "displayName": "Eagle Rare 10 Year",
+      "exactNames": [
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10",
+        "Eagle Rare 10Y",
+        "Eagle Rare 10 Yr"
+      ],
+      "sha256": "cfe295e9927bb1e447193c0a559a4ed03f6b862f21ae69ec8b14c30cd9ed648b",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "eh-taylor-single-barrel",
+      "displayName": "E.H. Taylor Single Barrel",
+      "exactNames": [
+        "E.H. Taylor Single Barrel",
+        "E.H. Taylor Jr. Single Barrel",
+        "E.H. Taylor Jr. Single Barrel Bourbon"
+      ],
+      "sha256": "f5b8408443c279231d08f08a4c8c2593e4c576ccf80221f2d07c11d6635286fe",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "eh-taylor-small-batch",
+      "displayName": "E.H. Taylor Small Batch",
+      "exactNames": [
+        "E.H. Taylor Small Batch",
+        "EH Taylor Small Batch",
+        "Colonel E.H. Taylor Small Batch",
+        "E.H. Taylor Jr. Small Batch",
+        "E.H. Taylor Jr. Small Batch .75L",
+        "Colonel E.H. Taylor Small Batch Bottled in Bond Bourbon",
+        "Colonel E.H. Taylor Small Batch Bottled in Bond"
+      ],
+      "sha256": "3eb09d7951dd341fddf929bd6541123e9bfb901a1ad30577734aa4b9238d22e1",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "elijah-craig-small-batch",
+      "displayName": "Elijah Craig Small Batch",
+      "exactNames": [
+        "Elijah Craig Small Batch",
+        "Elijah Craig Small Batch Bourbon"
+      ],
+      "sha256": "49ba6c75619bb268f23e730d7b4f72a024a61682e8c5369dc7ad74b91f076c80",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "michter-us1-bourbon",
+      "displayName": "Michter's US*1 Bourbon",
+      "exactNames": [
+        "Michter's US*1 Bourbon"
+      ],
+      "sha256": "1603df8307c6493b43172aa366cabfc7e3643ee7caaf3e59aba301e41f42da0f",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "michters-us-1-small-batch-bourbon",
+      "displayName": "Michter's US*1 Small Batch Bourbon",
+      "exactNames": [
+        "Michter's US*1 Small Batch Bourbon",
+        "Michters US Small Batch",
+        "Michter's US 1 Small Batch",
+        "Michter's US*1 Small Batch"
+      ],
+      "sha256": "1603df8307c6493b43172aa366cabfc7e3643ee7caaf3e59aba301e41f42da0f",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "michters-us-1-sour-mash-whiskey",
+      "displayName": "Michter's US*1 Sour Mash Whiskey",
+      "exactNames": [
+        "Michter's US*1 Sour Mash Whiskey"
+      ],
+      "sha256": "a5ef0e4e6f81c33da56d6beb7ca311293055ca06fbd13321b2e2947047c4964f",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "stagg",
+      "displayName": "Stagg",
+      "exactNames": [
+        "Stagg",
+        "Stagg Bourbon"
+      ],
+      "sha256": "75dbff2aa1ef173ef3430ef2ec5a80d0eccdd792c9ea15e06d95d7b53682ab6e",
+      "width": 400,
+      "height": 600
+    }
+  ]
+}

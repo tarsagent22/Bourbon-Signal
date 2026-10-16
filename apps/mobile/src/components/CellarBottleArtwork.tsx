@@ -5,6 +5,10 @@ import { LabelFreeBottleArtwork } from './LabelFreeBottleArtwork';
 import { Image, Text, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { labelFreeArtworkCaption } from './label-free-bottle-artwork';
+import { resolveLabeledBottleArtwork } from '../../../../shared/labeled-bottle-artwork';
+import catalog from '../cellar/bottle-catalog-seed.json';
+import { LABELED_ARTWORK_ASSETS } from './labeled-artwork-assets';
+import { BottleArtworkImage } from './BottleArtworkImage';
 
 export function CellarBottleArtwork({ bottle, size = 'grid' }: {
   bottle: CellarBottleIdentity;
@@ -13,6 +17,8 @@ export function CellarBottleArtwork({ bottle, size = 'grid' }: {
   const shape = resolveLabelFreeBottleArtwork(bottle);
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [bottle.bottleId]);
+  const labeled = resolveLabeledBottleArtwork(bottle, catalog);
+  if (labeled) return <BottleArtworkImage source={LABELED_ARTWORK_ASSETS[labeled.sha256]} size={size} />;
   if (!shape && bottle.bottleId?.startsWith('owner-') && !failed) {
     const width = size === 'detail' ? 180 : size === 'feed' ? 64 : size === 'showcase' ? 88 : size === 'grid' ? 80 : 44;
     const height = size === 'detail' ? 270 : size === 'feed' ? 102 : size === 'showcase' ? 148 : size === 'grid' ? 116 : 62;

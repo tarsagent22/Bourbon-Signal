@@ -1,0 +1,126 @@
+{
+  "method": "Built-in image generation; transparent PNG export",
+  "assets": [
+    {
+      "key": "eagle",
+      "masterSha256": "d22f1e889a1725fa243ade45300d6a822e3bd53969a2b0b82b42b8120cc45d54",
+      "sha256": "cfe295e9927bb1e447193c0a559a4ed03f6b862f21ae69ec8b14c30cd9ed648b",
+      "prompt": "Create a new premium realistic bottle artwork render from the attached reference, which is for bottle identity and proportions only. This is a newly rendered illustration, not background removal or a reuse of the photo. Faithfully preserve this product's silhouette, closure, glass proportions, label placement and main branding. Front view with only a very slight three-quarter depth cue, one bottle centered and upright, full bottle and closure visible, no extra props, no pedestal, no fantasy geometry, no ornate invented decorations. Studio glass, physically plausible amber liquid, controlled soft side reflections, crisp typography, restrained editorial product rendering. Transparent background. Portrait composition with generous even padding, bottle occupies 85 percent of height. Do not invent batch numbers or a new proof. Main label text must be legible, prioritize correct brand/product text over tiny microprint. No watermark, no extra text outside bottle. Eagle Rare 10 Year bourbon: tall slender cylindrical body, silver-gray neck foil, white Eagle Rare script and white eagle graphic on clear glass, 10 years.",
+      "reference": "Existing catalog reference 206fb83074fceb4a2b8d6900c8cabe368caa50fdf25f6f0f8d795aac124874f6.png",
+      "method": "Reused earlier built-in generated labeled render",
+      "reviewed": true,
+      "reviewNotes": "Inspected full bottle, recognizable primary branding, complete closure and heel; microprint approximate. No shared shape-to-edition mapping.",
+      "bytes": 181087
+    },
+    {
+      "key": "taylor",
+      "masterSha256": "e0325bd645d5629fb053da1530c916c37ac09135371fb88b59a03d0d6ca7a3c4",
+      "sha256": "3eb09d7951dd341fddf929bd6541123e9bfb901a1ad30577734aa4b9238d22e1",
+      "prompt": "Create a new premium realistic bottle artwork render from the attached reference, which is for bottle identity and proportions only. This is a newly rendered illustration, not background removal or a reuse of the photo. Faithfully preserve this product's silhouette, closure, glass proportions, label placement and main branding. Front view with only a very slight three-quarter depth cue, one bottle centered and upright, full bottle and closure visible, no extra props, no pedestal, no fantasy geometry, no ornate invented decorations. Studio glass, physically plausible amber liquid, controlled soft side reflections, crisp typography, restrained editorial product rendering. Transparent background. Portrait composition with generous even padding, bottle occupies 85 percent of height. Do not invent batch numbers or a new proof. Main label text must be legible, prioritize correct brand/product text over tiny microprint. No watermark, no extra text outside bottle. Colonel E.H. Taylor Jr. Small Batch bottled-in-bond bourbon: tall round body with sloping shoulders and long neck, yellow label with TAYLOR and SMALL BATCH, narrow red tax strip over closure. No tube.",
+      "reference": "Existing bundled eh-taylor-small-batch.png",
+      "method": "Reused earlier built-in generated labeled render",
+      "reviewed": true,
+      "reviewNotes": "Inspected full bottle, recognizable primary branding, complete closure and heel; microprint approximate. No shared shape-to-edition mapping.",
+      "bytes": 199029
+    },
+    {
+      "key": "michters",
+      "masterSha256": "982b02c091ec56e89e30f622e4c221ce9fa5facb48d6183eef8bf132673ebe79",
+      "sha256": "1603df8307c6493b43172aa366cabfc7e3643ee7caaf3e59aba301e41f42da0f",
+      "prompt": "Create a new premium realistic bottle artwork render from the attached reference, which is for bottle identity and proportions only. This is a newly rendered illustration, not background removal or a reuse of the photo. Faithfully preserve this product's silhouette, closure, glass proportions, label placement and main branding. Front view with only a very slight three-quarter depth cue, one bottle centered and upright, full bottle and closure visible, no extra props, no pedestal, no fantasy geometry, no ornate invented decorations. Studio glass, physically plausible amber liquid, controlled soft side reflections, crisp typography, restrained editorial product rendering. Transparent background. Portrait composition with generous even padding, bottle occupies 85 percent of height. Do not invent batch numbers or a new proof. Main label text must be legible, prioritize correct brand/product text over tiny microprint. No watermark, no extra text outside bottle. Michter's USâ˜…1 Small Batch Kentucky Straight Bourbon: round-shouldered amber body, black neck band with gold stars, oval cream label with black scalloped border, MICHTER'S, SMALL BATCH, USâ˜…1, BOURBON.",
+      "reference": "Existing catalog reference ea2c7cde1a49b2a615560cb0f1d8cdf71e38a25255186b5230ba74c2202ea673.png",
+      "method": "Reused earlier built-in generated labeled render",
+      "reviewed": true,
+      "reviewNotes": "Inspected full bottle, recognizable primary branding, complete closure and heel; microprint approximate. No shared shape-to-edition mapping.",
+      "bytes": 243158
+    },
+    {
+      "key": "stagg",
+      "masterSha256": "ac3c184b2b8582bd43acf142a6fbbeb5de33fa92d08fa8c370b77c5973fa4245",
+      "sha256": "75dbff2aa1ef173ef3430ef2ec5a80d0eccdd792c9ea15e06d95d7b53682ab6e",
+      "prompt": "Create a new premium realistic bottle artwork render from the attached reference, which is for bottle identity and proportions only. This is a newly rendered illustration, not background removal or a reuse of the photo. Faithfully preserve this product's silhouette, closure, glass proportions, label placement and main branding. Front view with only a very slight three-quarter depth cue, one bottle centered and upright, full bottle and closure visible, no extra props, no pedestal, no fantasy geometry, no ornate invented decorations. Studio glass, physically plausible amber liquid, controlled soft side reflections, crisp typography, restrained editorial product rendering. Transparent background. Portrait composition with generous even padding, bottle occupies 85 percent of height. Do not invent batch numbers or a new proof. Main label text must be legible, prioritize correct brand/product text over tiny microprint. No watermark, no extra text outside bottle. Current Stagg bourbon, NOT George T. Stagg or Stagg Jr.: broad-shouldered compact round bottle, black long cap/neck, large black rectangular label with white antlers and STAGG, small copper-orange accent bands. Batch-specific proof need not be readable.",
+      "reference": "Existing catalog reference e6260ec60198b2b3b14c6faee532e3aa80c8ff6bd60240f83103ccd95123beb1.png",
+      "method": "Reused earlier built-in generated labeled render",
+      "reviewed": true,
+      "reviewNotes": "Inspected full bottle, recognizable primary branding, complete closure and heel; microprint approximate. No shared shape-to-edition mapping.",
+      "bytes": 246978
+    },
+    {
+      "key": "taylor-single-barrel",
+      "masterSha256": "d95da2a501396e3d112cd05c18f495040a060d48cf5b87622f04c3d575761968",
+      "sha256": "f5b8408443c279231d08f08a4c8c2593e4c576ccf80221f2d07c11d6635286fe",
+      "prompt": "Preserve existing generated E.H. Taylor bottle render; change Small Batch expression to SINGLE BARREL, retain yellow label and red tax strip, BOTTLED IN BOND, 100 proof; no invented barrel data; transparent exterior.",
+      "reference": "https://www.buffalotracedistillery.com/our-brands/e-h-taylor-jr/e-h-taylor-jr-single-barrel/",
+      "method": "Built-in image edit",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected product expression, primary label wording/color, complete bottle and transparent exterior. Generated microprint approximate.",
+      "bytes": 193355
+    },
+    {
+      "key": "taylor-rye",
+      "masterSha256": "513eedfcd74537e51d9bee9b0278ee19f9a92ea801d99de464077358e384a86c",
+      "sha256": "08271b84ac74026ed15b46471f53189e9eb086ebb522180752e0bdda6da29c33",
+      "prompt": "Preserve existing generated E.H. Taylor bottle render; use exact product reference to replace Small Batch with STRAIGHT RYE, retain yellow label, red tax strip, BOTTLED IN BOND, no bourbon text; no tube or props; transparent exterior.",
+      "reference": "public/bottle-photos/0bef08a5020055ef07b86ff9e36a67854cedcb2ca549e20c1d90ae28a3fa0e9b.png",
+      "method": "Built-in image edit",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected product expression, primary label wording/color, complete bottle and transparent exterior. Generated microprint approximate.",
+      "bytes": 195492
+    },
+    {
+      "key": "michters-sour-mash",
+      "masterSha256": "09a43aaeb8756f8438a6edae910ee821d1757a9bf4d32c8155d65e0c64f3f4f3",
+      "sha256": "a5ef0e4e6f81c33da56d6beb7ca311293055ca06fbd13321b2e2947047c4964f",
+      "prompt": "Preserve existing generated Michter's glass bottle render; replace cream Bourbon label with referenced dark brown and gold MICHTER'S US1 ORIGINAL SOUR MASH WHISKEY oval label and neck labels, no bourbon wording or invented variable data; transparent exterior.",
+      "reference": "https://michters.com/sour-mash/",
+      "method": "Built-in image edit",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected product expression, primary label wording/color, complete bottle and transparent exterior. Generated microprint approximate.",
+      "bytes": 237555
+    },
+    {
+      "key": "blantons",
+      "masterSha256": "840e6d21a66fdb2caf269c37a3729586c55400ac36a57c808e5b199588352b30",
+      "sha256": "ef6fc656896518cd3a806b4fede2c4be472235040d71bf52ba58b4bbe867b9a3",
+      "prompt": "Preserve original label-free Blanton's render geometry and glass. Apply the actual labels from catalog and high resolution bottle photo references: a shallow wide horizontal tan deckled parchment body band with dense black cursive handwritten lines, small neck Blanton's script with THE ORIGINAL SINGLE BARREL BOURBON WHISKEY, dark wax seal and side pull tab. No shield, gold border, body logo, invented badge or redesign. Transparent alpha.",
+      "reference": "public/bottle-photos/c2c0d073513d4d27357e11de6288f0feb7049a8b4083b7069f6a5881e46be5ba.png; public/bottles/blanton.jpg",
+      "method": "Built-in image edit",
+      "reviewed": true,
+      "reviewNotes": "Corrected after owner rejected initial invented shield design. Compared against both actual bottle photos: wide wraparound handwritten body label, small tan neck logo label, black wax and side pull tab. Printed variable fields follow the reference depiction and do not describe a member bottle.",
+      "bytes": 238879
+    },
+    {
+      "key": "buffalo-trace-bourbon",
+      "masterSha256": "81f7e4a6ef2f85a8998e66c3df3a324ef85474adf93a6d26f9aa676c89d0b177",
+      "sha256": "15ee029350a26d5abd43111b395a1c1ffaef0056aedf29fe743c126f72fbf75b",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: current Bourbon Signal generated bottle illustration for buffalo-trace-bourbon. Image 2 is an actual product photo and the AUTHORITATIVE LABEL REFERENCE. Add the EXACT product labels, printed branding, neck labels and seal from image 2 to image 1. Preserve image 1's bottle silhouette, closure geometry, glass/liquid rendering, liquid level, lighting, front view and composition. Faithfully follow the real reference for label shapes, scale, placement, typography hierarchy, text and colors; do not redesign, embellish or invent packaging. If the reference has printing directly on clear glass, reproduce it directly on glass without adding paper. Match all main product text accurately, do not invent variable batch values. Integrate labels with natural bottle curvature and retain crisp credible print, without the generic ornate AI label aesthetic. Single bottle only, upright centered full cap and base visible, true transparent alpha background outside bottle, no backdrop, props, external glow, shadow or floor. Keep the restrained premium rendered style of target; do not substitute the source photograph.",
+      "reference": "public/bottle-photos/b4061bcf1943c51cc09d5fecb99faba885ade5e5df5e9c04d0b485e64860e00d.png",
+      "method": "Built-in image edit; current glass artwork as target and actual product photo as label reference",
+      "reviewed": true,
+      "reviewNotes": "Compared directly with supplied product photo: main label lettering, layout, colors, neck treatment and product expression. Full closure and heel, transparent exterior inspected. Tiny printed details approximate.",
+      "bytes": 205335
+    },
+    {
+      "key": "1792-small-batch",
+      "masterSha256": "1a256bb137d0fffc181800ee33a4ef8103f7500e7bf27b0f06f38d4093fd9538",
+      "sha256": "7934554cc7b3b7a34d1750454148dc2c52b5848178e84fc3bcfb5dadf813dfe9",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: current Bourbon Signal generated bottle illustration for 1792-small-batch. Image 2 is an actual product photo and the AUTHORITATIVE LABEL REFERENCE. Add the EXACT product labels, printed branding, neck labels and seal from image 2 to image 1. Preserve image 1's bottle silhouette, closure geometry, glass/liquid rendering, liquid level, lighting, front view and composition. Faithfully follow the real reference for label shapes, scale, placement, typography hierarchy, text and colors; do not redesign, embellish or invent packaging. If the reference has printing directly on clear glass, reproduce it directly on glass without adding paper. Match all main product text accurately, do not invent variable batch values. Integrate labels with natural bottle curvature and retain crisp credible print, without the generic ornate AI label aesthetic. Single bottle only, upright centered full cap and base visible, true transparent alpha background outside bottle, no backdrop, props, external glow, shadow or floor. Keep the restrained premium rendered style of target; do not substitute the source photograph.",
+      "reference": "public/bottle-photos/f0ea7ac8d8abde55fee08ba57de7daf5768b6978f8d13675db9e8130e437e09b.png",
+      "method": "Built-in image edit; current glass artwork as target and actual product photo as label reference",
+      "reviewed": true,
+      "reviewNotes": "Compared directly with supplied product photo: main label lettering, layout, colors, neck treatment and product expression. Full closure and heel, transparent exterior inspected. Tiny printed details approximate.",
+      "bytes": 288556
+    },
+    {
+      "key": "elijah-craig-small-batch",
+      "masterSha256": "e643d71692450d604446a7e550e7d33ee3d20b18b914abace12085599a5c5ae6",
+      "sha256": "49ba6c75619bb268f23e730d7b4f72a024a61682e8c5369dc7ad74b91f076c80",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: current Bourbon Signal generated bottle illustration for elijah-craig-small-batch. Image 2 is an actual product photo and the AUTHORITATIVE LABEL REFERENCE. Add the EXACT product labels, printed branding, neck labels and seal from image 2 to image 1. Preserve image 1's bottle silhouette, closure geometry, glass/liquid rendering, liquid level, lighting, front view and composition. Faithfully follow the real reference for label shapes, scale, placement, typography hierarchy, text and colors; do not redesign, embellish or invent packaging. If the reference has printing directly on clear glass, reproduce it directly on glass without adding paper. Match all main product text accurately, do not invent variable batch values. Integrate labels with natural bottle curvature and retain crisp credible print, without the generic ornate AI label aesthetic. Single bottle only, upright centered full cap and base visible, true transparent alpha background outside bottle, no backdrop, props, external glow, shadow or floor. Keep the restrained premium rendered style of target; do not substitute the source photograph.",
+      "reference": "public/bottle-photos/5f0f54502ce7dbcc1b9302a824891d8c12590440490c27db679474969081b9b1.png",
+      "method": "Built-in image edit; current glass artwork as target and actual product photo as label reference",
+      "reviewed": true,
+      "reviewNotes": "Compared directly with supplied product photo: main label lettering, layout, colors, neck treatment and product expression. Full closure and heel, transparent exterior inspected. Tiny printed details approximate.",
+      "bytes": 225653
+    }
+  ]
+}
