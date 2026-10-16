@@ -64,6 +64,8 @@ test('a failed acceptance observation or unexplained gap can never be erased by 
   assert.equal(acceptanceSummary(rows, at(0), now + 24*3600000).status, 'needs_review');
   rows.forEach(row => row.ok = true);
   assert.equal(acceptanceSummary(rows, at(0), now + 24*3600000).status, 'public_pipeline_observation_passed');
+  assert.equal(acceptanceSummary(rows.slice(2), at(0), now + 24*3600000).status, 'needs_review', 'missing beginning of window');
+  assert.equal(acceptanceSummary(rows.slice(0, -2), at(0), now + 24*3600000).status, 'needs_review', 'missing end of window');
   rows.splice(2, 2);
   assert.equal(acceptanceSummary(rows, at(0), now + 24*3600000).status, 'needs_review');
 });

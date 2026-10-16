@@ -92,8 +92,12 @@ export function parseObservationRows(text) {
 }
 
 export function acceptanceSummary(rows, startedAt, nowMs = Date.now(), invalidObservationRows = 0) {
-  const observations = rows.filter(row => timestamp(row.checkedAt) >= timestamp(startedAt));
-  const gaps = observations.slice(1).some((row, i) => timestamp(row.checkedAt) - timestamp(observations[i].checkedAt) > 90 * minute);
+  const start = timestamp(startedAt);
+  const observations = rows.filter(row => timestamp(row.checkedAt) >= start && timestamp(row.checkedAt) <= nowMs)
+    .sort((a, b) => timestamp(a.checkedAt) - timestamp(b.checkedAt));
+  const gaps = !observations.length || timestamp(observations[0].checkedAt) - start > 90 * minute
+    || nowMs - timestamp(observations.at(-1).checkedAt) > 90 * minute
+    || observations.slice(1).some((row, i) => timestamp(row.checkedAt) - timestamp(observations[i].checkedAt) > 90 * minute);
   const hours = (nowMs - timestamp(startedAt)) / (60 * minute);
   const snapshots = new Set(observations.map(row => row.engine?.snapshotId || row.stats?.snapshotId).filter(Boolean));
   const failures = observations.filter(row => !row.ok).length;
