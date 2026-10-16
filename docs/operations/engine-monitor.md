@@ -22,6 +22,8 @@ The installer copies just the runner and policy module into the stable local ope
 
 This host must be powered on with the owner signed in. Waking from sleep cannot start a powered-off machine. GitHub's existing cloud schedules remain a fallback. A dedicated cloud controller would require an independently provisioned runner or repository-scoped GitHub App credential; do not describe the Windows task as independent of the host.
 
+The cloud watchdog explicitly excludes Ohio from targeted recovery. An excluded-only source incident must never turn into a full refresh. Genuine global pipeline recovery still uses the normal guarded refresh path.
+
 ## Evidence and final review
 
 The evidence directory defaults to the existing acceptance directory under `.codex/operations/bourbon-signal/engine-freshness-20261015`. `monitor-last-run.json` records actual task results and dispatch decisions. `deterministic-monitor-state.json` holds the incident and retry budgets. `observations.jsonl` preserves all observations, including failures collected by the previous hourly AI observer. The acceptance window is never restarted or cleared during migration.

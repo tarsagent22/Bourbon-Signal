@@ -11,6 +11,14 @@ const watchdog = {
 };
 const headSha = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
+test('excluded Ohio recovery stays excluded without becoming a full refresh', () => {
+  const only = planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: ['OH'] }, runs: [], headSha, excludedStates: ['OH'] });
+  assert.equal(only.dispatch, false); assert.equal(only.reason, 'excluded_recovery_states');
+  const mixed = planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: ['OH','MS'] }, runs: [], headSha, excludedStates: ['OH'] });
+  assert.deepEqual(mixed.states, ['MS']);
+  assert.equal(planEngineRecovery({ watchdog, runs: [], headSha, excludedStates: ['OH'] }).mode, 'full');
+});
+
 test('prioritizes inventory outages without bypassing active refreshes or backoff', () => {
   const prioritized = { ...watchdog, recoveryStates: ['AL', 'NC'], recoveryPriorityStates: ['NC'] };
   const first = planEngineRecovery({ watchdog: prioritized, runs: [], headSha, now: '2026-07-31T05:00:00Z' });
