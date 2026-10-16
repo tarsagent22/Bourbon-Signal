@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { archivedPromotionArtifactMatches } from './lib/promotion-artifact-archive.mjs';
 
 const state = String(process.argv.find((value) => value.startsWith('--state='))?.split('=')[1] || '').toUpperCase();
 const online = process.argv.includes('--online');
@@ -23,5 +24,11 @@ const run = await github(`/actions/runs/${provenance.workflowRunId}`);
 if (run.conclusion !== 'success' || run.head_sha !== provenance.commitSha || String(run.id) !== String(provenance.workflowRunId)) throw new Error(`${state}: workflow run provenance mismatch.`);
 const artifacts = await github(`/actions/runs/${provenance.workflowRunId}/artifacts?per_page=100`);
 const artifact = (artifacts.artifacts || []).find((item) => String(item.id) === String(provenance.artifactId));
-if (!artifact || artifact.expired || artifact.name !== provenance.artifactName || String(artifact.digest || '').replace(/^sha256:/, '') !== provenance.artifactDigest) throw new Error(`${state}: workflow artifact provenance mismatch or expired.`);
-console.log(`${state}: online promotion provenance verified against successful run ${run.id} and artifact ${artifact.id}.`);
+if (artifact && (artifact.name !== provenance.artifactName || String(artifact.digest || '').replace(/^sha256:/, '') !== provenance.artifactDigest)) throw new Error(`${state}: workflow artifact provenance mismatch.`);
+if (!artifact || artifact.expired) {
+  const archive = await readFile(path.resolve(`engine/data/promotion-provenance/${state}.zip`)).catch(() => null);
+  if (!archivedPromotionArtifactMatches(archive, provenance.artifactDigest)) throw new Error(`${state}: workflow artifact expired and no digest-matched immutable archive exists.`);
+  console.log(`${state}: online successful run ${run.id} verified with the original digest-matched artifact archive.`);
+} else {
+  console.log(`${state}: online promotion provenance verified against successful run ${run.id} and artifact ${artifact.id}.`);
+}
