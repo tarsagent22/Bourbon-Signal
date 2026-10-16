@@ -18,6 +18,6 @@ test('keyed account UI preserves parent API identity guard and cancels stale loa
 test('statistics native sheet uses existing modal with scroll close back and focus',()=>{
  const file=new URL('../components/CollectionStatisticsSheet.tsx',import.meta.url);
  assert.ok(existsSync(file),'native statistics sheet exists');const s=readFileSync(file,'utf8');
- for(const token of ['onRequestClose','ScrollView','accessibilityViewIsModal','setAccessibilityFocus','onShow','rated entries','Top Rated'])assert.ok(s.includes(token),token);
+ for(const token of ['onRequestClose','ScrollView','accessibilityViewIsModal','setAccessibilityFocus','onShow','rated entries','Value over time','By producer','Rarity on your shelf'])assert.ok(s.includes(token),token);
  assert.doesNotMatch(s,/Collection worth|Coming later|No verified distillery data/,'basic stats exclude unimplemented advanced placeholders');
 });

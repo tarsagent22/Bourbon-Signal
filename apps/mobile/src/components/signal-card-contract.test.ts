@@ -37,7 +37,7 @@ test("Intel uses open illustrated rows with inline price and reported quantity",
   assert.match(styleBlock("bottle"), /fontSize: typeScale\.subheading/);
   assert.doesNotMatch(card, /signalCardSummary|styles\.note/);
   assert.doesNotMatch(card, /"Available now"/);
-  assert.match(detail, /<Detail label="Location" value=\{presented\?\.address \|\|/);
+  assert.match(detail, /<Detail label="Location" value=\{address \|\|/);
 });
 
 test("Intel cards always state availability in text rather than relying on color", () => {

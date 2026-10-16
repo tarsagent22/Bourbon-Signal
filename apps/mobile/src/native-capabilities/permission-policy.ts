@@ -1,5 +1,5 @@
 export const CAMERA_PERMISSION_MESSAGE =
-  "Allow Bourbon Signal to use your camera for optional sighting evidence that may appear publicly with your Signal.";
+  "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.";
 
 export const PHOTO_LIBRARY_PERMISSION_MESSAGE =
   "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.";
@@ -7,22 +7,23 @@ export const PHOTO_LIBRARY_PERMISSION_MESSAGE =
 export const NATIVE_CAPABILITY_PURPOSES = [
   "capture_bottle_or_shelf_evidence",
   "choose_bottle_or_shelf_evidence",
+  "scan_bottle_label",
 ] as const;
 
 export type NativeCapabilityPurpose = (typeof NATIVE_CAPABILITY_PURPOSES)[number];
 export type NativePermission = "camera" | "photo_library";
 export type PermissionDenial = "denied" | "blocked" | "unavailable";
-export type ManualCapabilityFallback = "manual_post_without_photo";
+export type ManualCapabilityFallback = "manual_post_without_photo" | "manual_bottle_search";
 
 export interface NativeCapabilityPolicy {
   readonly permission: NativePermission;
   readonly requestTiming: "after_explicit_user_action";
   readonly rationale: Readonly<{ ios: string; android: string }>;
   readonly manualFallback: ManualCapabilityFallback;
-  readonly photoHandling: "normalized_public_evidence_upload";
+  readonly photoHandling: "normalized_public_evidence_upload" | "temporary_on_device_frames";
   readonly locationScope: "not_applicable";
-  readonly allowsPhotoUpload: true;
-  readonly allowsBarcodeCatalogMatch: false;
+  readonly allowsPhotoUpload: boolean;
+  readonly allowsBarcodeCatalogMatch: boolean;
 }
 
 export interface PermissionDenialFallback {
@@ -43,6 +44,12 @@ const PHOTO_LIBRARY_RATIONALE = {
 } as const;
 
 const POLICIES = Object.freeze({
+  scan_bottle_label: {
+    permission: "camera", requestTiming: "after_explicit_user_action",
+    rationale: { ios: CAMERA_PERMISSION_MESSAGE, android: "Read a bottle label or barcode on your device. Scan frames are temporary and are not uploaded or posted." },
+    manualFallback: "manual_bottle_search", photoHandling: "temporary_on_device_frames",
+    locationScope: "not_applicable", allowsPhotoUpload: false, allowsBarcodeCatalogMatch: true,
+  },
   capture_bottle_or_shelf_evidence: {
     permission: "camera",
     requestTiming: "after_explicit_user_action",
@@ -82,6 +89,7 @@ export function nativeCapabilityPolicyFor(purpose: NativeCapabilityPurpose): Nat
 }
 
 export function permissionDenialFallbackFor(purpose: NativeCapabilityPurpose, denial: PermissionDenial): PermissionDenialFallback {
+  if (purpose === "scan_bottle_label") return { title: "Search by name", message: "Camera access is off. You can still find a bottle by name.", actionLabel: "Search by name", manualEntryAvailable: true };
   if (purpose === "capture_bottle_or_shelf_evidence") {
     return { title: "Camera access is off", message: EVIDENCE_DENIAL_COPY[denial], actionLabel: "Continue without a photo", manualEntryAvailable: true };
   }

@@ -1,17 +1,20 @@
+import type { BottleProfile } from '../../../../../shared/bottle-profile';
+import { BottleProfileHero } from '../../../src/components/BottleProfileHero';
+import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { reportAge } from "../../../src/signals/report-age";
 import { ErrorState } from "../../../src/components/MemberScreen";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import { presentSignal, signalMemberTagLabel } from "../../../src/api/presentation";
+import { presentSignal, signalMemberTagLabel, signalCardStatusLabel } from "../../../src/api/presentation";
 import type { HuntOutcome, MemberPreferences, Signal } from "../../../src/api/types";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { addSignalBottleToCollection } from "../../../src/interactions/member-interactions";
 import { bottleWatchMutation } from "../../../src/radar/radar-preferences";
-import { bottleProfileState } from "../../../src/signals/bottle-profile";
+import { bottleProfileState, collectionBottleForIdentity } from "../../../src/signals/bottle-profile";
 import { colors, typeScale, fonts } from "../../../src/theme";
 import { huntOutcomePromptStorageKey, shouldOfferHuntOutcomePrompt } from "../../../src/signals/hunt-outcome-prompt";
 
@@ -24,7 +27,14 @@ const HUNT_OUTCOMES: ReadonlyArray<{ value: HuntOutcome; label: string }> = [
 export default function SignalDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const api = useMobileApi();
+  const router = useRouter();
   const [signal, setSignal] = useState<Signal | null>(null);
+  const [bottleDetails, setBottleDetails] = useState<BottleProfile | null>(null);
+  useEffect(() => {
+    setBottleDetails(null); let active = true;
+    if (signal?.bottle.id) void api.getBottleProfile(signal.bottle.id).then(result => { if (active) setBottleDetails(result.bottle); }).catch(() => undefined);
+    return () => { active = false; };
+  }, [api, signal?.bottle.id]);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [error, setError] = useState("");
   const [preferencesError, setPreferencesError] = useState("");
@@ -109,6 +119,7 @@ export default function SignalDetailScreen() {
   const memberTag = signal ? signalMemberTagLabel(signal) : "";
   const bottleProfile = signal && preferences ? bottleProfileState(signal.bottle, preferences) : null;
   const inCellar = bottleProfile?.inCellar === true;
+  const shelfEntry = signal && preferences ? collectionBottleForIdentity(signal.bottle, preferences.collectionPreferences.bottles) : null;
   const isWatched = bottleProfile?.isWatched === true;
   const address = signal ? [signal.location.store?.address, signal.location.store?.city, signal.location.store?.state, signal.location.store?.zip].filter(Boolean).join(", ") : "";
   const canWatch = Boolean(signal?.actions.includes("watch_bottle"));
@@ -169,39 +180,35 @@ export default function SignalDetailScreen() {
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {safetyNotice ? <Text accessibilityRole="alert" style={styles.disclaimer}>{safetyNotice}</Text> : null}
     {signal && !hidden ? <>
-      <Text style={styles.title}>{signal.bottle.name}</Text>
-      <View accessibilityLabel="Bottle Profile" style={styles.profileCard}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>Bottle Profile</Text>
-        <View style={styles.profileGrid}>
-          <ProfileDetail label="Radar" value={bottleProfile?.radarLabel || "Unavailable"} />
-          <ProfileDetail label="My Shelf" value={bottleProfile?.cellarLabel || "Unavailable"} />
-          <ProfileDetail label="Rating" value={bottleProfile?.ratingLabel || "Unavailable"} />
-          <ProfileDetail label="Inventory" value={bottleProfile?.inventoryLabel || "Unavailable"} />
-        </View>
-      </View>
+      <BottleProfileHero identity={signal.bottle} details={bottleDetails} personal={bottleProfile} />
+      <BottlePriceCheck key={signal.id} msrp={bottleDetails?.msrp ?? null} initialPrice={signal.availability?.price?.toFixed(2) || ''} />
       <View style={styles.signalSection}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>Current Signal</Text>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>{signal.historical ? "Last reported availability" : signal.kind === "availability" ? "Store report" : signal.kind === "release" ? "Release details" : "Event details"}</Text>
+        <Text style={styles.source}>{signalCardStatusLabel(signal)}</Text>
+        {signal.location.store?.name ? <Text style={styles.storeName}>{signal.location.store.name}</Text> : null}
+        <View style={styles.reportFigures}>{presented?.price ? <View style={styles.reportFigure}><Text style={styles.label}>Reported price</Text><Text style={styles.reportPrice}>{presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
         {signal.source.type === "member" ? <View style={styles.authorRow}>
           {presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
           {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
           {!presented?.reporter && !memberTag ? <Text style={styles.source}>Community report</Text> : null}
           {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize: typeScale.small}}>{badge}</Text>)}</View>:null}
         </View> : <Text style={styles.source}>{signal.source.label}</Text>}
-        <Detail label="Location" value={presented?.address || presented?.location || signal.location.state || "Location not specified"} />
+        <Detail label="Location" value={address || presented?.location || signal.location.state || "Location not specified"} />
         <Detail label={signal.kind === "availability" && signal.source.type === "trusted_source" ? "Last checked" : "Reported"} value={reportAge(signal).value ? new Date(reportAge(signal).value!).toLocaleString() : "Time not available"} />
         {signal.timing.firstSpottedAt ? <Detail label="First spotted" value={new Date(signal.timing.firstSpottedAt).toLocaleString()} /> : null}
-        {presented?.availability ? <Detail label="Availability" value={presented.availability} /> : null}
-        {presented?.price ? <Detail label="Price" value={presented.price} /> : null}
-        {presented?.quantity ? <Detail label="Quantity" value={presented.quantity} /> : null}
-        {presented?.summary ? <Detail label="Note" value={presented.summary} /> : null}
+
+
+
+        {presented?.summary && (signal.source.type === "member" || signal.kind !== "availability") ? <Detail label="Note" value={presented.summary} /> : null}
         {signal.evidence.photoUrl ? photoFailed?<Text style={styles.disclaimer}>The approved photo could not load. Pull to refresh to try again.</Text>:<Image source={{uri:signal.evidence.photoUrl}} onError={()=>setPhotoFailed(true)} accessibilityLabel="Member sighting photo approved for public display" resizeMode="contain" style={{width:"100%",height:240,borderRadius:12}} /> : null}
-        {presented?.caveat ? <Detail label="Caveat" value={presented.caveat} /> : null}
+        <Text style={styles.disclaimer}>{signal.historical ? "This is an older report. Check with the store for current availability before driving." : "Reported availability can change. Check with the store before driving."}</Text>
+        {presented?.caveat && !/stale|not alertable|last.known|before driving/i.test(presented.caveat) ? <Detail label="Source note" value={presented.caveat} /> : null}
         {signal.source.type === "member" ? <Text style={styles.disclaimer}>Member observations report what someone saw and are not verified retailer inventory.</Text> : null}
       </View>
       {actionCount ? <View style={styles.actions}>
         <Text style={styles.actionsTitle}>Actions</Text>
         {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
-        {canReadCellar ? <ActionButton disabled={inCellar || !canAddToCellar || saving} label={inCellar ? "Already on My Shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => void addToCellar()} /> : null}
+        {canReadCellar ? <ActionButton disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
         {address ? <ActionButton label="Open in Maps" onPress={() => void openMaps()} /> : null}
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
       </View> : null}
@@ -238,6 +245,7 @@ function Detail({ label, value }: { label: string; value: string }) { return <Vi
 function ProfileDetail({ label, value }: { label: string; value: string }) { return <View style={styles.profileDetail}><Text style={styles.profileLabel}>{label}</Text><Text numberOfLines={2} style={styles.profileValue}>{value}</Text></View>; }
 
 const styles = StyleSheet.create({
+  storeName:{color:colors.text,fontFamily:fonts.heading,fontSize:24,lineHeight:30},reportFigures:{flexDirection:"row",flexWrap:"wrap",gap:28},reportFigure:{gap:6},reportPrice:{color:colors.accent,fontSize:32,fontWeight:"600"},reportQuantity:{color:colors.text,fontSize:24},
   container: { flexGrow: 1, padding: 22, paddingBottom: 42, gap: 18, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, authorRow: { minHeight: 28, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }, reporter: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, memberTagText: { color: colors.text, fontSize: typeScale.caption, lineHeight: 13, fontWeight: "800", letterSpacing: 0.4 }, title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" }, sectionTitle: { color: colors.text, fontSize: typeScale.subheading, lineHeight: 23, fontWeight: "800" }, profileCard: { gap: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: 15 }, profileGrid: { flexDirection: "row", flexWrap: "wrap", rowGap: 13 }, profileDetail: { width: "50%", gap: 3, paddingRight: 8 }, profileLabel: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }, profileValue: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, signalSection: { gap: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 18 }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: typeScale.small, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: typeScale.input, lineHeight: 23 }, error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18, marginTop: 4 },
   actions: { gap: 10, marginTop: 4 }, actionsTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, action: { minHeight: 50, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }, actionPressed: { backgroundColor: colors.surfaceRaised }, actionDisabled: { borderColor: colors.border }, actionText: { color: colors.accent, fontSize: typeScale.body, fontWeight: "800" }, actionTextDisabled: { color: colors.muted },
   huntOutcome: { gap: 10, marginTop: 8, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 18 }, huntOutcomeTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, huntOutcomeDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18 }, huntOutcomeChoices: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, huntOutcomeChoice: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, backgroundColor: colors.surface, paddingHorizontal: 12 }, huntOutcomeChoiceActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised }, huntOutcomeChoiceText: { color: colors.text, fontSize: typeScale.small, fontWeight: "700" }, huntOutcomeSaved: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, huntOutcomeSavedText: { flex: 1, color: colors.muted, fontSize: typeScale.small }, huntOutcomeSavedValue: { color: colors.text, fontWeight: "800" }, huntOutcomeEdit: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 }, huntOutcomeEditText: { color: colors.accent, fontWeight: "800" },

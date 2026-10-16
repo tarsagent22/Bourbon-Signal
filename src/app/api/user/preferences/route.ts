@@ -55,6 +55,7 @@ import { countDistinctTrackedBottles } from "@/lib/bottle-check-dossier";
 import { getCellarAccessPolicy, type CellarAccessPolicy } from "@/lib/cellar-access-policy";
 import { collectionValueForMember, type CollectionValue } from "@/lib/collection-value";
 import { reviewedCollectionValue } from "@/lib/collection-price-repository";
+import { summarizeCollectionValue } from '../../../../../shared/collection-history';
 
 export type { CollectionBottlePreference } from "@/lib/member-collection";
 
@@ -306,6 +307,7 @@ async function buildResponseFromMetadata(
   const notificationPreferences = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
   const alertMode = normalizeAlertMode(user.publicMetadata?.alertMode);
   const bottleAlertPreferences = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
+  const collectionValue = await reviewedCollectionValue(entitlements.canUseRecommendations, collectionPreferences.bottles);
   return {
     mutedBottles: await readBottleMutes(user.id),
     entitlements: {
@@ -317,7 +319,7 @@ async function buildResponseFromMetadata(
       canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
     },
     collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length),
-    collectionValue: await reviewedCollectionValue(entitlements.canUseRecommendations, collectionPreferences.bottles),
+    collectionValue,
     areaPreferences,
     monitoringScopes,
     notificationPreferences,
@@ -659,7 +661,7 @@ export async function POST(req: NextRequest) {
         userId,
         collectionPreferences.bottles,
         payload.collectionPreferences.version,
-        { bottleLimit: entitlements.collectionBottleLimit },
+        { bottleLimit: entitlements.collectionBottleLimit, historyValue: summarizeCollectionValue(await reviewedCollectionValue(entitlements.canUseRecommendations, collectionPreferences.bottles)) },
       );
       collectionPreferences = { bottles: savedCollection.bottles, version: savedCollection.version };
     } catch (error) {

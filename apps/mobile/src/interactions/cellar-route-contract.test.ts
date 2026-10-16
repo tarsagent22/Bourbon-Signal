@@ -116,7 +116,7 @@ test("Signal detail respects My Shelf addition capacity without hiding existing 
   const detail = read("app/(app)/signal/[id].tsx");
   assert.match(detail, /collectionAccess\?\.canAdd/);
   assert.match(detail, /Free shelf is full/);
-  assert.match(detail, /Already on My Shelf/);
+  assert.match(detail, /Edit your shelf/);
 });
 
 test("rating control keeps its appearance but owns a held-thumb gesture from press through release", () => {

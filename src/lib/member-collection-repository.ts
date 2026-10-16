@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { runtimeNeonConnectionString } from "./neon-runtime.ts";
+import type { CollectionValuation } from '../../shared/collection-history.ts';
 import {
   normalizeCollectionBottles,
   type CollectionBottlePreference,
@@ -173,7 +174,7 @@ export class MemberCollectionRepository {
     userId: string,
     entries: CollectionBottlePreference[],
     expectedVersion: number,
-    options: { bottleLimit?: number | null } = {},
+    options: { bottleLimit?: number | null; historyValue?: CollectionValuation | null } = {},
   ): Promise<MemberCollection> {
     if (!userId) throw new Error("A user id is required to save a collection.");
     const bottles = normalizeCollectionBottles(entries);
@@ -240,6 +241,17 @@ export class MemberCollectionRepository {
             added_at = LEAST(member_collection_bottles.added_at, EXCLUDED.added_at),
             updated_at = EXCLUDED.updated_at
           RETURNING 1
+        ), history_inventory AS (
+          SELECT COALESCE(jsonb_agg(jsonb_build_object('bottleId', item->>'bottleId', 'name', item->>'bottleName',
+            'sealed', item->'sealedQuantity', 'open', item->'openedQuantity') ORDER BY item->>'canonicalKey'), '[]'::jsonb) AS payload FROM incoming
+        ), history_written AS (
+          INSERT INTO member_collection_history (user_id, collection_version, kind, inventory, value, fingerprint)
+          SELECT $1, version, 'inventory', history_inventory.payload, $5::jsonb, md5(history_inventory.payload::text)
+          FROM next_version CROSS JOIN history_inventory
+          WHERE NOT EXISTS (SELECT 1 FROM (SELECT inventory, value, observed_at FROM member_collection_history WHERE user_id=$1 ORDER BY observed_at DESC, id DESC LIMIT 1) AS previous
+            WHERE previous.inventory=history_inventory.payload AND previous.value IS NOT DISTINCT FROM $5::jsonb
+              AND (previous.observed_at AT TIME ZONE 'UTC')::date=(NOW() AT TIME ZONE 'UTC')::date)
+          RETURNING 1
         )
         SELECT CASE
             WHEN EXISTS(SELECT 1 FROM next_version) THEN 'saved'
@@ -248,7 +260,7 @@ export class MemberCollectionRepository {
           END AS outcome,
           COALESCE((SELECT version FROM next_version), (SELECT version FROM current_state), 0) AS version,
           COALESCE((SELECT value FROM current_count), 0) AS current_count
-      `, [userId, expectedVersion, JSON.stringify(bottles), bottleLimit]),
+      `, [userId, expectedVersion, JSON.stringify(bottles), bottleLimit, options.historyValue ? JSON.stringify(options.historyValue) : null]),
     ], { isolationLevel: "ReadCommitted" });
     const row = (result as Array<{ outcome?: unknown; version?: unknown; current_count?: unknown }>)[0];
     const version = Number(row?.version || 0);

@@ -317,6 +317,8 @@ export interface RadarBottleOption {
   producer?: string;
   proof?: number;
   ageStatement?: string | null;
+  nationalTier?: 'regular' | 'limited' | 'allocated' | 'highly_allocated' | 'unicorn';
+  rarityPending?: boolean;
 }
 
 export interface BottleContributionResponse {

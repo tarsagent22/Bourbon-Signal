@@ -1,0 +1,5 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": { "modules": ["BottleLabelReaderModule"] },
+  "android": { "modules": ["com.bourbonsignal.labels.BottleLabelReaderModule"] }
+}

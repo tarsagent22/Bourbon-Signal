@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 
-const CAMERA_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your camera for optional sighting evidence that may appear publicly with your Signal.";
+const CAMERA_PERMISSION_MESSAGE = "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.";
 const PHOTO_LIBRARY_PERMISSION_MESSAGE = "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.";
 
 const root = resolve(import.meta.dirname, "..");
@@ -24,7 +24,7 @@ assert.equal(app.version, "1.1.0", "the camera and push native candidate must us
 assert.equal(app.ios?.bundleIdentifier, "com.bourbonsignal.app");
 assert.equal(app.ios?.config?.usesNonExemptEncryption, false);
 assert.equal(app.runtimeVersion?.policy, "appVersion");
-assert.equal(app.ios?.runtimeVersion, "1.1.0-ios-iap-1", "RevenueCat adds a native module and must not share the recovery binary OTA runtime");
+assert.equal(app.ios?.runtimeVersion, "1.1.0-ios-scan-1", "Live scanning adds native modules and must not share the previous OTA runtime");
 assert.equal(app.extra?.eas?.projectId, "693a1966-5bfc-4f25-9fe4-e39c009ec04a");
 assert.equal(app.updates?.url, "https://u.expo.dev/693a1966-5bfc-4f25-9fe4-e39c009ec04a");
 assert.equal(app.updates?.checkAutomatically, "ON_LOAD");
@@ -39,7 +39,7 @@ assert.ok(pkg.scripts?.["verify:release-readiness"], "release readiness must be 
 for (const dependency of ["expo-image-picker", "expo-image-manipulator", "expo-file-system"]) {
   assert.match(pkg.dependencies?.[dependency] || "", /^~57\./, `${dependency} must use the Expo SDK-compatible release`);
 }
-assert.equal(pkg.dependencies?.["expo-camera"], undefined, "the unused custom camera/barcode module must not ship");
+assert.match(pkg.dependencies?.["expo-camera"] || "", /^~57\./, "live scanning requires the SDK-compatible native camera");
 assert.equal(pkg.dependencies?.["expo-location"], undefined, "unused location code and permission declarations must not ship");
 
 const pluginEntry = (name) => app.plugins?.find((plugin) => plugin === name || (Array.isArray(plugin) && plugin[0] === name));
@@ -50,7 +50,7 @@ const pluginOptions = (name) => {
   return plugin[1];
 };
 
-assert.equal(pluginEntry("expo-camera"), undefined);
+assert.deepEqual(pluginOptions("expo-camera"), { cameraPermission: CAMERA_PERMISSION_MESSAGE, microphonePermission: false, recordAudioAndroid: false, barcodeScannerEnabled: true });
 assert.equal(pluginEntry("expo-location"), undefined);
 assert.deepEqual(pluginOptions("expo-notifications"), {
   icon: "./assets/notification-icon.png",

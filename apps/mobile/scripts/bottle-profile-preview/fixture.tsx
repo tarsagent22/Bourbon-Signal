@@ -1,0 +1,32 @@
+import { useEffect } from 'react';
+import { View } from 'react-native';
+export const SafeAreaView = View;
+export function useSafeAreaInsets() { return { top: 0, bottom: 0, left: 0, right: 0 }; }
+import seed from '../../src/cellar/bottle-catalog-seed.json';
+import { collectionStatistics } from '../../src/interactions/member-interactions';
+const query = new URLSearchParams(location.search);
+const bottle = { id: 'eagle-rare-10', name: 'Eagle Rare 10 Year', producer: 'Buffalo Trace Distillery', category: 'bourbon', proof: 90, age: '10 years', msrp: 40, rarity: { label: 'Allocated', tier: 'allocated', pending: false, reviewedAt: '2026-10-05' } };
+const owned = query.get('owned') === '1';
+const prefs: any = { collectionAccess: { canRead: true, canAdd: true }, bottleAlertPreferences: { bottleNames: [], bottleKeys: [] }, collectionPreferences: { version: 1, bottles: owned ? [{ bottleId: bottle.id, bottleName: bottle.name, canonicalKey: 'eagle rare 10 year', rating: 87, isRated: true, sealedQuantity: 2, openedQuantity: 1 }] : [] } };
+const report: any = { id: 'fixture-report', kind: 'availability', historical: true, source: { type: 'trusted_source', label: 'Trusted source' }, bottle: { id: bottle.id, name: bottle.name }, location: { scope: 'exact_store', state: 'FL', store: { name: "Big Daddy’s Wine & Liquors", address: '9494 Harding Ave', city: 'Surfside', state: 'FL', zip: '33154' } }, timing: { displayAt: '2026-10-16T04:51:04Z', lastCheckedAt: '2026-10-16T13:32:33Z', firstSpottedAt: '2026-10-16T04:51:04Z' }, availability: { status: 'unknown', price: 47.97, quantity: 22, caveat: 'Last-known source evidence only; current availability is stale and not alertable.' }, evidence: { photo: false, corroborationCount: 0, helpfulCount: 0, retailerReported: false, sourceBacked: true }, alertEligibility: { inventory: false, watch: false }, actions: ['watch_bottle'] };
+
+const preferred = ['eagle-rare-10', 'old-forester-1910', 'russells-reserve-13', 'eh-taylor-small-batch', 'wild-turkey-101', 'makers-mark', 'knob-creek-12', 'elijah-craig-barrel-proof', 'woodford-double-oaked', 'four-roses-single-barrel', '1792-full-proof', 'buffalo-trace-bourbon', 'stagg', 'pappy-van-winkle-15', 'old-forester-1920', 'wild-turkey-rare-breed', 'knob-creek-9'];
+const selected = preferred.map(id => seed.find(item => item.id === id)).filter(Boolean) as any[];
+while (selected.length < 17) selected.push(seed[selected.length + 1]);
+export const statsBottles: any[] = selected.map((item, index) => ({ bottleId: item.id, bottleName: item.name, canonicalKey: item.name.toLowerCase(), sealedQuantity: index === 0 ? 2 : index < 10 ? 1 : 0, openedQuantity: index === 0 || index >= 10 ? 1 : 0, isRated: true, rating: index < 8 ? 88 : 75, tastedOnly: false, addedAt: '2026-10-01', updatedAt: '2026-10-16' }));
+for (let i = 0; i < 5; i++) statsBottles.push({ ...statsBottles[i + 2], bottleId: 'tasted-' + i, canonicalKey: 'tasted-' + i, sealedQuantity: 0, openedQuantity: 0, tastedOnly: true });
+export const stats = collectionStatistics(statsBottles);
+export const statsValue: any = { currency: 'USD', reviewedAt: '2026-10-16', ownedCount: 19, sealedCount: 11, openedCount: 8, msrp: { total: 490, pricedCount: 5 }, secondary: { low: 1410, high: 1570, pricedCount: 2 }, entries: statsBottles.filter(item => !item.tastedOnly).map((item, index) => ({ bottleId: item.bottleId, name: item.bottleName, sealedQuantity: item.sealedQuantity, openedQuantity: item.openedQuantity, msrp: index < 3 ? { amount: index === 0 ? 40 : index === 1 ? 250 : 120, date: '2026-10-16', source: 'https://example.com/fixture', label: 'Synthetic preview reference' } : null, secondary: index === 1 || index === 2 ? { low: index === 1 ? 1000 : 410, high: index === 1 ? 1100 : 470, date: '2026-10-16', source: 'https://example.com/fixture', label: 'Synthetic preview market reference' } : null })) };
+export const statsHistory: any = { firstRecordedAt: '2026-04-01T14:00:00Z', hasMore: false, points: [100, 180, 240, 220, 350, 490].map((amount, index) => ({ id: 'history-' + index, observedAt: ['2026-04-01', '2026-06-05', '2026-08-14', '2026-09-23', '2026-10-05', '2026-10-16'][index] + 'T14:00:00Z', collectionVersion: index + 1, kind: 'inventory', value: { ...statsValue, entries: undefined, ownedCount: [4, 7, 9, 10, 15, 19][index], sealedCount: [3, 5, 6, 5, 9, 11][index], openedCount: [1, 2, 3, 5, 6, 8][index], msrp: { total: amount, pricedCount: index === 5 ? 5 : 3 }, secondary: { low: [200, 400, 800, 600, 1000, 1410][index], high: [300, 450, 950, 750, 1150, 1570][index], pricedCount: 2 } } })) };
+
+const api = { async getCollectionHistory() { if (query.get("history") === "error") throw new Error("Value history couldn’t load."); return { collectionVersion: 1, value: statsValue, history: query.get("history") === "first" ? { ...statsHistory, points: statsHistory.points.slice(-1) } : statsHistory }; }, accountIdentity: 'fixture', async getBottleProfile() { if(query.get("catalog") === "missing") throw new Error("Bottle not found"); return { bottle }; }, async getMemberPreferences() { return structuredClone(prefs); }, async listSignals() { return { signals: [report] }; }, async listBottleCatalog() { if (query.get("screen") === "stats") return selected.map((item,index) => ({...item, nationalTier: index < 3 ? "allocated" : "regular", rarity: index < 3 ? "allocated" : undefined, rarityPending: index === 4 })); return [{ ...bottle, aliases: [] }, { id: 'heaven-hill-bottled-in-bond', name: 'Heaven Hill Bottled-in-Bond', proof: 100, ageStatement: '7 years' }]; }, async updateMemberPreferences(body: any) { (window as any).previewMutation = body; prefs.bottleAlertPreferences.bottleNames = ['Eagle Rare 10 Year']; return structuredClone(prefs); }, async getSignal() { return { signal: report }; }, async getHuntOutcome() { return { outcome: null }; } };
+export function useMobileApi() { return api; }
+export function useScreenRevalidation() {}
+export function useLocalSearchParams() { return { id: query.get('screen') === 'report' ? report.id : bottle.id }; }
+function navigate(route: any) { (window as any).lastRoute = route; }
+export const router = { push: navigate, setParams() {} };
+export function useRouter() { return router; }
+export function useFocusEffect(callback: () => (() => void) | void) { useEffect(callback, [callback]); }
+export const Stack = { Screen() { return null; } };
+export async function getItemAsync() { return null; }
+export async function setItemAsync() {}

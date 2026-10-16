@@ -12,13 +12,14 @@ test("native capability purposes are explicit, lazy, and limited to real product
   assert.deepEqual(NATIVE_CAPABILITY_PURPOSES, [
     "capture_bottle_or_shelf_evidence",
     "choose_bottle_or_shelf_evidence",
+    "scan_bottle_label",
   ]);
   for (const purpose of NATIVE_CAPABILITY_PURPOSES) {
     const policy = nativeCapabilityPolicyFor(purpose);
     assert.equal(policy.requestTiming, "after_explicit_user_action");
-    assert.equal(policy.allowsBarcodeCatalogMatch, false);
-    assert.equal(policy.allowsPhotoUpload, true);
-    assert.equal(policy.photoHandling, "normalized_public_evidence_upload");
+    assert.equal(policy.allowsBarcodeCatalogMatch, purpose === "scan_bottle_label");
+    assert.equal(policy.allowsPhotoUpload, purpose !== "scan_bottle_label");
+    assert.equal(policy.photoHandling, purpose === "scan_bottle_label" ? "temporary_on_device_frames" : "normalized_public_evidence_upload");
     assert.equal(policy.locationScope, "not_applicable");
   }
   assert.doesNotMatch(NATIVE_CAPABILITY_PURPOSES.join(" "), /barcode|upc|location|nearby/i);
@@ -26,7 +27,7 @@ test("native capability purposes are explicit, lazy, and limited to real product
 
 test("camera and photo-library copy explains the bounded public-evidence action", () => {
   assert.equal(CAMERA_PERMISSION_MESSAGE,
-    "Allow Bourbon Signal to use your camera for optional sighting evidence that may appear publicly with your Signal.");
+    "Allow Bourbon Signal to scan bottle labels and barcodes on your device, or take optional sighting photos you choose to post.");
   assert.equal(PHOTO_LIBRARY_PERMISSION_MESSAGE,
     "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.");
   assert.equal(nativeCapabilityPolicyFor("capture_bottle_or_shelf_evidence").rationale.ios, CAMERA_PERMISSION_MESSAGE);
@@ -36,7 +37,7 @@ test("camera and photo-library copy explains the bounded public-evidence action"
 });
 
 test("camera and photo-library denials preserve a complete manual post", () => {
-  for (const purpose of NATIVE_CAPABILITY_PURPOSES) {
+  for (const purpose of NATIVE_CAPABILITY_PURPOSES.filter(purpose => purpose !== "scan_bottle_label")) {
     const policy = nativeCapabilityPolicyFor(purpose);
     assert.equal(policy.manualFallback, "manual_post_without_photo");
     const denied = permissionDenialFallbackFor(purpose, "denied");

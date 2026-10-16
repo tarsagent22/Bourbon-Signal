@@ -70,7 +70,8 @@ function AccountAddBottle() {
   const api = useMobileApi();
   const { userId } = useAuth();
   const router = useRouter();
-  const { onboardingBottleId } = useLocalSearchParams<{ onboardingBottleId?: string }>();
+  const { onboardingBottleId: onboardingId, bottleId } = useLocalSearchParams<{ onboardingBottleId?: string; bottleId?: string }>();
+  const onboardingBottleId = bottleId || onboardingId;
   const prefilled = useRef(false);
   const receiptStorageKey = bottleContributionReceiptsStorageKey(userId);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
@@ -306,6 +307,7 @@ function AccountAddBottle() {
         <Text style={styles.eyebrow}>MY SHELF</Text>
         <Text accessibilityRole="header" style={styles.title}>Add to My Shelf</Text>
         <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
+        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/bottle-check")} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
         <DraftNotice hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} />
         {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
         {loading ? <LoadingState label="Opening My Shelf…" /> : null}

@@ -17,6 +17,8 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="setup" options={{ title: "Getting started" }} />
+      <Stack.Screen name="bottle-check" options={{ presentation: "modal", title: "Bottle Check" }} />
+      <Stack.Screen name="bottle/[id]" options={{ title: "Bottle Profile" }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
       <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />
       <Stack.Screen name="account/rewards" options={{ title: "Rewards & Badges", headerBackButtonDisplayMode: "minimal" }} />

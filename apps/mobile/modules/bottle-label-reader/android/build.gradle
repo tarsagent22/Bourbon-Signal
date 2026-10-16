@@ -1,0 +1,17 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.bourbonsignal.labels'
+version = '1.0.0'
+
+android {
+  namespace 'com.bourbonsignal.labels'
+  defaultConfig { versionCode 1; versionName '1.0.0' }
+}
+
+dependencies {
+  // Bundled Latin model: label reading does not wait for a model download.
+  implementation 'com.google.mlkit:text-recognition:16.0.1'
+}

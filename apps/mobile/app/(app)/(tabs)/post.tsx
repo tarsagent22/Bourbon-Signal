@@ -5,7 +5,7 @@ import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { ErrorState } from "../../../src/components/MemberScreen";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from '@clerk/expo';
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { Children, useEffect, useMemo, useRef, useState } from "react";
@@ -41,6 +41,8 @@ function PostComposer({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const bottleCatalog = useBottleCatalog();
+  const { scanBottleId } = useLocalSearchParams<{ scanBottleId?: string }>();
+  const appliedScan = useRef('');
   const [bottleName, setBottleName] = useState("");
   const [bottleId, setBottleId] = useState<string | null>(null);
   const [activePicker, setActivePicker] = useState<ActivePicker>(null);
@@ -87,6 +89,15 @@ function PostComposer({ userId }: { userId: string }) {
       setManualStore(value.manualStore); setPrice(value.price); setQuantity(value.quantity); setCustomQuantity(value.customQuantity); setNotes(value.notes);
     },
   });
+  useEffect(() => {
+    if (!draft.ready || !scanBottleId || appliedScan.current === scanBottleId) return;
+    const match = bottleCatalog.catalog.find(item => item.id === scanBottleId);
+    if (!match) return;
+    appliedScan.current = scanBottleId;
+    const apply = () => { setBottleId(match.id); setBottleName(match.name); router.setParams({ scanBottleId: '' }); };
+    if (bottleName && bottleName !== match.name) Alert.alert('Use this bottle?', 'Your sighting draft already has a different bottle. Keep its other details and replace the bottle?', [{text:'Keep draft',style:'cancel',onPress:()=>router.setParams({scanBottleId:''})},{text:'Use bottle',onPress:apply}]);
+    else apply();
+  }, [draft.ready, scanBottleId, bottleCatalog.catalog, bottleName, router]);
   useEffect(() => { if (draft.ready && (price || quantity || notes || selectedPhoto)) setShowDetails(true); }, [draft.ready]);
   useEffect(() => { if (pendingPhotoAttachment) setShowDetails(true); }, [pendingPhotoAttachment]);
   function discardDraft() {
@@ -406,6 +417,7 @@ function PostComposer({ userId }: { userId: string }) {
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={memberScreenStyles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
         <PageHeading title="Post a Signal" decorated={false} description="Post the bottle and where you saw it." />
+        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/bottle-check")} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>

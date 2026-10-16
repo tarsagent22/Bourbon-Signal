@@ -7,7 +7,7 @@ import { BOTTLE_SCARCITY_SOURCE_REGISTRY } from "@/data/bottle-scarcity-override
 export async function GET(req: NextRequest) {
   const catalog = await getBourbonBible();
   if (req.nextUrl.searchParams.get("view") === "picker") {
-    const bottles = catalog.map(({ id, canonicalName, brand, producer, proof, ageStatement, availability, nationalTier, aliases }) => ({ id, canonicalName, brand, producer, proof, ageStatement, availability, nationalTier, aliases }));
+    const bottles = catalog.map(({ id, canonicalName, brand, producer, proof, ageStatement, availability, nationalTier, nationalConfidence, rarityPending, aliases }) => ({ id, canonicalName, brand, producer, proof, ageStatement, availability, nationalTier, nationalConfidence, rarityPending, aliases }));
     return NextResponse.json({ bottles, total: bottles.length }, { headers: siteExportHeaders("local-export") });
   }
   const bottles = catalog.map((bottle) => ({
