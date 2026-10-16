@@ -1,0 +1,31 @@
+name: Massachusetts public source preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ma-source-preflight
+  cancel-in-progress: false
+
+jobs:
+  public-source-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check fixed public source routes without publishing
+        run: node scripts/probe-ma-public-source.mjs
+      - name: Preserve research evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ma-source-preflight-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: engine/out/ma-source-preflight/evidence.json
