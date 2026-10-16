@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { ACTIVE_RUN_STATES } from './lib/engine-monitor-policy.mjs';
 
 const BASE_RECOVERY_BACKOFF_MS = 15 * 60_000;
 const MAX_RECOVERY_BACKOFF_MS = 2 * 60 * 60_000;
@@ -60,7 +61,7 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
   const states = selectedState ? [selectedState] : [];
   const deferredStates = incidentStates.filter((state) => state !== selectedState);
   const planIdentity = { incidentKey, mode, states, deferredStates };
-  const active = (runs || []).find((run) => run?.status === 'queued' || run?.status === 'in_progress');
+  const active = (runs || []).find((run) => ACTIVE_RUN_STATES.has(run?.status));
   if (active) return { dispatch: false, reason: 'active_refresh', priorRunId: active.databaseId || null, ...planIdentity };
   const lastAttempt = matchingAttempts.at(-1) || null;
   if (matchingAttempts.length >= MAX_MATCHING_INCIDENT_ATTEMPTS && lastAttempt?.observedAtMs != null) {

@@ -56,7 +56,7 @@ jobs:
         run: |
           gh run list --workflow refresh-feed.yml --limit 10 --json databaseId,event,status,conclusion,headSha,createdAt,displayTitle > active-refresh-runs.json
           gh run list --workflow refresh-feed.yml --event workflow_dispatch --limit 100 --json databaseId,event,status,conclusion,headSha,createdAt,displayTitle > recovery-attempts.json
-          node -e "const fs=require('fs');const active=JSON.parse(fs.readFileSync('active-refresh-runs.json','utf8')).filter(r=>r.status==='queued'||r.status==='in_progress');const attempts=JSON.parse(fs.readFileSync('recovery-attempts.json','utf8'));fs.writeFileSync('recent-refresh-runs.json',JSON.stringify([...active,...attempts]));"
+          node -e "const fs=require('fs');const active=JSON.parse(fs.readFileSync('active-refresh-runs.json','utf8')).filter(r=>['queued','pending','waiting','requested','in_progress'].includes(r.status));const attempts=JSON.parse(fs.readFileSync('recovery-attempts.json','utf8'));fs.writeFileSync('recent-refresh-runs.json',JSON.stringify([...active,...attempts]));"
           node scripts/engine-recovery-dispatch-plan.mjs --watchdog engine/out/production-watchdog.json --runs recent-refresh-runs.json --head-sha "$GITHUB_SHA" > recovery-plan.json
           echo "dispatch=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(String(p.dispatch))")" >> "$GITHUB_OUTPUT"
           echo "mode=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(p.mode)")" >> "$GITHUB_OUTPUT"

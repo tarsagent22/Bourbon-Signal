@@ -70,9 +70,11 @@ test('deduplicates a matching targeted recovery but not an unrelated full failur
 });
 
 test('does not queue behind an already active refresh', () => {
-  const plan = planEngineRecovery({ watchdog, headSha, runs: [{ event: 'schedule', status: 'in_progress', conclusion: null, headSha, displayTitle: 'Production inventory refresh' }] });
-  assert.equal(plan.dispatch, false);
-  assert.equal(plan.reason, 'active_refresh');
+  for (const status of ['queued', 'pending', 'waiting', 'requested', 'in_progress']) {
+    const plan = planEngineRecovery({ watchdog, headSha, runs: [{ event: 'schedule', status, conclusion: null, headSha, displayTitle: 'Production inventory refresh' }] });
+    assert.equal(plan.dispatch, false);
+    assert.equal(plan.reason, 'active_refresh');
+  }
 });
 
 test('isolates one recovery state per run so a failed source cannot block sibling states', () => {
