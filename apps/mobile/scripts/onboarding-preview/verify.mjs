@@ -9,7 +9,7 @@ const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const checks = []; const errors = [];
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 page.on('pageerror', error => errors.push(error.message));
-async function open(query) { await page.goto(`http://127.0.0.1:5188/?${query}`); await page.locator('text=LOCAL PREVIEW').waitFor(); }
+async function open(query) { await page.goto(`${process.env.ONBOARDING_PREVIEW_URL || 'http://127.0.0.1:5188'}/?${query}`); await page.locator('text=LOCAL PREVIEW').waitFor(); }
 async function capture(name) {
   await page.waitForTimeout(350); // Let the authored modal fade finish before visual evidence.
   await page.screenshot({ path: path.join(output, `${name}.png`), fullPage: true });
@@ -67,7 +67,7 @@ await page.getByRole('button', { name: 'Enable notifications' }).click(); await 
 await page.getByRole('button', { name: 'Maybe later' }).click(); await page.getByRole('button', { name: 'Open Bourbon Signal' }).waitFor(); checks.push('standard-denied-permission-and-deferred-setup');
 for (const status of ['cancelled', 'pending']) {
   await open(`step=4&purchase=${status}`); await page.getByRole('button', { name: /Get Standard ·/ }).click();
-  await page.getByRole('heading', { name: 'Get alerts for bottles you’re looking for.' }).waitFor();
+  await page.getByRole('heading', { name: 'Get alerts for bottles you love.' }).waitFor();
   await page.getByRole('button', { name: 'Continue without alerts →' }).click(); await page.getByText('Setup complete · Feed opened').waitFor(); checks.push(`purchase-${status}-keeps-free-access`);
 }
 await open('step=4&purchase=loading'); await page.getByRole('button', { name: 'Continue without alerts →' }).click(); await page.getByText('Setup complete · Feed opened').waitFor(); checks.push('store-loading-does-not-block-free-completion');
@@ -138,5 +138,30 @@ await page.locator('input[aria-label="Create password"]').fill('a-password');
 await page.getByRole('button', { name: 'Show password' }).click();
 assert.equal(await page.getByRole('textbox', { name: 'Create password' }).evaluate(element => element.type), 'text');
 checks.push('password-visibility');
+await page.emulateMedia({ reducedMotion: 'no-preference' });
+await open('screen=welcome');
+await page.getByRole('heading', { name: 'Find your next bottle.' }).waitFor();
+const columns = page.locator('[data-testid^="onboarding-dot-column-"]');
+await page.waitForFunction(() => {
+  const column = document.querySelector('[data-testid="onboarding-dot-column-1"]');
+  return column && new DOMMatrix(getComputedStyle(column).transform).m41 > 0.2;
+});
+const offsets = await columns.evaluateAll(nodes => nodes.map(node => new DOMMatrix(getComputedStyle(node).transform).m41));
+assert.equal(offsets.length, 8);
+for (let i = 0; i < offsets.length; i++) {
+  assert.ok(i % 2 === 0 ? offsets[i] > 0 : offsets[i] < 0, `column ${i + 1} starts in the alternating direction`);
+  assert.ok(Math.abs(offsets[i] - (i % 2 === 0 ? offsets[0] : -offsets[0])) < 0.1, 'all columns stay synchronized');
+}
+await capture('welcome-alternating-dot-motion');
+checks.push('alternating-columns-start-right-left-and-stay-synchronized');
+await page.emulateMedia({ reducedMotion: 'reduce' });
+await page.waitForFunction(() => [...document.querySelectorAll('[data-testid^="onboarding-dot-column-"]')].every(node => new DOMMatrix(getComputedStyle(node).transform).m41 === 0));
+checks.push('reduced-motion-stops-and-centers-all-columns');
+for (const [state, city] of [['NC', 'Raleigh'], ['TX', 'Houston'], ['VT', 'Burlington']]) {
+  await open(`step=3&state=${state}`);
+  await page.getByText(`${city}, ${state}`, { exact: true }).waitFor();
+  await page.getByText('Eagle Rare 12 Year', { exact: true }).waitFor();
+}
+checks.push('sighting-preview-follows-selected-state');
 assert.deepEqual(errors, []); await writeFile(path.join(output, 'results.json'), JSON.stringify({ checks, errors }, null, 2));
 await browser.close(); console.log(`${checks.length} browser checks passed. ${output}`);

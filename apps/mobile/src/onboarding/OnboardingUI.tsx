@@ -3,6 +3,8 @@ import { AccessibilityInfo, ActivityIndicator, Animated, Image, Keyboard, Keyboa
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CellarBottleArtwork } from '../components/CellarBottleArtwork';
 import { colors, fonts } from '../theme';
+import { OnboardingBackdrop } from './OnboardingBackdrop';
+import { sightingPreviewForState } from './sighting-preview';
 export function BrandMark({ large = false }: { large?: boolean }) {
   return <Image accessible={false} source={require('../../assets/splash-icon.png')} style={large ? s.logoLarge : s.logo} resizeMode="contain" />;
 }
@@ -26,6 +28,7 @@ export function OnboardingFrame({ children, title, description, eyebrow, step, f
   const progress = step !== undefined && step !== 4 && step !== 8;
   const total = step !== undefined && step >= 5 ? 3 : 4; const current = step !== undefined && step >= 5 ? step - 4 : (step || 0) + 1;
   return <View aria-hidden={obscured} accessibilityElementsHidden={obscured} importantForAccessibility={obscured ? 'no-hide-descendants' : 'auto'} style={[s.screen, { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right }]}>
+    <OnboardingBackdrop reduceMotion={reduceMotion} />
     <View style={s.chrome}>
       {largeMark ? null : onBack ? <Pressable accessibilityRole="button" accessibilityLabel="Back" disabled={backDisabled} onPress={onBack} style={[s.back, backDisabled && s.disabled]}><Text style={s.backText}>‹</Text></Pressable> : <BrandMark />}
       <Text style={[s.wordmark, largeMark && { textAlign: 'center', fontSize: 15 }]}>Bourbon Signal</Text>
@@ -55,12 +58,11 @@ export function Choice({ title, detail, selected, onPress, multiple = false, dis
 export function FlavorChip({ title, selected, onPress, disabled }: { title: string; selected: boolean; onPress: () => void; disabled?: boolean }) {
   return <Pressable accessibilityRole="checkbox" accessibilityLabel={title} accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.chip, selected && s.chipSelected, pressed && s.pressed]}><Text style={[s.chipText, selected && { color: '#F5DBAF' }]}>{selected ? '✓  ' : '+  '}{title}</Text></Pressable>;
 }
-export function ExampleSighting({ notification = false, compact = false, state = '', bottleId = 'wild-turkey-rare-breed', bottleName = 'Wild Turkey Rare Breed' }: { notification?: boolean; compact?: boolean; state?: string; bottleId?: string; bottleName?: string }) {
-  const location = state === 'NC' ? 'An ABC store in North Carolina' : state ? `A store in ${state}` : 'A store near you';
+export function ExampleSighting({ notification = false, state = '' }: { notification?: boolean; state?: string }) {
+  const preview = sightingPreviewForState(state);
   return <View style={[s.example, notification && { padding: 14, gap: 10 }]}>
-    <View style={[s.row, { justifyContent: 'space-between' }]}><Text style={s.label}>{notification ? 'Bourbon Signal' : 'Community'}</Text><Text style={s.exampleLabel}>{notification ? 'Example alert' : 'Example sighting'}</Text></View>
-    <View style={s.row}><CellarBottleArtwork bottle={{ bottleId, bottleName }} size={notification ? 'list' : 'feed'} /><View style={{ flex: 1, gap: 6 }}><Text style={s.label}>{notification ? `${bottleName} was spotted.` : bottleName}</Text><Text style={s.small}>{location}</Text>{!notification ? <Text style={s.small}>Bottle · Store · Price · Photo</Text> : null}</View></View>
-    {!notification && !compact ? <><View style={s.exampleRule} /><Text style={s.small}>A member shares what they found. You see where to look.</Text></> : null}
+    <View style={[s.row, { justifyContent: 'space-between' }]}><Text style={s.label}>{notification ? 'Bourbon Signal' : 'Community'}</Text><Text style={s.exampleLabel}>Preview</Text></View>
+    <View style={s.row}><CellarBottleArtwork bottle={{ bottleId: preview.bottleId, bottleName: preview.bottleName }} size={notification ? 'list' : 'feed'} /><View style={{ flex: 1, gap: 6 }}><Text style={s.label}>{notification ? `${preview.bottleName} was spotted.` : preview.bottleName}</Text><Text style={s.small}>{preview.store}</Text><Text style={s.small}>{preview.city}, {preview.state}</Text></View></View>
   </View>;
 }
 export const s = StyleSheet.create({
