@@ -151,7 +151,7 @@
     "render:missing-state-community-email": "tsx scripts/render-missing-state-community-email.mts",
     "render:free-member-day-two-email": "tsx scripts/render-free-member-day-two-email.ts",
     "test:bottle-check-suggestions": "node --no-warnings --experimental-strip-types scripts/test-bottle-check-suggestions.mts && tsx scripts/test-bottle-search.mts && npm run test:bottle-photos",
-    "test:bottle-photos": "tsx --test scripts/test-bottle-photos.mts",
+    "test:bottle-photos": "tsx --test scripts/test-bottle-photos.mts && npm run test:labeled-artwork",
     "test:bottle-search": "tsx scripts/test-bottle-search.mts && npm run test:bottle-photos",
     "test:bottle-contributions": "tsx --test scripts/test-bottle-contribution-idempotency.mts",
     "test:bottle-check-dossier": "node --no-warnings --experimental-strip-types scripts/test-bottle-check-dossier.mts",
@@ -208,7 +208,10 @@
     "test:notification-navigation": "tsx --test scripts/test-notification-alert-lookup.ts scripts/test-notification-alert-sql.ts",
     "test:coverage-nightly": "node --no-warnings --experimental-strip-types scripts/test-coverage-nightly.mts && node scripts/test-codex-coverage.mjs && npm --prefix engine run bible && node --test engine/test/source-scoped-refresh.test.mjs",
     "test:ma-source-preflight": "node --test scripts/test-ma-public-source.mjs",
-    "test:engine-feed-verification": "node --no-warnings --experimental-strip-types --test scripts/test-engine-feed-verification.mjs"
+    "test:engine-feed-verification": "node --no-warnings --experimental-strip-types --test scripts/test-engine-feed-verification.mjs",
+    "test:labeled-artwork": "tsx --test scripts/test-labeled-bottle-art.mts",
+    "artwork:labeled:audit": "node scripts/audit-labeled-bottle-art.mjs",
+    "artwork:labeled:complete": "node scripts/audit-labeled-bottle-art.mjs --require-complete"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

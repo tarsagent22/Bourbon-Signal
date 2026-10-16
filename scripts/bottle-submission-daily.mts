@@ -7,7 +7,7 @@ import { put } from "@vercel/blob";
 const require = createRequire(import.meta.url);
 const { validateBottleSubmissionResearch } = require("../shared/bottle-submission-research.ts") as typeof import("../shared/bottle-submission-research");
 const { validateReviewedBottleArtwork } = require("../shared/bottle-artwork.ts") as typeof import("../shared/bottle-artwork");
-const { LABEL_FREE_PRODUCTS } = createRequire(import.meta.url)("../apps/mobile/src/components/label-free-artwork-catalog.ts") as {LABEL_FREE_PRODUCTS:Array<{id:string;name:string;names?:string[];shape:string}>};
+const { resolveLabeledBottleArtwork } = require("../shared/labeled-bottle-artwork.ts") as typeof import("../shared/labeled-bottle-artwork");
 
 const args = process.argv.slice(2);
 const option = (key:string) => args[args.indexOf(key)+1];
@@ -32,11 +32,11 @@ try {
     const jobs = result.rows.map(row => {
       const c = row.payload;
       const name = row.bottle_patch?.canonicalName || c.rawName;
-      const existing = LABEL_FREE_PRODUCTS.find(b => [b.name,...(b.names || [])].some(n => normalize(n) === normalize(name)));
+      const existing = resolveLabeledBottleArtwork({bottleId:c.candidateBottleId,bottleName:name});
       return {id:row.id,expectedUpdatedAt:row.expected_updated_at,status:c.status,rawName:c.rawName,canonicalName:name,
         bottleId:c.candidateBottleId || null,bottleVersion:row.bottle_version == null ? null : Number(row.bottle_version),
         source:c.source,location:{storeName:c.context?.storeName,city:c.context?.storeCity,state:c.context?.storeState},
-        previousResearch:c.context?.research || null,existingArtwork:existing ? {id:existing.id,name:existing.name,shape:existing.shape} : null};
+        previousResearch:c.context?.research || null,existingArtwork:existing ? {id:existing.catalogId,name:existing.displayName,sha256:existing.sha256} : null};
     }).filter(job => !(job.existingArtwork && (job.status === "added" || job.previousResearch))).slice(0,25);
     const output = args.includes("--out") ? option("--out") : ".operator/bottle-research-queue.json";
     await mkdir(path.dirname(output),{recursive:true});
@@ -74,7 +74,7 @@ try {
           const record = (await client.query("SELECT patch,version FROM owner_bottle_records WHERE bottle_id=$1",[current.candidateBottleId])).rows[0];
           if (!record || Number(record.version) !== item.bottleVersion || record.patch.artwork) throw new Error("admin_conflict: bottle artwork changed; export again");
           if (normalize(record.patch.canonicalName) !== normalize(research.canonicalName)) throw new Error("Research must match the approved bottle identity before adding its art.");
-          await client.query("SELECT owner_save_bottle_record($1,$2::jsonb,NULL,$3::bigint,$4,$5,NULL)",[current.candidateBottleId,JSON.stringify({...record.patch,artwork}),item.bottleVersion,"codex-bottle-research","Added inspected original label-less artwork"]);
+          await client.query("SELECT owner_save_bottle_record($1,$2::jsonb,NULL,$3::bigint,$4,$5,NULL)",[current.candidateBottleId,JSON.stringify({...record.patch,artwork}),item.bottleVersion,"codex-bottle-research","Added inspected original labeled bottle artwork"]);
         }
         await client.query("UPDATE bottle_contributions SET payload=jsonb_set(payload,'{context}',COALESCE(payload->'context','{}'::jsonb) || jsonb_build_object('research',$2::jsonb)) || jsonb_build_object('updatedAt',now()),updated_at=now() WHERE id=$1",[item.id,JSON.stringify(enriched)]);
         await client.query("INSERT INTO owner_workspace_audit(actor_id,action,target_id,details) VALUES('codex-bottle-research','bottle_research',$1,$2::jsonb)",[item.id,JSON.stringify({reason:"Researched national rarity recommendation; original artwork inspected",research:enriched})]);

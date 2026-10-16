@@ -115,7 +115,11 @@ test('publication permits shared identical photos but rejects same-name differin
 test('server catalog attaches same shared exact photo metadata without lossy key lookup', async () => {
   const api = await import(new URL('../src/lib/bottle-photos.ts', import.meta.url).href).then(m => m.default ?? m).catch(() => null);
   assert.equal(typeof api?.catalogBottlePhoto, 'function', 'missing catalog photo adapter');
-  for (const row of approved()) assert.equal(api.catalogBottlePhoto({ id: row.catalogId, canonicalName: row.displayName })?.sha256, row.sha256);
+  const labeled = json('shared/labeled-bottle-artwork-registry.json').entries;
+  for (const row of approved()) {
+    const replacement = labeled.find((art: {catalogId:string}) => art.catalogId === row.catalogId);
+    assert.equal(api.catalogBottlePhoto({ id: row.catalogId, canonicalName: row.displayName })?.sha256, replacement?.sha256 ?? row.sha256);
+  }
   assert.equal(api.catalogBottlePhoto({ id: 'eagle-rare-10', canonicalName: 'Eagle Rare 17 Year' }), undefined);
   assert.match(read('src/lib/bourbonBible.ts').toString(), /photo: catalogBottlePhoto\(bottle\)/);
   assert.match(read('src/app/api/bottle-catalog/route.ts').toString(), /photo: bottle.photo/);

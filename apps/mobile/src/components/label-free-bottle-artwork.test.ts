@@ -87,7 +87,8 @@ test('approved names normalize apostrophes and punctuation without importing amb
 
 test('bundled first batch overrides photo fetching and exports have alpha and recorded provenance', () => {
   const component = readFileSync(new URL('./CellarBottleArtwork.tsx', import.meta.url), 'utf8');
-  assert.match(component, /if \(shape\) return <LabelFreeBottleArtwork/);
+  assert.match(component, /if \(labeled\) return <BottleArtworkImage/);
+  assert.doesNotMatch(component, /LabelFreeBottleArtwork|label-free-artwork-assets/);
   assert.doesNotMatch(component, /LegacyBottleArtwork|useBottlePhoto|assets\/bottles\/photos/);
   assert.match(component, /<CellarBottleSilhouette size=\{size\}/);
   const directory = new URL('../../assets/bottles/label-free-v1/', import.meta.url);
@@ -142,7 +143,7 @@ test('third-batch exports and generated registry match every reviewed asset and 
  assert.equal((registry.match(/require\(/g)||[]).length,38+fourthBatch.shapes.length+fifthBatch.shapes.length+sixthBatch.shapes.length);
  for(const batch of [1,2,3,4,5,6])assert.ok(catalog.includes(`label-free-v${batch}/catalog.json`));
  const fallback=readFileSync(new URL('./CellarBottleSilhouette.tsx',import.meta.url),'utf8');
- assert.match(fallback,/shape="neutral"/);
+ assert.match(fallback,/neutral-labeled\.png/);
  assert.doesNotMatch(fallback,/styles\.label|useBottlePhoto/);
 });
 
