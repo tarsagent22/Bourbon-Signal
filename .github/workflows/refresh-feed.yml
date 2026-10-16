@@ -412,6 +412,7 @@ jobs:
         working-directory: engine
         env:
           RECOVERY_ATTEMPT: ${{ inputs.recovery_attempt || '0' }}
+          BOURBON_SIGNAL_RECOVERY_EXCLUDED_STATES: OH
         run: node src/plan-state-recovery.mjs --contract=out/site/state-health.json --verification-ledger=out/scheduled-state-verification.json --attempt="$RECOVERY_ATTEMPT" --max-attempts=2 --github-output="$GITHUB_OUTPUT" > out/state-recovery-plan.json
 
       - name: Verify coherent site contract unconditionally

@@ -18,6 +18,33 @@ const contract = {
   ],
 };
 
+test('excluded Ohio is skipped without consuming a retry or blocking eligible siblings', () => {
+  const withOhio = { ...contract, summary: { retryStateIds: ['OH', 'AA'] },
+    recoveryDispatchState: { selectedState: 'OH' },
+    states: [...contract.states, { state: 'OH', health: 'degraded', recoveryAction: 'retry_state_collection', collection: { status: 'failed_timeout' } }] };
+  const mixed = buildStateRecoveryPlan(withOhio, { excludedStateIds: ['OH'] });
+  assert.deepEqual(mixed.retryStateIds, ['AA']);
+  assert.deepEqual(mixed.skipped, [{ state: 'OH', reason: 'excluded_from_automatic_recovery' }]);
+  const only = buildStateRecoveryPlan(withOhio, { failedStateIds: ['OH'], excludedStateIds: ['OH'] });
+  assert.deepEqual(only.retryStateIds, []);
+  assert.equal(only.nextAttempt, 0);
+});
+
+test('the deployed planner emits no dispatch for an excluded-only ledger failure', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'bs-state-recovery-plan-'));
+  t.after(() => { assert.equal(path.dirname(root), path.resolve(os.tmpdir())); return rm(root, { recursive: true, force: true }); });
+  const contractPath = path.join(root, 'state-health.json');
+  const ledgerPath = path.join(root, 'ledger.json');
+  const output = path.join(root, 'github-output');
+  await writeFile(contractPath, JSON.stringify({ ...contract, summary: { retryStateIds: [] }, states: [
+    { state: 'OH', health: 'degraded', recoveryAction: 'retry_state_collection', collection: { status: 'failed_timeout' } },
+  ] }));
+  await writeFile(ledgerPath, JSON.stringify({ failures: [{ states: ['OH'] }] }));
+  const plan = await runStateRecoveryPlanner([`--contract=${contractPath}`, `--verification-ledger=${ledgerPath}`, '--exclude-states=OH', `--github-output=${output}`]);
+  assert.deepEqual(plan.retryStateIds, []);
+  assert.match(await readFile(output, 'utf8'), /has_recovery=false/);
+});
+
 test('recovery planning isolates one transient degraded state and defers siblings', () => {
   const plan = buildStateRecoveryPlan(contract, { failedStateIds: ['CC', 'AA', 'DD', 'BB'], attempt: 0 });
   assert.deepEqual(plan.retryStateIds, ['AA']);
@@ -116,6 +143,7 @@ test('the shared refresh workflow plans recovery after fallback and dispatches o
   const dispatch = workflow.indexOf('Dispatch isolated recovery from current main');
   assert.ok(apply < plan && plan < production && production < dispatch);
   assert.match(workflow, /--max-attempts=2/);
+  assert.match(workflow, /BOURBON_SIGNAL_RECOVERY_EXCLUDED_STATES: OH/);
   assert.match(workflow, /-f states="\$TARGET_STATES"/);
   assert.match(workflow, /if: \$\{\{ !inputs\.states \}\}/);
 });
