@@ -670,7 +670,7 @@ export default function SignalFeedScreen() {
           accessibilityIgnoresInvertColors
           resizeMode="cover"
           source={require("../../../assets/home-shelf-background.jpg")}
-          style={[StyleSheet.absoluteFill, { opacity: 0.55 }]}
+          style={StyleSheet.absoluteFill}
         />
       </View>
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
   homeBackdrop: StyleSheet.absoluteFill,
   feedViewport: { flex: 1, backgroundColor: "transparent" },
   feedFade: { width: "100%", height: 120 },
-  feedShade: { flex: 1, backgroundColor: colors.background },
+  feedShade: { flex: 1, backgroundColor: "rgba(8,6,4,0.64)" },
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20 },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(210,184,145,0.12)", marginLeft: 78 },
   communitySeparator: { marginLeft: 0 },

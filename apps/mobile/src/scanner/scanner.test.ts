@@ -72,3 +72,47 @@ test('read failures are delivered without leaving the loop stuck', async () => {
   loop.start(); await new Promise(resolve => setTimeout(resolve, 18)); loop.stop();
   assert.ok(reads >= 2); assert.equal(errors.length, reads);
 });
+
+// Buying guidance must never turn missing evidence or a rare label into a buy signal.
+import { buyingScore, regionalPriceEvidence } from './buying-score';
+import type { BottleProfile } from '../../../../shared/bottle-profile';
+import type { Signal } from '../api/types';
+const guideBottle: BottleProfile = { id: 'er10', name: 'Eagle Rare 10 Year', producer: null, category: 'bourbon', proof: 90, age: '10 years', msrp: 40, rarity: { label: 'Allocated', tier: 'allocated', pending: false, reviewedAt: null } };
+const guideNow = new Date('2026-10-16T18:00:00Z');
+const priceReport = (id: string, price: number, state = 'NC', patch: Partial<Signal> = {}): Signal => ({
+  contractVersion: 'bourbon-signal/signal@1', id, kind: 'availability', bottle: { id: 'er10', name: 'Eagle Rare 10 Year' },
+  source: { type: 'trusted_source', label: 'Source' }, location: { scope: 'exact_store', state, store: { id, name: id, city: 'Raleigh', state } },
+  timing: { displayAt: '2026-10-16T12:00:00Z' }, availability: { status: 'reported', price },
+  evidence: { photo: false, corroborationCount: 0, helpfulCount: 0, retailerReported: false, sourceBacked: true }, strength: 'more_activity', alertEligibility: { inventory: false, watch: false }, actions: [], ...patch,
+});
+const guide = (askingPrice: string, reports: Signal[] = [], patch: Partial<BottleProfile> = {}) => buyingScore({ bottle: { ...guideBottle, ...patch }, askingPrice, reports, scope: { state: 'NC', area: '' }, now: guideNow });
+test('asking price changes the recommendation while rarity cannot inflate the score', () => {
+  assert.ok(guide('40').score >= 80); assert.equal(guide('120').verdict, 'Pass at this price');
+  assert.ok(guide('120').score < guide('60').score);
+  assert.equal(guide('40').score, guide('40', [], { rarity: { ...guideBottle.rarity, label: 'Unicorn', tier: 'unicorn' } }).score);
+  assert.ok(guide('40', [], { proof: 130 }).score < guide('40').score);
+});
+test('missing or invalid prices stay preliminary; missing benchmarks cannot produce a strong buy', () => {
+  for (const price of ['', '0', '-2', 'abc', '12.345']) {
+    const result = guide(price); assert.equal(result.preliminary, true); assert.ok(result.score <= 65); assert.doesNotMatch(result.verdict, /good buy/);
+  }
+  const result = guide('30', [], { msrp: null }); assert.ok(result.score <= 59); assert.equal(result.verdict, 'Compare before buying');
+});
+test('regional prices require three independent current exact-release store observations', () => {
+  const valid = [priceReport('one', 35), priceReport('two', 40), priceReport('three', 45)];
+  assert.equal(regionalPriceEvidence(guideBottle, valid, { state: 'NC', area: 'Raleigh' }, guideNow).median, 40);
+  const rejected = [priceReport('other-state', 1, 'VA'), priceReport('old', 2, 'NC', { timing: { displayAt: '2026-10-01T12:00:00Z' } }), priceReport('future', 3, 'NC', { timing: { displayAt: '2026-10-20T12:00:00Z' } }), priceReport('historical', 4, 'NC', { historical: true }), priceReport('other-release', 5, 'NC', { bottle: { id: 'er17', name: 'Eagle Rare 17 Year' } }), priceReport('unknown', 6, 'NC', { availability: { status: 'unknown', price: 6 } })];
+  assert.deepEqual(regionalPriceEvidence(guideBottle, [...valid, ...rejected], { state: 'NC', area: 'Raleigh' }, guideNow), { count: 3, median: 40, low: 35, high: 45 });
+  assert.equal(regionalPriceEvidence(guideBottle, valid, { state: 'NC', area: 'Durham' }, guideNow).count, 0);
+  assert.equal(regionalPriceEvidence(guideBottle, valid.slice(0, 2), { state: 'NC', area: '' }, guideNow).median, null);
+  const duplicate = priceReport('new-provider-id', 100, 'NC', { location: valid[0].location, timing: { displayAt: '2026-10-16T17:00:00Z' } });
+  const evidence = regionalPriceEvidence(guideBottle, [...valid, duplicate], { state: 'NC', area: '' }, guideNow);
+  assert.equal(evidence.count, 3); assert.equal(evidence.high, 100);
+});
+test('region changes affect the local comparison and expensive local samples do not erase MSRP', () => {
+  const reports = [...[80, 90, 100].map((price, i) => priceReport('nc' + i, price)), ...[30, 35, 40].map((price, i) => priceReport('va' + i, price, 'VA'))];
+  const nc = buyingScore({ bottle: guideBottle, askingPrice: '60', reports, scope: { state: 'NC', area: '' }, now: guideNow });
+  const va = buyingScore({ bottle: guideBottle, askingPrice: '60', reports, scope: { state: 'VA', area: '' }, now: guideNow });
+  assert.ok(nc.score > va.score); assert.equal(nc.reference, 40); assert.ok(nc.score < 65);
+  assert.ok(guide('30', reports, { msrp: null }).score < 80);
+});

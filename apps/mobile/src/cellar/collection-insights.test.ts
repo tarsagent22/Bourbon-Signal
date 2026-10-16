@@ -24,3 +24,23 @@ test('pending canonical matches do not inherit proof or producer from a proposed
   const result = collectionInsights([{ ...bottle('a'), pendingCanonicalMatch: true, wouldBuyAgain: true }], [{ id: 'a', name: 'a', producer: 'Wrong pending producer', proof: 120, rarity: 'unicorn' }]);
   assert.equal(result.averageProof, null); assert.equal(result.producers[0].label, 'Producer not matched'); assert.equal(result.buyAgain, 1);
 });
+
+import { collectionPayoff } from './collection-payoff';
+test('small collections get real highlights without inventing ratings or proof', () => {
+  const one = collectionPayoff([bottle('a')], [{ id: 'a', name: 'a', proof: 90 }]);
+  assert.equal(one.highlights[0].bottleId, 'a'); assert.equal(one.averageRating, null); assert.equal(one.proofRange?.low, 90); assert.equal(one.proofBuckets[0].count, 1);
+  const empty = collectionPayoff([], []); assert.equal(empty.highlights.length, 0); assert.equal(empty.proofRange, null); assert.equal(empty.nextMilestone, 1);
+});
+test('collection highlights rank ratings per entry and weight proof by bottles on hand', () => {
+  const items = [bottle('a', 4, 85), bottle('b', 1, 95), { ...bottle('c', 1, 0), tasteTags: ['Vanilla'] }];
+  const copy = structuredClone(items);
+  const result = collectionPayoff(items, [{ id: 'a', name: 'a', proof: 100 }, { id: 'b', name: 'b', proof: 120 }]);
+  assert.equal(result.highlights[0].bottleId, 'b'); assert.equal(result.ratedCount, 3); assert.equal(result.averageRating, 6);
+  assert.equal(result.proofCount, 5); assert.equal(result.proofBuckets[1].count, 4); assert.equal(result.favoriteCount, 2); assert.equal(result.tasteTags.length, 0); assert.deepEqual(items, copy);
+});
+test('pending catalog matches cannot supply proof and favorite taste cues are deduplicated', () => {
+  const items = [{ ...bottle('a', 1, 90), tasteTags: ['Vanilla', 'vanilla', 'Oak'], pendingCanonicalMatch: true }, { ...bottle('b', 0, 80), tasteTags: ['vanilla'] }];
+  const result = collectionPayoff(items, [{ id: 'a', name: 'a', proof: 120 }]);
+  assert.equal(result.proofCount, 0); assert.equal(result.tasteTags[0].label, 'Vanilla'); assert.equal(result.tasteTags[0].count, 2);
+  assert.equal(result.ownedCount, 1); assert.equal(result.nextMilestone, 3);
+});
