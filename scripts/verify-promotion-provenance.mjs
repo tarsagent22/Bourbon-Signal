@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { archivedPromotionArtifactMatches } from './lib/promotion-artifact-archive.mjs';
+import { archivedPromotionArtifactMatches, renewedPromotionProvenance } from './lib/promotion-artifact-archive.mjs';
 
 const state = String(process.argv.find((value) => value.startsWith('--state='))?.split('=')[1] || '').toUpperCase();
 const online = process.argv.includes('--online');
 if (!/^[A-Z]{2}(?:-[A-Z0-9]+)?$/.test(state)) throw new Error('Provide --state=AA.');
 const config = JSON.parse(await readFile(path.resolve('src/config/state-lifecycle.json'), 'utf8'));
-const provenance = config.states?.[state]?.promotionEvidence?.immutableEvidence?.provenance;
-if (!provenance) throw new Error(`${state}: missing workflow-issued promotion provenance.`);
+const original = config.states?.[state]?.promotionEvidence?.immutableEvidence?.provenance;
+if (!original) throw new Error(`${state}: missing workflow-issued promotion provenance.`);
+const renewal = await readFile(path.resolve(`engine/data/promotion-provenance/${state}-renewal.json`), 'utf8')
+  .then(JSON.parse).catch(error => { if (error.code === 'ENOENT') return null; throw error; });
+const provenance = renewedPromotionProvenance(original, renewal, state);
 if (!online) {
   console.log(`${state}: promotion provenance contract present for run ${provenance.workflowRunId}.`);
   process.exit(0);
