@@ -14,8 +14,8 @@ import { productIdFor } from "../../../src/membership/purchases";
 import { colors, typeScale, fonts } from "../../../src/theme";
 
 const cards = [
-  { tier: "standard" as const, name: "Standard", description: "Bottle alerts, the full feed, and room for your whole collection.", features: ["Full Intel feed & state selection", "Alerts for 5 areas & 15 bottles", "Unlimited bottles on My Shelf", "Redeem Signal Points for rewards"] },
-  { tier: "barrel" as const, name: "Barrel Proof", description: "More alert options and a taste profile from your collection.", features: ["Everything in Standard", "Unlimited areas & watched bottles", "Advanced filters & community alerts", "Bourbon DNA from your ratings"] },
+  { tier: "standard" as const, name: "Standard", description: "Get alerts for the bottles you want, in the places you shop.", features: ["Alerts for 5 areas & 15 bottles", "Full Intel feed & state selection", "Unlimited bottles on My Shelf", "Redeem Signal Points for rewards"] },
+  { tier: "barrel" as const, name: "Barrel Proof", description: "Watch every bottle on your list, with alerts from the feed and Community.", features: ["Everything in Standard", "Unlimited areas & watched bottles", "Advanced filters & community alerts", "Bourbon DNA from your ratings"] },
 ];
 
 export default function MembershipScreen() {
@@ -97,6 +97,7 @@ export default function MembershipScreen() {
     <ScrollView contentContainerStyle={[styles.content, { width: pageWidth }]}>
       <View style={styles.hero}>
         <Text accessibilityRole="header" style={styles.title}>Find your next bottle.</Text>
+        <Text style={styles.subtitle}>Get alerts when bottles you love show up in your area. Let Bourbon Signal do the heavy lifting.</Text>
         {!isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
       </View>
       {loading && !profile ? <ActivityIndicator accessibilityLabel="Loading membership" color={colors.accent} /> : null}

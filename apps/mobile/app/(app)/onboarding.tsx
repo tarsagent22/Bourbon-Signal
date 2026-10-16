@@ -203,8 +203,8 @@ function MemberOnboarding({ owner }: { owner: string }) {
   }
   if (!ready || !profile || !preferences) return error ? <OnboardingFrame title="Let's try that again." description={error}><OnboardingButton label="Retry setup" onPress={() => void load()} /></OnboardingFrame> : <BrandLoading label="Opening account setup" />;
   const tasting = draft.step === 2 && beginnerPath(draft.interest);
-  const titles = ['A little about you.', 'Where do you shop?', tasting ? discovery ? 'Bottles you might like.' : tasteStage === 'bottle' ? 'Is there a bottle you already like?' : 'Which flavors do you enjoy?' : 'What’s on your shelf?', 'See what others are finding.', 'Get alerts for bottles you’re looking for.', 'Where do you want alerts?', 'What are you looking for?', 'Turn on notifications.', 'Your alert preferences are saved.'];
-  const descriptions = ['Choose the name members will see on your sightings.', 'Choose the state you shop in most.', tasting ? discovery ? draft.likedBottleName || draft.flavors.length ? undefined : 'A few different styles to try. You don’t need to know your preferences yet.' : tasteStage === 'bottle' ? undefined : 'Pick as many as you like, or leave this open.' : 'Add bottles you own or whiskies you’ve tried. Ratings are optional.', `Finds shared by bourbon drinkers${stateName ? ` in ${stateName} and beyond` : ''}.`, draft.homeState ? `Choose the bottles and places you want to watch in ${stateName}.` : 'Choose the bottles and places you want to watch.', undefined, undefined, 'Allow Bourbon Signal to send alerts to this phone.', 'You can change these in Radar.'];
+  const titles = ['A little about you.', 'Where do you shop?', tasting ? discovery ? 'Bottles you might like.' : tasteStage === 'bottle' ? 'Is there a bottle you already like?' : 'Which flavors do you enjoy?' : 'What’s on your shelf?', 'See what others are finding.', 'Get alerts for bottles you love.', 'Where do you want alerts?', 'What are you looking for?', 'Turn on notifications.', 'Your alert preferences are saved.'];
+  const descriptions = ['Choose the name members will see on your sightings.', 'Choose the state you shop in most.', tasting ? discovery ? draft.likedBottleName || draft.flavors.length ? undefined : 'A few different styles to try. You don’t need to know your preferences yet.' : tasteStage === 'bottle' ? undefined : 'Pick as many as you like, or leave this open.' : 'Add bottles you own or whiskies you’ve tried. Ratings are optional.', `Find bottles worth the trip, shared by bourbon drinkers${stateName ? ` in ${stateName}` : ' near you'}.`, 'Let Bourbon Signal do the heavy lifting. Choose your bottles and areas, and get an alert when a matching sighting comes in.', undefined, undefined, 'Allow Bourbon Signal to send alerts to this phone.', 'You can change these in Radar.'];
   const canSkip = (draft.step === 2 && !shelfBottles.length) || draft.step === 5 || draft.step === 6;
   const shelfStart = draft.step === 2 && !beginnerPath(draft.interest) && !shelfBottles.length && preferences.collectionAccess.canAdd;
   const continueLabel = shelfStart ? 'Add a bottle' : tasting && !discovery ? tasteStage === 'bottle' ? 'Choose flavors' : 'See recommendations' : draft.step === 4 ? paid ? 'Set up my alerts' : 'Continue without alerts →' : draft.step === 8 ? 'Open Bourbon Signal' : 'Continue';
@@ -231,7 +231,6 @@ function MemberOnboarding({ owner }: { owner: string }) {
       } catch (caught) { await refreshMember().catch(() => undefined); throw caught; }
     });
   }
-  const exampleBottle = draft.likedBottleId ? { id: draft.likedBottleId, name: draft.likedBottleName } : discovery?.suggestions[0] || shelfBottles[0] && { id: shelfBottles[0].bottleId, name: shelfBottles[0].bottleName };
   const product = purchases.products.find(item => item.productId === productIdFor(selectedPlan, 'monthly'));
   const eligible = Boolean(product && purchases.eligibleProductIds.includes(product.productId));
   return <>
@@ -284,19 +283,19 @@ function MemberOnboarding({ owner }: { owner: string }) {
         {!preferences.collectionAccess.canAdd ? <Text style={s.small}>Your shelf is full. You can continue setup.</Text> : null}
       </> : null}
       {draft.step === 3 ? <>
-        <ExampleSighting state={draft.homeState === 'NC' ? 'NC' : stateName} />
+        <ExampleSighting state={draft.homeState} />
         <View style={{ gap: 6 }}><Text style={s.label}>Found something worth sharing?</Text><Text style={s.small}>Post the bottle, store, price, and a photo. Earn Signal Points for eligible sightings.</Text></View>
         {reward ? <View style={[s.panel, s.row, { backgroundColor: '#29251C' }]}><Image accessible={false} source={require('../../assets/rewards/glencairn.png')} style={{ width: 44, height: 58 }} resizeMode="contain" /><View style={{ flex: 1, gap: 6 }}><Text style={s.small}>Redeem with Standard or Barrel Proof</Text><Text style={s.label}>{reward.name}</Text><Text style={s.link}>{reward.points.toLocaleString()} Signal Points</Text></View></View> : <Text style={s.small}>Everyone can earn points. Standard and Barrel Proof members can redeem them for glassware and other rewards.</Text>}
       </> : null}
       {draft.step === 4 ? <>
         {paid ? <View style={s.panel}><Text style={s.label}>{profile.membership.label} is active.</Text><Text style={s.copy}>Next: choose your areas, bottles, and notifications.</Text></View> : <>
-          <ExampleSighting notification state={draft.homeState === 'NC' ? 'NC' : stateName} bottleId={exampleBottle?.id} bottleName={exampleBottle?.name} />
+          <ExampleSighting notification state={draft.homeState} />
           <View style={{ flexDirection: 'row', gap: 8 }}>{(['standard', 'barrel'] as const).map(tier => {
             const planProduct = purchases.products.find(item => item.productId === productIdFor(tier, 'monthly'));
             return <Pressable key={tier} accessibilityRole="radio" accessibilityLabel={tier === 'standard' ? 'Standard membership' : 'Barrel Proof membership'} accessibilityState={{ checked: selectedPlan === tier, disabled: working }} disabled={working} onPress={() => setSelectedPlan(tier)} style={[s.choice, { flex: 1, flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 6, padding: 12 }, selectedPlan === tier && s.choiceSelected]}><View style={[s.row, { width: '100%', gap: 4, justifyContent: 'space-between' }]}><Text style={[s.label, { fontSize: 13, flex: 1 }]}>{tier === 'standard' ? 'Standard' : 'Barrel Proof'}</Text><View accessible={false} style={[s.selection, selectedPlan === tier && s.selectionActive]}>{selectedPlan === tier ? <Text style={s.selectionCheck}>✓</Text> : null}</View></View><Text style={s.label}>{planProduct?.localizedPrice || 'See store price'}</Text><Text style={s.small}>{planProduct ? `per ${planProduct.localizedPeriod}` : 'Monthly'}</Text><Text style={s.small}>{tier === 'standard' ? '5 areas · 15 watched bottles' : 'Unlimited areas and bottles'}</Text>{tier === 'barrel' ? <Text style={[s.link, { fontSize: 11 }]}>+ Community alerts</Text> : null}</Pressable>;
           })}</View>
           <View style={{ gap: 10 }}>
-            {(selectedPlan === 'standard' ? ['Choose up to 5 cities, counties, ABC boards, or stores', 'Watch up to 15 bottles for alerts', 'Full bottle feed · Unlimited bottles on your shelf', 'Redeem Signal Points for rewards'] : ['Unlimited alert areas and watched bottles', 'Community sighting alerts', 'Advanced feed filters · Bourbon DNA taste profile', 'Everything in Standard']).map(benefit => <View key={benefit} style={s.row}><Text style={s.link}>✓</Text><Text style={[s.small, { flex: 1, color: '#D8D3C5' }]}>{benefit}</Text></View>)}
+            {(selectedPlan === 'standard' ? ['Alerts for up to 15 bottles you want to find', 'Choose up to 5 cities, counties, ABC boards, or stores', 'Full bottle feed · Unlimited bottles on your shelf', 'Redeem Signal Points for rewards'] : ['Unlimited alert areas and watched bottles', 'Community sighting alerts', 'Advanced feed filters · Bourbon DNA taste profile', 'Everything in Standard']).map(benefit => <View key={benefit} style={s.row}><Text style={s.link}>✓</Text><Text style={[s.small, { flex: 1, color: '#D8D3C5' }]}>{benefit}</Text></View>)}
           </View>
           <Text style={s.small}>Billed monthly. Renews until canceled. Cancel in your app store.</Text>
           {purchases.message && purchases.status !== 'ready' ? <Text accessibilityRole="alert" style={s.small}>{purchases.message}</Text> : null}
@@ -327,7 +326,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
         </> : null}
       </> : null}
       {draft.step === 7 ? <>
-        <ExampleSighting notification state={draft.homeState === 'NC' ? 'NC' : stateName} bottleId={exampleBottle?.id} bottleName={exampleBottle?.name} />
+        <ExampleSighting notification state={draft.homeState} />
         {communityIncluded ? <View style={[s.panel, s.row]}><View style={{ flex: 1, gap: 8 }}><Text style={s.label}>Community sighting alerts</Text><Text style={s.small}>Include matching finds shared by members. Included with Barrel Proof.</Text></View><Switch accessibilityLabel="Community sighting alerts" value={community} disabled={working} onValueChange={setCommunity} trackColor={{ true: colors.accent, false: colors.border }} /></View> : <Text style={s.small}>Your tracked bottle alerts are included with Standard.</Text>}
         {permissionDenied ? <><Text style={s.error}>Notifications are off in your phone settings. You can allow them now or set up alerts later in Radar.</Text><OnboardingButton secondary label="Open phone settings" onPress={() => void Linking.openSettings().catch(() => setError('Open your phone Settings to allow notifications.'))} /></> : null}
       </> : null}
