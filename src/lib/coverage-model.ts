@@ -955,6 +955,7 @@ const EMPTY_DROP_EVIDENCE: StatePublicDropEvidence = {
   currentInventoryCities: 0,
   staleInventoryStoreCount: 0,
   freshPublicSignalCount: 0,
+  independentFreshPublicSignalCount: 0,
   freshPublicUpdateSignalCount: 0,
   freshPublicUpdateBoards: 0,
   freshPublicUpdateStores: 0,
@@ -1050,7 +1051,8 @@ function buildState(args: {
   const supportsDirectStoreAvailability = LIVE_TIERS.has(tier);
   const sourceBlocked = rowSourceIsBlocked(row) || stateSourceIsBlocked(args.code, args.degradedStates);
   const hasVerifiedSource = !sourceBlocked && hasVerifiedCoverageSource(lifecycleEntry, row, locations, storeRecords);
-  const feedDegraded = isStateFeedDegraded(args.code, args.degradedStates);
+  const feedDegraded = isStateFeedDegraded(args.code, args.degradedStates)
+    && args.dropEvidence.independentFreshPublicSignalCount === 0;
   // Lifecycle/configuration tells us which evidence may be used; only current
   // default-feed output establishes that a customer can use it now.
   const hasFreshPublicOutput = !sourceBlocked

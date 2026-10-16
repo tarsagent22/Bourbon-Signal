@@ -668,3 +668,9 @@ assert.equal(historicalCard.lastConfirmedAt, originalCard.lastConfirmedAt);
 assert.equal(historicalCard.timestamp, originalCard.timestamp);
 assert.equal(originalCard.canAlertAsInventory, true, 'response projection must not mutate cached data');
 assert.equal(projectInventoryEvidenceFreshness({ ...originalCard, state: 'OH' }, AS_OF).canAlertAsInventory, true, 'Ohio remains unchanged');
+
+const runtimeOnly = { ...exactStoreInventory({ state: 'AZ', storeId: 'accepted-runtime', city: 'Phoenix', alertable: true }), sourcePollId: 'az:fixture' };
+const acceptedRuntimeContract = buildCoverageContract({ lifecycle, asOf: AS_OF, stateRows: [{ state: 'AZ', publicStatus: 'active', status: 'partial_useful', coverageTier: 'live_store_inventory', signalCount: 2, bestLocationPrecision: 'store_level' }], degradedStates: [{ state: 'AZ', status: 'partial_useful' }], drops: [runtimeOnly, exactStoreInventory({ state: 'AZ', storeId: 'unaccepted-sibling', city: 'Phoenix', alertable: true })] });
+assert.equal(acceptedRuntimeContract.states.find(state => state.code === 'AZ')?.freshness.currentInventoryStores, 1, 'only accepted runtime evidence survives a degraded snapshot');
+const expiredRuntimeContract = buildCoverageContract({ lifecycle, asOf: AS_OF, stateRows: [{ state: 'AZ', publicStatus: 'active', status: 'partial_useful', coverageTier: 'live_store_inventory', signalCount: 1 }], degradedStates: [{ state: 'AZ', status: 'partial_useful' }], drops: [{ ...runtimeOnly, stale: true }] });
+assert.equal(expiredRuntimeContract.states.find(state => state.code === 'AZ')?.freshness.currentInventoryStores, 0);

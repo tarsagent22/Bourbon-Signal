@@ -49,6 +49,7 @@ export interface StatePublicDropEvidence {
   staleInventoryStoreCount: number;
   /** Eligible public rows fresh enough for the default customer feed. */
   freshPublicSignalCount: number;
+  independentFreshPublicSignalCount: number;
   /** Fresh public rows that are useful updates but not exact-store inventory claims. */
   freshPublicUpdateSignalCount: number;
   freshPublicUpdateBoards: number;
@@ -71,6 +72,7 @@ interface ExactStoreNode {
 interface StateEvidenceBucket {
   nodes: ExactStoreNode[];
   freshPublicSignalCount: number;
+  independentFreshPublicSignalCount: number;
   freshPublicUpdateSignalCount: number;
   stalePublicSignalCount: number;
   freshPublicUpdateBoards: Set<string>;
@@ -279,6 +281,14 @@ function sourceStale(drop: PublicDropEvidenceInput) {
   return drop.sourceStale === true || drop.source_stale === true || drop.stale === true;
 }
 
+function independentlyAcceptedSource(drop: PublicDropEvidenceInput) {
+  // These markers are assigned by the policy-validated server overlay, never
+  // by a customer request. A failed or expired projection is explicitly stale.
+  return Boolean(drop.sourcePollId || drop.sourceLaneId) && !sourceStale(drop)
+    && (drop.canAlertAsInventory === true || drop.can_alert_as_inventory === true
+      || drop.canAlertAsWatch === true || drop.can_alert_as_watch === true);
+}
+
 function isVerifiedRetailerDrop(drop: PublicDropEvidenceInput) {
   return drop.source === "verified-retailer" && drop.retailerReported === true;
 }
@@ -323,7 +333,7 @@ export function isPublicDropFeedEligible(
 ) {
   const drop = normalizePublicDropEvidenceInput(input);
   const state = stateCode(drop);
-  if (!state || options.degradedStateCodes?.has(state)) return false;
+  if (!state || options.degradedStateCodes?.has(state) && !independentlyAcceptedSource(drop)) return false;
   const retailer = isVerifiedRetailerDrop(drop);
   if (!retailer && !isUserFacingDropSignal(drop)) return false;
   if (isBlockedWarehouseDrop(drop)) return false;
@@ -642,6 +652,7 @@ export function derivePublicDropEvidence(
     const bucket = byState.get(state) || {
       nodes: [],
       freshPublicSignalCount: 0,
+      independentFreshPublicSignalCount: 0,
       freshPublicUpdateSignalCount: 0,
       stalePublicSignalCount: 0,
       freshPublicUpdateBoards: new Set<string>(),
@@ -657,6 +668,7 @@ export function derivePublicDropEvidence(
     const current = exactInventory ? isCurrentInventoryEvidence(drop, asOf) : fresh && !sourceStale(drop);
     if (current) bucket.freshPublicSignalCount += 1;
     else bucket.stalePublicSignalCount += 1;
+    if (current && independentlyAcceptedSource(drop)) bucket.independentFreshPublicSignalCount += 1;
 
     if (current && !exactInventory) addFreshPublicUpdateScope(bucket, drop);
     if (!exactInventory) continue;
@@ -687,6 +699,7 @@ export function derivePublicDropEvidence(
       currentInventoryCities: new Set(currentInventoryStores.map((store) => token(store.city)).filter(Boolean)).size,
       staleInventoryStoreCount: components.filter((component) => !component.current).length,
       freshPublicSignalCount: bucket.freshPublicSignalCount,
+      independentFreshPublicSignalCount: bucket.independentFreshPublicSignalCount,
       freshPublicUpdateSignalCount: bucket.freshPublicUpdateSignalCount,
       freshPublicUpdateBoards: bucket.freshPublicUpdateBoards.size,
       freshPublicUpdateStores: bucket.freshPublicUpdateStores.size,
