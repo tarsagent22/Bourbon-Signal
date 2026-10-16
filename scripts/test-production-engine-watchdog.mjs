@@ -64,7 +64,7 @@ assert.equal(evaluateProductionHealth({ nowMs, activeStates: ['PA'], stats: stat
 const key = 'watchdog-test-key-'.repeat(3);
 const verified = await getJson('/api/drops?state=PA&limit=1', { verificationKey: key, fetchImpl: async (url, options) => {
   assert.equal(authorizeEngineFeedVerification(url, options.headers['x-bourbon-signal-engine-verification'], key), true);
-  return new Response(JSON.stringify({ contractVersion: 'bourbon-signal/engine-feed-count@1', state: 'PA', total: 1400, snapshot: 'signed-snapshot' }), { headers: { 'x-engine-snapshot': 'signed-snapshot' } });
+  return new Response(JSON.stringify({ contractVersion: 'bourbon-signal/engine-feed-count@1', state: 'PA', total: 1400, snapshot: 'signed-snapshot:source:accepted-version' }), { headers: { 'x-engine-snapshot': 'signed-snapshot' } });
 } });
 assert.equal(verified.ok, true);
 const wrongContract = await getJson('/api/drops?state=PA&limit=1', { verificationKey: key, fetchImpl: async () => new Response(JSON.stringify({ total: 1400 })) });

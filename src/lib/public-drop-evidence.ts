@@ -571,6 +571,25 @@ export function isCurrentInventoryEvidence(input: PublicDropEvidenceInput, asOf?
   return Number.isFinite(age) && age >= -FUTURE_CLOCK_SKEW_MS && age <= CURRENT_INVENTORY_AGE_MS;
 }
 
+/** Project at response time so a cached card cannot keep claiming availability. */
+export function projectInventoryEvidenceFreshness<T extends PublicDropEvidenceInput>(input: T, asOf?: string | number | Date): T {
+  const drop = normalizePublicDropEvidenceInput(input);
+  if (stateCode(drop) === "OH" || isVerifiedRetailerDrop(drop) || sourceStale(drop)
+    || !exactStoreInventoryCandidate(drop) || isCurrentInventoryEvidence(drop, asOf)) return input;
+  return {
+    ...input,
+    stale: true, sourceStale: true, source_stale: true,
+    canAlertAsInventory: false, can_alert_as_inventory: false,
+    canAlertAsWatch: false, can_alert_as_watch: false,
+    eligibleForDelivery: false, deliveryEligible: false,
+    signal_status: "reported", availabilityStatus: "stale",
+    signal_label: "Last-known store availability",
+    availabilityLabel: "Last-known availability",
+    availability_scope: "stale_store_context", confidence_tier: "stale_store_context",
+    inventoryCaveat: "Current availability has not been confirmed. Check with the store.",
+  };
+}
+
 function publicUpdateBoardKey(drop: PublicDropEvidenceInput) {
   const type = text(drop.event_type ?? drop.type, 160).toLowerCase();
   const precision = text(drop.location_precision ?? drop.locationPrecision, 120).toLowerCase();

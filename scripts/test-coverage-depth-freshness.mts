@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { buildCoverageContract, findCoverageStoreTarget, searchCoverageTargets } from "../src/lib/coverage-model.ts";
-import { publicEvidenceAddressKey, isCurrentInventoryEvidence, isFreshPublicDrop } from "../src/lib/public-drop-evidence.ts";
+import { publicEvidenceAddressKey, isCurrentInventoryEvidence, isFreshPublicDrop, projectInventoryEvidenceFreshness } from "../src/lib/public-drop-evidence.ts";
 
 const AS_OF = "2026-08-02T14:00:00.000Z";
 
@@ -659,3 +659,12 @@ assert.equal(
 );
 
 console.log("coverage depth and freshness contract tests passed");
+
+const originalCard = { ...exactStoreInventory({ state: 'PA', storeId: 'clock-test', city: 'Philadelphia', alertable: true }), lastConfirmedAt: '2026-08-02T10:00:00.000Z', timestamp: AS_OF };
+const historicalCard = projectInventoryEvidenceFreshness(originalCard, AS_OF);
+assert.equal(historicalCard.canAlertAsInventory, false);
+assert.equal(historicalCard.sourceStale, true);
+assert.equal(historicalCard.lastConfirmedAt, originalCard.lastConfirmedAt);
+assert.equal(historicalCard.timestamp, originalCard.timestamp);
+assert.equal(originalCard.canAlertAsInventory, true, 'response projection must not mutate cached data');
+assert.equal(projectInventoryEvidenceFreshness({ ...originalCard, state: 'OH' }, AS_OF).canAlertAsInventory, true, 'Ohio remains unchanged');

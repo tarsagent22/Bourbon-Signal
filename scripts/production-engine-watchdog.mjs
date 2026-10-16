@@ -39,7 +39,8 @@ export async function getJson(route, { fetchImpl = fetch, verificationKey = proc
     return {
       ok: response.ok && body !== null && (url.pathname !== '/api/drops'
         || body.contractVersion === ENGINE_FEED_COUNT_CONTRACT && body.state === url.searchParams.get('state')
-          && Number.isInteger(body.total) && body.total >= 0 && body.snapshot === response.headers.get('x-engine-snapshot')),
+          && Number.isInteger(body.total) && body.total >= 0 && Boolean(response.headers.get('x-engine-snapshot'))
+          && typeof body.snapshot === 'string' && body.snapshot.startsWith(`${response.headers.get('x-engine-snapshot')}:source:`)),
       status: response.status,
       body,
       snapshotId: response.headers.get('x-engine-snapshot'),
