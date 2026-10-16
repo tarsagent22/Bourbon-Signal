@@ -104,7 +104,7 @@
     "verify:release-lane": "node scripts/verify-release-lane.mjs",
     "test:release-lane": "node scripts/test-release-lane-policy.mjs && python scripts/test_release_lane_lock.py && python scripts/test_autonomous_operator_wrapper.py",
     "test:operator-backbone": "node --no-warnings --experimental-strip-types scripts/test-operator-backbone.mjs && node scripts/test-operator-objective.mjs && node scripts/test-daily-reliability-live-stats.mjs && npm run test:release-lane",
-    "test:production-checks": "node --test scripts/test-production-checks.mjs && tsx scripts/test-production-regression-drop-policy.mjs",
+    "test:production-checks": "node --test scripts/test-production-checks.mjs scripts/test-production-verifier-runtime.mjs && tsx scripts/test-production-regression-drop-policy.mjs",
     "test:company-scorecard-feed": "node --no-warnings --experimental-strip-types scripts/test-company-scorecard-feed.mts",
     "ops:signal-calendar": "node automation/bourbon-signal/signal-calendar-prototype.mjs",
     "ops:bottle-queue": "node automation/bourbon-signal/bottle-queue-autoprocess.mjs",
