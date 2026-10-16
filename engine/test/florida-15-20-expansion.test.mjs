@@ -126,7 +126,7 @@ test('frozen Florida expansion registry is exactly 126 ABC stores plus the exist
     { code: 'southeast', name: 'Primo Southeast', address: '200 SW Davie Blvd, Fort Lauderdale, FL 33315' },
   ]);
 
-  assert.equal(floridaExpansion.FLORIDA_ABC_STORE_REGISTRY_SHA256, 'd56369e11b4883b59d7dcadd4de48f4388bbc489b2549b8c3016744ab717e1cc');
+  assert.equal(floridaExpansion.FLORIDA_ABC_STORE_REGISTRY_SHA256, '05626564508e12b8826669a671fb7265df1de604aa09cc659ccf3914576997dd');
   assert.ok(Object.isFrozen(FLORIDA_ABC_STORES));
   assert.ok(FLORIDA_ABC_STORES.every((store) => Object.isFrozen(store)));
   assert.ok(FLORIDA_ABC_STORES.every((store) => store.active === true

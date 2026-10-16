@@ -62,7 +62,7 @@ test('watchdog rejects a state partition served from fallback or a different sna
 test('watchdog reports recent rollback events without treating a healthy feed as failed', () => {
   const report = evaluateProductionHealth({
     ...healthyInput(),
-    opsHealth: { body: { engine: { lastRollback: { at: '2026-07-13T11:30:00.000Z', from: 'bad', to: 'good' } } } },
+    opsHealth: { ok: true, status: 200, body: { ok: true, engine: { lastRollback: { at: '2026-07-13T11:30:00.000Z', from: 'bad', to: 'good' } } } },
   });
   assert.equal(report.ok, true);
   assert.match(report.warnings[0], /rollback observed/i);

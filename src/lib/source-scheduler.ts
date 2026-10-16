@@ -1,4 +1,5 @@
 import { randomUUID, createHash } from 'node:crypto';
+import { sourceAcceptanceHealth } from './source-acceptance-health';
 import { createProductionAlertQueueSqlExecutor } from './alert-queue/runtime';
 import { readSiteExportResults } from './site-engine-contract';
 import { BourbonBible } from '../../engine/src/core/bible.mjs';
@@ -149,7 +150,12 @@ export async function sourceSchedulerHealth(writeMonitor=false) {
   const incidents=(await executor.query('SELECT source_id,reason,first_at,last_at,occurrences FROM source_poll_incidents WHERE resolved_at IS NULL')).rows;
   const traces=(await executor.query("SELECT source_id,status,started_at,finished_at,accounting FROM source_poll_runs ORDER BY started_at DESC LIMIT 40")).rows;
   const pipeline=(await executor.query('SELECT * FROM source_poll_trace ORDER BY source_id,stage')).rows;
+  const sourceHealth=sourceAcceptanceHealth(jobs.map(j=>({source_id:String(j.source_id),accepted_at:j.accepted_at,last_reason:j.last_reason,failures:j.failures})),POLL_SOURCES as Array<{id:string;kind:string;expiryHours:number}>);
   const result={pipeline,lanes,enabled:schedulerEnabled(),healthy:late.length===0 && laneLate.length===0 && jobs.length===POLL_SOURCES.length && heartbeat.some(h=>h.name==='scheduler' && Date.now()-Date.parse(String(h.checked_at))<15*60000),lateSources:[...late,...laneLate].map(j=>j.source_id),jobs:jobs.map(({projection,...j})=>({...j,feedRows:projection?.drops?.length || 0,candidates:projection?.candidates?.length || 0})),incidents,heartbeat,traces};
-  if(writeMonitor)await executor.query(`INSERT INTO source_scheduler_heartbeat VALUES('independent-monitor',now(),$1::jsonb) ON CONFLICT(name) DO UPDATE SET checked_at=EXCLUDED.checked_at,payload=EXCLUDED.payload`,[JSON.stringify({healthy:result.healthy,late:late.length})]);
-  return result;
+  const schedulingHealthy=result.healthy;
+  const collectionHealthy=sourceHealth.filter(row=>!row.dependency).every(row=>row.status==='healthy')
+    && lanes.every(row=>row.healthy===true && Number(row.failures || 0)===0);
+  const health={...result,schedulingHealthy,collectionHealthy,sourceHealth,healthy:schedulingHealthy && collectionHealthy};
+  if(writeMonitor)await executor.query(`INSERT INTO source_scheduler_heartbeat VALUES('independent-monitor',now(),$1::jsonb) ON CONFLICT(name) DO UPDATE SET checked_at=EXCLUDED.checked_at,payload=EXCLUDED.payload`,[JSON.stringify({healthy:health.healthy,schedulingHealthy,collectionHealthy,late:late.length})]);
+  return health;
 }

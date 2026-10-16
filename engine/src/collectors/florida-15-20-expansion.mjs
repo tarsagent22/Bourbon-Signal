@@ -133,7 +133,7 @@ export const FLORIDA_ABC_DIRECTORY_QUERIES = Object.freeze(['Pensacola', 'West P
 export const FLORIDA_ABC_DIRECTORY_URLS = Object.freeze(FLORIDA_ABC_DIRECTORY_QUERIES.map((query) => `https://abc.irishtitan.cloud/api/retail-locations?search=${encodeURIComponent(query)}&radius=1000`));
 
 
-export const FLORIDA_ABC_STORE_REGISTRY_SHA256 = 'd56369e11b4883b59d7dcadd4de48f4388bbc489b2549b8c3016744ab717e1cc';
+export const FLORIDA_ABC_STORE_REGISTRY_SHA256 = '05626564508e12b8826669a671fb7265df1de604aa09cc659ccf3914576997dd';
 
 function canonicalAbcRegistryRows(rows) {
   if (!Array.isArray(rows)) return [];

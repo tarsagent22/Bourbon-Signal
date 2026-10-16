@@ -4,7 +4,9 @@ import path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { selectVerificationStates } from './production-verification-scope.mjs';
 import { hiddenDegradedEngineStates, isDropExpectedInLiveFeed, liveDropTotalMeetsRegressionFloor, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
-import { ENGINE_FEED_COUNT_CONTRACT, ENGINE_FEED_VERIFICATION_HEADER, signEngineFeedVerification } from '../src/lib/engine-feed-verification.ts';
+import * as verificationModule from '../src/lib/engine-feed-verification.ts';
+// tsx can expose TS as CommonJS while native Node exposes it as ESM.
+const { ENGINE_FEED_COUNT_CONTRACT, ENGINE_FEED_VERIFICATION_HEADER, signEngineFeedVerification, engineFeedVerificationState } = verificationModule.default || verificationModule;
 
 const ROOT = process.cwd();
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
@@ -94,7 +96,7 @@ async function main() {
     const stillPending = [];
     for (const state of pendingStates) {
       const localTotal = localDropMap.get(state) || 0;
-      const res = await getJson(`/api/drops?state=${encodeURIComponent(state)}&limit=1`);
+      const res = await getJson(`/api/drops?state=${encodeURIComponent(engineFeedVerificationState(state))}&limit=1`);
       const liveTotal = parseLiveDropTotal(res.json?.total);
       latestStateResponses.set(state, { state, localTotal, liveTotal, status: res.status, ok: res.ok && Boolean(res.json) });
       if (!res.ok || !res.json || !liveDropTotalMeetsRegressionFloor({ localTotal, liveTotal, minRatio: MIN_RATIO })) stillPending.push(state);

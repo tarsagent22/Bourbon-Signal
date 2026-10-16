@@ -5,6 +5,9 @@ import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 const MAX_INVENTORY_DROP_AGE_MS = 72 * HOUR_MS;
+// Retention keeps useful history; current inventory follows the engine's
+// two-hour confirmation policy. Publication never extends this clock.
+const CURRENT_INVENTORY_AGE_MS = 2 * HOUR_MS;
 const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
 const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
 const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
@@ -46,6 +49,7 @@ export interface StatePublicDropEvidence {
   staleInventoryStoreCount: number;
   /** Eligible public rows fresh enough for the default customer feed. */
   freshPublicSignalCount: number;
+  independentFreshPublicSignalCount: number;
   /** Fresh public rows that are useful updates but not exact-store inventory claims. */
   freshPublicUpdateSignalCount: number;
   freshPublicUpdateBoards: number;
@@ -68,6 +72,7 @@ interface ExactStoreNode {
 interface StateEvidenceBucket {
   nodes: ExactStoreNode[];
   freshPublicSignalCount: number;
+  independentFreshPublicSignalCount: number;
   freshPublicUpdateSignalCount: number;
   stalePublicSignalCount: number;
   freshPublicUpdateBoards: Set<string>;
@@ -276,6 +281,14 @@ function sourceStale(drop: PublicDropEvidenceInput) {
   return drop.sourceStale === true || drop.source_stale === true || drop.stale === true;
 }
 
+function independentlyAcceptedSource(drop: PublicDropEvidenceInput) {
+  // These markers are assigned by the policy-validated server overlay, never
+  // by a customer request. A failed or expired projection is explicitly stale.
+  return Boolean(drop.sourcePollId || drop.sourceLaneId) && !sourceStale(drop)
+    && (drop.canAlertAsInventory === true || drop.can_alert_as_inventory === true
+      || drop.canAlertAsWatch === true || drop.can_alert_as_watch === true);
+}
+
 function isVerifiedRetailerDrop(drop: PublicDropEvidenceInput) {
   return drop.source === "verified-retailer" && drop.retailerReported === true;
 }
@@ -320,7 +333,7 @@ export function isPublicDropFeedEligible(
 ) {
   const drop = normalizePublicDropEvidenceInput(input);
   const state = stateCode(drop);
-  if (!state || options.degradedStateCodes?.has(state)) return false;
+  if (!state || options.degradedStateCodes?.has(state) && !independentlyAcceptedSource(drop)) return false;
   const retailer = isVerifiedRetailerDrop(drop);
   if (!retailer && !isUserFacingDropSignal(drop)) return false;
   if (isBlockedWarehouseDrop(drop)) return false;
@@ -556,6 +569,37 @@ export function isFreshPublicDrop(input: PublicDropEvidenceInput, asOf?: string 
   return now >= window.startsAt && (window.inclusiveEnd ? now <= window.endsAt : now < window.endsAt);
 }
 
+export function isCurrentInventoryEvidence(input: PublicDropEvidenceInput, asOf?: string | number | Date) {
+  const drop = normalizePublicDropEvidenceInput(input);
+  if (sourceStale(drop) || !isFreshPublicDrop(drop, asOf)) return false;
+  // Ohio's existing presentation policy is outside this recovery's scope.
+  if (stateCode(drop) === "OH" || isVerifiedRetailerDrop(drop)) return true;
+  const confirmed = drop.lastConfirmedAt ?? drop.last_confirmed_at ?? drop.inventoryCheckedAt
+    ?? drop.observedAt ?? drop.observed_at;
+  const timestamp = typeof confirmed === "string" ? Date.parse(confirmed) : Number.NaN;
+  const age = asTimestamp(asOf) - timestamp;
+  return Number.isFinite(age) && age >= -FUTURE_CLOCK_SKEW_MS && age <= CURRENT_INVENTORY_AGE_MS;
+}
+
+/** Project at response time so a cached card cannot keep claiming availability. */
+export function projectInventoryEvidenceFreshness<T extends PublicDropEvidenceInput>(input: T, asOf?: string | number | Date): T {
+  const drop = normalizePublicDropEvidenceInput(input);
+  if (stateCode(drop) === "OH" || isVerifiedRetailerDrop(drop) || sourceStale(drop)
+    || !exactStoreInventoryCandidate(drop) || isCurrentInventoryEvidence(drop, asOf)) return input;
+  return {
+    ...input,
+    stale: true, sourceStale: true, source_stale: true,
+    canAlertAsInventory: false, can_alert_as_inventory: false,
+    canAlertAsWatch: false, can_alert_as_watch: false,
+    eligibleForDelivery: false, deliveryEligible: false,
+    signal_status: "reported", availabilityStatus: "stale",
+    signal_label: "Last-known store availability",
+    availabilityLabel: "Last-known availability",
+    availability_scope: "stale_store_context", confidence_tier: "stale_store_context",
+    inventoryCaveat: "Current availability has not been confirmed. Check with the store.",
+  };
+}
+
 function publicUpdateBoardKey(drop: PublicDropEvidenceInput) {
   const type = text(drop.event_type ?? drop.type, 160).toLowerCase();
   const precision = text(drop.location_precision ?? drop.locationPrecision, 120).toLowerCase();
@@ -608,6 +652,7 @@ export function derivePublicDropEvidence(
     const bucket = byState.get(state) || {
       nodes: [],
       freshPublicSignalCount: 0,
+      independentFreshPublicSignalCount: 0,
       freshPublicUpdateSignalCount: 0,
       stalePublicSignalCount: 0,
       freshPublicUpdateBoards: new Set<string>(),
@@ -619,11 +664,12 @@ export function derivePublicDropEvidence(
     byState.set(state, bucket);
 
     const fresh = isFreshPublicDrop(drop, asOf);
-    const current = fresh && !sourceStale(drop);
+    const exactInventory = exactStoreInventoryCandidate(drop);
+    const current = exactInventory ? isCurrentInventoryEvidence(drop, asOf) : fresh && !sourceStale(drop);
     if (current) bucket.freshPublicSignalCount += 1;
     else bucket.stalePublicSignalCount += 1;
+    if (current && independentlyAcceptedSource(drop)) bucket.independentFreshPublicSignalCount += 1;
 
-    const exactInventory = exactStoreInventoryCandidate(drop);
     if (current && !exactInventory) addFreshPublicUpdateScope(bucket, drop);
     if (!exactInventory) continue;
 
@@ -653,6 +699,7 @@ export function derivePublicDropEvidence(
       currentInventoryCities: new Set(currentInventoryStores.map((store) => token(store.city)).filter(Boolean)).size,
       staleInventoryStoreCount: components.filter((component) => !component.current).length,
       freshPublicSignalCount: bucket.freshPublicSignalCount,
+      independentFreshPublicSignalCount: bucket.independentFreshPublicSignalCount,
       freshPublicUpdateSignalCount: bucket.freshPublicUpdateSignalCount,
       freshPublicUpdateBoards: bucket.freshPublicUpdateBoards.size,
       freshPublicUpdateStores: bucket.freshPublicUpdateStores.size,

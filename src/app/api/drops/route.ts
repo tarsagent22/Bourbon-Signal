@@ -14,7 +14,7 @@ import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { compareDropFeedNewestFirst, dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { sortDropsByCanonicalSignalOrder } from "@/lib/signals/signal-contract";
-import { isFreshPublicDrop, publicDropFreshnessWindow, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
+import { isFreshPublicDrop, publicDropFreshnessWindow, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode, projectInventoryEvidenceFreshness } from "@/lib/public-drop-evidence";
 import { ACTIVE_ENGINE_STATE_NAMES } from "@/lib/activeStates";
 import { buildWeeklyMarketSummaries } from "@/lib/signals/signal-market-summary";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
@@ -486,12 +486,12 @@ export async function GET(request: Request) {
     // Its signed scope cannot request cards, other filters, detail, or history.
     if (isEngineVerification) return NextResponse.json(
       engineFeedCountPayload(state || "", total, snapshot, engineRunTimestamp(statsPayload, exportPayload?.generatedAt)),
-      { headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization, X-Bourbon-Signal-Engine-Verification" } },
+      { headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization, X-Bourbon-Signal-Engine-Verification", "X-API-Source": dropResult.source, "X-Engine-Snapshot": dropResult.snapshotId || "" } },
     );
     const page = paginateDrops(drops, { limit, offset, cursor: requestedCursor, snapshot });
-    const pagedDrops = historicalMode
+    const pagedDrops = (historicalMode
       ? selectDropFeedHistory(page.items, true, isFreshPreparedDrop, (drop) => isEligibleHistoricalPublicDrop(drop))
-      : page.items;
+      : page.items).map(drop => projectInventoryEvidenceFreshness(drop, requestTime));
 
     return NextResponse.json(
       {
