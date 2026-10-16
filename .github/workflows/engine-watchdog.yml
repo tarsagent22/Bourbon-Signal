@@ -35,6 +35,7 @@ jobs:
           BOURBON_SIGNAL_WATCHDOG_ATTEMPTS: "2"
           BOURBON_SIGNAL_WATCHDOG_RETRY_DELAY_MS: "15000"
           BOURBON_SIGNAL_WATCHDOG_MAX_SNAPSHOT_AGE_MS: "2700000"
+          ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
         run: node scripts/production-engine-watchdog.mjs
 
       - name: Preserve watchdog evidence

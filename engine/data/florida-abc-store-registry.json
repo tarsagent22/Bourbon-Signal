@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal/florida-abc-store-registry@1",
-  "sha256": "d56369e11b4883b59d7dcadd4de48f4388bbc489b2549b8c3016744ab717e1cc",
+  "sha256": "05626564508e12b8826669a671fb7265df1de604aa09cc659ccf3914576997dd",
   "stores": [
     {"storeCode":"3","name":"ABC #003 - OBT","address":"5895 S. ORANGE BLSM TRAIL","city":"ORLANDO","state":"FL","zip":"32839","lat":"28.473170","lng":"-81.396120","active":true},
     {"storeCode":"4","name":"ABC #004 - Lake Buena Vista","address":"11951 SO. APOPKA-VINELAND RD","city":"ORLANDO","state":"FL","zip":"32836","lat":"28.391720","lng":"-81.505500","active":true},
@@ -115,7 +115,7 @@
     {"storeCode":"195","name":"ABC #195 - Ponte Vedra Beach","address":"175 VILLAGE MAIN STREET","city":"PONTE VEDRA BEACH","state":"FL","zip":"32082","lat":"30.204390","lng":"-81.382740","active":true},
     {"storeCode":"196","name":"ABC #196 - Lake City","address":"1491 US HWY 90 W","city":"LAKE CITY","state":"FL","zip":"32055","lat":"30.182940","lng":"-82.657710","active":true},
     {"storeCode":"197","name":"ABC #197 - Palm Coast","address":"224 PALM COAST PKWY NE","city":"PALM COAST","state":"FL","zip":"32137","lat":"29.555790","lng":"-81.211230","active":true},
-    {"storeCode":"199","name":"ABC #199 - Pensacola","address":"5052 BAYOU BOULEVARD","city":"PENSACOLA","state":"FL","zip":"32503","lat":"30.473440","lng":"-87.211110","active":true},
+    {"storeCode":"199","name":"ABC #199 - Pensacola","address":"5052 BAYOU BOULEVARD","city":"PENSACOLA","state":"FL","zip":"32504","lat":"30.473440","lng":"-87.211110","active":true},
     {"storeCode":"200","name":"ABC #200 - Destin","address":"34715 EMERALD COAST PARKWAY","city":"DESTIN","state":"FL","zip":"32541","lat":"30.387540","lng":"-86.441760","active":true},
     {"storeCode":"201","name":"ABC #201 - Northlake Blvd","address":"4155 NORTHLAKE BLVD","city":"PALM BEACH GARDENS","state":"FL","zip":"33410","lat":"26.809658","lng":"-80.100302","active":true},
     {"storeCode":"203","name":"ABC #203 - Navarre","address":"8315 MIKAJACK AVENUE","city":"NAVARRE","state":"FL","zip":"32566","lat":"30.402130","lng":"-86.874900","active":true},

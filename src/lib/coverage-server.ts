@@ -17,6 +17,7 @@ import { retailerSubmissionToFeedCard } from "@/lib/retailer-signal-feed";
 import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
 import { normalizeDropForSite, readSiteExportResults } from "@/lib/site-engine-contract";
 import { normalizePublicDropEvidenceInput } from "@/lib/public-drop-evidence";
+import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
 
 interface CoverageStatsPayload {
   generatedAt?: string;
@@ -63,6 +64,7 @@ async function readCoverageInputs() {
   const locations = (locationsResult.payload || {}) as CoverageLocationsPayload;
   const stores = (storesResult.payload || {}) as CoverageStoresPayload;
   const drops = (dropsResult.payload || {}) as CoverageDropsPayload;
+  const overlay = await readRuntimeSourceDropOverlay(Array.isArray(drops.drops) ? drops.drops : [], dropsResult.snapshotId);
   return {
     lifecycle: STATE_LIFECYCLE_CONFIG,
     stateRows: Array.isArray(stats.stateCoverage?.states) ? stats.stateCoverage.states : [],
@@ -74,7 +76,7 @@ async function readCoverageInputs() {
     // Coverage must consume the same normalized records as the customer Drop
     // Feed; raw engine aliases cannot create a separate eligibility path.
     drops: [
-      ...(Array.isArray(drops.drops) ? drops.drops : []),
+      ...overlay.drops,
       ...retailerDrops,
     ].map((drop) => normalizePublicDropEvidenceInput(normalizeDropForSite(drop as Record<string, unknown>))),
     degradedStates: Array.isArray(stats.refreshHealth?.degradedStates) ? stats.refreshHealth.degradedStates : [],

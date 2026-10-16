@@ -2,6 +2,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { randomBytes } from 'node:crypto';
+import { ENGINE_FEED_COUNT_CONTRACT, ENGINE_FEED_VERIFICATION_HEADER, signEngineFeedVerification } from '../src/lib/engine-feed-verification.ts';
 
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
 const MAX_SNAPSHOT_AGE_MS = Number(process.env.BOURBON_SIGNAL_WATCHDOG_MAX_SNAPSHOT_AGE_MS || 45 * 60_000);
@@ -20,20 +22,25 @@ async function activeStates() {
   return (lifecycle.activeStates || []).filter((state) => lifecycle.states?.[state]?.publicStatus === 'active');
 }
 
-async function getJson(route) {
+export async function getJson(route, { fetchImpl = fetch, verificationKey = process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '' } = {}) {
   const url = new URL(route, BASE_URL);
-  url.searchParams.set('_bs_watchdog', `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  url.searchParams.set('_bs_verify', `${Date.now()}-${randomBytes(8).toString('hex')}`);
   try {
-    const response = await fetch(url, {
+    const proof = url.pathname === '/api/drops'
+      ? { [ENGINE_FEED_VERIFICATION_HEADER]: signEngineFeedVerification(url, verificationKey) } : {};
+    const response = await fetchImpl(url, {
       cache: 'no-store',
-      headers: { 'cache-control': 'no-cache', 'user-agent': 'BourbonSignalProductionWatchdog/1.0' },
+      headers: { 'cache-control': 'no-cache', 'user-agent': 'BourbonSignalProductionWatchdog/1.0', ...proof },
       signal: AbortSignal.timeout(30_000),
     });
     const text = await response.text();
     let body = null;
     try { body = JSON.parse(text); } catch {}
     return {
-      ok: response.ok && body !== null,
+      ok: response.ok && body !== null && (url.pathname !== '/api/drops'
+        || body.contractVersion === ENGINE_FEED_COUNT_CONTRACT && body.state === url.searchParams.get('state')
+          && Number.isInteger(body.total) && body.total >= 0 && Boolean(response.headers.get('x-engine-snapshot'))
+          && typeof body.snapshot === 'string' && body.snapshot.startsWith(`${response.headers.get('x-engine-snapshot')}:source:`)),
       status: response.status,
       body,
       snapshotId: response.headers.get('x-engine-snapshot'),
@@ -61,12 +68,16 @@ export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: sta
     warnings.push(`Production rollback observed at ${rollbackAt}.`);
   }
   const generatedAt = stats?.body?.generatedAt || null;
-  const generatedMs = Date.parse(generatedAt || '');
+  const collectedAt = stats?.body?.engineGeneratedAt || generatedAt;
+  const generatedMs = Date.parse(collectedAt || '');
   const snapshotAgeMs = Number.isFinite(generatedMs) ? Math.max(0, nowMs - generatedMs) : null;
   if (!stats?.ok) addGlobalFailure(`/api/stats failed with status ${stats?.status || 'unavailable'}.`);
   if (stats?.source !== 'remote-snapshot') addGlobalFailure(`Production must serve the remote snapshot, got ${stats?.source || 'unknown source'}.`);
   if (!stats?.snapshotId) addGlobalFailure('Production snapshot identity header is missing.');
-  if (snapshotAgeMs === null || snapshotAgeMs > MAX_SNAPSHOT_AGE_MS) addGlobalFailure(`Production snapshot must be no older than 45 minutes; generatedAt=${generatedAt || 'missing'}.`);
+  if (snapshotAgeMs === null || snapshotAgeMs > MAX_SNAPSHOT_AGE_MS) addGlobalFailure(`Production collection must be no older than 45 minutes; collectedAt=${collectedAt || 'missing'}.`);
+  if (opsHealth && (!opsHealth.ok || opsHealth.body?.ok !== true)) {
+    addGlobalFailure(`Production health failed: ${opsHealth.body?.engine?.freshnessStage || opsHealth.status || 'unavailable'}.`);
+  }
   if (Number(stats?.body?.stateCount || 0) !== states.length) addGlobalFailure(`Production state count ${stats?.body?.stateCount ?? 'missing'} does not match active state count ${states.length}.`);
   if (Number(stats?.body?.refreshHealth?.failedStateCount || 0) > 0) addGlobalFailure(`Production reports ${stats.body.refreshHealth.failedStateCount} failed state(s).`);
   const operatingRetryStateIds = [...new Set((stats?.body?.refreshHealth?.retryStateIds || [])
@@ -139,6 +150,7 @@ export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: sta
     checkedAt: new Date(nowMs).toISOString(),
     snapshotId: stats?.snapshotId || null,
     generatedAt,
+    collectedAt,
     snapshotAgeMinutes: snapshotAgeMs === null ? null : Math.round(snapshotAgeMs / 6_000) / 10,
     expectedStateCount: states.length,
     actualStateCount: Number(stats?.body?.stateCount || 0),

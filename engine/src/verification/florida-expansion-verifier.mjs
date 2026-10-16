@@ -42,7 +42,7 @@ export function verifyFloridaExpansionArtifact({ state, baseline, now = Date.now
   assert(baselineDigest === baseline.inventoryStoreIdsSha256, 'Immutable Florida expansion baseline store-ID digest mismatch.');
 
   assert(state?.status === 'useful' && state?.stale !== true, `Expected a fresh useful Florida state report; got status=${state?.status}, stale=${state?.stale}.`);
-  assert(FLORIDA_ABC_STORE_REGISTRY_SHA256 === 'd56369e11b4883b59d7dcadd4de48f4388bbc489b2549b8c3016744ab717e1cc', 'Immutable Florida ABC registry digest mismatch.');
+  assert(FLORIDA_ABC_STORE_REGISTRY_SHA256 === '05626564508e12b8826669a671fb7265df1de604aa09cc659ccf3914576997dd', 'Immutable Florida ABC registry digest mismatch.');
   assert(FLORIDA_ABC_STORES.length === FLORIDA_ABC_TARGET_STORE_COUNT, `Immutable Florida ABC registry must contain exactly ${FLORIDA_ABC_TARGET_STORE_COUNT} stores; got ${FLORIDA_ABC_STORES.length}.`);
   assert(new Set(FLORIDA_ABC_STORES.map((store) => store.storeNumber)).size === FLORIDA_ABC_TARGET_STORE_COUNT, 'Immutable Florida ABC store codes must be unique.');
   assert(FLORIDA_EXPANSION_STORE_TARGETS.length === FLORIDA_EXPANSION_TARGET_STORE_COUNT, `Frozen Florida expansion registry must contain exactly ${FLORIDA_EXPANSION_TARGET_STORE_COUNT} stores; got ${FLORIDA_EXPANSION_STORE_TARGETS.length}.`);

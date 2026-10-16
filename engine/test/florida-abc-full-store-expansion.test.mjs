@@ -61,7 +61,7 @@ function inventoryPayload({ mutateLocations, mutateAvailability } = {}) {
 }
 
 test('reviewed immutable ABC registry contains exactly 126 active identities and 136 total Florida expansion targets', () => {
-  assert.equal(expansion.FLORIDA_ABC_STORE_REGISTRY_SHA256, 'd56369e11b4883b59d7dcadd4de48f4388bbc489b2549b8c3016744ab717e1cc');
+  assert.equal(expansion.FLORIDA_ABC_STORE_REGISTRY_SHA256, '05626564508e12b8826669a671fb7265df1de604aa09cc659ccf3914576997dd');
   assert.equal(expansion.FLORIDA_ABC_STORES.length, 126);
   assert.equal(expansion.FLORIDA_EXPANSION_STORE_TARGETS.length, 136);
   assert.equal(new Set(expansion.FLORIDA_ABC_STORES.map((store) => store.storeNumber)).size, 126);

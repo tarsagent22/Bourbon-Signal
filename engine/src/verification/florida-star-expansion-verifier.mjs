@@ -5,6 +5,7 @@ import {
   FLORIDA_STAR_LIQUORS_SOURCE,
 } from '../collectors/florida-retailer-surfaces.mjs';
 import { isFloridaRetailerInventory, isFloridaRetailerOutOfStockObservation } from '../florida-retailer-policy.mjs';
+import { FLORIDA_ABC_STORES } from '../collectors/florida-15-20-expansion.mjs';
 
 export const FLORIDA_STAR_EXPANSION_BASELINE_STORE_IDS_SHA256 = '608c32a62b1c603b0c723991036f339372052c0284241735fd8338ad5c64067a';
 export const FLORIDA_STAR_EXPANSION_BASELINE_PREMISES_SHA256 = '1bfcac588e3ad40361125f67b6fc4a557e72eef8189d16001545bd40b3c44571';
@@ -18,6 +19,16 @@ function assert(condition, message, sample = null) {
 
 function normalizedPremise(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/gu, ' ').trim();
+}
+
+function reviewedBaselinePremise(premise) {
+  // The frozen baseline remains intact. ABC's official directory corrected
+  // only store 199's ZIP on 2026-10-15; all other identity fields are unchanged.
+  if (premise.storeId === 'abc-fine-wine-spirits:199'
+    && premise.address === '5052 BAYOU BOULEVARD, PENSACOLA, FL 32503') {
+    return FLORIDA_ABC_STORES.find(store => store.storeNumber === '199').address;
+  }
+  return premise.address;
 }
 
 function freshLiveSignal(signal, nowMs, maximumAgeMs) {
@@ -63,7 +74,7 @@ export function verifyFloridaStarExpansionArtifact({ state, baseline, now = Date
   const baselineIdSet = new Set(baselineIds);
   const baselinePremiseIdSet = new Set(baselinePremises.map((premise) => premise.storeId));
   assert(baselinePremiseIdSet.size === baselineIdSet.size && [...baselineIdSet].every((storeId) => baselinePremiseIdSet.has(storeId)), 'Immutable Florida baseline premise IDs drifted from the store-ID set.');
-  const baselinePremiseByStoreId = new Map(baselinePremises.map((premise) => [premise.storeId, normalizedPremise(premise.address)]));
+  const baselinePremiseByStoreId = new Map(baselinePremises.map((premise) => [premise.storeId, normalizedPremise(reviewedBaselinePremise(premise))]));
   assert(![...starStoreIds].some((storeId) => baselineIdSet.has(storeId)), 'Star Liquors registry overlaps a baseline store ID.');
   const baselineAddressSet = new Set(baselinePremises.map((premise) => normalizedPremise(premise.address)));
   assert(baselineAddressSet.size === FLORIDA_STAR_EXPANSION_BASELINE_STORE_COUNT, 'Immutable Florida baseline contains duplicate physical premises.');

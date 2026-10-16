@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import { buildCoverageContract, findCoverageStoreTarget, searchCoverageTargets } from "../src/lib/coverage-model.ts";
-import { publicEvidenceAddressKey } from "../src/lib/public-drop-evidence.ts";
+import { publicEvidenceAddressKey, isCurrentInventoryEvidence, isFreshPublicDrop, projectInventoryEvidenceFreshness } from "../src/lib/public-drop-evidence.ts";
 
 const AS_OF = "2026-08-02T14:00:00.000Z";
+
+const retainedInventory = { state: 'PA', type: 'store_inventory_result', tier: 'allocated', locationPrecision: 'store_level', lastConfirmedAt: '2026-08-02T10:00:00.000Z', timestamp: AS_OF };
+assert.equal(isFreshPublicDrop(retainedInventory, AS_OF), true, 'history remains visible');
+assert.equal(isCurrentInventoryEvidence(retainedInventory, AS_OF), false, 'publication cannot renew confirmation');
+assert.equal(isCurrentInventoryEvidence({ ...retainedInventory, lastConfirmedAt: 'invalid', observedAt: AS_OF }, AS_OF), false);
+assert.equal(isCurrentInventoryEvidence({ ...retainedInventory, lastConfirmedAt: AS_OF, sourceStale: true }, AS_OF), false);
+assert.equal(isCurrentInventoryEvidence({ ...retainedInventory, lastConfirmedAt: AS_OF }, AS_OF), true);
 
 function exactStoreInventory(args: {
   state: string;
@@ -652,3 +659,18 @@ assert.equal(
 );
 
 console.log("coverage depth and freshness contract tests passed");
+
+const originalCard = { ...exactStoreInventory({ state: 'PA', storeId: 'clock-test', city: 'Philadelphia', alertable: true }), lastConfirmedAt: '2026-08-02T10:00:00.000Z', timestamp: AS_OF };
+const historicalCard = projectInventoryEvidenceFreshness(originalCard, AS_OF);
+assert.equal(historicalCard.canAlertAsInventory, false);
+assert.equal(historicalCard.sourceStale, true);
+assert.equal(historicalCard.lastConfirmedAt, originalCard.lastConfirmedAt);
+assert.equal(historicalCard.timestamp, originalCard.timestamp);
+assert.equal(originalCard.canAlertAsInventory, true, 'response projection must not mutate cached data');
+assert.equal(projectInventoryEvidenceFreshness({ ...originalCard, state: 'OH' }, AS_OF).canAlertAsInventory, true, 'Ohio remains unchanged');
+
+const runtimeOnly = { ...exactStoreInventory({ state: 'AZ', storeId: 'accepted-runtime', city: 'Phoenix', alertable: true }), sourcePollId: 'az:fixture' };
+const acceptedRuntimeContract = buildCoverageContract({ lifecycle, asOf: AS_OF, stateRows: [{ state: 'AZ', publicStatus: 'active', status: 'partial_useful', coverageTier: 'live_store_inventory', signalCount: 2, bestLocationPrecision: 'store_level' }], degradedStates: [{ state: 'AZ', status: 'partial_useful' }], drops: [runtimeOnly, exactStoreInventory({ state: 'AZ', storeId: 'unaccepted-sibling', city: 'Phoenix', alertable: true })] });
+assert.equal(acceptedRuntimeContract.states.find(state => state.code === 'AZ')?.freshness.currentInventoryStores, 1, 'only accepted runtime evidence survives a degraded snapshot');
+const expiredRuntimeContract = buildCoverageContract({ lifecycle, asOf: AS_OF, stateRows: [{ state: 'AZ', publicStatus: 'active', status: 'partial_useful', coverageTier: 'live_store_inventory', signalCount: 1 }], degradedStates: [{ state: 'AZ', status: 'partial_useful' }], drops: [{ ...runtimeOnly, stale: true }] });
+assert.equal(expiredRuntimeContract.states.find(state => state.code === 'AZ')?.freshness.currentInventoryStores, 0);
