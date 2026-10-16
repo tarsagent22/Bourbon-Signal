@@ -82,14 +82,23 @@ export function reserveCadenceDispatch(state, nowMs = Date.now()) {
     nextAt: new Date(nowMs + Math.min(60, 15 * 2 ** (attempts - 1)) * minute).toISOString(), status: 'reserved' } };
 }
 
-export function acceptanceSummary(rows, startedAt, nowMs = Date.now()) {
+export function parseObservationRows(text) {
+  const rows = []; let invalidRows = 0;
+  for (const line of text.split('\n').filter(line => line.trim())) {
+    try { const row = JSON.parse(line); if (timestamp(row?.checkedAt) === null) throw Error(); rows.push(row); }
+    catch { invalidRows++; }
+  }
+  return { rows, invalidRows };
+}
+
+export function acceptanceSummary(rows, startedAt, nowMs = Date.now(), invalidObservationRows = 0) {
   const observations = rows.filter(row => timestamp(row.checkedAt) >= timestamp(startedAt));
   const gaps = observations.slice(1).some((row, i) => timestamp(row.checkedAt) - timestamp(observations[i].checkedAt) > 90 * minute);
   const hours = (nowMs - timestamp(startedAt)) / (60 * minute);
   const snapshots = new Set(observations.map(row => row.engine?.snapshotId || row.stats?.snapshotId).filter(Boolean));
   const failures = observations.filter(row => !row.ok).length;
   return { startedAt, durationHours: hours, observations: observations.length, snapshots: snapshots.size,
-    failedObservations: failures, gapsOver90Minutes: gaps,
-    status: hours < 24 ? 'in_progress' : observations.length >= 24 && !failures && !gaps && snapshots.size >= 2 ? 'public_pipeline_observation_passed' : 'needs_review',
+    failedObservations: failures, gapsOver90Minutes: gaps, invalidObservationRows,
+    status: hours < 24 ? 'in_progress' : observations.length >= 24 && !failures && !gaps && !invalidObservationRows && snapshots.size >= 2 ? 'public_pipeline_observation_passed' : 'needs_review',
     scope: 'Public pipeline observations only; source acceptance, backup and actual delivery need separate final review.' };
 }

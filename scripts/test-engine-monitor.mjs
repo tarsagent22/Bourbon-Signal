@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
-import { assessEngineObservation, advanceEngineMonitor, planCadenceDispatch, reserveCadenceDispatch, acceptanceSummary } from './lib/engine-monitor-policy.mjs';
+import { assessEngineObservation, advanceEngineMonitor, planCadenceDispatch, reserveCadenceDispatch, acceptanceSummary, parseObservationRows } from './lib/engine-monitor-policy.mjs';
 import { runEngineMonitor } from './engine-monitor.mjs';
 const now = Date.parse('2026-10-16T12:00:00Z');
 const at = minutes => new Date(now - minutes * 60000).toISOString();
@@ -67,6 +67,11 @@ test('a failed acceptance observation or unexplained gap can never be erased by 
   rows.splice(2, 2);
   assert.equal(acceptanceSummary(rows, at(0), now + 24*3600000).status, 'needs_review');
 });
+test('a torn or malformed record is preserved as incomplete evidence, never silently counted as a passing window', () => {
+  const parsed = parseObservationRows(JSON.stringify({ checkedAt: at(0), ok: false }) + '\n{"checkedAt":');
+  assert.equal(parsed.invalidRows, 1); assert.equal(parsed.rows.length, 1);
+  assert.equal(acceptanceSummary(parsed.rows, at(0), now + 25*3600000, parsed.invalidRows).status, 'needs_review');
+});
 
 test('real worker persists uncertain dispatch reservations, limits aggregate requests and emits each incident/recovery once', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'bs-monitor-'));
@@ -97,6 +102,11 @@ test('real worker persists uncertain dispatch reservations, limits aggregate req
     assert.equal(state.incident, null);
     assert.equal(JSON.parse(await readFile(path.join(directory, 'monitor-last-run.json'), 'utf8')).aiInvocations, 0);
     assert.equal(JSON.parse(await readFile(path.join(directory, 'acceptance-status.json'), 'utf8')).failedObservations, 3);
+    io.nowMs = now + 24*3600000; await runEngineMonitor(config, io);
+    const closed = await readFile(path.join(directory, 'observations.jsonl'), 'utf8');
+    io.nowMs += 300000; await runEngineMonitor(config, io);
+    assert.equal(await readFile(path.join(directory, 'observations.jsonl'), 'utf8'), closed, 'one-time acceptance history stops growing after its final sample');
+    assert.equal(JSON.parse(await readFile(path.join(directory, 'acceptance-window-closed.json'), 'utf8')).status, 'needs_review');
   } finally {
     assert.equal(path.dirname(directory), path.resolve(tmpdir()));
     await rm(directory, { recursive: true, force: true });

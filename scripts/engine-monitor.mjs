@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
-import { assessEngineObservation, advanceEngineMonitor, planCadenceDispatch, reserveCadenceDispatch, acceptanceSummary } from './lib/engine-monitor-policy.mjs';
+import { assessEngineObservation, advanceEngineMonitor, planCadenceDispatch, reserveCadenceDispatch, acceptanceSummary, parseObservationRows } from './lib/engine-monitor-policy.mjs';
 
 const execute = promisify(execFile);
 const repo = 'tarsagent22/Bourbon-Signal';
@@ -13,6 +13,15 @@ const origin = 'https://www.bourbonsignal.com';
 const workflow = 'refresh-feed.yml';
 async function json(file, fallback = {}) { try { return JSON.parse(await readFile(file, 'utf8')); } catch (error) { if (error.code === 'ENOENT') return fallback; throw error; } }
 async function atomic(file, value) { const temporary = `${file}.${process.pid}.tmp`; await writeFile(temporary, JSON.stringify(value, null, 2)); await rename(temporary, file); }
+async function appendRow(file, row) {
+  let prefix = ''; let existing;
+  try {
+    existing = await open(file, 'r'); const size = (await existing.stat()).size;
+    if (size) { const last = Buffer.alloc(1); await existing.read(last, 0, 1, size - 1); if (last[0] !== 10) prefix = '\n'; }
+  } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  finally { await existing?.close(); }
+  await appendFile(file, prefix + JSON.stringify(row) + '\n');
+}
 async function publicJson(route) {
   try {
     const response = await fetch(`${origin}${route}?_bs_verify=${Date.now()}`, { cache: 'no-store', signal: AbortSignal.timeout(20_000) });
@@ -26,7 +35,23 @@ async function github(command, args) {
 export async function desktopNotification(event, config) {
   if (!config.notificationsEnabled) return { status: 'disabled' };
   if (process.platform !== 'win32') return { status: 'unsupported_platform' };
-  const script = `[Windows.UI.Notifications.ToastNotificationManager,Windows.UI.Notifications,ContentType=WindowsRuntime] > $null; [Windows.Data.Xml.Dom.XmlDocument,Windows.Data.Xml.Dom.XmlDocument,ContentType=WindowsRuntime] > $null; $inputData=[Console]::In.ReadToEnd()|ConvertFrom-Json; $notifier=[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('BourbonSignal.EngineMonitor'); if($notifier.Setting.ToString() -ne 'Enabled'){throw 'Notifications disabled'}; $xml=New-Object Windows.Data.Xml.Dom.XmlDocument; $escaped=[System.Security.SecurityElement]::Escape([string]$inputData.message); $xml.LoadXml('<toast><visual><binding template="ToastGeneric"><text>Bourbon Signal</text><text>'+$escaped+'</text></binding></visual></toast>'); $toast=[Windows.UI.Notifications.ToastNotification]::new($xml); $toast.Tag=$inputData.tag; $toast.Group='engine'; $toast.SuppressPopup=[bool]$inputData.retry; $notifier.Show($toast);`;
+  const script = `$ErrorActionPreference='Stop'
+[Windows.UI.Notifications.ToastNotificationManager,Windows.UI.Notifications,ContentType=WindowsRuntime] > $null
+[Windows.Data.Xml.Dom.XmlDocument,Windows.Data.Xml.Dom.XmlDocument,ContentType=WindowsRuntime] > $null
+$inputData=[Console]::In.ReadToEnd()|ConvertFrom-Json
+$globalSetting=Get-ItemProperty -LiteralPath 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\PushNotifications' -Name ToastEnabled -ErrorAction SilentlyContinue
+$appSetting=Get-ItemProperty -LiteralPath 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Notifications\\Settings\\BourbonSignal.EngineMonitor' -Name Enabled -ErrorAction SilentlyContinue
+if(($null -ne $globalSetting -and $globalSetting.ToastEnabled -eq 0) -or ($null -ne $appSetting -and $appSetting.Enabled -eq 0)){throw 'Notifications disabled'}
+$notifier=[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('BourbonSignal.EngineMonitor')
+if($null -eq $notifier){throw 'Windows notifier unavailable'}
+$xml=New-Object Windows.Data.Xml.Dom.XmlDocument
+$escaped=[System.Security.SecurityElement]::Escape([string]$inputData.message)
+$xml.LoadXml('<toast><visual><binding template="ToastGeneric"><text>Bourbon Signal</text><text>'+$escaped+'</text></binding></visual></toast>')
+$toast=[Windows.UI.Notifications.ToastNotification]::new($xml)
+$toast.Tag=$inputData.tag
+$toast.Group='engine'
+$toast.SuppressPopup=[bool]$inputData.retry
+$notifier.Show($toast)`;
   return new Promise(resolve => {
     const child = spawn('C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', script], { windowsHide: true, stdio: ['pipe', 'ignore', 'ignore'] });
     const timer = setTimeout(() => child.kill(), 15_000);
@@ -117,12 +142,19 @@ export async function runEngineMonitor(config, adapters = {}) {
       const delivered = await (adapters.notify || desktopNotification)({ ...event, retry: attempts > 1 }, config);
       state.notificationResults[event.id] = { ...delivered, attempts, at: now };
     }
-    await appendFile(path.join(directory, 'observations.jsonl'), JSON.stringify(observation) + '\n');
+    const dailyDirectory = path.join(directory, 'monitor-observations');
+    await mkdir(dailyDirectory, { recursive: true });
+    await appendRow(path.join(dailyDirectory, now.slice(0, 10) + '.jsonl'), observation);
     await atomic(path.join(directory, 'latest-observation.json'), observation);
     const acceptance = await json(path.join(directory, 'acceptance.json'), null);
-    if (acceptance?.startedAt) {
-      const rows = (await readFile(path.join(directory, 'observations.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
-      await atomic(path.join(directory, 'acceptance-status.json'), acceptanceSummary(rows, acceptance.startedAt, nowMs));
+    const closedWindow = await json(path.join(directory, 'acceptance-window-closed.json'), null);
+    if (acceptance?.startedAt && !closedWindow) {
+      const observationsPath = path.join(directory, 'observations.jsonl');
+      await appendRow(observationsPath, observation);
+      const parsed = parseObservationRows(await readFile(observationsPath, 'utf8'));
+      const summary = acceptanceSummary(parsed.rows, acceptance.startedAt, nowMs, parsed.invalidRows);
+      await atomic(path.join(directory, 'acceptance-status.json'), summary);
+      if (summary.durationHours >= 24) await atomic(path.join(directory, 'acceptance-window-closed.json'), { closedAt: now, ...summary });
     }
     await atomic(statePath, state);
     const status = { checkedAt: now, ok: observation.ok && !state.schedulerError, issues: observation.issues,
