@@ -45,6 +45,7 @@ export function buildStateRecoveryPlan(contract, {
   attempt = 0,
   maxAttempts = MAX_STATE_RECOVERY_ATTEMPTS,
   lastSelectedAtByState = null,
+  excludedStateIds = [],
 } = {}) {
   const boundedMax = Math.min(MAX_STATE_RECOVERY_ATTEMPTS, Math.max(1, Number(maxAttempts) || MAX_STATE_RECOVERY_ATTEMPTS));
   const currentAttempt = Math.max(0, Number(attempt) || 0);
@@ -54,10 +55,12 @@ export function buildStateRecoveryPlan(contract, {
     : failedStateIds);
   const eligibleRetryStateIds = [];
   const skipped = [];
+  const excluded = new Set(normalizeStateIds(excludedStateIds));
 
   for (const state of requestedStateIds) {
     const record = byState.get(state);
-    if (!record) skipped.push({ state, reason: 'missing_operating_record' });
+    if (excluded.has(state)) skipped.push({ state, reason: 'excluded_from_automatic_recovery' });
+    else if (!record) skipped.push({ state, reason: 'missing_operating_record' });
     else if (record.health === 'blocked') skipped.push({ state, reason: 'blocked_deterministic_validation' });
     else if (!retryableState(record)) skipped.push({ state, reason: 'not_retryable_or_degraded' });
     else if (currentAttempt >= boundedMax) skipped.push({ state, reason: 'attempt_cap_reached' });
