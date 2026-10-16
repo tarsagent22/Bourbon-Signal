@@ -11,7 +11,7 @@ const execute = promisify(execFile);
 const repo = 'tarsagent22/Bourbon-Signal';
 const origin = 'https://www.bourbonsignal.com';
 const workflow = 'refresh-feed.yml';
-async function json(file, fallback = {}) { try { return JSON.parse(await readFile(file, 'utf8')); } catch (error) { if (error.code === 'ENOENT') return fallback; throw error; } }
+async function json(file, fallback = {}) { try { return JSON.parse((await readFile(file, 'utf8')).replace(/^\uFEFF/, '')); } catch (error) { if (error.code === 'ENOENT') return fallback; throw error; } }
 async function atomic(file, value) { const temporary = `${file}.${process.pid}.tmp`; await writeFile(temporary, JSON.stringify(value, null, 2)); await rename(temporary, file); }
 async function appendRow(file, row) {
   let prefix = ''; let existing;

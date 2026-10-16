@@ -89,7 +89,7 @@ test('real worker persists uncertain dispatch reservations, limits aggregate req
     notify: async event => { notifications.push(event); return { status: 'accepted_by_windows' }; },
   };
   try {
-    await writeFile(path.join(directory, 'acceptance.json'), JSON.stringify({ startedAt: at(0) }));
+    await writeFile(path.join(directory, 'acceptance.json'), '\uFEFF' + JSON.stringify({ startedAt: at(0) })); // Windows PowerShell 5.1 UTF-8 files include a BOM.
     await runEngineMonitor(config, io);
     assert.equal(dispatchCalls, 1);
     assert.equal(JSON.parse(await readFile(path.join(directory, 'deterministic-monitor-state.json'), 'utf8')).dispatch.attempts, 1);
