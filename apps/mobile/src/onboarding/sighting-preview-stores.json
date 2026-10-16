@@ -1,0 +1,257 @@
+{
+  "AK": {
+    "store": "Brown Jug · Old Seward Highway",
+    "city": "Anchorage",
+    "sourceUrl": "https://brownjugalaska.net/"
+  },
+  "AL": {
+    "store": "Alabama ABC Store #011",
+    "city": "Birmingham",
+    "sourceUrl": "https://alabcboard.gov/sites/default/files/inline-files/Web%20Hold_20.pdf"
+  },
+  "AR": {
+    "store": "O’Looney’s Wine & Liquor",
+    "city": "Little Rock",
+    "sourceUrl": "https://www.olooneys.com/"
+  },
+  "AZ": {
+    "store": "Lucky's Liquor",
+    "city": "Phoenix",
+    "sourceUrl": "https://luckysliquor.com"
+  },
+  "CA": {
+    "store": "3 JAYS LIQUOR",
+    "city": "Los Angeles",
+    "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/"
+  },
+  "CO": {
+    "store": "44TH AVENUE LIQUOR",
+    "city": "Denver",
+    "sourceUrl": "https://data.colorado.gov/d/ier5-5ms2"
+  },
+  "CT": {
+    "store": "Total Wine & More · Main Avenue",
+    "city": "Norwalk",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "DC": {
+    "store": "Schneider’s of Capitol Hill",
+    "city": "Washington",
+    "sourceUrl": "https://cellar.com/"
+  },
+  "DE": {
+    "store": "Total Wine & More · Naamans Road",
+    "city": "Claymont",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "FL": {
+    "store": "ABC Fine Wine & Spirits · Orange Blossom Trail",
+    "city": "Orlando",
+    "sourceUrl": "https://www.abcfws.com/stores"
+  },
+  "GA": {
+    "store": "Green’s Discount Beverages",
+    "city": "Atlanta",
+    "sourceUrl": "https://dor.georgia.gov/active-alcohol-licenses"
+  },
+  "HI": {
+    "store": "Tamura’s Fine Wine & Liquors · Waialae",
+    "city": "Honolulu",
+    "sourceUrl": "https://www.tamurasmarket.com/locations"
+  },
+  "IA": {
+    "store": "1st Stop Beverage Shop / Des Moines",
+    "city": "Des Moines",
+    "sourceUrl": "https://shop.iowaabd.com/snapshot/inventory?code=18006&download"
+  },
+  "ID": {
+    "store": "Boise (Store 101)",
+    "city": "Boise",
+    "sourceUrl": "https://idaholiquor.com/stores/"
+  },
+  "IL": {
+    "store": "Binny’s Beverage Depot · South Jefferson Street",
+    "city": "Chicago",
+    "sourceUrl": "https://ilcc.illinois.gov/content/dam/soi/en/web/ilcc/datasources/ilcc-licenses-daily-export.csv"
+  },
+  "IN": {
+    "store": "21st Amendment - W 86th St",
+    "city": "Indianapolis",
+    "sourceUrl": "https://21stamendment.com/shop/product/bulleit-bourbon/60d24ff23d172e254c08e74d?option-id=f014ed6a1ee9035ac65727586efc718030d70b19c695b8f43b24ed3c9775ef0b"
+  },
+  "KS": {
+    "store": "Total Wine & More · Greenwich Court",
+    "city": "Wichita",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "KY": {
+    "store": "Liquor Barn",
+    "city": "Louisville",
+    "sourceUrl": "https://abcportal.ky.gov/BelleExternal/ReportGenerator/Reports"
+  },
+  "LA": {
+    "store": "Total Wine & More · Veterans Memorial Boulevard",
+    "city": "Metairie",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "MA": {
+    "store": "Total Wine & More · South Bay",
+    "city": "Boston",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "MD": {
+    "store": "Montgomery County ABS / Oak Barrel & Vine - Hampden Lane",
+    "city": "Bethesda",
+    "sourceUrl": "https://mcg.montgomerycountymd.gov/mcg-iframe-template/abs/storeslocation.aspx"
+  },
+  "ME": {
+    "store": "Bow Street Beverage · Forest Avenue",
+    "city": "Portland",
+    "sourceUrl": "https://bowstreetbeverage.com/shop-portland/"
+  },
+  "MI": {
+    "store": "Total Wine & More · Haggerty Road",
+    "city": "Novi",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "MN": {
+    "store": "Total Wine & More · Southtown",
+    "city": "Bloomington",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "MO": {
+    "store": "Gomer’s · Midtown",
+    "city": "Kansas City",
+    "sourceUrl": "https://gomersmidtown.com/"
+  },
+  "MS": {
+    "store": "5 STAR LIQUOR",
+    "city": "Jackson",
+    "sourceUrl": "https://tap.dor.ms.gov/_/"
+  },
+  "MT": {
+    "store": "Bottles & Shots · Grand Avenue",
+    "city": "Billings",
+    "sourceUrl": "https://www.bottlesandshots.com/"
+  },
+  "NC": {
+    "store": "Wake County ABC · Sandy Forks Road",
+    "city": "Raleigh",
+    "sourceUrl": "https://abc2.nc.gov/Search/ABCStoreLocator"
+  },
+  "ND": {
+    "store": "Happy Harry’s Bottle Shops · 52nd Avenue",
+    "city": "Fargo",
+    "sourceUrl": "https://www.happy-harrys.com/"
+  },
+  "NE": {
+    "store": "Total Wine & More · 71st Street",
+    "city": "Omaha",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "NH": {
+    "store": "NH Liquor & Wine Outlet",
+    "city": "Manchester",
+    "sourceUrl": "https://www.liquorandwineoutlets.com/"
+  },
+  "NJ": {
+    "store": "Total Wine & More · Prospect Avenue",
+    "city": "West Orange",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "NM": {
+    "store": "Total Wine & More · Uptown",
+    "city": "Albuquerque",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "NV": {
+    "store": "Albertsons #662",
+    "city": "Las Vegas",
+    "sourceUrl": "https://www.albertsons.com/shop/product-details.189032017.html"
+  },
+  "NY": {
+    "store": "107 Wine & Spirits Corp",
+    "city": "New York",
+    "sourceUrl": "https://data.ny.gov/d/9s3h-dpkz"
+  },
+  "OH": {
+    "store": "3C Food & Beverage",
+    "city": "Columbus",
+    "sourceUrl": "https://www.ohlq.com/liquor/whiskey/american/bourbon/weller-special-reserve"
+  },
+  "OK": {
+    "store": "Byron’s Liquor Warehouse",
+    "city": "Oklahoma City",
+    "sourceUrl": "https://www.byronsliquor.com/"
+  },
+  "OR": {
+    "store": "Westmoreland Liquor",
+    "city": "Portland",
+    "sourceUrl": "https://westmorelandliquor.com/"
+  },
+  "PA": {
+    "store": "Fine Wine & Good Spirits #5103",
+    "city": "Philadelphia",
+    "sourceUrl": "https://www.finewineandgoodspirits.com/russells-reserve-single-barrel-whiskey/product/000532202"
+  },
+  "RI": {
+    "store": "Bottles Fine Wine · Pitman Street",
+    "city": "Providence",
+    "sourceUrl": "https://bottlesfinewine.com/pages/contact"
+  },
+  "SC": {
+    "store": "ALCHEMIST WINE AND SPIRITS - ASHLEY CROSSING",
+    "city": "Charleston",
+    "sourceUrl": "https://mydorway.dor.sc.gov/?link=AlcoholLicense"
+  },
+  "SD": {
+    "store": "JJ’s Wine, Spirits & Cigars",
+    "city": "Sioux Falls",
+    "sourceUrl": "https://jjswine.com/"
+  },
+  "TN": {
+    "store": "12 AND PINE",
+    "city": "Nashville",
+    "sourceUrl": "https://rlpsmobile.abc.tn.gov/LicenseSearch/LicenseSearchIndex"
+  },
+  "TX": {
+    "store": "@Bottle King Liquor",
+    "city": "Houston",
+    "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f"
+  },
+  "UT": {
+    "store": "DABS Store 1",
+    "city": "Salt Lake City",
+    "sourceUrl": "https://gis.utah.gov/products/sgid/society/liquor-stores/"
+  },
+  "VA": {
+    "store": "ABC Store 086",
+    "city": "Richmond",
+    "sourceUrl": "https://vgin.vdem.virginia.gov/datasets/virginia-abc-stores/"
+  },
+  "VT": {
+    "store": "802 bws · North Avenue",
+    "city": "Burlington",
+    "sourceUrl": "https://802bws.com/"
+  },
+  "WA": {
+    "store": "Total Wine & More · Northgate",
+    "city": "Seattle",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "WI": {
+    "store": "Total Wine & More · West Towne",
+    "city": "Madison",
+    "sourceUrl": "https://www.totalwine.com/store-finder/"
+  },
+  "WV": {
+    "store": "Kroger · Fledderjohn Road",
+    "city": "Charleston",
+    "sourceUrl": "https://www.wvabca.com/licensesearch.aspx"
+  },
+  "WY": {
+    "store": "DT’s Liquor",
+    "city": "Cheyenne",
+    "sourceUrl": "https://dtsliquor.com/"
+  }
+}
