@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomBytes } from 'node:crypto';
-import { ENGINE_FEED_COUNT_CONTRACT, ENGINE_FEED_VERIFICATION_HEADER, signEngineFeedVerification } from '../src/lib/engine-feed-verification.ts';
+import { ENGINE_FEED_COUNT_CONTRACT, ENGINE_FEED_VERIFICATION_HEADER, signEngineFeedVerification, engineFeedVerificationState } from '../src/lib/engine-feed-verification.ts';
 
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
 const MAX_SNAPSHOT_AGE_MS = Number(process.env.BOURBON_SIGNAL_WATCHDOG_MAX_SNAPSHOT_AGE_MS || 45 * 60_000);
@@ -166,7 +166,7 @@ async function probe() {
   const stats = await getJson('/api/stats');
   const opsHealth = await getJson('/api/ops/health');
   const stateChecks = await Promise.all(states.map(async (state) => {
-    const result = await getJson(`/api/drops?state=${encodeURIComponent(state)}&limit=1`);
+    const result = await getJson(`/api/drops?state=${encodeURIComponent(engineFeedVerificationState(state))}&limit=1`);
     return {
       state,
       ok: result.ok,
