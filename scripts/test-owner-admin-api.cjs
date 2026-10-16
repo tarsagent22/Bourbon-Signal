@@ -274,12 +274,18 @@ test('submission research must be audited and artwork stays bound to the researc
  assert.equal((await apply('Different Expression')).status,200);assert.equal(patch.artwork,undefined,'editing the identity cannot borrow another expression artwork');
 });
 
-test('public artwork delivery exposes only reviewed decorative blob assets',async()=>{
- let bottle;const route=moduleFrom('src/app/api/v1/bottle-artwork/[id]/route.ts',{'@/lib/bourbonBible':{getBottleById:async()=>bottle}});
- const request=()=>route.GET(new Request('https://example.test/api/v1/bottle-artwork/owner-test'),{params:Promise.resolve({id:'owner-test'})});
+test('public artwork delivery exposes reviewed labeled assets and keeps legacy blobs bounded',async()=>{
+ let bottle,id='owner-test';const route=moduleFrom('src/app/api/v1/bottle-artwork/[id]/route.ts',{'@/lib/bourbonBible':{getBottleById:async()=>bottle}});
+ const request=()=>route.GET(new Request(`https://example.test/api/v1/bottle-artwork/${id}`),{params:Promise.resolve({id})});
  assert.equal((await request()).status,404);
  bottle={artwork:{url:'https://test.public.blob.vercel-storage.com/member-photo/private.png',sha256:'a'.repeat(64),reviewedAt:'2026-10-10T12:00:00Z',description:'Not decorative'}};
  assert.equal((await request()).status,503);
  bottle.artwork.url='https://test.public.blob.vercel-storage.com/bottle-artwork/clean.png';
  const response=await request();assert.equal(response.status,302);assert.equal(response.headers.get('Location'),bottle.artwork.url);
+ const registry=JSON.parse(fs.readFileSync(`${root}/shared/labeled-bottle-artwork-registry.json`,'utf8'));
+ const owner=registry.entries.find(row=>row.catalogId.startsWith('owner-'));
+ id=owner.catalogId;bottle={canonicalName:owner.displayName,artwork:{url:'https://test.public.blob.vercel-storage.com/member-photo/private.png'}};
+ const labeled=await request();assert.equal(labeled.status,302);assert.equal(labeled.headers.get('Location'),`https://www.bourbonsignal.com/bottle-artwork/${owner.sha256}.png`);
+ bottle={canonicalName:'Different Expression'};
+ assert.equal((await request()).status,404,'changed owner identity cannot inherit old labeled art');
 });

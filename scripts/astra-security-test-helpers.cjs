@@ -16,6 +16,11 @@ function functions(file, names, bindings = {}) {
 function moduleFrom(file, stubs = {}, cache = new Map(), env = {}) {
   const full = path.resolve(root, file);
   if (cache.has(full)) return cache.get(full);
+  if (path.extname(full) === '.json') {
+    const data = JSON.parse(fs.readFileSync(full, 'utf8'));
+    cache.set(full, data);
+    return data;
+  }
   const exports = {};
   cache.set(full, exports);
   const text = fs.readFileSync(full, 'utf8');
