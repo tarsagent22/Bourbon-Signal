@@ -1,4 +1,12 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { publicStateCode } from "./location-normalization.ts";
+
+/** Public request/response scope; internal engine partition IDs remain internal. */
+export function engineFeedVerificationState(state: string) {
+  const code = publicStateCode(state);
+  if (!/^[A-Z]{2}$/.test(code)) throw new Error("Unsupported engine verification state.");
+  return code;
+}
 
 export const ENGINE_FEED_VERIFICATION_HEADER = "x-bourbon-signal-engine-verification";
 export const ENGINE_FEED_COUNT_CONTRACT = "bourbon-signal/engine-feed-count@1";
@@ -32,5 +40,5 @@ export function authorizeEngineFeedVerification(url: URL, supplied: string | nul
 }
 
 export function engineFeedCountPayload(state: string, total: number, snapshot: string, lastUpdated: unknown) {
-  return { contractVersion: PURPOSE, state, total, snapshot, lastUpdated };
+  return { contractVersion: PURPOSE, state: engineFeedVerificationState(state), total, snapshot, lastUpdated };
 }

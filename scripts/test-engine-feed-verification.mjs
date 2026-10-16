@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { authorizeEngineFeedVerification, signEngineFeedVerification, engineFeedCountPayload } from '../src/lib/engine-feed-verification.ts';
+import { authorizeEngineFeedVerification, signEngineFeedVerification, engineFeedCountPayload, engineFeedVerificationState } from '../src/lib/engine-feed-verification.ts';
 const key = 'test-only-engine-count-key-1234567890';
 const now = 1791954000000;
 const url = () => new URL('https://www.bourbonsignal.com/api/drops?state=IN&limit=1&_bs_verify=1791954000000-abcdef');
@@ -31,4 +31,15 @@ test('verification response contains no cards, customer records, or market detai
   assert.deepEqual(engineFeedCountPayload('IN', 12, 'snapshot-1', '2026-10-14'), {
     contractVersion: 'bourbon-signal/engine-feed-count@1', state: 'IN', total: 12, snapshot: 'snapshot-1', lastUpdated: '2026-10-14',
   });
+});
+
+test('Maryland internal partition is signed and returned only as public MD scope', () => {
+  assert.equal(engineFeedVerificationState('MD-MONTGOMERY'), 'MD');
+  const request = url(); request.searchParams.set('state', engineFeedVerificationState('MD-MONTGOMERY'));
+  const proof = signEngineFeedVerification(request, key, now);
+  assert.equal(authorizeEngineFeedVerification(request, proof, key, now), true);
+  assert.equal(engineFeedCountPayload('MD-MONTGOMERY', 4, 's', null).state, 'MD');
+  request.searchParams.set('state', 'MD-MONTGOMERY');
+  assert.throws(() => signEngineFeedVerification(request, key, now), /not configured/);
+  assert.throws(() => engineFeedVerificationState('INVALID'));
 });
