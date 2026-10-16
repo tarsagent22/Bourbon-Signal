@@ -136,12 +136,19 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const [dnaExpanded, setDnaExpanded] = useState(false);
   const [statisticsOpen, setStatisticsOpen] = useState(false);
   const statisticsTrigger = useRef<View>(null);
+  const afterStatisticsDismiss = useRef<(() => void) | null>(null);
   const restoreStatisticsFocus = () => {
+    if (afterStatisticsDismiss.current) { const action = afterStatisticsDismiss.current; afterStatisticsDismiss.current = null; action(); return; }
     if (Platform.OS === 'web') { (statisticsTrigger.current as unknown as {focus?: () => void})?.focus?.(); return; }
     const node = findNodeHandle(statisticsTrigger.current);
     if (node != null) AccessibilityInfo.setAccessibilityFocus(node);
   };
   const closeStatistics = () => { setStatisticsOpen(false); };
+  const leaveStatistics = (action: () => void) => {
+    setStatisticsOpen(false);
+    if (Platform.OS === 'ios') afterStatisticsDismiss.current = action;
+    else action();
+  };
   const reportedPendingBottleIds = useRef(new Set<string>());
 
   const acceptServerPreferences = useCallback((next: MemberPreferences) => {
@@ -482,7 +489,9 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
       ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No bottles match" : "No bottles on your shelf yet"} detail={sourceBottles.length ? "Try a broader search or clear your filters." : "Add a bottle you own or one you’ve tasted."} actionLabel={sourceBottles.length ? "Clear filters" : "Add your first bottle"} onAction={() => { if (sourceBottles.length) { setQuery(""); setFilters({ ...DEFAULT_COLLECTION_FILTERS, status: "all" }); } else router.push("/(app)/cellar/add"); }} /> : null}
       style={memberScreenStyles.screen}
     />
-    <CollectionStatisticsSheet visible={statisticsOpen} statistics={statistics} bottles={sourceBottles} collectionVersion={preferences?.collectionPreferences.version || 0} advancedAccess={canUseRecommendations} collectionValue={preferences?.collectionValue} onClose={closeStatistics} onDismiss={restoreStatisticsFocus} />
+    <CollectionStatisticsSheet visible={statisticsOpen} statistics={statistics} bottles={sourceBottles} collectionVersion={preferences?.collectionPreferences.version || 0} advancedAccess={canUseRecommendations} collectionValue={preferences?.collectionValue} onClose={closeStatistics} onDismiss={restoreStatisticsFocus}
+      onAdd={canAddToCollection ? () => leaveStatistics(() => router.push("/(app)/cellar/add")) : undefined}
+      onOpenBottle={bottleId => leaveStatistics(() => router.push({ pathname: "/(app)/bottle/[id]", params: { id: bottleId } }))} />
     <RefineSheet filters={filters} mode={refineMode} onChange={setFilters} onClose={() => setRefineMode(null)} onSort={setSort} sort={sort} />
     <BottleEditor bottle={selected} busy={mutating} onClose={() => setSelected(null)} onDelete={requestDelete} onInventoryAction={applyInventoryAction} onSave={saveBottle} />
   </SafeAreaView>;

@@ -23,9 +23,10 @@ try {
   await page.goto('http://127.0.0.1:5198/?screen=check');
   await page.getByRole('radio', { name: 'Search by name' }).click();
   await page.getByRole('textbox', { name: 'Search bottles' }).fill('Eagle Rare');
-  await page.getByRole('button', { name: 'View Eagle Rare 10 Year' }).waitFor(); await capture('bottle-check-search');
-  await page.getByRole('button', { name: 'View Eagle Rare 10 Year' }).click();
-  assert.equal(await page.evaluate(() => window.lastRoute.pathname), '/(app)/bottle/[id]');
+  await page.getByRole('button', { name: 'Check Eagle Rare 10 Year' }).waitFor(); await capture('bottle-check-search');
+  await page.getByRole('button', { name: 'Check Eagle Rare 10 Year' }).click();
+  await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('40');
+  await page.getByText('A good buy at this price', { exact: true }).waitFor();
   await open('owned=1&catalog=missing');
   await page.getByText('Catalog details aren’t available for this saved entry. Your shelf details remain editable.').waitFor();
   await page.getByRole('button', { name: 'Edit your shelf' }).click();

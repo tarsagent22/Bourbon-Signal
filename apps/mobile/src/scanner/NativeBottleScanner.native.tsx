@@ -8,6 +8,7 @@ import { createLabelIndex, matchBottleLabel, normalizeBarcode, VERIFIED_BOTTLE_B
 import { createScanLoop } from './scan-loop';
 import type { ScannerProps } from './scanner-types';
 import { colors } from '../theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // Keep search and profiles usable in a binary that predates the scanner modules.
 const cameraAvailable = Boolean(requireOptionalNativeModule('ExpoCamera'));
@@ -26,7 +27,7 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
   const [ready, setReady] = useState(false);
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
   const [torch, setTorch] = useState(false);
-  const [message, setMessage] = useState('Center one label and hold steady');
+  const [message, setMessage] = useState('');
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
   const current = useRef({ catalog, onMatches }); current.current = { catalog, onMatches };
@@ -39,7 +40,7 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
   useEffect(() => { if (!cameraActive) { setReady(false); setTorch(false); } }, [cameraActive]);
   useEffect(() => {
     if (!cameraActive || !ready) return;
-    let failures = 0;
+    let failures = 0; let emptyReads = 0;
     const loop = createScanLoop({
       read: async () => {
         if (capturing.current) return null;
@@ -59,7 +60,7 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
           for (const uri of [original, cropped]) if (uri) { try { new File(uri).delete(); } catch { /* Cache cleanup must not interrupt recovery. */ } }
         }
       },
-      onResult: matches => { if (!matches) return; failures = 0; current.current.onMatches(matches); setMessage(matches.length ? 'Possible matches below · confirm the release' : 'Move closer or turn the label toward the light'); },
+      onResult: matches => { if (!matches) return; failures = 0; current.current.onMatches(matches); emptyReads = matches.length ? 0 : emptyReads + 1; setMessage(matches.length ? 'Choose a match below' : emptyReads >= 4 ? 'Try more light or move closer' : ''); },
       onError: () => { failures += 1; if (failures >= 3) { setFailed(true); setMessage('Label reading paused. Try again or search by name.'); } },
     });
     loop.start(); return () => loop.stop();
@@ -77,8 +78,8 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
       else setMessage('Barcode read · turn to the front label to find a match');
     }} /> : null}
     <View pointerEvents="none" style={s.guide}><View style={s.bracket} /></View>
-    <View style={s.top}><Text style={s.badge}>{cameraActive ? 'LIVE LABEL SCAN' : failed ? 'SCAN PAUSED' : 'CAMERA PAUSED'}</Text><Pressable accessibilityRole="button" accessibilityLabel={torch ? 'Turn flashlight off' : 'Turn flashlight on'} accessibilityState={{ selected: torch }} onPress={() => setTorch(value => !value)} style={s.torch}><Text style={s.light}>{torch ? 'Light on' : 'Light'}</Text></Pressable></View>
-    <View style={s.bottom}><Text accessibilityLiveRegion="polite" style={s.overlayCopy}>{message}</Text>{failed ? <Pressable accessibilityRole="button" onPress={() => { setReady(false); setFailed(false); setRetry(value => value + 1); }} style={s.button}><Text style={s.buttonText}>Try camera again</Text></Pressable> : null}</View>
+    <View style={s.top}><View accessible accessibilityLabel={cameraActive ? 'Camera scanning' : 'Camera paused'} style={[s.statusDot, { backgroundColor: cameraActive ? '#AAD1AB' : colors.muted }]} /><Pressable accessibilityRole="button" accessibilityLabel={torch ? 'Turn flashlight off' : 'Turn flashlight on'} accessibilityState={{ selected: torch }} onPress={() => setTorch(value => !value)} style={s.torch}><MaterialCommunityIcons name={torch ? 'flashlight' : 'flashlight-off'} color="#fff" size={22} /></Pressable></View>
+    <View style={s.bottom}>{message ? <Text accessibilityLiveRegion="polite" style={s.overlayCopy}>{message}</Text> : null}{failed ? <Pressable accessibilityRole="button" onPress={() => { setReady(false); setFailed(false); setRetry(value => value + 1); }} style={s.button}><Text style={s.buttonText}>Try camera again</Text></Pressable> : null}</View>
   </View>;
 }
-const s = StyleSheet.create({ frame: { height: 360, borderRadius: 26, overflow: 'hidden', backgroundColor: '#171411' }, guide: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' }, bracket: { width: '70%', height: '60%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', borderRadius: 18 }, top: { position: 'absolute', top: 16, left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, badge: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', fontSize: 10, letterSpacing: 1.4, fontWeight: '700', padding: 10, borderRadius: 12 }, torch: { minWidth: 48, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 22, paddingHorizontal: 14 }, light: { color: '#fff', fontSize: 13 }, bottom: { position: 'absolute', bottom: 16, left: 16, right: 16, gap: 8 }, overlayCopy: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.7)', textAlign: 'center', fontSize: 13, lineHeight: 19, padding: 12, borderRadius: 12 }, fallback: { minHeight: 220, padding: 28, gap: 18, backgroundColor: colors.surface, borderRadius: 24, justifyContent: 'center' }, copy: { color: colors.muted, fontSize: 15, lineHeight: 23, textAlign: 'center' }, button: { minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: colors.accent }, buttonText: { color: colors.background, fontSize: 14, fontWeight: '700' } });
+const s = StyleSheet.create({ frame: { height: 360, borderRadius: 26, overflow: 'hidden', backgroundColor: '#171411' }, guide: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' }, bracket: { width: '70%', height: '60%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', borderRadius: 18 }, top: { position: 'absolute', top: 16, left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, statusDot: { width: 8, height: 8, borderRadius: 4, margin: 12 }, badge: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', fontSize: 10, letterSpacing: 1.4, fontWeight: '700', padding: 10, borderRadius: 12 }, torch: { minWidth: 48, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 22, paddingHorizontal: 14 }, light: { color: '#fff', fontSize: 13 }, bottom: { position: 'absolute', bottom: 16, left: 16, right: 16, gap: 8 }, overlayCopy: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.7)', textAlign: 'center', fontSize: 13, lineHeight: 19, padding: 12, borderRadius: 12 }, fallback: { minHeight: 220, padding: 28, gap: 18, backgroundColor: colors.surface, borderRadius: 24, justifyContent: 'center' }, copy: { color: colors.muted, fontSize: 15, lineHeight: 23, textAlign: 'center' }, button: { minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: colors.accent }, buttonText: { color: colors.background, fontSize: 14, fontWeight: '700' } });

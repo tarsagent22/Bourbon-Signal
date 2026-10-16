@@ -10,11 +10,13 @@ import { collectionInsights } from '../cellar/collection-insights';
 import { collectionMoney, secondaryMoney, type CollectionValue } from '../cellar/collection-value';
 import { CollectionValueCard } from './CollectionValueCard';
 import { CollectionValueChart } from './CollectionValueChart';
+import { CollectionPayoff } from './CollectionPayoff';
 import { colors, fonts } from '../theme';
 
 type Statistics = ReturnType<typeof collectionStatistics>;
 const tones = [colors.accent, '#C9B393', '#8E775F', '#685E53', '#4E4943'];
-export function CollectionStatisticsSheet({ visible, statistics, bottles, collectionVersion, advancedAccess = false, collectionValue, onClose, onDismiss }: {
+export function CollectionStatisticsSheet({ visible, statistics, bottles, collectionVersion, advancedAccess = false, collectionValue, onClose, onDismiss, onAdd, onOpenBottle }: {
+  onAdd?: () => void; onOpenBottle?: (id: string) => void;
   advancedAccess?: boolean; collectionValue?: CollectionValue | null; collectionVersion: number;
   visible: boolean; statistics: Statistics; bottles: readonly MemberCollectionBottle[]; onClose: () => void; onDismiss: () => void;
 }) {
@@ -27,7 +29,7 @@ export function CollectionStatisticsSheet({ visible, statistics, bottles, collec
   const [retry, setRetry] = useState(0); const [pricingDetails, setPricingDetails] = useState(false);
   useEffect(() => {
     let active = true; setHistory(null); setCurrentValue(null); setError(''); setPricingDetails(false);
-    if (!visible || !advancedAccess) { setLoading(false); return; }
+    if (!visible || !advancedAccess || !bottles.length) { setLoading(false); return; }
     setLoading(true);
     void api.getCollectionHistory().then(result => {
       if (!active) return;
@@ -35,7 +37,7 @@ export function CollectionStatisticsSheet({ visible, statistics, bottles, collec
       setHistory(result.history); setCurrentValue(result.value);
     }).catch(caught => { if (active) setError(caught instanceof Error ? caught.message : 'Value history couldn’t load.'); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [api, visible, advancedAccess, collectionVersion, retry]);
+  }, [api, visible, advancedAccess, collectionVersion, retry, bottles.length]);
   const value = currentValue || collectionValue;
   const insights = useMemo(() => collectionInsights(bottles, catalog.catalog, advancedAccess ? value : null), [bottles, catalog.catalog, value, advancedAccess]);
   const s = statistics;
@@ -49,10 +51,8 @@ export function CollectionStatisticsSheet({ visible, statistics, bottles, collec
     <SafeAreaView style={styles.frame} accessibilityViewIsModal onAccessibilityEscape={onClose}>
       <View style={styles.header}><Text ref={heading} accessible accessibilityRole="header" style={styles.title}>Collection Statistics</Text><Pressable accessibilityRole="button" accessibilityLabel="Close collection statistics" onPress={onClose} style={styles.close}><Text style={styles.link}>Close</Text></Pressable></View>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.summary}>
-          <Metric label="Bottles on hand" value={String(s.ownedBottleCount)} detail={`${s.ownedWhiskeyCount} unique owned entries`} />
-          <Metric label="Tasted only" value={String(s.tastedOnlyCount)} detail="Saved with no bottles on hand" />
-        </View>
+        <CollectionPayoff advancedAccess={advancedAccess} bottles={bottles} catalog={catalog.catalog} onAdd={onAdd} onOpenBottle={onOpenBottle} />
+        {bottles.length ? <>
         <View style={[styles.inventoryBar, { backgroundColor: colors.surfaceRaised }]} accessibilityLabel={`${s.sealedBottleCount} sealed bottles and ${s.openBottleCount} open bottles`}>{s.ownedBottleCount ? <><View style={{ flex: s.sealedBottleCount, backgroundColor: colors.accent }} /><View style={{ flex: s.openBottleCount, backgroundColor: '#685E53' }} /></> : null}</View>
         <View style={styles.inventoryLabels}><Text style={styles.copy}>{s.sealedBottleCount} sealed</Text><Text style={styles.copy}>{s.openBottleCount} open</Text></View>
 
@@ -61,9 +61,8 @@ export function CollectionStatisticsSheet({ visible, statistics, bottles, collec
           <View style={styles.basis}>{(['msrp', 'secondary'] as const).map(option => <Pressable key={option} accessibilityRole="button" accessibilityState={{ selected: basis === option }} onPress={() => setBasis(option)} style={[styles.basisButton, basis === option && styles.basisActive]}><Text style={basis === option ? styles.link : styles.copy}>{option === 'msrp' ? 'MSRP' : 'Secondary'}</Text></Pressable>)}</View>
           <Text style={styles.amount} adjustsFontSizeToFit minimumFontScale={0.65} numberOfLines={1}>{value ? basis === 'msrp' ? collectionMoney(value.msrp.total) : secondaryMoney(value) : 'Unavailable'}</Text>
           <View style={styles.coverageTrack}><View style={[styles.coverageFill, { width: `${eligibleCount ? Math.min(100, pricedCount / eligibleCount * 100) : 0}%` }]} /></View>
-          <Text style={styles.valueCoverage}>Across {pricedCount} priced {basis === 'secondary' ? 'sealed ' : ''}bottles{pricedCount < eligibleCount ? ' · partial estimate' : ''}</Text>
-          {pricedCount < eligibleCount ? <Text style={styles.note}>{eligibleCount - pricedCount} {basis === 'secondary' ? 'sealed ' : ''}bottles missing prices</Text> : null}
-          <Text style={styles.note}>{basis === 'secondary' ? `${s.openBottleCount} open bottles excluded. Dated market references, not guaranteed sale prices.` : 'Published full-bottle MSRP for bottles on hand, including open bottles. Missing prices are excluded.'}</Text>
+          <Text style={styles.valueCoverage}>{pricedCount} of {eligibleCount} {basis === 'secondary' ? 'sealed ' : ''}bottles priced{pricedCount < eligibleCount ? ' · partial estimate' : ''}</Text>
+          {basis === 'secondary' ? <Text style={styles.note}>{s.openBottleCount} open bottles excluded.</Text> : null}
           <View style={styles.sectionHeading}><Text accessibilityRole="header" style={styles.sectionTitle}>Value over time</Text>{loading ? <ActivityIndicator size="small" color={colors.accent} accessibilityLabel="Loading value history" /> : null}</View>
           {history ? <CollectionValueChart history={history} basis={basis} /> : loading ? <View style={styles.historyLoading}><Text style={styles.copy}>Loading recorded values…</Text></View> : null}
           {error ? <View style={styles.notice}><Text accessibilityRole="alert" style={styles.copy}>{error}</Text><Pressable accessibilityRole="button" onPress={() => setRetry(n => n + 1)} style={styles.close}><Text style={styles.link}>Retry history</Text></Pressable></View> : null}
@@ -84,6 +83,7 @@ export function CollectionStatisticsSheet({ visible, statistics, bottles, collec
           {insights.proofComparison ? <View style={styles.comparison}><Text style={styles.insightTitle}>How proof compares</Text><View style={styles.summary}><Metric label="100+ proof" value={`${insights.proofComparison.higher.toFixed(1)} / 10`} detail={`${insights.proofComparison.higherCount} rated entries`} /><Metric label="Under 100 proof" value={`${insights.proofComparison.lower.toFixed(1)} / 10`} detail={`${insights.proofComparison.lowerCount} rated entries`} /></View><Text style={styles.note}>Your ratings across owned and tasted entries with known proof.</Text></View> : insights.ownershipComparison ? <View style={styles.comparison}><Text style={styles.insightTitle}>Owned vs. tasted</Text><View style={styles.summary}><Metric label="Owned bottles" value={`${insights.ownershipComparison.owned.toFixed(1)} / 10`} detail={`${insights.ownershipComparison.ownedCount} rated entries`} /><Metric label="Tasted, not owned" value={`${insights.ownershipComparison.tasted.toFixed(1)} / 10`} detail={`${insights.ownershipComparison.tastedCount} rated entries`} /></View></View> : <Text style={styles.copy}>{s.ratedCount ? `${s.ratedCount} rated entries · ${(s.averageRating! / 10).toFixed(1)} / 10 average. Proof comparisons appear once you have at least three ratings in each group.` : 'Rate bottles you own or have tasted to reveal your tasting patterns.'}</Text>}
         </View>
         {advancedAccess ? <View style={styles.section}><Pressable accessibilityRole="button" accessibilityState={{ expanded: pricingDetails }} onPress={() => setPricingDetails(open => !open)} style={styles.disclosure}><Text style={styles.link}>Pricing sources & methodology</Text><Text style={styles.link}>{pricingDetails ? '−' : '+'}</Text></Pressable>{pricingDetails ? <CollectionValueCard value={value} resetKey={visible} /> : null}</View> : null}
+        </> : null}
       </ScrollView>
     </SafeAreaView>
   </Modal>;
