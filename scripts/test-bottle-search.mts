@@ -38,6 +38,16 @@ assert.match(rankBottleSearch(catalog, "russel reserve", 8)[0]!.canonicalName, /
 assert.deepEqual(rankBottleSearch(catalog, "zzzz completely unrelated", 8), [], "unrelated text does not leak broad matches");
 
 const fullCatalog = await getStaticBourbonBible();
+for (const [id, proof] of [["wild-turkey-101-rye", 101], ["wild-turkey-rare-breed-rye", 112.2], ["new-riff-bottled-in-bond-rye", 100], ["green-river-rye", 95]] as const) {
+  const entry = fullCatalog.find(bottle => bottle.id === id);
+  assert.ok(entry, `${id} is available from the authoritative server catalog`);
+  assert.equal(entry.category, "rye");
+  assert.equal(entry.proof, proof);
+  assert.equal(entry.rarityPending, true);
+  assert.equal(entry.buyerVerdict, "unknown");
+  assert.equal(entry.msrp ?? null, null);
+}
+
 for (const [query, expected] of expectations) {
   const results = rankBottleSearch(fullCatalog, query, 12);
   assert.match(results[0]!.canonicalName, expected, `${query} works against the complete server catalog`);

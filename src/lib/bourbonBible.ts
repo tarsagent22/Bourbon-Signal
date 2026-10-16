@@ -51,6 +51,15 @@ export interface BibleSearchResult extends BibleBottle {
 }
 
 const SEED_BOTTLES: BibleBottleInput[] = [
+  // Producer-verified identities for common scan gaps. Pricing and scarcity stay unreviewed.
+  // https://www.wildturkeybourbon.com/products/wild-turkey-101-rye/
+  { ...commonBottle("wild-turkey-101-rye", "Wild Turkey 101 Rye", "Wild Turkey", ["Wild Turkey Kentucky Straight Rye Whiskey 101", "WT 101 Rye"], "Wild Turkey straight rye bottled at 101 proof.", "Confirm the rye expression and compare the shelf price."), producer: "Wild Turkey Distillery", category: "rye", proof: 101, rarityPending: true, buyerVerdict: "unknown" },
+  // https://www.wildturkeybourbon.com/products/rare-breed-rye/
+  { ...commonBottle("wild-turkey-rare-breed-rye", "Wild Turkey Rare Breed Rye", "Wild Turkey", ["Rare Breed Rye", "Wild Turkey Rare Breed Barrel Proof Rye"], "Wild Turkey barrel-proof rye bottled at 112.2 proof.", "Confirm Rare Breed Rye rather than the bourbon expression."), producer: "Wild Turkey Distillery", category: "rye", proof: 112.2, rarityPending: true, buyerVerdict: "unknown" },
+  // https://newriffdistilling.com/spirits/new-riff-bottled-in-bond-rye/
+  { ...commonBottle("new-riff-bottled-in-bond-rye", "New Riff Bottled-in-Bond Rye", "New Riff", ["New Riff Kentucky Straight Rye Whiskey Bottled in Bond", "New Riff Straight Rye Bottled in Bond"], "New Riff's core bottled-in-bond rye whiskey.", "Confirm the standard rye release rather than a single barrel or malted rye."), producer: "New Riff Distilling", category: "rye", proof: 100, rarityPending: true, buyerVerdict: "unknown" },
+  // https://greenriverwhiskey.com/kentucky-straight-rye/
+  { ...commonBottle("green-river-rye", "Green River Kentucky Straight Rye", "Green River", ["Green River Rye", "Green River Kentucky Straight Rye Whiskey"], "Green River's Kentucky straight rye whiskey.", "Confirm the rye expression and compare the shelf price."), producer: "Green River Distilling Co.", category: "rye", proof: 95, rarityPending: true, buyerVerdict: "unknown" },
   commonBottle("buffalo-trace-bourbon", "Buffalo Trace Bourbon", "Buffalo Trace", ["buffalo trace", "bt", "buffalo trace kentucky straight bourbon"], "Popular and sometimes unevenly distributed, but not truly rare nationally.", "Good buy around MSRP if you like the profile. Do not chase secondary pricing."),
   commonBottle("makers-mark", "Maker's Mark", "Maker's Mark", ["makers", "maker's", "makers mark bourbon", "maker mark"], "A widely available wheated bourbon and a dependable shelf bottle.", "Safe to pass unless you specifically need it."),
   commonBottle("makers-mark-46", "Maker's Mark 46", "Maker's Mark", ["makers 46", "maker's 46"], "A common Maker's Mark expression with extra oak influence.", "Worth considering if priced normally and you want a richer wheated profile."),

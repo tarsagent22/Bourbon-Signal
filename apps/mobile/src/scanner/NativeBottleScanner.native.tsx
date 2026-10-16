@@ -6,6 +6,8 @@ import { File } from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { createLabelIndex, matchBottleLabel, normalizeBarcode, VERIFIED_BOTTLE_BARCODES } from './label-matching';
 import { createScanLoop } from './scan-loop';
+import { scanCrop, scanGuide } from './scan-guide';
+import { createCandidateLatch } from './scan-candidates';
 import type { ScannerProps } from './scanner-types';
 import { colors } from '../theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -30,6 +32,16 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
   const [message, setMessage] = useState('');
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [view, setView] = useState({ width: 320, height: 380 });
+  const viewRef = useRef(view); viewRef.current = view;
+  const guide = scanGuide(view);
+  const candidates = useRef(createCandidateLatch());
+  const [locked, setLocked] = useState(false);
+  const holdMatches = (matches: Parameters<ScannerProps['onMatches']>[0], verified = false) => {
+    const stable = verified ? candidates.current.verified(matches) : candidates.current.observe(matches);
+    if (!stable) return;
+    setLocked(true); setTorch(false); setMessage('Matches saved below'); current.current.onMatches(stable);
+  };
   const current = useRef({ catalog, onMatches }); current.current = { catalog, onMatches };
   const index = useMemo(() => createLabelIndex(catalog), [catalog]);
   const lastBarcode = useRef('');
@@ -39,7 +51,7 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
   const cameraActive = active && foreground && permission?.granted && !failed;
   useEffect(() => { if (!cameraActive) { setReady(false); setTorch(false); } }, [cameraActive]);
   useEffect(() => {
-    if (!cameraActive || !ready) return;
+    if (!cameraActive || !ready || locked) return;
     let failures = 0; let emptyReads = 0;
     const loop = createScanLoop({
       read: async () => {
@@ -51,7 +63,7 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
           if (!picture) throw new Error('Camera is not ready');
           original = picture.uri;
           // Read the center label rather than background bottles. Temporary frames never enter the photo library.
-          const frame = await manipulateAsync(picture.uri, [{ crop: { originX: Math.floor(picture.width * 0.15), originY: Math.floor(picture.height * 0.2), width: Math.floor(picture.width * 0.7), height: Math.floor(picture.height * 0.6) } }, { resize: { width: 1000 } }], { compress: 0.8, format: SaveFormat.JPEG });
+          const frame = await manipulateAsync(picture.uri, [{ crop: scanCrop(picture, viewRef.current) }, { resize: { width: 800 } }], { compress: 0.8, format: SaveFormat.JPEG });
           cropped = frame.uri;
           const result = await textRecognition!.recognizeText(frame.uri);
           return matchBottleLabel(index, result.text);
@@ -60,26 +72,31 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
           for (const uri of [original, cropped]) if (uri) { try { new File(uri).delete(); } catch { /* Cache cleanup must not interrupt recovery. */ } }
         }
       },
-      onResult: matches => { if (!matches) return; failures = 0; current.current.onMatches(matches); emptyReads = matches.length ? 0 : emptyReads + 1; setMessage(matches.length ? 'Choose a match below' : emptyReads >= 4 ? 'Try more light or move closer' : ''); },
+      onResult: matches => {
+        if (!matches) return;
+        failures = 0; emptyReads = matches.length ? 0 : emptyReads + 1;
+        setMessage(matches.length ? 'Reading label...' : emptyReads >= 4 ? 'Try more light or move closer' : '');
+        holdMatches(matches);
+      },
       onError: () => { failures += 1; if (failures >= 3) { setFailed(true); setMessage('Label reading paused. Try again or search by name.'); } },
     });
     loop.start(); return () => loop.stop();
-  }, [cameraActive, ready, index, retry]);
+  }, [cameraActive, ready, index, retry, locked]);
 
   if (!permission?.granted) return <View style={s.fallback}><Text style={s.copy}>Use your camera to read a bottle label. Label reading stays on your device.</Text><Pressable accessibilityRole="button" onPress={() => void (permission?.canAskAgain === false ? Linking.openSettings() : requestPermission())} style={s.button}><Text style={s.buttonText}>{permission?.canAskAgain === false ? 'Open camera settings' : 'Enable camera'}</Text></Pressable></View>;
-  return <View style={s.frame}>
+  return <View testID="bottle-scanner-frame" style={s.frame} onLayout={event => { const { width, height } = event.nativeEvent.layout; if (width > 0 && height > 0) setView({ width, height }); }}>
     {cameraActive ? <CameraView ref={camera} style={StyleSheet.absoluteFill} facing="back" mode="picture" animateShutter={false} enableTorch={torch} onCameraReady={() => setReady(true)} onMountError={() => { setFailed(true); setMessage('The camera couldn’t start. Try again or search by name.'); }} barcodeScannerSettings={{ barcodeTypes: ['ean13', 'upc_a'] }} onBarcodeScanned={result => {
       const code = normalizeBarcode(result.data);
-      if (!code || code === lastBarcode.current) return;
+      if (locked || !code || code === lastBarcode.current) return;
       lastBarcode.current = code;
       const id = VERIFIED_BOTTLE_BARCODES[code];
       const bottle = id ? current.current.catalog.find(item => item.id === id) : null;
-      if (bottle) current.current.onMatches([bottle]);
+      if (bottle) holdMatches([bottle], true);
       else setMessage('Barcode read · turn to the front label to find a match');
     }} /> : null}
-    <View pointerEvents="none" style={s.guide}><View style={s.bracket} /></View>
-    <View style={s.top}><View accessible accessibilityLabel={cameraActive ? 'Camera scanning' : 'Camera paused'} style={[s.statusDot, { backgroundColor: cameraActive ? '#AAD1AB' : colors.muted }]} /><Pressable accessibilityRole="button" accessibilityLabel={torch ? 'Turn flashlight off' : 'Turn flashlight on'} accessibilityState={{ selected: torch }} onPress={() => setTorch(value => !value)} style={s.torch}><MaterialCommunityIcons name={torch ? 'flashlight' : 'flashlight-off'} color="#fff" size={22} /></Pressable></View>
+    <View pointerEvents="none" style={s.guide}><View testID="bottle-label-scan-guide" style={[s.bracket, { position: 'absolute', left: guide.left, top: guide.top, width: guide.width, height: guide.height }]} /></View>
+    <View style={s.top}><View accessible accessibilityLabel={locked ? 'Scan results saved' : cameraActive ? 'Camera scanning' : 'Camera paused'} style={[s.statusDot, { backgroundColor: cameraActive && !locked ? '#AAD1AB' : colors.muted }]} /><Pressable accessibilityRole="button" accessibilityLabel={torch ? 'Turn flashlight off' : 'Turn flashlight on'} accessibilityState={{ selected: torch }} onPress={() => setTorch(value => !value)} style={s.torch}><MaterialCommunityIcons name={torch ? 'flashlight' : 'flashlight-off'} color="#fff" size={22} /></Pressable></View>
     <View style={s.bottom}>{message ? <Text accessibilityLiveRegion="polite" style={s.overlayCopy}>{message}</Text> : null}{failed ? <Pressable accessibilityRole="button" onPress={() => { setReady(false); setFailed(false); setRetry(value => value + 1); }} style={s.button}><Text style={s.buttonText}>Try camera again</Text></Pressable> : null}</View>
   </View>;
 }
-const s = StyleSheet.create({ frame: { height: 360, borderRadius: 26, overflow: 'hidden', backgroundColor: '#171411' }, guide: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' }, bracket: { width: '70%', height: '60%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', borderRadius: 18 }, top: { position: 'absolute', top: 16, left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, statusDot: { width: 8, height: 8, borderRadius: 4, margin: 12 }, badge: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', fontSize: 10, letterSpacing: 1.4, fontWeight: '700', padding: 10, borderRadius: 12 }, torch: { minWidth: 48, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 22, paddingHorizontal: 14 }, light: { color: '#fff', fontSize: 13 }, bottom: { position: 'absolute', bottom: 16, left: 16, right: 16, gap: 8 }, overlayCopy: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.7)', textAlign: 'center', fontSize: 13, lineHeight: 19, padding: 12, borderRadius: 12 }, fallback: { minHeight: 220, padding: 28, gap: 18, backgroundColor: colors.surface, borderRadius: 24, justifyContent: 'center' }, copy: { color: colors.muted, fontSize: 15, lineHeight: 23, textAlign: 'center' }, button: { minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: colors.accent }, buttonText: { color: colors.background, fontSize: 14, fontWeight: '700' } });
+const s = StyleSheet.create({ frame: { height: 380, borderRadius: 26, overflow: 'hidden', backgroundColor: '#171411' }, guide: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' }, bracket: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', borderRadius: 18 }, top: { position: 'absolute', top: 16, left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, statusDot: { width: 8, height: 8, borderRadius: 4, margin: 12 }, badge: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', fontSize: 10, letterSpacing: 1.4, fontWeight: '700', padding: 10, borderRadius: 12 }, torch: { minWidth: 48, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 22, paddingHorizontal: 14 }, light: { color: '#fff', fontSize: 13 }, bottom: { position: 'absolute', bottom: 16, left: 16, right: 16, gap: 8 }, overlayCopy: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.7)', textAlign: 'center', fontSize: 13, lineHeight: 19, padding: 12, borderRadius: 12 }, fallback: { minHeight: 220, padding: 28, gap: 18, backgroundColor: colors.surface, borderRadius: 24, justifyContent: 'center' }, copy: { color: colors.muted, fontSize: 15, lineHeight: 23, textAlign: 'center' }, button: { minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: colors.accent }, buttonText: { color: colors.background, fontSize: 14, fontWeight: '700' } });

@@ -12,8 +12,17 @@ export function matchBottleLabel(index: ReturnType<typeof createLabelIndex>, tex
   const normalized = normalize(text.slice(0, 4000));
   if (normalized.length < 4) return [];
   const observed = new Set(normalized.split(' '));
+  const expressions = ['small batch', 'single barrel', 'barrel proof', 'full proof', 'cask strength'];
+  const observedExpressions = expressions.filter(expression => normalized.includes(expression));
   const observedAges = [...normalized.matchAll(/\b(\d{1,2})\s*(?:years?|yr)\b/g)].map(match => match[1]);
   const ranked = index.map(({ bottle, names }) => {
+    const identity = normalize(bottle.name);
+    // Shared brand aliases must not erase an explicitly read expression/category.
+    const ryeLabel = /\b(?:straight rye|rye whisk(?:ey|y))\b/.test(normalized) || observed.has('rye') && !observed.has('bourbon');
+    if (ryeLabel && !identity.split(' ').includes('rye')) return { bottle, score: 0 };
+    if (observed.has('bourbon') && !observed.has('rye') && identity.split(' ').includes('rye')) return { bottle, score: 0 };
+    const bottleExpressions = expressions.filter(expression => identity.includes(expression));
+    if (observedExpressions.length && bottleExpressions.length && !observedExpressions.some(expression => bottleExpressions.includes(expression))) return { bottle, score: 0 };
     const numericBrand = normalize(bottle.name).match(/^(\d{3,4})\b/)?.[1];
     if (numericBrand && !observed.has(numericBrand)) return { bottle, score: 0 };
     const bottleAge = normalize(bottle.ageStatement || '').match(/^(\d{1,2})(?:y| year)/)?.[1] || normalize(bottle.name).match(/\b(\d{1,2})(?:\s*year\b|y\b)/)?.[1];
@@ -33,7 +42,8 @@ export function matchBottleLabel(index: ReturnType<typeof createLabelIndex>, tex
     }));
     return { bottle, score };
   }).filter(item => item.score > 0).sort((a, b) => b.score - a.score || a.bottle.name.localeCompare(b.bottle.name));
-  return ranked.slice(0, limit).map(item => item.bottle);
+  const expressionMatches = observedExpressions.length ? ranked.filter(({ bottle }) => observedExpressions.some(expression => normalize(bottle.name).includes(expression))) : [];
+  return (expressionMatches.length ? expressionMatches : ranked).slice(0, limit).map(item => item.bottle);
 }
 
 export function normalizeBarcode(value: string): string | null {
