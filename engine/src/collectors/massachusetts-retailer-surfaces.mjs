@@ -32,7 +32,11 @@ export function parseMassachusettsJulios(html) {
         for (const option of merchant.product_options || []) {
           const key = `${option.product_id || product.id}:${option.option_id}`;
           const offers = option.allowed_offer_types;
+          const sizes = [option.option_params?.size, option.original_option_params?.size, option.option_display_data?.size];
+          const singleBottle = sizes.every(size => size?.measure === 'ml' && size.quantity === '750')
+            && Array.isArray(option.units_of_measure) && option.units_of_measure.length === 0;
           const safe = Object.hasOwn(option, 'preorder_details') && option.preorder_details === null
+            && singleBottle && !EXCLUDED.test(String(product.name || ''))
             && Object.hasOwn(option, 'allowed_offer_types')
             && (offers === null || Array.isArray(offers) && offers.includes('pick_up'))
             && !/\b(?:pre[ -]?order|back[ -]?order)\b/i.test(JSON.stringify([

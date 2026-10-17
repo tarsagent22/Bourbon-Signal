@@ -11,7 +11,9 @@ function fixture(change = () => {}) {
   const option = { product_id: 'p1', option_id: 'v1', merchant_id: source.merchantId,
     full_address: source.address, price: 54.99, quantity: 2, preorder_details: null,
     allowed_offer_types: null, product_url: `${source.baseUrl}/shop/product/rare-breed/p1?option-id=v1`,
-    option_display_data: { name: 'WILD TURKEY RARE BREED' } };
+    option_params: { size: { measure: 'ml', quantity: '750' } },
+    original_option_params: { size: { measure: 'ml', quantity: '750' } }, units_of_measure: [],
+    option_display_data: { name: 'WILD TURKEY RARE BREED', size: { measure: 'ml', quantity: '750' } } };
   const productMerchant = { merchant_id: source.merchantId, full_address: source.address,
     offer_types: ['pick_up', 'shipping'], product_options: [option] };
   const payload = { merchant_configs: [{ merchant }], products: [{ id: 'p1', name: 'WILD TURKEY RARE BREED', merchants: [productMerchant] }] };
@@ -54,6 +56,10 @@ test('nonpositive stock/price and bundles, creams, flavored whiskey or miniature
     ({ option }) => { option.quantity = 0; },
     ({ option }) => { option.quantity = -1; },
     ({ option }) => { option.price = 0; },
+    ({ option }) => { delete option.option_display_data.size; },
+    ({ option }) => { option.option_params.size.quantity = '50'; },
+    ({ option }) => { option.units_of_measure = ['case']; },
+    ({ payload }) => { payload.products[0].name = 'Wild Turkey Rare Breed Gift Pack'; },
     ...['Buffalo Trace Pack', 'Buffalo Trace Bourbon Cream 50ML NIP', 'Jim Beam Apple 750ML']
       .map(name => ({ option }) => { option.option_display_data.name = name; }),
   ]) assert.equal(parseMassachusettsJulios(fixture(change)).length, 0);
