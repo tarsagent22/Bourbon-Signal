@@ -90,6 +90,7 @@ await writeFile(path.join(root, 'shared/labeled-bottle-artwork-registry.json'), 
 const historical = (await Promise.all([1,2,3,4,5,6].map(async n => JSON.parse(await readFile(path.join(root, `apps/mobile/assets/bottles/label-free-v${n}/catalog.json`), 'utf8'))))).flatMap(batch => batch.products);
 const captions = Object.fromEntries(historical.filter(row => row.presentation).map(row => [row.id, row.presentation === 'collection' ? 'Collection artwork · edition not specified' : 'Illustrative bottle · packaging not verified']));
 for (const product of feedProducts) if (product.caption) captions[product.id] = product.caption;
+captions['weller-antique-107'] = 'Antique 107 artwork · individual selection label varies';
 captions.bb_70221e1cdb151a04 = 'Private Selection artwork · individual selection label varies';
 for (const id of ['single-barrel-series-tier-3-finished-bourbon','rare-character-single-barrel-cbs-and-local-bartenders','brook-hill-13y-rye-whiskey-pear','travelers-club-blend-80']) captions[id] = 'Representative packaging · selection or vintage may vary';
 await writeFile(path.join(root, 'shared/labeled-bottle-artwork-captions.json'), JSON.stringify(captions,null,2)+'\n');

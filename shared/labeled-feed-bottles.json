@@ -87,5 +87,15 @@
     "sha256": "917a1e2d9760a649b6a541eff753da0e06bd49ee1130613ce7d9dea5753872e0",
     "reference": "https://www.woodfordreserve.com/whiskey/batch-proof/",
     "reuseReview": "Existing illustration inspected: exact 119.5 proof label, not a glass-shape inheritance."
+  },
+  {
+    "id": "little-book-the-infinite-series",
+    "name": "Little Book The Infinite",
+    "names": [
+      "Little Book Whiskey Infinite"
+    ],
+    "sha256": "4e722226eb77a3f77611cb7b2a5aedfde7c1f672941dbb12a4d60836cc3e5ede",
+    "reference": "https://www.beamdistilling.com/littlebook/whiskies",
+    "caption": "Series artwork · edition not specified"
   }
 ]

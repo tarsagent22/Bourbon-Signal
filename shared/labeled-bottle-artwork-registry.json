@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "dfa1ba82193d4ba736f9774affa8078cbf9c119f02b499bafc6f0b8fa73448cb",
+  "revision": "d5757020dfaab550cad0deb1fc09490c9fbb3abf66f320ef97b215151ea9dec9",
   "entries": [
     {
       "catalogId": "1792-12-year",
@@ -1923,7 +1923,8 @@
       "displayName": "Blade & Bow",
       "exactNames": [
         "Blade & Bow",
-        "Blade and Bow Kentucky Straight Bourbon Whiskey"
+        "Blade and Bow Kentucky Straight Bourbon Whiskey",
+        "BLADE & BOW KY"
       ],
       "sha256": "1c857028a331e44e461d17385fabf36737967c45a9a673f6291e14880e4d69c4",
       "width": 400,
@@ -2115,7 +2116,8 @@
       "displayName": "Booker's Bourbon",
       "exactNames": [
         "Booker's Bourbon",
-        "Booker's Bourbon Small Batch"
+        "Booker's Bourbon Small Batch",
+        "BOOKERS BBN"
       ],
       "sha256": "b36b9ee4ffc7ef73b15f2c35c0765f499ce343a9ebc3b992a08c1eccc5efee1a",
       "width": 400,
@@ -5236,7 +5238,8 @@
       "catalogId": "little-book",
       "displayName": "Little Book",
       "exactNames": [
-        "Little Book"
+        "Little Book",
+        "Little Book Chapter"
       ],
       "sha256": "f4705d6478d20a8f3e1dca6de159da3785a27b0db5b0ed6f1a374621f19286da",
       "width": 400,
@@ -5259,6 +5262,17 @@
         "Little Book the Infinite II"
       ],
       "sha256": "2df8eff48914e9320dae43c2bd538896ab2afc36270f3707a69a675f21fd8615",
+      "width": 400,
+      "height": 600
+    },
+    {
+      "catalogId": "little-book-the-infinite-series",
+      "displayName": "Little Book The Infinite",
+      "exactNames": [
+        "Little Book The Infinite",
+        "Little Book Whiskey Infinite"
+      ],
+      "sha256": "4e722226eb77a3f77611cb7b2a5aedfde7c1f672941dbb12a4d60836cc3e5ede",
       "width": 400,
       "height": 600
     },
@@ -8659,7 +8673,8 @@
         "Weller Antique 107",
         "Weller Antique 107 Bourbon Whiskey",
         "Weller Bourbon Antique 107",
-        "Weller Antique 107 Proof Whiskey"
+        "Weller Antique 107 Proof Whiskey",
+        "Weller Antique 107 Barrel Select"
       ],
       "sha256": "8818afc21d6eb28e1e59ee269a1d9fc225deee4c6787786cfba9b8a9e91f8131",
       "width": 400,
@@ -8727,7 +8742,8 @@
         "W.L. Weller Special Reserve",
         "Weller Special Reserve",
         "Weller Special Reserve Whiskey",
-        "W.l Weller Special Reserve Bourbon"
+        "W.l Weller Special Reserve Bourbon",
+        "W L Weller Special Reserve Bourbon"
       ],
       "sha256": "5e2445448b5ea05bb6c6f856c99e751db890933986e38993990c9a16580c0c18",
       "width": 400,
@@ -9120,7 +9136,8 @@
       "catalogId": "william-larue-weller",
       "displayName": "William Larue Weller",
       "exactNames": [
-        "William Larue Weller"
+        "William Larue Weller",
+        "William Larue Weller Bourbon"
       ],
       "sha256": "c8c476fbba326557777fe3f43919d6ff0b22172fb67e365085fcfff16d8c26a4",
       "width": 400,
