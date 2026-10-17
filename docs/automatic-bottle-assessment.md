@@ -92,8 +92,9 @@ acceptance.
 
 The result header goes back to the prior scan/search without closing the modal.
 That path preserves the price for a corrected match. The fixed bottom action
-starts a fresh scan, clears the price/query/matches, increments the scanner
-session and returns the list to the top. Region selection persists. Android's
+repeats the entry method: **Search another** clears the query/price and focuses
+the search field; **Scan another** clears the price/matches and starts a fresh
+scanner session. Both return the list to the top and retain the region. Android's
 hardware back uses the same correction path. Async profile/report effects are
 cancelled when the selected bottle changes.
 
@@ -102,6 +103,28 @@ optional shelf price and compact published reviews. Reasons, source dates,
 confidence and methodology are under **Why this score?** Coverage requests,
 regional alert setup and repeated explanations are removed. Watch, post sighting
 and details are secondary actions.
+
+## Purposeful form scanners
+
+Home's Bottle Check remains an assessment workflow. Post and My Shelf open
+separate `scan-post` and `scan-shelf` modal routes, using the same low-level native
+camera and exact bottle catalog. Their headers are **Scan for your post** and
+**Scan to My Shelf**. They offer camera identification and a search fallback,
+without assessment scores, profile requests, market reports or a region selector.
+Choosing an exact match returns to the existing post or shelf form; it does not
+post a sighting or save a bottle. Closing preserves the unfinished form.
+
+The existing owner-bound handoff carries price and source-region context without
+inventing a store. Shelf scanning also retains the form's purchase store. Existing
+draft conflict prompts remain in place. Old Bottle Check links with `returnTo`
+redirect to the corresponding scanner before mounting the assessment screen.
+Modal options remain in the parent layout to preserve the navigation-loop fix.
+
+Mounted browser checks use the actual native scanner, candidate latch and
+navigation core with simulated camera/OCR boundaries. They cover both form
+destinations at 320/393 widths, portrait guide geometry, camera shutdown on close
+and search, cancellation, draft/price/store retention and legacy redirects.
+They do not establish physical-device acceptance.
 
 ## October 16 core-release research
 

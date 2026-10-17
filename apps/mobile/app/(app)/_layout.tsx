@@ -18,6 +18,8 @@ export default function AppLayout() {
       <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="setup" options={{ title: "Getting started" }} />
       <Stack.Screen name="bottle-check" options={{ presentation: "modal", title: "Bottle Check", headerShown: false }} />
+      <Stack.Screen name="scan-post" options={{ presentation: "modal", title: "Scan for your post", headerShown: false }} />
+      <Stack.Screen name="scan-shelf" options={{ presentation: "modal", title: "Scan to My Shelf", headerShown: false }} />
       <Stack.Screen name="bottle/[id]" options={{ title: "Bottle Profile" }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
       <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />

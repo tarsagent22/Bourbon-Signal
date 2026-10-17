@@ -9,7 +9,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { Children, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "../../../src/api/types";
 import { MemberCard, PageHeading, memberScreenStyles } from "../../../src/components/MemberScreen";
@@ -113,7 +113,7 @@ function PostComposer({ userId }: { userId: string }) {
       if (incoming?.state) { setStoreSearchState(incoming.state); setReferenceRegion({ state: incoming.state, area: incoming.area }); }
       router.setParams(CLEAR_BOTTLE_HANDOFF);
     };
-    if ((bottleName && bottleName !== match.name) || (price && incoming?.price && handoffPrice(price) !== incoming.price)) Alert.alert('Use Bottle Check details?', 'This updates the bottle and checked price. Your other draft details will be kept.', [{text:'Keep draft',style:'cancel',onPress:()=>router.setParams(CLEAR_BOTTLE_HANDOFF)},{text:'Use details',onPress:apply}], { cancelable: false });
+    if ((bottleName && bottleName !== match.name) || (price && incoming?.price && handoffPrice(price) !== incoming.price)) Alert.alert('Use these bottle details?', 'Update the bottle and price? Your store and other draft details will stay.', [{text:'Keep draft',style:'cancel',onPress:()=>router.setParams(CLEAR_BOTTLE_HANDOFF)},{text:'Use details',onPress:apply}], { cancelable: false });
     else apply();
   }, [draft.ready, journalReady, scanBottleId, handoffParams.handoffId, handoffParams.handoffOwner, handoffParams.scanPrice, bottleCatalog.catalog, bottleName, price, router, pendingPhotoAttachment, userId]);
   useEffect(() => { if (draft.ready && (price || quantity || notes || selectedPhoto)) setShowDetails(true); }, [draft.ready]);
@@ -451,7 +451,7 @@ function PostComposer({ userId }: { userId: string }) {
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={memberScreenStyles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
         <PageHeading title="Post a Signal" decorated={false} description="Post the bottle and where you saw it." />
-        <Pressable accessibilityRole="button" disabled={Boolean(pendingPhotoAttachment)} onPress={() => router.push({ pathname: '/(app)/bottle-check', params: { returnTo: 'post', state: selectedStore?.state || storeSearchState, area: selectedStore?.city || referenceRegion.area, price } })} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
+        <Pressable accessibilityRole="button" disabled={Boolean(pendingPhotoAttachment)} onPress={() => { Keyboard.dismiss(); router.push({ pathname: '/(app)/scan-post', params: { state: selectedStore?.state || storeSearchState, area: selectedStore?.city || referenceRegion.area, price } }); }} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
         {posted && success ? <View style={styles.composer} accessibilityLiveRegion="polite">
           <Text style={styles.success}>{success}</Text>
           <Text style={styles.help}>{posted.payload.bottleName} · {posted.payload.storeName}</Text>

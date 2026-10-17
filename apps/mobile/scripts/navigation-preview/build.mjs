@@ -2,12 +2,16 @@ import { build } from 'esbuild';
 import { mkdir, copyFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-const here=import.meta.dirname,mobile=path.resolve(here,'../..'),negative=process.argv.includes('--negative'),out=path.join(mobile,'dist/navigation-preview'+(negative?'-negative':''));
+const here=import.meta.dirname,mobile=path.resolve(here,'../..'),negative=process.argv.includes('--negative'),camera=process.argv.includes('--camera'),out=path.join(mobile,'dist/navigation-preview'+(negative?'-negative':camera?'-camera':''));
 await mkdir(out,{recursive:true});
 await build({entryPoints:[path.join(here,'entry.tsx')],outfile:path.join(out,'app.js'),bundle:true,platform:'browser',jsx:'automatic',resolveExtensions:['.web.tsx','.web.ts','.web.js','.tsx','.ts','.jsx','.js','.json'],loader:{'.js':'jsx','.png':'file','.jpg':'file','.webp':'file','.ttf':'file'},define:{'process.env.NODE_ENV':'"development"','process.env':'{}',__DEV__:'true',global:'globalThis'},plugins:[{name:'native-boundaries-real-navigation',setup(b){
  b.onResolve({filter:/^react-native$/},()=>({path:path.join(here,'../continuity-preview/native.jsx')}));
  b.onResolve({filter:/^@expo\/vector-icons(\/MaterialCommunityIcons)?$/},()=>({path:path.join(here,'../cohesion-preview/icons.jsx')}));
  b.onResolve({filter:/^expo-router$/},()=>({path:path.join(here,'navigation.tsx')}));
+ if(camera){
+  b.onResolve({filter:/\/NativeBottleScanner$/},()=>({path:path.join(mobile,'src/scanner/NativeBottleScanner.native.tsx')}));
+  b.onResolve({filter:/^(expo|expo-camera|expo-file-system|expo-image-manipulator)$/},()=>({path:path.join(here,'../bottle-profile-preview/scanner-fixture.tsx')}));
+ }
  b.onResolve({filter:/^expo-router\/build\//},args=>({path:path.join(mobile,'node_modules',args.path)+'.js'}));
  b.onResolve({filter:/react-navigation\/native$/},()=>({path:path.join(mobile,'node_modules/expo-router/build/react-navigation/core/index.js')}));
  b.onResolve({filter:/^(@clerk\/expo|expo-secure-store|expo-crypto|expo-updates|react-native-safe-area-context)$|\/(useMobileApi|NativeBottleScanner)$|\/membership\/PurchasesProvider$|\/push\/(push-registration|PushResponseHandler)$|\/sighting-photo-native$|\/activity\/useMobileActivity$/},()=>({path:path.join(here,'boundaries.tsx')}));

@@ -328,7 +328,7 @@ function AccountAddBottle() {
         <Text style={styles.eyebrow}>MY SHELF</Text>
         <Text accessibilityRole="header" style={styles.title}>Add to My Shelf</Text>
         <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
-        <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/bottle-check', params: { returnTo: 'shelf', price: pricePaid } })} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={() => { Keyboard.dismiss(); router.push({ pathname: '/(app)/scan-shelf', params: { price: pricePaid, store } }); }} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
         <DraftNotice hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} />
         {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
         {loading ? <LoadingState label="Opening My Shelf…" /> : null}

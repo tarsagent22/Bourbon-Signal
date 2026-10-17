@@ -10,6 +10,7 @@ export function useMobileApi() {
   return useMemo(() => ({ ...base,
     listBottleCatalog: async () => [...seed, extra],
     async getBottleProfile(id: string, options?: { state?: string }) {
+      (window as any).assessmentRequests = ((window as any).assessmentRequests || 0) + 1;
       const row = [...seed, extra].find(item => item.id === id)!;
       if (query.get('slowProfile') === '1') await new Promise(resolve => setTimeout(resolve, 300));
       const rarity = id === 'eagle-rare-10' ? { label: 'Allocated', tier: 'allocated', pending: false, reviewedAt: '2026-10-16' } : { label: 'Under review', tier: '', pending: true, reviewedAt: null };
