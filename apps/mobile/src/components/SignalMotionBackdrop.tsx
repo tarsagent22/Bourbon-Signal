@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { AccessibilityInfo, Animated, AppState, Easing, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
@@ -7,7 +7,7 @@ export const SIGNAL_WAVE_VISIBILITY = 1.3;
 const samples = Array.from({ length: 33 }, (_, i) => i / 32);
 const tau = Math.PI * 2;
 
-export function SignalMotionBackdrop({ reduceMotion, quiet = false }: { reduceMotion?: boolean; quiet?: boolean }) {
+export const SignalMotionBackdrop = memo(function SignalMotionBackdrop({ reduceMotion, quiet = false }: { reduceMotion?: boolean; quiet?: boolean }) {
   const phase = useRef(new Animated.Value(0)).current;
   const [systemReduced, setSystemReduced] = useState(true);
   const [focused, setFocused] = useState(false);
@@ -52,7 +52,7 @@ export function SignalMotionBackdrop({ reduceMotion, quiet = false }: { reduceMo
         { scale: phase.interpolate({ inputRange: samples, outputRange: dot.scale }) },
       ] }]} />)}
   </View>;
-}
+});
 
 export function SignalMotionHeader({ children, style }: PropsWithChildren<{ style?: StyleProp<ViewStyle> }>) {
   return <View style={[styles.header, style]}><SignalMotionBackdrop quiet /><View style={styles.content}>{children}</View></View>;

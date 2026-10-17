@@ -84,6 +84,7 @@ function PostComposer({ userId }: { userId: string }) {
   const [success, setSuccess] = useState("");
   useAccessibleStatus(error || success || photoMessage);
   const [idempotencyReady, setIdempotencyReady] = useState(false);
+  const [journalReady, setJournalReady] = useState(false);
   const draftBinding = useRef<SightingDraftBinding | null>(null);
   const storeSearchSequence = useRef(0);
   const storePageInFlight = useRef(false);
@@ -100,7 +101,8 @@ function PostComposer({ userId }: { userId: string }) {
   useEffect(() => {
     const incoming = parseBottleHandoff(handoffParams, userId);
     const key = incoming?.id || scanBottleId;
-    if (!draft.ready || !scanBottleId || appliedScan.current === key || pendingPhotoAttachment) return;
+    if (!scanBottleId) { appliedScan.current = ''; return; }
+    if (!draft.ready || !journalReady || appliedScan.current === key || pendingPhotoAttachment) return;
     if (handoffParams.handoffOwner && !incoming) { router.setParams(CLEAR_BOTTLE_HANDOFF); return; }
     const match = bottleCatalog.catalog.find(item => item.id === scanBottleId);
     if (!match) return;
@@ -113,7 +115,7 @@ function PostComposer({ userId }: { userId: string }) {
     };
     if ((bottleName && bottleName !== match.name) || (price && incoming?.price && handoffPrice(price) !== incoming.price)) Alert.alert('Use Bottle Check details?', 'This updates the bottle and checked price. Your other draft details will be kept.', [{text:'Keep draft',style:'cancel',onPress:()=>router.setParams(CLEAR_BOTTLE_HANDOFF)},{text:'Use details',onPress:apply}], { cancelable: false });
     else apply();
-  }, [draft.ready, scanBottleId, handoffParams.handoffId, handoffParams.handoffOwner, handoffParams.scanPrice, bottleCatalog.catalog, bottleName, price, router, pendingPhotoAttachment, userId]);
+  }, [draft.ready, journalReady, scanBottleId, handoffParams.handoffId, handoffParams.handoffOwner, handoffParams.scanPrice, bottleCatalog.catalog, bottleName, price, router, pendingPhotoAttachment, userId]);
   useEffect(() => { if (draft.ready && (price || quantity || notes || selectedPhoto)) setShowDetails(true); }, [draft.ready]);
   useEffect(() => { if (pendingPhotoAttachment) setShowDetails(true); }, [pendingPhotoAttachment]);
   function discardDraft() {
@@ -143,7 +145,7 @@ function PostComposer({ userId }: { userId: string }) {
         const stored = await SecureStore.getItemAsync(draftStorageKey);
         const binding = parseSightingDraftBinding(stored) || { key: createSightingIdempotencyKey(), fingerprint: null };
         if (!stored || !stored.trim().startsWith("{")) await SecureStore.setItemAsync(draftStorageKey, serializeSightingDraftBinding(binding));
-        if (active) { draftBinding.current = binding; setIdempotencyReady(true); }
+        if (active) { draftBinding.current = binding; setIdempotencyReady(true); setJournalReady(true); }
       } catch {
         if (active) setError("Secure draft protection is unavailable. Restart the app before posting.");
       }
