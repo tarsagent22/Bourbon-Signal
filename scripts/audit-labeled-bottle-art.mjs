@@ -9,7 +9,8 @@ const covered = new Set(registry.entries.map(row => row.catalogId));
 const historical = (await Promise.all([1,2,3,4,5,6].map(n => json(`apps/mobile/assets/bottles/label-free-v${n}/catalog.json`)))).flatMap(batch => batch.products);
 const catalogScope = historical.length;
 const owners = await json('shared/labeled-owner-bottles.json');
-historical.push(...owners);
+const feed = await json('shared/labeled-feed-bottles.json');
+historical.push(...owners, ...feed);
 const sourceByShape = await readFile(path.join(root, 'apps/mobile/src/components/label-free-artwork-assets.ts'), 'utf8');
 const sources = new Map([...sourceByShape.matchAll(/'([^']+)': require\('([^']+)'\)/g)].map(match => [match[1],path.posix.normalize(`apps/mobile/src/components/${match[2]}`)]));
 for (const row of registry.entries) {
@@ -27,6 +28,7 @@ const pending = historical.filter(row => !covered.has(row.id)).map(row => ({
 const summary = {scope:historical.length, labeled:historical.length-pending.length, illustrations:new Set(registry.entries.map(row=>row.sha256)).size, remaining:pending.length, complete:pending.length===0};
 summary.catalogScope = catalogScope;
 summary.ownerScope = owners.length;
+summary.feedScope = feed.length;
 await mkdir(path.join(root,'.operator'), {recursive:true});
 await writeFile(path.join(root,'.operator/labeled-artwork-backlog.json'), JSON.stringify({summary,pending}, null, 2)+'\n');
 await writeFile(path.join(root,'docs/labeled-bottle-artwork-status.json'),JSON.stringify({...summary,registryRevision:registry.revision},null,2)+'\n');
