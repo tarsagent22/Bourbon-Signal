@@ -1,0 +1,91 @@
+[
+  {
+    "id": "barrell-bourbon-batch-032",
+    "name": "Barrell Bourbon Batch 032",
+    "names": [
+      "Barrell Bourbon Batch 032 Bourbon Whiskey"
+    ],
+    "sha256": "d882e3b92c50aa3bce0a6920efe327af8f8918909e0a338adb19af71c8b5ee5e",
+    "reference": "https://www.barrellbourbon.com/bourbonbatches"
+  },
+  {
+    "id": "barrell-bourbon-batch-036",
+    "name": "Barrell Bourbon Batch 036",
+    "names": [],
+    "sha256": "54d7ed6fa7a0328f499189e004c0b9a8ded64afa42a9bd782baaaf5386171421",
+    "reference": "https://www.barrellbourbon.com/bourbonbatches"
+  },
+  {
+    "id": "barrell-bourbon-batch-037",
+    "name": "Barrell Bourbon Batch 037",
+    "names": [
+      "BARRELL BOURBON BATCH 37"
+    ],
+    "sha256": "191b6078d67dd02dc603e1717945d80f6d2c17172ff66986f2aaf305bb81f03e",
+    "reference": "https://www.barrellbourbon.com/bourbonbatches"
+  },
+  {
+    "id": "woodford-reserve-batch-proof-1212-2024",
+    "name": "Woodford Reserve Master's Collection Batch Proof 121.2 2024",
+    "names": [],
+    "sha256": "eaf0cf99d9bdaa898143694e16d39a01ddb97a2fbf4a5e10dd22c4bf214e76b0",
+    "reference": "https://shop.woodfordreserve.com/spirits"
+  },
+  {
+    "id": "woodford-reserve-madeira-2024",
+    "name": "Woodford Reserve Master's Collection Madeira Finish 2024",
+    "names": [],
+    "sha256": "06fff764792e42a04f2a0f8ba06e00c16043a149c2bee1161ae49cd8422b5470",
+    "reference": "https://www.woodfordreserve.com/whiskey/masters-collection/"
+  },
+  {
+    "id": "makers-mark-cellar-aged-2026",
+    "name": "Maker's Mark Cellar Aged 2026",
+    "names": [],
+    "sha256": "23ccee09b55822bdd03212de467766793e09578cdc6196f8ac5363b349de890c",
+    "reference": "https://www.makersmark.com/en-us/bourbons/makers-mark-cellar-aged"
+  },
+  {
+    "id": "elijah-craig-private-barrel-barrel-proof",
+    "name": "Elijah Craig Private Barrel Barrel Proof",
+    "names": [
+      "Elijah Craig Barrel Proof Single Barrel # 7364966 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7717864 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7713553 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7678352 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7444815 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7648152 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7631300 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7716931 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7591057 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7617001 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7333600 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7460861 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7418559 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7444873 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7333039 Binny's Handpicked",
+      "Elijah Craig Barrel Proof Single Barrel # 7385355 Binny's Handpicked"
+    ],
+    "sha256": "02582eb16366bbe1874979136cea508e22d1df9aabd2a4112a6fb78dd216d865",
+    "reference": "https://elijahcraig.com/barrel-proof",
+    "caption": "Private Barrel artwork · individual selection label varies"
+  },
+  {
+    "id": "barrell-bourbon-batch-034",
+    "name": "Barrell Bourbon Batch 034",
+    "names": [
+      "Barrell Bourbon 034 Batch"
+    ],
+    "sha256": "36ce14b805dcac72dfdb512f119a8f1e730826c96d7308cb8efa6dd6ee01a4b4",
+    "reference": "https://www.barrellbourbon.com/bourbonbatches",
+    "reuseReview": "Existing illustration inspected: exact 034 batch and 114.62 proof label, not a glass-shape inheritance."
+  },
+  {
+    "id": "woodford-reserve-batch-proof-1195-2025",
+    "name": "Woodford Reserve Master's Collection Batch Proof 119.5 2025",
+    "names": [],
+    "sha256": "917a1e2d9760a649b6a541eff753da0e06bd49ee1130613ce7d9dea5753872e0",
+    "reference": "https://www.woodfordreserve.com/whiskey/batch-proof/",
+    "reuseReview": "Existing illustration inspected: exact 119.5 proof label, not a glass-shape inheritance."
+  }
+]

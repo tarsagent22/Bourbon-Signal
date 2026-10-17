@@ -8,11 +8,13 @@ const { LABELED_BOTTLE_ARTWORK, resolveLabeledBottleArtwork: resolve } = require
 import catalog from '../apps/mobile/src/cellar/bottle-catalog-seed.json';
 import ownerCatalog from '../shared/labeled-owner-bottles.json';
 import retailerNames from '../shared/labeled-artwork-retailer-names.json';
+import feedProducts from '../shared/labeled-feed-bottles.json';
+import feedFixture from './fixtures/feed-bottle-artwork-20261017.json';
 const { catalogBottlePhoto } = require('../src/lib/bottle-photos.ts') as typeof import('../src/lib/bottle-photos');
 
 test('every previously illustrated catalog and public owner bottle has labeled artwork', () => {
   const historical = [1,2,3,4,5,6].flatMap(n => JSON.parse(readFileSync(new URL(`../apps/mobile/assets/bottles/label-free-v${n}/catalog.json`, import.meta.url),'utf8')).products);
-  const expected = [...historical,...ownerCatalog].map(row => row.id).sort();
+  const expected = [...historical,...ownerCatalog,...feedProducts].map(row => row.id).sort();
   assert.deepEqual(LABELED_BOTTLE_ARTWORK.entries.map(row => row.catalogId).sort(),expected);
   const fallback = readFileSync(new URL('../apps/mobile/src/components/CellarBottleSilhouette.tsx',import.meta.url),'utf8');
   assert.match(fallback,/neutral-labeled\.png/);
@@ -27,7 +29,7 @@ test('labeled illustrations preserve exact catalog identities and immutable nati
   const provenance = JSON.parse(readFileSync(new URL('../apps/mobile/assets/bottles/labeled-v1/provenance.json', import.meta.url), 'utf8'));
   const registry = readFileSync(new URL('../apps/mobile/src/components/labeled-artwork-assets.ts', import.meta.url), 'utf8');
   for (const row of LABELED_BOTTLE_ARTWORK.entries) {
-    assert.equal([...catalog,...ownerCatalog].find(bottle => bottle.id === row.catalogId)?.name, row.displayName);
+    assert.equal([...catalog,...ownerCatalog,...feedProducts].find(bottle => bottle.id === row.catalogId)?.name, row.displayName);
     for (const identity of [{bottleId:row.catalogId}, {bottleId:`bible-${row.catalogId}`}, ...row.exactNames.map(bottleName => ({bottleName})), {bottleId:row.catalogId,bottleName:row.displayName}]) {
       assert.equal(resolve(identity, catalog)?.sha256, row.sha256);
     }
@@ -67,7 +69,7 @@ test('retailer feed names and package suffixes resolve existing labeled artwork'
     assert.ok(expected, catalogId);
     for (const name of names) {
       assert.ok(expected.exactNames.includes(name), `Persist reviewed name: ${name}`);
-      for (const suffix of ['', ' 750ml', ' 750 ml 750 ml', ' 1.75 L 1.75 L', ' .75L']) {
+      for (const suffix of ['', ' 750ml', ' 750 ml 750 ml', ' 1.75 L 1.75 L', ' .75L', ' - 750 Ml', ' - 1 LT']) {
         const bottleName = name + suffix;
         // Engine IDs are distinct from catalog IDs; both entry points matter.
         for (const bottleId of ['retailer-product-id', catalogId, `bible-${catalogId}`]) {
@@ -83,6 +85,32 @@ test('retailer feed names and package suffixes resolve existing labeled artwork'
     assert.ok(!hashes.has(key) || hashes.get(key) === row.sha256, `Conflicting artwork: ${name}`);
     hashes.set(key, row.sha256);
   }
+});
+
+test('every bottle identity from the full collector audit resolves on mobile and web', () => {
+  for (const row of feedFixture.entries) {
+    const artwork = resolve(row, catalog);
+    assert.ok(artwork, JSON.stringify(row));
+    assert.equal(artwork.catalogId, row.expectedArtworkId, row.bottleName);
+    assert.equal(catalogBottlePhoto({id:row.bottleId,canonicalName:row.bottleName})?.sha256,artwork.sha256);
+  }
+});
+
+test('specific batch, proof and release labels never inherit another edition', () => {
+  for (const ids of [
+    ['barrell-bourbon-batch-032','barrell-bourbon-batch-034','barrell-bourbon-batch-036','barrell-bourbon-batch-037'],
+    ['woodford-reserve-batch-proof-1195-2025','woodford-reserve-batch-proof-1212-2024','woodford-reserve-madeira-2024'],
+    ['makers-mark-cellar-aged','makers-mark-cellar-aged-2026'],
+    ['elijah-craig-barrel-proof','elijah-craig-private-barrel-barrel-proof'],
+  ]) assert.equal(new Set(ids.map(bottleId => resolve({bottleId},catalog)?.sha256)).size,ids.length);
+  for (const identity of [
+    {bottleId:'barrell-bourbon-batch-036',bottleName:'Barrell Bourbon Batch 032'},
+    {bottleId:'makers-mark-cellar-aged-2025',bottleName:"Maker's Mark Cellar Aged 2026 750ml"},
+    {bottleId:'elijah-craig-barrel-proof-rye',bottleName:'Elijah Craig Private Barrel Barrel Proof'},
+    {bottleName:'Barrell Bourbon Batch 039'},
+    {bottleName:"Maker's Mark Cellar Aged 2027"},
+    {bottleName:'Woodford Reserve Batch Proof 150.2 2027'},
+  ]) assert.equal(resolve(identity,catalog),undefined,JSON.stringify(identity));
 });
 
 test('package cleanup retains age, proof, finish and stale-ID conflicts', () => {

@@ -9830,6 +9830,83 @@
         }
       ],
       "bytes": 196343
+    },
+    {
+      "key": "barrell-bourbon-batch-032",
+      "masterSha256": "391751a9f554a0457032da90d2b8a9ad9a71ce979b0f014af2f4af83f5d27c91",
+      "sha256": "d882e3b92c50aa3bce0a6920efe327af8f8918909e0a338adb19af71c8b5ee5e",
+      "prompt": "Preserve existing Barrell render; label Batch 032, 115.34 proof, 57.67% ABV. Remove other batch and age claims.",
+      "reference": "https://www.barrellbourbon.com/bourbonbatches",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding and edition text; transparent pixels outside bottle verified. Microprint illustrative. Private Barrel selection fields intentionally blank.",
+      "bytes": 266961
+    },
+    {
+      "key": "barrell-bourbon-batch-036",
+      "masterSha256": "7cd323686db454e60b335f29bc584424c7befc9833b7f76686eb42d3a63b2aeb",
+      "sha256": "54d7ed6fa7a0328f499189e004c0b9a8ded64afa42a9bd782baaaf5386171421",
+      "prompt": "Preserve existing Barrell render; label Batch 036, 114.44 proof, 57.22% ABV. Remove other batch and age claims.",
+      "reference": "https://www.barrellbourbon.com/bourbonbatches",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding and edition text; transparent pixels outside bottle verified. Microprint illustrative. Private Barrel selection fields intentionally blank.",
+      "bytes": 262409
+    },
+    {
+      "key": "barrell-bourbon-batch-037",
+      "masterSha256": "88fa3c568d8a49d8a9ef8156a1470c1245ca2130eb6f6681422086fd4b4ce0be",
+      "sha256": "191b6078d67dd02dc603e1717945d80f6d2c17172ff66986f2aaf305bb81f03e",
+      "prompt": "Preserve existing Barrell render; label Batch 037, 111.38 proof, 55.69% ABV. Remove other batch and age claims.",
+      "reference": "https://www.barrellbourbon.com/bourbonbatches",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding and edition text; transparent pixels outside bottle verified. Microprint illustrative. Private Barrel selection fields intentionally blank.",
+      "bytes": 250746
+    },
+    {
+      "key": "woodford-reserve-batch-proof-1212-2024",
+      "masterSha256": "970db91a377e46074ea74072d5a118b2464a30f60a60ec97640461b6798332ae",
+      "sha256": "eaf0cf99d9bdaa898143694e16d39a01ddb97a2fbf4a5e10dd22c4bf214e76b0",
+      "prompt": "Preserve existing Woodford Batch Proof render; replace 119.5 and 59.75% with 121.2 proof and 60.6%.",
+      "reference": "https://shop.woodfordreserve.com/spirits",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding and edition text; transparent pixels outside bottle verified. Microprint illustrative. Private Barrel selection fields intentionally blank.",
+      "bytes": 212242
+    },
+    {
+      "key": "woodford-reserve-madeira-2024",
+      "masterSha256": "fedd069a4f4dd40d65a934c2762dd4b25e6572c0fbb1959238cd91ac68505f0f",
+      "sha256": "06fff764792e42a04f2a0f8ba06e00c16043a149c2bee1161ae49cd8422b5470",
+      "prompt": "Preserve Woodford glass; replace Sweet Oak and series 21 with Madeira Cask Finish, 90.4 proof, 45.2%. Remove unsupported edition numbers. Final text correction: remove bourbon type claim; keep only Master's Collection beneath finish name, preserving 90.4 proof and 45.2%.",
+      "reference": "https://www.woodfordreserve.com/whiskey/masters-collection/",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding and edition text; transparent pixels outside bottle verified. Microprint illustrative. Private Barrel selection fields intentionally blank.",
+      "bytes": 251376
+    },
+    {
+      "key": "makers-mark-cellar-aged-2026",
+      "masterSha256": "22b976ae3a424f80bef28a40d4ff3b8de0f811024dd8a2a114692f9e199d4086",
+      "sha256": "23ccee09b55822bdd03212de467766793e09578cdc6196f8ac5363b349de890c",
+      "prompt": "Preserve Maker's Cellar Aged bottle, wax, label and illustration; replace gold 2023 with 2026. No invented age or proof.",
+      "reference": "https://www.makersmark.com/en-us/bourbons/makers-mark-cellar-aged",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding and edition text; transparent pixels outside bottle verified. Microprint illustrative. Private Barrel selection fields intentionally blank.",
+      "bytes": 173819
+    },
+    {
+      "key": "elijah-craig-private-barrel-barrel-proof",
+      "masterSha256": "5fef03a48119d16803d0955bd2847012dfb9d7128a30f46e9724b40b7fa9fbf2",
+      "sha256": "02582eb16366bbe1874979136cea508e22d1df9aabd2a4112a6fb78dd216d865",
+      "prompt": "Preserve Elijah Craig glass and amber; use Private Barrel neck and label, Barrel Proof expression. Blank proof, age and barrel fields; no batch C925 or invented retail sticker.",
+      "reference": "https://elijahcraig.com/barrel-proof",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding and edition text; transparent pixels outside bottle verified. Microprint illustrative. Private Barrel selection fields intentionally blank.",
+      "bytes": 266812
     }
   ]
 }
