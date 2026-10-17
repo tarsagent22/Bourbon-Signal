@@ -1,5 +1,6 @@
 import { parseRecentStores, recentStoresKey, rememberStore } from "../../../src/sightings/recent-stores";
 import { useFormDraft } from "../../../src/hooks/useFormDraft";
+import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
 import { DraftNotice } from "../../../src/components/DraftNotice";
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { ErrorState } from "../../../src/components/MemberScreen";
@@ -471,7 +472,7 @@ function PostComposer({ userId }: { userId: string }) {
             <Field autoCapitalize="words" autoCorrect={false} label="Bottle" onChangeText={changeBottleName} onFocus={() => setActivePicker("bottle")} placeholder="Search bottle catalog" value={bottleName} />
             {bottleId ? <SelectionNote icon="check-circle-outline" text="Catalog bottle selected" /> : bottleName.trim() ? <Text style={styles.helper}>Can’t find it? Keep the bottle name exactly as entered.</Text> : null}
             {activePicker === "bottle" && bottleName.trim().length >= 2 && !bottleId ? <SuggestionList empty="No catalog match. You can still use this name.">
-              {bottleSuggestions.map((bottle) => <SuggestionRow key={bottle.id} onPress={() => chooseBottle(bottle)} subtitle={bottle.rarity ? bottle.rarity.replace("_", " ") : undefined} title={bottle.name} />)}
+              {bottleSuggestions.map((bottle) => <SuggestionRow key={bottle.id} bottleId={bottle.id} onPress={() => chooseBottle(bottle)} subtitle={bottle.rarity ? bottle.rarity.replace("_", " ") : undefined} title={bottle.name} />)}
             </SuggestionList> : null}
           </ComposerSection>
 
@@ -586,8 +587,8 @@ function SuggestionList({ children, empty, loading = false }: React.PropsWithChi
   return <View style={styles.suggestions}>{loading && !hasChildren ? <ActivityIndicator color={colors.accent} size="small" /> : hasChildren ? children : empty ? <Text style={styles.suggestionEmpty}>{empty}</Text> : null}</View>;
 }
 
-function SuggestionRow({ onPress, subtitle, title }: { onPress: () => void; subtitle?: string; title: string }) {
-  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.suggestionRow, pressed && styles.pressed]}><View style={styles.selectionCopy}><Text style={styles.suggestionTitle}>{title}</Text>{subtitle ? <Text numberOfLines={2} style={styles.suggestionSubtitle}>{subtitle}</Text> : null}</View><MaterialCommunityIcons color={colors.muted} name="chevron-right" size={18} /></Pressable>;
+function SuggestionRow({ onPress, subtitle, title, bottleId }: { onPress: () => void; subtitle?: string; title: string; bottleId?: string }) {
+  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.suggestionRow, pressed && styles.pressed]}>{bottleId ? <CellarBottleArtwork bottle={{ bottleId, bottleName: title }} size="list" /> : null}<View style={styles.selectionCopy}><Text style={styles.suggestionTitle}>{title}</Text>{subtitle ? <Text numberOfLines={2} style={styles.suggestionSubtitle}>{subtitle}</Text> : null}</View><MaterialCommunityIcons color={colors.muted} name="chevron-right" size={18} /></Pressable>;
 }
 
 const styles = StyleSheet.create({

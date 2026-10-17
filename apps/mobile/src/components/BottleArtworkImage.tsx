@@ -2,7 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, AppState, Easing, Image, View } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 
-export function BottleArtworkImage({ source, size = 'grid' }: {
+export function BottleArtworkImage({ source, size = 'grid' }: Parameters<typeof AnimatedBottleArtwork>[0]) {
+  if (size === 'detail') return <AnimatedBottleArtwork source={source} size={size} />;
+  const width = size === 'feed' ? 64 : size === 'showcase' ? 88 : size === 'grid' ? 80 : 44;
+  const height = size === 'feed' ? 102 : size === 'showcase' ? 148 : size === 'grid' ? 116 : 62;
+  // List/grid images are static: avoid allocating animated values and effects
+  // for every thumbnail while scrolling or opening a bottle picker.
+  return <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none" style={{ width, height, alignItems: 'center' }}>
+    <Image source={source} resizeMode="contain" style={{ width, height, ...(size === 'showcase' ? { transform: [{ translateY: 12 }] } : {}) }} />
+  </View>;
+}
+
+function AnimatedBottleArtwork({ source, size = 'grid' }: {
   source: ImageSourcePropType; size?: 'grid' | 'list' | 'detail' | 'showcase' | 'feed';
 }) {
   const phase = useRef(new Animated.Value(0)).current;

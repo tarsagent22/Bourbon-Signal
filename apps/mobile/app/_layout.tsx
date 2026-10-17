@@ -4,7 +4,6 @@ import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
-import { BrandLoading } from "../src/components/BrandLoading";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
@@ -34,7 +33,7 @@ export default function RootLayout() {
           <MobileApiProvider><PurchasesProvider>
             <DeviceTimeZoneCapture />
             <StatusBar style="light" />
-            {fontsLoaded || fontError ? <SessionNavigation /> : <BrandLoading />}
+            <SessionNavigation />
           </PurchasesProvider></MobileApiProvider>
         </ClerkProvider>
       </SafeAreaProvider>

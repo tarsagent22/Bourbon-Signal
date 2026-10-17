@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { GeographySearchResponse, MemberPreferences, MemberProfile, MonitoringScope } from "../../src/api/types";
 import { ErrorState, LoadingState, PageHeading, memberScreenStyles } from "../../src/components/MemberScreen";
+import { CellarBottleArtwork } from '../../src/components/CellarBottleArtwork';
 import { useBottleCatalog } from "../../src/hooks/useBottleCatalog";
 import { useMobileApi } from "../../src/hooks/useMobileApi";
 import { useAccessibleStatus } from "../../src/hooks/useAccessibleStatus";
@@ -152,7 +153,7 @@ function MemberSetup() {
         {catalog.error ? <ErrorState message={catalog.error} onRetry={catalog.retry} /> : null}
         {(query.trim() ? catalog.search(query, 8) : catalog.catalog.filter(row => watched.has(canonicalBottleKey(row.name)))).map(row => {
           const isWatched = watched.has(canonicalBottleKey(row.name));
-          return <View key={row.id} style={s.row}><Text style={[s.text, s.flex]}>{row.name}</Text><Action label={isWatched ? "Remove" : "Watch"} secondary disabled={busy || (!isWatched && typeof limit === "number" && count >= limit)} onPress={() => void watch(row.name, !isWatched)} /></View>;
+          return <View key={row.id} style={s.row}><CellarBottleArtwork bottle={{ bottleId: row.id, bottleName: row.name }} size="list" /><Text style={[s.text, s.flex]}>{row.name}</Text><Action label={isWatched ? "Remove" : "Watch"} secondary disabled={busy || (!isWatched && typeof limit === "number" && count >= limit)} onPress={() => void watch(row.name, !isWatched)} /></View>;
         })}
         {query.trim() && !catalog.search(query, 8).length ? <Text style={s.detail}>No bottles match. Try another name.</Text> : !query.trim() && !count ? <Text style={s.detail}>Search above to watch your first bottle.</Text> : null}
       </> : <Text style={s.detail}>Your phone will ask for permission. You can change this in Radar.</Text>}

@@ -20,7 +20,7 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, sortSignalTimeline } from "../../../src/signals/home-feed-live";
-import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
+import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences, resolveHomeStartup } from "../../../src/signals/home-browsing-preferences";
 import { colors, typeScale, layout, typography } from "../../../src/theme";
 import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibility";
 
@@ -349,14 +349,14 @@ export default function SignalFeedScreen() {
     setError("");
     setLoaded(false);
     setLoading(false);
-    void Promise.all([loadHomeBrowsingPreferences(browsingStorageKey).catch(() => null), api.getMemberProfile().catch(() => null)]).then(([saved, member]) => {
+    void resolveHomeStartup(loadHomeBrowsingPreferences(browsingStorageKey), api.getMemberProfile().then(member => member.profile.homeState || undefined)).then(({ saved, homeState }) => {
       if (!current) return;
       if (saved && mutationAtStart === browsingMutationSequence.current) {
         setView(saved.view);
         setFiltersByView(saved.filtersByView);
         setBottleQueries({ market: saved.filtersByView.market.bottle, community: saved.filtersByView.community.bottle });
-      } else if (!saved && member?.profile.homeState && mutationAtStart === browsingMutationSequence.current) {
-        const home = { ...DEFAULT_SIGNAL_FILTERS, state: member.profile.homeState };
+      } else if (!saved && homeState && mutationAtStart === browsingMutationSequence.current) {
+        const home = { ...DEFAULT_SIGNAL_FILTERS, state: homeState };
         setFiltersByView({ market: { ...home }, community: { ...home } });
       }
       setLoadedBrowsingStorageKey(browsingStorageKey);

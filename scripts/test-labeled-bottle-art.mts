@@ -9,13 +9,14 @@ import catalog from '../apps/mobile/src/cellar/bottle-catalog-seed.json';
 import ownerCatalog from '../shared/labeled-owner-bottles.json';
 import retailerNames from '../shared/labeled-artwork-retailer-names.json';
 import feedProducts from '../shared/labeled-feed-bottles.json';
+import libraryProducts from '../shared/labeled-library-bottles.json';
 import feedFixture from './fixtures/feed-bottle-artwork-20261017.json';
 import scannerFixture from './fixtures/feed-bottle-artwork-scanner-20261017.json';
 const { catalogBottlePhoto } = require('../src/lib/bottle-photos.ts') as typeof import('../src/lib/bottle-photos');
 
 test('every previously illustrated catalog and public owner bottle has labeled artwork', () => {
   const historical = [1,2,3,4,5,6].flatMap(n => JSON.parse(readFileSync(new URL(`../apps/mobile/assets/bottles/label-free-v${n}/catalog.json`, import.meta.url),'utf8')).products);
-  const expected = [...historical,...ownerCatalog,...feedProducts].map(row => row.id).sort();
+  const expected = [...historical,...ownerCatalog,...feedProducts,...libraryProducts].map(row => row.id).sort();
   assert.deepEqual(LABELED_BOTTLE_ARTWORK.entries.map(row => row.catalogId).sort(),expected);
   const fallback = readFileSync(new URL('../apps/mobile/src/components/CellarBottleSilhouette.tsx',import.meta.url),'utf8');
   assert.match(fallback,/neutral-labeled\.png/);

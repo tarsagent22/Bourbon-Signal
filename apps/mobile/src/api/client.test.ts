@@ -131,9 +131,10 @@ test("foreground telemetry preserves successful navigation reads without caching
   await api.getMemberProfile();
   await api.recordMobileActivity({ platform: "ios", appVersion: "1.1.0", updateId: null });
   await api.recordMobileActivity({ platform: "ios", appVersion: "1.1.0", updateId: null });
+  await api.saveDeviceTimeZone("America/New_York");
   await api.getMemberProfile();
   assert.equal(reads, 1);
-  assert.equal(reports, 2);
+  assert.equal(reports, 3);
 });
 import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalAvailabilityIsCurrent, signalAvailabilityRefreshAt, signalCardStatusLabel, signalCardSummary, signalMemberTagLabel } from "./presentation";
 

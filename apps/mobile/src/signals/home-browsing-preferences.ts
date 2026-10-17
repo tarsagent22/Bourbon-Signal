@@ -47,6 +47,14 @@ export function serializeHomeBrowsingPreferences(value: HomeBrowsingPreferences)
   return JSON.stringify(value);
 }
 
+// A returning member can restore the feed from local preferences while the
+// profile refresh continues. First-time members still wait for their home state.
+export async function resolveHomeStartup(savedRead: Promise<HomeBrowsingPreferences | null>, homeStateRead: Promise<string | undefined>) {
+  const homeState = homeStateRead.catch(() => undefined);
+  const saved = await savedRead.catch(() => null);
+  return { saved, homeState: saved ? undefined : await homeState };
+}
+
 export async function loadHomeBrowsingPreferences(storageKey: string) {
   if (!storageKey) return null;
   const SecureStore = await import("expo-secure-store");

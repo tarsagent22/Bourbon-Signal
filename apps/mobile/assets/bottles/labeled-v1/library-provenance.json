@@ -1,0 +1,48 @@
+{
+  "assets": [
+    {
+      "key": "wild-turkey-101-rye",
+      "masterSha256": "dd1af2eb15df6f057fdcae77b8e1babcb690685ed6c8db5a6eadd25576feee39",
+      "sha256": "66818e7e1faaf7599e9af91d47f76b7fb3cdd87e65c7efb9f6d233e264698c7e",
+      "prompt": "Create one original premium realistic bottle illustration for the Bourbon Signal app, using the attached producer reference solely for exact product identity, bottle silhouette, proportions, closure and label layout. Newly render it with polished studio glass, amber liquid, restrained soft reflections, legible main branding. Front view, upright single complete bottle centered with the entire cap and heel fully visible, generous transparent padding on all sides, 85 percent canvas height, portrait composition. Genuinely transparent background. No props, shadow floor, boxes, watermark or text outside the bottle. Preserve expression-specific labels, do not invent proof or batch numbers. Wild Turkey 101 Rye. Keep tall cylinder and tapered long neck, brown screw cap, green vertical neck band, embossed turkey, cream label with WILD TURKEY, RYE WHISKEY and large green 101.",
+      "reference": "https://www.wildturkeybourbon.com/products/wild-turkey-101-rye/",
+      "method": "Built-in image generation from producer reference; transparent PNG export",
+      "reviewed": true,
+      "reviewNotes": "Compared generated render with producer front reference: complete closure and heel, exact rye product branding, label colors, shape and expression. Primary text legible. Microprint is illustrative.",
+      "bytes": 239104
+    },
+    {
+      "key": "wild-turkey-rare-breed-rye",
+      "masterSha256": "1eca1d2c0d7e13915b721d848aef2095c1bc735f26f390c7c8c4d9dc57f7e8a0",
+      "sha256": "c4fed84b4a83e75459c3575a800e6d05739c0875cc0d63c91e63aa97f190654c",
+      "prompt": "Create one original premium realistic bottle illustration for the Bourbon Signal app, using the attached producer reference solely for exact product identity, bottle silhouette, proportions, closure and label layout. Newly render it with polished studio glass, amber liquid, restrained soft reflections, legible main branding. Front view, upright single complete bottle centered with the entire cap and heel fully visible, generous transparent padding on all sides, 85 percent canvas height, portrait composition. Genuinely transparent background. No props, shadow floor, boxes, watermark or text outside the bottle. Preserve expression-specific labels, do not invent proof or batch numbers. Wild Turkey Rare Breed Rye 112.2 proof. Keep squat broad rounded shoulders, dark brown wood stopper, green neck and bottom labels, cream main label WILD TURKEY RARE BREED KENTUCKY STRAIGHT RYE WHISKEY.",
+      "reference": "https://www.wildturkeybourbon.com/products/rare-breed-rye/",
+      "method": "Built-in image generation from producer reference; transparent PNG export",
+      "reviewed": true,
+      "reviewNotes": "Compared generated render with producer front reference: complete closure and heel, exact rye product branding, label colors, shape and expression. Primary text legible. Microprint is illustrative.",
+      "bytes": 263857
+    },
+    {
+      "key": "new-riff-bottled-in-bond-rye",
+      "masterSha256": "b01008560e216492b26cfc3bcd278fa5ed6d4d1335039ef275bdb8c592c292ac",
+      "sha256": "2520403d6809ccaeccfe42b4609677f7cfb3a3e219b5982f65c56bda716c0c9a",
+      "prompt": "Create one original premium realistic bottle illustration for the Bourbon Signal app, using the attached producer reference solely for exact product identity, bottle silhouette, proportions, closure and label layout. Newly render it with polished studio glass, amber liquid, restrained soft reflections, legible main branding. Front view, upright single complete bottle centered with the entire cap and heel fully visible, generous transparent padding on all sides, 85 percent canvas height, portrait composition. Genuinely transparent background. No props, shadow floor, boxes, watermark or text outside the bottle. Preserve expression-specific labels, do not invent proof or batch numbers. New Riff Bottled-in-Bond Rye. Keep tall slender cylindrical bottle with dark black upper glass fading into amber, black stopper fully visible, bright green narrow seal, NEW RIFF orange and white type, RYE green, BOTTLED IN BOND. Correct standard 4-year 100 proof rye, not malted rye or single barrel.",
+      "reference": "https://shop.newriffdistilling.com/products/new-riff-kentucky-straight-rye-whiskey-bottled-in-bond",
+      "method": "Built-in image generation from producer reference; transparent PNG export",
+      "reviewed": true,
+      "reviewNotes": "Compared generated render with producer front reference: complete closure and heel, exact rye product branding, label colors, shape and expression. Primary text legible. Microprint is illustrative.",
+      "bytes": 163819
+    },
+    {
+      "key": "green-river-rye",
+      "masterSha256": "5a8ecdf54f3581898bec3278a799bc96eae132a77959e6eb3d0291f3d6983ae1",
+      "sha256": "4637e3e9f62a54cce9d8dbb23fcc1c854d6228e373302d8c2e1d4c053c124b8f",
+      "prompt": "Create one original premium realistic bottle illustration for the Bourbon Signal app, using the attached producer reference solely for exact product identity, bottle silhouette, proportions, closure and label layout. Newly render it with polished studio glass, amber liquid, restrained soft reflections, legible main branding. Front view, upright single complete bottle centered with the entire cap and heel fully visible, generous transparent padding on all sides, 85 percent canvas height, portrait composition. Genuinely transparent background. No props, shadow floor, boxes, watermark or text outside the bottle. Preserve expression-specific labels, do not invent proof or batch numbers. Green River Kentucky Straight Rye. Keep rectangular amber glass with rounded corners, prominent thick horseshoe-shaped base, brown wood stopper, green seal, green label and gold border. Main text GREEN RIVER KENTUCKY STRAIGHT RYE WHISKEY DSP-KY-10 95 PROOF.",
+      "reference": "https://greenriverwhiskey.com/kentucky-straight-rye/",
+      "method": "Built-in image generation from producer reference; transparent PNG export",
+      "reviewed": true,
+      "reviewNotes": "Compared generated render with producer front reference: complete closure and heel, exact rye product branding, label colors, shape and expression. Primary text legible. Microprint is illustrative.",
+      "bytes": 302484
+    }
+  ]
+}

@@ -410,6 +410,9 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
       columnWrapperStyle={viewMode === "grid" && numColumns > 1 ? styles.gridRow : undefined}
       contentContainerStyle={[memberScreenStyles.content, styles.cellarContent, viewMode === "grid" && numColumns > 1 && styles.gridContent]}
       data={bottles}
+      initialNumToRender={viewMode === 'grid' ? 4 : 8}
+      maxToRenderPerBatch={viewMode === 'grid' ? 3 : 6}
+      windowSize={7}
       keyExtractor={shelfBottleKey}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}

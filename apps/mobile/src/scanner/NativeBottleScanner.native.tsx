@@ -8,6 +8,7 @@ import { createLabelIndex, matchBottleLabel, normalizeBarcode, VERIFIED_BOTTLE_B
 import { createScanLoop } from './scan-loop';
 import { scanCrop, scanGuide } from './scan-guide';
 import { createCandidateLatch } from './scan-candidates';
+import { labelPictureSize, LABEL_FRAME_DELAY_MS } from './capture-settings';
 import type { ScannerProps } from './scanner-types';
 import { colors } from '../theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
   const [permission, requestPermission] = cameraLibrary!.useCameraPermissions();
   const camera = useRef<CameraViewType>(null);
   const [ready, setReady] = useState(false);
+  const [pictureSize, setPictureSize] = useState<string>();
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
   const [torch, setTorch] = useState(false);
   const [message, setMessage] = useState('');
@@ -48,22 +50,23 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
   const capturing = useRef(false);
 
   useEffect(() => { const listener = AppState.addEventListener('change', state => { setForeground(state === 'active'); if (state !== 'active') setTorch(false); }); return () => listener.remove(); }, []);
-  const cameraActive = active && foreground && permission?.granted && !failed;
+  const cameraActive = active && foreground && permission?.granted && !failed && !locked;
   useEffect(() => { if (!cameraActive) { setReady(false); setTorch(false); } }, [cameraActive]);
   useEffect(() => {
     if (!cameraActive || !ready || locked) return;
     let failures = 0; let emptyReads = 0;
     const loop = createScanLoop({
+      delay: LABEL_FRAME_DELAY_MS,
       read: async () => {
         if (capturing.current) return null;
         capturing.current = true;
         let original: string | undefined, cropped: string | undefined;
         try {
-          const picture = await camera.current?.takePictureAsync({ quality: 0.65, shutterSound: false });
+          const picture = await camera.current?.takePictureAsync({ quality: 0.85, shutterSound: false });
           if (!picture) throw new Error('Camera is not ready');
           original = picture.uri;
           // Read the center label rather than background bottles. Temporary frames never enter the photo library.
-          const frame = await manipulateAsync(picture.uri, [{ crop: scanCrop(picture, viewRef.current) }, { resize: { width: 800 } }], { compress: 0.8, format: SaveFormat.JPEG });
+          const frame = await manipulateAsync(picture.uri, [{ crop: scanCrop(picture, viewRef.current) }, { resize: { width: 800 } }], { compress: 0.9, format: SaveFormat.JPEG });
           cropped = frame.uri;
           const result = await textRecognition!.recognizeText(frame.uri);
           return matchBottleLabel(index, result.text);
@@ -85,7 +88,14 @@ function LiveCamera({ active, catalog, onMatches }: ScannerProps) {
 
   if (!permission?.granted) return <View style={s.fallback}><Text style={s.copy}>Use your camera to read a bottle label. Label reading stays on your device.</Text><Pressable accessibilityRole="button" onPress={() => void (permission?.canAskAgain === false ? Linking.openSettings() : requestPermission())} style={s.button}><Text style={s.buttonText}>{permission?.canAskAgain === false ? 'Open camera settings' : 'Enable camera'}</Text></Pressable></View>;
   return <View testID="bottle-scanner-frame" style={s.frame} onLayout={event => { const { width, height } = event.nativeEvent.layout; if (width > 0 && height > 0) setView({ width, height }); }}>
-    {cameraActive ? <CameraView ref={camera} style={StyleSheet.absoluteFill} facing="back" mode="picture" animateShutter={false} enableTorch={torch} onCameraReady={() => setReady(true)} onMountError={() => { setFailed(true); setMessage('The camera couldn’t start. Try again or search by name.'); }} barcodeScannerSettings={{ barcodeTypes: ['ean13', 'upc_a'] }} onBarcodeScanned={result => {
+    {cameraActive ? <CameraView ref={camera} style={StyleSheet.absoluteFill} facing="back" mode="picture" pictureSize={pictureSize} animateShutter={false} enableTorch={torch} onCameraReady={async () => {
+      const opened = camera.current;
+      try {
+        const sizes = await opened?.getAvailablePictureSizesAsync();
+        if (opened && camera.current === opened) setPictureSize(labelPictureSize(sizes || []));
+      } catch { /* Unsupported size discovery retains the platform default. */ }
+      if (opened && camera.current === opened) setReady(true);
+    }} onMountError={() => { setFailed(true); setMessage('The camera couldn’t start. Try again or search by name.'); }} barcodeScannerSettings={{ barcodeTypes: ['ean13', 'upc_a'] }} onBarcodeScanned={result => {
       const code = normalizeBarcode(result.data);
       if (locked || !code || code === lastBarcode.current) return;
       lastBarcode.current = code;

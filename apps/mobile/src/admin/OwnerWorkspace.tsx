@@ -1,3 +1,4 @@
+import { CellarBottleArtwork } from '../components/CellarBottleArtwork';
 import {
   createContext,
   useContext,
@@ -793,7 +794,7 @@ function BottlePicker({
           onPress={() => onChoose(b)}
           style={ui.choice}
         >
-          <Text style={s.label}>{b.canonicalName}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><CellarBottleArtwork bottle={{ bottleId: b.id, bottleName: b.canonicalName }} size="list" /><Text style={[s.label, { flex: 1 }]}>{b.canonicalName}</Text></View>
           <Text style={ui.small}>
             {b.brand} · {human(b.category)}
             {b.proof ? ` · ${b.proof} proof` : ""}
@@ -1190,7 +1191,7 @@ function Bottles({
           ) : (
             state.data?.bottles.map((b: Row) => (
               <View key={b.id} style={s.card}>
-                <Text style={s.label}>{b.canonicalName}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><CellarBottleArtwork bottle={{ bottleId: b.id, bottleName: b.canonicalName }} size="list" /><Text style={[s.label, { flex: 1 }]}>{b.canonicalName}</Text></View>
                 <Text style={ui.small}>
                   {b.brand} · {human(b.category)} · {b.rarityPending ? "Rarity pending" : human(b.availability)}
                   {b.proof ? ` · ${b.proof} proof` : ""}
@@ -2652,7 +2653,7 @@ function Pricing({ api }: { api: Api }) {
           .slice(0, 20)
           .map((b: Row) => (
             <View key={b.id} style={s.card}>
-              <Text style={s.label}>{b.name}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><CellarBottleArtwork bottle={{ bottleId: b.id, bottleName: b.name }} size="list" /><Text style={[s.label, { flex: 1 }]}>{b.name}</Text></View>
               <Text style={ui.small}>
                 {b.members} members own this ·{" "}
                 {b.reference
