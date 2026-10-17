@@ -43,6 +43,26 @@ try {
     assert.equal(await page.evaluate(() => window.scannerReads), 1, 'candidates appear on the first useful frame');
     await page.waitForTimeout(1200);
     assert.equal(await page.getByText('Matches saved below', { exact: true }).count(), 0, 'brand-only agreement keeps reading the expression');
+    const stableFamily = page.getByRole('button', { name: 'Show all Penelope expressions', exact: true });
+    const familyBefore = await stableFamily.boundingBox();
+    const firstBefore = await page.getByRole('button', { name: 'Check Penelope Bourbon', exact: true }).boundingBox();
+    const rendersBefore = await page.evaluate(() => { window.scannerAutoFrames = false; return window.scannerRenders; });
+    for (let sequence = 1000; sequence < 1008; sequence++) {
+      await page.evaluate(sequence => {
+        const sample = window.scannerLastFrame;
+        window.scannerDeliverFrame({ ...sample, sequence, blocks: sequence % 2 ? sample.blocks : [] });
+      }, sequence);
+      await page.waitForTimeout(60);
+      assert.deepEqual(await stableFamily.boundingBox(), familyBefore, 'OCR gaps never move brand controls');
+      assert.deepEqual(await page.getByRole('button', { name: 'Check Penelope Bourbon', exact: true }).boundingBox(), firstBefore, 'OCR gaps never move candidates');
+    }
+    assert.equal(await page.evaluate(() => window.scannerRenders), rendersBefore, 'recognition updates do not rerender the native preview');
+    // Start a fresh sequence after deliberately injecting high sequence numbers.
+    const previousToken = await page.evaluate(() => window.scannerLastFrame.scanToken);
+    await page.getByRole('button', { name: 'Scan another', exact: true }).click();
+    await page.evaluate(() => { window.scannerAutoFrames = true; });
+    await page.waitForFunction(previousToken => window.scannerLastFrame.scanToken !== previousToken && window.scannerLastFrame.blocks.some(block => block.text === 'PENELOPE'), previousToken);
+    await stableFamily.waitFor();
     await page.evaluate(() => { window.scannerText = 'RIVIERA'; });
     await page.getByText('Matches saved below', { exact: true }).waitFor();
     assert.ok((await page.getByRole('button', { name: /^Check / }).allTextContents())[0].includes('Penelope Riviera'));
@@ -57,9 +77,9 @@ try {
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).waitFor();
     await page.addInitScript(() => { window.scannerText = 'HANDCRAFTED WOODEN TABLE'; });
     await page.goto('http://127.0.0.1:5201/?screen=check&camera=fixture');
-    await page.getByText('Label text read · no catalog match yet. Search by name.', { exact: true }).waitFor();
+    await page.getByText('Label read · no catalog match. Search by name.', { exact: true }).waitFor();
     await page.evaluate(() => { window.scannerText = ''; });
-    await page.getByText('No label text read yet · keep the front label in view.', { exact: true }).waitFor();
+    await page.getByText('No label text yet · keep the label in view.', { exact: true }).waitFor();
     assert.equal(await page.getByText('Try more light or move closer', { exact: true }).count(), 0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.close();

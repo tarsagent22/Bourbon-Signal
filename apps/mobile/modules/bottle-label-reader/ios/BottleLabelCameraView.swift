@@ -9,10 +9,11 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
   let onStatus = EventDispatcher()
   private let session = AVCaptureSession()
   private let sessionQueue = DispatchQueue(label: "com.bourbonsignal.camera-session", qos: .userInitiated)
-  private let analysisQueue = DispatchQueue(label: "com.bourbonsignal.live-labels", qos: .userInitiated)
+  private let analysisQueue = DispatchQueue(label: "com.bourbonsignal.live-labels", qos: .utility)
   private let stateLock = NSLock()
   private var generation = 0
   private var running = false
+  private var captureRequested = false
   private var scanning = true
   private var scanToken = 0
   private var requestedActive = false
@@ -21,7 +22,7 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
   private var configured = false
   private var device: AVCaptureDevice?
   private var videoOutput: AVCaptureVideoDataOutput?
-  private var lastRead: CFTimeInterval = 0
+  private var nextRead: CFTimeInterval = 0
   private var sequence = 0
   private var observers: [NSObjectProtocol] = []
   private lazy var preview = AVCaptureVideoPreviewLayer(session: session)
@@ -64,15 +65,32 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
 
   override func layoutSubviews() {
     super.layoutSubviews()
-    preview.frame = bounds
-    if preview.connection?.isVideoOrientationSupported == true { preview.connection?.videoOrientation = .portrait }
+    // Camera geometry is not an animated UI transition. Implicit layer actions
+    // otherwise make the image swim when the surrounding results lay out.
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    if preview.frame != bounds { preview.frame = bounds }
+    if let connection = preview.connection, connection.isVideoOrientationSupported, connection.videoOrientation != .portrait { connection.videoOrientation = .portrait }
+    CATransaction.commit()
   }
 
   override func didMoveToWindow() { super.didMoveToWindow(); updateSession() }
-  func setActive(_ value: Bool) { requestedActive = value; updateSession() }
-  func setScanning(_ value: Bool) { stateLock.lock(); scanning = value; stateLock.unlock() }
-  func setScanToken(_ value: Int) { stateLock.lock(); scanToken = value; stateLock.unlock(); updateSession() }
+  func setActive(_ value: Bool) { guard requestedActive != value else { return }; requestedActive = value; updateSession() }
+  func setScanning(_ value: Bool) {
+    stateLock.lock()
+    guard scanning != value else { stateLock.unlock(); return }
+    scanning = value; generation += 1; stateLock.unlock()
+    if value { analysisQueue.async { [weak self] in self?.nextRead = 0 } }
+  }
+  func setScanToken(_ value: Int) {
+    stateLock.lock()
+    guard scanToken != value else { stateLock.unlock(); return }
+    scanToken = value; generation += 1; stateLock.unlock()
+    // A new scan invalidates old results, without touching the running camera.
+    analysisQueue.async { [weak self] in self?.nextRead = 0 }
+  }
   func setTorch(_ value: Bool) {
+    guard torch != value else { return }
     torch = value
     sessionQueue.async { [weak self] in self?.applyTorch(value) }
   }
@@ -81,7 +99,10 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
   }
   private func updateSession() {
     let shouldRun = requestedActive && foreground && window != nil
-    stateLock.lock(); generation += 1; let epoch = generation; running = shouldRun; stateLock.unlock()
+    stateLock.lock()
+    guard captureRequested != shouldRun || (shouldRun && !running) else { stateLock.unlock(); return }
+    captureRequested = shouldRun
+    generation += 1; let epoch = generation; running = shouldRun; stateLock.unlock()
     let requestedTorch = torch
     sessionQueue.async { [weak self] in
       guard let self else { return }
@@ -100,7 +121,7 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
         if !self.session.isRunning { self.session.startRunning() }
         DispatchQueue.main.async { [weak self] in
           guard let self else { return }
-          if self.preview.connection?.isVideoOrientationSupported == true { self.preview.connection?.videoOrientation = .portrait }
+          if let connection = self.preview.connection, connection.isVideoOrientationSupported, connection.videoOrientation != .portrait { connection.videoOrientation = .portrait }
         }
         self.applyTorch(requestedTorch)
         self.emitStatus("ready", epoch: epoch)
@@ -130,6 +151,11 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
     if (try? camera.lockForConfiguration()) != nil {
       if camera.isFocusModeSupported(.continuousAutoFocus) { camera.focusMode = .continuousAutoFocus }
       if camera.isExposureModeSupported(.continuousAutoExposure) { camera.exposureMode = .continuousAutoExposure }
+      if camera.isSmoothAutoFocusSupported { camera.isSmoothAutoFocusEnabled = true }
+      if camera.activeFormat.videoSupportedFrameRateRanges.contains(where: { $0.minFrameRate <= 30 && $0.maxFrameRate >= 30 }) {
+        camera.activeVideoMinFrameDuration = CMTime(value: 1, timescale: 30)
+        camera.activeVideoMaxFrameDuration = CMTime(value: 1, timescale: 30)
+      }
       camera.unlockForConfiguration()
     }
     device = camera
@@ -138,6 +164,7 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
   }
   private func applyTorch(_ enabled: Bool) {
     guard let camera = device, camera.hasTorch else { return }
+    guard camera.torchMode != (enabled ? .on : .off) else { return }
     do { try camera.lockForConfiguration(); camera.torchMode = enabled ? .on : .off; camera.unlockForConfiguration() } catch { }
   }
   private func emitStatus(_ state: String, code: String = "", epoch: Int) {
@@ -153,8 +180,11 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
   func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
     stateLock.lock(); let epoch = generation; let active = running && scanning; let token = scanToken; stateLock.unlock()
     let now = CACurrentMediaTime()
-    guard active, now - lastRead >= 0.25, let buffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-    lastRead = now
+    guard active, now >= nextRead, let buffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+    let started = now
+    // Leave at least as much time idle as the last OCR pass consumed. First
+    // suggestions remain immediate; a slow recognizer cannot saturate the phone.
+    defer { nextRead = started + max(1.0 / 3.0, (CACurrentMediaTime() - started) * 2) }
     autoreleasepool {
       do {
         let start = CACurrentMediaTime()

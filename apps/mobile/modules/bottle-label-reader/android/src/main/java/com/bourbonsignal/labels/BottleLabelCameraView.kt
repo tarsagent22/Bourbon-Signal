@@ -30,6 +30,8 @@ import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
 import java.util.concurrent.Executors
+import java.util.concurrent.Executor
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -49,6 +51,11 @@ class BottleLabelCameraView(context: Context, appContext: AppContext) : ExpoView
   private var controller: LifecycleCameraController? = null
   private var reader: TextRecognizer? = null
   private var executor = Executors.newSingleThreadExecutor()
+  // ML Kit's default success listener runs on the main thread. Keep result
+  // preparation with analysis; only dispatch the finished event onto the UI.
+  private val resultExecutor = Executor { task ->
+    try { executor.execute(task) } catch (_: RejectedExecutionException) { /* detached */ }
+  }
   private val busy = AtomicBoolean(false)
   private val epoch = AtomicInteger(0)
   @Volatile private var analyzing = false
@@ -57,7 +64,7 @@ class BottleLabelCameraView(context: Context, appContext: AppContext) : ExpoView
   private var active = false
   private var foreground = true
   private var torch = false
-  private var lastRead = 0L
+  @Volatile private var nextRead = 0L
   private var sequence = 0
   private var hostActivity: Activity? = null
   private val application = context.applicationContext as Application
@@ -71,10 +78,10 @@ class BottleLabelCameraView(context: Context, appContext: AppContext) : ExpoView
     override fun onActivitySaveInstanceState(activity: Activity, state: Bundle) { }
   }
 
-  fun setActive(value: Boolean) { active = value; updateCapture() }
-  fun setScanning(value: Boolean) { scanning = value; epoch.incrementAndGet() }
-  fun setScanToken(value: Int) { scanToken = value; epoch.incrementAndGet(); updateCapture() }
-  fun setTorch(value: Boolean) { torch = value; controller?.enableTorch(value && analyzing) }
+  fun setActive(value: Boolean) { if (active == value) return; active = value; updateCapture() }
+  fun setScanning(value: Boolean) { if (scanning == value) return; scanning = value; epoch.incrementAndGet(); if (value) nextRead = 0L }
+  fun setScanToken(value: Int) { if (scanToken == value) return; scanToken = value; epoch.incrementAndGet(); nextRead = 0L }
+  fun setTorch(value: Boolean) { if (torch == value) return; torch = value; controller?.enableTorch(value && analyzing) }
 
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
@@ -105,6 +112,7 @@ class BottleLabelCameraView(context: Context, appContext: AppContext) : ExpoView
   @SuppressLint("MissingPermission")
   private fun updateCapture() {
     val shouldRun = active && foreground && isAttachedToWindow
+    if (analyzing == shouldRun && (!shouldRun || controller != null)) return
     epoch.incrementAndGet(); analyzing = shouldRun
     if (!shouldRun) {
       controller?.enableTorch(false)
@@ -156,8 +164,7 @@ class BottleLabelCameraView(context: Context, appContext: AppContext) : ExpoView
     val generation = epoch.get()
     val token = scanToken
     val recognizer = reader
-    if (!analyzing || !scanning || recognizer == null || started - lastRead < 250 || !busy.compareAndSet(false, true)) { image.close(); return }
-    lastRead = started
+    if (!analyzing || !scanning || recognizer == null || started < nextRead || !busy.compareAndSet(false, true)) { image.close(); return }
     val media = image.image
     if (media == null) { busy.set(false); image.close(); return }
     try {
@@ -167,7 +174,8 @@ class BottleLabelCameraView(context: Context, appContext: AppContext) : ExpoView
       val scene = fingerprint(image)
       val input = InputImage.fromMediaImage(media, rotation)
       recognizer.process(input)
-        .addOnSuccessListener { result ->
+        .addOnSuccessListener(resultExecutor) { result ->
+          if (!analyzing || !scanning || generation != epoch.get()) return@addOnSuccessListener
           val blocks = result.textBlocks.flatMap { it.lines }.take(40).mapNotNull { line ->
             val box = line.boundingBox ?: return@mapNotNull null
             val confidence = line.confidence
@@ -182,11 +190,15 @@ class BottleLabelCameraView(context: Context, appContext: AppContext) : ExpoView
             "scene" to scene, "width" to uprightWidth, "height" to uprightHeight)
           post { if (analyzing && scanning && generation == epoch.get()) onFrame(payload) }
         }
-        .addOnFailureListener {
+        .addOnFailureListener(resultExecutor) {
           post { if (analyzing && scanning && generation == epoch.get()) onStatus(mapOf("state" to "error", "code" to "LABEL_ANALYSIS_FAILED", "scanToken" to token)) }
         }
         // Completion must always close the camera buffer, even after detach/pause.
-        .addOnCompleteListener { busy.set(false); image.close() }
+        .addOnCompleteListener {
+          // Completion still closes buffers after the worker has been shut down.
+          if (generation == epoch.get()) nextRead = started + maxOf(334L, (SystemClock.elapsedRealtime() - started) * 2)
+          image.close(); busy.set(false)
+        }
     } catch (_: Exception) {
       busy.set(false); image.close()
       post { if (analyzing && scanning && generation == epoch.get()) onStatus(mapOf("state" to "error", "code" to "LABEL_ANALYSIS_FAILED", "scanToken" to token)) }

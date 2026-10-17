@@ -35,11 +35,25 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
   let history: { text: string; at: number; scene: number[]; family?: Reading['family'] }[] = [];
   let shown: RadarBottleOption[] = [], lastSignature = '', lastSpecific = '', agreement = 0, blankSince: number | null = null;
   let held = false, processingTotal = 0;
+  let shownFamily: Reading['family'], lastIdentityAt = -Infinity, sceneMismatchAt: number | null = null;
+  let displayPhase: LiveScanResult['phase'] = 'reading', pendingPhase = '', pendingPhaseAt = 0;
+  // Repeated OCR text is common. Avoid repeating catalog matching on every frame.
+  const readings = new Map<string, Reading>();
+  const read = (text: string) => {
+    const cached = readings.get(text);
+    if (cached) return cached;
+    const result = readBottleLabel(index, text);
+    if (readings.size >= 16) readings.delete(readings.keys().next().value!);
+    readings.set(text, result);
+    return result;
+  };
   let metrics: ScanMetrics = { frames: 0, firstFrameMs: null, firstSuggestionMs: null, confirmedMs: null, meanAnalysisMs: 0, resets: 0 };
-  const clearEvidence = () => { history = []; shown = []; lastSpecific = ''; agreement = 0; blankSince = null; };
+  const clearEvidence = () => { history = []; shown = []; shownFamily = undefined; lastIdentityAt = -Infinity; sceneMismatchAt = null; lastSpecific = ''; agreement = 0; blankSince = null; };
   return {
     reset(now = 0) {
       clearEvidence(); start = now; lastAt = -Infinity; lastSequence = -1; lastSignature = ''; held = false; processingTotal = 0;
+      readings.clear();
+      displayPhase = 'reading'; pendingPhase = '';
       metrics = { frames: 0, firstFrameMs: null, firstSuggestionMs: null, confirmedMs: null, meanAnalysisMs: 0, resets: 0 };
     },
     observe(frame: LabelFrame, view: { width: number; height: number }, now: number): LiveScanResult | null {
@@ -53,27 +67,33 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
       history = history.filter(item => now - item.at <= HISTORY_MS);
       const blocks = visibleLabelBlocks(frame, view);
       const text = blocks.map(block => block.text.slice(0, 160)).join('\n').slice(0, 4000);
-      const direct = readBottleLabel(index, text);
+      const direct = read(text);
       const changedScene = history.length > 0 && sceneChanged(history[0].scene, frame.scene);
-      const changedFamily = direct.family && history.some(item => item.family && item.family.identity !== direct.family!.identity);
+      if (changedScene) sceneMismatchAt ??= now; else sceneMismatchAt = null;
+      // One noisy luma sample must not make controls/results blink. Suspected
+      // motion blocks old evidence immediately; a second read confirms the reset.
+      const confirmedScene = changedScene && (frame.scene.length !== 36 || now - sceneMismatchAt! >= 150);
+      const changedFamily = direct.family && history.some(item => item.family && item.family.identity !== direct.family!.identity)
+        || direct.canHold && shownFamily && !shownFamily.bottles.some(bottle => bottle.id === direct.matches[0]?.id);
       const mixedBrands = index.families.filter(f => (` ${text.toLowerCase()} `).includes(` ${f.identity} `)).length > 1;
-      if (expired || changedScene || changedFamily || mixedBrands) { clearEvidence(); metrics.resets += Number(metrics.frames > 1); }
+      const staleIdentity = shown.length > 0 && now - lastIdentityAt > HISTORY_MS;
+      if (expired || confirmedScene || changedFamily || mixedBrands || staleIdentity) { clearEvidence(); metrics.resets += Number(metrics.frames > 1); }
 
       let reading = direct;
       let freshSpecific = direct.canHold;
       // Prefer explicit current-frame expressions. Otherwise carry only the recent
       // brand into a new fragment first, replacing an earlier expression rather
       // than combining competing expressions from similar bottles.
-      const context = history.findLast(item => item.family)?.family;
+      const context = changedScene ? undefined : history.findLast(item => item.family)?.family;
       if (!direct.canHold && context && text && !mixedBrands) {
-        const recent = readBottleLabel(index, `${context.name}\n${text}`);
+        const recent = read(`${context.name}\n${text}`);
         if (recent.canHold && recent.family?.identity === context.identity) { reading = recent; freshSpecific = true; }
         else {
-          const combined = readBottleLabel(index, [...history.map(item => item.text), text].join('\n'));
+          const combined = read([...history.map(item => item.text), text].join('\n'));
           if (combined.family?.identity === context.identity) reading = combined;
         }
       }
-      if (text && !mixedBrands && frame.scene.length === 36) {
+      if (text && !mixedBrands && frame.scene.length === 36 && (!changedScene || confirmedScene)) {
         history.push({ text, at: now, scene: frame.scene, family: reading.family });
         history = history.slice(-4);
       }
@@ -85,6 +105,9 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
         // leading card. A newly read expression can immediately replace a brand.
         shown = reading.canHold ? incoming : [...shown.filter(b => incoming.some(n => n.id === b.id)), ...incoming.filter(b => !shown.some(n => n.id === b.id))];
         metrics.firstSuggestionMs ??= Math.max(0, now - start);
+        if (reading.family) shownFamily = reading.family;
+        else if (shownFamily && !shown.some(bottle => shownFamily!.bottles.some(member => member.id === bottle.id))) shownFamily = undefined;
+        if (direct.family || freshSpecific) lastIdentityAt = now;
       }
       const specific = reading.canHold && freshSpecific ? reading.matches[0]?.id || '' : '';
       agreement = specific && specific === lastSpecific ? agreement + 1 : specific ? 1 : 0;
@@ -93,16 +116,22 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
       // Keep uncertain candidates selectable, but require fresh strong expression
       // text before pausing analysis automatically.
       const strongText = blocks.filter(block => block.confidence >= 0.6).map(block => block.text).join('\n');
-      const strong = readBottleLabel(index, strongText);
-      const strongWithBrand = context ? readBottleLabel(index, `${context.name}\n${strongText}`) : strong;
-      const expressionConfident = [strong, strongWithBrand].some(result => result.canHold && result.matches[0]?.id === reading.matches[0]?.id);
+      const strong = specific ? read(strongText) : null;
+      const strongWithBrand = specific && context ? read(`${context.name}\n${strongText}`) : strong;
+      const expressionConfident = (!changedScene || confirmedScene) && [strong, strongWithBrand].some(result => result?.canHold && result.matches[0]?.id === reading.matches[0]?.id);
       if (!expressionConfident) { agreement = 0; lastSpecific = ''; }
       const ready = agreement >= 2 && expressionConfident;
       if (ready) { held = true; metrics.confirmedMs = Math.max(0, now - start); }
       const signature = shown.map(b => b.id).join('|');
       const changed = signature !== lastSignature; lastSignature = signature;
-      return { ...reading, matches: shown, changed, metrics: { ...metrics },
-        phase: ready ? 'ready' : shown.length ? 'suggesting' : text ? 'unknown' : metrics.frames < 3 ? 'reading' : 'empty' };
+      const desiredPhase = ready ? 'ready' : shown.length ? 'suggesting' : text ? 'unknown' : metrics.frames < 3 ? 'reading' : 'empty';
+      if (desiredPhase === 'unknown' || desiredPhase === 'empty') {
+        if (displayPhase === 'suggesting') displayPhase = 'reading';
+        if (pendingPhase !== desiredPhase) { pendingPhase = desiredPhase; pendingPhaseAt = now; }
+        if (now - pendingPhaseAt >= 600) displayPhase = desiredPhase;
+      } else { displayPhase = desiredPhase; pendingPhase = ''; }
+      return { ...reading, family: shownFamily, matches: shown, changed, metrics: { ...metrics },
+        phase: displayPhase };
     },
   };
 }

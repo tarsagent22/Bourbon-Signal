@@ -33,13 +33,18 @@ test('new specific expression wins over the prior expression before confirmation
   assert.equal(scan.observe(frame(2, 'RIO'), view, 350)!.matches[0].id, 'penelope-rio-cask-finish');
   assert.equal(scan.observe(frame(3, 'RIO'), view, 600)!.phase, 'ready');
 });
-test('history clears on scene change, expiration, a different brand, and blank gaps', () => {
+test('history clears on confirmed scene change, expiration, a different brand, and blank gaps', () => {
   for (const [name, second, now] of [
     ['scene', frame(2, 'RIVIERA', { scene: scene.map((_, i) => i % 2 ? 240 : 15) }), 350],
     ['expired', frame(2, 'RIVIERA'), 1600],
   ] as const) {
     const scan = createLiveLabelSession(index); scan.observe(frame(1, 'PENELOPE'), view, 100);
-    assert.equal(scan.observe(second, view, now)!.matches.length, 0, name);
+    const result = scan.observe(second, view, now)!;
+    if (name === 'scene') {
+      assert.equal(result.phase, 'suggesting', 'one changed scene sample preserves provisional choices');
+      assert.notEqual(result.matches[0]?.id, 'penelope-riviera-cask-finish', 'old brand is not lent to a fragment in a different scene');
+      assert.equal(scan.observe({ ...second, sequence: 3 }, view, now + 250)!.matches.length, 0, name);
+    } else assert.equal(result.matches.length, 0, name);
   }
   const changed = createLiveLabelSession(index); changed.observe(frame(1, 'PENELOPE'), view, 100);
   assert.equal(changed.observe(frame(2, 'BUFFALO TRACE KENTUCKY STRAIGHT BOURBON'), view, 350)!.matches[0].id, 'buffalo-trace-bourbon');
@@ -47,6 +52,60 @@ test('history clears on scene change, expiration, a different brand, and blank g
   blank.observe(frame(2, ''), view, 350);
   assert.deepEqual(blank.observe(frame(3, ''), view, 1100)!.matches, []);
   assert.deepEqual(blank.observe(frame(4, 'RIVIERA'), view, 1350)!.matches, []);
+});
+
+test('brief OCR gaps keep family controls and candidates stable without confirming old text', () => {
+  const scan = createLiveLabelSession(index);
+  const first = scan.observe(frame(1, 'PENELOPE'), view, 100)!;
+  for (const [sequence, text, now] of [[2, '', 350], [3, 'HANDCRAFTED', 600], [4, '', 850]] as const) {
+    const next = scan.observe(frame(sequence, text), view, now)!;
+    assert.equal(next.family?.identity, first.family?.identity);
+    assert.deepEqual(next.matches, first.matches);
+    assert.equal(next.changed, false);
+    assert.equal(next.phase, 'suggesting');
+  }
+});
+
+test('a single scene spike neither flickers results nor borrows brand evidence', () => {
+  const scan = createLiveLabelSession(index);
+  const first = scan.observe(frame(1, 'PENELOPE'), view, 100)!;
+  const spike = scan.observe(frame(2, 'RIVIERA', { scene: scene.map((_, i) => i % 2 ? 240 : 15) }), view, 350)!;
+  assert.deepEqual(spike.matches, first.matches);
+  assert.equal(spike.phase, 'suggesting');
+  assert.equal(spike.changed, false);
+  const recovered = scan.observe(frame(3, 'PENELOPE'), view, 600)!;
+  assert.deepEqual(recovered.matches, first.matches);
+  assert.equal(recovered.metrics.resets, 0);
+});
+
+test('unrelated nonblank text cannot keep old candidates alive indefinitely', () => {
+  const scan = createLiveLabelSession(index);
+  scan.observe(frame(1, 'PENELOPE'), view, 100);
+  scan.observe(frame(2, 'HANDCRAFTED'), view, 350);
+  scan.observe(frame(3, 'HANDCRAFTED'), view, 850);
+  const expired = scan.observe(frame(4, 'HANDCRAFTED'), view, 1400)!;
+  assert.deepEqual(expired.matches, []);
+  assert.equal(expired.family, undefined);
+});
+
+test('switching to a bottle with no family alternatives clears the previous brand controls and evidence', () => {
+  const smallIndex = createLabelIndex(seed.filter(bottle => ['penelope-bourbon', 'penelope-riviera-cask-finish', 'henry-mckenna-10-year'].includes(bottle.id))
+    .map(bottle => bottle.name.startsWith('Penelope ') ? { ...bottle, brand: 'Penelope' } : bottle));
+  const scan = createLiveLabelSession(smallIndex);
+  assert.equal(scan.observe(frame(1, 'PENELOPE'), view, 100)!.family?.identity, 'penelope');
+  const different = scan.observe(frame(2, 'HENRY MCKENNA AGED 10 YEARS SINGLE BARREL BOTTLED IN BOND'), view, 350)!;
+  assert.equal(different.matches[0].id, 'henry-mckenna-10-year');
+  assert.equal(different.family, undefined);
+  assert.notEqual(scan.observe(frame(3, 'RIVIERA'), view, 600)!.matches[0]?.id, 'penelope-riviera-cask-finish');
+});
+
+test('unknown/empty guidance waits for a persistent read while matches appear immediately', () => {
+  const scan = createLiveLabelSession(index);
+  for (const [sequence, text, now] of [[1, 'WOODEN TABLE', 100], [2, '', 350], [3, 'WOODEN TABLE', 600], [4, '', 850], [5, 'WOODEN TABLE', 1100], [6, 'WOODEN TABLE', 1400]] as const) {
+    assert.equal(scan.observe(frame(sequence, text), view, now)!.phase, 'reading');
+  }
+  assert.equal(scan.observe(frame(7, 'WOODEN TABLE'), view, 1750)!.phase, 'unknown');
+  assert.equal(scan.observe(frame(8, 'PENELOPE'), view, 2000)!.phase, 'suggesting');
 });
 test('pause/rescan resets all evidence and drops out-of-order events', () => {
   const scan = createLiveLabelSession(index); scan.observe(frame(2, 'PENELOPE'), view, 100);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Linking, Pressable, StyleSheet, Text, View, type ViewProps } from 'react-native';
 import { requireNativeView, requireOptionalNativeModule } from 'expo';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -17,7 +17,9 @@ interface NativeCameraProps extends ViewProps {
   onStatus: (event: { nativeEvent: { state: string; code?: string; scanToken: number } }) => void;
 }
 let nextScanToken = 0;
-const LabelCamera = reader?.liveFramesVersion === 1 ? requireNativeView<NativeCameraProps>('BottleLabelReader') : null;
+const LabelCamera = reader?.liveFramesVersion === 1 ? memo(requireNativeView<NativeCameraProps>('BottleLabelReader')) : null;
+const phaseText = { reading: 'Reading label…', suggesting: 'Possible bottles below · reading expression…', ready: 'Matches saved below',
+  unknown: 'Label read · no catalog match. Search by name.', empty: 'No label text yet · keep the label in view.' };
 
 /** Old binaries retain search; file-based capture is never used as a hidden fallback. */
 export function NativeBottleScanner(props: ScannerProps) {
@@ -36,15 +38,40 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
   const current = useRef({ onMatches, onMetrics, view }); current.current = { onMatches, onMetrics, view };
   const enabled = active && foreground && Boolean(permission?.granted) && !failed;
   const accepting = useRef(false); accepting.current = enabled && !held;
-  const index = useMemo(() => createLabelIndex(catalog), [catalog]);
+  // A background catalog refresh must not restart a scan or erase its choices.
+  // Pick up the latest library on the next scan or camera activation instead.
+  const snapshot = useRef<{ index: ReturnType<typeof createLabelIndex>; session: number; enabled: boolean } | null>(null);
+  if (!snapshot.current || snapshot.current.session !== session || (enabled && !snapshot.current.enabled)) {
+    snapshot.current = { index: createLabelIndex(catalog), session, enabled };
+  } else snapshot.current.enabled = enabled;
+  const index = snapshot.current.index;
   const tracker = useMemo(() => createLiveLabelSession(index, performance.now()), [index]);
   const token = useMemo(() => ++nextScanToken, [session, tracker, retry, enabled]);
   const currentToken = useRef(token); currentToken.current = token;
   const lastFamily = useRef(''), lastList = useRef(''), failures = useRef(0);
-  const publish = (matches: Parameters<ScannerProps['onMatches']>[0]) => {
+  const publish = useCallback((matches: Parameters<ScannerProps['onMatches']>[0]) => {
     const ids = matches.map(b => b.id).join('|');
     if (ids !== lastList.current) { lastList.current = ids; current.current.onMatches(matches); }
-  };
+  }, []);
+  const onFrame = useCallback(({ nativeEvent }: { nativeEvent: LabelFrame }) => {
+    if (!accepting.current || nativeEvent.scanToken !== currentToken.current) return;
+    const result = tracker.observe(nativeEvent, current.current.view, performance.now());
+    if (!result) return;
+    failures.current = 0;
+    if ((result.family?.identity || '') !== lastFamily.current) { lastFamily.current = result.family?.identity || ''; setFamily(result.family); }
+    if (result.changed) publish(result.matches);
+    setMessage(phaseText[result.phase]);
+    if (result.phase === 'ready') {
+      accepting.current = false; setHeld(true); setTorch(false); current.current.onMetrics?.(result.metrics);
+      if (__DEV__) console.info('Bottle scan timings', result.metrics);
+    }
+  }, [tracker, publish]);
+  const onStatus = useCallback(({ nativeEvent }: { nativeEvent: { state: string; code?: string; scanToken: number } }) => {
+    if (!accepting.current || nativeEvent.scanToken !== currentToken.current || nativeEvent.state !== 'error') return;
+    failures.current += 1;
+    if (nativeEvent.code === 'LABEL_ANALYSIS_FAILED' && failures.current < 3) return;
+    setFailed(true); setMessage('Label reading paused. Try again or search by name.');
+  }, []);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state => { setForeground(state === 'active'); if (state !== 'active') setTorch(false); });
     return () => { accepting.current = false; subscription.remove(); };
@@ -70,29 +97,10 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
   return <View style={s.container}>
     <View testID="bottle-scanner-frame" style={s.frame} onLayout={event => {
       const { width, height } = event.nativeEvent.layout;
-      if (width > 0 && height > 0) setView({ width, height });
+      if (width > 0 && height > 0) setView(previous => previous.width === width && previous.height === height ? previous : { width, height });
     }}>
       <NativeCamera key={retry} style={StyleSheet.absoluteFill} active={enabled} scanning={enabled && !held} torch={enabled && !held && torch} scanToken={token}
-        onFrame={({ nativeEvent }) => {
-          if (!accepting.current || nativeEvent.scanToken !== currentToken.current) return;
-          const result = tracker.observe(nativeEvent, current.current.view, performance.now());
-          if (!result) return;
-          failures.current = 0;
-          if (result.family?.identity !== lastFamily.current) { lastFamily.current = result.family?.identity || ''; setFamily(result.family); }
-          if (result.changed) publish(result.matches);
-          const text = { reading: 'Reading label…', suggesting: 'Possible bottles below · reading expression…', ready: 'Matches saved below',
-            unknown: 'Label text read · no catalog match yet. Search by name.', empty: 'No label text read yet · keep the front label in view.' };
-          setMessage(text[result.phase]);
-          if (result.phase === 'ready') {
-            accepting.current = false; setHeld(true); setTorch(false); current.current.onMetrics?.(result.metrics);
-            if (__DEV__) console.info('Bottle scan timings', result.metrics);
-          }
-        }} onStatus={({ nativeEvent }) => {
-          if (!accepting.current || nativeEvent.scanToken !== currentToken.current || nativeEvent.state !== 'error') return;
-          failures.current += 1;
-          if (nativeEvent.code === 'LABEL_ANALYSIS_FAILED' && failures.current < 3) return;
-          setFailed(true); setMessage('Label reading paused. Try again or search by name.');
-        }} />
+        onFrame={onFrame} onStatus={onStatus} />
       <View pointerEvents="none" style={StyleSheet.absoluteFill}><View testID="bottle-label-scan-guide" style={[s.bracket, { left: guide.left, top: guide.top, width: guide.width, height: guide.height }]} /></View>
       <View style={s.top}>
         <View accessible accessibilityLabel={held ? 'Scan results saved' : enabled ? 'Camera scanning' : 'Camera paused'} style={[s.dot, { backgroundColor: enabled && !held ? '#AAD1AB' : colors.muted }]} />
@@ -105,10 +113,10 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
         {failed ? <Pressable accessibilityRole="button" onPress={() => { tracker.reset(performance.now()); failures.current = 0; setFailed(false); setHeld(false); setRetry(value => value + 1); setMessage('Reading label…'); }} style={s.button}><Text style={s.buttonText}>Try camera again</Text></Pressable> : null}
       </View>
     </View>
-    {family ? <Pressable accessibilityRole="button" accessibilityLabel={`Show all ${family.name} expressions`} onPress={() => {
+    <View style={s.familySlot}>{family ? <Pressable accessibilityRole="button" accessibilityLabel={`Show all ${family.name} expressions`} onPress={() => {
       accepting.current = false; setHeld(true); setTorch(false); setMessage('Choose your expression below');
       publish([...family.bottles].sort((a, b) => a.name.localeCompare(b.name)));
-    }} style={s.familyButton}><Text style={s.familyText}>Show all {family.name} expressions ({family.bottles.length})</Text></Pressable> : null}
+    }} style={s.familyButton}><Text style={s.familyText}>Show all {family.name} expressions ({family.bottles.length})</Text></Pressable> : null}</View>
   </View>;
 }
 const s = StyleSheet.create({
@@ -118,10 +126,10 @@ const s = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4, margin: 12 },
   torch: { minWidth: 48, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 22, paddingHorizontal: 14 },
   bottom: { position: 'absolute', bottom: 16, left: 16, right: 16, gap: 8 },
-  overlay: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.7)', textAlign: 'center', fontSize: 13, lineHeight: 19, padding: 12, borderRadius: 12 },
+  overlay: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.7)', textAlign: 'center', textAlignVertical: 'center', minHeight: 62, fontSize: 13, lineHeight: 19, padding: 12, borderRadius: 12 },
   fallback: { minHeight: 220, padding: 28, gap: 18, backgroundColor: colors.surface, borderRadius: 24, justifyContent: 'center' },
   copy: { color: colors.muted, fontSize: 15, lineHeight: 23, textAlign: 'center' },
   button: { minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: colors.accent },
   buttonText: { color: colors.background, fontSize: 14, fontWeight: '700' },
-  familyButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 }, familyText: { color: colors.accent, fontSize: 14, lineHeight: 21, textAlign: 'center' },
+  familySlot: { minHeight: 44 }, familyButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 }, familyText: { color: colors.accent, fontSize: 14, lineHeight: 21, textAlign: 'center' },
 });

@@ -2,11 +2,12 @@
 import { useEffect, useRef } from 'react';
 import { View, Text } from 'react-native';
 import type { LabelFrame } from '../../src/scanner/live-label-session';
-declare global { interface Window { scannerText?: string; scannerTexts?: string[]; scannerReads?: number; scannerMounts?: number; scannerScene?: number[]; scannerLastFrame?: LabelFrame; scannerStaleFrame?: LabelFrame; scannerDeliverFrame?: (frame: LabelFrame) => void } }
+declare global { interface Window { scannerText?: string; scannerTexts?: string[]; scannerReads?: number; scannerMounts?: number; scannerRenders?: number; scannerAutoFrames?: boolean; scannerScene?: number[]; scannerLastFrame?: LabelFrame; scannerStaleFrame?: LabelFrame; scannerDeliverFrame?: (frame: LabelFrame) => void } }
 export function requireOptionalNativeModule(name: string) { return name === 'BottleLabelReader' ? { liveFramesVersion: 1 } : {}; }
 export function useCameraPermissions() { return [{ granted: true }, async () => ({ granted: true })] as const; }
 export function requireNativeView() { return FixtureCamera; }
 function FixtureCamera({ style, active, scanning, onFrame, onStatus, scanToken }: any) {
+  window.scannerRenders = (window.scannerRenders || 0) + 1;
   const current = useRef({ onFrame, onStatus, scanToken }); current.current = { onFrame, onStatus, scanToken };
   window.scannerDeliverFrame = frame => current.current.onFrame({ nativeEvent: frame });
   const sequence = useRef(0);
@@ -14,6 +15,7 @@ function FixtureCamera({ style, active, scanning, onFrame, onStatus, scanToken }
   useEffect(() => {
     if (!active || !scanning) return;
     const read = () => {
+      if (window.scannerAutoFrames === false) return;
       window.scannerReads = (window.scannerReads || 0) + 1; sequence.current += 1;
       const text = window.scannerTexts?.length ? window.scannerTexts.shift()! : window.scannerText || '';
       const frame = {
