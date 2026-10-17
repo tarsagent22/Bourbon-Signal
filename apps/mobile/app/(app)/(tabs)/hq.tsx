@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/expo";
-import { SignalMotionHeader } from '../../../src/components/SignalMotionBackdrop';
+import { SignalMotionScreen } from '../../../src/components/SignalMotionBackdrop';
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { useRouter } from "expo-router";
@@ -91,8 +91,8 @@ export default function AccountScreen() {
   const openRewards = (section = "rewards") =>
     router.push({ pathname: "/(app)/account/rewards", params: { section } });
   return (
-    <ScrollView
-      style={memberScreenStyles.screen}
+    <SignalMotionScreen><ScrollView
+      style={[memberScreenStyles.screen, { backgroundColor: 'transparent' }]}
       contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}
       refreshControl={
         <RefreshControl
@@ -102,7 +102,7 @@ export default function AccountScreen() {
         />
       }
     >
-      <SignalMotionHeader><PageHeading title="Account" decorated={false} /></SignalMotionHeader>
+      <PageHeading title="Account" decorated={false} />
       {loading && !profile ? <LoadingState label="Loading account…" /> : null}
       {error ? (
         <ErrorState message={error} onRetry={() => void load(true)} />
@@ -265,7 +265,7 @@ export default function AccountScreen() {
           Delete account
         </Text>
       </Pressable>
-    </ScrollView>
+    </ScrollView></SignalMotionScreen>
   );
 }
 function AccountRow({

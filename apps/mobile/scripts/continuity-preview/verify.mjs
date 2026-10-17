@@ -8,8 +8,8 @@ const output = path.resolve('../../.operator/continuity-qa'); await mkdir(output
 const base = process.env.CONTINUITY_PREVIEW_URL || 'http://127.0.0.1:5267';
 const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 const results = [];
-async function check(name, width, query, action) {
-  const context = await browser.newContext({ viewport: { width, height: 844 }, reducedMotion: 'reduce' });
+async function check(name, width, query, action, height = 844) {
+  const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
   const page = await context.newPage(); const errors = [];
   page.setDefaultTimeout(5000); page.on('pageerror', error => errors.push(error.message));
   try {
@@ -69,12 +69,11 @@ for (const width of [390, 320]) {
     assert.equal(await page.getByRole('textbox', { name: 'Bottle', exact: true }).inputValue(), "Maker's Mark");
     assert.equal(await page.getByRole('dialog').count(), 0);
   });
-  await check('ratings-and-saved-picks', width, 'screen=home', async page => {
-    await page.getByRole('heading', { name: 'Saved & suggested' }).waitFor();
+  await check('home-feed-without-suggestions', width, 'screen=home', async page => {
     await page.getByText('You rated this 8.5/10 · You’d buy again', { exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Watch Four Roses Single Barrel', exact: true }).click();
-    await page.getByRole('button', { name: 'Watching Four Roses Single Barrel', exact: true }).waitFor();
-    assert.ok(await page.evaluate(() => window.continuityPreview.preferences.bottleAlertPreferences.bottleNames.includes('Four Roses Single Barrel')));
+    assert.equal(await page.getByRole('heading', { name: /Saved & suggested|Saved from setup/ }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Watch Four Roses Single Barrel', exact: true }).count(), 0);
+    assert.equal(await page.getByText(/Taste suggestions use saved ratings/).count(), 0);
   });
   await check('browse-region-carries-without-changing-alerts', width, 'screen=home&homeState=VA', async page => {
     await page.getByText('Virginia', { exact: true }).first().waitFor();
@@ -94,15 +93,16 @@ for (const width of [390, 320]) {
     await page.getByRole('button', { name: 'Keep draft', exact: true }).last().click();
     assert.equal(await page.getByRole('textbox', { name: 'Bottle', exact: true }).inputValue(), 'My unfinished bottle');
   });
-  await check('membership-resumes-watch', width, 'screen=home&tier=free', async page => {
-    await page.getByRole('button', { name: 'Watch Four Roses Single Barrel', exact: true }).click();
-    await page.getByText(/Continue with Four Roses Single Barrel after choosing/).waitFor();
+  await check('membership-resumes-watch', width, 'screen=check&tier=free', async page => {
+    await chooseMaker(page);
+    await page.getByRole('button', { name: 'Watch in Radar', exact: true }).click();
+    await page.getByText(/Continue with Maker's Mark after choosing/).waitFor();
     await page.evaluate(() => window.continuityPreview.completePurchase());
     await page.getByRole('button', { name: 'Continue to watch this bottle' }).click();
     await page.getByRole('textbox', { name: 'Search watched bottles' }).waitFor();
-    assert.equal(await page.getByRole('textbox', { name: 'Search watched bottles' }).inputValue(), 'Four Roses Single Barrel');
+    assert.equal(await page.getByRole('textbox', { name: 'Search watched bottles' }).inputValue(), "Maker's Mark");
     await page.getByRole('button', { name: 'WATCH', exact: true }).first().click();
-    assert.ok(await page.evaluate(() => window.continuityPreview.preferences.bottleAlertPreferences.bottleNames.includes('Four Roses Single Barrel')));
+    assert.ok(await page.evaluate(() => window.continuityPreview.preferences.bottleAlertPreferences.bottleNames.includes("Maker's Mark")));
   });
   await check('coverage-prefill-and-status', width, 'screen=coverage&state=VA&area=Richmond&store=Preview%20Bottle%20Shop&address=123%20Main%20St', async page => {
     assert.equal(await page.getByRole('textbox', { name: 'City', exact: true }).inputValue(), 'Richmond');
@@ -127,18 +127,62 @@ for (const width of [390, 320]) {
     const before = await page.evaluate(() => window.continuityPreview.preferences.collectionPreferences.bottles.length);
     await page.getByRole('button', { name: /^View / }).first().click();
     await page.getByRole('button', { name: 'Save for later', exact: true }).click();
-    await page.getByText('Saved. Find this bottle on Home after setup.', { exact: true }).waitFor();
+    await page.getByText('Saved in your setup preferences.', { exact: true }).waitFor();
     const ids = await page.evaluate(() => window.continuityPreview.draft.savedBottleIds);
     assert.ok(ids.length > 1);
     assert.equal(await page.evaluate(() => window.continuityPreview.preferences.collectionPreferences.bottles.length), before);
     await page.evaluate(() => window.continuityPreview.navigate('/(app)/(tabs)'));
-    await page.getByRole('heading', { name: /Saved from setup|Saved & suggested/ }).waitFor();
-    await page.getByText('Saved during setup', { exact: true }).first().waitFor();
+    await page.getByText("Maker's Mark", { exact: true }).first().waitFor();
+    assert.equal(await page.getByRole('heading', { name: /Saved from setup|Saved & suggested/ }).count(), 0);
   });
-  for (const screen of ['radar', 'membership', 'account', 'rewards']) await check(`motion-header-${screen}`, width, `screen=${screen}`, async page => {
-    await page.getByTestId('signal-wave-field').first().waitFor({ state: 'attached' });
+  for (const screen of ['radar', 'membership', 'account', 'rewards']) await check(`full-page-motion-${screen}`, width, `screen=${screen}`, async page => {
+    const field = page.getByTestId('signal-wave-field');
+    await field.waitFor({ state: 'attached' });
+    const bounds = await field.boundingBox();
+    const screenBounds = await page.getByTestId('signal-motion-screen').boundingBox();
+    assert.ok(bounds.height > 700, 'dots cover the page rather than the heading');
+    assert.ok(Math.abs(bounds.height - screenBounds.height) < 2 && Math.abs(bounds.y - screenBounds.y) < 2, 'field fills its fixed screen container');
+    assert.equal(await field.locator(':scope > div').count(), 160, 'full spaced field replaces compressed header rows');
     await page.waitForTimeout(150);
   });
+  await check('welcome-composition', width, 'screen=welcome', async page => {
+    await page.getByText('Bourbon Signal.', { exact: true }).waitFor();
+    assert.equal(await page.getByText('Bourbon Signal.', { exact: true }).evaluate(element => element.scrollWidth <= element.clientWidth), true, 'full wordmark fits without ellipsis');
+    const heading = page.getByRole('heading', { name: 'Never miss a drop.' });
+    await heading.waitFor();
+    const create = page.getByRole('button', { name: 'Create account', exact: true });
+    const login = page.getByRole('button', { name: 'Already a member? Log in', exact: true });
+    const title = await heading.boundingBox(); const createBox = await create.boundingBox(); const loginBox = await login.boundingBox();
+    assert.ok(createBox.y >= title.y + title.height && createBox.y - title.y - title.height < 35, 'account actions directly follow headline');
+    assert.ok(loginBox.height >= 48 && loginBox.y >= createBox.y + createBox.height && loginBox.y + loginBox.height < 844, 'login is an obvious reachable full-width target');
+    const field = page.getByTestId('signal-wave-field'); const bounds = await field.boundingBox();
+    assert.ok(bounds.height > 780, 'welcome field reaches behind header and footer');
+    for (const text of ['Bourbon Signal.', 'For members 21 and older.']) {
+      const transparent = await page.getByText(text, { exact: true }).evaluate(element => {
+        let node = element;
+        while (node && !node.querySelector('[data-testid="signal-wave-field"]')) {
+          if (getComputedStyle(node).backgroundColor !== 'rgba(0, 0, 0, 0)') return false;
+          node = node.parentElement;
+        }
+        return true;
+      });
+      assert.equal(transparent, true, 'header and footer have no opaque panels');
+    }
+    assert.equal(await page.getByText(/Get alerts when bottles you love|Let Bourbon Signal do the heavy lifting/).count(), 0);
+    await page.screenshot({ path: path.join(output, `welcome-layout-${width}.png`), fullPage: true });
+    await login.click();
+    assert.equal(await page.evaluate(() => window.continuityPreview.route.pathname), '/(auth)/sign-in');
+  });
+  await check('welcome-short-screen', width, 'screen=welcome', async page => {
+    const login = page.getByRole('button', { name: 'Already a member? Log in', exact: true });
+    await login.scrollIntoViewIfNeeded();
+    const loginBox = await login.boundingBox();
+    assert.ok(loginBox.y >= 0 && loginBox.y + loginBox.height <= 568, 'login remains reachable on a short screen');
+    const create = page.getByRole('button', { name: 'Create account', exact: true });
+    await create.scrollIntoViewIfNeeded();
+    await create.click();
+    assert.equal(await page.evaluate(() => window.continuityPreview.route.pathname), '/(auth)/sign-up');
+  }, 568);
 }
 await check('motion-accessibility', 390, 'screen=home', async page => {
   await page.evaluate(() => window.continuityPreview.navigate('/motion'));

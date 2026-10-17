@@ -1,6 +1,6 @@
 import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { useAuth } from "@clerk/expo";
-import { SignalMotionBackdrop } from '../../../src/components/SignalMotionBackdrop';
+import { SignalMotionScreen } from '../../../src/components/SignalMotionBackdrop';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -177,8 +177,8 @@ export default function RewardsScreen() {
     ? rewardGoal(points.catalog, goalKey, points.balance)
     : null;
   return (
-    <ScrollView
-      style={memberScreenStyles.screen}
+    <SignalMotionScreen><ScrollView
+      style={[memberScreenStyles.screen, { backgroundColor: 'transparent' }]}
       contentContainerStyle={s.page}
       refreshControl={
         <RefreshControl
@@ -189,7 +189,6 @@ export default function RewardsScreen() {
       }
     >
       <View style={{ gap: 6 }}>
-        <SignalMotionBackdrop quiet />
         <Text accessibilityRole="header" style={s.title}>
           {section === "achievements"
             ? "Your badges"
@@ -641,6 +640,6 @@ export default function RewardsScreen() {
           )}
         </>
       ) : null}
-    </ScrollView>
+    </ScrollView></SignalMotionScreen>
   );
 }
