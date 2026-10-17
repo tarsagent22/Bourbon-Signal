@@ -31,6 +31,7 @@ import {
   upsertCollectionBottle,
 } from "../../../src/interactions/member-interactions";
 import { colors, typeScale, fonts } from "../../../src/theme";
+import { CLEAR_BOTTLE_HANDOFF, handoffPrice, parseBottleHandoff, type BottleHandoffRoute } from '../../../src/continuity/bottle-handoff';
 
 type AddKind = "sealed" | "just_tasted";
 const KINDS: Array<{ key: AddKind; label: string }> = [
@@ -70,9 +71,12 @@ function AccountAddBottle() {
   const api = useMobileApi();
   const { userId } = useAuth();
   const router = useRouter();
-  const { onboardingBottleId: onboardingId, bottleId } = useLocalSearchParams<{ onboardingBottleId?: string; bottleId?: string }>();
+  const handoffParams = useLocalSearchParams<BottleHandoffRoute>();
+  const onboardingId = typeof handoffParams.onboardingBottleId === 'string' ? handoffParams.onboardingBottleId : '';
+  const bottleId = typeof handoffParams.bottleId === 'string' ? handoffParams.bottleId : '';
   const onboardingBottleId = bottleId || onboardingId;
   const prefilled = useRef(false);
+  const appliedHandoff = useRef('');
   const receiptStorageKey = bottleContributionReceiptsStorageKey(userId);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,6 +119,23 @@ function AccountAddBottle() {
       { text: "Discard", style: "destructive", onPress: () => { void draft.discard().catch(() => undefined); } },
     ]);
   }
+
+  useEffect(() => {
+    const incoming = parseBottleHandoff(handoffParams, userId || '');
+    if (!incoming || !draft.ready || loading || appliedHandoff.current === incoming.id) return;
+    const bottle = bottleCatalog.catalog.find(item => item.id === incoming.bottleId);
+    if (!bottle) return;
+    appliedHandoff.current = incoming.id;
+    const apply = () => {
+      if (selected?.id !== bottle.id) choose(bottle);
+      if (incoming.price) { setPricePaid(incoming.price); setShowAcquisition(true); }
+      if (incoming.store) { setStore(incoming.store); setShowAcquisition(true); }
+      router.setParams(CLEAR_BOTTLE_HANDOFF);
+    };
+    if ((draft.hasContent && selected?.id !== bottle.id) || (pricePaid && incoming.price && handoffPrice(pricePaid) !== incoming.price) || (store && incoming.store && store !== incoming.store)) {
+      Alert.alert('Use these bottle details?', 'Your unfinished entry already has details. Use the selected bottle and purchase details?', [{ text: 'Keep draft', style: 'cancel', onPress: () => router.setParams(CLEAR_BOTTLE_HANDOFF) }, { text: 'Use details', onPress: apply }], { cancelable: false });
+    } else apply();
+  }, [draft.ready, loading, handoffParams.handoffId, bottleCatalog.catalog, userId]);
 
   useEffect(() => {
     let active = true;
@@ -307,7 +328,7 @@ function AccountAddBottle() {
         <Text style={styles.eyebrow}>MY SHELF</Text>
         <Text accessibilityRole="header" style={styles.title}>Add to My Shelf</Text>
         <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
-        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/bottle-check")} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/bottle-check', params: { returnTo: 'shelf', price: pricePaid } })} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
         <DraftNotice hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} />
         {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
         {loading ? <LoadingState label="Opening My Shelf…" /> : null}

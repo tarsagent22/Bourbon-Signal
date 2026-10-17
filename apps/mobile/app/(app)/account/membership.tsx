@@ -12,6 +12,8 @@ import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { deriveMobileMembershipLifecycle } from "../../../src/membership/membership-lifecycle";
 import { productIdFor } from "../../../src/membership/purchases";
 import { colors, typeScale, fonts } from "../../../src/theme";
+import { SignalMotionBackdrop } from '../../../src/components/SignalMotionBackdrop';
+import { routeText } from '../../../src/continuity/bottle-handoff';
 
 const cards = [
   { tier: "standard" as const, name: "Standard", description: "Get alerts for the bottles you want, in the places you shop.", features: ["Alerts for 5 areas & 15 bottles", "Full Intel feed & state selection", "Unlimited bottles on My Shelf", "Redeem Signal Points for rewards"] },
@@ -24,7 +26,9 @@ export default function MembershipScreen() {
   const managementOnly = membershipManagedOutsideStore(management.provider,Platform.OS);
   const billingProviderLabel = management.provider === "google" ? "Google Play" : management.provider === "apple" ? "Apple" : "Stripe";
   const router = useRouter();
-  const { welcome } = useLocalSearchParams<{ welcome?: string }>();
+  const { welcome, watchBottle: requestedBottle } = useLocalSearchParams<{ welcome?: string; watchBottle?: string }>();
+  const pendingBottle = routeText(requestedBottle);
+  const continueMembership = () => pendingBottle ? router.replace({ pathname: '/(app)/(tabs)/radar', params: { section: 'settings', watchBottle: pendingBottle } }) : isWelcome ? router.replace('/(app)/setup') : router.replace("/(app)/(tabs)");
   const isWelcome = welcome === "1";
   const purchases = usePurchases();
   const refreshPurchases = purchases.refresh;
@@ -96,9 +100,11 @@ export default function MembershipScreen() {
     <Stack.Screen options={{ title: "Bourbon Signal", headerBackTitle: "Account", ...(isWelcome ? { headerBackVisible: false, gestureEnabled: false } : {}) }} />
     <ScrollView contentContainerStyle={[styles.content, { width: pageWidth }]}>
       <View style={styles.hero}>
+        <SignalMotionBackdrop quiet />
         <Text accessibilityRole="header" style={styles.title}>Find your next bottle.</Text>
         <Text style={styles.subtitle}>Get alerts when bottles you love show up in your area. Let Bourbon Signal do the heavy lifting.</Text>
         {!isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
+        {pendingBottle ? <Text style={styles.subtitle}>{profile?.membership.paid ? `Ready to watch ${pendingBottle}. Continue to finish in Radar.` : `Standard adds bottle alerts. Continue with ${pendingBottle} after choosing your membership.`}</Text> : null}
       </View>
       {loading && !profile ? <ActivityIndicator accessibilityLabel="Loading membership" color={colors.accent} /> : null}
       <View style={styles.tabs} accessibilityRole="tablist">
@@ -136,7 +142,7 @@ export default function MembershipScreen() {
       </ScrollView>
       <View style={styles.dots} accessible={false}>{cards.map((card,index) => <View key={card.tier} style={[styles.dot, index === selected && styles.dotSelected]} />)}</View>
       <View style={styles.footer}>
-        <Pressable accessibilityRole="button" onPress={() => { if (isWelcome) router.replace("/(app)/setup"); else router.replace("/(app)/(tabs)"); }} style={styles.freeButton}><Text style={styles.freeText}>{currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={continueMembership} style={styles.freeButton}><Text style={styles.freeText}>{pendingBottle && profile?.membership.paid ? 'Continue to watch this bottle' : currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
         <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{managementOnly ? `Your membership is billed through ${billingProviderLabel}. Manage your plan, payment details, or cancellation above.` : Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Payment is charged to your Google Play account at confirmation."}</Text>
         <View style={styles.links}>
           {Platform.OS !== "web" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}

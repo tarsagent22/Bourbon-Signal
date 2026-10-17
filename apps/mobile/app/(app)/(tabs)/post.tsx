@@ -23,6 +23,8 @@ import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, nativePho
 import { colors, typeScale, fonts, layout, typography } from "../../../src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COVERAGE_STATES } from "../../../../../shared/coverage-states";
+import { bottleHandoffParams, CLEAR_BOTTLE_HANDOFF, coverageContext, handoffPrice, parseBottleHandoff, supportContext, type BottleHandoffRoute } from '../../../src/continuity/bottle-handoff';
+import type { SignalPointsSummary, SightingSubmission } from '../../../src/api/types';
 
 type ActivePicker = "bottle" | "store" | null;
 type GeographyResult = GeographySearchResponse["results"][number];
@@ -41,8 +43,14 @@ function PostComposer({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const bottleCatalog = useBottleCatalog();
-  const { scanBottleId } = useLocalSearchParams<{ scanBottleId?: string }>();
+  const handoffParams = useLocalSearchParams<BottleHandoffRoute>();
+  const scanBottleId = typeof handoffParams.scanBottleId === 'string' ? handoffParams.scanBottleId : '';
   const appliedScan = useRef('');
+  const [referenceRegion, setReferenceRegion] = useState({ state: '', area: '' });
+  const [posted, setPosted] = useState<{ id: string; payload: SightingSubmission } | null>(null);
+  const [postedPoints, setPostedPoints] = useState<SignalPointsSummary | null>(null);
+  const [pointsNotice, setPointsNotice] = useState('');
+  const pointsRequest = useRef(0);
   const [bottleName, setBottleName] = useState("");
   const [bottleId, setBottleId] = useState<string | null>(null);
   const [activePicker, setActivePicker] = useState<ActivePicker>(null);
@@ -90,14 +98,22 @@ function PostComposer({ userId }: { userId: string }) {
     },
   });
   useEffect(() => {
-    if (!draft.ready || !scanBottleId || appliedScan.current === scanBottleId) return;
+    const incoming = parseBottleHandoff(handoffParams, userId);
+    const key = incoming?.id || scanBottleId;
+    if (!draft.ready || !scanBottleId || appliedScan.current === key || pendingPhotoAttachment) return;
+    if (handoffParams.handoffOwner && !incoming) { router.setParams(CLEAR_BOTTLE_HANDOFF); return; }
     const match = bottleCatalog.catalog.find(item => item.id === scanBottleId);
     if (!match) return;
-    appliedScan.current = scanBottleId;
-    const apply = () => { setBottleId(match.id); setBottleName(match.name); router.setParams({ scanBottleId: '' }); };
-    if (bottleName && bottleName !== match.name) Alert.alert('Use this bottle?', 'Your sighting draft already has a different bottle. Keep its other details and replace the bottle?', [{text:'Keep draft',style:'cancel',onPress:()=>router.setParams({scanBottleId:''})},{text:'Use bottle',onPress:apply}]);
+    appliedScan.current = key;
+    const apply = () => {
+      setBottleId(match.id); setBottleName(match.name);
+      if (incoming?.price) { setPrice(incoming.price); setShowDetails(true); }
+      if (incoming?.state) { setStoreSearchState(incoming.state); setReferenceRegion({ state: incoming.state, area: incoming.area }); }
+      router.setParams(CLEAR_BOTTLE_HANDOFF);
+    };
+    if ((bottleName && bottleName !== match.name) || (price && incoming?.price && handoffPrice(price) !== incoming.price)) Alert.alert('Use Bottle Check details?', 'This updates the bottle and checked price. Your other draft details will be kept.', [{text:'Keep draft',style:'cancel',onPress:()=>router.setParams(CLEAR_BOTTLE_HANDOFF)},{text:'Use details',onPress:apply}], { cancelable: false });
     else apply();
-  }, [draft.ready, scanBottleId, bottleCatalog.catalog, bottleName, router]);
+  }, [draft.ready, scanBottleId, handoffParams.handoffId, handoffParams.handoffOwner, handoffParams.scanPrice, bottleCatalog.catalog, bottleName, price, router, pendingPhotoAttachment, userId]);
   useEffect(() => { if (draft.ready && (price || quantity || notes || selectedPhoto)) setShowDetails(true); }, [draft.ready]);
   useEffect(() => { if (pendingPhotoAttachment) setShowDetails(true); }, [pendingPhotoAttachment]);
   function discardDraft() {
@@ -290,6 +306,20 @@ function PostComposer({ userId }: { userId: string }) {
     setSelectedStore(null); setManualStore(false); setStoreResults([]); setPrice(""); setQuantity(""); setCustomQuantity(false); setNotes(""); setActivePicker(null);
   }
 
+  async function rememberPosted(id: string, payload: SightingSubmission) {
+    setPosted({ id, payload }); setPostedPoints(null); setPointsNotice('Refreshing your points…');
+    const request = ++pointsRequest.current;
+    try { const result = await api.getSignalPoints({ fresh: true }); if (request === pointsRequest.current) { setPostedPoints(result); setPointsNotice(''); } }
+    catch { if (request === pointsRequest.current) setPointsNotice('Your Signal is saved. Points could not refresh; open rewards to check progress.'); }
+  }
+  useEffect(() => () => { pointsRequest.current += 1; }, [api]);
+  const nextReward = postedPoints?.catalog.filter(item => item.inventoryRemaining !== 0 && (item.redemptionEligible ?? postedPoints.redemptionEligible)).sort((a, b) => a.points - b.points).find(item => item.points > postedPoints.balance);
+  function addPostedPurchase() {
+    if (!posted?.payload.bottleId) return;
+    router.push({ pathname: '/(app)/cellar/add', params: bottleHandoffParams({ owner: userId, id: Crypto.randomUUID(), bottleId: posted.payload.bottleId, bottleName: posted.payload.bottleName,
+      price: posted.payload.price == null ? '' : String(posted.payload.price), state: posted.payload.storeState, area: posted.payload.storeCity, store: posted.payload.storeName }) });
+  }
+
   async function prepareNextDraft() {
     const nextBinding: SightingDraftBinding = { key: createSightingIdempotencyKey(), fingerprint: null };
     try {
@@ -346,8 +376,9 @@ function PostComposer({ userId }: { userId: string }) {
     setError("");
     setPhotoMessage("Recovering photo evidence…");
     try {
-      await journal.resume(api, sightingPhotoBlob);
+      const result = await journal.resume(api, sightingPhotoBlob);
       await completePhotoAttachment(attachment.photo);
+      if (result) void rememberPosted(result.sightingId, result.payload);
     } catch {
       setError("Photo could not be completed. Retry the saved request without posting another Signal.");
       setPhotoMessage("");
@@ -402,6 +433,7 @@ function PostComposer({ userId }: { userId: string }) {
         await retryPhotoUpload(attachment);
       } else {
         const result = await api.submitSighting(built.payload, requestBinding.key);
+        void rememberPosted(result.sighting.id, built.payload);
         resetComposer();
         setSuccess(result.duplicate ? "This Signal is already posted." : "Signal posted.");
         await prepareNextDraft();
@@ -417,12 +449,22 @@ function PostComposer({ userId }: { userId: string }) {
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={memberScreenStyles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
         <PageHeading title="Post a Signal" decorated={false} description="Post the bottle and where you saw it." />
-        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/bottle-check")} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
+        <Pressable accessibilityRole="button" disabled={Boolean(pendingPhotoAttachment)} onPress={() => router.push({ pathname: '/(app)/bottle-check', params: { returnTo: 'post', state: selectedStore?.state || storeSearchState, area: selectedStore?.city || referenceRegion.area, price } })} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
+        {posted && success ? <View style={styles.composer} accessibilityLiveRegion="polite">
+          <Text style={styles.success}>{success}</Text>
+          <Text style={styles.help}>{posted.payload.bottleName} · {posted.payload.storeName}</Text>
+          <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/signal/[id]', params: { id: posted.id.startsWith('member:') ? posted.id : `member:${posted.id}` } })} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={styles.textAction}>View your Signal →</Text></Pressable>
+          {posted.payload.bottleId ? <Pressable accessibilityRole="button" onPress={addPostedPurchase} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={styles.textAction}>Bought one? Add to My Shelf →</Text></Pressable> : null}
+          {postedPoints ? <Text style={styles.help}>{postedPoints.balance.toLocaleString()} Signal Points available{nextReward ? ` · ${(nextReward.points - postedPoints.balance).toLocaleString()} to ${nextReward.name}` : ''}</Text> : null}
+          {pointsNotice ? <Text style={styles.help}>{pointsNotice}</Text> : null}
+          <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/account/rewards', params: { section: 'achievements' } })} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={styles.textAction}>View points & badges →</Text></Pressable>
+        </View> : null}
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
           {!pendingPhotoAttachment ? <DraftNotice compact hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} /> : null}
           <ComposerSection icon="bottle-tonic-outline" title="Choose a bottle" required>
+            {referenceRegion.state ? <Text style={styles.help}>Store search: {[referenceRegion.area, referenceRegion.state].filter(Boolean).join(', ')}. Choose the store you observed.</Text> : null}
             {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
             <Field autoCapitalize="words" autoCorrect={false} label="Bottle" onChangeText={changeBottleName} onFocus={() => setActivePicker("bottle")} placeholder="Search bottle catalog" value={bottleName} />
             {bottleId ? <SelectionNote icon="check-circle-outline" text="Catalog bottle selected" /> : bottleName.trim() ? <Text style={styles.helper}>Can’t find it? Keep the bottle name exactly as entered.</Text> : null}
@@ -490,9 +532,11 @@ function PostComposer({ userId }: { userId: string }) {
 
           {preview ? <SignalPreview preview={preview} /> : null}
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-          {success ? <View style={{gap:6}}><Text accessibilityRole="alert" style={styles.success}>{success}</Text><Pressable accessibilityRole="button" onPress={() => router.push({ pathname: "/(app)/account/rewards", params: { section: "achievements" } })} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontWeight:"700"}}>View points & badges →</Text></Pressable></View> : null}
+          {success && !posted ? <Text accessibilityRole="alert" style={styles.success}>{success}</Text> : null}
 
           <Text style={styles.disclaimer}>Only report what you observed. Availability can change quickly, and manually entered bottles or stores may be reviewed.</Text>
+          <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: storeState || referenceRegion.state, area: storeCity || referenceRegion.area, store: storeName, address: storeAddress }) })} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={styles.textAction}>Request coverage for this area or store →</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Post a Signal', bottle: bottleName, state: storeState || referenceRegion.state, area: storeCity || referenceRegion.area }) })} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={styles.textAction}>Get help with this sighting →</Text></Pressable>
         </View> : null}
         {!canSubmit && error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       </ScrollView>

@@ -62,7 +62,7 @@ export function createPhotoJournal({ owner, storage, ownedRoot, removeFile, now 
         if (attachment.blob) {
           try {
             await api.attachSightingPhoto(attachment.sightingId, { pathname: attachment.blob.pathname });
-            await clear(entry); return;
+            await clear(entry); return { sightingId: attachment.sightingId, payload: entry.request.payload };
           } catch (error) {
             if (!(error instanceof MobileApiError) || error.status !== 404) throw error;
           }
@@ -74,6 +74,7 @@ export function createPhotoJournal({ owner, storage, ownedRoot, removeFile, now 
         // Never persist upload credentials or trust a returned URL to select cleanup targets.
         await api.attachSightingPhoto(attachment.sightingId, { pathname: entry.attachment.blob!.pathname });
         await clear(entry);
+        return { sightingId: attachment.sightingId, payload: entry.request.payload };
       } finally { resuming = false; }
     },
   };

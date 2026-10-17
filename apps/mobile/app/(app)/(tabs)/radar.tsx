@@ -19,6 +19,8 @@ import { colors, typeScale, fonts, layout, typography } from "../../../src/theme
 
 import { partitionRadarAlerts, radarLocationSummary, radarSetupNeeded, radarSetupStatus } from "../../../src/radar/radar-presentation";
 import { RadarAlertRow } from "../../../src/radar/RadarAlertRow";
+import { SignalMotionHeader } from '../../../src/components/SignalMotionBackdrop';
+import { coverageContext, routeText, supportContext } from '../../../src/continuity/bottle-handoff';
 import { MutedBottles, type MuteBottle } from "../../../src/radar/MutedBottles";
 
 type RadarView = "matches" | "settings";
@@ -39,7 +41,7 @@ export default function RadarScreen() {
   const screenScroll = useRef<ScrollView>(null);
   const api = useMobileApi();
   const router = useRouter();
-  const { section: requestedSection, alert: requestedAlert, request } = useLocalSearchParams<{ section?: string; alert?: string; request?: string }>();
+  const { section: requestedSection, alert: requestedAlert, request, watchBottle } = useLocalSearchParams<{ section?: string; alert?: string; request?: string; watchBottle?: string }>();
   const [view, setView] = useState<RadarView>("matches");
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -55,6 +57,7 @@ export default function RadarScreen() {
   const [pushStatusLoadFailed, setPushStatusLoadFailed] = useState(false);
   const [pushFailedAction, setPushFailedAction] = useState<"enable" | "disable" | null>(null);
   const [query, setQuery] = useState("");
+  useEffect(() => { const name = routeText(watchBottle); if (name) { setQuery(name); setView('settings'); router.setParams({ watchBottle: '' }); } }, [watchBottle, router]);
   const [loading, setLoading] = useState(true);
   const [pullRefreshing, setPullRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -264,7 +267,7 @@ export default function RadarScreen() {
     refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); setPushLookupRetry(value => value + 1); void load(true).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} />}
     style={memberScreenStyles.screen}
   >
-    <PageHeading title="Radar" decorated={false} />
+    <SignalMotionHeader><PageHeading title="Radar" decorated={false} /></SignalMotionHeader>
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setFocusNotifications(false); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {view === "settings" ? <View style={styles.setupSummary}><View style={styles.signalMarker} /><View style={styles.flex}><Text style={styles.cardTitle}>{setupStatus.title}</Text><Text style={styles.muted}>{setupStatus.detail}</Text></View></View> : null}
     {view === "matches" && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
@@ -308,6 +311,11 @@ export default function RadarScreen() {
       onTogglePush={togglePush}
     /> : null}
     {view === "settings" ? <MutedBottles state={preferences.mutedBottles} saving={saving || pushBusy} search={bottleCatalog.search} onChange={changeMute} /> : null}
+    <View style={styles.stack}>
+      <Text style={styles.muted}>Alert areas: {preferences.monitoringScopes.map(scope => `${scope.label}, ${scope.state}`).join(' · ') || 'Choose your areas in Alert preferences'}</Text>
+      <TextAction label="Coverage requests & progress →" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: preferences.monitoringScopes[0]?.state || profile?.profile.homeState }) })} />
+      <TextAction label="Get help with Radar →" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Radar', state: preferences.monitoringScopes[0]?.state || profile?.profile.homeState || '' }) })} />
+    </View>
   </ScrollView>;
 }
 
@@ -443,7 +451,7 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
 
   if (preferences.entitlements?.alertAreaLimit === 0) return <MemberCard>
     <Text style={styles.listTitle}>Want alerts when bottles are found in your area?</Text>
-    <TextAction label="Upgrade your membership →" onPress={() => router.push("/(app)/account/membership")} />
+    <TextAction label="Upgrade your membership →" onPress={() => router.push({ pathname: '/(app)/account/membership', params: { watchBottle: query } })} />
   </MemberCard>;
 
   return <View onLayout={(event) => onLayout(event.nativeEvent.layout.y)} style={styles.preferences}>

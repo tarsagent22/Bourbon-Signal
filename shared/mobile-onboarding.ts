@@ -25,6 +25,7 @@ export interface OnboardingDraft {
   budget: typeof BUDGET_OPTIONS[number];
   likedBottleId: string;
   likedBottleName: string;
+  savedBottleIds?: string[];
 }
 export const EMPTY_ONBOARDING: OnboardingDraft = {
   version: 2, step: 0, displayName: '', homeState: '', interest: 'unsure',
@@ -56,9 +57,11 @@ export function normalizeOnboardingDraft(value: unknown): OnboardingDraft | null
   }
   if (v.homeState && !COVERAGE_STATES.some(state => state.code === v.homeState)) return null;
   if (!Array.isArray(v.flavors) || v.flavors.length > 6 || !v.flavors.every(flavor => [...FLAVOR_OPTIONS, 'Sweet & caramel', 'Fruit & vanilla', 'Oak & spice'].some(option => option === flavor))) return null;
+  if (v.savedBottleIds !== undefined && (!Array.isArray(v.savedBottleIds) || v.savedBottleIds.length > 15 || !v.savedBottleIds.every(id => typeof id === 'string' && /^[a-zA-Z0-9_-]{1,180}$/.test(id)))) return null;
   return { version: 2, step: Number(v.step), displayName: String(v.displayName).trim(), homeState: String(v.homeState),
     interest: v.interest as BourbonInterest, flavors: [...new Set(v.flavors as string[])], proof: v.proof as OnboardingDraft['proof'],
-    budget: v.budget as OnboardingDraft['budget'], likedBottleId: String(v.likedBottleId), likedBottleName: String(v.likedBottleName) };
+    budget: v.budget as OnboardingDraft['budget'], likedBottleId: String(v.likedBottleId), likedBottleName: String(v.likedBottleName),
+    ...(Array.isArray(v.savedBottleIds) ? { savedBottleIds: [...new Set(v.savedBottleIds as string[])] } : {}) };
 }
 
 // Established breadth is deliberately independent of collector health and freshness.

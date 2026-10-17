@@ -10,7 +10,10 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, AppState, FlatList, Image, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
-import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
+import type { MemberPreferences, MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
+import { MemberContinuity } from '../../../src/continuity/MemberContinuity';
+import { personalTasteNote } from '../../../src/continuity/taste-discovery';
+import { coverageContext, supportContext } from '../../../src/continuity/bottle-handoff';
 import { FeedSkeleton } from "../../../src/components/FeedSkeleton";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -23,8 +26,8 @@ import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibil
 
 type FeedView = "market" | "community";
 
-const FeedSignalRow = memo(function FeedSignalRow({ signal, highlighted }: { signal: Signal; highlighted: boolean }) {
-  return <SignalCard highlighted={highlighted} signal={signal} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: signal.id } })} />;
+const FeedSignalRow = memo(function FeedSignalRow({ signal, highlighted, personalNote }: { signal: Signal; highlighted: boolean; personalNote: string }) {
+  return <View><SignalCard highlighted={highlighted} signal={signal} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: signal.id } })} />{personalNote ? <Text style={{ color: colors.accent, fontSize: 12, lineHeight: 18, paddingBottom: 10, paddingLeft: 78 }}>{personalNote}</Text> : null}</View>;
 });
 
 function OptionChooser({
@@ -99,6 +102,7 @@ export default function SignalFeedScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + 56;
   const { userId } = useAuth();
+  const [tastePreferences, setTastePreferences] = useState<MemberPreferences | null>(null);
   const { view: requestedView } = useLocalSearchParams<{ view?: string }>();
   const browsingStorageKey = homeBrowsingStorageKey(userId);
   const [view, setView] = useState<FeedView>("market");
@@ -334,6 +338,7 @@ export default function SignalFeedScreen() {
     setHasMore(true);
     setAccess(null);
     setProfile(null);
+    setTastePreferences(null);
     setMarketSummaries([]);
     setProfileError("");
     setRemoteAreaState("");
@@ -344,12 +349,15 @@ export default function SignalFeedScreen() {
     setError("");
     setLoaded(false);
     setLoading(false);
-    void loadHomeBrowsingPreferences(browsingStorageKey).catch(() => null).then((saved) => {
+    void Promise.all([loadHomeBrowsingPreferences(browsingStorageKey).catch(() => null), api.getMemberProfile().catch(() => null)]).then(([saved, member]) => {
       if (!current) return;
       if (saved && mutationAtStart === browsingMutationSequence.current) {
         setView(saved.view);
         setFiltersByView(saved.filtersByView);
         setBottleQueries({ market: saved.filtersByView.market.bottle, community: saved.filtersByView.community.bottle });
+      } else if (!saved && member?.profile.homeState && mutationAtStart === browsingMutationSequence.current) {
+        const home = { ...DEFAULT_SIGNAL_FILTERS, state: member.profile.homeState };
+        setFiltersByView({ market: { ...home }, community: { ...home } });
       }
       setLoadedBrowsingStorageKey(browsingStorageKey);
     });
@@ -644,6 +652,7 @@ export default function SignalFeedScreen() {
           <Text accessibilityRole="alert" style={styles.inlineErrorText}>{profileError}</Text>
         </Pressable>
       ) : null}
+      {profileError || error ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: `${view === 'market' ? 'Intel' : 'Community'} feed`, state: filters.state, area: selectedAreaLabel }) })} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.accent, fontSize: 14 }}>Get help with this feed →</Text></Pressable> : null}
 
       {paidAccessMismatch ? (
         <View style={styles.inlineError}>
@@ -695,12 +704,12 @@ export default function SignalFeedScreen() {
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => index === visibleSignals.length - 1 ? <View><FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />{feedFooter}</View> : <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} />}
+      renderItem={({ item, index }) => index === visibleSignals.length - 1 ? <View><FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} personalNote={personalTasteNote(item.bottle, tastePreferences)} />{feedFooter}</View> : <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} personalNote={personalTasteNote(item.bottle, tastePreferences)} />}
       ItemSeparatorComponent={() => <View style={[styles.separator, view === "community" && styles.communitySeparator]} />}
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}
       onEndReachedThreshold={0.5}
-      ListHeaderComponent={header}
+      ListHeaderComponent={<>{header}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
       ListEmptyComponent={!loaded && !error
         ? <FeedSkeleton community={view === "community"} />
         : error
@@ -730,7 +739,7 @@ export default function SignalFeedScreen() {
                   case "community": selectView("community"); break;
                 }
               }} />
-              {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:{state:filters.state}})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
+              {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:coverageContext({state:filters.state || profile?.homeState,area:selectedAreaLabel})})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
       ListFooterComponent={!visibleSignals.length ? feedFooter : null}
     />
       </View>

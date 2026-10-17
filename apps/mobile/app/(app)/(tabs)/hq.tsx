@@ -1,4 +1,5 @@
 import { useAuth } from "@clerk/expo";
+import { SignalMotionHeader } from '../../../src/components/SignalMotionBackdrop';
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { useRouter } from "expo-router";
@@ -101,7 +102,7 @@ export default function AccountScreen() {
         />
       }
     >
-      <PageHeading title="Account" decorated={false} />
+      <SignalMotionHeader><PageHeading title="Account" decorated={false} /></SignalMotionHeader>
       {loading && !profile ? <LoadingState label="Loading account…" /> : null}
       {error ? (
         <ErrorState message={error} onRetry={() => void load(true)} />

@@ -6,7 +6,7 @@ import { preferencesFixture, profileFixture } from "../api/astra-fixtures";
 import { canonicalBottleKey } from "../interactions/member-interactions";
 
 // Execute the actual screen with stateful hooks and simulated service boundaries.
-function setup({ free = false, failWatch = false, failPush = false } = {}) {
+function setup({ free = false, failWatch = false, failPush = false, params = {} } = {}) {
   const cells: any[] = []; let cursor = 0; const effects: Array<() => unknown> = [];
   const patches: any[] = []; const routes: any[] = []; let pushes = 0;
   let preferences = preferencesFixture({ entitlements: { alertAreaLimit: free ? 0 : 5, trackedBottleLimit: free ? 0 : 15 },
@@ -29,7 +29,7 @@ function setup({ free = false, failWatch = false, failPush = false } = {}) {
       useEffect: (effect: () => unknown, deps: any[]) => { const index = cursor++; if (!cells[index] || deps.some((value, i) => value !== cells[index][i])) { cells[index] = deps; effects.push(effect); } },
     },
     "@clerk/expo": { useAuth: () => ({ userId: "fixture-user" }) },
-    "expo-router": { useRouter: () => ({ replace: (route: unknown) => routes.push(route) }) },
+    "expo-router": { useLocalSearchParams: () => params, useRouter: () => ({ replace: (route: unknown) => routes.push(route) }) },
     "react-native": { View: "View", ScrollView: "ScrollView", Text: "Text", TextInput: "TextInput", Pressable: "Pressable", ActivityIndicator: "ActivityIndicator", StyleSheet: { create: (styles: unknown) => styles }, Linking: { openSettings: async () => {} } },
     "../../src/hooks/useMobileApi": { useMobileApi: () => api },
     "../../src/hooks/useBottleCatalog": { useBottleCatalog: () => ({ catalog: [{ id: "weller", name: "Weller Full Proof" }], search: () => [{ id: "weller", name: "Weller Full Proof" }], error: "", retry() {} }) },
@@ -75,4 +75,14 @@ test("Free setup offers Community and Shelf without writing paid alert settings"
   screen.action(tree, "Browse Community").onPress();
   assert.deepEqual(screen.routes[0], { pathname: "/(app)/(tabs)", params: { view: "community" } });
   assert.ok(screen.action(tree, "Add your first bottle")); assert.equal(screen.pushes(), 0); assert.equal(screen.patches.length, 0);
+});
+
+test('an explicitly handed-off region is confirmed before adding it and preserves other watched states', async () => {
+  const screen = setup({ params: { state: 'VA', bottle: 'Weller Full Proof' } });
+  screen.render(); await screen.settle();
+  assert.equal(screen.patches.length, 0);
+  screen.action(screen.render(), 'Continue').onPress(); await screen.settle();
+  assert.equal(screen.patches.length, 1);
+  assert.equal(screen.patches[0].monitoringScopes.filter((scope: any) => scope.state === 'NC').length, 2);
+  assert.equal(screen.patches[0].monitoringScopes.at(-1).state, 'VA');
 });

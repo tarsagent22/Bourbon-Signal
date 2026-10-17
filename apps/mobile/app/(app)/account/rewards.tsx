@@ -1,5 +1,6 @@
 import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { useAuth } from "@clerk/expo";
+import { SignalMotionBackdrop } from '../../../src/components/SignalMotionBackdrop';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -188,6 +189,7 @@ export default function RewardsScreen() {
       }
     >
       <View style={{ gap: 6 }}>
+        <SignalMotionBackdrop quiet />
         <Text accessibilityRole="header" style={s.title}>
           {section === "achievements"
             ? "Your badges"
