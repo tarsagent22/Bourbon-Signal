@@ -17,11 +17,11 @@ type PushStatusListener = (status: PushDeviceStatus | null) => void;
 let logoutInProgress = false;
 let activePushApi: MobileApi | undefined;
 const signedOutApis = new WeakSet<MobileApi>();
-const operations = new Map<string, Promise<PushDeviceStatus | null>>();
-const statusListeners = new Map<PushStatusListener, string>();
-const recoveryRetryAfter = new Map<string,number>();
-const accountKey = (api: MobileApi) => api.pushAccountId || "legacy";
-const operationKey = (api: MobileApi) => api.accountIdentity || accountKey(api);
+const operations = new Map<MobileApi, Promise<PushDeviceStatus | null>>();
+const statusListeners = new Map<PushStatusListener, MobileApi>();
+const recoveryRetryAfter = new WeakMap<MobileApi,number>();
+// The provider owns this API instance. A remount must not reuse work from its predecessor.
+const operationKey = (api: MobileApi) => api;
 const sessionActive = (api: MobileApi) => !logoutInProgress && !signedOutApis.has(api) && (!activePushApi || activePushApi === api);
 // Called only when the authenticated app mounts with its current session API.
 export function beginRadarPushSession(api: MobileApi) {

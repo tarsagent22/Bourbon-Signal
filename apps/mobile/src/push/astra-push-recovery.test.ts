@@ -152,6 +152,21 @@ test('a module reload with retained secure storage recovers a missing binding wi
   assert.equal(reloaded.counts().writes,1); assert.equal(reloaded.counts().prompts,0);
 });
 
+test('a provider remount cannot coalesce with stale work from the same Clerk session',async()=>{
+  const t=setup(new Map([['bourbon-signal.push-enabled.user_A','1']]));
+  let release!:(value:unknown)=>void; let entered!:()=>void;
+  const started=new Promise<void>(resolve=>entered=resolve);
+  t.api.getPushDeviceStatus=async()=>{entered();return new Promise(resolve=>release=resolve);};
+  t.push.beginRadarPushSession(t.api); const old=t.push.refreshRadarPushIfEnabled(t.api); await started;
+  const next={...t.api,getPushDeviceStatus:async()=>({enabled:false,currentDeviceRegistered:false})};
+  t.push.beginRadarPushSession(next);
+  let timer:ReturnType<typeof setTimeout>|undefined;
+  try {
+    const status=await Promise.race([t.push.refreshRadarPushIfEnabled(next),new Promise<never>((_resolve,reject)=>{timer=setTimeout(()=>reject(Error('new session reused stale work')),100);})]);
+    assert.equal(status.enabled,true); assert.equal(t.counts().writes,1);
+  } finally {clearTimeout(timer);release({enabled:false,currentDeviceRegistered:false});await old;}
+});
+
 test('late registration from a signed-out session is revoked without replacing a newer account capability',async ctx=>{
   const t=setup(); t.push.beginRadarPushSession(t.api);
   const revoked:string[]=[]; let binding:string|null=null; let registrations=0;
