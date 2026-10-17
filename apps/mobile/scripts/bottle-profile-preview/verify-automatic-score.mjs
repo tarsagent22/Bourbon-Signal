@@ -21,7 +21,9 @@ try {
   for (const width of [393, 320]) {
     await page.setViewportSize({ width, height: 852 });
     await select('Eagle Rare 10 Year', '&state=NC&area=Lewisville');
-    await page.getByText('NC prices · Lewisville sample unavailable', { exact: true }).waitFor();
+    await page.getByRole('button', { name: /^Why this score/ }).click();
+    await page.getByText('Not enough independent prices in Lewisville; using NC observations.', { exact: true }).waitFor();
+    await page.getByRole('button', { name: /^Why this score/ }).click();
     const initial = Number(await page.getByTestId('bottle-assessment-score').innerText());
     assert.ok(initial > 75 && initial !== 59);
     await page.getByText('Signal Score', { exact: true }).waitFor();
@@ -41,12 +43,12 @@ try {
     assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) > initial);
     for (const name of ['Heaven Hill 7 Year Bottled-in-Bond', "Blanton's Gold Bourbon"]) {
       await select(name, '&prices=none&state=NC&area=Lewisville');
-      await page.getByText('Shelf price unknown · value not scored', { exact: true }).waitFor();
+      assert.equal(await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).inputValue(), '');
       assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) > 0);
       await page.getByRole('heading', { name: 'Published reviews', exact: true }).waitFor();
       assert.equal(await page.getByText('Why this assessment', { exact: true }).count(), 0);
       assert.equal(await page.getByText('Price value', { exact: true }).count(), 0);
-      await page.getByRole('button', { name: 'View bottle →', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'View bottle details', exact: true }).waitFor();
       await page.screenshot({ path: path.join(out, `${name.startsWith('Heaven') ? 'heaven-hill' : 'blantons-gold'}-${width}.png`), fullPage: true });
       await page.getByRole('button', { name: /^Why this score/ }).click();
       await page.getByRole('link', { name: /^Open Release context/ }).waitFor();
@@ -55,11 +57,11 @@ try {
       await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('400');
       await page.getByText('Steep price premium', { exact: true }).waitFor();
       await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('');
-      await page.getByText('Shelf price unknown · value not scored', { exact: true }).waitFor();
+      assert.equal(await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).inputValue(), '');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     }
     await select('Rock Hill Farms Single Barrel', '&prices=none');
-    await page.getByTestId('bottle-assessment-score').filter({ hasText: '�' }).waitFor();
+    await page.getByTestId('bottle-assessment-score').filter({ hasText: String.fromCharCode(0x2014) }).waitFor();
     await page.getByRole('heading', { name: 'Published reviews', exact: true }).waitFor();
     assert.equal(await page.getByText('REVIEW SCORE', { exact: true }).count(), 0);
     await select('Unreviewed Fixture Bourbon', '&prices=none');

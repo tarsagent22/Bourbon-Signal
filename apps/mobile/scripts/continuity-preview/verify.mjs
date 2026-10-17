@@ -33,7 +33,7 @@ async function chooseMaker(page) {
 for (const width of [390, 320]) {
   await check('check-post-shelf', width, 'screen=check&state=VA&area=Richmond', async page => {
     await chooseMaker(page);
-    await page.getByText('You rated this 8.5/10 · You’d buy again', { exact: true }).waitFor();
+    await page.getByText('Your rating 8.5/10 · Buy again', { exact: true }).waitFor();
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('49.99');
     await page.getByRole('button', { name: 'Post sighting', exact: true }).click();
     await page.getByRole('heading', { name: 'Post a Signal' }).waitFor();
