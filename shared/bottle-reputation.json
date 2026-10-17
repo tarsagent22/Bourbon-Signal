@@ -1,0 +1,1036 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "key": "makers-mark",
+      "names": [
+        "Maker's Mark",
+        "Maker's Mark Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.45,
+          "scale": 5,
+          "count": 9361,
+          "source": "https://distiller.com/spirits/maker-s-mark",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 87,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/maker-s-mark",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "producerFacts": {
+        "source": "https://www.makersmark.com/bourbons/makers-mark",
+        "proof": 90,
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "buffalo-trace-bourbon",
+      "names": [
+        "Buffalo Trace Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.71,
+          "scale": 5,
+          "count": 13671,
+          "source": "https://distiller.com/spirits/buffalo-trace-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 83,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/buffalo-trace-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "old-forester-1920",
+      "names": [
+        "Old Forester 1920 Prohibition Style"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.02,
+          "scale": 5,
+          "count": 4181,
+          "source": "https://distiller.com/spirits/old-forester-1920-prohibition-style",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 85,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/old-forester-1920-prohibition-style",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "eh-taylor-small-batch",
+      "names": [
+        "E.H. Taylor Small Batch",
+        "E.H. Taylor, Jr. Small Batch Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.17,
+          "scale": 5,
+          "count": 6879,
+          "source": "https://distiller.com/spirits/colonel-e-h-taylor-small-batch",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 90,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/colonel-e-h-taylor-small-batch",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "four-roses-single-barrel",
+      "names": [
+        "Four Roses Single Barrel",
+        "Four Roses Single Barrel Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.99,
+          "scale": 5,
+          "count": 8033,
+          "source": "https://distiller.com/spirits/four-roses-single-barrel-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 90,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/four-roses-single-barrel-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+    },
+    {
+      "key": "knob-creek-9",
+      "names": [
+        "Knob Creek 9 Year",
+        "Knob Creek 9 Year Small Batch Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.71,
+          "scale": 5,
+          "count": 1227,
+          "source": "https://distiller.com/spirits/knob-creek-9-year-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/knob-creek-9-year-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "producerFacts": {
+        "source": "https://www.knobcreek.com/whiskies/9-year-old-bourbon-whiskey",
+        "proof": 100,
+        "ageYears": 9,
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "wild-turkey-rare-breed",
+      "names": [
+        "Wild Turkey Rare Breed",
+        "Wild Turkey Rare Breed Barrel Proof Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.09,
+          "scale": 5,
+          "count": 3409,
+          "source": "https://distiller.com/spirits/wild-turkey-rare-breed-116-8",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+    },
+    {
+      "key": "elijah-craig-small-batch",
+      "names": [
+        "Elijah Craig Small Batch",
+        "Elijah Craig Small Batch Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.68,
+          "scale": 5,
+          "count": 6927,
+          "source": "https://distiller.com/spirits/elijah-craig-small-batch",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 85,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/elijah-craig-small-batch",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "larceny-small-batch",
+      "names": [
+        "Larceny Small Batch",
+        "Larceny Small Batch Kentucky Straight Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.47,
+          "scale": 5,
+          "count": 5205,
+          "source": "https://distiller.com/spirits/larceny-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 88,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/larceny-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "1792-small-batch",
+      "names": [
+        "1792 Small Batch",
+        "1792 Small Batch Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.51,
+          "scale": 5,
+          "count": 3470,
+          "source": "https://distiller.com/spirits/1792-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/1792-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "knob-creek-12",
+      "names": [
+        "Knob Creek 12 Year",
+        "Knob Creek 12 Year Small Batch Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4,
+          "scale": 5,
+          "count": 1339,
+          "source": "https://distiller.com/spirits/knob-creek-12-year-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 88,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/knob-creek-12-year-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "russells-reserve-10",
+      "names": [
+        "Russell's Reserve 10 Year",
+        "Russell's Reserve 10 Year Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.76,
+          "scale": 5,
+          "count": 4624,
+          "source": "https://distiller.com/spirits/russell-s-reserve-10-year-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 92,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/russell-s-reserve-10-year-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "russells-reserve-single-barrel",
+      "names": [
+        "Russell's Reserve Single Barrel",
+        "Russell's Reserve Single Barrel Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.04,
+          "scale": 5,
+          "count": 2964,
+          "source": "https://distiller.com/spirits/russell-s-reserve-small-batch-single-barrel-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 95,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/russell-s-reserve-small-batch-single-barrel-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+    },
+    {
+      "key": "four-roses-small-batch-select",
+      "names": [
+        "Four Roses Small Batch Select",
+        "Four Roses Small Batch Select Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.96,
+          "scale": 5,
+          "count": 1936,
+          "source": "https://distiller.com/spirits/four-roses-small-batch-select-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/four-roses-small-batch-select-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "evan-williams-bottled-in-bond",
+      "names": [
+        "Evan Williams Bottled-in-Bond",
+        "Evan Williams White Label Bottled in Bond Bourbon",
+        "Evan Williams White Bottled in Bond",
+        "Evan Williams White Label Bottled in Bond"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.39,
+          "scale": 5,
+          "count": 2189,
+          "source": "https://distiller.com/spirits/evan-williams-white-label",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 80,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/evan-williams-white-label",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "old-forester-100",
+      "names": [
+        "Old Forester 100 Proof",
+        "Old Forester 100 Proof Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.55,
+          "scale": 5,
+          "count": 1584,
+          "source": "https://distiller.com/spirits/old-forester-signature-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 88,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/old-forester-signature-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "heaven-hill-bottled-in-bond",
+      "names": [
+        "Heaven Hill 7 Year Bottled-in-Bond",
+        "Heaven Hill Bottled In Bond 7 Year"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.83,
+          "scale": 5,
+          "count": 1285,
+          "source": "https://distiller.com/spirits/heaven-hill-bottled-in-bond-7-year",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 87,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/heaven-hill-bottled-in-bond-7-year",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "michter-us1-bourbon",
+      "names": [
+        "Michter's US*1 Bourbon",
+        "Michter's US*1 Kentucky Straight Bourbon",
+        "Michter's US*1 Small Batch Bourbon",
+        "Michter's US 1 Straight Bourbon Small Batch"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.77,
+          "scale": 5,
+          "count": 4035,
+          "source": "https://distiller.com/spirits/michter-s-us-1-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/michter-s-us-1-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "angels-envy-bourbon",
+      "names": [
+        "Angel's Envy Bourbon",
+        "Angel's Envy Bourbon Finished in Port Wine Barrels"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.85,
+          "scale": 5,
+          "count": 6637,
+          "source": "https://distiller.com/spirits/angel-s-envy-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 84,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/angel-s-envy-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "bulleit-bourbon",
+      "names": [
+        "Bulleit Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.48,
+          "scale": 5,
+          "count": 8699,
+          "source": "https://distiller.com/spirits/bulleit-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/bulleit-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "new-riff-straight-bourbon-bottled-in-bond",
+      "names": [
+        "New Riff Straight Bourbon Bottled in Bond",
+        "New Riff Kentucky Straight Bourbon Bottled In Bond",
+        "New Riff Bottled-in-Bond Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.73,
+          "scale": 5,
+          "count": 1116,
+          "source": "https://distiller.com/spirits/new-riff-kentucky-straight-bourbon-whiskey",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/new-riff-kentucky-straight-bourbon-whiskey",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "old-grand-dad-114",
+      "names": [
+        "Old Grand Dad 114",
+        "Old Grand-Dad 114 Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.58,
+          "scale": 5,
+          "count": 2139,
+          "source": "https://distiller.com/spirits/old-grand-dad-114",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/old-grand-dad-114",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "eagle-rare-10",
+      "names": [
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10 Year Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.05,
+          "scale": 5,
+          "count": 12373,
+          "source": "https://distiller.com/spirits/eagle-rare-10-year",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 91,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/eagle-rare-10-year",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "producerFacts": {
+        "source": "https://www.buffalotracedistillery.com/our-brands/eagle-rare/eagle-rare-10/",
+        "proof": 90,
+        "ageYears": 10,
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "wild-turkey-101",
+      "names": [
+        "Wild Turkey 101 Bourbon",
+        "Wild Turkey 101 Kentucky Straight Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.53,
+          "scale": 5,
+          "count": 4714,
+          "source": "https://distiller.com/spirits/wild-turkey-101",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 82,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/wild-turkey-101",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Whisky Advocate",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://store.whiskyadvocate.com/products/wild-turkey-101-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "producerFacts": {
+        "source": "https://www.wildturkeybourbon.com/en-us/products/wild-turkey-101/",
+        "proof": 101,
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "old-forester-1910",
+      "names": [
+        "Old Forester 1910 Old Fine Whisky"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4,
+          "scale": 5,
+          "count": 2096,
+          "source": "https://distiller.com/spirits/old-forester-1910-old-fine-whisky",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 82,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/old-forester-1910-old-fine-whisky",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "producerFacts": {
+        "source": "https://www.oldforester.com/products/old-forester-1910-old-fine-whisky/",
+        "proof": 93,
+        "process": "Second barreling",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "woodford-double-oaked",
+      "names": [
+        "Woodford Reserve Double Oaked",
+        "Woodford Reserve Double Oaked Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.12,
+          "scale": 5,
+          "count": 7683,
+          "source": "https://distiller.com/spirits/woodford-reserve-double-oaked",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 92,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/woodford-reserve-double-oaked",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "producerFacts": {
+        "source": "https://www.woodfordreserve.com/whiskey/double-oaked/",
+        "proof": 90.4,
+        "process": "Second maturation in a toasted, lightly charred oak barrel",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "weller-special-reserve",
+      "names": [
+        "W.L. Weller Special Reserve",
+        "Weller Special Reserve Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.89,
+          "scale": 5,
+          "count": 7637,
+          "source": "https://distiller.com/spirits/w-l-weller-special-reserve",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 90,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/w-l-weller-special-reserve",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "weller-antique-107",
+      "names": [
+        "W.L. Weller Antique 107",
+        "Weller Antique 107 Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.14,
+          "scale": 5,
+          "count": 5147,
+          "source": "https://distiller.com/spirits/w-l-weller-antique",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 92,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/w-l-weller-antique",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "weller-12-year",
+      "names": [
+        "W.L. Weller 12 Year",
+        "Weller 12 Year Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.31,
+          "scale": 5,
+          "count": 3969,
+          "source": "https://distiller.com/spirits/w-l-weller-12",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 93,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/w-l-weller-12",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "redwood-empire-pipe-dream",
+      "names": [
+        "Redwood Empire Pipe Dream",
+        "Redwood Empire Pipe Dream Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.65,
+          "scale": 5,
+          "count": 598,
+          "source": "https://distiller.com/spirits/redwood-empire-pipe-dream",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 87,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/redwood-empire-pipe-dream",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "blantons-single-barrel",
+      "names": [
+        "Blanton's Single Barrel",
+        "Blanton's Original Single Barrel"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.28,
+          "scale": 5,
+          "count": 12658,
+          "source": "https://distiller.com/spirits/blanton-s-original-single-barrel",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/blanton-s-original-single-barrel",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+    },
+    {
+      "key": "makers-mark-46",
+      "names": [
+        "Maker's Mark 46",
+        "Maker's Mark 46 French Oaked"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.74,
+          "scale": 5,
+          "count": 4836,
+          "source": "https://distiller.com/spirits/maker-s-46",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 90,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/maker-s-46",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "woodford-reserve",
+      "names": [
+        "Woodford Reserve Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.66,
+          "scale": 5,
+          "count": 9922,
+          "source": "https://distiller.com/spirits/woodford-reserve-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 92,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/woodford-reserve-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "makers-mark-cask-strength",
+      "names": [
+        "Maker's Mark Cask Strength",
+        "Maker's Mark Bourbon Cask Strength"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.89,
+          "scale": 5,
+          "count": 1711,
+          "source": "https://distiller.com/spirits/maker-s-mark-cask-strength",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+    },
+    {
+      "key": "eh-taylor-single-barrel",
+      "names": [
+        "E.H. Taylor Single Barrel",
+        "E.H. Taylor, Jr. Single Barrel Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.26,
+          "scale": 5,
+          "count": 2160,
+          "source": "https://distiller.com/spirits/colonel-e-h-taylor-single-barrel",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+    },
+    {
+      "key": "wild-turkey-rare-breed-rye",
+      "names": [
+        "Wild Turkey Rare Breed Rye",
+        "Wild Turkey Rare Breed Barrel Proof Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.09,
+          "scale": 5,
+          "count": 625,
+          "source": "https://distiller.com/spirits/wild-turkey-rare-breed-rye",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 91,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/wild-turkey-rare-breed-rye",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "weller-full-proof",
+      "names": [
+        "W.L. Weller Full Proof",
+        "Weller Full Proof Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.3,
+          "scale": 5,
+          "count": 1164,
+          "source": "https://distiller.com/spirits/weller-full-proof-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 92,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/weller-full-proof-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; annual releases or individual batches can differ."
+    },
+    {
+      "key": "pappy-van-winkle-15",
+      "names": [
+        "Pappy Van Winkle 15 Year"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.54,
+          "scale": 5,
+          "count": 1431,
+          "source": "https://distiller.com/spirits/pappy-van-winkle-family-reserve-15",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/pappy-van-winkle-family-reserve-15",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; annual releases or individual batches can differ."
+    },
+    {
+      "key": "bookers",
+      "names": [
+        "Booker's Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.88,
+          "scale": 5,
+          "count": 2351,
+          "source": "https://distiller.com/spirits/booker-s-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; annual releases or individual batches can differ."
+    }
+  ]
+}

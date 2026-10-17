@@ -7,6 +7,7 @@ export interface BottleProfile {
   age: string | null;
   msrp: number | null;
   rarity: { label: string; tier: string; pending: boolean; reviewedAt: string | null };
+  marketRarity?: { state: string; tier: string; label: string; reason: string; reviewedAt: string; sources: { label: string; url: string }[] } | null;
 }
 
 export function compareBottlePrice(input: string, msrp: number | null) {

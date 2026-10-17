@@ -289,8 +289,8 @@ export function createMobileApi({
     reportNativeDiagnostic(packet:import("../../../../shared/native-diagnostics").NativeDiagnostic){return request<{ok:true}>("/api/v1/me/diagnostics",{method:"POST",body:packet});},
     clearReadCache() { recentReads.clear(); currentToken = undefined; },
     readCacheInfo() { pruneReads(); return { size: recentReads.size, keys: [...recentReads.keys()] }; },
-    getBottleProfile(id: string, { fresh = false } = {}) {
-      return request<{ bottle: BottleProfile }>(`/api/v1/bottles/${encodeURIComponent(id)}`, { fresh });
+    getBottleProfile(id: string, { fresh = false, state = '' } = {}) {
+      return request<{ bottle: BottleProfile }>(`/api/v1/bottles/${encodeURIComponent(id)}${state ? `?state=${encodeURIComponent(state)}` : ''}`, { fresh });
     },
     getCollectionHistory() {
       return request<{ collectionVersion: number; value: CollectionValue; history: CollectionHistory }>('/api/v1/me/collection-history', { fresh: true });

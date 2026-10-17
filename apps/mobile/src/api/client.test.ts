@@ -4,6 +4,21 @@ import { preferencesFixture, profileFixture, feedFixture } from './astra-fixture
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
 
+test('bottle profile state context has distinct request/cache identities and validates market evidence', async () => {
+  const paths: string[] = [];
+  let malformed = false;
+  const api = createMobileApi({ baseUrl: 'https://bottle-score.example.test', getToken: async () => 'fixture-token', readCooldownMs: 30_000, fetcher: async input => {
+    const url = new URL((input as Request).url); paths.push(url.pathname + url.search);
+    const state = url.searchParams.get('state') || '';
+    return Response.json({ bottle: { id: 'er10', name: 'Eagle Rare 10 Year', producer: 'Fixture', category: 'bourbon', proof: 90, age: '10 years', msrp: 40, rarity: { label: 'Allocated', tier: 'allocated', pending: false, reviewedAt: '2026-10-01' }, marketRarity: { state, tier: 'allocated', label: 'Allocated', reason: 'Synthetic fixture', reviewedAt: '2026-10-01', sources: malformed ? 'invalid' : [{ label: 'Source', url: 'https://example.com/source' }] } } });
+  } });
+  assert.equal((await api.getBottleProfile('er10', { state: 'NC' })).bottle.marketRarity?.state, 'NC');
+  assert.equal((await api.getBottleProfile('er10', { state: 'AL' })).bottle.marketRarity?.state, 'AL');
+  assert.deepEqual(paths, ['/api/v1/bottles/er10?state=NC', '/api/v1/bottles/er10?state=AL']);
+  malformed = true;
+  await assert.rejects(() => api.getBottleProfile('er10', { state: 'VA', fresh: true }), error => error instanceof MobileApiError && error.code === 'INVALID_RESPONSE');
+});
+
 test('Community safety mutations and private block reads validate their real wire contracts',async()=>{
   let payload:unknown={ok:true};
   const api=createMobileApi({baseUrl:'https://safety.example.test',getToken:async()=>'fixture-token',fetcher:async input=>{assert.equal((input as Request).headers.get('authorization'),'Bearer fixture-token');return Response.json(payload);}});
