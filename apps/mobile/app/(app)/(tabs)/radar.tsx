@@ -2,7 +2,7 @@ import { groupRadarReports } from "../../../src/radar/alert-location";
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import type { GeographySearchResponse, MemberAlert, MemberPreferences, MemberPreferencesPatch, MemberProfile, MonitoringScope, MonitoringScopeType, PushDeviceStatus, RadarBottleOption } from "../../../src/api/types";
 import { MobileApiError } from "../../../src/api/client";
@@ -11,6 +11,7 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
+import { PreferenceSwitch } from "../../../src/components/PreferenceSwitch";
 import { ALERT_RARITY_TIERS, compactWatchedBottles, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { radarPushState, type PushRecoveryAction } from "../../../src/radar/radar-push-state";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
@@ -227,7 +228,7 @@ export default function RadarScreen() {
   }
 
   async function togglePush(enabled: boolean) {
-    if (pushBusy || saving) return;
+    if (pushBusy || saving) return false;
     setPushBusy(true); setPushError(""); setPushFailedAction(null); setActionError("");
     setPushStatusLoadFailed(false);
     setPushStage(enabled ? "Registering this phone…" : "Turning off on this phone…");
@@ -244,11 +245,13 @@ export default function RadarScreen() {
       }
       setPushPermission(await radarPushPermission());
       setPreferences((current) => current ? { ...current, notificationPreferences: { ...current.notificationPreferences, push: { enabled: next.enabled } } } : current);
+      return next.enabled === enabled;
     } catch (caught) {
       const issue = pushIssue(caught, enabled ? "Push couldn’t be turned on for this phone." : "Push couldn’t be turned off for this phone.");
       setPushError(issue.message);
       setPushFailedAction(enabled ? "enable" : "disable");
       setPushPermission(await radarPushPermission().catch(() => "undetermined"));
+      return false;
     } finally { setPushBusy(false); setPushStage(""); }
   }
 
@@ -378,7 +381,7 @@ function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, wat
   </View>;
 }
 
-function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, onLayout, onNotificationsLayout, catalog, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onQuery, onSave, onSetWatching, onTogglePush }: { pushNeedsAttention: boolean; pushRecoveryAction: PushRecoveryAction; onRecoverPush: () => void; onLayout: (y: number) => void; onNotificationsLayout: (y: number) => void; catalog: RadarBottleOption[]; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<void> }) {
+function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, onLayout, onNotificationsLayout, catalog, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onQuery, onSave, onSetWatching, onTogglePush }: { pushNeedsAttention: boolean; pushRecoveryAction: PushRecoveryAction; onRecoverPush: () => void; onLayout: (y: number) => void; onNotificationsLayout: (y: number) => void; catalog: RadarBottleOption[]; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<boolean> }) {
   const router = useRouter();
   const api = useMobileApi();
   const insets = useSafeAreaInsets();
@@ -456,7 +459,7 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
   return <View onLayout={(event) => onLayout(event.nativeEvent.layout.y)} style={styles.preferences}>
     <View style={styles.section}>
     <SectionTitle>Bottles</SectionTitle>
-    <View style={styles.choiceRow}><Choice disabled={saving} selected={preferences.alertMode === "specific_bottles"} label="Specific bottles" onPress={() => void onSave({ alertMode: "specific_bottles" })} /><Choice disabled={saving} selected={preferences.alertMode === "anything_notable"} label="Discover rare bottles" onPress={() => void onSave({ alertMode: "anything_notable" })} /></View>
+    <View style={styles.choiceRow}><Choice disabled={saving} selected={preferences.alertMode === "specific_bottles"} label="Specific bottles" onPress={() => void onSave({ alertMode: "specific_bottles" })} /><Choice disabled={saving} selected={preferences.alertMode === "anything_notable"} label="All notable bottles" onPress={() => void onSave({ alertMode: "anything_notable" })} /></View>
     <Text style={styles.muted}>{preferences.alertMode === "anything_notable" ? "Any bottle in your selected tiers." : "Your bottle list and selected tiers must both match."}</Text>
     {preferences.alertMode === "specific_bottles" ? <BottleWatchlist catalog={catalog} preferences={preferences} query={query} saving={saving} watchedKeys={watchedKeys} watchedNames={watchedNames} onQuery={onQuery} onSetWatching={onSetWatching} /> : null}
     <View style={styles.headingRow}><SectionTitle>Bottle tiers</SectionTitle><Pressable accessibilityRole="button" accessibilityLabel="About bottle tiers" accessibilityState={{ expanded: showTierHelp }} onPress={() => setShowTierHelp(value => !value)} style={styles.infoButton}><Text style={styles.chipText}>ⓘ</Text></Pressable></View>
@@ -474,8 +477,8 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     <SectionTitle>Notifications</SectionTitle>
     <OpenSection>
       {pushNeedsAttention ? <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>Push Notifications</Text><Text style={styles.muted}>{pushDetail}</Text></View><TextAction label={pushBusy ? "WORKING…" : pushRecoveryAction === "settings" ? "OPEN SETTINGS" : "RETRY"} disabled={saving || pushBusy} onPress={onRecoverPush} /></View>
-        : <ToggleRow label="Push Notifications" detail={pushDetail} disabled={saving || pushBusy} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={(value) => void onTogglePush(value)} />}
-      <ToggleRow label="Community sightings" detail="Alerts when other members post in your area" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
+        : <ToggleRow label="Push Notifications" detail={pushDetail} disabled={saving || pushBusy} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={onTogglePush} />}
+      <ToggleRow label="Community sightings" detail="Alerts when other members post in your area" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={async (enabled) => Boolean(await onSave({ notificationPreferences: { sightings: { enabled } } }))} />
     </OpenSection>
 
     </View>
@@ -516,7 +519,7 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
   </View>;
 }
 
-function ToggleRow({ label, detail, value, disabled, onValueChange }: { label: string; detail?: string; value: boolean; disabled: boolean; onValueChange: (value: boolean) => void }) { return <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>{label}</Text>{detail ? <Text style={styles.muted}>{detail}</Text> : null}</View><Switch accessibilityLabel={label} disabled={disabled} onValueChange={onValueChange} trackColor={{ false: colors.border, true: colors.accentPressed }} thumbColor={value ? colors.accent : colors.muted} value={value} /></View>; }
+function ToggleRow({ label, detail, value, disabled, onValueChange }: { label: string; detail?: string; value: boolean; disabled: boolean; onValueChange: (value: boolean) => Promise<boolean> }) { return <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>{label}</Text>{detail ? <Text style={styles.muted}>{detail}</Text> : null}</View><PreferenceSwitch label={label} disabled={disabled} onValueChange={onValueChange} value={value} /></View>; }
 function Choice({ label, selected, disabled = false, onPress }: { label: string; selected: boolean; disabled?: boolean; onPress: () => void }) { return <Pressable accessibilityRole="radio" accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected, disabled && styles.disabled]}><Text style={[styles.choiceText, selected && styles.choiceTextSelected]}>{label}</Text></Pressable>; }
 function RarityChoice({ label, selected, disabled = false, onPress }: { label: string; selected: boolean; disabled?: boolean; onPress: () => void }) { return <Pressable accessibilityLabel={label} accessibilityRole="checkbox" accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected, disabled && styles.disabled]}><Text style={[styles.choiceText, selected && styles.choiceTextSelected]}>{selected ? "✓ " : ""}{label}</Text></Pressable>; }
 function SmallButton({ label, onPress, disabled = false, primary = false }: { label: string; onPress: () => void; disabled?: boolean; primary?: boolean }) { return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.smallButton, primary && styles.smallButtonPrimary, disabled && styles.disabled, pressed && !disabled && styles.pressed]}><Text style={[styles.smallButtonText, primary && styles.smallButtonTextPrimary]}>{label}</Text></Pressable>; }
