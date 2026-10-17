@@ -1,4 +1,4 @@
-import {membershipManagedOutsideStore} from "../../../src/account/subscription-management";
+import { membershipBillingPresentation } from "../../../src/membership/membership-billing";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
@@ -22,8 +22,6 @@ const cards = [
 export default function MembershipScreen() {
   const api = useMobileApi();
   const management = useSubscriptionManagement();
-  const managementOnly = membershipManagedOutsideStore(management.provider,Platform.OS);
-  const billingProviderLabel = management.provider === "google" ? "Google Play" : management.provider === "apple" ? "Apple" : "Stripe";
   const router = useRouter();
   const { welcome, watchBottle: requestedBottle } = useLocalSearchParams<{ welcome?: string; watchBottle?: string }>();
   const pendingBottle = routeText(requestedBottle);
@@ -51,6 +49,8 @@ export default function MembershipScreen() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { if (purchases.profile) setProfile(purchases.profile); }, [purchases.profile]);
   const currentTier = profile ? profile.membership.tier as MembershipTier : null;
+  const billing = membershipBillingPresentation(currentTier, management.provider, Platform.OS);
+  const { founder, managementOnly } = billing;
   const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership, store: Platform.OS === "android" ? "google" : "apple" }) : null;
   const busy = operationBusy || ["configuring", "purchasing", "restoring"].includes(purchases.status);
   const showLifecycle = lifecycle && !["free", "active", "founder", "provider_unavailable"].includes(lifecycle.state);
@@ -63,6 +63,7 @@ export default function MembershipScreen() {
     finally { operationLock.current = false; setOperationBusy(false); }
   }
   async function choose(tier: "standard" | "barrel") {
+    if (founder) return;
     const productId = productIdFor(tier, "monthly");
     const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, tier) : null;
     if (managementOnly) { await management.manage(); return; }
@@ -102,22 +103,22 @@ export default function MembershipScreen() {
       <View style={styles.track}>
         {cards.map((card, index) => {
           const productId = productIdFor(card.tier, "monthly");
-          const product = managementOnly ? undefined : purchases.products.find(p => p.productId === productId);
+          const product = founder || managementOnly ? undefined : purchases.products.find(p => p.productId === productId);
           const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, card.tier) : null;
           const included = action?.kind === "current" || action?.kind === "included";
-          const disabled = busy || management.busy || !management.provider || !profile || (!managementOnly && (included || Platform.OS === "web"));
+          const disabled = founder || busy || management.busy || !management.provider || !profile || (!managementOnly && (included || Platform.OS === "web"));
           const ready = purchases.status === "ready" && Boolean(product && productId && purchases.eligibleProductIds.includes(productId));
-          const label = managementOnly ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS !== "web" ? "Check purchase options" : "Available in the app";
+          const label = founder ? "Included for life" : managementOnly ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS !== "web" ? "Check purchase options" : "Available in the app";
           return <View key={card.tier} style={[styles.card, { width: cardWidth }, styles.premium]}
             >
-            <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
-            <Text style={styles.cardDescription}>{card.description}</Text>
-            <View style={styles.priceRow}>{product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <><Text style={styles.price}>$6</Text><Text style={styles.period}>/mo</Text></>}</View>
-            <Text style={styles.billing}>{managementOnly ? `Managed through ${billingProviderLabel}. Cancel anytime.` : "Billed monthly. Cancel anytime."}</Text>
-            {profile?.membership.grandfatheredRate ? <Text style={styles.billing}>Your early-member billing rate: {profile.membership.grandfatheredRate}/month. Full access is included. Keep this rate while your subscription continues.</Text> : null}
+            <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{founder ? "Founder" : card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
+            <Text style={styles.cardDescription}>{founder ? "Every Barrel Proof benefit is included with your Founder membership." : card.description}</Text>
+            <View style={styles.priceRow}>{founder ? <Text style={styles.pricePlaceholder}>Lifetime access</Text> : product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <><Text style={styles.price}>$6</Text><Text style={styles.period}>/mo</Text></>}</View>
+            <Text style={styles.billing}>{billing.cardBilling}</Text>
+            {!founder && profile?.membership.grandfatheredRate ? <Text style={styles.billing}>Your early-member billing rate: {profile.membership.grandfatheredRate}/month. Full access is included. Keep this rate while your subscription continues.</Text> : null}
             <View style={styles.divider} />
             <View style={styles.features}>{card.features.map(feature => <View key={feature} style={styles.featureRow}><View style={[styles.checkCircle, styles.goldCheck]}><Text accessible={false} style={[styles.check, styles.goldCheckText]}>✓</Text></View><Text style={styles.feature}>{feature}</Text></View>)}</View>
-            <Pressable accessibilityRole="button" accessibilityLabel={!managementOnly && ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
+            <Pressable accessibilityRole="button" accessibilityLabel={!founder && !managementOnly && ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
               accessibilityState={{ disabled, busy }} disabled={disabled} onPress={() => void choose(card.tier)}
               style={({ pressed }) => [styles.subscribe, styles.subscribeGold, disabled && styles.disabled, pressed && styles.pressed]}>
               <Text style={[styles.subscribeText, styles.subscribeGoldText]}>{label}</Text>
@@ -127,9 +128,9 @@ export default function MembershipScreen() {
       </View>
       <View style={styles.footer}>
         <Pressable accessibilityRole="button" onPress={continueMembership} style={styles.freeButton}><Text style={styles.freeText}>{pendingBottle && profile?.membership.paid ? 'Continue to watch this bottle' : currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
-        <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{managementOnly ? `Your membership is billed through ${billingProviderLabel}. Manage your plan, payment details, or cancellation above.` : Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Payment is charged to your Google Play account at confirmation."}</Text>
+        <Text style={styles.fine}>{billing.disclosure}</Text>
         <View style={styles.links}>
-          {Platform.OS !== "web" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
+          {!founder && Platform.OS !== "web" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
           <Pressable accessibilityRole="button" accessibilityLabel="Terms of Service" onPress={() => router.push("/(app)/account/terms")} style={styles.link}><Text style={styles.linkText}>Terms</Text></Pressable>
           <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/privacy")} style={styles.link}><Text style={styles.linkText}>Privacy</Text></Pressable>
         </View>
@@ -138,7 +139,8 @@ export default function MembershipScreen() {
         {showLifecycle ? <View style={styles.lifecycle}><Text style={styles.freeText}>{lifecycle.title}</Text><Text style={styles.status}>{lifecycle.detail}</Text></View> : null}
         {currentTier === "bottled-in-bond" ? <Text style={styles.status}>Your Founder membership includes all Barrel Proof benefits for life.</Text> : null}
         <View style={styles.links}>
-          {management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" disabled={busy || management.busy} onPress={() => void management.manage()} style={styles.link}><Text style={styles.linkText}>{management.busy ? "Opening…" : "Manage membership"}</Text></Pressable> : null}
+          {management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" disabled={busy || management.busy} onPress={() => void management.manage()} style={styles.link}><Text style={styles.linkText}>{management.busy ? "Opening…" : billing.managementLabel}</Text></Pressable> : null}
+          {founder && management.provider && management.provider !== "none" ? <Text style={styles.fine}>Previous subscriptions are separate from your lifetime Founder access.</Text> : null}
           {management.error ? <Text accessibilityRole="alert" style={styles.status}>{management.error}</Text> : null}
           <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={styles.link}><Text style={styles.linkText}>Membership support</Text></Pressable>
         </View>
