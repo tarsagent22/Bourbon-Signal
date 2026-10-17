@@ -65,3 +65,15 @@ test('multiple visible brands cannot be combined or confirmed', () => {
   const scan = createLiveLabelSession(index);
   for (let sequence = 1; sequence <= 3; sequence++) assert.notEqual(scan.observe(frame(sequence, 'PENELOPE RIVIERA\nBUFFALO TRACE'), view, sequence * 250)!.phase, 'ready');
 });
+test('uncertain expression text remains selectable without borrowing confidence from the brand', () => {
+  const scan = createLiveLabelSession(index);
+  for (let sequence = 1; sequence <= 3; sequence++) {
+    const sample = frame(sequence, 'PENELOPE\nRIVIERA');
+    sample.blocks[1].confidence = 0.35;
+    const result = scan.observe(sample, view, sequence * 250)!;
+    assert.equal(result.matches[0].id, 'penelope-riviera-cask-finish');
+    assert.equal(result.phase, 'suggesting');
+  }
+  assert.equal(scan.observe(frame(4, 'PENELOPE\nRIVIERA'), view, 1000)!.phase, 'suggesting', 'one strong read after weak reads does not confirm');
+  assert.equal(scan.observe(frame(5, 'PENELOPE\nRIVIERA'), view, 1250)!.phase, 'ready');
+});

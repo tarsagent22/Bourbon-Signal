@@ -21,7 +21,7 @@ export function visibleLabelBlocks(frame: LabelFrame, view: { width: number; hei
   if (!(frame.width > 0 && frame.height > 0 && view.width > 0 && view.height > 0)) return [];
   const scale = Math.max(view.width / frame.width, view.height / frame.height);
   return frame.blocks.slice(0, 40).filter(block => {
-    if (!block.text?.trim() || !Number.isFinite(block.confidence) || block.confidence < 0.4) return false;
+    if (!block.text?.trim() || !Number.isFinite(block.confidence) || block.confidence < 0.25) return false;
     if (![block.x, block.y, block.width, block.height].every(Number.isFinite) || block.width <= 0 || block.height <= 0) return false;
     const x = ((block.x + block.width / 2) * frame.width * scale - (frame.width * scale - view.width) / 2) / view.width;
     const y = ((block.y + block.height / 2) * frame.height * scale - (frame.height * scale - view.height) / 2) / view.height;
@@ -89,7 +89,15 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
       const specific = reading.canHold && freshSpecific ? reading.matches[0]?.id || '' : '';
       agreement = specific && specific === lastSpecific ? agreement + 1 : specific ? 1 : 0;
       lastSpecific = specific;
-      const ready = agreement >= 2 && blocks.some(block => block.confidence >= 0.6);
+      // A clear brand cannot lend its OCR confidence to an uncertain expression.
+      // Keep uncertain candidates selectable, but require fresh strong expression
+      // text before pausing analysis automatically.
+      const strongText = blocks.filter(block => block.confidence >= 0.6).map(block => block.text).join('\n');
+      const strong = readBottleLabel(index, strongText);
+      const strongWithBrand = context ? readBottleLabel(index, `${context.name}\n${strongText}`) : strong;
+      const expressionConfident = [strong, strongWithBrand].some(result => result.canHold && result.matches[0]?.id === reading.matches[0]?.id);
+      if (!expressionConfident) { agreement = 0; lastSpecific = ''; }
+      const ready = agreement >= 2 && expressionConfident;
       if (ready) { held = true; metrics.confirmedMs = Math.max(0, now - start); }
       const signature = shown.map(b => b.id).join('|');
       const changed = signature !== lastSignature; lastSignature = signature;
