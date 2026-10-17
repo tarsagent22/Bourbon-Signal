@@ -1,4 +1,4 @@
-import {membershipManagedOutsideStore} from "../../../../src/account/subscription-management";
+import { membershipBillingPresentation } from "../../../../src/membership/membership-billing";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -19,8 +19,6 @@ import { colors, typeScale, fonts } from "../../../../src/theme";
 export default function MembershipPlanScreen() {
   const api = useMobileApi();
   const management = useSubscriptionManagement();
-  const managementOnly = membershipManagedOutsideStore(management.provider,Platform.OS);
-  const billingProviderLabel = management.provider === "google" ? "Google Play" : management.provider === "apple" ? "Apple" : "Stripe";
   const storeName = Platform.OS === "android" ? "Google Play" : "App Store";
   const purchases = usePurchases();
   const refreshPurchases = purchases.refresh;
@@ -54,22 +52,22 @@ export default function MembershipPlanScreen() {
 
   if (!plan) return <View style={styles.missing}><Text style={styles.missingTitle}>Membership not found</Text><Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.secondaryButton}><Text style={styles.secondaryText}>Back to memberships</Text></Pressable></View>;
 
+  const billing = membershipBillingPresentation(profile?.membership.tier ?? null, management.provider, Platform.OS);
+  const { managementOnly } = billing;
   const isFree = plan.tier === "free";
-  const isFounder = plan.tier === "bottled-in-bond";
+  const isFounder = billing.founder || plan.tier === "bottled-in-bond";
   const productId = productIdFor(plan.tier, "monthly");
-  const storeProduct = managementOnly ? undefined : purchases.products.find((product) => product.productId === productId);
+  const storeProduct = isFounder || managementOnly ? undefined : purchases.products.find((product) => product.productId === productId);
   const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, plan.tier) : null;
 
   const isCurrentOrIncluded = action?.kind === "current" || action?.kind === "included";
   const purchaseBusy = purchases.status === "purchasing" || purchases.status === "restoring" || purchases.status === "configuring";
-  const canPurchase = Boolean(management.provider && management.provider !== "stripe") && Platform.OS !== "web" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
+  const canPurchase = !isFounder && !managementOnly && Boolean(management.provider && management.provider !== "stripe") && Platform.OS !== "web" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
   const canRestore = Platform.OS !== "web" && purchases.status === "ready" && purchases.restoreAvailable && !isFree && !isFounder;
   const loadingProducts = purchases.status === "configuring" || purchases.status === "signed_out";
-  const displayPrice = managementOnly && !isFree && !isFounder ? `Managed through ${billingProviderLabel}` : isFree ? "$0" : isFounder ? "Lifetime access" : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
-  const displayPeriod = storeProduct ? `/${storeProduct.localizedPeriod}` : "";
-  const billingDisclosure = managementOnly ? `Your membership is billed through ${billingProviderLabel}. Manage your plan, payment details, or cancellation below.` : Platform.OS === "ios"
-    ? "Billed to your Apple ID after confirmation. Manage or cancel in App Store subscriptions."
-    : "Billed to your Google Play account after confirmation. Manage or cancel in Google Play subscriptions.";
+  const displayPrice = isFounder ? "Lifetime access" : isFree ? "$0" : managementOnly ? `Managed through ${billing.providerLabel}` : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
+  const displayPeriod = !isFounder && storeProduct ? `/${storeProduct.localizedPeriod}` : "";
+  const billingDisclosure = isFounder ? "Founder access has no recurring membership charge. Previous subscriptions are managed separately." : billing.disclosure;
   const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership, store: Platform.OS === "android" ? "google" : "apple" }) : null;
   const renewalCopy = isFree
     ? "Free membership. No payment or renewal."
@@ -80,6 +78,7 @@ export default function MembershipPlanScreen() {
         : "Renews automatically unless canceled before the next billing date.";
 
   async function buy() {
+    if (isFounder) return;
     if (managementOnly) { await management.manage(); return; }
     if (!management.provider) return;
     setShowPurchaseStatus(true);
@@ -119,7 +118,7 @@ export default function MembershipPlanScreen() {
     }
   }
 
-  const purchaseButtonLabel = purchases.status === "purchasing"
+  const purchaseButtonLabel = billing.founder ? "Included for life" : purchases.status === "purchasing"
     ? "Completing purchase…"
     : isCurrentOrIncluded ? action?.label || "Included" : storeProduct && canPurchase
         ? `Continue with ${plan.name} · ${storeProduct.localizedPrice}`
@@ -186,7 +185,7 @@ export default function MembershipPlanScreen() {
 
     {management.error ? <Text accessibilityRole="alert" style={styles.statusBody}>{management.error}</Text> : null}
     <View style={styles.legalLinks}>
-      {management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" accessibilityState={{ busy: subscriptionBusy, disabled: subscriptionBusy }} disabled={subscriptionBusy} onPress={() => void manageSubscriptions()} style={styles.legalButton}><Text style={styles.legalText}>{subscriptionBusy ? "Opening…" : "Manage membership"}</Text></Pressable> : null}
+      {management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" accessibilityState={{ busy: subscriptionBusy, disabled: subscriptionBusy }} disabled={subscriptionBusy} onPress={() => void manageSubscriptions()} style={styles.legalButton}><Text style={styles.legalText}>{subscriptionBusy ? "Opening…" : billing.managementLabel}</Text></Pressable> : null}
       <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={styles.legalButton}><Text style={styles.legalText}>Membership support</Text></Pressable>
       <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/delete")} style={styles.legalButton}><Text style={styles.legalText}>Delete account</Text></Pressable>
     </View>
