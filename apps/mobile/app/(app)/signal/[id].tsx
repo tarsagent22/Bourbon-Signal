@@ -18,6 +18,7 @@ import { bottleWatchMutation } from "../../../src/radar/radar-preferences";
 import { bottleProfileState, collectionBottleForIdentity } from "../../../src/signals/bottle-profile";
 import { colors, typeScale, fonts } from "../../../src/theme";
 import { huntOutcomePromptStorageKey, shouldOfferHuntOutcomePrompt } from "../../../src/signals/hunt-outcome-prompt";
+import { coverageContext, supportContext } from '../../../src/continuity/bottle-handoff';
 
 const HUNT_OUTCOMES: ReadonlyArray<{ value: HuntOutcome; label: string }> = [
   { value: "found_it", label: "Found it" },
@@ -213,6 +214,8 @@ export default function SignalDetailScreen() {
         {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
         {canReadCellar ? <ActionButton disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
         {address ? <ActionButton label="Open in Maps" onPress={() => void openMaps()} /> : null}
+        <ActionButton label="Request coverage for this area or store" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: signal.location.state, area: signal.location.store?.city, store: signal.location.store?.name, address: signal.location.store?.address }) })} />
+        <ActionButton label="Get help with this Signal" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Signal detail', bottle: signal.bottle.name, signalId: signal.id, state: signal.location.state, area: signal.location.store?.city }) })} />
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
       </View> : null}
       {signal.source.type === "member" ? <View style={styles.actions}>

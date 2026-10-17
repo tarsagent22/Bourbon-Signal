@@ -12,6 +12,7 @@ import { ErrorState } from '../../../src/components/MemberScreen';
 import { bottleProfileState, collectionBottleForIdentity } from '../../../src/signals/bottle-profile';
 import { bottleWatchMutation } from '../../../src/radar/radar-preferences';
 import { colors, fonts } from '../../../src/theme';
+import { supportContext } from '../../../src/continuity/bottle-handoff';
 
 export default function BottleProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -69,6 +70,7 @@ export default function BottleProfileScreen() {
         {!reports.length ? <Text style={s.copy}>{reportError || 'No reports to show here. This does not establish whether the bottle is available locally.'}</Text> : null}
       </View> : null}
       {!bottle ? <Text style={s.copy}>Catalog details aren’t available for this saved entry. Your shelf details remain editable.</Text> : null}
+      <Action label="Get help with this bottle" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Bottle Profile', bottle: identity.name }) })} />
     </> : null}
   </ScrollView>;
 }

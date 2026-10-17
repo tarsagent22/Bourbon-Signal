@@ -1,5 +1,6 @@
 import { useAuth } from "@clerk/expo";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { regionContext, routeText } from '../../src/continuity/bottle-handoff';
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { GeographySearchResponse, MemberPreferences, MemberProfile, MonitoringScope } from "../../src/api/types";
@@ -21,6 +22,8 @@ function MemberSetup() {
   const api = useMobileApi();
   const router = useRouter();
   const catalog = useBottleCatalog();
+  const params = useLocalSearchParams<{ state?: string; area?: string; bottle?: string }>();
+  const requestedRegion = regionContext(params.state, params.area);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [step, setStep] = useState<0 | 1 | 2>(0);
@@ -51,10 +54,12 @@ function MemberSetup() {
       const [member, saved] = await Promise.all([api.getMemberProfile({ fresh: true }), api.getMemberPreferences({ fresh: true })]);
       if (!mounted.current) return;
       setProfile(member); setPreferences(saved);
-      const home = member.profile.homeState || saved.monitoringScopes[0]?.state || "";
+      const home = requestedRegion.state || member.profile.homeState || saved.monitoringScopes[0]?.state || "";
       setState(home);
       const first = saved.monitoringScopes.find(row => row.state === home);
       setScope(first || null); setLocal(Boolean(first && first.type !== "state"));
+      if (requestedRegion.state) { setAreaChanged(true); if (requestedRegion.area) { setLocal(true); setScope(null); setAreaQuery(requestedRegion.area); } }
+      if (routeText(params.bottle)) setQuery(routeText(params.bottle));
     } catch { if (mounted.current) setError("Setup couldn’t load. Try again."); }
     finally { if (mounted.current) setLoading(false); }
   }
@@ -127,6 +132,7 @@ function MemberSetup() {
       <Text style={s.detail}>Step {step + 1} of 3</Text>
       <PageHeading title={step === 0 ? "Where do you hunt?" : step === 1 ? "Which bottles do you want?" : "Get alerts on your phone"}
         description={step === 0 ? "Choose a state, then your area." : step === 1 ? "Search for bottles and tap Watch. You can change these in Radar." : "We’ll notify you when a report matches your bottles, area, and bottle tiers."} />
+      {requestedRegion.state && step === 0 ? <Text style={s.detail}>From your current region: {[requestedRegion.area, requestedRegion.state].filter(Boolean).join(', ')}. Confirm an area below to update Radar.</Text> : null}
       {step === 0 ? <>
         <ScrollView horizontal contentContainerStyle={s.states} keyboardShouldPersistTaps="handled">
           {profile.profile.feedAreas.states.map(row => <Pressable key={row.code} accessibilityRole="radio" accessibilityLabel={row.label} accessibilityState={{ checked: state === row.code }} disabled={busy} onPress={() => { setAreaChanged(true); setState(row.code); setScope(null); setAreaOffset(0); setAreas([]); setAreaQuery(""); }} style={[s.choice, state === row.code && s.chosen]}><Text style={s.text}>{row.code}</Text></Pressable>)}

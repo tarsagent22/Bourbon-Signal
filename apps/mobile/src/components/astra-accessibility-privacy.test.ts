@@ -39,6 +39,7 @@ test('M13: mounted Radar exposes push and sightings without retired channels', (
   const states: any[] = ['settings',prefs,profileFixture({ feedAreas: { states: [{ code: 'AZ', label: 'Arizona', engineCoverage: 'active' }] } } as any)];
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
     '../../../src/radar/RadarAlertRow': { RadarAlertRow: 'RadarAlertRow' },
+    '../../../src/components/SignalMotionBackdrop': { SignalMotionHeader: 'SignalMotionHeader' },
     '../../../src/radar/MutedBottles': { MutedBottles: 'MutedBottles' },
     'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ push() {} }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({}), SafeAreaView: 'SafeAreaView' },
