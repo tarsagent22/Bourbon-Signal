@@ -120,7 +120,9 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
         if (uncertainSwitch && promotionReads < 2) {
           shown = [shown[0], ...incoming.filter(bottle => bottle.id !== shown[0].id), ...shown.slice(1).filter(bottle => !incoming.some(next => next.id === bottle.id))].slice(0, 6);
         } else {
-          shown = reading.canHold ? incoming : [...shown.filter(b => incoming.some(n => n.id === b.id)), ...incoming.filter(b => !shown.some(n => n.id === b.id))];
+          shown = reading.canHold
+            ? expressionConfident ? incoming : [...incoming, ...shown.filter(bottle => !incoming.some(next => next.id === bottle.id))].slice(0, 6)
+            : [...shown.filter(b => incoming.some(n => n.id === b.id)), ...incoming.filter(b => !shown.some(n => n.id === b.id))];
           if (reading.canHold) shownSpecific = incoming[0].id;
         }
         if (!shown.some(bottle => bottle.id === shownSpecific)) shownSpecific = '';

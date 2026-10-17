@@ -46,11 +46,13 @@ test('alternating uncertain expressions remain selectable without swapping the l
     const result = scan.observe(uncertain(sequence, expression), view, sequence * 250)!;
     assert.equal(result.matches[0].id, 'penelope-riviera-cask-finish');
     assert.equal(result.phase, 'suggesting');
-    if (expression === 'RIO') assert.ok(result.matches.some(bottle => bottle.id === 'penelope-rio-cask-finish'));
+    assert.ok(result.matches.some(bottle => bottle.id === 'penelope-rio-cask-finish'), 'uncertain alternative does not disappear between alternating weak reads');
   }
   const persistent = scan.observe(uncertain(5, 'RIO'), view, 1250)!;
   assert.equal(persistent.matches[0].id, 'penelope-rio-cask-finish');
   assert.equal(persistent.phase, 'suggesting', 'uncertain repeats cannot auto-confirm');
+  const clear = scan.observe(frame(6, 'PENELOPE RIO'), view, 1500)!;
+  assert.ok(clear.matches.every(bottle => bottle.id !== 'penelope-riviera-cask-finish'), 'a clear expression narrows the candidates immediately');
 });
 test('history clears on confirmed scene change, expiration, a different brand, and blank gaps', () => {
   for (const [name, second, now] of [
