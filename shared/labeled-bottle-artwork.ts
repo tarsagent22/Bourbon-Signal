@@ -9,7 +9,14 @@ if (!LABELED_BOTTLE_ARTWORK) throw new Error('Invalid labeled bottle artwork reg
 
 export function resolveLabeledBottleArtwork(identity: PhotoIdentity, catalog: readonly CatalogIdentity[] = []) {
   const bottleId = identity.bottleId?.replace(/^bible-/, '');
-  return resolveBottlePhoto(LABELED_BOTTLE_ARTWORK, {...identity, bottleId}, catalog);
+  const exact = resolveBottlePhoto(LABELED_BOTTLE_ARTWORK, {...identity, bottleId}, catalog);
+  if (exact || !identity.bottleName) return exact;
+  // Retailer variants append package volume, sometimes twice. Remove only a
+  // trailing volume; ages, proofs, finishes and expression names stay intact.
+  const bottleName = identity.bottleName.replace(/(?:\s+(?:\d+(?:\.\d+)?|\.\d+)\s*(?:ml|l))+\s*$/i, '').trim();
+  return bottleName !== identity.bottleName
+    ? resolveBottlePhoto(LABELED_BOTTLE_ARTWORK, {...identity, bottleId, bottleName}, catalog)
+    : undefined;
 }
 
 export function labeledArtworkCaption(catalogId: string): string | undefined {

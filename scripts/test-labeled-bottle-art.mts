@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 const { LABELED_BOTTLE_ARTWORK, resolveLabeledBottleArtwork: resolve } = require('../shared/labeled-bottle-artwork.ts') as typeof import('../shared/labeled-bottle-artwork');
 import catalog from '../apps/mobile/src/cellar/bottle-catalog-seed.json';
 import ownerCatalog from '../shared/labeled-owner-bottles.json';
+import retailerNames from '../shared/labeled-artwork-retailer-names.json';
 const { catalogBottlePhoto } = require('../src/lib/bottle-photos.ts') as typeof import('../src/lib/bottle-photos');
 
 test('every previously illustrated catalog and public owner bottle has labeled artwork', () => {
@@ -57,6 +58,44 @@ test('matching glass does not approve a different expression label', () => {
     {bottleName:'E.H. Taylor'}, {bottleName:'E.H. Taylor Barrel Proof'},
     {bottleName:'Stagg Jr.'}, {canonicalKey:'batch small taylor'},
     {bottleId:'eagle-rare-10',bottleName:'Eagle Rare 17 Year'},
+  ]) assert.equal(resolve(identity,catalog),undefined,JSON.stringify(identity));
+});
+
+test('retailer feed names and package suffixes resolve existing labeled artwork', () => {
+  for (const [catalogId, names] of Object.entries(retailerNames)) {
+    const expected = resolve({bottleId:catalogId}, catalog)!;
+    assert.ok(expected, catalogId);
+    for (const name of names) {
+      assert.ok(expected.exactNames.includes(name), `Persist reviewed name: ${name}`);
+      for (const suffix of ['', ' 750ml', ' 750 ml 750 ml', ' 1.75 L 1.75 L', ' .75L']) {
+        const bottleName = name + suffix;
+        // Engine IDs are distinct from catalog IDs; both entry points matter.
+        for (const bottleId of ['retailer-product-id', catalogId, `bible-${catalogId}`]) {
+          assert.equal(resolve({bottleId, bottleName}, catalog)?.sha256, expected.sha256, bottleName);
+        }
+        assert.equal(catalogBottlePhoto({id:'retailer-product-id',canonicalName:bottleName})?.sha256, expected.sha256);
+      }
+    }
+  }
+  const hashes = new Map<string, string>();
+  for (const row of LABELED_BOTTLE_ARTWORK.entries) for (const name of row.exactNames) {
+    const key = name.trim().replace(/\s+/g, ' ').replace(/’/g, "'").toLowerCase();
+    assert.ok(!hashes.has(key) || hashes.get(key) === row.sha256, `Conflicting artwork: ${name}`);
+    hashes.set(key, row.sha256);
+  }
+});
+
+test('package cleanup retains age, proof, finish and stale-ID conflicts', () => {
+  for (const identity of [
+    {bottleId:'eh-taylor-single-barrel',bottleName:'Colonel E.H. Taylor Small Batch Bourbon 750ml'},
+    {bottleId:'eagle-rare-10',bottleName:'Eagle Rare 17 Year 750ml'},
+    {bottleId:'wild-turkey-rare-breed-rye',bottleName:'Wild Turkey Rare Breed Bourbon 750ml'},
+    {bottleName:'Eagle Rare 10 Year Double Eagle Very Rare 750ml'},
+    {bottleName:'1792 Full Proof 100 Proof 750ml'},
+    {bottleName:'E.H. Taylor Barrel Proof 750ml'},
+    {bottleName:'Michter\'s US 1 American Bourbon Whiskey 750 ml 750 ml'},
+    {bottleName:'Elijah Craig Single Barrel 15 Year 750ml'},
+    {canonicalKey:'batch small taylor'},
   ]) assert.equal(resolve(identity,catalog),undefined,JSON.stringify(identity));
 });
 
