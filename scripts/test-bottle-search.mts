@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import inventory from "../src/data/bourbonBibleInventory.json" with { type: "json" };
 import bottleSearchModule from "../src/lib/bottle-search.ts";
 import bourbonBibleModule from "../src/lib/bourbonBible.ts";
+import discoveryBottles from '../shared/library-discovery-bottles.json' with { type: 'json' };
 
 const { rankBottleSearch } = bottleSearchModule;
 const { getStaticBourbonBible } = bourbonBibleModule;
@@ -38,6 +39,15 @@ assert.match(rankBottleSearch(catalog, "russel reserve", 8)[0]!.canonicalName, /
 assert.deepEqual(rankBottleSearch(catalog, "zzzz completely unrelated", 8), [], "unrelated text does not leak broad matches");
 
 const fullCatalog = await getStaticBourbonBible();
+for (const added of discoveryBottles) {
+  const entry = fullCatalog.find(bottle => bottle.id === added.id);
+  assert.ok(entry, `${added.name}: server search retains the exact edition`);
+  assert.equal(entry.canonicalName, added.name);
+  assert.equal(entry.rarityPending, true);
+  assert.equal(entry.buyerVerdict, 'unknown');
+  assert.equal(entry.isAlertEligible, false);
+  assert.ok(entry.photo, `${added.name}: matching artwork is available from the same catalog`);
+}
 for (const [id, proof] of [["wild-turkey-101-rye", 101], ["wild-turkey-rare-breed-rye", 112.2], ["new-riff-bottled-in-bond-rye", 100], ["green-river-rye", 95]] as const) {
   const entry = fullCatalog.find(bottle => bottle.id === id);
   assert.ok(entry, `${id} is available from the authoritative server catalog`);

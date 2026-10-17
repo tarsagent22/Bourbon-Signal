@@ -1,4 +1,5 @@
 import { REVIEWED_SIGHTING_RARITY } from "../data/reviewed-sighting-rarity";
+import discoveryBottles from '../../shared/library-discovery-bottles.json';
 import inventoryBottles from "@/data/bourbonBibleInventory.json";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { mergeBottleCatalogSources } from "@/lib/bottle-catalog-merge";
@@ -51,6 +52,12 @@ export interface BibleSearchResult extends BibleBottle {
 }
 
 const SEED_BOTTLES: BibleBottleInput[] = [
+  // These editions already have reviewed, exact artwork. Keep uncertain facts
+  // pending and do not infer alert eligibility from their appearance in a feed.
+  ...discoveryBottles.map(bottle => ({
+    ...commonBottle(bottle.id, bottle.name, bottle.brand, [], 'Edition-specific bottle library entry.', 'Confirm the release on the label. Pricing and rarity are under review.'),
+    category: bottle.category as BibleBottle['category'], rarityPending: true, buyerVerdict: 'unknown' as const,
+  })),
   // Producer-verified identities for common scan gaps. Pricing and scarcity stay unreviewed.
   // https://www.wildturkeybourbon.com/products/wild-turkey-101-rye/
   { ...commonBottle("wild-turkey-101-rye", "Wild Turkey 101 Rye", "Wild Turkey", ["Wild Turkey Kentucky Straight Rye Whiskey 101", "WT 101 Rye"], "Wild Turkey straight rye bottled at 101 proof.", "Confirm the rye expression and compare the shelf price."), producer: "Wild Turkey Distillery", category: "rye", proof: 101, rarityPending: true, buyerVerdict: "unknown" },

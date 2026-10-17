@@ -20,6 +20,28 @@ const catalog = [
   { id: 'er25', name: 'Eagle Rare 25Y', aliases: ['Eagle Rare'] },
 ];
 const index = createLabelIndex(catalog);
+
+test('every bundled library identity is retrievable from its full label text', () => {
+  const fullIndex = createLabelIndex(seed);
+  assert.equal(createLabelIndex(seed), fullIndex, 'scanner screens reuse the same prepared index');
+  for (const bottle of seed) assert.ok(matchBottleLabel(fullIndex, bottle.name).some(b => b.id === bottle.id), bottle.name);
+});
+
+test('punctuated initials, short ages and a single anchored OCR error remain searchable', () => {
+  const fullIndex = createLabelIndex(seed);
+  assert.ok(matchBottleLabel(fullIndex, 'O.F.C. BOURBON').some(b => b.id === 'o-f-c-bourbon'));
+  assert.deepEqual(matchBottleLabel(index, 'EAGLE RARE 10YO').map(b => b.id), ['er10']);
+  assert.equal(matchBottleLabel(index, 'FREY RANOH KENTUCKY STRAIGHT BOURBON')[0]?.id, 'frey');
+  assert.deepEqual(matchBottleLabel(index, 'RANOH'), [], 'a corrected word alone is not identity evidence');
+  assert.ok(!matchBottleLabel(index, 'OLD FORESTER 1910').some(b => b.id === 'of1920'));
+});
+
+import { labelPictureSize, LABEL_FRAME_DELAY_MS } from './capture-settings';
+test('sensor sizing bounds frame work while retaining real label resolution', () => {
+  assert.equal(labelPictureSize(['4032x3024', '2560x1920', '2048x1536', '1920x1080', 'Photo', '0x0']), '2048x1536');
+  assert.equal(labelPictureSize(['1920x1080', 'Photo', 'NaNx2000']), undefined, 'unsupported cameras keep their default');
+  assert.equal(LABEL_FRAME_DELAY_MS, 900);
+});
 test('label candidates survive multiline label boilerplate', () => {
   assert.equal(matchBottleLabel(index, 'FREY RANCH\nFARMERS + DISTILLERS\nSTRAIGHT BOURBON WHISKEY\nNEVADA GROWN')[0]?.id, 'frey');
   assert.equal(matchBottleLabel(index, 'HEAVEN HILL\nBOTTLED-IN-BOND\n7 YEARS\nKENTUCKY STRAIGHT BOURBON WHISKEY\n100 PROOF')[0]?.id, 'hh7');

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "wild-turkey-101-rye",
+    "name": "Wild Turkey 101 Rye",
+    "names": [],
+    "sha256": "66818e7e1faaf7599e9af91d47f76b7fb3cdd87e65c7efb9f6d233e264698c7e",
+    "reference": "https://www.wildturkeybourbon.com/products/wild-turkey-101-rye/"
+  },
+  {
+    "id": "wild-turkey-rare-breed-rye",
+    "name": "Wild Turkey Rare Breed Rye",
+    "names": [],
+    "sha256": "c4fed84b4a83e75459c3575a800e6d05739c0875cc0d63c91e63aa97f190654c",
+    "reference": "https://www.wildturkeybourbon.com/products/rare-breed-rye/"
+  },
+  {
+    "id": "new-riff-bottled-in-bond-rye",
+    "name": "New Riff Bottled-in-Bond Rye",
+    "names": [],
+    "sha256": "2520403d6809ccaeccfe42b4609677f7cfb3a3e219b5982f65c56bda716c0c9a",
+    "reference": "https://shop.newriffdistilling.com/products/new-riff-kentucky-straight-rye-whiskey-bottled-in-bond"
+  },
+  {
+    "id": "green-river-rye",
+    "name": "Green River Kentucky Straight Rye",
+    "names": [],
+    "sha256": "4637e3e9f62a54cce9d8dbb23fcc1c854d6228e373302d8c2e1d4c053c124b8f",
+    "reference": "https://greenriverwhiskey.com/kentucky-straight-rye/"
+  }
+]

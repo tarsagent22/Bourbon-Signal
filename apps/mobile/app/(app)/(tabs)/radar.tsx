@@ -1,4 +1,5 @@
 import { groupRadarReports } from "../../../src/radar/alert-location";
+import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -375,7 +376,7 @@ function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, wat
     <TextInput accessibilityLabel="Search watched bottles" accessibilityHint="Search the bottle catalog to add or remove a watch." autoCapitalize="words" autoCorrect={false} clearButtonMode="while-editing" onChangeText={onQuery} onSubmitEditing={Keyboard.dismiss} placeholder="Search to add or remove" placeholderTextColor={colors.muted} returnKeyType="search" style={styles.input} value={query} />
     {query.trim() ? <View style={styles.stack}>{catalog.length ? catalog.map((bottle) => {
       const watched = watchedKeys.has(canonicalBottleKey(bottle.name));
-      return <View key={bottle.id} style={styles.compactRow}><View style={styles.flex}><Text style={styles.listTitle}>{bottle.name}</Text>{bottle.rarity ? <Text style={styles.muted}>{bottle.rarity}</Text> : null}</View><TextAction disabled={saving} quiet={watched} label={watched ? "REMOVE" : "WATCH"} onPress={() => void updateWatch(bottle.name, !watched)} /></View>;
+      return <View key={bottle.id} style={styles.compactRow}><CellarBottleArtwork bottle={{ bottleId: bottle.id, bottleName: bottle.name }} size="list" /><View style={styles.flex}><Text style={styles.listTitle}>{bottle.name}</Text>{bottle.rarity ? <Text style={styles.muted}>{bottle.rarity}</Text> : null}</View><TextAction disabled={saving} quiet={watched} label={watched ? "REMOVE" : "WATCH"} onPress={() => void updateWatch(bottle.name, !watched)} /></View>;
     }) : <Text style={styles.muted}>No catalog bottles match that search.</Text>}</View> : <View style={styles.stack}>{watchlist.visible.length ? watchlist.visible.map((name) => <View key={canonicalBottleKey(name)} style={styles.compactRow}><Text numberOfLines={2} style={[styles.listTitle, styles.flex]}>{name}</Text><TextAction disabled={saving} quiet label="REMOVE" onPress={() => void updateWatch(name, false)} /></View>) : <MemberCard><Text style={styles.cardTitle}>No watched bottles</Text><Text style={styles.muted}>Search above to start monitoring a bottle.</Text></MemberCard>}{watchlist.totalCount > 3 ? <TextAction expanded={showAll} label={showAll ? "SHOW LESS" : `VIEW ALL ${watchlist.totalCount} BOTTLES`} onPress={() => setShowAll((value) => !value)} /> : null}</View>}
     {undoBottle ? <View accessibilityLiveRegion="polite" style={styles.undoRow}><Text style={styles.muted}>Removed {undoBottle.name}</Text><TextAction label="UNDO" disabled={saving} onPress={() => void undoRemoval()} /></View> : null}
   </View>;

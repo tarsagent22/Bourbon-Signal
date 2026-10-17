@@ -40,8 +40,39 @@ export function photoUrl(photo: BottlePhoto): string | undefined {
   return HASH.test(photo.sha256) ? `${PHOTO_ORIGIN}/bottle-photos/${photo.sha256}.png` : undefined;
 }
 
+// Catalogs and registries are immutable snapshots. Build once per snapshot,
+// rather than normalizing every label for every image on every screen render.
+const registryIndexes = new WeakMap<PhotoRegistry, { byId: Map<string, BottlePhoto>; byName: Map<string, BottlePhoto[]> }>();
+const catalogIndexes = new WeakMap<readonly CatalogIdentity[], Map<string, CatalogIdentity[]>>();
+function registryIndex(registry: PhotoRegistry) {
+  let index = registryIndexes.get(registry);
+  if (!index) {
+    index = { byId: new Map(), byName: new Map() };
+    for (const row of registry.entries) {
+      index.byId.set(row.catalogId, row);
+      for (const name of new Set(row.exactNames.map(exact))) {
+        const rows = index.byName.get(name) || [];
+        rows.push(row); index.byName.set(name, rows);
+      }
+    }
+    registryIndexes.set(registry, index);
+  }
+  return index;
+}
+function catalogRows(catalog: readonly CatalogIdentity[], id: string) {
+  let index = catalogIndexes.get(catalog);
+  if (!index) {
+    index = new Map();
+    for (const row of catalog) for (const key of new Set([row.id, `bible-${row.id}`])) {
+      const rows = index.get(key) || [];
+      rows.push(row); index.set(key, rows);
+    }
+    catalogIndexes.set(catalog, index);
+  }
+  return index.get(id) || [];
+}
 function namedRows(registry: PhotoRegistry, name: string) {
-  return registry.entries.filter(row => row.exactNames.some(n => exact(n) === exact(name)));
+  return registryIndex(registry).byName.get(exact(name)) || [];
 }
 
 export function photoIdentityConflicts(registry: PhotoRegistry | undefined, identity: PhotoIdentity, catalog: readonly CatalogIdentity[] = []): boolean {
@@ -49,11 +80,11 @@ export function photoIdentityConflicts(registry: PhotoRegistry | undefined, iden
   if (!identity.bottleId || !identity.bottleName) return false;
   const id = identity.bottleId;
   const name = identity.bottleName;
-  const byId = registry?.entries.find(row => row.catalogId === id || `bible-${row.catalogId}` === id);
+  const byId = registry && (registryIndex(registry).byId.get(id) || (id.startsWith('bible-') ? registryIndex(registry).byId.get(id.slice(6)) : undefined));
   if (byId && !byId.exactNames.some(n => exact(n) === exact(name))) return true;
   // Saved `bible-` is an explicit legacy namespace, not a fuzzy identifier repair.
   // Do not import catalog alias arrays: they contain known edition collisions.
-  const known = catalog.filter(row => row.id === id || `bible-${row.id}` === id);
+  const known = catalogRows(catalog, id);
   return known.some(row => {
     const knownName = row.name ?? row.canonicalName ?? '';
     if (exact(knownName) === exact(name)) return false;
@@ -64,7 +95,7 @@ export function photoIdentityConflicts(registry: PhotoRegistry | undefined, iden
 
 export function resolveBottlePhoto(registry: PhotoRegistry | undefined, identity: PhotoIdentity, catalog: readonly CatalogIdentity[] = []): BottlePhoto | undefined {
   if (!registry || photoIdentityConflicts(registry, identity, catalog)) return undefined;
-  const byId = registry.entries.find(row => row.catalogId === identity.bottleId);
+  const byId = identity.bottleId ? registryIndex(registry).byId.get(identity.bottleId) : undefined;
   if (identity.bottleName) {
     const rows = namedRows(registry, identity.bottleName);
     if (!rows.length || new Set(rows.map(row => row.sha256)).size !== 1) return undefined;

@@ -1,5 +1,6 @@
 import { useFormDraft } from "../../../src/hooks/useFormDraft";
 import { DraftNotice } from "../../../src/components/DraftNotice";
+import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { useAuth } from "@clerk/expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -361,12 +362,12 @@ function AccountAddBottle() {
 
           {!selected && !custom && !needle ? <View style={styles.recentSection}>
             <Text style={styles.sectionTitle}>Recently on My Shelf</Text>
-            {recentBottles.length ? <View style={styles.results}>{recentBottles.map((bottle) => <ResultRow key={bottle.bottleId} label={bottle.bottleName} metadata={metadataForOption({ id: bottle.bottleId, name: bottle.bottleName }, bottles)} onPress={() => chooseRecent(bottle)} />)}</View> : <Text style={styles.fieldHelp}>Your recently updated whiskeys will appear here.</Text>}
+            {recentBottles.length ? <View style={styles.results}>{recentBottles.map((bottle) => <ResultRow key={bottle.bottleId} bottleId={bottle.bottleId} label={bottle.bottleName} metadata={metadataForOption({ id: bottle.bottleId, name: bottle.bottleName }, bottles)} onPress={() => chooseRecent(bottle)} />)}</View> : <Text style={styles.fieldHelp}>Your recently updated whiskeys will appear here.</Text>}
           </View> : null}
 
           {!selected && needle.length >= 2 && results.length ? <View accessibilityLabel={custom ? "Near matches" : "Bottle search results"} style={styles.results}>
             {custom ? <Text style={styles.nearTitle}>Near matches</Text> : null}
-            {results.map((option) => <ResultRow key={option.id} label={option.name} metadata={metadataForOption(option, bottles)} onPress={() => choose(option)} />)}
+            {results.map((option) => <ResultRow key={option.id} bottleId={option.id} label={option.name} metadata={metadataForOption(option, bottles)} onPress={() => choose(option)} />)}
           </View> : null}
           {!selected && needle.length >= 2 && !results.length ? <Text style={styles.fieldHelp}>No catalog matches found. You can add this whiskey manually.</Text> : null}
 
@@ -408,7 +409,7 @@ function AccountAddBottle() {
   </SafeAreaView>;
 }
 
-function ResultRow({ label, metadata, onPress }: { label: string; metadata: string; onPress: () => void }) { return <Pressable accessibilityLabel={`${label}. ${metadata}`} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.result, pressed && styles.pressed]}><Text style={styles.resultName}>{label}</Text><Text style={styles.resultMeta}>{metadata}</Text></Pressable>; }
+function ResultRow({ label, bottleId, metadata, onPress }: { label: string; bottleId: string; metadata: string; onPress: () => void }) { return <Pressable accessibilityLabel={`${label}. ${metadata}`} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.result, { flexDirection: 'row', alignItems: 'center', gap: 12 }, pressed && styles.pressed]}><CellarBottleArtwork bottle={{ bottleId, bottleName: label }} size="list" /><View style={{ flex: 1, gap: 4 }}><Text style={styles.resultName}>{label}</Text><Text style={styles.resultMeta}>{metadata}</Text></View></Pressable>; }
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text>{children}</View>; }
 function Toggle({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} style={[styles.toggle, active && styles.toggleActive]}><Text style={[styles.toggleText, active && styles.toggleTextActive]}>{active ? `✓ ${label}` : label}</Text></Pressable>; }
 function DisclosureRow({ expanded, label, onPress }: { expanded: boolean; label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={onPress} style={styles.disclosureRow}><Text style={styles.fieldLabel}>{label}</Text><Text aria-hidden style={styles.disclosureGlyph}>{expanded ? "−" : "+"}</Text></Pressable>; }

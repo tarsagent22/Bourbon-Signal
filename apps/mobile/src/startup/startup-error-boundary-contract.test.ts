@@ -20,7 +20,7 @@ test("startup recovery exposes bounded selectable diagnostics", () => {
   assert.match(boundary, /STARTUP_DIAGNOSTIC_RELEASE/);
 });
 
-test("authentication providers mount while fonts load, with navigation gated until font readiness", () => {
+test("authentication and account routing start while fonts load behind the native splash", () => {
   let ready = false;
   const savedKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
   process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_fixture";
@@ -48,8 +48,7 @@ test("authentication providers mount while fonts load, with navigation gated unt
       ? node.flatMap(types) : [node.type, ...types(node.props?.children)];
     const loading = types(RootLayout());
     assert.ok(loading.includes("ClerkProvider"), "session recovery starts during the font read");
-    assert.ok(loading.includes("BrandLoading"));
-    assert.ok(!loading.some(type => typeof type === "function" && type.name === "SessionNavigation"));
+    assert.ok(loading.some(type => typeof type === "function" && type.name === "SessionNavigation"), "account setup requests must overlap font loading");
     ready = true;
     const loaded = types(RootLayout());
     assert.ok(loaded.some(type => typeof type === "function" && type.name === "SessionNavigation"));

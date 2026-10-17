@@ -27,6 +27,7 @@ test('Radar retains preferences and refreshes push status when alerts fail indep
     '../../../src/hooks/useBottleCatalog': { useBottleCatalog: () => ({ search: () => [], error: 'Catalog offline', retry() {} }) },
     '../../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} },
     '../../../src/hooks/useScreenRevalidation': { useScreenRevalidation: (fn: typeof focus) => { focus = fn; } },
+    '../../../src/components/CellarBottleArtwork': { CellarBottleArtwork: 'CellarBottleArtwork' },
     '../../../src/components/MemberScreen': { memberScreenStyles: {}, LoadingState: 'LoadingState' },
     '../../../src/push/push-registration': { radarPushDeviceId: async () => 'device', radarPushPermission: async () => 'granted', refreshRadarPushIfEnabled: async () => null },
   });
@@ -53,6 +54,7 @@ test('M07: a second push refreshes mounted Radar and an older reply cannot overw
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 47, bottom: 34, left: 0, right: 0 }) }, '../../../src/hooks/useMobileApi': { useMobileApi: () => api },
     '../../../src/hooks/useBottleCatalog': { useBottleCatalog: () => ({ catalog: [], search: () => [], error: '', retry() {} }) },
     '../../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} }, '../../../src/hooks/useScreenRevalidation': { useScreenRevalidation: (f: typeof focus) => { focus = f; } },
+    '../../../src/components/CellarBottleArtwork': { CellarBottleArtwork: 'CellarBottleArtwork' },
     '../../../src/components/MemberScreen': { memberScreenStyles: {}, LoadingState: 'LoadingState' },
     '../../../src/push/push-registration': { radarPushDeviceId: async () => 'device', radarPushPermission: async () => 'granted', rememberRadarPushEnabled: async () => {}, watchRadarPushToken: () => ({ remove() {} }) },
   });

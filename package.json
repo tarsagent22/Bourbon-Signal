@@ -65,6 +65,7 @@
     "test:sighting-rewards": "node scripts/generate-achievement-catalog.mjs --check && node --experimental-strip-types scripts/test-sighting-rewards.mjs && node --experimental-strip-types scripts/test-badge-expansion.mjs",
     "test:referrals": "tsx --test scripts/test-referrals.ts",
     "test:app-loading": "tsx scripts/test-app-loading.mts",
+    "audit:app-library": "tsx scripts/audit-app-bottle-library.mts",
     "test:membership-month": "tsx scripts/test-membership-month.mts",
     "test:signal-points": "npm run test:membership-month && tsx scripts/test-member-rewards-snapshot.mts && tsx scripts/test-quality-outcome-rewards.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points-membership-credit.mts && node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
     "test:feed-location-search": "node --no-warnings --experimental-strip-types --test scripts/test-feed-location-search.mts && tsx --test scripts/test-feed-location-search-sql.ts",

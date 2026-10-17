@@ -1,5 +1,21 @@
 import assert from "node:assert/strict";
+import { resolveHomeStartup, type HomeBrowsingPreferences } from './home-browsing-preferences';
 import test from "node:test";
+
+test('saved feed scope restores before a slow profile, while new members wait for their home state', async () => {
+  let finish!: (state: string) => void;
+  const profile = new Promise<string>(resolve => { finish = resolve; });
+  const saved: HomeBrowsingPreferences = { version: 1, view: 'community', filtersByView: { market: DEFAULT_SIGNAL_FILTERS, community: { ...DEFAULT_SIGNAL_FILTERS, state: 'VA' } } };
+  const restored = await resolveHomeStartup(Promise.resolve(saved), profile);
+  assert.equal(restored.saved, saved);
+  let settled = false;
+  const firstLaunch = resolveHomeStartup(Promise.resolve(null), profile).then(result => { settled = true; return result; });
+  await Promise.resolve();
+  assert.equal(settled, false);
+  finish('NC');
+  assert.equal((await firstLaunch).homeState, 'NC');
+  assert.deepEqual(await resolveHomeStartup(Promise.reject(new Error('storage')), Promise.reject(new Error('offline'))), { saved: null, homeState: undefined });
+});
 import { DEFAULT_SIGNAL_FILTERS } from "./feed-filters";
 import { homeBrowsingStorageKey, parseHomeBrowsingPreferences, serializeHomeBrowsingPreferences } from "./home-browsing-preferences";
 
