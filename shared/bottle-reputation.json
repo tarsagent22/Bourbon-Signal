@@ -62,7 +62,14 @@
           "source": "https://distiller.com/spirits/buffalo-trace-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "The producer identifies Buffalo Trace as its flagship bourbon.",
+        "source": "https://www.buffalotracedistillery.com/our-brands/bourbon/buffalo-trace-bourbon/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "old-forester-1920",
@@ -245,7 +252,14 @@
           "source": "https://distiller.com/spirits/elijah-craig-small-batch",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Elijah Craig identifies Small Batch as its signature bourbon.",
+        "source": "https://elijahcraig.com/small-batch",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "larceny-small-batch",
@@ -271,7 +285,14 @@
           "source": "https://distiller.com/spirits/larceny-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Larceny identifies Small Batch as its signature wheated bourbon.",
+        "source": "https://larcenybourbon.com/small-batch",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "1792-small-batch",
@@ -297,7 +318,14 @@
           "source": "https://distiller.com/spirits/1792-small-batch-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Small Batch is the main expression, listed separately from the limited editions.",
+        "source": "https://1792bourbon.com/our-bourbon/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "knob-creek-12",
@@ -356,7 +384,14 @@
           "source": "https://distiller.com/spirits/russell-s-reserve-10-year-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "The producer includes the 10 Year bourbon in its Core Bundle.",
+        "source": "https://www.russellsreserve.com/en-us/our-products/10-year-old-bourbon-and-6-year-old-rye/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "russells-reserve-single-barrel",
@@ -383,7 +418,14 @@
           "checkedAt": "2026-10-16"
         }
       ],
-      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ.",
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "The standard Single Barrel Bourbon is part of the producer portfolio; individual barrels vary.",
+        "source": "https://www.russellsreserve.com/our-products/single-barrel-bourbon/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "four-roses-small-batch-select",
@@ -444,7 +486,14 @@
           "source": "https://distiller.com/spirits/evan-williams-white-label",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Bottled-in-Bond is part of the regular Evan Williams straight bourbon range.",
+        "source": "https://evanwilliams.com/bottled-in-bond-bourbon?page=white-label",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "old-forester-100",
@@ -544,7 +593,14 @@
           "source": "https://distiller.com/spirits/michter-s-us-1-small-batch-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Part of the US1 range, separate from the aged and limited-release collections.",
+        "source": "https://michters.com/whiskeys/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "angels-envy-bourbon",
@@ -570,7 +626,14 @@
           "source": "https://distiller.com/spirits/angel-s-envy-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Port-finished bourbon is one of the three core Signature Series expressions.",
+        "source": "https://www.angelsenvy.com/us/en/whiskeys/signature-series/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "bulleit-bourbon",
@@ -595,7 +658,14 @@
           "source": "https://distiller.com/spirits/bulleit-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "The producer includes Bulleit Bourbon in its core lineup.",
+        "source": "https://www.bulleit.com/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "new-riff-straight-bourbon-bottled-in-bond",
@@ -622,7 +692,14 @@
           "source": "https://distiller.com/spirits/new-riff-kentucky-straight-bourbon-whiskey",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "New Riff identifies Bottled in Bond Bourbon as its core bourbon expression.",
+        "source": "https://newriffdistilling.com/spirits/new-riff-bottled-in-bond-bourbon/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "old-grand-dad-114",
@@ -648,7 +725,14 @@
           "source": "https://distiller.com/spirits/old-grand-dad-114",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "The standard 114-proof expression is separate from the aged single-barrel and limited releases.",
+        "source": "https://www.beamdistilling.com/old-grand-dad-bourbon",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "eagle-rare-10",
@@ -907,7 +991,14 @@
           "source": "https://distiller.com/spirits/redwood-empire-pipe-dream",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "The distillery lists standard Pipe Dream among its everyday offerings.",
+        "source": "https://redwoodempirewhiskey.com/wp-content/uploads/2026/01/RWE_Menu_1.2026_v5.pdf",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "blantons-single-barrel",
@@ -1487,7 +1578,14 @@
           "checkedAt": "2026-10-16"
         }
       ],
-      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded.",
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Still Austin identifies Cask Strength Bourbon as a flagship bottle.",
+        "source": "https://www.stillaustin.com/singlebarrel",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "still-austin-straight-bourbon-whiskey-the-musician",
@@ -1514,7 +1612,14 @@
           "source": "https://distiller.com/spirits/still-austin-straight-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Still Austin identifies The Musician as a flagship bottle.",
+        "source": "https://www.stillaustin.com/singlebarrel",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "green-river-wheated-bourbon",
@@ -1691,7 +1796,14 @@
           "source": "https://distiller.com/spirits/new-riff-kentucky-straight-rye-bottled-in-bond",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "New Riff includes Bottled in Bond Rye in its core lineup.",
+        "source": "https://newriffdistilling.com/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "wild-turkey-101-rye",
@@ -1782,7 +1894,14 @@
           "source": "https://distiller.com/spirits/high-west-double-rye",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "High West includes Double Rye in its Core Whiskey collection.",
+        "source": "https://ship.highwest.com/collections",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "old-forester-rye",
@@ -1840,7 +1959,14 @@
           "checkedAt": "2026-10-16"
         }
       ],
-      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded.",
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Part of the US1 range, separate from the aged and limited-release collections.",
+        "source": "https://michters.com/whiskeys/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "bb_2b24796e5c750106",
@@ -1866,7 +1992,14 @@
           "source": "https://distiller.com/spirits/michter-s-us-1-unblended-american-whiskey",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "Part of the US1 range, separate from the aged and limited-release collections.",
+        "source": "https://michters.com/whiskeys/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "jack-daniels-bonded",
@@ -2336,7 +2469,14 @@
           "source": "https://distiller.com/spirits/bulleit-rye",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Core release",
+        "reason": "The producer includes Bulleit Rye in its core lineup.",
+        "source": "https://www.bulleit.com/",
+        "checkedAt": "2026-10-16"
+      }
     }
   ]
 }

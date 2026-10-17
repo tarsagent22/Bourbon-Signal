@@ -28,7 +28,7 @@ try {
     assert.equal(await page.getByText('REVIEW SCORE', { exact: true }).count(), 0);
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('150');
     await page.getByText('Steep price premium', { exact: true }).waitFor();
-    assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) < initial);
+    assert.equal(Number(await page.getByTestId('bottle-assessment-score').innerText()), initial);
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('');
     await page.getByText('Notable find', { exact: true }).waitFor();
     assert.equal(Number(await page.getByTestId('bottle-assessment-score').innerText()), initial);
@@ -43,15 +43,15 @@ try {
       await select(name, '&prices=none&state=NC&area=Lewisville');
       await page.getByText('Shelf price unknown · value not scored', { exact: true }).waitFor();
       assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) > 0);
-      await page.getByRole('heading', { name: 'Drinking reviews', exact: true }).waitFor();
+      await page.getByRole('heading', { name: 'Published reviews', exact: true }).waitFor();
       assert.equal(await page.getByText('Why this assessment', { exact: true }).count(), 0);
       assert.equal(await page.getByText('Price value', { exact: true }).count(), 0);
       await page.getByRole('button', { name: 'View bottle →', exact: true }).waitFor();
       await page.screenshot({ path: path.join(out, `${name.startsWith('Heaven') ? 'heaven-hill' : 'blantons-gold'}-${width}.png`), fullPage: true });
-      await page.getByRole('button', { name: /^Sources & scoring/ }).click();
+      await page.getByRole('button', { name: /^Why this score/ }).click();
       await page.getByRole('link', { name: /^Open Release context/ }).waitFor();
       await page.getByRole('link', { name: /^Open Distiller community:/ }).waitFor();
-      await page.getByRole('button', { name: /^Sources & scoring/ }).click();
+      await page.getByRole('button', { name: /^Why this score/ }).click();
       await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('400');
       await page.getByText('Steep price premium', { exact: true }).waitFor();
       await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('');
@@ -59,12 +59,12 @@ try {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     }
     await select('Rock Hill Farms Single Barrel', '&prices=none');
-    await page.getByTestId('bottle-assessment-score').filter({ hasText: 'More find research needed' }).waitFor();
-    await page.getByRole('heading', { name: 'Drinking reviews', exact: true }).waitFor();
+    await page.getByTestId('bottle-assessment-score').filter({ hasText: '�' }).waitFor();
+    await page.getByRole('heading', { name: 'Published reviews', exact: true }).waitFor();
     assert.equal(await page.getByText('REVIEW SCORE', { exact: true }).count(), 0);
     await select('Unreviewed Fixture Bourbon', '&prices=none');
-    await page.getByText('We have not verified enough evidence for this release yet.', { exact: true }).waitFor();
-    assert.equal(await page.getByRole('heading', { name: 'Drinking reviews', exact: true }).count(), 0);
+    await page.getByText('Release research pending', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('heading', { name: 'Published reviews', exact: true }).count(), 0);
     await page.screenshot({ path: path.join(out, `pending-${width}.png`), fullPage: true });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   }

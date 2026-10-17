@@ -10,7 +10,7 @@ a large empty ring or invented number. Sources and methodology stay collapsed.
 The registry contains 83 exact expressions and 154 attributed rating observations,
 checked October 16, 2026. These match 100 entries in the 1,156-entry offline catalog.
 The previous release had 39 expressions, 75 observations and 48 matched entries.
-35 expressions (40 catalog entries) now also have researched release context.
+55 expressions (70 catalog entries) now also have researched release context.
 This is expanded coverage, not a claim to have researched the complete catalog.
 
 Most reviews come from Distiller expert reviews and community averages. These are
@@ -30,9 +30,11 @@ Knob Creek 18 reviews were excluded from generic expression matches.
 
 ## Method
 
-- Signal Score weights: release rarity/context 60%, observed price value 25%,
-  published drinking reviews 15%. Missing components are omitted and remaining
-  weights normalized. A current release classification is required for a score.
+- Signal Score has fixed weights: release rarity/context 80%, published drinking
+  reviews 20%. Price has a separate buying verdict. Missing price data never
+  reweights the score. A current classification and published review evidence are
+  required for a precise score. Classification without reviews produces the
+  possible score range; missing classification leaves the number unavailable.
 - Rarity/context points are editorial: standard 40, limited 65, allocated 80,
   highly allocated/unicorn 95. They express find potential, not drinking quality
   or a measured probability of finding stock. A supported state classification
@@ -49,15 +51,18 @@ Knob Creek 18 reviews were excluded from generic expression matches.
   An observed median without a separate catalog benchmark is not scored against
   itself. An entered shelf price may be compared with that median.
 - City evidence falls back to the selected state's observations when the city
-  sample is insufficient. Both the state basis and missing city sample are
-  labeled. No state sample means catalog/national reference only; other states
+  sample is insufficient. The median is labeled with the state; the missing city
+  sample is explained in the disclosure. No state sample means national reference only; other states
   are not substituted. Missing sightings never establish scarcity.
 - Observations must match the exact expression and selected state, be no more
   than seven days old, be non-historical and have reported availability. Repeated
   stores are deduplicated. The catalog benchmark remains available even when
   local prices are expensive.
-- Price-value points: <=90% of reference 100; <=115% 90; <=130% 70; <=160% 45;
-  <=200% 20; above 200% 0. A price above 160% gets a steep-premium verdict.
+- Price comparisons remain separate from Signal Score. At or below 115% of
+  reference, a bottle with published review average >=75 receives a good-buy
+  verdict. Prices above 160% get a steep-premium verdict. The reference and
+  percentage difference are visible. This is a benchmark comparison, not a
+  prediction of resale value or a claim of local stock.
 - Expert and consumer groups contribute equally inside the review component.
   Consumer stars are explicitly converted by value/scale, while their displayed
   rating stays on the original scale. Each publisher counts once per group;
@@ -82,3 +87,36 @@ rating independence, source freshness and release boundaries. Actual-source
 browser fixtures cover 320/393-point layouts, disclosure, price clearing, missing
 research and the scanner. Production OTA checks do not establish physical-device
 acceptance.
+
+## Concise repeat checks
+
+The result header goes back to the prior scan/search without closing the modal.
+That path preserves the price for a corrected match. The fixed bottom action
+starts a fresh scan, clears the price/query/matches, increments the scanner
+session and returns the list to the top. Region selection persists. Android's
+hardware back uses the same correction path. Async profile/report effects are
+cancelled when the selected bottle changes.
+
+The default result contains the bottle, find verdict, Signal Score, context label,
+optional shelf price and compact published reviews. Reasons, source dates,
+confidence and methodology are under **Why this score?** Coverage requests,
+regional alert setup and repeated explanations are removed. Watch, post sighting
+and details are secondary actions.
+
+## October 16 core-release research
+
+Twenty additional exact expressions now have sourced release context. The new
+standard/core classifications describe their place in the producer's portfolio,
+not the frequency of stock in a state or store. Some are editorial interpretations
+of the producer's portfolio grouping; they never overwrite approved rarity.
+In particular, Michter's US1 range is separate from its limited-release collection,
+but the producer also describes US1 production as limited quantities. That alone
+does not establish a rare or allocated release. Barrel, proof and named-pick
+boundaries remain in place. Ratings and sample counts are unchanged.
+
+Source URLs and concise evidence summaries are attached to each added record in
+`shared/bottle-reputation.json`: Buffalo Trace, Elijah Craig Small Batch, Larceny,
+1792 Small Batch, Russell's Reserve 10 and standard Single Barrel, Evan Williams
+Bottled-in-Bond, Michter's US1 bourbon/rye/American whiskey, Angel's Envy port finish,
+Bulleit bourbon/rye, New Riff bonded bourbon/rye, Old Grand-Dad 114, Redwood Empire
+Pipe Dream, Still Austin The Musician/Cask Strength Bourbon and High West Double Rye.
