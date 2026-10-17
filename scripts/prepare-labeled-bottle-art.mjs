@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const sharp = require(process.env.BOTTLE_ART_SHARP || 'sharp');
 const root = path.resolve(import.meta.dirname, '..');
+const retailerNames = JSON.parse(await readFile(path.join(root, 'shared/labeled-artwork-retailer-names.json'), 'utf8'));
 const manifest = JSON.parse(await readFile(process.argv[2], 'utf8'));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const nativeDir = path.join(root, 'apps/mobile/assets/bottles/labeled-v1');
@@ -45,7 +46,7 @@ for (const art of manifest.assets) {
   for (const product of art.products) {
     const canonical = seed.find(row => row.id === product.id);
     if (!canonical || canonical.name !== product.name || entries.some(row => row.catalogId === product.id)) throw new Error(`${product.id}: exact unique catalog identity required`);
-    const exactNames = [...new Set([product.name, ...(product.names || [])])];
+    const exactNames = [...new Set([product.name, ...(product.names || []), ...(retailerNames[product.id] || [])])];
     if (exactNames.length > 20 || exactNames.some(name => typeof name !== 'string' || !name.length || name.length > 240 || name !== name.trim() || /[\x00-\x1f]/.test(name))) throw new Error(`${product.id}: invalid reviewed name`);
     entries.push({catalogId: product.id, displayName: product.name, exactNames, sha256, width:400, height:600});
   }

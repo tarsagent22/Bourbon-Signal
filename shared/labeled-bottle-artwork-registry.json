@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "5bc5df81619a4bcf45632f1abfb6ef846ded193029411cf5e0b403c359a5d258",
+  "revision": "76a845e5644999c8170db71c32dfddfbd0b3a29759a222991dbaaf406c24e073",
   "entries": [
     {
       "catalogId": "1792-12-year",
@@ -56,7 +56,9 @@
       "catalogId": "1792-full-proof",
       "displayName": "1792 Full Proof",
       "exactNames": [
-        "1792 Full Proof"
+        "1792 Full Proof",
+        "1792 Bourbon Full Proof",
+        "1792 Full Proof Bourbon Whiskey"
       ],
       "sha256": "1db3f6460a22d1fe8e153bf3c9ba30e43d9101940b5b3c3b9c43ae34b9658c39",
       "width": 400,
@@ -66,7 +68,8 @@
       "catalogId": "1792-full-proof-single-barrel-select",
       "displayName": "1792 Full Proof Single Barrel Select",
       "exactNames": [
-        "1792 Full Proof Single Barrel Select"
+        "1792 Full Proof Single Barrel Select",
+        "1792 Full Proof Barrel Select"
       ],
       "sha256": "1db3f6460a22d1fe8e153bf3c9ba30e43d9101940b5b3c3b9c43ae34b9658c39",
       "width": 400,
@@ -107,7 +110,8 @@
       "catalogId": "1792-sweet-wheat-bourbon",
       "displayName": "1792 Sweet Wheat Bourbon",
       "exactNames": [
-        "1792 Sweet Wheat Bourbon"
+        "1792 Sweet Wheat Bourbon",
+        "1792 Sweet Wheat Whiskey"
       ],
       "sha256": "5907938904b993f0fa16ddf11e65b5d71e5430ca0381be4bc9d8be8424581616",
       "width": 400,
@@ -1877,7 +1881,10 @@
       "catalogId": "blantons-gold-bourbon",
       "displayName": "Blanton's Gold Bourbon",
       "exactNames": [
-        "Blanton's Gold Bourbon"
+        "Blanton's Gold Bourbon",
+        "Blanton's Gold",
+        "Blanton's Gold Edition Kentucky Straight Bourbon Whiskey",
+        "Blanton's Gold Edition KY Straight Bourbon Whiskey"
       ],
       "sha256": "33b7e5e9ea32e8ce37fa2e4151f8693b0bbaebf0a741c9b10e1049e3e06d04f2",
       "width": 400,
@@ -1901,7 +1908,9 @@
         "Blanton's Original Single Barrel",
         "Blantons",
         "Blanton's",
-        "Blanton"
+        "Blanton",
+        "Blanton's Single Barrel Bourbon",
+        "Blanton's The Original Single Barrel Bourbon"
       ],
       "sha256": "ef6fc656896518cd3a806b4fede2c4be472235040d71bf52ba58b4bbe867b9a3",
       "width": 400,
@@ -2041,7 +2050,8 @@
       "catalogId": "bookers",
       "displayName": "Booker's Bourbon",
       "exactNames": [
-        "Booker's Bourbon"
+        "Booker's Bourbon",
+        "Booker's Bourbon Small Batch"
       ],
       "sha256": "b36b9ee4ffc7ef73b15f2c35c0765f499ce343a9ebc3b992a08c1eccc5efee1a",
       "width": 400,
@@ -2243,7 +2253,8 @@
       "exactNames": [
         "Buffalo Trace Bourbon",
         "Buffalo Trace",
-        "Buffalo Trace Kentucky Straight Bourbon"
+        "Buffalo Trace Kentucky Straight Bourbon",
+        "Buffalo Trace Straight Bourbon Whiskey"
       ],
       "sha256": "15ee029350a26d5abd43111b395a1c1ffaef0056aedf29fe743c126f72fbf75b",
       "width": 400,
@@ -2728,7 +2739,11 @@
         "Eagle Rare 10 Year",
         "Eagle Rare 10",
         "Eagle Rare 10Y",
-        "Eagle Rare 10 Yr"
+        "Eagle Rare 10 Yr",
+        "Eagle Rare 10 Year Kentucky Straight Bourbon",
+        "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey",
+        "Eagle Rare 10 Year Old Bourbon",
+        "Eagle Rare 10 Yr KY Stright Bourbon"
       ],
       "sha256": "cfe295e9927bb1e447193c0a559a4ed03f6b862f21ae69ec8b14c30cd9ed648b",
       "width": 400,
@@ -2798,7 +2813,9 @@
       "catalogId": "early-times-bottled-in-bond",
       "displayName": "Early Times Bottled in Bond",
       "exactNames": [
-        "Early Times Bottled in Bond"
+        "Early Times Bottled in Bond",
+        "Early Times Bottled In Bond Bourbon",
+        "Early Times Bottled-in-Bond"
       ],
       "sha256": "071aea8a1a98de4121a4b63ed81652cda798281e718119da437b7302d36f4a6a",
       "width": 400,
@@ -2846,7 +2863,9 @@
         "E.H. Taylor Jr. Small Batch",
         "E.H. Taylor Jr. Small Batch .75L",
         "Colonel E.H. Taylor Small Batch Bottled in Bond Bourbon",
-        "Colonel E.H. Taylor Small Batch Bottled in Bond"
+        "Colonel E.H. Taylor Small Batch Bottled in Bond",
+        "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "Colonel E.H. Taylor Small Batch Bourbon"
       ],
       "sha256": "3eb09d7951dd341fddf929bd6541123e9bfb901a1ad30577734aa4b9238d22e1",
       "width": 400,
@@ -2866,7 +2885,10 @@
       "catalogId": "elijah-craig-barrel-proof",
       "displayName": "Elijah Craig Barrel Proof",
       "exactNames": [
-        "Elijah Craig Barrel Proof"
+        "Elijah Craig Barrel Proof",
+        "Elijah Craig Barrel Proof Small Batch",
+        "Elijah Craig Barrel Proof Bourbon",
+        "Elijah Craig Limited Edition Barrel Proof"
       ],
       "sha256": "11404ac5d0a71e3e47639806a7ca9d18bad838dcb803ea3f048a9c5c5b253448",
       "width": 400,
@@ -2967,7 +2989,9 @@
       "catalogId": "elijah-craig-toasted-barrel",
       "displayName": "Elijah Craig Toasted Barrel",
       "exactNames": [
-        "Elijah Craig Toasted Barrel"
+        "Elijah Craig Toasted Barrel",
+        "Elijah Craig Toasted Barrel Whiskey",
+        "Elijah Craig Toasted Barrel Bourbon"
       ],
       "sha256": "178c5f1e3b6230f33d762510e6add409199ddaf5e5104dd8b923a599f3a44931",
       "width": 400,
@@ -3629,7 +3653,8 @@
       "catalogId": "green-river-full-proof-bourbon",
       "displayName": "Green River Full Proof Bourbon",
       "exactNames": [
-        "Green River Full Proof Bourbon"
+        "Green River Full Proof Bourbon",
+        "Green River Full Proof Bourbon Whiskey"
       ],
       "sha256": "ce61cbcb7f17c1d6d0be8d0d674924a22938c1f45940ce7fe5b11e7c0aab44ea",
       "width": 400,
@@ -3699,7 +3724,8 @@
       "catalogId": "heaven-hill-bottled-in-bond",
       "displayName": "Heaven Hill 7 Year Bottled-in-Bond",
       "exactNames": [
-        "Heaven Hill 7 Year Bottled-in-Bond"
+        "Heaven Hill 7 Year Bottled-in-Bond",
+        "Heaven Hill 7 year old Bottled in Bond Kentucky Straight Bourbon"
       ],
       "sha256": "3677060a02121c704bb9267ad2af0b42d80c56b44a70638bee365903af2a5a17",
       "width": 400,
@@ -3759,7 +3785,8 @@
       "catalogId": "heaven-hill-grain-to-glass-ky-st-bourbon",
       "displayName": "Heaven Hill Grain to Glass KY ST Bourbon",
       "exactNames": [
-        "Heaven Hill Grain to Glass KY ST Bourbon"
+        "Heaven Hill Grain to Glass KY ST Bourbon",
+        "Heaven Hill Grain to Glass Kentucky Straight Bourbon"
       ],
       "sha256": "6b875c0c9baa35c3dd48c97096c495ba382ec3168f4dc60367ca089111933b83",
       "width": 400,
@@ -5409,7 +5436,8 @@
         "Michter's US*1 Small Batch Bourbon",
         "Michters US Small Batch",
         "Michter's US 1 Small Batch",
-        "Michter's US*1 Small Batch"
+        "Michter's US*1 Small Batch",
+        "MICHTERS SMALL BATCH BOURBON"
       ],
       "sha256": "1603df8307c6493b43172aa366cabfc7e3643ee7caaf3e59aba301e41f42da0f",
       "width": 400,
@@ -5579,7 +5607,8 @@
       "catalogId": "new-riff-8-year-bourbon",
       "displayName": "New Riff 8Y Bourbon .75l",
       "exactNames": [
-        "New Riff 8Y Bourbon .75l"
+        "New Riff 8Y Bourbon .75l",
+        "New Riff 8 Year Bourbon"
       ],
       "sha256": "b7774008bbd234cec7fd94d9680cf0d2b984e9c51fbc741215a9f51574643c16",
       "width": 400,
@@ -5629,7 +5658,9 @@
       "catalogId": "new-riff-straight-bourbon-bottled-in-bond",
       "displayName": "New Riff Straight Bourbon Bottled in Bond",
       "exactNames": [
-        "New Riff Straight Bourbon Bottled in Bond"
+        "New Riff Straight Bourbon Bottled in Bond",
+        "NEW RIFF BOTTLED IN BOND BOURBON",
+        "New Riff Kentucky Straight Bourbon Whiskey Bottled In Bond"
       ],
       "sha256": "b7ea8bbb850f4d329c93a009119bbc3e531ab881f2b83e7a5d4188cfe1cd2979",
       "width": 400,
@@ -8500,7 +8531,8 @@
       "displayName": "W.L. Weller 12 Year",
       "exactNames": [
         "W.L. Weller 12 Year",
-        "Weller 12 Year"
+        "Weller 12 Year",
+        "Weller 12 Year Bourbon Whiskey"
       ],
       "sha256": "d436bf37ee736b8877ff4fc2f7a185eac47a99732ffed2ea74c6309fb9814b84",
       "width": 400,
@@ -8511,7 +8543,8 @@
       "displayName": "W.L. Weller Antique 107",
       "exactNames": [
         "W.L. Weller Antique 107",
-        "Weller Antique 107"
+        "Weller Antique 107",
+        "Weller Antique 107 Bourbon Whiskey"
       ],
       "sha256": "8818afc21d6eb28e1e59ee269a1d9fc225deee4c6787786cfba9b8a9e91f8131",
       "width": 400,
@@ -8533,7 +8566,8 @@
       "exactNames": [
         "W.L. Weller Full Proof",
         "Weller Full Proof",
-        "W.L. Weller Full Proof Bourbon"
+        "W.L. Weller Full Proof Bourbon",
+        "Weller Full Proof Bourbon Whiskey"
       ],
       "sha256": "a93e15beb3530675664e93ce142e673274d7f065fa78fb41c4e884a5e833b69b",
       "width": 400,
@@ -8674,7 +8708,8 @@
       "catalogId": "whistlepig-piggyback-6y-bourbon",
       "displayName": "WhistlePig PiggyBack 6Y Bourbon",
       "exactNames": [
-        "WhistlePig PiggyBack 6Y Bourbon"
+        "WhistlePig PiggyBack 6Y Bourbon",
+        "WhistlePig PiggyBack 6 Year Bourbon"
       ],
       "sha256": "650d586cbfc01dc168e369ac7354476846170db6c18d822030aaa2f9276f2fef",
       "width": 400,
