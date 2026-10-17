@@ -2,6 +2,23 @@
   "schemaVersion": 1,
   "automations": [
     {
+      "id": "github-native-label-reader",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/native-label-reader.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "on every native reader pull request and manual workflow dispatch",
+      "agent": { "provider": null, "model": null, "reasoning": null },
+      "externalApi": { "classes": ["github_actions"], "maxRequestsPerRun": 0 },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": ["ios-native-label-reader-compile"],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-mobile-ios-startup",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/mobile-ios-startup.yml",
