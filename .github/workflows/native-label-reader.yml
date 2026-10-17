@@ -1,0 +1,85 @@
+name: Native bottle label reader
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'apps/mobile/modules/bottle-label-reader/**'
+      - 'apps/mobile/app.json'
+      - 'apps/mobile/package*.json'
+      - '.github/workflows/native-label-reader.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-label-reader-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-compile:
+    runs-on: macos-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: apps/mobile
+    env:
+      CI: '1'
+      SKIP_BUNDLING: '1'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate iOS app
+        run: npx expo prebuild --platform ios --no-install
+      - name: Install pods
+        run: pod install --project-directory=ios
+      - name: Compile simulator app without signing
+        run: >-
+          xcodebuild -workspace ios/BourbonSignal.xcworkspace
+          -scheme BourbonSignal -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath build/native-label-reader
+          CODE_SIGNING_ALLOWED=NO build > native-compile.log 2>&1
+      - name: Report compiler diagnostics
+        if: always()
+        run: |
+          if [ -f native-compile.log ]; then
+            tail -n 70 native-compile.log
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-native-label-reader-compile
+          path: apps/mobile/native-compile.log
+
+  android-compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Android app
+        run: npx expo prebuild --platform android --no-install
+      - name: Compile native reader
+        working-directory: apps/mobile/android
+        run: ./gradlew :bottle-label-reader:compileDebugKotlin --no-daemon --console=plain

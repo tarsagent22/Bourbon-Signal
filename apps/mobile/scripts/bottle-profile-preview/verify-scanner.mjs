@@ -26,8 +26,9 @@ try {
     assert.equal(await page.evaluate(() => window.scannerReads), reads, 'OCR stops while results are held');
     await page.screenshot({ path: path.join(output, `held-${width}.png`), fullPage: true });
     await page.evaluate(() => { window.scannerText = 'WILD TURKEY RARE BREED RYE BARREL PROOF'; });
-    const mounts = await page.evaluate(() => window.scannerMounts);
+    const mounts = await page.evaluate(() => { window.scannerStaleFrame = window.scannerLastFrame; return window.scannerMounts; });
     await page.getByRole('button', { name: 'Scan another', exact: true }).click();
+    await page.evaluate(() => window.scannerDeliverFrame({ ...window.scannerStaleFrame, sequence: 100000 }));
     await page.getByRole('button', { name: 'Check Wild Turkey Rare Breed Rye', exact: true }).waitFor();
     assert.equal(await matches.count(), 0);
     assert.equal(await page.evaluate(() => window.scannerMounts), mounts, 'rescan reuses the warm native camera');
@@ -40,7 +41,7 @@ try {
     assert.equal(await page.evaluate(() => window.scannerReads), 1, 'candidates appear on the first useful frame');
     await page.waitForTimeout(1200);
     assert.equal(await page.getByText('Matches saved below', { exact: true }).count(), 0, 'brand-only agreement keeps reading the expression');
-    await page.evaluate(() => { window.scannerText = 'PENELOPE\nRIVIERA\nCOOPER SERIES'; });
+    await page.evaluate(() => { window.scannerText = 'RIVIERA'; });
     await page.getByText('Matches saved below', { exact: true }).waitFor();
     assert.ok((await page.getByRole('button', { name: /^Check / }).allTextContents())[0].includes('Penelope Riviera'));
     await page.getByRole('button', { name: 'Show all Penelope expressions', exact: true }).click();

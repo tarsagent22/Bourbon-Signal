@@ -98,6 +98,10 @@ final class BottleLabelCameraView: ExpoView, AVCaptureVideoDataOutputSampleBuffe
         if !self.configured { try self.configure() }
         self.videoOutput?.setSampleBufferDelegate(self, queue: self.analysisQueue)
         if !self.session.isRunning { self.session.startRunning() }
+        DispatchQueue.main.async { [weak self] in
+          guard let self else { return }
+          if self.preview.connection?.isVideoOrientationSupported == true { self.preview.connection?.videoOrientation = .portrait }
+        }
         self.applyTorch(requestedTorch)
         self.emitStatus("ready", epoch: epoch)
       } catch {
