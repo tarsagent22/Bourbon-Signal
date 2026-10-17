@@ -6,7 +6,7 @@ const observations = [];
 for (const url of MA_JULIOS_PROBE_URLS) {
   const row = { url, checkedAt: new Date().toISOString(), status: null, sha256: null, rows: [], error: null };
   try {
-    const response = await fetch(url, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(15_000) });
+    const response = await fetch(url, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(30_000) });
     row.status = response.status;
     if (!response.ok) { await response.body?.cancel(); throw new Error('source_http_failure'); }
     let size = 0;
