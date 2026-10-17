@@ -12,7 +12,7 @@ test("mobile plans expose monthly pricing only while preserving Founder lifetime
   const barrel = MEMBERSHIP_PLANS.find((plan) => plan.tier === "barrel");
   const founder = MEMBERSHIP_PLANS.find((plan) => plan.tier === "bottled-in-bond");
 
-  assert.deepEqual(standard?.monthly, { price: "$3", suffix: "/month" });
+  assert.equal(standard, undefined, "legacy billing must never appear as a new purchase option");
   assert.equal(Object.hasOwn(standard ?? {}, "annual"), false);
   assert.deepEqual(barrel?.monthly, { price: "$6", suffix: "/month" });
   assert.equal(Object.hasOwn(barrel ?? {}, "annual"), false);
@@ -21,7 +21,7 @@ test("mobile plans expose monthly pricing only while preserving Founder lifetime
 });
 
 test("monthly is the only subscription choice, including for legacy annual route parameters", () => {
-  assert.deepEqual(billingChoiceFor("standard"), { interval: "monthly", price: "$3", suffix: "/month" });
+  assert.deepEqual(billingChoiceFor("standard"), { interval: "monthly", price: "$6", suffix: "/month" });
   assert.deepEqual(billingChoiceFor("barrel", "annual"), { interval: "monthly", price: "$6", suffix: "/month" });
   assert.deepEqual(billingChoiceFor("bottled-in-bond"), { interval: "lifetime", price: "$50", suffix: " once" });
 });
@@ -29,7 +29,7 @@ test("monthly is the only subscription choice, including for legacy annual route
 test("membership actions distinguish current, included, upgrade, and unavailable purchase states", () => {
   const action = (current: MembershipTier, target: MembershipTier) => membershipActionFor(current, target);
   assert.deepEqual(action("free", "free"), { kind: "current", label: "Current membership" });
-  assert.deepEqual(action("barrel", "standard"), { kind: "included", label: "Included with Barrel Proof" });
+  assert.deepEqual(action("barrel", "standard"), { kind: "current", label: "Current membership" });
   assert.deepEqual(action("free", "barrel"), { kind: "upgrade", label: "Review Barrel Proof" });
   assert.deepEqual(action("standard", "bottled-in-bond"), { kind: "unavailable", label: "Founder access" });
 });
@@ -37,7 +37,6 @@ test("membership actions distinguish current, included, upgrade, and unavailable
 test("customer-facing membership names are canonical while the Founder entitlement id remains stable", () => {
   assert.deepEqual(MEMBERSHIP_PLANS.map(({ tier, name }) => [tier, name]), [
     ["free", "Free"],
-    ["standard", "Standard"],
     ["barrel", "Barrel Proof"],
     ["bottled-in-bond", "Founder"],
   ]);

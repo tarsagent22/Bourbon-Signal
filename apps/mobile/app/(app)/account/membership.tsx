@@ -12,10 +12,10 @@ import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { deriveMobileMembershipLifecycle } from "../../../src/membership/membership-lifecycle";
 import { productIdFor } from "../../../src/membership/purchases";
 import { colors, typeScale, fonts } from "../../../src/theme";
+const routeText = (value: unknown) => typeof value === 'string' ? value.trim().slice(0, 200) : '';
 
 const cards = [
-  { tier: "standard" as const, name: "Standard", description: "Get alerts for the bottles you want, in the places you shop.", features: ["Alerts for 5 areas & 15 bottles", "Full Intel feed & state selection", "Unlimited bottles on My Shelf", "Redeem Signal Points for rewards"] },
-  { tier: "barrel" as const, name: "Barrel Proof", description: "Watch every bottle on your list, with alerts from the feed and Community.", features: ["Everything in Standard", "Unlimited areas & watched bottles", "Advanced filters & community alerts", "Bourbon DNA from your ratings"] },
+  { tier: "barrel" as const, name: "Barrel Proof", description: "Get alerts when bottles you want show up. Every paid feature is included.", features: ["Full Intel feed & unlimited bottle lookups", "Unlimited areas & watched bottles", "Push alerts & Community sighting alerts", "Advanced filters & bottle search", "Unlimited My Shelf, Bourbon DNA & recommendations", "Redeem Signal Points for rewards"] },
 ];
 
 export default function MembershipScreen() {
@@ -24,7 +24,9 @@ export default function MembershipScreen() {
   const managementOnly = membershipManagedOutsideStore(management.provider,Platform.OS);
   const billingProviderLabel = management.provider === "google" ? "Google Play" : management.provider === "apple" ? "Apple" : "Stripe";
   const router = useRouter();
-  const { welcome } = useLocalSearchParams<{ welcome?: string }>();
+  const { welcome, watchBottle: requestedBottle } = useLocalSearchParams<{ welcome?: string; watchBottle?: string }>();
+  const pendingBottle = routeText(requestedBottle);
+  const continueMembership = () => pendingBottle ? router.replace({ pathname: '/(app)/(tabs)/radar', params: { section: 'settings', watchBottle: pendingBottle } }) : isWelcome ? router.replace('/(app)/setup') : router.replace("/(app)/(tabs)");
   const isWelcome = welcome === "1";
   const purchases = usePurchases();
   const refreshPurchases = purchases.refresh;
@@ -35,15 +37,9 @@ export default function MembershipScreen() {
   const [attempted, setAttempted] = useState(false);
   const [operationBusy, setOperationBusy] = useState(false);
   const operationLock = useRef(false);
-  const [selected, setSelected] = useState(0);
-  const carousel = useRef<ScrollView>(null);
   const { width } = useWindowDimensions();
   const pageWidth = Math.min(width, 520);
-  const cardWidth = pageWidth - 62;
-  const stride = cardWidth + 12;
-  const selectedRef = useRef(selected);
-  selectedRef.current = selected;
-  useEffect(() => { carousel.current?.scrollTo({ x: selectedRef.current * stride, animated: false }); }, [stride]);
+  const cardWidth = pageWidth - 40;
 
   const load = useCallback(async (fresh = false) => {
     setLoading(true);
@@ -98,18 +94,11 @@ export default function MembershipScreen() {
       <View style={styles.hero}>
         <Text accessibilityRole="header" style={styles.title}>Find your next bottle.</Text>
         <Text style={styles.subtitle}>Get alerts when bottles you love show up in your area. Let Bourbon Signal do the heavy lifting.</Text>
-        {!isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
+        {!isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {currentTier === "standard" ? "Barrel Proof" : MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
+        {pendingBottle ? <Text style={styles.subtitle}>{profile?.membership.paid ? `Ready to watch ${pendingBottle}. Continue to finish in Radar.` : `Barrel Proof includes bottle alerts. Continue with ${pendingBottle} after choosing your membership.`}</Text> : null}
       </View>
       {loading && !profile ? <ActivityIndicator accessibilityLabel="Loading membership" color={colors.accent} /> : null}
-      <View style={styles.tabs} accessibilityRole="tablist">
-        {cards.map((card, index) => <Pressable key={card.tier} accessibilityRole="tab" accessibilityState={{ selected: index === selected }} accessibilityLabel={card.name}
-          onPress={() => { setSelected(index); carousel.current?.scrollTo({ x: index * stride, animated: false }); }} style={[styles.tab, index === selected && styles.tabSelected]}>
-          <Text style={[styles.tabText, index === selected && styles.tabTextSelected]}>{card.name}</Text>
-        </Pressable>)}
-      </View>
-      <ScrollView ref={carousel} horizontal showsHorizontalScrollIndicator={false} snapToInterval={stride} decelerationRate="fast" disableIntervalMomentum
-        contentContainerStyle={styles.track} scrollEventThrottle={16}
-        onScroll={event => setSelected(Math.max(0, Math.min(1, Math.round(event.nativeEvent.contentOffset.x / stride))))}>
+      <View style={styles.track}>
         {cards.map((card, index) => {
           const productId = productIdFor(card.tier, "monthly");
           const product = managementOnly ? undefined : purchases.products.find(p => p.productId === productId);
@@ -118,25 +107,25 @@ export default function MembershipScreen() {
           const disabled = busy || management.busy || !management.provider || !profile || (!managementOnly && (included || Platform.OS === "web"));
           const ready = purchases.status === "ready" && Boolean(product && productId && purchases.eligibleProductIds.includes(productId));
           const label = managementOnly ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS !== "web" ? "Check purchase options" : "Available in the app";
-          return <View key={card.tier} style={[styles.card, { width: cardWidth }, index === 1 && styles.premium]}
-            accessibilityElementsHidden={selected !== index} importantForAccessibility={selected !== index ? "no-hide-descendants" : "auto"}>
+          return <View key={card.tier} style={[styles.card, { width: cardWidth }, styles.premium]}
+            >
             <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
             <Text style={styles.cardDescription}>{card.description}</Text>
-            <View style={styles.priceRow}>{product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <Text style={styles.pricePlaceholder}>{managementOnly ? `Managed through ${billingProviderLabel}` : "Monthly membership"}</Text>}</View>
+            <View style={styles.priceRow}>{product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <><Text style={styles.price}>$6</Text><Text style={styles.period}>/mo</Text></>}</View>
             <Text style={styles.billing}>{managementOnly ? `Managed through ${billingProviderLabel}. Cancel anytime.` : "Billed monthly. Cancel anytime."}</Text>
+            {profile?.membership.grandfatheredRate ? <Text style={styles.billing}>Your early-member billing rate: {profile.membership.grandfatheredRate}/month. Full access is included. Keep this rate while your subscription continues.</Text> : null}
             <View style={styles.divider} />
-            <View style={styles.features}>{card.features.map(feature => <View key={feature} style={styles.featureRow}><View style={[styles.checkCircle, index === 1 && styles.goldCheck]}><Text accessible={false} style={[styles.check, index === 1 && styles.goldCheckText]}>✓</Text></View><Text style={styles.feature}>{feature}</Text></View>)}</View>
+            <View style={styles.features}>{card.features.map(feature => <View key={feature} style={styles.featureRow}><View style={[styles.checkCircle, styles.goldCheck]}><Text accessible={false} style={[styles.check, styles.goldCheckText]}>✓</Text></View><Text style={styles.feature}>{feature}</Text></View>)}</View>
             <Pressable accessibilityRole="button" accessibilityLabel={!managementOnly && ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
               accessibilityState={{ disabled, busy }} disabled={disabled} onPress={() => void choose(card.tier)}
-              style={({ pressed }) => [styles.subscribe, index === 1 && styles.subscribeGold, disabled && styles.disabled, pressed && styles.pressed]}>
-              <Text style={[styles.subscribeText, index === 1 && styles.subscribeGoldText]}>{label}</Text>
+              style={({ pressed }) => [styles.subscribe, styles.subscribeGold, disabled && styles.disabled, pressed && styles.pressed]}>
+              <Text style={[styles.subscribeText, styles.subscribeGoldText]}>{label}</Text>
             </Pressable>
           </View>;
         })}
-      </ScrollView>
-      <View style={styles.dots} accessible={false}>{cards.map((card,index) => <View key={card.tier} style={[styles.dot, index === selected && styles.dotSelected]} />)}</View>
+      </View>
       <View style={styles.footer}>
-        <Pressable accessibilityRole="button" onPress={() => { if (isWelcome) router.replace("/(app)/setup"); else router.replace("/(app)/(tabs)"); }} style={styles.freeButton}><Text style={styles.freeText}>{currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={continueMembership} style={styles.freeButton}><Text style={styles.freeText}>{pendingBottle && profile?.membership.paid ? 'Continue to watch this bottle' : currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
         <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{managementOnly ? `Your membership is billed through ${billingProviderLabel}. Manage your plan, payment details, or cancellation above.` : Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Payment is charged to your Google Play account at confirmation."}</Text>
         <View style={styles.links}>
           {Platform.OS !== "web" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
@@ -160,7 +149,7 @@ const styles = StyleSheet.create({
   screen:{flex:1,backgroundColor:colors.background},content:{alignSelf:"center",paddingTop:14,paddingBottom:28},
   hero:{paddingHorizontal:20,alignItems:"center",gap:8},title: {fontFamily: fonts.heading, fontSize: typeScale.title,lineHeight: 40,fontWeight: "700",letterSpacing:-1,color:colors.text,textAlign:"center"},subtitle:{fontSize: typeScale.small,lineHeight:20,color:colors.muted,textAlign:"center"},current:{fontSize: typeScale.caption,color:colors.muted,marginTop:2},
   tabs:{marginHorizontal:24,marginTop:15,marginBottom:16,padding:4,flexDirection:"row",gap:4,borderWidth:1,borderColor:colors.border,borderRadius:12,backgroundColor:"#12100e"},tab:{flex:1,minHeight:40,justifyContent:"center",alignItems:"center",borderRadius:8,padding:4},tabSelected:{backgroundColor:"#31281f"},tabText:{fontSize: typeScale.small,fontWeight:"600",color:colors.muted},tabTextSelected:{color:colors.text},
-  track:{paddingLeft:24,paddingRight:38,gap:12,paddingBottom:8},card:{borderRadius:22,borderWidth:1,borderColor:"#493b2f",padding:23,minHeight:416,backgroundColor:"#1c1713"},premium:{borderColor:colors.accent,backgroundColor:"#241c13"},cardHeading:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:8},cardTitle:{fontSize:23,lineHeight:29,fontWeight:"600",letterSpacing:-0.6,color:colors.text,flexShrink:1},medallion:{width:29,height:29,borderRadius:9,borderWidth:1,borderColor:"#62503a",alignItems:"center",justifyContent:"center"},glassBowl:{width:11,height:12,borderWidth:1,borderColor:colors.accent,borderBottomLeftRadius:6,borderBottomRightRadius:6},glassStem:{width:1,height:4,backgroundColor:colors.accent},glassFoot:{width:9,height:1,backgroundColor:colors.accent},cardDescription:{fontSize: typeScale.small,lineHeight:19,color:colors.muted,marginTop:10,marginBottom:12,minHeight:38},
+  track:{paddingHorizontal:20,paddingTop:20,paddingBottom:12},card:{borderRadius:22,borderWidth:1,borderColor:"#493b2f",padding:23,minHeight:416,backgroundColor:"#1c1713"},premium:{borderColor:colors.accent,backgroundColor:"#241c13"},cardHeading:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:8},cardTitle:{fontSize:23,lineHeight:29,fontWeight:"600",letterSpacing:-0.6,color:colors.text,flexShrink:1},medallion:{width:29,height:29,borderRadius:9,borderWidth:1,borderColor:"#62503a",alignItems:"center",justifyContent:"center"},glassBowl:{width:11,height:12,borderWidth:1,borderColor:colors.accent,borderBottomLeftRadius:6,borderBottomRightRadius:6},glassStem:{width:1,height:4,backgroundColor:colors.accent},glassFoot:{width:9,height:1,backgroundColor:colors.accent},cardDescription:{fontSize: typeScale.small,lineHeight:19,color:colors.muted,marginTop:10,marginBottom:12,minHeight:38},
   priceRow:{flexDirection:"row",alignItems:"baseline",flexWrap:"wrap",minHeight:64},price:{fontSize:56,lineHeight:64,fontWeight:"600",letterSpacing:-2,color:colors.text},period:{fontSize: typeScale.small,color:colors.muted,marginLeft:6},pricePlaceholder:{fontSize:24,lineHeight:34,color:colors.text},billing:{fontSize: typeScale.caption,lineHeight:16,color:colors.muted,marginTop:7},divider:{height:1,backgroundColor:"#55443266",marginTop:14,marginBottom:14},features:{gap:10,marginBottom:18},featureRow:{flexDirection:"row",alignItems:"flex-start",gap:9},checkCircle:{height:16,width:16,borderRadius:8,backgroundColor:"#51443688",alignItems:"center",justifyContent:"center",marginTop:1},goldCheck:{backgroundColor:colors.accent},check:{fontSize: typeScale.caption,color:"#cfb89b"},goldCheckText:{color:"#1b130a"},feature:{flex:1,fontSize: typeScale.small,lineHeight:18,color:"#e4dace"},subscribe:{marginTop:"auto",minHeight:47,padding:10,borderWidth:1,borderColor:"#816342",borderRadius:12,backgroundColor:"#30261c",alignItems:"center",justifyContent:"center"},subscribeGold:{backgroundColor:colors.accent,borderColor:"#e1ad68"},subscribeText:{fontSize: typeScale.small,lineHeight:18,fontWeight:"600",color:colors.text,textAlign:"center"},subscribeGoldText:{color:"#21160a"},disabled:{opacity:0.5},pressed:{opacity:0.75},
   dots:{flexDirection:"row",justifyContent:"center",gap:6,paddingTop:1,paddingBottom:7},dot:{height:5,width:5,borderRadius:5,backgroundColor:"#5a4b3a"},dotSelected:{width:17,backgroundColor:colors.accent},footer:{paddingHorizontal:21,alignItems:"center"},freeButton:{minHeight:44,justifyContent:"center",paddingHorizontal:12},freeText:{fontSize: typeScale.small,fontWeight:"600",color:colors.text,textAlign:"center"},gold:{color:colors.accent},fine:{fontSize: typeScale.caption,lineHeight:16,color:colors.muted,textAlign:"center",marginTop:2,marginBottom:3},links:{flexDirection:"row",justifyContent:"center",flexWrap:"wrap",columnGap:19},link:{minHeight:44,justifyContent:"center"},linkText:{fontSize: typeScale.caption,color:"#bfa785",textAlign:"center"},status:{fontSize: typeScale.small,lineHeight:18,color:colors.muted,textAlign:"center",marginVertical:8},lifecycle:{padding:12,borderRadius:12,backgroundColor:colors.surfaceRaised},
 });

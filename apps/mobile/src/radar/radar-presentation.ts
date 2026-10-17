@@ -32,7 +32,7 @@ export function radarSetupNeeded(preferences: MemberPreferences) {
 }
 
 export function radarSetupStatus(preferences:MemberPreferences,phone:'On'|'Off'|'Setup needed') {
-  if(preferences.entitlements?.alertAreaLimit===0)return {title:'Explore Radar',detail:'Saved-area alerts require Standard or Barrel Proof. You can still browse Signals and start your Shelf.'};
+  if(preferences.entitlements?.alertAreaLimit===0)return {title:'Explore Radar',detail:'Saved-area alerts require Barrel Proof. You can still browse Signals and start your Shelf.'};
   if(!preferences.monitoringScopes.length)return {title:'Choose an area',detail:'Radar needs a saved area before it can match reports. Source coverage varies by market.'};
   if(!preferences.notificationPreferences.rarityTiers.length)return {title:'Choose bottle tiers',detail:'Select at least one rarity tier so matching reports can appear.'};
   if(preferences.alertMode==='specific_bottles'&&watchedBottleCount(preferences)===0)return {title:'Watch your first bottle',detail:'Your watched bottles and selected tiers must both match. Add a bottle or choose Discover rare bottles.'};

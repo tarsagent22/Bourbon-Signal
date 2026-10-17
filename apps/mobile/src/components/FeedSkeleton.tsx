@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, AppState, Easing, StyleSheet, View, type ViewStyle } from "react-native";
+import { AccessibilityInfo, Animated, AppState, Easing, Image, StyleSheet, View, type ViewStyle } from "react-native";
 import { colors } from "../theme";
+
+// One continuous glass outline keeps the neck and shoulders joined at every size.
+function LoadingBottle({ progress }: { progress: Animated.Value }) {
+  return <Animated.View style={{ position: "absolute", left: 12, top: 28, width: 44, height: 112,
+    opacity: progress.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.7, 1, 0.7] }) }}>
+    <Image accessible={false} source={require('../../assets/bottles/loading-bottle.png')} resizeMode="contain" style={{ width: 44, height: 112 }} />
+  </Animated.View>;
+}
 
 // Each shape clips the same moving light, so a single sweep crosses the row.
 function Shape({ sweep, left, style }: { sweep: Animated.AnimatedInterpolation<number>; left: number; style: ViewStyle }) {
@@ -46,10 +54,7 @@ export function FeedSkeleton({ community = false }: { community?: boolean }) {
     onLayout={event => setWidth(event.nativeEvent.layout.width)}>
     <View accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden pointerEvents="none">
       {[0, 1, 2].map(item => <View key={item} style={[styles.row, community && styles.communityRow]}>
-        {community ? <Shape sweep={sweep} left={0} style={{ left: 0, top: 12, width: 34, height: 34, borderRadius: 17 }} /> : <>
-          <Shape sweep={sweep} left={27} style={{ left: 27, top: 35, width: 14, height: 28, borderRadius: 3 }} />
-          <Shape sweep={sweep} left={20} style={{ left: 20, top: 61, width: 28, height: 76, borderRadius: 7 }} />
-        </>}
+        {community ? <Shape sweep={sweep} left={0} style={{ left: 0, top: 12, width: 34, height: 34, borderRadius: 17 }} /> : <LoadingBottle progress={progress} />}
         <Shape sweep={sweep} left={copyLeft} style={{ left: copyLeft, top: 12, width: 74, height: 16, borderRadius: 8 }} />
         {!community ? <Shape sweep={sweep} left={summaryLeft} style={{ left: summaryLeft, top: 14, width: summaryWidth, height: 11, borderRadius: 4 }} /> : null}
         <Shape sweep={sweep} left={copyLeft} style={{ left: copyLeft, top: 37, width: copyWidth * 0.91, height: 20, borderRadius: 4 }} />

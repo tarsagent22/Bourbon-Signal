@@ -88,7 +88,7 @@ export interface MemberProfile {
         engineCoverage?: "active" | "expanding";
       }>;
     };
-    membership: { tier: "free" | "standard" | "barrel" | "bottled-in-bond"; label: string; paid: boolean; hasBetaAccess: boolean };
+    membership: { tier: "free" | "standard" | "barrel" | "bottled-in-bond"; label: string; paid: boolean; hasBetaAccess: boolean; grandfatheredRate?: string };
     entitlements: { fullFeed: boolean; canSubmitSignals: boolean };
   };
 }

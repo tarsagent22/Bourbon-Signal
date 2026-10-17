@@ -17,7 +17,7 @@ test("membership cards keep live pricing and purchase directly through the guard
   const plans = read("src/membership/membership-plans.ts");
   assert.match(screen, /YOUR MEMBERSHIP/);
   assert.match(plans, /name: "Free"/);
-  assert.match(plans, /name: "Standard"/);
+  assert.doesNotMatch(plans, /name: "Standard"/);
   assert.match(plans, /name: "Barrel Proof"/);
   assert.match(plans, /name: "Founder"/);
   assert.doesNotMatch(screen, /Annual|annual/);
@@ -122,4 +122,11 @@ test("existing Stripe memberships do not display Apple prices or assume a monthl
  assert.match(screen,/managementOnly \? undefined : purchases.products.find/);
  assert.match(screen,/Managed through \$\{billingProviderLabel\}. Cancel anytime./);
  assert.match(screen,/managementOnly.*management.manage/s);
+});
+
+test("the advertised membership stays six dollars while the legacy rate is a separate billing note", () => {
+ const screen=read("app/(app)/account/membership.tsx");
+ assert.match(screen, /style=\{styles.price\}>\$6<\/Text>/);
+ assert.match(screen, /Your early-member billing rate:/);
+ assert.doesNotMatch(screen, /style=\{styles.price\}>\{profile.membership.grandfatheredRate\}/);
 });

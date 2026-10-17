@@ -58,7 +58,7 @@ function harness(overrides: {
     async getMemberProfile() {
       profileReads += 1;
       events.push(`profile:${profileReads}`);
-      return profile(profileReads > 1 ? (overrides.refreshedTier ?? "standard") : "free");
+      return profile(profileReads > 1 ? (overrides.refreshedTier ?? "barrel") : "free");
     },
     async getAppleMembershipReadiness() {
       events.push("readiness");
@@ -78,7 +78,7 @@ function harness(overrides: {
       return {
         contractVersion: "bourbon-signal/mobile-api@1",
         status: "reconciled",
-        effectiveTier: input.productId?.includes("barrel") ? "barrel" : (overrides.refreshedTier ?? "standard"),
+        effectiveTier: input.productId?.includes("barrel") ? "barrel" : (overrides.refreshedTier ?? "barrel"),
         membership: overrides.appleMembership ?? {
           productId: APPLE_PRODUCT_IDS.standard.monthly,
           status: "active",
@@ -109,12 +109,12 @@ test("Apple product mapping is immutable, complete, and ignores unapproved produ
     { productId: "com.bourbonsignal.app.founder.lifetime", packageIdentifier: "founder", localizedPrice: "$50.00", localizedPeriod: "lifetime", hasIntroductoryOffer: false },
   ]);
   assert.equal(mapped.complete, true);
-  assert.deepEqual(mapped.products.map((item) => item.productId), products.map((item) => item.productId));
-  assert.deepEqual(mapped.products.map((item) => [item.localizedPrice, item.localizedPeriod]), [["$3.00", "month"], ["$30.00", "year"], ["$6.00", "month"], ["$60.00", "year"]]);
+  assert.deepEqual(mapped.products.map((item) => item.productId), [APPLE_PRODUCT_IDS.barrel.monthly]);
+  assert.deepEqual(mapped.products.map((item) => [item.localizedPrice, item.localizedPeriod]), [["$6.00", "month"]]);
 
   const monthlyOnly = mapDefaultOfferingPackages(products.filter((item) => item.localizedPeriod === "month"));
   assert.equal(monthlyOnly.complete, true);
-  assert.deepEqual(monthlyOnly.products.map((item) => item.productId), [APPLE_PRODUCT_IDS.standard.monthly, APPLE_PRODUCT_IDS.barrel.monthly]);
+  assert.deepEqual(monthlyOnly.products.map((item) => item.productId), [APPLE_PRODUCT_IDS.barrel.monthly]);
 });
 
 test("configuration runs only for an exact authenticated iOS Clerk user without anonymous provider identities", async () => {
@@ -137,6 +137,15 @@ test("configuration runs only for an exact authenticated iOS Clerk user without 
   assert.equal(unsupported.getState().status, "unavailable");
   assert.match(unsupported.getState().message,/Google Play.*configuration/);
   assert.deepEqual(android.events, []);
+});
+
+test("legacy products cannot start new purchases even when an older backend advertises them", async () => {
+  const h = harness();
+  const coordinator = createPurchaseCoordinator({ adapter: h.adapter, api: h.api, publicIosApiKey: "appl_public", platform: "ios" });
+  await coordinator.syncSession({ isLoaded: true, isSignedIn: true, userId: "user_A" });
+  await assert.rejects(() => coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly), /not available for new purchases/);
+  assert.equal(h.events.some(event => event.startsWith("purchase:")), false);
+  assert.equal(isAppleProductId(APPLE_PRODUCT_IDS.standard.monthly), true, "historical transactions remain recognizable for restore");
 });
 
 test("same-tick account switches configure only the newest Clerk identity", async () => {
@@ -197,7 +206,7 @@ test("a stale purchase cannot reconcile or overwrite the newly signed-out state"
   };
   const coordinator = createPurchaseCoordinator({ adapter: base.adapter, api: base.api, publicIosApiKey: "appl_public", platform: "ios" });
   await coordinator.syncSession({ isLoaded: true, isSignedIn: true, userId: "user_A" });
-  const stalePurchase = coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly);
+  const stalePurchase = coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly);
   await Promise.resolve();
   await coordinator.syncSession({ isLoaded: true, isSignedIn: false, userId: null });
   releasePurchase?.();
@@ -218,7 +227,7 @@ test("missing key, incomplete products, or missing backend fail closed before pu
     await coordinator.syncSession({ isLoaded: true, isSignedIn: true, userId: "user_A" });
     assert.equal(coordinator.getState().status, "unavailable");
     assert.match(coordinator.getState().message, /not available|could not be loaded/i);
-    await assert.rejects(() => coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly), /not available/i);
+    await assert.rejects(() => coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly), /not available/i);
     await assert.rejects(() => coordinator.restore(), /not available/i);
     assert.equal(events.some((event) => event.startsWith("purchase:") || event === "restore"), false);
   }
@@ -231,8 +240,8 @@ test("backend-unavailable state keeps authoritative profile and localized prices
   const state = coordinator.getState();
   assert.equal(state.status, "unavailable");
   assert.equal(state.profile?.membership.tier, "free");
-  assert.deepEqual(state.products.map((product) => product.localizedPrice), ["$3.00", "$30.00", "$6.00", "$60.00"]);
-  await assert.rejects(() => coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly), /not available/i);
+  assert.deepEqual(state.products.map((product) => product.localizedPrice), ["$6.00"]);
+  await assert.rejects(() => coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly), /not available/i);
   assert.equal(events.some((event) => event.startsWith("purchase:")), false);
 });
 
@@ -252,19 +261,19 @@ test("coordinator carries the server-authoritative Apple lifecycle into mobile s
 });
 
 test("purchase waits for reconciliation and a refreshed authoritative profile before reporting paid access", async () => {
-  const { adapter, api, events } = harness({ refreshedTier: "standard" });
+  const { adapter, api, events } = harness({ refreshedTier: "barrel" });
   const coordinator = createPurchaseCoordinator({ adapter, api, publicIosApiKey: "appl_public", platform: "ios" });
   await coordinator.syncSession({ isLoaded: true, isSignedIn: true, userId: "user_A" });
-  const result = await coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly);
-  assert.equal(result.profile?.membership.tier, "standard");
+  const result = await coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly);
+  assert.equal(result.profile?.membership.tier, "barrel");
   assert.equal(result.status, "ready");
-  assert.ok(events.indexOf(`purchase:${APPLE_PRODUCT_IDS.standard.monthly}`) < events.indexOf(`reconcile:purchase:${APPLE_PRODUCT_IDS.standard.monthly}`));
-  assert.ok(events.indexOf(`reconcile:purchase:${APPLE_PRODUCT_IDS.standard.monthly}`) < events.lastIndexOf("profile:2"));
+  assert.ok(events.indexOf(`purchase:${APPLE_PRODUCT_IDS.barrel.monthly}`) < events.indexOf(`reconcile:purchase:${APPLE_PRODUCT_IDS.barrel.monthly}`));
+  assert.ok(events.indexOf(`reconcile:purchase:${APPLE_PRODUCT_IDS.barrel.monthly}`) < events.lastIndexOf("profile:2"));
 
   const failed = harness({ reconcileError: new Error("backend missing") });
   const blocked = createPurchaseCoordinator({ adapter: failed.adapter, api: failed.api, publicIosApiKey: "appl_public", platform: "ios" });
   await blocked.syncSession({ isLoaded: true, isSignedIn: true, userId: "user_A" });
-  await assert.rejects(() => blocked.purchase(APPLE_PRODUCT_IDS.standard.monthly), /confirm.*server/i);
+  await assert.rejects(() => blocked.purchase(APPLE_PRODUCT_IDS.barrel.monthly), /confirm.*server/i);
   assert.equal(blocked.getState().profile?.membership.tier, "free");
   assert.equal(blocked.getState().status, "error");
 });
@@ -274,7 +283,7 @@ test("purchase cancellation and pending transactions are truthful non-entitlemen
     const { adapter, api } = harness({ purchaseError: new PurchaseProviderError(code, code) });
     const coordinator = createPurchaseCoordinator({ adapter, api, publicIosApiKey: "appl_public", platform: "ios" });
     await coordinator.syncSession({ isLoaded: true, isSignedIn: true, userId: "user_A" });
-    await coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly);
+    await coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly);
     assert.equal(coordinator.getState().status, status);
     assert.equal(coordinator.getState().profile?.membership.tier, "free");
   }
@@ -300,6 +309,6 @@ test("Android uses Google backend reconciliation and never grants local purchase
   const coordinator=createPurchaseCoordinator({adapter:h.adapter,api:h.api,publicIosApiKey:"appl_unused",publicAndroidApiKey:"goog_test_public",platform:"android"});
   await coordinator.syncSession({isLoaded:true,isSignedIn:true,userId:"member-Google"});
   assert.equal(coordinator.getState().status,"ready");assert.ok(coordinator.getState().products.every(p=>p.interval==="monthly"));
-  await coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly);
-  assert.equal(coordinator.getState().profile?.membership.tier,"standard");assert.ok(h.events.includes("configure:member-Google:goog_test_public"));assert.ok(h.events.includes(`reconcile:purchase:${APPLE_PRODUCT_IDS.standard.monthly}`));
+  await coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly);
+  assert.equal(coordinator.getState().profile?.membership.tier,"barrel");assert.ok(h.events.includes("configure:member-Google:goog_test_public"));assert.ok(h.events.includes(`reconcile:purchase:${APPLE_PRODUCT_IDS.barrel.monthly}`));
 });
