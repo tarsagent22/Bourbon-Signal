@@ -30,7 +30,7 @@ export function MemberContinuity({ paid, onPreferences }: { paid: boolean; onPre
   if (!preferences) return null;
   const setup = paid ? !preferences.monitoringScopes.length ? { label: 'Choose your alert areas', detail: 'Finish setting up where you want bottle alerts.', section: 'settings' }
     : preferences.alertMode === 'specific_bottles' && !preferences.bottleAlertPreferences.bottleNames.length && !preferences.bottleAlertPreferences.bottleKeys.length ? { label: 'Choose bottles to watch', detail: 'Your alert areas are saved. Add the bottles you want to find.', section: 'settings' }
-    : phoneReady === false ? { label: 'Set up phone alerts', detail: 'Your Radar preferences are saved. Connect alerts to this phone.', section: 'notifications' } : null : null;
+    : phoneReady === false ? { label: 'Set up push notifications', detail: 'Your Radar preferences are saved. Connect alerts to this device.', section: 'notifications' } : null : null;
   if (!setup) return null;
   return <View style={s.container}><Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/(tabs)/radar', params: { section: setup.section, request: Date.now().toString() } })} style={s.setup}><Text style={s.title}>{setup.label} →</Text><Text style={s.copy}>{setup.detail}</Text></Pressable></View>;
 }

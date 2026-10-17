@@ -35,7 +35,7 @@ export function MutedBottles({ state, saving, search, onChange }: {
               return <View style={s.row} key={bottle.id}><Text style={s.name}>{bottle.name}</Text>{action(muted ? "Muted" : "Mute", () => void change({ bottleId: bottle.id, bottleName: bottle.name }, true), saving || muted)}</View>;
             }) : <Text style={s.detail}>No bottles match that search.</Text> : <Text style={s.detail}>Search for a bottle to stop its future alerts.</Text>) : filtered.length ? filtered.map(bottle => <View key={bottle.bottleId || bottle.bottleName} style={s.row}><Text style={s.name}>{bottle.bottleName}</Text>{action("Allow alerts", () => void change(bottle, false), saving)}</View>) : <Text style={s.detail}>{bottles.length ? "No muted bottles match that search." : "No muted bottles. Your alert preferences apply to every matching bottle."}</Text>}
             {error ? <Text accessibilityRole="alert" style={{ color: colors.danger, paddingTop: 12 }}>{error}</Text> : null}
-            <Text style={s.explanation}>Muted bottles stay visible in Home and My Shelf. Muting overrides your watched bottles and applies to phone alerts and Community sightings.</Text>
+            <Text style={s.explanation}>Muted bottles stay visible in Home and My Shelf. Muting overrides your watched bottles and applies to push notifications and Community sightings.</Text>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

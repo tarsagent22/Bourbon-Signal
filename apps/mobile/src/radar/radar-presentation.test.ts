@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { MemberAlert } from '../api/types';
 import { preferencesFixture } from '../api/astra-fixtures';
-import { partitionRadarAlerts, radarSetupNeeded, radarBottleSummary,radarSetupStatus } from './radar-presentation';
+import { partitionRadarAlerts, radarSetupNeeded, radarBottleSummary,radarSetupStatus,radarLocationSummary } from './radar-presentation';
 
 test('history unread counts cannot inflate current results, and archived items stay hidden', () => {
   const now = new Date('2026-10-03T12:00:00Z');
@@ -34,12 +34,20 @@ test('Radar explains silent filters, disabled channels and phone registration se
   prefs.notificationPreferences.rarityTiers=['allocated'];
   assert.equal(radarSetupStatus(prefs,'Off').title,'Watch your first bottle');
   prefs.alertMode='anything_notable';
-  assert.match(radarSetupStatus(prefs,'Off').detail,/Phone alerts are off/);
+  assert.match(radarSetupStatus(prefs,'Off').detail,/Push notifications are off/);
   prefs.notificationPreferences.onSite.enabled=false;
   assert.equal(radarSetupStatus(prefs,'Off').title,'Enable an alert channel');
   assert.equal(radarSetupStatus(prefs,'On').title,'Watch preferences ready');
   prefs.notificationPreferences.onSite.enabled=true;
-  assert.equal(radarSetupStatus(prefs,'Setup needed').title,'Phone alerts need attention');
+  assert.equal(radarSetupStatus(prefs,'Setup needed').title,'Push notifications need attention');
+});
+
+test('large saved-area selections stay compact without losing their count',()=>{
+  const prefs=preferencesFixture();
+  prefs.monitoringScopes=Array.from({length:40},(_,i)=>({id:`city:${i}`,type:'city' as const,state:i<37?'NC':'AZ',label:`Long saved area ${i}`}));
+  assert.equal(radarLocationSummary(prefs),'NC + AZ · 40 selected areas');
+  prefs.monitoringScopes.slice(0,4).forEach((scope,i)=>{scope.state=['NC','AZ','VA','SC'][i];});
+  assert.equal(radarLocationSummary(prefs),'4 states · 40 selected areas');
 });
 
 test('bottle summary includes tier restrictions even for a specific bottle list', () => {
