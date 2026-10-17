@@ -10,6 +10,7 @@ import ownerCatalog from '../shared/labeled-owner-bottles.json';
 import retailerNames from '../shared/labeled-artwork-retailer-names.json';
 import feedProducts from '../shared/labeled-feed-bottles.json';
 import feedFixture from './fixtures/feed-bottle-artwork-20261017.json';
+import scannerFixture from './fixtures/feed-bottle-artwork-scanner-20261017.json';
 const { catalogBottlePhoto } = require('../src/lib/bottle-photos.ts') as typeof import('../src/lib/bottle-photos');
 
 test('every previously illustrated catalog and public owner bottle has labeled artwork', () => {
@@ -87,13 +88,24 @@ test('retailer feed names and package suffixes resolve existing labeled artwork'
   }
 });
 
-test('every bottle identity from the full collector audit resolves on mobile and web', () => {
-  for (const row of feedFixture.entries) {
+test('observed collector reconstruction identities resolve on mobile and web', () => {
+  for (const row of [...feedFixture.entries, ...scannerFixture.entries]) {
     const artwork = resolve(row, catalog);
     assert.ok(artwork, JSON.stringify(row));
     assert.equal(artwork.catalogId, row.expectedArtworkId, row.bottleName);
     assert.equal(catalogBottlePhoto({id:row.bottleId,canonicalName:row.bottleName})?.sha256,artwork.sha256);
   }
+});
+
+test('the three screenshot identities resolve, including literal retailer display names', () => {
+  for (const [bottleId, bottleName, expected] of [
+    ['74a75638e6ef11e2', 'Weller Antique 107 Barrel Select', 'weller-antique-107'],
+    ['retailer-id', 'W.L Weller Special Reserve Bourbon', 'weller-special-reserve'],
+    ['29a7ccd497a6d6c9', 'William Larue Weller Bourbon', 'william-larue-weller'],
+  ]) assert.equal(resolve({bottleId, bottleName}, catalog)?.catalogId, expected);
+  assert.notEqual(resolve({bottleName:'Little Book Whiskey Infinite'},catalog)?.sha256,
+    resolve({bottleId:'little-book-the-infinite-ii'},catalog)?.sha256);
+  assert.equal(resolve({bottleName:'Little Book The Infinite Edition IV'},catalog),undefined);
 });
 
 test('specific batch, proof and release labels never inherit another edition', () => {

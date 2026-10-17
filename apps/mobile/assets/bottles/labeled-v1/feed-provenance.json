@@ -77,6 +77,17 @@
       "reviewed": true,
       "reviewNotes": "Visually inspected complete bottle, branding and edition text; transparent pixels outside bottle verified. Microprint illustrative. Private Barrel selection fields intentionally blank.",
       "bytes": 266812
+    },
+    {
+      "key": "little-book-the-infinite-series",
+      "masterSha256": "052219d891d13c0481f15ff73fab550b4c51ad56b560bdd7da279f627b8991d5",
+      "sha256": "4e722226eb77a3f77611cb7b2a5aedfde7c1f672941dbb12a4d60836cc3e5ede",
+      "prompt": "Keep Little Book The Infinite brand packaging; remove all edition, year, age and proof claims from front and hangtag.",
+      "reference": "https://www.beamdistilling.com/littlebook/whiskies",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Complete bottle, branding and transparent export visually checked. Edition absent from retailer listing; series artwork deliberately contains no edition claims.",
+      "bytes": 185501
     }
   ]
 }

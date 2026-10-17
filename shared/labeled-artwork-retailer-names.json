@@ -23,7 +23,8 @@
     "Blanton's Gold Edition KY Straight Bourbon Whiskey"
   ],
   "bookers": [
-    "Booker's Bourbon Small Batch"
+    "Booker's Bourbon Small Batch",
+    "BOOKERS BBN"
   ],
   "buffalo-trace-bourbon": [
     "Buffalo Trace Straight Bourbon Whiskey"
@@ -81,7 +82,8 @@
   "weller-antique-107": [
     "Weller Antique 107 Bourbon Whiskey",
     "Weller Bourbon Antique 107",
-    "Weller Antique 107 Proof Whiskey"
+    "Weller Antique 107 Proof Whiskey",
+    "Weller Antique 107 Barrel Select"
   ],
   "whistlepig-piggyback-6y-bourbon": [
     "WhistlePig PiggyBack 6 Year Bourbon",
@@ -105,13 +107,15 @@
   ],
   "weller-special-reserve": [
     "Weller Special Reserve Whiskey",
-    "W.l Weller Special Reserve Bourbon"
+    "W.l Weller Special Reserve Bourbon",
+    "W L Weller Special Reserve Bourbon"
   ],
   "henry-mckenna-10-year": [
     "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey"
   ],
   "blade-and-bow": [
-    "Blade and Bow Kentucky Straight Bourbon Whiskey"
+    "Blade and Bow Kentucky Straight Bourbon Whiskey",
+    "BLADE & BOW KY"
   ],
   "bb_473aba10a697b5fc": [
     "Penelope Four Grain Straight Bourbon"
@@ -171,5 +175,11 @@
   ],
   "bakers-high-rye": [
     "Bakers High Rye 7yr 750"
+  ],
+  "william-larue-weller": [
+    "William Larue Weller Bourbon"
+  ],
+  "little-book": [
+    "Little Book Chapter"
   ]
 }

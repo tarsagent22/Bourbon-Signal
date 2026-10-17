@@ -799,4 +799,5 @@ export const LABELED_ARTWORK_ASSETS: Record<string, number> = {
   '06fff764792e42a04f2a0f8ba06e00c16043a149c2bee1161ae49cd8422b5470': require('../../assets/bottles/labeled-v1/06fff764792e42a04f2a0f8ba06e00c16043a149c2bee1161ae49cd8422b5470.png'),
   '23ccee09b55822bdd03212de467766793e09578cdc6196f8ac5363b349de890c': require('../../assets/bottles/labeled-v1/23ccee09b55822bdd03212de467766793e09578cdc6196f8ac5363b349de890c.png'),
   '02582eb16366bbe1874979136cea508e22d1df9aabd2a4112a6fb78dd216d865': require('../../assets/bottles/labeled-v1/02582eb16366bbe1874979136cea508e22d1df9aabd2a4112a6fb78dd216d865.png'),
+  '4e722226eb77a3f77611cb7b2a5aedfde7c1f672941dbb12a4d60836cc3e5ede': require('../../assets/bottles/labeled-v1/4e722226eb77a3f77611cb7b2a5aedfde7c1f672941dbb12a4d60836cc3e5ede.png'),
 };
