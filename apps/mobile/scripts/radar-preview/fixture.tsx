@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import type { MemberAlert, MemberPreferencesPatch } from '../../src/api/types';
 import { preferencesFixture, profileFixture } from '../../src/api/astra-fixtures';
+const waitForSave = () => new Promise(resolve => setTimeout(resolve, scenario === 'slow-toggles' || scenario === 'failed-toggles' ? 1200 : 0));
 const scenario = new URLSearchParams(location.search).get('scenario') || 'empty';
 let prefs = preferencesFixture({ alertMode:'anything_notable', monitoringScopes:[{type:'board', id:'NC:triad',state:'NC',label:'Triad Municipal ABC'},{type:'board',id:'NC:greensboro',state:'NC',label:'Greensboro ABC'}], entitlements:{alertAreaLimit:null,trackedBottleLimit:null,canReceiveSmsAlerts:true} });
 prefs.notificationPreferences.rarityTiers = ['unicorn','allocated'];
@@ -26,6 +27,8 @@ const api = {
   async listBottleCatalog(){return catalog;},
   async getPushDeviceStatus(){return status;},
   async updateMemberPreferences(patch: MemberPreferencesPatch){
+    await waitForSave();
+    if(scenario==='failed-toggles') throw new Error('Synthetic failure');
     if(scenario==='save-error') throw new Error('Synthetic failure');
     if(patch.bottleMuteMutation){const m=patch.bottleMuteMutation; const next=(prefs.mutedBottles?.bottles || []).filter(b=>m.bottleId?b.bottleId!==m.bottleId:b.bottleName!==m.bottleName);if(m.muted)next.push({bottleName:m.bottleName,...(m.bottleId?{bottleId:m.bottleId}:{})});prefs.mutedBottles={bottles:next,version:(prefs.mutedBottles?.version||0)+1};}
     if(patch.notificationPreferences) for(const [key,value] of Object.entries(patch.notificationPreferences)) (prefs.notificationPreferences as any)[key] = Array.isArray(value) ? value : {...(prefs.notificationPreferences as any)[key],...value};
@@ -50,5 +53,5 @@ export async function radarPushPermission(){return scenario==='denied'?'denied':
 export async function rememberRadarPushEnabled(){}
 export async function refreshRadarPushIfEnabled(){return status;}
 export function watchRadarPushToken(){return {remove(){}};}
-export async function enableRadarPush(){prefs.notificationPreferences.push.enabled=true;return status={...status,enabled:true};}
-export async function disableRadarPush(){prefs.notificationPreferences.push.enabled=false;return status={...status,enabled:false};}
+export async function enableRadarPush(){await waitForSave();if(scenario==='failed-toggles')throw new Error('Synthetic failure');prefs.notificationPreferences.push.enabled=true;return status={...status,enabled:true};}
+export async function disableRadarPush(){await waitForSave();if(scenario==='failed-toggles')throw new Error('Synthetic failure');prefs.notificationPreferences.push.enabled=false;return status={...status,enabled:false};}

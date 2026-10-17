@@ -1,0 +1,9 @@
+# Radar notification switches
+
+Push Notifications and Community sightings previously rendered their committed server values until registration or saving completed. Native iOS switch transitions could be pulled back toward that old value while the asynchronous request was running; disabling the native switch also changed its glass appearance mid-transition.
+
+Both rows now use the same 180 ms slide with native-driven thumb translation and track opacity. The requested value is rendered immediately, remains steady while the request runs, and returns to the confirmed value if saving fails. Pending writes block duplicate actions without fading or reshaping the active control. A failed push setup retains the existing recovery and error treatment. Account-scoped push consent and logout/relogin recovery are unchanged.
+
+Switches retain accessible names, checked/busy/disabled state, keyboard activation on web, a 44 px target, and immediate changes when Reduce Motion is enabled. The owner selected “All notable bottles” to replace “Discover rare bottles”; the adjacent explanation still says “Any bottle in your selected tiers.” The empty-watchlist guidance uses the same new label.
+
+Validation: complete mobile verification with production Android/iOS exports; final TypeScript check; 69 mounted Astra checks, including four switch regressions for immediate response in each direction, unresolved requests, duplicate events, failure rollback/retry, and Reduce Motion. Seventeen browser cases cover both switches in both directions at 320 px and 390 px, both motion settings, and a failed save/retry. Frame samples verify a monotonic slide reaches its endpoint before the simulated 1.2 second request finishes. Browser/native boundaries use fixtures; these checks do not prove physical iPhone smoothness. OTA publication and installed-device acceptance are recorded separately.
