@@ -17,3 +17,22 @@ test('Bottle Check static modal options belong to its layout and cannot call pag
  });
  assert.match(options,/presentation:\s*"modal"/);assert.match(options,/headerShown:\s*false/,'custom header must retain layout ownership');
 });
+
+test('form camera routes own static modal headers and never enter the assessment workflow', () => {
+ const layout=parse('app/(app)/_layout.tsx');
+ for(const purpose of ['post','shelf']) {
+  const route=parse(`app/(app)/scan-${purpose}.tsx`);
+  assert.match(route.getText(),new RegExp(`BottleFormScanner purpose="${purpose}"`));
+  assert.doesNotMatch(route.getText(),/Stack\.Screen/);
+  let options='';
+  walk(layout,node=>{if(!ts.isJsxSelfClosingElement(node)||node.tagName.getText(layout)!=='Stack.Screen')return;
+   const name=node.attributes.properties.find(a=>ts.isJsxAttribute(a)&&a.name.getText(layout)==='name');
+   if(name&&ts.isJsxAttribute(name)&&name.initializer&&ts.isStringLiteral(name.initializer)&&name.initializer.text===`scan-${purpose}`)options=node.getText(layout);
+  });
+  assert.match(options,/presentation:\s*"modal"/);assert.match(options,/headerShown:\s*false/);
+  const source=parse(purpose==='post'?'app/(app)/(tabs)/post.tsx':'app/(app)/cellar/add.tsx').getText();
+  assert.ok(source.includes(`'/(app)/scan-${purpose}'`));assert.ok(!source.includes("'/(app)/bottle-check'"),'form entry cannot launch Bottle Check');
+ }
+ const formScanner=parse('src/scanner/BottleFormScanner.tsx').getText();
+ assert.doesNotMatch(formScanner,/Stack\.Screen|buyingScore|getBottleProfile|getMemberPreferences|listSignals/,'identity selection must stay separate from scoring and market research');
+});

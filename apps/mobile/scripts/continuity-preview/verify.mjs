@@ -63,7 +63,7 @@ for (const width of [390, 320]) {
     await page.waitForTimeout(400);
     await page.getByRole('button', { name: 'Scan a bottle →' }).click();
     await page.getByRole('button', { name: 'Simulate label match' }).click();
-    await page.getByRole('button', { name: "Check Maker's Mark", exact: true }).click();
+    await page.getByRole('button', { name: "Use in post: Maker's Mark", exact: true }).click();
     await page.getByRole('heading', { name: 'Post a Signal' }).waitFor();
     assert.equal(await page.getByRole('textbox', { name: 'Retailer name' }).inputValue(), 'Keep this store');
     assert.equal(await page.getByRole('textbox', { name: 'Bottle', exact: true }).inputValue(), "Maker's Mark");
@@ -88,8 +88,8 @@ for (const width of [390, 320]) {
     await page.waitForTimeout(400);
     await page.getByRole('button', { name: 'Scan a bottle →' }).click();
     await page.getByRole('button', { name: 'Simulate label match' }).click();
-    await page.getByRole('button', { name: "Check Maker's Mark", exact: true }).click();
-    await page.getByRole('dialog', { name: 'Use Bottle Check details?' }).waitFor();
+    await page.getByRole('button', { name: "Use in post: Maker's Mark", exact: true }).click();
+    await page.getByRole('dialog', { name: 'Use these bottle details?' }).waitFor();
     await page.getByRole('button', { name: 'Keep draft', exact: true }).last().click();
     assert.equal(await page.getByRole('textbox', { name: 'Bottle', exact: true }).inputValue(), 'My unfinished bottle');
   });

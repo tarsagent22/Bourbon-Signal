@@ -1,0 +1,33 @@
+import {createRequire} from 'node:module';
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import path from 'node:path';
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'C:/Users/chand/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const output=path.resolve(import.meta.dirname,'../../../../.operator/purpose-scanners-qa');await mkdir(output,{recursive:true});
+const browser=await chromium.launch({channel:'msedge',headless:true});
+const base=(process.env.NAVIGATION_PREVIEW_URL||'http://127.0.0.1:5271')+'/navigation-preview-camera/';const results=[];
+const maker="Maker's Mark";
+async function openScanner(p,purpose){await p.getByRole('button',{name:/^Scan a bottle/}).click();await p.getByRole('heading',{name:purpose==='post'?'Scan for your post':'Scan to My Shelf',exact:true}).waitFor();await p.getByTestId('bottle-scanner-frame').waitFor();assert.equal(await p.getByRole('heading',{name:'Bottle Check',exact:true}).count(),0);assert.equal(await p.getByTestId('bottle-assessment-score').count(),0);assert.equal(await p.getByRole('button',{name:'Change Bottle Check reference region'}).count(),0);assert.equal(await p.evaluate(()=>window.assessmentRequests||0),0);}
+async function scanMaker(p,purpose){await p.evaluate(()=>window.scannerText="MAKER'S MARK KENTUCKY STRAIGHT BOURBON 90 PROOF");await p.getByRole('button',{name:`${purpose==='post'?'Use in post':'Use on My Shelf'}: ${maker}`,exact:true}).click();}
+async function checkDraft(p,purpose){if(purpose==='post'){assert.equal(await p.getByRole('textbox',{name:'Retailer name',exact:true}).inputValue(),'Keep this store');assert.equal(await p.getByRole('textbox',{name:'Shelf price',exact:true}).inputValue(),'49.99');assert.equal(await p.getByRole('textbox',{name:'Notes',exact:true}).inputValue(),'Keep my post note');}else{assert.equal(await p.getByRole('textbox',{name:'Bottle quantity',exact:true}).inputValue(),'3');assert.equal(await p.getByRole('textbox',{name:'Price paid',exact:true}).inputValue(),'49.99');assert.equal(await p.getByRole('textbox',{name:'Store purchased from',exact:true}).inputValue(),'Keep my purchase store');assert.equal(await p.getByRole('textbox',{name:'Tasting notes',exact:true}).inputValue(),'Keep my shelf note');}}
+try{
+ for(const width of [393,320])for(const purpose of ['post','shelf']){
+  const p=await browser.newPage({viewport:{width,height:852},reducedMotion:'reduce'});p.setDefaultTimeout(10000);const errors=[];p.on('pageerror',error=>errors.push(error.message));await p.goto(base+`?screen=${purpose}`);
+  if(purpose==='post'){
+   await p.getByRole('button',{name:'Enter store manually',exact:true}).click();for(const[name,value]of[['Retailer name','Keep this store'],['Street address','100 Main Street'],['City','Raleigh'],['State','NC']])await p.getByRole('textbox',{name,exact:true}).fill(value);
+   await p.getByRole('button',{name:'Add price, quantity, notes or photo',exact:true}).click();await p.getByRole('textbox',{name:'Shelf price',exact:true}).fill('49.99');await p.getByRole('textbox',{name:'Notes',exact:true}).fill('Keep my post note');
+  }else{
+   await p.getByRole('textbox',{name:'Search bottles',exact:true}).fill('Maker');await p.getByRole('button',{name:/^Maker's Mark\./}).click();await p.getByRole('textbox',{name:'Bottle quantity',exact:true}).fill('3');await p.getByRole('button',{name:/^Acquisition/}).click();await p.getByRole('textbox',{name:'Price paid',exact:true}).fill('49.99');await p.getByRole('textbox',{name:'Store purchased from',exact:true}).fill('Keep my purchase store');await p.getByRole('textbox',{name:'Tasting notes',exact:true}).fill('Keep my shelf note');
+  }
+  await openScanner(p,purpose);const guide=await p.getByTestId('bottle-label-scan-guide').boundingBox();assert.ok(guide.height>guide.width,'actual native scan guide stays portrait');await p.screenshot({path:path.join(output,`${purpose}-camera-${width}.png`)});
+  await p.getByRole('button',{name:`Close ${purpose} scanner`,exact:true}).click();await checkDraft(p,purpose);const stopped=await p.evaluate(()=>window.scannerReads||0);await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>window.scannerReads||0),stopped,'camera/OCR stops on close');
+  await openScanner(p,purpose);await scanMaker(p,purpose);await checkDraft(p,purpose);assert.deepEqual(await p.evaluate(()=>window.navigationRoutes),[purpose==='post'?'(tabs)':'cellar/add'],'selection returns to the original form without duplicate screens');
+  if(purpose==='post')assert.equal(await p.getByRole('textbox',{name:'Bottle',exact:true}).inputValue(),maker);
+  await p.evaluate(()=>window.scannerText='');await openScanner(p,purpose);await p.getByRole('radio',{name:'Search instead',exact:true}).click();const reads=await p.evaluate(()=>window.scannerReads||0);await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>window.scannerReads||0),reads,'search stops camera/OCR');await p.getByRole('textbox',{name:`Search bottles for ${purpose}`,exact:true}).fill('Maker');await p.screenshot({path:path.join(output,`${purpose}-search-${width}.png`)});await p.getByRole('button',{name:`${purpose==='post'?'Use in post':'Use on My Shelf'}: ${maker}`,exact:true}).click();await checkDraft(p,purpose);
+  assert.equal(await p.evaluate(()=>window.assessmentRequests||0),0);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await p.evaluate(()=>window.navigationError||null),null);assert.deepEqual(errors,[]);results.push({width,purpose,passed:true,closePreservesDraft:true,scanAndSearchReturnToForm:true,noAssessmentRequests:true});await p.close();
+ }
+ for(const purpose of ['post','shelf']){
+  const p=await browser.newPage({viewport:{width:393,height:852}});await p.goto(base+'?screen=home');await p.evaluate(purpose=>window.navigationPreview.push({pathname:'/(app)/bottle-check',params:{returnTo:purpose,price:'33.33',state:'VA',area:'Richmond'}}),purpose);await p.getByRole('heading',{name:purpose==='post'?'Scan for your post':'Scan to My Shelf',exact:true}).waitFor();assert.equal(await p.evaluate(()=>window.assessmentRequests||0),0,'legacy scanner links redirect before assessment fetches');assert.ok(!(await p.evaluate(()=>window.navigationRoutes)).includes('bottle-check'));await p.close();
+ }
+ const proof={passed:true,results,legacyLinksRedirect:true,actualNativeScannerSource:true,actualNavigationCore:true,cameraAndOcrSimulated:true,physicalDeviceTested:false};await writeFile(path.join(output,'proof.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
+}finally{await browser.close();}
