@@ -7,6 +7,10 @@ import FAQ from "@/components/sections/FAQ";
 import { useAuth } from "@/lib/auth";
 import { MEMBERSHIP_COMPARISON_ROWS, PAID_MEMBERSHIP_PLANS } from "@/lib/membership-plan-catalog";
 
+function comparisonLabel(value: string) {
+  return value === "✓" ? "Included" : value === "—" ? "Not included" : undefined;
+}
+
 function PricingPageContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -50,14 +54,14 @@ function PricingPageContent() {
       <header><p className="eyebrow">BOURBON SIGNAL MEMBERSHIP</p><h1>One membership.<br />Every paid feature.</h1><p>Get alerts when bottles you love show up in your area.</p></header>
       {isLoaded && params.has("canceled") ? <section className="notice" role="status"><p>Checkout canceled. You were not charged. Your current access continues.</p><button disabled={pending || paid} onClick={() => void checkout()}>Resume checkout</button>{" "}<button onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>{paid ? "Continue with current plan" : "Continue with Free"}</button></section> : null}
       <section className="plans" aria-label="Membership options">
-        <article className="plan"><p className="eyebrow">EXPLORE BOURBON SIGNAL</p><h2>Free</h2><p className="price">$0</p><p>Browse the signal and start your collection.</p><ul><li>6 recent Intel signals</li><li>Full Community feed</li><li>3 bottle lookups</li><li>10 bottles on My Shelf</li><li>Post sightings and earn Signal Points</li></ul><button onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>{isSignedIn ? "Continue to Bourbon Signal" : "Create Free Account"}</button></article>
+        <article className="plan"><p className="eyebrow">EXPLORE BOURBON SIGNAL</p><h2>Free</h2><p className="price">$0</p><p>Browse the signal and start your collection.</p><ul><li>6 recent Intel signals</li><li>Coverage Map and Member Sightings</li><li>3 bottle lookups</li><li>10 bottles on My Shelf</li><li>Post sightings and earn Signal Points</li></ul><button onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>{isSignedIn ? "Continue to Bourbon Signal" : "Create Free Account"}</button></article>
         <article className="plan barrel"><p className="eyebrow">FULL MEMBERSHIP</p><h2>{plan.name}</h2><p className="price">{plan.monthlyPrice}<span>/month</span></p><p>{trialEligible ? "7 days free, then $6/month" : "Full access. Billed monthly. Cancel anytime."}</p><ul>{plan.features.map(feature => <li key={feature}>{feature}</li>)}</ul><button disabled={!isLoaded || pending || paid} onClick={() => void checkout()}>{paid ? "Your membership includes full access" : pending ? "Opening checkout…" : trialEligible ? "Start 7-day free trial" : "Get Barrel Proof"}</button></article>
       </section>
       {error ? <p className="notice" role="alert">{error}</p> : null}
       <p className="terms">Paid subscriptions renew monthly until canceled. Cancellation stops the next renewal; access continues through the period already paid for.</p>
       {memberTier === "standard" ? <p className="notice">Your existing Standard Proof subscription now includes every Barrel Proof feature. Your existing billing rate continues while your subscription remains active.</p> : null}
       {memberTier === "bottled-in-bond" ? <p className="notice">Your Founder membership keeps full lifetime access and your Founder recognition.</p> : null}
-      <section className="comparison" aria-label="Compare Free and Barrel Proof"><h2>What’s included</h2><table><thead><tr><th scope="col">Feature</th><th scope="col">Free</th><th scope="col">Barrel Proof</th></tr></thead><tbody>{MEMBERSHIP_COMPARISON_ROWS.map(([feature, free, member]) => <tr key={feature}><th scope="row">{feature}</th><td>{free}</td><td>{member}</td></tr>)}</tbody></table></section>
+      <section className="comparison" aria-label="Compare Free and Barrel Proof"><h2>What’s included</h2><table><thead><tr><th scope="col">Feature</th><th scope="col">Free</th><th scope="col">Barrel Proof</th></tr></thead><tbody>{MEMBERSHIP_COMPARISON_ROWS.map(([feature, free, member]) => <tr key={feature}><th scope="row">{feature}</th><td aria-label={comparisonLabel(free)}>{free}</td><td aria-label={comparisonLabel(member)}>{member}</td></tr>)}</tbody></table></section>
       <FAQ variant="pricing" />
     </main><Footer />
   </>;

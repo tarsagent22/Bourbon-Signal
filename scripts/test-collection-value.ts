@@ -9,7 +9,7 @@ const now = new Date('2026-10-05T12:00:00Z');
 const item = { bottleId:'pappy-van-winkle-15', bottleName:'Pappy Van Winkle 15 Year', sealedQuantity:2, openedQuantity:1 };
 for (const tier of ['free','standard','barrel','bottled-in-bond'] as const) {
   const value=collectionValueForMember(getEntitlements(tier).canUseRecommendations,[item],now);
-  assert.equal(value!==null, ['barrel','bottled-in-bond'].includes(tier),tier);
+  assert.equal(value!==null, ['standard','barrel','bottled-in-bond'].includes(tier),tier);
 }
 const value=collectionValueForMember(true,[item,{...item,bottleId:'unknown',bottleName:'Unpriced bottle',sealedQuantity:1,openedQuantity:2},{...item,bottleId:'tasted',sealedQuantity:0,openedQuantity:0}],now)!;
 assert.deepEqual(value.msrp,{total:719.97,pricedCount:3});

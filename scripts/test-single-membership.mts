@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getEntitlements, resolveEffectiveMembershipTier } from '../src/lib/entitlements.ts';
 import { isPublicCheckoutPlanId, PAID_MEMBERSHIP_PLANS } from '../src/lib/membership-plan-catalog.ts';
-import { getPlanByPriceId, getStripePriceId } from '../src/lib/stripe-plans.ts';
+import { getPlanByPriceId, getStripePriceId, getCheckoutPlanByPriceId } from '../src/lib/stripe-plans.ts';
 import { membershipPortalConfiguration } from '../src/lib/stripe-membership-portal.ts';
 import { buildSignalMemberProfile } from '../src/lib/signals/signal-api-contract.ts';
 
@@ -24,6 +24,20 @@ test('new paid purchase catalog has exactly one six dollar monthly membership', 
   assert.deepEqual(PAID_MEMBERSHIP_PLANS.map(plan => [plan.tier, plan.monthlyPrice, plan.monthlyPlan]), [['barrel', '$6', 'barrel_monthly']]);
   for (const plan of ['standard_monthly', 'standard_annual', 'barrel_annual', 'bib_lifetime'] as const) assert.equal(isPublicCheckoutPlanId(plan), false);
   assert.equal(isPublicCheckoutPlanId('barrel_monthly'), true);
+});
+
+test('historical billing prices remain recognizable without becoming new checkout options', () => {
+  const prices = {
+    price_1TkwxnLQlLvo1rCD2hDbL62C: 'standard_monthly',
+    price_1TkwykLQlLvo1rCD2wG0be1z: 'standard_annual',
+    price_1Tkx2JLQlLvo1rCDMthvD4nR: 'barrel_monthly',
+    price_1Tkx37LQlLvo1rCDTHdDBNlJ: 'barrel_annual',
+    price_1TkEDlLQlLvo1rCDMBsIeOPR: 'bib_lifetime',
+  };
+  for (const [price, plan] of Object.entries(prices)) {
+    assert.equal(getPlanByPriceId(price)?.id, plan);
+    assert.equal(getCheckoutPlanByPriceId(price), null);
+  }
 });
 
 test('Free retains its existing limits and Founder keeps lifetime access', () => {

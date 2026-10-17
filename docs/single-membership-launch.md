@@ -7,8 +7,10 @@ complete paid feature set. Existing Founder access and recognition remain valid.
 ## Existing Stripe subscriptions
 
 Legacy Standard subscriptions keep their existing Stripe subscription and price
-IDs. No subscription migration, invoice adjustment, or customer metadata rewrite
-is required to grant full access. Existing Standard monthly billing remains $3.
+IDs. No subscription migration or invoice adjustment is required to grant full
+access. Verified $3 monthly subscribers receive an explicit grandfathered-rate
+marker for billing display. Subscription ownership and actual price must be
+verified before setting it; the Standard tier alone does not prove a $3 rate.
 Cancellation stops future renewals; full access continues until the paid period
 ends. After expiration, customers start a new $6 subscription. Resuming renewal
 before expiration retains the original subscription price.

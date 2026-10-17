@@ -81,8 +81,8 @@ test('Free detailed filters fail explicitly before reading either feed', async (
     assert.equal(reads, 0);
   }
 });
-test('Barrel and Founder NC board requests reach the drop source as an exact store filter', async () => {
-  for (const tier of ['barrel','bottled-in-bond']) {
+test('Every paid billing tier reaches the drop source with exact NC board filters', async () => {
+  for (const tier of ['standard','barrel','bottled-in-bond']) {
     let source;
     const api = createSignalFeedHandler({getFilterAccess:async()=>getEntitlements(tier),getDrops:async(request)=>{source=new URL(request.url);return Response.json({drops:[],total:0});},getSightings:async()=>Response.json({sightings:[],totalSightings:0})});
     assert.equal((await api(new Request('https://fixture.invalid/api/v1/signals?view=market&state=NC&area=Triad%20Municipal%20ABC'))).status, 200);
@@ -91,7 +91,7 @@ test('Barrel and Founder NC board requests reach the drop source as an exact sto
   }
 });
 test('state browsing stays available to Standard while Free previews remain global', async () => {
-  for (const tier of ['free']) {
+  for (const tier of ['free','standard']) {
     let source;
     const api = createSignalFeedHandler({getFilterAccess:async()=>getEntitlements(tier),getDrops:async(request)=>{source=new URL(request.url);return Response.json({drops:[],total:0});},getSightings:async()=>Response.json({sightings:[],totalSightings:0})});
     assert.equal((await api(new Request('https://fixture.invalid/api/v1/signals?view=market&state=NC'))).status, tier === 'free' ? 403 : 200);
