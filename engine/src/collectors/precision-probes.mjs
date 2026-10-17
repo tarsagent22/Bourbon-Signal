@@ -158,7 +158,6 @@ import {
 } from './virginia-inventory-recovery.mjs';
 import { loadOhioInventoryRecoverySeed, seedOhioInventoryCacheSignals } from './ohio-inventory-recovery.mjs';
 import { collectMississippiRetailers } from './mississippi-retailer-collector.mjs';
-import { collectMassachusettsJulios } from './massachusetts-retailer-collector.mjs';
 import { collectLiquorLibraryInventory, LIQUOR_LIBRARY_SOURCE } from './south-carolina-square.mjs';
 import { collectDiscountLiquorInventory, DISCOUNT_LIQUOR_SOURCE } from './south-carolina-discount-square.mjs';
 
@@ -9427,7 +9426,6 @@ function precisionRuntimeUrl(config) {
 }
 
 async function collectPrecisionProbesDirect(config, bible, existingSignals = [], options = {}) {
-  if (config.id === 'MA') return collectMassachusettsJulios(config, bible, options);
   if (config.id === 'MS') return collectMississippiRetailers(config, {
     ...options,
     matchBottle: (rawName) => {

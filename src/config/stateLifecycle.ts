@@ -906,18 +906,6 @@ export const STATE_LIFECYCLE_CONFIG = {
       "inventoryAlertable": false,
       "watchAlertable": false,
       "customerSummary": "Research-only: Wisconsin has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
-    },
-    "MA": {
-      "customerLabel": "Massachusetts",
-      "sourceLabel": "Massachusetts retailer research",
-      "publicStatus": "research_only",
-      "shadowEligible": true,
-      "lifecycle": "retailer_inventory_research",
-      "coverageTier": "blocked",
-      "refinementLevel": "store",
-      "inventoryAlertable": false,
-      "watchAlertable": false,
-      "customerSummary": "Research-only until exact-store source, shadow, canary and production checks are complete."
     }
   }
 } as const;

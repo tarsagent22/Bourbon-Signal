@@ -5,6 +5,7 @@ import { BourbonBible } from './core/bible.mjs';
 import { collectState } from './collectors/generic-state.mjs';
 import { sourceRuntimeOptionsFromArtifacts } from './sources/source-runtime-state.mjs';
 import { sourceRefreshScope, mergeSourceScopedReport } from './source-scoped-refresh.mjs';
+import { researchSourceForState, collectResearchStateReport } from './research-state-registry.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -12,7 +13,8 @@ const SOURCE_RUN_HISTORY = path.join(OUT, 'optimization', 'source-run-history.js
 
 async function main() {
   const stateId = process.argv[2];
-  const config = ALL_STATE_SOURCES.find((source) => source.id === stateId);
+  const research = researchSourceForState(stateId);
+  const config = ALL_STATE_SOURCES.find((source) => source.id === stateId) || research;
   if (!config) throw new Error(`Unknown state source id: ${stateId || '(missing)'}`);
 
   await mkdir(STATES_OUT, { recursive: true });
@@ -24,7 +26,7 @@ async function main() {
   const scope = sourceRefreshScope();
   if (scope.length && config.id !== 'SC') throw new Error('Source-scoped collection is restricted to SC.');
   if (scope.length && !previous) throw new Error('Source-scoped refresh cannot start without its prior state report.');
-  const candidate = scope.length
+  const candidate = research ? await collectResearchStateReport(research, bible) : scope.length
     ? await collectState({ ...config, sources: [], apiCandidates: [] }, bible,
       sourceRuntimeOptionsFromArtifacts({ previousReport: null, sourceHistory: null }))
     : await collectState(config, bible, sourceRuntimeOptionsFromArtifacts({ previousReport: previous, sourceHistory }));

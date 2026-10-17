@@ -11,7 +11,6 @@ export const PRECISION_RANK = {
 };
 
 export const LOCATION_PROFILES = {
-  MA: { target: 'store_level', note: "Research-only exact-store Julio's Westborough pickup orderability. No customer activation, exact shelf counts or outbound alerts before normal promotion." },
   OH: { target: 'store_level', note: 'OHLQ product availability API is now collected at store level through browser/CDP with RequestVerificationToken; raw Node fetch remains Cloudflare-gated. Availability buckets are decoded from the frontend bundle as Not Available, Sold Out, Limited Supply, and In Stock.' },
   OR: { target: 'store_level', note: 'Oregon Liquor Search is intended to show carrying stores/product availability.' },
   IA: { target: 'store_level', note: 'Iowa ABD snapshot CSV exposes 14-day deliveries to Class E licensee/store locations.' },

@@ -11,7 +11,6 @@ import {
 } from './collectors/florida-15-20-expansion.mjs';
 import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collectors/metro-retailer-surfaces.mjs';
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
-import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
 
 const GEORGIA_RETAILER_SOURCES = [
   ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
@@ -30,13 +29,6 @@ function metroSourceRecord(source) {
 }
 
 const BASE_STATE_SOURCES = [
-  {
-    id: 'MA', label: 'Massachusetts retailer research', tier: 'B', active: false,
-    strategy: 'retailer_store_inventory', cadence: 'shadow-only',
-    value: 'Isolated research of exact-store Julio\'s Westborough pickup orderability. Massachusetts is not customer-active.',
-    sources: MA_JULIOS_PROBE_URLS.map(url => ({ kind: 'html', label: "Julio's Westborough pickup research", url, precisionOnly: true })),
-    apiCandidates: [],
-  },
   {
     id: 'OH', label: 'Ohio OHLQ', tier: 'A', strategy: 'inventory_locator', cadence: '15-60m',
     value: 'OHLQ catalog and store availability; strong bourbon-hunter value when availability map is accessible.',
