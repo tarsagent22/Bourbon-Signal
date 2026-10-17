@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createLabelIndex, matchBottleLabel, normalizeBarcode } from './label-matching';
+import { createLabelIndex, matchBottleLabel, readBottleLabel, bottleLabelFamily, normalizeBarcode } from './label-matching';
 import { createScanLoop } from './scan-loop';
 import { scanGuide, scanCrop } from './scan-guide';
 import { createCandidateLatch } from './scan-candidates';
@@ -20,6 +20,66 @@ const catalog = [
   { id: 'er25', name: 'Eagle Rare 25Y', aliases: ['Eagle Rare'] },
 ];
 const index = createLabelIndex(catalog);
+
+test('owner front-label examples retrieve the expression without catalog-only suffixes', () => {
+  const fullIndex = createLabelIndex(seed);
+  for (const [text, id] of [
+    ['PENELOPE\nRiviera\nCOOPER SERIES', 'penelope-riviera-cask-finish'],
+    ['PENELOPE\nRIVIERA\nAMERICAN WHISKEY', 'penelope-riviera-cask-finish'],
+    ['AGED 10 YEARS\nMc KENNA\nHENRY\nSINGLE BARREL\nBOTTLED IN BOND\n100 PROOF', 'henry-mckenna-10-year'],
+    ['BUFFALO TRACE\nKENTUCKY STRAIGHT BOURBON WHISKEY', 'buffalo-trace-bourbon'],
+    ['BUFF ALO\nTRACE\nKENTUCKY STRAIGHT BOURBON', 'buffalo-trace-bourbon'],
+    ['PENELOPE CONUNDRUM', 'penelope-estate-collection-conundrum'],
+  ]) assert.equal(matchBottleLabel(fullIndex, text)[0]?.id, id, text);
+  assert.equal(readBottleLabel(fullIndex, 'PENELOPE').canHold, false);
+  assert.equal(readBottleLabel(fullIndex, 'W.L. WELLER').canHold, false);
+  assert.equal(readBottleLabel(fullIndex, 'PENELOPE RIVIERA').canHold, true);
+  assert.ok(!matchBottleLabel(fullIndex, 'PENELOPE RIVIERA').some(b => b.id === 'penelope-rio-cask-finish'));
+});
+
+test('all expressions remain reachable for similar-label families, beyond the candidate limit', () => {
+  const fullIndex = createLabelIndex(seed);
+  for (const brand of ['Penelope', 'Buffalo Trace', 'Henry McKenna', 'Old Forester', 'Woodford Reserve', 'Wild Turkey', 'Four Roses', 'Weller', "Maker's Mark", 'E.H. Taylor']) {
+    const family = bottleLabelFamily(fullIndex, brand.toUpperCase());
+    assert.ok(family, brand);
+    const expected = seed.filter(b => b.name.toLowerCase().replace(/^w\.l\. weller/, 'weller').startsWith(brand.toLowerCase() + ' ') || b.name.toLowerCase() === brand.toLowerCase());
+    assert.deepEqual(new Set(family.bottles.map(b => b.id)), new Set(expected.map(b => b.id)), brand);
+    assert.equal(readBottleLabel(fullIndex, brand).canHold, false, brand);
+  }
+  assert.ok(bottleLabelFamily(fullIndex, 'PENELOPE')!.bottles.length > 6);
+  for (const text of ['KENTUCKY BOURBON WHISKEY', 'Handcrafted wooden table', 'PENELOPE AND BUFFALO TRACE']) assert.equal(bottleLabelFamily(fullIndex, text), undefined);
+  assert.equal(readBottleLabel(fullIndex, 'PENELOPE RIVIERA AND BUFFALO TRACE').canHold, false);
+});
+
+test('brand-only agreement cannot freeze out a later expression read', () => {
+  const fullIndex = createLabelIndex(seed), latch = createCandidateLatch();
+  const brand = readBottleLabel(fullIndex, 'PENELOPE');
+  assert.equal(latch.observe(brand.matches, brand.canHold), null);
+  assert.equal(latch.observe(brand.matches, brand.canHold), null);
+  const expression = readBottleLabel(fullIndex, 'PENELOPE RIVIERA');
+  assert.equal(latch.observe(expression.matches, expression.canHold), null);
+  assert.equal(latch.observe(expression.matches, expression.canHold)?.[0].id, 'penelope-riviera-cask-finish');
+});
+
+test('batch and chapter numbers keep similarly presented releases separate', () => {
+  const editions = createLabelIndex([
+    { id: 'chapter1', name: 'Penelope Cigar Sessions Chapter 01', brand: 'Penelope' },
+    { id: 'chapter2', name: 'Penelope Cigar Sessions Chapter 02', brand: 'Penelope' },
+    { id: 'batch32', name: 'Barrell Bourbon Batch 032', brand: 'Barrell' },
+    { id: 'batch34', name: 'Barrell Bourbon Batch 034', brand: 'Barrell' },
+  ]);
+  assert.deepEqual(matchBottleLabel(editions, 'PENELOPE CIGAR SESSIONS CHAPTER 2').map(b => b.id), ['chapter2']);
+  assert.deepEqual(matchBottleLabel(editions, 'BARRELL BOURBON BATCH 032').map(b => b.id), ['batch32']);
+  assert.deepEqual(new Set(matchBottleLabel(editions, 'PENELOPE CIGAR SESSIONS').map(b => b.id)), new Set(['chapter1', 'chapter2']));
+});
+
+test('OCR includes label edges and bottom expression strips beyond the bottle outline', () => {
+  const view = { width: 353, height: 380 }, picture = { width: 3024, height: 4032 };
+  const narrow = scanCrop(picture, view), label = scanCrop(picture, view, true);
+  assert.ok(label.originX < narrow.originX && label.originY < narrow.originY);
+  assert.ok(label.width > narrow.width * 1.8 && label.height > narrow.height);
+  assert.ok(label.originX + label.width <= picture.width && label.originY + label.height <= picture.height);
+});
 
 test('every bundled library identity is retrievable from its full label text', () => {
   const fullIndex = createLabelIndex(seed);

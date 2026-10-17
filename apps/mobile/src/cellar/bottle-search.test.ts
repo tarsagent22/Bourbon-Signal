@@ -6,6 +6,7 @@ import bottleCatalogSeed from "./bottle-catalog-seed.json";
 import { collectionMatchForOption, createBottleSearchIndex, rankBottleCatalog } from "./bottle-search";
 import { withBundledDiscovery } from './catalog-snapshot';
 import discovery from '../../../../shared/library-discovery-bottles.json';
+import expressions from '../../../../shared/library-expression-bottles.json';
 
 const catalog: RadarBottleOption[] = [
   { id: "eagle-rare", name: "Eagle Rare 10 Year", aliases: ["ER10"], brand: "Buffalo Trace", producer: "Sazerac", proof: 90, ageStatement: "10 Years" },
@@ -29,6 +30,9 @@ test('reviewed editions survive an older API without duplicating its current ide
   const merged = withBundledDiscovery(oldApi);
   assert.equal(withBundledDiscovery(oldApi), merged);
   for (const bottle of discovery) assert.ok(merged.some(b => b.id === bottle.id));
+  for (const bottle of expressions) assert.ok(merged.some(b => b.id === bottle.id));
+  for (const bottle of bottleCatalogSeed) assert.ok(merged.some(b => b.id === bottle.id));
+  assert.equal(new Set(merged.map(b => b.id)).size, merged.length);
   const updated = [{ id: discovery[0].id, name: discovery[0].name, proof: 111.1 }];
   assert.equal(withBundledDiscovery(updated).find(b => b.id === discovery[0].id)?.proof, 111.1);
 });

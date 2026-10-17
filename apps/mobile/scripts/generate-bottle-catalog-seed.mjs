@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import discovery from '../../../shared/library-discovery-bottles.json' with { type: 'json' };
+import expressions from '../../../shared/library-expression-bottles.json' with { type: 'json' };
 
 const sourceUrl = process.argv[2] || "https://www.bourbonsignal.com/api/bottle-catalog";
 const outputUrl = new URL("../src/cellar/bottle-catalog-seed.json", import.meta.url);
@@ -10,7 +11,7 @@ if (!Array.isArray(payload?.bottles) || payload.bottles.length < 1100) {
   throw new Error(`Catalog is incomplete (${Array.isArray(payload?.bottles) ? payload.bottles.length : 0} bottles)`);
 }
 const incoming = [...payload.bottles];
-for (const bottle of discovery) if (!incoming.some(row => row.id === bottle.id || (row.canonicalName || row.name)?.toLowerCase() === bottle.name.toLowerCase())) incoming.push(bottle);
+for (const bottle of [...discovery, ...expressions]) if (!incoming.some(row => row.id === bottle.id || (row.canonicalName || row.name)?.toLowerCase() === bottle.name.toLowerCase())) incoming.push(bottle);
 const compact = incoming.map((bottle) => ({
   id: String(bottle.id || "").trim(),
   name: String(bottle.canonicalName || bottle.name || "").trim(),

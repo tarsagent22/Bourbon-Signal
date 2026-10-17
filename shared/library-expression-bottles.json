@@ -1,0 +1,8 @@
+[
+  {"id":"penelope-madagascar","name":"Penelope Madagascar","brand":"Penelope","category":"bourbon","reference":"https://shop.penelopebourbon.com/products/madagascar"},
+  {"id":"penelope-serena-and-lily","name":"Penelope Serena & Lily","brand":"Penelope","category":"bourbon","reference":"https://shop.penelopebourbon.com/collections/archive"},
+  {"id":"penelope-toasted-rye","name":"Penelope Toasted Rye","brand":"Penelope","category":"rye","reference":"https://shop.penelopebourbon.com/collections/archive"},
+  {"id":"penelope-cigar-sessions-chapter-02","name":"Penelope Cigar Sessions Chapter 02","brand":"Penelope","category":"american_whiskey","reference":"https://shop.penelopebourbon.com/products/cigar-sessions-chapter-02"},
+  {"id":"penelope-estate-collection-conundrum","name":"Penelope Estate Collection Conundrum Rye","aliases":["Penelope Conundrum","Penelope Conundrum Rye"],"brand":"Penelope","category":"rye","reference":"https://penelopebourbon.com/estate-collection/"},
+  {"id":"penelope-barrel-strength-bourbon","name":"Penelope Barrel Strength Bourbon","brand":"Penelope","category":"bourbon","reference":"https://shop.penelopebourbon.com/products/barrel-strength"}
+]

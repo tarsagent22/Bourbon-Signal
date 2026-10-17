@@ -5,8 +5,9 @@ export function createCandidateLatch() {
   let previous = '';
   let locked = false;
   return {
-    observe(matches: RadarBottleOption[]): RadarBottleOption[] | null {
+    observe(matches: RadarBottleOption[], canHold = true): RadarBottleOption[] | null {
       if (locked) return null;
+      if (!canHold) { previous = ''; return null; }
       const candidate = matches[0]?.id || '';
       if (!candidate || candidate !== previous) { previous = candidate; return null; }
       locked = true;

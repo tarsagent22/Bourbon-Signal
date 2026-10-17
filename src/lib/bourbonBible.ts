@@ -1,5 +1,6 @@
 import { REVIEWED_SIGHTING_RARITY } from "../data/reviewed-sighting-rarity";
 import discoveryBottles from '../../shared/library-discovery-bottles.json';
+import expressionBottles from '../../shared/library-expression-bottles.json';
 import inventoryBottles from "@/data/bourbonBibleInventory.json";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { mergeBottleCatalogSources } from "@/lib/bottle-catalog-merge";
@@ -52,10 +53,10 @@ export interface BibleSearchResult extends BibleBottle {
 }
 
 const SEED_BOTTLES: BibleBottleInput[] = [
-  // These editions already have reviewed, exact artwork. Keep uncertain facts
-  // pending and do not infer alert eligibility from their appearance in a feed.
-  ...discoveryBottles.map(bottle => ({
-    ...commonBottle(bottle.id, bottle.name, bottle.brand, [], 'Edition-specific bottle library entry.', 'Confirm the release on the label. Pricing and rarity are under review.'),
+  // Exact expression identities, with unresolved pricing and rarity kept pending.
+  // Discovery editions have reviewed art; producer-verified additions may not yet.
+  ...[...discoveryBottles, ...expressionBottles].map(bottle => ({
+    ...commonBottle(bottle.id, bottle.name, bottle.brand, 'aliases' in bottle && Array.isArray(bottle.aliases) ? bottle.aliases : [], 'Edition-specific bottle library entry.', 'Confirm the release on the label. Pricing and rarity are under review.'),
     category: bottle.category as BibleBottle['category'], rarityPending: true, buyerVerdict: 'unknown' as const,
   })),
   // Producer-verified identities for common scan gaps. Pricing and scarcity stay unreviewed.

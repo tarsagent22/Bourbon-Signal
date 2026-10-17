@@ -7,8 +7,12 @@ export function scanGuide(view: ScanSize) {
   return { width, height, left: (view.width - width) / 2, top: Math.max(0, (view.height - height) / 2 - 12) };
 }
 
-export function scanCrop(picture: ScanSize, view: ScanSize) {
-  const guide = scanGuide(view);
+export function scanCrop(picture: ScanSize, view: ScanSize, labelArea = false) {
+  // The outline frames the bottle, not the text boundary. Read beyond it so
+  // curved labels and expression strips near the base are not clipped away.
+  const guide = labelArea
+    ? { left: view.width * 0.04, top: view.height * 0.04, width: view.width * 0.92, height: view.height * 0.92 }
+    : scanGuide(view);
   // Camera preview fills its viewport, cropping the image equally on either side.
   const scale = Math.max(view.width / picture.width, view.height / picture.height);
   const originX = Math.max(0, Math.floor((guide.left + (picture.width * scale - view.width) / 2) / scale));
