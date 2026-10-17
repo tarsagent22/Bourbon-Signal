@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
   s.name = 'BottleLabelReader'
   s.version = '1.0.0'
   s.summary = 'On-device bottle label recognition'
-  s.description = 'Reads temporary local camera frames with Apple Vision.'
+  s.description = 'Streams on-device camera buffers to Apple Vision without frame files.'
   s.author = 'Bourbon Signal'
   s.homepage = 'https://www.bourbonsignal.com'
   s.license = { :type => 'Proprietary' }
@@ -11,6 +11,6 @@ Pod::Spec.new do |s|
   s.source = { :git => 'https://github.com/tarsagent22/Bourbon-Signal.git' }
   s.static_framework = true
   s.dependency 'ExpoModulesCore'
-  s.frameworks = 'Vision', 'Foundation'
+  s.frameworks = 'Vision', 'Foundation', 'AVFoundation', 'CoreMedia', 'CoreVideo', 'UIKit'
   s.source_files = '**/*.swift'
 end

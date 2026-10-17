@@ -26,9 +26,11 @@ try {
     assert.equal(await page.evaluate(() => window.scannerReads), reads, 'OCR stops while results are held');
     await page.screenshot({ path: path.join(output, `held-${width}.png`), fullPage: true });
     await page.evaluate(() => { window.scannerText = 'WILD TURKEY RARE BREED RYE BARREL PROOF'; });
+    const mounts = await page.evaluate(() => window.scannerMounts);
     await page.getByRole('button', { name: 'Scan another', exact: true }).click();
     await page.getByRole('button', { name: 'Check Wild Turkey Rare Breed Rye', exact: true }).waitFor();
     assert.equal(await matches.count(), 0);
+    assert.equal(await page.evaluate(() => window.scannerMounts), mounts, 'rescan reuses the warm native camera');
     await page.getByRole('button', { name: 'Check Wild Turkey Rare Breed Rye', exact: true }).click();
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).waitFor();
     assert.equal(await page.getByTestId('bottle-scanner-frame').count(), 0);

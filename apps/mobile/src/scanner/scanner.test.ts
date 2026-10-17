@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createLabelIndex, matchBottleLabel, readBottleLabel, bottleLabelFamily, normalizeBarcode } from './label-matching';
-import { createScanLoop } from './scan-loop';
-import { scanGuide, scanCrop } from './scan-guide';
-import { createCandidateLatch } from './scan-candidates';
 import seed from '../cellar/bottle-catalog-seed.json';
 import { compareBottlePrice } from '../../../../shared/bottle-profile';
 import { validApiResponse } from '../api/response-validation';
@@ -51,16 +48,6 @@ test('all expressions remain reachable for similar-label families, beyond the ca
   assert.equal(readBottleLabel(fullIndex, 'PENELOPE RIVIERA AND BUFFALO TRACE').canHold, false);
 });
 
-test('brand-only agreement cannot freeze out a later expression read', () => {
-  const fullIndex = createLabelIndex(seed), latch = createCandidateLatch();
-  const brand = readBottleLabel(fullIndex, 'PENELOPE');
-  assert.equal(latch.observe(brand.matches, brand.canHold), null);
-  assert.equal(latch.observe(brand.matches, brand.canHold), null);
-  const expression = readBottleLabel(fullIndex, 'PENELOPE RIVIERA');
-  assert.equal(latch.observe(expression.matches, expression.canHold), null);
-  assert.equal(latch.observe(expression.matches, expression.canHold)?.[0].id, 'penelope-riviera-cask-finish');
-});
-
 test('batch and chapter numbers keep similarly presented releases separate', () => {
   const editions = createLabelIndex([
     { id: 'chapter1', name: 'Penelope Cigar Sessions Chapter 01', brand: 'Penelope' },
@@ -71,14 +58,6 @@ test('batch and chapter numbers keep similarly presented releases separate', () 
   assert.deepEqual(matchBottleLabel(editions, 'PENELOPE CIGAR SESSIONS CHAPTER 2').map(b => b.id), ['chapter2']);
   assert.deepEqual(matchBottleLabel(editions, 'BARRELL BOURBON BATCH 032').map(b => b.id), ['batch32']);
   assert.deepEqual(new Set(matchBottleLabel(editions, 'PENELOPE CIGAR SESSIONS').map(b => b.id)), new Set(['chapter1', 'chapter2']));
-});
-
-test('OCR includes label edges and bottom expression strips beyond the bottle outline', () => {
-  const view = { width: 353, height: 380 }, picture = { width: 3024, height: 4032 };
-  const narrow = scanCrop(picture, view), label = scanCrop(picture, view, true);
-  assert.ok(label.originX < narrow.originX && label.originY < narrow.originY);
-  assert.ok(label.width > narrow.width * 1.8 && label.height > narrow.height);
-  assert.ok(label.originX + label.width <= picture.width && label.originY + label.height <= picture.height);
 });
 
 test('every bundled library identity is retrievable from its full label text', () => {
@@ -94,13 +73,6 @@ test('punctuated initials, short ages and a single anchored OCR error remain sea
   assert.equal(matchBottleLabel(index, 'FREY RANOH KENTUCKY STRAIGHT BOURBON')[0]?.id, 'frey');
   assert.deepEqual(matchBottleLabel(index, 'RANOH'), [], 'a corrected word alone is not identity evidence');
   assert.ok(!matchBottleLabel(index, 'OLD FORESTER 1910').some(b => b.id === 'of1920'));
-});
-
-import { labelPictureSize, LABEL_FRAME_DELAY_MS } from './capture-settings';
-test('sensor sizing bounds frame work while retaining real label resolution', () => {
-  assert.equal(labelPictureSize(['4032x3024', '2560x1920', '2048x1536', '1920x1080', 'Photo', '0x0']), '2048x1536');
-  assert.equal(labelPictureSize(['1920x1080', 'Photo', 'NaNx2000']), undefined, 'unsupported cameras keep their default');
-  assert.equal(LABEL_FRAME_DELAY_MS, 900);
 });
 test('label candidates survive multiline label boilerplate', () => {
   assert.equal(matchBottleLabel(index, 'FREY RANCH\nFARMERS + DISTILLERS\nSTRAIGHT BOURBON WHISKEY\nNEVADA GROWN')[0]?.id, 'frey');
@@ -122,38 +94,6 @@ test('barcodes require valid check digits and normalize UPC-A to EAN-13', () => 
   assert.equal(normalizeBarcode('036000291452'), '0036000291452');
   assert.equal(normalizeBarcode('0036000291452'), '0036000291452');
   for (const code of ['036000291453', 'not-a-code', '123', 'https://example.com']) assert.equal(normalizeBarcode(code), null);
-});
-
-test('portrait scan guide maps exactly into cover-cropped portrait and landscape captures', () => {
-  for (const view of [{ width: 280, height: 380 }, { width: 353, height: 380 }, { width: 740, height: 380 }]) {
-    const guide = scanGuide(view);
-    assert.ok(guide.height > guide.width * 1.5);
-    for (const picture of [{ width: 3024, height: 4032 }, { width: 4032, height: 3024 }, { width: 1080, height: 1920 }]) {
-      const crop = scanCrop(picture, view);
-      assert.ok(crop.width > 0 && crop.height > crop.width);
-      assert.ok(crop.originX >= 0 && crop.originY >= 0 && crop.originX + crop.width <= picture.width && crop.originY + crop.height <= picture.height);
-      const scale = Math.max(view.width / picture.width, view.height / picture.height);
-      assert.ok(Math.abs(crop.originX * scale - (picture.width * scale - view.width) / 2 - guide.left) < 1);
-      assert.ok(Math.abs(crop.originY * scale - (picture.height * scale - view.height) / 2 - guide.top) < 1);
-      assert.ok(Math.abs(crop.width * scale - guide.width) < 1);
-    }
-  }
-});
-
-test('scan waits for agreement and holds results through blank frames, reordering and different bottles', () => {
-  const latch = createCandidateLatch();
-  const one = catalog[0], two = catalog[1];
-  assert.equal(latch.observe([one, two]), null);
-  assert.equal(latch.observe([]), null);
-  assert.equal(latch.observe([one, two]), null);
-  assert.equal(latch.observe([two, one]), null);
-  assert.deepEqual(latch.observe([two, one]), [two, one]);
-  for (const matches of [[], [one], [two], [one, two]]) assert.equal(latch.observe(matches), null);
-  assert.equal(latch.verified([one]), null);
-  const rescan = createCandidateLatch();
-  assert.equal(rescan.observe([one]), null);
-  assert.deepEqual(rescan.observe([one]), [one]);
-  assert.deepEqual(createCandidateLatch().verified([one]), [one]);
 });
 
 test('everyday rye scan gaps exist offline and explicit expressions avoid conflicting candidates', () => {
@@ -186,26 +126,6 @@ test('malformed profile facts are rejected at the mobile API boundary', () => {
   assert.equal(validApiResponse('/api/v1/bottles/er10', { bottle }), true);
   assert.equal(validApiResponse('/api/v1/bottles/er10', { bottle: { ...bottle, msrp: -1 } }), false);
   assert.equal(validApiResponse('/api/v1/bottles/er10', { bottle: { ...bottle, rarity: {} } }), false);
-});
-test('stopping a scan discards an in-flight result and does not schedule another frame', async () => {
-  let finish!: (value: string) => void; let reads = 0; const values: string[] = [];
-  const loop = createScanLoop({ read: () => { reads += 1; return new Promise<string>(resolve => { finish = resolve; }); }, onResult: value => values.push(value), onError: error => { throw error; }, delay: 5 });
-  loop.start(); loop.start(); assert.equal(reads, 1); loop.stop(); finish('stale');
-  await new Promise(resolve => setTimeout(resolve, 20));
-  assert.deepEqual(values, []); assert.equal(reads, 1);
-});
-test('pause and restart do not overlap reads and a resumed scan recovers', async () => {
-  let finish!: (value: number) => void; let reads = 0; const results: number[] = [];
-  const loop = createScanLoop({ read: () => { reads += 1; return new Promise<number>(resolve => { finish = resolve; }); }, onResult: value => results.push(value), onError: error => { throw error; }, delay: 5 });
-  loop.start(); loop.stop(); loop.start(); assert.equal(reads, 1); finish(1);
-  await new Promise(resolve => setTimeout(resolve, 15));
-  assert.equal(reads, 2); finish(2); await Promise.resolve(); loop.stop(); assert.deepEqual(results, [2]);
-});
-test('read failures are delivered without leaving the loop stuck', async () => {
-  const errors: unknown[] = []; let reads = 0;
-  const loop = createScanLoop({ read: async () => { reads += 1; throw new Error('camera'); }, onResult: () => assert.fail(), onError: error => errors.push(error), delay: 5 });
-  loop.start(); await new Promise(resolve => setTimeout(resolve, 18)); loop.stop();
-  assert.ok(reads >= 2); assert.equal(errors.length, reads);
 });
 
 // Buying guidance must never turn missing evidence or a rare label into a buy signal.

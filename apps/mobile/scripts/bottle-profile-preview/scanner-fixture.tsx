@@ -1,16 +1,28 @@
-// Native scanner behavior fixture. This simulates camera/OCR boundaries, never hardware acceptance.
-import { forwardRef, useEffect, useImperativeHandle } from 'react';
+// Simulate only native camera events. Matching, temporal evidence and UI are actual source.
+import { useEffect, useRef } from 'react';
 import { View, Text } from 'react-native';
-declare global { interface Window { scannerText?: string; scannerReads?: number; scannerCrop?: unknown } }
-export function requireOptionalNativeModule(name: string) {
-  return name === 'BottleLabelReader' ? { async recognizeText() { window.scannerReads = (window.scannerReads || 0) + 1; return { text: window.scannerText || '' }; } } : {};
-}
+declare global { interface Window { scannerText?: string; scannerTexts?: string[]; scannerReads?: number; scannerMounts?: number; scannerScene?: number[] } }
+export function requireOptionalNativeModule(name: string) { return name === 'BottleLabelReader' ? { liveFramesVersion: 1 } : {}; }
 export function useCameraPermissions() { return [{ granted: true }, async () => ({ granted: true })] as const; }
-export const CameraView = forwardRef(function FixtureCamera({ style, onCameraReady }: any, ref) {
-  useImperativeHandle(ref, () => ({ async takePictureAsync() { return { uri: 'fixture://frame', width: 3024, height: 4032 }; } }));
-  useEffect(() => { onCameraReady(); }, []);
-  return <View style={[style, { backgroundColor: '#39332B', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ color: '#D6CAB8', fontSize: 10 }}>SIMULATED CAMERA / OCR</Text></View>;
-});
-export class File { constructor(_uri: string) {} delete() {} }
-export const SaveFormat = { JPEG: 'jpeg' };
-export async function manipulateAsync(_uri: string, actions: unknown[]) { window.scannerCrop = actions[0]; return { uri: 'fixture://crop' }; }
+export function requireNativeView() { return FixtureCamera; }
+function FixtureCamera({ style, active, scanning, onFrame, onStatus, scanToken }: any) {
+  const current = useRef({ onFrame, onStatus, scanToken }); current.current = { onFrame, onStatus, scanToken };
+  const sequence = useRef(0);
+  useEffect(() => { window.scannerMounts = (window.scannerMounts || 0) + 1; }, []);
+  useEffect(() => {
+    if (!active || !scanning) return;
+    const read = () => {
+      window.scannerReads = (window.scannerReads || 0) + 1; sequence.current += 1;
+      const text = window.scannerTexts?.length ? window.scannerTexts.shift()! : window.scannerText || '';
+      current.current.onFrame({ nativeEvent: {
+        scanToken: current.current.scanToken, sequence: sequence.current, timestamp: Date.now(), processingMs: 40, width: 1080, height: 1440,
+        scene: window.scannerScene || Array.from({ length: 36 }, (_, i) => 70 + i * 2),
+        blocks: text ? text.split('\n').map((text, i) => ({ text, confidence: 0.95, x: 0.2, y: 0.28 + i * 0.065, width: 0.6, height: 0.05 })) : [],
+      } });
+    };
+    current.current.onStatus({ nativeEvent: { state: 'ready', scanToken: current.current.scanToken } });
+    const initial = setTimeout(read, 80), interval = setInterval(read, 300);
+    return () => { clearTimeout(initial); clearInterval(interval); };
+  }, [active, scanning]);
+  return <View style={[style, { backgroundColor: '#39332B', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ color: '#D6CAB8', fontSize: 10 }}>SIMULATED LIVE CAMERA / OCR</Text></View>;
+}

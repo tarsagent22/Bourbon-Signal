@@ -40,3 +40,9 @@ data/retailer-acquisition/
 .gradle/
 .cxx/
 .kotlin/
+
+# Native builds do not need web images, engine exports, or local module output.
+/public/
+/engine/out/
+/docs/
+**/build/
