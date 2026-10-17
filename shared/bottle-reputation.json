@@ -30,6 +30,13 @@
         "source": "https://www.makersmark.com/bourbons/makers-mark",
         "proof": 90,
         "checkedAt": "2026-10-16"
+      },
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.makersmark.com/bourbons",
+        "checkedAt": "2026-10-16"
       }
     },
     {
@@ -80,7 +87,14 @@
           "source": "https://distiller.com/spirits/old-forester-1920-prohibition-style",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.oldforester.com/whiskies/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "eh-taylor-small-batch",
@@ -133,7 +147,14 @@
           "checkedAt": "2026-10-16"
         }
       ],
-      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ.",
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "Part of Four Roses permanent lineup. Local stock is unverified.",
+        "source": "https://www.fourrosesbourbon.com/blog/non-chill-filtered-small-batch-select",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "knob-creek-9",
@@ -165,6 +186,13 @@
         "proof": 100,
         "ageYears": 9,
         "checkedAt": "2026-10-16"
+      },
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.knobcreek.com/whiskies",
+        "checkedAt": "2026-10-16"
       }
     },
     {
@@ -184,7 +212,14 @@
           "checkedAt": "2026-10-16"
         }
       ],
-      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ.",
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.wildturkeybourbon.com/en-us/products/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "elijah-craig-small-batch",
@@ -288,7 +323,14 @@
           "source": "https://distiller.com/spirits/knob-creek-12-year-small-batch-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.knobcreek.com/whiskies",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "russells-reserve-10",
@@ -367,7 +409,14 @@
           "source": "https://distiller.com/spirits/four-roses-small-batch-select-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "Part of Four Roses permanent lineup. Local stock is unverified.",
+        "source": "https://www.fourrosesbourbon.com/blog/non-chill-filtered-small-batch-select",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "evan-williams-bottled-in-bond",
@@ -421,7 +470,14 @@
           "source": "https://distiller.com/spirits/old-forester-signature-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.oldforester.com/whiskies/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "heaven-hill-bottled-in-bond",
@@ -447,7 +503,20 @@
           "source": "https://distiller.com/spirits/heaven-hill-bottled-in-bond-7-year",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://heavenhilldistillery.com/hh-bottled-in-bond.php",
+        "checkedAt": "2026-10-16"
+      },
+      "producerFacts": {
+        "source": "https://heavenhilldistillery.com/hh-bottled-in-bond.php",
+        "checkedAt": "2026-10-16",
+        "proof": 100,
+        "ageYears": 7
+      }
     },
     {
       "key": "michter-us1-bourbon",
@@ -650,6 +719,13 @@
         "source": "https://www.wildturkeybourbon.com/en-us/products/wild-turkey-101/",
         "proof": 101,
         "checkedAt": "2026-10-16"
+      },
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.wildturkeybourbon.com/en-us/products/",
+        "checkedAt": "2026-10-16"
       }
     },
     {
@@ -680,6 +756,13 @@
         "source": "https://www.oldforester.com/products/old-forester-1910-old-fine-whisky/",
         "proof": 93,
         "process": "Second barreling",
+        "checkedAt": "2026-10-16"
+      },
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.oldforester.com/whiskies/",
         "checkedAt": "2026-10-16"
       }
     },
@@ -712,6 +795,13 @@
         "source": "https://www.woodfordreserve.com/whiskey/double-oaked/",
         "proof": 90.4,
         "process": "Second maturation in a toasted, lightly charred oak barrel",
+        "checkedAt": "2026-10-16"
+      },
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.woodfordreserve.com/our-whiskey/",
         "checkedAt": "2026-10-16"
       }
     },
@@ -870,7 +960,14 @@
           "source": "https://distiller.com/spirits/maker-s-46",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.makersmark.com/bourbons",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "woodford-reserve",
@@ -895,7 +992,14 @@
           "source": "https://distiller.com/spirits/woodford-reserve-bourbon",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.woodfordreserve.com/our-whiskey/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "makers-mark-cask-strength",
@@ -914,7 +1018,14 @@
           "checkedAt": "2026-10-16"
         }
       ],
-      "scopeNote": "Expression-level reviews; individual batches or barrels can differ."
+      "scopeNote": "Expression-level reviews; individual batches or barrels can differ.",
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.makersmark.com/bourbons",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "eh-taylor-single-barrel",
@@ -959,7 +1070,14 @@
           "source": "https://distiller.com/spirits/wild-turkey-rare-breed-rye",
           "checkedAt": "2026-10-16"
         }
-      ]
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.wildturkeybourbon.com/en-us/products/",
+        "checkedAt": "2026-10-16"
+      }
     },
     {
       "key": "weller-full-proof",
@@ -1031,6 +1149,1194 @@
         }
       ],
       "scopeNote": "Expression-level reviews; annual releases or individual batches can differ."
+    },
+    {
+      "key": "blantons-straight-from-the-barrel",
+      "names": [
+        "Blanton's Straight From The Barrel"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.51,
+          "scale": 5,
+          "count": 753,
+          "source": "https://distiller.com/spirits/blantons-straight-from-the-barrel",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded.",
+      "release": {
+        "kind": "limited",
+        "label": "Annual US release",
+        "reason": "An annual US release; individual barrels and local stock vary.",
+        "source": "https://distiller.com/spirits/blantons-straight-from-the-barrel",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "henry-mckenna-10-year",
+      "names": [
+        "Henry McKenna 10 Year",
+        "Henry McKenna Single Barrel"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 91,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/henry-mckenna-single-barrel-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.94,
+          "scale": 5,
+          "count": 5591,
+          "source": "https://distiller.com/spirits/henry-mckenna-single-barrel-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+    },
+    {
+      "key": "1792-full-proof-single-barrel-select",
+      "names": [
+        "1792 Full Proof Single Barrel Select"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.93,
+          "scale": 5,
+          "count": 160,
+          "source": "https://distiller.com/spirits/1792-full-proof-single-barrel-select",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+    },
+    {
+      "key": "1792-full-proof",
+      "names": [
+        "1792 Full Proof"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 87,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/1792-full-proof-straight-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.88,
+          "scale": 5,
+          "count": 1819,
+          "source": "https://distiller.com/spirits/1792-full-proof-straight-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "limited",
+        "label": "Limited edition",
+        "reason": "A limited-edition expression in the 1792 range. Local stock is unverified.",
+        "source": "https://distiller.com/articles/bourbon-breakdown-1792-bourbon",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "henry-mckenna",
+      "names": [
+        "Henry McKenna"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 82,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/henry-mckenna-straight-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3,
+          "scale": 5,
+          "count": 312,
+          "source": "https://distiller.com/spirits/henry-mckenna-straight-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded.",
+      "identity": {
+        "requiredProof": 80
+      }
+    },
+    {
+      "key": "old-forester-statesman",
+      "names": [
+        "Old Forester Statesman"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 83,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/old-forester-statesman",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.7,
+          "scale": 5,
+          "count": 1180,
+          "source": "https://distiller.com/spirits/old-forester-statesman",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.oldforester.com/whiskies/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "sazerac-rye",
+      "names": [
+        "Sazerac Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 87,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/sazerac-rye",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.82,
+          "scale": 5,
+          "count": 3480,
+          "source": "https://distiller.com/spirits/sazerac-rye",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "pikesville-rye",
+      "names": [
+        "Pikesville Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 88,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/pikesville-straight-rye",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.96,
+          "scale": 5,
+          "count": 1391,
+          "source": "https://distiller.com/spirits/pikesville-straight-rye",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "rowans-creek-bourbon",
+      "names": [
+        "Rowan's Creek Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 91,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/rowan-s-creek",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.78,
+          "scale": 5,
+          "count": 2364,
+          "source": "https://distiller.com/spirits/rowan-s-creek",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "four-roses-small-batch",
+      "names": [
+        "Four Roses Small Batch"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 92,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/four-roses-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.8,
+          "scale": 5,
+          "count": 5806,
+          "source": "https://distiller.com/spirits/four-roses-small-batch-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "Part of Four Roses permanent lineup. Local stock is unverified.",
+        "source": "https://www.fourrosesbourbon.com/blog/non-chill-filtered-small-batch-select",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "rittenhouse-bonded-rye",
+      "names": [
+        "Rittenhouse Bonded Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 92,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/rittenhouse-rye-bottled-in-bond",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.79,
+          "scale": 5,
+          "count": 2649,
+          "source": "https://distiller.com/spirits/rittenhouse-rye-bottled-in-bond",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "jack-daniels-single-barrel-barrel-proof",
+      "names": [
+        "Jack Daniel's Single Barrel Barrel Proof"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.12,
+          "scale": 5,
+          "count": 184,
+          "source": "https://distiller.com/spirits/jack-daniel-s-single-barrel-barrel-stength",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+    },
+    {
+      "key": "still-austin-cask-strength-bourbon-whiskey",
+      "names": [
+        "Still Austin Cask Strength Bourbon Whiskey"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 87,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/still-austin-the-musician-cask-strength",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.94,
+          "scale": 5,
+          "count": 201,
+          "source": "https://distiller.com/spirits/still-austin-the-musician-cask-strength",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+    },
+    {
+      "key": "still-austin-straight-bourbon-whiskey-the-musician",
+      "names": [
+        "Still Austin Straight Bourbon Whiskey The Musician",
+        "Still Austin The Musician Straight Bourbon",
+        "Still Austin The Musician Straight Bourbon Whiskey"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/still-austin-straight-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.66,
+          "scale": 5,
+          "count": 276,
+          "source": "https://distiller.com/spirits/still-austin-straight-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "green-river-wheated-bourbon",
+      "names": [
+        "Green River Wheated Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 85,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/green-river-wheated-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.65,
+          "scale": 5,
+          "count": 193,
+          "source": "https://distiller.com/spirits/green-river-wheated-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://greenriverwhiskey.com/our-whiskey-new-changes/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "blantons-gold-bourbon",
+      "names": [
+        "Blanton's Gold Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 93,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/blanton-s-gold-edition",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.35,
+          "scale": 5,
+          "count": 1192,
+          "source": "https://distiller.com/spirits/blanton-s-gold-edition",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "limited",
+        "label": "Limited release",
+        "reason": "The producer identifies Gold as a limited release. Local availability is unverified.",
+        "source": "https://www.buffalotracedistillery.com/our-brands/blantons-single-barrel/blantons-gold-edition/",
+        "checkedAt": "2026-10-16"
+      },
+      "producerFacts": {
+        "source": "https://www.buffalotracedistillery.com/our-brands/blantons-single-barrel/blantons-gold-edition/",
+        "checkedAt": "2026-10-16",
+        "proof": 103
+      }
+    },
+    {
+      "key": "1792-bottled-in-bond",
+      "names": [
+        "1792 Bottled in Bond"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/1792-bottled-in-bond",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.72,
+          "scale": 5,
+          "count": 686,
+          "source": "https://distiller.com/spirits/1792-bottled-in-bond",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "limited",
+        "label": "Limited edition",
+        "reason": "A limited-edition expression in the 1792 range. Local stock is unverified.",
+        "source": "https://distiller.com/articles/bourbon-breakdown-1792-bourbon",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "green-river-bourbon",
+      "names": [
+        "Green River Bourbon",
+        "Green River Kentucky Straight Bourbon"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 87,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/green-river-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.52,
+          "scale": 5,
+          "count": 193,
+          "source": "https://distiller.com/spirits/green-river-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://greenriverwhiskey.com/our-whiskey-new-changes/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "bb_71c68398a83ef404",
+      "names": [
+        "Smoke Wagon Uncut Unfiltered"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.12,
+          "scale": 5,
+          "count": 719,
+          "source": "https://distiller.com/spirits/smoke-wagon-uncut-unfiltered",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+    },
+    {
+      "key": "new-riff-bottled-in-bond-rye",
+      "names": [
+        "New Riff Bottled-in-Bond Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 87,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/new-riff-kentucky-straight-rye-bottled-in-bond",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.77,
+          "scale": 5,
+          "count": 324,
+          "source": "https://distiller.com/spirits/new-riff-kentucky-straight-rye-bottled-in-bond",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "wild-turkey-101-rye",
+      "names": [
+        "Wild Turkey 101 Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 83,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/wild-turkey-rye-101",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.5,
+          "scale": 5,
+          "count": 444,
+          "source": "https://distiller.com/spirits/wild-turkey-rye-101",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.wildturkeybourbon.com/en-us/products/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "early-times-bottled-in-bond",
+      "names": [
+        "Early Times Bottled in Bond"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/early-times-bottled-in-bond-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "bb_a3b1732edd18ac89",
+      "names": [
+        "Basil Hayden 10 Year",
+        "Basil Hayden's 10Y"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 88,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/basil-haydens-10-year",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.77,
+          "scale": 5,
+          "count": 479,
+          "source": "https://distiller.com/spirits/basil-haydens-10-year",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "high-west-double-rye",
+      "names": [
+        "High West Double Rye",
+        "High West Whiskey Double Rye!"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/high-west-double-rye",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "old-forester-rye",
+      "names": [
+        "Old Forester Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 85,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/old-forester-rye",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.63,
+          "scale": 5,
+          "count": 941,
+          "source": "https://distiller.com/spirits/old-forester-rye",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.oldforester.com/whiskies/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "michters-us-1-rye-whiskey",
+      "names": [
+        "Michter's US*1 Rye Whiskey"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/michter-s-us-1-single-barrel-rye",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.79,
+          "scale": 5,
+          "count": 1850,
+          "source": "https://distiller.com/spirits/michter-s-us-1-single-barrel-rye",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+    },
+    {
+      "key": "bb_2b24796e5c750106",
+      "names": [
+        "Michter's US 1 American Whiskey",
+        "Michter's US*1 Unblended American Whiskey"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 90,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/michter-s-us-1-unblended-american-whiskey",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.04,
+          "scale": 5,
+          "count": 1958,
+          "source": "https://distiller.com/spirits/michter-s-us-1-unblended-american-whiskey",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "jack-daniels-bonded",
+      "names": [
+        "Jack Daniel's Bonded"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.6,
+          "scale": 5,
+          "count": 382,
+          "source": "https://distiller.com/spirits/jack-daniel-s-bonded-tennessee-whiskey",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A permanent expression in Jack Daniels Bonded Series. Local stock is unverified.",
+        "source": "https://pressroom.jackdaniels.com/jack-daniels-launches-first-super-premium-line-extension-in-25-years-jack-daniels-bonded-and-jack-daniels-triple-mash/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "jack-daniels-bonded-triple-mash",
+      "names": [
+        "Jack Daniel's Bonded Triple Mash"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/jack-daniel-s-triple-mash",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.57,
+          "scale": 5,
+          "count": 232,
+          "source": "https://distiller.com/spirits/jack-daniel-s-triple-mash",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A permanent expression in Jack Daniels Bonded Series. Local stock is unverified.",
+        "source": "https://pressroom.jackdaniels.com/jack-daniels-launches-first-super-premium-line-extension-in-25-years-jack-daniels-bonded-and-jack-daniels-triple-mash/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "rock-hill-farms",
+      "names": [
+        "Rock Hill Farms Single Barrel"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 91,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/rock-hill-farms-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.21,
+          "scale": 5,
+          "count": 1122,
+          "source": "https://distiller.com/spirits/rock-hill-farms-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "weller-single-barrel",
+      "names": [
+        "Weller Single Barrel"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.23,
+          "scale": 5,
+          "count": 213,
+          "source": "https://distiller.com/spirits/weller-single-barrel",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded.",
+      "release": {
+        "kind": "limited",
+        "label": "Annual limited release",
+        "reason": "An annual limited expression. Local stock is unverified.",
+        "source": "https://www.buffalotracedistillery.com/our-brands/w-l-weller/w-l-weller-single-barrel/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "bb_24a388c391f6626f",
+      "names": [
+        "Bardstown Bourbon Origin Series Kentucky Straight Bourbon",
+        "Bardstown Bourbon Origin Series Kentucky Straight Bourbon Whiskey"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/bardstown-bourbon-co-origin-series-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.9,
+          "scale": 5,
+          "count": 218,
+          "source": "https://distiller.com/spirits/bardstown-bourbon-co-origin-series-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "Part of Bardstown Origin Series core range. Local stock is unverified.",
+        "source": "https://www.bardstownbourbon.com/estate-distilled-bourbon/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "bardstown-bourbon-origin-series-rye",
+      "names": [
+        "Bardstown Bourbon Origin Series Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/bardstown-bourbon-co-origin-series-rye",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.91,
+          "scale": 5,
+          "count": 100,
+          "source": "https://distiller.com/spirits/bardstown-bourbon-co-origin-series-rye",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "Part of Bardstown Origin Series core range. Local stock is unverified.",
+        "source": "https://www.bardstownbourbon.com/estate-distilled-bourbon/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "bb_311d7401141a8587",
+      "names": [
+        "Bardstown Bourbon Origin Series High Wheat"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/bardstown-bourbon-co-origin-series-wheated-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.04,
+          "scale": 5,
+          "count": 150,
+          "source": "https://distiller.com/spirits/bardstown-bourbon-co-origin-series-wheated-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "Part of Bardstown Origin Series core range. Local stock is unverified.",
+        "source": "https://www.bardstownbourbon.com/estate-distilled-bourbon/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "bardstown-bourbon-origin-series-bottled-in-bond",
+      "names": [
+        "Bardstown Bourbon Origin Series Bottled in Bond"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 92,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/bardstown-bourbon-co-origin-series-bottled-in-bond-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.02,
+          "scale": 5,
+          "count": 298,
+          "source": "https://distiller.com/spirits/bardstown-bourbon-co-origin-series-bottled-in-bond-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "Part of Bardstown Origin Series core range. Local stock is unverified.",
+        "source": "https://www.bardstownbourbon.com/estate-distilled-bourbon/",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "yellowstone-select",
+      "names": [
+        "Yellowstone Select"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/yellowstone-select",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.47,
+          "scale": 5,
+          "count": 1473,
+          "source": "https://distiller.com/spirits/yellowstone-select",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "basil-haydens",
+      "names": [
+        "Basil Hayden's"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 80,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/basil-hayden-s-bourbon",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.61,
+          "scale": 5,
+          "count": 7386,
+          "source": "https://distiller.com/spirits/basil-hayden-s-bourbon",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "bb_dab3d03d7632a821",
+      "names": [
+        "Wild Turkey Longbranch"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 86,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/wild-turkey-longbranch",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.67,
+          "scale": 5,
+          "count": 1980,
+          "source": "https://distiller.com/spirits/wild-turkey-longbranch",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "four-roses-yellow-label",
+      "names": [
+        "Four Roses Yellow Label"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 82,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/four-roses-yellow-label",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.14,
+          "scale": 5,
+          "count": 2064,
+          "source": "https://distiller.com/spirits/four-roses-yellow-label",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "Part of Four Roses permanent lineup. Local stock is unverified.",
+        "source": "https://www.fourrosesbourbon.com/blog/non-chill-filtered-small-batch-select",
+        "checkedAt": "2026-10-16"
+      }
+    },
+    {
+      "key": "jim-beam-black-7y",
+      "names": [
+        "Jim Beam Black 7Y"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 78,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/jim-beam-black-7-year",
+          "checkedAt": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "key": "old-rip-van-winkle-10",
+      "names": [
+        "Old Rip Van Winkle 10 Year"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 88,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/old-rip-van-winkle-handmade-10",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.28,
+          "scale": 5,
+          "count": 1781,
+          "source": "https://distiller.com/spirits/old-rip-van-winkle-handmade-10",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+    },
+    {
+      "key": "van-winkle-special-reserve-12y",
+      "names": [
+        "Van Winkle Special Reserve 12Y"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 89,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/van-winkle-special-reserve-12-years-old-lot-b",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 4.42,
+          "scale": 5,
+          "count": 1609,
+          "source": "https://distiller.com/spirits/van-winkle-special-reserve-12-years-old-lot-b",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "scopeNote": "Expression-level reviews; individual barrels, batches and release years can differ. Named store picks and separate editions are excluded."
+    },
+    {
+      "key": "old-forester",
+      "names": [
+        "Old Forester"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 85,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/old-forester",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.29,
+          "scale": 5,
+          "count": 1943,
+          "source": "https://distiller.com/spirits/old-forester",
+          "checkedAt": "2026-10-16"
+        }
+      ],
+      "release": {
+        "kind": "standard",
+        "label": "Standard release",
+        "reason": "A standing expression in the producer range. Local availability varies.",
+        "source": "https://www.oldforester.com/whiskies/",
+        "checkedAt": "2026-10-16"
+      },
+      "identity": {
+        "requiredProof": 86
+      }
+    },
+    {
+      "key": "bulleit-rye",
+      "names": [
+        "Bulleit Rye"
+      ],
+      "ratings": [
+        {
+          "publisher": "Distiller",
+          "kind": "expert",
+          "value": 84,
+          "scale": 100,
+          "source": "https://distiller.com/spirits/bulleit-rye",
+          "checkedAt": "2026-10-16"
+        },
+        {
+          "publisher": "Distiller",
+          "kind": "community",
+          "value": 3.45,
+          "scale": 5,
+          "count": 4692,
+          "source": "https://distiller.com/spirits/bulleit-rye",
+          "checkedAt": "2026-10-16"
+        }
+      ]
     }
   ]
 }

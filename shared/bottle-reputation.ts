@@ -6,6 +6,8 @@ export interface PublishedRating {
 }
 export interface BottleReputation {
   key: string; names: string[]; ratings: PublishedRating[]; scopeNote?: string;
+  identity?: { requiredProof: number };
+  release?: { kind: 'standard' | 'limited' | 'allocated'; label: string; reason: string; source: string; checkedAt: string };
   producerFacts?: { source: string; checkedAt: string; proof?: number; ageYears?: number; process?: string };
 }
 const normalize = (value: string) => value.normalize('NFKD').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -18,6 +20,7 @@ export const currentEvidence = (date: string, now: Date, days = 365) => {
 export function bottleReputation(bottle: { name: string; proof: number | null; age: string | null }) {
   const entry = BOTTLE_REPUTATION.find(record => record.names.some(name => normalize(name) === normalize(bottle.name)));
   if (!entry) return null;
+  if (entry.identity && (bottle.proof == null || Math.abs(entry.identity.requiredProof - bottle.proof) > 0.15)) return null;
   const facts = entry.producerFacts;
   if (facts?.proof && bottle.proof && Math.abs(facts.proof - bottle.proof) > 0.15) return null;
   const age = Number((bottle.age || bottle.name).match(/\b0*(\d{1,2})\s*(?:y\b|years?\b)/i)?.[1]);

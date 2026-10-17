@@ -20,38 +20,55 @@ async function select(name, query = '') {
 try {
   for (const width of [393, 320]) {
     await page.setViewportSize({ width, height: 852 });
-    await select('Eagle Rare 10 Year');
-    await page.getByText('Recent NC median', { exact: false }).first().waitFor();
-    let score = Number(await page.getByTestId('bottle-assessment-score').innerText());
-    assert.ok(score > 75 && score !== 59);
-    assert.equal(await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).inputValue(), '');
-    await page.screenshot({ path: path.join(out, `automatic-${width}.png`), fullPage: true });
-    await page.getByRole('button', { name: /^Sources & scoring/ }).click();
-    await page.getByRole('link', { name: /^Open Distiller community:/ }).waitFor();
-    assert.ok((await page.getByRole('link', { name: /^Open Producer facts/ }).count()) > 0);
+    await select('Eagle Rare 10 Year', '&state=NC&area=Lewisville');
+    await page.getByText('NC prices · Lewisville sample unavailable', { exact: true }).waitFor();
+    const initial = Number(await page.getByTestId('bottle-assessment-score').innerText());
+    assert.ok(initial > 75 && initial !== 59);
+    await page.getByText('Signal Score', { exact: true }).waitFor();
+    assert.equal(await page.getByText('REVIEW SCORE', { exact: true }).count(), 0);
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('150');
     await page.getByText('Steep price premium', { exact: true }).waitFor();
-    assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) < score);
+    assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) < initial);
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('');
     await page.getByText('Notable find', { exact: true }).waitFor();
-    assert.equal(Number(await page.getByTestId('bottle-assessment-score').innerText()), score);
+    assert.equal(Number(await page.getByTestId('bottle-assessment-score').innerText()), initial);
     await page.getByRole('button', { name: 'Change Bottle Check reference region' }).click();
     await page.getByRole('button', { name: 'Select reference state', exact: true }).click();
     await page.getByRole('button', { name: 'Use Alabama', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Reference city or area' }).fill('');
     await page.getByRole('button', { name: 'Use this region', exact: true }).click();
-    await page.getByText(/Unicorn in AL/).waitFor();
-    assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) > score);
-    await select('Wild Turkey 101 Bourbon', '&prices=none');
-    await page.getByText('At catalog reference price', { exact: false }).first().waitFor();
-    const common = Number(await page.getByTestId('bottle-assessment-score').innerText());
-    assert.ok(common < 60 && common !== score && common !== 59);
-    await select('Unreviewed Fixture Bourbon');
-    await page.getByText('Research pending', { exact: true }).first().waitFor();
-    assert.equal(await page.getByTestId('bottle-assessment-score').innerText(), '\u2014');
+    await page.getByText('Unicorn in AL', { exact: true }).waitFor();
+    assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) > initial);
+    for (const name of ['Heaven Hill 7 Year Bottled-in-Bond', "Blanton's Gold Bourbon"]) {
+      await select(name, '&prices=none&state=NC&area=Lewisville');
+      await page.getByText('Shelf price unknown · value not scored', { exact: true }).waitFor();
+      assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) > 0);
+      await page.getByRole('heading', { name: 'Drinking reviews', exact: true }).waitFor();
+      assert.equal(await page.getByText('Why this assessment', { exact: true }).count(), 0);
+      assert.equal(await page.getByText('Price value', { exact: true }).count(), 0);
+      await page.getByRole('button', { name: 'View bottle →', exact: true }).waitFor();
+      await page.screenshot({ path: path.join(out, `${name.startsWith('Heaven') ? 'heaven-hill' : 'blantons-gold'}-${width}.png`), fullPage: true });
+      await page.getByRole('button', { name: /^Sources & scoring/ }).click();
+      await page.getByRole('link', { name: /^Open Release context/ }).waitFor();
+      await page.getByRole('link', { name: /^Open Distiller community:/ }).waitFor();
+      await page.getByRole('button', { name: /^Sources & scoring/ }).click();
+      await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('400');
+      await page.getByText('Steep price premium', { exact: true }).waitFor();
+      await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('');
+      await page.getByText('Shelf price unknown · value not scored', { exact: true }).waitFor();
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    }
+    await select('Rock Hill Farms Single Barrel', '&prices=none');
+    await page.getByTestId('bottle-assessment-score').filter({ hasText: 'More find research needed' }).waitFor();
+    await page.getByRole('heading', { name: 'Drinking reviews', exact: true }).waitFor();
+    assert.equal(await page.getByText('REVIEW SCORE', { exact: true }).count(), 0);
+    await select('Unreviewed Fixture Bourbon', '&prices=none');
+    await page.getByText('We have not verified enough evidence for this release yet.', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('heading', { name: 'Drinking reviews', exact: true }).count(), 0);
     await page.screenshot({ path: path.join(out, `pending-${width}.png`), fullPage: true });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   }
   assert.deepEqual(errors, []);
-  await writeFile(path.join(out, 'proof.json'), JSON.stringify({ passed: true, widths: [393, 320], sourceFixtures: true, checks: ['automatic score with no member input', 'sourced expert and consumer evidence', 'optional price changes assessment', 'clearing price restores automatic context', 'state-specific evidence', 'common versus allocated expression', 'missing reviews have no fabricated score'], physicalDeviceTested: false, errors }, null, 2));
-  console.log('Automatic assessment browser flows passed at 320 and 393 points.');
+  await writeFile(path.join(out, 'proof.json'), JSON.stringify({ passed: true, widths: [393, 320], sourceFixtures: true, checks: ['branded find score distinct from drinking reviews', 'no value points from assumed catalog price', 'owner screenshot bottles have zero-input results', 'explicit city to state fallback', 'supported state classification', 'optional price and clearing recovery', 'review-only results never become Signal Score', 'unresearched compact state', 'source disclosure and no overflow'], physicalDeviceTested: false, errors }, null, 2));
+  console.log('Signal Score browser flows passed at 320 and 393 points.');
 } finally { await browser.close(); }
