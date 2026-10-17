@@ -172,17 +172,9 @@ assert.match(repository, /listUnreconciledAdverse[\s\S]*dispute_status = 'won'/,
 assert.match(repository, /markAdverseReconciled[\s\S]*updated_at = \$2[\s\S]*RETURNING id/, "adverse reconciliation completion must use a compare-and-set transition");
 
 const checkout = read("src/app/api/gifts/checkout/route.ts");
-assert.match(checkout, /gift-checkout-/, "Stripe receives a stable per-order idempotency key");
-for (const metadata of ["purchase_type: \"gift\"", "referral_eligible: \"false\"", "gift_order_id", "gift_plan", "purchaser_user_id", "gift_checkout_attempt"]) assert.ok(checkout.includes(metadata), `gift checkout missing ${metadata}`);
-assert.match(checkout, /mode:\s*["']payment["']/);
-assert.match(checkout, /quantity:\s*1/);
-assert.match(checkout, /payment_intent_data:\s*\{\s*metadata/);
-assert.doesNotMatch(checkout, /metadata[\s\S]{0,400}recipient_(?:email|name)/, "recipient data must not enter Stripe metadata");
-assert.match(checkout, /prices\.retrieve/);
-assert.match(checkout, /validateGiftStripePrice/);
-assert.match(checkout, /claimFounderCheckout/);
-assert.match(checkout, /reconcileAllFounderReservationAuthority/);
-assert.match(checkout, /releaseCheckoutClaim/);
+assert.match(checkout, /status: 410/);
+assert.match(checkout, /Existing gifts can still be redeemed/);
+assert.doesNotMatch(checkout, /checkout.sessions.create|new Stripe/);
 
 const webhook = read("src/app/api/webhooks/stripe/route.ts");
 const giftWebhook = read("src/lib/gift-stripe-webhook.ts");
@@ -295,12 +287,9 @@ assert.match(alertDelivery, /giftMaintenanceDue = scheduledRun[\s\S]*!alertExecu
   "shared alert dry-run and monitor requests must never enter gift mutation workers");
 
 const giftPage = read("src/app/gift/page.tsx");
-for (const phrase of ["Standard Proof", "$30", "Barrel Proof", "$60", "Bottled-in-Bond", "$50", "Annual gifts begin when redeemed and never renew", "beginning when the gift is redeemed", "No subscription or renewal", "numbered Founder glass", "The Founder number is reserved after payment and claimed when the gift is redeemed", "Gift details", "Recipient name", "Recipient email", "Optional message", "Send now", "Schedule delivery", "IANA timezone"]) assert.ok(giftPage.includes(phrase), `gift page missing: ${phrase}`);
-assert.doesNotMatch(giftPage, /Founder lifetime|Who is it for\?|reserved when payment is funded/);
-assert.match(giftPage, /gift-cards\{[^}]*border:0/);
-assert.match(giftPage, /gift-card-name i/);
-assert.match(giftPage, /\/api\/gifts\/orders/);
-assert.match(giftPage, /\/api\/gifts\/checkout/);
+assert.match(giftPage, /\$6\/month/);
+assert.match(giftPage, /Existing gift memberships and redemption links remain valid/);
+assert.doesNotMatch(giftPage, /\/api\/gifts\/checkout|\$30|\$50|\$60/);
 const redemptionPage = read("src/app/gift/redeem/[token]/page.tsx");
 assert.match(redemptionPage, /redirect_url/);
 assert.match(redemptionPage, /no-store/);
@@ -309,8 +298,7 @@ assert.match(statusPage, /\/api\/gifts\/status/);
 const footer = read("src/components/Footer.tsx");
 assert.match(footer, /label:\s*["']Gift Bourbon Signal["'],\s*href:\s*["']\/gift["']/);
 const pricing = read("src/app/pricing/PricingPageClient.tsx");
-assert.match(pricing, />Gift Bourbon Signal</);
-assert.ok(pricing.lastIndexOf("Gift Bourbon Signal") > pricing.indexOf("comparison-wrap"), "pricing gift CTA must appear near the bottom");
+assert.doesNotMatch(pricing, />Gift Bourbon Signal</);
 
 const migration = read("scripts/migrate-app-storage.mjs");
 assert.match(migration, /gift-schema\.sql/);

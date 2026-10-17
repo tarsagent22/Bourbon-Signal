@@ -18,9 +18,9 @@ async function main() {
 assert.equal(FREE_MEMBER_DAY_TWO_CAMPAIGN_ID, "free-member-day-two-trial-v2");
 assert.equal(FREE_MEMBER_DAY_TWO_SUBJECT, "Try Bourbon Signal free for 7 days");
 assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, true, "approved trial email must support guarded live delivery");
-assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["standard", "barrel"]);
-assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice]), [["$3"], ["$6"]]);
-assert.equal(PAID_MEMBERSHIP_PLANS.length, 3, "pricing page keeps the separate conditional Founder offer");
+assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["barrel"]);
+assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice]), [["$6"]]);
+assert.equal(PAID_MEMBERSHIP_PLANS.length, 1, "pricing page keeps the separate conditional Founder offer");
 
 const config = buildFreeMemberDayTwoConfig({
   FREE_MEMBER_DAY_TWO_EMAIL_KILL_SWITCH: "0",
@@ -105,12 +105,9 @@ for (const required of [
   "Bottle Checker",
   "Coverage Map",
   "Signal Points",
-  "STANDARD PROOF",
   "BARREL PROOF",
-  "7 days free, then $3/month",
   "7 days free, then $6/month",
-  "available once per account on monthly plans",
-  "Annual and lifetime plans do not include a trial",
+  "available once per eligible account",
   "Start a 7-day free trial",
   "Request coverage",
   "join the Bourbon Signal Facebook group",
@@ -118,7 +115,7 @@ for (const required of [
   "{{unsubscribeUrl}}",
   "Bourbon Signal is intended for users 21+",
 ]) assert.ok(visibleHtml.includes(required), `email must include: ${required}`);
-for (const forbidden of ["Welcome to the Bourbon Signal community", "Make Bourbon Signal work harder for you", "Compare membership options", "card required", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,"]) {
+for (const forbidden of ["STANDARD PROOF", "$3/month", "Welcome to the Bourbon Signal community", "Make Bourbon Signal work harder for you", "Compare membership options", "card required", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,"]) {
   assert.ok(!html.includes(forbidden), `approved trial email must omit: ${forbidden}`);
 }
 assert.match(html, /pricing\?source=day2_trial/);

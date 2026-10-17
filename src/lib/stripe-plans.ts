@@ -85,12 +85,22 @@ const LEGACY_STRIPE_PRICE_ENV_KEYS: Partial<Record<BillingPlanId, string[]>> = {
   bib_lifetime: ["STRIPE_PRICE_FOUNDER"],
 };
 
+// Verified historical prices remain valid for renewals and recovery after new
+// sales are archived. They are never returned by the direct checkout catalog.
+const LEGACY_STRIPE_PRICE_IDS: Partial<Record<BillingPlanId, string[]>> = {
+  standard_monthly: ["price_1TkwxnLQlLvo1rCD2hDbL62C"],
+  standard_annual: ["price_1TkwykLQlLvo1rCD2wG0be1z"],
+  barrel_monthly: ["price_1Tkx2JLQlLvo1rCDMthvD4nR"],
+  barrel_annual: ["price_1Tkx37LQlLvo1rCDTHdDBNlJ"],
+  bib_lifetime: ["price_1TkEDlLQlLvo1rCDMBsIeOPR"],
+};
+
 export function getStripePriceId(planId: BillingPlanId) {
   return DIRECT_STRIPE_PRICE_IDS[planId];
 }
 
 function legacyStripePriceIds(planId: BillingPlanId) {
-  const ids = new Set<string>();
+  const ids = new Set<string>(LEGACY_STRIPE_PRICE_IDS[planId] || []);
   const primary = process.env[LAUNCH_BILLING_PLANS[planId].envKey]?.trim();
   if (primary) ids.add(primary);
   for (const legacyKey of LEGACY_STRIPE_PRICE_ENV_KEYS[planId] || []) {

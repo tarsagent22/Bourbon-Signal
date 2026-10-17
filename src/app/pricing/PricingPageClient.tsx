@@ -1,409 +1,75 @@
 "use client";
-
 import { Suspense, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import ScrollReveal from "@/components/ScrollReveal";
 import FAQ from "@/components/sections/FAQ";
 import { useAuth } from "@/lib/auth";
-import type { MembershipTier } from "@/lib/entitlements";
-import type { PaidMembershipPlan, PublicCheckoutPlanId } from "@/lib/membership-plan-catalog";
-import {
-  CHECKOUT_PLAN_TIERS,
-  MEMBERSHIP_COMPARISON_ROWS,
-  PAID_MEMBERSHIP_PLANS,
-} from "@/lib/membership-plan-catalog";
+import { MEMBERSHIP_COMPARISON_ROWS, PAID_MEMBERSHIP_PLANS } from "@/lib/membership-plan-catalog";
 
-const tierRank: Record<MembershipTier, number> = {
-  free: 0,
-  standard: 1,
-  barrel: 2,
-  "bottled-in-bond": 3,
-};
-
-type PaidPlanId = PublicCheckoutPlanId;
-type PricingTier = PaidMembershipPlan;
-
-const checkoutPlanTiers = CHECKOUT_PLAN_TIERS;
-const paidTiers = PAID_MEMBERSHIP_PLANS;
-const comparisonRows = MEMBERSHIP_COMPARISON_ROWS;
-
-function checkoutContinueUrl(plan: PaidPlanId, source = "unknown", trialExpected = false) {
-  const trial = trialExpected ? "&trialOffer=1" : "";
-  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${trial}&registration=1`;
+function comparisonLabel(value: string) {
+  return value === "✓" ? "Included" : value === "—" ? "Not included" : undefined;
 }
-
 
 function PricingPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const params = useSearchParams();
   const { isLoaded, isSignedIn, memberTier } = useAuth();
-  const [pendingPlan, setPendingPlan] = useState<PaidPlanId | "free" | null>(null);
-  const checkoutInFlight = useRef(false);
-  const [error, setError] = useState<string | null>(null);
-  const [founderSpots, setFounderSpots] = useState<{ limit: number; remaining: number | null } | null>(null);
-  const [trialEligibility, setTrialEligibility] = useState<Record<string, { eligible?: boolean }> | null>(null);
-
-  const currentTierRank = tierRank[memberTier];
-  const checkoutValue = searchParams.get("checkout");
-  const checkoutParam = checkoutValue && Object.hasOwn(checkoutPlanTiers, checkoutValue)
-    ? checkoutValue as PaidPlanId
-    : null;
-  const canceledValue = searchParams.get("canceled");
-  const canceledPlan = canceledValue && Object.hasOwn(checkoutPlanTiers, canceledValue)
-    ? canceledValue as PaidPlanId
-    : null;
-  const source = searchParams.get("source") || "unknown";
-
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const [trialEligible, setTrialEligible] = useState(false);
+  const inFlight = useRef(false);
+  const paid = memberTier !== "free";
+  const plan = PAID_MEMBERSHIP_PLANS[0];
+  const source = params.get("source") || "pricing";
   useEffect(() => {
-    let cancelled = false;
-    fetch("/api/founder-spots")
-      .then((res) => res.ok ? res.json() : null)
-      .then((data: { limit?: number; remaining?: number | null } | null) => {
-        if (!cancelled && data?.limit) setFounderSpots({ limit: data.limit, remaining: typeof data.remaining === "number" ? data.remaining : null });
-      })
-      .catch(() => undefined);
-    return () => { cancelled = true; };
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !isSignedIn || paid) { setTrialEligible(false); return; }
+    let current = true;
+    void fetch("/api/membership-trial", { cache: "no-store" }).then(response => response.ok ? response.json() : null)
+      .then(value => { if (current) setTrialEligible(value?.barrelMonthly?.eligible === true); }).catch(() => { if (current) setTrialEligible(false); });
+    return () => { current = false; };
+  }, [isLoaded, isSignedIn, paid]);
+  async function checkout() {
+    if (!isLoaded || inFlight.current || paid) return;
     if (!isSignedIn) {
-      setTrialEligibility({ standardMonthly: { eligible: true }, barrelMonthly: { eligible: true } });
+      const destination = `/checkout/continue?plan=barrel_monthly&source=${encodeURIComponent(source)}&registration=1`;
+      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(destination)}`);
       return;
     }
-    let cancelled = false;
-    fetch("/api/membership-trial", { cache: "no-store" })
-      .then((res) => res.ok ? res.json() : null)
-      .then((data: Record<string, { eligible?: boolean }> | null) => {
-        if (!cancelled) setTrialEligibility(data || {});
-      })
-      .catch(() => { if (!cancelled) setTrialEligibility({}); });
-    return () => { cancelled = true; };
-  }, [isLoaded, isSignedIn]);
-
-  function planHasTrial(plan: PaidPlanId | null) {
-    if (plan !== "standard_monthly" && plan !== "barrel_monthly") return false;
-    if (!isLoaded || !isSignedIn) return true;
-    if (plan === "standard_monthly") return trialEligibility?.standardMonthly?.eligible === true;
-    return trialEligibility?.barrelMonthly?.eligible === true;
-  }
-
-  function trialPriceCopy(plan: PaidPlanId | null) {
-    if (plan === "standard_monthly") return "7 days free, then $3/month";
-    if (plan === "barrel_monthly") return "7 days free, then $6/month";
-    return "";
-  }
-
-  function selectedPlan(tier: PricingTier): PaidPlanId | null {
-    if (tier.plan) return tier.plan;
-    return tier.monthlyPlan || null;
-  }
-
-  function priceFor(tier: PricingTier, plan: PaidPlanId | null) {
-    const regular = tier.oneTimePrice
-      ? { price: tier.oneTimePrice, cadence: "one time" }
-      : { price: tier.monthlyPrice || "", cadence: "per month" };
-    return regular;
-  }
-
-  async function startCheckout(plan: PaidPlanId | null, targetTier: MembershipTier) {
-    setError(null);
-    if (!plan) {
-      router.push("/sign-up");
-      return;
-    }
-    if (tierRank[targetTier] <= currentTierRank) {
-      setError(targetTier === memberTier ? "You already have this membership." : "Your current membership already includes this tier.");
-      return;
-    }
-    if (!isSignedIn) {
-      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, planHasTrial(plan)))}`);
-      return;
-    }
-    if (checkoutInFlight.current) return;
-
-    checkoutInFlight.current = true;
-    setPendingPlan(plan);
+    inFlight.current = true; setPending(true); setError("");
     try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan,
-          source,
-          trialOfferExpected: planHasTrial(plan),
-        }),
-      });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) throw new Error(data.error || "Checkout is not available.");
-      window.location.href = data.url;
-    } catch (checkoutError) {
-      setError(checkoutError instanceof Error ? checkoutError.message : "Checkout is not available.");
-    } finally {
-      checkoutInFlight.current = false;
-      setPendingPlan(null);
+      const response = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: "barrel_monthly", source, trialOfferExpected: trialEligible }) });
+      const result = await response.json() as { url?: string; error?: string };
+      if (!response.ok || !result.url) throw new Error(result.error || "Checkout is unavailable. Please try again.");
+      window.location.href = result.url;
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Checkout is unavailable. Please try again.");
+      inFlight.current = false; setPending(false);
     }
   }
-
-  useEffect(() => {
-    if (!isSignedIn || pendingPlan || !checkoutParam) return;
-    const targetTier = checkoutPlanTiers[checkoutParam];
-    if (!targetTier) return;
-    void startCheckout(checkoutParam, targetTier);
-  }, [checkoutParam, isSignedIn, pendingPlan]);
-
-  function actionLabel(tier: PricingTier, plan: PaidPlanId | null) {
-    if (tierRank[tier.tier] < currentTierRank) return "Included";
-    if (tier.tier === memberTier) return "Current plan";
-    if (plan !== null && pendingPlan === plan) return "Opening checkout…";
-    if (planHasTrial(plan)) return "Start 7-day free trial";
-    if (!isSignedIn) return tier.tier === "bottled-in-bond" ? "Create account & claim spot" : "Create account & join";
-    if (tier.tier === "bottled-in-bond") return "Claim lifetime spot";
-    return `Choose ${tier.name}`;
-  }
-
-  return (
-    <>
-      <Navigation />
-      <motion.main
-        className="launch-pricing-page overflow-x-hidden"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
-      >
-        <style>{pricingCss}</style>
-
-        <section className="pricing-hero">
-          <ScrollReveal>
-            <h1>Pick your proof.</h1>
-          </ScrollReveal>
-        </section>
-
-        {isLoaded && (!isSignedIn || memberTier === "free") ? (
-          <section className="free-preview-strip" aria-label="Continue with free access">
-            <div>
-              <p>Free · $0</p>
-              <h2>{isSignedIn ? "Your free account is active. Keep exploring without paying." : "Start free. Browse the signal before you pay."}</h2>
-            </div>
-            <ul>
-              <li>Limited Drop Feed access</li>
-              <li>Basic collection stats</li>
-              <li>My Shelf</li>
-              <li>Coverage Map and Member Sightings</li>
-            </ul>
-            <button type="button" onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>
-              {isSignedIn ? "Continue with Free" : "Create Free Account"}
-            </button>
-          </section>
-        ) : null}
-
-        {isLoaded && canceledPlan ? (
-          <section className="checkout-canceled" role="status" aria-label="Checkout canceled">
-            <div>
-              <strong>Checkout canceled. You were not charged.</strong>
-              <span>{memberTier === "free" ? "Your free access is still active." : "Your current membership is still active."} Nothing restarts unless you choose it.</span>
-            </div>
-            <div className="checkout-canceled-actions">
-              <button
-                type="button"
-                disabled={pendingPlan === canceledPlan}
-                onClick={() => startCheckout(canceledPlan, checkoutPlanTiers[canceledPlan])}
-              >{pendingPlan === canceledPlan ? "Opening checkout…" : "Resume checkout"}</button>
-              <button
-                type="button"
-                onClick={() => router.replace(source === "unknown" ? "/pricing" : `/pricing?source=${encodeURIComponent(source)}`)}
-              >Choose another plan</button>
-              <button type="button" onClick={() => router.push(memberTier === "free" ? "/welcome" : "/dashboard")}>{memberTier === "free" ? "Continue with Free" : "Continue with current plan"}</button>
-            </div>
-          </section>
-        ) : null}
-
-        <section className="pricing-grid" aria-label="Bourbon Signal pricing tiers">
-          {paidTiers.map((tier) => {
-            const plan = selectedPlan(tier);
-            const included = tierRank[tier.tier] < currentTierRank;
-            const current = tier.tier === memberTier;
-            const blocked = included || current || memberTier === "bottled-in-bond";
-            const price = priceFor(tier, plan);
-            return (
-              <motion.article
-                key={tier.name}
-                className={`pricing-card ${tier.accent} ${tier.featured ? "featured" : ""} ${current ? "current" : ""}`}
-                whileHover={{ y: -4, transition: { duration: 0.25 } }}
-              >
-                {tier.tier === "barrel" ? <div className="pricing-ribbon">Recommended · Barrel Proof</div> : null}
-                {tier.tier === "bottled-in-bond" ? <div className="pricing-ribbon">Limited lifetime offer · 100 spots</div> : null}
-                {tier.tier === "bottled-in-bond" ? (
-                  <div className="founder-spots-meter" aria-label="Bottled in Bond founder spots remaining">
-                    <span className="founder-spots-label">Founder allocation</span>
-                    <strong>{founderSpots?.remaining == null ? "Limited" : `${founderSpots.remaining} left`}</strong>
-                    <span className="founder-spots-line"><i style={{ width: `${Math.max(0, Math.min(100, ((founderSpots?.remaining ?? 100) / (founderSpots?.limit || 100)) * 100))}%` }} /></span>
-                  </div>
-                ) : null}
-                {current ? <div className="current-badge">Current</div> : null}
-                <p className="pricing-eyebrow">{tier.eyebrow}</p>
-                <h2>{tier.name}</h2>
-                <div className="pricing-price-row">
-                  <strong>{price.price}</strong>
-                  <span>{price.cadence}</span>
-                  {planHasTrial(plan) ? <small>{trialPriceCopy(plan)}</small> : null}
-                </div>
-                <p className="pricing-description">{tier.description}</p>
-                <ul>{tier.features.map((feature) => <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>)}</ul>
-                <div className="pricing-actions">
-                  <button type="button" onClick={() => startCheckout(plan, tier.tier)} disabled={blocked || (plan !== null && pendingPlan === plan)}>
-                    {actionLabel(tier, plan)}
-                  </button>
-                </div>
-              </motion.article>
-            );
-          })}
-        </section>
-
-        {error ? <p className="pricing-error" role="alert">{error}</p> : null}
-
-        <section className="comparison-wrap" aria-label="Membership feature comparison">
-          <div className="comparison-heading">
-            <h2>Compare Memberships</h2>
-            <p>Membership limits and access at a glance.</p>
-          </div>
-          <div className="comparison-scroll" tabIndex={0} aria-label="Scrollable membership comparison; feature labels remain visible">
-            <div className="comparison-table" role="table" aria-label="Free, Standard Proof, Barrel Proof, and Bottled in Bond membership comparison">
-              <div className="comparison-row comparison-head" role="row">
-                {["Feature", "Free access", "Standard", "Barrel", "Bottled in Bond"].map((heading) => (
-                  <span key={heading} role="columnheader">{heading}</span>
-                ))}
-              </div>
-              {comparisonRows.map(([feature, free, standard, barrel, founder]) => (
-                <div className="comparison-row" role="row" key={feature}>
-                  {[feature, free, standard, barrel, founder].map((value, index) => (
-                    <span
-                      key={`${feature}-${index}`}
-                      role={index === 0 ? "rowheader" : "cell"}
-                      className={value === "✓" ? "included" : value === "—" ? "not-included" : undefined}
-                      aria-label={value === "✓" ? "Included" : value === "—" ? "Not included" : undefined}
-                    >
-                      {value === "✓" ? <i aria-hidden="true">✓</i> : value}
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <FAQ variant="pricing" founderSpotsRemaining={founderSpots?.remaining ?? null} />
-        <section className="pricing-gift-cta">
-          <div><p>BUYING FOR SOMEONE ELSE?</p><h2>Give them a year of better bourbon hunting—or a lifetime Founder spot.</h2></div>
-          <a href="/gift">Gift Bourbon Signal</a>
-        </section>
-      </motion.main>
-      <Footer />
-    </>
-  );
+  useEffect(() => { if (isLoaded && isSignedIn && !paid && params.get("checkout") === "barrel_monthly") void checkout(); }, [isLoaded, isSignedIn, paid]);
+  return <>
+    <Navigation />
+    <main className="membership-pricing"><style>{css}</style>
+      <header><p className="eyebrow">BOURBON SIGNAL MEMBERSHIP</p><h1>One membership.<br />Every paid feature.</h1><p>Get alerts when bottles you love show up in your area.</p></header>
+      {isLoaded && params.has("canceled") ? <section className="notice" role="status"><p>Checkout canceled. You were not charged. Your current access continues.</p><button disabled={pending || paid} onClick={() => void checkout()}>Resume checkout</button>{" "}<button onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>{paid ? "Continue with current plan" : "Continue with Free"}</button></section> : null}
+      <section className="plans" aria-label="Membership options">
+        <article className="plan"><p className="eyebrow">EXPLORE BOURBON SIGNAL</p><h2>Free</h2><p className="price">$0</p><p>Browse the signal and start your collection.</p><ul><li>6 recent Intel signals</li><li>Coverage Map and Member Sightings</li><li>3 bottle lookups</li><li>10 bottles on My Shelf</li><li>Post sightings and earn Signal Points</li></ul><button onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>{isSignedIn ? "Continue to Bourbon Signal" : "Create Free Account"}</button></article>
+        <article className="plan barrel"><p className="eyebrow">FULL MEMBERSHIP</p><h2>{plan.name}</h2><p className="price">{plan.monthlyPrice}<span>/month</span></p><p>{trialEligible ? "7 days free, then $6/month" : "Full access. Billed monthly. Cancel anytime."}</p><ul>{plan.features.map(feature => <li key={feature}>{feature}</li>)}</ul><button disabled={!isLoaded || pending || paid} onClick={() => void checkout()}>{paid ? "Your membership includes full access" : pending ? "Opening checkout…" : trialEligible ? "Start 7-day free trial" : "Get Barrel Proof"}</button></article>
+      </section>
+      {error ? <p className="notice" role="alert">{error}</p> : null}
+      <p className="terms">Paid subscriptions renew monthly until canceled. Cancellation stops the next renewal; access continues through the period already paid for.</p>
+      {memberTier === "standard" ? <p className="notice">Your existing Standard Proof subscription now includes every Barrel Proof feature. Your existing billing rate continues while your subscription remains active.</p> : null}
+      {memberTier === "bottled-in-bond" ? <p className="notice">Your Founder membership keeps full lifetime access and your Founder recognition.</p> : null}
+      <section className="comparison" aria-label="Compare Free and Barrel Proof"><h2>What’s included</h2><table><thead><tr><th scope="col">Feature</th><th scope="col">Free</th><th scope="col">Barrel Proof</th></tr></thead><tbody>{MEMBERSHIP_COMPARISON_ROWS.map(([feature, free, member]) => <tr key={feature}><th scope="row">{feature}</th><td aria-label={comparisonLabel(free)}>{free}</td><td aria-label={comparisonLabel(member)}>{member}</td></tr>)}</tbody></table></section>
+      <FAQ variant="pricing" />
+    </main><Footer />
+  </>;
 }
-
 export default function PricingPageClient() {
-  return (
-    <Suspense fallback={null}>
-      <PricingPageContent />
-    </Suspense>
-  );
+  return <Suspense fallback={<main aria-busy="true">Loading membership…</main>}><PricingPageContent /></Suspense>;
 }
-
-const pricingCss = `
-.launch-pricing-page { min-height:100vh; padding:124px 0 86px; color:var(--color-text-primary); background:radial-gradient(circle at 50% 0%, rgba(196,148,58,.15), transparent 34%), radial-gradient(circle at 86% 18%, rgba(184,115,51,.08), transparent 28%), var(--color-bg-primary); }
-.pricing-hero { width:min(980px, calc(100% - 40px)); margin:0 auto; text-align:center; }
-.pricing-kicker { margin:0; color:var(--color-accent-amber); font:900 11px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
-.pricing-hero h1 { max-width:860px; margin:16px auto 0; color:var(--color-cream); font:700 clamp(44px, 7vw, 80px)/.93 var(--font-playfair); letter-spacing:-.052em; }
-.free-preview-strip { width:min(940px, calc(100% - 40px)); margin:30px auto 0; display:grid; grid-template-columns:1.2fr 1fr auto; gap:18px; align-items:center; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:18px 20px; background:linear-gradient(135deg, rgba(255,255,255,.044), rgba(196,148,58,.035)); box-shadow:0 18px 70px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.04); }
-.free-preview-strip p { margin:0 0 7px; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.15em; text-transform:uppercase; }
-.free-preview-strip h2 { margin:0; color:var(--color-cream); font:700 clamp(21px, 2.2vw, 30px)/1.06 var(--font-playfair); letter-spacing:-.03em; }
-.free-preview-strip ul { margin:0; padding:0; list-style:none; display:grid; gap:7px; color:var(--color-text-secondary); font:800 12px/1.25 var(--font-dm-sans); }
-.free-preview-strip li::before { content:"•"; color:var(--color-accent-amber); margin-right:7px; }
-.free-preview-strip button { border:1px solid rgba(196,148,58,.38); border-radius:13px; padding:12px 15px; color:var(--color-cream); background:rgba(196,148,58,.10); font:900 12px/1 var(--font-dm-sans); cursor:pointer; white-space:nowrap; transition:background .18s ease, transform .18s ease; }
-.free-preview-strip button:hover, .free-preview-strip button:focus-visible { outline:none; background:rgba(196,148,58,.17); transform:translateY(-1px); }
-.checkout-canceled { width:min(940px, calc(100% - 40px)); margin:20px auto 0; display:grid; gap:14px; border:1px solid rgba(136,211,148,.3); border-radius:18px; padding:16px 18px; background:rgba(136,211,148,.06); }
-.checkout-canceled > div:first-child { display:grid; gap:5px; }
-.checkout-canceled strong { color:#d7f4dc; font:800 16px/1.25 var(--font-dm-sans); }
-.checkout-canceled span { color:var(--color-text-secondary); font:13px/1.5 var(--font-dm-sans); }
-.checkout-canceled-actions { display:flex; flex-wrap:wrap; gap:8px; }
-.checkout-canceled-actions button { border:1px solid rgba(245,237,214,.16); border-radius:10px; padding:10px 12px; color:var(--color-cream); background:rgba(245,237,214,.04); font:800 12px/1 var(--font-dm-sans); cursor:pointer; }
-.checkout-canceled-actions button:first-child { border-color:rgba(196,148,58,.4); color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); }
-.checkout-canceled-actions button:disabled { cursor:wait; opacity:.62; }
-.checkout-canceled-actions button:hover:not(:disabled), .checkout-canceled-actions button:focus-visible:not(:disabled) { outline:2px solid rgba(232,201,122,.55); outline-offset:2px; }
-.pricing-grid { width:min(980px, calc(100% - 40px)); margin:34px auto 0; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; align-items:stretch; }
-.pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
-.pricing-card.standard { order:1; }
-.pricing-card.barrel { order:2; }
-.pricing-card.founder { order:3; grid-column:1 / -1; margin-top:30px; }
-.pricing-card.featured { border-color:rgba(196,148,58,.55); background:radial-gradient(circle at 50% 0%, rgba(196,148,58,.18), transparent 44%), linear-gradient(180deg, rgba(255,255,255,.058), rgba(255,255,255,.026)); box-shadow:0 0 70px rgba(196,148,58,.11), 0 28px 100px rgba(0,0,0,.34); }
-.pricing-card.founder { border-color:rgba(212,164,74,.55); background:radial-gradient(circle at 18% 0%, rgba(212,164,74,.24), transparent 42%), radial-gradient(circle at 86% 12%, rgba(196,148,58,.15), transparent 36%), linear-gradient(180deg, rgba(255,255,255,.066), rgba(255,255,255,.028)); box-shadow:0 0 90px rgba(196,148,58,.16), 0 30px 110px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.06); }
-.pricing-card.founder::after { content:""; position:absolute; inset:1px; pointer-events:none; border-radius:23px; background:linear-gradient(135deg, rgba(212,164,74,.18), transparent 30%, transparent 70%, rgba(212,164,74,.10)); }
-.pricing-card.current { border-color:rgba(136,211,148,.38); }
-.pricing-ribbon { margin:-24px -24px 20px; padding:9px 12px; text-align:center; color:#130F0A; background:linear-gradient(135deg, #C4943A, #D4A44A); font:900 11px/1 var(--font-dm-sans); letter-spacing:.12em; text-transform:uppercase; }
-.current-badge { position:absolute; top:14px; right:14px; border:1px solid rgba(136,211,148,.28); border-radius:999px; padding:6px 8px; color:#c9f5d0; background:rgba(136,211,148,.08); font:900 9px/1 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
-.founder-spots-meter { position:relative; z-index:1; margin: -6px 0 16px; border:1px solid rgba(232,201,122,.22); border-radius:16px; padding:12px 13px; background:linear-gradient(135deg, rgba(10,8,5,.56), rgba(196,148,58,.07)); box-shadow:inset 0 1px 0 rgba(255,255,255,.045); }
-.founder-spots-label { display:block; color:rgba(245,237,214,.48); font:900 9px/1 var(--font-jetbrains); letter-spacing:.14em; text-transform:uppercase; }
-.founder-spots-meter strong { display:block; margin-top:5px; color:var(--color-cream); font:700 28px/.95 var(--font-playfair); letter-spacing:-.025em; }
-.founder-spots-line { display:block; height:4px; margin-top:10px; border-radius:999px; overflow:hidden; background:rgba(245,237,214,.08); }
-.founder-spots-line i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg, #E8C97A, #C4943A); box-shadow:0 0 18px rgba(232,201,122,.28); }
-.pricing-eyebrow { margin:0; color:rgba(245,237,214,.42); font:900 11px/1 var(--font-dm-sans); letter-spacing:.14em; text-transform:uppercase; }
-.pricing-card.barrel .pricing-eyebrow, .pricing-card.founder .pricing-eyebrow { color:var(--color-accent-amber); }
-.pricing-card h2 { margin:10px 0 0; color:var(--color-cream); font:700 31px/1.02 var(--font-playfair); letter-spacing:-.032em; }
-.pricing-price-row { margin-top:18px; display:grid; gap:4px; }
-.pricing-price-row strong { color:var(--color-cream); font:800 48px/.9 var(--font-playfair); }
-.pricing-price-row small { margin-top:4px; color:#E8C97A; font:900 11px/1.35 var(--font-dm-sans); }
-.pricing-card.founder .pricing-price-row strong, .pricing-card.featured .pricing-price-row strong { color:var(--color-accent-amber); }
-.pricing-price-row span { color:var(--color-text-tertiary); font:800 12px/1.4 var(--font-dm-sans); }
-.pricing-description { min-height:54px; margin:18px 0 0; color:var(--color-text-secondary); font:14px/1.62 var(--font-dm-sans); }
-.pricing-card ul { margin:20px 0 0; padding:0; list-style:none; display:grid; gap:10px; }
-.pricing-card li { display:flex; gap:9px; align-items:flex-start; color:rgba(245,237,214,.80); font:13px/1.42 var(--font-dm-sans); }
-.pricing-card li span { flex:0 0 auto; color:var(--color-accent-amber); }
-.pricing-actions { margin-top:auto; padding-top:24px; display:grid; gap:9px; }
-.pricing-actions button { width:100%; border:1px solid rgba(196,148,58,.46); border-radius:13px; background:linear-gradient(135deg, rgba(196,148,58,.98), rgba(212,164,74,.98)); color:#17110B; padding:13px 14px; font:900 13px/1 var(--font-dm-sans); cursor:pointer; transition:transform .18s ease, border-color .18s ease, opacity .18s ease; }
-.pricing-actions button:hover:not(:disabled), .pricing-actions button:focus-visible:not(:disabled) { transform:translateY(-1px); outline:none; border-color:rgba(245,237,214,.62); }
-.pricing-actions button:disabled { cursor:default; opacity:.58; }
-.pricing-error { width:min(760px, calc(100% - 40px)); margin:20px auto 0; color:#ffb4a8; text-align:center; font:800 13px/1.5 var(--font-dm-sans); }
-.pricing-gift-cta{width:min(940px,calc(100% - 40px));margin:52px auto 0;display:flex;align-items:center;justify-content:space-between;gap:24px;border:1px solid rgba(196,148,58,.34);border-radius:22px;padding:24px;background:linear-gradient(135deg,rgba(196,148,58,.16),rgba(255,255,255,.025))}.pricing-gift-cta p{margin:0;color:var(--color-accent-amber);font:900 10px/1 var(--font-jetbrains);letter-spacing:.15em}.pricing-gift-cta h2{max-width:650px;margin:9px 0 0;color:var(--color-cream);font:700 clamp(22px,3vw,34px)/1.08 var(--font-playfair)}.pricing-gift-cta a{flex:0 0 auto;border-radius:13px;padding:14px 18px;color:#17110b;background:linear-gradient(135deg,#c4943a,#d4a44a);font:900 13px/1 var(--font-dm-sans);text-decoration:none}@media(max-width:700px){.pricing-gift-cta{align-items:stretch;flex-direction:column}.pricing-gift-cta a{text-align:center}}
-.comparison-wrap { width:min(1040px, calc(100% - 40px)); margin:56px auto 0; border:1px solid rgba(245,237,214,.08); border-radius:26px; padding:24px; background:rgba(255,255,255,.026); box-shadow:0 24px 80px rgba(0,0,0,.22); }
-.comparison-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:18px; }
-.comparison-heading h2 { margin:0; color:var(--color-cream); font:700 clamp(26px, 3vw, 38px)/1 var(--font-playfair); letter-spacing:-.03em; }
-.comparison-heading p { margin:0; color:var(--color-text-secondary); font:13px/1.5 var(--font-dm-sans); text-align:right; }
-.comparison-scroll { position:relative; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; padding-bottom:6px; scrollbar-width:thin; scrollbar-color:rgba(196,148,58,.55) rgba(255,255,255,.04); }
-.comparison-scroll:focus-visible { outline:2px solid rgba(232,201,122,.7); outline-offset:3px; }
-.comparison-table { display:grid; min-width:860px; gap:1px; overflow:visible; border:1px solid rgba(245,237,214,.07); border-radius:16px; background:rgba(245,237,214,.055); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); isolation:isolate; }
-.comparison-row { display:grid; grid-template-columns:minmax(190px, 1.35fr) repeat(4, minmax(132px, 1fr)); background:rgba(255,255,255,.026); }
-.comparison-row span { display:flex; align-items:center; justify-content:center; min-width:0; min-height:46px; padding:13px 12px; border-right:1px solid rgba(245,237,214,.055); color:var(--color-text-secondary); font:800 12px/1.35 var(--font-dm-sans); text-align:center; }
-.comparison-row span:first-child { position:sticky; left:0; z-index:3; justify-content:flex-start; color:var(--color-cream); background:linear-gradient(90deg, rgba(26,20,15,1), rgba(26,20,15,.99)); box-shadow:8px 0 14px rgba(10,7,5,.28); text-align:left; }
-.comparison-row span:last-child { border-right:0; }
-.comparison-row span.included { color:#17110B; font-size:0; }
-.comparison-row span.included i { display:grid; place-items:center; width:24px; height:24px; border-radius:999px; color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 0 22px rgba(196,148,58,.18); font:950 14px/1 var(--font-dm-sans); font-style:normal; }
-.comparison-row span.not-included { color:rgba(245,237,214,.24); }
-.comparison-head { background:rgba(196,148,58,.09); }
-.comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
-.comparison-head span:first-child { z-index:4; color:var(--color-accent-amber); background:linear-gradient(90deg, rgba(49,35,19,1), rgba(39,29,18,.99)); }
-@media (max-width: 900px) { .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
-@media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-heading p { text-align:left; } .comparison-scroll { padding-right:16px; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
-@media (max-width: 480px) { .comparison-scroll { padding-right:0; } .comparison-table { width:max-content; min-width:0; } .comparison-row { width:max-content; grid-template-columns:132px repeat(4, calc(100vw - 178px)); } }
-@media (max-width: 640px) {
-  .launch-pricing-page { width:100%; max-width:100vw; padding-top:108px; overflow-x:clip; }
-  .pricing-hero,
-  .free-preview-strip,
-  .pricing-grid,
-  .pricing-error,
-  .checkout-canceled,
-  .comparison-wrap { width:calc(100vw - 28px); max-width:calc(100vw - 28px); box-sizing:border-box; }
-  .pricing-grid { grid-template-columns:minmax(0, 1fr); }
-  .pricing-card { width:100%; max-width:100%; box-sizing:border-box; }
-  .pricing-card.founder { grid-column:auto; margin-top:20px; }
-  .checkout-canceled-actions { display:grid; }
-  .checkout-canceled-actions button { width:100%; }
-  .pricing-hero h1 { max-width:100%; font-size:clamp(38px, 11vw, 50px); overflow-wrap:anywhere; }
-  .pricing-description { overflow-wrap:anywhere; }
-  .pricing-description { min-height:0; }
-}
+const css = `
+.membership-pricing{padding:140px 20px 40px;max-width:1100px;margin:auto;color:var(--color-cream,#f5edd6)}.membership-pricing header{text-align:center;margin:0 auto 44px;max-width:680px}.membership-pricing h1{font-family:var(--font-playfair);font-size:clamp(38px,6vw,64px);line-height:1.12;margin:16px 0 24px}.membership-pricing p{line-height:1.65;color:#c0b6a5}.membership-pricing .eyebrow{font-size:11px;font-weight:700;letter-spacing:.15em;color:#c4943a}
+.membership-pricing .plans{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:880px;margin:auto}.membership-pricing .plan{display:flex;flex-direction:column;padding:32px;border:1px solid #40362b;border-radius:20px;background:#17130f}.membership-pricing .barrel{border-color:#b18a50;background:#231b12}.membership-pricing h2{font-family:var(--font-playfair);font-size:30px;margin:8px 0}.membership-pricing .price{font-size:54px;line-height:1;margin:24px 0 10px;color:#f5edd6}.membership-pricing .price span{font-size:16px;margin-left:8px;color:#b4a58e}.membership-pricing ul{padding-left:20px;margin:20px 0 32px;flex:1}.membership-pricing li{padding:7px 0;line-height:1.5}.membership-pricing button{border:1px solid #b18a50;border-radius:10px;min-height:48px;padding:12px 18px;background:#30251a;color:#f5edd6;font-weight:600;cursor:pointer}.membership-pricing .barrel button{background:#d3a365;color:#21170b}.membership-pricing button:disabled{opacity:.65;cursor:default}.membership-pricing .terms,.membership-pricing .notice{text-align:center;max-width:800px;margin:24px auto;font-size:13px}.membership-pricing .notice{padding:16px;border:1px solid #55432c;border-radius:12px}.membership-pricing .comparison{margin:60px auto;max-width:880px;overflow-x:auto}.membership-pricing table{width:100%;border-collapse:collapse;font-size:14px}.membership-pricing th,.membership-pricing td{text-align:left;padding:16px 12px;border-bottom:1px solid #352c23}.membership-pricing tbody th{font-weight:400}.membership-pricing button:focus-visible{outline:2px solid #f5edd6;outline-offset:4px}@media(max-width:640px){.membership-pricing{padding-top:115px}.membership-pricing .plans{grid-template-columns:1fr}.membership-pricing .plan{padding:24px}.membership-pricing th,.membership-pricing td{padding:12px 7px;font-size:12px}}
 `;

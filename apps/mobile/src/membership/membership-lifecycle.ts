@@ -28,7 +28,7 @@ export const DOWNGRADE_DATA_NOTICE = "Your saved bottles and preferences stay in
 
 const PLAN_NAMES: Record<MembershipTier, string> = {
   free: "Free",
-  standard: "Standard",
+  standard: "Barrel Proof",
   barrel: "Barrel Proof",
   "bottled-in-bond": "Founder",
 };
@@ -65,7 +65,7 @@ function deriveStoreMembershipLifecycle(input: {
   }
 
   if (appleMembership) {
-    const name = appleMembership.productId.includes(".barrel.") ? "Barrel Proof" : "Standard";
+    const name = appleMembership.productId.includes(".barrel.") ? "Barrel Proof" : "Barrel Proof";
     switch (appleMembership.status) {
       case "trialing":
         return result("trialing", `${name} trial active`, "Your trial is active. It renews through the App Store unless canceled before the trial ends.", accessActive, true);

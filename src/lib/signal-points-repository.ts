@@ -287,7 +287,7 @@ export class SignalPointsRepository {
       balance: number(accountRows[0].balance),
       debt: number(accountRows[0].debt),
       catalog: catalogRows.map((row) => ({
-        key: text(row.item_key), name: text(row.name), points: number(row.points_cost), catalogVersion: number(row.catalog_version),
+        key: text(row.item_key), name: ["standard_membership_credit_month", "barrel_membership_credit_month"].includes(text(row.item_key)) ? "One Month of Barrel Proof" : text(row.name), points: number(row.points_cost), catalogVersion: number(row.catalog_version),
         fulfillmentType: text(row.fulfillment_type), inventoryRemaining: row.inventory_remaining == null ? null : number(row.inventory_remaining), options: json(row.option_snapshot),
       })),
       redemptions: redemptionRows.map((row) => ({

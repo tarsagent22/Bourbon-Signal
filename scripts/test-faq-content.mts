@@ -38,44 +38,18 @@ const retailerSignals = productFaqs.find((item) => item.question === "What are v
 assert.match(retailerSignals?.answer || "", /scheduled drops, barrel picks, tastings, and lotteries/);
 assert.match(retailerSignals?.answer || "", /24 hours/);
 
-const pricingFaqs = getFaqItems("pricing", { founderSpotsRemaining: 72 });
-assert.equal(pricingFaqs.length, 6);
-assert.deepEqual(pricingFaqs.map((item) => item.question), [
-  "What can I do as a free member?",
-  "What is the difference between Standard Proof and Barrel Proof?",
-  "How do alerts and alert limits work?",
-  "What is the Bottled in Bond Founder membership?",
-  "Can I cancel or change my membership?",
-  "Which features are available in each plan?",
-]);
-
-const free = pricingFaqs[0];
-assert.match(free.answer, /submit sightings/);
-assert.doesNotMatch(free.answer, /requires a paid membership/);
-
-const alertLimits = pricingFaqs.find((item) => item.question === "How do alerts and alert limits work?");
-assert.match(alertLimits?.answer || "", /push notifications/);
-assert.doesNotMatch(alertLimits?.answer || "", /SMS alerts|email delivery/);
-
-assert.doesNotMatch(JSON.stringify([...productFaqs, ...pricingFaqs]), /Release Radar|release-radar/);
-assert.doesNotMatch(JSON.stringify([...productFaqs, ...pricingFaqs]), /Bottle Check|unlimited checks/);
-assert.match(free.answer, /Coverage Map/);
-
-const founder = pricingFaqs.find((item) => item.question.includes("Founder membership"));
-assert.match(founder?.answer || "", /one-time \$50 purchase/);
-assert.match(founder?.answer || "", /72 of 100 Founder spots remain/);
-
-const founderWithoutCount = getFaqItems("pricing", { founderSpotsRemaining: null })
-  .find((item) => item.question.includes("Founder membership"));
-assert.match(founderWithoutCount?.answer || "", /limited to 100 people/);
-assert.doesNotMatch(founderWithoutCount?.answer || "", /shows the current number/);
-assert.doesNotMatch(founderWithoutCount?.answer || "", /null/);
-
+const pricingFaqs = getFaqItems("pricing");
+assert.equal(pricingFaqs.length, 5);
+assert.match(pricingFaqs.find(item => item.question.includes("Barrel Proof include"))?.answer || "", /\$6\/month/);
+assert.match(pricingFaqs.find(item => item.question.includes("Standard Proof"))?.answer || "", /\$3\/month Stripe/);
+assert.match(pricingFaqs.find(item => item.question.includes("Founder"))?.answer || "", /full lifetime access/);
+assert.match(pricingFaqs.find(item => item.question.includes("cancel"))?.answer || "", /period already paid for/);
+assert.doesNotMatch(JSON.stringify(pricingFaqs), /five alert areas|15 tracked bottles|spots remain/);
 assert.match(faqComponent, /aria-controls=\{panelId\}/);
 assert.match(faqComponent, /id=\{panelId\}/);
 assert.match(faqComponent, /aria-labelledby=\{triggerId\}/);
 
 assert.match(homePage, /<FAQ variant="product"/);
-assert.match(pricingPage, /<FAQ variant="pricing" founderSpotsRemaining=\{founderSpots\?\.remaining \?\? null\}/);
+assert.match(pricingPage, /<FAQ variant="pricing"/);
 
 console.log("FAQ content contracts passed.");

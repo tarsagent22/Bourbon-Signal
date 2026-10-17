@@ -16,7 +16,7 @@ test('drafts are bounded, validated, and keep the agreed interest paths', () => 
   assert.equal(beginnerPath('starting'), true); assert.equal(beginnerPath('unsure'), true);
   assert.equal(beginnerPath('enthusiast'), false); assert.equal(beginnerPath('hunter'), false);
 });
-test('Community is readable by Free, but Community alerts remain Barrel-only', () => {
+test('Community is readable by Free and Community alerts are included with every paid billing plan', () => {
   assert.equal(TIER_ENTITLEMENTS.free.sightingsPreviewLimit, null);
   assert.equal(TIER_ENTITLEMENTS.free.feedPreviewLimit, 6);
   assert.equal(TIER_ENTITLEMENTS.free.canUseStateFilter, false);

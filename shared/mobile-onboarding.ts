@@ -36,7 +36,7 @@ export function onboardingFlavorSelections(flavors: string[]) {
   return [...new Set(flavors.flatMap(flavor => legacy[flavor] || [flavor]))].filter(flavor => FLAVOR_OPTIONS.some(option => option === flavor));
 }
 export function beginnerPath(interest: BourbonInterest) { return interest === 'starting' || interest === 'unsure'; }
-export function communityAlertsIncluded(tier: string) { return tier === 'barrel' || tier === 'bottled-in-bond'; }
+export function communityAlertsIncluded(tier: string) { return tier === 'standard' || tier === 'barrel' || tier === 'bottled-in-bond'; }
 export interface OnboardingCoverageState {
   code: string; coverageStrength: 'strong' | 'moderate' | 'sparse' | 'none';
   coverageStatus: 'available' | 'not-available'; health: 'current' | 'intermittent' | 'temporarily-limited' | 'no-recent-update';

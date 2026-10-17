@@ -10,7 +10,7 @@ import styles from "./settings.module.css";
 
 const MEMBERSHIP_LABELS: Record<string, string> = {
   free: "Free",
-  standard: "Standard Proof",
+  standard: "Barrel Proof · Early member",
   barrel: "Barrel Proof",
   "bottled-in-bond": "Bottled in Bond Founder",
 };
@@ -179,7 +179,7 @@ function SettingsPageContent({ ownerPreview }: { ownerPreview?: ReactNode }) {
                     .then(() => { window.location.href = "/dashboard?section=alerts"; })
                     .catch((error) => setRetentionMessage(error instanceof Error ? error.message : "Your feedback could not be saved."));
                 }}>Improve my alerts</a>
-                <button className={styles.secondaryButton} type="button" onClick={() => void openBillingPortal("lower_cost_plan")} disabled={billingPending}>{billingPending ? "Opening billing…" : "Review a lower-cost plan"}</button>
+                <button className={styles.secondaryButton} type="button" onClick={() => void openBillingPortal("lower_cost_plan")} disabled={billingPending}>{billingPending ? "Opening billing…" : "Review my membership"}</button>
                 <button className={styles.billingTextButton} type="button" onClick={() => void openBillingPortal("billing_portal")} disabled={billingPending}>Continue to billing</button>
               </div>
               <p className={styles.billingNote}>Stripe handles plan changes and cancellation securely. Cancellation stops the next renewal; paid access continues through the current billing period.</p>

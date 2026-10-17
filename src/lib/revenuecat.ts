@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import {
   APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
+  APPLE_MEMBERSHIP_PRODUCT_IDS,
   AppleMembershipError,
   appleMembershipAccessTier,
   appleMembershipPlanForProduct,
@@ -51,7 +52,8 @@ function latestTimestamp(values: Array<string | null>) {
 }
 
 function sameProductSet(configured: string[]) {
-  return configured.length === APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS.length
+  return configured.length >= APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS.length
+    && configured.every(id => (APPLE_MEMBERSHIP_PRODUCT_IDS as readonly string[]).includes(id))
     && new Set(configured).size === configured.length
     && APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS.every((productId) => configured.includes(productId));
 }

@@ -88,7 +88,7 @@ test("the current reward catalog advances monotonically before member and owner 
   const storedRows = Array.from({ length: (calls[0].params?.length || 0) / 6 }, (_, index) => calls[0].params?.slice(index * 6, index * 6 + 6));
   for (const item of SIGNAL_REWARD_CATALOG) {
     const row = storedRows.find((candidate) => candidate?.[0] === item.key);
-    assert.deepEqual(row?.slice(0, 5), [item.key, item.catalogVersion, item.name, item.points, item.fulfillmentType]);
+    assert.deepEqual(row?.slice(0, 5), [item.key, item.catalogVersion, item.key === "standard_membership_credit_month" ? "One Month of Standard" : item.name, item.points, item.fulfillmentType]);
     assert.deepEqual(JSON.parse(String(row?.[5])), expectedOptions[item.key]);
   }
   for (const expectedSqlRow of [

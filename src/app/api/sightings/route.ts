@@ -292,7 +292,7 @@ async function requireSightingsEntitlements(userId: string) {
 export async function GET(req: NextRequest) {
   if (isQaPreviewRequest(req)) {
     const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
-    if (!entitlements.canReadSightings) return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    if (!entitlements.canReadSightings) return NextResponse.json({ error: "Member Sightings access is unavailable. Refresh your membership and try again.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     return NextResponse.json({ sightings: [], states: [], qaPreview: true, qaTier: entitlements.tier });
   }
   const { userId } = await auth();
@@ -303,7 +303,7 @@ export async function GET(req: NextRequest) {
   const hidden = await new CommunitySafetyRepository().hiddenFor(userId);
   const entitlements = await getServerEntitlements(user.publicMetadata);
   if (!entitlements.canReadSightings) {
-    return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
+    return NextResponse.json({ error: "Member Sightings access is unavailable. Refresh your membership and try again." }, { status: 403 });
   }
 
   const url = new URL(req.url);
@@ -427,7 +427,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (isQaPreviewRequest(req)) {
     const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
-    if (!entitlements.canSubmitSightings) return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    if (!entitlements.canSubmitSightings) return NextResponse.json({ error: "Member Sightings posting is unavailable. Refresh your membership and try again.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
     const sighting: MemberSighting = {
       id: makeSightingId(),
@@ -457,7 +457,7 @@ export async function POST(req: NextRequest) {
   if (rawIdempotencyKey && !idempotencyKey) return NextResponse.json({ error: "Invalid Idempotency-Key" }, { status: 400 });
   const entitlements = await requireSightingsEntitlements(userId);
   if (!entitlements.canSubmitSightings) {
-    return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above." }, { status: 403 });
+    return NextResponse.json({ error: "Member Sightings posting is unavailable. Refresh your membership and try again." }, { status: 403 });
   }
   const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
   const requestedBottleName = sanitizeManualSightingField(payload.bottleName, 140);
@@ -630,14 +630,14 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   if (isQaPreviewRequest(req)) {
     const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
-    if (!entitlements.canReadSightings) return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    if (!entitlements.canReadSightings) return NextResponse.json({ error: "Member Sightings access is unavailable. Refresh your membership and try again.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     return NextResponse.json({ ok: true, sightings: [], qaPreview: true, qaTier: entitlements.tier });
   }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const entitlements = await requireSightingsEntitlements(userId);
   if (!entitlements.canReadSightings) {
-    return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
+    return NextResponse.json({ error: "Member Sightings access is unavailable. Refresh your membership and try again." }, { status: 403 });
   }
   const requester = await (await clerkClient()).users.getUser(userId);
   const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(requester));

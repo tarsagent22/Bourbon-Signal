@@ -113,54 +113,28 @@ assert.match(requestFormSource, /variant.*welcome/);
 assert.match(pricingSource, /Continue with Free/);
 assert.match(pricingSource, /intent=paid/);
 assert.doesNotMatch(pricingSource, /sign-up\?redirect_url=\/dashboard/, "pricing fallbacks cannot bypass Welcome");
-assert.match(pricingSource, /comparisonRows/);
-assert.match(pricingSource, /comparison-table/);
-assert.match(pricingSource, /role="table"/);
+assert.match(pricingSource, /MEMBERSHIP_COMPARISON_ROWS/);
+assert.match(pricingSource, /<table><thead>/);
+assert.match(pricingSource, /scope="col"/);
+assert.match(pricingSource, /scope="row"/);
 for (const feature of [
-  "Drop Feed access",
-  "Member Sightings",
-  "Push and in-app alerts",
-  "Alert preference limits",
-  "Signal Points redemption",
-  "Sightings alerts",
-  "My Shelf",
-  "Recommended Bottles",
-  "Founder badge + number",
-  "Numbered Founder’s glass",
+  "Intel feed", "My Shelf", "Bottle lookups", "Alert areas and watched bottles",
+  "Push and Community alerts", "Advanced filters and bottle search",
+  "Bourbon DNA and recommendations", "Signal Points",
 ]) {
-  assert.ok(pricingTruthSource.includes(feature), `comparison must preserve the active feature row: ${feature}`);
+  assert.ok(pricingTruthSource.includes(feature), `comparison preserves feature: ${feature}`);
 }
 assert.doesNotMatch(pricingTruthSource, /Bottle Check/, "retired Bottle Check must not be advertised as a membership feature");
-assert.match(pricingSource, /value === "✓"[\s\S]*included[\s\S]*value === "—"[\s\S]*not-included/, "comparison should use the prior checkmark and dash treatment");
-assert.match(pricingSource, /aria-label=\{value === "✓" \? "Included" : value === "—" \? "Not included" : undefined\}/, "symbol-only comparison cells need a single spoken label");
-assert.match(pricingSource, /\.comparison-row span:first-child\s*\{[^}]*position:sticky[^}]*left:0/, "feature labels must persist during horizontal scrolling");
-assert.doesNotMatch(pricingSource, /\.comparison-row span:first-child\s*\{[^}]*position:static/, "mobile must not disable the persistent feature column");
-assert.match(pricingSource, /@media \(max-width:\s*480px\)[\s\S]*\.comparison-scroll\s*\{[^}]*padding-right:0[\s\S]*grid-template-columns:132px repeat\(4, calc\(100vw - 178px\)\)/, "narrow mobile should size one complete plan beside the persistent feature labels without hidden scroller padding");
-for (const viewportWidth of [320, 375, 390]) {
-  const comparisonViewport = viewportWidth - 46;
-  const planWidth = viewportWidth - 178;
-  assert.equal(132 + planWidth, comparisonViewport, `sticky feature and plan columns must exactly fill the ${viewportWidth}px comparison viewport`);
-  assert.ok(planWidth >= 142, `${viewportWidth}px must retain a readable plan column`);
-}
-assert.doesNotMatch(pricingSource, /\.july-sale-banner|billing-toggle/, "retired annual promotion styles must not remain on public pricing");
-assert.doesNotMatch(pricingSource, /grid-template-columns:auto 1fr auto/, "sale disclaimer must not squeeze the offer into an intrinsic three-column layout");
-const founderCardSource = pricingCatalogSource.slice(pricingCatalogSource.indexOf('tier: "bottled-in-bond"'), pricingCatalogSource.indexOf("export const CORE_PAID_MEMBERSHIP_PLANS"));
-assert.doesNotMatch(pricingCatalogSource, /Signal Strength meter/);
+assert.match(pricingSource, /value === "✓" \? "Included" : value === "—" \? "Not included" : undefined/);
+assert.match(pricingSource, /aria-label=\{comparisonLabel\(free\)\}/);
+assert.match(pricingSource, /aria-label=\{comparisonLabel\(member\)\}/);
+assert.doesNotMatch(pricingSource, /billing-toggle|Limited lifetime offer/);
+assert.match(pricingSource, /@media\(max-width:640px\)[\s\S]*grid-template-columns:1fr/);
 assert.match(pricingCatalogSource, /Redeem Signal Points for member rewards/);
-assert.doesNotMatch(founderCardSource, /description:\s*"Everything in Barrel Proof/);
-assert.ok(founderCardSource.indexOf("Numbered Founder’s glass") < founderCardSource.indexOf("Founder badge & number on profile"), "the numbered glass should precede the profile badge in the Founder card");
-assert.doesNotMatch(pricingSource, /compact-differences/);
-assert.doesNotMatch(pricingSource, /July sale — 15% off|annual memberships|first annual payment|Founder remains a one-time payment/);
-assert.match(pricingSource, /@media \(max-width:\s*640px\)[\s\S]*100vw - 28px/, "mobile pricing containers must remain viewport-bound");
-assert.match(pricingSource, /Recommended[\s\S]*Barrel Proof/);
-assert.match(pricingSource, /Limited lifetime offer/);
-for (const plan of ["standard_monthly", "barrel_monthly", "bib_lifetime"]) {
-  assert.ok(pricingTruthSource.includes(plan), `pricing must preserve checkout plan ${plan}`);
-}
-for (const price of ["$3", "$6", "$50"]) {
-  assert.ok(pricingTruthSource.includes(price), `pricing must preserve approved price ${price}`);
-}
-assert.match(pricingSource, /canceledPlan[\s\S]*\/welcome/, "a canceled paid signup choosing Free must complete Welcome");
+assert.match(pricingCatalogSource, /barrel_monthly/);
+assert.doesNotMatch(pricingCatalogSource, /standard_monthly|bib_lifetime/);
+assert.match(pricingCatalogSource, /monthlyPrice: "\$6"/);
+assert.match(pricingSource, /params.has\("canceled"\)[\s\S]*\/welcome/, "a canceled paid signup choosing Free must complete Welcome");
 assert.doesNotMatch(dashboardSource, /FreeMemberDashboard/, "free members should use the real dashboard instead of a parallel imitation");
 assert.match(dashboardSource, /return <PaidMemberDashboard \/>/, "all entitled members should enter the shared dashboard shell");
 assert.match(middlewareSource, /"\/welcome\(\.\*\)"/);

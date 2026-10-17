@@ -135,7 +135,7 @@ assert.match(bottleCheck, /recordGrowthMilestone\("free_value_reached"[\s\S]*kin
 assert.match(dropFeed, /IntersectionObserver[\s\S]*!isSignedIn[\s\S]*!feedResultsVisible[\s\S]*!pageVisible[\s\S]*kind:\s*"state_feed"[\s\S]*4_000/, "authenticated state feed value requires continuous visible results dwell");
 assert.match(dropFeed, /ref=\{feedResultsRef\}[\s\S]*height:\s*"1px"/, "Drop Feed value visibility must use a reachable top-of-results sentinel on tall layouts");
 assert.match(dropFeed, /You have seen the latest seven signals\./);
-assert.match(dropFeed, /Standard Proof unlocks the full state feed and alerts for the bottles and areas you choose\./);
+assert.match(dropFeed, /Barrel Proof unlocks the full state feed and alerts for the bottles and areas you choose\./);
 assert.doesNotMatch(attributionRoute, /release_radar|calendar_filter|calendar_navigation/);
 assert.match(checkoutContinue, /registrationCompleted[\s\S]*recordGrowthMilestone\("registration_completed", \{ surface: "sign_up" \}\)/, "paid signup continuation must persist registration and first-touch before Stripe");
 assert.match(dashboard, /needsHomeStateActivation[\s\S]*href=\{needsHomeStateActivation \? "\/welcome" : "\/pricing\?source=dashboard"\}[\s\S]*See signals near you/, "free members without a home state must get a first-value CTA before an upgrade CTA");

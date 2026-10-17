@@ -4,6 +4,7 @@ import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import {
   GOOGLE_MEMBERSHIP_PRODUCT_IDS,
+  GOOGLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
   normalizeGoogleRevenueCatSubscriber,
   googlePurchaseAccountBlocker,
   googleMembershipConfiguration,
@@ -348,7 +349,7 @@ test("Google API rejects client-selected annual products and existing external s
     {
       store: "google",
       accountBlocker: googlePurchaseAccountBlocker,
-      productIds: GOOGLE_MEMBERSHIP_PRODUCT_IDS,
+      productIds: GOOGLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
     },
   );
   assert.equal(
@@ -360,7 +361,7 @@ test("Google API rejects client-selected annual products and existing external s
       await api.reconcile(
         new Request("https://example.test", {
           method: "POST",
-          body: JSON.stringify({ action: "purchase", productId: sku }),
+          body: JSON.stringify({ action: "purchase", productId: GOOGLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0] }),
         }),
         "member-A",
       )

@@ -5,7 +5,7 @@ import { createAppleMembershipApiHandlers } from "@/lib/apple-membership-api";
 import {
   googleMembershipConfiguration,
   googlePurchaseAccountBlocker,
-  GOOGLE_MEMBERSHIP_PRODUCT_IDS,
+  GOOGLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
 } from "@/lib/google-membership";
 import { signalApiError } from "@/lib/signals/signal-api-route";
 
@@ -37,7 +37,7 @@ const handlers = createAppleMembershipApiHandlers(
   {
     store: "google",
     accountBlocker: googlePurchaseAccountBlocker,
-    productIds: GOOGLE_MEMBERSHIP_PRODUCT_IDS,
+    productIds: GOOGLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
   },
 );
 

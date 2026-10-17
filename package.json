@@ -155,7 +155,7 @@
     "test:bottle-search": "tsx scripts/test-bottle-search.mts && npm run test:bottle-photos",
     "test:bottle-contributions": "tsx --test scripts/test-bottle-contribution-idempotency.mts",
     "test:bottle-check-dossier": "node --no-warnings --experimental-strip-types scripts/test-bottle-check-dossier.mts",
-    "test:entitlements": "node --no-warnings --experimental-strip-types scripts/test-entitlements.mts",
+    "test:entitlements": "node --no-warnings --experimental-strip-types scripts/test-entitlements.mts && node --no-warnings --experimental-strip-types --test scripts/test-single-membership.mts",
     "test:cellar-cohesion": "node --no-warnings --experimental-strip-types scripts/test-cellar-access-policy.mts && node --no-warnings --experimental-strip-types scripts/test-member-collection-entitlements.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-access-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-product-copy.mts",
     "test:member-experience-performance": "tsx scripts/test-member-experience-performance.mts",
     "test:bottle-rarity-score": "node --no-warnings --experimental-strip-types scripts/test-bottle-rarity-score.mts && node --no-warnings --experimental-strip-types scripts/test-catalog-merge-equivalence.mts",

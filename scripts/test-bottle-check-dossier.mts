@@ -34,9 +34,9 @@ assert.equal(assessShelfPrice(40, -1), null, "invalid shelf prices do not create
 
 assert.deepEqual(bottleCheckActionAccess("track", TIER_ENTITLEMENTS.free), {
   allowed: false,
-  requiredTier: "Standard Proof",
+  requiredTier: "Barrel Proof",
   title: "Upgrade membership to track this bottle",
-  description: "Standard Proof and higher memberships can save bottle alerts for selected markets.",
+  description: "Barrel Proof includes bottle alerts for your selected markets.",
 });
 assert.equal(bottleCheckActionAccess("track", TIER_ENTITLEMENTS.standard).allowed, true);
 assert.deepEqual(bottleCheckActionAccess("track", TIER_ENTITLEMENTS.standard, {
@@ -45,10 +45,7 @@ assert.deepEqual(bottleCheckActionAccess("track", TIER_ENTITLEMENTS.standard, {
   requestedNewAreaCount: 0,
   alreadyTracked: false,
 }), {
-  allowed: false,
-  requiredTier: "Barrel Proof",
-  title: "Upgrade membership to track more bottles",
-  description: "Barrel Proof and Founder memberships include unlimited tracked bottles and alert areas.",
+  allowed: true,
 });
 assert.equal(bottleCheckActionAccess("track", TIER_ENTITLEMENTS.standard, {
   trackedBottleCount: 15,
@@ -67,15 +64,15 @@ assert.equal(bottleCheckActionAccess("track", TIER_ENTITLEMENTS.standard, {
   currentAlertAreaCount: 5,
   requestedNewAreaCount: 1,
   alreadyTracked: false,
-}).allowed, false, "new markets cannot be silently trimmed at the Standard area limit");
+}).allowed, true, "grandfathered Standard members have unlimited alert areas");
 
 assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free).allowed, true);
 assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.standard).allowed, true);
 assert.deepEqual(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free, { collectionBottleCount: 10 }), {
   allowed: false,
-  requiredTier: "Standard Proof",
+  requiredTier: "Barrel Proof",
   title: "Your free shelf is full",
-  description: "Your 10 saved bottles remain available to view, edit, or delete. Standard Proof adds room for more.",
+  description: "Your 10 saved bottles remain available to view, edit, or delete. Barrel Proof adds unlimited space.",
 });
 assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free, { collectionBottleCount: 75, alreadyInCollection: true }).allowed, true, "downgraded members can keep managing an existing bottle");
 assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.barrel).allowed, true);

@@ -47,7 +47,7 @@ function productFaqItems(): FaqItem[] {
     {
       question: "How do Bourbon Signal alerts work?",
       answer:
-        "Choose the markets you care about, then decide whether you want anything notable nearby or only specific bottles from your watchlist. An alert area may be a state, control board, city, or individual store, depending on the precision available in that market. Standard Proof includes up to five specific alert areas and 15 watched bottles. Barrel Proof and Bottled in Bond remove those preference limits. Matching alerts appear in your inbox and through push notifications. Bourbon Signal only sends alerts from fresh, alert-grade signals—not every broad release lead or feed item.",
+        "Choose the markets you care about, then decide whether you want anything notable nearby or only specific bottles from your watchlist. An alert area may be a state, control board, city, or individual store, depending on the precision available in that market. Barrel Proof includes unlimited alert areas and watched bottles for all paid members, including early members on legacy billing rates. Matching alerts appear in your inbox and through push notifications. Bourbon Signal only sends alerts from fresh, alert-grade signals—not every broad release lead or feed item.",
     },
     {
       question: "What are verified retailer signals?",
@@ -57,7 +57,7 @@ function productFaqItems(): FaqItem[] {
     {
       question: "What are Member Sightings?",
       answer:
-        "Signed-in members can report bottles seen in stores, available inventory, sold-out conditions, and other useful local observations. Photos are optional, and community voting helps identify useful reports. Member Sightings remain clearly labeled as community reports rather than official or verified-retailer inventory. Barrel Proof and Bottled in Bond members can also receive alerts when sightings match their selected bottles and markets.",
+        "Signed-in members can report bottles seen in stores, available inventory, sold-out conditions, and other useful local observations. Photos are optional, and community voting helps identify useful reports. Member Sightings remain clearly labeled as community reports rather than official or verified-retailer inventory. Paid members can also receive alerts when sightings match their selected bottles and markets.",
     },
     {
       question: "How do I add bottles to My Shelf?",
@@ -67,7 +67,7 @@ function productFaqItems(): FaqItem[] {
     {
       question: "How do My Shelf and recommendations work?",
       answer:
-        "Every membership includes My Shelf for bottles you own or have tasted, ratings, tasting cues, and private notes. Standard Proof includes unlimited My Shelf capacity. My Shelf can suggest up to three bottles to hunt next, but Radar changes only when you choose the explicit watch action. Barrel Proof and Bottled in Bond add Bourbon DNA, personalized recommendations, and clearly labeled local opportunity context shaped by your collection. Recommendations are suggestions, not guarantees that a bottle is locally available.",
+        "Every membership includes My Shelf for bottles you own or have tasted, ratings, tasting cues, and private notes. Paid members have unlimited My Shelf capacity. My Shelf can suggest up to three bottles to hunt next, but Radar changes only when you choose the explicit watch action. Paid membership includes Bourbon DNA, personalized recommendations, and clearly labeled local opportunity context shaped by your collection. Recommendations are suggestions, not guarantees that a bottle is locally available.",
     },
     {
       question: "What is Hunt Outcome?",
@@ -82,43 +82,13 @@ function productFaqItems(): FaqItem[] {
   ];
 }
 
-function pricingFaqItems(options: FaqOptions): FaqItem[] {
-  const remaining = options.founderSpotsRemaining;
-  const founderAvailability = typeof remaining === "number"
-    ? `${remaining} of 100 Founder spots remain right now.`
-    : "Membership is permanently limited to 100 people.";
-
+function pricingFaqItems(_options: FaqOptions): FaqItem[] {
   return [
-    {
-      question: "What can I do as a free member?",
-      answer:
-        "A free account includes a preview of the latest Drop Feed signals, the Coverage Map, Member Sightings, and My Shelf. You can submit sightings and help other hunters. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools.",
-    },
-    {
-      question: "What is the difference between Standard Proof and Barrel Proof?",
-      answer:
-        "Standard Proof includes unlimited My Shelf capacity and is built for alerts and everyday hunting: the full feed, up to five alert areas, up to 15 tracked bottles, and in-app and push delivery. Barrel Proof removes the alert-preference limits and adds Bourbon DNA and personalized collection intelligence, recommendations, local opportunities, Member Sighting alerts.",
-    },
-    {
-      question: "How do alerts and alert limits work?",
-      answer:
-        `Choose anything notable in your selected markets or narrow alerts to bottles on your watchlist. Standard Proof supports up to five specific alert areas, 15 tracked bottles, and push notifications. Barrel Proof removes the area and bottle limits with push notifications. Bottled in Bond includes the same unlimited preferences with push notifications. In-app alerts are also available on paid plans.`,
-    },
-    {
-      question: "What is the Bottled in Bond Founder membership?",
-      answer:
-        `Bottled in Bond is Bourbon Signal’s lifetime Founder membership: a one-time $50 purchase with no recurring subscription fee. It includes current and future paid product features, unlimited alert areas and bottle tracking, Founder recognition and member number, early access to new tools, and a numbered Founder’s glass. ${founderAvailability}`,
-    },
-    {
-      question: "Can I cancel or change my membership?",
-      answer:
-        "Yes. Recurring memberships can be managed through the billing portal in your Bourbon Signal account. Cancellation stops future renewals, and paid access continues through the billing period you already purchased. Bottled in Bond is a one-time lifetime purchase and does not renew. Refund eligibility is governed by Bourbon Signal’s refund policy.",
-    },
-    {
-      question: "Which features are available in each plan?",
-      answer:
-        "Free is designed for trying the feed, the Coverage Map, community sightings, and My Shelf. Standard Proof unlocks the full feed, unlimited My Shelf capacity, saved alerts, bottle tracking, and notification delivery. Barrel Proof adds unlimited alert preferences, Bourbon DNA, personalized collection intelligence, recommendations, and Member Sighting alerts. Bottled in Bond includes the complete paid product as a lifetime Founder membership. The plan cards above show the current prices and exact alert limits.",
-    },
+    { question: "What can I do as a free member?", answer: "Free includes 6 recent Intel signals, the Community feed, 3 bottle lookups, 10 bottles on My Shelf, and the ability to post sightings and earn Signal Points." },
+    { question: "What does Barrel Proof include?", answer: "Barrel Proof is $6/month and includes every paid feature: the full Intel feed, unlimited alert areas and watched bottles, push and Community alerts, advanced filters and bottle search, unlimited My Shelf, Bourbon DNA, recommendations, and Signal Points redemption." },
+    { question: "What happens to my Standard Proof membership?", answer: "Existing Standard Proof members receive every Barrel Proof feature automatically. Existing $3/month Stripe subscriptions keep that rate while the subscription continues. After it ends, a new subscription uses the current $6/month price." },
+    { question: "What happens to existing Founder memberships?", answer: "Existing Founder memberships keep full lifetime access, Founder recognition, and their member number. No recurring subscription is required." },
+    { question: "How do I cancel?", answer: "Manage your membership in your account through the provider that bills you. Cancellation stops future renewals. Full access continues through the period already paid for, then the account returns to Free. Existing collection entries remain available." },
   ];
 }
 

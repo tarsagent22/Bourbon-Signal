@@ -2681,9 +2681,9 @@ export default function DropFeed() {
               <strong style={{ display: "block", color: "var(--color-cream)", fontSize: "15px", marginBottom: "5px" }}>
                 You have seen the latest seven signals.
               </strong>
-              Standard Proof unlocks the full state feed and alerts for the bottles and areas you choose.{" "}
+              Barrel Proof unlocks the full state feed and alerts for the bottles and areas you choose.{" "}
               <a href="/pricing?source=drop_feed" style={{ color: "var(--color-accent-amber)", fontWeight: 800 }}>
-                See Standard Proof
+                See Barrel Proof
               </a>
             </div>
           ) : null}

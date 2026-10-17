@@ -1,6 +1,6 @@
 import type { BillingPlanId, MembershipTier } from "./entitlements";
 
-export type PublicCheckoutPlanId = "standard_monthly" | "barrel_monthly" | "bib_lifetime";
+export type PublicCheckoutPlanId = "barrel_monthly";
 
 export type PaidMembershipPlan = {
   tier: Exclude<MembershipTier, "free">;
@@ -19,23 +19,6 @@ export type PaidMembershipPlan = {
 
 export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
   {
-    tier: "standard",
-    name: "Standard Proof",
-    eyebrow: "Core Membership",
-    monthlyPrice: "$3",
-    monthlyPlan: "standard_monthly",
-    description: "Turn the state signal you just explored into a focused hunting plan.",
-    features: [
-      "Full state Drop Feed",
-      "Alerts for up to 5 areas and 15 bottles",
-      "Full Member Sightings",
-      "Unlimited My Shelf",
-      "Redeem Signal Points for member rewards",
-    ],
-    accent: "standard",
-    evergreenEmailEligible: true,
-  },
-  {
     tier: "barrel",
     name: "Barrel Proof",
     eyebrow: "Serious hunters",
@@ -43,7 +26,9 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
     monthlyPlan: "barrel_monthly",
     description: "Pair unlimited hunting tools with intelligence shaped by your own collection.",
     features: [
-      "Everything in Standard with unlimited preferences",
+      "Full Intel feed and unlimited bottle lookups",
+      "Unlimited alert areas, watched bottles, and My Shelf",
+      "Redeem Signal Points for member rewards",
       "Advanced filters and Sightings alerts",
       "Bourbon DNA and personalized collection intelligence",
       "Personalized recommendations and local opportunities",
@@ -52,29 +37,13 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
     featured: true,
     evergreenEmailEligible: true,
   },
-  {
-    tier: "bottled-in-bond",
-    name: "Bottled in Bond",
-    eyebrow: "Limited Founder Offer",
-    oneTimePrice: "$50",
-    plan: "bib_lifetime",
-    description: "Lifetime access to Bourbon Signal’s most complete hunting toolkit, plus permanent Founder recognition.",
-    features: [
-      "Everything in Barrel Proof",
-      "Numbered Founder’s glass",
-      "Founder badge & number on profile",
-    ],
-    accent: "founder",
-    evergreenEmailEligible: false,
-  },
+
 ];
 
 export const CORE_PAID_MEMBERSHIP_PLANS = PAID_MEMBERSHIP_PLANS.filter((plan) => plan.evergreenEmailEligible);
 
 export const CHECKOUT_PLAN_TIERS: Record<PublicCheckoutPlanId, MembershipTier> = {
-  standard_monthly: "standard",
   barrel_monthly: "barrel",
-  bib_lifetime: "bottled-in-bond",
 };
 
 export function isPublicCheckoutPlanId(planId: BillingPlanId): planId is PublicCheckoutPlanId {
@@ -82,14 +51,12 @@ export function isPublicCheckoutPlanId(planId: BillingPlanId): planId is PublicC
 }
 
 export const MEMBERSHIP_COMPARISON_ROWS = [
-  ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
-  ["Member Sightings", "Limited", "✓", "✓", "✓"],
-  ["Push and in-app alerts", "—", "✓", "✓", "✓"],
-  ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
-  ["Signal Points redemption", "Earn only", "✓", "✓", "✓"],
-  ["Sightings alerts", "—", "—", "✓", "✓"],
-  ["My Shelf", "✓", "Unlimited", "Unlimited", "Unlimited"],
-  ["Recommended Bottles", "—", "—", "✓", "✓"],
-  ["Founder badge + number", "—", "—", "—", "✓"],
-  ["Numbered Founder’s glass", "—", "—", "—", "✓"],
+  ["Intel feed", "6 recent signals", "Full access"],
+  ["My Shelf", "10 bottles", "Unlimited"],
+  ["Bottle lookups", "3", "Unlimited"],
+  ["Alert areas and watched bottles", "—", "Unlimited"],
+  ["Push and Community alerts", "—", "✓"],
+  ["Advanced filters and bottle search", "—", "✓"],
+  ["Bourbon DNA and recommendations", "—", "✓"],
+  ["Signal Points", "Earn", "Earn and redeem"],
 ] as const;

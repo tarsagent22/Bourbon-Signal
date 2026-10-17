@@ -89,7 +89,7 @@ export type BottleCheckActionAccess =
   | { allowed: true }
   | {
       allowed: false;
-      requiredTier: "Standard Proof" | "Barrel Proof";
+      requiredTier: "Barrel Proof";
       title: string;
       description: string;
     };
@@ -112,9 +112,9 @@ export function bottleCheckActionAccess(
     if (entitlements.trackedBottleLimit === 0) {
       return {
         allowed: false,
-        requiredTier: "Standard Proof",
+        requiredTier: "Barrel Proof",
         title: "Upgrade membership to track this bottle",
-        description: "Standard Proof and higher memberships can save bottle alerts for selected markets.",
+        description: "Barrel Proof includes bottle alerts for your selected markets.",
       };
     }
     if (context.alreadyTracked) return { allowed: true };
@@ -127,7 +127,7 @@ export function bottleCheckActionAccess(
         allowed: false,
         requiredTier: "Barrel Proof",
         title: "Upgrade membership to track more bottles",
-        description: "Barrel Proof and Founder memberships include unlimited tracked bottles and alert areas.",
+        description: "Paid membership includes unlimited tracked bottles and alert areas.",
       };
     }
     return { allowed: true };
@@ -136,7 +136,7 @@ export function bottleCheckActionAccess(
   if (!entitlements.canUseCollection) {
     return {
       allowed: false,
-      requiredTier: "Standard Proof",
+      requiredTier: "Barrel Proof",
       title: "My Shelf is unavailable",
       description: "Refresh your membership access before changing My Shelf.",
     };
@@ -145,9 +145,9 @@ export function bottleCheckActionAccess(
     || (context.collectionBottleCount || 0) < entitlements.collectionBottleLimit) return { allowed: true };
   return {
     allowed: false,
-    requiredTier: "Standard Proof",
+    requiredTier: "Barrel Proof",
     title: "Your free shelf is full",
-    description: `Your ${entitlements.collectionBottleLimit} saved bottles remain available to view, edit, or delete. Standard Proof adds room for more.`,
+    description: `Your ${entitlements.collectionBottleLimit} saved bottles remain available to view, edit, or delete. Barrel Proof adds unlimited space.`,
   };
 }
 

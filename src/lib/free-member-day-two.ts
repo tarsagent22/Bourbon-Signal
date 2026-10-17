@@ -92,7 +92,7 @@ export function evaluateFreeMemberDayTwoCandidate(input: {
   const privateMetadata = record(input.user.privateMetadata);
   const unsafeMetadata = record(input.user.unsafeMetadata);
   if (getEntitlements(publicMetadata).tier !== "free") return "skipped_not_free";
-  if (!membershipTrialEligibility("standard_monthly", publicMetadata, privateMetadata).eligible) {
+  if (!membershipTrialEligibility("barrel_monthly", publicMetadata, privateMetadata).eligible) {
     return "skipped_trial_or_paid_history";
   }
   if (input.user.banned || input.user.locked) return "skipped_disabled_account";

@@ -4,7 +4,7 @@ import { TIER_ENTITLEMENTS } from "../src/lib/entitlements.ts";
 
 const expected = {
   free: { limit: 10, dna: false, recommendations: false },
-  standard: { limit: null, dna: false, recommendations: false },
+  standard: { limit: null, dna: true, recommendations: true },
   barrel: { limit: null, dna: true, recommendations: true },
   "bottled-in-bond": { limit: null, dna: true, recommendations: true },
 } as const;

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const tier = await resolveServerEffectiveMembershipTier(user.publicMetadata);
     const item = rewardCatalogItem(payload.itemKey);
     if (!item) return NextResponse.json({ error: "Choose an available reward." }, { status: 400, headers: PRIVATE_HEADERS });
-    if (!canRedeemSignalPoints(tier) && item.key !== "standard_membership_credit_month") return NextResponse.json({ error: "Membership is required for this reward. Free users can earn a month of Standard." }, { status: 403, headers: PRIVATE_HEADERS });
+    if (!canRedeemSignalPoints(tier) && item.key !== "standard_membership_credit_month") return NextResponse.json({ error: "Membership is required for this reward. Free users can earn a month of Barrel Proof." }, { status: 403, headers: PRIVATE_HEADERS });
     const email = verifiedPrimaryEmail(user);
     if (!email) return NextResponse.json({ error: "A verified account email is required." }, { status: 409, headers: PRIVATE_HEADERS });
     const detailInput = (payload.details && typeof payload.details === "object" ? payload.details : {}) as Record<string, unknown>;

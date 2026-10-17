@@ -87,7 +87,7 @@ export function createRevenueCatPurchaseAdapter(load: RevenueCatLoader = default
         const productId = platform==="android" && item.product.identifier.endsWith(":monthly") ? item.product.identifier.slice(0,-8) : item.product.identifier;
         let base:SubscriptionOption|undefined;
         if(platform==="android") {
-          if(!["com.bourbonsignal.app.standard.monthly","com.bourbonsignal.app.barrel.monthly"].includes(productId))return [];
+          if(!["com.bourbonsignal.app.barrel.monthly"].includes(productId))return [];
           base=item.product.subscriptionOptions?.find(o=>o.id==="monthly" && o.isBasePlan && o.isPrepaid===false && o.billingPeriod?.iso8601==="P1M" && o.pricingPhases.length===1 && o.pricingPhases[0].price.amountMicros>0);
           if(!base)return [];
           basePlans.set(productId,base);
