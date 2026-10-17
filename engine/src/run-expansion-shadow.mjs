@@ -3,6 +3,7 @@ import { execFile, spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { withResearchLifecycle } from './research-state-registry.mjs';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -252,7 +253,7 @@ function argValue(flag) {
 }
 
 async function main() {
-  const lifecycle = await readJson(path.resolve('..', 'src', 'config', 'state-lifecycle.json'), null);
+  const lifecycle = withResearchLifecycle(await readJson(path.resolve('..', 'src', 'config', 'state-lifecycle.json'), null));
   const states = String(argValue('--states') || '').split(',').map(stateId).filter(Boolean);
   const summary = await runExpansionShadow({ lifecycle, states, limit: Number(argValue('--limit') || 5) });
   validateShadowRunRequest(lifecycle, { requestedStates: states, candidates: summary.candidates });

@@ -194,14 +194,14 @@
           "public_retailer_http",
           "github_actions"
         ],
-        "maxRequestsPerRun": 4
+        "maxRequestsPerRun": 6
       },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "github_workflow_disable",
       "artifacts": [
-        "engine/out/ma-source-preflight/evidence.json"
+        "engine/out/ma-source-preflight/"
       ],
       "delivery": "github_only"
     },
