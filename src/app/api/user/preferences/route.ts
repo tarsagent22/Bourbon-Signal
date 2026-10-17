@@ -447,7 +447,7 @@ export async function POST(req: NextRequest) {
     const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
     const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
     if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
-      return NextResponse.json({ error: "Alert setup is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+      return NextResponse.json({ error: "Barrel Proof includes alert setup.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     }
     if (typeof entitlements.alertAreaLimit === "number" && (payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined)) {
       const requestedScopes = payload.monitoringScopes !== undefined
@@ -600,7 +600,7 @@ export async function POST(req: NextRequest) {
   const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || watchlistWrite;
 
   if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
-    return NextResponse.json({ error: "Alert setup is included with Standard Proof and above." }, { status: 403 });
+    return NextResponse.json({ error: "Barrel Proof includes alert setup." }, { status: 403 });
   }
 
   if (typeof entitlements.alertAreaLimit === "number" && (payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined)) {

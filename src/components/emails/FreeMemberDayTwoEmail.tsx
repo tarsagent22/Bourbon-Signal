@@ -46,15 +46,8 @@ export function FreeMemberDayTwoEmail({
               Chandler here — by now you&apos;ve had a little time to look around Bourbon Signal. Your free account isn&apos;t going away. You can keep checking the Drop Feed preview, posting Member Sightings, using Bottle Checker and the Coverage Map, and earning Signal Points.
             </Text>
             <Text style={paragraph}>
-              If you want to see whether the paid tools actually help your bourbon hunting, monthly Standard Proof and Barrel Proof memberships now include a <strong style={strong}>7-day free trial</strong>.
+              If you want to see whether the paid tools actually help your bourbon hunting, Barrel Proof includes a <strong style={strong}>7-day free trial</strong>.
             </Text>
-
-            <Section style={planCard}>
-              <Text style={planKicker}>STANDARD PROOF</Text>
-              <Text style={planTitle}>Full feed and personalized alerts</Text>
-              <Text style={planCopy}>Track up to 15 bottles across five alert areas, get push alerts, and use the complete Drop Feed and filters.</Text>
-              <Text style={planPrice}>7 days free, then $3/month.</Text>
-            </Section>
 
             <Section style={planCardLast}>
               <Text style={planKicker}>BARREL PROOF</Text>
@@ -64,7 +57,7 @@ export function FreeMemberDayTwoEmail({
             </Section>
 
             <Text style={trialTerms}>
-              The trial is available once per account on monthly plans. After 7 days, your membership continues at the selected monthly price unless you cancel. Annual and lifetime plans do not include a trial.
+              The trial is available once per eligible account. After 7 days, Barrel Proof continues at $6/month unless you cancel.
             </Text>
 
             <Section style={primaryAction}>

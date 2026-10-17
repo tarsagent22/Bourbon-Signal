@@ -70,7 +70,7 @@ export default function FinalCTA() {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              Plans start at $3/month after the trial.
+              Barrel Proof is $6/month after the trial.
             </p>
           </div>
         </ScrollReveal>
