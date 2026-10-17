@@ -15,6 +15,7 @@ export const GOOGLE_MEMBERSHIP_PRODUCT_IDS = [
   "com.bourbonsignal.app.standard.monthly",
   "com.bourbonsignal.app.barrel.monthly",
 ] as const;
+export const GOOGLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS = APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS;
 const allowed = new Set<string>(GOOGLE_MEMBERSHIP_PRODUCT_IDS);
 const record = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === "object" && !Array.isArray(value)

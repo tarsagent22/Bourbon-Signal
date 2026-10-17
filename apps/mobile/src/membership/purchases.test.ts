@@ -139,6 +139,15 @@ test("configuration runs only for an exact authenticated iOS Clerk user without 
   assert.deepEqual(android.events, []);
 });
 
+test("legacy products cannot start new purchases even when an older backend advertises them", async () => {
+  const h = harness();
+  const coordinator = createPurchaseCoordinator({ adapter: h.adapter, api: h.api, publicIosApiKey: "appl_public", platform: "ios" });
+  await coordinator.syncSession({ isLoaded: true, isSignedIn: true, userId: "user_A" });
+  await assert.rejects(() => coordinator.purchase(APPLE_PRODUCT_IDS.standard.monthly), /not available for new purchases/);
+  assert.equal(h.events.some(event => event.startsWith("purchase:")), false);
+  assert.equal(isAppleProductId(APPLE_PRODUCT_IDS.standard.monthly), true, "historical transactions remain recognizable for restore");
+});
+
 test("same-tick account switches configure only the newest Clerk identity", async () => {
   const switched = harness();
   const coordinator = createPurchaseCoordinator({ adapter: switched.adapter, api: switched.api, publicIosApiKey: "appl_public", platform: "ios" });
