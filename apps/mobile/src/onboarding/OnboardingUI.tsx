@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PropsWithChildren } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Animated, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Animated, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CellarBottleArtwork } from '../components/CellarBottleArtwork';
 import { colors, fonts } from '../theme';
@@ -12,6 +12,8 @@ export function OnboardingFrame({ children, title, description, eyebrow, step, f
   title: string; description?: string; eyebrow?: string; step?: number; footer?: React.ReactNode; transitionKey?: string | number; largeMark?: boolean; onBack?: () => void; backDisabled?: boolean; context?: string; scrollEnabled?: boolean; obscured?: boolean;
 }>) {
   const insets = useSafeAreaInsets(); const scroll = useRef<ScrollView>(null); const opacity = useRef(new Animated.Value(1)).current;
+  const { width } = useWindowDimensions();
+  const welcomeWordmarkSize = Math.min(36, Math.max(24, (Math.min(width - insets.left - insets.right, 520) - 44) * .115));
   const [reduceMotion, setReduceMotion] = useState(true); const [keyboardOpen, setKeyboardOpen] = useState(false);
   useEffect(() => {
     let live = true;
@@ -31,7 +33,7 @@ export function OnboardingFrame({ children, title, description, eyebrow, step, f
     <OnboardingBackdrop reduceMotion={reduceMotion} />
     <View style={s.chrome}>
       {largeMark ? null : onBack ? <Pressable accessibilityRole="button" accessibilityLabel="Back" disabled={backDisabled} onPress={onBack} style={[s.back, backDisabled && s.disabled]}><Text style={s.backText}>‹</Text></Pressable> : <BrandMark />}
-      <Text adjustsFontSizeToFit={largeMark} minimumFontScale={0.75} numberOfLines={largeMark ? 1 : undefined} style={[s.wordmark, largeMark && s.welcomeWordmark]}>{largeMark ? 'Bourbon Signal.' : 'Bourbon Signal'}</Text>
+      <Text adjustsFontSizeToFit={largeMark} minimumFontScale={0.75} numberOfLines={largeMark ? 1 : undefined} style={[s.wordmark, largeMark && [s.welcomeWordmark, { fontSize: welcomeWordmarkSize }]]}>{largeMark ? 'Bourbon Signal.' : 'Bourbon Signal'}</Text>
       {progress ? <Text accessibilityLabel={`${step! >= 5 ? 'Alert setup' : 'Introduction'}, ${current} of ${total}`} style={s.counter}>{current} / {total}</Text> : null}
     </View>
     {progress ? <View accessible={false} style={s.progress}><View style={[s.progressActive, { width: `${current / total * 100}%` }]} /></View> : null}

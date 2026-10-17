@@ -147,6 +147,7 @@ for (const width of [390, 320]) {
   });
   await check('welcome-composition', width, 'screen=welcome', async page => {
     await page.getByText('Bourbon Signal.', { exact: true }).waitFor();
+    assert.equal(await page.getByText('Bourbon Signal.', { exact: true }).evaluate(element => element.scrollWidth <= element.clientWidth), true, 'full wordmark fits without ellipsis');
     const heading = page.getByRole('heading', { name: 'Never miss a drop.' });
     await heading.waitFor();
     const create = page.getByRole('button', { name: 'Create account', exact: true });
