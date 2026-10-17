@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@clerk/expo';
 import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
@@ -99,7 +99,6 @@ export default function BottleCheckScreen() {
   const tasteNote = bottle ? personalTasteNote(bottle, preferences) : '';
   const personal = bottle && preferences ? bottleProfileState({ id: bottle.id, name: bottle.name }, preferences) : null;
   return <View style={s.page}>
-    <Stack.Screen options={{ title: 'Bottle Check', presentation: 'modal', headerShown: false }} />
     <SafeAreaView edges={['top']} style={s.topSafe}><View style={s.topBar}>
       <Pressable accessibilityRole="button" accessibilityLabel="Close Bottle Check" onPress={() => router.back()} style={s.iconButton}><MaterialCommunityIcons name="close" size={24} color={colors.text} /></Pressable>
       <Text accessibilityRole="header" style={s.topTitle}>Bottle Check</Text>
