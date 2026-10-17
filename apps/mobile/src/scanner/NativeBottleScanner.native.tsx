@@ -47,7 +47,7 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
   };
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state => { setForeground(state === 'active'); if (state !== 'active') setTorch(false); });
-    return () => subscription.remove();
+    return () => { accepting.current = false; subscription.remove(); };
   }, []);
   useEffect(() => {
     tracker.reset(performance.now()); setHeld(false); setFailed(false); setTorch(false); setFamily(undefined);

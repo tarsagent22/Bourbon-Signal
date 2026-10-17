@@ -35,6 +35,8 @@ try {
     await page.getByRole('button', { name: 'Check Wild Turkey Rare Breed Rye', exact: true }).click();
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).waitFor();
     assert.equal(await page.getByTestId('bottle-scanner-frame').count(), 0);
+    await page.evaluate(() => window.scannerDeliverFrame({ ...window.scannerLastFrame, sequence: 100000 }));
+    assert.equal(await page.getByRole('button', { name: /^Check / }).count(), 0, 'queued frame after scanner unmount cannot restore candidates');
     await page.addInitScript(() => { window.scannerText = 'PENELOPE'; window.scannerReads = 0; });
     await page.goto('http://127.0.0.1:5201/?screen=check&camera=fixture');
     await page.getByRole('button', { name: 'Check Penelope Bourbon', exact: true }).waitFor();
