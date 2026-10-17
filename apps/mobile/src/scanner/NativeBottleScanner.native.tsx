@@ -54,6 +54,7 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
     publish([]); lastFamily.current = ''; failures.current = 0; setMessage('Reading label…');
   }, [session, tracker]);
   useEffect(() => {
+    if (enabled && !held) tracker.reset(performance.now());
     if (!enabled) {
       tracker.reset(performance.now()); setTorch(false);
       if (!held && !failed) { publish([]); setFamily(undefined); lastFamily.current = ''; }
