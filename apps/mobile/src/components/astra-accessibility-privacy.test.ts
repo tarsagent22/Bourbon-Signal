@@ -39,7 +39,6 @@ test('M13: mounted Radar exposes push and sightings without retired channels', (
   const states: any[] = ['settings',prefs,profileFixture({ feedAreas: { states: [{ code: 'AZ', label: 'Arizona', engineCoverage: 'active' }] } } as any)];
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
     '../../../src/radar/RadarAlertRow': { RadarAlertRow: 'RadarAlertRow' },
-    '../../../src/components/SignalMotionBackdrop': { SignalMotionScreen: 'SignalMotionScreen' },
     '../../../src/radar/MutedBottles': { MutedBottles: 'MutedBottles' },
     'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ push() {} }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({}), SafeAreaView: 'SafeAreaView' },
@@ -56,7 +55,7 @@ test('M13: mounted Radar exposes push and sightings without retired channels', (
   assert.ok(!fields.some(n => n.props.accessibilityLabel === 'Mobile number for SMS alerts'));
   for (const field of fields) assert.ok(field.props.accessibilityLabel, `Missing label for ${field.props.placeholder}`);
   assert.ok(!rendered.some(n => n.type === 'Switch' && ['Email','SMS'].includes(n.props.accessibilityLabel)));
-  assert.deepEqual(rendered.filter(n => n.type === 'Switch').map(n => n.props.accessibilityLabel), ['Phone alerts','Community sightings']);
+  assert.deepEqual(rendered.filter(n => n.type === 'Switch').map(n => n.props.accessibilityLabel), ['Push Notifications','Community sightings']);
   assert.ok(!rendered.some(n => n.type === 'Switch' && n.props.accessibilityLabel === 'Radar inbox'));
   const render = () => { index = 0; return nodes(module.default()); };
   const button = (label: string) => render().find(n => n.type === 'Pressable' && nodes(n).some(child => child.type === 'Text' && child.props.children === label));

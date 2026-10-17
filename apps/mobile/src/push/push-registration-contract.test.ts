@@ -22,6 +22,7 @@ test("enabled push registration refreshes its token and listens for token rotati
 test("push maintenance is deferred until the authenticated app mounts", () => {
   assert.doesNotMatch(rootLayout, /configureRadarNotifications|flushPendingPushRevocation/);
   assert.match(appLayout, /<PushMaintenance key=/);
+  assert.match(responseHandler, /beginRadarPushSession\(api\)/);
   assert.doesNotMatch(tabsIndex, /<PushMaintenance/);
   assert.match(responseHandler, /flushPendingPushRevocation\(\)\.catch\(\(\) => false\)/);
 });

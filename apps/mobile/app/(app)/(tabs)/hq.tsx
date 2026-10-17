@@ -1,5 +1,4 @@
 import { useAuth } from "@clerk/expo";
-import { SignalMotionScreen } from '../../../src/components/SignalMotionBackdrop';
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { useRouter } from "expo-router";
@@ -91,8 +90,8 @@ export default function AccountScreen() {
   const openRewards = (section = "rewards") =>
     router.push({ pathname: "/(app)/account/rewards", params: { section } });
   return (
-    <SignalMotionScreen><ScrollView
-      style={[memberScreenStyles.screen, { backgroundColor: 'transparent' }]}
+    <ScrollView
+      style={memberScreenStyles.screen}
       contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}
       refreshControl={
         <RefreshControl
@@ -265,7 +264,7 @@ export default function AccountScreen() {
           Delete account
         </Text>
       </Pressable>
-    </ScrollView></SignalMotionScreen>
+    </ScrollView>
   );
 }
 function AccountRow({

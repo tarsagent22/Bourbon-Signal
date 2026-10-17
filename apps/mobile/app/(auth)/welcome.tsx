@@ -13,7 +13,7 @@ export default function WelcomeScreen() {
   </OnboardingFrame>;
 }
 const styles = StyleSheet.create({
-  login: { minHeight: 52, borderWidth: 1, borderColor: '#8A7453', borderRadius: 10, padding: 14, alignItems: 'center', justifyContent: 'center' },
+  login: { minHeight: 52, padding: 14, alignItems: 'center', justifyContent: 'center' },
   loginText: { color: '#EAE1D2', fontSize: 15, lineHeight: 21, textAlign: 'center' },
   loginLink: { color: '#DEC393', fontWeight: '700', textDecorationLine: 'underline' },
 });

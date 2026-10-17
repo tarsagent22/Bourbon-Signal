@@ -135,7 +135,7 @@ for (const width of [390, 320]) {
     await page.getByText("Maker's Mark", { exact: true }).first().waitFor();
     assert.equal(await page.getByRole('heading', { name: /Saved from setup|Saved & suggested/ }).count(), 0);
   });
-  for (const screen of ['radar', 'membership', 'account', 'rewards']) await check(`full-page-motion-${screen}`, width, `screen=${screen}`, async page => {
+  for (const screen of ['membership', 'rewards']) await check(`full-page-motion-${screen}`, width, `screen=${screen}`, async page => {
     const field = page.getByTestId('signal-wave-field');
     await field.waitFor({ state: 'attached' });
     const bounds = await field.boundingBox();
@@ -145,6 +145,26 @@ for (const width of [390, 320]) {
     assert.equal(await field.locator(':scope > div').count(), 160, 'full spaced field replaces compressed header rows');
     await page.waitForTimeout(150);
   });
+  await check('radar-compact-locations', width, 'screen=radar&areas=40&section=matches', async page => {
+    const summary = page.getByRole('button', { name: 'Edit alert locations, NC + AZ · 40 selected areas', exact: true });
+    await summary.waitFor();
+    assert.equal(await page.getByTestId('signal-wave-field').count(), 0);
+    const before = await page.evaluate(() => JSON.stringify(window.continuityPreview.preferences.monitoringScopes));
+    assert.equal(await page.getByText(/Location test area/).count(), 0, 'individual locations are not dumped onto Alerts');
+    const size = await summary.boundingBox(); assert.ok(size.height < 90, 'forty locations remain a compact row');
+    await page.screenshot({ path: path.join(output, `radar-alerts-40-areas-${width}.png`), fullPage: true });
+    await summary.click();
+    await page.getByText('Push Notifications', { exact: true }).waitFor();
+    await page.getByText('Alerts when other members post in your area', { exact: true }).waitFor();
+    assert.equal(await page.getByText('NC + AZ · 40 selected areas', { exact: true }).count(), 1, 'preferences has only its Locations summary');
+    await page.getByRole('button', { name: 'Manage 0 muted bottles', exact: true }).scrollIntoViewIfNeeded();
+    assert.equal(await page.getByText(/Alert areas:|Location test area/).count(), 0, 'no repeated list below muted bottles');
+    assert.equal(await page.evaluate(() => JSON.stringify(window.continuityPreview.preferences.monitoringScopes)), before, 'saved areas are preserved');
+  });
+  await check('account-without-motion', width, 'screen=account', async page => {
+    await page.getByRole('heading', { name: 'Account', exact: true }).waitFor();
+    assert.equal(await page.getByTestId('signal-wave-field').count(), 0);
+  });
   await check('welcome-composition', width, 'screen=welcome', async page => {
     await page.getByText('Bourbon Signal.', { exact: true }).waitFor();
     assert.equal(await page.getByText('Bourbon Signal.', { exact: true }).evaluate(element => element.scrollWidth <= element.clientWidth), true, 'full wordmark fits without ellipsis');
@@ -152,6 +172,7 @@ for (const width of [390, 320]) {
     await heading.waitFor();
     const create = page.getByRole('button', { name: 'Create account', exact: true });
     const login = page.getByRole('button', { name: 'Already a member? Log in', exact: true });
+    assert.equal(await login.evaluate(element => getComputedStyle(element).borderTopWidth), '0px', 'login has no outlined box');
     const title = await heading.boundingBox(); const createBox = await create.boundingBox(); const loginBox = await login.boundingBox();
     assert.ok(createBox.y >= title.y + title.height && createBox.y - title.y - title.height < 35, 'account actions directly follow headline');
     assert.ok(loginBox.height >= 48 && loginBox.y >= createBox.y + createBox.height && loginBox.y + loginBox.height < 844, 'login is an obvious reachable full-width target');

@@ -129,7 +129,6 @@ test('MM-03 account and dedicated profile isolate late reads and mutations acros
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 47, bottom: 34, left: 0, right: 0 }) },
     '../../../src/hooks/useMobileApi': { useMobileApi: () => currentApi }, '../../../src/hooks/useScreenRevalidation': { useScreenRevalidation: f => { refresh = f; } }, '../../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} }, '../../../src/push/push-registration': {},
     '../../../src/rewards/RewardUI': { rewardStyles: {}, RewardEmblem: 'RewardEmblem' },
-    '../../../src/components/SignalMotionBackdrop': { SignalMotionScreen: 'SignalMotionScreen' },
     '../../../src/components/MemberScreen': { memberScreenStyles: {}, PageHeading: 'PageHeading', MemberCard: 'MemberCard', SectionTitle: 'SectionTitle', DataRow: 'DataRow', ErrorState: 'ErrorState', LoadingState: 'LoadingState' },
   };
   const account = loadWithMocks(root + '/apps/mobile/app/(app)/(tabs)/hq.tsx', mocks);

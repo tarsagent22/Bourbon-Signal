@@ -44,6 +44,10 @@ const owned = ['makers-mark', 'wild-turkey-101'].map((id, index) => {
   return { bottleId: id, bottleName: bottle.name, canonicalKey: canonicalBottleKey(bottle.name), rating: 85 + index, isRated: true, sealedQuantity: 1, openedQuantity: 0, finishedCount: 0, tastedOnly: false, wouldBuyAgain: true, tasteTags: ['Vanilla', 'Caramel'], addedAt: '2026-10-01', updatedAt: '2026-10-16' };
 });
 let prefs = preferencesFixture({ entitlements: { canUseCollection: true, canUseRecommendations: tier === 'barrel', trackedBottleLimit: tier === 'free' ? 0 : 15, alertAreaLimit: tier === 'free' ? 0 : 5 }, monitoringScopes: [{ id: 'city:NC:raleigh', type: 'city', state: 'NC', label: 'Raleigh' }], notificationPreferences: { ...preferencesFixture().notificationPreferences, rarityTiers: ['allocated', 'limited', 'unicorn'] }, collectionPreferences: { version: 1, bottles: owned } });
+if (query.get('areas') === '40') {
+  prefs.monitoringScopes = Array.from({ length: 40 }, (_, i) => ({ id: `city:${i}`, type: 'city', state: i < 37 ? 'NC' : 'AZ', label: `Location test area ${i}` }));
+  prefs.alertMode = 'anything_notable';
+}
 let draft = { ...EMPTY_ONBOARDING, displayName: 'Oak Street', homeState: query.get('homeState') || 'NC', step: Number(query.get('step') || 2), savedBottleIds: ['four-roses-single-barrel'] };
 let completed = query.get('screen') !== 'onboarding';
 const requests: any[] = [{ id: 'request-1', stateCode: 'NC', areaLabel: 'Raleigh', status: 'on_radar', memberUpdate: 'We are reviewing local stores.', updatedAt: '2026-10-16', storeName: null }];

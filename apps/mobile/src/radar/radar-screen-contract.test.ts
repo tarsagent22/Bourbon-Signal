@@ -46,7 +46,7 @@ test("preferences shows continuous sections with sightings beneath phone alerts"
   const community = radar.indexOf('<ToggleRow label="Community sightings"');
   const notifications = radar.indexOf('<SectionTitle>Notifications</SectionTitle>');
   assert.ok(sources < notifications && notifications < community);
-  assert.match(radar, /Member sightings in your watched areas/);
+  assert.match(radar, /Alerts when other members post in your area/);
 });
 
 test("quiet watch removal offers an atomic Undo without replacing the full watchlist", () => {
@@ -67,7 +67,7 @@ test("preference refreshes cannot overwrite a mutation that starts or finishes i
 
 test("phone recovery retains action-specific retry and removes ambiguous count badges", () => {
   const radar = readScreen("radar");
-  assert.match(radar, /Phone notifications need attention/);
+  assert.match(radar, /Push notifications need attention/);
   assert.doesNotMatch(radar, /item\.key === "matches" && alerts\.unreadCount/);
   assert.doesNotMatch(radar, /ToggleRow label="Radar inbox"/);
   assert.match(radar, /onSite: \{ enabled: true \}/);

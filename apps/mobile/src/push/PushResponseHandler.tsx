@@ -4,12 +4,13 @@ import { useRootNavigationState, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import { useMobileApi } from "../hooks/useMobileApi";
-import { configureRadarNotifications, flushPendingPushRevocation, refreshRadarPushIfEnabled, watchRadarPushToken } from "./push-registration";
+import { beginRadarPushSession, configureRadarNotifications, flushPendingPushRevocation, refreshRadarPushIfEnabled, watchRadarPushToken } from "./push-registration";
 import { createPendingPushNavigation } from "./push-navigation";
 
 export function PushMaintenance() {
   const api = useMobileApi();
   useEffect(() => {
+    if (!beginRadarPushSession(api)) return;
     let active = true;
     let attempts = 0;
     let retry: ReturnType<typeof setTimeout> | undefined;
