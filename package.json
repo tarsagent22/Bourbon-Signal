@@ -211,7 +211,8 @@
     "test:engine-feed-verification": "node --no-warnings --experimental-strip-types --test scripts/test-engine-feed-verification.mjs",
     "test:labeled-artwork": "tsx --test scripts/test-labeled-bottle-art.mts",
     "artwork:labeled:audit": "node scripts/audit-labeled-bottle-art.mjs",
-    "artwork:labeled:complete": "node scripts/audit-labeled-bottle-art.mjs --require-complete"
+    "artwork:labeled:complete": "node scripts/audit-labeled-bottle-art.mjs --require-complete",
+    "artwork:feed:audit": "tsx scripts/audit-feed-bottle-art.mts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

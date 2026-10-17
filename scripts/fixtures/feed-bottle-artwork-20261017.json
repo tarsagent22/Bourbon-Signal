@@ -1,0 +1,1511 @@
+{
+  "source": {
+    "workflowRunId": 39032191006,
+    "publishedSnapshotId": "2026-10-17T12-28-13-975Z-f073026c96803dd3",
+    "collectorGeneratedAt": "2026-10-17T12:28:13.975Z",
+    "scope": "Identities projected from collector state artifacts using buildDrops. Includes retained records; row counts are not a count of a member's paginated feed."
+  },
+  "before": {
+    "freshMissingNames": 63,
+    "freshMissingRows": 345,
+    "allMissingNames": 68,
+    "allMissingRows": 436
+  },
+  "entries": [
+    {
+      "bottleId": "048e177f0c29fa90",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "0b59ec0b4d8eaace",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "0dd8cecfc9e49956",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "294ddb54193e6915",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "5524e2ed9404faba",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "6c493d4f08b318fc",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "b06f5985c684e514",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "e983f6809a97839f",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "f20589d90ab473ea",
+      "bottleName": "1792 Bourbon Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "bb_ee4b5c90535d24d7",
+      "bottleName": "1792 Full Proof",
+      "expectedArtworkId": "1792-full-proof"
+    },
+    {
+      "bottleId": "068d0ffe2b036de5",
+      "bottleName": "1792 Full Proof Barrel Select",
+      "expectedArtworkId": "1792-full-proof-single-barrel-select"
+    },
+    {
+      "bottleId": "27c859046ce979bc",
+      "bottleName": "1792 Full Proof Barrel Select",
+      "expectedArtworkId": "1792-full-proof-single-barrel-select"
+    },
+    {
+      "bottleId": "37066edf5f90ddf0",
+      "bottleName": "1792 Full Proof Barrel Select",
+      "expectedArtworkId": "1792-full-proof-single-barrel-select"
+    },
+    {
+      "bottleId": "9fde09613b412441",
+      "bottleName": "1792 Full Proof Barrel Select",
+      "expectedArtworkId": "1792-full-proof-single-barrel-select"
+    },
+    {
+      "bottleId": "a457cf3e57f842c8",
+      "bottleName": "1792 Full Proof NBSC Barrel Select",
+      "expectedArtworkId": "1792-full-proof-single-barrel-select"
+    },
+    {
+      "bottleId": "bb_257576efcd142ce7",
+      "bottleName": "1792 Sweet Wheat",
+      "expectedArtworkId": "1792-sweet-wheat-bourbon"
+    },
+    {
+      "bottleId": "362e0dc535ede64f",
+      "bottleName": "1792 Sweet Wheat Bourbon Kentucky",
+      "expectedArtworkId": "1792-sweet-wheat-bourbon"
+    },
+    {
+      "bottleId": "a2357da9692eedcf",
+      "bottleName": "1792 Sweet Wheat Bourbon Kentucky",
+      "expectedArtworkId": "1792-sweet-wheat-bourbon"
+    },
+    {
+      "bottleId": "bb_39c32498665b2f97",
+      "bottleName": "Baker's 13 Year",
+      "expectedArtworkId": "bb_39c32498665b2f97"
+    },
+    {
+      "bottleId": "eb293b0c71798f68",
+      "bottleName": "Baker's High Rye",
+      "expectedArtworkId": "bakers-high-rye"
+    },
+    {
+      "bottleId": "16a5ad0270e38f44",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "2648d2395672987d",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "2f890a85eb40ff90",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "7d7c1d8e843883cd",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "7d8107e7b4b0d27a",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "81e79afcdf4f38de",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "901946238350c47d",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "91a514b7c6b56d08",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "bb_1f0975f2e3cbd2d5",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "c4001e78468cdf43",
+      "bottleName": "Baker's High Rye Bourbon",
+      "expectedArtworkId": "bb_1f0975f2e3cbd2d5"
+    },
+    {
+      "bottleId": "9db7bf449d31db91",
+      "bottleName": "Bakers High Rye 7yr 750",
+      "expectedArtworkId": "bakers-high-rye"
+    },
+    {
+      "bottleId": "bb_ea538792278ccca7",
+      "bottleName": "Bardstown Bourbon Discovery Series",
+      "expectedArtworkId": "bb_ea538792278ccca7"
+    },
+    {
+      "bottleId": "0f63d5bf9dd3cde0",
+      "bottleName": "Bardstown Discovery Series",
+      "expectedArtworkId": "bb_ea538792278ccca7"
+    },
+    {
+      "bottleId": "3c63dcc20c204f3c",
+      "bottleName": "Bardstown Discovery Series",
+      "expectedArtworkId": "bb_ea538792278ccca7"
+    },
+    {
+      "bottleId": "5d7c1aaa1a288a2d",
+      "bottleName": "Bardstown Discovery Series",
+      "expectedArtworkId": "bb_ea538792278ccca7"
+    },
+    {
+      "bottleId": "fc491650c9172d88",
+      "bottleName": "Bardstown Discovery Series Bourbon",
+      "expectedArtworkId": "bb_ea538792278ccca7"
+    },
+    {
+      "bottleId": "4142fc2f4e987b01",
+      "bottleName": "Barrell Bourbon",
+      "expectedArtworkId": "barrell-bourbon"
+    },
+    {
+      "bottleId": "ae383f716e8ae8b3",
+      "bottleName": "Barrell Bourbon 034 Batch",
+      "expectedArtworkId": "barrell-bourbon-batch-034"
+    },
+    {
+      "bottleId": "bb_bf904ca5ccbb690d",
+      "bottleName": "Barrell Bourbon Batch",
+      "expectedArtworkId": "bb_bf904ca5ccbb690d"
+    },
+    {
+      "bottleId": "8c6629df625100e8",
+      "bottleName": "Barrell Bourbon Batch 032 Bourbon Whiskey",
+      "expectedArtworkId": "barrell-bourbon-batch-032"
+    },
+    {
+      "bottleId": "e997f65404152c9e",
+      "bottleName": "Barrell Bourbon Batch 036",
+      "expectedArtworkId": "barrell-bourbon-batch-036"
+    },
+    {
+      "bottleId": "5d3794f164ae571a",
+      "bottleName": "BARRELL BOURBON BATCH 37 750 ML",
+      "expectedArtworkId": "barrell-bourbon-batch-037"
+    },
+    {
+      "bottleId": "bb_21f337f08eaf6bdd",
+      "bottleName": "Barrell Bourbon New Year",
+      "expectedArtworkId": "bb_21f337f08eaf6bdd"
+    },
+    {
+      "bottleId": "32eac2b961879bf0",
+      "bottleName": "Barrell Bourbon New Year Bourbon",
+      "expectedArtworkId": "bb_21f337f08eaf6bdd"
+    },
+    {
+      "bottleId": "bb_a3b1732edd18ac89",
+      "bottleName": "Basil Hayden 10 Year",
+      "expectedArtworkId": "bb_a3b1732edd18ac89"
+    },
+    {
+      "bottleId": "00de1e96886efa5b",
+      "bottleName": "Basil Hayden 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "basil-haydens-10y"
+    },
+    {
+      "bottleId": "09cda261b2a37280",
+      "bottleName": "Basil Hayden 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "basil-haydens-10y"
+    },
+    {
+      "bottleId": "3209186145ec91ea",
+      "bottleName": "Basil Hayden 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "basil-haydens-10y"
+    },
+    {
+      "bottleId": "593ae216d0e05b53",
+      "bottleName": "Basil Hayden 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "basil-haydens-10y"
+    },
+    {
+      "bottleId": "9d3dcc5308c3e7df",
+      "bottleName": "Basil Hayden 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "basil-haydens-10y"
+    },
+    {
+      "bottleId": "a5d7e57849ab376a",
+      "bottleName": "Basil Hayden 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "basil-haydens-10y"
+    },
+    {
+      "bottleId": "07ece1330130ba8e",
+      "bottleName": "Basil Hayden 10yr 750ml",
+      "expectedArtworkId": "basil-haydens-10y"
+    },
+    {
+      "bottleId": "bb_8924180d0cc2d853",
+      "bottleName": "Blade and Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "0b2e5429e2d1fef4",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "386430611d8a8b2f",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "66122cd1eb5c8117",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "66dbf5f4b5336f63",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "7c6c80c03a2efc15",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "9d632a9b8c5032a3",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "b41803c185312467",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "c1668366a93bedf9",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "dc086102c95567ab",
+      "bottleName": "Blade And Bow Bourbon",
+      "expectedArtworkId": "bb_8924180d0cc2d853"
+    },
+    {
+      "bottleId": "9130f4220442b681",
+      "bottleName": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+      "expectedArtworkId": "blade-and-bow"
+    },
+    {
+      "bottleId": "eb5422840066055e",
+      "bottleName": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+      "expectedArtworkId": "blade-and-bow"
+    },
+    {
+      "bottleId": "bb_2b5d9987117596c4",
+      "bottleName": "Blanton's Gold",
+      "expectedArtworkId": "blantons-gold-bourbon"
+    },
+    {
+      "bottleId": "bb_5afa9241206ab963",
+      "bottleName": "Blanton's Original Single Barrel",
+      "expectedArtworkId": "blantons-single-barrel"
+    },
+    {
+      "bottleId": "a728f0b1c15e41fa",
+      "bottleName": "Blanton's Straight From The Barrel Bourbon",
+      "expectedArtworkId": "blantons-straight-from-the-barrel"
+    },
+    {
+      "bottleId": "0d0282ba70308510",
+      "bottleName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "blantons-single-barrel"
+    },
+    {
+      "bottleId": "5f42134b46fbe310",
+      "bottleName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "blantons-single-barrel"
+    },
+    {
+      "bottleId": "7bcd18efe48f569d",
+      "bottleName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "blantons-single-barrel"
+    },
+    {
+      "bottleId": "d028c99d8f76907b",
+      "bottleName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "blantons-single-barrel"
+    },
+    {
+      "bottleId": "bb_6638917074080bcb",
+      "bottleName": "Blood Oath Pact",
+      "expectedArtworkId": "blood-oath-pact"
+    },
+    {
+      "bottleId": "bb_8b9546b93a7fbe72",
+      "bottleName": "Booker's Bourbon",
+      "expectedArtworkId": "bookers"
+    },
+    {
+      "bottleId": "643f22f555d1f8cd",
+      "bottleName": "Bowman Brothers Small Batch Bourbon",
+      "expectedArtworkId": "bb_b029b9fb7d0f5783"
+    },
+    {
+      "bottleId": "81809e00c4154311",
+      "bottleName": "Bowman Brothers Small Batch Bourbon",
+      "expectedArtworkId": "bb_b029b9fb7d0f5783"
+    },
+    {
+      "bottleId": "8ed3600a84754dde",
+      "bottleName": "Bowman Brothers Small Batch Bourbon",
+      "expectedArtworkId": "bb_b029b9fb7d0f5783"
+    },
+    {
+      "bottleId": "a13ce0d79ca4eaf6",
+      "bottleName": "Bowman Brothers Small Batch Bourbon",
+      "expectedArtworkId": "bb_b029b9fb7d0f5783"
+    },
+    {
+      "bottleId": "bb_b029b9fb7d0f5783",
+      "bottleName": "Bowman Brothers Small Batch Bourbon",
+      "expectedArtworkId": "bb_b029b9fb7d0f5783"
+    },
+    {
+      "bottleId": "00c3503342a5c9c9",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "2d85402ebfb41212",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "37dc711c1751cb7b",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "51d7d9f0464ec713",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "5425ed36e18ec299",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "562fecdb2191caf8",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "6ba9b7f9b6e7b585",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "b27ad9aa8df73f2f",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "b7a7472e5e72154b",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "bb_317836b9e64a7620",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "bbd50ab7aa81ed65",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "ce0692505f81526f",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "d5ef2fb1716d0377",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "d806976caeb32a8d",
+      "bottleName": "Buffalo Trace Bourbon",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "0e961341008e7c3e",
+      "bottleName": "Buffalo Trace Bourbon 750ml",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "8b439122dfc759de",
+      "bottleName": "Buffalo Trace Bourbon 750ml",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "921bb4f61d57fc38",
+      "bottleName": "Buffalo Trace Bourbon 750ml",
+      "expectedArtworkId": "buffalo-trace-bourbon"
+    },
+    {
+      "bottleId": "bb_02c26c5f02399fdb",
+      "bottleName": "Buffalo Trace Single Oak Rye Bourbon",
+      "expectedArtworkId": "bb_02c26c5f02399fdb"
+    },
+    {
+      "bottleId": "042c130991af8345",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "59667c7273012d51",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "5a76b2f03b9c2636",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "5db055e37a4268fa",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "74d59aeb3a932ef1",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "77dc0b0b120fa026",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "91f0dc83d76619c0",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "9bea980bf8ced8db",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "9fa6de3b782b043a",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "ae6af9ae9544c209",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "d25d31e32493512f",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "d63826ea9b093db3",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "e0e0ed8ffee4c780",
+      "bottleName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "bb_152c90f782b801f5",
+      "bottleName": "E.H. Taylor Small Batch",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "bf34bfd84ba11d15",
+      "bottleName": "E.H. Taylor Small Batch",
+      "expectedArtworkId": "eh-taylor-small-batch"
+    },
+    {
+      "bottleId": "bb_d0fe561ac45db2d5",
+      "bottleName": "Eagle Rare 10 Year",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "6b813ddc061937f9",
+      "bottleName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "7b6f000c78a71f94",
+      "bottleName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "7ba83d383bb6d7bc",
+      "bottleName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "b4c0b296fcdeffdf",
+      "bottleName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "ba1c389d61f7ee1f",
+      "bottleName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "c08a75816c3f8804",
+      "bottleName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "cd2e81c8142faf1f",
+      "bottleName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "d44247eb6d694163",
+      "bottleName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "7e1d85e2232dc174",
+      "bottleName": "Eagle Rare 10 Yr KY Stright Bourbon 750 ml 750 ml",
+      "expectedArtworkId": "eagle-rare-10"
+    },
+    {
+      "bottleId": "bb_7a6ce8ac9bebbdec",
+      "bottleName": "Eagle Rare 12 Year",
+      "expectedArtworkId": "eagle-rare-12"
+    },
+    {
+      "bottleId": "36dc4911194520e6",
+      "bottleName": "Eagle Rare 17yr",
+      "expectedArtworkId": "eagle-rare-17-year"
+    },
+    {
+      "bottleId": "c630fd0abfa30e12",
+      "bottleName": "Early Times Bottled In Bond",
+      "expectedArtworkId": "early-times-bottled-in-bond"
+    },
+    {
+      "bottleId": "29e788668440ca1b",
+      "bottleName": "Early Times Bottled In Bond Bourbon",
+      "expectedArtworkId": "early-times-bottled-in-bond"
+    },
+    {
+      "bottleId": "767e0fcd03ab2e7b",
+      "bottleName": "Early Times Bottled In Bond Bourbon",
+      "expectedArtworkId": "early-times-bottled-in-bond"
+    },
+    {
+      "bottleId": "801fbe5d1569f5d5",
+      "bottleName": "Early Times Bottled In Bond Bourbon",
+      "expectedArtworkId": "early-times-bottled-in-bond"
+    },
+    {
+      "bottleId": "d1f915d677526ebc",
+      "bottleName": "Early Times Bottled In Bond Bourbon",
+      "expectedArtworkId": "early-times-bottled-in-bond"
+    },
+    {
+      "bottleId": "dff67797234ede06",
+      "bottleName": "Early Times Bottled In Bond Bourbon",
+      "expectedArtworkId": "early-times-bottled-in-bond"
+    },
+    {
+      "bottleId": "f8f70abba611e4bb",
+      "bottleName": "Early Times Bottled In Bond Bourbon",
+      "expectedArtworkId": "early-times-bottled-in-bond"
+    },
+    {
+      "bottleId": "bb_24c7e1719e8ded79",
+      "bottleName": "Early Times Bottled-in-Bond",
+      "expectedArtworkId": "early-times-bottled-in-bond"
+    },
+    {
+      "bottleId": "bb_3566c2a0088ec99a",
+      "bottleName": "Elijah Craig 18 Year",
+      "expectedArtworkId": "elijah-craig-18-year"
+    },
+    {
+      "bottleId": "6e804e2f12f808d6",
+      "bottleName": "Elijah Craig Barrel Proof",
+      "expectedArtworkId": "elijah-craig-barrel-proof"
+    },
+    {
+      "bottleId": "915a80d1223e6707",
+      "bottleName": "Elijah Craig Barrel Proof",
+      "expectedArtworkId": "elijah-craig-barrel-proof"
+    },
+    {
+      "bottleId": "bb_be6a0afd4ba5f963",
+      "bottleName": "Elijah Craig Barrel Proof",
+      "expectedArtworkId": "elijah-craig-barrel-proof"
+    },
+    {
+      "bottleId": "d7672a36eab4f2a5",
+      "bottleName": "Elijah Craig Barrel Proof",
+      "expectedArtworkId": "elijah-craig-barrel-proof"
+    },
+    {
+      "bottleId": "a6bd5495ce0506f1",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7333039 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "a7053c197399bf42",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7333600 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "4a7478646ed2de76",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7364966 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "c75008fa0dae0e44",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7385355 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "87b62977b4bac77c",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7418559 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "998b684e229d7dc3",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7444815 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "a77d6e2839bdb136",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7444873 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "622fbe70f92baf68",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7460861 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "fb511826654f2689",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7591057 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "96a6008999bb28d4",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7617001 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "346c33d709ecb235",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7631300 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "c9f0928590d59263",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7648152 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "ce3f6b97609bde3a",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7678352 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "7bcfddbb4a96486b",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7713553 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "bb88fae841bb65f4",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7716931 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "62a760e067198c6d",
+      "bottleName": "Elijah Craig Barrel Proof Single Barrel # 7717864 Binny's Handpicked",
+      "expectedArtworkId": "elijah-craig-private-barrel-barrel-proof"
+    },
+    {
+      "bottleId": "a9158ff1f19cf5a2",
+      "bottleName": "Elijah Craig Barrel Proof Small Batch",
+      "expectedArtworkId": "elijah-craig-barrel-proof"
+    },
+    {
+      "bottleId": "bb_d99031402ce45359",
+      "bottleName": "Elijah Craig Toasted Barrel",
+      "expectedArtworkId": "elijah-craig-toasted-barrel"
+    },
+    {
+      "bottleId": "0305c2d42f72bb0f",
+      "bottleName": "Elijah Craig Toasted Barrel Bourbon",
+      "expectedArtworkId": "elijah-craig-toasted-barrel"
+    },
+    {
+      "bottleId": "75fb43479a74c842",
+      "bottleName": "Elijah Craig Toasted Barrel Bourbon",
+      "expectedArtworkId": "elijah-craig-toasted-barrel"
+    },
+    {
+      "bottleId": "ca39905bfa0d5a32",
+      "bottleName": "Elijah Craig Toasted Barrel Bourbon",
+      "expectedArtworkId": "elijah-craig-toasted-barrel"
+    },
+    {
+      "bottleId": "cd86f99404cc598f",
+      "bottleName": "Elijah Craig Toasted Barrel Bourbon",
+      "expectedArtworkId": "elijah-craig-toasted-barrel"
+    },
+    {
+      "bottleId": "d74fc784b92808fc",
+      "bottleName": "Elijah Craig Toasted Barrel Bourbon",
+      "expectedArtworkId": "elijah-craig-toasted-barrel"
+    },
+    {
+      "bottleId": "bb_8ab6c80727eefe77",
+      "bottleName": "Elmer T. Lee",
+      "expectedArtworkId": "elmer-t-lee"
+    },
+    {
+      "bottleId": "bb_1799afb0fab6e7bd",
+      "bottleName": "Ezra Brooks Stave Finish Spice & Clove",
+      "expectedArtworkId": "ezra-brooks-stave-finish-spice-and-clove"
+    },
+    {
+      "bottleId": "bb_3bccb93448bf8456",
+      "bottleName": "Four Roses Limited Edition Small Batch",
+      "expectedArtworkId": "four-roses-limited-edition-small-batch"
+    },
+    {
+      "bottleId": "bb_bb97e76c263976a8",
+      "bottleName": "Four Roses Single Barrel Barrel Strength",
+      "expectedArtworkId": "bb_bb97e76c263976a8"
+    },
+    {
+      "bottleId": "bb_2c6200b256620774",
+      "bottleName": "Frey Ranch Farm Strength Bourbon",
+      "expectedArtworkId": "bb_2c6200b256620774"
+    },
+    {
+      "bottleId": "bb_36be0a66004a60ba",
+      "bottleName": "Green River Full Proof Bourbon",
+      "expectedArtworkId": "green-river-full-proof-bourbon"
+    },
+    {
+      "bottleId": "008ea57721ec0f1f",
+      "bottleName": "GREEN RIVER FULL PROOF BOURBON",
+      "expectedArtworkId": "green-river-full-proof-bourbon"
+    },
+    {
+      "bottleId": "0005f328aa457f86",
+      "bottleName": "Green River Full Proof Bourbon Whiskey",
+      "expectedArtworkId": "green-river-full-proof-bourbon"
+    },
+    {
+      "bottleId": "bc51c59d64085ffa",
+      "bottleName": "Green River Full Proof Bourbon Whiskey",
+      "expectedArtworkId": "green-river-full-proof-bourbon"
+    },
+    {
+      "bottleId": "897f2fa32a471701",
+      "bottleName": "Hard Truth Sweet Mash Wheated Bourbon Bottled In Bond",
+      "expectedArtworkId": "bb_ac2c01f1faac17fb"
+    },
+    {
+      "bottleId": "bb_ef203a18f5f98f23",
+      "bottleName": "Heaven Hill Bottled-in-Bond 7 Year",
+      "expectedArtworkId": "bb_ef203a18f5f98f23"
+    },
+    {
+      "bottleId": "bb_f2af0db35c8d2aea",
+      "bottleName": "Heaven Hill Grain to Glass Third Edition Wheated Bourbon",
+      "expectedArtworkId": "bb_f2af0db35c8d2aea"
+    },
+    {
+      "bottleId": "8ed269e6dce53e0a",
+      "bottleName": "Heaven Hill Grain-to-Glass Bourbon",
+      "expectedArtworkId": "heaven-hill-grain-to-glass-ky-st-bourbon"
+    },
+    {
+      "bottleId": "bb_b7ca7cc4ab428ba8",
+      "bottleName": "Henry McKenna 10 Year",
+      "expectedArtworkId": "henry-mckenna-10-year"
+    },
+    {
+      "bottleId": "48a445a61d221d72",
+      "bottleName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "henry-mckenna-10-year"
+    },
+    {
+      "bottleId": "6511d0fc93680f2e",
+      "bottleName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "henry-mckenna-10-year"
+    },
+    {
+      "bottleId": "7e139e15512619cf",
+      "bottleName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "henry-mckenna-10-year"
+    },
+    {
+      "bottleId": "c737f6ef1e7ca293",
+      "bottleName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "henry-mckenna-10-year"
+    },
+    {
+      "bottleId": "c963178424262fbb",
+      "bottleName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+      "expectedArtworkId": "henry-mckenna-10-year"
+    },
+    {
+      "bottleId": "bb_c1b9f5325e7c08a4",
+      "bottleName": "Holladay Soft Red Wheat Bottled-in-Bond",
+      "expectedArtworkId": "bb_c1b9f5325e7c08a4"
+    },
+    {
+      "bottleId": "d08018e24a23a48e",
+      "bottleName": "Jack Daniel's Heritage Toasted",
+      "expectedArtworkId": "bb_0276bacbf4621773"
+    },
+    {
+      "bottleId": "e771d74262ab3590",
+      "bottleName": "Jack Daniel's Heritage Toasted",
+      "expectedArtworkId": "bb_0276bacbf4621773"
+    },
+    {
+      "bottleId": "23baedfcb4189395",
+      "bottleName": "JACK DANIELS BARREL HERITAGE BARREL (TOASTED)",
+      "expectedArtworkId": "bb_0276bacbf4621773"
+    },
+    {
+      "bottleId": "bb_eb5da0badfc03902",
+      "bottleName": "Little Book",
+      "expectedArtworkId": "little-book"
+    },
+    {
+      "bottleId": "4da4979080629c21",
+      "bottleName": "Lost Lantern United States of Bourbon 1776 Edition",
+      "expectedArtworkId": "bb_33af7fce81b3c599"
+    },
+    {
+      "bottleId": "bb_78043ec3da926c43",
+      "bottleName": "Maker's Mark Cellar Aged",
+      "expectedArtworkId": "makers-mark-cellar-aged"
+    },
+    {
+      "bottleId": "e1e139ebdd80c028",
+      "bottleName": "Maker's Mark Cellar Aged 2026",
+      "expectedArtworkId": "makers-mark-cellar-aged-2026"
+    },
+    {
+      "bottleId": "23b4c841cc66d257",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "2820b9fb92947873",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "34dbd04e5c13d03d",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "5602e8afefd1213d",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "65c4e4606b79eb57",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "6da9fb89ccd36042",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "7b9cccfa6c79e03b",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "820ee3c6e15fac89",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "9987214629e50710",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "a3abe4137f0590d3",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "a650e6e6a15eca54",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "bb_70221e1cdb151a04",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "c010bddba6485a7c",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "d02100a9cdfaa15b",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "d810133ce322c35a",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "e2f1a7bab3a2324b",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "f7e3f93532bf8712",
+      "bottleName": "Maker's Mark Private Selection",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "6d22e0f891df8848",
+      "bottleName": "Maker's Mark Private Selection \"Butterscotch Pudding\"",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "2bc8439db856d88e",
+      "bottleName": "Maker's Mark Private Selection Bourbon",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "8db34da92a58d338",
+      "bottleName": "Maker's Mark Private Selection Bourbon",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "2ecbbea236de3f97",
+      "bottleName": "Maker’s Mark Private Selections",
+      "expectedArtworkId": "bb_70221e1cdb151a04"
+    },
+    {
+      "bottleId": "1f430972269e1593",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "4c1cf728a8059858",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "66b70d99d52886be",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "74c2dc13ead5b014",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "7d290b9881b0b15f",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "82a55a445dd99595",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "a49eefe0560faa11",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "bb_dcbadbe1cd262fe4",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "e2893176df4ef4f3",
+      "bottleName": "Maker's Mark Wood Finishing Series",
+      "expectedArtworkId": "bb_dcbadbe1cd262fe4"
+    },
+    {
+      "bottleId": "bb_ab29607e7117c93f",
+      "bottleName": "Michter's 10 Year Rye",
+      "expectedArtworkId": "michters-10y-ks-rye-whiskey"
+    },
+    {
+      "bottleId": "bb_2b24796e5c750106",
+      "bottleName": "Michter's US 1 American Whiskey",
+      "expectedArtworkId": "bb_2b24796e5c750106"
+    },
+    {
+      "bottleId": "bb_71e0a5ef723ea82c",
+      "bottleName": "Michter's US 1 Straight Bourbon Small Batch",
+      "expectedArtworkId": "bb_71e0a5ef723ea82c"
+    },
+    {
+      "bottleId": "f43fc00a8716f95e",
+      "bottleName": "Michter's US*1 Small Batch Bourbon",
+      "expectedArtworkId": "michters-us-1-small-batch-bourbon"
+    },
+    {
+      "bottleId": "c139195d4538bacd",
+      "bottleName": "MICHTERS SMALL BATCH BOURBON 750 ML",
+      "expectedArtworkId": "michters-us-1-small-batch-bourbon"
+    },
+    {
+      "bottleId": "44d6b929c2338c51",
+      "bottleName": "NEW RIFF BOTTLED IN BOND BOURBON 750 ML",
+      "expectedArtworkId": "new-riff-straight-bourbon-bottled-in-bond"
+    },
+    {
+      "bottleId": "bb_80e1a23c773972ad",
+      "bottleName": "New Riff Bottled-in-Bond Bourbon",
+      "expectedArtworkId": "bb_80e1a23c773972ad"
+    },
+    {
+      "bottleId": "06fe2b69570f1214",
+      "bottleName": "New Riff Bottled-In-Bond Bourbon",
+      "expectedArtworkId": "bb_80e1a23c773972ad"
+    },
+    {
+      "bottleId": "2099ec23f2e5d277",
+      "bottleName": "New Riff Bottled-In-Bond Bourbon",
+      "expectedArtworkId": "bb_80e1a23c773972ad"
+    },
+    {
+      "bottleId": "c35e326fe1596f93",
+      "bottleName": "New Riff Bottled-In-Bond Bourbon",
+      "expectedArtworkId": "bb_80e1a23c773972ad"
+    },
+    {
+      "bottleId": "edc1bc858d0ffec0",
+      "bottleName": "New Riff Bottled-In-Bond Bourbon",
+      "expectedArtworkId": "bb_80e1a23c773972ad"
+    },
+    {
+      "bottleId": "c4ae1d046e84fb21",
+      "bottleName": "Old Fitzgerald 7 Year Bottled in Bond",
+      "expectedArtworkId": "old-fitzgerald-7y-bottled-in-bond"
+    },
+    {
+      "bottleId": "bb_ac855cd46254e92a",
+      "bottleName": "Old Fitzgerald Bottled-in-Bond",
+      "expectedArtworkId": "old-fitzgerald-bottled-in-bond"
+    },
+    {
+      "bottleId": "bb_a85df59577c72709",
+      "bottleName": "Old Fitzgerald Bottled-in-Bond Decanter Series",
+      "expectedArtworkId": "bb_a85df59577c72709"
+    },
+    {
+      "bottleId": "19e5b54b16f663cc",
+      "bottleName": "Old Fitzgerald Bourbon 7 Year Bottled in Bond",
+      "expectedArtworkId": "old-fitzgerald-7y-bottled-in-bond"
+    },
+    {
+      "bottleId": "0580aee9ff062082",
+      "bottleName": "Old Forester King Ranch",
+      "expectedArtworkId": "bb_a3e109c627a8eb46"
+    },
+    {
+      "bottleId": "2f8d66bc5f629908",
+      "bottleName": "Old Forester King Ranch",
+      "expectedArtworkId": "bb_a3e109c627a8eb46"
+    },
+    {
+      "bottleId": "4745628b2302cede",
+      "bottleName": "Old Forester King Ranch",
+      "expectedArtworkId": "bb_a3e109c627a8eb46"
+    },
+    {
+      "bottleId": "7555a47eda4187d9",
+      "bottleName": "Old Forester King Ranch",
+      "expectedArtworkId": "bb_a3e109c627a8eb46"
+    },
+    {
+      "bottleId": "bb_6c81face004392d2",
+      "bottleName": "Old Forester President's Choice",
+      "expectedArtworkId": "old-forester-presidents-choice"
+    },
+    {
+      "bottleId": "4f9f9bec91baced1",
+      "bottleName": "Old Rip Van Winkle 10 Year Bourbon Whiskey",
+      "expectedArtworkId": "old-rip-van-winkle-10"
+    },
+    {
+      "bottleId": "9dd91fa902997452",
+      "bottleName": "Old Rip Van Winkle 10 Year Bourbon Whiskey",
+      "expectedArtworkId": "old-rip-van-winkle-10"
+    },
+    {
+      "bottleId": "3e7f9cda266fd9f2",
+      "bottleName": "PAPPY VAN WINKLE 12YR",
+      "expectedArtworkId": "van-winkle-special-reserve-12y"
+    },
+    {
+      "bottleId": "bb_1ac52cea6f3d0115",
+      "bottleName": "Pappy Van Winkle 15 Year",
+      "expectedArtworkId": "pappy-van-winkle-15"
+    },
+    {
+      "bottleId": "bb_4c7a7e87b31d67fc",
+      "bottleName": "Parker's Heritage Collection",
+      "expectedArtworkId": "parker-heritage"
+    },
+    {
+      "bottleId": "773790e22af5d81a",
+      "bottleName": "Peerless Double Oak Bourbon",
+      "expectedArtworkId": "peerless-double-oak-bourbon"
+    },
+    {
+      "bottleId": "b62495edff8e5887",
+      "bottleName": "Peerless Double Oak Bourbon Whiskey 750 Ml 750 ml",
+      "expectedArtworkId": "peerless-double-oak-bourbon"
+    },
+    {
+      "bottleId": "efcdf3e99ee21f2c",
+      "bottleName": "Peerless Double Oak Rye Whiskey",
+      "expectedArtworkId": "peerless-double-oak-rye"
+    },
+    {
+      "bottleId": "bb_473aba10a697b5fc",
+      "bottleName": "Penelope Four Grain Bourbon",
+      "expectedArtworkId": "bb_473aba10a697b5fc"
+    },
+    {
+      "bottleId": "9a4ac8654a0ea90c",
+      "bottleName": "Penelope Four Grain Bourbon - 750 Ml",
+      "expectedArtworkId": "bb_473aba10a697b5fc"
+    },
+    {
+      "bottleId": "a3c140156a012a8f",
+      "bottleName": "Penelope Four Grain Bourbon - 750 Ml",
+      "expectedArtworkId": "bb_473aba10a697b5fc"
+    },
+    {
+      "bottleId": "ae2d52bc99e44d0f",
+      "bottleName": "Penelope Four Grain Straight Bourbon",
+      "expectedArtworkId": "bb_473aba10a697b5fc"
+    },
+    {
+      "bottleId": "ae8f5026c8ccc6e9",
+      "bottleName": "Penelope Valencia 750ml",
+      "expectedArtworkId": "penelope-valencia"
+    },
+    {
+      "bottleId": "bb_15b34a1a107fafe0",
+      "bottleName": "Rare Character Limited Release Straight Bourbon",
+      "expectedArtworkId": "bb_15b34a1a107fafe0"
+    },
+    {
+      "bottleId": "bb_559a7cf41c33d4be",
+      "bottleName": "Rebel Full Proof Selection",
+      "expectedArtworkId": "bb_559a7cf41c33d4be"
+    },
+    {
+      "bottleId": "bb_1c4d78c9fee9f02c",
+      "bottleName": "Rebel Stave Finish Collection Rich Mocha",
+      "expectedArtworkId": "bb_1c4d78c9fee9f02c"
+    },
+    {
+      "bottleId": "bb_7b70730d97fb4243",
+      "bottleName": "Remus Gatsby Reserve",
+      "expectedArtworkId": "remus-gatsby-reserve"
+    },
+    {
+      "bottleId": "bb_3f2ea94bd1b6a610",
+      "bottleName": "Rock Hill Farms",
+      "expectedArtworkId": "rock-hill-farms"
+    },
+    {
+      "bottleId": "bb_a66a1b8df27382e5",
+      "bottleName": "Russell's Reserve 13 Year",
+      "expectedArtworkId": "russells-reserve-13-year"
+    },
+    {
+      "bottleId": "bb_c57c8f61c0075ec5",
+      "bottleName": "Sazerac Rye",
+      "expectedArtworkId": "sazerac-rye"
+    },
+    {
+      "bottleId": "322b177911cd6f25",
+      "bottleName": "Sazerac Straight Rye Whiskey",
+      "expectedArtworkId": "sazerac-rye"
+    },
+    {
+      "bottleId": "bb_71c68398a83ef404",
+      "bottleName": "Smoke Wagon Uncut Unfiltered",
+      "expectedArtworkId": "bb_71c68398a83ef404"
+    },
+    {
+      "bottleId": "bb_ea6984efad655e2d",
+      "bottleName": "Stagg",
+      "expectedArtworkId": "stagg"
+    },
+    {
+      "bottleId": "bb_fa7044ef1e9e004d",
+      "bottleName": "Very Olde St. Nick Ancient Cask Immaculata",
+      "expectedArtworkId": "bb_fa7044ef1e9e004d"
+    },
+    {
+      "bottleId": "9c7ef70cd5444961",
+      "bottleName": "W.l Weller Special Reserve Bourbon - 1 LT",
+      "expectedArtworkId": "weller-special-reserve"
+    },
+    {
+      "bottleId": "bb_7991fa37cd881dba",
+      "bottleName": "Weller Antique 107",
+      "expectedArtworkId": "weller-antique-107"
+    },
+    {
+      "bottleId": "2a5d72bb30e2ef56",
+      "bottleName": "Weller Antique 107 Proof Whiskey 750 ml 750 ml",
+      "expectedArtworkId": "weller-antique-107"
+    },
+    {
+      "bottleId": "d4606a983dad150d",
+      "bottleName": "Weller Bourbon Antique  107",
+      "expectedArtworkId": "weller-antique-107"
+    },
+    {
+      "bottleId": "9c81022c4b92ba97",
+      "bottleName": "Weller Bourbon Antique 107",
+      "expectedArtworkId": "weller-antique-107"
+    },
+    {
+      "bottleId": "bb_a3c16eb6f814785b",
+      "bottleName": "Weller Full Proof",
+      "expectedArtworkId": "weller-full-proof"
+    },
+    {
+      "bottleId": "6f5310c435e70916",
+      "bottleName": "Weller Full Proof Barrel Select",
+      "expectedArtworkId": "weller-full-proof-single-barrel-select"
+    },
+    {
+      "bottleId": "2eb3805539560131",
+      "bottleName": "Weller Full Proof Whiskey 750 ml 750 ml",
+      "expectedArtworkId": "weller-full-proof"
+    },
+    {
+      "bottleId": "9868070b7238735d",
+      "bottleName": "Weller Special Reserve",
+      "expectedArtworkId": "weller-special-reserve"
+    },
+    {
+      "bottleId": "bb_54f5df2f8ee5d7c9",
+      "bottleName": "Weller Special Reserve",
+      "expectedArtworkId": "weller-special-reserve"
+    },
+    {
+      "bottleId": "c18e09b80e294cf8",
+      "bottleName": "Weller Special Reserve",
+      "expectedArtworkId": "weller-special-reserve"
+    },
+    {
+      "bottleId": "f3216f4edbc89bb7",
+      "bottleName": "Weller Special Reserve",
+      "expectedArtworkId": "weller-special-reserve"
+    },
+    {
+      "bottleId": "febb039ab1c40c1e",
+      "bottleName": "Weller Special Reserve",
+      "expectedArtworkId": "weller-special-reserve"
+    },
+    {
+      "bottleId": "b8ade638f048a6ab",
+      "bottleName": "Weller Special Reserve 750ml",
+      "expectedArtworkId": "weller-special-reserve"
+    },
+    {
+      "bottleId": "371638e0bc83f07b",
+      "bottleName": "Weller Special Reserve Whiskey 750 ml 750 ml",
+      "expectedArtworkId": "weller-special-reserve"
+    },
+    {
+      "bottleId": "bb_8480bae3e0e97a02",
+      "bottleName": "WhistlePig PiggyBack 6 Year Bourbon",
+      "expectedArtworkId": "whistlepig-piggyback-6y-bourbon"
+    },
+    {
+      "bottleId": "d2e331aedded70cc",
+      "bottleName": "WhistlePig PiggyBack 6 year old Bourbon",
+      "expectedArtworkId": "whistlepig-piggyback-6y-bourbon"
+    },
+    {
+      "bottleId": "05617332436a3ab1",
+      "bottleName": "Wild Turkey Rare Breed Bourbon",
+      "expectedArtworkId": "wild-turkey-rare-breed"
+    },
+    {
+      "bottleId": "3f8f674acfc0c6e3",
+      "bottleName": "Wild Turkey Rare Breed Bourbon",
+      "expectedArtworkId": "wild-turkey-rare-breed"
+    },
+    {
+      "bottleId": "5179403b21f7a61d",
+      "bottleName": "Wild Turkey Rare Breed Bourbon",
+      "expectedArtworkId": "wild-turkey-rare-breed"
+    },
+    {
+      "bottleId": "7452c59813385277",
+      "bottleName": "Wild Turkey Rare Breed Bourbon",
+      "expectedArtworkId": "wild-turkey-rare-breed"
+    },
+    {
+      "bottleId": "b5521495f41bd1e5",
+      "bottleName": "Wild Turkey Rare Breed Bourbon",
+      "expectedArtworkId": "wild-turkey-rare-breed"
+    },
+    {
+      "bottleId": "ebb355eea4bb2b43",
+      "bottleName": "Wild Turkey Rare Breed Bourbon",
+      "expectedArtworkId": "wild-turkey-rare-breed"
+    },
+    {
+      "bottleId": "bb_22604f9ddde2b6ba",
+      "bottleName": "Wild Turkey Rare Breed Straight Bourbon",
+      "expectedArtworkId": "bb_22604f9ddde2b6ba"
+    },
+    {
+      "bottleId": "bb_8bda260568e33158",
+      "bottleName": "Wilderness Trail Rye Green Label Private Selection",
+      "expectedArtworkId": "bb_8bda260568e33158"
+    },
+    {
+      "bottleId": "bb_efc4285973b6c02f",
+      "bottleName": "Willett Family Estate",
+      "expectedArtworkId": "bb_efc4285973b6c02f"
+    },
+    {
+      "bottleId": "e826d03d5efd1774",
+      "bottleName": "WILLETT FAMILY ESTATE BOURBON 750 ML",
+      "expectedArtworkId": "bb_efc4285973b6c02f"
+    },
+    {
+      "bottleId": "d97bc4962f485fb3",
+      "bottleName": "Willett Family Estate Small Batch Bourbon 4Y",
+      "expectedArtworkId": "willett-family-estate-small-batch-bourbon-4y"
+    },
+    {
+      "bottleId": "3fa9032ef1c55c2e",
+      "bottleName": "Willett Pot Still Reserve",
+      "expectedArtworkId": "willett-pot-still-reserve"
+    },
+    {
+      "bottleId": "bb_2435a31e97c20ce7",
+      "bottleName": "Willett Pot Still Reserve Small Batch Straight Bourbon",
+      "expectedArtworkId": "bb_2435a31e97c20ce7"
+    },
+    {
+      "bottleId": "28429a99a24a3b55",
+      "bottleName": "William Larue Weller",
+      "expectedArtworkId": "william-larue-weller"
+    },
+    {
+      "bottleId": "bb_09f828e85cf5a103",
+      "bottleName": "Woodford Reserve Master's Collection",
+      "expectedArtworkId": "bb_09f828e85cf5a103"
+    },
+    {
+      "bottleId": "a21d7e68fb3a7c3d",
+      "bottleName": "Woodford Reserve Master's Collection Batch Proof 119.5 2025",
+      "expectedArtworkId": "woodford-reserve-batch-proof-1195-2025"
+    },
+    {
+      "bottleId": "de0e3af40746d39e",
+      "bottleName": "Woodford Reserve Master's Collection Batch Proof 121.2 2024",
+      "expectedArtworkId": "woodford-reserve-batch-proof-1212-2024"
+    },
+    {
+      "bottleId": "825d8916f570ec24",
+      "bottleName": "Woodford Reserve Master's Collection Madeira Finish 2024",
+      "expectedArtworkId": "woodford-reserve-madeira-2024"
+    },
+    {
+      "bottleId": "bb_fe273b9c6f6657b6",
+      "bottleName": "Yellowstone Handpicked 109 Proof",
+      "expectedArtworkId": "bb_fe273b9c6f6657b6"
+    },
+    {
+      "bottleId": "bb_1f9b7313bdf4f9e6",
+      "bottleName": "Yellowstone Handpicked 119 Proof",
+      "expectedArtworkId": "bb_1f9b7313bdf4f9e6"
+    },
+    {
+      "bottleId": "bb_63d8202a47b5f253",
+      "bottleName": "Yellowstone Limited Edition",
+      "expectedArtworkId": "bb_63d8202a47b5f253"
+    },
+    {
+      "bottleId": "bb_9b186a3bfc444786",
+      "bottleName": "Yellowstone Toasted Bourbon",
+      "expectedArtworkId": "bb_9b186a3bfc444786"
+    }
+  ]
+}

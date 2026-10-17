@@ -13,7 +13,7 @@ export function resolveLabeledBottleArtwork(identity: PhotoIdentity, catalog: re
   if (exact || !identity.bottleName) return exact;
   // Retailer variants append package volume, sometimes twice. Remove only a
   // trailing volume; ages, proofs, finishes and expression names stay intact.
-  const bottleName = identity.bottleName.replace(/(?:\s+(?:\d+(?:\.\d+)?|\.\d+)\s*(?:ml|l))+\s*$/i, '').trim();
+  const bottleName = identity.bottleName.replace(/(?:\s+(?:[-–—·]\s*)?(?:\d+(?:\.\d+)?|\.\d+)\s*(?:ml|lt|l))+\s*$/i, '').trim();
   return bottleName !== identity.bottleName
     ? resolveBottlePhoto(LABELED_BOTTLE_ARTWORK, {...identity, bottleId, bottleName}, catalog)
     : undefined;
