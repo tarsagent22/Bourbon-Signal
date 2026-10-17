@@ -117,7 +117,7 @@ assert.match(settings, /What would make your membership more useful\?/);
 assert.match(settings, /Too few relevant alerts/);
 assert.match(settings, /try\s*{\s*await saveRetentionFeedback\(nextStep\);\s*}\s*catch/, "optional feedback failure cannot block billing portal access");
 assert.match(feedbackRoute, /slice\(-4\)/, "feedback history stays bounded well below Clerk metadata limits");
-assert.match(settings, /Review a lower-cost plan/);
+assert.match(settings, /Review my membership/);
 assert.match(settings, /Continue to billing/);
 assert.match(feedbackRoute, /await auth\(\)/);
 assert.match(feedbackRoute, /updateUserMetadata/);

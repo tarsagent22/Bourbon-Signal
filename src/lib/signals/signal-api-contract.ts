@@ -102,6 +102,7 @@ export interface SignalMemberProfileResponse {
       label: string;
       paid: boolean;
       hasBetaAccess: boolean;
+      grandfatheredRate?: string;
     };
     entitlements: {
       fullFeed: boolean;
@@ -135,6 +136,8 @@ export function buildSignalMemberProfile(
         label: access.label,
         paid: access.tier !== "free",
         hasBetaAccess: access.hasBetaAccess,
+        ...((metadata as Record<string, unknown> | null)?.grandfatheredMonthlyRateCents === 300 && access.tier === "standard"
+          ? { grandfatheredRate: "$3" } : {}),
       },
       entitlements: {
         fullFeed: access.feedPreviewLimit === null,

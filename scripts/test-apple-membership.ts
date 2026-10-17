@@ -323,16 +323,15 @@ test("Clerk projection retries when Founder, gift, or Stripe authority changes d
   assert.equal(writes[0].publicMetadata?.appleMembershipTier, "standard");
 });
 
-test("configuration requires both live monthly products and rejects incomplete or unsupported catalogs", () => {
+test("configuration requires the live Barrel monthly product and rejects incomplete or unsupported catalogs", () => {
   assert.deepEqual(revenueCatConfiguration({}), { ready: false, blocker: "server_credentials_missing" });
   const server = { REVENUECAT_SERVER_API_KEY: "configured", REVENUECAT_WEBHOOK_SECRET: "configured", APPLE_IAP_PRIVATE_KEY: "configured", APPLE_IAP_KEY_ID: "configured", APPLE_IAP_ISSUER_ID: "configured" };
   assert.deepEqual(revenueCatConfiguration({ ...server, APPLE_IAP_PRIVATE_KEY: "" }), { ready: false, blocker: "server_credentials_missing" });
   assert.deepEqual(revenueCatConfiguration(server), { ready: false, blocker: "products_not_configured" });
   const products = APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS.join(",");
   for (const invalid of [
-    APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0],
+    "com.bourbonsignal.app.standard.monthly",
     `${products},${APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0]}`,
-    APPLE_MEMBERSHIP_PRODUCT_IDS.join(","),
     `${products},com.bourbonsignal.app.founder.lifetime`,
   ]) {
     assert.deepEqual(revenueCatConfiguration({ ...server, REVENUECAT_APPLE_PRODUCT_IDS: invalid, REVENUECAT_APPLE_TRIAL_POLICY: "intro_offers_disabled" }), { ready: false, blocker: "products_not_configured" });

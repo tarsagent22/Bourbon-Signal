@@ -65,7 +65,7 @@ test('MM-01 billing portal recovery patches only its public customer key across 
   // getStripeClient only needs presence; stub module is the only possible provider boundary.
   const source = require('node:fs').readFileSync(path.join(root, 'src/app/api/billing-portal/route.ts'), 'utf8');
   const ts = req('typescript'); const m = { exports: {} };
-  const mocks = { 'next/server': { NextResponse: Response }, '@clerk/nextjs/server': { auth: async () => ({ userId: 'fixture-A' }), clerkClient: async () => ({ users: f.users }) }, stripe: class { checkout = { sessions: { list: () => f.recover() } }; billingPortal = { sessions: { create: async () => ({ url: 'https://offline.invalid/portal' }) } }; } };
+  const mocks = { '@/lib/stripe-membership-portal': { membershipPortalConfiguration: async () => 'bpc_single' }, 'next/server': { NextResponse: Response }, '@clerk/nextjs/server': { auth: async () => ({ userId: 'fixture-A' }), clerkClient: async () => ({ users: f.users }) }, stripe: class { checkout = { sessions: { list: () => f.recover() } }; billingPortal = { sessions: { create: async () => ({ url: 'https://offline.invalid/portal' }) } }; } };
   new Function('require', 'module', 'exports', 'process', ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText)(id => mocks[id], m, m.exports, { env: { STRIPE_SECRET_KEY: 'offline-fixture' } });
   const request = new Request('https://offline.invalid'); request.nextUrl = new URL(request.url);
   assert.equal((await m.exports.POST(request)).status, 200); assert.equal(f.metadata.stripeCustomerId, 'cus_fixture'); assertWatchSurvived(f);

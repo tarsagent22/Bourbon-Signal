@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 
 const TIER_RANK: Record<MembershipTier, number> = {
   free: 0,
-  standard: 1,
+  standard: 2,
   barrel: 2,
   "bottled-in-bond": 3,
 };
@@ -144,8 +144,8 @@ export async function POST(req: NextRequest) {
   if (!planId) {
     return NextResponse.json({ error: "Choose a valid Bourbon Signal membership plan." }, { status: 400 });
   }
-  if (!isPublicCheckoutPlanId(planId)) {
-    return NextResponse.json({ error: "Annual memberships are no longer offered. Choose a monthly plan." }, { status: 410 });
+  if (!isPublicCheckoutPlanId(String(planId) as BillingPlanId)) {
+    return NextResponse.json({ error: "This plan is no longer available. Choose Barrel Proof for $6/month. Existing memberships keep their billing terms." }, { status: 410 });
   }
 
   const plan = LAUNCH_BILLING_PLANS[planId];

@@ -126,7 +126,7 @@ assert.match(trialStripe, /hasActiveGiftMembership/);
 assert.match(trialStripe, /stripe\.subscriptions\.cancel/);
 assert.doesNotMatch(trialStripe, /hasActiveGiftMembership\([^)]*observedAt/);
 assert.match(webhook, /durableClaim\.subscriptionId !== subscription\.id/);
-assert.match(pricing, /7 days free, then \$3\/month/);
+assert.doesNotMatch(pricing, /7 days free, then \$3\/month/);
 assert.match(pricing, /7 days free, then \$6\/month/);
 assert.match(pricing, /Start 7-day free trial/);
 assert.doesNotMatch(pricing, /Annual|annual|2 months free/);

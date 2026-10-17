@@ -35,20 +35,6 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     ],
   },
   {
-    tier: "standard",
-    name: "Standard",
-    eyebrow: "Core membership",
-    description: "Follow your bottles and get alerts for the places you hunt.",
-    monthly: { price: "$3", suffix: "/month" },
-    features: [
-      "Full state Intel feed",
-      "Alerts for up to 5 areas and 15 bottles",
-      "Unlimited bottle intelligence lookups",
-      "Unlimited My Shelf",
-      "Redeem Signal Points for member rewards",
-    ],
-  },
-  {
     tier: "barrel",
     name: "Barrel Proof",
     eyebrow: "Serious hunters",
@@ -56,7 +42,8 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     recommended: true,
     monthly: { price: "$6", suffix: "/month" },
     features: [
-      "Everything in Standard",
+      "Full Intel feed and unlimited bottle lookups",
+      "Unlimited My Shelf and Signal Points rewards",
       "Unlimited areas and watched bottles",
       "Advanced filters and Community Signal alerts",
       "Bourbon DNA: insights into your collection",
@@ -81,25 +68,26 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
 
 const tierRank: Record<MembershipTier, number> = {
   free: 0,
-  standard: 1,
+  standard: 2,
   barrel: 2,
   "bottled-in-bond": 3,
 };
 
 export function planForTier(tier: string | string[] | undefined) {
-  const value = Array.isArray(tier) ? tier[0] : tier;
+  const requested = Array.isArray(tier) ? tier[0] : tier;
+  const value = requested === "standard" ? "barrel" : requested;
   return MEMBERSHIP_PLANS.find((plan) => plan.tier === value) || null;
 }
 
 export function billingChoiceFor(tier: MembershipTier, _interval: BillingInterval = "monthly") {
-  const plan = MEMBERSHIP_PLANS.find((candidate) => candidate.tier === tier);
+  const plan = MEMBERSHIP_PLANS.find((candidate) => candidate.tier === (tier === "standard" ? "barrel" : tier));
   if (!plan) return null;
   if (plan.lifetime) return { interval: "lifetime" as const, ...plan.lifetime };
   return plan.monthly ? { interval: "monthly" as const, ...plan.monthly } : null;
 }
 
 export function membershipActionFor(current: MembershipTier, target: MembershipTier) {
-  if (current === target) return { kind: "current" as const, label: "Current membership" };
+  if (current === target || (current === "standard" && target === "barrel") || (current === "barrel" && target === "standard")) return { kind: "current" as const, label: "Current membership" };
   if (tierRank[current] > tierRank[target]) {
     const currentName = MEMBERSHIP_PLANS.find((plan) => plan.tier === current)?.name || "your membership";
     return { kind: "included" as const, label: `Included with ${currentName}` };

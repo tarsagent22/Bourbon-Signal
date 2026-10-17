@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
+import { membershipPortalConfiguration } from "@/lib/stripe-membership-portal";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +97,7 @@ export async function POST(req: NextRequest) {
 
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
+    configuration: await membershipPortalConfiguration(stripe),
     return_url: `${appUrl(req)}/settings`,
   });
 

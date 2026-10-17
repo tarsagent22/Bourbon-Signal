@@ -11,8 +11,10 @@ import {
 
 // Store-specific ledgers share the proven transition/ownership machinery. Product identity is
 // the same membership SKU across stores; Google's only allowed base plan is monthly, without offers.
-export const GOOGLE_MEMBERSHIP_PRODUCT_IDS =
-  APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS;
+export const GOOGLE_MEMBERSHIP_PRODUCT_IDS = [
+  "com.bourbonsignal.app.standard.monthly",
+  "com.bourbonsignal.app.barrel.monthly",
+] as const;
 const allowed = new Set<string>(GOOGLE_MEMBERSHIP_PRODUCT_IDS);
 const record = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === "object" && !Array.isArray(value)
@@ -32,8 +34,8 @@ export function googleMembershipConfiguration(
     .map((s) => s.trim())
     .filter(Boolean);
   if (
-    products.length !== 2 ||
-    new Set(products).size !== 2 ||
+    !products.includes("com.bourbonsignal.app.barrel.monthly") ||
+    new Set(products).size !== products.length ||
     products.some((p) => !allowed.has(p))
   )
     return { ready: false, blocker: "google_products_not_configured" };

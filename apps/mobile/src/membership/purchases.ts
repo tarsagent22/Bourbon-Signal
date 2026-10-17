@@ -26,7 +26,6 @@ const APPROVED_PRODUCT_IDS = Object.freeze([
 ] as const);
 
 const REQUIRED_PURCHASE_PRODUCT_IDS = Object.freeze([
-  APPLE_PRODUCT_IDS.standard.monthly,
   APPLE_PRODUCT_IDS.barrel.monthly,
 ] as const);
 
@@ -109,7 +108,7 @@ export function productIdFor(tier: MembershipTier, interval: "monthly" | "annual
 export function mapDefaultOfferingPackages(packages: PurchaseStorePackage[]) {
   const approved = new Map<AppleProductId, ApplePurchaseProduct>();
   for (const item of packages) {
-    if (!isAppleProductId(item.productId) || approved.has(item.productId)) continue;
+    if (!isAppleProductId(item.productId) || !(REQUIRED_PURCHASE_PRODUCT_IDS as readonly string[]).includes(item.productId) || approved.has(item.productId)) continue;
     const identity = productIdentity(item.productId);
     approved.set(item.productId, { ...item, productId: item.productId, ...identity });
   }
@@ -127,7 +126,7 @@ function messageForUnavailable(reason: "key" | "products" | "server", label="App
 }
 
 function rank(tier: MembershipTier) {
-  return tier === "free" ? 0 : tier === "standard" ? 1 : tier === "barrel" ? 2 : 3;
+  return tier === "free" ? 0 : tier === "standard" ? 2 : tier === "barrel" ? 2 : 3;
 }
 
 export function createPurchaseCoordinator({
@@ -284,6 +283,7 @@ export function createPurchaseCoordinator({
   }
 
   async function purchase(productId: AppleProductId) {
+    if (!(REQUIRED_PURCHASE_PRODUCT_IDS as readonly string[]).includes(productId)) throw new Error("This membership product is not available for new purchases.");
     const operation = assertReady(productId);
     publish({ status: "purchasing", message: `Waiting for the ${storeLabel}. Paid access has not changed yet.` });
     try {

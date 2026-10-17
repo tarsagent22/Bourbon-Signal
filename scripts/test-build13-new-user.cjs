@@ -69,8 +69,8 @@ test('welcome persists display name and home state and is resumable before compl
 });
 
 const { createSignalFeedHandler } = req(root + '/src/lib/signals/signal-route.ts');
-test('Free and Standard detailed filters fail explicitly before reading either feed', async () => {
-  for (const tier of ['free','standard']) {
+test('Free detailed filters fail explicitly before reading either feed', async () => {
+  for (const tier of ['free']) {
     let reads = 0;
     const api = createSignalFeedHandler({ getFilterAccess: async()=>getEntitlements(tier), getDrops: async()=>{reads++;}, getSightings: async()=>{reads++;} });
     for (const query of ['state=NC&area=Wake County ABC','bottle=Eagle%20Rare','freshness=24h']) {
@@ -91,7 +91,7 @@ test('Barrel and Founder NC board requests reach the drop source as an exact sto
   }
 });
 test('state browsing stays available to Standard while Free previews remain global', async () => {
-  for (const tier of ['free','standard']) {
+  for (const tier of ['free']) {
     let source;
     const api = createSignalFeedHandler({getFilterAccess:async()=>getEntitlements(tier),getDrops:async(request)=>{source=new URL(request.url);return Response.json({drops:[],total:0});},getSightings:async()=>Response.json({sightings:[],totalSightings:0})});
     assert.equal((await api(new Request('https://fixture.invalid/api/v1/signals?view=market&state=NC'))).status, tier === 'free' ? 403 : 200);

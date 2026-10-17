@@ -7,15 +7,12 @@ import { recordGrowthMilestone } from "@/lib/growth-client";
 import type { PublicCheckoutPlanId } from "@/lib/membership-plan-catalog";
 
 const VALID_PLANS: PublicCheckoutPlanId[] = [
-  "standard_monthly",
   "barrel_monthly",
-  "bib_lifetime",
 ];
 
 function normalizePlan(value: string | null): PublicCheckoutPlanId | null {
   if (VALID_PLANS.includes(value as PublicCheckoutPlanId)) return value as PublicCheckoutPlanId;
-  if (value === "monthly") return "standard_monthly";
-  if (value === "founder") return "bib_lifetime";
+  if (value === "monthly") return "barrel_monthly";
   return null;
 }
 
@@ -62,16 +59,14 @@ function ContinueCheckoutContent() {
         if (shouldRecordRegistration) {
           await recordGrowthMilestone("registration_completed", { surface: "sign_up" });
         }
-        if (trialOfferExpected && (plan === "standard_monthly" || plan === "barrel_monthly")) {
+        if (trialOfferExpected && (plan === "barrel_monthly")) {
           const eligibilityResponse = await fetch("/api/membership-trial", { cache: "no-store" });
           const eligibility = await eligibilityResponse.json() as {
             standardMonthly?: { eligible?: boolean };
             barrelMonthly?: { eligible?: boolean };
             error?: string;
           };
-          const eligible = plan === "standard_monthly"
-            ? eligibility.standardMonthly?.eligible === true
-            : eligibility.barrelMonthly?.eligible === true;
+          const eligible = eligibility.barrelMonthly?.eligible === true;
           if (!eligibilityResponse.ok || !eligible) {
             throw new Error(eligibility.error || "This trial is not available for this account. Return to pricing to choose a regular plan.");
           }
