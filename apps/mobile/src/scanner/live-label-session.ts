@@ -36,6 +36,7 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
   let shown: RadarBottleOption[] = [], lastSignature = '', lastSpecific = '', agreement = 0, blankSince: number | null = null;
   let held = false, processingTotal = 0;
   let shownFamily: Reading['family'], lastIdentityAt = -Infinity, sceneMismatchAt: number | null = null;
+  let shownSpecific = '', pendingPromotion = '', promotionReads = 0;
   let displayPhase: LiveScanResult['phase'] = 'reading', pendingPhase = '', pendingPhaseAt = 0;
   // Repeated OCR text is common. Avoid repeating catalog matching on every frame.
   const readings = new Map<string, Reading>();
@@ -48,7 +49,7 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
     return result;
   };
   let metrics: ScanMetrics = { frames: 0, firstFrameMs: null, firstSuggestionMs: null, confirmedMs: null, meanAnalysisMs: 0, resets: 0 };
-  const clearEvidence = () => { history = []; shown = []; shownFamily = undefined; lastIdentityAt = -Infinity; sceneMismatchAt = null; lastSpecific = ''; agreement = 0; blankSince = null; };
+  const clearEvidence = () => { history = []; shown = []; shownFamily = undefined; shownSpecific = ''; pendingPromotion = ''; promotionReads = 0; lastIdentityAt = -Infinity; sceneMismatchAt = null; lastSpecific = ''; agreement = 0; blankSince = null; };
   return {
     reset(now = 0) {
       clearEvidence(); start = now; lastAt = -Infinity; lastSequence = -1; lastSignature = ''; held = false; processingTotal = 0;
@@ -99,26 +100,39 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
       }
       if (!text) blankSince ??= now; else blankSince = null;
       if (blankSince != null && now - blankSince >= 700) { clearEvidence(); metrics.resets += 1; reading = direct; }
+      const specific = reading.canHold && freshSpecific ? reading.matches[0]?.id || '' : '';
+      // A clear brand cannot lend its OCR confidence to an uncertain expression.
+      const strongText = blocks.filter(block => block.confidence >= 0.6).map(block => block.text).join('\n');
+      const strong = specific ? read(strongText) : null;
+      const strongWithBrand = specific && context ? read(`${context.name}\n${strongText}`) : strong;
+      const expressionConfident = (!changedScene || confirmedScene) && [strong, strongWithBrand].some(result => result?.canHold && result.matches[0]?.id === reading.matches[0]?.id);
+      if (!specific) { pendingPromotion = ''; promotionReads = 0; }
       if (reading.matches.length) {
         const incoming = reading.matches;
-        // Weak observations may adjust alternatives without shuffling an existing
-        // leading card. A newly read expression can immediately replace a brand.
-        shown = reading.canHold ? incoming : [...shown.filter(b => incoming.some(n => n.id === b.id)), ...incoming.filter(b => !shown.some(n => n.id === b.id))];
+        const uncertainSwitch = specific && shownSpecific && specific !== shownSpecific && !expressionConfident;
+        if (uncertainSwitch) {
+          promotionReads = pendingPromotion === specific ? promotionReads + 1 : 1;
+          pendingPromotion = specific;
+        } else if (specific) { pendingPromotion = ''; promotionReads = 0; }
+        // First candidates and clear refinements remain immediate. A conflicting
+        // uncertain expression is selectable immediately, but needs two fresh
+        // reads before displacing the leading expression.
+        if (uncertainSwitch && promotionReads < 2) {
+          shown = [shown[0], ...incoming.filter(bottle => bottle.id !== shown[0].id), ...shown.slice(1).filter(bottle => !incoming.some(next => next.id === bottle.id))].slice(0, 6);
+        } else {
+          shown = reading.canHold ? incoming : [...shown.filter(b => incoming.some(n => n.id === b.id)), ...incoming.filter(b => !shown.some(n => n.id === b.id))];
+          if (reading.canHold) shownSpecific = incoming[0].id;
+        }
+        if (!shown.some(bottle => bottle.id === shownSpecific)) shownSpecific = '';
         metrics.firstSuggestionMs ??= Math.max(0, now - start);
         if (reading.family) shownFamily = reading.family;
         else if (shownFamily && !shown.some(bottle => shownFamily!.bottles.some(member => member.id === bottle.id))) shownFamily = undefined;
         if (direct.family || freshSpecific) lastIdentityAt = now;
       }
-      const specific = reading.canHold && freshSpecific ? reading.matches[0]?.id || '' : '';
       agreement = specific && specific === lastSpecific ? agreement + 1 : specific ? 1 : 0;
       lastSpecific = specific;
-      // A clear brand cannot lend its OCR confidence to an uncertain expression.
       // Keep uncertain candidates selectable, but require fresh strong expression
       // text before pausing analysis automatically.
-      const strongText = blocks.filter(block => block.confidence >= 0.6).map(block => block.text).join('\n');
-      const strong = specific ? read(strongText) : null;
-      const strongWithBrand = specific && context ? read(`${context.name}\n${strongText}`) : strong;
-      const expressionConfident = (!changedScene || confirmedScene) && [strong, strongWithBrand].some(result => result?.canHold && result.matches[0]?.id === reading.matches[0]?.id);
       if (!expressionConfident) { agreement = 0; lastSpecific = ''; }
       const ready = agreement >= 2 && expressionConfident;
       if (ready) { held = true; metrics.confirmedMs = Math.max(0, now - start); }

@@ -84,6 +84,8 @@ adopted on the next scan/activation rather than resetting an active scan. Brand
 controls keep a reserved slot and persist through brief OCR gaps; status guidance
 waits for 600 ms of consistent unreadable/unmatched input. First suggestions and
 expression refinements remain immediate.
+When an uncertain expression conflicts with an existing leading expression, it
+is selectable immediately but needs two fresh reads before taking the top slot.
 
 A single changed scene sample blocks borrowing old identity evidence, while
 keeping provisional choices visible. A second changed sample at least 150 ms

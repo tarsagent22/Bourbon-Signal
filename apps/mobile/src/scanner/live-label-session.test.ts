@@ -33,6 +33,25 @@ test('new specific expression wins over the prior expression before confirmation
   assert.equal(scan.observe(frame(2, 'RIO'), view, 350)!.matches[0].id, 'penelope-rio-cask-finish');
   assert.equal(scan.observe(frame(3, 'RIO'), view, 600)!.phase, 'ready');
 });
+
+test('alternating uncertain expressions remain selectable without swapping the leading card', () => {
+  const scan = createLiveLabelSession(index);
+  scan.observe(frame(1, 'PENELOPE RIVIERA'), view, 100);
+  const uncertain = (sequence: number, expression: string) => {
+    const sample = frame(sequence, `PENELOPE\n${expression}`);
+    sample.blocks[1].confidence = 0.35;
+    return sample;
+  };
+  for (const [sequence, expression] of [[2, 'RIO'], [3, 'RIVIERA'], [4, 'RIO']] as const) {
+    const result = scan.observe(uncertain(sequence, expression), view, sequence * 250)!;
+    assert.equal(result.matches[0].id, 'penelope-riviera-cask-finish');
+    assert.equal(result.phase, 'suggesting');
+    if (expression === 'RIO') assert.ok(result.matches.some(bottle => bottle.id === 'penelope-rio-cask-finish'));
+  }
+  const persistent = scan.observe(uncertain(5, 'RIO'), view, 1250)!;
+  assert.equal(persistent.matches[0].id, 'penelope-rio-cask-finish');
+  assert.equal(persistent.phase, 'suggesting', 'uncertain repeats cannot auto-confirm');
+});
 test('history clears on confirmed scene change, expiration, a different brand, and blank gaps', () => {
   for (const [name, second, now] of [
     ['scene', frame(2, 'RIVIERA', { scene: scene.map((_, i) => i % 2 ? 240 : 15) }), 350],
