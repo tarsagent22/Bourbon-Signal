@@ -30,10 +30,10 @@ try {
     await page.getByRole('link', { name: /^Open Distiller community:/ }).waitFor();
     assert.ok((await page.getByRole('link', { name: /^Open Producer facts/ }).count()) > 0);
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('150');
-    await page.getByText('Pass at this price', { exact: true }).waitFor();
+    await page.getByText('Steep price premium', { exact: true }).waitFor();
     assert.ok(Number(await page.getByTestId('bottle-assessment-score').innerText()) < score);
     await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('');
-    await page.getByText('Strong bottle to consider', { exact: true }).waitFor();
+    await page.getByText('Notable find', { exact: true }).waitFor();
     assert.equal(Number(await page.getByTestId('bottle-assessment-score').innerText()), score);
     await page.getByRole('button', { name: 'Change Bottle Check reference region' }).click();
     await page.getByRole('button', { name: 'Select reference state', exact: true }).click();
@@ -44,7 +44,7 @@ try {
     await select('Wild Turkey 101 Bourbon', '&prices=none');
     await page.getByText('At catalog reference price', { exact: false }).first().waitFor();
     const common = Number(await page.getByTestId('bottle-assessment-score').innerText());
-    assert.ok(common > 60 && common !== score && common !== 59);
+    assert.ok(common < 60 && common !== score && common !== 59);
     await select('Unreviewed Fixture Bourbon');
     await page.getByText('Research pending', { exact: true }).first().waitFor();
     assert.equal(await page.getByTestId('bottle-assessment-score').innerText(), '\u2014');
