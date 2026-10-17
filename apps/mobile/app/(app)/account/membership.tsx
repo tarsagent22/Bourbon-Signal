@@ -12,7 +12,7 @@ import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { deriveMobileMembershipLifecycle } from "../../../src/membership/membership-lifecycle";
 import { productIdFor } from "../../../src/membership/purchases";
 import { colors, typeScale, fonts } from "../../../src/theme";
-import { SignalMotionBackdrop } from '../../../src/components/SignalMotionBackdrop';
+import { SignalMotionScreen } from '../../../src/components/SignalMotionBackdrop';
 import { routeText } from '../../../src/continuity/bottle-handoff';
 
 const cards = [
@@ -96,11 +96,10 @@ export default function MembershipScreen() {
       : attempted && !busy && purchases.status !== "ready" ? "We couldn’t load purchase options. Try again in a moment."
         : "";
 
-  return <View style={styles.screen}>
+  return <SignalMotionScreen style={styles.screen}>
     <Stack.Screen options={{ title: "Bourbon Signal", headerBackTitle: "Account", ...(isWelcome ? { headerBackVisible: false, gestureEnabled: false } : {}) }} />
     <ScrollView contentContainerStyle={[styles.content, { width: pageWidth }]}>
       <View style={styles.hero}>
-        <SignalMotionBackdrop quiet />
         <Text accessibilityRole="header" style={styles.title}>Find your next bottle.</Text>
         <Text style={styles.subtitle}>Get alerts when bottles you love show up in your area. Let Bourbon Signal do the heavy lifting.</Text>
         {!isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
@@ -160,7 +159,7 @@ export default function MembershipScreen() {
         </View>
       </View>
     </ScrollView>
-  </View>;
+  </SignalMotionScreen>;
 }
 const styles = StyleSheet.create({
   screen:{flex:1,backgroundColor:colors.background},content:{alignSelf:"center",paddingTop:14,paddingBottom:28},

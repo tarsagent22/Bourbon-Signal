@@ -31,7 +31,7 @@ export function OnboardingFrame({ children, title, description, eyebrow, step, f
     <OnboardingBackdrop reduceMotion={reduceMotion} />
     <View style={s.chrome}>
       {largeMark ? null : onBack ? <Pressable accessibilityRole="button" accessibilityLabel="Back" disabled={backDisabled} onPress={onBack} style={[s.back, backDisabled && s.disabled]}><Text style={s.backText}>‹</Text></Pressable> : <BrandMark />}
-      <Text style={[s.wordmark, largeMark && { textAlign: 'center', fontSize: 15 }]}>Bourbon Signal</Text>
+      <Text adjustsFontSizeToFit={largeMark} minimumFontScale={0.75} numberOfLines={largeMark ? 1 : undefined} style={[s.wordmark, largeMark && s.welcomeWordmark]}>{largeMark ? 'Bourbon Signal.' : 'Bourbon Signal'}</Text>
       {progress ? <Text accessibilityLabel={`${step! >= 5 ? 'Alert setup' : 'Introduction'}, ${current} of ${total}`} style={s.counter}>{current} / {total}</Text> : null}
     </View>
     {progress ? <View accessible={false} style={s.progress}><View style={[s.progressActive, { width: `${current / total * 100}%` }]} /></View> : null}
@@ -67,13 +67,14 @@ export function ExampleSighting({ notification = false, state = '' }: { notifica
 }
 export const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#10100E', overflow: 'hidden' },
-  chrome: { width: '100%', maxWidth: 520, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, minHeight: 60, gap: 10, backgroundColor: '#10100E' },
+  chrome: { width: '100%', maxWidth: 520, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, minHeight: 60, gap: 10 },
+  welcomeWordmark: { fontSize: 36, lineHeight: 46, letterSpacing: -0.7, textAlign: 'center', paddingVertical: 8 },
   wordmark: { color: '#EAE1D2', fontFamily: fonts.heading, fontSize: 17, flex: 1 }, logo: { width: 34, height: 34 }, logoLarge: { width: 96, height: 96 },
   back: { minWidth: 34, minHeight: 44, alignItems: 'flex-start', justifyContent: 'center' }, backText: { color: '#D9C6A7', fontSize: 36, lineHeight: 38 }, counter: { color: '#AFA99C', fontSize: 12, fontWeight: '500', fontVariant: ['tabular-nums'] },
   progress: { height: 2, backgroundColor: '#2B2A24', marginHorizontal: 24 }, progressActive: { height: 2, backgroundColor: '#BD9560' },
   page: { flexGrow: 1, width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 26 }, welcomePage: { justifyContent: 'center', paddingTop: 12 }, welcomeMark: { alignItems: 'center', paddingVertical: 12 }, heading: { gap: 10 }, eyebrow: { color: '#BD9560', fontSize: 10, fontWeight: '700', letterSpacing: 1.7 },
   title: { color: '#F1E9DC', fontFamily: fonts.heading, fontSize: 30, lineHeight: 36, letterSpacing: -0.5 }, welcomeTitle: { fontSize: 38, lineHeight: 43, textAlign: 'center' }, copy: { color: '#B9B3A7', fontSize: 15, lineHeight: 23 }, small: { color: '#AFA99C', fontSize: 12, lineHeight: 18 },
-  body: { gap: 14 }, footer: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 10, gap: 2, backgroundColor: '#10100E', borderTopWidth: StyleSheet.hairlineWidth, borderColor: '#2B2A24' }, keyboardBar: { paddingHorizontal: 24, minHeight: 40, alignItems: 'flex-end', justifyContent: 'center', backgroundColor: '#10100E' }, label: { color: '#EBE3D6', fontSize: 15, lineHeight: 21, fontWeight: '600' },
+  body: { gap: 14 }, footer: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 10, gap: 2 }, keyboardBar: { paddingHorizontal: 24, minHeight: 40, alignItems: 'flex-end', justifyContent: 'center', backgroundColor: '#10100E' }, label: { color: '#EBE3D6', fontSize: 15, lineHeight: 21, fontWeight: '600' },
   input: { minHeight: 52, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#48463C', borderRadius: 10, backgroundColor: '#1A1B17', color: '#F1E9DC', fontSize: 16 }, button: { minHeight: 52, backgroundColor: '#D5AD73', borderRadius: 10, padding: 14, justifyContent: 'center', alignItems: 'center' }, buttonText: { color: '#181A14', fontSize: 15, fontWeight: '700' },
   secondary: { minHeight: 44, paddingVertical: 9, paddingHorizontal: 10, justifyContent: 'center', alignItems: 'center' }, secondaryText: { color: '#BDB7AA', fontSize: 13, fontWeight: '500' }, link: { color: '#DEC393', fontSize: 13, fontWeight: '600' },
   choice: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, minHeight: 58, borderWidth: 1, borderColor: '#33362C', borderRadius: 10, backgroundColor: '#171A15' }, choiceSelected: { borderColor: '#A98A57', backgroundColor: '#242A1D' }, choiceTitle: { color: '#EBE3D6', fontSize: 15, fontWeight: '600', lineHeight: 21 },

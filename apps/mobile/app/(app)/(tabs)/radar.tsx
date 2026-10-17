@@ -19,7 +19,7 @@ import { colors, typeScale, fonts, layout, typography } from "../../../src/theme
 
 import { partitionRadarAlerts, radarLocationSummary, radarSetupNeeded, radarSetupStatus } from "../../../src/radar/radar-presentation";
 import { RadarAlertRow } from "../../../src/radar/RadarAlertRow";
-import { SignalMotionHeader } from '../../../src/components/SignalMotionBackdrop';
+import { SignalMotionScreen } from '../../../src/components/SignalMotionBackdrop';
 import { coverageContext, routeText, supportContext } from '../../../src/continuity/bottle-handoff';
 import { MutedBottles, type MuteBottle } from "../../../src/radar/MutedBottles";
 
@@ -258,16 +258,16 @@ export default function RadarScreen() {
   if (!preferences) return null;
 
   const setupStatus=radarSetupStatus(preferences,pushReadiness);
-  return <ScrollView
+  return <SignalMotionScreen><ScrollView
     ref={screenScroll}
     automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
     contentContainerStyle={[memberScreenStyles.content, { paddingTop: screenInsets.top + 16 }]}
     keyboardDismissMode="on-drag"
     keyboardShouldPersistTaps="handled"
     refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); setPushLookupRetry(value => value + 1); void load(true).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} />}
-    style={memberScreenStyles.screen}
+    style={[memberScreenStyles.screen, { backgroundColor: 'transparent' }]}
   >
-    <SignalMotionHeader><PageHeading title="Radar" decorated={false} /></SignalMotionHeader>
+    <PageHeading title="Radar" decorated={false} />
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setFocusNotifications(false); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {view === "settings" ? <View style={styles.setupSummary}><View style={styles.signalMarker} /><View style={styles.flex}><Text style={styles.cardTitle}>{setupStatus.title}</Text><Text style={styles.muted}>{setupStatus.detail}</Text></View></View> : null}
     {view === "matches" && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
@@ -316,7 +316,7 @@ export default function RadarScreen() {
       <TextAction label="Coverage requests & progress →" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: preferences.monitoringScopes[0]?.state || profile?.profile.homeState }) })} />
       <TextAction label="Get help with Radar →" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Radar', state: preferences.monitoringScopes[0]?.state || profile?.profile.homeState || '' }) })} />
     </View>
-  </ScrollView>;
+  </ScrollView></SignalMotionScreen>;
 }
 
 function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOpenWatchlist, onMute, isMuted }: { alerts: MemberAlert[]; saving: boolean; watchedNames: string[]; setupNeeded: boolean; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string | string[]) => Promise<void>; onOpenWatchlist: () => void; onMute: (name: string, muted: boolean) => Promise<boolean>; isMuted: (name: string) => boolean }) {

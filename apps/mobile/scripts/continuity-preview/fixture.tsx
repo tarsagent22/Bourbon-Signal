@@ -9,7 +9,7 @@ import { canonicalBottleKey } from '../../src/interactions/member-interactions';
 
 const query = new URLSearchParams(location.search);
 let tier = query.get('tier') || 'barrel'; baseFixture.tier = tier;
-const paths: Record<string, string> = { check: '/(app)/bottle-check', post: '/(app)/(tabs)/post', shelf: '/(app)/cellar/add', home: '/(app)/(tabs)', radar: '/(app)/(tabs)/radar', membership: '/(app)/account/membership', setup: '/(app)/setup', coverage: '/(app)/account/coverage', support: '/(app)/account/support', feedback: '/(app)/account/feedback', onboarding: '/(app)/onboarding', rewards: '/(app)/account/rewards', account: '/(app)/(tabs)/hq' };
+const paths: Record<string, string> = { welcome: '/(auth)/welcome', check: '/(app)/bottle-check', post: '/(app)/(tabs)/post', shelf: '/(app)/cellar/add', home: '/(app)/(tabs)', radar: '/(app)/(tabs)/radar', membership: '/(app)/account/membership', setup: '/(app)/setup', coverage: '/(app)/account/coverage', support: '/(app)/account/support', feedback: '/(app)/account/feedback', onboarding: '/(app)/onboarding', rewards: '/(app)/account/rewards', account: '/(app)/(tabs)/hq' };
 let route = { pathname: paths[query.get('screen') || 'home'] || paths.home, params: Object.fromEntries([...query].filter(([key]) => !['screen', 'tier'].includes(key))) };
 const history: typeof route[] = []; const listeners = new Set<() => void>();
 function emit() { listeners.forEach(listener => listener()); }
@@ -27,9 +27,10 @@ export function useRouter() { return router; }
 export function useLocalSearchParams() { return usePreviewRoute().params; }
 export function useFocusEffect(callback: any) { useEffect(callback, [callback]); }
 export const Stack = { Screen: () => null };
+export function Redirect({ href }: { href: string }) { useEffect(() => { router.replace(href); }, [href]); return null; }
 export const SafeAreaView = View;
 export function useSafeAreaInsets() { return { top: 18, bottom: 18, left: 0, right: 0 }; }
-export function useAuth() { return { userId: 'continuity-preview', isLoaded: true, isSignedIn: true, signOut: async () => {} }; }
+export function useAuth() { return { userId: 'continuity-preview', isLoaded: true, isSignedIn: query.get('screen') !== 'welcome', signOut: async () => {} }; }
 export const getItemAsync = async (key: string) => localStorage.getItem(key);
 export const setItemAsync = async (key: string, value: string) => localStorage.setItem(key, value);
 export const deleteItemAsync = async (key: string) => localStorage.removeItem(key);

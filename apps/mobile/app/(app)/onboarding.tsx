@@ -345,7 +345,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
         {shelfMessage ? <Text accessibilityLiveRegion="polite" style={s.success}>{shelfMessage}</Text> : null}
         <OnboardingButton secondary label={draft.savedBottleIds?.includes(selectedPick.id) ? 'Remove from saved picks' : 'Save for later'} disabled={working} onPress={() => void run(async () => {
           const ids = draft.savedBottleIds || []; const nextDraft = { ...draft, savedBottleIds: ids.includes(selectedPick.id) ? ids.filter(id => id !== selectedPick.id) : [...ids, selectedPick.id].slice(0, 15) };
-          await persist(nextDraft); if (mounted.current) { setDraft(nextDraft); setShelfMessage(nextDraft.savedBottleIds.includes(selectedPick.id) ? 'Saved. Find this bottle on Home after setup.' : 'Removed from saved picks.'); }
+          await persist(nextDraft); if (mounted.current) { setDraft(nextDraft); setShelfMessage(nextDraft.savedBottleIds.includes(selectedPick.id) ? 'Saved in your setup preferences.' : 'Removed from saved picks.'); }
         })} />
         {paid ? <OnboardingButton secondary label={watched.has(canonicalBottleKey(selectedPick.name)) ? 'Stop watching this bottle' : 'Watch for this bottle'} disabled={working || (!watched.has(canonicalBottleKey(selectedPick.name)) && typeof bottleLimit === 'number' && watchedBottleCount(preferences) >= bottleLimit)} onPress={() => void watchBottle(selectedPick.name, !watched.has(canonicalBottleKey(selectedPick.name)))} /> : null}
       </OnboardingFrame> : null}
