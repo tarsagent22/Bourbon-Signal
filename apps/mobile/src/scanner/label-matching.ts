@@ -67,9 +67,19 @@ function oneEdit(left: string, right: string) {
   return differences + Number(a < left.length || b < right.length) <= 1;
 }
 
+function normalizeLabel(index: LabelIndex, text: string) {
+  return normalize(text.slice(0, 4000)).replace(/\bmc([a-z]{3,}) ([a-z]{3,})\b/g, (original, middle: string, last: string) => {
+    // Nested logo lettering can attach a surname prefix to the wrong word
+    // (McHENRY / KENNA). Reassemble only when both corrected words belong to
+    // the same indexed bottle; arbitrary fragments never create an identity.
+    const left = index.byToken.get(middle), right = index.byToken.get(`mc${last}`);
+    return left && right && [...left].some(entry => right.has(entry)) ? `${middle} mc${last}` : original;
+  });
+}
+
 /** Candidate retrieval, never an identity claim. Batch/age confirmation belongs to the user. */
 export function matchBottleLabel(index: LabelIndex, text: string, limit = 6): RadarBottleOption[] {
-  const normalized = normalize(text.slice(0, 4000));
+  const normalized = normalizeLabel(index, text);
   if (normalized.length < 3 || !Number.isFinite(limit) || limit <= 0) return [];
   const words = normalized.split(' ');
   const observed = new Set(words);
@@ -121,7 +131,7 @@ export function matchBottleLabel(index: LabelIndex, text: string, limit = 6): Ra
 
 /** Family alternatives are a browse path, never evidence for a specific edition. */
 export function bottleLabelFamily(index: LabelIndex, text: string): LabelFamily | undefined {
-  const normalized = ` ${normalize(text)} `;
+  const normalized = ` ${normalizeLabel(index, text)} `;
   const hits = index.families.filter(family => normalized.includes(` ${family.identity} `));
   if (hits.length) return hits.length === 1 ? hits[0] : undefined;
   const anchored = index.families.filter(family => family.identity.split(' ').some(word => word.length >= 5 && !generic.has(word)
@@ -132,7 +142,7 @@ export function bottleLabelFamily(index: LabelIndex, text: string): LabelFamily 
 export function readBottleLabel(index: LabelIndex, text: string) {
   const matches = matchBottleLabel(index, text);
   const family = bottleLabelFamily(index, text);
-  const normalized = normalize(text);
+  const normalized = normalizeLabel(index, text);
   const familyWords = new Set(family?.identity.split(' ') || []);
   if (family?.identity === 'weller') familyWords.add('wl');
   const observed = new Set(normalized.split(' '));

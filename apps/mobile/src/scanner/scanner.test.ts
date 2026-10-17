@@ -24,6 +24,7 @@ test('owner front-label examples retrieve the expression without catalog-only su
     ['PENELOPE\nRiviera\nCOOPER SERIES', 'penelope-riviera-cask-finish'],
     ['PENELOPE\nRIVIERA\nAMERICAN WHISKEY', 'penelope-riviera-cask-finish'],
     ['AGED 10 YEARS\nMc KENNA\nHENRY\nSINGLE BARREL\nBOTTLED IN BOND\n100 PROOF', 'henry-mckenna-10-year'],
+    ['AGED 10 YEARS\nMcHENRY\nKENNA\nSINGLE BARREL\nBOTTLED IN BOND', 'henry-mckenna-10-year'],
     ['BUFFALO TRACE\nKENTUCKY STRAIGHT BOURBON WHISKEY', 'buffalo-trace-bourbon'],
     ['BUFF ALO\nTRACE\nKENTUCKY STRAIGHT BOURBON', 'buffalo-trace-bourbon'],
     ['PENELOPE CONUNDRUM', 'penelope-estate-collection-conundrum'],
@@ -31,6 +32,8 @@ test('owner front-label examples retrieve the expression without catalog-only su
   assert.equal(readBottleLabel(fullIndex, 'PENELOPE').canHold, false);
   assert.equal(readBottleLabel(fullIndex, 'W.L. WELLER').canHold, false);
   assert.equal(readBottleLabel(fullIndex, 'PENELOPE RIVIERA').canHold, true);
+  assert.equal(bottleLabelFamily(fullIndex, 'MC HENRY KENNA')?.name, 'Henry McKenna');
+  assert.deepEqual(matchBottleLabel(fullIndex, 'MCHENRY COFFEE'), []);
   assert.ok(!matchBottleLabel(fullIndex, 'PENELOPE RIVIERA').some(b => b.id === 'penelope-rio-cask-finish'));
 });
 
