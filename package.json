@@ -207,7 +207,7 @@
     "test:bottle-mutes": "tsx --test scripts/test-bottle-mutes.ts",
     "test:notification-navigation": "tsx --test scripts/test-notification-alert-lookup.ts scripts/test-notification-alert-sql.ts",
     "test:coverage-nightly": "node --no-warnings --experimental-strip-types scripts/test-coverage-nightly.mts && node scripts/test-codex-coverage.mjs && npm --prefix engine run bible && node --test engine/test/source-scoped-refresh.test.mjs",
-    "test:ma-source-preflight": "node --test scripts/test-ma-public-source.mjs",
+    "test:ma-source-preflight": "node --test scripts/test-ma-public-source.mjs engine/test/massachusetts-retailer.test.mjs",
     "test:engine-feed-verification": "node --no-warnings --experimental-strip-types --test scripts/test-engine-feed-verification.mjs",
     "test:labeled-artwork": "tsx --test scripts/test-labeled-bottle-art.mts",
     "artwork:labeled:audit": "node scripts/audit-labeled-bottle-art.mjs",
