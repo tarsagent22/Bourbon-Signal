@@ -81,6 +81,8 @@ class BottleLabelCameraView(context: Context, appContext: AppContext) : ExpoView
     if (registry.currentState == Lifecycle.State.DESTROYED) registry = LifecycleRegistry(this)
     registry.currentState = Lifecycle.State.CREATED
     hostActivity = appContext.currentActivity
+    val hostState = (hostActivity as? LifecycleOwner)?.lifecycle?.currentState
+    foreground = hostActivity != null && (hostState == null || hostState.isAtLeast(Lifecycle.State.RESUMED))
     application.registerActivityLifecycleCallbacks(activityLifecycle)
     if (executor.isShutdown) executor = Executors.newSingleThreadExecutor()
     reader = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
