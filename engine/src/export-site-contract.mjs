@@ -1,4 +1,5 @@
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
+import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -451,7 +452,8 @@ export function publicSignal(signal, bible, freshness = null) {
   const isVirginiaExactPremisesProduct = virginiaProof.proofRequired;
   const virginiaProofAllowed = virginiaProof.proofAllowed;
   const parsedPublicQuantity = Number(signal.quantity ?? signal.storeQty ?? 0);
-  const publicQuantity = Number.isSafeInteger(parsedPublicQuantity) && parsedPublicQuantity >= 0 ? parsedPublicQuantity : 0;
+  const publicQuantity = isMassachusettsResearchInventory(signal) ? null
+    : Number.isSafeInteger(parsedPublicQuantity) && parsedPublicQuantity >= 0 ? parsedPublicQuantity : 0;
   const policyCanAlertAsInventory = virginiaProofAllowed && exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
@@ -1175,6 +1177,7 @@ function hasPositiveAvailabilityStatus(signal) {
 }
 
 function isUserFacingDropSignal(signal) {
+  if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
   const type = String(signal.eventType || '').toLowerCase();
   const quantity = Number(signal.quantity || signal.storeQty || signal.warehouseQty || 0) || 0;
   const precision = String(signal.locationPrecision || '').toLowerCase();
@@ -1275,6 +1278,7 @@ function aggregateLeadIdentity(signal) {
 }
 
 function isSafePublicSignal(signal) {
+  if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
   const type = String(signal.eventType || '');
   const virginiaProof = virginiaPremisesProofState(signal);
   if (virginiaProof.proofRequired && !virginiaProof.proofAllowed) return false;
