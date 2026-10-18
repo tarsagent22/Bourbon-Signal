@@ -7,6 +7,7 @@ await build({ entryPoints: [path.join(here, 'entry.tsx')], outfile: path.join(ou
   b.onResolve({ filter: /^react-native$/ }, () => ({ path: path.join(here, 'native.jsx') }));
   b.onResolve({ filter: /^@expo\/vector-icons(\/MaterialCommunityIcons)?$/ }, () => ({ path: path.join(here, '../cohesion-preview/icons.jsx') }));
   b.onResolve({ filter: /^(@clerk\/expo|expo-router|expo-secure-store|expo-crypto|expo-updates|react-native-safe-area-context)$|\/(useMobileApi|NativeBottleScanner)$|\/membership\/PurchasesProvider$|\/push\/push-registration$|\/sighting-photo-native$/ }, () => ({ path: path.join(here, 'fixture.tsx') }));
+  b.onResolve({ filter: /^expo-router\/react-navigation$/ }, () => ({ path: path.join(here, 'fixture.tsx') }));
   b.onResolve({ filter: /^expo-constants$/ }, () => ({ path: path.join(here, '../cohesion-preview/constants.js') }));
 } }] });
 await copyFile(path.join(mobile, 'node_modules/@expo-google-fonts/fraunces/700Bold/Fraunces_700Bold.ttf'), path.join(output, 'fraunces.ttf'));

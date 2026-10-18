@@ -130,3 +130,20 @@ test("the advertised membership stays six dollars while the legacy rate is a sep
  assert.match(screen, /Your early-member billing rate:/);
  assert.doesNotMatch(screen, /style=\{styles.price\}>\{profile.membership.grandfatheredRate\}/);
 });
+
+test('Founders have a lifetime confirmation rather than a monthly purchase card', () => {
+ const screen=read('app/(app)/account/membership.tsx');
+ assert.match(screen,/You’re a founding member\./);
+ assert.match(screen,/founder \? <View style=\{styles.track\}>[\s\S]*Lifetime access[\s\S]*: profile \? <View/);
+ assert.match(screen,/!founder && profile \? <Text style=\{styles.fine\}>\{billing.disclosure\}/);
+ assert.match(screen,/!founder && management.provider/);
+});
+
+test('membership backdrop continues behind a transparent header with measured content spacing', () => {
+ const screen=read('app/(app)/account/membership.tsx');
+ assert.match(screen,/headerTransparent: true/);
+ assert.match(screen,/headerStyle: \{ backgroundColor: 'transparent' \}/);
+ assert.match(screen,/useHeaderHeight\(\)/);
+ assert.match(screen,/paddingTop: headerHeight \+ 14/);
+ assert.match(screen,/contentInsetAdjustmentBehavior="never"/);
+});
