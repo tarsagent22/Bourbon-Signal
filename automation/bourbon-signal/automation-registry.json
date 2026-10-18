@@ -194,6 +194,35 @@
       "delivery": "github_only"
     },
     {
+      "id": "github-nc-durham-preflight",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/nc-durham-preflight.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "on Durham preflight pull requests and manual workflow dispatch",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "public_retailer_http",
+          "github_actions"
+        ],
+        "maxRequestsPerRun": 2
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": [
+        "engine/out/nc-durham-preflight/"
+      ],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-ma-source-preflight",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/ma-source-preflight.yml",

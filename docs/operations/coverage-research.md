@@ -44,6 +44,8 @@ The MA research export accepts verified pickup orderability without turning an u
 
 ## Queue and authority
 
+Durham source preflight uses `nc-durham-preflight.yml` for two fixed first-party product pages. It checks the reviewed product/size, exact store addresses, published map coordinates and consistent on-hand totals. The artifact is read-only research; it cannot publish inventory, activate a snapshot or deliver alerts. Verify its run, head and downloaded archive hash before implementing a source integration.
+
 Use `node automation/bourbon-signal/codex-coverage.mjs claim` from the real repository. The helper waits when the release lane is occupied. It otherwise acquires the production lease, derives a `cx_` task ID from the current Codex thread, immutable job key, and request version, attaches it, and verifies production-backed authority. A restarted attempt cannot use an older request version's identity. Existing requests, baseline metrics, retries, source evidence, and member privacy must be preserved.
 
 Configuration and capabilities live outside Git in `CODEX_HOME/operations/bourbon-signal`. The private config is bound to the owner chat. Never print credentials or capabilities, copy them into prompts, or put them in Git. The retired Hermes credentials are replaced before the production deployment. New queue bindings accept only Codex task IDs.

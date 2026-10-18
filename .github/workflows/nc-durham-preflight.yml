@@ -1,0 +1,30 @@
+name: Durham public store inventory preflight
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/nc-durham-preflight.yml'
+      - 'scripts/probe-nc-durham-source.mjs'
+      - 'engine/src/collectors/nc-durham-store-surfaces.mjs'
+      - 'engine/test/nc-durham-store.test.mjs'
+permissions:
+  contents: read
+jobs:
+  public-source-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check two fixed public product and store snapshots without publishing
+        run: node scripts/probe-nc-durham-source.mjs
+      - name: Preserve source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nc-durham-preflight-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: engine/out/nc-durham-preflight/
