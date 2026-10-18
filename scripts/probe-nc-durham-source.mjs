@@ -1,8 +1,10 @@
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { DURHAM_STORE_PRODUCTS, parseDurhamStoreInventory } from '../engine/src/collectors/nc-durham-store-surfaces.mjs';
+import { BourbonBible } from '../engine/src/core/bible.mjs';
 
 await mkdir('engine/out/nc-durham-preflight', { recursive: true });
+const bible = await BourbonBible.load(new URL('../engine/out/bourbon-bible.json', import.meta.url));
 const observations = [];
 for (const product of DURHAM_STORE_PRODUCTS) {
   const observation = { url: product.url, checkedAt: new Date().toISOString(), status: 0, parsed: false };
@@ -18,6 +20,8 @@ for (const product of DURHAM_STORE_PRODUCTS) {
     observation.sha256 = createHash('sha256').update(body).digest('hex');
     const parsed = parseDurhamStoreInventory(body.toString('utf8'), product.url);
     if (!parsed) throw new Error('source_schema_unverified');
+    const match = bible.match(parsed.productName);
+    if (match?.confidence !== 1 || match.record?.id !== product.bibleId || !['limited', 'allocated', 'unicorn'].includes(match.record.tier)) throw new Error('bible_identity_unverified');
     Object.assign(observation, { parsed: true, product: parsed });
   } catch { observation.error = 'public_source_or_identity_unverified'; }
   observations.push(observation);
@@ -25,6 +29,7 @@ for (const product of DURHAM_STORE_PRODUCTS) {
 const complete = observations.every(row => row.status === 200 && row.parsed);
 const evidence = { schemaVersion: 1, generatedAt: new Date().toISOString(),
   headSha: process.env.GITHUB_SHA || null, workflowRunId: process.env.GITHUB_RUN_ID || null,
+  sourceHeadSha: process.env.REVIEWED_SOURCE_HEAD || process.env.GITHUB_SHA || null,
   complete, mode: 'research_preflight', productionSnapshotTouched: false, deliveryEnabled: false, observations };
 await writeFile('engine/out/nc-durham-preflight/evidence.json', JSON.stringify(evidence, null, 2));
 console.log(JSON.stringify({ complete, sourceCount: observations.length,

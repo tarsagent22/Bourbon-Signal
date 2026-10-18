@@ -1,4 +1,5 @@
 import { parseNcDatedAnnouncements } from './nc-dated-announcements.mjs';
+import { collectDurhamStoreInventory } from './nc-durham-store-collector.mjs';
 import { ncShipmentWatchEligible } from '../nc-shipment-policy.mjs';
 import { mkdir, readFile, readdir } from 'node:fs/promises';
 import { collectionRequestSignal, throwIfCollectionAborted, withCollectionContext, writeCollectionFile as writeFile } from '../core/collection-context.mjs';
@@ -1332,6 +1333,21 @@ async function collectDurhamStructuredProducts(config, bible, signals, roadblock
   addCapability(board, 'official_wix_structured_allocated_product_table');
   addCapability(board, 'allocation_policy_page');
   boards.set(boardName, board);
+
+  const storeInventory = await collectDurhamStoreInventory(config, bible, {
+    fetchPage: url => safeTextFetch(url, { reviewedSeedUrls: [board.website], referer: board.website,
+      timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS * 2, maxBytes: 2_000_000 }),
+  });
+  signals.push(...storeInventory.signals);
+  roadblocks.push(...storeInventory.roadblocks);
+  board.officialPageReports.push(...storeInventory.sourceReports);
+  for (const report of storeInventory.sourceReports) board.sourceUrls.add(report.url);
+  if (storeInventory.signals.length) addCapability(board, 'official_store_level_inventory');
+  dossier.durhamStoreInventory = { observedAt: new Date().toISOString(),
+    selectedProducts: ['23449', '18390'], signalCount: storeInventory.signals.length,
+    positiveStoreCount: new Set(storeInventory.signals.map(row => row.storeId)).size,
+    sourceChecks: storeInventory.sourceReports,
+    note: 'Two reviewed bottle expressions. Individual first-party on-hand reports; confirm before driving. No county boundary or statewide completeness is inferred.' };
 
   const modernResponses = await Promise.all(['bourbon', 'rye', 'whiskey'].map(async term => {
     const url = `https://www.durhamabc.com/search?q=${term}`;

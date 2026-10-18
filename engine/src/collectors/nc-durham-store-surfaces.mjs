@@ -36,7 +36,7 @@ export function parseDurhamStoreInventory(html, sourceUrl) {
     const streetBlock = cells[1].match(/<div\b[^>]*>([\s\S]*?)<\/div>/i);
     const street = text(streetBlock?.[1]);
     const locality = text(cells[1].replace(streetBlock?.[0] || '', '')).match(/^(.+?)\s*,?\s+NC\s+(\d{5}(?:-\d{4})?)$/);
-    if (!/^\d+\s+\S/.test(street) || !locality || /warehouse|permittee|mixed beverage/i.test(text(cells.slice(0, 2).join(' ')))) return null;
+    if (!/^\d+\s+\S/.test(street) || !locality || /warehouse|permittee|mixed beverage|\bmxb\b|business.only/i.test(text(cells.join(' ')))) return null;
     const availability = text(cells[4]);
     const qty = inStock === 'true' ? Number(availability.match(/^In Stock\s*\(\s*([\d,]+)\s*\)$/i)?.[1]?.replace(/,/g, ''))
       : /^Out of Stock$/i.test(availability) ? 0 : NaN;

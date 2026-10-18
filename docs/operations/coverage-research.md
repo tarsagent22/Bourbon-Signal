@@ -42,9 +42,13 @@ The MA preflight also checks two fixed Julio's Liquors brand pages with the exac
 
 The MA research export accepts verified pickup orderability without turning an unknown shelf count into zero stock. Executable MA golden fixtures run the real collector, catalog matcher and export projection. They keep standard bottles out of rare-drop candidates, reject stale or mismatched evidence, preserve source timestamps and keep all delivery channels off. These checks do not activate Massachusetts, replace the two canary runs or establish customer coverage.
 
-## Queue and authority
+### Durham source preflight
 
 Durham source preflight uses `nc-durham-preflight.yml` for two fixed first-party product pages. It checks the reviewed product/size, exact store addresses, published map coordinates and consistent on-hand totals. The artifact is read-only research; it cannot publish inventory, activate a snapshot or deliver alerts. Verify its run, head and downloaded archive hash before implementing a source integration.
+
+The NC collector checks Green River Full Proof and New Riff 8 Year at the individual stores listed on those pages. It preserves first-party on-hand reports with a confirm-before-driving caveat; quantities are not guaranteed shelf counts. Missing, blocked or inconsistent pages remain explicit source failures, and contradictory store premises are excluded. Publication still uses the full strict NC refresh, not an SC source cohort.
+
+## Queue and authority
 
 Use `node automation/bourbon-signal/codex-coverage.mjs claim` from the real repository. The helper waits when the release lane is occupied. It otherwise acquires the production lease, derives a `cx_` task ID from the current Codex thread, immutable job key, and request version, attaches it, and verifies production-backed authority. A restarted attempt cannot use an older request version's identity. Existing requests, baseline metrics, retries, source evidence, and member privacy must be preserved.
 
