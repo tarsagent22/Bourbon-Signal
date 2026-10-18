@@ -16,7 +16,7 @@ export function parseDurhamStoreInventory(html, sourceUrl) {
   const title = text(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]);
   if (!source.names.includes(title)) return null;
   const header = text(html.slice(0, html.search(/<table\b/i)));
-  if (header.match(/\bPLU\s+(\d+)\b/i)?.[1] !== source.ncCode || !/(?:^|[^\d.])\.?75L\b/i.test(header)) return null;
+  if (header.match(/\bPLU\s+(\d+)\b/i)?.[1] !== source.ncCode || !/(?:^|[^\d.])0?\.75L\b/i.test(header)) return null;
   const price = Number(header.match(/\$([\d,]+\.\d{2})/)?.[1]?.replace(/,/g, ''));
   const counts = header.match(/Available at\s+(\d+)\s+of\s+(\d+)\s+stores/i);
   const total = header.match(/([\d,]+)\s+bottles total/i);

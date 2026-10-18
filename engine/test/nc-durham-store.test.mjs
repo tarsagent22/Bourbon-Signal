@@ -34,7 +34,7 @@ test('explicit out of stock differs from unavailable or inconsistent source evid
 
 test('wrong product, format, host, duplicates and premises cannot become inventory', () => {
   for (const body of [fixture().replace('23449', '19312'), fixture().replace('Full Proof', 'Small Batch'),
-    fixture().replace('.75L', '1.75L'), fixture().replace('/stores/3', '/stores/1'),
+    fixture().replace('.75L', '1.75L'), fixture().replace('.75L', '75L'), fixture().replace('/stores/3', '/stores/1'),
     fixture().replace('1928 Holloway Street', 'Warehouse'), fixture().replace('<span>NC</span>', '<span>VA</span>'),
     fixture().replace('35.9920,-78.8673', '40.7,-74.0')]) assert.equal(parseDurhamStoreInventory(body, source.url), null);
   assert.equal(parseDurhamStoreInventory(fixture(), 'https://unrelated.example/products/23449'), null);
