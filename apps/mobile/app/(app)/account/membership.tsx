@@ -1,5 +1,6 @@
 import { membershipBillingPresentation } from "../../../src/membership/membership-billing";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSubscriptionManagement } from "../../../src/hooks/useSubscriptionManagement";
@@ -23,6 +24,7 @@ export default function MembershipScreen() {
   const api = useMobileApi();
   const management = useSubscriptionManagement();
   const router = useRouter();
+  const headerHeight = useHeaderHeight();
   const { welcome, watchBottle: requestedBottle } = useLocalSearchParams<{ welcome?: string; watchBottle?: string }>();
   const pendingBottle = routeText(requestedBottle);
   const continueMembership = () => pendingBottle ? router.replace({ pathname: '/(app)/(tabs)/radar', params: { section: 'settings', watchBottle: pendingBottle } }) : isWelcome ? router.replace('/(app)/setup') : router.replace("/(app)/(tabs)");
@@ -91,16 +93,21 @@ export default function MembershipScreen() {
         : "";
 
   return <SignalMotionScreen style={styles.screen}>
-    <Stack.Screen options={{ title: "Bourbon Signal", headerBackTitle: "Account", ...(isWelcome ? { headerBackVisible: false, gestureEnabled: false } : {}) }} />
-    <ScrollView contentContainerStyle={[styles.content, { width: pageWidth }]}>
-      <View style={styles.hero}>
-        <Text accessibilityRole="header" style={styles.title}>Find your next bottle.</Text>
-        <Text style={styles.subtitle}>Get alerts when bottles you love show up in your area. Let Bourbon Signal do the heavy lifting.</Text>
-        {!isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {currentTier === "standard" ? "Barrel Proof" : MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
+    <Stack.Screen options={{ title: "Bourbon Signal", headerBackTitle: "Account", headerTransparent: true, headerStyle: { backgroundColor: 'transparent' }, ...(isWelcome ? { headerBackVisible: false, gestureEnabled: false } : {}) }} />
+    <ScrollView contentInsetAdjustmentBehavior="never" contentContainerStyle={[styles.content, { width: pageWidth, paddingTop: headerHeight + 14 }]}>
+      {profile ? <View style={styles.hero}>
+        <Text accessibilityRole="header" style={styles.title}>{founder ? "You’re a founding member." : "Find your next bottle."}</Text>
+        <Text style={styles.subtitle}>{founder ? "Thank you for being here from the start." : "Get alerts when bottles you love show up in your area. Let Bourbon Signal do the heavy lifting."}</Text>
+        {!founder && !isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {currentTier === "standard" ? "Barrel Proof" : MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
         {pendingBottle ? <Text style={styles.subtitle}>{profile?.membership.paid ? `Ready to watch ${pendingBottle}. Continue to finish in Radar.` : `Barrel Proof includes bottle alerts. Continue with ${pendingBottle} after choosing your membership.`}</Text> : null}
-      </View>
+      </View> : null}
       {loading && !profile ? <ActivityIndicator accessibilityLabel="Loading membership" color={colors.accent} /> : null}
-      <View style={styles.track}>
+      {founder ? <View style={styles.track}>
+        <View style={[styles.card, styles.premium, styles.founderCard]}>
+          <Text accessibilityRole="header" style={styles.founderTitle}>Lifetime access</Text>
+          <Text style={styles.founderDetail}>Every paid feature is included with your membership, for life.</Text>
+        </View>
+      </View> : profile ? <View style={styles.track}>
         {cards.map((card, index) => {
           const productId = productIdFor(card.tier, "monthly");
           const product = founder || managementOnly ? undefined : purchases.products.find(p => p.productId === productId);
@@ -125,23 +132,22 @@ export default function MembershipScreen() {
             </Pressable>
           </View>;
         })}
-      </View>
+      </View> : null}
+      {!profile && error ? <ErrorState message={error} onRetry={() => void load()} /> : null}
       <View style={styles.footer}>
         <Pressable accessibilityRole="button" onPress={continueMembership} style={styles.freeButton}><Text style={styles.freeText}>{pendingBottle && profile?.membership.paid ? 'Continue to watch this bottle' : currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
-        <Text style={styles.fine}>{billing.disclosure}</Text>
+        {!founder && profile ? <Text style={styles.fine}>{billing.disclosure}</Text> : null}
         <View style={styles.links}>
           {!founder && Platform.OS !== "web" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
           <Pressable accessibilityRole="button" accessibilityLabel="Terms of Service" onPress={() => router.push("/(app)/account/terms")} style={styles.link}><Text style={styles.linkText}>Terms</Text></Pressable>
           <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/privacy")} style={styles.link}><Text style={styles.linkText}>Privacy</Text></Pressable>
         </View>
-        {statusText ? <Text accessibilityRole="alert" style={styles.status}>{statusText}</Text> : null}
+        {!founder && statusText ? <Text accessibilityRole="alert" style={styles.status}>{statusText}</Text> : null}
         {error ? <ErrorState message={error} onRetry={() => void run(async () => { await load(); await refreshPurchases(); })} /> : null}
         {showLifecycle ? <View style={styles.lifecycle}><Text style={styles.freeText}>{lifecycle.title}</Text><Text style={styles.status}>{lifecycle.detail}</Text></View> : null}
-        {currentTier === "bottled-in-bond" ? <Text style={styles.status}>Your Founder membership includes all Barrel Proof benefits for life.</Text> : null}
         <View style={styles.links}>
-          {management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" disabled={busy || management.busy} onPress={() => void management.manage()} style={styles.link}><Text style={styles.linkText}>{management.busy ? "Opening…" : billing.managementLabel}</Text></Pressable> : null}
-          {founder && management.provider && management.provider !== "none" ? <Text style={styles.fine}>Previous subscriptions are separate from your lifetime Founder access.</Text> : null}
-          {management.error ? <Text accessibilityRole="alert" style={styles.status}>{management.error}</Text> : null}
+          {!founder && management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" disabled={busy || management.busy} onPress={() => void management.manage()} style={styles.link}><Text style={styles.linkText}>{management.busy ? "Opening…" : billing.managementLabel}</Text></Pressable> : null}
+          {!founder && management.error ? <Text accessibilityRole="alert" style={styles.status}>{management.error}</Text> : null}
           <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={styles.link}><Text style={styles.linkText}>Membership support</Text></Pressable>
         </View>
       </View>
@@ -149,6 +155,9 @@ export default function MembershipScreen() {
   </SignalMotionScreen>;
 }
 const styles = StyleSheet.create({
+  founderCard: { minHeight: 0, paddingVertical: 30, gap: 12 },
+  founderTitle: { fontFamily: fonts.heading, fontSize: 28, lineHeight: 34, color: colors.text },
+  founderDetail: { fontSize: typeScale.body, lineHeight: 23, color: colors.muted },
   screen:{flex:1,backgroundColor:colors.background},content:{alignSelf:"center",paddingTop:14,paddingBottom:28},
   hero:{paddingHorizontal:20,alignItems:"center",gap:8},title: {fontFamily: fonts.heading, fontSize: typeScale.title,lineHeight: 40,fontWeight: "700",letterSpacing:-1,color:colors.text,textAlign:"center"},subtitle:{fontSize: typeScale.small,lineHeight:20,color:colors.muted,textAlign:"center"},current:{fontSize: typeScale.caption,color:colors.muted,marginTop:2},
   tabs:{marginHorizontal:24,marginTop:15,marginBottom:16,padding:4,flexDirection:"row",gap:4,borderWidth:1,borderColor:colors.border,borderRadius:12,backgroundColor:"#12100e"},tab:{flex:1,minHeight:40,justifyContent:"center",alignItems:"center",borderRadius:8,padding:4},tabSelected:{backgroundColor:"#31281f"},tabText:{fontSize: typeScale.small,fontWeight:"600",color:colors.muted},tabTextSelected:{color:colors.text},

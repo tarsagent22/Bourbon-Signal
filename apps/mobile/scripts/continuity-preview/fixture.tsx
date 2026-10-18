@@ -26,7 +26,11 @@ export const router = { push: (input: any) => navigate(input), replace: (input: 
 export function useRouter() { return router; }
 export function useLocalSearchParams() { return usePreviewRoute().params; }
 export function useFocusEffect(callback: any) { useEffect(callback, [callback]); }
-export const Stack = { Screen: () => null };
+export function useHeaderHeight() { return query.get('nativeHeader') === '1' ? 103 : 0; }
+export const Stack = { Screen: ({options}: any) => query.get('nativeHeader') === '1' ? <View testID="preview-native-header" style={{position:'absolute',top:0,left:0,right:0,height:103,zIndex:10,backgroundColor:options.headerTransparent?'transparent':'#181411',paddingTop:12}}>
+  <Text style={{color:'#F1E9DC',paddingHorizontal:24,fontSize:16}}>10:12</Text>
+  <View style={{flexDirection:'row',alignItems:'center',paddingHorizontal:20,paddingTop:22,gap:24}}><Text style={{color:'#F1E9DC',fontSize:24}}>‹</Text><Text style={{color:'#F1E9DC',fontSize:18,textAlign:'center',flex:1}}>{options.title}</Text><View style={{width:20}} /></View>
+</View> : null };
 export function Redirect({ href }: { href: string }) { useEffect(() => { router.replace(href); }, [href]); return null; }
 export const SafeAreaView = View;
 export function useSafeAreaInsets() { return { top: 18, bottom: 18, left: 0, right: 0 }; }
