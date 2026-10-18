@@ -257,7 +257,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
       {tasting ? <>
         {!discovery ? tasteStage === 'bottle' ? <>
           <TextInput accessibilityLabel="Search for a whiskey you enjoyed" placeholder="Bottle or distillery name" placeholderTextColor={colors.muted} style={s.input} value={bottleQuery || draft.likedBottleName} autoCorrect={false} spellCheck={false} onChangeText={value => { setBottleQuery(value); edit({ likedBottleId: '', likedBottleName: '' }); }} editable={!working} />
-          {bottleQuery.trim() ? catalog.search(bottleQuery, 4).map(bottle => <Choice key={bottle.id} title={bottle.name} selected={draft.likedBottleId === bottle.id} onPress={() => { edit({ likedBottleId: bottle.id, likedBottleName: bottle.name }); setBottleQuery(''); Keyboard.dismiss(); }} />) : null}
+          {bottleQuery.trim() ? catalog.search(bottleQuery, 4).map(bottle => <Choice key={bottle.id} bottleId={bottle.id} title={bottle.name} selected={draft.likedBottleId === bottle.id} onPress={() => { edit({ likedBottleId: bottle.id, likedBottleName: bottle.name }); setBottleQuery(''); Keyboard.dismiss(); }} />) : null}
           {bottleQuery.trim() && !catalog.search(bottleQuery, 4).length ? <Text style={s.small}>No matches. Try a brand or choose flavors instead.</Text> : null}
           {catalog.error ? <OnboardingButton secondary label="Retry bottle search" onPress={catalog.retry} /> : null}
           <OnboardingButton secondary label={draft.likedBottleId ? 'Choose by flavors instead' : 'I’m new to bourbon'} onPress={() => { setBottleQuery(''); edit({ likedBottleId: '', likedBottleName: '' }); setTasteStage('flavors'); }} />
@@ -320,7 +320,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
         {mode === 'specific_bottles' ? <>
           <TextInput accessibilityLabel="Search bottles to watch" value={bottleQuery} onChangeText={setBottleQuery} placeholder="Search bottles" placeholderTextColor={colors.muted} style={s.input} editable={!working} />
           <Text style={s.small}>{watchedBottleCount(preferences)} watched{typeof bottleLimit === 'number' ? ` · ${bottleLimit} included` : ''}</Text>
-          {(bottleQuery.trim() ? catalog.search(bottleQuery, 8) : catalog.catalog.filter(row => watched.has(canonicalBottleKey(row.name)))).map(bottle => <Choice multiple key={bottle.id} title={bottle.name} selected={watched.has(canonicalBottleKey(bottle.name))} disabled={working || (!watched.has(canonicalBottleKey(bottle.name)) && typeof bottleLimit === 'number' && watchedBottleCount(preferences) >= bottleLimit)} onPress={() => void watchBottle(bottle.name, !watched.has(canonicalBottleKey(bottle.name)))} />)}
+          {(bottleQuery.trim() ? catalog.search(bottleQuery, 8) : catalog.catalog.filter(row => watched.has(canonicalBottleKey(row.name)))).map(bottle => <Choice multiple key={bottle.id} bottleId={bottle.id} title={bottle.name} selected={watched.has(canonicalBottleKey(bottle.name))} disabled={working || (!watched.has(canonicalBottleKey(bottle.name)) && typeof bottleLimit === 'number' && watchedBottleCount(preferences) >= bottleLimit)} onPress={() => void watchBottle(bottle.name, !watched.has(canonicalBottleKey(bottle.name)))} />)}
           {bottleQuery && !catalog.search(bottleQuery, 8).length ? <Text style={s.small}>No bottles match. Try another name.</Text> : null}
           {catalog.error ? <><Text style={s.small}>{catalog.error}</Text><OnboardingButton secondary label="Refresh bottle catalog" onPress={catalog.retry} /></> : null}
         </> : null}

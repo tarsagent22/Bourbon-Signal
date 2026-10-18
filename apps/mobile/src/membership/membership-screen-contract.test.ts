@@ -47,8 +47,8 @@ test("plan review uses native purchases but fails closed until server reconcilia
   assert.doesNotMatch(screen, /hasIntroductoryOffer|monthlyTrialIsEligible|getMembershipTrialEligibility|trialEligibility|7-day trial|Eligible 7-day/);
   assert.doesNotMatch(screen, /authoritative server profile|reconciles it/);
   assert.match(screen, /Platform\.OS/);
-  assert.match(screen, /Apple ID/);
-  assert.match(screen, /Google Play account/);
+  assert.match(screen, /billing.disclosure/);
+  assert.match(screen, /membershipBillingPresentation/);
   assert.match(screen, /plan\.tier === "free"/);
   assert.match(screen, /Free membership\. No payment or renewal\./);
   assert.match(screen, /canceled before the next billing date/);
@@ -56,7 +56,7 @@ test("plan review uses native purchases but fails closed until server reconcilia
   assert.match(screen, /disabled/);
   assert.match(screen, /Existing Founder memberships are honored here/);
   assert.match(screen, /deriveMobileMembershipLifecycle/);
-  assert.match(screen, /Manage membership/);
+  assert.match(screen, /billing.managementLabel/);
   assert.match(screen, /useSubscriptionManagement/);
   assert.ok(screen.includes('router.push("/(app)/account/delete")'));
   assert.ok(screen.includes('router.push("/(app)/account/privacy")'));
@@ -119,8 +119,8 @@ test("native legal copy covers Apple and RevenueCat purchase handling without re
 
 test("existing Stripe memberships do not display Apple prices or assume a monthly billing term",()=>{
  const screen=read("app/(app)/account/membership.tsx");
- assert.match(screen,/managementOnly \? undefined : purchases.products.find/);
- assert.match(screen,/Managed through \$\{billingProviderLabel\}. Cancel anytime./);
+ assert.match(screen,/founder \|\| managementOnly \? undefined : purchases.products.find/);
+ assert.match(screen,/billing.cardBilling/);
  assert.match(screen,/managementOnly.*management.manage/s);
 });
 
@@ -129,4 +129,21 @@ test("the advertised membership stays six dollars while the legacy rate is a sep
  assert.match(screen, /style=\{styles.price\}>\$6<\/Text>/);
  assert.match(screen, /Your early-member billing rate:/);
  assert.doesNotMatch(screen, /style=\{styles.price\}>\{profile.membership.grandfatheredRate\}/);
+});
+
+test('Founders have a lifetime confirmation rather than a monthly purchase card', () => {
+ const screen=read('app/(app)/account/membership.tsx');
+ assert.match(screen,/You’re a founding member\./);
+ assert.match(screen,/founder \? <View style=\{styles.track\}>[\s\S]*Lifetime access[\s\S]*: profile \? <View/);
+ assert.match(screen,/!founder && profile \? <Text style=\{styles.fine\}>\{billing.disclosure\}/);
+ assert.match(screen,/!founder && management.provider/);
+});
+
+test('membership backdrop continues behind a transparent header with measured content spacing', () => {
+ const screen=read('app/(app)/account/membership.tsx');
+ assert.match(screen,/headerTransparent: true/);
+ assert.match(screen,/headerStyle: \{ backgroundColor: 'transparent' \}/);
+ assert.match(screen,/useHeaderHeight\(\)/);
+ assert.match(screen,/paddingTop: headerHeight \+ 14/);
+ assert.match(screen,/contentInsetAdjustmentBehavior="never"/);
 });

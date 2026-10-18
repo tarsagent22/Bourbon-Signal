@@ -33,6 +33,13 @@
       "environment": "production",
       "channel": "scanner-preview",
       "autoIncrement": true
+    },
+    "scanner-android-preview": {
+      "extends": "scanner-preview",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {

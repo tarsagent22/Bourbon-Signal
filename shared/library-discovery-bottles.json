@@ -1,0 +1,12 @@
+[
+  {"id":"barrell-bourbon-batch-032","name":"Barrell Bourbon Batch 032","brand":"Barrell","category":"bourbon","reference":"https://www.barrellbourbon.com/bourbonbatches"},
+  {"id":"barrell-bourbon-batch-034","name":"Barrell Bourbon Batch 034","brand":"Barrell","category":"bourbon","reference":"https://www.barrellbourbon.com/bourbonbatches"},
+  {"id":"barrell-bourbon-batch-036","name":"Barrell Bourbon Batch 036","brand":"Barrell","category":"bourbon","reference":"https://www.barrellbourbon.com/bourbonbatches"},
+  {"id":"barrell-bourbon-batch-037","name":"Barrell Bourbon Batch 037","brand":"Barrell","category":"bourbon","reference":"https://www.barrellbourbon.com/bourbonbatches"},
+  {"id":"woodford-reserve-batch-proof-1212-2024","name":"Woodford Reserve Master's Collection Batch Proof 121.2 2024","brand":"Woodford Reserve","category":"bourbon","reference":"https://shop.woodfordreserve.com/spirits"},
+  {"id":"woodford-reserve-batch-proof-1195-2025","name":"Woodford Reserve Master's Collection Batch Proof 119.5 2025","brand":"Woodford Reserve","category":"bourbon","reference":"https://www.woodfordreserve.com/whiskey/batch-proof/"},
+  {"id":"woodford-reserve-madeira-2024","name":"Woodford Reserve Master's Collection Madeira Finish 2024","brand":"Woodford Reserve","category":"american_whiskey","reference":"https://www.woodfordreserve.com/whiskey/masters-collection/"},
+  {"id":"makers-mark-cellar-aged-2026","name":"Maker's Mark Cellar Aged 2026","brand":"Maker's Mark","category":"bourbon","reference":"https://www.makersmark.com/en-us/bourbons/makers-mark-cellar-aged"},
+  {"id":"elijah-craig-private-barrel-barrel-proof","name":"Elijah Craig Private Barrel Barrel Proof","brand":"Elijah Craig","category":"bourbon","reference":"https://elijahcraig.com/barrel-proof"},
+  {"id":"little-book-the-infinite-series","name":"Little Book The Infinite","brand":"Little Book","category":"american_whiskey","reference":"https://www.beamdistilling.com/littlebook/whiskies"}
+]

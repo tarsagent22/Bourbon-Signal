@@ -257,7 +257,7 @@ export function createMobileApi({
     if (options.method && options.method !== "GET") {
       // Telemetry changes neither membership nor screen data. Do not discard
       // useful navigation reads when the foreground activity report completes.
-      if (path === "/api/v1/me/mobile-activity" || path === "/api/v1/me/diagnostics") {
+      if (path === "/api/v1/me/mobile-activity" || path === "/api/v1/me/diagnostics" || path === "/api/user/time-zone") {
         return performRequest<T>(path, options, token);
       }
       // Related screens share these reads: a write can change profile, feed, points or preferences.

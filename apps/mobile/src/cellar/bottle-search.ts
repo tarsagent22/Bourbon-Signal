@@ -32,8 +32,11 @@ function indexedSource(value: string | null | undefined, sourceKind: number): In
   return normalized ? { value: normalized, tokens: normalized.split(" "), sourceKind } : null;
 }
 
-export function createBottleSearchIndex(catalog: RadarBottleOption[]): BottleSearchIndex {
-  return {
+const indexes = new WeakMap<readonly RadarBottleOption[], BottleSearchIndex>();
+export function createBottleSearchIndex(catalog: readonly RadarBottleOption[]): BottleSearchIndex {
+  const cached = indexes.get(catalog);
+  if (cached) return cached;
+  const index = {
     entries: catalog.map((option) => {
       const sources = [
         indexedSource(option.name, 0),
@@ -51,19 +54,20 @@ export function createBottleSearchIndex(catalog: RadarBottleOption[]): BottleSea
       };
     }),
   };
+  indexes.set(catalog, index);
+  return index;
 }
 
-function wordPrefixMatch(value: string, query: string) {
-  const words = value.split(" ");
-  const queryWords = query.split(" ");
+function wordPrefixMatch(words: readonly string[], queryWords: readonly string[]) {
   if (queryWords.length > words.length) return false;
   return words.some((_, start) => queryWords.every((word, offset) => words[start + offset]?.startsWith(word)));
 }
 
-function matchKind(value: string, query: string) {
+function matchKind(source: IndexedSource, query: string, queryTokens: readonly string[]) {
+  const value = source.value;
   if (value === query) return 0;
   if (value.startsWith(query)) return 1;
-  if (wordPrefixMatch(value, query)) return 2;
+  if (wordPrefixMatch(source.tokens, queryTokens)) return 2;
   if (value.includes(query)) return 3;
   return undefined;
 }
@@ -71,7 +75,7 @@ function matchKind(value: string, query: string) {
 function optionRanks(entry: IndexedBottle, query: string, queryTokens: readonly string[]) {
   const ranks: MatchRank[] = [];
   for (const source of entry.sources) {
-    const kind = matchKind(source.value, query);
+    const kind = matchKind(source, query, queryTokens);
     if (kind !== undefined) ranks.push([kind, source.sourceKind]);
   }
   if (ranks.length === 0 && queryTokens.every((queryToken) => entry.tokens.some((token) => token.startsWith(queryToken)))) {
@@ -96,7 +100,12 @@ export function rankBottleCatalog(index: BottleSearchIndex, query: string, limit
   const needle = normalizeSearchValue(query);
   if (!needle || limit <= 0) return [];
   const queryTokens = needle.split(" ");
-  return index.entries
+  const key = `${Math.floor(limit)}:${needle}`;
+  let cached = results.get(index);
+  if (!cached) { cached = new Map(); results.set(index, cached); }
+  const hit = cached.get(key);
+  if (hit) return hit.slice();
+  const ranked = index.entries
     .map((entry) => ({ entry, ranks: optionRanks(entry, needle, queryTokens) }))
     .filter(({ ranks }) => ranks.length > 0)
     .sort((left, right) => compareRanks(left.ranks, right.ranks)
@@ -104,7 +113,11 @@ export function rankBottleCatalog(index: BottleSearchIndex, query: string, limit
       || left.entry.option.id.localeCompare(right.entry.option.id))
     .slice(0, Math.floor(limit))
     .map(({ entry }) => entry.option);
+  cached.set(key, ranked);
+  if (cached.size > 64) cached.delete(cached.keys().next().value!);
+  return ranked.slice();
 }
+const results = new WeakMap<BottleSearchIndex, Map<string, RadarBottleOption[]>>();
 
 export function collectionMatchForOption(bottles: MemberCollectionBottle[], option: RadarBottleOption) {
   const index = collectionOptionMatchIndex(bottles, option);

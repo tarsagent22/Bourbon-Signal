@@ -1,0 +1,908 @@
+{
+  "checkedAt": "2026-10-17T16:40:57.109Z",
+  "scope": "bundled offline catalog",
+  "bottles": 1166,
+  "uniqueIds": 1166,
+  "searchCoverage": 1166,
+  "labelTextCoverage": 1166,
+  "matchingArtwork": 946,
+  "notBundled": [],
+  "timingsMs": {
+    "searchAll": 275,
+    "labelAll": 34,
+    "artworkAll": 5
+  },
+  "missingSearch": [],
+  "missingLabel": [],
+  "missingArtwork": [
+    {
+      "id": "99-apples",
+      "name": "99 Apples"
+    },
+    {
+      "id": "99-bananas",
+      "name": "99 Bananas"
+    },
+    {
+      "id": "99-bananas-10pk",
+      "name": "99 Bananas - 10Pk"
+    },
+    {
+      "id": "99-blue-raspberries",
+      "name": "99 Blue Raspberries"
+    },
+    {
+      "id": "99-brand-cherry-limeade",
+      "name": "99 Brand Cherry Limeade"
+    },
+    {
+      "id": "99-butterscotch",
+      "name": "99 Butterscotch"
+    },
+    {
+      "id": "99-flip-flop-favorites-10pk",
+      "name": "99 Flip Flop Favorites 10Pk"
+    },
+    {
+      "id": "99-fruit-punch",
+      "name": "99 Fruit Punch"
+    },
+    {
+      "id": "99-long-island-iced-tea",
+      "name": "99 Long Island Iced Tea"
+    },
+    {
+      "id": "99-mangoes",
+      "name": "99 Mangoes"
+    },
+    {
+      "id": "99-party-bucket",
+      "name": "99 Party Bucket"
+    },
+    {
+      "id": "99-pineapples",
+      "name": "99 Pineapples"
+    },
+    {
+      "id": "99-pink-lemonade",
+      "name": "99 Pink Lemonade"
+    },
+    {
+      "id": "99-strawberry",
+      "name": "99 Strawberry"
+    },
+    {
+      "id": "99-watermelon",
+      "name": "99 Watermelon"
+    },
+    {
+      "id": "admiral-nelsons-coconut",
+      "name": "Admiral Nelson's Coconut"
+    },
+    {
+      "id": "admiral-nelsons-silver",
+      "name": "Admiral Nelson's Silver"
+    },
+    {
+      "id": "admiral-nelsons-spiced-70",
+      "name": "Admiral Nelson's Spiced 70"
+    },
+    {
+      "id": "admiral-nelsons-spiced-cherry",
+      "name": "Admiral Nelson's Spiced Cherry"
+    },
+    {
+      "id": "amaretto-di-amore-classico",
+      "name": "Amaretto Di Amore Classico"
+    },
+    {
+      "id": "amarito-amaretto",
+      "name": "Amarito Amaretto"
+    },
+    {
+      "id": "ansac-vs",
+      "name": "Ansac VS"
+    },
+    {
+      "id": "aristocrat-supreme-teq-gold",
+      "name": "Aristocrat Supreme Teq Gold"
+    },
+    {
+      "id": "aristocrat-supreme-teq-white",
+      "name": "Aristocrat Supreme Teq White"
+    },
+    {
+      "id": "aristocrat-triple-sec",
+      "name": "Aristocrat Triple Sec"
+    },
+    {
+      "id": "owner-44e45585-5496-4210-83bd-e50c79b5a931",
+      "name": "Balcones Texas Rye Single Barrel (CBS Pick)"
+    },
+    {
+      "id": "barbarossa-spiced",
+      "name": "Barbarossa Spiced"
+    },
+    {
+      "id": "bartenders-handshake-manhattan",
+      "name": "Bartenders Handshake Manhattan"
+    },
+    {
+      "id": "bartenders-handshake-old-fashioned",
+      "name": "Bartenders Handshake Old Fashioned"
+    },
+    {
+      "id": "barton-long-island-iced-tea",
+      "name": "Barton Long Island Iced Tea"
+    },
+    {
+      "id": "booths-london-dry",
+      "name": "Booth's London Dry"
+    },
+    {
+      "id": "bowmans-virginia",
+      "name": "Bowman's Virginia"
+    },
+    {
+      "id": "burnetts-100",
+      "name": "Burnett's 100"
+    },
+    {
+      "id": "burnetts-80",
+      "name": "Burnett's 80"
+    },
+    {
+      "id": "burnetts-cherry",
+      "name": "Burnett's Cherry"
+    },
+    {
+      "id": "burnetts-citrus",
+      "name": "Burnett's Citrus"
+    },
+    {
+      "id": "burnetts-lime",
+      "name": "Burnett's Lime"
+    },
+    {
+      "id": "burnetts-mango",
+      "name": "Burnett's Mango"
+    },
+    {
+      "id": "burnetts-orange",
+      "name": "Burnett's Orange"
+    },
+    {
+      "id": "burnetts-raspberry",
+      "name": "Burnett's Raspberry"
+    },
+    {
+      "id": "burnetts-strawberry",
+      "name": "Burnett's Strawberry"
+    },
+    {
+      "id": "burnetts-vanilla",
+      "name": "Burnett's Vanilla"
+    },
+    {
+      "id": "burnetts-white-satin",
+      "name": "Burnett's White Satin"
+    },
+    {
+      "id": "buzzballz-berry-cherry-limeade",
+      "name": "BuzzBallz Berry Cherry Limeade"
+    },
+    {
+      "id": "buzzballz-biggies-berry-cherry-limeade",
+      "name": "BuzzBallz Biggies Berry Cherry Limeade"
+    },
+    {
+      "id": "buzzballz-biggies-grapes-gone-wild",
+      "name": "BuzzBallz Biggies Grapes Gone Wild"
+    },
+    {
+      "id": "buzzballz-biggies-pink-lemonsqueezy",
+      "name": "BuzzBallz Biggies Pink Lemonsqueezy"
+    },
+    {
+      "id": "buzzballz-biggies-strawberry-rita",
+      "name": "BuzzBallz Biggies Strawberry 'Rita"
+    },
+    {
+      "id": "buzzballz-cocktails-choc-tease",
+      "name": "BuzzBallz Cocktails Choc Tease"
+    },
+    {
+      "id": "buzzballz-cocktails-cran-blaster",
+      "name": "BuzzBallz Cocktails Cran Blaster"
+    },
+    {
+      "id": "buzzballz-cocktails-flags-and-freedom",
+      "name": "BuzzBallz Cocktails Flags & Freedom"
+    },
+    {
+      "id": "buzzballz-cocktails-lotta-colada",
+      "name": "BuzzBallz Cocktails Lotta Colada"
+    },
+    {
+      "id": "buzzballz-cocktails-peachballz",
+      "name": "BuzzBallz Cocktails PeachBallz"
+    },
+    {
+      "id": "buzzballz-cocktails-strawberry-rita",
+      "name": "BuzzBallz Cocktails Strawberry 'Rita"
+    },
+    {
+      "id": "buzzballz-cocktails-tropical-punch",
+      "name": "BuzzBallz Cocktails Tropical Punch"
+    },
+    {
+      "id": "buzzballz-cocktails-watermelon-smash",
+      "name": "BuzzBallz Cocktails Watermelon Smash"
+    },
+    {
+      "id": "buzzballz-fruity-favorites-variety-6pk",
+      "name": "BuzzBallz Fruity Favorites Variety 6Pk"
+    },
+    {
+      "id": "buzzballz-grapes-gone-wild",
+      "name": "BuzzBallz Grapes Gone Wild"
+    },
+    {
+      "id": "buzzballz-lemon-tea",
+      "name": "BuzzBallz Lemon Tea"
+    },
+    {
+      "id": "buzzballz-pink-lemonsqueezy",
+      "name": "BuzzBallz Pink Lemonsqueezy"
+    },
+    {
+      "id": "buzzballz-variety-6pk",
+      "name": "BuzzBallz Variety 6Pk"
+    },
+    {
+      "id": "caravella-limoncello",
+      "name": "Caravella Limoncello"
+    },
+    {
+      "id": "carolans-salted-caramel",
+      "name": "Carolans Salted Caramel"
+    },
+    {
+      "id": "chi-chis-gold-marg",
+      "name": "Chi Chi's Gold Marg"
+    },
+    {
+      "id": "chi-chis-pina-colada",
+      "name": "Chi Chi's Pina Colada"
+    },
+    {
+      "id": "chi-chis-white-russian",
+      "name": "Chi Chi's White Russian"
+    },
+    {
+      "id": "christian-brothers",
+      "name": "Christian Brothers"
+    },
+    {
+      "id": "christian-brothers-apple",
+      "name": "Christian Brothers Apple"
+    },
+    {
+      "id": "christian-brothers-frost-white",
+      "name": "Christian Brothers Frost White"
+    },
+    {
+      "id": "christian-brothers-honey",
+      "name": "Christian Brothers Honey"
+    },
+    {
+      "id": "christian-brothers-trv",
+      "name": "Christian Brothers TRV"
+    },
+    {
+      "id": "christian-brothers-vs-pet",
+      "name": "Christian Brothers VS PET"
+    },
+    {
+      "id": "copa-de-oro-coffee",
+      "name": "Copa De Oro Coffee"
+    },
+    {
+      "id": "corazon-anejo-single-barrel",
+      "name": "Corazon Anejo Single Barrel"
+    },
+    {
+      "id": "corazon-blanco",
+      "name": "Corazon Blanco"
+    },
+    {
+      "id": "corazon-blanco-de-agave",
+      "name": "Corazon Blanco De Agave"
+    },
+    {
+      "id": "corazon-expressiones-blanco",
+      "name": "Corazon Expressiones Blanco"
+    },
+    {
+      "id": "corazon-expressions-anejo-cypb",
+      "name": "Corazon Expressions Anejo CYPB"
+    },
+    {
+      "id": "corazon-reposado",
+      "name": "Corazon Reposado"
+    },
+    {
+      "id": "corazon-reposado-de-agave",
+      "name": "Corazon Reposado De Agave"
+    },
+    {
+      "id": "corazon-reposado-single-barrel",
+      "name": "Corazon Reposado Single Barrel"
+    },
+    {
+      "id": "crown-russe",
+      "name": "Crown Russe"
+    },
+    {
+      "id": "cruzan-estate-single-barrel",
+      "name": "Cruzan - Estate Single Barrel"
+    },
+    {
+      "id": "owner-e1581d19-6295-4f69-84f5-d55731d7ab92",
+      "name": "Dark Arts Blunt Blend Volume 3"
+    },
+    {
+      "id": "owner-a01753d2-f534-4e86-86d2-66eef53d122c",
+      "name": "Dark Arts Toasted Mizunara Stave Finished Bourbon"
+    },
+    {
+      "id": "deep-eddy-cranberry",
+      "name": "Deep Eddy Cranberry"
+    },
+    {
+      "id": "deep-eddy-espresso",
+      "name": "Deep Eddy Espresso"
+    },
+    {
+      "id": "deep-eddy-lemon",
+      "name": "Deep Eddy Lemon"
+    },
+    {
+      "id": "deep-eddy-orange",
+      "name": "Deep Eddy Orange"
+    },
+    {
+      "id": "deep-eddy-pineapple",
+      "name": "Deep Eddy Pineapple"
+    },
+    {
+      "id": "deep-eddy-ruby-red",
+      "name": "Deep Eddy Ruby Red"
+    },
+    {
+      "id": "deep-eddy-ruby-red-grapefruit",
+      "name": "Deep Eddy Ruby Red Grapefruit"
+    },
+    {
+      "id": "desert-island-long-island-iced-tea",
+      "name": "Desert Island Long Island Iced Tea"
+    },
+    {
+      "id": "domaine-de-canton",
+      "name": "Domaine de Canton"
+    },
+    {
+      "id": "dr-mcgillicuddys-mentholmint",
+      "name": "Dr. McGillicuddy's Mentholmint"
+    },
+    {
+      "id": "owner-a1e54d2d-2aea-4e5b-ae51-77f1c84ab19b",
+      "name": "Driftless Glen Single Barrel Bourbon"
+    },
+    {
+      "id": "dry-fly-whiskey-smash-4pk",
+      "name": "Dry Fly Whiskey Smash 4Pk"
+    },
+    {
+      "id": "owner-2a032320-8108-4f5d-8873-ec3d0cebeea6",
+      "name": "Duck Club High Brass Bourbon"
+    },
+    {
+      "id": "el-mayor-extra-anejo-bourbon-finish",
+      "name": "El Mayor Extra Anejo Bourbon Finish"
+    },
+    {
+      "id": "el-tesoro-mundial-knob-creek",
+      "name": "El Tesoro Mundial Knob Creek"
+    },
+    {
+      "id": "el-toro-gold",
+      "name": "El Toro Gold"
+    },
+    {
+      "id": "el-toro-silver",
+      "name": "El Toro Silver"
+    },
+    {
+      "id": "owner-21a6915e-eb8e-4545-9e42-97355e01ec15",
+      "name": "Fiddler Georgia Heartwood Bourbon (Cramerton ABC Pick)"
+    },
+    {
+      "id": "firefly-sweet-tea",
+      "name": "FireFly Sweet Tea"
+    },
+    {
+      "id": "fleischmanns-dry",
+      "name": "Fleischmann's Dry"
+    },
+    {
+      "id": "fleischmanns-royal",
+      "name": "Fleischmann's Royal"
+    },
+    {
+      "id": "fresca-mixed-variety-8pk",
+      "name": "Fresca Mixed Variety 8pk"
+    },
+    {
+      "id": "georgia-moon",
+      "name": "Georgia Moon"
+    },
+    {
+      "id": "owner-e83d814b-16c0-405f-97af-e1abcf910ba5",
+      "name": "Green River Wheated Full Proof Bourbon"
+    },
+    {
+      "id": "grind-espresso-shot",
+      "name": "Grind Espresso Shot"
+    },
+    {
+      "id": "handy-and-schiller-old-fashioned",
+      "name": "Handy & Schiller Old Fashioned"
+    },
+    {
+      "id": "owner-de6b9ba8-9c90-4573-a02f-282c141a6165",
+      "name": "Heaven Hill Grain to Glass Specialty Barrel Series Wheated Bourbon (Chinquapin Oak)"
+    },
+    {
+      "id": "heublein-1792-old-fashioned",
+      "name": "Heublein 1792 Old Fashioned"
+    },
+    {
+      "id": "high-west-prisoners-share",
+      "name": "High West The Prisoner's Share"
+    },
+    {
+      "id": "hpnotiq",
+      "name": "Hpnotiq"
+    },
+    {
+      "id": "hpnotiq-12pk",
+      "name": "Hpnotiq - 12Pk"
+    },
+    {
+      "id": "ice-box-mudslide",
+      "name": "Ice Box Mudslide"
+    },
+    {
+      "id": "jts-brown",
+      "name": "J. T. S. Brown"
+    },
+    {
+      "id": "jack-daniels-and-coca-cola-4pk",
+      "name": "Jack Daniel's & Coca-Cola 4Pk"
+    },
+    {
+      "id": "jack-daniels-and-coca-cola-variety-6pk",
+      "name": "Jack Daniel's & Coca-Cola Variety 6Pk"
+    },
+    {
+      "id": "jack-daniels-and-coca-cola-zero-sugar-variety-6pk",
+      "name": "Jack Daniel's & Coca-Cola Zero Sugar Variety 6Pk"
+    },
+    {
+      "id": "jack-daniels-and-coke-zero-4pk",
+      "name": "Jack Daniel's & Coke Zero 4Pk"
+    },
+    {
+      "id": "jack-daniels-and-coca-cola-vanilla-4pk",
+      "name": "Jack Daniel's and Coca Cola Vanilla 4Pk"
+    },
+    {
+      "id": "owner-9270236e-a93a-451f-9dab-c26b85980403",
+      "name": "Jack Daniel's Gentleman Jack"
+    },
+    {
+      "id": "jack-daniels-tn-honey-lemonade-4pk",
+      "name": "Jack Daniel's TN Honey Lemonade 4Pk"
+    },
+    {
+      "id": "bb_3b748d044cd7663e",
+      "name": "Kahn's Premium Spirits Program"
+    },
+    {
+      "id": "kapali-coffee",
+      "name": "Kapali Coffee"
+    },
+    {
+      "id": "owner-2a1eae59-b239-451c-a507-0b6b18fa560c",
+      "name": "Kings County Barrel Strength Empire Rye"
+    },
+    {
+      "id": "lunazul-anejo",
+      "name": "Lunazul Anejo"
+    },
+    {
+      "id": "lunazul-blanco",
+      "name": "Lunazul Blanco"
+    },
+    {
+      "id": "lunazul-blanco-pet",
+      "name": "Lunazul Blanco PET"
+    },
+    {
+      "id": "lunazul-reposado",
+      "name": "Lunazul Reposado"
+    },
+    {
+      "id": "lunazul-reposado-pet",
+      "name": "Lunazul Reposado PET"
+    },
+    {
+      "id": "owner-9bc37feb-fabb-4a35-a7d0-38ccb2954668",
+      "name": "Mad River Burnt Rock Bourbon"
+    },
+    {
+      "id": "owner-50183eca-062f-4df7-b373-a6a8957ab9de",
+      "name": "Mad River Double Tapped Maple Bourbon Whiskey"
+    },
+    {
+      "id": "owner-ba8dbbad-7b9b-44ac-95de-b84f506824a4",
+      "name": "Mad River Straight Bourbon"
+    },
+    {
+      "id": "owner-dfcea0a1-9f63-4da6-bce2-d0b3db1feba7",
+      "name": "Maker's Mark Wood Finishing Series 2025 Keepers Release"
+    },
+    {
+      "id": "margaritaville-gold",
+      "name": "Margaritaville Gold"
+    },
+    {
+      "id": "margaritaville-silver",
+      "name": "Margaritaville Silver"
+    },
+    {
+      "id": "melone-melon",
+      "name": "Melone Melon"
+    },
+    {
+      "id": "meukow-vs",
+      "name": "Meukow VS"
+    },
+    {
+      "id": "midnight-moon-100",
+      "name": "Midnight Moon 100"
+    },
+    {
+      "id": "midnight-moon-80",
+      "name": "Midnight Moon 80"
+    },
+    {
+      "id": "midnight-moon-blackberry",
+      "name": "Midnight Moon Blackberry"
+    },
+    {
+      "id": "midnight-moon-blueberry",
+      "name": "Midnight Moon Blueberry"
+    },
+    {
+      "id": "midnight-moon-cherry",
+      "name": "Midnight Moon Cherry"
+    },
+    {
+      "id": "midnight-moon-chocolate-brownie-moonshake",
+      "name": "Midnight Moon Chocolate Brownie Moonshake"
+    },
+    {
+      "id": "midnight-moon-dill-pickles",
+      "name": "Midnight Moon Dill Pickles"
+    },
+    {
+      "id": "midnight-moon-lightning-lemonade",
+      "name": "Midnight Moon Lightning Lemonade"
+    },
+    {
+      "id": "midnight-moon-peanut-butter-cup-moonshake",
+      "name": "Midnight Moon Peanut Butter Cup Moonshake"
+    },
+    {
+      "id": "midnight-moon-peanut-butter-cup-moonshake-50ml",
+      "name": "Midnight Moon Peanut Butter Cup Moonshake 50ml"
+    },
+    {
+      "id": "midnight-moon-raspberry",
+      "name": "Midnight Moon Raspberry"
+    },
+    {
+      "id": "midnight-moon-strawberry",
+      "name": "Midnight Moon Strawberry"
+    },
+    {
+      "id": "midnight-moon-vanilla-moonshake",
+      "name": "Midnight Moon Vanilla Moonshake"
+    },
+    {
+      "id": "midnight-moon-watermelon",
+      "name": "Midnight Moon Watermelon"
+    },
+    {
+      "id": "miravida-blanco",
+      "name": "Miravida Blanco"
+    },
+    {
+      "id": "miravida-reposado-cristalino",
+      "name": "Miravida Reposado Cristalino"
+    },
+    {
+      "id": "mohawk-triple-sec",
+      "name": "Mohawk Triple Sec"
+    },
+    {
+      "id": "montezuma-blue",
+      "name": "Montezuma Blue"
+    },
+    {
+      "id": "montezuma-teq-gold",
+      "name": "Montezuma Teq Gold"
+    },
+    {
+      "id": "montezuma-teq-white",
+      "name": "Montezuma Teq White"
+    },
+    {
+      "id": "montezuma-triple-sec",
+      "name": "Montezuma Triple Sec"
+    },
+    {
+      "id": "mr-boston-creamy-egg-nog",
+      "name": "Mr. Boston Creamy Egg Nog"
+    },
+    {
+      "id": "mr-boston-rock-and-rye",
+      "name": "Mr. Boston Rock & Rye"
+    },
+    {
+      "id": "myerss-original-dark",
+      "name": "Myers's Original Dark"
+    },
+    {
+      "id": "nc-midnight-moon-rebel-razz",
+      "name": "NC Midnight Moon Rebel Razz"
+    },
+    {
+      "id": "nc-midnight-moon-watermelon",
+      "name": "NC Midnight Moon Watermelon"
+    },
+    {
+      "id": "nikolai-80",
+      "name": "Nikolai 80"
+    },
+    {
+      "id": "owner-4c078128-8eae-4d80-aa2d-673ba8ae0e7e",
+      "name": "Old Charter Oak Finest Oak 2026"
+    },
+    {
+      "id": "owner-5183df6b-7e8e-470a-8cf2-ccf8f8c14c8c",
+      "name": "Old Dominick 8 Year Reserve Bourbon Batch 2"
+    },
+    {
+      "id": "old-forester-mint-julep",
+      "name": "Old Forester Mint Julep"
+    },
+    {
+      "id": "owner-0a935833-b95d-46ac-8dce-d6baeca51a43",
+      "name": "Old Forester Single Barrel Barrel Strength Rye"
+    },
+    {
+      "id": "old-overholt-11-cask-strength-2024",
+      "name": "Old Overholt 11 Year Cask Strength Rye (2024)"
+    },
+    {
+      "id": "owner-22b6e6dc-e1ea-4808-9316-d970e34afbb8",
+      "name": "Old Soul Estate Collection No. 3 Sorghum Bourbon"
+    },
+    {
+      "id": "pama-pomegranate",
+      "name": "Pama Pomegranate"
+    },
+    {
+      "id": "parrot-bay-coconut",
+      "name": "Parrot Bay Coconut"
+    },
+    {
+      "id": "parrot-bay-coconut-90p",
+      "name": "Parrot Bay Coconut 90P"
+    },
+    {
+      "id": "paul-masson-grande-amber",
+      "name": "Paul Masson Grande Amber"
+    },
+    {
+      "id": "paul-masson-grande-amber-pet",
+      "name": "Paul Masson Grande Amber (PET)"
+    },
+    {
+      "id": "paul-masson-grande-amber-vsop",
+      "name": "Paul Masson Grande Amber VSOP"
+    },
+    {
+      "id": "paul-masson-mango-grande-amber",
+      "name": "Paul Masson Mango Grande Amber"
+    },
+    {
+      "id": "paul-masson-pineapple-grande-amber",
+      "name": "Paul Masson Pineapple Grande Amber"
+    },
+    {
+      "id": "paul-masson-xo",
+      "name": "Paul Masson XO"
+    },
+    {
+      "id": "penelope-cocktails-apple-cinnamon-rtp",
+      "name": "Penelope Cocktails Apple Cinnamon RTP"
+    },
+    {
+      "id": "penelope-cocktails-black-walnut-old-fashioned",
+      "name": "Penelope Cocktails Black Walnut Old Fashioned"
+    },
+    {
+      "id": "platinum-7x",
+      "name": "Platinum 7X"
+    },
+    {
+      "id": "platinum-7x-traveler",
+      "name": "Platinum 7X Traveler"
+    },
+    {
+      "id": "popov",
+      "name": "Popov"
+    },
+    {
+      "id": "popov-portable",
+      "name": "Popov Portable"
+    },
+    {
+      "id": "rain-cucumber",
+      "name": "Rain Cucumber"
+    },
+    {
+      "id": "rain-mango",
+      "name": "Rain Mango"
+    },
+    {
+      "id": "owner-ed8f9da2-f560-418f-94ef-5b41cb27faa2",
+      "name": "Rare Character Single Barrel Stateline Beverage Warehouse ELE-015"
+    },
+    {
+      "id": "relska",
+      "name": "Relska"
+    },
+    {
+      "id": "romana-sambuca",
+      "name": "Romana Sambuca"
+    },
+    {
+      "id": "ron-llave-blanco-supremo",
+      "name": "Ron Llave Blanco Supremo"
+    },
+    {
+      "id": "owner-78885ff2-1fa6-4691-866e-a02ee6d99e9b",
+      "name": "Sagamore Cask Strength Rye"
+    },
+    {
+      "id": "sambuca-di-amore",
+      "name": "Sambuca Di Amore"
+    },
+    {
+      "id": "skol",
+      "name": "Skol"
+    },
+    {
+      "id": "owner-6337850c-78cb-4fb9-95f8-ca5231a883fe",
+      "name": "Smooth Ambler Old Scout Bourbon"
+    },
+    {
+      "id": "sobieski-polish",
+      "name": "Sobieski Polish"
+    },
+    {
+      "id": "sobieski-vanilla",
+      "name": "Sobieski Vanilla"
+    },
+    {
+      "id": "southern-comfort-100",
+      "name": "Southern Comfort 100"
+    },
+    {
+      "id": "southern-comfort-70",
+      "name": "Southern Comfort 70"
+    },
+    {
+      "id": "stirrings-triple-sec",
+      "name": "Stirrings Triple Sec"
+    },
+    {
+      "id": "svedka",
+      "name": "Svedka"
+    },
+    {
+      "id": "svedka-blue-raspberry",
+      "name": "Svedka Blue Raspberry"
+    },
+    {
+      "id": "svedka-cherry-limeade",
+      "name": "Svedka Cherry Limeade"
+    },
+    {
+      "id": "svedka-citron",
+      "name": "Svedka Citron"
+    },
+    {
+      "id": "svedka-mango-pineapple",
+      "name": "Svedka Mango Pineapple"
+    },
+    {
+      "id": "svedka-strawberry-lemonade",
+      "name": "Svedka Strawberry Lemonade"
+    },
+    {
+      "id": "svedka-traveler-pet",
+      "name": "Svedka Traveler (PET)"
+    },
+    {
+      "id": "svedka-water-variety-8pk",
+      "name": "Svedka Water Variety 8Pk"
+    },
+    {
+      "id": "tres-agaves-anejo-single-barrel",
+      "name": "Tres Agaves Anejo Single Barrel"
+    },
+    {
+      "id": "tres-agaves-extra-anejo-single-barrel",
+      "name": "Tres Agaves Extra Anejo Single Barrel"
+    },
+    {
+      "id": "tromba-extra-anejo",
+      "name": "Tromba Extra Anejo"
+    },
+    {
+      "id": "tuaca-liquore-originale",
+      "name": "Tuaca Liquore Originale"
+    },
+    {
+      "id": "two-fingers-gold",
+      "name": "Two Fingers Gold"
+    },
+    {
+      "id": "two-fingers-silver",
+      "name": "Two Fingers Silver"
+    },
+    {
+      "id": "yellowstone-bourbon-cocktails-espresso-rts",
+      "name": "Yellowstone Bourbon Cocktails Espresso RTS"
+    },
+    {
+      "id": "yukon-jack",
+      "name": "Yukon Jack"
+    }
+  ],
+  "metadataConflicts": [
+    {
+      "id": "rebel-100-6y-bottled-in-bond-single-barrel",
+      "name": "Rebel 100 6Y Bottled in Bond Single Barrel",
+      "ageStatement": "010Y",
+      "status": "requires-source-review"
+    }
+  ],
+  "evidence": "Exact catalog text retrieval and reviewed artwork identity only. This does not measure camera OCR or physical-device loading times."
+}

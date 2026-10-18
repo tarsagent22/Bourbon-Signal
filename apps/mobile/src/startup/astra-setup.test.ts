@@ -34,6 +34,7 @@ function setup({ free = false, failWatch = false, failPush = false, params = {} 
     "../../src/hooks/useMobileApi": { useMobileApi: () => api },
     "../../src/hooks/useBottleCatalog": { useBottleCatalog: () => ({ catalog: [{ id: "weller", name: "Weller Full Proof" }], search: () => [{ id: "weller", name: "Weller Full Proof" }], error: "", retry() {} }) },
     "../../src/hooks/useAccessibleStatus": { useAccessibleStatus() {} },
+    '../../src/components/CellarBottleArtwork': { CellarBottleArtwork: 'CellarBottleArtwork' },
     "../../src/components/MemberScreen": { PageHeading: "Heading", ErrorState: "ErrorState", LoadingState: "LoadingState", memberScreenStyles: { screen: {}, content: {} } },
     "../../src/push/push-registration": { enableRadarPush: async () => { pushes++; if (failPush) throw new Error("denied"); return { enabled: true, currentDeviceRegistered: true }; }, radarPushPermission: async () => failPush ? "denied" : "granted" },
   });

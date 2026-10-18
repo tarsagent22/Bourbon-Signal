@@ -3,6 +3,7 @@ import type { RadarBottleOption } from "../api/types";
 import seed from "../cellar/bottle-catalog-seed.json";
 import { createBottleSearchIndex, rankBottleCatalog } from "../cellar/bottle-search";
 import { useMobileApi } from "./useMobileApi";
+import { withBundledDiscovery } from '../cellar/catalog-snapshot';
 
 const searchIndexes = new WeakMap<RadarBottleOption[], ReturnType<typeof createBottleSearchIndex>>();
 function sharedSearchIndex(catalog: RadarBottleOption[]) {
@@ -23,7 +24,7 @@ export function useBottleCatalog() {
     setLoading(true);
     try {
       const bottles = await api.listBottleCatalog({ fresh });
-      if (request === sequence.current) { setCatalog(bottles); setError(""); }
+      if (request === sequence.current) { setCatalog(withBundledDiscovery(bottles)); setError(""); }
     } catch {
       if (request === sequence.current) setError("The latest catalog couldn’t load. You can still search saved bottle names.");
     } finally { if (request === sequence.current) setLoading(false); }

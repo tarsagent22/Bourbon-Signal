@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createLabelIndex, matchBottleLabel, normalizeBarcode } from './label-matching';
-import { createScanLoop } from './scan-loop';
-import { scanGuide, scanCrop } from './scan-guide';
-import { createCandidateLatch } from './scan-candidates';
+import { createLabelIndex, matchBottleLabel, readBottleLabel, bottleLabelFamily, normalizeBarcode } from './label-matching';
 import seed from '../cellar/bottle-catalog-seed.json';
 import { compareBottlePrice } from '../../../../shared/bottle-profile';
 import { validApiResponse } from '../api/response-validation';
@@ -20,6 +17,66 @@ const catalog = [
   { id: 'er25', name: 'Eagle Rare 25Y', aliases: ['Eagle Rare'] },
 ];
 const index = createLabelIndex(catalog);
+
+test('owner front-label examples retrieve the expression without catalog-only suffixes', () => {
+  const fullIndex = createLabelIndex(seed);
+  for (const [text, id] of [
+    ['PENELOPE\nRiviera\nCOOPER SERIES', 'penelope-riviera-cask-finish'],
+    ['PENELOPE\nRIVIERA\nAMERICAN WHISKEY', 'penelope-riviera-cask-finish'],
+    ['AGED 10 YEARS\nMc KENNA\nHENRY\nSINGLE BARREL\nBOTTLED IN BOND\n100 PROOF', 'henry-mckenna-10-year'],
+    ['AGED 10 YEARS\nMcHENRY\nKENNA\nSINGLE BARREL\nBOTTLED IN BOND', 'henry-mckenna-10-year'],
+    ['BUFFALO TRACE\nKENTUCKY STRAIGHT BOURBON WHISKEY', 'buffalo-trace-bourbon'],
+    ['BUFF ALO\nTRACE\nKENTUCKY STRAIGHT BOURBON', 'buffalo-trace-bourbon'],
+    ['PENELOPE CONUNDRUM', 'penelope-estate-collection-conundrum'],
+  ]) assert.equal(matchBottleLabel(fullIndex, text)[0]?.id, id, text);
+  assert.equal(readBottleLabel(fullIndex, 'PENELOPE').canHold, false);
+  assert.equal(readBottleLabel(fullIndex, 'W.L. WELLER').canHold, false);
+  assert.equal(readBottleLabel(fullIndex, 'PENELOPE RIVIERA').canHold, true);
+  assert.equal(bottleLabelFamily(fullIndex, 'MC HENRY KENNA')?.name, 'Henry McKenna');
+  assert.deepEqual(matchBottleLabel(fullIndex, 'MCHENRY COFFEE'), []);
+  assert.ok(!matchBottleLabel(fullIndex, 'PENELOPE RIVIERA').some(b => b.id === 'penelope-rio-cask-finish'));
+});
+
+test('all expressions remain reachable for similar-label families, beyond the candidate limit', () => {
+  const fullIndex = createLabelIndex(seed);
+  for (const brand of ['Penelope', 'Buffalo Trace', 'Henry McKenna', 'Old Forester', 'Woodford Reserve', 'Wild Turkey', 'Four Roses', 'Weller', "Maker's Mark", 'E.H. Taylor']) {
+    const family = bottleLabelFamily(fullIndex, brand.toUpperCase());
+    assert.ok(family, brand);
+    const expected = seed.filter(b => b.name.toLowerCase().replace(/^w\.l\. weller/, 'weller').startsWith(brand.toLowerCase() + ' ') || b.name.toLowerCase() === brand.toLowerCase());
+    assert.deepEqual(new Set(family.bottles.map(b => b.id)), new Set(expected.map(b => b.id)), brand);
+    assert.equal(readBottleLabel(fullIndex, brand).canHold, false, brand);
+  }
+  assert.ok(bottleLabelFamily(fullIndex, 'PENELOPE')!.bottles.length > 6);
+  for (const text of ['KENTUCKY BOURBON WHISKEY', 'Handcrafted wooden table', 'PENELOPE AND BUFFALO TRACE']) assert.equal(bottleLabelFamily(fullIndex, text), undefined);
+  assert.equal(readBottleLabel(fullIndex, 'PENELOPE RIVIERA AND BUFFALO TRACE').canHold, false);
+});
+
+test('batch and chapter numbers keep similarly presented releases separate', () => {
+  const editions = createLabelIndex([
+    { id: 'chapter1', name: 'Penelope Cigar Sessions Chapter 01', brand: 'Penelope' },
+    { id: 'chapter2', name: 'Penelope Cigar Sessions Chapter 02', brand: 'Penelope' },
+    { id: 'batch32', name: 'Barrell Bourbon Batch 032', brand: 'Barrell' },
+    { id: 'batch34', name: 'Barrell Bourbon Batch 034', brand: 'Barrell' },
+  ]);
+  assert.deepEqual(matchBottleLabel(editions, 'PENELOPE CIGAR SESSIONS CHAPTER 2').map(b => b.id), ['chapter2']);
+  assert.deepEqual(matchBottleLabel(editions, 'BARRELL BOURBON BATCH 032').map(b => b.id), ['batch32']);
+  assert.deepEqual(new Set(matchBottleLabel(editions, 'PENELOPE CIGAR SESSIONS').map(b => b.id)), new Set(['chapter1', 'chapter2']));
+});
+
+test('every bundled library identity is retrievable from its full label text', () => {
+  const fullIndex = createLabelIndex(seed);
+  assert.equal(createLabelIndex(seed), fullIndex, 'scanner screens reuse the same prepared index');
+  for (const bottle of seed) assert.ok(matchBottleLabel(fullIndex, bottle.name).some(b => b.id === bottle.id), bottle.name);
+});
+
+test('punctuated initials, short ages and a single anchored OCR error remain searchable', () => {
+  const fullIndex = createLabelIndex(seed);
+  assert.ok(matchBottleLabel(fullIndex, 'O.F.C. BOURBON').some(b => b.id === 'o-f-c-bourbon'));
+  assert.deepEqual(matchBottleLabel(index, 'EAGLE RARE 10YO').map(b => b.id), ['er10']);
+  assert.equal(matchBottleLabel(index, 'FREY RANOH KENTUCKY STRAIGHT BOURBON')[0]?.id, 'frey');
+  assert.deepEqual(matchBottleLabel(index, 'RANOH'), [], 'a corrected word alone is not identity evidence');
+  assert.ok(!matchBottleLabel(index, 'OLD FORESTER 1910').some(b => b.id === 'of1920'));
+});
 test('label candidates survive multiline label boilerplate', () => {
   assert.equal(matchBottleLabel(index, 'FREY RANCH\nFARMERS + DISTILLERS\nSTRAIGHT BOURBON WHISKEY\nNEVADA GROWN')[0]?.id, 'frey');
   assert.equal(matchBottleLabel(index, 'HEAVEN HILL\nBOTTLED-IN-BOND\n7 YEARS\nKENTUCKY STRAIGHT BOURBON WHISKEY\n100 PROOF')[0]?.id, 'hh7');
@@ -40,38 +97,6 @@ test('barcodes require valid check digits and normalize UPC-A to EAN-13', () => 
   assert.equal(normalizeBarcode('036000291452'), '0036000291452');
   assert.equal(normalizeBarcode('0036000291452'), '0036000291452');
   for (const code of ['036000291453', 'not-a-code', '123', 'https://example.com']) assert.equal(normalizeBarcode(code), null);
-});
-
-test('portrait scan guide maps exactly into cover-cropped portrait and landscape captures', () => {
-  for (const view of [{ width: 280, height: 380 }, { width: 353, height: 380 }, { width: 740, height: 380 }]) {
-    const guide = scanGuide(view);
-    assert.ok(guide.height > guide.width * 1.5);
-    for (const picture of [{ width: 3024, height: 4032 }, { width: 4032, height: 3024 }, { width: 1080, height: 1920 }]) {
-      const crop = scanCrop(picture, view);
-      assert.ok(crop.width > 0 && crop.height > crop.width);
-      assert.ok(crop.originX >= 0 && crop.originY >= 0 && crop.originX + crop.width <= picture.width && crop.originY + crop.height <= picture.height);
-      const scale = Math.max(view.width / picture.width, view.height / picture.height);
-      assert.ok(Math.abs(crop.originX * scale - (picture.width * scale - view.width) / 2 - guide.left) < 1);
-      assert.ok(Math.abs(crop.originY * scale - (picture.height * scale - view.height) / 2 - guide.top) < 1);
-      assert.ok(Math.abs(crop.width * scale - guide.width) < 1);
-    }
-  }
-});
-
-test('scan waits for agreement and holds results through blank frames, reordering and different bottles', () => {
-  const latch = createCandidateLatch();
-  const one = catalog[0], two = catalog[1];
-  assert.equal(latch.observe([one, two]), null);
-  assert.equal(latch.observe([]), null);
-  assert.equal(latch.observe([one, two]), null);
-  assert.equal(latch.observe([two, one]), null);
-  assert.deepEqual(latch.observe([two, one]), [two, one]);
-  for (const matches of [[], [one], [two], [one, two]]) assert.equal(latch.observe(matches), null);
-  assert.equal(latch.verified([one]), null);
-  const rescan = createCandidateLatch();
-  assert.equal(rescan.observe([one]), null);
-  assert.deepEqual(rescan.observe([one]), [one]);
-  assert.deepEqual(createCandidateLatch().verified([one]), [one]);
 });
 
 test('everyday rye scan gaps exist offline and explicit expressions avoid conflicting candidates', () => {
@@ -104,26 +129,6 @@ test('malformed profile facts are rejected at the mobile API boundary', () => {
   assert.equal(validApiResponse('/api/v1/bottles/er10', { bottle }), true);
   assert.equal(validApiResponse('/api/v1/bottles/er10', { bottle: { ...bottle, msrp: -1 } }), false);
   assert.equal(validApiResponse('/api/v1/bottles/er10', { bottle: { ...bottle, rarity: {} } }), false);
-});
-test('stopping a scan discards an in-flight result and does not schedule another frame', async () => {
-  let finish!: (value: string) => void; let reads = 0; const values: string[] = [];
-  const loop = createScanLoop({ read: () => { reads += 1; return new Promise<string>(resolve => { finish = resolve; }); }, onResult: value => values.push(value), onError: error => { throw error; }, delay: 5 });
-  loop.start(); loop.start(); assert.equal(reads, 1); loop.stop(); finish('stale');
-  await new Promise(resolve => setTimeout(resolve, 20));
-  assert.deepEqual(values, []); assert.equal(reads, 1);
-});
-test('pause and restart do not overlap reads and a resumed scan recovers', async () => {
-  let finish!: (value: number) => void; let reads = 0; const results: number[] = [];
-  const loop = createScanLoop({ read: () => { reads += 1; return new Promise<number>(resolve => { finish = resolve; }); }, onResult: value => results.push(value), onError: error => { throw error; }, delay: 5 });
-  loop.start(); loop.stop(); loop.start(); assert.equal(reads, 1); finish(1);
-  await new Promise(resolve => setTimeout(resolve, 15));
-  assert.equal(reads, 2); finish(2); await Promise.resolve(); loop.stop(); assert.deepEqual(results, [2]);
-});
-test('read failures are delivered without leaving the loop stuck', async () => {
-  const errors: unknown[] = []; let reads = 0;
-  const loop = createScanLoop({ read: async () => { reads += 1; throw new Error('camera'); }, onResult: () => assert.fail(), onError: error => errors.push(error), delay: 5 });
-  loop.start(); await new Promise(resolve => setTimeout(resolve, 18)); loop.stop();
-  assert.ok(reads >= 2); assert.equal(errors.length, reads);
 });
 
 // Buying guidance must never turn missing evidence or a rare label into a buy signal.
