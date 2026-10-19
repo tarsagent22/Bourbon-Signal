@@ -18,7 +18,8 @@ assert.match(dropFeed, /href="\/pricing\?source=homepage-drop-feed-try-free"[\s\
 assert.doesNotMatch(dropFeed, /signUp\(|Create account/i);
 
 assert.match(finalCta, /href="\/pricing\?source=homepage-final-try-free"[\s\S]*Try free/);
-assert.match(finalCta, /Barrel Proof is \$6\/month after the trial\./);
+assert.match(finalCta, /Barrel Proof is \$6\/month\. Founder is \$50 once for lifetime access\./);
+assert.doesNotMatch(finalCta, /7-day free trial|after the trial/);
 assert.doesNotMatch(finalCta, /Pricing is intentionally hidden|Create Account/i);
 
 console.log("Public acquisition CTA contract passed.");

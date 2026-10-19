@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
   hasActiveGiftMembership,
+  hasMembershipPurchaseHistory,
   membershipTrialConversionMetadata,
   membershipTrialEligibility,
   membershipTrialMetadata,
@@ -10,20 +11,22 @@ import {
 } from "../src/lib/membership-trial.ts";
 
 assert.equal(MONTHLY_MEMBERSHIP_TRIAL_DAYS, 7);
+assert.equal(hasMembershipPurchaseHistory({ tier: "free" }, {}), false);
+for (const privateMetadata of [{ membershipTrialStartedAt: "2026-08-16" }, { membershipTrialSubscriptionId: "sub_trial" }, { stripeSubscriptionId: "sub_paid" }]) {
+  assert.equal(hasMembershipPurchaseHistory({ tier: "free" }, privateMetadata), true);
+}
+for (const status of ["active", "trialing", "past_due", "unpaid", "canceled", "incomplete", "incomplete_expired"]) {
+  assert.equal(hasMembershipPurchaseHistory({ billingPlan: "barrel_monthly", membershipStatus: status }, {}), true);
+}
+assert.equal(hasMembershipPurchaseHistory({ plan: "bib_lifetime" }, {}), true);
 assert.equal(hasActiveGiftMembership({ plan: "gift_standard_annual", membershipStatus: "active", giftAccessExpiresAt: "2026-08-20T00:00:00.000Z" }, new Date("2026-08-19T00:00:00.000Z")), true);
 assert.equal(hasActiveGiftMembership({ plan: "gift_standard_annual", membershipStatus: "active", giftAccessExpiresAt: "2026-08-18T00:00:00.000Z" }, new Date("2026-08-19T00:00:00.000Z")), false);
 assert.equal(hasActiveGiftMembership({ plan: "bib_lifetime", membershipStatus: "active", giftOrderId: "gift_123" }), true);
-assert.deepEqual(membershipTrialEligibility("standard_monthly", {}, {}), { eligible: true, reason: "eligible" });
-assert.deepEqual(membershipTrialEligibility("barrel_monthly", {}, {}), { eligible: true, reason: "eligible" });
-assert.deepEqual(membershipTrialEligibility("standard_annual", {}, {}), { eligible: false, reason: "plan_ineligible" });
-assert.deepEqual(membershipTrialEligibility("barrel_monthly", { plan: "bib_lifetime", membershipStatus: "active" }, {}), { eligible: false, reason: "prior_subscription" });
-assert.deepEqual(membershipTrialEligibility("barrel_annual", {}, {}), { eligible: false, reason: "plan_ineligible" });
-assert.deepEqual(membershipTrialEligibility("bib_lifetime", {}, {}), { eligible: false, reason: "plan_ineligible" });
-assert.equal(membershipTrialEligibility("barrel_monthly", {}, { membershipTrialStartedAt: "2026-08-16T12:00:00.000Z" }).eligible, false);
-assert.equal(membershipTrialEligibility("standard_monthly", {}, { membershipTrialSubscriptionId: "sub_trial" }).reason, "trial_used");
-assert.equal(membershipTrialEligibility("barrel_monthly", {}, { stripeSubscriptionId: "sub_prior" }).reason, "prior_subscription");
-assert.equal(membershipTrialEligibility("barrel_monthly", { membershipStatus: "active", plan: "barrel_annual" }, {}).reason, "prior_subscription");
-assert.equal(membershipTrialEligibility("standard_monthly", { membershipStatus: "free", plan: "free", subscribedAt: "2026-01-01" }, {}).eligible, true, "gift/free history alone must not be treated as a direct subscription");
+for (const plan of ["standard_monthly", "barrel_monthly", "standard_annual", "barrel_annual", "bib_lifetime"] as const) {
+  for (const [publicMetadata, privateMetadata] of [[{}, {}], [{ plan: "free" }, {}], [{ plan: "barrel_monthly", membershipStatus: "trialing" }, { membershipTrialStartedAt: "2026-08-16" }]]) {
+    assert.deepEqual(membershipTrialEligibility(plan, publicMetadata, privateMetadata), { eligible: false, reason: "trials_ended" });
+  }
+}
 assert.deepEqual(membershipTrialMetadata({
   status: "trialing",
   plan: "barrel_monthly",
@@ -96,9 +99,8 @@ const [checkout, membershipServer, pricing, welcome, catalog, trialSchema, trial
   readFile(new URL("../src/app/api/checkout/recover/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/membership-trial-stripe.ts", import.meta.url), "utf8"),
 ]);
-assert.match(checkout, /membershipTrialEligibility/);
-assert.match(checkout, /trial_period_days:\s*MONTHLY_MEMBERSHIP_TRIAL_DAYS/);
-assert.match(checkout, /trial_settings:[\s\S]*missing_payment_method:[\s\S]*"cancel"/);
+assert.doesNotMatch(checkout, /membershipTrialEligibility/);
+assert.doesNotMatch(checkout, /trial_period_days|trial_settings/);
 assert.doesNotMatch(checkout, /payment_method_collection/, "Stripe Checkout should present payment collection without site-level card-required messaging");
 assert.match(membershipServer, /membershipTrialMetadata/);
 assert.match(membershipServer, /\.\.\.user\.privateMetadata,[\s\S]*stripeMembershipStatus: "canceled"/, "cancellation must preserve durable trial history");
@@ -116,7 +118,6 @@ assert.equal((webhook.match(/markCanceled\(subscription\.id, cancellationAt\)/g)
 assert.match(trialStripe, /const convertedClaim = await repository\.markConverted[\s\S]*if \(!convertedClaim\) return false[\s\S]*membershipTrialConversionMetadata/);
 assert.doesNotMatch(trialStripe, /input\.subscription\.status === "active"[\s\S]*markConverted/);
 assert.match(webhook, /retrieveCurrentSubscription\(stripe, eventSubscription\.id\)/, "subscription transitions must use current Stripe state");
-assert.match(continueCheckout, /trialOfferExpected[\s\S]*\/api\/membership-trial/, "post-sign-in checkout must recheck the advertised trial");
 assert.match(checkout, /trialOfferExpected/);
 assert.match(checkout, /hasActiveGiftMembership/, "active, unexpired gift memberships cannot create overlapping direct subscriptions");
 assert.match(checkout, /completedPaidSession[\s\S]*enforceMembershipSubscriptionActivation/);
@@ -127,14 +128,12 @@ assert.match(trialStripe, /stripe\.subscriptions\.cancel/);
 assert.doesNotMatch(trialStripe, /hasActiveGiftMembership\([^)]*observedAt/);
 assert.match(webhook, /durableClaim\.subscriptionId !== subscription\.id/);
 assert.doesNotMatch(pricing, /7 days free, then \$3\/month/);
-assert.match(pricing, /7 days free, then \$6\/month/);
-assert.match(pricing, /Start 7-day free trial/);
 assert.doesNotMatch(pricing, /Annual|annual|2 months free/);
 assert.doesNotMatch(pricing, /card required/i);
-assert.match(welcome, /Try Barrel Proof free for 7 days/);
-assert.match(welcome, /\$6\/month after 7 days/);
-assert.match(welcome, /Start 7-day free trial/);
 assert.doesNotMatch(welcome, /card required/i);
 assert.match(catalog, /tier:\s*"barrel"[\s\S]*featured:\s*true/);
 assert.doesNotMatch(catalog.slice(catalog.indexOf('tier: "standard"'), catalog.indexOf('tier: "barrel"')), /featured:\s*true/);
 console.log("Membership trial and conversion-copy contracts passed.");
+assert.match(checkout, /Free trials have ended/);
+assert.match(continueCheckout, /Free trials have ended/);
+assert.doesNotMatch(pricing + welcome, /7 days free|Start 7-day free trial|trialOffer=1/);

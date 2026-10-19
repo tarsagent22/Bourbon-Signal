@@ -271,7 +271,6 @@ assert.deepEqual(vercel.crons, [
   { path: "/api/alerts/deliver?cron=v3", schedule: "*/5 * * * *" },
   { path: "/api/member-weekly-intelligence/deliver?cron=v1", schedule: "0 14 * * 4" },
   { path: "/api/member-weekly-intelligence/deliver?rescue=1&live=1&cron=retention-v1", schedule: "0 14 * * *" },
-  { path: "/api/free-member-day-two/deliver?live=1&cron=v1", schedule: "0 * * * *" },
   { path: "/api/gifts/deliver?live=1&cron=v1", schedule: "0 * * * *" },
   { path: "/api/account-deletion/cleanup", schedule: "15 3 * * *" },
   { path: "/api/ops/pricing-health", schedule: "45 12 * * *" },

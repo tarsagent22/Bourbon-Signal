@@ -12,8 +12,7 @@ import { activateMembership } from "@/lib/membership-server";
 import { reconcileReferredMembership } from "@/lib/referral-service";
 import { mergeGrowthMilestoneMetadata, normalizeCheckoutSource } from "@/lib/growth-events";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
-import { hasActiveGiftMembership, membershipTrialEligibility, MONTHLY_MEMBERSHIP_TRIAL_DAYS } from "@/lib/membership-trial";
-import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
+import { hasActiveGiftMembership } from "@/lib/membership-trial";
 import { enforceMembershipSubscriptionActivation } from "@/lib/membership-trial-stripe";
 import { isPublicCheckoutPlanId } from "@/lib/membership-plan-catalog";
 import {
@@ -140,12 +139,15 @@ export async function POST(req: NextRequest) {
     trialOfferExpected?: boolean;
   };
   const source = normalizeCheckoutSource(body.source);
+  if (body.trialOfferExpected) {
+    return NextResponse.json({ error: "Free trials have ended. Return to pricing to review the paid membership options." }, { status: 409 });
+  }
   const planId = normalizeBillingPlan(body.plan);
   if (!planId) {
     return NextResponse.json({ error: "Choose a valid Bourbon Signal membership plan." }, { status: 400 });
   }
   if (!isPublicCheckoutPlanId(String(planId) as BillingPlanId)) {
-    return NextResponse.json({ error: "This plan is no longer available. Choose Barrel Proof for $6/month. Existing memberships keep their billing terms." }, { status: 410 });
+    return NextResponse.json({ error: "This plan is no longer available. Choose Barrel Proof for $6/month or Founder for $50 once. Existing memberships keep their billing terms." }, { status: 410 });
   }
 
   const plan = LAUNCH_BILLING_PLANS[planId];
@@ -188,26 +190,6 @@ export async function POST(req: NextRequest) {
   if (hasActiveGiftMembership(user.publicMetadata as Record<string, unknown>)) {
     return NextResponse.json({ error: "Your active gift membership already includes paid access. Choose a plan after the gift period ends." }, { status: 409 });
   }
-  let trialEligibility = membershipTrialEligibility(
-    planId,
-    user.publicMetadata as Record<string, unknown>,
-    user.privateMetadata as Record<string, unknown>,
-  );
-  if (trialEligibility.eligible) {
-    try {
-      const durableClaim = await getMembershipTrialRepository().findByUserId(userId);
-      if (durableClaim) trialEligibility = { eligible: false, reason: "trial_used" };
-    } catch (error) {
-      console.error("membership trial eligibility storage failed", { userId, error });
-      return NextResponse.json({ error: "Checkout is temporarily unavailable. You have not been charged." }, { status: 503 });
-    }
-  }
-  if (body.trialOfferExpected && !trialEligibility.eligible) {
-    return NextResponse.json(
-      { error: "The trial is not available for this account. Return to pricing to choose a paid plan." },
-      { status: 409 },
-    );
-  }
   if (TIER_RANK[currentTier] >= TIER_RANK[plan.tier]) {
     return NextResponse.json({ error: "Your current Bourbon Signal membership already includes this level." }, { status: 409 });
   }
@@ -243,7 +225,7 @@ export async function POST(req: NextRequest) {
 
   const reusableSession = planId === "bib_lifetime"
     ? null
-    : await findReusableCheckoutSession(stripe, userId, planId, priceId, trialEligibility.eligible);
+    : await findReusableCheckoutSession(stripe, userId, planId, priceId, false);
   const skipCompletedRecovery = hasCanceledFreeMembershipHold(user.publicMetadata);
   if (reusableSession) {
     await recordCheckoutStarted(client, userId, user.privateMetadata as Record<string, unknown>);
@@ -354,7 +336,7 @@ export async function POST(req: NextRequest) {
     plan: plan.id,
     source: "bourbon_signal_launch",
     attributionSurface: source,
-    trial_offer: trialEligibility.eligible ? "monthly_7_day_v1" : "none",
+    trial_offer: "none",
     ...(founderReservation ? {
       founder_checkout_attempt_id: founderReservation.attemptId,
       founder_entitlement_version: founderReservation.entitlementVersion,
@@ -375,10 +357,6 @@ export async function POST(req: NextRequest) {
   if (plan.stripeMode === "subscription") {
     sessionConfig.subscription_data = {
       metadata,
-      ...(trialEligibility.eligible ? {
-        trial_period_days: MONTHLY_MEMBERSHIP_TRIAL_DAYS,
-        trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
-      } : {}),
     };
   } else {
     sessionConfig.payment_intent_data = { metadata };
