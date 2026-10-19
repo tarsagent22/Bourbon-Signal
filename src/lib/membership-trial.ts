@@ -49,6 +49,17 @@ export function membershipTrialEligibility(
   return { eligible: false, reason: "trials_ended" };
 }
 
+export function hasMembershipPurchaseHistory(publicMetadata: Metadata, privateMetadata: Metadata) {
+  if (text(privateMetadata, "membershipTrialStartedAt")
+    || text(privateMetadata, "membershipTrialSubscriptionId")
+    || text(privateMetadata, "stripeSubscriptionId")) return true;
+  const plan = text(publicMetadata, "plan") || text(publicMetadata, "billingPlan");
+  if (["bib_lifetime", "lifetime"].includes(plan)) return true;
+  const status = text(publicMetadata, "membershipStatus").toLowerCase();
+  return ["standard_monthly", "standard_annual", "barrel_monthly", "barrel_annual"].includes(plan)
+    && ["active", "trialing", "past_due", "unpaid", "canceled", "incomplete", "incomplete_expired"].includes(status);
+}
+
 export function membershipTrialMetadata(input: {
   status: string | null | undefined;
   plan: BillingPlanId;

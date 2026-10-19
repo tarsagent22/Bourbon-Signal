@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
   hasActiveGiftMembership,
+  hasMembershipPurchaseHistory,
   membershipTrialConversionMetadata,
   membershipTrialEligibility,
   membershipTrialMetadata,
@@ -10,6 +11,14 @@ import {
 } from "../src/lib/membership-trial.ts";
 
 assert.equal(MONTHLY_MEMBERSHIP_TRIAL_DAYS, 7);
+assert.equal(hasMembershipPurchaseHistory({ tier: "free" }, {}), false);
+for (const privateMetadata of [{ membershipTrialStartedAt: "2026-08-16" }, { membershipTrialSubscriptionId: "sub_trial" }, { stripeSubscriptionId: "sub_paid" }]) {
+  assert.equal(hasMembershipPurchaseHistory({ tier: "free" }, privateMetadata), true);
+}
+for (const status of ["active", "trialing", "past_due", "unpaid", "canceled", "incomplete", "incomplete_expired"]) {
+  assert.equal(hasMembershipPurchaseHistory({ billingPlan: "barrel_monthly", membershipStatus: status }, {}), true);
+}
+assert.equal(hasMembershipPurchaseHistory({ plan: "bib_lifetime" }, {}), true);
 assert.equal(hasActiveGiftMembership({ plan: "gift_standard_annual", membershipStatus: "active", giftAccessExpiresAt: "2026-08-20T00:00:00.000Z" }, new Date("2026-08-19T00:00:00.000Z")), true);
 assert.equal(hasActiveGiftMembership({ plan: "gift_standard_annual", membershipStatus: "active", giftAccessExpiresAt: "2026-08-18T00:00:00.000Z" }, new Date("2026-08-19T00:00:00.000Z")), false);
 assert.equal(hasActiveGiftMembership({ plan: "bib_lifetime", membershipStatus: "active", giftOrderId: "gift_123" }), true);
