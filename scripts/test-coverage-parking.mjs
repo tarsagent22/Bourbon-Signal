@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { createCoverageLease, coverageLeaseMarker, readCoverageLease, assertCoverageMergeLease, validateCoverageReadiness } from '../automation/bourbon-signal/coverage-release-policy.mjs';
 import { parkExpiredCoveragePulls } from './park-expired-coverage-prs.mjs';
 import { parkCoverageRequest } from '../automation/bourbon-signal/coverage-parking.mjs';
+import { prioritizeParkedJobs } from '../automation/bourbon-signal/coverage-nightly-policy.mjs';
 
 const jobKey = 'coverage-request:22222222-2222-4222-8222-222222222222:abcdef0123456789';
 const threadId = '11111111-1111-4111-8111-111111111111';
@@ -14,6 +15,7 @@ const taskId = 'cx_' + 'a'.repeat(32);
 const identity = { jobKey, taskId, headRef: 'coverage/fixture', headSha: 'b'.repeat(40), mainSha: 'c'.repeat(40) };
 const now = new Date('2026-10-18T09:00:00Z'); // 5 a.m. EDT
 const lease = createCoverageLease({ ...identity, now });
+assert.deepEqual(prioritizeParkedJobs([{ jobKey: 'old', status: 'queued' }, { jobKey: 'parked', status: 'queued' }, { jobKey: 'live', status: 'running' }], new Set(['parked'])).map(job => job.jobKey), ['live', 'parked', 'old'], 'Resume live and preserved release work before starting new research.');
 assert.equal(lease.expiresAt, '2026-10-18T10:00:00.000Z');
 assert.throws(() => createCoverageLease({ ...identity, now: new Date('2026-10-18T10:00:01Z') }), /full hour/);
 assert.throws(() => createCoverageLease({ ...identity, now: new Date('2026-10-18T03:00:00Z') }), /full hour/);

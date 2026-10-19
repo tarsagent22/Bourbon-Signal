@@ -5,7 +5,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { normalizeJob, normalizeTaskTerminalResult, terminalResultForDelivery } from './coverage-result-contract.mjs';
-import { groupNightlyJobs, nightlyDate, nightlyBudget, nextNightlyJob } from './coverage-nightly-policy.mjs';
+import { groupNightlyJobs, prioritizeParkedJobs, nightlyDate, nightlyBudget, nextNightlyJob } from './coverage-nightly-policy.mjs';
 
 const SCHEMA = 'bourbon-signal/coverage-expansion-result@2';
 const BASE = 'https://www.bourbonsignal.com';
@@ -239,8 +239,15 @@ export async function startCoverageNight() {
     return { ...ledger, budget: nightlyBudget(ledger) };
   }
   const jobs = await listCoverageJobs();
+  const parkedJobKeys = new Set();
+  for (const job of jobs) {
+    let context;
+    try { context = await readJson(contextPath(job.jobKey)); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (context?.threadId === settings.threadId && context.status === 'deferred' && context.progress?.stage === 'parked'
+      && context.job?.requestVersion === job.requestVersion) parkedJobKeys.add(job.jobKey);
+  }
   ledger = { schemaVersion: 1, threadId: settings.threadId, date: nightlyDate(), startedAt: new Date().toISOString(),
-    groups: groupNightlyJobs(jobs), entries: {}, snapshotCount: jobs.length };
+    groups: groupNightlyJobs(prioritizeParkedJobs(jobs, parkedJobKeys)), entries: {}, snapshotCount: jobs.length };
   await atomicJson(nightlyPath(), ledger);
   return { ...ledger, budget: nightlyBudget(ledger) };
 }
