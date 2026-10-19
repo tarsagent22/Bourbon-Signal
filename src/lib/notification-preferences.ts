@@ -82,6 +82,11 @@ export interface MemberAlertRecord {
   eventType: string;
   rarityTier: string | null;
   quantity: number | null;
+  quantityEstimate?: string;
+  price?: number | null;
+  storeCity?: string;
+  storeName?: string;
+  allBottlesAllocated?: boolean;
   score: number;
   priorityClass: "major" | "standard";
   signalAt?: string;

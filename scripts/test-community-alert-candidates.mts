@@ -34,6 +34,13 @@ const input = (sighting = valid(), overrides: Partial<CommunityAlertSightingInpu
   ...overrides,
 });
 
+test("qualified Community candidates retain the reported quantity, price and city for push copy", () => {
+  const [candidate] = buildCommunityAlertCandidates([input(valid({ quantityEstimate: "4", price: 95 }))], now, canonicalStores);
+  assert.equal(candidate?.quantityEstimate, "4");
+  assert.equal(candidate?.price, 95);
+  assert.equal(candidate?.storeCity, "Miami");
+});
+
 test("only strict current exact-store community sightings qualify", () => {
   assert.equal(qualifyCommunitySighting(input(), now, canonicalStores).qualified, true);
   for (const sighting of [

@@ -1,3 +1,5 @@
+import { buildPushPreview, notificationBottleNames, type PushReportDetails } from "./push-copy.ts";
+
 export type PushPlatform = "ios" | "android";
 
 export interface PushDeviceRecord {
@@ -15,6 +17,7 @@ export interface ExpoPushMessage {
   dedupeKey: string;
   // Server-only input for the visible preview. Never put these names in routing data.
   bottleNames?: string[];
+  reportDetails?: PushReportDetails;
   to: string;
   sound: "default";
   title: string;
@@ -98,40 +101,25 @@ export function pushPreferenceProjectionAllowsDelivery(input: unknown) {
   return projection?.status !== "pending";
 }
 
-function pushDisplayText(input: unknown, limit: number) {
-  const text = typeof input === "string" ? input.replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g, " ").replace(/\s+/g, " ").trim() : "";
-  const characters = Array.from(text);
-  return characters.length > limit ? `${characters.slice(0, limit - 1).join("")}…` : text;
-}
-
-function notificationBottleNames(input: unknown): string[] {
-  const names: string[] = [];
-  const seen = new Set<string>();
-  for (const raw of Array.isArray(input) ? input : []) {
-    const name = pushDisplayText(raw, 100);
-    const key = name.toLocaleLowerCase("en-US");
-    if (name && !seen.has(key)) { names.push(name); seen.add(key); }
-  }
-  return names;
-}
-
-function pushPreview(names: string[]) {
-  if (!names.length) return { title: "Bourbon Signal", body: "Open Radar to check your latest matches." };
-  if (names.length === 1) return { title: names[0]!, body: "New Radar match. Open to view the report." };
-  const summary = names.slice(0, 2).map(name => pushDisplayText(name, 65)).join(" · ");
-  return { title: `${names.length} bottles matched your Radar`, body: `${summary}${names.length > 2 ? ` · +${names.length - 2} more` : ""}` };
-}
-
-export function buildExpoPushMessages(tokens: string[], alert: { id: string; bottleName: string; bottleNames?: string[]; storeLabel: string; matchedArea: string }): ExpoPushMessage[] {
+export function buildExpoPushMessages(tokens: string[], alert: PushReportDetails & { id: string; bottleName: string; bottleNames?: string[]; storeName?: string }): ExpoPushMessage[] {
   const bottleNames = notificationBottleNames(alert.bottleNames?.length ? alert.bottleNames : [alert.bottleName]);
   if (!bottleNames.length) bottleNames.push(...notificationBottleNames([alert.bottleName]));
-  const preview = pushPreview(bottleNames);
+  const reportDetails: PushReportDetails = {
+    sourceType: alert.sourceType, sourceLabel: alert.sourceLabel,
+    storeLabel: alert.storeName || alert.storeLabel, storeCity: alert.storeCity, state: alert.state,
+    matchedArea: alert.matchedArea, quantity: alert.quantity,
+    quantityEstimate: alert.quantityEstimate, price: alert.price,
+    allBottlesAllocated: alert.allBottlesAllocated,
+  };
+  const preview = buildPushPreview(alert.id, bottleNames, reportDetails);
   // Bottle names are intentionally visible in notification previews. OS/provider
   // queues can outlive logout; taps still resolve only the authenticated inbox.
-  // Store, area, account, dedupe identity, and the server-only names array stay off the wire.
+  // Public report locations are now intentional visible copy. Account identity,
+  // dedupe identity and raw report inputs never enter routing data or the wire.
   return Array.from(new Set(tokens.filter(validExpoPushToken))).map((to) => ({
     dedupeKey: alert.id,
     bottleNames,
+    reportDetails,
     to,
     sound: "default",
     ...preview,
@@ -149,7 +137,7 @@ export async function sendExpoPushMessages(messages: ExpoPushMessage[], fetcher:
   for (let index = 0; index < messages.length; index += 100) {
     const chunk = messages.slice(index, index + 100);
     // Allowlist wire fields: internal dedupe identity must never reach an OS queue.
-    const payloadMessages = chunk.map(({ to, sound, priority, data, bottleNames }) => ({ to, sound, priority, ...pushPreview(notificationBottleNames(bottleNames)), data: { screen: "radar", alertId: data.alertId } }));
+    const payloadMessages = chunk.map(({ to, sound, priority, data, bottleNames, reportDetails }) => ({ to, sound, priority, ...buildPushPreview(data.alertId, bottleNames, reportDetails), data: { screen: "radar", alertId: data.alertId } }));
     const response = await fetcher(EXPO_PUSH_ENDPOINT, { method: "POST", headers: expoHeaders(), body: JSON.stringify(payloadMessages) });
     if (!response.ok) throw new Error(`Expo push request failed (${response.status}).`);
     const payload = (await response.json().catch(() => ({}))) as { data?: Array<{ status?: string; id?: string; details?: { error?: string } }> };
