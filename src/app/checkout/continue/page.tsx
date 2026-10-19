@@ -8,6 +8,7 @@ import type { PublicCheckoutPlanId } from "@/lib/membership-plan-catalog";
 
 const VALID_PLANS: PublicCheckoutPlanId[] = [
   "barrel_monthly",
+  "bib_lifetime",
 ];
 
 function normalizePlan(value: string | null): PublicCheckoutPlanId | null {
@@ -32,6 +33,10 @@ function ContinueCheckoutContent() {
   const trialOfferExpected = searchParams.get("trialOffer") === "1";
 
   useEffect(() => {
+    if (trialOfferExpected) {
+      setError("Free trials have ended. Return to pricing to review the paid membership options.");
+      return;
+    }
     if (!plan) {
       router.replace("/pricing");
       return;
@@ -58,18 +63,6 @@ function ContinueCheckoutContent() {
       try {
         if (shouldRecordRegistration) {
           await recordGrowthMilestone("registration_completed", { surface: "sign_up" });
-        }
-        if (trialOfferExpected && (plan === "barrel_monthly")) {
-          const eligibilityResponse = await fetch("/api/membership-trial", { cache: "no-store" });
-          const eligibility = await eligibilityResponse.json() as {
-            standardMonthly?: { eligible?: boolean };
-            barrelMonthly?: { eligible?: boolean };
-            error?: string;
-          };
-          const eligible = eligibility.barrelMonthly?.eligible === true;
-          if (!eligibilityResponse.ok || !eligible) {
-            throw new Error(eligibility.error || "This trial is not available for this account. Return to pricing to choose a regular plan.");
-          }
         }
         const res = await fetch("/api/checkout", {
           method: "POST",

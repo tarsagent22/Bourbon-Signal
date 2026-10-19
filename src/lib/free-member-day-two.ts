@@ -1,14 +1,13 @@
 import { timingSafeEqual } from "node:crypto";
 import { getEntitlements } from "./entitlements";
 import { masterUnsubscribed } from "./member-weekly-delivery";
-import { membershipTrialEligibility } from "./membership-trial";
 
 export const FREE_MEMBER_DAY_TWO_CAMPAIGN_ID = "free-member-day-two-trial-v2";
 export const FREE_MEMBER_DAY_TWO_SUBJECT = "Try Bourbon Signal free for 7 days";
 export const FREE_MEMBER_DAY_TWO_PREHEADER = "Try the full Drop Feed, personalized alerts, watchlists, and member tools free for 7 days.";
-// Copy approved after Gmail-draft review and local desktop/mobile rendering. Runtime flags,
-// suppression, current eligibility, and idempotency still gate every live provider call.
-export const FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED = true;
+// Retired with new seven-day trials. Historical copy and delivery records remain
+// available for audit; runtime flags cannot reactivate this trial campaign.
+export const FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED = false;
 
 export interface FreeMemberDayTwoUser {
   id: string;
@@ -92,7 +91,7 @@ export function evaluateFreeMemberDayTwoCandidate(input: {
   const privateMetadata = record(input.user.privateMetadata);
   const unsafeMetadata = record(input.user.unsafeMetadata);
   if (getEntitlements(publicMetadata).tier !== "free") return "skipped_not_free";
-  if (!membershipTrialEligibility("barrel_monthly", publicMetadata, privateMetadata).eligible) {
+  if (privateMetadata.membershipTrialStartedAt || privateMetadata.membershipTrialSubscriptionId || privateMetadata.stripeSubscriptionId) {
     return "skipped_trial_or_paid_history";
   }
   if (input.user.banned || input.user.locked) return "skipped_disabled_account";

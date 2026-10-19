@@ -17,10 +17,10 @@ import { CORE_PAID_MEMBERSHIP_PLANS, PAID_MEMBERSHIP_PLANS } from "../src/lib/me
 async function main() {
 assert.equal(FREE_MEMBER_DAY_TWO_CAMPAIGN_ID, "free-member-day-two-trial-v2");
 assert.equal(FREE_MEMBER_DAY_TWO_SUBJECT, "Try Bourbon Signal free for 7 days");
-assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, true, "approved trial email must support guarded live delivery");
+assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, false, "the retired trial campaign cannot send even if old flags remain enabled");
 assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["barrel"]);
 assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice]), [["$6"]]);
-assert.equal(PAID_MEMBERSHIP_PLANS.length, 1, "pricing page keeps the separate conditional Founder offer");
+assert.equal(PAID_MEMBERSHIP_PLANS.length, 2, "website sales include monthly and Founder memberships");
 
 const config = buildFreeMemberDayTwoConfig({
   FREE_MEMBER_DAY_TWO_EMAIL_KILL_SWITCH: "0",
@@ -29,7 +29,7 @@ const config = buildFreeMemberDayTwoConfig({
   RESEND_DIGEST_AUDIENCE_ID: "audience",
 } as unknown as NodeJS.ProcessEnv);
 assert.deepEqual(resolveFreeMemberDayTwoDeliveryMode({ requestLive: false, config }), { mode: "dry_run", reason: null });
-assert.deepEqual(resolveFreeMemberDayTwoDeliveryMode({ requestLive: true, config }), { mode: "live", reason: null });
+assert.deepEqual(resolveFreeMemberDayTwoDeliveryMode({ requestLive: true, config }), { mode: "blocked", reason: "live_not_supported" });
 
 const dualSecretEnv = {
   FREE_MEMBER_DAY_TWO_DELIVERY_SECRET: "manual-secret",
@@ -143,7 +143,7 @@ assert.doesNotMatch(pricingSource, /monthlyPrice:\s*"\$2\.99"/, "pricing and ema
 assert.match(routeSource, /assertFreeMemberDayTwoDeliveryAuthorized/);
 assert.match(middlewareSource, /\/api\/free-member-day-two\/deliver/);
 const vercelConfig = JSON.parse(vercelSource) as { crons?: Array<{ path?: string; schedule?: string }> };
-assert.ok(vercelConfig.crons?.some((cron) => cron.path === "/api/free-member-day-two/deliver?live=1&cron=v1" && cron.schedule === "0 * * * *"), "approved 24-hour lifecycle delivery must run hourly");
+assert.ok(!vercelConfig.crons?.some((cron) => cron.path?.startsWith("/api/free-member-day-two/deliver")), "the retired trial campaign is no longer scheduled");
 assert.match(layoutSource, /LifecycleTimeZoneCapture/);
 for (const invariant of ["useUser", "Intl.DateTimeFormat", "/api/user/time-zone", "sessionStorage", "response.ok"]) {
   assert.match(timeZoneCaptureSource, new RegExp(invariant.replaceAll("/", "\\/")), `global timezone capture must include ${invariant}`);

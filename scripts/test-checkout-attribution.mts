@@ -19,7 +19,7 @@ assert.match(pricingPage, /Resume checkout/);
 assert.match(pricingPage, /Continue with Free/);
 assert.match(pricingPage, /Continue with current plan/);
 assert.match(pricingPage, /isLoaded && params.has\("canceled"\)/);
-assert.match(pricingPage, /disabled=\{pending \|\| paid\}/);
+assert.match(pricingPage, /canceledPlan === "bib_lifetime" \? alreadyFounder : paid/);
 assert.match(pricingPage, /inFlight.current/);
 assert.match(pricingPage, /params.get\("checkout"\) === "barrel_monthly"/);
 assert.doesNotMatch(pricingPage, /useEffect\([^;]*params.get\("canceled"\)/);

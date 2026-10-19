@@ -1,6 +1,6 @@
 import type { BillingPlanId, MembershipTier } from "./entitlements";
 
-export type PublicCheckoutPlanId = "barrel_monthly";
+export type PublicCheckoutPlanId = "barrel_monthly" | "bib_lifetime";
 
 export type PaidMembershipPlan = {
   tier: Exclude<MembershipTier, "free">;
@@ -38,12 +38,24 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
     evergreenEmailEligible: true,
   },
 
+  {
+    tier: "bottled-in-bond",
+    name: "Founder",
+    eyebrow: "Lifetime membership",
+    oneTimePrice: "$50",
+    plan: "bib_lifetime",
+    description: "Every paid feature for life, with permanent Founder recognition.",
+    features: ["Everything in Barrel Proof for life", "No recurring membership charge", "Founder badge and number", "Numbered Founder’s glass", "Limited to 100 memberships"],
+    accent: "founder",
+    evergreenEmailEligible: false,
+  },
 ];
 
 export const CORE_PAID_MEMBERSHIP_PLANS = PAID_MEMBERSHIP_PLANS.filter((plan) => plan.evergreenEmailEligible);
 
 export const CHECKOUT_PLAN_TIERS: Record<PublicCheckoutPlanId, MembershipTier> = {
   barrel_monthly: "barrel",
+  bib_lifetime: "bottled-in-bond",
 };
 
 export function isPublicCheckoutPlanId(planId: BillingPlanId): planId is PublicCheckoutPlanId {

@@ -24,5 +24,6 @@ test("a failed photo upload retries against the existing sighting without repost
   assert.match(journal, /result\.sighting\.id/);
   assert.match(post, /journal\.prepare\(built.payload, requestBinding.key, retained\)/);
   assert.match(post, /Retry photo/);
-  assert.doesNotMatch(post, /Finish without photo|finishWithoutPhoto|api\.discardSightingPhoto/, "post-submit evidence stays in retry or recovery until one photo is attached");
+  assert.match(post, /Keep Signal, stop photo retry/);
+  assert.match(post, /journal\.finishWithoutPhoto\(api\)/);
 });

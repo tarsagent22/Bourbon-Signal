@@ -88,6 +88,8 @@ function pricingFaqItems(_options: FaqOptions): FaqItem[] {
     { question: "What does Barrel Proof include?", answer: "Barrel Proof is $6/month and includes every paid feature: the full Intel feed, unlimited alert areas and watched bottles, push and Community alerts, advanced filters and bottle search, unlimited My Shelf, Bourbon DNA, recommendations, and Signal Points redemption." },
     { question: "What happens to my Standard Proof membership?", answer: "Existing Standard Proof members receive every Barrel Proof feature automatically. Existing $3/month Stripe subscriptions keep that rate while the subscription continues. After it ends, a new subscription uses the current $6/month price." },
     { question: "What happens to existing Founder memberships?", answer: "Existing Founder memberships keep full lifetime access, Founder recognition, and their member number. No recurring subscription is required." },
+    { question: "Can I become a Founder?", answer: "Founder is $50 once for every paid feature for life, Founder recognition and a numbered Founder’s glass. Membership is limited to 100, with availability confirmed at checkout. If you already have a subscription, manage its cancellation separately." },
+    { question: "Is there a free trial?", answer: "New paid memberships do not include a free trial. You can use the Free membership without subscribing. Trials already started keep their original terms." },
     { question: "How do I cancel?", answer: "Manage your membership in your account through the provider that bills you. Cancellation stops future renewals. Full access continues through the period already paid for, then the account returns to Free. Existing collection entries remain available." },
   ];
 }
