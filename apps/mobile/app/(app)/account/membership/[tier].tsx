@@ -97,6 +97,7 @@ export default function MembershipPlanScreen() {
 
   async function restorePurchases() {
     if (!canRestore) return;
+    setShowPurchaseStatus(true);
     setError("");
     try {
       await purchases.restore();
@@ -130,7 +131,7 @@ export default function MembershipPlanScreen() {
   const purchaseAccessibilityLabel = storeProduct && canPurchase
     ? `Purchase ${plan.name} for ${storeProduct.localizedPrice} per ${storeProduct.localizedPeriod}`
     : purchaseButtonLabel;
-  const statusBody = isCurrentOrIncluded
+  const statusBody = showPurchaseStatus && !purchaseBusy ? purchases.message : isCurrentOrIncluded
     ? "These benefits are already included with your membership."
     : isFree
       ? "Free membership is included with every Bourbon Signal account."
@@ -163,7 +164,7 @@ export default function MembershipPlanScreen() {
       <Text style={styles.renewal}>{renewalCopy}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={purchaseAccessibilityLabel} accessibilityState={{ disabled: !canPurchase && !canCheckOptions, busy: purchaseBusy }} disabled={!canPurchase && !canCheckOptions} onPress={() => void buy()} style={[styles.purchaseButton, !canPurchase && !canCheckOptions && styles.disabledButton]}><Text style={styles.purchaseButtonText}>{purchaseButtonLabel}</Text></Pressable>
       {!isFree && !isFounder ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: !canRestore, busy: purchases.status === "restoring" }} disabled={!canRestore} onPress={() => void restorePurchases()} style={[styles.restoreButton, !canRestore && styles.restoreDisabled]}><Text style={styles.restoreText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
-      {(showPurchaseStatus && purchases.status !== "ready") || purchases.status === "pending" || purchases.status === "cancelled" || isCurrentOrIncluded ? <View style={styles.inlineStatus}>
+      {showPurchaseStatus || purchases.status === "pending" || purchases.status === "cancelled" || isCurrentOrIncluded ? <View style={styles.inlineStatus}>
         <Text accessibilityRole={purchases.status === "error" || purchases.status === "pending" ? "alert" : undefined} style={styles.statusBody}>{statusBody}</Text>
         {purchases.status !== "ready" && !purchaseBusy && !isFree && !isFounder ? <Pressable accessibilityRole="button" onPress={() => void purchases.refresh()} style={styles.refreshButton}><Text style={styles.refreshText}>Refresh purchase status</Text></Pressable> : null}
       </View> : null}
