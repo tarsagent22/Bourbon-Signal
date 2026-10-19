@@ -103,7 +103,7 @@
     "operator:findings": "node scripts/operator-findings.mjs",
     "operator:objective": "python scripts/run-with-release-lane-lock.py -- node scripts/operator-objective.mjs",
     "verify:release-lane": "node scripts/verify-release-lane.mjs",
-    "test:release-lane": "node scripts/test-release-lane-policy.mjs && python scripts/test_release_lane_lock.py && python scripts/test_autonomous_operator_wrapper.py",
+    "test:release-lane": "node scripts/test-release-lane-policy.mjs && node scripts/test-coverage-parking.mjs && python scripts/test_release_lane_lock.py && python scripts/test_autonomous_operator_wrapper.py",
     "test:operator-backbone": "node --no-warnings --experimental-strip-types scripts/test-operator-backbone.mjs && node scripts/test-operator-objective.mjs && node scripts/test-daily-reliability-live-stats.mjs && npm run test:release-lane",
     "test:production-checks": "node --test scripts/test-production-checks.mjs scripts/test-production-verifier-runtime.mjs scripts/test-engine-monitor.mjs && tsx scripts/test-production-regression-drop-policy.mjs",
     "test:company-scorecard-feed": "node --no-warnings --experimental-strip-types scripts/test-company-scorecard-feed.mts",

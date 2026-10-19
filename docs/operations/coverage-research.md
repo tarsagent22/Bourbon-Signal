@@ -16,7 +16,21 @@ To move past unfinished research with no open PR, use the shared writer lock:
 
     C:/Users/chand/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe scripts/run-with-release-lane-lock.py -- node automation/bourbon-signal/codex-coverage.mjs defer <jobKey> research_budget
 
-Other allowed reasons are `source_wait`, `verification_wait`, and `night_window_ended`. Deferral keeps the member request open, preserves job/version/history, and skips it for the rest of that night. An open release PR must retain its active authority and cannot be deferred to claim unrelated work. Save its worktree, PR, head, CI and refresh run in `.operator/coverage-active-attempt.json`; resume it next night. Research other snapshot targets read-only while the release lane is occupied, without claiming or creating a second PR.
+Other allowed reasons are `source_wait`, `verification_wait`, and `night_window_ended`. Deferral keeps the member request open, preserves job/version/history, and skips it for the rest of that night. Never defer an open PR directly: park the unmerged PR first as described below. Merged changes and active publication retain their protection until reconciled; research other targets read-only during that stage.
+
+### Prepare, reserve, and park
+
+Research, implementation, passing local tests, independent review and production-runner source preflight happen in an isolated branch/worktree before admission. Coverage admission requires an empty objective lane; coverage bindings provide the temporary reservation. Save a repository-relative, ignored readiness JSON file with `schemaVersion: 1`, the exact `headSha` and `mainSha`, `checkedAt`, `localChecks: { passed: true }`, `review: { approved: true }`, and `sourcePreflight: { verified: true, checkedAt: <ISO timestamp> }`. Record only checks actually completed. Both timestamps must be within the preceding hour. Save the detailed review and source evidence alongside it.
+
+The guard creates an explicit one-hour lease in the private binding and public PR body. Admission needs at least an hour before 7 a.m. Eastern; merge fails after expiry or outside 1–7 a.m. Rerunning admission cannot extend a pending lease. Before leaving a blocked or expired unmerged PR, write an ignored parking input JSON with `workspace`, `controllerRoot`, `pullRequest`, `expectedHead`, and `reason` (`night_window_ended`, `verification_wait`, or `source_wait`). Then run:
+
+    C:/Users/chand/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe scripts/run-with-release-lane-lock.py -- node automation/bourbon-signal/codex-coverage.mjs park <jobKey> <parking-input.json>
+
+Parking verifies the current thread and production authority, shared writer broker, private binding, exact clean local/remote branch and PR, and absence of a production workflow for that head. It saves a Git bundle and recovery journal, closes the unmerged PR without deleting its branch/worktree, verifies closure and branch preservation, then defers the same request and archives its binding. It refuses unrelated objective locks, merged work and active publication. A journal permits recovery after closure or deferral is interrupted. Parking is authorized cleanup outside the work window; it does not fulfill or fail the request.
+
+The existing ten-minute engine watchdog has an independent, secret-free parking job on trusted `main`. It closes only expired explicitly marked coverage PRs, preserves their remote branches, and leaves merged publications and active production workflows alone. GitHub scheduling can be delayed; expiry immediately forbids a guarded merge, while closure occurs on the next successful watchdog run. It never changes queue outcomes or uses private controller credentials. `next` returns `parking_required` when the owning controller must finish private recovery after remote cleanup.
+
+To resume, reclaim the same pending job/version, inspect its saved `parked` progress and worktree, reconcile current main without force-pushing, refresh source reachability and per-target customer baselines, rerun affected checks/review, and create a new PR through fresh admission. Do not reopen the old PR directly. No capability is copied into the readiness file, marker or recovery report.
 
 Compatible improvements for overlapping requests should share one integration/release. The release remains bound to its authenticated owning job. After verification and completion, claim the related requests sequentially and prove each exact target independently using their pre-release baselines and the same immutable production artifact. Do not manufacture a fresh release for a source already deployed. `complete-existing` still requires the server's target-level approval; county/store expansion still needs exact target evidence.
 
@@ -60,7 +74,7 @@ The standing authorization applies only to authenticated coverage work. The shar
 
 Before admission, save the reviewed PR body with the exact standalone line `Authority immutable job key: <jobKey>`. Run `verify-authority <jobKey> <taskId>`, then use:
 
-    python scripts/run-with-release-lane-lock.py -- node scripts/verify-release-lane.mjs --phase=admission --create-pr --push-head --expected-main=<sha> --expected-head=<sha> --head=<branch> --title=<title> --body-file=.operator/coverage-pr-body.md --job-key=<jobKey> --task-id=<taskId>
+    python scripts/run-with-release-lane-lock.py -- node scripts/verify-release-lane.mjs --phase=admission --create-pr --push-head --expected-main=<sha> --expected-head=<sha> --head=<branch> --title=<title> --body-file=.operator/coverage-pr-body.md --readiness-file=.operator/coverage-release-readiness.json --job-key=<jobKey> --task-id=<taskId>
 
 After creation, preserve published history. If main advances, merge current main into the branch and rerun checks and review. Use the same guarded merge with `--phase=merge --pr=<number> --expected-head=<sha> --task-id=<taskId> --apply` under the shared writer lock. A merge is not completion: run the targeted production refresh, hash its immutable artifact, and verify canonical coverage and the customer path for the requested geography.
 

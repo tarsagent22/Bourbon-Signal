@@ -16,6 +16,11 @@ export function groupNightlyJobs(jobs) {
   return [...groups.values()].sort((a, b) => Number(b.targets.some(job => job.status === 'running')) - Number(a.targets.some(job => job.status === 'running')));
 }
 
+export function prioritizeParkedJobs(jobs, parkedJobKeys) {
+  const priority = job => job.status === 'running' ? 0 : parkedJobKeys.has(job.jobKey) ? 1 : 2;
+  return [...jobs].sort((a, b) => priority(a) - priority(b));
+}
+
 export function nextNightlyJob(ledger) {
   const jobs = ledger.groups.flatMap(group => group.targets);
   return jobs.find(job => ledger.entries[job.jobKey]?.status === 'running')

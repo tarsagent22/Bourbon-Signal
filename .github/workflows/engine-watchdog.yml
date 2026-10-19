@@ -14,6 +14,28 @@ permissions:
   actions: write
 
 jobs:
+  park-expired-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Checkout trusted parking policy
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Preserve branches and close expired unmerged coverage PRs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/park-expired-coverage-prs.mjs
+
   verify-production:
     runs-on: ubuntu-latest
     timeout-minutes: 8
