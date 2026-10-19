@@ -5,7 +5,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { normalizeJob, normalizeTaskTerminalResult, terminalResultForDelivery } from './coverage-result-contract.mjs';
-import { groupNightlyJobs, nightlyDate, nightlyBudget, nextNightlyJob } from './coverage-nightly-policy.mjs';
+import { groupNightlyJobs, prioritizeParkedJobs, nightlyDate, nightlyBudget, nextNightlyJob } from './coverage-nightly-policy.mjs';
 
 const SCHEMA = 'bourbon-signal/coverage-expansion-result@2';
 const BASE = 'https://www.bourbonsignal.com';
@@ -239,8 +239,15 @@ export async function startCoverageNight() {
     return { ...ledger, budget: nightlyBudget(ledger) };
   }
   const jobs = await listCoverageJobs();
+  const parkedJobKeys = new Set();
+  for (const job of jobs) {
+    let context;
+    try { context = await readJson(contextPath(job.jobKey)); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (context?.threadId === settings.threadId && context.status === 'deferred' && context.progress?.stage === 'parked'
+      && context.job?.requestVersion === job.requestVersion) parkedJobKeys.add(job.jobKey);
+  }
   ledger = { schemaVersion: 1, threadId: settings.threadId, date: nightlyDate(), startedAt: new Date().toISOString(),
-    groups: groupNightlyJobs(jobs), entries: {}, snapshotCount: jobs.length };
+    groups: groupNightlyJobs(prioritizeParkedJobs(jobs, parkedJobKeys)), entries: {}, snapshotCount: jobs.length };
   await atomicJson(nightlyPath(), ledger);
   return { ...ledger, budget: nightlyBudget(ledger) };
 }
@@ -249,7 +256,11 @@ async function updateNightlyEntry(jobKey, changes) {
   let ledger;
   try { ledger = await readJson(nightlyPath()); } catch (error) { if (error.code === 'ENOENT') return; throw error; }
   await config();
-  if (ledger.threadId !== process.env.CODEX_THREAD_ID) throw new Error('Foreign nightly ledger.');
+  if (ledger.threadId !== process.env.CODEX_THREAD_ID) {
+    const context = await readJson(contextPath(jobKey));
+    if (context.threadId === process.env.CODEX_THREAD_ID && context.controllerTransfer?.previousThreadId === ledger.threadId) return; // Preserve the previous controller's dated history.
+    throw new Error('Foreign nightly ledger.');
+  }
   ledger.entries[jobKey] = { ...ledger.entries[jobKey], ...changes, updatedAt: new Date().toISOString() };
   await atomicJson(nightlyPath(), ledger);
 }
@@ -265,6 +276,8 @@ export async function nextCoverageNightJob(options = {}) {
     return { status: 'superseded', jobKey: job.jobKey };
   }
   if (result.status === 'running') {
+    const parking = await (await import('./coverage-parking.mjs')).coverageParkingRequirement(result.job.jobKey);
+    if (parking) return { status: 'parking_required', jobKey: result.job.jobKey, taskId: result.taskId, parking };
     const entry = ledger.entries[result.job.jobKey];
     const startedAt = entry?.startedAt || new Date().toISOString();
     await updateNightlyEntry(result.job.jobKey, { status: 'running', startedAt });
@@ -392,6 +405,7 @@ async function main() {
     else if (command === 'nightly') result = await startCoverageNight();
     else if (command === 'next') result = await nextCoverageNightJob();
     else if (command === 'defer') result = await deferCoverageRequest(jobKey, file);
+    else if (command === 'park') result = await (await import('./coverage-parking.mjs')).parkCoverageRequest(jobKey, await readJson(path.resolve(file)));
     else if (command === 'checkpoint') result = await checkpointCoverageRequest(jobKey, await readJson(path.resolve(file)));
     else if (command === 'reports') result = await prepareNightlyReports();
     else if (command === 'verify-authority') result = { authorized: await verifyAuthority(jobKey, file) };
@@ -399,7 +413,7 @@ async function main() {
     else if (command === 'complete-existing') result = await completeCoverageRequest(jobKey, null, true);
     else if (command === 'report') result = await prepareCoverageReport();
     else if (command === 'ack-report') result = await acknowledgeCoverageReport(jobKey, await readJson(path.resolve(file)));
-    else throw new Error('Use nightly, next, checkpoint, defer, reports, claim, verify-authority, complete, complete-existing, report, or ack-report.');
+    else throw new Error('Use nightly, next, checkpoint, defer, park, reports, claim, verify-authority, complete, complete-existing, report, or ack-report.');
     console.log(JSON.stringify(result));
   } finally { await release(); }
 }
