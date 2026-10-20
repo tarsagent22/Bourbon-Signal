@@ -14,7 +14,8 @@ test('MM-02 queued A notification after offline logout waits for authentication 
   const { push, events } = setup();
   const result = await push.signOutWithRadarPushDisabled({ disablePushDevice: async () => { throw new Error('offline'); }, clearReadCache() {} }, async () => { events.push('signed-out'); });
   assert.equal(result.pushDisabled, false); assert.ok(events.includes('signed-out'));
-  assert.deepEqual(queued, { to: 'ExpoPushToken[fixture-token-12345]', title: 'A-private-bottle', body: 'New Radar match. Open to view the report.', data: { screen: 'radar', alertId: 'A-private-id' }, sound: 'default', priority: 'high' });
+  assert.deepEqual(queued, { to: 'ExpoPushToken[fixture-token-12345]', title: 'Bourbon Signal detected A-private-bottle', body: 'A-private-area · Reported by A-private-store.', data: { screen: 'radar', alertId: 'A-private-id' }, sound: 'default', priority: 'high' });
+  assert.deepEqual(Object.keys(queued.data).sort(), ['alertId', 'screen'], 'public report copy stays out of member-bound routing data');
   const navigation = createPendingPushNavigation();
   navigation.receive('queued-A-os-request', queued.data);
   assert.equal(navigation.take(false, true), null, 'locked UI must not fetch or show A details');

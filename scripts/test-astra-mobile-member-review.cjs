@@ -101,10 +101,10 @@ test('MM-02 independent builder/provider probe: bottle previews retain only a us
     { screen: 'radar', alertId: 'alert_B_private' },
     { screen: 'radar', alertId: 'Legacy-private-alert' },
   ]);
-  assert.deepEqual(payloads.map(payload => payload.title), ['Account A bottle', 'Account B bottle', 'Account A bottle']);
-  for (const payload of payloads) {
-    assert.equal(payload.body, 'New Radar match. Open to view the report.');
-    assert.doesNotMatch(JSON.stringify(payload), /Account [AB] store|Account [AB] area|Legacy private|userId|bottleNames/);
+  for (const [index, payload] of payloads.entries()) {
+    assert.match(payload.title, index === 1 ? /Account B bottle/ : /Account A bottle/);
+    assert.ok(payload.body.endsWith(index === 1 ? 'Reported by Account B store.' : 'Reported by Account A store.'));
+    assert.doesNotMatch(JSON.stringify(payload), /Legacy private|userId|bottleNames|reportDetails/);
   }
   // Preserve the integrated outbox classifier: ambiguous tickets must never turn
   // into known rejection/retry, while explicit tickets retain their bookkeeping.

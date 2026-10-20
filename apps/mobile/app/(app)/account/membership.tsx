@@ -89,7 +89,7 @@ export default function MembershipScreen() {
   }
   const statusText = purchases.status === "pending" ? `${Platform.OS === "android" ? "Google Play" : "Apple"} is processing your purchase. Your current access is unchanged.`
     : purchases.status === "cancelled" ? "Purchase canceled. You haven’t been charged."
-      : attempted && !busy && purchases.status !== "ready" ? "We couldn’t load purchase options. Try again in a moment."
+        : attempted && !busy ? purchases.message
         : "";
 
   return <SignalMotionScreen style={styles.screen}>

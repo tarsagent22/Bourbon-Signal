@@ -42,7 +42,7 @@ export default function FinalCTA() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Start with a 7-day free trial.
+            Start with Free, or get every paid feature.
           </p>
         </ScrollReveal>
 
@@ -70,7 +70,7 @@ export default function FinalCTA() {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              Barrel Proof is $6/month after the trial.
+              Barrel Proof is $6/month. Founder is $50 once for lifetime access.
             </p>
           </div>
         </ScrollReveal>

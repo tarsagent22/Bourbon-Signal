@@ -15,7 +15,7 @@ function load(path, overrides = {}) {
 }
 const { PostgresPushOutbox, drainPushOutbox } = load('../src/lib/alert-queue/push-outbox.ts', { './runtime': { alertQueueConnectionString: () => { throw Error('NO PRODUCTION DATABASE'); } } });
 const { PostgresPushReceiptRepository } = load('../src/lib/push-receipts.ts', { './alert-queue/runtime': { createProductionAlertQueueSqlExecutor: () => { throw Error('NO PRODUCTION DATABASE'); } }, './alert-queue/postgres-repository': {} });
-const { sendExpoPushMessages, buildExpoPushMessages } = load('../src/lib/push-devices.ts');
+const { sendExpoPushMessages, buildExpoPushMessages } = load('../src/lib/push-devices.ts', { './push-copy.ts': load('../src/lib/push-copy.ts') });
 const { CommunitySafetyRepository } = load('../src/lib/community-safety.ts', {
   './alert-queue/runtime': { createProductionAlertQueueSqlExecutor: () => sql },
 });

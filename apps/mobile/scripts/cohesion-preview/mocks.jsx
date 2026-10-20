@@ -1,4 +1,5 @@
 import React from 'react';
+import { COMMUNITY_TERMS_VERSION } from '../../../../shared/legal-acceptance';
 import {preferencesFixture,profileFixture,feedFixture} from '../../src/api/astra-fixtures';
 import seed from '../../src/cellar/bottle-catalog-seed.json';
 import {canonicalBottleKey} from '../../src/interactions/member-interactions';
@@ -11,6 +12,7 @@ export const setRoute=route=>{fixture.route=route;window.dispatchEvent(new Event
 const routeFor=path=>{const p=typeof path==='string'?path:path.pathname;return p.endsWith('/setup')?'Setup': p.includes('feedback')?'Feedback':p.includes('coverage')?'Coverage':p.includes('support')?'Support':p.includes('privacy')?'Privacy':p.includes('terms')?'Terms':p.includes('/admin')?'Admin':p.includes('membership')?'Membership':p.includes('profile')?'Edit profile':p.includes('sign-in')?'Sign in':p.includes('cellar/add')?'Add bottle':p.includes('signal/')?'Bottle Profile':p.includes('radar')?'Radar':p.includes('post')?'Post':p.includes('(tabs)')?'Home':'Account';};
 export const router={push(path){fixture.feedbackKind=path?.params?.kind;setRoute(routeFor(path));},replace(path){setRoute(routeFor(path));},back(){setRoute('My Shelf');},setParams(){}};
 export function useRouter(){return router;}
+export function useHeaderHeight(){return 0;}
 export function useLocalSearchParams(){return {id:'fixture-signal',resume:'onboarding',kind:fixture.feedbackKind};}
 export function useFocusEffect(callback){React.useEffect(callback,[callback]);}
 export const Stack=Object.assign(()=>null,{Screen:()=>null});
@@ -51,6 +53,8 @@ const api={
  updateMemberPreferences:async patch=>{
   if(patch.watchlistMutation){const {bottleName,watched}=patch.watchlistMutation; const names=preferences.bottleAlertPreferences.bottleNames.filter(name=>name!==bottleName);if(watched)names.push(bottleName);patch={...patch,bottleAlertPreferences:{bottleNames:names,bottleKeys:names.map(canonicalBottleKey)}};delete patch.watchlistMutation;}
   preferences={...preferences,...patch};return api.getMemberPreferences();},
+ getLegalAcceptance:async()=>({termsVersion:COMMUNITY_TERMS_VERSION,acceptance:fixture.legalAcceptance||null}),
+ acceptLegalTerms:async()=>{fixture.legalAcceptance={termsVersion:COMMUNITY_TERMS_VERSION,acceptedAt:new Date().toISOString(),source:'community'};return {termsVersion:COMMUNITY_TERMS_VERSION,acceptance:fixture.legalAcceptance};},
  getMemberProfile:async()=>profileFixture({customDisplayName:fixture.displayName,homeState:'NC',membership:{tier:fixture.tier,label:fixture.tier,paid:fixture.tier!=='free'},feedAreas:{states:[{code:'NC',label:'North Carolina',areaLabel:'Board',options:[{value:'Triad Municipal ABC',label:'Triad Municipal ABC'},{value:'Wake County ABC',label:'Wake County ABC'}]}]}}),
  updateMemberProfile:async({displayName})=>{fixture.displayName=displayName;return api.getMemberProfile();},
  completeMobileOnboarding:async({displayName,homeState})=>{fixture.displayName=displayName;fixture.onboarding=true;return {completed:true};},

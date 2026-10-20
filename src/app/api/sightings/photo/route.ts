@@ -1,3 +1,4 @@
+import { readLegalAcceptance } from '@/lib/legal-acceptance';
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { sameMemberRewardProfile } from "@/lib/member-rewards-snapshot";
@@ -169,6 +170,9 @@ export async function POST(req: NextRequest) {
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         const { userId } = await auth();
         if (!userId) throw new Error("Unauthorized");
+        const client = await clerkClient();
+        const user = await client.users.getUser(userId);
+        if (!await readLegalAcceptance(user, client.users.updateUserMetadata.bind(client.users))) throw new Error('Accept the Terms of Use in Post before uploading a photo.');
         const payload = parseSightingPhotoClientPayload(clientPayload);
         if (!payload) throw new Error("Invalid sighting upload request");
         const owned = await getOwnedSighting(payload.sightingId, userId);
@@ -218,6 +222,9 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    if (!await readLegalAcceptance(user, client.users.updateUserMetadata.bind(client.users))) return NextResponse.json({ error: 'Accept the Terms of Use in Post before uploading a photo.', code: 'TERMS_ACCEPTANCE_REQUIRED' }, { status: 409 });
     const photoProof = await attachUploadedPhoto({ sightingId, userId, blob: { url: blobUrl, pathname }, token });
     return NextResponse.json({ ok: true, photoProof });
   } catch (error) {

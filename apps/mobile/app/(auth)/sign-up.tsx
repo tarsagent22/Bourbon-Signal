@@ -1,3 +1,4 @@
+import { COMMUNITY_TERMS_VERSION, PRIVACY_URL, TERMS_URL } from '../../../../shared/legal-acceptance';
 import { useAuth, useSignUp } from '@clerk/expo';
 import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -14,6 +15,7 @@ export default function SignUpScreen() {
   const { isLoaded, isSignedIn } = useAuth(); const { signUp, fetchStatus } = useSignUp(); const router = useRouter();
   const [stage, setStage] = useState<'account' | 'verification' | 'onboarding'>('account');
   const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [code, setCode] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [age21Affirmed, setAge21Affirmed] = useState(false); const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(''); const [notice, setNotice] = useState('');
@@ -29,8 +31,9 @@ export default function SignUpScreen() {
     if (!email.trim() || !password) { setError('Enter an email address and password.'); return; }
     if (password.length < 8) { setError('Use at least 8 characters for your password.'); return; }
     if (!age21Affirmed) { setError('You must affirm that you are 21 or older.'); return; }
+    if (!termsAccepted) { setError('Agree to the Terms of Use before creating your account.'); return; }
     await run(async () => {
-      const attempt = await signUp.password({ emailAddress: email.trim(), password }); if (attempt.error) throw { errors: [attempt.error] };
+      const attempt = await signUp.password({ emailAddress: email.trim(), password, unsafeMetadata: { legalAgreement: { accepted: true, termsVersion: COMMUNITY_TERMS_VERSION } } }); if (attempt.error) throw { errors: [attempt.error] };
       const sent = await signUp.verifications.sendEmailCode(); if (sent.error) throw { errors: [sent.error] };
       setCode(''); setStage('verification');
     });
@@ -57,8 +60,9 @@ export default function SignUpScreen() {
       <Text style={s.label}>Email address</Text><TextInput accessibilityLabel="Email address" autoCapitalize="none" autoComplete="email" autoCorrect={false} spellCheck={false} textContentType="emailAddress" keyboardType="email-address" editable={!busy} value={email} onChangeText={setEmail} style={s.input} placeholder="you@example.com" placeholderTextColor={colors.muted} />
       <Text style={s.label}>Password</Text><View style={[s.input, s.row, { paddingVertical: 0, paddingRight: 4 }]}><TextInput accessibilityLabel="Create password" autoCapitalize="none" autoCorrect={false} spellCheck={false} autoComplete="new-password" textContentType="newPassword" secureTextEntry={!showPassword} editable={!busy} value={password} onChangeText={setPassword} onSubmitEditing={() => void createAccount()} style={{ flex: 1, minHeight: 50, color: '#F1E9DC', fontSize: 16 }} placeholder="Create a password" placeholderTextColor={colors.muted} /><Pressable accessibilityRole="button" accessibilityLabel={showPassword ? 'Hide password' : 'Show password'} accessibilityState={{ disabled: busy }} disabled={busy} onPress={() => setShowPassword(value => !value)} style={{ minHeight: 44, padding: 10, justifyContent: 'center' }}><Text style={s.link}>{showPassword ? 'Hide' : 'Show'}</Text></Pressable></View><Text style={s.small}>At least 8 characters.</Text>
       <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: age21Affirmed, disabled: busy }} disabled={busy} onPress={() => setAge21Affirmed(value => !value)} style={[s.row, { minHeight: 48 }]}><View accessible={false} style={[s.selection, s.checkbox, age21Affirmed && s.selectionActive]}>{age21Affirmed ? <Text style={s.selectionCheck}>✓</Text> : null}</View><Text style={[s.copy, { flex: 1 }]}>I affirm that I am 21 or older.</Text></Pressable>
+      <Pressable accessibilityRole="checkbox" accessibilityLabel="I agree to the Terms of Use and acknowledge the Privacy Policy" accessibilityState={{ checked: termsAccepted, disabled: busy }} disabled={busy} onPress={() => { setTermsAccepted(value => !value); setError(''); }} style={[s.row, { minHeight: 48 }]}><View accessible={false} style={[s.selection, s.checkbox, termsAccepted && s.selectionActive]}>{termsAccepted ? <Text style={s.selectionCheck}>✓</Text> : null}</View><Text style={[s.copy, { flex: 1 }]}>I agree to the Terms of Use and acknowledge the Privacy Policy.</Text></Pressable>
       <OnboardingButton label="Create account" busy={busy} onPress={() => void createAccount()} />
-      <Text style={s.small}>By creating an account, you agree to our <Text accessibilityRole="link" onPress={() => void Linking.openURL('https://www.bourbonsignal.com/terms').catch(() => setError('Terms could not open. Try again.'))} style={{ color: colors.accent }}>Terms</Text> and <Text accessibilityRole="link" onPress={() => void Linking.openURL('https://www.bourbonsignal.com/privacy').catch(() => setError('Privacy Policy could not open. Try again.'))} style={{ color: colors.accent }}>Privacy Policy</Text>.</Text>
+      <Text style={s.small}>Read our <Text accessibilityRole="link" onPress={() => void Linking.openURL(TERMS_URL).catch(() => setError('Terms could not open. Try again.'))} style={{ color: colors.accent }}>Terms</Text> and <Text accessibilityRole="link" onPress={() => void Linking.openURL(PRIVACY_URL).catch(() => setError('Privacy Policy could not open. Try again.'))} style={{ color: colors.accent }}>Privacy Policy</Text>.</Text>
     </>}
     {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}{notice ? <Text accessibilityRole="alert" style={s.success}>{notice}</Text> : null}
   </OnboardingFrame>;

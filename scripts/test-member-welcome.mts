@@ -129,10 +129,11 @@ assert.match(pricingSource, /value === "✓" \? "Included" : value === "—" \? 
 assert.match(pricingSource, /aria-label=\{comparisonLabel\(free\)\}/);
 assert.match(pricingSource, /aria-label=\{comparisonLabel\(member\)\}/);
 assert.doesNotMatch(pricingSource, /billing-toggle|Limited lifetime offer/);
-assert.match(pricingSource, /@media\(max-width:640px\)[\s\S]*grid-template-columns:1fr/);
+assert.match(pricingSource, /@media\(max-width:860px\)[\s\S]*grid-template-columns:1fr/);
 assert.match(pricingCatalogSource, /Redeem Signal Points for member rewards/);
 assert.match(pricingCatalogSource, /barrel_monthly/);
-assert.doesNotMatch(pricingCatalogSource, /standard_monthly|bib_lifetime/);
+assert.doesNotMatch(pricingCatalogSource, /standard_monthly/);
+assert.match(pricingCatalogSource, /bib_lifetime/);
 assert.match(pricingCatalogSource, /monthlyPrice: "\$6"/);
 assert.match(pricingSource, /params.has\("canceled"\)[\s\S]*\/welcome/, "a canceled paid signup choosing Free must complete Welcome");
 assert.doesNotMatch(dashboardSource, /FreeMemberDashboard/, "free members should use the real dashboard instead of a parallel imitation");

@@ -39,7 +39,9 @@ assert.match(retailerSignals?.answer || "", /scheduled drops, barrel picks, tast
 assert.match(retailerSignals?.answer || "", /24 hours/);
 
 const pricingFaqs = getFaqItems("pricing");
-assert.equal(pricingFaqs.length, 5);
+assert.equal(pricingFaqs.length, 7);
+assert.match(pricingFaqs.find(item => item.question === "Can I become a Founder?")?.answer || "", /\$50 once/);
+assert.match(pricingFaqs.find(item => item.question === "Is there a free trial?")?.answer || "", /do not include a free trial/);
 assert.match(pricingFaqs.find(item => item.question.includes("Barrel Proof include"))?.answer || "", /\$6\/month/);
 assert.match(pricingFaqs.find(item => item.question.includes("Standard Proof"))?.answer || "", /\$3\/month Stripe/);
 assert.match(pricingFaqs.find(item => item.question.includes("Founder"))?.answer || "", /full lifetime access/);
