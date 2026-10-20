@@ -56,6 +56,8 @@ The MA preflight also checks two fixed Julio's Liquors brand pages with the exac
 
 The MA research export accepts verified pickup orderability without turning an unknown shelf count into zero stock. Executable MA golden fixtures run the real collector, catalog matcher and export projection. They keep standard bottles out of rare-drop candidates, reject stale or mismatched evidence, preserve source timestamps and keep all delivery channels off. These checks do not activate Massachusetts, replace the two canary runs or establish customer coverage.
 
+The shadow workflow's optional `ma_export_canary=true` is restricted to `states=MA` and `limit=1`. It rehearses the actual research export against a restored, current published baseline and retains its evidence in the shadow artifact. It verifies one physical store, binary pickup semantics, unchanged other-state rows and lifecycle, and disabled delivery. It cannot deploy or publish. Its explicit `promotionEligible=false` evidence is an export rehearsal; it does not count as a promoted-state canary or customer-path verification.
+
 ## Queue and authority
 
 Use `node automation/bourbon-signal/codex-coverage.mjs claim` from the real repository. The helper waits when the release lane is occupied. It otherwise acquires the production lease, derives a `cx_` task ID from the current Codex thread, immutable job key, and request version, attaches it, and verifies production-backed authority. A restarted attempt cannot use an older request version's identity. Existing requests, baseline metrics, retries, source evidence, and member privacy must be preserved.

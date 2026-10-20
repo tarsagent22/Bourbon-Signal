@@ -14,6 +14,11 @@ on:
         description: "Maximum eligible states to collect"
         required: false
         default: "5"
+      ma_export_canary:
+        description: "MA-only research export rehearsal; no state promotion or deployment"
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: state-expansion-shadow
@@ -57,6 +62,7 @@ jobs:
         env:
           RAW_STATES: ${{ inputs.states || '' }}
           RAW_LIMIT: ${{ inputs.limit || '5' }}
+          MA_EXPORT_CANARY: ${{ inputs.ma_export_canary || false }}
         run: |
           set -euo pipefail
           if [[ -n "$RAW_STATES" && ! "$RAW_STATES" =~ ^[A-Z]{2}(-[A-Z0-9]+)?(,[A-Z]{2}(-[A-Z0-9]+)?)*$ ]]; then
@@ -67,8 +73,21 @@ jobs:
             echo "limit must be an integer from 1 through 5" >&2
             exit 1
           fi
+          if [[ "$MA_EXPORT_CANARY" == 'true' && ( "$RAW_STATES" != 'MA' || "$RAW_LIMIT" != '1' ) ]]; then
+            echo "MA export rehearsal requires exactly states=MA and limit=1" >&2
+            exit 1
+          fi
           echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
           echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Restore published baseline for MA export rehearsal
+        if: inputs.ma_export_canary == true
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/site
+          key: inventory-published-site-${{ runner.os }}-ma-research-${{ github.run_id }}
+          restore-keys: inventory-published-site-${{ runner.os }}-
+          fail-on-cache-miss: true
 
       - name: Collect bounded shadow evidence only
         working-directory: engine
@@ -76,6 +95,13 @@ jobs:
           STATES: ${{ steps.validate.outputs.states }}
           LIMIT: ${{ steps.validate.outputs.limit }}
         run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
+
+      - name: Rehearse MA research export with production and delivery disabled
+        if: inputs.ma_export_canary == true
+        working-directory: engine
+        run: |
+          npm run verify:state-fixtures -- --state=MA --canary
+          node src/ma-research-canary.mjs
 
       - name: Preserve isolated shadow evidence
         if: always()
