@@ -494,6 +494,7 @@ function PostComposer({ userId }: { userId: string }) {
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
           {!pendingPhotoAttachment ? <DraftNotice compact hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} /> : null}
+          <CommunityTermsGate onAccepted={setLegalAccepted} />
           <ComposerSection icon="bottle-tonic-outline" title="Choose a bottle" required>
             {referenceRegion.state ? <Text style={styles.help}>Store search: {[referenceRegion.area, referenceRegion.state].filter(Boolean).join(', ')}. Choose the store you observed.</Text> : null}
             {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
@@ -574,8 +575,7 @@ function PostComposer({ userId }: { userId: string }) {
         {!canSubmit && profile && error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       </ScrollView>
       {canSubmit ? <View style={styles.actionFooter}>
-        {!requiredComplete ? <Text style={styles.actionHint}>Choose a bottle and store to continue.</Text> : null}
-        <CommunityTermsGate onAccepted={setLegalAccepted} />
+        {!legalAccepted ? <Text style={styles.actionHint}>Agree to the terms above before posting.</Text> : !requiredComplete ? <Text style={styles.actionHint}>Choose a bottle and store to continue.</Text> : null}
         <Pressable accessibilityRole="button" accessibilityState={{ disabled: actionDisabled }} disabled={actionDisabled} onPress={submit} style={({ pressed }) => [styles.submit, actionDisabled && styles.submitDisabled, pressed && !actionDisabled && styles.submitPressed]}>
           {submitting || photoBusy ? <ActivityIndicator color={colors.background} /> : <><MaterialCommunityIcons color={actionDisabled ? colors.muted : colors.background} name={pendingPhotoAttachment ? "cloud-upload-outline" : "broadcast"} size={18} /><Text style={[styles.submitText, actionDisabled && styles.submitTextDisabled]}>{pendingPhotoAttachment ? "Retry photo upload" : "Post Signal"}</Text></>}
         </Pressable>
