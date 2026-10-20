@@ -29,6 +29,13 @@ jobs:
           cache: npm
       - name: Install collector dependencies
         run: npm ci --ignore-scripts && npm --prefix engine ci --ignore-scripts
+      - name: Restore reviewed NC route history used by production
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/nc-source-registry.json
+          key: nc-source-registry-${{ runner.os }}-canary-${{ github.run_id }}
+          restore-keys: |
+            nc-source-registry-${{ runner.os }}-
       - name: Collect public NC sources without publishing
         working-directory: engine
         run: |
@@ -42,6 +49,7 @@ jobs:
           const startedAt = Date.now();
           const result = await collectPrecisionProbes(STATE_SOURCES.find(s => s.id === 'NC'), await BourbonBible.load());
           await writeFile('out/nc-source-canary.json', JSON.stringify(result, null, 2));
+          assert.ok(result.signals.length > 0, `NC precision source emitted no observations: ${JSON.stringify(result.roadblocks)}`);
           const dossier = JSON.parse(await readFile('out/nc-board-intelligence.json', 'utf8'));
           assert.ok(Date.parse(dossier.generatedAt) >= startedAt, 'Canary requires this attempt, not old artifacts');
           assert.equal(dossier.sourceHealth.statewideFailures.length, 0, 'Statewide NC inputs failed');
@@ -56,7 +64,6 @@ jobs:
             assert.ok(!board.parserWarnings.some(w => w.status === 'parser_drift' || w.parserStatus === 'parser_drift'), `${boardName}: product parser drift`);
             console.warn(`::warning title=NC public-source access::${boardName} unavailable from this runner (HTTP ${product.status}); correctly recorded as ${board.status}.`);
           }
-          assert.ok(result.signals.length > 0, 'NC precision source emitted no observations');
           console.log(JSON.stringify({ signalCount: result.signals.length, roadblocks: result.roadblocks, sourceHealth: dossier.sourceHealth.statusCounts, shipmentObservedAt: dossier.stockShipped.observedAt }, null, 2));
           JS
       - name: Preserve source-check evidence
