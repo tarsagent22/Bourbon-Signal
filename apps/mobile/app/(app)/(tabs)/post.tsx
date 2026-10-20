@@ -1,3 +1,5 @@
+import { CommunityTermsGate } from '../../../src/components/CommunityTermsGate';
+import { PHOTO_PERMISSION_REMINDER, TERMS_URL } from '../../../../../shared/legal-acceptance';
 import { parseRecentStores, recentStoresKey, rememberStore } from "../../../src/sightings/recent-stores";
 import { useFormDraft } from "../../../src/hooks/useFormDraft";
 import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
@@ -10,7 +12,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { Children, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "../../../src/api/types";
 import { MemberCard, PageHeading, memberScreenStyles } from "../../../src/components/MemberScreen";
@@ -42,6 +44,7 @@ function PostComposer({ userId }: { userId: string }) {
   const journal = useMemo(() => nativePhotoJournal(userId), [userId]);
   const draftStorageKey = `${SIGHTING_IDEMPOTENCY_STORAGE_KEY}.${userId}`;
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileAttempt, setProfileAttempt] = useState(0);
   const bottleCatalog = useBottleCatalog();
@@ -184,7 +187,7 @@ function PostComposer({ userId }: { userId: string }) {
     notes,
     reporter: profile?.displayName || profile?.identity?.label,
   }), [bottleName, notes, price, profile?.displayName, profile?.identity?.label, quantity, selectedBottleRarity, storeAddress, storeCity, storeName, storeState]);
-  const actionDisabled = pendingPhotoAttachment ? photoBusy || submitting : !requiredComplete || !draft.ready || !idempotencyReady || submitting || photoBusy;
+  const actionDisabled = !legalAccepted || (pendingPhotoAttachment ? photoBusy || submitting : !requiredComplete || !draft.ready || !idempotencyReady || submitting || photoBusy);
 
   useEffect(() => {
     const query = storeName.replace(/\s+/g, " ").trim();
@@ -414,6 +417,7 @@ function PostComposer({ userId }: { userId: string }) {
   }
 
   async function submit() {
+    if (!legalAccepted) { setError("Agree to the Terms of Use before posting."); return; }
     if (pendingPhotoAttachment) {
       await retryPhotoUpload(pendingPhotoAttachment);
       return;
@@ -490,6 +494,7 @@ function PostComposer({ userId }: { userId: string }) {
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
           {!pendingPhotoAttachment ? <DraftNotice compact hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} /> : null}
+          <CommunityTermsGate onAccepted={setLegalAccepted} />
           <ComposerSection icon="bottle-tonic-outline" title="Choose a bottle" required>
             {referenceRegion.state ? <Text style={styles.help}>Store search: {[referenceRegion.area, referenceRegion.state].filter(Boolean).join(', ')}. Choose the store you observed.</Text> : null}
             {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
@@ -553,6 +558,8 @@ function PostComposer({ userId }: { userId: string }) {
               </View>}
               {photoBusy ? <ActivityIndicator color={colors.accent} size="small" /> : null}
               {photoMessage ? <Text accessibilityRole="alert" style={styles.photoMessage}>{photoMessage}</Text> : null}
+              <Text style={styles.photoDisclosure}>{PHOTO_PERMISSION_REMINDER}</Text>
+              <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(TERMS_URL).catch(() => setPhotoMessage('Terms could not open. Try again.'))} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.accent }}>Terms of Use</Text></Pressable>
               <Text style={styles.photoDisclosure}>Evidence may appear publicly with this sighting. Photos are resized, re-encoded, and stripped of embedded metadata before upload.</Text>
             </View>
           </ComposerSection> : null}
@@ -568,7 +575,7 @@ function PostComposer({ userId }: { userId: string }) {
         {!canSubmit && profile && error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       </ScrollView>
       {canSubmit ? <View style={styles.actionFooter}>
-        {!requiredComplete ? <Text style={styles.actionHint}>Choose a bottle and store to continue.</Text> : null}
+        {!legalAccepted ? <Text style={styles.actionHint}>Agree to the terms above before posting.</Text> : !requiredComplete ? <Text style={styles.actionHint}>Choose a bottle and store to continue.</Text> : null}
         <Pressable accessibilityRole="button" accessibilityState={{ disabled: actionDisabled }} disabled={actionDisabled} onPress={submit} style={({ pressed }) => [styles.submit, actionDisabled && styles.submitDisabled, pressed && !actionDisabled && styles.submitPressed]}>
           {submitting || photoBusy ? <ActivityIndicator color={colors.background} /> : <><MaterialCommunityIcons color={actionDisabled ? colors.muted : colors.background} name={pendingPhotoAttachment ? "cloud-upload-outline" : "broadcast"} size={18} /><Text style={[styles.submitText, actionDisabled && styles.submitTextDisabled]}>{pendingPhotoAttachment ? "Retry photo upload" : "Post Signal"}</Text></>}
         </Pressable>

@@ -1,3 +1,4 @@
+import { COMMUNITY_TERMS_VERSION, currentLegalAcceptance } from '../../../../shared/legal-acceptance';
 import { uploadClientBlob, type ClientBlobUploadResult } from "./blob-upload";
 import type { BottleProfile } from '../../../../shared/bottle-profile';
 import type { CollectionHistory } from '../../../../shared/collection-history';
@@ -338,6 +339,12 @@ export function createMobileApi({
     saveAdminPrice(body: Record<string,unknown>) { return request<{ok:boolean}>('/api/admin/pricing', {method:'POST',body}); },
     sendAdminShipmentEmail(body: Record<string,unknown>) { return request<{ok:boolean}>('/api/admin/shipping?notify=1', {method:'PATCH',body}); },
     getCoverageRequests() { return request<{requests: import('../../../../shared/coverage-requests').CoverageRequestItem[]}>('/api/coverage/requests',{fresh:true}); },
+    getLegalAcceptance() { return request<{ termsVersion: string; acceptance: import('../../../../shared/legal-acceptance').LegalAcceptance | null }>('/api/v1/me/legal', { fresh: true }); },
+    async acceptLegalTerms() {
+      const result = await request<{ termsVersion: string; acceptance: import('../../../../shared/legal-acceptance').LegalAcceptance }>('/api/v1/me/legal', { method: 'POST', body: { accepted: true, termsVersion: COMMUNITY_TERMS_VERSION } });
+      if (!currentLegalAcceptance(result.acceptance)) throw new MobileApiError('Your agreement could not be confirmed. Try again.', 502, 'INVALID_RESPONSE');
+      return result;
+    },
     getCoverageSummary() { return request<{ states: import('../../../../shared/mobile-onboarding').OnboardingCoverageState[] }>('/api/coverage', { fresh: true }); },
     submitCoverageRequest(body: Record<string,unknown>) { return request<{request: import('../../../../shared/coverage-requests').CoverageRequestItem}>('/api/coverage/requests',{method:'POST',body}); },
     getSubscriptionManagement() { return request<{provider: "stripe" | "apple" | "google" | "none"}>("/api/billing-portal", {fresh:true}); },

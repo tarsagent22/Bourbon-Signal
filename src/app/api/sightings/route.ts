@@ -1,3 +1,4 @@
+import { readLegalAcceptance } from '@/lib/legal-acceptance';
 import { sightingFeedSearchMatches } from "@/lib/signals/feed-search";
 import { buildSightingRarityCatalog, sightingCatalogRarityPending } from "@/lib/sighting-bottle-rarity";
 import {featuredBadgeLabels} from "@/lib/featured-badges";
@@ -483,6 +484,8 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await ensureMemberNumber(client, await client.users.getUser(userId));
+  const acceptance = await readLegalAcceptance(user, client.users.updateUserMetadata.bind(client.users));
+  if (!acceptance) return NextResponse.json({ error: 'Open Post in the latest app and accept the Terms of Use before posting.', code: 'TERMS_ACCEPTANCE_REQUIRED' }, { status: 409 });
   const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(user));
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
   const publicIdentity = publicSignalIdentityFromMetadata(user.publicMetadata);
