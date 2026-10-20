@@ -14,6 +14,7 @@ async function route(entry, fixture) {
     '@clerk/nextjs/server': 'export const auth=async()=>({userId:f.signedOut?null:"new-member"});export const clerkClient=async()=>({users:f.users});',
     '@/lib/server-entitlements': 'export const getServerEntitlements=async()=>f.access;',
     '@/lib/community-sightings-repository': 'export const createCommunitySightingsRepository=()=>{f.repositoryCreated++;return {updateReporterDisplayName:async(...args)=>{f.reporterWrites.push(args);}}};',
+    ...fixture.stubs,
   };
   const output = await build({ absWorkingDir: root, entryPoints: [entry], bundle: true, platform: 'node', format: 'cjs', packages: 'external', write: false, plugins: [{ name: 'fixture', setup(b) {
     b.onResolve({ filter: /.*/ }, a => stubs[a.path] ? { path: a.path, namespace: 'fixture' } : undefined);
@@ -72,6 +73,38 @@ test('authenticated setup records explicit signup assent without silently accept
   f.unsafeMetadata = { legalAgreement: { accepted: true, termsVersion: COMMUNITY_TERMS_VERSION } };
   assert.equal((await api.GET()).status, 200);
   assert.equal(f.privateMetadata.legalAcceptance.source, 'signup');
+});
+
+test('direct post and photo upload requests cannot bypass missing terms acceptance', async () => {
+  const f = member({ memberNumber: 184 });
+  f.stubs = {
+    '@/lib/bourbonBible': 'export const getBourbonBible=async()=>[];export const normalizeBottleKey=s=>s.toLowerCase();export const searchBourbonBible=()=>[];',
+    '@/lib/preview-qa': 'export const isQaPreviewRequest=()=>false;export const getQaPreviewTierFromRequest=()=>"free";',
+    '@vercel/blob/client': 'export const handleUpload=async opts=>opts.onBeforeGenerateToken("unused", "{}");',
+  };
+  const post = await route('src/app/api/sightings/route.ts', f);
+  const response = await post.POST(request('/api/sightings', 'POST', { bottleName: 'Example bottle', storeName: 'Example store', storeId: 'example-store', storeAddress: '1 Main St', storeState: 'NC' }));
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).code, 'TERMS_ACCEPTANCE_REQUIRED');
+  assert.equal(f.repositoryCreated, 0);
+  const tokenBefore = process.env.BLOB_READ_WRITE_TOKEN;
+  process.env.BLOB_READ_WRITE_TOKEN = 'synthetic-test-token';
+  const errorBefore = console.error;
+  console.error = () => {};
+  try {
+    const photo = await route('src/app/api/sightings/photo/route.ts', f);
+    const upload = await photo.POST(request('/api/sightings/photo', 'POST', { type: 'blob.generate-client-token' }));
+    assert.equal(upload.status, 400);
+    assert.match((await upload.json()).error, /Accept the Terms of Use/);
+    const attach = await photo.PATCH(request('/api/sightings/photo', 'PATCH', { sightingId: 'sighting_12345678', blob: { pathname: 'sighting-proofs/sighting_12345678/1.jpg' } }));
+    assert.equal(attach.status, 409);
+    assert.equal((await attach.json()).code, 'TERMS_ACCEPTANCE_REQUIRED');
+    assert.equal(f.repositoryCreated, 0);
+  } finally {
+    console.error = errorBefore;
+    if (tokenBefore === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
+    else process.env.BLOB_READ_WRITE_TOKEN = tokenBefore;
+  }
 });
 
 test('new member can save Mikey without a numbered identity or Community storage', async () => {
