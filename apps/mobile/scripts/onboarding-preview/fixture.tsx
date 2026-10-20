@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { preferencesFixture, profileFixture } from '../../src/api/astra-fixtures';
 import { starterSuggestions } from '../../../../src/lib/onboarding-discovery';
 import { EMPTY_ONBOARDING } from '../../../../shared/mobile-onboarding';
+import { COMMUNITY_TERMS_VERSION } from '../../../../shared/legal-acceptance';
 const query = new URLSearchParams(location.search);
 let tier = query.get('tier') || 'free';
 let draft = { ...EMPTY_ONBOARDING, step: Number(query.get('step') || 0), displayName: Number(query.get('step')) > 0 ? 'Oak Street' : '', homeState: query.get('state') || 'NC', interest: query.get('interest') || 'starting', flavors: (query.get('flavors') || '').split(',').filter(Boolean), likedBottleId: query.get('liked') || '', likedBottleName: query.get('liked') === 'makers-mark' ? "Maker's Mark" : '' };
@@ -11,6 +12,8 @@ let prefs = preferencesFixture({ alertMode: 'anything_notable', monitoringScopes
 const bottles = [{ id: 'makers-mark', name: "Maker's Mark", proof: 90 }, { id: 'woodford-double-oaked', name: 'Woodford Reserve Double Oaked', proof: 90.4 }, { id: 'buffalo-trace', name: 'Buffalo Trace', proof: 90 }, { id: 'woodford-reserve', name: 'Woodford Reserve', proof: 90.4 }, { id: 'four-roses-single-barrel', name: 'Four Roses Single Barrel', proof: 100 }, { id: 'old-forester-100', name: 'Old Forester 100 Proof', proof: 100 }, { id: 'stagg', name: 'Stagg', rarity: 'unicorn' }];
 function profile() { return profileFixture({ homeState: draft.homeState, membership: { tier: tier as any, label: tier === 'barrel' ? 'Barrel Proof' : tier === 'standard' ? 'Standard' : 'Free', paid: tier !== 'free', hasBetaAccess: false } }); }
 export const api = {
+  async getLegalAcceptance() { return { termsVersion: COMMUNITY_TERMS_VERSION, acceptance: query.get('agreed') === 'yes' ? { termsVersion: COMMUNITY_TERMS_VERSION, acceptedAt: new Date().toISOString(), source: 'community' } : null }; },
+  async acceptLegalTerms() { if (query.get('legalSave') === 'fail') throw new Error('Synthetic save failure'); return { termsVersion: COMMUNITY_TERMS_VERSION, acceptance: { termsVersion: COMMUNITY_TERMS_VERSION, acceptedAt: new Date().toISOString(), source: 'community' } }; },
   async getMemberProfile() { return profile(); }, async getMemberPreferences() { return structuredClone(prefs); },
   async getCoverageSummary() { return { states: [{ code: 'NC', coverageStrength: query.get('coverage') === 'weak' ? 'sparse' : 'strong', coverageStatus: 'available', health: query.get('coverage') === 'delayed' ? 'temporarily-limited' : 'current', summary: 'Tracking covers selected ABC boards and stores, with coverage varying by area.' }, { code: 'AK', coverageStrength: 'none', coverageStatus: 'not-available', health: 'no-recent-update', summary: 'Tracking coverage is growing here.' }] }; },
   async getMobileOnboardingStatus() { return { completed, draft: structuredClone(draft) }; },

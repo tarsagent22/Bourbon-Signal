@@ -11,7 +11,7 @@ const { getEntitlements } = req(root + '/src/lib/entitlements.ts');
 async function route(entry, fixture) {
   const stubs = {
     '@/lib/member-numbers': 'export const ensureMemberNumber=async(client,user)=>user;',
-    '@clerk/nextjs/server': 'export const auth=async()=>({userId:"new-member"});export const clerkClient=async()=>({users:f.users});',
+    '@clerk/nextjs/server': 'export const auth=async()=>({userId:f.signedOut?null:"new-member"});export const clerkClient=async()=>({users:f.users});',
     '@/lib/server-entitlements': 'export const getServerEntitlements=async()=>f.access;',
     '@/lib/community-sightings-repository': 'export const createCommunitySightingsRepository=()=>{f.repositoryCreated++;return {updateReporterDisplayName:async(...args)=>{f.reporterWrites.push(args);}}};',
   };
@@ -26,7 +26,7 @@ async function route(entry, fixture) {
 function member(metadata = {}) {
   const f = { metadata, privateMetadata: {}, access: getEntitlements('free'), reporterWrites: [], repositoryCreated: 0, failSave: false };
   f.users = {
-    getUser: async () => ({ publicMetadata: structuredClone(f.metadata), privateMetadata: structuredClone(f.privateMetadata) }),
+    getUser: async () => ({ id: 'new-member', publicMetadata: structuredClone(f.metadata), privateMetadata: structuredClone(f.privateMetadata), unsafeMetadata: structuredClone(f.unsafeMetadata || {}) }),
     updateUserMetadata: async (_, patch) => {
       if (f.failSave) throw Error('fixture unavailable');
       f.metadata = { ...f.metadata, ...patch.publicMetadata };
@@ -36,6 +36,43 @@ function member(metadata = {}) {
   return f;
 }
 const request = (url, method, body) => new Request(`https://fixture.invalid${url}`, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+
+test('legal agreement endpoint requires auth and current affirmative consent and persists server time privately', async () => {
+  const f = member();
+  const api = await route('src/app/api/v1/me/legal/route.ts', f);
+  f.signedOut = true;
+  assert.equal((await api.GET()).status, 401);
+  assert.equal((await api.POST(request('/api/v1/me/legal', 'POST', {}))).status, 401);
+  f.signedOut = false;
+  const initial = await (await api.GET()).json();
+  assert.equal(initial.acceptance, null);
+  assert.equal((await api.POST(request('/api/v1/me/legal', 'POST', { accepted: true, termsVersion: 'old' }))).status, 400);
+  f.failSave = true;
+  const body = { accepted: true, termsVersion: initial.termsVersion, acceptedAt: '1900-01-01' };
+  assert.equal((await api.POST(request('/api/v1/me/legal', 'POST', body))).status, 503);
+  assert.equal(f.privateMetadata.legalAcceptance, undefined);
+  f.failSave = false;
+  const response = await api.POST(request('/api/v1/me/legal', 'POST', body));
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('cache-control'), /no-store/);
+  const { acceptance } = await response.json();
+  assert.equal(acceptance.source, 'community');
+  assert.notEqual(acceptance.acceptedAt, body.acceptedAt);
+  assert.deepEqual(f.privateMetadata.legalAcceptance, acceptance);
+  assert.deepEqual((await (await api.GET()).json()).acceptance, acceptance);
+  assert.deepEqual(f.metadata, {});
+});
+
+test('authenticated setup records explicit signup assent without silently accepting for existing users', async () => {
+  const f = member();
+  const api = await route('src/app/api/v1/me/onboarding/route.ts', f);
+  await api.GET();
+  assert.equal(f.privateMetadata.legalAcceptance, undefined);
+  const { COMMUNITY_TERMS_VERSION } = req(root + '/shared/legal-acceptance.ts');
+  f.unsafeMetadata = { legalAgreement: { accepted: true, termsVersion: COMMUNITY_TERMS_VERSION } };
+  assert.equal((await api.GET()).status, 200);
+  assert.equal(f.privateMetadata.legalAcceptance.source, 'signup');
+});
 
 test('new member can save Mikey without a numbered identity or Community storage', async () => {
   const f = member({ bottleAlertPreferences: { bottleNames: ['Eagle Rare'] } });
