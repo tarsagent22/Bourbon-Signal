@@ -1,3 +1,4 @@
+import { COMMUNITY_TERMS_VERSION, currentLegalAcceptance } from '../../../../shared/legal-acceptance';
 // Runtime wire contracts. Unknown additive fields are allowed; required fields never default
 // to success. Keep these aligned with types.ts and the canonical server responses.
 type Check = (value: unknown) => boolean;
@@ -99,6 +100,7 @@ const checks: Record<string, Check> = {
 export function validApiResponse(path: string, value: unknown): boolean {
   const rawPathname = path.split('?')[0];
   const pathname = rawPathname === '/api/v1/me/google-membership' ? '/api/v1/me/apple-membership' : rawPathname;
+  if (pathname === '/api/v1/me/legal') return record(value) && value.termsVersion === COMMUNITY_TERMS_VERSION && (value.acceptance === null || currentLegalAcceptance(value.acceptance) !== null);
   if (pathname === '/api/v1/me/collection-history') return obj({ collectionVersion: nonnegative, value: collectionValue, history: obj({ firstRecordedAt: nullable(str), hasMore: bool, points: arr(obj({ id: str, observedAt: str, collectionVersion: nonnegative, kind: one('inventory','valuation'), value: obj({ currency: one('USD'), reviewedAt: str, ownedCount: nonnegative, sealedCount: nonnegative, openedCount: nonnegative, msrp: obj({ total: nullable(nonnegative), pricedCount: nonnegative }), secondary: obj({ low: nullable(nonnegative), high: nullable(nonnegative), pricedCount: nonnegative }) }) })) }) })(value);
   if (/^\/api\/v1\/bottles\/[^/]+$/.test(pathname)) return obj({ bottle: obj({ id: str, name: str, producer: nullable(str), category: str, proof: nullable(nonnegative), age: nullable(str), msrp: nullable(nonnegative), rarity: obj({ label: str, tier: str, pending: bool, reviewedAt: nullable(str) }), marketRarity: optional(nullable(obj({ state: str, tier: str, label: str, reason: str, reviewedAt: str, sources: arr(obj({ label: str, url: v => typeof v === 'string' && /^https:\/\//.test(v) })) }))) }) })(value);
   if (pathname === '/api/billing-portal') return obj({provider:one('stripe','apple','google','none'),url:optional(str)})(value);

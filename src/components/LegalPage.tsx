@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { APPLE_EULA_URL } from "../../shared/legal-content";
 
 type LegalSection = {
   heading: string;
@@ -119,11 +120,17 @@ export default function LegalPage({ title, eyebrow = "Legal", updated, intro, se
               lineHeight: 1.65,
             }}
           >
-            Questions about these terms? Contact Bourbon Signal support at{" "}
+            Questions about this policy or these terms? Contact Bourbon Signal support at{" "}
             <a href="mailto:support@bourbonsignal.com" style={{ color: "var(--color-accent-gold)" }}>
               support@bourbonsignal.com
             </a>
             .
+            <p style={{ marginTop: 12 }}>
+              <a href="/legal/privacy">Privacy policy</a>{" · "}
+              <a href="/legal/terms">Terms of service</a>{" · "}
+              <a href="/legal/refunds">Refunds and cancellation</a>{" · "}
+              <a href={APPLE_EULA_URL}>Apple standard app license</a>
+            </p>
           </div>
         </article>
       </main>

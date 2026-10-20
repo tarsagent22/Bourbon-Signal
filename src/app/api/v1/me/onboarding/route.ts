@@ -1,3 +1,4 @@
+import { readLegalAcceptance } from '@/lib/legal-acceptance';
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { communityDisplayNameFromMetadata } from "@/lib/community-display-name";
@@ -19,6 +20,7 @@ export async function GET() {
   try {
     const client = await clerkClient();
     const user = await ensureMemberNumber(client, await client.users.getUser(userId));
+    await readLegalAcceptance(user, client.users.updateUserMetadata.bind(client.users));
     const mobileOnboarding = record(record(user.privateMetadata).mobileOnboarding);
     const completedAt = typeof mobileOnboarding.completedAt === "string" ? mobileOnboarding.completedAt : "";
     const onboardingCompleted = Boolean(completedAt && Number.isFinite(Date.parse(completedAt)));

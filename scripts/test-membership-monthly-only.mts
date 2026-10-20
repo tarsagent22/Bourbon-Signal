@@ -12,7 +12,7 @@ const pricingSection = read("src/components/sections/PricingSection.tsx");
 
 test("public web pricing exposes one six dollar monthly membership", () => {
   assert.ok(!publicCatalog.includes('monthlyPrice: "$3"'));
-  assert.ok(!publicCatalog.includes('oneTimePrice: "$50"'));
+  assert.ok(publicCatalog.includes('oneTimePrice: "$50"'));
   assert.ok(publicCatalog.includes('monthlyPrice: "$6"'));
   assert.doesNotMatch(publicCatalog, /annualPrice|annualPlan|standard_annual|barrel_annual/);
   assert.doesNotMatch(`${pricingPage}\n${pricingCards}\n${pricingSection}`, /Annual|annual|\/year|2 months free/);

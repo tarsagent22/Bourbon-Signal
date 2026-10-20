@@ -71,12 +71,12 @@
     "test:feed-location-search": "node --no-warnings --experimental-strip-types --test scripts/test-feed-location-search.mts && tsx --test scripts/test-feed-location-search-sql.ts",
     "test:signal-contract": "node --no-warnings --experimental-strip-types scripts/test-signal-contract.mts",
     "test:signal-mobile-api": "node --no-warnings --experimental-strip-types scripts/test-signal-mobile-api.mts",
-    "test:auth-account": "node scripts/test-member-numbers.mjs && node --test scripts/test-build13-new-user.cjs && tsx --test scripts/test-mobile-onboarding.ts scripts/test-onboarding-flow.ts scripts/test-account-deletion.ts scripts/test-account-deletion-repository.ts scripts/test-account-deletion-retained-records.mts && node --test scripts/test-account-deletion-contract.mjs && npm run test:member-feedback",
+    "test:auth-account": "node scripts/test-member-numbers.mjs && node --test scripts/test-build13-new-user.cjs && tsx --test scripts/test-mobile-onboarding.ts scripts/test-onboarding-flow.ts scripts/test-account-deletion.ts scripts/test-account-deletion-repository.ts scripts/test-account-deletion-retained-records.mts && node --test scripts/test-account-deletion-contract.mjs && npm run test:member-feedback && npm run test:legal-acceptance",
     "test:apple-membership": "node --test scripts/test-subscription-management.cjs && tsx --test scripts/test-apple-membership.ts && node scripts/test-apple-membership-contract.mjs && npm run test:google-membership",
     "test:hunt-outcomes": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-repository.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-api.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-aggregation.mts",
     "test:product-cohesion-ui": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-ui-policy.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-hunt-suggestions.mts && node --no-warnings --experimental-strip-types scripts/test-product-cohesion-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-launch-product-cohesion-copy.mts",
     "test:member-state": "tsx --test scripts/test-astra-member-state.ts scripts/test-astra-push-ownership.ts scripts/test-astra-member-lease.ts",
-    "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts && node --test scripts/test-m12-push-outbox.mjs && tsx --test scripts/test-push-receipts.mts && tsx --test scripts/test-push-channel-isolation.mts && tsx --test scripts/test-push-capability-revocation.mts && npm run test:member-state && npm run test:notification-navigation",
+    "test:push-devices": "node --no-warnings --experimental-strip-types --test scripts/test-push-copy.mts && tsx --test scripts/test-push-report-details.mts && node --no-warnings --experimental-strip-types scripts/test-push-devices.mts && node --test scripts/test-m12-push-outbox.mjs && tsx --test scripts/test-push-receipts.mts && tsx --test scripts/test-push-channel-isolation.mts && tsx --test scripts/test-push-capability-revocation.mts && npm run test:member-state && npm run test:notification-navigation",
     "test:nationwide-radar": "node --no-warnings --experimental-strip-types --test scripts/test-nationwide-geography.mts scripts/test-monitoring-scopes.mts scripts/test-community-contributor-standing.mts scripts/test-community-alert-candidates.mts scripts/test-geography-activity.mts scripts/test-nationwide-radar-contracts.mts",
     "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts && npm run test:bottle-profile && npm run test:collection-history",
     "test:native-post-composer": "node --no-warnings --experimental-strip-types --test scripts/test-native-post-composer.mts",
@@ -103,7 +103,7 @@
     "operator:findings": "node scripts/operator-findings.mjs",
     "operator:objective": "python scripts/run-with-release-lane-lock.py -- node scripts/operator-objective.mjs",
     "verify:release-lane": "node scripts/verify-release-lane.mjs",
-    "test:release-lane": "node scripts/test-release-lane-policy.mjs && python scripts/test_release_lane_lock.py && python scripts/test_autonomous_operator_wrapper.py",
+    "test:release-lane": "node scripts/test-release-lane-policy.mjs && node scripts/test-coverage-parking.mjs && python scripts/test_release_lane_lock.py && python scripts/test_autonomous_operator_wrapper.py",
     "test:operator-backbone": "node --no-warnings --experimental-strip-types scripts/test-operator-backbone.mjs && node scripts/test-operator-objective.mjs && node scripts/test-daily-reliability-live-stats.mjs && npm run test:release-lane",
     "test:production-checks": "node --test scripts/test-production-checks.mjs scripts/test-production-verifier-runtime.mjs scripts/test-engine-monitor.mjs && tsx scripts/test-production-regression-drop-policy.mjs",
     "test:company-scorecard-feed": "node --no-warnings --experimental-strip-types scripts/test-company-scorecard-feed.mts",
@@ -216,7 +216,8 @@
     "artwork:labeled:complete": "node scripts/audit-labeled-bottle-art.mjs --require-complete",
     "artwork:feed:audit": "tsx scripts/audit-feed-bottle-art.mts",
     "test:bottle-profile": "node --no-warnings --experimental-strip-types --test scripts/test-bottle-profile-route.mts",
-    "test:collection-history": "tsx scripts/test-collection-history.mts"
+    "test:collection-history": "tsx scripts/test-collection-history.mts",
+    "test:legal-acceptance": "tsx --test scripts/test-legal-acceptance.ts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

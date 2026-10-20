@@ -3,6 +3,25 @@ import test from "node:test";
 import { preferencesFixture, profileFixture, feedFixture } from './astra-fixtures';
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
+import { COMMUNITY_TERMS_VERSION } from '../../../../shared/legal-acceptance';
+
+test('legal agreement writes the current affirmative assertion and rejects unconfirmed or malformed saves', async () => {
+  let payload: unknown = { termsVersion: COMMUNITY_TERMS_VERSION, acceptance: null };
+  const writes: unknown[] = [];
+  const api = createMobileApi({ baseUrl: 'https://legal.example.test', getToken: async () => 'member-token', fetcher: async input => {
+    const req = input as Request;
+    assert.equal(req.headers.get('authorization'), 'Bearer member-token');
+    if (req.method === 'POST') writes.push(await req.json());
+    return Response.json(payload);
+  } });
+  assert.equal((await api.getLegalAcceptance()).acceptance, null);
+  await assert.rejects(api.acceptLegalTerms(), error => error instanceof MobileApiError && error.code === 'INVALID_RESPONSE');
+  assert.deepEqual(writes[0], { accepted: true, termsVersion: COMMUNITY_TERMS_VERSION });
+  payload = { termsVersion: COMMUNITY_TERMS_VERSION, acceptance: { termsVersion: COMMUNITY_TERMS_VERSION, acceptedAt: '2026-10-19T23:00:00Z', source: 'community' } };
+  assert.equal((await api.acceptLegalTerms()).acceptance.source, 'community');
+  payload = { termsVersion: COMMUNITY_TERMS_VERSION, acceptance: { termsVersion: 'old', acceptedAt: '2026-10-19', source: 'community' } };
+  await assert.rejects(api.getLegalAcceptance(), error => error instanceof MobileApiError && error.code === 'INVALID_RESPONSE');
+});
 
 test('bottle profile state context has distinct request/cache identities and validates market evidence', async () => {
   const paths: string[] = [];

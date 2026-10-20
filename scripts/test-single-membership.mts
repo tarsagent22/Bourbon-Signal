@@ -21,8 +21,10 @@ test('legacy Standard receives every paid capability while its billing identity 
 });
 
 test('new paid purchase catalog has exactly one six dollar monthly membership', () => {
-  assert.deepEqual(PAID_MEMBERSHIP_PLANS.map(plan => [plan.tier, plan.monthlyPrice, plan.monthlyPlan]), [['barrel', '$6', 'barrel_monthly']]);
-  for (const plan of ['standard_monthly', 'standard_annual', 'barrel_annual', 'bib_lifetime'] as const) assert.equal(isPublicCheckoutPlanId(plan), false);
+  assert.deepEqual(PAID_MEMBERSHIP_PLANS.filter(plan => plan.monthlyPlan).map(plan => [plan.tier, plan.monthlyPrice, plan.monthlyPlan]), [['barrel', '$6', 'barrel_monthly']]);
+  assert.deepEqual(PAID_MEMBERSHIP_PLANS.filter(plan => plan.plan).map(plan => [plan.tier, plan.oneTimePrice, plan.plan]), [['bottled-in-bond', '$50', 'bib_lifetime']]);
+  for (const plan of ['standard_monthly', 'standard_annual', 'barrel_annual'] as const) assert.equal(isPublicCheckoutPlanId(plan), false);
+  assert.equal(isPublicCheckoutPlanId('bib_lifetime'), true);
   assert.equal(isPublicCheckoutPlanId('barrel_monthly'), true);
 });
 

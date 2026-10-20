@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createConnection } from 'node:net';
 import path from 'node:path';
+import { createCoverageLease, coverageLeaseMarker, readCoverageLease, assertCoverageMergeLease, validateCoverageReadiness } from '../automation/bourbon-signal/coverage-release-policy.mjs';
 
 function option(name, fallback = '') {
   const prefix = `--${name}=`;
@@ -308,8 +309,19 @@ async function createCoveragePullRequest({ expectedMain, mainSha, pulls }) {
   const comparableBody = process.platform === 'win32' ? bodyPath.toLowerCase() : bodyPath;
   const comparableRoot = process.platform === 'win32' ? repositoryRoot.toLowerCase() : repositoryRoot;
   if (!comparableBody.startsWith(comparableRoot)) fail('--body-file escaped the repository root through a link or junction.');
-  const body = (await readFile(bodyPath, 'utf8')).replace(/\r\n?/g, '\n');
+  let body = (await readFile(bodyPath, 'utf8')).replace(/\r\n?/g, '\n');
   if (!body || Buffer.byteLength(body) > 50_000 || !bodyHasJobKey(body, jobKey)) fail('pull-request body is empty, oversized, or missing the exact immutable job-key line.');
+  if (readCoverageLease(body)) fail('PR body must not supply a release lease; admission creates it.');
+  const readinessFile = option('readiness-file');
+  if (!readinessFile || path.isAbsolute(readinessFile) || readinessFile.split(/[\\/]+/).includes('..')) fail('--readiness-file must be repository-relative.');
+  const readinessPath = await realpath(path.resolve(readinessFile));
+  if (!(process.platform === 'win32' ? readinessPath.toLowerCase() : readinessPath).startsWith(comparableRoot)) fail('readiness file escaped the repository.');
+  validateCoverageReadiness(await readJsonFile(readinessPath), { headSha: expectedHead, mainSha: expectedMain });
+  const previousIntent = await readJsonFile(coveragePendingPath(jobKey), { optional: true });
+  const lease = previousIntent?.lease || createCoverageLease({ jobKey, taskId, headRef: head, headSha: expectedHead, mainSha: expectedMain });
+  assertCoverageMergeLease(lease);
+  if (lease.jobKey !== jobKey || lease.taskId !== taskId || lease.headRef !== head || lease.headSha !== expectedHead || lease.mainSha !== expectedMain) fail('pending release lease changed; park it before fresh admission.');
+  body = `${body.trimEnd()}\n\n${coverageLeaseMarker(lease)}\n`;
   await assertAuthorityCapabilityAbsent(jobKey, [title, body]);
   await assertAuthorityCapabilityAbsentFromGit(jobKey, {
     baseSha: expectedMain,
@@ -319,8 +331,7 @@ async function createCoveragePullRequest({ expectedMain, mainSha, pulls }) {
   });
   const registered = await registeredObjectives();
   const objectives = registered.map((entry) => entry.objective);
-  if (objectives.length > 1) fail('multiple objective locks exist in the host objective registry.');
-  if (objectives[0] && String(objectives[0].branch || '') !== head) fail(`objective lock belongs to ${objectives[0].branch || 'an unknown branch'}, not ${head}.`);
+  if (objectives.length > 0) fail('coverage admission requires an empty objective lane; its temporary reservation uses the coverage binding only.');
   await verifyAuthority(jobKey, taskId);
   const [latestMain, localHead] = await Promise.all([
     currentMainSha(),
@@ -332,6 +343,7 @@ async function createCoveragePullRequest({ expectedMain, mainSha, pulls }) {
   if (!commandSucceeds('git', ['merge-base', '--is-ancestor', expectedMain, expectedHead])) fail('the reviewed head does not contain current main.');
   const expected = { head, expectedHead, expectedMain, jobKey, taskId, title, body };
   const intent = {
+    lease,
     contractVersion: 'bourbon-signal/coverage-release-pending@1',
     jobKey,
     taskId,
@@ -395,6 +407,7 @@ async function createCoveragePullRequest({ expectedMain, mainSha, pulls }) {
       headRef: head,
       admittedHead: expectedHead,
       admittedMain: expectedMain,
+      lease,
     });
   } catch (error) {
     fail(`coverage binding persistence failed; PR #${created.number} and its pending intent were left for owner reconciliation: ${error instanceof Error ? error.message : String(error)}.`);
@@ -484,7 +497,8 @@ if (phase === 'admission') {
   const binding = await readJsonFile(coverageBindingPath(prNumber), { optional: true });
   const coverageBranch = String(pull.head?.ref || '').startsWith('coverage/');
   const coverageWorker = Boolean(process.env.BOURBON_SIGNAL_COVERAGE_TASK_ID);
-  if (binding || coverageBranch || coverageWorker) {
+  const coverageBody = /^Authority immutable job key: coverage-request:/m.test(String(pull.body || ''));
+  if (binding || coverageBranch || coverageWorker || coverageBody) {
     if (!binding) fail(`PR #${prNumber} is a coverage release without a durable lock-held admission binding.`);
     if (binding.contractVersion !== 'bourbon-signal/coverage-release-binding@1'
       || Number(binding.prNumber) !== prNumber
@@ -499,6 +513,8 @@ if (phase === 'admission') {
     }
     const jobKey = binding.jobKey;
     if (!bodyHasJobKey(pull.body, jobKey)) fail(`PR #${prNumber} body no longer matches its durable coverage authority binding.`);
+    assertCoverageMergeLease(binding.lease);
+    if (JSON.stringify(readCoverageLease(pull.body)) !== JSON.stringify(binding.lease)) fail('coverage lease marker no longer matches its durable binding.');
     const taskId = option('task-id', process.env.BOURBON_SIGNAL_COVERAGE_TASK_ID || '');
     if (!/^cx_[a-f0-9]{32}$/.test(taskId) || binding.taskId !== taskId) fail('coverage merge requires the authenticated bound Codex coverage task ID.');
     await assertActiveCodexCoverageTask(jobKey, taskId);
@@ -517,6 +533,7 @@ if (phase === 'admission') {
   if (!hasFlag('apply')) {
     console.log(JSON.stringify({ ok: true, phase, applied: false, prNumber, headSha: pull.head.sha, baseSha: mainSha }));
   } else {
+    if (binding) assertCoverageMergeLease(binding.lease);
     const result = await github(`/repos/${repository}/pulls/${prNumber}/merge`, {
       method: 'PUT',
       body: { sha: expectedHead, merge_method: 'squash' },

@@ -43,3 +43,45 @@ test('M08: expiry cleans owned files; corrupt/out-of-scope file references are n
   await assert.rejects(journal('A').prepare({}, 'k', { ...photo, uri: 'file:///private/other.jpg' }));
   for (const key of store.keys()) store.set(key, '{}');
 });
+
+test('photo recovery keeps the same Signal and stops uploading after a terminal attachment failure', async () => {
+  const { journal, removed } = setup();
+  const retry = journal('A');
+  let creates = 0, uploads = 0;
+  const api = {
+    submitSighting: async () => { creates++; return { sighting: { id: 'sighting_a' } }; },
+    uploadSightingPhoto: async () => { uploads++; throw new Error('permanent upload rejection'); },
+    attachSightingPhoto: async () => { throw new MobileApiError('missing', 404, 'NOT_FOUND'); },
+  };
+  await retry.prepare({ bottleName: 'Fixture' }, 'original-key', photo);
+  await assert.rejects(retry.resume(api, () => new Blob(['photo'])));
+  assert.deepEqual(await journal('A').finishWithoutPhoto(api), { sightingId: 'sighting_a', payload: { bottleName: 'Fixture' } });
+  assert.equal(creates, 1); assert.equal(uploads, 1);
+  assert.equal(await retry.load(), null); assert.deepEqual(removed, [photo.uri]);
+});
+
+test('stopping an ambiguous photo request reuses its original key and preserves intent on a network failure', async () => {
+  const { journal, removed } = setup();
+  const retry = journal('A');
+  const keys: string[] = []; let offline = true;
+  const api = { submitSighting: async (_: unknown, key: string) => {
+    keys.push(key); if (offline) throw new Error('offline'); return { sighting: { id: 'sighting_existing' } };
+  } };
+  await retry.prepare({ bottleName: 'Fixture' }, 'same-key', photo);
+  await assert.rejects(retry.finishWithoutPhoto(api));
+  assert.ok(await retry.load()); assert.equal(removed.length, 0);
+  offline = false;
+  assert.equal((await retry.finishWithoutPhoto(api)).sightingId, 'sighting_existing');
+  assert.deepEqual(keys, ['same-key', 'same-key']); assert.equal(await retry.load(), null);
+});
+
+test('photo completion cannot race an active upload or discard another account’s retry', async () => {
+  const { journal } = setup(); const retry = journal('A');
+  await retry.prepare({}, 'key', photo);
+  let resolve!: (value: unknown) => void;
+  const finishing = retry.finishWithoutPhoto({ submitSighting: () => new Promise(done => { resolve = done; }) });
+  for (let i = 0; i < 10 && !resolve; i++) await Promise.resolve();
+  await assert.rejects(retry.finishWithoutPhoto({}), /already running/);
+  await assert.rejects(journal('B').finishWithoutPhoto({}), /No saved photo/);
+  resolve({ sighting: { id: 'sighting_a' } }); await finishing;
+});

@@ -1,6 +1,6 @@
 import { getEntitlements } from "./entitlements";
 import { masterUnsubscribed } from "./member-weekly-delivery";
-import { membershipTrialEligibility } from "./membership-trial";
+import { hasMembershipPurchaseHistory } from "./membership-trial";
 
 export const MISSING_STATE_COMMUNITY_CAMPAIGN_ID = "missing-state-community-pilot-v1";
 export const MISSING_STATE_COMMUNITY_SUBJECT = "Where do you hunt for bourbon?";
@@ -68,7 +68,7 @@ export function classifyMissingStateCommunityRecipient(user: MissingStateCommuni
   const privateMetadata = record(user.privateMetadata);
   const unsafeMetadata = record(user.unsafeMetadata);
   if (getEntitlements(publicMetadata).tier !== "free") return { status: "skipped_not_free" };
-  if (!membershipTrialEligibility("standard_monthly", publicMetadata, privateMetadata).eligible) {
+  if (hasMembershipPurchaseHistory(publicMetadata, privateMetadata)) {
     return { status: "skipped_trial_or_paid_history" };
   }
   if (user.banned || user.locked) return { status: "skipped_disabled_account" };

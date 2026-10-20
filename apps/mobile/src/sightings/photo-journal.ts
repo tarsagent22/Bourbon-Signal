@@ -41,6 +41,23 @@ export function createPhotoJournal({ owner, storage, ownedRoot, removeFile, now 
   let resuming = false;
   return {
     load,
+    async finishWithoutPhoto(api: Pick<ReturnType<typeof createMobileApi>, 'submitSighting'>) {
+      if (resuming) throw new Error('Photo retry is already running.');
+      resuming = true;
+      try {
+        const entry = await load();
+        if (!entry) throw new Error('No saved photo retry is available.');
+        // Resolve an ambiguous create using the original payload/key before clearing
+        // durable intent. A network failure keeps the retry recoverable.
+        if (!entry.attachment) {
+          const result = await api.submitSighting(entry.request.payload, entry.request.key);
+          entry.attachment = { sightingId: result.sighting.id, photo: entry.photo };
+          await save(entry);
+        }
+        await clear(entry);
+        return { sightingId: entry.attachment.sightingId, payload: entry.request.payload };
+      } finally { resuming = false; }
+    },
     async prepare(payload: SightingSubmission, requestKey: string, photo: SightingPhotoAsset) {
       if (!owned(photo)) throw new Error('Photo must be retained in this account’s app-owned folder.');
       if (await load()) throw new Error('Finish the saved photo retry before posting another Signal.');

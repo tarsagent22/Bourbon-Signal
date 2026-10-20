@@ -99,6 +99,8 @@ export function buildCommunityAlertCandidates(inputs: CommunityAlertSightingInpu
       storeName: store.name,
       storeAddress: store.address,
       storeCity: store.city,
+      quantityEstimate: sighting.quantityEstimate,
+      price: sighting.price,
       locationName: store.name,
       locationPrecision: "store_level",
       eventType: "qualified_community_sighting",
