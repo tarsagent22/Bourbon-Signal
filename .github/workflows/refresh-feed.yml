@@ -298,7 +298,7 @@ jobs:
       - name: Verify targeted Indiana inventory expansion
         if: ${{ inputs.states && contains(inputs.states, 'IN') }}
         working-directory: engine
-        run: npm run verify:in
+        run: npm run verify:in:improvements
 
       - name: Verify targeted Arizona retailer inventory expansion
         if: ${{ inputs.states && contains(inputs.states, 'AZ') }}
@@ -600,6 +600,7 @@ jobs:
             engine/out/site/state-health.json
             engine/out/az-expansion-verification.json
             engine/out/pa-expansion-verification.json
+            engine/out/verification/in-improvements.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json

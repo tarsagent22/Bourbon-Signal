@@ -27,6 +27,7 @@
     "verify:al": "node src/verify-al.mjs",
     "verify:wv": "node src/verify-wv.mjs",
     "verify:in": "node src/verify-in.mjs",
+    "verify:in:improvements": "node src/verify-in-improvements.mjs",
     "verify:az": "node src/verify-az.mjs",
     "verify:ca": "node src/verify-ca.mjs",
     "verify:fl": "node src/verify-fl.mjs",

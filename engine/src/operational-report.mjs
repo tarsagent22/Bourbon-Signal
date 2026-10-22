@@ -466,6 +466,7 @@ export function candidateFromChange(change, bootstrap = false) {
     sourceProductProofSku: sig.sourceProductProofSku,
     sourceProductInStock: sig.sourceProductInStock,
     sourceProductBackordered: sig.sourceProductBackordered,
+    ...(sig.state === 'IN' ? { sourceProductBinding: sig.sourceProductBinding || null } : {}),
     productHandle: sig.productHandle,
     variantId: sig.variantId,
     variantAvailable: sig.variantAvailable,

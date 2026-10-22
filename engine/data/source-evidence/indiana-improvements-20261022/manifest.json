@@ -1,0 +1,99 @@
+{
+  "contractVersion": "bourbon-signal/indiana-improvement-evidence@1",
+  "state": "IN",
+  "baseline": {
+    "runId": 39854435934,
+    "path": "states/IN.json",
+    "sha256": "9e2de7c706414f4081bcc388e296594fa4bb0716e0d31fff6dc18b45ccdff74d",
+    "signals": 1938,
+    "cityHiveInventoryRows": 806,
+    "note": "Immutable saved baseline; the publication retained Indiana without a source attempt. The separate denial policy preserves the prior aggregate clock."
+  },
+  "depthCanary": {
+    "startedAt": "2026-10-22T22:21:01.127Z",
+    "finishedAt": "2026-10-22T22:21:58.745Z",
+    "requestBudget": 9,
+    "requestCount": 6,
+    "retries": 0,
+    "bibleRecordCount": 188,
+    "additionalPublicRows": 0,
+    "additionalStores": 0,
+    "newToSavedSnapshotMatchedRows": 0,
+    "enabled": false,
+    "decision": "Do not enable these extra brand queries: no additional allocated or limited public inventory was proven. Two timeouts ended their source lanes without retry.",
+    "captures": [
+      {
+        "requestUrl": "https://capncork.com/shop/?subtype=Bourbon&merchant-id=5e8dbd4c9ea1420c5278f9b5",
+        "startedAt": "2026-10-22T22:21:01.128Z",
+        "finishedAt": "2026-10-22T22:21:02.106Z",
+        "httpStatus": 200,
+        "sha256": "fcda8d0046e6c860d864997437821e675407fca6697610ba0ff6d1ef044dd038",
+        "bytes": 559446,
+        "error": null,
+        "stopReason": null
+      },
+      {
+        "requestUrl": "https://capncork.com/shop/?subtype=Bourbon&merchant-id=5e8dbd4c9ea1420c5278f9b5&brands=Buffalo+Trace",
+        "startedAt": "2026-10-22T22:21:03.633Z",
+        "finishedAt": "2026-10-22T22:21:04.674Z",
+        "httpStatus": 200,
+        "sha256": "4254f576a6e8c5e9b7573d454aa5b20b3cfecb7f8268ad61e3fe7acbd76f1440",
+        "bytes": 313347,
+        "error": null,
+        "stopReason": null
+      },
+      {
+        "requestUrl": "https://capncork.com/shop/?subtype=Bourbon&merchant-id=5e8dbd4c9ea1420c5278f9b5&brands=1792",
+        "startedAt": "2026-10-22T22:21:06.192Z",
+        "finishedAt": "2026-10-22T22:21:06.733Z",
+        "httpStatus": 200,
+        "sha256": "f84fbd226565662b0d3e6037c5927452b40d2e84c9ed91eedadb2175ff876136",
+        "bytes": 320988,
+        "error": null,
+        "stopReason": null
+      },
+      {
+        "requestUrl": "https://shop.wiseguysliquors.com/shop/?subtype=bourbon&merchant-id=5eb1dc10054c392621980908",
+        "startedAt": "2026-10-22T22:21:08.251Z",
+        "finishedAt": "2026-10-22T22:21:09.185Z",
+        "httpStatus": 200,
+        "sha256": "41ff764beefd673eaeea8021b5ac9f030c9d269f10f693495c09d526c65430cb",
+        "bytes": 491578,
+        "error": null,
+        "stopReason": null
+      },
+      {
+        "requestUrl": "https://shop.wiseguysliquors.com/shop/?subtype=bourbon&merchant-id=5eb1dc10054c392621980908&brands=Buffalo+Trace",
+        "startedAt": "2026-10-22T22:21:10.703Z",
+        "finishedAt": "2026-10-22T22:21:34.725Z",
+        "httpStatus": null,
+        "sha256": null,
+        "bytes": 0,
+        "error": "The operation was aborted due to timeout",
+        "stopReason": "request_or_parse_failure"
+      },
+      {
+        "requestUrl": "https://gayshopsb1eca398.sites.cityhive.app/shop/?subtype=Bourbon&merchant-id=6230bb5d71da8220ca315f14",
+        "startedAt": "2026-10-22T22:21:34.730Z",
+        "finishedAt": "2026-10-22T22:21:58.743Z",
+        "httpStatus": null,
+        "sha256": null,
+        "bytes": 0,
+        "error": "The operation was aborted due to timeout",
+        "stopReason": "request_or_parse_failure"
+      }
+    ]
+  },
+  "paylessCapture": {
+    "url": "https://www.paylessliquors.info/barrel-selections",
+    "startedAt": "2026-10-22T22:23:45.547Z",
+    "finishedAt": "2026-10-22T22:23:45.831Z",
+    "status": 200,
+    "bytes": 131302,
+    "sha256": "25734aadcfffbe97f25aa413b86642d22b46b4df0c6841fd55401929260b06cc",
+    "requests": 1,
+    "fixture": "engine/test/fixtures/indiana-retailer/2026-10-22-identity-regressions.json",
+    "result": "Exact Maker private-selection title retains verified East Street pickup with quantity zero/nonexact. Woodford Reserve Rye has no reviewed matching Bible family and is excluded."
+  },
+  "scope": "Inventory identity, binary availability, repeated-page request efficiency and four known-denied routes. Existing Big Red expansion stores are not new coverage from this pass."
+}
