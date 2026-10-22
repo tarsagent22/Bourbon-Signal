@@ -17,8 +17,8 @@ test('MS historical implementation bytes remain pinned, including policy', async
   const hashes = Object.values(evidence).find(v=>v && typeof v==='object' && v['engine/src/collectors/mississippi-retailer-surfaces.mjs']);
   assert.ok(hashes);
   for (const [name, hash] of Object.entries(hashes)) {
-    // Only reviewed NY/CO metadata and the verifier's two exact helper hooks may
-    // differ. The original full-file digests still pin all remaining bytes.
+    // Only reviewed NY/CO metadata, the two area expectations and the verifier's
+    // exact helper hooks may differ. Original digests still pin all other bytes.
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
   }
 });
@@ -64,6 +64,30 @@ test('MS verifier allowance preserves every byte outside its two exact helper ho
   }
   const unknownFile = Buffer.from('unregistered file bytes');
   assert.equal(normalizeHistoricalImplementationBytes('engine/src/mississippi-retailer-policy.mjs', unknownFile), unknownFile);
+});
+
+test('coverage test allowance preserves MS assertions and every other test byte', async () => {
+  const name = 'scripts/test-coverage-contract.mts';
+  const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+  const originalHash = evidence.implementationFilesSha256[name];
+  assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), originalHash);
+  for (const line of [
+    '  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro"]],\n',
+    '  ["CO", ["Boulder County", "Colorado Springs", "Denver Metro"]],\n',
+  ]) {
+    assert.ok(current.includes(line));
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(line, 'changed-area-expectation\n'))), /exact historical verification hook/);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current + '\n' + line)), /exact historical verification hook/);
+  }
+  for (const changed of [
+    current.replace('assert.equal(mississippi.freshness.currentInventoryStores, 0,', 'assert.equal(mississippi.freshness.currentInventoryStores, 1,'),
+    current.replace('assert.equal(mississippiKnownStoresPayload.stores?.length, 690);', 'assert.equal(mississippiKnownStoresPayload.stores?.length, 1);'),
+    current.replace('assert.deepEqual(metro.areas, areas);', 'assert.ok(true);'),
+    '// changed top level\n' + current,
+  ]) {
+    assert.notEqual(changed, current);
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(changed))), originalHash);
+  }
 });
 test('MS bundle boundary changes only registry loading; bundled policy and collector retain semantics', async () => {
   const transform = require('./build/ms-registry-boundary.cjs');
