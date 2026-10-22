@@ -16,7 +16,8 @@ import { mergeCoverageStores } from "@/lib/coverage-known-stores";
 import { retailerSubmissionToFeedCard } from "@/lib/retailer-signal-feed";
 import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
 import { normalizeDropForSite, readSiteExportResults } from "@/lib/site-engine-contract";
-import { normalizePublicDropEvidenceInput } from "@/lib/public-drop-evidence";
+import { normalizePublicDropEvidenceInput, isPublicDropFeedEligible, isCurrentInventoryEvidence } from "@/lib/public-drop-evidence";
+import { pilotReceiptPayload } from './nationwide-pilot-receipt';
 import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
 
 interface CoverageStatsPayload {
@@ -93,6 +94,14 @@ async function readCoverageInputs() {
 export async function readCurrentCoverageContract() {
   const inputs = await readCoverageInputs();
   return buildCoverageContract(inputs);
+}
+
+export async function readCoveragePilotReceipt(sourceId:string) {
+  const inputs=await readCoverageInputs();
+  const contract=buildCoverageContract(inputs);
+  const rows=inputs.drops.filter(drop=>isPublicDropFeedEligible(drop) && isCurrentInventoryEvidence(drop,inputs.asOf)
+    && contract.states.some(state=>state.code===drop.state && state.capabilities.currentBottleAvailability));
+  return pilotReceiptPayload('coverage',sourceId,rows,inputs.snapshotId || null,Date.parse(inputs.asOf));
 }
 
 export async function searchCurrentCoverageTargets(stateCode: string, query: string) {
