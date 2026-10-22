@@ -88,6 +88,12 @@ jobs:
       - name: Install dependencies
         run: npm ci && npm --prefix engine ci
 
+      - name: Verify deterministic customer-surface regressions before collection
+        working-directory: engine
+        run: |
+          npm run bible
+          node --test test/customer-surface-e2e.test.mjs
+
       - name: Validate source-scoped dispatch before collection
         if: ${{ inputs.sources != '' }}
         run: node --input-type=module -e "import {sourceRefreshScope} from './engine/src/source-scoped-refresh.mjs'; sourceRefreshScope(); if (process.env.FORCE_ALL === 'true') throw Error('Source refresh cannot force all states');"
@@ -124,6 +130,14 @@ jobs:
           key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             inventory-collector-state-${{ runner.os }}-
+
+      - name: Restore metro attempt cooldowns independently of published inventory
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/optimization/metro-source-attempts
+          key: inventory-metro-attempts-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-metro-attempts-${{ runner.os }}-
 
       - name: Restore North Carolina board intelligence
         id: nc-intelligence-cache
@@ -530,6 +544,13 @@ jobs:
           path: engine/out/nc-source-registry.json
           key: nc-source-registry-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
+      - name: Save metro attempt cooldowns independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/optimization/metro-source-attempts
+          key: inventory-metro-attempts-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Save browser source artifacts
         if: always()
         uses: actions/cache/save@v4
@@ -570,5 +591,6 @@ jobs:
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
+            engine/out/optimization/metro-source-attempts
             engine/out/states/*.json
             engine/out/source-refresh-verification.json

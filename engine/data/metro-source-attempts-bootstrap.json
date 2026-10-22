@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "provenance": {
+    "runId": 39794411704,
+    "artifactId": 12433670976,
+    "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39794411704",
+    "headSha": "14328c3aeef48672a80fdd495824471e89077bb1",
+    "artifactDigest": "sha256:ca5f41b66fcc0b32ff2cffd502196c48a07103d449c9ebb9858691c3f8b656b7",
+    "laterSuccessRunId": 39809375556,
+    "laterSuccessArtifactId": 12439874515,
+    "note": "Only captured direct metro denials remain. Sources with later successful runtime results are excluded. Supported browser observations retain their original clocks and do not establish a new direct request."
+  },
+  "states": {
+    "NY": {
+      "sourceAttempts": {
+        "hurley-wine-market": {
+          "lastAttemptAt": "2026-10-22T14:20:06.761Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.761Z"
+        },
+        "michaels-liquor-rochester": {
+          "lastAttemptAt": "2026-10-22T14:20:06.688Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.688Z"
+        },
+        "bittersweet-wine-liquor": {
+          "lastAttemptAt": "2026-10-22T14:20:07.031Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.031Z"
+        },
+        "wj-wines-liquors": {
+          "lastAttemptAt": "2026-10-22T14:20:06.866Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.866Z"
+        },
+        "cellar-53": {
+          "lastAttemptAt": "2026-10-22T14:20:06.981Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.981Z"
+        },
+        "wine-gallery": {
+          "lastAttemptAt": "2026-10-22T14:20:07.068Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.068Z"
+        },
+        "cherrywood-wine": {
+          "lastAttemptAt": "2026-10-22T14:20:07.222Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.222Z"
+        },
+        "westbury-liquors": {
+          "lastAttemptAt": "2026-10-22T14:20:07.249Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.249Z"
+        },
+        "turnup-nyc": {
+          "lastAttemptAt": "2026-10-22T14:20:07.700Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.700Z"
+        },
+        "greenpoint-wine-liquor": {
+          "lastAttemptAt": "2026-10-22T14:20:07.764Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.764Z"
+        },
+        "bin70-wine": {
+          "lastAttemptAt": "2026-10-22T14:20:07.888Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.888Z"
+        },
+        "yardsale-wines": {
+          "lastAttemptAt": "2026-10-22T14:20:07.931Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.931Z"
+        },
+        "7th-ave-wines": {
+          "lastAttemptAt": "2026-10-22T14:20:08.222Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:08.222Z"
+        },
+        "bedford-wines": {
+          "lastAttemptAt": "2026-10-22T14:20:08.115Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:08.115Z"
+        },
+        "michaeltowne-wines": {
+          "lastAttemptAt": "2026-10-22T14:20:08.383Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:08.383Z"
+        },
+        "city-wines-ny": {
+          "lastAttemptAt": "2026-10-22T14:20:08.339Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:08.339Z"
+        },
+        "five-star-wine-spirits-buffalo": {
+          "lastAttemptAt": "2026-10-22T14:20:08.514Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:08.514Z"
+        },
+        "bailey-discount-liquor-wine": {
+          "lastAttemptAt": "2026-10-22T14:20:08.585Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:08.585Z"
+        }
+      }
+    },
+    "CO": {
+      "sourceAttempts": {
+        "springs-liquor-outlet": {
+          "lastAttemptAt": "2026-10-22T14:20:06.651Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.651Z"
+        },
+        "wallabys-liquor-warehouse": {
+          "lastAttemptAt": "2026-10-22T14:20:06.574Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.574Z"
+        },
+        "peak-wine-spirits": {
+          "lastAttemptAt": "2026-10-22T14:20:06.734Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.734Z"
+        },
+        "south-park-liquor": {
+          "lastAttemptAt": "2026-10-22T14:20:06.845Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.845Z"
+        },
+        "bonnie-brae-liquor": {
+          "lastAttemptAt": "2026-10-22T14:20:06.850Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.850Z"
+        },
+        "mollys-spirits": {
+          "lastAttemptAt": "2026-10-22T14:20:06.931Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:06.931Z"
+        },
+        "off-broadway-wine-spirits": {
+          "lastAttemptAt": "2026-10-22T14:20:07.174Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.174Z"
+        },
+        "heritage-wine-liquor": {
+          "lastAttemptAt": "2026-10-22T14:20:07.301Z",
+          "status": "access_denied",
+          "httpStatus": 403,
+          "nextAllowedAt": "2026-10-23T14:20:07.301Z"
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import { METRO_RETAILER_SOURCES } from './metro-retailer-surfaces.mjs';
+import { METRO_REFRESH_CADENCE_MS, metroHttpSourceError, metroRefreshCadenceMs } from './metro-refresh-state.mjs';
 
 const BUFFALO_SOURCE_IDS = new Set(['five-star-wine-spirits-buffalo', 'bailey-discount-liquor-wine']);
-const DEFAULT_METRO_REFRESH_CADENCE_MS = 4 * 60 * 60_000;
 
 export const BUFFALO_CITYHIVE_DISCOVERY_BUDGETS = Object.freeze({
   maxRequests: 10,
@@ -71,18 +71,20 @@ function hasReviewedMerchantIdentity(html, source) {
   return typeof html === 'string' && new RegExp(`data-ch-merchant-id=["']${escaped}["']`, 'u').test(html);
 }
 
-export function selectMetroSourcesForRefresh(sources, cachedSignals, { nowMs = Date.now(), forceLive = false, fallbackCadenceMs = DEFAULT_METRO_REFRESH_CADENCE_MS } = {}) {
-  if (forceLive) return [...sources];
+export function selectMetroSourcesForRefresh(sources, cachedSignals, { nowMs = Date.now(), forceLive = false, fallbackCadenceMs = METRO_REFRESH_CADENCE_MS, sourceAttempts = {} } = {}) {
   return [...sources].filter((source) => {
+    const attempt = sourceAttempts[source.id];
+    const nextAllowedMs = Date.parse(attempt?.nextAllowedAt || '');
+    const denied = ['access_denied', 'rate_limited'].includes(attempt?.status) || [401, 403, 429].includes(Number(attempt?.httpStatus));
+    // Maintenance targeting may refresh healthy caches, but cannot clear denial backoff.
+    if (Number.isFinite(nextAllowedMs) && nextAllowedMs > nowMs && (denied || !forceLive)) return false;
+    if (forceLive) return true;
     const observed = (cachedSignals || [])
       .filter((signal) => signal?.sourceChain === source.id)
       .map((signal) => Date.parse(String(signal.observedAt || '')))
       .filter(Number.isFinite);
     if (!observed.length) return true;
-    const configuredCadenceMs = Number(source.depthDiscovery?.refreshCadenceMs);
-    const cadenceMs = Number.isFinite(configuredCadenceMs) && configuredCadenceMs > 0
-      ? configuredCadenceMs
-      : fallbackCadenceMs;
+    const cadenceMs = metroRefreshCadenceMs(source, fallbackCadenceMs);
     const latest = Math.max(...observed);
     return latest > nowMs || nowMs - latest >= cadenceMs;
   });
@@ -159,7 +161,10 @@ export async function collectMetroCityHiveRows(source, {
       if (signal?.aborted) throw error;
       const failure = { kind: page.kind, term: page.term || null, url: page.url, status: response?.status || 0, error: error instanceof Error ? error.message : String(error) };
       attempts.push(failure);
-      if (page.required) throw new Error(`${source.sourceLabel} required bourbon page failed: ${failure.error}`);
+      if (page.required) {
+        const message = `${source.sourceLabel} required bourbon page failed: ${failure.error}`;
+        throw failure.status && !response?.ok ? metroHttpSourceError(failure.status, message) : new Error(message);
+      }
       optionalFailures.push(failure);
       // A denial is a source-level stop, not a reason to try another search URL.
       if ([401, 403, 429].includes(Number(failure.status))) {
