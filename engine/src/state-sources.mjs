@@ -386,7 +386,7 @@ const BASE_STATE_SOURCES = [
 
   {
     id: 'AZ', label: 'Arizona retailer inventory + Costco watch', tier: 'B', strategy: 'retailer_store_inventory_and_costco_watch', cadence: '30-60m',
-    value: 'Arizona is a private retail market. Public CityHive inventory from selected Phoenix retailers provides store-level bottle, quantity, price, and address signals; Costco remains a separate warehouse watch. Retailer availability is fast-moving and must be verified before driving.',
+    value: 'Public retailer inventory at selected Arizona Safeway, Albertsons and independent liquor stores provides exact-store bottle, price and availability reports. Costco warehouse observations remain a separate watch. Availability is fast-moving; verify before driving.',
     rareSignalTarget: true,
     sources: [
       { kind: 'html', url: 'https://paradiseliquoraz.com/shop/?subtype=bourbon', label: 'Paradise Liquor Mini Mart Phoenix CityHive bourbon inventory', precisionOnly: true },

@@ -17,7 +17,7 @@ test('MS historical implementation bytes remain pinned, including policy', async
   const hashes = Object.values(evidence).find(v=>v && typeof v==='object' && v['engine/src/collectors/mississippi-retailer-surfaces.mjs']);
   assert.ok(hashes);
   for (const [name, hash] of Object.entries(hashes)) {
-    // Only reviewed NY/CO metadata, area expectations, the verifier's hooks and
+    // Only reviewed NY/CO/AZ metadata, area expectations, the verifier's hooks and
     // the exact FL proof addition may differ. Original digests pin other bytes.
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
   }
@@ -89,6 +89,23 @@ test('NY/CO metadata allowance cannot hide changes outside either exact state bl
     const ny = name.endsWith('.mjs') ? "id: 'NY'" : '"NY": {';
     assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.toString().replace(ny, 'missing-NY-boundary'))), /exact metadata boundary/);
     assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.toString() + '\n' + sharedBaseline.files[name].NY)), /exact metadata boundary/);
+  }
+});
+
+test('AZ metadata reversal accepts only its exact reviewed block and keeps original MS digests', async () => {
+  const az = JSON.parse(await readFile(new URL('../engine/data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+  for (const name of sharedFiles) {
+    const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+    const { original, reviewed } = az.files[name];
+    assert.notEqual(original, reviewed);
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
+    for (const changed of [
+      current.replace(reviewed, original),
+      current.replace(reviewed, reviewed.replace('Arizona', 'Unreviewed geography')),
+      current + '\n' + reviewed,
+    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(changed)), /AZ reviewed metadata/);
+    const outside = current.replace(name.endsWith('.mjs') ? "id: 'VA'" : '"VA": {', name.endsWith('.mjs') ? "id: 'VA_UNREVIEWED'" : '"VA_UNREVIEWED": {');
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name]);
   }
 });
 

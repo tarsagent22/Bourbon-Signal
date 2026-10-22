@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "state": "AZ",
+  "provenance": {
+    "cityHive": {
+      "runId": 39817465631,
+      "artifactId": 12444024818,
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39817465631",
+      "headSha": "def5c720eb9283e4f498b2c71483d7fac8ff98e2",
+      "artifactDigest": "sha256:07e77701df75c3f4e8ea21822976ac8397b68722c2fa0b89a90935ec4deb3b0f",
+      "reportPath": "states/AZ.json",
+      "reportSha256": "8e9cc10a3f4189f0949c706e23ddb907a4e92089b15428e7cabe0924986a1496",
+      "runtimeStartedAt": "2026-10-22T17:05:26.221Z",
+      "runtimeFinishedAt": "2026-10-22T17:07:44.857Z",
+      "deniedRequestCount": 20,
+      "sourceCount": 7,
+      "premisesCount": 8,
+      "note": "Each registered CityHive host returned HTTP 403. The report records only the aggregate precision:az runtime window, not per-host request times. Its finish is a conservative upper bound used as the cooldown anchor; it is not an exact per-host network timestamp. This seed establishes no positive inventory and never refreshes an inventory observation clock."
+    },
+    "flagstaff": {
+      "auditPath": ".operator/evidence/az-depth/flagstaff-products-page1.audit.json",
+      "auditSha256": "e91db0124210222d595857f4105b1a06b8609d738e465330cdb3afd314eea695",
+      "bodySha256": "7b34482ac7231f4e1ecf503812bfcff69161077c6da8302bbb4ea0dcc6397fed",
+      "url": "https://flagstaffliquor.com/products.json?limit=250",
+      "startedAt": "2026-10-22T17:42:56.400Z",
+      "finishedAt": "2026-10-22T17:42:56.671Z",
+      "httpStatus": 429,
+      "retryAfterSeconds": 60,
+      "note": "The single authorized page-1 Shopify request returned HTTP 429. Anchor the four-hour minimum cooldown to the captured actual attempt finish, not the future provider Date header. No positive inventory was established."
+    }
+  },
+  "sourceAttempts": {
+    "paradise-liquor-phoenix": {
+      "lastAttemptAt": "2026-10-22T17:07:44.857Z",
+      "status": "access_denied",
+      "httpStatus": 403,
+      "nextAllowedAt": "2026-10-23T17:07:44.857Z"
+    },
+    "liquor-vault-scottsdale": {
+      "lastAttemptAt": "2026-10-22T17:07:44.857Z",
+      "status": "access_denied",
+      "httpStatus": 403,
+      "nextAllowedAt": "2026-10-23T17:07:44.857Z"
+    },
+    "skyline-liquor": {
+      "lastAttemptAt": "2026-10-22T17:07:44.857Z",
+      "status": "access_denied",
+      "httpStatus": 403,
+      "nextAllowedAt": "2026-10-23T17:07:44.857Z"
+    },
+    "chandler-liquors": {
+      "lastAttemptAt": "2026-10-22T17:07:44.857Z",
+      "status": "access_denied",
+      "httpStatus": 403,
+      "nextAllowedAt": "2026-10-23T17:07:44.857Z"
+    },
+    "luckys-liquor-phoenix": {
+      "lastAttemptAt": "2026-10-22T17:07:44.857Z",
+      "status": "access_denied",
+      "httpStatus": 403,
+      "nextAllowedAt": "2026-10-23T17:07:44.857Z"
+    },
+    "one-stop-drive-thru-phoenix": {
+      "lastAttemptAt": "2026-10-22T17:07:44.857Z",
+      "status": "access_denied",
+      "httpStatus": 403,
+      "nextAllowedAt": "2026-10-23T17:07:44.857Z"
+    },
+    "liquor-express-tempe": {
+      "lastAttemptAt": "2026-10-22T17:07:44.857Z",
+      "status": "access_denied",
+      "httpStatus": 403,
+      "nextAllowedAt": "2026-10-23T17:07:44.857Z"
+    },
+    "flagstaff-liquor": {
+      "lastAttemptAt": "2026-10-22T17:42:56.671Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-22T21:42:56.671Z"
+    }
+  }
+}

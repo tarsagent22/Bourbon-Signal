@@ -5,8 +5,8 @@ import test from 'node:test';
 const require = createRequire(import.meta.url);
 const lock = JSON.parse(await readFile(new URL('../package-lock.json', import.meta.url), 'utf8'));
 test('supported Next 15 patch and patched libvips are locked', () => {
-  assert.equal(lock.packages['node_modules/next'].version, '15.5.27');
-  assert.match(lock.packages['node_modules/sharp'].version, /^0\.35\./);
+  assert.equal(lock.packages['node_modules/next'].version, '15.5.28');
+  assert.match(lock.packages['node_modules/sharp'].version, /^0\.35\.(?:[5-9]|\d{2,})$/);
 });
 test('real image optimizer dependency can encode and decode a thumbnail', async () => {
   const sharp = require('sharp');

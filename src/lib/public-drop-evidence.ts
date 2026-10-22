@@ -1,6 +1,7 @@
 import { dropFreshnessTime } from "./drop-feed-policy.ts";
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
 import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
+import { isArizonaRetailerInventory } from "../../engine/src/arizona-retailer-policy.mjs";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -335,6 +336,13 @@ export function isPublicDropFeedEligible(
   const state = stateCode(drop);
   if (!state || options.degradedStateCodes?.has(state) && !independentlyAcceptedSource(drop)) return false;
   const retailer = isVerifiedRetailerDrop(drop);
+  // Arizona's live coverage uses the same reviewed premises/source identity as
+  // engine alerts. Positive quantities on policy-only rows are not evidence of
+  // current customer availability. Verified retailer submissions use their own
+  // authenticated acceptance path above.
+  if (!retailer && state === "AZ" && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(drop.type))) {
+    if (drop.canAlertAsInventory !== true || drop.eligibleForOnSite === false || !isArizonaRetailerInventory(drop)) return false;
+  }
   if (!retailer && !isUserFacingDropSignal(drop)) return false;
   if (isBlockedWarehouseDrop(drop)) return false;
   const explicitNcBoardShipment = state === "NC"

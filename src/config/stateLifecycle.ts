@@ -423,12 +423,12 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "AZ": {
       "customerLabel": "Arizona",
-      "sourceLabel": "Arizona Costco warehouse bourbon watch",
+      "sourceLabel": "Selected Arizona retailer inventory + Costco warehouse watch",
       "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
-      "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Arizona warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city",
+      "customerSummary": "Public inventory reports from selected Arizona Safeway, Albertsons and independent liquor stores. Availability covers the named premises; verify before driving. Costco warehouse observations remain a separate source."
     },
     "CA": {
       "customerLabel": "California",

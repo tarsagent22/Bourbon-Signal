@@ -4,6 +4,9 @@ import { publicEvidenceAddressKey, isCurrentInventoryEvidence, isFreshPublicDrop
 
 const AS_OF = "2026-08-02T14:00:00.000Z";
 
+// Generic model fixtures use Tennessee; actual Arizona acceptance is covered by
+// the captured engine-to-public regression in arizona-xapi-matching.test.mjs.
+
 const retainedInventory = { state: 'PA', type: 'store_inventory_result', tier: 'allocated', locationPrecision: 'store_level', lastConfirmedAt: '2026-08-02T10:00:00.000Z', timestamp: AS_OF };
 assert.equal(isFreshPublicDrop(retainedInventory, AS_OF), true, 'history remains visible');
 assert.equal(isCurrentInventoryEvidence(retainedInventory, AS_OF), false, 'publication cannot renew confirmation');
@@ -40,11 +43,11 @@ function exactStoreInventory(args: {
 }
 
 const lifecycle = {
-  activeStates: ["AZ", "NY", "NC", "PA", "MI"],
+  activeStates: ["TN", "NY", "NC", "PA", "MI"],
   states: {
-    AZ: {
-      customerLabel: "Arizona",
-      sourceLabel: "Arizona retailer inventory",
+    TN: {
+      customerLabel: "Tennessee",
+      sourceLabel: "Tennessee retailer inventory",
       publicStatus: "active",
       lifecycle: "retailer_store_inventory",
       coverageTier: "live_store_inventory",
@@ -87,7 +90,7 @@ const contract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
   stateRows: [
-    { state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 5 },
+    { state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 5 },
     { state: "NY", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 4 },
     { state: "NC", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "board", signalCount: 40 },
     { state: "PA", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_aggregate", signalCount: 1 },
@@ -98,11 +101,11 @@ const contract = buildCoverageContract({
     { state: "PA", id: "pa-listed", name: "Pennsylvania Listed Store", city: "Harrisburg", source: "Pennsylvania store directory" },
   ],
   drops: [
-    exactStoreInventory({ state: "AZ", storeId: "az-1", city: "Scottsdale", alertable: true }),
-    exactStoreInventory({ state: "AZ", storeId: "az-2", city: "Scottsdale", alertable: true }),
-    exactStoreInventory({ state: "AZ", storeId: "az-3", city: "Mesa", alertable: true }),
-    exactStoreInventory({ state: "AZ", storeId: "az-4", city: "Tucson", alertable: true }),
-    exactStoreInventory({ state: "AZ", storeId: "az-5", city: "Yuma", alertable: true }),
+    exactStoreInventory({ state: "TN", storeId: "tn-1", city: "Nashville", alertable: true }),
+    exactStoreInventory({ state: "TN", storeId: "tn-2", city: "Nashville", alertable: true }),
+    exactStoreInventory({ state: "TN", storeId: "tn-3", city: "Knoxville", alertable: true }),
+    exactStoreInventory({ state: "TN", storeId: "tn-4", city: "Memphis", alertable: true }),
+    exactStoreInventory({ state: "TN", storeId: "tn-5", city: "Chattanooga", alertable: true }),
     exactStoreInventory({ state: "NY", storeId: "ny-1", city: "Westbury", alertable: true, stale: true }),
     {
       state: "PA",
@@ -140,17 +143,17 @@ const contract = buildCoverageContract({
 });
 
 const byCode = new Map(contract.states.map((state) => [state.code, state]));
-const az = byCode.get("AZ");
+const tn = byCode.get("TN");
 const ny = byCode.get("NY");
 const nc = byCode.get("NC");
 const pa = byCode.get("PA");
 const mi = byCode.get("MI");
-assert.ok(az && ny && nc && pa && mi);
+assert.ok(tn && ny && nc && pa && mi);
 
-assert.equal(az.scope.inventoryMonitoredStores, 5, "fresh public exact-store rows—not configured stores—drive current availability scope");
-assert.equal(az.capabilities.currentBottleAvailability, true, "fresh exact-store public rows enable current bottle availability");
-assert.equal(az.capabilities.restockAlerts, true, "fresh alertable public rows enable alerts");
-assert.equal(az.coverageDepth, "moderate", "five exact stores across several cities are moderate coverage");
+assert.equal(tn.scope.inventoryMonitoredStores, 5, "fresh public exact-store rows—not configured stores—drive current availability scope");
+assert.equal(tn.capabilities.currentBottleAvailability, true, "fresh exact-store public rows enable current bottle availability");
+assert.equal(tn.capabilities.restockAlerts, true, "fresh alertable public rows enable alerts");
+assert.equal(tn.coverageDepth, "moderate", "five exact stores across several cities are moderate coverage");
 
 assert.equal(ny.scope.inventoryMonitoredStores, 0, "stale rows never count as current availability");
 assert.equal(ny.capabilities.currentBottleAvailability, false, "stale rows cannot be shown as current bottle availability");
@@ -235,26 +238,26 @@ assert.match(temporarilyQuietNc.customerCannotSee?.join(" ") || "", /Current bot
 const retailerSubmissionContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
   drops: [{
-    state: "AZ",
+    state: "TN",
     source: "verified-retailer",
     retailerReported: true,
     retailerSignalState: "live",
     type: "verified_retailer_drop",
-    storeId: "az-retailer-1",
-    storeName: "Verified Arizona Retailer",
+    storeId: "tn-retailer-1",
+    storeName: "Verified Tennessee Retailer",
     storeAddress: "1 Verified Way",
-    city: "Phoenix",
+    city: "Nashville",
     locationPrecision: "store_level",
     canAlertAsInventory: true,
     expiresAt: "2026-08-03T14:00:00.000Z",
   }],
 });
-const retailerAz = retailerSubmissionContract.states.find((state) => state.code === "AZ");
-assert.ok(retailerAz);
-assert.equal(retailerAz.freshness.currentInventoryStores, 1, "a live verified retailer submission participates in the same coverage calculation");
-assert.equal(retailerAz.capabilities.restockAlerts, true, "a live verified retailer submission can expose alert capability");
+const retailerTn = retailerSubmissionContract.states.find((state) => state.code === "TN");
+assert.ok(retailerTn);
+assert.equal(retailerTn.freshness.currentInventoryStores, 1, "a live verified retailer submission participates in the same coverage calculation");
+assert.equal(retailerTn.capabilities.restockAlerts, true, "a live verified retailer submission can expose alert capability");
 
 const marylandAliasContract = buildCoverageContract({
   lifecycle: {
@@ -329,87 +332,87 @@ assert.equal(blockedRowNc.health, "temporarily-limited");
 const duplicateIdentityContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 2 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 2 }],
   drops: [
-    { ...exactStoreInventory({ state: "AZ", storeId: "source-a", city: "Phoenix", alertable: true }), storeName: "Shared Store", storeAddress: "5 Shared Road" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "source-b", city: "Phoenix", alertable: true }), storeName: "Shared Store", storeAddress: "5 Shared Road" },
+    { ...exactStoreInventory({ state: "TN", storeId: "source-a", city: "Nashville", alertable: true }), storeName: "Shared Store", storeAddress: "5 Shared Road" },
+    { ...exactStoreInventory({ state: "TN", storeId: "source-b", city: "Nashville", alertable: true }), storeName: "Shared Store", storeAddress: "5 Shared Road" },
   ],
 });
-const duplicateIdentityArizona = duplicateIdentityContract.states.find((state) => state.code === "AZ");
-assert.ok(duplicateIdentityArizona);
-assert.equal(duplicateIdentityArizona.freshness.observedInventoryStores, 1, "source-specific IDs for the same exact address deduplicate to one observed store");
-assert.equal(duplicateIdentityArizona.freshness.currentInventoryStores, 1, "source-specific IDs for the same exact address deduplicate to one current store");
+const duplicateIdentityTennessee = duplicateIdentityContract.states.find((state) => state.code === "TN");
+assert.ok(duplicateIdentityTennessee);
+assert.equal(duplicateIdentityTennessee.freshness.observedInventoryStores, 1, "source-specific IDs for the same exact address deduplicate to one observed store");
+assert.equal(duplicateIdentityTennessee.freshness.currentInventoryStores, 1, "source-specific IDs for the same exact address deduplicate to one current store");
 
 const transitiveDuplicateContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 3 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 3 }],
   drops: [
-    { ...exactStoreInventory({ state: "AZ", storeId: "transitive-a", city: "Phoenix", alertable: true }), storeName: "Bridge Alpha", storeAddress: "10 North Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "transitive-b", city: "Phoenix", alertable: true }), source: "Bridge source", storeName: "Bridge Beta", storeAddress: "11 State Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "transitive-b", city: "Phoenix", alertable: true }), source: "Bridge source", storeName: "Bridge Beta", storeAddress: "10 N Main St" },
+    { ...exactStoreInventory({ state: "TN", storeId: "transitive-a", city: "Nashville", alertable: true }), storeName: "Bridge Alpha", storeAddress: "10 North Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "transitive-b", city: "Nashville", alertable: true }), source: "Bridge source", storeName: "Bridge Beta", storeAddress: "11 State Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "transitive-b", city: "Nashville", alertable: true }), source: "Bridge source", storeName: "Bridge Beta", storeAddress: "10 N Main St" },
   ],
 });
-const transitiveArizona = transitiveDuplicateContract.states.find((state) => state.code === "AZ");
-assert.ok(transitiveArizona);
-assert.equal(transitiveArizona.freshness.currentInventoryStores, 2, "a conflicting source/address bridge is quarantined instead of collapsing two current stores");
+const transitiveTennessee = transitiveDuplicateContract.states.find((state) => state.code === "TN");
+assert.ok(transitiveTennessee);
+assert.equal(transitiveTennessee.freshness.currentInventoryStores, 2, "a conflicting source/address bridge is quarantined instead of collapsing two current stores");
 
 const staleBridgeContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 3 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 3 }],
   drops: [
-    { ...exactStoreInventory({ state: "AZ", storeId: "bridge-current-a", city: "Phoenix", alertable: true }), storeName: "Bridge Alpha", storeAddress: "10 North Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "bridge-current-b", city: "Phoenix", alertable: true }), source: "Bridge source", storeName: "Bridge Beta", storeAddress: "11 State Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "bridge-current-b", city: "Phoenix", stale: true }), source: "Bridge source", storeName: "Bridge Beta", storeAddress: "10 N Main St" },
+    { ...exactStoreInventory({ state: "TN", storeId: "bridge-current-a", city: "Nashville", alertable: true }), storeName: "Bridge Alpha", storeAddress: "10 North Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "bridge-current-b", city: "Nashville", alertable: true }), source: "Bridge source", storeName: "Bridge Beta", storeAddress: "11 State Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "bridge-current-b", city: "Nashville", stale: true }), source: "Bridge source", storeName: "Bridge Beta", storeAddress: "10 N Main St" },
   ],
 });
-const staleBridgeArizona = staleBridgeContract.states.find((state) => state.code === "AZ");
-assert.ok(staleBridgeArizona);
-assert.equal(staleBridgeArizona.freshness.observedInventoryStores, 2, "a stale bridge with conflicting source/address evidence remains quarantined");
-assert.equal(staleBridgeArizona.freshness.currentInventoryStores, 2, "a stale bridge cannot transfer currentness across a conflicting physical address");
-assert.equal(staleBridgeArizona.freshness.alertEligibleStores, 2, "a stale bridge cannot transfer alertability across a conflicting physical address");
+const staleBridgeTennessee = staleBridgeContract.states.find((state) => state.code === "TN");
+assert.ok(staleBridgeTennessee);
+assert.equal(staleBridgeTennessee.freshness.observedInventoryStores, 2, "a stale bridge with conflicting source/address evidence remains quarantined");
+assert.equal(staleBridgeTennessee.freshness.currentInventoryStores, 2, "a stale bridge cannot transfer currentness across a conflicting physical address");
+assert.equal(staleBridgeTennessee.freshness.alertEligibleStores, 2, "a stale bridge cannot transfer alertability across a conflicting physical address");
 
 const sameNameSeparateStoresContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 2 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 2 }],
   drops: [
-    { ...exactStoreInventory({ state: "AZ", storeId: "chain-east", city: "Phoenix", alertable: true }), storeName: "Chain Bottle Shop", storeAddress: "1 East Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "chain-west", city: "Phoenix", alertable: true }), storeName: "Chain Bottle Shop", storeAddress: "2 West Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "chain-ambiguous", city: "Phoenix", stale: true }), storeId: undefined, storeName: "Chain Bottle Shop", storeAddress: undefined },
+    { ...exactStoreInventory({ state: "TN", storeId: "chain-east", city: "Nashville", alertable: true }), storeName: "Chain Bottle Shop", storeAddress: "1 East Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "chain-west", city: "Nashville", alertable: true }), storeName: "Chain Bottle Shop", storeAddress: "2 West Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "chain-ambiguous", city: "Nashville", stale: true }), storeId: undefined, storeName: "Chain Bottle Shop", storeAddress: undefined },
   ],
 });
-const sameNameSeparateArizona = sameNameSeparateStoresContract.states.find((state) => state.code === "AZ");
-assert.ok(sameNameSeparateArizona);
-assert.equal(sameNameSeparateArizona.freshness.observedInventoryStores, 2, "an ambiguous name-only row cannot alter exact-store counts");
-assert.equal(sameNameSeparateArizona.freshness.currentInventoryStores, 2, "same-name stores in one city remain distinct when stable IDs and addresses disagree");
+const sameNameSeparateTennessee = sameNameSeparateStoresContract.states.find((state) => state.code === "TN");
+assert.ok(sameNameSeparateTennessee);
+assert.equal(sameNameSeparateTennessee.freshness.observedInventoryStores, 2, "an ambiguous name-only row cannot alter exact-store counts");
+assert.equal(sameNameSeparateTennessee.freshness.currentInventoryStores, 2, "same-name stores in one city remain distinct when stable IDs and addresses disagree");
 
 const sameStreetDifferentCityContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 2 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 2 }],
   drops: [
-    { ...exactStoreInventory({ state: "AZ", storeId: "street-phoenix", city: "Phoenix", alertable: true }), storeId: undefined, source: "City source", storeName: "Main Street Shop", storeAddress: "1 Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "street-tucson", city: "Tucson", alertable: true }), storeId: undefined, source: "City source", storeName: "Main Street Shop", storeAddress: "1 Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "street-nashville", city: "Nashville", alertable: true }), storeId: undefined, source: "City source", storeName: "Main Street Shop", storeAddress: "1 Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "street-tucson", city: "Memphis", alertable: true }), storeId: undefined, source: "City source", storeName: "Main Street Shop", storeAddress: "1 Main Street" },
   ],
 });
-const sameStreetDifferentCityArizona = sameStreetDifferentCityContract.states.find((state) => state.code === "AZ");
-assert.ok(sameStreetDifferentCityArizona);
-assert.equal(sameStreetDifferentCityArizona.freshness.observedInventoryStores, 2, "the same street address in different cities cannot merge");
-assert.equal(sameStreetDifferentCityArizona.freshness.currentInventoryStores, 2);
+const sameStreetDifferentCityTennessee = sameStreetDifferentCityContract.states.find((state) => state.code === "TN");
+assert.ok(sameStreetDifferentCityTennessee);
+assert.equal(sameStreetDifferentCityTennessee.freshness.observedInventoryStores, 2, "the same street address in different cities cannot merge");
+assert.equal(sameStreetDifferentCityTennessee.freshness.currentInventoryStores, 2);
 
 const sameNameStoreSearch = searchCoverageTargets({
-  stateCode: "AZ",
+  stateCode: "TN",
   query: "Chain Bottle Shop",
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
   locations: [
-    { id: "chain-east", state: "AZ", type: "store", name: "Chain Bottle Shop", address: "1 East Main Street", city: "Phoenix", source: "Arizona inventory", searchable: true, collectorAttached: true, hasSignals: true },
-    { id: "chain-west", state: "AZ", type: "store", name: "Chain Bottle Shop", address: "2 West Main Street", city: "Phoenix", source: "Arizona inventory", searchable: true, collectorAttached: true, hasSignals: true },
+    { id: "chain-east", state: "TN", type: "store", name: "Chain Bottle Shop", address: "1 East Main Street", city: "Nashville", source: "Tennessee inventory", searchable: true, collectorAttached: true, hasSignals: true },
+    { id: "chain-west", state: "TN", type: "store", name: "Chain Bottle Shop", address: "2 West Main Street", city: "Nashville", source: "Tennessee inventory", searchable: true, collectorAttached: true, hasSignals: true },
   ],
-  drops: [{ ...exactStoreInventory({ state: "AZ", storeId: "chain-east", city: "Phoenix", alertable: true }), storeName: "Chain Bottle Shop", storeAddress: "1 East Main Street" }],
+  drops: [{ ...exactStoreInventory({ state: "TN", storeId: "chain-east", city: "Nashville", alertable: true }), storeName: "Chain Bottle Shop", storeAddress: "1 East Main Street" }],
 });
 assert.equal(sameNameStoreSearch.find((result) => result.storeId === "chain-east")?.status, "actively-monitored", "the exact matching store remains active in search");
 assert.equal(sameNameStoreSearch.find((result) => result.storeId === "chain-west")?.status, "known-expansion-candidate", "a same-name store with a different address cannot inherit another store's live status");
@@ -417,80 +420,80 @@ assert.equal(sameNameStoreSearch.find((result) => result.storeId === "chain-west
 const hiddenDefaultFeedContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
-  drops: [{ ...exactStoreInventory({ state: "AZ", storeId: "feed-hidden", city: "Phoenix", alertable: true }), tier: "standard", rarity_tier: "standard" }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  drops: [{ ...exactStoreInventory({ state: "TN", storeId: "feed-hidden", city: "Nashville", alertable: true }), tier: "standard", rarity_tier: "standard" }],
 });
-const hiddenDefaultFeedArizona = hiddenDefaultFeedContract.states.find((state) => state.code === "AZ");
-assert.ok(hiddenDefaultFeedArizona);
-assert.equal(hiddenDefaultFeedArizona.freshness.currentInventoryStores, 0, "a row hidden by the normal Drop Feed cannot become a current monitored store");
-assert.equal(hiddenDefaultFeedArizona.coverageDepth, "not-available", "a row hidden by the normal Drop Feed cannot establish coverage depth");
+const hiddenDefaultFeedTennessee = hiddenDefaultFeedContract.states.find((state) => state.code === "TN");
+assert.ok(hiddenDefaultFeedTennessee);
+assert.equal(hiddenDefaultFeedTennessee.freshness.currentInventoryStores, 0, "a row hidden by the normal Drop Feed cannot become a current monitored store");
+assert.equal(hiddenDefaultFeedTennessee.coverageDepth, "not-available", "a row hidden by the normal Drop Feed cannot establish coverage depth");
 
 const unqualifiedIdOnlyContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
-  drops: [{ ...exactStoreInventory({ state: "AZ", storeId: "unqualified-only", city: "Phoenix", alertable: true }), source: undefined, storeAddress: undefined }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  drops: [{ ...exactStoreInventory({ state: "TN", storeId: "unqualified-only", city: "Nashville", alertable: true }), source: undefined, storeAddress: undefined }],
 });
-const unqualifiedIdOnlyArizona = unqualifiedIdOnlyContract.states.find((state) => state.code === "AZ");
-assert.ok(unqualifiedIdOnlyArizona);
-assert.equal(unqualifiedIdOnlyArizona.freshness.observedInventoryStores, 0, "an ID without a source or address is not exact-store evidence");
-assert.equal(unqualifiedIdOnlyArizona.freshness.currentInventoryStores, 0);
-assert.equal(unqualifiedIdOnlyArizona.freshness.alertEligibleStores, 0);
+const unqualifiedIdOnlyTennessee = unqualifiedIdOnlyContract.states.find((state) => state.code === "TN");
+assert.ok(unqualifiedIdOnlyTennessee);
+assert.equal(unqualifiedIdOnlyTennessee.freshness.observedInventoryStores, 0, "an ID without a source or address is not exact-store evidence");
+assert.equal(unqualifiedIdOnlyTennessee.freshness.currentInventoryStores, 0);
+assert.equal(unqualifiedIdOnlyTennessee.freshness.alertEligibleStores, 0);
 
 const malformedAddressContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
-  drops: [{ ...exactStoreInventory({ state: "AZ", storeId: "malformed-address", city: "Phoenix", alertable: true }), storeId: undefined, source: "Malformed source", storeAddress: "---" }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  drops: [{ ...exactStoreInventory({ state: "TN", storeId: "malformed-address", city: "Nashville", alertable: true }), storeId: undefined, source: "Malformed source", storeAddress: "---" }],
 });
-const malformedAddressArizona = malformedAddressContract.states.find((state) => state.code === "AZ");
-assert.ok(malformedAddressArizona);
-assert.equal(malformedAddressArizona.freshness.observedInventoryStores, 0, "punctuation-only addresses are not exact-store identities");
-assert.equal(malformedAddressArizona.freshness.currentInventoryStores, 0);
-assert.equal(malformedAddressArizona.freshness.alertEligibleStores, 0);
+const malformedAddressTennessee = malformedAddressContract.states.find((state) => state.code === "TN");
+assert.ok(malformedAddressTennessee);
+assert.equal(malformedAddressTennessee.freshness.observedInventoryStores, 0, "punctuation-only addresses are not exact-store identities");
+assert.equal(malformedAddressTennessee.freshness.currentInventoryStores, 0);
+assert.equal(malformedAddressTennessee.freshness.alertEligibleStores, 0);
 
 const placeholderOrUnscopedAddressContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 3 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 3 }],
   drops: [
-    { ...exactStoreInventory({ state: "AZ", storeId: "placeholder-unknown", city: "Phoenix", alertable: true }), storeId: undefined, storeAddress: "unknown" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "placeholder-na", city: "Phoenix", alertable: true }), storeId: undefined, storeAddress: "N/A" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "no-city", city: "", alertable: true }), storeId: undefined, storeAddress: "1 Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "numeric-city", city: "12345", alertable: true }), storeId: undefined, storeAddress: "1 Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "numeric-only-street", city: "Phoenix", alertable: true }), storeId: undefined, storeAddress: "123" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "placeholder-street", city: "Phoenix", alertable: true }), storeId: undefined, storeAddress: "123 placeholder" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "placeholder-source", city: "Phoenix", alertable: true }), source: "placeholder", storeAddress: undefined },
-    { ...exactStoreInventory({ state: "AZ", storeId: "null-id", city: "Phoenix", alertable: true }), source: "Verified source", storeId: "null", storeAddress: undefined },
+    { ...exactStoreInventory({ state: "TN", storeId: "placeholder-unknown", city: "Nashville", alertable: true }), storeId: undefined, storeAddress: "unknown" },
+    { ...exactStoreInventory({ state: "TN", storeId: "placeholder-na", city: "Nashville", alertable: true }), storeId: undefined, storeAddress: "N/A" },
+    { ...exactStoreInventory({ state: "TN", storeId: "no-city", city: "", alertable: true }), storeId: undefined, storeAddress: "1 Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "numeric-city", city: "12345", alertable: true }), storeId: undefined, storeAddress: "1 Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "numeric-only-street", city: "Nashville", alertable: true }), storeId: undefined, storeAddress: "123" },
+    { ...exactStoreInventory({ state: "TN", storeId: "placeholder-street", city: "Nashville", alertable: true }), storeId: undefined, storeAddress: "123 placeholder" },
+    { ...exactStoreInventory({ state: "TN", storeId: "placeholder-source", city: "Nashville", alertable: true }), source: "placeholder", storeAddress: undefined },
+    { ...exactStoreInventory({ state: "TN", storeId: "null-id", city: "Nashville", alertable: true }), source: "Verified source", storeId: "null", storeAddress: undefined },
   ],
 });
-const placeholderOrUnscopedArizona = placeholderOrUnscopedAddressContract.states.find((state) => state.code === "AZ");
-assert.ok(placeholderOrUnscopedArizona);
-assert.equal(placeholderOrUnscopedArizona.freshness.observedInventoryStores, 0, "placeholder and city-less addresses cannot become exact-store evidence");
-assert.equal(placeholderOrUnscopedArizona.freshness.currentInventoryStores, 0);
-assert.equal(placeholderOrUnscopedArizona.freshness.alertEligibleStores, 0);
+const placeholderOrUnscopedTennessee = placeholderOrUnscopedAddressContract.states.find((state) => state.code === "TN");
+assert.ok(placeholderOrUnscopedTennessee);
+assert.equal(placeholderOrUnscopedTennessee.freshness.observedInventoryStores, 0, "placeholder and city-less addresses cannot become exact-store evidence");
+assert.equal(placeholderOrUnscopedTennessee.freshness.currentInventoryStores, 0);
+assert.equal(placeholderOrUnscopedTennessee.freshness.alertEligibleStores, 0);
 
 const conflictingSourceSearch = searchCoverageTargets({
-  stateCode: "AZ",
+  stateCode: "TN",
   query: "Source Collision Shop",
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
-  locations: [{ id: "AZ:source:source-a-inventory:id:shared-store-id", state: "AZ", type: "store", name: "Source Collision Shop", address: "2 West Main Street", city: "Phoenix", source: "Source B Inventory", searchable: true, collectorAttached: true, hasSignals: true }],
-  drops: [{ ...exactStoreInventory({ state: "AZ", storeId: "shared-store-id", city: "Phoenix", alertable: true }), source: "Source A Inventory", storeName: "Source Collision Shop", storeAddress: "1 East Main Street" }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  locations: [{ id: "TN:source:source-a-inventory:id:shared-store-id", state: "TN", type: "store", name: "Source Collision Shop", address: "2 West Main Street", city: "Nashville", source: "Source B Inventory", searchable: true, collectorAttached: true, hasSignals: true }],
+  drops: [{ ...exactStoreInventory({ state: "TN", storeId: "shared-store-id", city: "Nashville", alertable: true }), source: "Source A Inventory", storeName: "Source Collision Shop", storeAddress: "1 East Main Street" }],
 });
 const conflictingDynamicStore = conflictingSourceSearch.find((result) => result.address === "1 East Main Street");
 assert.equal(conflictingSourceSearch.find((result) => result.address === "2 West Main Street")?.status, "known-expansion-candidate", "a raw ID from another source cannot mark a conflicting address active");
 assert.equal(conflictingDynamicStore?.status, "actively-monitored", "the source-qualified current record remains discoverable as its own store");
 assert.ok(conflictingDynamicStore?.storeId?.includes(":source:source-a-inventory:id:shared-store-id"), "the dynamic result exposes a source-qualified request identity");
 const conflictingDynamicTarget = findCoverageStoreTarget({
-  stateCode: "AZ",
+  stateCode: "TN",
   storeId: conflictingDynamicStore?.storeId || "",
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
-  locations: [{ id: "AZ:source:source-a-inventory:id:shared-store-id", state: "AZ", type: "store", name: "Source Collision Shop", address: "2 West Main Street", city: "Phoenix", source: "Source B Inventory", searchable: true, collectorAttached: true, hasSignals: true }],
-  drops: [{ ...exactStoreInventory({ state: "AZ", storeId: "shared-store-id", city: "Phoenix", alertable: true }), source: "Source A Inventory", storeName: "Source Collision Shop", storeAddress: "1 East Main Street" }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  locations: [{ id: "TN:source:source-a-inventory:id:shared-store-id", state: "TN", type: "store", name: "Source Collision Shop", address: "2 West Main Street", city: "Nashville", source: "Source B Inventory", searchable: true, collectorAttached: true, hasSignals: true }],
+  drops: [{ ...exactStoreInventory({ state: "TN", storeId: "shared-store-id", city: "Nashville", alertable: true }), source: "Source A Inventory", storeName: "Source Collision Shop", storeAddress: "1 East Main Street" }],
 });
 assert.equal(conflictingDynamicTarget?.address, "1 East Main Street", "a dynamic request target cannot resolve to a conflicting directory address");
 
@@ -567,14 +570,14 @@ assert.equal(iowaRetailerState.capabilities.currentBottleAvailability, false, "a
 assert.equal(iowaRetailerState.capabilities.restockAlerts, false, "a retailer post cannot bypass a delivery-only state's alert policy");
 
 const retailerSearchDrops = [{
-  state: "AZ",
+  state: "TN",
   source: "verified-retailer",
   retailerReported: true,
   retailerSignalState: "live",
   type: "verified_retailer_drop",
-  storeId: "az-retailer-search",
+  storeId: "tn-retailer-search",
   storeName: "Canyon Bottle Shop",
-  storeAddress: "99 Canyon Way, Phoenix, AZ 85001",
+  storeAddress: "99 Canyon Way, Nashville, TN 37201",
   locationPrecision: "store_level",
   canAlertAsInventory: true,
   expiresAt: "2026-08-03T14:00:00.000Z",
@@ -582,26 +585,26 @@ const retailerSearchDrops = [{
 const retailerSearchInputs = {
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
   drops: retailerSearchDrops,
 };
-const retailerSearch = searchCoverageTargets({ stateCode: "AZ", query: "Canyon", ...retailerSearchInputs });
+const retailerSearch = searchCoverageTargets({ stateCode: "TN", query: "Canyon", ...retailerSearchInputs });
 const retailerSearchResult = retailerSearch.find((result) => result.kind === "store" && result.status === "actively-monitored");
 assert.ok(retailerSearchResult?.storeId, "a retailer-only current store is searchable under the canonical evidence contract");
-assert.notEqual(retailerSearchResult.storeId, "az-retailer-search", "dynamic retailer targets use a source-qualified identity instead of a raw ID");
-const retailerTarget = findCoverageStoreTarget({ stateCode: "AZ", storeId: retailerSearchResult.storeId, ...retailerSearchInputs });
+assert.notEqual(retailerSearchResult.storeId, "tn-retailer-search", "dynamic retailer targets use a source-qualified identity instead of a raw ID");
+const retailerTarget = findCoverageStoreTarget({ stateCode: "TN", storeId: retailerSearchResult.storeId, ...retailerSearchInputs });
 assert.equal(retailerTarget?.id, retailerSearchResult.storeId, "the request lookup resolves the same canonical dynamic store identity");
-assert.equal(retailerTarget?.city, "Phoenix", "retailer address evidence supplies a searchable city when no separate city field is present");
+assert.equal(retailerTarget?.city, "Nashville", "retailer address evidence supplies a searchable city when no separate city field is present");
 
 const healthLimitedSearch = searchCoverageTargets({
-  stateCode: "AZ",
-  query: "Phoenix",
+  stateCode: "TN",
+  query: "Nashville",
   lifecycle,
   asOf: AS_OF,
   healthLimited: true,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
-  locations: [{ id: "health-limited-phoenix", state: "AZ", type: "store", name: "Health Limited Spirits", address: "1 Phoenix Road", city: "Phoenix", source: "Arizona inventory", searchable: true, collectorAttached: true, hasSignals: true }],
-  drops: [exactStoreInventory({ state: "AZ", storeId: "health-limited-phoenix", city: "Phoenix", alertable: true })],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  locations: [{ id: "health-limited-nashville", state: "TN", type: "store", name: "Health Limited Spirits", address: "1 Nashville Road", city: "Nashville", source: "Tennessee inventory", searchable: true, collectorAttached: true, hasSignals: true }],
+  drops: [exactStoreInventory({ state: "TN", storeId: "health-limited-nashville", city: "Nashville", alertable: true })],
 });
 assert.ok(healthLimitedSearch.some((result) => result.kind === "city" && result.status === "known-not-active"), "health-limited evidence cannot make a city look currently covered");
 assert.equal(healthLimitedSearch.some((result) => result.status === "covered" || result.status === "actively-monitored"), false, "health-limited evidence cannot emit current-availability search copy");
@@ -609,48 +612,48 @@ const healthLimitedCoverageState = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
   healthLimited: true,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
-  locations: [{ id: "health-limited-phoenix", state: "AZ", type: "store", name: "Health Limited Spirits", address: "1 Phoenix Road", city: "Phoenix", source: "Arizona inventory", searchable: true, collectorAttached: true, hasSignals: true }],
-  drops: [exactStoreInventory({ state: "AZ", storeId: "health-limited-phoenix", city: "Phoenix", alertable: true })],
-}).states.find((state) => state.code === "AZ");
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 1 }],
+  locations: [{ id: "health-limited-nashville", state: "TN", type: "store", name: "Health Limited Spirits", address: "1 Nashville Road", city: "Nashville", source: "Tennessee inventory", searchable: true, collectorAttached: true, hasSignals: true }],
+  drops: [exactStoreInventory({ state: "TN", storeId: "health-limited-nashville", city: "Nashville", alertable: true })],
+}).states.find((state) => state.code === "TN");
 assert.equal(healthLimitedCoverageState?.freshness.currentInventoryCities, 0, "health-limited states cannot expose a current-city freshness footprint");
 
 const conflictingPremiseInputs = {
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 2 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 2 }],
   drops: [
-    { ...exactStoreInventory({ state: "AZ", storeId: "shared-source-id", city: "Phoenix", alertable: true }), source: "Collision source", storeName: "Collision East", storeAddress: "101 East Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "shared-source-id", city: "Phoenix", alertable: true }), source: "Collision source", storeName: "Collision West", storeAddress: "102 West Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "shared-source-id", city: "Nashville", alertable: true }), source: "Collision source", storeName: "Collision East", storeAddress: "101 East Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "shared-source-id", city: "Nashville", alertable: true }), source: "Collision source", storeName: "Collision West", storeAddress: "102 West Main Street" },
   ],
-  locations: [{ id: "shared-source-id", state: "AZ", type: "store", name: "Collision Directory", city: "Phoenix", source: "Collision source", searchable: true, collectorAttached: true, hasSignals: true }],
+  locations: [{ id: "shared-source-id", state: "TN", type: "store", name: "Collision Directory", city: "Nashville", source: "Collision source", searchable: true, collectorAttached: true, hasSignals: true }],
 };
-const conflictingPremiseSearch = searchCoverageTargets({ stateCode: "AZ", query: "Collision", ...conflictingPremiseInputs });
+const conflictingPremiseSearch = searchCoverageTargets({ stateCode: "TN", query: "Collision", ...conflictingPremiseInputs });
 const conflictingPremiseStores = conflictingPremiseSearch.filter((result) => result.kind === "store" && result.status === "actively-monitored");
 assert.equal(conflictingPremiseStores.length, 2, "conflicting source-ID premises remain two current stores");
 assert.equal(new Set(conflictingPremiseStores.map((result) => result.storeId)).size, 2, "conflicting source-ID premises receive collision-safe request targets");
 assert.notEqual(conflictingPremiseSearch.find((result) => result.label === "Collision Directory")?.status, "actively-monitored", "an address-less directory record cannot resolve an ambiguous reused source ID as current");
 for (const result of conflictingPremiseStores) {
   assert.ok(result.storeId);
-  const resolved = findCoverageStoreTarget({ stateCode: "AZ", storeId: result.storeId, ...conflictingPremiseInputs });
+  const resolved = findCoverageStoreTarget({ stateCode: "TN", storeId: result.storeId, ...conflictingPremiseInputs });
   assert.equal(resolved?.address, result.address, "each collision-safe request target resolves its own physical premise");
 }
 
 const addresslessBridgeContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "AZ", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 3 }],
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", coverageTier: "live_store_inventory", bestLocationPrecision: "store_level", signalCount: 3 }],
   drops: [
-    { ...exactStoreInventory({ state: "AZ", storeId: "ambiguous-bridge", city: "Phoenix", alertable: true }), source: "Bridge source", storeAddress: "10 Main Street" },
-    { ...exactStoreInventory({ state: "AZ", storeId: "ambiguous-bridge", city: "Phoenix", alertable: true }), source: "Bridge source", storeAddress: undefined },
-    { ...exactStoreInventory({ state: "AZ", storeId: "ambiguous-bridge", city: "Phoenix", alertable: true }), source: "Bridge source", storeAddress: "11 Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "ambiguous-bridge", city: "Nashville", alertable: true }), source: "Bridge source", storeAddress: "10 Main Street" },
+    { ...exactStoreInventory({ state: "TN", storeId: "ambiguous-bridge", city: "Nashville", alertable: true }), source: "Bridge source", storeAddress: undefined },
+    { ...exactStoreInventory({ state: "TN", storeId: "ambiguous-bridge", city: "Nashville", alertable: true }), source: "Bridge source", storeAddress: "11 Main Street" },
   ],
 });
-const addresslessBridgeArizona = addresslessBridgeContract.states.find((state) => state.code === "AZ");
-assert.ok(addresslessBridgeArizona);
-assert.equal(addresslessBridgeArizona.freshness.observedInventoryStores, 2, "an address-less row cannot bridge two conflicting source-ID premises");
-assert.equal(addresslessBridgeArizona.freshness.currentInventoryStores, 2, "an address-less bridge cannot transfer currentness across premises");
-assert.equal(addresslessBridgeArizona.freshness.alertEligibleStores, 2, "an address-less bridge cannot transfer alert eligibility across premises");
+const addresslessBridgeTennessee = addresslessBridgeContract.states.find((state) => state.code === "TN");
+assert.ok(addresslessBridgeTennessee);
+assert.equal(addresslessBridgeTennessee.freshness.observedInventoryStores, 2, "an address-less row cannot bridge two conflicting source-ID premises");
+assert.equal(addresslessBridgeTennessee.freshness.currentInventoryStores, 2, "an address-less bridge cannot transfer currentness across premises");
+assert.equal(addresslessBridgeTennessee.freshness.alertEligibleStores, 2, "an address-less bridge cannot transfer alert eligibility across premises");
 
 assert.equal(
   publicEvidenceAddressKey("NC", "106 Bantiff Way, Greensboro, NC, 27406", "Greensboro"),
@@ -669,8 +672,8 @@ assert.equal(historicalCard.timestamp, originalCard.timestamp);
 assert.equal(originalCard.canAlertAsInventory, true, 'response projection must not mutate cached data');
 assert.equal(projectInventoryEvidenceFreshness({ ...originalCard, state: 'OH' }, AS_OF).canAlertAsInventory, true, 'Ohio remains unchanged');
 
-const runtimeOnly = { ...exactStoreInventory({ state: 'AZ', storeId: 'accepted-runtime', city: 'Phoenix', alertable: true }), sourcePollId: 'az:fixture' };
-const acceptedRuntimeContract = buildCoverageContract({ lifecycle, asOf: AS_OF, stateRows: [{ state: 'AZ', publicStatus: 'active', status: 'partial_useful', coverageTier: 'live_store_inventory', signalCount: 2, bestLocationPrecision: 'store_level' }], degradedStates: [{ state: 'AZ', status: 'partial_useful' }], drops: [runtimeOnly, exactStoreInventory({ state: 'AZ', storeId: 'unaccepted-sibling', city: 'Phoenix', alertable: true })] });
-assert.equal(acceptedRuntimeContract.states.find(state => state.code === 'AZ')?.freshness.currentInventoryStores, 1, 'only accepted runtime evidence survives a degraded snapshot');
-const expiredRuntimeContract = buildCoverageContract({ lifecycle, asOf: AS_OF, stateRows: [{ state: 'AZ', publicStatus: 'active', status: 'partial_useful', coverageTier: 'live_store_inventory', signalCount: 1 }], degradedStates: [{ state: 'AZ', status: 'partial_useful' }], drops: [{ ...runtimeOnly, stale: true }] });
-assert.equal(expiredRuntimeContract.states.find(state => state.code === 'AZ')?.freshness.currentInventoryStores, 0);
+const runtimeOnly = { ...exactStoreInventory({ state: 'TN', storeId: 'accepted-runtime', city: 'Nashville', alertable: true }), sourcePollId: 'tn:fixture' };
+const acceptedRuntimeContract = buildCoverageContract({ lifecycle, asOf: AS_OF, stateRows: [{ state: 'TN', publicStatus: 'active', status: 'partial_useful', coverageTier: 'live_store_inventory', signalCount: 2, bestLocationPrecision: 'store_level' }], degradedStates: [{ state: 'TN', status: 'partial_useful' }], drops: [runtimeOnly, exactStoreInventory({ state: 'TN', storeId: 'unaccepted-sibling', city: 'Nashville', alertable: true })] });
+assert.equal(acceptedRuntimeContract.states.find(state => state.code === 'TN')?.freshness.currentInventoryStores, 1, 'only accepted runtime evidence survives a degraded snapshot');
+const expiredRuntimeContract = buildCoverageContract({ lifecycle, asOf: AS_OF, stateRows: [{ state: 'TN', publicStatus: 'active', status: 'partial_useful', coverageTier: 'live_store_inventory', signalCount: 1 }], degradedStates: [{ state: 'TN', status: 'partial_useful' }], drops: [{ ...runtimeOnly, stale: true }] });
+assert.equal(expiredRuntimeContract.states.find(state => state.code === 'TN')?.freshness.currentInventoryStores, 0);

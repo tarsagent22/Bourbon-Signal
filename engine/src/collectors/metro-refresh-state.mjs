@@ -112,7 +112,7 @@ export function mergeMetroSourceAttempts(sources, ...states) {
 }
 
 export function metroSourceAttemptLedgerPath(stateId) {
-  if (!['NY', 'CO'].includes(stateId)) throw new Error('Metro attempt state must be NY or CO.');
+  if (!['NY', 'CO', 'AZ'].includes(stateId)) throw new Error('Metro attempt state must be NY, CO, or AZ.');
   return path.join('out', 'optimization', 'metro-source-attempts', `${stateId}.json`);
 }
 
@@ -123,11 +123,12 @@ async function optionalJson(file) {
   } catch { return null; }
 }
 
-export async function readMetroSourceAttempts(stateId, sources, cache) {
+export async function readMetroSourceAttempts(stateId, sources, cache, { bootstrapState = null } = {}) {
   const bootstrap = await optionalJson(new URL('../../data/metro-source-attempts-bootstrap.json', import.meta.url));
   const ledger = await optionalJson(metroSourceAttemptLedgerPath(stateId));
   return mergeMetroSourceAttempts(sources,
     bootstrap?.schemaVersion === 1 ? bootstrap.states?.[stateId] : null,
+    bootstrapState,
     cache,
     ledger?.schemaVersion === 1 && ledger.state === stateId ? ledger : null,
   );
