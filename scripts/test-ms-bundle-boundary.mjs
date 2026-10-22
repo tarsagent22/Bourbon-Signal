@@ -18,16 +18,17 @@ test('MS historical implementation bytes remain pinned, including policy', async
   assert.ok(hashes);
   for (const [name, hash] of Object.entries(hashes)) {
     // Only reviewed NY/CO/AZ metadata, area expectations, the verifier's hooks and
-    // the exact FL proof addition may differ. Original digests pin other bytes.
+    // the exact FL/IN proof additions may differ. Original digests pin other bytes.
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
   }
 });
 
-test('FL proof normalization reverses one exact addition while preserving the original MS anchor', async () => {
+test('FL and IN proof normalization reverse exact additions while preserving the original MS anchor', async () => {
   const name = 'engine/src/operational-report.mjs';
   const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
   const originalHash = evidence.implementationFilesSha256[name];
   const originalBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
+  const indianaAddition = "    ...(sig.state === 'IN' ? { sourceProductBinding: sig.sourceProductBinding || null } : {}),\n";
   const addition = `    } : undefined,
     ...(signal.state === 'FL' ? {
       optionValueId: signal.optionValueId ?? signal.raw?.optionValueId ?? null,
@@ -49,10 +50,11 @@ test('FL proof normalization reverses one exact addition while preserving the or
 function signalSort(a, b) {
 `;
   assert.equal(current.split(addition).length - 1, 1);
+  assert.equal(current.split(indianaAddition).length - 1, 1);
   const normalized = normalizeHistoricalImplementationBytes(name, Buffer.from(current));
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
-  assert.equal(normalized.toString(), current.replace(addition, originalBoundary));
+  assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, ''));
   for (const altered of [
     current.replace(addition, originalBoundary),
     current + '\n' + addition,
@@ -60,6 +62,10 @@ function signalSort(a, b) {
     current.replace(addition, addition.replace("'officialLatitude'", "'unreviewedProof'")),
     current.replace(addition, addition.replace('Object.hasOwn(signal.raw, field)', 'true')),
     current.replace(addition, addition.replace('function signalSort(a, b)', 'function signalSort(a, ignored)')),
+    current.replace(indianaAddition, ''),
+    current + '\n' + indianaAddition,
+    current.replace(indianaAddition, indianaAddition.replace("sig.state === 'IN'", "sig.state === 'MS'")),
+    current.replace(indianaAddition, indianaAddition.replace('sig.sourceProductBinding || null', 'sig.raw || null')),
   ]) {
     assert.notEqual(altered, current);
     assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(altered)), /exact historical verification hook/);
