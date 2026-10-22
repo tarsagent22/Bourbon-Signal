@@ -1,0 +1,154 @@
+import { stableId, stripHtml } from '../core/text.mjs';
+import { reviewedArizonaXapiBottleMatch } from './arizona-xapi-matching.mjs';
+
+// Production premises from the October 22 baseline. Discovery must still prove
+// their current Arizona address; this list never manufactures a resolver row.
+export const ARIZONA_XAPI_BASELINE_STORE_IDS = Object.freeze([
+  '209', '216', '245', '247', '255', '267', '274', '752', '961',
+  '1487', '1491', '1684', '1819', '1983', '2032', '2060', '2083',
+  '2951', '2955', '2988', '3173', '3203', '3204', '3931',
+]);
+export const ARIZONA_XAPI_SEARCH_LIMIT = 48;
+export const ARIZONA_XAPI_RARE_QUERY_LIMIT = 16;
+// Both premises passed resolver and store-specific bourbon proofs. Prefer them
+// among equally unrepresented cities; they still require fresh resolver rows.
+const REVIEWED_ADDITIONAL_STORE_IDS = new Set(['1604', '1225']);
+
+const identityText = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const distanceOf = (store) => store.distance !== '' && store.distance != null && Number.isFinite(Number(store.distance)) && Number(store.distance) >= 0 ? Number(store.distance) : Infinity;
+const storeOrder = (a, b) => distanceOf(a) - distanceOf(b) || String(a.locationId).localeCompare(String(b.locationId), 'en', { numeric: true });
+
+export function arizonaXapiBanner(store) {
+  const banner = identityText(store?.polarisBannerName || store?.domainName);
+  const domain = identityText(store?.domainName);
+  return (banner === 'safeway' || banner === 'albertsons') && (!domain || domain === banner) ? banner : null;
+}
+
+export function isArizonaXapiStore(store) {
+  const address = store?.address;
+  return Boolean(store && /^\d{2,6}$/.test(String(store.locationId || ''))
+    && arizonaXapiBanner(store)
+    && String(address?.state || '').toUpperCase() === 'AZ'
+    && (!address?.country || String(address.country).toUpperCase() === 'US')
+    && typeof address?.line1 === 'string' && /\d/.test(address.line1)
+    && typeof address?.city === 'string' && address.city.trim()
+    && /^\d{5}(?:-\d{4})?$/.test(String(address?.zipcode || '')));
+}
+
+function premisesKey(store) {
+  return [arizonaXapiBanner(store), identityText(store.address.line1), identityText(store.address.city), store.address.zipcode].join('|');
+}
+
+export function mergeArizonaXapiStores(stores, payload, conflicts = new Set()) {
+  for (const lane of ['instore', 'pickup', 'delivery']) {
+    const value = payload?.[lane]?.stores;
+    for (const store of Array.isArray(value) ? value : value && typeof value === 'object' ? [value] : []) {
+      if (!isArizonaXapiStore(store)) continue;
+      const id = String(store.locationId);
+      if (conflicts.has(id)) continue;
+      const previous = stores.get(id);
+      if (previous && premisesKey(previous) !== premisesKey(store)) {
+        stores.delete(id);
+        conflicts.add(id);
+        continue;
+      }
+      const preferred = previous && storeOrder(previous, store) <= 0 ? previous : store;
+      stores.set(id, { ...preferred, locationId: id, lanes: new Set([...(previous?.lanes || []), lane]) });
+    }
+  }
+  return stores;
+}
+
+export function selectArizonaXapiStores(input, { maxStores = 32 } = {}) {
+  const limit = Math.max(1, Math.min(ARIZONA_XAPI_SEARCH_LIMIT, Math.floor(Number(maxStores) || 32)));
+  const stores = new Map();
+  const conflicts = new Set();
+  mergeArizonaXapiStores(stores, { instore: { stores: [...input] } }, conflicts);
+  const candidates = [...stores.values()].sort(storeOrder);
+  const protectedIds = new Set(ARIZONA_XAPI_BASELINE_STORE_IDS);
+  const selected = candidates.filter((store) => protectedIds.has(store.locationId)).slice(0, limit);
+  const selectedIds = new Set(selected.map((store) => store.locationId));
+  // Keep the former 24-store lane intact before adding geographical breadth.
+  for (const store of candidates) {
+    if (selected.length >= Math.min(24, limit)) break;
+    if (selectedIds.has(store.locationId)) continue;
+    selected.push(store);
+    selectedIds.add(store.locationId);
+  }
+  const cityCounts = new Map();
+  for (const store of selected) {
+    const city = identityText(store.address.city);
+    cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
+  }
+  while (selected.length < limit) {
+    const next = candidates.filter((store) => !selectedIds.has(store.locationId))
+      .sort((a, b) => (cityCounts.get(identityText(a.address.city)) || 0) - (cityCounts.get(identityText(b.address.city)) || 0)
+        || Number(REVIEWED_ADDITIONAL_STORE_IDS.has(b.locationId)) - Number(REVIEWED_ADDITIONAL_STORE_IDS.has(a.locationId))
+        || storeOrder(a, b))[0];
+    if (!next) break;
+    selected.push(next);
+    selectedIds.add(next.locationId);
+    const city = identityText(next.address.city);
+    cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
+  }
+  return selected;
+}
+
+export function arizonaXapiRequestPlan(input, { maxStores = 32, terms = [], nowMs = Date.now() } = {}) {
+  const selected = selectArizonaXapiStores(input, { maxStores });
+  const rareTerms = [...new Set(terms.map((term) => String(term).trim()).filter((term) => term && term !== 'bourbon'))];
+  const dayBucket = Math.floor(nowMs / 86_400_000);
+  const rareCount = rareTerms.length ? Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, ARIZONA_XAPI_SEARCH_LIMIT - selected.length, selected.length) : 0;
+  // Advance each store's term on its own visits, independent of which day
+  // selects its cohort. Day parity otherwise traps a 32/16 split on two terms.
+  const rareVisits = new Map(Array.from({ length: rareCount }, (_, offset) => {
+    const slot = dayBucket * rareCount + offset;
+    return [slot % selected.length, Math.floor(slot / selected.length)];
+  }));
+  return selected.map((store, index) => ({
+    store,
+    terms: ['bourbon', ...(rareVisits.has(index) ? [rareTerms[(rareVisits.get(index) + index) % rareTerms.length]] : [])],
+  }));
+}
+
+export function parseArizonaXapiInventory(payload, store, bible, { observedAt, queryTerm = 'bourbon', matchProduct = reviewedArizonaXapiBottleMatch } = {}) {
+  if (!isArizonaXapiStore(store) || !Number.isFinite(Date.parse(observedAt))) return [];
+  const banner = arizonaXapiBanner(store);
+  const host = `https://www.${banner}.com`;
+  const address = store.address;
+  const signals = [];
+  const seen = new Set();
+  for (const product of Array.isArray(payload?.response?.docs) ? payload.response.docs : []) {
+    const rawName = stripHtml(String(product?.name || '')).trim();
+    const productId = String(product?.id || product?.pid || product?.upc || '');
+    if (!/^\d+$/.test(productId) || String(product?.storeId || '') !== String(store.locationId) || seen.has(productId) || !/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor|booker'?s/i.test(rawName)) continue;
+    const size = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l|liter)\b/i);
+    const sizeMl = size ? Number(size[1]) * (/^l/i.test(size[2]) ? 1000 : 1) : null;
+    if (sizeMl != null && sizeMl < 375) continue;
+    const { match, record } = matchProduct(product, bible, { storeId: String(store.locationId) });
+    if (!record || String(product?.restrictedValue || '').toLowerCase() === 'true' && product?.containsAlcohol === false) continue;
+    const inventory = product.channelInventory || {};
+    if (String(inventory.instore ?? inventory.inStore ?? '') !== '1') continue;
+    const rawQuantity = inventory.instoreItemQty ?? inventory.inStoreItemQty;
+    const exactQty = Number(rawQuantity);
+    if (rawQuantity != null && (rawQuantity === '' || !Number.isFinite(exactQty) || exactQty <= 0)) continue;
+    const quantity = rawQuantity != null ? exactQty : 0;
+    const sourceLabel = `${banner === 'albertsons' ? 'Albertsons' : 'Safeway'} Arizona XAPI store inventory`;
+    seen.add(productId);
+    signals.push({
+      id: stableId(['AZ', 'albertsons-xapi', store.locationId, productId]), state: 'AZ',
+      sourceLabel, sourceUrl: `${host}/shop/product-details.${productId}.html`, sourceChain: banner, merchantId: String(store.locationId),
+      rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+      confidence: quantity > 0 ? 0.86 : Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
+      locationName: `${store.domainName || banner} #${store.locationId}`, storeName: `${store.domainName || banner} #${store.locationId}`, storeId: `${banner}:${store.locationId}`,
+      storeAddress: `${address.line1}, ${address.city}, AZ ${address.zipcode}`, city: address.city, stateCode: 'AZ', postalCode: address.zipcode, zip: address.zipcode,
+      lat: Number(store.latitude ?? store.lat) || null, lng: Number(store.longitude ?? store.lng) || null,
+      quantity, price: Number(product.price) || null, availabilityStatus: 'in_stock', availabilityLabel: quantity > 0 ? `Retailer reports ${quantity} available` : 'Retailer reports in-store inventory', sourceAvailabilityVerified: true, observedAt,
+      canAlertAsInventory: true, canAlertAsWatch: true,
+      inventorySemantics: quantity > 0 ? 'Albertsons Companies XAPI reports positive store/channel inventory and an item quantity.' : 'Albertsons Companies XAPI reports positive in-store inventory but no exact item quantity; verify before driving.',
+      evidence: `${sourceLabel} reports ${rawName} available at ${address.line1}, ${address.city}${quantity > 0 ? ` with quantity ${quantity}` : ''}.`,
+      raw: { chain: banner, merchantId: String(store.locationId), queryTerm, product: { id: product.id, pid: product.pid, upc: product.upc, inventoryAvailable: product.inventoryAvailable }, channelInventory: inventory, channelEligibility: product.channelEligibility },
+    });
+  }
+  return signals;
+}

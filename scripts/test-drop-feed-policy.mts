@@ -175,12 +175,12 @@ assert.doesNotMatch(dropsRouteSource, /filterDegradedStates:\s*false/,
   "a degraded state cannot retry around the shared Feed/Coverage eligibility gate");
 
 const defaultFeedCandidate = {
-  state: "AZ",
+  state: "TN",
   type: "retailer_store_inventory_result",
   source: "reviewed_retailer",
   tier: "limited",
   locationPrecision: "store_level",
-  storeId: "az-shared-gate",
+  storeId: "tn-shared-gate",
   storeName: "Shared Gate Spirits",
   storeAddress: "1 Main Street",
   city: "Phoenix",
@@ -248,21 +248,21 @@ assert.equal(isPublicDropFeedEligible({
   type: "nc_statewide_warehouse_stock",
   locationPrecision: "board_warehouse",
 }), false, "blocked NC warehouse stock cannot establish feed or Coverage evidence");
-assert.equal(isPublicDropFeedEligible(defaultFeedCandidate, { degradedStateCodes: new Set(["AZ"]) }), false,
+assert.equal(isPublicDropFeedEligible(defaultFeedCandidate, { degradedStateCodes: new Set(["TN"]) }), false,
   "a degraded state cannot establish feed or Coverage evidence");
 const rawAliasCandidate = normalizePublicDropEvidenceInput({
-  state_code: "AZ",
+  state_code: "TN",
   event_type: "retailer_store_inventory_result",
   source_name: "Alias retailer inventory",
   tier: "limited",
   location_precision: "store_level",
-  store_id: "az-alias-1",
+  store_id: "tn-alias-1",
   store_name: "Alias Spirits",
-  store_address: "1 Alias Road, Phoenix, AZ, 85001",
+  store_address: "1 Alias Road, Nashville, TN, 37201",
   quantity_in_stock: 1,
   observed_at: "2026-08-02T13:00:00.000Z",
 });
-assert.equal(rawAliasCandidate.state, "AZ", "the pure evidence normalizer accepts raw engine state aliases");
+assert.equal(rawAliasCandidate.state, "TN", "the pure evidence normalizer accepts raw engine state aliases");
 assert.equal(rawAliasCandidate.quantity, undefined, "a missing primary quantity remains absent so quantity_in_stock remains usable");
 assert.equal(isPublicDropFeedEligible(rawAliasCandidate), true, "raw engine aliases normalize to the same eligible public-evidence shape");
 

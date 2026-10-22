@@ -300,6 +300,11 @@ jobs:
         working-directory: engine
         run: npm run verify:in
 
+      - name: Verify targeted Arizona retailer inventory expansion
+        if: ${{ inputs.states && contains(inputs.states, 'AZ') }}
+        working-directory: engine
+        run: npm run verify:az
+
       - name: Verify targeted South Carolina All American inventory
         if: ${{ inputs.states && contains(inputs.states, 'SC') && !inputs.sources }}
         working-directory: engine

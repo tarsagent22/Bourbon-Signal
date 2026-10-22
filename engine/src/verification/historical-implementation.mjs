@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const sharedBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -68,5 +69,12 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     assert.equal(typeof original, 'string');
     text = text.replace(pattern, () => original);
   }
+  assert.equal(arizonaBaseline.contractVersion, 'bourbon-signal/arizona-shared-metadata-baseline@1');
+  const arizona = arizonaBaseline.files[name];
+  assert.equal(typeof arizona?.original, 'string');
+  assert.equal(typeof arizona?.reviewed, 'string');
+  // Only the exact reviewed AZ source description and customer metadata differ.
+  // Every other byte and all original MS implementation digests remain pinned.
+  text = replaceUnique(text, arizona.reviewed, arizona.original, `${name}: AZ reviewed metadata`);
   return Buffer.from(text);
 }

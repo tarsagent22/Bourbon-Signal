@@ -1,0 +1,147 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { BourbonBible } from '../src/core/bible.mjs';
+import { collectArizonaAlbertsons } from '../src/collectors/precision-probes.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { bibleLookup, buildDrops, buildCurrentInventoryAlertsFromDrops } from '../src/export-site-contract.mjs';
+import { getStateLifecycle } from '../src/state-lifecycle.mjs';
+import { diagnoseArizonaExpansionArtifact, verifyArizonaExpansionArtifact } from '../src/verify-az.mjs';
+
+const fixture = JSON.parse(await readFile(new URL('./fixtures/arizona-xapi/2026-10-22-buffalo-trace.json', import.meta.url), 'utf8'));
+const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
+const lookup = bibleLookup(bible.records);
+const observations = fixture.captures.map((capture) => Date.parse(capture.observedAt));
+const now = Math.max(...observations) + 5 * 60_000;
+const expectations = { minimumSelectedStores: 2, minimumBaselineStores: 0, minimumAddedStores: 2, minimumPositiveXapiStores: 2, minimumPublicRows: 2 };
+
+async function capturedPipeline(t, { binary = false } = {}) {
+  t.mock.timers.enable({ apis: ['Date'], now });
+  const signals = [];
+  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, rareSearchCount: 0, maxSearchCount: 48 };
+  for (const capture of fixture.captures) {
+    const products = structuredClone(capture.products);
+    if (binary) for (const product of products) delete product.channelInventory.instoreItemQty;
+    const result = await collectArizonaAlbertsons({ id: 'AZ' }, bible, capture.observedAt, {
+      zips: [capture.store.address.zipcode], maxStores: 1, nowMs: Date.parse(capture.observedAt), sleep: async () => {},
+      fetchText: async (value) => {
+        const url = new URL(value);
+        return url.pathname.includes('/storeresolver/')
+          ? { ok: true, status: 206, text: JSON.stringify({ instore: { stores: [capture.store] } }) }
+          : { ok: true, status: 200, text: JSON.stringify({ response: { docs: url.searchParams.get('q') === 'bourbon' ? products : [] } }) };
+      },
+    });
+    assert.equal(result.signals.length, 1);
+    signals.push(...result.signals);
+    for (const key of ['selectedStores', 'baselineStores', 'addedStores', 'requests']) metadata[key].push(...result.metadata[key]);
+    for (const key of ['totalSearchCount', 'bourbonSearchCount', 'rareSearchCount']) metadata[key] += result.metadata[key];
+  }
+  // Explicitly retain a conservative quantity flag at the serialization boundary.
+  if (binary) for (const signal of signals) signal.quantityIsExact = false;
+  const operational = JSON.parse(JSON.stringify(signals.map((signal) => canonicalizeSignal(signal, bible))));
+  const drops = buildDrops(operational, lookup, operational);
+  const alerts = buildCurrentInventoryAlertsFromDrops(drops);
+  const lifecycle = getStateLifecycle('AZ');
+  return JSON.parse(JSON.stringify({
+    state: { state: 'AZ', status: 'useful', stale: false, startedAt: new Date(Math.min(...observations)).toISOString(), finishedAt: new Date(Math.max(...observations)).toISOString(), signals, precisionMetadata: { xapi: metadata } },
+    drops: { runId: 'captured-az-boundary', drops },
+    alerts: { runId: 'captured-az-boundary', alerts },
+    stats: { runId: 'captured-az-boundary', stateCoverage: { states: [{ state: 'AZ', coverageTier: lifecycle.coverageTier, publicStatus: lifecycle.publicStatus }] } },
+    now, expectations,
+  }));
+}
+
+function rejected(input, mutate, pattern) {
+  const changed = structuredClone(input);
+  mutate(changed);
+  assert.throws(() => verifyArizonaExpansionArtifact(changed), pattern);
+}
+
+test('captured collector to canonical JSON to public rows passes diagnostics without lowering strict CLI defaults', async (t) => {
+  const input = await capturedPipeline(t);
+  const result = verifyArizonaExpansionArtifact(input);
+  assert.equal(result.status, 'ok');
+  assert.equal(result.publicRows, 2);
+  assert.equal(result.alerts, 2);
+  assert.equal(result.buffaloTracePublicRows, 2);
+  assert.equal(result.addedPublicStores, 2);
+  const strict = diagnoseArizonaExpansionArtifact({ ...input, expectations: undefined });
+  assert.equal(strict.status, 'failed');
+  assert.match(strict.errors.join('\n'), /required depth|baseline store|38-row baseline/);
+});
+
+test('verifier rejects unsafe source identity, format, stock and original timestamps', async (t) => {
+  const input = await capturedPipeline(t);
+  const mutations = [
+    [(row) => { row.state.stale = true; }, /fresh and useful/],
+    [(row) => { row.now += 3 * 60 * 60_000; }, /two hours/],
+    [(row) => { row.state.signals[0].sourceUrl = 'https://unrelated.example/product'; }, /retailer identity|product URL/],
+    [(row) => { row.state.signals[0].storeAddress = '1159 W Chandler Blvd, Chandler, NV 85224'; }, /premises|matching store/],
+    [(row) => { row.state.signals[0].rawName = 'Buffalo Trace Bourbon 50 Ml'; }, /Miniature/],
+    [(row) => { row.state.signals[0].raw.reportedQuantity = 100; }, /sentinels/],
+    [(row) => { row.state.signals[0].eventType = 'cityhive_store_catalog_watch'; }, /Catalog or watch/],
+    [(row) => { row.state.signals[0].observedAt = new Date(Math.min(...observations) - 1).toISOString(); }, /original timestamp/],
+    [(row) => { row.state.signals[0].observedAt = new Date(now + 1).toISOString(); }, /original timestamp/],
+    [(row) => { row.state.signals[0].raw.channelInventory.instore = '0'; }, /original channel evidence/],
+    [(row) => { row.state.signals[0].raw.channelInventory.instoreItemQty = 0; }, /original channel evidence/],
+    [(row) => { row.state.signals[0].quantityIsExact = false; }, /exact quantity/],
+  ];
+  for (const [mutate, pattern] of mutations) rejected(input, mutate, pattern);
+});
+
+test('verifier binds metadata to exact premises, classification and a bounded denial-aware ledger', async (t) => {
+  const input = await capturedPipeline(t);
+  rejected(input, (row) => { delete row.state.precisionMetadata; }, /metadata is required/);
+  rejected(input, (row) => { row.state.precisionMetadata.xapi.selectedStores[1] = structuredClone(row.state.precisionMetadata.xapi.selectedStores[0]); }, /unique exact/);
+  rejected(input, (row) => { row.state.precisionMetadata.xapi.selectedStores[0].address = 'Unknown'; }, /unique exact/);
+  rejected(input, (row) => { row.state.precisionMetadata.xapi.baselineStores.push(row.state.precisionMetadata.xapi.addedStores.pop()); }, /misclassified/);
+  rejected(input, (row) => { row.state.precisionMetadata.xapi.totalSearchCount += 1; }, /request ledger/);
+  rejected(input, (row) => { row.state.precisionMetadata.xapi.requests[0].status = 403; }, /after denial/);
+  rejected(input, (row) => { const req = row.state.precisionMetadata.xapi.requests.find((entry) => entry.kind === 'inventory'); req.url = req.url.replace('rows=100', 'rows=1000'); }, /bounded page/);
+  rejected(input, (row) => { const req = row.state.precisionMetadata.xapi.requests.find((entry) => entry.kind === 'inventory'); const url = new URL(req.url); url.port = '444'; req.url = url.href; }, /bounded page/);
+  rejected(input, (row) => { const req = row.state.precisionMetadata.xapi.requests.find((entry) => entry.kind === 'resolver'); const url = new URL(req.url); url.port = '444'; req.url = url.href; }, /configured public route/);
+  rejected(input, (row) => {
+    const meta = row.state.precisionMetadata.xapi;
+    const rare = meta.requests.find((entry) => entry.kind === 'inventory' && entry.term !== 'bourbon');
+    for (let index = 0; index < 17; index++) meta.requests.push(structuredClone(rare));
+    meta.totalSearchCount += 17; meta.rareSearchCount += 17;
+  }, /16 rare queries/);
+});
+
+test('verifier rejects lost public proof, old coverage metadata and watch or stale alerts', async (t) => {
+  const input = await capturedPipeline(t);
+  rejected(input, (row) => { row.drops.drops = []; }, /38-row baseline|survive public export/);
+  rejected(input, (row) => { row.drops.drops[0].productId = 'wrong-sku'; }, /product.*proof/);
+  rejected(input, (row) => { row.drops.drops[0].sourceUrl = row.drops.drops[0].sourceUrl.replace('960051942', '960051943'); }, /product.*proof/);
+  rejected(input, (row) => { row.drops.drops[0].price += 1; }, /price.*proof/);
+  rejected(input, (row) => { row.drops.drops[0].quantity = 100; }, /quantity.*proof/);
+  rejected(input, (row) => { row.drops.drops[0].observedAt = new Date(now).toISOString(); }, /observation proof/);
+  rejected(input, (row) => { row.stats.stateCoverage.states[0].coverageTier = 'retailer_warehouse_inventory'; }, /live_store_inventory/);
+  rejected(input, (row) => { row.alerts.alerts[0].action = 'watch_alert_candidate'; }, /alerts cannot contain watch/);
+  rejected(input, (row) => { row.alerts.alerts[0].stale = true; }, /alerts cannot contain watch/);
+  rejected(input, (row) => { row.alerts.alerts[0].availabilityStatus = 'catalog_listed'; }, /alerts cannot contain watch/);
+  rejected(input, (row) => { row.alerts.runId = 'different-export'; }, /different export runs/);
+});
+
+test('verifier preserves explicit false exact-quantity semantics without inventing binary stock counts', async (t) => {
+  const input = await capturedPipeline(t, { binary: true });
+  assert.ok(input.state.signals.every((row) => row.quantity === 0 && row.quantityIsExact === false));
+  assert.ok(input.drops.drops.every((row) => row.quantity === 0 && row.quantityIsExact === false));
+  assert.equal(input.alerts.alerts.length, 0);
+  assert.equal(verifyArizonaExpansionArtifact(input).status, 'ok');
+  rejected(input, (row) => { row.drops.drops[0].quantityIsExact = true; }, /quantity.*proof/);
+  rejected(input, (row) => { row.state.signals[0].quantity = 17; }, /exact quantity/);
+});
+
+test('copied valid public rows cannot satisfy the 38-row floor or inflate alert candidates', async (t) => {
+  const input = await capturedPipeline(t);
+  const copied = structuredClone(input);
+  copied.expectations.minimumPublicRows = 38;
+  copied.drops.drops = Array.from({ length: 38 }, (_, index) => structuredClone(input.drops.drops[index % input.drops.drops.length]));
+  const diagnostics = diagnoseArizonaExpansionArtifact(copied);
+  assert.equal(diagnostics.status, 'failed');
+  assert.equal(diagnostics.publicRows, 2, 'the floor counts distinct source/store/product/URL identities');
+  assert.match(diagnostics.errors.join('\n'), /Duplicate published Arizona inventory/);
+  assert.match(diagnostics.errors.join('\n'), /38-row baseline/);
+  rejected(input, (row) => { row.alerts.alerts.push(structuredClone(row.alerts.alerts[0])); }, /Duplicate Arizona alert identities/);
+});
