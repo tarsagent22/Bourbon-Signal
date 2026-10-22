@@ -350,6 +350,11 @@ jobs:
         working-directory: engine
         run: npm run verify:pa
 
+      - name: Verify Pennsylvania reviewed product expansion through public inventory and alerts
+        if: ${{ inputs.states && contains(inputs.states, 'PA') }}
+        working-directory: engine
+        run: npm run verify:pa:expansion
+
       - name: Verify Florida scheduled lane with guarded current inventory and safe fallback
         if: ${{ !inputs.states }}
         working-directory: engine
@@ -594,6 +599,7 @@ jobs:
             engine/out/site/stats.json
             engine/out/site/state-health.json
             engine/out/az-expansion-verification.json
+            engine/out/pa-expansion-verification.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json

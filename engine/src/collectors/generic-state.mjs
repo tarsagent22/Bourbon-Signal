@@ -15,6 +15,7 @@ import {
   sourceReportProvesMonitoredNoInventory,
 } from '../sources/source-report-semantics.mjs';
 import { applyNcBoardShipmentPolicy } from './north-carolina-intelligence.mjs';
+import { pennsylvaniaConfiguredSourceSkip } from './pennsylvania-direct-source-policy.mjs';
 import {
   collectWestVirginiaRecentPurchases,
   enrichWestVirginiaBarrelSelections,
@@ -508,6 +509,13 @@ export async function collectState(config, bible, options = {}) {
   for (const source of [...(config.sources || []), ...apiCandidates]) {
     if (source.precisionOnly) continue;
     const sourceId = configuredSourceId(config, source);
+    const policySkip = pennsylvaniaConfiguredSourceSkip(config, source, sourceId, { nowAt: startedAt });
+    if (policySkip) {
+      sourceReports.push(policySkip.sourceReport);
+      sourceResults.push(policySkip.sourceResult);
+      roadblocks.push(...policySkip.roadblocks);
+      continue;
+    }
     configuredSources.push({ source, sourceId });
     configuredAdapters.push(createSourceAdapter({
       id: sourceId,
