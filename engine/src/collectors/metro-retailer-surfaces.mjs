@@ -1,5 +1,8 @@
+import { metroCityHiveDepthPolicy } from './metro-cityhive-depth-policy.mjs';
+import { NEW_YORK_EXPANSION_RETAILER_SOURCES, COLORADO_EXPANSION_RETAILER_SOURCES } from './metro-expansion-sources.mjs';
+
 const BOURBON_IDENTITY_RE = /\b(?:bourbon|kentucky straight|american whiskey|blanton(?:'s|s)?|buffalo trace|eagle rare|e\.?\s*h\.?\s*taylor|colonel\s+taylor|weller|stagg|van winkle|booker(?:'s|s)?|baker(?:'s|s)?|1792|maker(?:'s|s)? mark|old forester|woodford reserve|four roses|knob creek|elijah craig|michter(?:'s|s)?|willett|wild turkey|rare breed|larceny|heaven hill|henry mckenna|old fitzgerald|new riff|bardstown bourbon|green river|yellowstone|penelope|peerless|angel'?s envy|basil hayden|jefferson'?s)\b/i;
-const UNSAFE_PRODUCT_RE = /\b(?:gift\s*(?:set|box|pack)|bundle|sampler|miniatures?|multipack|multi[\s-]*pack|variety\s*pack|case\s+of\s+\d+|pack\s+of\s+\d+|\d+\s*(?:pk|pack|bottles?)|\d+\s*[x×]\s*\d+(?:\.\d+)?\s*(?:ml|l)|candle|tumbler|glassware|barware|coaster|ornament|figurine|flask|shirt|hoodie|hat|poster|sign|sticker|keychain|gift\s*card|accessor(?:y|ies)|cocktail|ready\s*to\s*drink|rtd|liqueur|cordial|cream|flavou?red|wine|cabernet|sauvignon|merlot|chardonnay|pinot|apple|peach|honey|cinnamon|peanut\s*butter|chocolate|vanilla|maple|orange|cherry)\b/i;
+const UNSAFE_PRODUCT_RE = /\b(?:gift\s*(?:set|box|pack)|bundle|sampler|miniatures?|multipack|multi[\s-]*pack|variety\s*pack|case\s+of\s+\d+|pack\s+of\s+\d+|\d+\s*(?:pk|pack|bottles?)|\d+\s*[x×]\s*\d+(?:\.\d+)?\s*(?:ml|l)|candle|tumbler|glassware|barware|coaster|ornament|figurine|flask|shirt|hoodie|hat|poster|sign|sticker|keychain|gift\s*card|accessor(?:y|ies)|cocktail|ready\s*to\s*drink|rtd|kentucky\s+fire|pineapple|liqueur|cordial|cream|flavou?red|wine|cabernet|sauvignon|merlot|chardonnay|pinot|apple|peach|honey|cinnamon|peanut\s*butter|chocolate|vanilla|maple|orange|cherry)\b/i;
 const NON_BOTTLE_RE = /\b(?:can|cans|canned|pouch|pouches|keg|boxed|box|bag[\s-]*in[\s-]*box)\b/i;
 const SIZE_RE = /\b(\d+(?:\.\d+)?)\s*(ml|millilit(?:er|re)s?|l|lit(?:er|re)s?)\b/giu;
 const MAX_EMBEDDED_JSON_BYTES = 8 * 1024 * 1024;
@@ -21,7 +24,7 @@ function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores, inven
     productsUrl: `${baseUrl}/shop/?subtype=Bourbon`,
     fulfillmentPolicyUrl: `${baseUrl}/shop/?subtype=Bourbon`,
     maxPages: 1,
-    depthDiscovery: depthDiscovery ? Object.freeze({ ...depthDiscovery }) : null,
+    depthDiscovery: depthDiscovery ? Object.freeze({ ...depthDiscovery }) : metroCityHiveDepthPolicy(id),
     stateCode,
     area,
     inventoryEligible: true,
@@ -51,6 +54,7 @@ function shopifySource({ id, chainName, baseUrl, merchantId, address, city, stat
 }
 
 export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
+  ...NEW_YORK_EXPANSION_RETAILER_SOURCES,
   cityHiveSource({
     id: 'cellar-53',
     chainName: 'Cellar 53',
@@ -292,6 +296,7 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
 ]);
 
 export const COLORADO_RETAILER_SOURCES = Object.freeze([
+  ...COLORADO_EXPANSION_RETAILER_SOURCES,
   cityHiveSource({
     id: 'bonnie-brae-liquor',
     chainName: 'Bonnie Brae Liquor',

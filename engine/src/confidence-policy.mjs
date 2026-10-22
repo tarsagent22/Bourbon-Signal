@@ -158,7 +158,7 @@ const NEVADA_RETAILER_POLICY = {
 
 const METRO_RETAILER_POLICY = {
   maxAlertMode: 'alert_retailer_store_inventory_caveat',
-  inventorySemantics: 'Whitelisted New York City, Nassau County, Buffalo, and Denver Metro retailer rows are bound to an exact first-party host, merchant, physical premises, and product identity. CityHive counts below 100 retain exact retailer-reported quantity; sentinel counts and Shopify availability remain binary orderability. Verify pickup before driving.',
+  inventorySemantics: 'Whitelisted selected New York and Colorado retailer rows are bound to an exact first-party host, merchant, physical premises, and product identity. CityHive counts below 100 retain exact retailer-reported quantity; sentinel counts and Shopify availability remain binary orderability. Verify pickup before driving.',
   defaultCadence: '30-60m'
 };
 

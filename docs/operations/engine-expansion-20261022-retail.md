@@ -1,0 +1,24 @@
+# Retailer expansion evidence — October 22, 2026
+
+Eight new exact pickup stores passed first-party source checks and the existing guarded collector path: four in New York and four in Colorado. Captured source rows produced 22 safe Bottle Bible matches at the collector's minimum 0.72 confidence. The separate collector-to-customer export replay produced 13 public rows across all eight stores; source matches and public rows are different counts. This document records source and local verification evidence, not production activation or physical stock inspection.
+
+| Store | Exact premises | Customer area | Canonical matches | Reviewed public source |
+| --- | --- | --- | ---: | --- |
+| Hurley Wine & Liquor Market | 295 NY-375 #2, West Hurley, NY 12491 | Hudson Valley | 3 | [Bourbon category](https://www.hurleywinemarket.com/shop/?subtype=Bourbon) |
+| Michaels Liquor Store | 1430 N Clinton Ave, Rochester, NY 14621 | Rochester Metro | 2 | [Bourbon category](https://rochesterwineandspirits.com/shop/?subtype=Bourbon) |
+| Bittersweet Wines & Liquors | 3242 Lake Shore Dr, Lake George, NY 12845 | Lake George | 5 | [Bourbon category](https://bittersweetwineandliquor.com/shop/?subtype=Bourbon) |
+| W & J Wine | 468 4th Ave, Brooklyn, NY 11215 | New York City | 2 | [Bourbon category](https://wjwine.org/shop/?subtype=Bourbon) |
+| Springs Liquor Outlet | 6010 Carefree Cir N, Colorado Springs, CO 80922 | Colorado Springs | 2 | [Exact merchant public search](https://www.springsliquor.com/shop/?ch-query=buffalo+trace&merchant-id=60e4f95ccedf7461ed8e6bf4) |
+| WALLABYS LIQUOR WAREHOUSE | 1550 S Parker Rd, Denver, CO 80231 | Denver Metro | 3 | [Exact merchant public search](https://wallabysliquorwarehouse.com/shop/?ch-query=buffalo+trace&merchant-id=637b8843a678e952077d5fd5) |
+| Peak Wine and Spirits | 150 N Jefferson St b2, Nederland, CO 80466 | Boulder County | 2 | [Bourbon category](https://peakwineandspirits.com/shop/?subtype=Bourbon) |
+| South Park Liquor | 7945 S Broadway, Littleton, CO 80122 | Denver Metro | 3 | [Exact merchant public search](https://southparkliquor.shop/shop/?ch-query=buffalo+trace&merchant-id=697822d31fb51b26ba80ab47) |
+
+Every retained source returned HTTP 200 and embedded one exact reviewed merchant/address with pickup enabled. Inventory requires the exact merchant and premises on both the merchant option and variant, a same-origin product URL carrying the exact product/option IDs, a positive retailer-reported quantity, and safe bottle format. Quantities at or above 100 retain binary orderability semantics rather than being advertised as exact shelf counts. New sources disable the JSON-LD catalog fallback. Source screening exposed Kentucky Fire and pineapple variants; the shared safe-format guard now rejects both.
+
+The three Colorado searches above are enabled in the ordinary collection policy, bounded to one category request plus one proven family search. Other new stores use one category request. Existing cadence and source-failure containment remain in effect.
+
+The campaign screened 20 candidate hosts with one initial category request each, then made six targeted searches and four exact runtime-route checks. Known blocked state routes were excluded. Hazel's query and Denver Liquor Outlet's exact runtime query each timed out once; both were deferred without retry. BayTowne returned no safely matched tracked bottle. Anthology and Sopris had no rows passing the strict parser. Albany's two canonical matches produced no customer-visible rows under the existing tier policy, so its source and new area were removed. Other unsupported or out-of-scope candidates were deferred. No credentials, access-control workarounds, denied-route retry loops, or external writes were used.
+
+The checked-in [fixture manifest](../../engine/test/fixtures/metro-expansion-20261022/manifest.json) records eleven public captures with exact source URLs, capture times, merchant identities, raw-response SHA-256, reduced-fixture SHA-256, and matched product identities. Fixtures preserve the source fields used by the parser; ignored raw HTML remains under `.operator/retail-growth/`. The [frozen registry](../../engine/src/collectors/metro-expansion-sources.mjs) contains only the eight retained stores.
+
+Validation passed: 22 targeted breadth/NY/CO tests, including changed host, merchant, address, missing pickup, zero quantity, and miniature rejection. Both `verify-state-integration --state=NY` and `--state=CO` passed. Historical activation collectors, immutable promotion evidence, customer-path evidence, and activation hashes were preserved; current collector source IDs and the source-extension additions were extended in the required historical order. The parent campaign separately records current area-path validation and production publication evidence.

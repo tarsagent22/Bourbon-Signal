@@ -419,15 +419,15 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'NY', label: 'New York City + Nassau County + Buffalo first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
-    value: 'Exact-premises New York City, Nassau County, and Buffalo retailer inventory from configured CityHive and Shopify storefronts. Coverage is intentionally limited to the named premises; binary availability is never projected as an exact count.',
+    id: 'NY', label: 'Selected New York first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: 'Exact-premises New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, and Lake George retailer inventory from configured CityHive and Shopify storefronts. Coverage is intentionally limited to the named premises; binary availability is never projected as an exact count.',
     rareSignalTarget: true,
     sources: NEW_YORK_RETAILER_SOURCES.map(metroSourceRecord),
     apiCandidates: []
   },
   {
-    id: 'CO', label: 'Denver Metro first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
-    value: "Exact-premises Denver Metro CityHive inventory from Bonnie Brae Liquor, Molly's Spirits, and Total Beverage. Only allowlisted merchant/store pickup rows qualify, and CityHive sentinel quantities remain binary rather than exact.",
+    id: 'CO', label: 'Selected Colorado first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: "Exact-premises CityHive inventory in Denver Metro, Boulder County, and Colorado Springs from reviewed first-party retailers. Only allowlisted merchant/store pickup rows qualify, and CityHive sentinel quantities remain binary rather than exact.",
     rareSignalTarget: true,
     sources: COLORADO_RETAILER_SOURCES.map(metroSourceRecord),
     apiCandidates: []

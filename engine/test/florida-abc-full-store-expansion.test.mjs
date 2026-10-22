@@ -77,9 +77,9 @@ test('reviewed immutable ABC registry contains exactly 126 active identities and
     primoProductPages: 8,
     shipmentShopifyPages: 12,
     abcDirectoryQueries: 4,
-    abcSearchspringPages: 1,
+    abcSearchspringPages: 3,
     tivoliProductPages: 1,
-    maximumRequests: 27,
+    maximumRequests: 29,
   });
 });
 

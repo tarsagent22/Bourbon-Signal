@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { NEW_YORK_EXPANSION_RETAILER_SOURCES, COLORADO_EXPANSION_RETAILER_SOURCES } from "../engine/src/collectors/metro-expansion-sources.mjs";
 import {
   newYorkAreaMatchesFields,
   normalizeNewYorkAreas,
@@ -12,13 +13,13 @@ import {
   SUPPORTED_COLORADO_AREAS,
 } from "../src/lib/colorado-area.ts";
 
-assert.deepEqual(SUPPORTED_NEW_YORK_AREAS, ["New York City", "Nassau County", "Buffalo"]);
-assert.deepEqual(normalizeNewYorkAreas(["NYC", "new york city", "nassau", "Buffalo NY", "Albany"]), ["New York City", "Nassau County", "Buffalo"]);
+assert.deepEqual(SUPPORTED_NEW_YORK_AREAS, ["New York City", "Nassau County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]);
+assert.deepEqual(normalizeNewYorkAreas(["NYC", "new york city", "nassau", "Buffalo NY", "Rochester", "Hudson Valley", "Lake George"]), ["New York City", "Nassau County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]);
 assert.deepEqual(parseNewYorkAreaQuery(null), { requested: false, valid: true, areas: [] });
 assert.deepEqual(parseNewYorkAreaQuery("New York City"), { requested: true, valid: true, areas: ["New York City"] });
 assert.deepEqual(parseNewYorkAreaQuery("Nassau County"), { requested: true, valid: true, areas: ["Nassau County"] });
 assert.deepEqual(parseNewYorkAreaQuery("Buffalo"), { requested: true, valid: true, areas: ["Buffalo"] });
-assert.deepEqual(parseNewYorkAreaQuery("Albany"), { requested: true, valid: false, areas: [] });
+assert.deepEqual(parseNewYorkAreaQuery("Syracuse"), { requested: true, valid: false, areas: [] });
 for (const field of [
   "New York City",
   "New York, NY",
@@ -57,8 +58,8 @@ for (const field of ["Buffalo, MN", "Buffalo County, WI", "Buffalo Grove, IL", "
   assert.equal(newYorkAreaMatchesFields([field], ["Buffalo"]), false, `${field} must not expand Buffalo coverage`);
 }
 
-assert.deepEqual(SUPPORTED_COLORADO_AREAS, ["Denver Metro"]);
-assert.deepEqual(normalizeColoradoAreas(["Denver", "denver metro", "Colorado Springs"]), ["Denver Metro"]);
+assert.deepEqual(SUPPORTED_COLORADO_AREAS, ["Denver Metro", "Boulder County", "Colorado Springs"]);
+assert.deepEqual(normalizeColoradoAreas(["Denver", "denver metro", "Boulder", "Colorado Springs"]), ["Denver Metro", "Boulder County", "Colorado Springs"]);
 assert.deepEqual(parseColoradoAreaQuery(null), { requested: false, valid: true, areas: [] });
 assert.deepEqual(parseColoradoAreaQuery("Denver Metro"), { requested: true, valid: true, areas: ["Denver Metro"] });
 assert.deepEqual(parseColoradoAreaQuery("Colorado"), { requested: true, valid: false, areas: [] });
@@ -77,4 +78,37 @@ for (const field of ["Colorado", "Colorado statewide", "Colorado Springs, CO", "
 }
 assert.equal(coloradoAreaMatchesFields(["Denver"], []), true);
 
-console.log("New York City, Nassau County, Buffalo, and Denver Metro strict area contracts passed.");
+for (const [area, address, wrongState] of [
+  ["Rochester Metro", "1900 Empire Blvd Suite 145, Webster, NY 14580, USA", "Webster, MA 01570"],
+  ["Hudson Valley", "295 NY-375 #2, West Hurley, NY 12491, USA", "West Hurley, NJ 07001"],
+  ["Lake George", "Lake George, NY 12845", "Lake George, CO 80827"],
+]) {
+  assert.equal(newYorkAreaMatchesFields([address], [area]), true, `${address} must match ${area}`);
+  assert.equal(newYorkAreaMatchesFields([address], ["New York City"]), false);
+  assert.equal(newYorkAreaMatchesFields([wrongState], [area]), false);
+  assert.deepEqual(parseNewYorkAreaQuery(area), { requested: true, valid: true, areas: [area] });
+}
+for (const [area, address, wrongState] of [
+  ["Boulder County", "Nederland, CO 80466, USA", "Boulder, MT 59632"],
+  ["Boulder County", "Boulder, CO 80301", "Nederland, TX 77627"],
+  ["Colorado Springs", "Colorado Springs, CO 80909", "Colorado Springs, TX 75001"],
+  ["Denver Metro", "Littleton, CO 80120", "Littleton, NH 03561"],
+]) {
+  assert.equal(coloradoAreaMatchesFields([address], [area]), true);
+  assert.equal(coloradoAreaMatchesFields([wrongState], [area]), false);
+}
+
+for (const source of NEW_YORK_EXPANSION_RETAILER_SOURCES) {
+  assert.ok(SUPPORTED_NEW_YORK_AREAS.includes(source.area), `${source.id} needs a supported area`);
+  for (const store of source.stores) {
+    assert.equal(newYorkAreaMatchesFields([store.city, store.address], [source.area]), true, `${source.id} premises must match ${source.area}`);
+  }
+}
+for (const source of COLORADO_EXPANSION_RETAILER_SOURCES) {
+  assert.ok(SUPPORTED_COLORADO_AREAS.includes(source.area), `${source.id} needs a supported area`);
+  for (const store of source.stores) {
+    assert.equal(coloradoAreaMatchesFields([store.city, store.address], [source.area]), true, `${source.id} premises must match ${source.area}`);
+  }
+}
+
+console.log("Selected New York and Colorado exact-area contracts passed.");

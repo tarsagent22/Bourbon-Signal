@@ -1,3 +1,5 @@
+import { METRO_RETAILER_SOURCES } from './metro-retailer-surfaces.mjs';
+
 const BUFFALO_SOURCE_IDS = new Set(['five-star-wine-spirits-buffalo', 'bailey-discount-liquor-wine']);
 const DEFAULT_METRO_REFRESH_CADENCE_MS = 4 * 60 * 60_000;
 
@@ -17,7 +19,7 @@ export const BUFFALO_CITYHIVE_SEARCH_TERMS = Object.freeze([
 
 function positiveFinite(value, fallback, label) {
   const parsed = Number(value ?? fallback);
-  if (!Number.isFinite(parsed) || parsed <= 0) throw new Error(`Buffalo CityHive ${label} must be positive and finite.`);
+  if (!Number.isFinite(parsed) || parsed <= 0) throw new Error(`CityHive ${label} must be positive and finite.`);
   return parsed;
 }
 
@@ -34,9 +36,8 @@ function normalizedBudgets(overrides = {}) {
 }
 
 function isReviewedSource(source) {
-  return source?.platform === 'cityhive'
-    && source?.area === 'Buffalo'
-    && BUFFALO_SOURCE_IDS.has(String(source?.id || ''))
+  return METRO_RETAILER_SOURCES.includes(source)
+    && source?.platform === 'cityhive'
     && source?.depthDiscovery
     && Array.isArray(source?.stores)
     && source.stores.length === 1
@@ -87,7 +88,7 @@ export function selectMetroSourcesForRefresh(sources, cachedSignals, { nowMs = D
   });
 }
 
-export async function collectBuffaloCityHiveRows(source, {
+export async function collectMetroCityHiveRows(source, {
   fetchText,
   parseHtml,
   signal,
@@ -96,8 +97,8 @@ export async function collectBuffaloCityHiveRows(source, {
   budgets: budgetOverrides,
   searchTerms = source?.depthDiscovery?.queryTerms || BUFFALO_CITYHIVE_SEARCH_TERMS,
 } = {}) {
-  if (!isReviewedSource(source)) throw new Error('Buffalo CityHive discovery requires one exact reviewed Buffalo source and merchant.');
-  if (typeof fetchText !== 'function' || typeof parseHtml !== 'function') throw new Error('Buffalo CityHive discovery requires fetch and parser functions.');
+  if (!isReviewedSource(source)) throw new Error('Metro CityHive discovery requires one exact registered source and merchant with a reviewed depth policy.');
+  if (typeof fetchText !== 'function' || typeof parseHtml !== 'function') throw new Error('Metro CityHive discovery requires fetch and parser functions.');
   const budgets = normalizedBudgets({ ...source.depthDiscovery, ...budgetOverrides });
   const startedAt = now();
   const rows = [];
@@ -158,8 +159,13 @@ export async function collectBuffaloCityHiveRows(source, {
       if (signal?.aborted) throw error;
       const failure = { kind: page.kind, term: page.term || null, url: page.url, status: response?.status || 0, error: error instanceof Error ? error.message : String(error) };
       attempts.push(failure);
-      if (page.required) throw new Error(`${source.sourceLabel} required Buffalo bourbon page failed: ${failure.error}`);
+      if (page.required) throw new Error(`${source.sourceLabel} required bourbon page failed: ${failure.error}`);
       optionalFailures.push(failure);
+      // A denial is a source-level stop, not a reason to try another search URL.
+      if ([401, 403, 429].includes(Number(failure.status))) {
+        stoppedReason = Number(failure.status) === 429 ? 'rate_limited' : 'access_denied';
+        break;
+      }
     }
     if (now() - startedAt >= budgets.maxElapsedMs) { stoppedReason = 'elapsed_budget'; break; }
     await sleepFn(budgets.delayMs, signal);
@@ -170,11 +176,22 @@ export async function collectBuffaloCityHiveRows(source, {
     rows,
     fulfillmentPolicyVerified: true,
     metadata: {
-      discoveryMode: 'buffalo_bounded_cityhive_categories_and_public_search', requestCount,
+      discoveryMode: BUFFALO_SOURCE_IDS.has(source.id)
+        ? 'buffalo_bounded_cityhive_categories_and_public_search'
+        : 'metro_bounded_cityhive_public_family_search',
+      requestCount,
       elapsedMs: Math.max(0, now() - startedAt), totalBytes, candidateRows, uniqueRows: rows.length,
       completeSnapshot, stoppedReason, optionalFailures, attempts, budgets,
       successfulDiscoveryRoutes: [...successfulDiscoveryRoutes].sort(),
       unavailableVariantKeys: [...unavailableVariantKeys].sort(),
     },
   };
+}
+
+// Retain the narrow Buffalo entry point used by its independent proof command.
+export function collectBuffaloCityHiveRows(source, options) {
+  if (!BUFFALO_SOURCE_IDS.has(source?.id) || source?.area !== 'Buffalo') {
+    throw new Error('Buffalo CityHive discovery requires one exact reviewed Buffalo source and merchant.');
+  }
+  return collectMetroCityHiveRows(source, options);
 }

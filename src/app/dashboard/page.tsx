@@ -522,7 +522,7 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
     drop.store_name,
     ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
     ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
-  ], areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
+  ], areaPrefs.coAreas.length ? areaPrefs.coAreas : SUPPORTED_COLORADO_AREAS);
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((storeId) => location.includes(normalizeLocationText(storeId)));
   return true;
@@ -1506,7 +1506,7 @@ function PaidMemberDashboard() {
       stateCode: "NY",
       label: "New York",
       detailLabel: "areas",
-      summary: "New York alerts cover verified retailer inventory in New York City and at reviewed Nassau County stores.",
+      summary: "New York alerts cover verified inventory at selected stores in the supported areas.",
       selectedCount: localPrefs.nyAreas.length,
       totalCount: SUPPORTED_NEW_YORK_AREAS.length,
     },
@@ -1514,7 +1514,7 @@ function PaidMemberDashboard() {
       stateCode: "CO",
       label: "Colorado",
       detailLabel: "areas",
-      summary: "Colorado alerts currently cover verified Denver Metro retailer inventory only.",
+      summary: "Colorado alerts cover verified inventory at selected stores in Denver Metro, Boulder County, and Colorado Springs.",
       selectedCount: localPrefs.coAreas.length,
       totalCount: SUPPORTED_COLORADO_AREAS.length,
     },
@@ -2815,9 +2815,9 @@ function PaidMemberDashboard() {
                                 ? "Pick the ABC boards you actually chase. If you leave this blank, alerts use statewide NC intelligence only after you save the state."
                                 : isCityRefinable
                                   ? activeState === "NY"
-                                    ? "New York coverage is limited to New York City and reviewed Nassau County stores. Select the areas you want; this does not imply statewide New York coverage."
+                                    ? "New York coverage includes selected stores in the listed areas. Choose the areas you want alerts for."
                                     : activeState === "CO"
-                                      ? "Colorado coverage is limited to Denver Metro: Denver, Lakeside, Westminster, and Greenwood Village. It does not imply statewide Colorado coverage."
+                                      ? "Colorado coverage includes selected stores in Denver Metro, Boulder County, and Colorado Springs. Choose the areas you want alerts for."
                                       : activeState === "GA"
                                         ? "Atlanta Metro is an exact reviewed grouping. Select it to scope alerts without implying statewide Georgia coverage."
                                         : activeState === "TN"

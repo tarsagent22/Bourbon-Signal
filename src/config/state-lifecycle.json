@@ -443,16 +443,18 @@
     },
     "CO": {
       "customerLabel": "Colorado",
-      "sourceLabel": "Denver Metro first-party retailer inventory",
-      "customerAreaLabel": "Denver Metro",
+      "sourceLabel": "Selected Colorado retailer inventory",
+      "customerAreaLabel": "Denver Metro, Boulder County, Colorado Springs",
       "areaOptions": [
-        "Denver Metro"
+        "Denver Metro",
+        "Boulder County",
+        "Colorado Springs"
       ],
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
-      "customerSummary": "Verified first-party retailer store inventory in Denver Metro, currently limited to Denver, Lakeside, Westminster, and Greenwood Village signals. This metro-scoped coverage does not imply statewide Colorado availability; verify before driving.",
+      "customerSummary": "Verified first-party retailer inventory at selected premises in Denver Metro, Boulder County, and Colorado Springs. Availability covers the named stores; verify before driving.",
       "promotionStage": "active",
       "shadowEligible": true,
       "promotionEvidence": {
@@ -596,15 +598,15 @@
       "coverageTier": "sparse_live_store_inventory",
       "refinementLevel": "region_city_store",
       "areaOptions": [
-        "Northwest / DeSoto\u2013Memphis fringe",
+        "Northwest / DeSoto–Memphis fringe",
         "North Central / Oxford",
-        "Northeast / Tupelo\u2013Golden Triangle",
-        "Delta / Greenville\u2013Clarksdale\u2013Greenwood",
-        "Central / Jackson\u2013Madison\u2013Rankin",
+        "Northeast / Tupelo–Golden Triangle",
+        "Delta / Greenville–Clarksdale–Greenwood",
+        "Central / Jackson–Madison–Rankin",
         "East Central / Meridian",
-        "Pine Belt / Hattiesburg\u2013Laurel",
-        "Gulf Coast / Gulfport\u2013Biloxi\u2013Pascagoula",
-        "Southwest / Natchez\u2013Brookhaven\u2013McComb\u2013Vicksburg"
+        "Pine Belt / Hattiesburg–Laurel",
+        "Gulf Coast / Gulfport–Biloxi–Pascagoula",
+        "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
       ],
       "promotionStage": "active",
       "shadowEligible": false,
@@ -617,7 +619,7 @@
         "live": 4,
         "alertGrade": 0
       },
-      "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
+      "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
       "promotionEvidence": {
         "shadowRuns": 3,
         "canaryRuns": 2,
@@ -685,24 +687,27 @@
       "refinementLevel": "area",
       "areaOptions": [
         "Las Vegas Valley",
-        "Reno\u2013Sparks"
+        "Reno–Sparks"
       ],
-      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
+      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
     },
     "NY": {
       "customerLabel": "New York",
-      "sourceLabel": "New York City, Nassau County, and Buffalo first-party retailer inventory",
-      "customerAreaLabel": "New York City, Nassau County, and Buffalo",
+      "sourceLabel": "Selected New York retailer inventory",
+      "customerAreaLabel": "New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, Lake George",
       "areaOptions": [
         "New York City",
         "Nassau County",
-        "Buffalo"
+        "Buffalo",
+        "Rochester Metro",
+        "Hudson Valley",
+        "Lake George"
       ],
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
-      "customerSummary": "Verified first-party retailer store inventory in New York City, at reviewed Nassau County premises in Elmont, Garden City, Wantagh, and Westbury, and at reviewed Buffalo premises. This area-scoped coverage does not imply statewide New York availability; verify before driving.",
+      "customerSummary": "Verified first-party retailer inventory at selected premises in New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, and Lake George. Availability covers the named stores; verify before driving.",
       "promotionStage": "active",
       "shadowEligible": true,
       "promotionEvidence": {

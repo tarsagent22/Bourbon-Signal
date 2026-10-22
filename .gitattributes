@@ -1,0 +1,2 @@
+# Preserve the bytes recorded by the reviewed public-capture fixture manifest.
+engine/test/fixtures/metro-expansion-20261022/*.html text eol=lf

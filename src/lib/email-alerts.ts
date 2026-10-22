@@ -5,7 +5,7 @@ import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-norm
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 import { matchedNewYorkArea, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
-import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
+import { matchedColoradoArea, SUPPORTED_COLORADO_AREAS } from "@/lib/colorado-area";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
   demandMetroAreaMatchesFields,
@@ -137,8 +137,9 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
 
   if (state === "CO") {
     const fields = [drop.locationName, drop.display_location, drop.store_name, drop.store_address, drop.store_city, drop.store_county, drop.board_name];
-    return coloradoAreaMatchesFields(fields, prefs.coAreas.length ? prefs.coAreas : ["Denver Metro"])
-      ? { matched: true, matchedState: state, matchedArea: "Denver Metro" }
+    const matchedArea = matchedColoradoArea(fields, prefs.coAreas.length ? prefs.coAreas : SUPPORTED_COLORADO_AREAS);
+    return matchedArea
+      ? { matched: true, matchedState: state, matchedArea }
       : { matched: false };
   }
 

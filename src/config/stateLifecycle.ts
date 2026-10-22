@@ -445,16 +445,18 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "CO": {
       "customerLabel": "Colorado",
-      "sourceLabel": "Denver Metro first-party retailer inventory",
-      "customerAreaLabel": "Denver Metro",
+      "sourceLabel": "Selected Colorado retailer inventory",
+      "customerAreaLabel": "Denver Metro, Boulder County, Colorado Springs",
       "areaOptions": [
-        "Denver Metro"
+        "Denver Metro",
+        "Boulder County",
+        "Colorado Springs"
       ],
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
-      "customerSummary": "Verified first-party retailer store inventory in Denver Metro, currently limited to Denver, Lakeside, Westminster, and Greenwood Village signals. This metro-scoped coverage does not imply statewide Colorado availability; verify before driving.",
+      "customerSummary": "Verified first-party retailer inventory at selected premises in Denver Metro, Boulder County, and Colorado Springs. Availability covers the named stores; verify before driving.",
       "promotionStage": "active",
       "shadowEligible": true,
       "promotionEvidence": {
@@ -693,18 +695,21 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "NY": {
       "customerLabel": "New York",
-      "sourceLabel": "New York City, Nassau County, and Buffalo first-party retailer inventory",
-      "customerAreaLabel": "New York City, Nassau County, and Buffalo",
+      "sourceLabel": "Selected New York retailer inventory",
+      "customerAreaLabel": "New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, Lake George",
       "areaOptions": [
         "New York City",
         "Nassau County",
-        "Buffalo"
+        "Buffalo",
+        "Rochester Metro",
+        "Hudson Valley",
+        "Lake George"
       ],
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
-      "customerSummary": "Verified first-party retailer store inventory in New York City, at reviewed Nassau County premises in Elmont, Garden City, Wantagh, and Westbury, and at reviewed Buffalo premises. This area-scoped coverage does not imply statewide New York availability; verify before driving.",
+      "customerSummary": "Verified first-party retailer inventory at selected premises in New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, and Lake George. Availability covers the named stores; verify before driving.",
       "promotionStage": "active",
       "shadowEligible": true,
       "promotionEvidence": {
