@@ -240,7 +240,21 @@ export function canonicalizeSignal(signal, bible) {
           pickupEnabled: signal.raw?.square?.variation?.pickupEnabled === true,
         },
       },
-    } : undefined
+    } : undefined,
+    ...(signal.state === 'FL' ? {
+      optionValueId: signal.optionValueId ?? signal.raw?.optionValueId ?? null,
+      childSku: signal.childSku ?? signal.raw?.childSku ?? null,
+      storeNumber: signal.storeNumber ?? signal.raw?.storeNumber ?? null,
+      controlStoreId: signal.controlStoreId ?? signal.raw?.controlStoreId ?? null,
+      reportedQuantity: signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? null,
+      variantAvailable: signal.variantAvailable ?? signal.raw?.variantAvailable ?? signal.raw?.variant?.available ?? null,
+      sourceInventorySemantics: signal.sourceInventorySemantics ?? signal.inventorySemantics ?? null,
+      raw: signal.raw ? Object.fromEntries([
+        'chain', 'merchantId', 'productId', 'variantId', 'optionValueId', 'childSku',
+        'storeNumber', 'controlStoreId', 'reportedQuantity', 'variantAvailable',
+        'officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude',
+      ].filter((field) => Object.hasOwn(signal.raw, field)).map((field) => [field, signal.raw[field]])) : undefined,
+    } : {}),
   };
 }
 

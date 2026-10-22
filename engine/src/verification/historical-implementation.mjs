@@ -6,6 +6,27 @@ const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-l
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
 const normalizedVerifierRead = `normalizeHistoricalImplementationBytes(file, ${originalVerifierRead})`;
+const originalFloridaProofBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
+const floridaProofBoundary = `    } : undefined,
+    ...(signal.state === 'FL' ? {
+      optionValueId: signal.optionValueId ?? signal.raw?.optionValueId ?? null,
+      childSku: signal.childSku ?? signal.raw?.childSku ?? null,
+      storeNumber: signal.storeNumber ?? signal.raw?.storeNumber ?? null,
+      controlStoreId: signal.controlStoreId ?? signal.raw?.controlStoreId ?? null,
+      reportedQuantity: signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? null,
+      variantAvailable: signal.variantAvailable ?? signal.raw?.variantAvailable ?? signal.raw?.variant?.available ?? null,
+      sourceInventorySemantics: signal.sourceInventorySemantics ?? signal.inventorySemantics ?? null,
+      raw: signal.raw ? Object.fromEntries([
+        'chain', 'merchantId', 'productId', 'variantId', 'optionValueId', 'childSku',
+        'storeNumber', 'controlStoreId', 'reportedQuantity', 'variantAvailable',
+        'officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude',
+      ].filter((field) => Object.hasOwn(signal.raw, field)).map((field) => [field, signal.raw[field]])) : undefined,
+    } : {}),
+  };
+}
+
+function signalSort(a, b) {
+`;
 
 function replaceUnique(text, current, original, label) {
   assert.equal(text.split(current).length - 1, 1, `${label} must have one exact historical verification hook`);
@@ -13,6 +34,11 @@ function replaceUnique(text, current, original, label) {
 }
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
+  if (name === 'engine/src/operational-report.mjs') {
+    // Reverse only this exact FL proof-preservation addition at its original
+    // canonicalization boundary. The original MS full-file digest stays pinned.
+    return Buffer.from(replaceUnique(bytes.toString('utf8'), floridaProofBoundary, originalFloridaProofBoundary, `${name}: FL proof`));
+  }
   if (name === 'scripts/test-coverage-contract.mts') {
     // Only the two expanded-area expectations differ from this pinned test.
     let text = replaceUnique(bytes.toString('utf8'),

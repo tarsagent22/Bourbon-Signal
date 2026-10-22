@@ -17,9 +17,60 @@ test('MS historical implementation bytes remain pinned, including policy', async
   const hashes = Object.values(evidence).find(v=>v && typeof v==='object' && v['engine/src/collectors/mississippi-retailer-surfaces.mjs']);
   assert.ok(hashes);
   for (const [name, hash] of Object.entries(hashes)) {
-    // Only reviewed NY/CO metadata, the two area expectations and the verifier's
-    // exact helper hooks may differ. Original digests still pin all other bytes.
+    // Only reviewed NY/CO metadata, area expectations, the verifier's hooks and
+    // the exact FL proof addition may differ. Original digests pin other bytes.
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
+  }
+});
+
+test('FL proof normalization reverses one exact addition while preserving the original MS anchor', async () => {
+  const name = 'engine/src/operational-report.mjs';
+  const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+  const originalHash = evidence.implementationFilesSha256[name];
+  const originalBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
+  const addition = `    } : undefined,
+    ...(signal.state === 'FL' ? {
+      optionValueId: signal.optionValueId ?? signal.raw?.optionValueId ?? null,
+      childSku: signal.childSku ?? signal.raw?.childSku ?? null,
+      storeNumber: signal.storeNumber ?? signal.raw?.storeNumber ?? null,
+      controlStoreId: signal.controlStoreId ?? signal.raw?.controlStoreId ?? null,
+      reportedQuantity: signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? null,
+      variantAvailable: signal.variantAvailable ?? signal.raw?.variantAvailable ?? signal.raw?.variant?.available ?? null,
+      sourceInventorySemantics: signal.sourceInventorySemantics ?? signal.inventorySemantics ?? null,
+      raw: signal.raw ? Object.fromEntries([
+        'chain', 'merchantId', 'productId', 'variantId', 'optionValueId', 'childSku',
+        'storeNumber', 'controlStoreId', 'reportedQuantity', 'variantAvailable',
+        'officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude',
+      ].filter((field) => Object.hasOwn(signal.raw, field)).map((field) => [field, signal.raw[field]])) : undefined,
+    } : {}),
+  };
+}
+
+function signalSort(a, b) {
+`;
+  assert.equal(current.split(addition).length - 1, 1);
+  const normalized = normalizeHistoricalImplementationBytes(name, Buffer.from(current));
+  assert.equal(digest(normalized), originalHash);
+  assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
+  assert.equal(normalized.toString(), current.replace(addition, originalBoundary));
+  for (const altered of [
+    current.replace(addition, originalBoundary),
+    current + '\n' + addition,
+    current.replace(addition, addition.replace("signal.state === 'FL'", "signal.state === 'MS'")),
+    current.replace(addition, addition.replace("'officialLatitude'", "'unreviewedProof'")),
+    current.replace(addition, addition.replace('Object.hasOwn(signal.raw, field)', 'true')),
+    current.replace(addition, addition.replace('function signalSort(a, b)', 'function signalSort(a, ignored)')),
+  ]) {
+    assert.notEqual(altered, current);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(altered)), /exact historical verification hook/);
+  }
+  for (const altered of [
+    '// changed top level\n' + current,
+    current.replace("raw: signal.state === 'MS'", "raw: signal.state === 'AL'"),
+    current.replace('const policy = confidenceForSignal(signal);', 'const policy = {};'),
+  ]) {
+    assert.notEqual(altered, current);
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(altered))), originalHash);
   }
 });
 test('NY/CO metadata allowance cannot hide changes outside either exact state block', async () => {
