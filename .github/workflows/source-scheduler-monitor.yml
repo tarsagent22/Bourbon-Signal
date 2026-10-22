@@ -21,3 +21,15 @@ jobs:
         env:
           SOURCE_SCHEDULER_SECRET: ${{ secrets.SOURCE_SCHEDULER_SECRET }}
         run: node scripts/monitor-source-scheduler.mjs
+      - name: Capture source generations and normal customer result receipts
+        if: always()
+        env:
+          SOURCE_SCHEDULER_SECRET: ${{ secrets.SOURCE_SCHEDULER_SECRET }}
+          ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+        run: node --experimental-strip-types scripts/capture-nationwide-pilot.mjs --output=out/nationwide-pilot-capture.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nationwide-pilot-${{ github.run_id }}
+          path: out/nationwide-pilot-capture.json
+          retention-days: 30

@@ -7,12 +7,12 @@ import { stableId } from '../core/text.mjs';
 import { setTimeout as sleep } from 'node:timers/promises';
 const CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS=750;
 const textFetch=(url,options)=>fetchWithMeta(url,{...options,maxBytes:4*1024*1024,signal:collectionRequestSignal(options.signal)});
-async function fetchCaliforniaShopifySource(source, signal) {
+async function fetchCaliforniaShopifySource(source, signal, fetchText = textFetch) {
   const products = [];
   for (let page = 1; page <= source.maxPages; page++) {
     const separator = source.productsUrl.includes('?') ? '&' : '?';
     const url = `${source.productsUrl}${separator}page=${page}`;
-    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 30_000, signal });
+    const res = await fetchText(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 30_000, signal });
     if (!res.ok) return { ...res, url };
     let payload;
     try { payload = JSON.parse(res.text); } catch (error) {
@@ -34,9 +34,15 @@ function failedCaliforniaResponse(result, label) {
 }
 
 export async function collectCaliforniaSource(config, bible, source, observedAt, signal) {
+  const startedAt=Date.now();let requestCount=0;let bytes=0;
+  const measuredFetch=async(url,options)=>{
+    requestCount+=1;const result=await textFetch(url,options);
+    bytes+=Buffer.byteLength(result.text || '');
+    return result;
+  };
   let fulfillmentPolicyVerified = false;
   if (source.inventoryEligible) {
-    const policyRes = await textFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000, signal });
+    const policyRes = await measuredFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 30_000, signal });
     if (!policyRes.ok) throw failedCaliforniaResponse(policyRes, `${source.sourceLabel} fulfillment policy`);
     fulfillmentPolicyVerified = verifyCaliforniaFulfillmentPolicy(source, policyRes.text);
     if (!fulfillmentPolicyVerified) {
@@ -46,7 +52,7 @@ export async function collectCaliforniaSource(config, bible, source, observedAt,
       });
     }
   }
-  const res = await fetchCaliforniaShopifySource(source, signal);
+  const res = await fetchCaliforniaShopifySource(source, signal, measuredFetch);
   if (!res.ok) throw failedCaliforniaResponse(res, `${source.sourceLabel} product feed`);
   const payload = JSON.parse(res.text);
   const sourceSignals = [];
@@ -84,6 +90,7 @@ export async function collectCaliforniaSource(config, bible, source, observedAt,
         postalCode: source.store.zip,
         zip: source.store.zip,
         quantity: 0,
+        quantityIsExact: false,
         price: row.price,
         availabilityStatus: source.inventoryEligible ? 'in_stock' : 'retailer_online_available',
         availabilityLabel: source.inventoryEligible ? 'Available for retailer pickup/order' : 'Available online; local pickup not verified',
@@ -120,5 +127,6 @@ export async function collectCaliforniaSource(config, bible, source, observedAt,
       nextRoute: 'Inspect product titles and variant availability without weakening bottle, format, or premises guards.',
     });
   }
-  return { signals: sourceSignals, roadblocks: sourceRoadblocks };
+  return { signals: sourceSignals, roadblocks: sourceRoadblocks,
+    accounting:{requestCount,bytes,elapsedMs:Date.now()-startedAt,completeSnapshot:true} };
 }

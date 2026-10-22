@@ -5,6 +5,7 @@ import { createPreparedDropCache, createAsyncPreparedDropCache } from "@/lib/pre
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { getEntitlements } from "@/lib/entitlements";
 import { authorizeEngineFeedVerification, ENGINE_FEED_VERIFICATION_HEADER, engineFeedCountPayload } from "@/lib/engine-feed-verification";
+import { authorizePilotReceipt, PILOT_RECEIPT_HEADER, pilotReceiptPayload } from '@/lib/nationwide-pilot-receipt';
 import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
 import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -219,8 +220,11 @@ const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const verificationHeader = request.headers.get(ENGINE_FEED_VERIFICATION_HEADER);
-  const isEngineVerification = authorizeEngineFeedVerification(url, verificationHeader, process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "");
-  if (verificationHeader && !isEngineVerification) return NextResponse.json({ error: "Unauthorized engine count verification." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+  const pilotHeader=request.headers.get(PILOT_RECEIPT_HEADER);
+  const isPilotReceipt=authorizePilotReceipt(url,pilotHeader,process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '');
+  const isCountVerification = authorizeEngineFeedVerification(url, verificationHeader, process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "");
+  if ((verificationHeader && !isCountVerification) || ((pilotHeader || url.searchParams.has('source_receipt')) && !isPilotReceipt)) return NextResponse.json({ error: "Unauthorized engine verification." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+  const isEngineVerification=isCountVerification || isPilotReceipt;
   const { userId } = isEngineVerification ? { userId: null } : await auth();
   const isSignedIn = Boolean(userId) || isEngineVerification;
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
@@ -482,6 +486,10 @@ export async function GET(request: Request) {
     const total = drops.length;
     const engineSnapshot = `${String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt))}:source:${sourceOverlay.version}`;
     const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerVersion}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}:listingOrder:1`;
+    if(isPilotReceipt) return NextResponse.json(
+      pilotReceiptPayload('feed',url.searchParams.get('source_receipt') || '',drops,engineSnapshot),
+      {headers:{'Cache-Control':'private, no-store',Vary:'Cookie, Authorization, X-Bourbon-Signal-Pilot-Verification'}},
+    );
     // The worker sees only aggregate counts from the normal member feed pipeline.
     // Its signed scope cannot request cards, other filters, detail, or history.
     if (isEngineVerification) return NextResponse.json(

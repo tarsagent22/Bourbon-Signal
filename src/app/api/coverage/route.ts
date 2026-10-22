@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readCurrentCoverageContract, searchCurrentCoverageTargets } from "@/lib/coverage-server";
+import { readCurrentCoverageContract, searchCurrentCoverageTargets, readCoveragePilotReceipt } from "@/lib/coverage-server";
+import { authorizePilotReceipt, PILOT_RECEIPT_HEADER } from '@/lib/nationwide-pilot-receipt';
 
 const PUBLIC_CACHE = "public, s-maxage=60, stale-while-revalidate=300";
 
-export async function GET() {
+export async function GET(request:Request) {
+  if(request) {
+    const url=new URL(request.url);const header=request.headers.get(PILOT_RECEIPT_HEADER);
+    if(header || url.searchParams.has('source_receipt')) {
+      if(!authorizePilotReceipt(url,header,process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '')) return NextResponse.json({error:'Unauthorized engine verification.'},{status:401,headers:{'Cache-Control':'private, no-store'}});
+      return NextResponse.json(await readCoveragePilotReceipt(url.searchParams.get('source_receipt') || ''),{headers:{'Cache-Control':'private, no-store',Vary:'X-Bourbon-Signal-Pilot-Verification'}});
+    }
+  }
   const contract = await readCurrentCoverageContract();
   return NextResponse.json(contract, {
     headers: { "Cache-Control": PUBLIC_CACHE },
