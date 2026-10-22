@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { gunzipSync } from 'node:zlib';
+import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';
 
 import { buildMississippiRunPlan } from './collectors/mississippi-run-plan.mjs';
 import {
@@ -483,7 +484,7 @@ export function verifyMississippiResearchFoundation() {
     .filter((result) => extensionContract.sourceRuntimeIds.includes(result.sourceId))
     .map((result) => `${result.sourceId}:${result.status}`)), new Set(extensionContract.sourceRuntimeIds.map((sourceId) => `${sourceId}:success`)));
   for (const [file, expected] of Object.entries(extensionEvidence.implementationFilesSha256)) {
-    assert.equal(createHash('sha256').update(readFileSync(path.join(repositoryRoot, file))).digest('hex'), expected, `${file} drifted from the checked extension evidence.`);
+    assert.equal(createHash('sha256').update(normalizeHistoricalImplementationBytes(file, readFileSync(path.join(repositoryRoot, file)))).digest('hex'), expected, `${file} drifted from the checked extension evidence.`);
   }
   const implementationDigest = createHash('sha256').update(Object.entries(extensionEvidence.implementationFilesSha256)
     .sort(([left], [right]) => left.localeCompare(right))

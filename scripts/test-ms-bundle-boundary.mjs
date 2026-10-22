@@ -5,54 +5,65 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { normalizeHistoricalImplementationBytes } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
 const sharedBaseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json',import.meta.url),'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
-function normalizeReviewedMetroMetadata(name, bytes) {
-  if (!sharedFiles.has(name)) return bytes;
-  assert.equal(sharedBaseline.contractVersion, 'bourbon-signal/ny-co-shared-metadata-baseline@1');
-  let text = bytes.toString('utf8');
-  for (const state of ['NY', 'CO']) {
-    const pattern = name.endsWith('.mjs')
-      ? new RegExp(`^  \\{\\n    id: '${state}',[\\s\\S]*?^  \\},\\n`, 'gmu')
-      : new RegExp(`^    "${state}": \\{[\\s\\S]*?^    \\}(?:,)?`, 'gmu');
-    assert.equal([...text.matchAll(pattern)].length, 1, `${name}: ${state} must have one exact metadata boundary`);
-    const original = sharedBaseline.files[name]?.[state];
-    assert.equal(typeof original, 'string');
-    text = text.replace(pattern, () => original);
-  }
-  return Buffer.from(text);
-}
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 
 test('MS historical implementation bytes remain pinned, including policy', async () => {
   const hashes = Object.values(evidence).find(v=>v && typeof v==='object' && v['engine/src/collectors/mississippi-retailer-surfaces.mjs']);
   assert.ok(hashes);
   for (const [name, hash] of Object.entries(hashes)) {
-    // Only reviewed NY/CO metadata may differ. The unchanged historical full-file
-    // digest still pins Mississippi, every other state, imports and shared logic.
-    assert.equal(digest(normalizeReviewedMetroMetadata(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
+    // Only reviewed NY/CO metadata and the verifier's two exact helper hooks may
+    // differ. The original full-file digests still pin all remaining bytes.
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
   }
 });
 test('NY/CO metadata allowance cannot hide changes outside either exact state block', async () => {
   for (const name of sharedFiles) {
     const current = await readFile(new URL('../'+name,import.meta.url));
-    const normalized = normalizeReviewedMetroMetadata(name, current);
+    const normalized = normalizeHistoricalImplementationBytes(name, current);
     const originalHash = evidence.implementationFilesSha256[name];
     assert.equal(digest(normalized), originalHash);
     for (const state of ['MS', 'AL']) {
       const marker = name.endsWith('.mjs') ? `id: '${state}'` : `"${state}": {`;
       const changed = current.toString().replace(marker, `${marker} /* unreviewed */`);
       assert.notEqual(changed, current.toString());
-      assert.notEqual(digest(normalizeReviewedMetroMetadata(name, Buffer.from(changed))), originalHash, `${name}: ${state} remains pinned`);
+      assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(changed))), originalHash, `${name}: ${state} remains pinned`);
     }
-    assert.notEqual(digest(normalizeReviewedMetroMetadata(name, Buffer.concat([Buffer.from('// changed top level\n'), current]))), originalHash);
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.concat([Buffer.from('// changed top level\n'), current]))), originalHash);
     const ny = name.endsWith('.mjs') ? "id: 'NY'" : '"NY": {';
-    assert.throws(() => normalizeReviewedMetroMetadata(name, Buffer.from(current.toString().replace(ny, 'missing-NY-boundary'))), /exact metadata boundary/);
-    assert.throws(() => normalizeReviewedMetroMetadata(name, Buffer.from(current.toString() + '\n' + sharedBaseline.files[name].NY)), /exact metadata boundary/);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.toString().replace(ny, 'missing-NY-boundary'))), /exact metadata boundary/);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.toString() + '\n' + sharedBaseline.files[name].NY)), /exact metadata boundary/);
   }
+});
+
+test('MS verifier allowance preserves every byte outside its two exact helper hooks', async () => {
+  const name = 'engine/src/verify-ms.mjs';
+  const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+  const originalHash = evidence.implementationFilesSha256[name];
+  assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), originalHash);
+  const importHook = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
+  const readHook = 'normalizeHistoricalImplementationBytes(file, readFileSync(path.join(repositoryRoot, file)))';
+  for (const hook of [importHook, readHook]) {
+    assert.ok(current.includes(hook));
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(hook, 'changed-hook'))), /exact historical verification hook/);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current + '\n' + hook)), /exact historical verification hook/);
+  }
+  for (const changed of [
+    current.replace('for (const [file, expected]', 'for (const [file, unchecked]'),
+    current.replace('assert.equal(implementationDigest, extensionEvidence.implementationDigest);', 'assert.ok(true);'),
+    current.replace("lifecycle.inventoryAlertable, false", "lifecycle.inventoryAlertable, true"),
+    '// changed top level\n' + current,
+  ]) {
+    assert.notEqual(changed, current);
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(changed))), originalHash);
+  }
+  const unknownFile = Buffer.from('unregistered file bytes');
+  assert.equal(normalizeHistoricalImplementationBytes('engine/src/mississippi-retailer-policy.mjs', unknownFile), unknownFile);
 });
 test('MS bundle boundary changes only registry loading; bundled policy and collector retain semantics', async () => {
   const transform = require('./build/ms-registry-boundary.cjs');
