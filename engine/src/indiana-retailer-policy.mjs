@@ -1,4 +1,5 @@
 import { INDIANA_TARGET_STORES } from './collectors/indiana-retailer-surfaces.mjs';
+import { hasIndianaPaylessPickupProof, indianaSourceBottleMismatchReason, INDIANA_PAYLESS_SOURCE } from './collectors/indiana-retailer-matching.mjs';
 
 export const INDIANA_CITYHIVE_IDENTITIES = new Map([
   ['Big Red Liquors CityHive store inventory', { chain: 'big-red', hostnames: new Set(['bigredliquors.com', 'crownliquors.net']) }],
@@ -41,8 +42,13 @@ function merchantFor(signal) {
   return storeId.includes(':') ? storeId.slice(storeId.indexOf(':') + 1) : '';
 }
 
+export function isIndianaSourceBottleIdentity(signal) {
+  return signal?.state !== 'IN' || !indianaSourceBottleMismatchReason(signal);
+}
+
 export function isIndianaRetailerSignalIdentity(signal) {
   if (signal?.state !== 'IN' || (signal?.stateCode && signal.stateCode !== 'IN')) return false;
+  if (!isIndianaSourceBottleIdentity(signal)) return false;
   const source = String(signal.sourceLabel || signal.source || '');
   const sourceHostname = hostname(signal.sourceUrl);
   const storeId = String(signal.storeId || '');
@@ -81,11 +87,17 @@ export function isIndianaRetailerSignalIdentity(signal) {
 export function isIndianaRetailerInventory(signal) {
   const source = String(signal.sourceLabel || signal.source || '');
   if (source === DOORDASH_IDENTITY.source) return false;
-  const reportedQuantity = Number(signal.raw?.reportedQuantity);
-  const invalidSentinelProjection = Number.isFinite(reportedQuantity) && reportedQuantity >= 100 && Number(signal.quantity || 0) > 1;
-  const positive = Number(signal.quantity || 0) > 0
-    || (signal.availabilityStatus === 'in_stock' && signal.sourceAvailabilityVerified === true);
-  const stale = signal.stale === true || signal.raw?.staleFallback === true || /^stale_/iu.test(String(signal.status || ''));
+  const reportedQuantity = Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity);
+  const binaryCityHive = signal.raw?.binaryAvailability === true
+    || (Number.isFinite(reportedQuantity) && reportedQuantity >= 100)
+    || signal.quantitySemantics === 'binary_cityhive_availability_no_exact_count';
+  const verifiedBinary = binaryCityHive && Number(signal.quantity) === 0 && signal.quantityIsExact === false
+    && signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'binary_retailer_in_stock';
+  const invalidSentinelProjection = binaryCityHive && !verifiedBinary;
+  const payless = source === INDIANA_PAYLESS_SOURCE.label;
+  const positive = payless ? hasIndianaPaylessPickupProof(signal)
+    : verifiedBinary || Number(signal.quantity || 0) > 0 || (signal.availabilityStatus === 'in_stock' && signal.sourceAvailabilityVerified === true);
+  const stale = signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true || /^stale_/iu.test(String(signal.status || ''));
   return /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
     && !stale
     && isIndianaRetailerSignalIdentity(signal)

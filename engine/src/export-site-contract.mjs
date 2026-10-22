@@ -19,7 +19,7 @@ import { buildStateDropPartitions, verifyStateDropPartitions } from './site-stat
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
 import { isGeorgiaRetailerInventory, isGeorgiaRetailerSignalIdentity } from './georgia-retailer-policy.mjs';
-import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
+import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity, isIndianaSourceBottleIdentity } from './indiana-retailer-policy.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import { isTexasRetailerInventory } from './texas-retailer-policy.mjs';
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity, metroRetailerArea } from './metro-retailer-policy.mjs';
@@ -1222,6 +1222,14 @@ function isUserFacingDropSignal(signal) {
   if (signal.state === 'TN' && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) {
     return isTennesseeRetailerInventory(signal);
   }
+  if (signal.state === 'IN' && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) {
+    if (isIndianaRetailerInventory(signal)) return true;
+    const retained = signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true || /^stale_/iu.test(String(signal.status || ''));
+    // Historical inventory remains useful context when its original product,
+    // premises and quantity proof is valid. Only visibility ignores stale flags;
+    // publicSignal and both alert paths still reject stale inventory actionability.
+    return retained && isIndianaRetailerInventory({ ...signal, stale: false, sourceStale: false, status: null, raw: { ...signal.raw, staleFallback: false } });
+  }
   if (type === 'costco_warehouse_inventory_result') return isCostcoWarehouseInventorySignal(signal) && precision === 'store_level' && (quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'));
   if (type === 'retailer_store_inventory_result') return signal.state === 'SC' ? isSouthCarolinaRetailerInventory(signal) : quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
   if (type === 'cityhive_store_inventory_result') return signal.state === 'SC' ? isSouthCarolinaRetailerInventory(signal) : quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
@@ -1288,6 +1296,7 @@ function isSafePublicSignal(signal) {
   if (['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(type)
     && (!isMetroRetailerSignalIdentity(signal) || !isMetroRetailerInventory(signal))) return false;
+  if (signal.state === 'IN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(type) && !isIndianaSourceBottleIdentity(signal)) return false;
   if (signal.state === 'IN' && /Bourbon World|Big Red/i.test(String(signal.sourceLabel || signal.source || '')) && !/retailer_allocated_raffle_item|cityhive_store_inventory_result|cityhive_store_inventory_out_of_stock|retailer_store_location/i.test(type)) return false;
   if (signal.state === 'IN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(type) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
   if (signal.state === 'IL' && /^(retailer_store_inventory)/i.test(type) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|heaven hill|knob creek|maker|pappy/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
@@ -1678,10 +1687,11 @@ function alertChannelPolicy(candidate) {
   const blocked = Boolean(candidate.bootstrap) || blockers.includes('bootstrap_run_not_sendable') || blockers.includes('manual_refresh_quarantine') || blockers.includes('stale_observation') || cautions.includes('unknown_freshness') || actionabilityClass === 'context_only';
   const major = priorityClass === 'major' || tier === 'unicorn' || tier === 'allocated';
   const unicorn = tier === 'unicorn';
+  const indianaBinaryBaseline = candidate.state === 'IN' && Number(candidate.quantity || 0) === 0 && candidate.quantityIsExact === false && isIndianaRetailerInventory(candidate);
   const within = (channel) => hasFreshness && freshnessHours <= maxFreshnessForActionability(actionabilityClass, channel);
 
   const eligibleForOnSite = !blocked && within('onSite');
-  const eligibleForEmail = candidate.eligibleForEmail !== false && eligibleForOnSite && within('email') && (
+  const eligibleForEmail = !indianaBinaryBaseline && candidate.eligibleForEmail !== false && eligibleForOnSite && within('email') && (
     actionabilityClass === 'store_inventory' ||
     actionabilityClass === 'store_delivery_lead' ||
     (actionabilityClass === 'board_or_county_lead' && (major || unicorn)) ||
@@ -1713,6 +1723,7 @@ function alertChannelPolicy(candidate) {
 export function buildAlerts(alerts) {
   return (alerts.candidates || [])
     .filter((c) => Boolean(c.eligibleForDelivery))
+    .filter((c) => c.state !== 'IN' || !/^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(c.eventType || '')) || isIndianaRetailerInventory(c))
     .filter((c) => lifecycleAllowsInventoryAlert(c.state) || lifecycleAllowsWatchAlert(c.state))
     .filter((c) => ['unicorn', 'allocated', 'limited'].includes(String(c.tier || '').toLowerCase()))
     .filter((c) => c.state !== 'IA' || (/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(c.eventType || '')) && String(c.locationPrecision || '').toLowerCase() === 'store_level' && c.action !== 'inventory_alert_candidate'))
@@ -1763,6 +1774,7 @@ export function buildAlerts(alerts) {
     sourceProductProofSku: c.sourceProductProofSku || null,
     sourceProductInStock: c.sourceProductInStock ?? null,
     sourceProductBackordered: c.sourceProductBackordered ?? null,
+    sourceProductBinding: c.sourceProductBinding || null,
     productHandle: c.productHandle || null,
     variantId: c.variantId || null,
     variantAvailable: c.variantAvailable ?? null,
@@ -1909,6 +1921,7 @@ function ohioFeedStaleCaveat(signal) {
 
 export function dropHasPositiveAlertInventory(drop) {
   if (drop?.stale || drop?.sourceStale || drop?.raw?.staleFallback) return false;
+  if (drop?.state === 'IN') return isIndianaRetailerInventory(drop);
   if (drop?.state === 'TX') return isTexasRetailerInventory(drop);
   if (isSouthCarolinaDunesSignal(drop)) return isSouthCarolinaDunesInventory(drop);
   if (['NY', 'CO'].includes(drop?.state)) return isMetroRetailerInventory(drop);
@@ -1942,6 +1955,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
     .map((drop) => {
       const georgiaBaseline = drop.state === 'GA';
       const metroBaseline = ['NY', 'CO'].includes(drop.state);
+      const indianaBinaryBaseline = drop.state === 'IN' && Number(drop.quantity || 0) === 0 && drop.quantityIsExact === false && isIndianaRetailerInventory(drop);
       const tennesseeBinaryBaseline = drop.state === 'TN' && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count';
       const floridaBinaryBaseline = drop.state === 'FL'
         && Number(drop.quantity || 0) === 0
@@ -1955,7 +1969,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       const southCarolinaBinaryBaseline = isTasteInventory(drop) || isSouthCarolinaSouthernSpiritsInventory(drop)
         || southCarolinaInStoreBaseline
         || southCarolinaCityHiveBinaryBaseline;
-      const binaryRetailerOrderability = (drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)) || floridaBinaryBaseline || isTasteInventory(drop) || isSouthCarolinaSouthernSpiritsInventory(drop) || (
+      const binaryRetailerOrderability = indianaBinaryBaseline || (drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)) || floridaBinaryBaseline || isTasteInventory(drop) || isSouthCarolinaSouthernSpiritsInventory(drop) || (
         (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
         && Number(drop.quantity || 0) === 0
@@ -1969,12 +1983,12 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       reliabilityScore: drop.tier === 'unicorn' ? 92 : drop.tier === 'allocated' ? 88 : 82,
       eligibleForDelivery: true,
       eligibleForOnSite: true,
-      eligibleForEmail: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : true,
-      eligibleForSms: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
+      eligibleForEmail: drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : true,
+      eligibleForSms: drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
       actionabilityClass: 'store_inventory',
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'onsite_candidate',
-      sendRecommendation: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
+      sendRecommendation: drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
       signalAt: dropSignalAt(drop),
       observedAt: drop.observedAt || drop.signalAt || null,
       freshnessHours: Number(dropAgeHours(drop).toFixed(2)),

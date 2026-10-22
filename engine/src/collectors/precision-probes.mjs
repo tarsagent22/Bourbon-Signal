@@ -1,5 +1,7 @@
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
 import { pennsylvaniaDirectFwgsRoadblock } from './pennsylvania-direct-source-policy.mjs';
+import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
+import { reviewedIndianaCityHiveBottleMatch, reviewedIndianaPaylessBottleMatch, buildIndianaPaylessAvailabilityProof, normalizeIndianaCityHiveQuantity, indianaSourceBottleMismatchReason } from './indiana-retailer-matching.mjs';
 import { validateFwgsFullArtifact } from '../fwgs-artifact-policy.mjs';
 import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
 import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
@@ -2789,10 +2791,18 @@ async function collectIndianaPaylessBarrelSelections(config, bible, observedAt, 
     });
     return { signals, roadblocks };
   }
-  const selections = parsePaylessBarrelSelections(res.text);
+  return buildIndianaPaylessBarrelSelectionSignals(config, bible, { text: res.text, observedAt });
+}
+
+export function buildIndianaPaylessBarrelSelectionSignals(config, bible, { text, observedAt }) {
+  const signals = [], roadblocks = [];
+  const selections = parsePaylessBarrelSelections(text);
+  const pickupText = decodeHtml(stripHtml(text));
   for (const rawName of selections) {
-    const { match, record } = bottleMatch(rawName, bible);
+    const { match, record } = reviewedIndianaPaylessBottleMatch(rawName, bible);
     if (!record) continue;
+    const availability = buildIndianaPaylessAvailabilityProof({ rawName, observedAt, sourceUrl: IN_PAYLESS_BARREL_SELECTIONS_URL, storeAddress: IN_PAYLESS_EAST_STREET_STORE.address, pickupText });
+    if (!availability) continue;
     signals.push({
       id: stableId([config.id, 'payless-east-street-barrel-selection', rawName]),
       state: config.id,
@@ -2814,15 +2824,14 @@ async function collectIndianaPaylessBarrelSelections(config, bible, observedAt, 
       zip: IN_PAYLESS_EAST_STREET_STORE.zip,
       lat: IN_PAYLESS_EAST_STREET_STORE.lat,
       lng: IN_PAYLESS_EAST_STREET_STORE.lng,
-      quantity: 1,
-      availabilityStatus: 'available_store_pick',
+      ...availability,
       availabilityLabel: 'Listed as available barrel selection',
       observedAt,
       canAlertAsInventory: true,
       canAlertAsWatch: true,
       inventorySemantics: 'Payless publishes this as a current East Street store barrel-selection list and says the bottles are available for pickup. Treat as retailer-published store-pick availability and verify before driving.',
       evidence: `Payless Liquors says ${rawName} is available at the East Street location in Indianapolis on its barrel selections page.`,
-      raw: { chain: 'payless-liquors', store: IN_PAYLESS_EAST_STREET_STORE, barrelSelectionPage: true }
+      raw: { chain: 'payless-liquors', store: IN_PAYLESS_EAST_STREET_STORE, barrelSelectionPage: true, productBinding: availability.sourceProductBinding }
     });
   }
   if (!signals.length) {
@@ -2832,7 +2841,7 @@ async function collectIndianaPaylessBarrelSelections(config, bible, observedAt, 
       url: IN_PAYLESS_BARREL_SELECTIONS_URL,
       status: 'reachable_no_matched_inventory',
       error: `Payless barrel selections page was reachable and exposed ${selections.length} candidate rows, but none matched the Bourbon Signal bottle bible.`,
-      nextRoute: 'Review Payless store-pick names and tune bottle-bible aliases for private barrel/store-pick wording.'
+      nextRoute: 'Review exact Payless store-pick identities and explicit pickup evidence; keep unsupported identities out of inventory.'
     });
   }
   return { signals, roadblocks };
@@ -3157,10 +3166,11 @@ async function writeTennesseeCityHiveCache(signals, roadblocks, { previous, sele
   await writeTennesseeCityHiveArtifact(payload, signal);
 }
 
-async function collectIndianaCityHive(config, bible, observedAt, existingSignals = [], { signal } = {}) {
+export async function collectIndianaCityHive(config, bible, observedAt, existingSignals = [], { signal } = {}) {
   signal?.throwIfAborted();
   const signals = [];
   const roadblocks = [];
+  const crawlAudit = { requestCount: 0, skippedPageCount: 0, completedSequenceCount: 0, unknownPayloadCount: 0 };
   const cache = await readIndianaCityHiveCache();
   const previousCache = previousIndianaCityHiveCache(existingSignals);
   const retainedCache = mergeIndianaCityHiveRetentionCaches(cache, previousCache, observedAt);
@@ -3175,6 +3185,7 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
     return {
       signals: cachedSignals,
       roadblocks: reconciled.roadblocks,
+      metadata: { ...crawlAudit, cacheReused: true },
     };
   }
   const seenPageFirstProducts = new Set();
@@ -3203,10 +3214,14 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
       if (sourceBlocked) break;
       const crawlUrls = cityHivePageUrls(seedUrl);
       const seenCrawlUrls = new Set(crawlUrls);
+      const completedMerchantPages = new Set();
       let merchantPagesQueued = false;
       for (let crawlIndex = 0; crawlIndex < crawlUrls.length; crawlIndex++) {
         signal?.throwIfAborted();
         const url = crawlUrls[crawlIndex];
+        const selectedMerchantId = new URL(url).searchParams.get('merchant-id') || 'default';
+        if (completedMerchantPages.has(selectedMerchantId)) { crawlAudit.skippedPageCount++; continue; }
+        crawlAudit.requestCount++;
         const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000, signal });
         if (!res.ok) {
           sourceComplete = false;
@@ -3235,10 +3250,19 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
           }
         }
         const products = cityHiveProducts(blobs);
-        const firstKey = products.slice(0, 3).map((p) => p?.id || p?.name).join('|');
-        const selectedMerchantId = new URL(url).searchParams.get('merchant-id') || 'default';
-        const repeatKey = `${source.id}|${seedUrl}|${selectedMerchantId}|${firstKey}`;
-        if (!products.length || seenPageFirstProducts.has(repeatKey)) continue;
+        if (!cityHiveHasProductPayload(blobs)) {
+          sourceComplete = false;
+          crawlAudit.unknownPayloadCount++;
+          completedMerchantPages.add(selectedMerchantId);
+          roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: 'unrecognized_inventory_payload', error: 'HTTP 200 contained no recognized CityHive products payload; it is not authoritative empty inventory.', nextRoute: 'Preserve prior evidence with its original clock and inspect this payload before changing the parser.' });
+          continue;
+        }
+        const repeatKey = `${source.id}|${seedUrl}|${selectedMerchantId}|${stableId([JSON.stringify(products)])}`;
+        if (!products.length || seenPageFirstProducts.has(repeatKey)) {
+          completedMerchantPages.add(selectedMerchantId);
+          crawlAudit.completedSequenceCount++;
+          continue;
+        }
         seenPageFirstProducts.add(repeatKey);
 
         const merchantConfigs = cityHiveMerchantConfigs(blobs);
@@ -3294,9 +3318,10 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
               if (seenProductOptions.has(key)) continue;
               seenProductOptions.add(key);
               const rawName = option.option_display_data?.name || product.name;
-              const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+              const { match, record, unsafeReason } = reviewedIndianaCityHiveBottleMatch(rawName, bible);
               if (!record) continue;
-              const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
+              const availability = normalizeIndianaCityHiveQuantity(option.quantity);
+              const { reportedQuantity, binaryAvailability, quantity, sourceAvailabilityVerified } = availability;
               const fullAddress = option.full_address || null;
               const city = fullAddress?.match(/,\s*([^,]+),\s*IN\s+\d{5}/i)?.[1] || null;
               const zip = fullAddress?.match(/\bIN\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
@@ -3312,7 +3337,7 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
                 canonicalBottleId: record.id,
                 canonicalName: record.canonical,
                 confidence: Math.max(0.78, match?.confidence || 0.5),
-                eventType: quantity > 0 ? 'cityhive_store_inventory_result' : 'cityhive_store_inventory_out_of_stock',
+                eventType: sourceAvailabilityVerified ? 'cityhive_store_inventory_result' : 'cityhive_store_inventory_out_of_stock',
                 locationPrecision: 'store_level',
                 locationName: option.merchant_name || source.chainName,
                 storeName: option.merchant_name || source.chainName,
@@ -3324,12 +3349,12 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
                 zip,
                 lat: Number(option.coordinates?.[1]) || null,
                 lng: Number(option.coordinates?.[0]) || null,
-                quantity,
+                ...availability,
                 price: Number(option.price || 0) || null,
-                availabilityStatus: quantity > 0 ? (binaryAvailability ? 'binary_retailer_in_stock' : 'in_stock') : 'out_of_stock',
-                availabilityLabel: quantity > 0 ? 'In stock' : 'Out of stock',
+                availabilityStatus: sourceAvailabilityVerified ? (binaryAvailability ? 'binary_retailer_in_stock' : 'in_stock') : 'out_of_stock',
+                availabilityLabel: sourceAvailabilityVerified ? 'In stock' : 'Out of stock',
                 observedAt,
-                canAlertAsInventory: quantity > 0,
+                canAlertAsInventory: sourceAvailabilityVerified,
                 canAlertAsWatch: true,
                 inventorySemantics: `${source.chainName} CityHive pages embed store-level product option availability and price for the selected branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
                 evidence: binaryAvailability
@@ -3388,7 +3413,7 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
     sources: IN_CITYHIVE_SOURCES,
     retainedSignals: signals,
   });
-  return { signals, roadblocks: reconciled.roadblocks };
+  return { signals, roadblocks: reconciled.roadblocks, metadata: { ...crawlAudit, cacheReused: false, selectedSourceIds: selectedSources.map((source) => source.id), completedSourceIds: [...refreshedSourceIds] } };
 }
 
 async function readIndianaTargetCache() {
@@ -9837,6 +9862,7 @@ export async function collectIllinois(config, bible, options = {}) {
 
 export async function collectIndiana(config, bible, existingSignals = [], options = {}) {
   const signals = [], roadblocks = [];
+  let cityHiveMetadata = null;
   const observedAt = new Date().toISOString();
   const { signal } = options;
   try {
@@ -9929,6 +9955,10 @@ export async function collectIndiana(config, bible, existingSignals = [], option
     }
 
     signal?.throwIfAborted();
+    const ilgSkip = indianaDeniedSourceSkip('ilg-events');
+    if (ilgSkip) {
+      roadblocks.push(...ilgSkip.roadblocks);
+    } else {
     const ilgEvents = await textFetch(INDIANA_LIQUOR_GROUP_EVENTS_URL, { headers: { accept: 'text/html,*/*' }, signal });
     if (ilgEvents.ok) {
       for (const event of parseIndianaLiquorGroupEvents(ilgEvents.text, observedAt)) {
@@ -9977,7 +10007,9 @@ export async function collectIndiana(config, bible, existingSignals = [], option
       });
     }
 
-    const kahns = await collectIndianaKahns(config, bible, observedAt, options);
+    }
+
+    const kahns = indianaDeniedSourceSkip('kahns') || await collectIndianaKahns(config, bible, observedAt, options);
     signal?.throwIfAborted();
     signals.push(...kahns.signals);
     roadblocks.push(...kahns.roadblocks);
@@ -9987,17 +10019,18 @@ export async function collectIndiana(config, bible, existingSignals = [], option
     signals.push(...payless.signals);
     roadblocks.push(...payless.roadblocks);
 
-    const penguin = await collectIndianaPenguinLiquor(config, bible, observedAt, options);
+    const penguin = indianaDeniedSourceSkip('penguin-liquor') || await collectIndianaPenguinLiquor(config, bible, observedAt, options);
     signal?.throwIfAborted();
     signals.push(...penguin.signals);
     roadblocks.push(...penguin.roadblocks);
 
-    const doorDashFrontier = await collectIndianaDoorDashFrontier(config, bible, observedAt, options);
+    const doorDashFrontier = indianaDeniedSourceSkip('doordash-frontier') || await collectIndianaDoorDashFrontier(config, bible, observedAt, options);
     signal?.throwIfAborted();
     signals.push(...doorDashFrontier.signals);
     roadblocks.push(...doorDashFrontier.roadblocks);
 
     const cityHive = await collectIndianaCityHive(config, bible, observedAt, existingSignals, options);
+    cityHiveMetadata = cityHive.metadata || null;
     signal?.throwIfAborted();
     signals.push(...cityHive.signals);
     roadblocks.push(...cityHive.roadblocks);
@@ -10017,7 +10050,26 @@ export async function collectIndiana(config, bible, existingSignals = [], option
       nextRoute: 'Inspect ASP.NET form fields/session cookie handling, then retry the active package-store permit search.'
     });
   }
-  return { signals, roadblocks };
+  for (const row of signals) {
+    const reason = indianaSourceBottleMismatchReason(row);
+    if (!reason) continue;
+    row.raw = { ...row.raw, sourceIdentityRejection: reason, rejectedCanonicalName: row.canonicalName, rejectedCanonicalBottleId: row.canonicalBottleId };
+    row.eventType = 'retailer_source_identity_rejected';
+    row.canonicalBottleId = null;
+    row.canonicalName = null;
+    row.canAlertAsInventory = false;
+    row.canAlertAsWatch = false;
+  }
+  const denied = roadblocks.filter((row) => row.policyId === 'in-captured-direct-403-routes-disabled-20261022');
+  return { signals, roadblocks, metadata: {
+    cityHive: cityHiveMetadata,
+    indianaSourcePolicy: {
+      policyId: 'in-captured-direct-403-routes-disabled-20261022',
+      skippedSourceKeys: denied.map((row) => row.sourceKey),
+      disabledRouteAttempts: 0,
+      decisions: denied.map((row) => ({ sourceKey: row.sourceKey, attemptCount: row.attemptCount, denialEvidence: row.denialEvidence })),
+    },
+  } };
 }
 
 export function trustedOregonStoreQuantity(value) {

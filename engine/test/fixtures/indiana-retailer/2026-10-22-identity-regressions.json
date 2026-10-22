@@ -1,0 +1,356 @@
+{
+  "source": "production-refresh39854435934 states/IN.json",
+  "description": "Compact original IN state source signals plus a separately timestamped literal Payless HTML excerpt below. The CityHive sentinel-positive test is a deliberate format mutation, not new live stock evidence.",
+  "observedAt": "2026-10-22T19:32:50.474Z",
+  "signals": [
+    {
+      "id": "a50badf221a85351",
+      "state": "IN",
+      "sourceLabel": "Payless Liquors East Street barrel selections",
+      "sourceUrl": "https://www.paylessliquors.info/barrel-selections",
+      "rawName": "Woodford Reserve Rye",
+      "canonicalBottleId": "bb_4559c56808df985c",
+      "canonicalName": "Woodford Reserve Bourbon",
+      "confidence": 0.76,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Payless Liquors - East Street",
+      "storeName": "Payless Liquors - East Street",
+      "storeId": "payless-liquors:east-street",
+      "storeAddress": "3825 S. East Street, Indianapolis, IN 46227",
+      "city": "Indianapolis",
+      "stateCode": "IN",
+      "postalCode": "46227",
+      "zip": "46227",
+      "lat": 39.7106,
+      "lng": -86.1484,
+      "quantity": 1,
+      "availabilityStatus": "available_store_pick",
+      "availabilityLabel": "Listed as available barrel selection",
+      "observedAt": "2026-10-22T19:32:50.474Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Payless publishes this as a current East Street store barrel-selection list and says the bottles are available for pickup. Treat as retailer-published store-pick availability and verify before driving.",
+      "evidence": "Payless Liquors says Woodford Reserve Rye is available at the East Street location in Indianapolis on its barrel selections page.",
+      "raw": {
+        "chain": "payless-liquors",
+        "store": {
+          "id": "east-street",
+          "name": "Payless Liquors - East Street",
+          "address": "3825 S. East Street, Indianapolis, IN 46227",
+          "city": "Indianapolis",
+          "zip": "46227",
+          "lat": 39.7106,
+          "lng": -86.1484
+        },
+        "barrelSelectionPage": true
+      },
+      "sourceRuntimeId": "precision:in"
+    },
+    {
+      "id": "84a24a540de68c8d",
+      "state": "IN",
+      "sourceLabel": "Payless Liquors East Street barrel selections",
+      "sourceUrl": "https://www.paylessliquors.info/barrel-selections",
+      "rawName": "Maker’s Mark Private Selections",
+      "canonicalBottleId": "bb_70221e1cdb151a04",
+      "canonicalName": "Maker's Mark Private Selection",
+      "confidence": 0.967741935483871,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Payless Liquors - East Street",
+      "storeName": "Payless Liquors - East Street",
+      "storeId": "payless-liquors:east-street",
+      "storeAddress": "3825 S. East Street, Indianapolis, IN 46227",
+      "city": "Indianapolis",
+      "stateCode": "IN",
+      "postalCode": "46227",
+      "zip": "46227",
+      "lat": 39.7106,
+      "lng": -86.1484,
+      "quantity": 1,
+      "availabilityStatus": "available_store_pick",
+      "availabilityLabel": "Listed as available barrel selection",
+      "observedAt": "2026-10-22T19:32:50.474Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Payless publishes this as a current East Street store barrel-selection list and says the bottles are available for pickup. Treat as retailer-published store-pick availability and verify before driving.",
+      "evidence": "Payless Liquors says Maker’s Mark Private Selections is available at the East Street location in Indianapolis on its barrel selections page.",
+      "raw": {
+        "chain": "payless-liquors",
+        "store": {
+          "id": "east-street",
+          "name": "Payless Liquors - East Street",
+          "address": "3825 S. East Street, Indianapolis, IN 46227",
+          "city": "Indianapolis",
+          "zip": "46227",
+          "lat": 39.7106,
+          "lng": -86.1484
+        },
+        "barrelSelectionPage": true
+      },
+      "sourceRuntimeId": "precision:in"
+    },
+    {
+      "id": "b9c9cbe9ac1fb488",
+      "state": "IN",
+      "sourceLabel": "Cap n' Cork CityHive store inventory",
+      "sourceUrl": "https://capncork.com/shop/product/wild-turkey-bourbon/56c296ef756275139d8c0500?option-id=7257d07752b4b67c8503db186c9697e6dff49c87c293ac0b2c34c7663ac8db3b",
+      "sourceChain": "cap-n-cork",
+      "merchantId": "5e8dbd4c9ea1420c5278f9b5",
+      "rawName": "Wild Turkey Bourbon",
+      "canonicalBottleId": "bb_2a3a72be37e1c233",
+      "canonicalName": "Wild Turkey Master",
+      "confidence": 0.78,
+      "eventType": "cityhive_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Cap n’ Cork Coldwater #411",
+      "storeName": "Cap n’ Cork Coldwater #411",
+      "storeId": "cap-n-cork:5e8dbd4c9ea1420c5278f9b5",
+      "storeAddress": "5430 Coldwater Rd, Fort Wayne, IN 46825, USA",
+      "city": "Fort Wayne",
+      "stateCode": "IN",
+      "postalCode": "46825",
+      "zip": "46825",
+      "lat": 41.1293034,
+      "lng": -85.1350928,
+      "quantity": 7,
+      "price": 22.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "In stock",
+      "observedAt": "2026-10-22T19:32:50.474Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Cap n' Cork CityHive pages embed store-level product option availability and price for the selected branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.",
+      "evidence": "Cap n' Cork CityHive reports 7 750mls of Wild Turkey Bourbon at Cap n’ Cork Coldwater #411 (5430 Coldwater Rd, Fort Wayne, IN 46825, USA) for $22.99.",
+      "raw": {
+        "chain": "cap-n-cork",
+        "reportedQuantity": 7,
+        "binaryAvailability": false,
+        "product": {
+          "id": "5734f2c969702d71de799f00",
+          "name": "Wild Turkey Bourbon",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ]
+        },
+        "option": {
+          "product_id": "56c296ef756275139d8c0500",
+          "option_id": "7257d07752b4b67c8503db186c9697e6dff49c87c293ac0b2c34c7663ac8db3b",
+          "product_url": "https://capncork.com/shop/product/wild-turkey-bourbon/56c296ef756275139d8c0500?option-id=7257d07752b4b67c8503db186c9697e6dff49c87c293ac0b2c34c7663ac8db3b",
+          "merchant_id": "5e8dbd4c9ea1420c5278f9b5",
+          "merchant_name": "Cap n’ Cork Coldwater #411",
+          "quantity": 7,
+          "full_address": "5430 Coldwater Rd, Fort Wayne, IN 46825, USA",
+          "option_params": {
+            "size": {
+              "measure": "ml",
+              "quantity": "750"
+            }
+          },
+          "price": 22.99
+        }
+      },
+      "sourceRuntimeId": "precision:in"
+    },
+    {
+      "id": "4b7bdf9bfffcd364",
+      "state": "IN",
+      "sourceLabel": "Cap n' Cork CityHive store inventory",
+      "sourceUrl": "https://capncork.com/shop/product/wild-turkey-bourbon/5734f2c969702d71de799f00?option-id=77ecfa48bcbaec5a9c17f7031260a7b85aff9978cf1b27f8615475941292233f",
+      "sourceChain": "cap-n-cork",
+      "merchantId": "5e8dbd4c9ea1420c5278f9b5",
+      "rawName": "Wild Turkey Bourbon",
+      "canonicalBottleId": "bb_2a3a72be37e1c233",
+      "canonicalName": "Wild Turkey Master",
+      "confidence": 0.78,
+      "eventType": "cityhive_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Cap n’ Cork Coldwater #411",
+      "storeName": "Cap n’ Cork Coldwater #411",
+      "storeId": "cap-n-cork:5e8dbd4c9ea1420c5278f9b5",
+      "storeAddress": "5430 Coldwater Rd, Fort Wayne, IN 46825, USA",
+      "city": "Fort Wayne",
+      "stateCode": "IN",
+      "postalCode": "46825",
+      "zip": "46825",
+      "lat": 41.1293034,
+      "lng": -85.1350928,
+      "quantity": 1,
+      "price": 44.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "In stock",
+      "observedAt": "2026-10-22T19:32:50.474Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Cap n' Cork CityHive pages embed store-level product option availability and price for the selected branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.",
+      "evidence": "Cap n' Cork CityHive reports 1 1.75L of Wild Turkey Bourbon at Cap n’ Cork Coldwater #411 (5430 Coldwater Rd, Fort Wayne, IN 46825, USA) for $44.99.",
+      "raw": {
+        "chain": "cap-n-cork",
+        "reportedQuantity": 1,
+        "binaryAvailability": false,
+        "product": {
+          "id": "5734f2c969702d71de799f00",
+          "name": "Wild Turkey Bourbon",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ]
+        },
+        "option": {
+          "product_id": "5734f2c969702d71de799f00",
+          "option_id": "77ecfa48bcbaec5a9c17f7031260a7b85aff9978cf1b27f8615475941292233f",
+          "product_url": "https://capncork.com/shop/product/wild-turkey-bourbon/5734f2c969702d71de799f00?option-id=77ecfa48bcbaec5a9c17f7031260a7b85aff9978cf1b27f8615475941292233f",
+          "merchant_id": "5e8dbd4c9ea1420c5278f9b5",
+          "merchant_name": "Cap n’ Cork Coldwater #411",
+          "quantity": 1,
+          "full_address": "5430 Coldwater Rd, Fort Wayne, IN 46825, USA",
+          "option_params": {
+            "size": {
+              "measure": "L",
+              "quantity": "1.75"
+            }
+          },
+          "price": 44.99
+        }
+      },
+      "sourceRuntimeId": "precision:in"
+    },
+    {
+      "id": "248725e00f795fcc",
+      "state": "IN",
+      "sourceLabel": "Wise Guys Discount Liquors CityHive store inventory",
+      "sourceUrl": "https://shop.wiseguysliquors.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+      "sourceChain": "wise-guys",
+      "merchantId": "5eb1dc10054c392621980908",
+      "rawName": "Buffalo Trace Bourbon",
+      "canonicalBottleId": "bb_317836b9e64a7620",
+      "canonicalName": "Buffalo Trace Bourbon",
+      "confidence": 1,
+      "eventType": "cityhive_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Wise Guys Discount Liquors - Valparaiso",
+      "storeName": "Wise Guys Discount Liquors - Valparaiso",
+      "storeId": "wise-guys:5eb1dc10054c392621980908",
+      "storeAddress": "2154 W Morthland Dr, Valparaiso, IN 46383, USA",
+      "city": "Valparaiso",
+      "stateCode": "IN",
+      "postalCode": "46383",
+      "zip": "46383",
+      "lat": 41.4624416,
+      "lng": -87.0866222,
+      "quantity": 2,
+      "price": 32.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "In stock",
+      "observedAt": "2026-10-22T19:32:50.474Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Wise Guys Discount Liquors CityHive pages embed store-level product option availability and price for the selected branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.",
+      "evidence": "Wise Guys Discount Liquors CityHive reports 2 750mls of Buffalo Trace Bourbon at Wise Guys Discount Liquors - Valparaiso (2154 W Morthland Dr, Valparaiso, IN 46383, USA) for $32.99.",
+      "raw": {
+        "chain": "wise-guys",
+        "reportedQuantity": 2,
+        "binaryAvailability": false,
+        "product": {
+          "id": "5521cef065613100036c0000",
+          "name": "Buffalo Trace Bourbon",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ]
+        },
+        "option": {
+          "product_id": "5521cef065613100036c0000",
+          "option_id": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+          "product_url": "https://shop.wiseguysliquors.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+          "merchant_id": "5eb1dc10054c392621980908",
+          "merchant_name": "Wise Guys Discount Liquors - Valparaiso",
+          "quantity": 2,
+          "full_address": "2154 W Morthland Dr, Valparaiso, IN 46383, USA",
+          "option_params": {
+            "size": {
+              "measure": "ml",
+              "quantity": "750"
+            }
+          },
+          "price": 32.99
+        }
+      },
+      "sourceRuntimeId": "precision:in"
+    },
+    {
+      "id": "365d7175a7702ed0",
+      "state": "IN",
+      "sourceLabel": "Wise Guys Discount Liquors CityHive store inventory",
+      "sourceUrl": "https://shop.wiseguysliquors.com/shop/product/buffalo-trace-bourbon/57cd802e69702d7af7881300?option-id=cedf40bf5c8a9b955980b2ea65dfe416ed43bcb72e0f05b12b37f4adad494d1b",
+      "sourceChain": "wise-guys",
+      "merchantId": "5eb1dc10054c392621980908",
+      "rawName": "Buffalo Trace Bourbon",
+      "canonicalBottleId": "bb_317836b9e64a7620",
+      "canonicalName": "Buffalo Trace Bourbon",
+      "confidence": 1,
+      "eventType": "cityhive_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Wise Guys Discount Liquors - Valparaiso",
+      "storeName": "Wise Guys Discount Liquors - Valparaiso",
+      "storeId": "wise-guys:5eb1dc10054c392621980908",
+      "storeAddress": "2154 W Morthland Dr, Valparaiso, IN 46383, USA",
+      "city": "Valparaiso",
+      "stateCode": "IN",
+      "postalCode": "46383",
+      "zip": "46383",
+      "lat": 41.4624416,
+      "lng": -87.0866222,
+      "quantity": 1,
+      "price": 41.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "In stock",
+      "observedAt": "2026-10-22T19:32:50.474Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Wise Guys Discount Liquors CityHive pages embed store-level product option availability and price for the selected branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.",
+      "evidence": "Wise Guys Discount Liquors CityHive reports 1 1L of Buffalo Trace Bourbon at Wise Guys Discount Liquors - Valparaiso (2154 W Morthland Dr, Valparaiso, IN 46383, USA) for $41.99.",
+      "raw": {
+        "chain": "wise-guys",
+        "reportedQuantity": 1,
+        "binaryAvailability": false,
+        "product": {
+          "id": "5521cef065613100036c0000",
+          "name": "Buffalo Trace Bourbon",
+          "basic_category": [
+            "bourbon",
+            "whiskey"
+          ]
+        },
+        "option": {
+          "product_id": "57cd802e69702d7af7881300",
+          "option_id": "cedf40bf5c8a9b955980b2ea65dfe416ed43bcb72e0f05b12b37f4adad494d1b",
+          "product_url": "https://shop.wiseguysliquors.com/shop/product/buffalo-trace-bourbon/57cd802e69702d7af7881300?option-id=cedf40bf5c8a9b955980b2ea65dfe416ed43bcb72e0f05b12b37f4adad494d1b",
+          "merchant_id": "5eb1dc10054c392621980908",
+          "merchant_name": "Wise Guys Discount Liquors - Valparaiso",
+          "quantity": 1,
+          "full_address": "2154 W Morthland Dr, Valparaiso, IN 46383, USA",
+          "option_params": {
+            "size": {
+              "measure": "L",
+              "quantity": "1"
+            }
+          },
+          "price": 41.99
+        }
+      },
+      "sourceRuntimeId": "precision:in"
+    }
+  ],
+  "paylessPage": {
+    "url": "https://www.paylessliquors.info/barrel-selections",
+    "observedAt": "2026-10-22T22:23:45.547Z",
+    "finishedAt": "2026-10-22T22:23:45.831Z",
+    "status": 200,
+    "sha256": "25734aadcfffbe97f25aa413b86642d22b46b4df0c6841fd55401929260b06cc",
+    "description": "Literal availability heading and two captured list items only; other page products intentionally omitted.",
+    "html": "<h4 style=\"white-space:pre-wrap;\">Available at our East Street location, these are our hand selected barrel picks that we picked for you! Stop by and pick your bottle up today! </h4><ul><li><p class=\"\" style=\"white-space:pre-wrap;\">Woodford Reserve Rye</p></li><li><p class=\"\" style=\"white-space:pre-wrap;\">Maker’s Mark Private Selections</p><p class=\"\" data-rte-preserve-empty=\"true\" style=\"white-space:pre-wrap;\"></p></li></ul>"
+  }
+}

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { buildIndianaPaylessAvailabilityProof } from '../src/collectors/indiana-retailer-matching.mjs';
 
 import {
   INDIANA_CITYHIVE_CACHE_MAX_AGE_MS,
@@ -532,8 +533,10 @@ test('Indiana policy binds existing first-party retailer identities and keeps Do
     state: 'IN', stateCode: 'IN', sourceLabel: 'Payless Liquors East Street barrel selections',
     sourceUrl: 'https://www.paylessliquors.info/barrel-selections', eventType: 'retailer_store_inventory_result',
     locationPrecision: 'store_level', storeId: 'payless-liquors:east-street',
-    storeAddress: '3825 S. East Street, Indianapolis, IN 46227', quantity: 1,
-    availabilityStatus: 'available_store_pick', canAlertAsInventory: true, raw: { chain: 'payless-liquors' },
+    storeAddress: '3825 S. East Street, Indianapolis, IN 46227',
+    rawName: 'Maker’s Mark Private Selections', observedAt: '2026-10-22T19:32:50.474Z',
+    ...buildIndianaPaylessAvailabilityProof({ rawName: 'Maker’s Mark Private Selections', observedAt: '2026-10-22T19:32:50.474Z', sourceUrl: 'https://www.paylessliquors.info/barrel-selections', storeAddress: '3825 S. East Street, Indianapolis, IN 46227', pickupText: 'Available at our East Street location. Maker’s Mark Private Selections. Stop by and pick your bottle up today!' }),
+    canAlertAsInventory: true, raw: { chain: 'payless-liquors' },
   };
   const penguin = {
     state: 'IN', stateCode: 'IN', sourceLabel: 'Penguin Liquor Lafayette in-stock product pages',
