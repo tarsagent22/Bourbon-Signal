@@ -2,6 +2,7 @@ import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
 import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
+import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { renameSync } from 'node:fs';
 import { mkdir, readFile, rm } from 'node:fs/promises';
@@ -20,8 +21,8 @@ import { freshCityHivePositiveSignals, normalizeCityHiveReportedQuantity, oldest
 import { buildCityHiveRareProbeUrls } from './cityhive-rare-probes.mjs';
 import { attachConfiguredStoreIdentity, configuredStoreId, isTerminalProbeFailure, summarizeRepeatedPlatformFailures } from './probe-hardening.mjs';
 import { createSourceAdapter } from '../sources/source-adapter.mjs';
-import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
-import { summarizeSourceResult } from '../sources/source-result.mjs';
+import { MalformedSourceError, normalizeSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
+import { statusForSourceError, summarizeSourceResult } from '../sources/source-result.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
 import { legacyPrecisionSourceId, runLegacyPrecisionSource } from '../sources/legacy-precision-runtime.mjs';
 import {
@@ -119,6 +120,7 @@ import {
 } from './metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
 import { collectMetroCityHiveRows, selectMetroSourcesForRefresh } from './buffalo-cityhive-discovery.mjs';
+import { metroHttpSourceError, metroSourceAttempts, readMetroSourceAttempts, updateMetroSourceAttempts, writeMetroSourceAttempts } from './metro-refresh-state.mjs';
 import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaLiquorLibraryInventory } from '../south-carolina-retailer-policy.mjs';
 import {
   buildIndianaTargetStoreLocationSignals,
@@ -8637,10 +8639,10 @@ async function readMetroRetailerCache(stateId) {
     if (cache?.state !== stateId || !Array.isArray(cache?.signals)) return null;
     const signals = filterFreshMetroSignals(cache.signals, Date.now(), METRO_RETAILER_CACHE_MAX_AGE_MS)
       .filter((signal) => isMetroRetailerInventory(signal));
-    if (!signals.length) return null;
     return {
       ...cache,
       signals,
+      sourceAttempts: metroSourceAttempts(cache, metroRetailerSources(stateId)),
       roadblocks: Array.isArray(cache.roadblocks) ? cache.roadblocks : [],
       artifactPath,
     };
@@ -8661,10 +8663,10 @@ function cachedMetroRetailerSignals(cache) {
   }));
 }
 
-async function writeMetroRetailerCache(stateId, signals, roadblocks) {
+async function writeMetroRetailerCache(stateId, signals, roadblocks, sourceAttempts) {
   const artifactPath = metroRetailerArtifactPath(stateId);
   const payload = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     state: stateId,
     generatedAt: new Date().toISOString(),
     source: `${stateId} bounded metro first-party retailer inventory cache`,
@@ -8673,6 +8675,7 @@ async function writeMetroRetailerCache(stateId, signals, roadblocks) {
     sourceChains: [...new Set(signals.map((signal) => signal.sourceChain).filter(Boolean))].sort(),
     signals,
     roadblocks,
+    sourceAttempts,
   };
   await mkdir(path.dirname(artifactPath), { recursive: true });
   await writeFile(artifactPath, JSON.stringify(payload, null, 2));
@@ -8681,7 +8684,7 @@ async function writeMetroRetailerCache(stateId, signals, roadblocks) {
 function failedMetroResponse(result, label) {
   const message = result?.error || `HTTP ${result?.status || 0}`;
   if (!result || Number(result.status || 0) === 0) return new TransientSourceError(`${label}: ${message}`, { status: result?.status ?? 0 });
-  return sourceErrorForHttp(result.status, `${label}: ${message}`);
+  return metroHttpSourceError(result.status, `${label}: ${message}`);
 }
 
 async function fetchMetroShopifyProducts(source, signal) {
@@ -8919,6 +8922,7 @@ function previousMetroSourceResults(cache, sources) {
 
 async function collectMetroRetailers(config, bible, options = {}) {
   const sources = configuredMetroSources(config).filter((source) => source.inventoryEligible === true);
+  const registeredSources = metroRetailerSources(config.id).filter((source) => source.inventoryEligible === true);
   if (!sources.length) {
     return {
       signals: [],
@@ -8937,38 +8941,66 @@ async function collectMetroRetailers(config, bible, options = {}) {
   const eligibleSourceIds = new Set(sources.map((source) => source.id));
   const eligibleCachedSignals = cachedMetroRetailerSignals(cache).filter((cachedSignal) => eligibleSourceIds.has(cachedSignal.sourceChain));
   const forceLive = process.env[`BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE`] === '1';
-  const refreshSources = cache
-    ? selectMetroSourcesForRefresh(sources, eligibleCachedSignals, { forceLive, fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS })
-    : sources;
-  if (cache && !refreshSources.length) {
+  let sourceAttempts = await readMetroSourceAttempts(config.id, registeredSources, cache);
+  const refreshSources = selectMetroSourcesForRefresh(sources, eligibleCachedSignals, { forceLive, fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS, sourceAttempts });
+  const attemptLedgerErrors = [];
+  if (!refreshSources.length) {
+    try { await writeMetroSourceAttempts(config.id, sourceAttempts, registeredSources); }
+    catch (error) { attemptLedgerErrors.push({ code: error.code || 'metro_attempt_ledger_write_failed' }); }
     return {
       signals: eligibleCachedSignals,
       roadblocks: [
-        ...(cache.roadblocks || []),
+        ...(cache?.roadblocks || []),
         {
           state: config.id,
           source: `${config.id} metro retailer cache reuse`,
-          url: cache.artifactPath,
+          url: cache?.artifactPath || metroRetailerArtifactPath(config.id),
           status: 'fresh_cache_reuse',
-          error: `Using ${eligibleCachedSignals.length} currently eligible identity-validated rows with their original observation timestamps from ${cache.generatedAt}.`,
-          nextRoute: `Set BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE=1 only for a bounded scheduled or maintenance refresh.`,
+          error: `Using ${eligibleCachedSignals.length} currently eligible identity-validated rows with their original observation timestamps; no source is due under the persisted attempt schedule.`,
+          nextRoute: 'Wait until each source is due; maintenance refreshes also respect known access-denial and rate-limit backoff.',
         },
       ],
       metadata: {
         lane: 'metro_retailer',
         cacheReused: true,
-        cacheGeneratedAt: cache.generatedAt,
+        cacheGeneratedAt: cache?.generatedAt || null,
+        sourceAttempts,
+        attemptLedgerErrors,
         sourceIds: sources.map((source) => `metro:${source.stateCode.toLowerCase()}:${source.id}`),
       },
     };
   }
 
+  let attemptWriteQueue = Promise.resolve();
+  const persistAttempts = async () => {
+    // Serialize writes from independent healthy/denied siblings. This small
+    // ledger is durable before state or nationwide inventory quality gates.
+    attemptWriteQueue = attemptWriteQueue.then(() => writeMetroSourceAttempts(config.id, sourceAttempts, registeredSources)).catch((error) => {
+      attemptLedgerErrors.push({ code: error.code || 'metro_attempt_ledger_write_failed' });
+    });
+    await attemptWriteQueue;
+  };
+  const recordAttempt = async (result) => {
+    sourceAttempts = updateMetroSourceAttempts({ sourceAttempts }, registeredSources, [result], { fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS });
+    await persistAttempts();
+  };
   const adapters = refreshSources.map((source) => createSourceAdapter({
     id: `metro:${source.stateCode.toLowerCase()}:${source.id}`,
     label: source.sourceLabel,
     url: source.productsUrl,
     metadata: { stateId: config.id, lane: 'metro_retailer', platform: source.platform },
-    execute: (_context, { signal }) => collectMetroRetailerSource(config, bible, source, observedAt, signal),
+    execute: async (_context, { signal }) => {
+      let value;
+      try {
+        value = await collectMetroRetailerSource(config, bible, source, observedAt, signal);
+      } catch (error) {
+        const normalized = normalizeSourceError(error);
+        await recordAttempt({ sourceId: `metro:${source.stateCode.toLowerCase()}:${source.id}`, attemptCount: 1, finishedAt: new Date().toISOString(), ok: false, status: statusForSourceError(normalized), error: normalized });
+        throw error;
+      }
+      await recordAttempt({ sourceId: `metro:${source.stateCode.toLowerCase()}:${source.id}`, attemptCount: 1, finishedAt: new Date().toISOString(), ok: true, status: 'success', value });
+      return value;
+    },
     validate: (value) => Array.isArray(value?.signals) && Array.isArray(value?.roadblocks)
       ? true
       : `${source.sourceLabel} returned a malformed metro retailer result`,
@@ -9028,7 +9060,12 @@ async function collectMetroRetailers(config, bible, options = {}) {
       nextRoute: 'Retry only the failed retailer sources on the next bounded cadence and let their cache rows expire normally if no fresh proof returns.',
     });
   }
-  if (successfulSourceIds.size) await writeMetroRetailerCache(config.id, signals, roadblocks);
+  const updatedSourceAttempts = updateMetroSourceAttempts({ sourceAttempts }, registeredSources, isolated.results, { fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS });
+  if (isolated.results.some((result) => result.attemptCount > 0)) {
+    sourceAttempts = updatedSourceAttempts;
+    await persistAttempts();
+    await writeMetroRetailerCache(config.id, signals, roadblocks, updatedSourceAttempts);
+  }
   if (!signals.length) {
     roadblocks.push({
       state: config.id,
@@ -9047,6 +9084,8 @@ async function collectMetroRetailers(config, bible, options = {}) {
       cacheReused: false,
       refreshedSourceIds: refreshSources.map((source) => source.id),
       completedSourceIds: [...completedSourceIds].sort(),
+      sourceAttempts: updatedSourceAttempts,
+      attemptLedgerErrors,
       sourceResults: isolated.results.map(summarizeSourceResult),
     },
   };
@@ -9558,14 +9597,17 @@ export function binnysProductRelevant(hit, bible = null) {
   if (BINNYS_EXCLUDE_CLASSIFICATION_RE.test(classification) || BINNYS_EXCLUDE_PRODUCT_NAME_RE.test(productName)) return false;
   if (BINNYS_STRICT_WATCH_RE.test(identityText)) return true;
   if (!bible) return false;
+  if (reviewedBinnysBottleMatch(productName, bible, hit).record) return true;
   return Boolean(cityHiveSafeBottleMatch(productName, bible).record);
 }
 
 const BINNYS_ALERT_GRADE_SCANNED_CANONICAL_RE = /^(?:Elijah Craig Barrel Proof|Old Forester Birthday Bourbon|Blood Oath|Little Book|Parker'?s Heritage|Knob Creek (?:12|15|18) Year|Russell'?s Reserve (?:13|15) Year|Four Roses Limited Edition)/i;
 
-export function binnysBottleMatch(rawName, bible) {
+export function binnysBottleMatch(rawName, bible, product = null) {
+  const reviewed = reviewedBinnysBottleMatch(rawName, bible, product);
+  if (reviewed.handled) return { match: reviewed.match, record: reviewed.record };
   const direct = bottleMatch(rawName, bible);
-  if (direct.record) return direct;
+  if (direct.record) return unsafeBinnysIdentity(rawName, direct.record) || cityHiveUnsafeBottleMatchReason(rawName, direct.record) ? { match: null, record: null } : direct;
   const scanned = bible.scanText(rawName)
     .filter((record) => BINNYS_ALERT_GRADE_SCANNED_CANONICAL_RE.test(String(record?.canonical || '')));
   if (scanned.length !== 1) return { match: null, record: null };
@@ -9590,15 +9632,17 @@ function binnysPrice(row = {}, hit = {}) {
   return Number(prices.bestPrice || prices.salePrice || prices.regularPrice || hit.onlineStoreBestPrice || 0) || null;
 }
 
-async function collectIllinois(config, bible) {
+export async function collectIllinois(config, bible, options = {}) {
   const signals = [];
   const roadblocks = [];
-  const observedAt = new Date().toISOString();
+  const observedAt = options.observedAt || new Date().toISOString();
+  const query = options.query || binnysAlgoliaQuery;
+  const pause = options.sleep || sleep;
 
   let stores = [];
   const storesByCode = new Map();
   try {
-    const storeResult = await binnysAlgoliaQuery(BINNYS_STORE_INDEX, { query: '', hitsPerPage: 100 });
+    const storeResult = await query(BINNYS_STORE_INDEX, { query: '', hitsPerPage: 100 });
     stores = (storeResult.hits || [])
       .filter((store) => String(store.state || '').toLowerCase() === 'illinois' && !store.isComingSoon && store.storeId)
       .sort((a, b) => Number(a.storeId) - Number(b.storeId));
@@ -9660,7 +9704,7 @@ async function collectIllinois(config, bible) {
           facetFilters: ['productVarietal:Bourbon'],
           attributesToRetrieve: ['objectID', 'variantCode', 'productName', 'shortDescription', 'productBrandName', 'productType', 'productVarietal', 'area', 'country', 'itemSize', 'priceUnitLabel', 'proof', 'productUrl', 'onlineStoreBestPrice', 'isInStoreOnly', 'isSoldOut', 'designations', 'storesPriceAndInventory', 'inStockStores', 'onSaleStores', 'storeSaleAvailability', 'productDescriptionLong']
         };
-        const result = await binnysAlgoliaQuery(BINNYS_PRODUCT_INDEX, params);
+        const result = await query(BINNYS_PRODUCT_INDEX, params);
         productQueries.push({ term, page, status: 200, nbHits: result.nbHits || 0, hitCount: (result.hits || []).length });
         for (const hit of result.hits || []) {
           if (!hit.objectID || productMap.has(hit.objectID)) continue;
@@ -9668,7 +9712,7 @@ async function collectIllinois(config, bible) {
           productMap.set(hit.objectID, hit);
         }
         if (!result.hits?.length || page + 1 >= Number(result.nbPages || 0)) break;
-        await sleep(120);
+        await pause(120);
       } catch (error) {
         roadblocks.push({
           state: config.id,
@@ -9687,7 +9731,7 @@ async function collectIllinois(config, bible) {
   let inventoryRows = 0;
   for (const hit of productMap.values()) {
     const rawName = binnysProductName(hit);
-    const { match, record } = binnysBottleMatch(rawName, bible);
+    const { match, record } = binnysBottleMatch(rawName, bible, hit);
     if (!record) continue;
     matchedProducts += 1;
     const rows = Array.isArray(hit.storesPriceAndInventory) ? hit.storesPriceAndInventory : [];
