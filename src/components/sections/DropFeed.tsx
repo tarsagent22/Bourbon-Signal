@@ -31,7 +31,7 @@ import { ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
-import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
+import { coloradoAreaMatchesFields, matchedColoradoArea, SUPPORTED_COLORADO_AREAS } from "@/lib/colorado-area";
 import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
 import { compareDropFeedNewestFirst } from "@/lib/drop-feed-policy";
 import { coverageAreaOption } from "@/lib/coverage-location-aliases";
@@ -1643,7 +1643,7 @@ export default function DropFeed() {
     // State filtering via URL signal links or the feed state selector.
     if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
     if (drop.state === "NY" && !newYorkAreaMatchesFields(areaLabelsForDrop(drop), SUPPORTED_NEW_YORK_AREAS)) return false;
-    if (drop.state === "CO" && !coloradoAreaMatchesFields(areaLabelsForDrop(drop), ["Denver Metro"])) return false;
+    if (drop.state === "CO" && !coloradoAreaMatchesFields(areaLabelsForDrop(drop), SUPPORTED_COLORADO_AREAS)) return false;
     if (canUseDropFeedFilters && activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
     const bottleNeedle = canUseBottleSearch ? normalizeFilterText(bottleSearch) : "";
     if (bottleNeedle && !normalizeFilterText(drop.displayName).includes(bottleNeedle)) return false;
@@ -1718,7 +1718,7 @@ export default function DropFeed() {
       return newYorkAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nyAreas.length ? areaPrefs.nyAreas : SUPPORTED_NEW_YORK_AREAS);
     }
     if (dropState === "CO") {
-      return coloradoAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
+      return coloradoAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.coAreas.length ? areaPrefs.coAreas : SUPPORTED_COLORADO_AREAS);
     }
 
     // PA city/store filter
@@ -1755,8 +1755,9 @@ export default function DropFeed() {
         baseLabel = matchingArea;
       }
       if (state === "CO") {
-        if (!coloradoAreaMatchesFields([baseLabel], ["Denver Metro"])) return;
-        baseLabel = "Denver Metro";
+        const matchingArea = matchedColoradoArea([baseLabel], SUPPORTED_COLORADO_AREAS);
+        if (!matchingArea) return;
+        baseLabel = matchingArea;
       }
       const includeNcBoardDirectoryOption = state === "NC" && kind === "board";
       if (!hasSignal && !includeNcBoardDirectoryOption) return;

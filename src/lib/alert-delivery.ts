@@ -43,7 +43,7 @@ import { alertDeliveryWindowStatus, isWithinMemberAlertDeliveryWindow, normalize
 import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area";
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
-import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
+import { matchedColoradoArea, coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
 import { buildExpoPushMessages, disablePushTokens, enabledPushTokens, pushPreferenceProjectionAllowsDelivery, sendExpoPushMessages } from "@/lib/push-devices";
 import { createProductionPushOutbox, drainPushOutbox } from "@/lib/alert-queue/push-outbox";
@@ -140,7 +140,6 @@ const ALERT_SMS_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(proce
 const ALERT_EMAIL_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_EMAIL_ALLOWED_RECIPIENTS?.split(",")).map((email) => email.toLowerCase());
 const ALERT_SMS_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_SMS_ALLOWED_RECIPIENTS?.split(",")).map(normalizePhoneNumber).filter(Boolean);
 const ALERT_SAFE_SUBJECT_PREFIX = "fresh signal detected";
-const LEGACY_DENVER_METRO_LABEL = "Denver Metro"; // A saved legacy label, never an implicit statewide default.
 
 function asString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
@@ -811,7 +810,7 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], areaPrefs.caAreas) ? "San Diego" : locationName || stateLabel(state);
   if (state === "NV" && areaPrefs.nvAreas.length) return areaPrefs.nvAreas.find((area) => nevadaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], [area])) || locationName || stateLabel(state);
   if (state === "NY" && areaPrefs.nyAreas.length) return matchedNewYorkArea(locationFields, areaPrefs.nyAreas) || locationName || stateLabel(state);
-  if (state === "CO" && areaPrefs.coAreas.length) return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas) ? areaPrefs.coAreas[0] || LEGACY_DENVER_METRO_LABEL : locationName || stateLabel(state);
+  if (state === "CO" && areaPrefs.coAreas.length) return matchedColoradoArea(locationFields, areaPrefs.coAreas) || locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paCounties.length) return matchedLocationFromOptions(candidate, areaPrefs.paCounties) || locationName || stateLabel(state);
   if (locationName) return locationName;
   return stateLabel(state);

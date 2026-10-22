@@ -1,4 +1,4 @@
-export const SUPPORTED_NEW_YORK_AREAS = ["New York City", "Nassau County", "Buffalo"] as const;
+export const SUPPORTED_NEW_YORK_AREAS = ["New York City", "Nassau County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"] as const;
 export type NewYorkArea = (typeof SUPPORTED_NEW_YORK_AREAS)[number];
 
 const CANONICAL_AREA_BY_TOKEN = new Map<string, NewYorkArea>([
@@ -9,6 +9,12 @@ const CANONICAL_AREA_BY_TOKEN = new Map<string, NewYorkArea>([
   ["nassau county", "Nassau County"],
   ["buffalo", "Buffalo"],
   ["buffalo ny", "Buffalo"],
+  ["rochester metro", "Rochester Metro"],
+  ["rochester", "Rochester Metro"],
+  ["webster", "Rochester Metro"],
+  ["hudson valley", "Hudson Valley"],
+  ["west hurley", "Hudson Valley"],
+  ["lake george", "Lake George"],
 ]);
 
 const NEW_YORK_CITY_LOCALITIES = [
@@ -102,7 +108,16 @@ export function matchedNewYorkArea(fields: readonly unknown[], selectedAreas: re
       ? fieldMatchesNewYorkCity
       : area === "Nassau County"
         ? fieldMatchesNassauCounty
-        : fieldMatchesBuffalo;
+        : area === "Buffalo"
+          ? fieldMatchesBuffalo
+          : (field: string) => {
+            const token = normalize(field);
+            if (token === normalize(area)) return true;
+            const localities = area === "Rochester Metro" ? ["rochester", "webster"]
+              : area === "Hudson Valley" ? ["west hurley"] : ["lake george"];
+            return localities.some((locality) => token === locality
+              || new RegExp(`\\b${locality} (?:ny|new york)(?: \\d{5}(?: \\d{4})?)?(?: usa)?$`).test(token));
+          };
     if (fields.some((field) => typeof field === "string" && matches(field))) return area;
   }
   return null;

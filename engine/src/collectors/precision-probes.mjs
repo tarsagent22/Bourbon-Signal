@@ -118,7 +118,7 @@ import {
   verifyMetroShopifyFulfillmentPolicy,
 } from './metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
-import { collectBuffaloCityHiveRows, selectMetroSourcesForRefresh } from './buffalo-cityhive-discovery.mjs';
+import { collectMetroCityHiveRows, selectMetroSourcesForRefresh } from './buffalo-cityhive-discovery.mjs';
 import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaLiquorLibraryInventory } from '../south-carolina-retailer-policy.mjs';
 import {
   buildIndianaTargetStoreLocationSignals,
@@ -8718,7 +8718,7 @@ async function fetchMetroShopifyProducts(source, signal) {
 export async function fetchMetroRetailerRows(source, signal) {
   if (source.platform === 'cityhive') {
     if (source.depthDiscovery) {
-      return collectBuffaloCityHiveRows(source, {
+      return collectMetroCityHiveRows(source, {
         fetchText: textFetch,
         parseHtml: parseMetroCityHiveHtml,
         signal,

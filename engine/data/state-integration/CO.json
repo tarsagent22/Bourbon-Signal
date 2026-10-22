@@ -14,9 +14,13 @@
       "metro:co:total-beverage",
       "metro:co:off-broadway-wine-spirits",
       "metro:co:mayfair-liquors",
-      "metro:co:heritage-wine-liquor"
+      "metro:co:heritage-wine-liquor",
+      "metro:co:springs-liquor-outlet",
+      "metro:co:wallabys-liquor-warehouse",
+      "metro:co:peak-wine-spirits",
+      "metro:co:south-park-liquor"
     ],
-    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register six bounded, isolated Denver Metro CityHive sources behind the legacy precision runtime."
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register 10 bounded, isolated first-party retailer sources behind the legacy precision runtime."
   },
   "storeIdentity": {
     "mode": "exact_allowlisted_merchant_and_premises",
@@ -99,7 +103,11 @@
       "addedSourceIds": [
         "metro:co:off-broadway-wine-spirits",
         "metro:co:mayfair-liquors",
-        "metro:co:heritage-wine-liquor"
+        "metro:co:heritage-wine-liquor",
+        "metro:co:springs-liquor-outlet",
+        "metro:co:wallabys-liquor-warehouse",
+        "metro:co:peak-wine-spirits",
+        "metro:co:south-park-liquor"
       ],
       "assertion": "Historical shadow/canary evidence remains immutable activation proof; current source growth is verified through bounded live source checks, state quality gates, and targeted production publication."
     },

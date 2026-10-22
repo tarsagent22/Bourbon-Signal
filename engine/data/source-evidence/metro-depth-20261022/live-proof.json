@@ -1,0 +1,621 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-22T12:09:47.019Z",
+  "proofKind": "Unauthenticated first-party category and family-search comparison with production parser and canonical matcher",
+  "syntheticDataUsed": false,
+  "productionPublished": false,
+  "sourceCountTested": 11,
+  "totalRequests": 33,
+  "enabledSourceCount": 7,
+  "scheduledRequestsPerRefresh": 16,
+  "refreshCadenceHours": 4,
+  "summary": {
+    "baselinePositiveVariants": 132,
+    "selectedPositiveVariants": 186,
+    "baselineCanonicalVariants": 26,
+    "selectedCanonicalVariants": 40,
+    "extraCanonicalVariants": 14
+  },
+  "sources": [
+    {
+      "sourceId": "turnup-nyc",
+      "enabled": true,
+      "decision": "Enable only the public search terms with incremental canonical matches.",
+      "baselinePositiveVariants": 18,
+      "selectedPositiveVariants": 25,
+      "allTestedPositiveVariants": 25,
+      "baselineCanonicalVariants": 3,
+      "selectedCanonicalVariants": 5,
+      "extraCanonicalVariants": [
+        {
+          "variantKey": "5f0341cd4b2ef011dcbda2af:a92784fc91500753882c3e66a29bb2422ce7becd1ca55db5b182d2685fded91b",
+          "rawName": "Elijah Craig Toasted Barrel Bourbon",
+          "canonicalBottleId": "bb_d99031402ce45359",
+          "canonicalName": "Elijah Craig Toasted Barrel",
+          "tier": "limited",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        },
+        {
+          "variantKey": "56c26c3975627570b0880000:5c0ebaf043c4bd578c30b20f4207bf4addb175dad1c036780e0aba5c01f95dc1",
+          "rawName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+          "canonicalBottleId": "bb_b7ca7cc4ab428ba8",
+          "canonicalName": "Henry McKenna 10 Year",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        }
+      ],
+      "queryTerms": [
+        "barrel proof"
+      ],
+      "responses": [
+        {
+          "url": "https://turnupnyc.com/shop/?subtype=Bourbon&merchant-id=603fe01610e5b726a120c410",
+          "finalUrl": "https://turnupnyc.com/shop/?subtype=Bourbon&merchant-id=603fe01610e5b726a120c410",
+          "status": 200,
+          "bytes": 449185,
+          "sha256": "b20abba25b819025ea7472567de75c6aa9d76b4fde6200f8aba1802df6cf1622",
+          "rows": 18,
+          "newRows": 18
+        },
+        {
+          "url": "https://turnupnyc.com/shop/?subtype=Bourbon&page=2&merchant-id=603fe01610e5b726a120c410",
+          "finalUrl": "https://turnupnyc.com/shop/?subtype=Bourbon&page=2&merchant-id=603fe01610e5b726a120c410",
+          "status": 200,
+          "bytes": 449411,
+          "sha256": "47729be755d13d8b0f5a8a7fa49db5b92674bd0ec5d98bc211552baf62588ad6",
+          "rows": 18,
+          "newRows": 0
+        },
+        {
+          "url": "https://turnupnyc.com/shop/?ch-query=barrel+proof&merchant-id=603fe01610e5b726a120c410",
+          "finalUrl": "https://turnupnyc.com/shop/?ch-query=barrel+proof&merchant-id=603fe01610e5b726a120c410",
+          "status": 200,
+          "bytes": 445145,
+          "sha256": "36b4fac500c6bfacf755410b8ae2ccf95c7cdb746338b16c0996d4180a9f87ee",
+          "rows": 11,
+          "newRows": 7
+        }
+      ]
+    },
+    {
+      "sourceId": "mayfair-liquors",
+      "enabled": true,
+      "decision": "Enable only the public search terms with incremental canonical matches.",
+      "baselinePositiveVariants": 11,
+      "selectedPositiveVariants": 19,
+      "allTestedPositiveVariants": 19,
+      "baselineCanonicalVariants": 0,
+      "selectedCanonicalVariants": 1,
+      "extraCanonicalVariants": [
+        {
+          "variantKey": "56c29217756275139dc70300:3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+          "rawName": "Elijah Craig Barrel Proof",
+          "canonicalBottleId": "bb_be6a0afd4ba5f963",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        }
+      ],
+      "queryTerms": [
+        "barrel proof"
+      ],
+      "responses": [
+        {
+          "url": "https://mayfairliquors.com/shop/?subtype=Bourbon&merchant-id=546baa0f3932330002a80100",
+          "finalUrl": "https://mayfairliquors.com/shop/?subtype=Bourbon&merchant-id=546baa0f3932330002a80100",
+          "status": 200,
+          "bytes": 499366,
+          "sha256": "39dc347381b875af4c6e75a4a8f10bb969b7265b3dd3afb5120bd31da11e1967",
+          "rows": 11,
+          "newRows": 11
+        },
+        {
+          "url": "https://mayfairliquors.com/shop/?subtype=Bourbon&page=2&merchant-id=546baa0f3932330002a80100",
+          "finalUrl": "https://mayfairliquors.com/shop/?subtype=Bourbon&page=2&merchant-id=546baa0f3932330002a80100",
+          "status": 200,
+          "bytes": 499446,
+          "sha256": "2a939c98625eb0a497f80204b9c03a00e3bd6770b5a7865fc6be78a5f19a9967",
+          "rows": 11,
+          "newRows": 0
+        },
+        {
+          "url": "https://mayfairliquors.com/shop/?ch-query=barrel+proof&merchant-id=546baa0f3932330002a80100",
+          "finalUrl": "https://mayfairliquors.com/shop/?ch-query=barrel+proof&merchant-id=546baa0f3932330002a80100",
+          "status": 200,
+          "bytes": 484493,
+          "sha256": "bb5a17374b446558d9a30323ca3fbd9675f038d4cdec9ca70d0c60af41a3218e",
+          "rows": 8,
+          "newRows": 8
+        }
+      ]
+    },
+    {
+      "sourceId": "greenpoint-wine-liquor",
+      "enabled": true,
+      "decision": "Enable only the public search terms with incremental canonical matches.",
+      "baselinePositiveVariants": 21,
+      "selectedPositiveVariants": 28,
+      "allTestedPositiveVariants": 33,
+      "baselineCanonicalVariants": 2,
+      "selectedCanonicalVariants": 5,
+      "extraCanonicalVariants": [
+        {
+          "variantKey": "56c29217756275139dc70300:3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+          "rawName": "Elijah Craig Barrel Proof",
+          "canonicalBottleId": "bb_be6a0afd4ba5f963",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        },
+        {
+          "variantKey": "56c29217756275139dc70300:bd24f81d7e735a2ea0bd93563b919aeb45d7e45fa4f2d38d6ff9260abac36053",
+          "rawName": "Elijah Craig Barrel Proof",
+          "canonicalBottleId": "bb_be6a0afd4ba5f963",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        },
+        {
+          "variantKey": "5521ceef6561310003530000:f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+          "rawName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+          "canonicalBottleId": "bb_5afa9241206ab963",
+          "canonicalName": "Blanton's Original Single Barrel",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        }
+      ],
+      "queryTerms": [
+        "barrel proof"
+      ],
+      "responses": [
+        {
+          "url": "https://greenpointwineandliquor.com/shop/?subtype=Bourbon&merchant-id=60bfebe346230e7c456a0000",
+          "finalUrl": "https://greenpointwineandliquor.com/shop/?subtype=Bourbon&merchant-id=60bfebe346230e7c456a0000",
+          "status": 200,
+          "bytes": 537505,
+          "sha256": "7365a8e72a3a79a39f6609c57c6f72ba04a479364330e3e3b316e6a6c36b503d",
+          "rows": 21,
+          "newRows": 21
+        },
+        {
+          "url": "https://greenpointwineandliquor.com/shop/?ch-query=barrel+proof&merchant-id=60bfebe346230e7c456a0000",
+          "finalUrl": "https://greenpointwineandliquor.com/shop/?ch-query=barrel+proof&merchant-id=60bfebe346230e7c456a0000",
+          "status": 200,
+          "bytes": 469406,
+          "sha256": "bb9a660ae24b6a39f5a2a251fa11495ac501e8b431534dd857342b0c934f5591",
+          "rows": 7,
+          "newRows": 7
+        },
+        {
+          "url": "https://greenpointwineandliquor.com/shop/?ch-query=single+barrel&merchant-id=60bfebe346230e7c456a0000",
+          "finalUrl": "https://greenpointwineandliquor.com/shop/?ch-query=single+barrel&merchant-id=60bfebe346230e7c456a0000",
+          "status": 200,
+          "bytes": 381073,
+          "sha256": "9e3778a9dad8a651928909003283417d0af4c8911b03ee660681c4a7c8616b34",
+          "rows": 7,
+          "newRows": 5
+        }
+      ]
+    },
+    {
+      "sourceId": "bin70-wine",
+      "enabled": false,
+      "decision": "Keep one category request because tested searches added no canonical matches.",
+      "baselinePositiveVariants": 21,
+      "selectedPositiveVariants": 21,
+      "allTestedPositiveVariants": 27,
+      "baselineCanonicalVariants": 8,
+      "selectedCanonicalVariants": 8,
+      "extraCanonicalVariants": [],
+      "queryTerms": [],
+      "responses": [
+        {
+          "url": "https://bin70wineny.com/shop/?subtype=Bourbon&merchant-id=61875f5cd625d867e6b89db9",
+          "finalUrl": "https://bin70wineny.com/shop/?subtype=Bourbon&merchant-id=61875f5cd625d867e6b89db9",
+          "status": 200,
+          "bytes": 506240,
+          "sha256": "aa267bcf8b4e849d5f448e690ab5f1e19d83b95e1bceb4a6cf37c4b7f1a68734",
+          "rows": 21,
+          "newRows": 21
+        },
+        {
+          "url": "https://bin70wineny.com/shop/?ch-query=barrel+proof&merchant-id=61875f5cd625d867e6b89db9",
+          "finalUrl": "https://bin70wineny.com/shop/?ch-query=barrel+proof&merchant-id=61875f5cd625d867e6b89db9",
+          "status": 200,
+          "bytes": 404168,
+          "sha256": "392b8ea9684842395702e121948df882b8ce4eced5a6b08ad783dcf85964428d",
+          "rows": 7,
+          "newRows": 6
+        },
+        {
+          "url": "https://bin70wineny.com/shop/?ch-query=single+barrel&merchant-id=61875f5cd625d867e6b89db9",
+          "finalUrl": "https://bin70wineny.com/shop/?ch-query=single+barrel&merchant-id=61875f5cd625d867e6b89db9",
+          "status": 200,
+          "bytes": 374424,
+          "sha256": "d6ae82a5e69a1e7addea1247adcc950a9f44309a934f157dbb1212c21af4a865",
+          "rows": 2,
+          "newRows": 0
+        }
+      ]
+    },
+    {
+      "sourceId": "bedford-wines",
+      "enabled": true,
+      "decision": "Enable only the public search terms with incremental canonical matches.",
+      "baselinePositiveVariants": 22,
+      "selectedPositiveVariants": 29,
+      "allTestedPositiveVariants": 32,
+      "baselineCanonicalVariants": 7,
+      "selectedCanonicalVariants": 10,
+      "extraCanonicalVariants": [
+        {
+          "variantKey": "5fc68bd5617ea3222fbb9ead:ec5b80c20641a7c71309046ffc54270fc6dd4509dcf9439ca99af1baeae22838",
+          "rawName": "Blanton's Straight From The Barrel Bourbon",
+          "canonicalBottleId": "bb_cca84bbe5368acac",
+          "canonicalName": "Blanton's Straight From The Barrel",
+          "tier": "unicorn",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        },
+        {
+          "variantKey": "5521ceef6561310003530000:f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+          "rawName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+          "canonicalBottleId": "bb_5afa9241206ab963",
+          "canonicalName": "Blanton's Original Single Barrel",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        },
+        {
+          "variantKey": "56c26c3975627570b0880000:5c0ebaf043c4bd578c30b20f4207bf4addb175dad1c036780e0aba5c01f95dc1",
+          "rawName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+          "canonicalBottleId": "bb_b7ca7cc4ab428ba8",
+          "canonicalName": "Henry McKenna 10 Year",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        }
+      ],
+      "queryTerms": [
+        "barrel proof"
+      ],
+      "responses": [
+        {
+          "url": "https://bedfordspirits.com/shop/?subtype=Bourbon&merchant-id=5b4d0bfe0a26f721517e80f2",
+          "finalUrl": "https://bedfordspirits.com/shop/?subtype=Bourbon&merchant-id=5b4d0bfe0a26f721517e80f2",
+          "status": 200,
+          "bytes": 547043,
+          "sha256": "de8d807e8c0b0a993453d0ee00499782030a77475cd8d649847b5d0ac222b2eb",
+          "rows": 22,
+          "newRows": 22
+        },
+        {
+          "url": "https://bedfordspirits.com/shop/?ch-query=barrel+proof&merchant-id=5b4d0bfe0a26f721517e80f2",
+          "finalUrl": "https://bedfordspirits.com/shop/?ch-query=barrel+proof&merchant-id=5b4d0bfe0a26f721517e80f2",
+          "status": 200,
+          "bytes": 428632,
+          "sha256": "bfb4903f42f6a5b08343aacf79e2e012b466bcd034cf912100098ad0d43261ea",
+          "rows": 7,
+          "newRows": 7
+        },
+        {
+          "url": "https://bedfordspirits.com/shop/?ch-query=single+barrel&merchant-id=5b4d0bfe0a26f721517e80f2",
+          "finalUrl": "https://bedfordspirits.com/shop/?ch-query=single+barrel&merchant-id=5b4d0bfe0a26f721517e80f2",
+          "status": 200,
+          "bytes": 415663,
+          "sha256": "3d16aa494d2a4c068cdcaec89ca538950d454451f4befbde702ec5777647aeff",
+          "rows": 7,
+          "newRows": 3
+        }
+      ]
+    },
+    {
+      "sourceId": "michaeltowne-wines",
+      "enabled": true,
+      "decision": "Enable only the public search terms with incremental canonical matches.",
+      "baselinePositiveVariants": 21,
+      "selectedPositiveVariants": 28,
+      "allTestedPositiveVariants": 28,
+      "baselineCanonicalVariants": 4,
+      "selectedCanonicalVariants": 6,
+      "extraCanonicalVariants": [
+        {
+          "variantKey": "56c26c3975627570b0880000:5c0ebaf043c4bd578c30b20f4207bf4addb175dad1c036780e0aba5c01f95dc1",
+          "rawName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+          "canonicalBottleId": "bb_b7ca7cc4ab428ba8",
+          "canonicalName": "Henry McKenna 10 Year",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        },
+        {
+          "variantKey": "5521ceef6561310003530000:f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+          "rawName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+          "canonicalBottleId": "bb_5afa9241206ab963",
+          "canonicalName": "Blanton's Original Single Barrel",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "single barrel"
+        }
+      ],
+      "queryTerms": [
+        "barrel proof",
+        "single barrel"
+      ],
+      "responses": [
+        {
+          "url": "https://www.michaeltownewines.com/shop/?subtype=Bourbon&merchant-id=552597613530650003010000",
+          "finalUrl": "https://www.michaeltownewines.com/shop/?subtype=Bourbon&merchant-id=552597613530650003010000",
+          "status": 200,
+          "bytes": 548599,
+          "sha256": "28b330d538e26591f0a51688d38fec93a231cdca42459b0f96abf9ece227ed89",
+          "rows": 21,
+          "newRows": 21
+        },
+        {
+          "url": "https://www.michaeltownewines.com/shop/?ch-query=barrel+proof&merchant-id=552597613530650003010000",
+          "finalUrl": "https://www.michaeltownewines.com/shop/?ch-query=barrel+proof&merchant-id=552597613530650003010000",
+          "status": 200,
+          "bytes": 470387,
+          "sha256": "15da425986efcc5a4b0a6dbac92fd7e4075c15423aae3b416d79bd1b91409ba6",
+          "rows": 4,
+          "newRows": 4
+        },
+        {
+          "url": "https://www.michaeltownewines.com/shop/?ch-query=single+barrel&merchant-id=552597613530650003010000",
+          "finalUrl": "https://www.michaeltownewines.com/shop/?ch-query=single+barrel&merchant-id=552597613530650003010000",
+          "status": 200,
+          "bytes": 440882,
+          "sha256": "10783c07ad4e40b4bede66743a00d501b75f115c49f0eb88771db73e6172d355",
+          "rows": 5,
+          "newRows": 3
+        }
+      ]
+    },
+    {
+      "sourceId": "off-broadway-wine-spirits",
+      "enabled": true,
+      "decision": "Enable only the public search terms with incremental canonical matches.",
+      "baselinePositiveVariants": 18,
+      "selectedPositiveVariants": 33,
+      "allTestedPositiveVariants": 33,
+      "baselineCanonicalVariants": 5,
+      "selectedCanonicalVariants": 7,
+      "extraCanonicalVariants": [
+        {
+          "variantKey": "56c29217756275139dc70300:3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+          "rawName": "Elijah Craig Barrel Proof",
+          "canonicalBottleId": "bb_be6a0afd4ba5f963",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        },
+        {
+          "variantKey": "56c26c3975627570b0880000:5c0ebaf043c4bd578c30b20f4207bf4addb175dad1c036780e0aba5c01f95dc1",
+          "rawName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+          "canonicalBottleId": "bb_b7ca7cc4ab428ba8",
+          "canonicalName": "Henry McKenna 10 Year",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "single barrel"
+        }
+      ],
+      "queryTerms": [
+        "barrel proof",
+        "single barrel"
+      ],
+      "responses": [
+        {
+          "url": "https://www.offbroadwaydenver.com/shop/?subtype=Bourbon&merchant-id=612ce01cdbcd727f462b4f50",
+          "finalUrl": "https://www.offbroadwaydenver.com/shop/?subtype=Bourbon&merchant-id=612ce01cdbcd727f462b4f50",
+          "status": 200,
+          "bytes": 508623,
+          "sha256": "ae3555b9f523b33a40921188c3e4fa995b32b9cef79e6e486add82d4381e7096",
+          "rows": 18,
+          "newRows": 18
+        },
+        {
+          "url": "https://www.offbroadwaydenver.com/shop/?ch-query=barrel+proof&merchant-id=612ce01cdbcd727f462b4f50",
+          "finalUrl": "https://www.offbroadwaydenver.com/shop/?ch-query=barrel+proof&merchant-id=612ce01cdbcd727f462b4f50",
+          "status": 200,
+          "bytes": 409550,
+          "sha256": "425f8cebeb059f09dabeafc0bd7cbf37af41026fc2842bdc49d81d7f2102636d",
+          "rows": 6,
+          "newRows": 6
+        },
+        {
+          "url": "https://www.offbroadwaydenver.com/shop/?ch-query=single+barrel&merchant-id=612ce01cdbcd727f462b4f50",
+          "finalUrl": "https://www.offbroadwaydenver.com/shop/?ch-query=single+barrel&merchant-id=612ce01cdbcd727f462b4f50",
+          "status": 200,
+          "bytes": 362631,
+          "sha256": "dd411f26ed7d374ecd5719671b590a8704c67e3fea4760b669eaba8cee6e439d",
+          "rows": 10,
+          "newRows": 9
+        }
+      ]
+    },
+    {
+      "sourceId": "heritage-wine-liquor",
+      "enabled": false,
+      "decision": "Keep one category request because tested searches added no canonical matches.",
+      "baselinePositiveVariants": 6,
+      "selectedPositiveVariants": 6,
+      "allTestedPositiveVariants": 9,
+      "baselineCanonicalVariants": 2,
+      "selectedCanonicalVariants": 2,
+      "extraCanonicalVariants": [],
+      "queryTerms": [],
+      "responses": [
+        {
+          "url": "https://heritagewineandliquor.com/shop/?subtype=Bourbon&merchant-id=600e079240fb042738f991d3",
+          "finalUrl": "https://heritagewineandliquor.com/shop/?subtype=Bourbon&merchant-id=600e079240fb042738f991d3",
+          "status": 200,
+          "bytes": 550426,
+          "sha256": "800cc8c759198e4b535507fb7880729a19f9543f340961536bbc8724d862e8e0",
+          "rows": 6,
+          "newRows": 6
+        },
+        {
+          "url": "https://heritagewineandliquor.com/shop/?ch-query=barrel+proof&merchant-id=600e079240fb042738f991d3",
+          "finalUrl": "https://heritagewineandliquor.com/shop/?ch-query=barrel+proof&merchant-id=600e079240fb042738f991d3",
+          "status": 200,
+          "bytes": 415176,
+          "sha256": "d5f725824f330c2824f57419b76feb62372b0e2eac420e81ce61157506e33272",
+          "rows": 2,
+          "newRows": 2
+        },
+        {
+          "url": "https://heritagewineandliquor.com/shop/?ch-query=single+barrel&merchant-id=600e079240fb042738f991d3",
+          "finalUrl": "https://heritagewineandliquor.com/shop/?ch-query=single+barrel&merchant-id=600e079240fb042738f991d3",
+          "status": 200,
+          "bytes": 397156,
+          "sha256": "fac7692cc3f1e4b1e27e40f6b87a6aa99085edc89cb15a80dcd48e7a535f57f7",
+          "rows": 1,
+          "newRows": 1
+        }
+      ]
+    },
+    {
+      "sourceId": "yardsale-wines",
+      "enabled": false,
+      "decision": "Keep one category request because tested searches added no canonical matches.",
+      "baselinePositiveVariants": 19,
+      "selectedPositiveVariants": 19,
+      "allTestedPositiveVariants": 21,
+      "baselineCanonicalVariants": 3,
+      "selectedCanonicalVariants": 3,
+      "extraCanonicalVariants": [],
+      "queryTerms": [],
+      "responses": [
+        {
+          "url": "https://yardsalewines.com/shop/?subtype=Bourbon&merchant-id=68cad9b9bf4d8b59e104c076",
+          "finalUrl": "https://yardsalewines.com/shop/?subtype=Bourbon&merchant-id=68cad9b9bf4d8b59e104c076",
+          "status": 200,
+          "bytes": 405418,
+          "sha256": "2a879befde22a962056fab6157216d471971671448fdad80e1054077cfeed7c0",
+          "rows": 19,
+          "newRows": 19
+        },
+        {
+          "url": "https://yardsalewines.com/shop/?ch-query=barrel+proof&merchant-id=68cad9b9bf4d8b59e104c076",
+          "finalUrl": "https://yardsalewines.com/shop/?ch-query=barrel+proof&merchant-id=68cad9b9bf4d8b59e104c076",
+          "status": 200,
+          "bytes": 345450,
+          "sha256": "e2b5dac7ca5a0ebca8cad219a897054249c8b45b46bf536f5a3ec9661def82c5",
+          "rows": 5,
+          "newRows": 2
+        },
+        {
+          "url": "https://yardsalewines.com/shop/?ch-query=single+barrel&merchant-id=68cad9b9bf4d8b59e104c076",
+          "finalUrl": "https://yardsalewines.com/shop/?ch-query=single+barrel&merchant-id=68cad9b9bf4d8b59e104c076",
+          "status": 200,
+          "bytes": 363549,
+          "sha256": "52545760005597c2c90aa6964c9f2a9d17bfa27013e6e420002ae47b81534ff9",
+          "rows": 5,
+          "newRows": 0
+        }
+      ]
+    },
+    {
+      "sourceId": "7th-ave-wines",
+      "enabled": true,
+      "decision": "Enable only the public search terms with incremental canonical matches.",
+      "baselinePositiveVariants": 21,
+      "selectedPositiveVariants": 24,
+      "allTestedPositiveVariants": 24,
+      "baselineCanonicalVariants": 5,
+      "selectedCanonicalVariants": 6,
+      "extraCanonicalVariants": [
+        {
+          "variantKey": "641a206e033c0d758ceb2070:8679bd29f60ba58d13af56ec735900388a014da163017d358f7e5eb5724432a5",
+          "rawName": "Blanton's Original Single Barrel 750ml",
+          "canonicalBottleId": "bb_5afa9241206ab963",
+          "canonicalName": "Blanton's Original Single Barrel",
+          "tier": "allocated",
+          "confidence": 1,
+          "discoveryTerm": "barrel proof"
+        }
+      ],
+      "queryTerms": [
+        "barrel proof"
+      ],
+      "responses": [
+        {
+          "url": "https://7thavewines.com/shop/?subtype=Bourbon&merchant-id=641a115e5d19eb27cf706d05",
+          "finalUrl": "https://7thavewines.com/shop/?subtype=Bourbon&merchant-id=641a115e5d19eb27cf706d05",
+          "status": 200,
+          "bytes": 422357,
+          "sha256": "72e8b61c6c5c4b7959b361d14cad8da4ae8be6cb2ebef4b186b8978855ff2328",
+          "rows": 21,
+          "newRows": 21
+        },
+        {
+          "url": "https://7thavewines.com/shop/?ch-query=barrel+proof&merchant-id=641a115e5d19eb27cf706d05",
+          "finalUrl": "https://7thavewines.com/shop/?ch-query=barrel+proof&merchant-id=641a115e5d19eb27cf706d05",
+          "status": 200,
+          "bytes": 308189,
+          "sha256": "b28515f6ad47652ed06d0d5562af557372fef6c84dfc4a74887ef5ba1b94868c",
+          "rows": 3,
+          "newRows": 3
+        },
+        {
+          "url": "https://7thavewines.com/shop/?ch-query=single+barrel&merchant-id=641a115e5d19eb27cf706d05",
+          "finalUrl": "https://7thavewines.com/shop/?ch-query=single+barrel&merchant-id=641a115e5d19eb27cf706d05",
+          "status": 200,
+          "bytes": 386203,
+          "sha256": "446343c27d5f4603514e1798c730e936b47770ef2b2fee303b02cb1360174fa0",
+          "rows": 2,
+          "newRows": 0
+        }
+      ]
+    },
+    {
+      "sourceId": "city-wines-ny",
+      "enabled": false,
+      "decision": "Keep one category request because tested searches added no canonical matches.",
+      "baselinePositiveVariants": 22,
+      "selectedPositiveVariants": 22,
+      "allTestedPositiveVariants": 29,
+      "baselineCanonicalVariants": 6,
+      "selectedCanonicalVariants": 6,
+      "extraCanonicalVariants": [],
+      "queryTerms": [],
+      "responses": [
+        {
+          "url": "https://citywinesny.com/shop/?subtype=Bourbon&merchant-id=6716b458e8f66c073d43ac0a",
+          "finalUrl": "https://citywinesny.com/shop/?subtype=Bourbon&merchant-id=6716b458e8f66c073d43ac0a",
+          "status": 200,
+          "bytes": 493437,
+          "sha256": "af92be982e320b6dfc2623c631a8a100138d40e9de688220a75fc77bfc40c4d6",
+          "rows": 22,
+          "newRows": 22
+        },
+        {
+          "url": "https://citywinesny.com/shop/?ch-query=barrel+proof&merchant-id=6716b458e8f66c073d43ac0a",
+          "finalUrl": "https://citywinesny.com/shop/?ch-query=barrel+proof&merchant-id=6716b458e8f66c073d43ac0a",
+          "status": 200,
+          "bytes": 437059,
+          "sha256": "543c4b27c499f74ec75052080e04eafb63b8d0837fd249651fe37211a0eb0d91",
+          "rows": 5,
+          "newRows": 4
+        },
+        {
+          "url": "https://citywinesny.com/shop/?ch-query=single+barrel&merchant-id=6716b458e8f66c073d43ac0a",
+          "finalUrl": "https://citywinesny.com/shop/?ch-query=single+barrel&merchant-id=6716b458e8f66c073d43ac0a",
+          "status": 200,
+          "bytes": 435244,
+          "sha256": "8a5cad6104511a39c2edb3377cd890cb583f15f4e3fd5199e636f0b400314466",
+          "rows": 6,
+          "newRows": 3
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,516 @@
+[
+  {
+    "id": "hurley-wine-market",
+    "url": "https://www.hurleywinemarket.com/shop/?subtype=Bourbon",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:07:00.542Z",
+    "rawSha256": "db6eb4bb526cf54cd68add9f22844978e2116b0dc10715f3fd251c828bb5c311",
+    "fixtureSha256": "fa63330b66c0db369ab19d84209ac4e1395724fc13a7d435c70ed99f660b2c7a",
+    "fixture": "hurley-wine-market.html",
+    "rawBytes": 458210,
+    "fixtureBytes": 22601,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "hurley-wine-market:6060f62c39cc55664c26682a",
+      "name": "Hurley Wine & Liquor Market",
+      "merchantId": "6060f62c39cc55664c26682a",
+      "address": "295 NY-375 #2, West Hurley, NY 12491, USA",
+      "city": "West Hurley",
+      "state": "NY",
+      "stateCode": "NY",
+      "zip": "12491"
+    },
+    "parsedRows": 20,
+    "canonicalMatches": [
+      {
+        "productId": "5521cef065613100036c0000",
+        "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://www.hurleywinemarket.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "quantity": 4,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "56c2959f756275139d130500",
+        "variantId": "7d5e897fba3e08bb538eff8ae83dfe5dffae52991114e443b0cca1c16fdc53a1",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://www.hurleywinemarket.com/shop/product/buffalo-trace-bourbon/56c2959f756275139d130500?option-id=7d5e897fba3e08bb538eff8ae83dfe5dffae52991114e443b0cca1c16fdc53a1",
+        "quantity": 4,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "56c26ee075627570b05e0100",
+        "variantId": "70d733d26a4edea6b52d458543722988129807e5bcba27f9b4691d353abfb3e1",
+        "title": "Bulleit Bourbon",
+        "canonical": "Bulleit Bourbon",
+        "recordId": "bb_13fcb09e58792e06",
+        "confidence": 1,
+        "productUrl": "https://www.hurleywinemarket.com/shop/product/bulleit-bourbon/56c26ee075627570b05e0100?option-id=70d733d26a4edea6b52d458543722988129807e5bcba27f9b4691d353abfb3e1",
+        "quantity": 3,
+        "quantityIsExact": true
+      }
+    ]
+  },
+  {
+    "id": "michaels-liquor-rochester",
+    "url": "https://rochesterwineandspirits.com/shop/?subtype=Bourbon",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:07:01.631Z",
+    "rawSha256": "935f8e99dacc383ca39abcefb241df9d9abd4df90d790c27fad65b54fa5dfdee",
+    "fixtureSha256": "3fd506135b4de535144dbee961ab08e34af0677280869c6b576e60f37cfe1251",
+    "fixture": "michaels-liquor-rochester.html",
+    "rawBytes": 344057,
+    "fixtureBytes": 14492,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "michaels-liquor-rochester:6818c7bc4ef405294491d87c",
+      "name": "Michaels Liquor Store",
+      "merchantId": "6818c7bc4ef405294491d87c",
+      "address": "1430 N Clinton Ave, Rochester, NY 14621, USA",
+      "city": "Rochester",
+      "state": "NY",
+      "stateCode": "NY",
+      "zip": "14621"
+    },
+    "parsedRows": 9,
+    "canonicalMatches": [
+      {
+        "productId": "5521cef065613100036c0000",
+        "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://rochesterwineandspirits.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "quantity": 1,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "5521ceef6561310003530000",
+        "variantId": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+        "title": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+        "canonical": "Blanton's Original Single Barrel",
+        "recordId": "bb_5afa9241206ab963",
+        "confidence": 1,
+        "productUrl": "https://rochesterwineandspirits.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+        "quantity": 6,
+        "quantityIsExact": true
+      }
+    ]
+  },
+  {
+    "id": "bittersweet-wine-liquor",
+    "url": "https://bittersweetwineandliquor.com/shop/?subtype=Bourbon",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:07:19.011Z",
+    "rawSha256": "68773c5a08965e00a4b82c7bf8b1856b53f9ce1a6af2eef24cc5ff4ef1f9fe15",
+    "fixtureSha256": "ca41603c42e46dd6fd4be415f997a2c537c241982d5fcfcf9f71edc9da8daa89",
+    "fixture": "bittersweet-wine-liquor.html",
+    "rawBytes": 430075,
+    "fixtureBytes": 21063,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "bittersweet-wine-liquor:61190a05e22b957ef7343d3f",
+      "name": "Bittersweet Wines & Liquors",
+      "merchantId": "61190a05e22b957ef7343d3f",
+      "address": "3242 Lake Shore Dr, Lake George, NY 12845, USA",
+      "city": "Lake George",
+      "state": "NY",
+      "stateCode": "NY",
+      "zip": "12845"
+    },
+    "parsedRows": 15,
+    "canonicalMatches": [
+      {
+        "productId": "5521cef065613100036c0000",
+        "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://bittersweetwineandliquor.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "quantity": 30,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "5521cefd65613100033e0400",
+        "variantId": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+        "title": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "canonical": "E.H. Taylor Small Batch",
+        "recordId": "bb_152c90f782b801f5",
+        "confidence": 1,
+        "productUrl": "https://bittersweetwineandliquor.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+        "quantity": 5,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "56c2713c75627570b0160200",
+        "variantId": "0dfc4c6944280cee4b244d5a816132db00d053f34f89269babf77dbc90ea2d77",
+        "title": "Bulleit Bourbon",
+        "canonical": "Bulleit Bourbon",
+        "recordId": "bb_13fcb09e58792e06",
+        "confidence": 1,
+        "productUrl": "https://bittersweetwineandliquor.com/shop/product/bulleit-bourbon/56c2713c75627570b0160200?option-id=0dfc4c6944280cee4b244d5a816132db00d053f34f89269babf77dbc90ea2d77",
+        "quantity": 1,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "56c26aa075627570b0070000",
+        "variantId": "616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47",
+        "title": "Angel's Envy Kentucky Straight Bourbon Whiskey",
+        "canonical": "Angel's Envy Bourbon",
+        "recordId": "bb_361a268eaf7afec6",
+        "confidence": 1,
+        "productUrl": "https://bittersweetwineandliquor.com/shop/product/angels-envy-kentucky-straight-bourbon-whiskey/56c26aa075627570b0070000?option-id=616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47",
+        "quantity": 2,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "56702e3d7562755050100100",
+        "variantId": "f11be9eb92edda191179365fd0fa144b30702f990c8510f21c2f1e4a828a80a2",
+        "title": "1792 Small Batch Bourbon",
+        "canonical": "1792 Small Batch",
+        "recordId": "bb_9b3f8371a44671f4",
+        "confidence": 1,
+        "productUrl": "https://bittersweetwineandliquor.com/shop/product/1792-small-batch-bourbon/56702e3d7562755050100100?option-id=f11be9eb92edda191179365fd0fa144b30702f990c8510f21c2f1e4a828a80a2",
+        "quantity": 3,
+        "quantityIsExact": true
+      }
+    ]
+  },
+  {
+    "id": "wj-wines-liquors",
+    "url": "https://wjwine.org/shop/?subtype=Bourbon",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:07:20.043Z",
+    "rawSha256": "653f18c403a15cf56b2364f75937531624e575e7f038f3a0c604a85740cbb118",
+    "fixtureSha256": "bfe4363074552aaf67a5fc7d21c939317ebaad74d69a3ba2dc7cab2cf1efdb0d",
+    "fixture": "wj-wines-liquors.html",
+    "rawBytes": 584562,
+    "fixtureBytes": 22173,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "wj-wines-liquors:5eea24de2157b828af6ac17a",
+      "name": "W & J Wine",
+      "merchantId": "5eea24de2157b828af6ac17a",
+      "address": "468 4th Ave, Brooklyn, NY 11215, USA",
+      "city": "Brooklyn",
+      "state": "NY",
+      "stateCode": "NY",
+      "zip": "11215"
+    },
+    "parsedRows": 18,
+    "canonicalMatches": [
+      {
+        "productId": "633e085773d98238335c3f00",
+        "variantId": "24f19b7a4c3f67a2dda7daeca433763a3b503775dc56d00dba446dbdc1e2aa77",
+        "title": "Maker's Mark Wood Finishing Series Brt-01",
+        "canonical": "Maker's Mark Wood Finishing Series",
+        "recordId": "bb_dcbadbe1cd262fe4",
+        "confidence": 0.8292682926829268,
+        "productUrl": "https://wjwine.org/shop/product/makers-mark-wood-finishing-series-brt-01/633e085773d98238335c3f00?option-id=24f19b7a4c3f67a2dda7daeca433763a3b503775dc56d00dba446dbdc1e2aa77",
+        "quantity": 14,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "633deb196968ec1ff7f988f8",
+        "variantId": "c869f909e6d23ae1464aa1d78fe08688e8bec715fceb9fdb5de4cd37655f8a80",
+        "title": "Maker's Mark Wood Finishing Series Brt-02",
+        "canonical": "Maker's Mark Wood Finishing Series",
+        "recordId": "bb_dcbadbe1cd262fe4",
+        "confidence": 0.8292682926829268,
+        "productUrl": "https://wjwine.org/shop/product/makers-mark-wood-finishing-series-brt-02/633deb196968ec1ff7f988f8?option-id=c869f909e6d23ae1464aa1d78fe08688e8bec715fceb9fdb5de4cd37655f8a80",
+        "quantity": 6,
+        "quantityIsExact": true
+      }
+    ]
+  },
+  {
+    "id": "springs-liquor-outlet",
+    "url": "https://www.springsliquor.com/shop/?subtype=Bourbon",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:05:48.594Z",
+    "rawSha256": "8b21f67a8eee4874dc435da810a6ff29f67fd192ecbda69526e6078009170fbc",
+    "fixtureSha256": "4c2db139047fbee5bc3c606b1f0ccd2c572c584bbcad44f801354625e8757d74",
+    "fixture": "springs-liquor-outlet.html",
+    "rawBytes": 507735,
+    "fixtureBytes": 22647,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "springs-liquor-outlet:60e4f95ccedf7461ed8e6bf4",
+      "name": "Springs Liquor Outlet",
+      "merchantId": "60e4f95ccedf7461ed8e6bf4",
+      "address": "6010 Carefree Cir N, Colorado Springs, CO 80922, USA",
+      "city": "Colorado Springs",
+      "state": "CO",
+      "stateCode": "CO",
+      "zip": "80922"
+    },
+    "parsedRows": 7,
+    "canonicalMatches": []
+  },
+  {
+    "id": "springs-liquor-outlet",
+    "url": "https://www.springsliquor.com/shop/?ch-query=buffalo+trace&merchant-id=60e4f95ccedf7461ed8e6bf4",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:13:16.162Z",
+    "rawSha256": "757090ba1a11cdceed8eac75f951437674fa172904c58a5ab766c1348d041ebb",
+    "fixtureSha256": "743eb93f931f2330241c7d6195e6d3281daa950a85577ea77427e4cf47a83a5d",
+    "fixture": "springs-liquor-outlet.buffalo-trace.html",
+    "rawBytes": 389617,
+    "fixtureBytes": 12789,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "springs-liquor-outlet:60e4f95ccedf7461ed8e6bf4",
+      "name": "Springs Liquor Outlet",
+      "merchantId": "60e4f95ccedf7461ed8e6bf4",
+      "address": "6010 Carefree Cir N, Colorado Springs, CO 80922, USA",
+      "city": "Colorado Springs",
+      "state": "CO",
+      "stateCode": "CO",
+      "zip": "80922"
+    },
+    "parsedRows": 5,
+    "canonicalMatches": [
+      {
+        "productId": "5521cef065613100036c0000",
+        "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://www.springsliquor.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "quantity": 24,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "5521cefd65613100033e0400",
+        "variantId": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+        "title": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "canonical": "E.H. Taylor Small Batch",
+        "recordId": "bb_152c90f782b801f5",
+        "confidence": 1,
+        "productUrl": "https://www.springsliquor.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+        "quantity": 44,
+        "quantityIsExact": true
+      }
+    ]
+  },
+  {
+    "id": "wallabys-liquor-warehouse",
+    "url": "https://wallabysliquorwarehouse.com/shop/?subtype=Bourbon",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:05:49.895Z",
+    "rawSha256": "39f79cb15ac8cde1791e9b90eda34fed653a418aa1a9d21670c91aa7dbf4c0f7",
+    "fixtureSha256": "dcb2dcff710658bdbcd0a682ac7f07205c9082fdb7b6397b7c7800ced6315e5a",
+    "fixture": "wallabys-liquor-warehouse.html",
+    "rawBytes": 500705,
+    "fixtureBytes": 27436,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "wallabys-liquor-warehouse:637b8843a678e952077d5fd5",
+      "name": "WALLABYS LIQUOR WAREHOUSE",
+      "merchantId": "637b8843a678e952077d5fd5",
+      "address": "1550 S Parker Rd, Denver, CO 80231, USA",
+      "city": "Denver",
+      "state": "CO",
+      "stateCode": "CO",
+      "zip": "80231"
+    },
+    "parsedRows": 8,
+    "canonicalMatches": []
+  },
+  {
+    "id": "wallabys-liquor-warehouse",
+    "url": "https://wallabysliquorwarehouse.com/shop/?ch-query=buffalo+trace&merchant-id=637b8843a678e952077d5fd5",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:13:17.197Z",
+    "rawSha256": "e06c13bd17c322eee1145fdec3e758d4c1bde0ff89bac1a5100c14b7597d5484",
+    "fixtureSha256": "4d08b47b395286b829051f0c9fec59773c3e66e9cfe443cd8333b316b60bfc7c",
+    "fixture": "wallabys-liquor-warehouse.buffalo-trace.html",
+    "rawBytes": 256130,
+    "fixtureBytes": 6963,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "wallabys-liquor-warehouse:637b8843a678e952077d5fd5",
+      "name": "WALLABYS LIQUOR WAREHOUSE",
+      "merchantId": "637b8843a678e952077d5fd5",
+      "address": "1550 S Parker Rd, Denver, CO 80231, USA",
+      "city": "Denver",
+      "state": "CO",
+      "stateCode": "CO",
+      "zip": "80231"
+    },
+    "parsedRows": 4,
+    "canonicalMatches": [
+      {
+        "productId": "5521cef065613100036c0000",
+        "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://wallabysliquorwarehouse.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "quantity": 0,
+        "quantityIsExact": false
+      },
+      {
+        "productId": "57cd802e69702d7af7881300",
+        "variantId": "cedf40bf5c8a9b955980b2ea65dfe416ed43bcb72e0f05b12b37f4adad494d1b",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://wallabysliquorwarehouse.com/shop/product/buffalo-trace-bourbon/57cd802e69702d7af7881300?option-id=cedf40bf5c8a9b955980b2ea65dfe416ed43bcb72e0f05b12b37f4adad494d1b",
+        "quantity": 30,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "5521cefd65613100033e0400",
+        "variantId": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+        "title": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "canonical": "E.H. Taylor Small Batch",
+        "recordId": "bb_152c90f782b801f5",
+        "confidence": 1,
+        "productUrl": "https://wallabysliquorwarehouse.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+        "quantity": 0,
+        "quantityIsExact": false
+      }
+    ]
+  },
+  {
+    "id": "peak-wine-spirits",
+    "url": "https://peakwineandspirits.com/shop/?subtype=Bourbon",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:05:50.980Z",
+    "rawSha256": "8e99737b916a468203611324994eaef4b7d7bc8e7e9502e0ea2974ed84143112",
+    "fixtureSha256": "46994a61aff959580934d4c250f0f8dda553795a1a520fcdee29e7c3bd4803a4",
+    "fixture": "peak-wine-spirits.html",
+    "rawBytes": 473767,
+    "fixtureBytes": 23071,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "peak-wine-spirits:5e7e18a25c462e7abe648388",
+      "name": "Peak Wine and Spirits",
+      "merchantId": "5e7e18a25c462e7abe648388",
+      "address": "150 N Jefferson St b2, Nederland, CO 80466, USA",
+      "city": "Nederland",
+      "state": "CO",
+      "stateCode": "CO",
+      "zip": "80466"
+    },
+    "parsedRows": 13,
+    "canonicalMatches": [
+      {
+        "productId": "5521cef065613100036c0000",
+        "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://peakwineandspirits.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "quantity": 9,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "56c26ee075627570b05e0100",
+        "variantId": "70d733d26a4edea6b52d458543722988129807e5bcba27f9b4691d353abfb3e1",
+        "title": "Bulleit Bourbon",
+        "canonical": "Bulleit Bourbon",
+        "recordId": "bb_13fcb09e58792e06",
+        "confidence": 1,
+        "productUrl": "https://peakwineandspirits.com/shop/product/bulleit-bourbon/56c26ee075627570b05e0100?option-id=70d733d26a4edea6b52d458543722988129807e5bcba27f9b4691d353abfb3e1",
+        "quantity": 15,
+        "quantityIsExact": true
+      }
+    ]
+  },
+  {
+    "id": "south-park-liquor",
+    "url": "https://southparkliquor.shop/shop/?subtype=Bourbon",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:07:17.655Z",
+    "rawSha256": "5f99450e763292ae95716f5119337235538f1199c39f1a4c427f3337f704e96b",
+    "fixtureSha256": "9f433afc49a91f1faf335e79d501e4ea1cfa45145f6ededf4b14115996332324",
+    "fixture": "south-park-liquor.html",
+    "rawBytes": 420019,
+    "fixtureBytes": 20897,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "south-park-liquor:697822d31fb51b26ba80ab47",
+      "name": "South Park Liquor",
+      "merchantId": "697822d31fb51b26ba80ab47",
+      "address": "7945 S Broadway, Littleton, CO 80122, USA",
+      "city": "Littleton",
+      "state": "CO",
+      "stateCode": "CO",
+      "zip": "80122"
+    },
+    "parsedRows": 4,
+    "canonicalMatches": []
+  },
+  {
+    "id": "south-park-liquor",
+    "url": "https://southparkliquor.shop/shop/?ch-query=buffalo+trace&merchant-id=697822d31fb51b26ba80ab47",
+    "httpStatus": 200,
+    "capturedAt": "2026-10-22T12:13:36.373Z",
+    "rawSha256": "cfc732b7764531d7c137992d938e385d6074dcfd5d6311ea7b55f932187bd182",
+    "fixtureSha256": "fd751293ef5bcd5c27a8af3530e3c4be4b1640ed808e58e70ded79e74884b534",
+    "fixture": "south-park-liquor.buffalo-trace.html",
+    "rawBytes": 241448,
+    "fixtureBytes": 4903,
+    "captureTransform": "Only merchant identity, pickup, product, variant availability, quantity, price and format fields retained; no values invented.",
+    "firstPartyMerchant": {
+      "id": "south-park-liquor:697822d31fb51b26ba80ab47",
+      "name": "South Park Liquor",
+      "merchantId": "697822d31fb51b26ba80ab47",
+      "address": "7945 S Broadway, Littleton, CO 80122, USA",
+      "city": "Littleton",
+      "state": "CO",
+      "stateCode": "CO",
+      "zip": "80122"
+    },
+    "parsedRows": 4,
+    "canonicalMatches": [
+      {
+        "productId": "5521cef065613100036c0000",
+        "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://southparkliquor.shop/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+        "quantity": 41,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "56c2959f756275139d130500",
+        "variantId": "7d5e897fba3e08bb538eff8ae83dfe5dffae52991114e443b0cca1c16fdc53a1",
+        "title": "Buffalo Trace Bourbon",
+        "canonical": "Buffalo Trace Bourbon",
+        "recordId": "bb_317836b9e64a7620",
+        "confidence": 1,
+        "productUrl": "https://southparkliquor.shop/shop/product/buffalo-trace-bourbon/56c2959f756275139d130500?option-id=7d5e897fba3e08bb538eff8ae83dfe5dffae52991114e443b0cca1c16fdc53a1",
+        "quantity": 14,
+        "quantityIsExact": true
+      },
+      {
+        "productId": "5521cefd65613100033e0400",
+        "variantId": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+        "title": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "canonical": "E.H. Taylor Small Batch",
+        "recordId": "bb_152c90f782b801f5",
+        "confidence": 1,
+        "productUrl": "https://southparkliquor.shop/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+        "quantity": 32,
+        "quantityIsExact": true
+      }
+    ]
+  }
+]

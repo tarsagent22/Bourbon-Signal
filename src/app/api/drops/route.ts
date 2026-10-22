@@ -24,7 +24,7 @@ import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedC
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields, parseNewYorkAreaQuery, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
-import { coloradoAreaMatchesFields, parseColoradoAreaQuery } from "@/lib/colorado-area";
+import { coloradoAreaMatchesFields, parseColoradoAreaQuery, SUPPORTED_COLORADO_AREAS } from "@/lib/colorado-area";
 import {
   demandMetroAreaMatchesFields,
   demandMetroBoardGroupMatchesFields,
@@ -410,7 +410,7 @@ export async function GET(request: Request) {
           drop.board_name,
           drop.display_location,
           (drop as Record<string, unknown>).locationName,
-        ], coAreas.areas.length ? coAreas.areas : ["Denver Metro"]));
+        ], coAreas.areas.length ? coAreas.areas : SUPPORTED_COLORADO_AREAS));
       }
       return items;
     };

@@ -28,9 +28,13 @@
       "metro:ny:michaeltowne-wines",
       "metro:ny:city-wines-ny",
       "metro:ny:five-star-wine-spirits-buffalo",
-      "metro:ny:bailey-discount-liquor-wine"
+      "metro:ny:bailey-discount-liquor-wine",
+      "metro:ny:hurley-wine-market",
+      "metro:ny:michaels-liquor-rochester",
+      "metro:ny:bittersweet-wine-liquor",
+      "metro:ny:wj-wines-liquors"
     ],
-    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register twenty bounded, isolated New York City, Nassau County, and Buffalo first-party retailer sources behind the legacy precision runtime."
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register 24 bounded, isolated first-party retailer sources behind the legacy precision runtime."
   },
   "storeIdentity": {
     "mode": "exact_allowlisted_merchant_and_premises",
@@ -129,7 +133,11 @@
         "metro:ny:michaeltowne-wines",
         "metro:ny:city-wines-ny",
         "metro:ny:five-star-wine-spirits-buffalo",
-        "metro:ny:bailey-discount-liquor-wine"
+        "metro:ny:bailey-discount-liquor-wine",
+        "metro:ny:hurley-wine-market",
+        "metro:ny:michaels-liquor-rochester",
+        "metro:ny:bittersweet-wine-liquor",
+        "metro:ny:wj-wines-liquors"
       ],
       "assertion": "Historical shadow/canary evidence remains immutable activation proof; current source growth is verified through bounded live source checks, state quality gates, and targeted production publication."
     },
