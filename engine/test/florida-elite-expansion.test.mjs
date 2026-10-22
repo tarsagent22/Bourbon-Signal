@@ -25,6 +25,7 @@ import {
 } from '../src/collectors/florida-cityhive-policy.mjs';
 import { oldestSourceEvidenceCohort } from '../src/collectors/cityhive-hardening.mjs';
 import { isFloridaRetailerInventory } from '../src/florida-retailer-policy.mjs';
+import { collectFloridaAbcExpansionFromPayload, FLORIDA_ABC_STORES } from '../src/collectors/florida-15-20-expansion.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { markStaleReport } from '../src/state-report-fallback.mjs';
 import { buildFloridaStandaloneStoreLocationSignals, legacyPrecisionRuntimeOptions, precisionExistingSignalsForState } from '../src/collectors/precision-probes.mjs';
@@ -287,6 +288,40 @@ test('Florida verifier rejects evidence older than 90 minutes and alertable stal
     const freshAt = new Date(Date.now() - 89 * 60_000).toISOString();
     assert.equal(runVerifier(makeFixture(freshAt)).status, 0);
     assert.equal(runVerifier(makeFixture(freshAt), ['--allow-safe-stale-fallback']).status, 0);
+    const abcInventory = collectFloridaAbcExpansionFromPayload({
+      observedAt: freshAt,
+      matchBottle: () => ({ record: { id: 'buffalo-trace-bourbon', canonical: 'Buffalo Trace Bourbon', tier: 'allocated' }, match: { confidence: 0.96 } }),
+      payload: { results: [{
+        name: 'Buffalo Trace Bourbon 750ml', sku: '760606', url: '/buffalo-trace-bourbon/760606', ss_in_stock: '1',
+        ss_location_availability: FLORIDA_ABC_STORES.map((store) => Number(store.storeNumber)),
+        ss_locations: JSON.stringify(Object.fromEntries(FLORIDA_ABC_STORES.map((store) => [store.storeNumber, {
+          value: store.name, child_sku: `760606-${store.storeNumber}`, inventory_level: 2,
+          id: 6000 + Number(store.storeNumber), option_value_id: 7000 + Number(store.storeNumber), calculated_price: 34.99,
+        }]))),
+      }] },
+    });
+    assert.equal(abcInventory.length, 126);
+    assert.ok(abcInventory.every(isFloridaRetailerInventory));
+    const uppercaseOfficialFixture = makeFixture(freshAt, (signals) => [
+      ...signals.filter((signal) => signal.city !== 'Gainesville' || signal.eventType === 'retailer_store_location'),
+      ...abcInventory,
+    ]);
+    const uppercaseResult = runVerifier(uppercaseOfficialFixture);
+    assert.equal(uppercaseResult.status, 0, `exact-store ABC GAINESVILLE inventory must satisfy the Gainesville gate when Bourbon Barn is unavailable: ${uppercaseResult.stderr}`);
+    assert.ok(JSON.parse(uppercaseResult.stdout).cities.includes('GAINESVILLE'), 'comparison must preserve official source city values');
+    const missingGainesville = {
+      ...uppercaseOfficialFixture,
+      signals: uppercaseOfficialFixture.signals.filter((signal) => signal.eventType === 'retailer_store_location' || String(signal.city || '').toLowerCase() !== 'gainesville'),
+    };
+    const missingResult = runVerifier(missingGainesville);
+    assert.notEqual(missingResult.status, 0, 'directory rows alone must not satisfy the exact-city inventory gate');
+    assert.match(missingResult.stderr, /Expected fresh exact-store Florida expansion inventory in Gainesville/);
+    const forgedCity = {
+      ...uppercaseOfficialFixture,
+      signals: uppercaseOfficialFixture.signals.map((signal) => signal.sourceChain === 'abc-fine-wine-spirits' && signal.city === 'GAINESVILLE'
+        ? { ...signal, city: 'Gainesville' } : signal),
+    };
+    assert.notEqual(runVerifier(forgedCity).status, 0, 'verifier comparison normalization must not relax the immutable ABC source identity');
     const retainedNotDue = { ...makeFixture(freshAt), status: 'useful_retained_not_due' };
     assert.equal(runVerifier(retainedNotDue, ['--allow-safe-stale-fallback']).status, 0, 'scheduled mode accepts fresh non-stale retained-not-due evidence');
     assert.notEqual(runVerifier(retainedNotDue).status, 0, 'targeted mode still requires a fresh live collection');

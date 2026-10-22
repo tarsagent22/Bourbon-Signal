@@ -43,6 +43,9 @@ const safeStaleFallbackMode = allowSafeStaleFallback && /^stale_/.test(String(st
 const coverageInventory = safeStaleFallbackMode ? safeRetainedInventory : trusted;
 const trustedStores = new Set(coverageInventory.map((signal) => signal.storeId));
 const trustedCities = new Set(coverageInventory.map((signal) => signal.city));
+const cityKey = (city) => String(city || '').trim().toLowerCase();
+const trustedCityKeys = new Set([...trustedCities].map(cityKey).filter(Boolean));
+const hasTrustedCity = (city) => trustedCityKeys.has(cityKey(city));
 const pensacolaShopify = trusted.filter((signal) => signal.sourceLabel === PENSACOLA_SHOPIFY_SOURCE.sourceLabel);
 const configuredLocations = signals.filter((signal) => signal.eventType === 'retailer_store_location' && signal.raw?.configuredStoreIdentity === true);
 const unsafe = activeInventory.filter((signal) => !isFresh(signal)
@@ -73,15 +76,15 @@ const minimumConfiguredLocationCount = allowSafeStaleFallback ? 34 : 36;
 assert(configuredLocations.length >= minimumConfiguredLocationCount, `Expected at least ${minimumConfiguredLocationCount} reviewed Florida configured store locations; got ${configuredLocations.length}.`);
 assert(coverageInventory.length > 0, 'Expected guarded Florida retailer inventory signals or a safe retained fallback.');
 assert(trustedStores.size >= minimumStoreCount, `Expected at least ${minimumStoreCount} exact Florida inventory stores; got ${trustedStores.size}.`);
-assert(trustedCities.size >= minimumCityCount, `Expected at least ${minimumCityCount} Florida inventory cities; got ${trustedCities.size}.`);
+assert(trustedCityKeys.size >= minimumCityCount, `Expected at least ${minimumCityCount} Florida inventory cities; got ${trustedCityKeys.size}.`);
 assert(new Set(coverageInventory.map((signal) => signal.sourceLabel)).size >= minimumSourceCount, `Expected at least ${minimumSourceCount} Florida retailer inventory sources.`);
-assert(trustedCities.has('Kissimmee') || trustedCities.has('Orlando'), 'Expected verified Central Florida inventory.');
-assert([...trustedCities].some((city) => ['Tampa', 'Clearwater', 'Riverview', 'Largo', 'Saint Petersburg', 'Brandon', 'Wesley Chapel', 'Lutz'].includes(city)), 'Expected verified Tampa Bay inventory.');
+assert(hasTrustedCity('Kissimmee') || hasTrustedCity('Orlando'), 'Expected verified Central Florida inventory.');
+assert(['Tampa', 'Clearwater', 'Riverview', 'Largo', 'Saint Petersburg', 'Brandon', 'Wesley Chapel', 'Lutz'].some(hasTrustedCity), 'Expected verified Tampa Bay inventory.');
 if (!allowSafeStaleFallback) {
   for (const city of ['Jacksonville', 'Sarasota', 'Gainesville', 'West Palm Beach', 'Fort Lauderdale']) {
-    assert(trustedCities.has(city), `Expected fresh exact-store Florida expansion inventory in ${city}.`);
+    assert(hasTrustedCity(city), `Expected fresh exact-store Florida expansion inventory in ${city}.`);
   }
-  assert([...trustedCities].some((city) => ['Pensacola', 'Gulf Breeze', 'Fort Walton Beach', 'Destin', 'Crestview', 'Panama City Beach'].includes(city)), 'Expected fresh exact-store Panhandle inventory.');
+  assert(['Pensacola', 'Gulf Breeze', 'Fort Walton Beach', 'Destin', 'Crestview', 'Panama City Beach'].some(hasTrustedCity), 'Expected fresh exact-store Panhandle inventory.');
   assert(pensacolaShopify.some((signal) => {
     const store = PENSACOLA_SHOPIFY_STORES.get(signal.storeId);
     return store && signal.storeAddress === store.address && signal.raw?.variantPickupVerified === true;
