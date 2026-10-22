@@ -593,6 +593,7 @@ jobs:
             engine/out/control-plane/**
             engine/out/site/stats.json
             engine/out/site/state-health.json
+            engine/out/az-expansion-verification.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json

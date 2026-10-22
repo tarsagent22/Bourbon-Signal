@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { collectArizonaAlbertsons } from '../src/collectors/precision-probes.mjs';
-import { canonicalizeSignal } from '../src/operational-report.mjs';
-import { bibleLookup, buildDrops, buildCurrentInventoryAlertsFromDrops } from '../src/export-site-contract.mjs';
+import { canonicalizeSignal, candidateFromChange } from '../src/operational-report.mjs';
+import { bibleLookup, buildDrops, buildAlerts, buildCurrentInventoryAlertsFromDrops, applyAlertPolicyToCandidate } from '../src/export-site-contract.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { diagnoseArizonaExpansionArtifact, verifyArizonaExpansionArtifact } from '../src/verify-az.mjs';
 
@@ -143,5 +143,28 @@ test('copied valid public rows cannot satisfy the 38-row floor or inflate alert 
   assert.equal(diagnostics.publicRows, 2, 'the floor counts distinct source/store/product/URL identities');
   assert.match(diagnostics.errors.join('\n'), /Duplicate published Arizona inventory/);
   assert.match(diagnostics.errors.join('\n'), /38-row baseline/);
-  rejected(input, (row) => { row.alerts.alerts.push(structuredClone(row.alerts.alerts[0])); }, /Duplicate Arizona alert identities/);
+  rejected(input, (row) => { row.alerts.alerts.push(structuredClone(row.alerts.alerts[0])); }, /candidate keys must be unique and nonempty/);
+});
+
+test('reported changes and current inventory retain distinct exporter candidate keys for the same two public identities', async (t) => {
+  const input = await capturedPipeline(t);
+  const operational = JSON.parse(JSON.stringify(input.state.signals.map((signal) => canonicalizeSignal(signal, bible))));
+  const reported = buildAlerts({ candidates: operational.map((signal) => candidateFromChange({ type: 'new_signal', key: signal.key, before: null, after: signal }, false)) });
+  const current = buildCurrentInventoryAlertsFromDrops(input.drops.drops);
+  // Match the actual exporter: policy first, then dedupeKey-or-id uniqueness.
+  const combined = [...new Map([...reported, ...current].map(applyAlertPolicyToCandidate)
+    .map((candidate) => [candidate.dedupeKey || candidate.id, candidate])).values()].filter((candidate) => candidate.eligibleForDelivery);
+  assert.equal(reported.length, 2);
+  assert.equal(current.length, 2);
+  assert.equal(combined.length, 4);
+  assert.equal(new Set(combined.map((row) => [row.sourceLabel, row.sourceChain, row.merchantId, row.storeId, row.productId, row.sourceUrl].join('|'))).size, 2);
+  assert.equal(new Set(combined.map((row) => row.dedupeKey || row.id)).size, 4);
+  assert.deepEqual(new Set(combined.map((row) => row.changeType)), new Set(['new_signal', 'current_inventory_signal']));
+  input.alerts.alerts = JSON.parse(JSON.stringify(combined));
+  assert.equal(verifyArizonaExpansionArtifact(input).alerts, 4);
+  rejected(input, (row) => { row.alerts.alerts.push(structuredClone(row.alerts.alerts[0])); }, /candidate keys must be unique and nonempty/);
+  rejected(input, (row) => { delete row.alerts.alerts[0].dedupeKey; delete row.alerts.alerts[0].id; }, /candidate keys must be unique and nonempty/);
+  const fallback = structuredClone(input);
+  delete fallback.alerts.alerts[0].dedupeKey;
+  assert.equal(verifyArizonaExpansionArtifact(fallback).alerts, 4, 'the exporter falls back to a unique candidate id');
 });
