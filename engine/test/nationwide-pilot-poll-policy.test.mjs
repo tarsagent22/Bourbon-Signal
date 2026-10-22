@@ -29,6 +29,13 @@ function assertSiblingsUnchanged(rows) {
   for (const sibling of others) assert.deepEqual(rows.find(row => row.id === sibling.id), sibling);
 }
 
+test('pilot single-attempt policy cannot hide earlier transient request costs', () => {
+  for(const reason of ['timeout','transport_failure','http_500']) {
+    assert.equal(recoveryPolicy(reason,0,0,{noImmediateRetry:true}).retry,false);
+    assert.equal(recoveryPolicy(reason).retry,true,'existing sibling retry policy remains intact');
+  }
+});
+
 test('pilot ownership is exactly one reviewed store/product/variant while existing broad sources retain their scope', () => {
   assert.equal(sourceScopeMatches(source, owned), true);
   for (const row of others) assert.equal(sourceScopeMatches(source, row), false, row.id);

@@ -7,7 +7,7 @@ export function recoveryPolicy(reason, failures = 0, retryAfter = 0, source = {}
   const retrySeconds=Number.isFinite(Number(retryAfter))?Math.max(0,Number(retryAfter)):0;
   return { backoff: Math.min(2147483647, Math.max(delay, retrySeconds, sourcePause)),
     pause: Math.max(sourcePause, identity ? 21600 : dependency ? 3600 : failures >= 4 ? 3600 : 0),
-    retry: !identity && !dependency && /timeout|transport|http_5\d\d/.test(reason) };
+    retry: !source.noImmediateRetry && !identity && !dependency && /timeout|transport|http_5\d\d/.test(reason) };
 }
 export function sourceScopeMatches(source, row) {
   if (source.kind === 'oh-probe' || row.state !== source.state) return false;

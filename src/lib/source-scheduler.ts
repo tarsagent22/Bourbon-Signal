@@ -24,8 +24,9 @@ export const POLL_SOURCES: Row[] = [
   {id:'fl:jensens-miami',state:'FL',kind:'jensens',chain:'jensens-liquors',cadence:1800,expiryHours:1,
     storeIds:[JENSENS_RUNTIME_SOURCE.store.id],productIds:JENSENS_RUNTIME_SOURCE.products.map(p=>p.productId),
     variantIds:JENSENS_RUNTIME_SOURCE.products.map(p=>p.variantId),
-    failClosedOnError:true,accessDeniedPauseSeconds:86400,rateLimitedPauseSeconds:14400},
-  ...CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.map((s: Row) => ({id:`ca:${s.id}`,state:'CA',kind:'ca',chain:s.id,cadence:1800,expiryHours:1,definition:s})),
+    failClosedOnError:true,noImmediateRetry:true,accessDeniedPauseSeconds:86400,rateLimitedPauseSeconds:14400},
+  ...CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.map((s: Row) => ({id:`ca:${s.id}`,state:'CA',kind:'ca',chain:s.id,cadence:1800,expiryHours:1,definition:s,
+    noImmediateRetry:s.id==='mission-trails-wine-spirits'})),
   {id:'oh:browser-artifact',state:'OH',kind:'oh-probe',cadence:900,expiryHours:1},
 ];
 // Keep disabled sources registered as partition owners so old stock cannot revive.

@@ -5,6 +5,7 @@ import * as crypto from 'node:crypto';
 import { transform } from 'esbuild';
 import * as policy from '../engine/src/sources/poll-policy.mjs';
 import { JENSENS_RUNTIME_SOURCE } from '../engine/src/collectors/florida-jensens-runtime-source.mjs';
+import { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES } from '../engine/src/collectors/california-san-diego-surfaces.mjs';
 
 type Row = Record<string, any>;
 
@@ -26,7 +27,7 @@ async function runtime() {
     if (name === 'node:crypto') return crypto;
     if (name.endsWith('/sources/poll-policy.mjs')) return policy;
     if (name.endsWith('/florida-jensens-runtime-source.mjs')) return { JENSENS_RUNTIME_SOURCE, collectJensensSource: forbidden('collector') };
-    if (name.endsWith('/california-san-diego-surfaces.mjs')) return { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES: [] };
+    if (name.endsWith('/california-san-diego-surfaces.mjs')) return { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES };
     if (name === './alert-queue/runtime') return { createProductionAlertQueueSqlExecutor: forbidden('database') };
     return unavailable;
   });
@@ -57,6 +58,7 @@ test('actual runtime wrappers retain narrow pilot disable after the global sched
   Object.assign(process.env, variables);
   try {
     const { scheduler, wrapper, touches } = await runtime();
+    for(const id of ['fl:jensens-miami','ca:mission-trails-wine-spirits']) assert.equal(scheduler.POLL_SOURCES.find((source:Row)=>source.id===id).noImmediateRetry,true);
     assert.equal(scheduler.schedulerEnabled(), false);
     const rows = [owned, ...siblings];
     const result = await wrapper.readRuntimeSourceDropOverlay(rows, 'snapshot-test');
