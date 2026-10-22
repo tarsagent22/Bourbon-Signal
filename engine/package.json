@@ -23,6 +23,7 @@
     "test:quality-states": "node src/test-state-quality-scorecard.mjs",
     "verify:pristine": "npm run export:site && npm run repeatability && npm run export:site && npm run quality && npm test",
     "verify:pa": "node src/verify-pa.mjs",
+    "verify:pa:expansion": "node src/verify-pa-expansion.mjs",
     "verify:al": "node src/verify-al.mjs",
     "verify:wv": "node src/verify-wv.mjs",
     "verify:in": "node src/verify-in.mjs",

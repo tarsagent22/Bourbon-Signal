@@ -1848,7 +1848,7 @@ function alertDropSort(a, b) {
     || String(b.observedAt || b.lastConfirmedAt || b.displayAt || '').localeCompare(String(a.observedAt || a.lastConfirmedAt || a.displayAt || ''));
 }
 
-function capAlertCandidatesByState(candidates, limit = 200, perStateCap = 50) {
+export function capAlertCandidatesByState(candidates, limit = 200, perStateCap = 50) {
   const selected = [];
   const byState = new Map();
   for (const candidate of candidates.slice().sort(alertCandidateSort)) {

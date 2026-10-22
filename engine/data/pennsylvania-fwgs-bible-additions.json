@@ -1,0 +1,61 @@
+{
+  "notes": "Distinct expressions required by the six reviewed FWGS pickup product identities captured 2026-10-22T17:03:05.073Z. Producer product pages were reviewed separately. Keep aliases exact and minimal; full FWGS source titles are resolved only by the source-scoped SKU/title/brand/category/type/route matcher. Standard tier does not assert local scarcity.",
+  "families": [
+    {
+      "canonical": "Larceny Barrel Proof",
+      "aliases": ["Larceny Barrel Proof"],
+      "tier": "standard",
+      "producer": "Heaven Hill",
+      "sourceStates": ["PA"],
+      "sourceUrls": ["https://larcenybourbon.com/barrel-proof"],
+      "reviewedFwgsProduct": {
+        "sku": "000082899",
+        "name": "John E Fitzgerald Larceny Straight Bourbon Barrel Proof",
+        "brand": "Larceny",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/john-e-fitzgerald-larceny-straight-bourbon-barrel-proof/product/000082899",
+        "capturedAt": "2026-10-22T17:03:05.073Z"
+      }
+    },
+    {
+      "canonical": "Knob Creek 12 Year",
+      "aliases": ["Knob Creek 12 Year"],
+      "tier": "standard",
+      "producer": "Jim Beam",
+      "sourceStates": ["PA"],
+      "sourceUrls": ["https://www.knobcreek.com/whiskies/12-year-old-bourbon-whiskey"],
+      "reviewedFwgsProduct": {
+        "sku": "000098329",
+        "name": "Knob Creek Straight Bourbon 12 Year Old",
+        "brand": "Knob Creek",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/knob-creek-straight-bourbon-12-year-old/product/000098329",
+        "capturedAt": "2026-10-22T17:03:05.073Z"
+      }
+    },
+    {
+      "canonical": "1792 Bottled in Bond",
+      "aliases": ["1792 Bottled in Bond"],
+      "tier": "limited",
+      "producer": "Barton",
+      "sourceStates": ["PA"],
+      "sourceUrls": ["https://www.1792bourbon.com/bottled-in-bond/"],
+      "tierEvidence": {
+        "sourceUrl": "https://www.1792bourbon.com/bottled-in-bond/",
+        "producerDesignation": "Limited Edition",
+        "reason": "The producer designates this expression Limited Edition; this is not an assertion of local store scarcity."
+      },
+      "reviewedFwgsProduct": {
+        "sku": "100022752",
+        "name": "1792 Straight Bourbon Bottled In Bond",
+        "brand": "1792 Ridgemount",
+        "category": null,
+        "type": "spirit",
+        "route": "/1792-straight-bourbon-bottled-in-bond/product/100022752",
+        "capturedAt": "2026-10-22T17:03:05.073Z"
+      }
+    }
+  ]
+}

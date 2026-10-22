@@ -1,0 +1,355 @@
+{
+  "provenance": {
+    "source": "production-refresh39836962824/states/PA.json",
+    "sha256": "b5eab6207477e09644336606af3ee2b2e9d047af3a488ec7229115bc02adb773",
+    "capturedAt": "2026-10-22T17:03:05.073Z",
+    "originalBibleRecordCount": 185
+  },
+  "reviewedProducts": [
+    {
+      "product": {
+        "sku": "000006917",
+        "name": "Booker's Straight Bourbon",
+        "brand": "Bookers",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/bookers-straight-bourbon/product/000006917",
+        "price": 99.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "bookers bourbon",
+        "inventory": {
+          "sku": "000006917",
+          "stockStatus": "IN_STOCK",
+          "inStockQuantity": 14,
+          "orderableQuantity": 14
+        }
+      },
+      "sourceUrl": "https://www.finewineandgoodspirits.com/bookers-straight-bourbon/product/000006917",
+      "rows": 362,
+      "observedAt": "2026-10-22T17:03:05.073Z",
+      "storeCount": 362,
+      "canonicalBottleId": "bb_8b9546b93a7fbe72",
+      "canonicalName": "Booker's Bourbon"
+    },
+    {
+      "product": {
+        "sku": "000031835",
+        "name": "Elijah Craig Straight Bourbon Small Batch Barrel Proof",
+        "brand": "Elijah Craig",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/elijah-craig-straight-bourbon-small-batch-barrel-proof/product/000031835",
+        "price": 74.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "elijah craig barrel proof",
+        "inventory": {
+          "sku": "000031835",
+          "stockStatus": "IN_STOCK",
+          "inStockQuantity": 24,
+          "orderableQuantity": 24
+        }
+      },
+      "sourceUrl": "https://www.finewineandgoodspirits.com/elijah-craig-straight-bourbon-small-batch-barrel-proof/product/000031835",
+      "rows": 317,
+      "observedAt": "2026-10-22T17:03:05.073Z",
+      "storeCount": 317,
+      "canonicalBottleId": "bb_be6a0afd4ba5f963",
+      "canonicalName": "Elijah Craig Barrel Proof"
+    },
+    {
+      "product": {
+        "sku": "000082899",
+        "name": "John E Fitzgerald Larceny Straight Bourbon Barrel Proof",
+        "brand": "Larceny",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/john-e-fitzgerald-larceny-straight-bourbon-barrel-proof/product/000082899",
+        "price": 59.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "larceny barrel proof",
+        "inventory": {
+          "sku": "000082899",
+          "stockStatus": "OUT_OF_STOCK",
+          "inStockQuantity": 0,
+          "orderableQuantity": 0
+        }
+      },
+      "sourceUrl": "https://www.finewineandgoodspirits.com/john-e-fitzgerald-larceny-straight-bourbon-barrel-proof/product/000082899",
+      "rows": 332,
+      "observedAt": "2026-10-22T17:03:05.073Z",
+      "storeCount": 332,
+      "canonicalBottleId": "bb_dec2c347ba378237",
+      "canonicalName": "Larceny Barrel Proof"
+    },
+    {
+      "product": {
+        "sku": "000049054",
+        "name": "Henry McKenna Single Barrel Straight Bourbon Bottled in Bond 10 Year Old",
+        "brand": "Henry McKenna",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/henry-mckenna-single-barrel-straight-bourbon-bottled-in-bond-10-year-old/product/000049054",
+        "price": 69.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "old forester single barrel barrel strength",
+        "inventory": {
+          "sku": "000049054",
+          "stockStatus": "IN_STOCK",
+          "inStockQuantity": 383,
+          "orderableQuantity": 383
+        }
+      },
+      "sourceUrl": "https://www.finewineandgoodspirits.com/henry-mckenna-single-barrel-straight-bourbon-bottled-in-bond-10-year-old/product/000049054",
+      "rows": 126,
+      "observedAt": "2026-10-22T17:03:05.073Z",
+      "storeCount": 126,
+      "canonicalBottleId": "bb_b7ca7cc4ab428ba8",
+      "canonicalName": "Henry McKenna 10 Year"
+    },
+    {
+      "product": {
+        "sku": "000098329",
+        "name": "Knob Creek Straight Bourbon 12 Year Old",
+        "brand": "Knob Creek",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/knob-creek-straight-bourbon-12-year-old/product/000098329",
+        "price": 59.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "knob creek 12 bourbon",
+        "inventory": {
+          "sku": "000098329",
+          "stockStatus": "IN_STOCK",
+          "inStockQuantity": 5,
+          "orderableQuantity": 5
+        }
+      },
+      "sourceUrl": "https://www.finewineandgoodspirits.com/knob-creek-straight-bourbon-12-year-old/product/000098329",
+      "rows": 118,
+      "observedAt": "2026-10-22T17:03:05.073Z",
+      "storeCount": 118,
+      "canonicalBottleId": "bb_b9ba3c062c5338f0",
+      "canonicalName": "Knob Creek 12 Year"
+    },
+    {
+      "product": {
+        "sku": "100022752",
+        "name": "1792 Straight Bourbon Bottled In Bond",
+        "brand": "1792 Ridgemount",
+        "category": null,
+        "type": "spirit",
+        "route": "/1792-straight-bourbon-bottled-in-bond/product/100022752",
+        "price": 39.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "1792 sweet wheat bourbon",
+        "inventory": {
+          "sku": "100022752",
+          "stockStatus": "IN_STOCK",
+          "inStockQuantity": 746,
+          "orderableQuantity": 746
+        }
+      },
+      "sourceUrl": "https://www.finewineandgoodspirits.com/1792-straight-bourbon-bottled-in-bond/product/100022752",
+      "rows": 107,
+      "observedAt": "2026-10-22T17:03:05.073Z",
+      "storeCount": 107,
+      "canonicalBottleId": "bb_35ca289802735a45",
+      "canonicalName": "1792 Bottled in Bond"
+    }
+  ],
+  "unreviewedProducts": [
+    {
+      "product": {
+        "sku": "100057521",
+        "name": "Larceny Private Single Barrel Straight Bourbon Barrel Proof FWGS Exclusive",
+        "brand": "Larceny",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/larceny-private-single-barrel-straight-bourbon-barrel-proof-fwgs-exclusive/product/100057521",
+        "price": 74.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "larceny barrel proof",
+        "inventory": {
+          "sku": "100057521",
+          "stockStatus": "OUT_OF_STOCK",
+          "inStockQuantity": 0,
+          "orderableQuantity": 0
+        }
+      },
+      "rows": 16
+    },
+    {
+      "product": {
+        "sku": "000084746",
+        "name": "Elijah Craig Single Barrel Bourbon Barrel Proof FWGS Exclusive",
+        "brand": "Elijah Craig",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/elijah-craig-single-barrel-bourbon-barrel-proof-fwgs-exclusive/product/000084746",
+        "price": 89.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "elijah craig barrel proof",
+        "inventory": {
+          "sku": "000084746",
+          "stockStatus": "OUT_OF_STOCK",
+          "inStockQuantity": 0,
+          "orderableQuantity": 0
+        }
+      },
+      "rows": 40
+    },
+    {
+      "product": {
+        "sku": "100059393",
+        "name": "Elijah Craig Straight Rye Whiskey Barrel Proof",
+        "brand": "Elijah Craig",
+        "category": "Rye Whiskey",
+        "type": "spirit",
+        "route": "/elijah-craig-straight-rye-whiskey-barrel-proof/product/100059393",
+        "price": 74.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "elijah craig barrel proof",
+        "inventory": {
+          "sku": "100059393",
+          "stockStatus": "IN_STOCK",
+          "inStockQuantity": 8,
+          "orderableQuantity": 8
+        }
+      },
+      "rows": 22
+    },
+    {
+      "product": {
+        "sku": "100068206",
+        "name": "Knob Creek Straight Bourbon 12 Year Old Cask Strength",
+        "brand": "Knob Creek",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/knob-creek-straight-bourbon-12-year-old-cask-strength/product/100068206",
+        "price": 89.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "N",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "knob creek 12 bourbon",
+        "inventory": {
+          "sku": "100068206",
+          "stockStatus": "OUT_OF_STOCK",
+          "inStockQuantity": 0,
+          "orderableQuantity": 0
+        }
+      },
+      "rows": 2
+    },
+    {
+      "product": {
+        "sku": "100039902",
+        "name": "Booker's The Reserve Kentucky Straight Bourbon",
+        "brand": "Bookers",
+        "category": "Bourbon",
+        "type": "spirit",
+        "route": "/bookers-the-reserve-kentucky-straight-bourbon/product/100039902",
+        "price": 129.99,
+        "onlineAvailable": "Y",
+        "bopisDisabled": "Y",
+        "highlyAllocated": "N",
+        "lotteryProduct": "N",
+        "searchTerm": "bookers bourbon",
+        "inventory": {
+          "sku": "100039902",
+          "stockStatus": "OUT_OF_STOCK",
+          "inStockQuantity": 0,
+          "orderableQuantity": 0
+        }
+      },
+      "rows": 1
+    }
+  ],
+  "existingCanonicalRecords": [
+    {
+      "id": "bb_8b9546b93a7fbe72",
+      "canonical": "Booker's Bourbon",
+      "normalizedKey": "booker s",
+      "aliases": [
+        "Booker's Batch",
+        "Booker's Bourbon",
+        "Bookers",
+        "Bookers Bbn Jimmy's Batch",
+        "Bookers Bbn Jimmy's Batch 750ml"
+      ],
+      "tier": "limited",
+      "producer": "Jim Beam",
+      "sources": [
+        "seed",
+        "state:SC:dunes",
+        "state:SC"
+      ]
+    },
+    {
+      "id": "bb_be6a0afd4ba5f963",
+      "canonical": "Elijah Craig Barrel Proof",
+      "normalizedKey": "elijah craig proof",
+      "aliases": [
+        "ECBP",
+        "Elijah Craig BP",
+        "Elijah Craig Barrel Proof"
+      ],
+      "tier": "allocated",
+      "producer": "Heaven Hill",
+      "sources": [
+        "seed",
+        "site:bottles.ts"
+      ]
+    },
+    {
+      "id": "bb_b7ca7cc4ab428ba8",
+      "canonical": "Henry McKenna 10 Year",
+      "normalizedKey": "henry mckenna 10 year",
+      "aliases": [
+        "HENRY MCKENNA SINGLE BARREL",
+        "Henry McKenna 10",
+        "Henry McKenna 10 Year",
+        "Henry McKenna BIB",
+        "Henry McKenna Bottled-in-Bond",
+        "Henry McKenna Single Barrel",
+        "Henry McKenna Single Barrel 10 Year",
+        "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+        "McKenna 10"
+      ],
+      "tier": "allocated",
+      "producer": "Heaven Hill",
+      "sources": [
+        "seed",
+        "site:bottles.ts",
+        "site:old-drops"
+      ]
+    }
+  ]
+}
