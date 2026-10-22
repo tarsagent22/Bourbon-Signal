@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isArizonaRetailerInventory } from './arizona-retailer-policy.mjs';
@@ -152,7 +152,9 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const coverage = stats?.stateCoverage?.states?.filter((row) => row.state === 'AZ') || [];
   check(coverage.length === 1 && coverage[0].coverageTier === 'live_store_inventory' && coverage[0].publicStatus === 'active', 'Published Arizona stats must identify active live_store_inventory coverage.');
   const publishedAlerts = rows(alerts, 'alerts').filter((row) => row?.state === 'AZ' || row?.stateCode === 'AZ');
-  check(new Set(publishedAlerts.map(identity)).size === publishedAlerts.length, 'Duplicate Arizona alert identities cannot inflate alert candidates.');
+  const alertCandidateKeys = publishedAlerts.map((row) => row.dedupeKey || row.id);
+  check(alertCandidateKeys.every((key) => typeof key === 'string' && key.trim().length > 0)
+    && new Set(alertCandidateKeys).size === publishedAlerts.length, 'Arizona alert candidate keys must be unique and nonempty (dedupeKey || id).');
   const publicByIdentity = new Map(publicInventory.map((row) => [identity(row), row]));
   for (const row of publishedAlerts) check(row.action === 'inventory_alert_candidate' && row.actionabilityClass === 'store_inventory' && inventoryType(row)
     && currentObservation(row) && row.stale !== true && row.sourceStale !== true && row.availabilityStatus === 'in_stock'
@@ -178,7 +180,16 @@ async function main() {
   const out = path.resolve(process.env.BOURBON_SIGNAL_OUT_DIR || 'out');
   const [state, drops, stats, alerts] = await Promise.all(['states/AZ.json', 'site/drops.json', 'site/stats.json', 'site/alerts.json']
     .map(async (file) => JSON.parse(await readFile(path.join(out, file), 'utf8'))));
-  console.log(JSON.stringify(verifyArizonaExpansionArtifact({ state, drops, stats, alerts }), null, 2));
+  const input = { state, drops, stats, alerts };
+  const diagnostics = diagnoseArizonaExpansionArtifact(input);
+  await writeFile(path.join(out, 'az-expansion-verification.json'), JSON.stringify({
+    checkedAt: new Date().toISOString(), runId: stats.runId, ...diagnostics,
+    alertCandidateIdentities: rows(alerts, 'alerts').filter((row) => row?.state === 'AZ' || row?.stateCode === 'AZ').map((row) => ({
+      sourceIdentity: identity(row), id: row.id, dedupeKey: row.dedupeKey, changeType: row.changeType,
+      observedAt: row.observedAt, canonicalBottleId: row.canonicalBottleId, quantity: row.quantity, price: row.price,
+    })),
+  }, null, 2));
+  console.log(JSON.stringify(verifyArizonaExpansionArtifact(input), null, 2));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
