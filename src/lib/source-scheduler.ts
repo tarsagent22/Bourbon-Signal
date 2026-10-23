@@ -179,12 +179,17 @@ export async function readPollProjection(rows: Row[], kind: 'drops'|'candidates'
   return {rows:merged,version:createHash('sha256').update(JSON.stringify(jobs.map(j=>[j.source_id,j.generation,j.accepted_at]))).digest('hex').slice(0,24)};
 }
 export async function pollCandidatesValid(candidates: Row[]) {
-  if(suppressDisabledPollSources(candidates,pollSourceRegistry(),'candidates').length!==candidates.length) return false;
+  const registry=pollSourceRegistry();
+  if(suppressDisabledPollSources(candidates,registry,'candidates').length!==candidates.length) return false;
   const polled=candidates.filter(c=>c.sourcePollId);
   if(!polled.length)return true;
   if(!schedulerEnabled())return false;
   const current=(await readPollProjection([], 'candidates')).rows;
-  return polled.every(c=>current.some((r: Row)=>r.id===c.id && r.dedupeKey===c.dedupeKey));
+  const proofFields=['state','sourcePollId','sourceRuntimeId','sourceCollectorVersion','sourcePollRun','sourcePollGeneration','sourcePolicySnapshotId',
+    'canonicalBottleId','canonicalId','canonicalName','rawName','tier','merchantId','productId','variantId','storeId','storeAddress',
+    'sourceUrl','sourceProductBinding','availabilityStatus','quantity','quantityIsExact','sourceAvailabilityVerified','pickupOfferVerified','premisesVerified','inventorySemantics','price'];
+  return polled.every(c=>current.some((r: Row)=>r.id===c.id && r.dedupeKey===c.dedupeKey &&
+    (registry.find(source=>source.id===c.sourcePollId)?.kind!=='shopify-variant-pickup' || proofFields.every(field=>c[field]===r[field]))));
 }
 export async function tracePollCandidates(rows: Row[],stage: string,channel='',at=new Date().toISOString()) {
   const sources=new Map<string,number>();
