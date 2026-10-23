@@ -202,7 +202,7 @@
     "test:google-membership": "tsx --test scripts/test-google-membership.ts",
     "test:community-leaders": "node --experimental-strip-types scripts/test-community-leader-badges.mjs",
     "test:mobile-activity": "tsx --test scripts/test-mobile-activity.ts",
-    "test:engine-dependability": "tsx --test scripts/test-source-scheduler-schema.mts scripts/test-source-acceptance-health.ts && node --test engine/test/poll-policy.test.mjs && npm --prefix apps/mobile run test:engine-readiness && npm run test:nationwide-coverage-pilot && npm run test:feed-source-freshness && npm run test:shopify-cohort-foundation",
+    "test:engine-dependability": "tsx --test scripts/test-source-scheduler-schema.mts scripts/test-source-acceptance-health.ts scripts/test-source-policy-context.mts && node --test engine/test/poll-policy.test.mjs && npm --prefix apps/mobile run test:engine-readiness && npm run test:nationwide-coverage-pilot && npm run test:feed-source-freshness && npm run test:shopify-cohort-foundation",
     "migrate:source-scheduler": "node scripts/migrate-app-storage.mjs --source-scheduler-only --check",
     "migrate:source-scheduler:apply": "node scripts/migrate-app-storage.mjs --source-scheduler-only --apply",
     "test:bottle-mutes": "tsx --test scripts/test-bottle-mutes.ts",
