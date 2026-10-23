@@ -219,7 +219,7 @@
     "test:collection-history": "tsx scripts/test-collection-history.mts",
     "test:legal-acceptance": "tsx --test scripts/test-legal-acceptance.ts",
     "test:nationwide-coverage-pilot": "node --test engine/test/florida-jensens-runtime-source.test.mjs engine/test/nationwide-pilot-poll-policy.test.mjs scripts/test-nationwide-pilot-acceptance.mjs && tsx --test scripts/test-nationwide-pilot-receipt.mts scripts/test-pilot-runtime-rollback.mts",
-    "test:feed-source-freshness": "tsx --test scripts/test-feed-source-freshness.mts"
+    "test:feed-source-freshness": "tsx --test scripts/test-feed-source-freshness.mts && node --test scripts/test-source-observation-runner.mjs"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
