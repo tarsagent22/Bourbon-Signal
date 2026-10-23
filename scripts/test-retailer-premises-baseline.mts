@@ -8,6 +8,7 @@ import { retailerSubmissionLifecycle } from '../src/lib/retailer-portal.ts';
 
 const now = Date.parse('2026-10-23T08:36:00.000Z');
 const liveStart = '2026-10-23T08:00:00.000Z', liveEnd = '2026-10-24T08:00:00.000Z';
+const candidateSources = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-cohort-v2.json', import.meta.url), 'utf8')).sources;
 let db: PGlite;
 before(async () => { db = new PGlite(); await db.exec(await readFile(new URL('../src/lib/retailer-schema.sql', import.meta.url), 'utf8')); });
 beforeEach(async () => { await db.exec('TRUNCATE retailer_submissions,retailer_stores,retailer_applications CASCADE'); });
@@ -143,6 +144,78 @@ test('original submitted premise remains separate after verified store relocatio
   assert.notEqual(inventory.physicalPremiseId, directory.physicalPremiseId); assert.equal(inventory.currentStorePhysicalPremiseId, directory.physicalPremiseId);
   assert.equal(inventory.current, false); assert.equal(inventory.retained, true); assert.equal(inventory.identityConflict, true);
   assert.ok(result.gaps.some(row => row.reason === 'submission_current_store_identity_conflict'));
+});
+
+for (const [label, first, second] of [
+  ['unit range versus fraction', '12 Main Street Unit 1-2, Albany NY 12207', '12 Main Street Unit 1/2, Albany NY 12207'],
+  ['house-number hyphen versus slash', '12-34 Main Street Unit 2, Albany NY 12207', '12/34 Main Street Unit 2, Albany NY 12207'],
+  ['house-number hyphen versus space', '12-34 Main Street Unit 2, Albany NY 12207', '12 34 Main Street Unit 2, Albany NY 12207'],
+] as const) {
+  for (const [direction, original, current] of [['forward', first, second], ['reverse', second, first]] as const) {
+    test(`real SQL preserves distinct ${label} identities: ${direction}`, async () => {
+      await application(); await store({ address: current }); await submission({ address: original });
+      const result = await read(), report = result.premises.find(row => row.kind === 'inventory_report')!, directory = result.premises.find(row => row.kind === 'directory')!;
+      assert.equal(report.address, original); assert.equal(report.currentStoreAddress, current);
+      assert.notEqual(report.physicalPremiseId, directory.physicalPremiseId, 'Distinct numeric/unit punctuation must not share a physical key');
+      assert.equal(report.currentStorePhysicalPremiseId, directory.physicalPremiseId);
+      assert.equal(report.identityConflict, true); assert.equal(report.current, false); assert.equal(report.retained, true);
+      assert.equal(report.staleOrUnconfirmed, true);
+      assert.ok(result.gaps.some(row => row.reason === 'submission_current_store_identity_conflict'));
+    });
+  }
+}
+
+test('same punctuated address stays current and case/whitespace folding preserves its physical identity', async () => {
+  const address = '12-34 Main Street Unit 1/2, Albany NY 12207';
+  await application(); await store({ address }); await submission({ address });
+  const exact = await read(), report = exact.premises.find(row => row.kind === 'inventory_report')!, directory = exact.premises.find(row => row.kind === 'directory')!;
+  assert.equal(report.current, true); assert.equal(report.identityConflict, false); assert.equal(report.retained, false);
+  assert.equal(report.physicalPremiseId, directory.physicalPremiseId);
+  await db.query('UPDATE retailer_stores SET store_address=$1', ['12-34   MAIN STREET Unit 1/2, Albany ny 12207']);
+  const folded = (await read()).premises.find(row => row.kind === 'inventory_report')!;
+  assert.equal(folded.current, true); assert.equal(folded.identityConflict, false);
+  assert.equal(folded.physicalPremiseId, folded.currentStorePhysicalPremiseId);
+  assert.equal(folded.physicalPremiseId, report.physicalPremiseId);
+});
+
+for (const address of ['NY12207', 'NY 12207', 'Albany NY12207', 'Albany NY 12207',
+  'Unit100, Albany NY12207', 'Unit 100, Albany NY 12207', 'PO Box 100, Albany NY 12207',
+  'P.O. Box 100, Albany NY 12207', '100 PO Box, Albany NY 12207', '100 Unit 2, Albany NY 12207']) {
+  test(`incomplete street identity never creates a physical hash/current premise: ${address}`, async () => {
+    await application(); await store({ address }); await submission({ address });
+    const result = await read();
+    assert.deepEqual(result.premises, [], 'Neither directory nor reviewed report may hash an unsupported street identity');
+    assert.equal(result.completeness.currentlyVerifiedScopeComplete, false);
+    assert.ok(result.gaps.some(row => row.reason === 'public_premise_identity_incomplete'));
+    assert.equal(result.completeness.historicalAbsenceProven, false);
+  });
+}
+
+test('an incomplete original or current store address never transfers inventory to the other identity', async () => {
+  await seed(); await submission({ address: 'Albany NY 12207' });
+  let result = await read(); assert.equal(result.premises.filter(row => row.kind === 'inventory_report').length, 0);
+  assert.ok(result.gaps.some(row => row.reason === 'public_premise_identity_incomplete'));
+  await db.exec('TRUNCATE retailer_submissions'); await submission();
+  await db.query("UPDATE retailer_stores SET store_address='Unit 100, Albany NY 12207'");
+  result = await read();
+  const retained = result.premises.find(row => row.kind === 'inventory_report')!;
+  assert.equal(retained.address, '12 Main Street Unit 2, Albany NY 12207');
+  assert.equal(retained.current, false); assert.equal(retained.retained, true); assert.equal(retained.identityConflict, true);
+  assert.equal(retained.currentStorePhysicalPremiseId, null);
+  assert.ok(result.gaps.some(row => row.reason === 'public_premise_identity_incomplete'));
+});
+
+for (const [label, address] of [
+  ['hyphenated Queens house number', '138-44 Queens Boulevard, Queens NY 11375'],
+  ['numbered highway', '270 Hwy 17 N, North Myrtle Beach SC 29582'],
+  ...candidateSources.map((source: any) => [source.id, source.stores[0].address]),
+]) test(`supported exact street identity remains current: ${label}`, async () => {
+  await application(); await store({ address }); await submission({ address });
+  const result = await read(), report = result.premises.find(row => row.kind === 'inventory_report')!, directory = result.premises.find(row => row.kind === 'directory')!;
+  assert.ok(report); assert.ok(directory); assert.equal(report.address, address);
+  assert.equal(report.current, true); assert.equal(report.identityConflict, false);
+  assert.equal(report.physicalPremiseId, directory.physicalPremiseId);
+  assert.deepEqual(result.gaps, []); assert.equal(result.completeness.currentlyVerifiedScopeComplete, true);
 });
 
 test('over250 retained reviewed rows are not silently discarded by the live public-reader limit', async () => {

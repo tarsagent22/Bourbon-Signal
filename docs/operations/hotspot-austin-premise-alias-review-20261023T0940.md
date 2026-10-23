@@ -1,0 +1,13 @@
+# Hot Spot Austin physical alias review
+
+The coordinating lead independently approved the narrow APT100/Suite100 physical relation on October 23, 2026. This resolves one premises ambiguity for preparation; it establishes neither newness nor current stock, source admission or license rights.
+
+Bind only `tx:hot-spot-austin`, store `hot-spot-austin:78701`, host `hotspot.fun`, and directory `tx-tabc-104949013` / license 104949013. The canonical context is 411 Brazos Street, Suite 100, Austin TX 78701. Do not mutate the collector's published address or treat Suite and APT as globally interchangeable.
+
+The [official TABC record](https://data.texas.gov/resource/7hf9-qc9f.json?license_id=104949013) names HOT SPOT AUSTIN at `411 BRAZOS ST APT 100`, Austin TX 787014643, with Active Package Store status. A bounded active-package-store query for the street prefix returned one row under a limit of ten. The frozen exact-variant merchant pickup independently names Hot Spot Austin at Suite100 with the same street, city and ZIP5. The current merchant homepage retains the brand, public Shopify identity and the pickup's public business phone; it does not independently publish the street address.
+
+Neither source explicitly equates APT and Suite. This reviewed inference combines the exact named business, full address and explicit unit100. Different merchants/units or new conflicting evidence require reassessment. The query does not enumerate every possible spelling, inactive license or building occupant. Dataset rows were last updated October22 12:33:20 UTC; capture was October23 09:34 UTC. The variant evidence remains its original02:22 UTC capture and must be refreshed before admission.
+
+Proposal SHA256: `8aba144cc2fe611a73a86d030578f8ac3ed0bb4fb4df0ca5263eff242ef51964`. Eight current primary identity captures and the frozen product/pickup pair were independently rehashed. The exact rule, input bytes, clocks, request reservations, primary URLs and independent decision are preserved under `C:/Users/chand/Documents/Bourbon Signal/source-research-20261023T0930-evidence/`, especially `hotspot-premise-alias-proposed.json` and `hotspot-independent-alias-review.json`.
+
+All five proposed premises now have exact directory context or an explicitly reviewed physical alias. Directory presence is not prior inventory. The verified-retailer and retained-history reconciliation, current canonical/format/pickup preflight, genuinely due scheduled collections and normal customer acceptance remain separate gates. Main Street's exact physical address is corroborated, while MURPHY CANYON GAS & WASH INC remains a distinct licensed owner label; no corporate/DBA equivalence is asserted.

@@ -1,0 +1,28 @@
+# Nationwide coverage review and delivery pass
+
+Production remains `a86a0433c7b0b051761fdc5e3625128bbac42281`; the released CA/FL pilot is preserved. The sole draft is [#824](https://github.com/tarsagent22/Bourbon-Signal/pull/824), reviewed head `6e5d7a79a2aafbb288f833ab77e84244dd0b771e`. No objective was selected or resolved and no durable objective lock, production deployment, snapshot or source activation changed. Temporary writer serialization protected draft creation. Zero new physical inventory connections are accepted.
+
+## Concrete repairs
+
+The isolated 13-file draft removes broad drop-history reads and Bible construction from customer source policy while retaining collection's original four-export/history path. It adds the sanitized verified-retailer baseline and required manual-capture validation. Unrelated directory tooling and research stay in the preparation branch. Exact-head CI and current validation status are linked from the draft; this record does not infer successful CI from a dispatch.
+
+Fresh independent review found two additional defects in the prepared retailer projection: punctuation collapsed distinct units/house numbers, and ZIP digits allowed incomplete addresses to become physical identifiers/current reports. Both are corrected. Meaningful punctuation stays distinct; incomplete or unsupported street syntax yields explicit gaps. Tests use real SQL plus independent malformed/conflicting/valid-address probes. Conservative syntax is not geocoding. The existing normal-read receipt test also gained a strict throw-if-called stub for the new baseline dependency after its initial suite failure. Failed logs are retained.
+
+The final source at the draft head passes 471 engine-dependability regressions, TypeScript and a clean local production build. A preceding rebuild failed inside Next; its cache state and log were preserved before the clean build succeeded without source changes. Exact-head CI remains a separate requirement; the project evidence packet and draft record its final result. The preparation branch's broader foundation suite also passes281tests, including its separate directory matcher.
+
+## Observation and qualification
+
+The frozen s0–s40 audit independently checks all41 ZIPs, exact JSON members, GitHub job/artifact metadata, raw index hashes,205 reconstructed HTTP payload hashes and164 customer receipts. The span is6.6855hours, maximum capture interval11.0808minutes, no gap over15minutes and no selected-pilot identity failure. CA has11accepted scheduled runs,44requests and43,679,149response bytes; Jensen has12runs,24requests and133,344bytes. Due clocks and observation generations advance. These are measured source costs, not billing estimates or candidate costs.
+
+The frozen s40 reservation is still submitted, but actual completed GHA39932638042/artifact12492796102 establishes its capture; reservation or job completion alone does not establish acceptance. Earlier Del Mesa schema failures/recovery, Ohio's unavailable dependency and the CA formats not published remain visible. Pruned ledger history is not fabricated. The original start/deadline, first transition, runner and task are preserved. This is partial observation, not24-hour acceptance or uninterrupted visibility. Earliest24-hour complete-capture anchor remains October24 02:52:25.690UTC.
+
+The source researcher made eight bounded primary identity GETs:2,139,593bytes, no retry, no inventory refresh. The lead independently approved the exact Hot Spot physical alias in `hotspot-austin-premise-alias-review-20261023T0940.md`. Generic Suite/APT matching remains ambiguous. Main Street's license and merchant names remain distinct. The five candidates still spanCA/NY/TX and use collector SHA256 `82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206`; operational reuse is not established by fixtures alone.
+
+## Coordinated next work
+
+1. Keep #824 draft under the current release restriction; reconcile any authorized release with current main, exact checks/review and the guarded objective lane. Measure deployed serving behavior and capture the retailer supplement after release.
+2. Reconcile current and retained inventory context, then perform the bounded fixed-pair current preflight only when it advances admission. Never count directory membership, aliases, extra bottles or recovered sources as net new stores.
+3. Assess the original deterministic observation window without resetting it. A new ignored validate-only continuity helper passes17offline tests over multiple transitions, failures and gaps; it cannot apply a rebind or establish GitHub authenticity. The old single-transition helper is not safe unchanged for another release. A reviewed persistence adapter is still required before an authorized rebind.
+4. Rank #821 and the baseline repair alongside qualified expansion. Preserve Del Mesa's recovery; triage Ohio's existing artifact dependency separately. Remedy Jamaica is the next shared-chain research lead, while Sugar Land still needs ZIP/unit reconciliation and independent branch pickup proof. CityHive cooldowns and Indiana denial remain untouched. No contacts, purchases or agreements occurred.
+
+Immutable analysis is under `feed-source-freshness-818-evidence/analysis/20261023T0940Z/`; research is under `source-research-20261023T0930-evidence/`. The latest project packet links draft identity, source/test hashes, all failed and successful validation, independent reviews, actual gains/recoveries, costs and outstanding acceptance gates. The five-store/three-state target and observation assessment remain pending, so the existing bounded follow-up stays active.
