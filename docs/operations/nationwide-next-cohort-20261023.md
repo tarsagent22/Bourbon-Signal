@@ -1,5 +1,7 @@
 # Nationwide next cohort — October 23, 2026
 
+Admission preparation now selects Remedy/Main Street CA, Spirits4Less FL, Vino NY and Hot Spot TX; Christie’s CA remains reserve. `nationwide-admission-review-20261023T1647.md` records the fresh two-capture baseline union, five unchanged connector configurations with16:55 preflights, and the new nonexecutable review command. At20:57 those source checks are stale; current reports preserve that limit. Retailer/history and current production canonical gates remain pending. Zero sources are admitted or counted; #824 remains the sole frozen draft. Earlier checkpoints below are historical.
+
 Latest follow-up: `nationwide-followup-20261023T1453.md` adds Spirits4Less Miami as a sixth offline-compatible candidate and a fourth prospective state. A shared plural-age grammar correction is explicitly recorded as a dependency change; no store is admitted. The original five-store V3/default package stays frozen. The independent source audit now verifies73 captures over12.0188hours;24-hour acceptance remains pending. Ohio/POS remain deferred, and #824 remains the sole frozen draft.
 
 Latest owner direction and implementation: see `nationwide-shopify-batch-preparation-20261023.md`. Ohio and POS work are deferred. The V3 batch command uses one corrected shared connector and all five current public preflight pairs; V1/V2 remain historical. Remedy's additional branches lack independently proved pickup evidence and cannot be counted. PR #824 remains the sole frozen draft; zero new production connections are accepted.

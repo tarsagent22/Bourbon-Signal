@@ -1,5 +1,7 @@
 # Nationwide coverage progress — October 23, 2026
 
+Latest admission pass: five proposed connections in four states now have a dedicated reviewed manifest, fresh16:55 fixed-pair captures, a two-capture baseline reconciliation and a reusable nonexecutable review command. At20:57 the source evidence is correctly stale; no replay refreshes it. Current-retained retailer scope, current canonical authority and candidate operational acceptance remain pending. Tests710 passed/one skipped, TypeScript and production build pass; final independent CLI/evidence review approved preparation. Root source audit reaches109 captures with no selected-pilot issue or gap above15minutes. See `nationwide-admission-review-20261023T1647.md`; zero new inventory connections are counted and #824 remains the sole draft.
+
 Latest lead follow-up: `nationwide-followup-20261023T1453.md` supersedes the historical checkpoint below. Preparation now has six compatible physical candidates across CA/FL/NY/TX; the new FL pair uses the same collector with an explicitly recorded shared age-grammar dependency correction. Independent evidence verifies73 pilot captures /12.0188hours,20CA/21Jensen scheduled acceptances and no selected-pilot identity issues or gap above15minutes. Twenty-four-hour acceptance and the five-store milestone remain pending; accepted new production connections0. #818/pilot stay released, #824 stays the sole draft, Ohio/POS stay deferred.
 
 Lead checkpoint at 03:05 UTC. This updates the earlier readiness audit; its historical observations and raw evidence remain intact.

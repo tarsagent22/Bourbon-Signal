@@ -1,5 +1,7 @@
 # Shopify exact variant pickup onboarding (preparation only)
 
+For the selected next five across CA/FL/NY/TX, use `npm run prepare:shopify-admission-review -- --out=.operator/new-pending-review.json` and read `nationwide-admission-review-20261023T1647.md`. This command binds five dependencies and exact evidence/tuples, preserves pending gates and always emits no admissions/descriptors. It does not enable sources. The16:55 capture clocks expire normally; the original V3/default fixture package remains frozen.
+
 Latest implementation: use V3 and `npm run prepare:shopify-onboarding -- --out=.operator/review.json`, described in `nationwide-shopify-batch-preparation-20261023.md`. V3 pins one shared strict-premise correction and ten current captured responses; the old collector/readiness/V1/V2 material below is historical. The command is offline, has no activation mode and does not mint admission. Ohio and POS work are deferred by the owner's latest instruction.
 
 Latest review: use the V2 fixtures and `nationwide-review-pass-20261023T0940.md`. The five-premise physical context now includes the independently reviewed exact Hot Spot alias; inventory/newness/admission remain pending. #824 is the sole draft for serving-cost and verified-retailer baseline repairs. The conservative street/punctuation fixes in that draft supersede the prior prepared retailer module.
