@@ -50,7 +50,12 @@ test('fixture provenance hashes and exact request URLs match original public cap
 test('historical readiness stays frozen while the current cohort binds actual collector and identity code', async () => {
   for (const input of catalogProvenance.inputs) {
     if (input.missing) continue;
-    const bytes = await readFile(new URL(`../../${input.file}`, import.meta.url));
+    // This is the immutable catalog-generation dependency, not today's matcher.
+    // Its raw historical bytes are retained after the shared plural-age repair.
+    const file = input.file === 'engine/src/collectors/safe-bottle-match.mjs'
+      ? new URL('spirits4less-20261023/historical-safe-bottle-match.raw', fixtureDir)
+      : new URL(`../../${input.file}`, import.meta.url);
+    const bytes = await readFile(file);
     assert.equal(createHash('sha256').update(bytes).digest('hex'), input.sha256, input.file);
   }
   const readiness = JSON.parse(await readFile(new URL('readiness.json', fixtureDir), 'utf8'));

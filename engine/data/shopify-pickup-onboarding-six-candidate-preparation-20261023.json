@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "scope": "six_candidate_preparation_only_no_admission_or_activation",
+  "supersedesForFutureOnboarding": null,
+  "originalConfigSha256": "a57d7999c42be63a67bc31b3141d83dcd341259892ffb3f392334fb83d542e6d",
+  "collectorSha256": "ec8c71f52bf700d20ed98ff304c62057a990473f952fc428ad4df13abd439983",
+  "replacementReason": "Original two CA Buffalo Trace seeds remain regular and excluded; preserve v1 as regression evidence.",
+  "sources": [
+    {
+      "id": "remedy-glendale",
+      "runtimeId": "ca:remedy-glendale",
+      "state": "CA",
+      "chain": "remedy-glendale",
+      "merchantId": "remedy-glendale-shopify",
+      "sourceLabel": "Remedy Liquor - Glendale Shopify pickup inventory",
+      "baseUrl": "https://www.remedyliquor.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "remedy-glendale:91201",
+          "name": "Remedy Liquor - Glendale",
+          "pickupName": "1700 W Glenoaks Blvd.,",
+          "address": "1700 W Glenoaks Blvd., Glendale CA 91201",
+          "city": "Glendale",
+          "zip": "91201"
+        }
+      ],
+      "products": [
+        {
+          "productId": "7687686488292",
+          "variantId": "43040880197860",
+          "handle": "elijah-craig-bourbon-barrel-proof-750ml",
+          "title": "ELIJAH CRAIG BOURBON BARREL PROOF KENTUCKY 750ML",
+          "variantTitle": "Default Title",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "evidence": {
+            "product": {
+              "url": "https://www.remedyliquor.com/products/elijah-craig-bourbon-barrel-proof-750ml.json",
+              "sha256": "3233782df1bfc0732706338b890405841f980d3ee01717863f54f80bcf8ee426",
+              "capturedAt": "2026-10-23T14:30:09.658Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://www.remedyliquor.com/variants/43040880197860/?section_id=pickup-availability",
+              "sha256": "e645b9bff24a1cc534e3ffc92ad6e38112f931964912ee650b6a2d2513923f27",
+              "capturedAt": "2026-10-23T14:30:10.029Z",
+              "status": 200
+            }
+          },
+          "titleMapping": {
+            "rawTitle": "ELIJAH CRAIG BOURBON BARREL PROOF KENTUCKY 750ML",
+            "canonicalName": "Elijah Craig Barrel Proof",
+            "reason": "Exact first-party raw title includes every Elijah Craig Barrel Proof identity token and explicit 750ML. The strict matcher returns null for inserted BOURBON/KENTUCKY words; no batch, age, private-barrel or other expression is inferred.",
+            "allowedUnsafeReasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "vino-lexington",
+      "runtimeId": "ny:vino-lexington",
+      "state": "NY",
+      "chain": "vino-lexington",
+      "merchantId": "vino-lexington-shopify",
+      "sourceLabel": "Vino Fine Wine & Spirits Shopify pickup inventory",
+      "baseUrl": "https://vinosite.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "vino-lexington:10016",
+          "name": "Vino Fine Wine & Spirits",
+          "pickupName": "Vino Fine Wine & Spirits",
+          "address": "184 Lexington Ave, New York NY 10016",
+          "city": "New York",
+          "zip": "10016"
+        }
+      ],
+      "products": [
+        {
+          "productId": "8204164661380",
+          "variantId": "44700008808580",
+          "handle": "w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml",
+          "title": "W.L. Weller The Original Wheated Single Barrel Kentucky Straight Bourbon 97 Proof 750mL",
+          "canonicalName": "Weller Single Barrel",
+          "evidence": {
+            "product": {
+              "url": "https://vinosite.com/products/w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml.json",
+              "sha256": "7c5b1908b46adc1ea40654f71f480d0c8e2ceeb76bae0b9ec029daf45bc7d0e9",
+              "capturedAt": "2026-10-23T14:42:04.508Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://vinosite.com/variants/44700008808580/?section_id=pickup-availability",
+              "sha256": "ef8f9dd22cb3705f452e51a5c01fffc4c5ca074054095f5c5c0708c4e1ce2512",
+              "capturedAt": "2026-10-23T14:42:04.698Z",
+              "status": 200
+            }
+          },
+          "titleMapping": {
+            "rawTitle": "W.L. Weller The Original Wheated Single Barrel Kentucky Straight Bourbon 97 Proof 750mL",
+            "canonicalName": "Weller Single Barrel",
+            "reason": "Exact reviewed title explicitly names Weller Single Barrel; original/wheated/97-proof marketing descriptors are not a new expression. No Weller Special Reserve or Full Proof mapping.",
+            "allowedUnsafeReasons": [
+              "wheated_matched_non_wheated"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "main-street-el-cajon",
+      "runtimeId": "ca:main-street-el-cajon",
+      "state": "CA",
+      "chain": "main-street-el-cajon",
+      "merchantId": "main-street-el-cajon-shopify",
+      "sourceLabel": "Main Street Liquor Shopify pickup inventory",
+      "baseUrl": "https://mainstreetliquor.com",
+      "sectionId": "store-availability",
+      "stores": [
+        {
+          "id": "main-street-el-cajon:92020",
+          "name": "Main Street Liquor",
+          "pickupName": "MAIN STREET LIQUOR",
+          "address": "120 South Mollison Avenue 100 El Cajon CA 92020",
+          "city": "El Cajon",
+          "zip": "92020"
+        }
+      ],
+      "products": [
+        {
+          "productId": "6860137169033",
+          "variantId": "45411077685385",
+          "handle": "eagle-rare",
+          "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey",
+          "variantTitle": "750mL",
+          "canonicalName": "Eagle Rare 10 Year",
+          "evidence": {
+            "product": {
+              "url": "https://mainstreetliquor.com/products/eagle-rare.json",
+              "sha256": "d508e068519562d626bff7bc5f4b90fadbff1051871e8a28f884f13eda46e5b7",
+              "capturedAt": "2026-10-23T14:42:04.984Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://mainstreetliquor.com/variants/45411077685385/?section_id=store-availability",
+              "sha256": "b369133ab9b752588c094639b6359d9c942ad0a5355e372858d4c3065335a4b6",
+              "capturedAt": "2026-10-23T14:42:05.193Z",
+              "status": 200
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "hot-spot-austin",
+      "runtimeId": "tx:hot-spot-austin",
+      "state": "TX",
+      "chain": "hot-spot-austin",
+      "merchantId": "hot-spot-austin-shopify",
+      "sourceLabel": "Hot Spot Austin Shopify pickup inventory",
+      "baseUrl": "https://hotspot.fun",
+      "sectionId": "store-availability",
+      "stores": [
+        {
+          "id": "hot-spot-austin:78701",
+          "name": "Hot Spot Austin",
+          "pickupName": "Hot Spot Austin",
+          "address": "411 Brazos Street Suite 100 Austin TX 78701",
+          "city": "Austin",
+          "zip": "78701"
+        }
+      ],
+      "products": [
+        {
+          "productId": "15264836976800",
+          "variantId": "53124475551904",
+          "handle": "bookers-small-batch-bourbon",
+          "title": "Bookers Small Batch Bourbon",
+          "canonicalName": "Booker's Bourbon",
+          "evidence": {
+            "product": {
+              "url": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+              "sha256": "eb146e0530d555c636b310a7b015bb9bf86d970504ea2f476141acad89e5ceba",
+              "capturedAt": "2026-10-23T14:42:05.495Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+              "sha256": "5787c9bd2f560daaaf78a66c779dee26beedeb9feed250e27c86fd502f091611",
+              "capturedAt": "2026-10-23T14:42:05.672Z",
+              "status": 200
+            }
+          },
+          "variantTitle": "750mL",
+          "headingException": "Published theme omits product heading; exact numeric product/variant JSON binding and endpoint plus explicit 750mL variant heading and independently named addressed Austin premises required.",
+          "titleMapping": {
+            "rawTitle": "Bookers Small Batch Bourbon",
+            "canonicalName": "Booker's Bourbon",
+            "reason": "Exact reviewed Bookers Small Batch Bourbon title maps to existing Booker's Bourbon family; current strict raw matcher returns no match because of small-batch modifier. No new canonical expression.",
+            "allowedUnsafeReasons": []
+          }
+        }
+      ],
+      "headingIdentity": "variant_title"
+    },
+    {
+      "id": "christies-la-crescenta",
+      "runtimeId": "ca:christies-la-crescenta",
+      "state": "CA",
+      "chain": "christies-la-crescenta",
+      "merchantId": "christies-la-crescenta-shopify",
+      "sourceLabel": "Christie's Liquor Shopify pickup inventory",
+      "baseUrl": "https://www.christiesliquor.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "christies-la-crescenta:91214",
+          "name": "Christie's Liquor",
+          "pickupName": "Christie's Liquor",
+          "address": "3040 Foothill Boulevard La Crescenta CA 91214",
+          "city": "La Crescenta",
+          "zip": "91214"
+        }
+      ],
+      "products": [
+        {
+          "productId": "9252461445359",
+          "variantId": "47839390040303",
+          "handle": "bookers-750-ml",
+          "title": "Booker’s Bourbon 750ml – Batch 2020-03",
+          "canonicalName": "Booker's Bourbon",
+          "evidence": {
+            "product": {
+              "url": "https://www.christiesliquor.com/products/bookers-750-ml.json",
+              "sha256": "73a885967820adf5cbb06eecec7dbc269cd9382f6f8808491d23601ccb9600af",
+              "capturedAt": "2026-10-23T14:42:06.135Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://www.christiesliquor.com/variants/47839390040303/?section_id=pickup-availability",
+              "sha256": "1ef76ba6cfb0f06eb6dc8a7d14649fe64e72593829e14fcd002b606d5eac9b22",
+              "capturedAt": "2026-10-23T14:42:06.447Z",
+              "status": 200
+            }
+          },
+          "titleMapping": {
+            "rawTitle": "Booker’s Bourbon 750ml – Batch 2020-03",
+            "canonicalName": "Booker's Bourbon",
+            "reason": "Exact reviewed Booker's Bourbon Batch 2020-03 title maps only to existing Booker's Bourbon family; batch stays raw metadata, never a distinct canonical batch assertion.",
+            "allowedUnsafeReasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "spirits4less-miami",
+      "runtimeId": "fl:spirits4less-miami",
+      "state": "FL",
+      "chain": "spirits4less",
+      "merchantId": "spirits4less-shopify",
+      "sourceLabel": "Spirits4Less / Liquor & Wine Depot Miami Shopify pickup inventory",
+      "baseUrl": "https://spirits4less.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "spirits4less-miami:33135",
+          "name": "Liquor & Wine Depot / Spirits4Less",
+          "pickupName": "1841 Southwest 8th Street",
+          "address": "1841 Southwest 8th Street Miami FL 33135",
+          "city": "Miami",
+          "zip": "33135"
+        }
+      ],
+      "products": [
+        {
+          "productId": "8771180658929",
+          "variantId": "46003928727793",
+          "handle": "eagle-rare-10-years-kentucky-straight-750ml",
+          "title": "EAGLE RARE 10 YEARS KENTUCKY STRAIGHT 750ML",
+          "variantTitle": "Default Title",
+          "canonicalName": "Eagle Rare 10 Year",
+          "evidence": {
+            "product": {
+              "url": "https://spirits4less.com/products/eagle-rare-10-years-kentucky-straight-750ml.json",
+              "sha256": "3ae053731351a02228181ed10c049bc88bb57f54db9db555715a22bc539366e6",
+              "capturedAt": "2026-10-23T15:00:02.976Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://spirits4less.com/variants/46003928727793/?section_id=pickup-availability",
+              "sha256": "ceef286e23276257f7e1c73621a9ad4623f74bd7b420b87a5a6ac51de602d38b",
+              "capturedAt": "2026-10-23T15:00:04.465Z",
+              "status": 200
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "previousConfigSha256": "1f77e01ef3222ce547c01b208ab8c970c3cc89b1205aa0894e0510dd16a45731",
+  "previousCollectorSha256": "82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206",
+  "premisesIdentitySha256": "95620888325f9ad59a60b304f56df3bac1527b923a845da23a38995976a08ed3",
+  "connectorVersion": "shopify-variant-pickup-v2-strict-premises",
+  "revisionReason": "Supplement the unchanged original five candidate definitions with one FL premise; use the same collector and identity helper plus an explicitly recorded shared plural-age matcher correction before any admission. V1/V2/V3 evidence and default manifest remain historical and unchanged.",
+  "catalogSha256": "e5883ec9034802bff14dcae918fba4abc7d9baf2f5cc069c6013469e027e82be",
+  "classificationSha256": "1683ff7a0cfbd5cf013b971056bbbdeeb7fb622bf699656b21ccb41ae0a918ad",
+  "previousFixtureRefresh": "Original V1/V2 frozen captures are retained; V3 public preflight captures2026-10-23T14:30–14:42UTC. Eight newGETs plus two reused Remedyresponses; no scheduledcollectionorcustomercoverage implied.",
+  "preservesDefaultManifest": "shopify-pickup-onboarding-cohort-v3.json",
+  "reuseAssessment": {
+    "collectorAndPremisesHelperUnchanged": true,
+    "sharedAgeGrammarDependencyChanged": true,
+    "dependency": "engine/src/collectors/safe-bottle-match.mjs",
+    "previousSha256": "5e497e030ad9c36bd3fd7374147b514151b038b960eb53cf86392e12b8ba8f26",
+    "actualSha256": "f415b32f402b7c02ae404afc4646037982ea74e5a502aa24bf4adebd5de97aa7",
+    "reason": "Recognize exact numbered plural years; no age, modifier, size or package safety override. Original rejection preserved.",
+    "productionReuseProven": false
+  }
+}

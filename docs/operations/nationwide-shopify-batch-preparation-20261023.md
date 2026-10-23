@@ -1,5 +1,7 @@
 # Shopify batch expansion preparation
 
+Follow-up: `nationwide-followup-20261023T1453.md` records a sixth prospective premise in FL, supplemental six-source/four-state replay and a two-line shared plural-age correction. The original V3 manifest and five-source command default remain frozen. Collector/helper bytes match, but the full dependency set changed; the supplemental manifest records both matcher hashes. Zero stores are admitted or activated.
+
 The owner's latest direction is to focus on the Shopify cohort, multi-location chain qualification and reusable onboarding. **Defer Ohio unless an independently demonstrated guaranteed coverage gain exists; none is established. Defer POS integration.** This supersedes the earlier Ohio/POS priority notes. No business contact, access purchase, agreement or production action is authorized by this preparation.
 
 ## Delivered preparation

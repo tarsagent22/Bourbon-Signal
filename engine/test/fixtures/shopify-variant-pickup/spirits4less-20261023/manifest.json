@@ -1,0 +1,46 @@
+{
+  "contractVersion": "bourbon-signal/shopify-reserve-fixtures@1",
+  "scope": "public_candidate_no_admission_or_activation",
+  "captures": [
+    {
+      "key": "fl-eagle-json",
+      "url": "https://spirits4less.com/products/eagle-rare-10-years-kentucky-straight-750ml.json",
+      "reservedAt": "2026-10-23T15:00:02.604Z",
+      "number": 6,
+      "timeoutMs": 12000,
+      "maxBytes": 2097152,
+      "maxRedirects": 0,
+      "retries": 0,
+      "capturedAt": "2026-10-23T15:00:02.976Z",
+      "status": 200,
+      "finalUrl": "https://spirits4less.com/products/eagle-rare-10-years-kentucky-straight-750ml.json",
+      "error": null,
+      "bytes": 2540,
+      "sha256": "3ae053731351a02228181ed10c049bc88bb57f54db9db555715a22bc539366e6",
+      "elapsedMs": 370,
+      "retryAfterSeconds": 0,
+      "file": "fl-eagle-json.raw",
+      "requestedUrl": "https://spirits4less.com/products/eagle-rare-10-years-kentucky-straight-750ml.json"
+    },
+    {
+      "key": "fl-eagle-pickup",
+      "url": "https://spirits4less.com/variants/46003928727793/?section_id=pickup-availability",
+      "reservedAt": "2026-10-23T15:00:03.838Z",
+      "number": 7,
+      "timeoutMs": 12000,
+      "maxBytes": 2097152,
+      "maxRedirects": 0,
+      "retries": 0,
+      "capturedAt": "2026-10-23T15:00:04.465Z",
+      "status": 200,
+      "finalUrl": "https://spirits4less.com/variants/46003928727793/?section_id=pickup-availability",
+      "error": null,
+      "bytes": 2683,
+      "sha256": "ceef286e23276257f7e1c73621a9ad4623f74bd7b420b87a5a6ac51de602d38b",
+      "elapsedMs": 626,
+      "retryAfterSeconds": 0,
+      "file": "fl-eagle-pickup.raw",
+      "requestedUrl": "https://spirits4less.com/variants/46003928727793/?section_id=pickup-availability"
+    }
+  ]
+}

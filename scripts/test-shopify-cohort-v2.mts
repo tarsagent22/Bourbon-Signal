@@ -20,13 +20,15 @@ const v2 = new URL('v2/', original);
 const historicalV2 = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-cohort-v2.json', import.meta.url), 'utf8')).sources;
 const currentManifest = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-cohort-v3.json', import.meta.url), 'utf8'));
 const configs = currentManifest.sources;
+const reserveManifest = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-six-candidate-preparation-20261023.json', import.meta.url), 'utf8'));
+const reserveConfig = reserveManifest.sources.find((source: Row) => source.id === 'spirits4less-miami');
 const v1Configs = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-candidates.json', import.meta.url), 'utf8')).sources;
 const catalogText = await readFile(new URL('current-bourbon-bible.json', original), 'utf8');
 const catalog = JSON.parse(catalogText), bible = new BourbonBible(catalog.records), lookup = bibleLookup(catalog.records);
 const catalogSha256 = createHash('sha256').update(catalogText).digest('hex');
 const collectorSha256 = createHash('sha256').update(await readFile(new URL('../engine/src/collectors/shopify-variant-pickup.mjs', import.meta.url))).digest('hex');
 const bodies = new Map<string, string>(), evidence = new Map<string, Row>();
-for (const directory of [original, v2, new URL('v3/', original)]) {
+for (const directory of [original, v2, new URL('v3/', original), new URL('spirits4less-20261023/', original)]) {
   const manifest = JSON.parse(await readFile(new URL('manifest.json', directory), 'utf8'));
   for (const capture of manifest.captures) {
     const bytes = await readFile(new URL(capture.file, directory));
@@ -74,7 +76,7 @@ new Function('require', 'module', 'exports', 'process', 'globalThis', 'fetch', c
   customerModule.exports, { env: {}, cwd: () => root }, isolatedGlobal, () => { throw new Error('Forbidden live customer request'); });
 const customer = customerModule.exports, index = customer.getDropClassificationIndex(customer.classificationArtifact.records);
 const states = [...new Set(configs.map((source: Row) => source.state))];
-const byState = Object.fromEntries(states.map(state => [String(state), bibleLookup(catalog.records.map((record: Row) => ({ ...record,
+const byState = Object.fromEntries([...new Set([...states, reserveConfig.state])].map(state => [String(state), bibleLookup(catalog.records.map((record: Row) => ({ ...record,
   tier: customer.resolveDropClassification({ state, canonical_id: record.id, canonical_name: record.canonical, tier: record.tier }, index).tier }))) ]));
 const currentLookup = { ...lookup, byState }, now = Date.now();
 
@@ -98,13 +100,15 @@ async function collect(source: Row, observed: number, negative = false) {
     return { ok: true, status: 200, url, text: negative && !url.endsWith('.json') ? text.replaceAll('Pickup available', 'Pickup unavailable') : text };
   } });
 }
-const compiled = await Promise.all(configs.map(async (config: Row) => {
+async function compile(config: Row) {
   const source = descriptor(config), firstAt = now - 1800000;
   const ctx = { bible, lookup: currentLookup, snapshotId, drops: [], health: { states: [{ state: source.state, health: 'healthy' }] } };
   const result = await collect(config, firstAt);
   const first = buildShopifyPollProjection({ source, ctx, lease: { generation: 1, projection: null }, result, owner: `synthetic-v2-${source.id}-1`, now: firstAt + 1 });
   return { config, source, ctx, result, first };
-}));
+}
+const compiled = await Promise.all(configs.map(compile));
+const reserve = await compile(reserveConfig);
 function normal(row: Row, clock = now) { return customer.projectInventoryEvidenceFreshness(customer.classifyPublicDrop(customer.normalizeDropForSite(row), index), clock); }
 function current(rows: Row[], clock = now) { return rows.map(row => normal(row, clock)).filter(row => customer.isPublicDropFeedEligible(row) && customer.isCurrentInventoryEvidence(row, clock)); }
 async function coverage(rows: Row[]) { coverageInput = rows; return customer.readCurrentCoverageContract(); }
@@ -152,7 +156,32 @@ test('all five pass actual current backend, normal Feed and actual Coverage at f
   assert.equal(rows.find(row => row.sourceRuntimeId === 'ca:remedy-glendale').canonicalId, 'bb_be6a0afd4ba5f963');
 });
 
-for (const item of compiled) test(`silent bootstrap, stable reconfirmation and explicit negative/restock: ${item.source.id}`, async () => {
+test('sixth FL candidate uses actual normal customer paths at six premises/four states under synthetic authority only', async () => {
+  const rows = [...compiled, reserve].flatMap(item => item.first.projection.drops);
+  assert.equal(current(rows).length, 6);
+  assert.equal(new Set(rows.map(row => row.storeAddress)).size, 6);
+  const contract = await coverage(rows);
+  for (const [state, count] of [['CA', 3], ['FL', 1], ['NY', 1], ['TX', 1]]) assert.equal(contract.states.find((entry: Row) => entry.code === state).freshness.currentInventoryStores, count);
+  const row = normal(reserve.first.projection.drops[0]);
+  assert.equal(row.canonicalId, 'bb_d0fe561ac45db2d5');
+  assert.equal(row.tier, 'allocated');
+  assert.equal(row.sourceRuntimeId, 'fl:spirits4less-miami');
+  const signal = customer.normalizeDropSignal(row);
+  assert.equal(signal.location.store.address, reserveConfig.stores[0].address);
+  assert.equal(signal.availability.price, 44.97);
+  assert.equal(row.quantity, undefined);
+  assert.equal(reserve.result.accounting.requestCount, 2);
+  assert.equal(reserve.result.accounting.bytes, 5223);
+  assert.deepEqual(SHOPIFY_PICKUP_SOURCES, []);
+  assert.deepEqual(buildShopifyCohortDescriptors(reserveManifest.sources), []);
+  assert.equal(createShopifyPickupPolicy().eligible(reserve.result.signals[0]), false);
+  const dependency = await readFile(new URL('../engine/src/collectors/safe-bottle-match.mjs', import.meta.url));
+  assert.equal(createHash('sha256').update(dependency).digest('hex'), reserveManifest.reuseAssessment.actualSha256);
+  assert.equal(reserveManifest.reuseAssessment.sharedAgeGrammarDependencyChanged, true);
+  assert.equal(reserveManifest.reuseAssessment.productionReuseProven, false);
+});
+
+for (const item of [...compiled, reserve]) test(`silent bootstrap, stable reconfirmation and explicit negative/restock: ${item.source.id}`, async () => {
   const secondAt = now - 1200000, negativeAt = now - 600000, restockAt = now - 60000;
   const buildNext = (result: Row, prior: Row, generation: number, clock: number) => buildShopifyPollProjection({ source: item.source, ctx: item.ctx,
     lease: { generation, projection: prior }, result, owner: `synthetic-v2-${item.source.id}-${generation}`, now: clock + 1 });
@@ -174,7 +203,7 @@ for (const item of compiled) test(`silent bootstrap, stable reconfirmation and e
 });
 
 test('v2 current customer results respect failure, disable, expiry and current policy loss', async () => {
-  for (const item of compiled) {
+  for (const item of [...compiled, reserve]) {
     const base = item.first.projection.drops;
     for (const mode of ['failure', 'disabled', 'expired', 'policy']) {
       const source = { ...item.source, disabled: mode === 'disabled' }, clock = mode === 'expired' ? now + 3600001 : now;

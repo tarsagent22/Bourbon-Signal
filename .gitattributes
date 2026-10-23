@@ -1,2 +1,3 @@
 # Preserve the bytes recorded by the reviewed public-capture fixture manifest.
 engine/test/fixtures/metro-expansion-20261022/*.html text eol=lf
+engine/test/fixtures/shopify-variant-pickup/spirits4less-20261023/*.raw -text

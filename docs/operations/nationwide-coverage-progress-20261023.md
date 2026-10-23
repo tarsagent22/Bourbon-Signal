@@ -1,5 +1,7 @@
 # Nationwide coverage progress — October 23, 2026
 
+Latest lead follow-up: `nationwide-followup-20261023T1453.md` supersedes the historical checkpoint below. Preparation now has six compatible physical candidates across CA/FL/NY/TX; the new FL pair uses the same collector with an explicitly recorded shared age-grammar dependency correction. Independent evidence verifies73 pilot captures /12.0188hours,20CA/21Jensen scheduled acceptances and no selected-pilot identity issues or gap above15minutes. Twenty-four-hour acceptance and the five-store milestone remain pending; accepted new production connections0. #818/pilot stay released, #824 stays the sole draft, Ohio/POS stay deferred.
+
 Lead checkpoint at 03:05 UTC. This updates the earlier readiness audit; its historical observations and raw evidence remain intact.
 
 ## Released correction and continuing pilot
