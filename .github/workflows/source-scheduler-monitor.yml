@@ -1,8 +1,18 @@
 name: Independent source scheduler monitor
+run-name: ${{ inputs.capture_only && format('Source observation {0}', inputs.observation_id) || 'Independent source scheduler monitor' }}
 on:
   schedule:
     - cron: '3,13,23,33,43,53 * * * *'
   workflow_dispatch:
+    inputs:
+      capture_only:
+        description: 'Capture evidence without monitor heartbeat or collection/rescue'
+        type: boolean
+        default: false
+      observation_id:
+        description: 'Bounded observation slot identifier (letters, digits, hyphen, underscore)'
+        type: string
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -18,12 +28,14 @@ jobs:
         with:
           node-version: 24
       - name: Check due times and rescue missed source jobs
+        if: ${{ !inputs.capture_only }}
         env:
           SOURCE_SCHEDULER_SECRET: ${{ secrets.SOURCE_SCHEDULER_SECRET }}
         run: node scripts/monitor-source-scheduler.mjs
       - name: Capture source generations and normal customer result receipts
         if: always()
         env:
+          SOURCE_OBSERVATION_ID: ${{ inputs.observation_id }}
           SOURCE_SCHEDULER_SECRET: ${{ secrets.SOURCE_SCHEDULER_SECRET }}
           ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
         run: node --experimental-strip-types scripts/capture-nationwide-pilot.mjs --output=out/nationwide-pilot-capture.json
