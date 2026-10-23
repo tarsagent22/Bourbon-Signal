@@ -1,0 +1,234 @@
+// Supplementary bounded-window audit. This does not replace pilot acceptance.
+import assert from 'node:assert/strict';
+import { neon } from '@neondatabase/serverless';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { stableUnderlyingAlertKey } from '../src/lib/alert-dedupe.ts';
+import { COUNT_SQL, VERSION } from './capture-queue-proof.mjs';
+
+const SOURCES = {
+  'ca:mission-trails-wine-spirits': { state: 'CA', storeId: 'mission-trails-wine-spirits:8181-mission-gorge' },
+  'fl:jensens-miami': { state: 'FL', storeId: 'jensens-liquors:1646-sw-27th' },
+};
+const hash = value => createHash('sha256').update(value).digest('hex');
+const isHash = value => typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value);
+const time = value => typeof value === 'string' ? Date.parse(value) : NaN;
+const nonempty = value => typeof value === 'string' && value.trim().length > 0;
+const keys = values => Array.isArray(values) ? [...new Set(values)].sort() : [];
+const sameKeys = (left, right) => JSON.stringify(keys(left)) === JSON.stringify(keys(right));
+
+export function validateFrozenQueueProof(input, expectedHelperHash) {
+  const errors = [], runs = [], document = input?.document;
+  if (!path.isAbsolute(input?.file || '') || !isHash(input?.sha256)) errors.push('Frozen input file/hash metadata missing.');
+  if (document?.contractVersion !== 'bourbon-signal/pilot-queue-proof@1' || document?.queryVersion !== VERSION
+    || document?.countSql !== COUNT_SQL || document?.querySha256 !== hash(COUNT_SQL)
+    || document?.identityFunction !== 'src/lib/alert-dedupe.ts#stableUnderlyingAlertKey'
+    || document?.identityFunctionSha256 !== expectedHelperHash || !isHash(expectedHelperHash)
+    || !Array.isArray(document?.errors) || document.errors.length || !Array.isArray(document?.runs)) {
+    return { errors: [...errors, 'Unsupported frozen query/identity implementation or incomplete document.'], runs };
+  }
+  for (const run of document.runs) {
+    if (run?.status !== 'zero_owned_key_emissions') continue;
+    const policy = Object.hasOwn(SOURCES, run.sourceId) ? SOURCES[run.sourceId] : null;
+    const label = `${run.sourceId}/${run.runId}/${run.generation}`, problems = [];
+    if (!policy || !nonempty(run.runId) || !Number.isSafeInteger(run.generation) || run.generation <= 0 || run.trigger !== 'scheduled') problems.push('Invalid scheduled source/run/generation.');
+    if (run.counts?.newQueueRows !== 0 || run.counts?.deliveryAttempts !== 0 || !Array.isArray(run.errors) || run.errors.length) problems.push('Frozen proof must contain measured zero aggregates without run errors.');
+    if (!Number.isSafeInteger(run.projectedCandidateCount) || run.projectedCandidateCount <= 0 || !Array.isArray(run.projectedCandidateKeys)
+      || run.projectedCandidateKeys.length !== run.projectedCandidateCount || keys(run.projectedCandidateKeys).length !== run.projectedCandidateCount
+      || run.projectedCandidateKeys.some(key => !nonempty(key)) || !Array.isArray(run.mappings) || run.mappings.length !== run.projectedCandidateCount) problems.push('Incomplete projected key/mapping set.');
+    if (![run.dueAt, run.startedAt, run.finishedAt, run.checkedAt, run.queriedAt, run.window?.startAt, run.window?.endAt].every(value => Number.isFinite(time(value)))
+      || time(run.dueAt) > time(run.startedAt) || time(run.finishedAt) < time(run.startedAt) || run.checkedAt !== document.checkedAt
+      || time(run.queriedAt) < time(run.checkedAt) || time(run.window?.startAt) !== time(run.startedAt)
+      || time(run.window?.endAt) > time(run.checkedAt) || time(run.window?.endAt) - time(run.finishedAt) < 300_000
+      || run.window?.minimumAfterFinishMs !== 300_000) problems.push('Invalid frozen clocks or less than five minutes after finish.');
+    if (run.window?.endBasis === 'checked_at') {
+      if (time(run.window.endAt) !== time(run.checkedAt) || run.window.nextRun !== null) problems.push('Invalid checked-at window boundary.');
+    } else if (run.window?.endBasis === 'next_source_run_started_at') {
+      if (run.window.nextRun?.sourceId !== run.sourceId || !nonempty(run.window.nextRun?.runId)
+        || !Number.isSafeInteger(run.window.nextRun?.generation) || time(run.window.nextRun?.startedAt) !== time(run.window.endAt)) problems.push('Invalid next-run window boundary.');
+    } else problems.push('Unrecognized frozen window boundary.');
+    const mapped = [], derived = [];
+    for (const mapping of Array.isArray(run.mappings) ? run.mappings : []) {
+      if (mapping?.mappingBasis !== 'exact_target_run_generation_current_source_projection'
+        || mapping.currentProjectionRunId !== run.runId || mapping.currentProjectionGeneration !== run.generation
+        || !Array.isArray(run.projectedCandidateKeys) || !run.projectedCandidateKeys.includes(mapping.projectedKey) || mapped.includes(mapping.projectedKey)
+        || !nonempty(mapping.stableKey) || mapping.stableKey !== stableUnderlyingAlertKey({ ...mapping.identityFields, dedupeKey: mapping.projectedKey })) {
+        problems.push('Frozen mapping was not captured for this exact current run/generation and queue identity.'); continue;
+      }
+      const aliases = keys([mapping.identityFields?.legacyDedupeKey, mapping.projectedKey].filter(key => nonempty(key) && key !== mapping.stableKey));
+      const observation = mapping.observation;
+      if (!Array.isArray(mapping.legacyAliases) || !sameKeys(mapping.legacyAliases, aliases)) problems.push('Legacy aliases incomplete.');
+      if (observation?.state !== policy?.state || observation?.storeId !== policy?.storeId || !nonempty(observation?.canonicalBottleId)
+        || !nonempty(observation?.productId) || !nonempty(observation?.variantId) || !Number.isFinite(time(observation?.observedAt))
+        || time(observation.observedAt) < time(run.startedAt) || time(observation.observedAt) > time(run.finishedAt)) problems.push('Frozen exact observation association incomplete.');
+      mapped.push(mapping.projectedKey); derived.push(mapping.stableKey, ...aliases);
+    }
+    if (!derived.length || !sameKeys(derived, run.stableKeys) || !sameKeys(mapped, run.projectedCandidateKeys)) problems.push('Aggregate frozen keys do not cover the complete mapping set.');
+    if (problems.length) errors.push(...problems.map(problem => `${label}: ${problem}`));
+    else runs.push({ sourceId: run.sourceId, runId: run.runId, generation: run.generation, dueAt: run.dueAt, startedAt: run.startedAt, finishedAt: run.finishedAt,
+      projectedCandidateCount: run.projectedCandidateCount, projectedCandidateKeys: run.projectedCandidateKeys, stableKeys: keys(derived), mappings: run.mappings,
+      originalWindow: run.window, originalCheckedAt: run.checkedAt, originalCounts: run.counts,
+      input: { file: input.file, sha256: input.sha256 } });
+  }
+  if (!runs.length) errors.push('Input supplies no valid frozen measured-zero run.');
+  return { errors, runs };
+}
+
+export function prepareFrozenQueueAudit(inputs, checkedAt, expectedHelperHash) {
+  const errors = [], frozen = new Map();
+  for (const input of inputs) {
+    const validated = validateFrozenQueueProof(input, expectedHelperHash); errors.push(...validated.errors);
+    for (const run of validated.runs) {
+      const id = `${run.sourceId}|${run.runId}|${run.generation}`, prior = frozen.get(id);
+      const signature = value => JSON.stringify({ projectedKeys: keys(value.projectedCandidateKeys), stableKeys: keys(value.stableKeys),
+        mappings: [...value.mappings].sort((a, b) => a.projectedKey.localeCompare(b.projectedKey)), startedAt: value.startedAt, finishedAt: value.finishedAt });
+      if (prior && signature(prior) !== signature(run)) errors.push(`Conflicting frozen mapping identity for ${id}.`);
+      else if (!prior) frozen.set(id, run);
+    }
+  }
+  const runs = [...frozen.values()], stableKeys = keys(runs.flatMap(run => run.stableKeys));
+  const earliest = Math.min(...runs.map(run => time(run.startedAt))), latestFinish = Math.max(...runs.map(run => time(run.finishedAt)));
+  if (!runs.length || !stableKeys.length) errors.push('No complete frozen key union available.');
+  if (!Number.isFinite(time(checkedAt)) || time(checkedAt) - latestFinish < 300_000
+    || runs.some(run => time(run.originalCheckedAt) > time(checkedAt))) errors.push('Whole audit window must reach five minutes after latest finish and include all supplied proof observations.');
+  return { contractVersion: 'bourbon-signal/pilot-soak-queue-audit@1', status: 'pending', checkedAt, queryVersion: VERSION,
+    countSql: COUNT_SQL, querySha256: hash(COUNT_SQL), identityFunction: 'src/lib/alert-dedupe.ts#stableUnderlyingAlertKey', identityFunctionSha256: expectedHelperHash,
+    window: { startAt: Number.isFinite(earliest) ? new Date(earliest).toISOString() : null, endAt: checkedAt, endExclusive: true,
+      latestRunFinishedAt: Number.isFinite(latestFinish) ? new Date(latestFinish).toISOString() : null, minimumAfterLatestFinishMs: 300_000 },
+    inputProofs: inputs.map(input => ({ file: input.file, sha256: input.sha256 })), frozenRuns: runs, stableKeys, counts: null, queriedAt: null, errors,
+    scope: 'Supplementary audit only: new queue rows and recorded delivery attempts for the union of frozen owned stable keys across this explicit whole window, including cadence gaps. No current-projection remapping, future-attempt, other-key, or nationwide claim.' };
+}
+
+export function applyAuditCounts(audit, aggregate) {
+  const recognizedCount = value => (typeof value === 'number' && Number.isSafeInteger(value) && value >= 0)
+    || (typeof value === 'string' && /^\d+$/.test(value) && Number.isSafeInteger(Number(value)));
+  const newQueueRows = Number(aggregate?.new_queue_rows), deliveryAttempts = Number(aggregate?.delivery_attempts);
+  const queriedAt = aggregate?.queried_at instanceof Date
+    ? (Number.isFinite(aggregate.queried_at.getTime()) ? aggregate.queried_at.toISOString() : null)
+    : aggregate?.queried_at;
+  if (audit.errors.length || !recognizedCount(aggregate?.new_queue_rows) || !recognizedCount(aggregate?.delivery_attempts)
+    || !Number.isFinite(time(queriedAt)) || time(queriedAt) < time(audit.checkedAt)) {
+    audit.errors.push('Whole-window aggregate result unavailable or invalid; no zero inferred.'); return audit;
+  }
+  audit.counts = { newQueueRows, deliveryAttempts }; audit.queriedAt = queriedAt;
+  if (newQueueRows === 0 && deliveryAttempts === 0) audit.status = 'zero_owned_key_emissions_whole_window';
+  else audit.errors.push('Nonzero whole-window queue creation or recorded delivery attempts remain pending.');
+  return audit;
+}
+
+async function selfTest() {
+  const helperHash = hash(await readFile(new URL('../src/lib/alert-dedupe.ts', import.meta.url))), absolute = path.resolve('.operator/synthetic-frozen-proof.json');
+  function fixture(index = 0) {
+    const start = Date.parse('2026-10-23T00:30:00.000Z') + index * 1800_000, iso = offset => new Date(start + offset).toISOString(), runId = `synthetic-run-${index}`, generation = index + 1;
+    const mapping = { projectedKey: 'synthetic-projected', stableKey: 'availability-episode:synthetic-episode', legacyAliases: ['synthetic-legacy', 'synthetic-projected'],
+      mappingBasis: 'exact_target_run_generation_current_source_projection', currentProjectionRunId: runId, currentProjectionGeneration: generation,
+      currentCandidateObservedAt: iso(1000), identityFields: { eventIdentityKey: 'availability-episode:synthetic-episode', legacyDedupeKey: 'synthetic-legacy' },
+      observation: { state: 'CA', storeId: SOURCES['ca:mission-trails-wine-spirits'].storeId, canonicalBottleId: 'synthetic-bottle', productId: '123', variantId: '456', observedAt: iso(1000) } };
+    return { file: absolute.replace('.json', `-${index}.json`), sha256: 'a'.repeat(64), document: {
+      contractVersion: 'bourbon-signal/pilot-queue-proof@1', checkedAt: iso(600_000), queryVersion: VERSION, countSql: COUNT_SQL, querySha256: hash(COUNT_SQL),
+      identityFunction: 'src/lib/alert-dedupe.ts#stableUnderlyingAlertKey', identityFunctionSha256: helperHash, errors: [], runs: [{ sourceId: 'ca:mission-trails-wine-spirits',
+        runId, generation, status: 'zero_owned_key_emissions', trigger: 'scheduled', projectedCandidateCount: 1, projectedCandidateKeys: ['synthetic-projected'], mappings: [mapping],
+        stableKeys: ['availability-episode:synthetic-episode', 'synthetic-legacy', 'synthetic-projected'], counts: { newQueueRows: 0, deliveryAttempts: 0 }, errors: [],
+        dueAt: iso(0), startedAt: iso(0), finishedAt: iso(2000), checkedAt: iso(600_000), queriedAt: iso(600_010),
+        window: { startAt: iso(0), endAt: iso(600_000), minimumAfterFinishMs: 300_000, endBasis: 'checked_at', nextRun: null } }] } };
+  }
+  let passed = 0;
+  const check = (name, fn) => { fn(); passed++; console.log(`PASS ${passed}: ${name}`); };
+  console.log('OFFLINE SYNTHETIC FROZEN-INPUT CHECKS — no database queries or production evidence.');
+  const now = '2026-10-23T01:11:00.000Z';
+  check('two frozen generations produce a deduplicated key union spanning their cadence gap', () => {
+    const audit = prepareFrozenQueueAudit([fixture(), fixture(1)], now, helperHash);
+    assert.deepEqual(audit.errors, []); assert.equal(audit.stableKeys.length, 3); assert.equal(audit.frozenRuns.length, 2);
+    assert.equal(audit.window.startAt, '2026-10-23T00:30:00.000Z'); assert.equal(audit.window.endAt, now);
+  });
+  const mutations = {
+    'replacement run cannot relabel frozen ownership': doc => doc.runs[0].mappings[0].currentProjectionRunId = 'replacement',
+    'generation mismatch remains pending': doc => doc.runs[0].mappings[0].currentProjectionGeneration++,
+    'queue identity helper derivation is enforced': doc => doc.runs[0].mappings[0].stableKey = 'wrong-key',
+    'legacy aliases cannot be omitted': doc => doc.runs[0].mappings[0].legacyAliases.pop(),
+    'incomplete projected mappings fail closed': doc => doc.runs[0].projectedCandidateKeys.push('unmapped'),
+    'identity implementation hash must match': doc => doc.identityFunctionSha256 = 'b'.repeat(64),
+    'nonzero frozen counts are not accepted as zero': doc => doc.runs[0].counts.newQueueRows = 1,
+    'original proof must have five minutes after finish': doc => doc.runs[0].window.endAt = '2026-10-23T00:32:00.000Z',
+    'old query versions are not upgraded by inference': doc => doc.queryVersion = 'pilot-owned-key-counts@1',
+  };
+  for (const [name, mutate] of Object.entries(mutations)) check(name, () => { const input = fixture(); mutate(input.document); assert.ok(validateFrozenQueueProof(input, helperHash).errors.length); });
+  check('conflicting otherwise valid mappings for one run are rejected', () => {
+    const left = fixture(), right = fixture(), run = right.document.runs[0];
+    run.mappings[0].identityFields.eventIdentityKey = 'availability-episode:conflict'; run.mappings[0].stableKey = 'availability-episode:conflict';
+    run.stableKeys[0] = 'availability-episode:conflict';
+    assert.ok(prepareFrozenQueueAudit([left, right], now, helperHash).errors.some(error => error.includes('Conflicting')));
+  });
+  check('whole-window cutoff must be five minutes after latest finish', () => assert.ok(prepareFrozenQueueAudit([fixture(1)], '2026-10-23T01:03:00.000Z', helperHash).errors.length));
+  check('missing aggregate is unknown, never an invented zero', () => {
+    const audit = applyAuditCounts(prepareFrozenQueueAudit([fixture()], now, helperHash), {}); assert.equal(audit.status, 'pending'); assert.equal(audit.counts, null);
+  });
+  check('null aggregate counts cannot be coerced into zero', () => {
+    const audit = applyAuditCounts(prepareFrozenQueueAudit([fixture()], now, helperHash), { new_queue_rows: null, delivery_attempts: null, queried_at: '2026-10-23T01:11:00.010Z' });
+    assert.equal(audit.status, 'pending'); assert.equal(audit.counts, null);
+  });
+  check('blank or boolean aggregate counts cannot be coerced into zero', () => {
+    const audit = applyAuditCounts(prepareFrozenQueueAudit([fixture()], now, helperHash), { new_queue_rows: '', delivery_attempts: false, queried_at: '2026-10-23T01:11:00.010Z' });
+    assert.equal(audit.status, 'pending'); assert.equal(audit.counts, null);
+  });
+  check('measured whole-window nonzero attempts veto a zero claim', () => {
+    const audit = applyAuditCounts(prepareFrozenQueueAudit([fixture()], now, helperHash), { new_queue_rows: '0', delivery_attempts: '1', queried_at: '2026-10-23T01:11:00.010Z' });
+    assert.equal(audit.status, 'pending'); assert.equal(audit.counts.deliveryAttempts, 1);
+  });
+  check('measured zero aggregates retain the explicit limited window scope', () => {
+    const audit = applyAuditCounts(prepareFrozenQueueAudit([fixture()], now, helperHash), { new_queue_rows: '0', delivery_attempts: '0', queried_at: '2026-10-23T01:11:00.010Z' });
+    assert.equal(audit.status, 'zero_owned_key_emissions_whole_window'); assert.match(audit.scope, /cadence gaps/);
+  });
+  check('Neon Date timestamps normalize to ISO before validation and storage', () => {
+    const queriedAt = new Date('2026-10-23T01:11:00.010Z');
+    const audit = applyAuditCounts(prepareFrozenQueueAudit([fixture()], now, helperHash), { new_queue_rows: '0', delivery_attempts: '0', queried_at: queriedAt });
+    assert.equal(audit.status, 'zero_owned_key_emissions_whole_window'); assert.equal(audit.queriedAt, queriedAt.toISOString()); assert.equal(typeof audit.queriedAt, 'string');
+  });
+  check('invalid Date timestamps remain unknown instead of authorizing zero', () => {
+    const audit = applyAuditCounts(prepareFrozenQueueAudit([fixture()], now, helperHash), { new_queue_rows: '0', delivery_attempts: '0', queried_at: new Date(NaN) });
+    assert.equal(audit.status, 'pending'); assert.equal(audit.counts, null); assert.equal(audit.queriedAt, null);
+  });
+  console.log(JSON.stringify({ offlineFrozenInputCases: passed, pass: true, productionEvidence: false, queryVersion: VERSION }));
+}
+
+async function main() {
+  const files = process.argv.filter(arg => arg.startsWith('--proof=')).map(arg => arg.slice(8));
+  const output = process.argv.find(arg => arg.startsWith('--output='))?.slice(9);
+  if (!files.length || !output || files.some(file => !path.isAbsolute(file))) throw new Error('Usage: --proof=<absoluteJson> [--proof=<absoluteJson>] --output=<json>');
+  const helperHash = hash(await readFile(new URL('../src/lib/alert-dedupe.ts', import.meta.url))), inputs = [], inputErrors = [];
+  for (const file of files) {
+    try { const bytes = await readFile(file); if (bytes.length > 8 * 1024 * 1024) throw new Error('Input too large.'); inputs.push({ file, sha256: hash(bytes), document: JSON.parse(bytes.toString('utf8')) }); }
+    catch { inputErrors.push(`Frozen proof unavailable: ${file}`); }
+  }
+  const validationErrors = inputs.flatMap(input => validateFrozenQueueProof(input, helperHash).errors);
+  let audit = prepareFrozenQueueAudit(inputs, null, helperHash);
+  if (!inputErrors.length && !validationErrors.length) {
+    const connection = process.env.BOURBON_QUEUE_DATABASE_URL || process.env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
+    if (!connection) inputErrors.push('Authorized database connection unavailable.');
+    else {
+      const sql = neon(connection), query = (text, params = []) => {
+        if (!/^SELECT\b/i.test(text.trim())) throw new Error('Only SELECT queries permitted.');
+        return sql.query(text, params, { fetchOptions: { signal: AbortSignal.timeout(15_000) } });
+      };
+      try {
+        const [clock] = await query('SELECT clock_timestamp() AS checked_at');
+        const checkedAt = clock.checked_at instanceof Date ? clock.checked_at.toISOString() : String(clock.checked_at);
+        audit = prepareFrozenQueueAudit(inputs, checkedAt, helperHash);
+        if (!audit.errors.length) {
+          const [aggregate] = await query(COUNT_SQL, [audit.stableKeys, audit.window.startAt, audit.window.endAt]);
+          applyAuditCounts(audit, aggregate);
+        }
+      } catch { inputErrors.push('Read-only audit query unavailable; no zero inferred.'); }
+    }
+  }
+  audit.errors.push(...inputErrors); if (audit.errors.length) audit.status = 'pending';
+  await mkdir(path.dirname(path.resolve(output)), { recursive: true }); await writeFile(path.resolve(output), JSON.stringify(audit, null, 2) + '\n');
+  console.log(JSON.stringify({ output: path.resolve(output), status: audit.status, window: audit.window, frozenRuns: audit.frozenRuns.length,
+    unionKeyCount: audit.stableKeys.length, counts: audit.counts, errors: audit.errors }));
+  if (audit.status === 'pending') process.exitCode = 2;
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  (process.argv.includes('--self-test') ? selfTest() : main()).catch(() => { console.error('Frozen queue audit failed; no zero inferred.'); process.exitCode = 2; });
+}

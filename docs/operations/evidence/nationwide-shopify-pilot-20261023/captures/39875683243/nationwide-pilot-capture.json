@@ -1,0 +1,1139 @@
+{
+  "contractVersion": "bourbon-signal/pilot-capture@1",
+  "capturedAt": "2026-10-23T00:03:23.661Z",
+  "commit": "be8ad383b04d08882fe753958a95be2e118dd707",
+  "verificationRunId": "39875683243",
+  "scheduler": {
+    "url": "https://www.bourbonsignal.com/api/ops/source-scheduler?read=1&monitor=1",
+    "status": 200,
+    "receivedAt": "2026-10-23T00:03:24.133Z",
+    "sha256": "9ebf1a97efdfaa11babb8cd77280113e32a43a21667f1b8998d0928d729812ff",
+    "payload": {
+      "pipeline": [
+        {
+          "source_id": "ca:del-mesa-liquor",
+          "stage": "candidate_read",
+          "channel": "",
+          "last_at": "2026-10-10T17:15:23.773Z",
+          "row_count": 1
+        },
+        {
+          "source_id": "ca:del-mesa-liquor",
+          "stage": "considered",
+          "channel": "",
+          "last_at": "2026-10-10T17:15:23.861Z",
+          "row_count": 1
+        },
+        {
+          "source_id": "ca:del-mesa-liquor",
+          "stage": "feed_read",
+          "channel": "",
+          "last_at": "2026-10-23T00:00:01.684Z",
+          "row_count": 7
+        },
+        {
+          "source_id": "ca:mission-trails-wine-spirits",
+          "stage": "candidate_read",
+          "channel": "",
+          "last_at": "2026-10-23T00:00:27.029Z",
+          "row_count": 3
+        },
+        {
+          "source_id": "ca:mission-trails-wine-spirits",
+          "stage": "considered",
+          "channel": "",
+          "last_at": "2026-10-23T00:00:27.081Z",
+          "row_count": 3
+        },
+        {
+          "source_id": "ca:mission-trails-wine-spirits",
+          "stage": "feed_read",
+          "channel": "",
+          "last_at": "2026-10-23T00:00:01.684Z",
+          "row_count": 3
+        },
+        {
+          "source_id": "fl:abc",
+          "stage": "candidate_read",
+          "channel": "",
+          "last_at": "2026-10-23T00:00:27.029Z",
+          "row_count": 200
+        },
+        {
+          "source_id": "fl:abc",
+          "stage": "considered",
+          "channel": "",
+          "last_at": "2026-10-23T00:00:27.081Z",
+          "row_count": 200
+        },
+        {
+          "source_id": "fl:abc",
+          "stage": "feed_read",
+          "channel": "",
+          "last_at": "2026-10-23T00:00:01.684Z",
+          "row_count": 652
+        },
+        {
+          "source_id": "nc:board-shipments",
+          "stage": "feed_read",
+          "channel": "",
+          "last_at": "2026-10-23T00:00:01.684Z",
+          "row_count": 712
+        }
+      ],
+      "lanes": [
+        {
+          "source_id": "liquor-library:sc",
+          "next_due_at": "2026-10-23T00:05:23.433Z",
+          "lease_until": null,
+          "accepted_at": "2026-10-23T00:00:23.440Z",
+          "last_reason": "accepted",
+          "failures": 0,
+          "healthy": true
+        }
+      ],
+      "enabled": true,
+      "healthy": false,
+      "lateSources": [],
+      "jobs": [
+        {
+          "source_id": "ca:chips-liquor",
+          "cadence_seconds": 1800,
+          "next_due_at": "2026-10-23T00:10:23.952Z",
+          "lease_owner": null,
+          "lease_until": null,
+          "generation": "571",
+          "failures": 0,
+          "paused_until": null,
+          "last_started_at": "2026-10-22T23:40:20.405Z",
+          "last_completed_at": "2026-10-22T23:40:23.952Z",
+          "last_reason": "accepted",
+          "accepted_at": "2026-10-22T23:40:23.952Z",
+          "feedRows": 0,
+          "candidates": 0
+        },
+        {
+          "source_id": "ca:del-mesa-liquor",
+          "cadence_seconds": 1800,
+          "next_due_at": "2026-10-22T21:25:22.201Z",
+          "lease_owner": null,
+          "lease_until": null,
+          "generation": "540",
+          "failures": 1,
+          "paused_until": "2026-10-23T03:20:22.201Z",
+          "last_started_at": "2026-10-22T21:20:20.842Z",
+          "last_completed_at": "2026-10-22T21:20:22.201Z",
+          "last_reason": "source_identity_or_schema_failure",
+          "accepted_at": "2026-10-22T20:45:26.970Z",
+          "feedRows": 7,
+          "candidates": 0
+        },
+        {
+          "source_id": "ca:mission-trails-wine-spirits",
+          "cadence_seconds": 1800,
+          "next_due_at": "2026-10-23T00:25:27.372Z",
+          "lease_owner": null,
+          "lease_until": null,
+          "generation": "562",
+          "failures": 0,
+          "paused_until": null,
+          "last_started_at": "2026-10-22T23:55:20.547Z",
+          "last_completed_at": "2026-10-22T23:55:27.372Z",
+          "last_reason": "accepted",
+          "accepted_at": "2026-10-22T23:55:27.372Z",
+          "feedRows": 3,
+          "candidates": 3
+        },
+        {
+          "source_id": "fl:abc",
+          "cadence_seconds": 1800,
+          "next_due_at": "2026-10-23T00:20:24.700Z",
+          "lease_owner": null,
+          "lease_until": null,
+          "generation": "420",
+          "failures": 0,
+          "paused_until": null,
+          "last_started_at": "2026-10-22T23:50:20.670Z",
+          "last_completed_at": "2026-10-22T23:50:24.700Z",
+          "last_reason": "accepted",
+          "accepted_at": "2026-10-22T23:50:24.700Z",
+          "feedRows": 652,
+          "candidates": 200
+        },
+        {
+          "source_id": "fl:jensens-miami",
+          "cadence_seconds": 1800,
+          "next_due_at": "2026-10-23T00:30:23.089Z",
+          "lease_owner": null,
+          "lease_until": null,
+          "generation": "1",
+          "failures": 0,
+          "paused_until": null,
+          "last_started_at": "2026-10-23T00:00:21.304Z",
+          "last_completed_at": "2026-10-23T00:00:23.089Z",
+          "last_reason": "accepted",
+          "accepted_at": "2026-10-23T00:00:23.089Z",
+          "feedRows": 1,
+          "candidates": 0
+        },
+        {
+          "source_id": "nc:board-shipments",
+          "cadence_seconds": 1800,
+          "next_due_at": "2026-10-23T00:10:24.018Z",
+          "lease_owner": null,
+          "lease_until": null,
+          "generation": "571",
+          "failures": 0,
+          "paused_until": null,
+          "last_started_at": "2026-10-22T23:40:20.391Z",
+          "last_completed_at": "2026-10-22T23:40:24.018Z",
+          "last_reason": "accepted",
+          "accepted_at": "2026-10-22T23:40:24.018Z",
+          "feedRows": 712,
+          "candidates": 200
+        },
+        {
+          "source_id": "oh:browser-artifact",
+          "cadence_seconds": 900,
+          "next_due_at": "2026-10-23T00:00:22.446Z",
+          "lease_owner": null,
+          "lease_until": null,
+          "generation": "307",
+          "failures": 30,
+          "paused_until": "2026-10-23T00:00:22.446Z",
+          "last_started_at": "2026-10-22T23:00:20.631Z",
+          "last_completed_at": "2026-10-22T23:00:22.446Z",
+          "last_reason": "browser_artifact_unavailable",
+          "accepted_at": null,
+          "feedRows": 0,
+          "candidates": 0
+        }
+      ],
+      "incidents": [
+        {
+          "source_id": "ca:del-mesa-liquor",
+          "reason": "source_identity_or_schema_failure",
+          "first_at": "2026-10-10T16:55:21.746Z",
+          "last_at": "2026-10-22T21:20:22.201Z",
+          "occurrences": 4
+        },
+        {
+          "source_id": "oh:browser-artifact",
+          "reason": "browser_artifact_unavailable",
+          "first_at": "2026-10-09T03:35:22.232Z",
+          "last_at": "2026-10-22T23:00:22.447Z",
+          "occurrences": 307
+        }
+      ],
+      "heartbeat": [
+        {
+          "name": "scheduler",
+          "checked_at": "2026-10-23T00:00:21.223Z"
+        },
+        {
+          "name": "independent-monitor",
+          "checked_at": "2026-10-23T00:03:23.370Z"
+        }
+      ],
+      "traces": [
+        {
+          "run_id": "a3cb9536-589e-408a-ac2c-935a38fefd5c",
+          "source_id": "fl:jensens-miami",
+          "generation": "1",
+          "due_at": "2026-10-23T00:00:21.304Z",
+          "status": "accepted",
+          "started_at": "2026-10-23T00:00:21.304Z",
+          "finished_at": "2026-10-23T00:00:23.089Z",
+          "accounting": {
+            "feed": 1,
+            "bytes": 11112,
+            "trigger": "scheduled",
+            "accepted": 1,
+            "baseline": true,
+            "collected": 1,
+            "elapsedMs": 1764,
+            "candidates": 0,
+            "roadblocks": 0,
+            "observations": [
+              {
+                "state": "FL",
+                "sizeMl": 750,
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "quantity": 0,
+                "productId": "15414448390218",
+                "sourceUrl": "https://jensensliquors.com/products/elijah-craig-single-barrel-18-years-bourbon-whiskey",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T00:00:22.687Z",
+                "availability": "in_stock",
+                "storeAddress": "1646 SW 27th Ave, Miami, FL 33145",
+                "pickupVerified": true,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "source_metadata",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "variant_pickup_offer",
+                "fulfillmentPolicyVerified": false
+              }
+            ],
+            "requestCount": 2,
+            "manualDueReset": false,
+            "productsChecked": 1,
+            "completeSnapshot": true,
+            "negativeProducts": 0,
+            "positiveProducts": 1,
+            "projectedCandidateKeys": []
+          }
+        },
+        {
+          "run_id": "5192ee48-6ca4-4585-b100-639432bf106b",
+          "source_id": "ca:mission-trails-wine-spirits",
+          "generation": "562",
+          "due_at": "2026-10-22T23:50:26.694Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T23:55:20.547Z",
+          "finished_at": "2026-10-22T23:55:27.373Z",
+          "accounting": {
+            "feed": 3,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 3,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "cfde07f0-a277-4b70-affc-47b75d008c7d",
+          "source_id": "fl:abc",
+          "generation": "420",
+          "due_at": "2026-10-22T23:45:24.267Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T23:50:20.670Z",
+          "finished_at": "2026-10-22T23:50:24.735Z",
+          "accounting": {
+            "feed": 652,
+            "accepted": 2846,
+            "baseline": false,
+            "collected": 2846,
+            "candidates": 200,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "9b239c1d-364f-4667-9964-0b593dc2722e",
+          "source_id": "ca:chips-liquor",
+          "generation": "571",
+          "due_at": "2026-10-22T23:35:23.080Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T23:40:20.405Z",
+          "finished_at": "2026-10-22T23:40:23.952Z",
+          "accounting": {
+            "feed": 0,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "0a152c98-d7a7-4f4a-9f69-7de0ed3936e6",
+          "source_id": "nc:board-shipments",
+          "generation": "571",
+          "due_at": "2026-10-22T23:35:24.475Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T23:40:20.391Z",
+          "finished_at": "2026-10-22T23:40:24.036Z",
+          "accounting": {
+            "feed": 712,
+            "accepted": 718,
+            "baseline": false,
+            "collected": 1179,
+            "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
+            "boardCount": 172,
+            "candidates": 200,
+            "observedAt": "2026-10-22T15:06:26.000Z",
+            "roadblocks": 0,
+            "recordCount": 84021,
+            "retrievedAt": "2026-10-22T23:40:23.468Z",
+            "productCount": 2517,
+            "trackedSignalCount": 1179,
+            "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.",
+            "priceEnrichedSignalCount": 0,
+            "controlledDistributionSignalCount": 0
+          }
+        },
+        {
+          "run_id": "a0ffded3-bdc4-4850-a8bc-4eb3ac050966",
+          "source_id": "ca:mission-trails-wine-spirits",
+          "generation": "561",
+          "due_at": "2026-10-22T23:15:26.303Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T23:20:20.426Z",
+          "finished_at": "2026-10-22T23:20:26.694Z",
+          "accounting": {
+            "feed": 3,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 3,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "ba063670-3de1-4b82-b435-125290cb5552",
+          "source_id": "fl:abc",
+          "generation": "419",
+          "due_at": "2026-10-22T23:10:24.362Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T23:15:20.370Z",
+          "finished_at": "2026-10-22T23:15:24.308Z",
+          "accounting": {
+            "feed": 652,
+            "accepted": 2848,
+            "baseline": false,
+            "collected": 2848,
+            "candidates": 200,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "05eefcd4-7b29-43ea-a21c-1955188419ae",
+          "source_id": "ca:chips-liquor",
+          "generation": "570",
+          "due_at": "2026-10-22T23:00:22.614Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T23:05:20.331Z",
+          "finished_at": "2026-10-22T23:05:23.080Z",
+          "accounting": {
+            "feed": 0,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "d9647d8c-04d2-4eb8-a78d-d014baae0b2d",
+          "source_id": "nc:board-shipments",
+          "generation": "570",
+          "due_at": "2026-10-22T23:00:23.871Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T23:05:20.309Z",
+          "finished_at": "2026-10-22T23:05:24.496Z",
+          "accounting": {
+            "feed": 712,
+            "accepted": 718,
+            "baseline": false,
+            "collected": 1179,
+            "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
+            "boardCount": 172,
+            "candidates": 200,
+            "observedAt": "2026-10-22T15:06:26.000Z",
+            "roadblocks": 0,
+            "recordCount": 84021,
+            "retrievedAt": "2026-10-22T23:05:23.725Z",
+            "productCount": 2517,
+            "trackedSignalCount": 1179,
+            "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.",
+            "priceEnrichedSignalCount": 0,
+            "controlledDistributionSignalCount": 0
+          }
+        },
+        {
+          "run_id": "9cc83429-3cfe-434e-b0c5-4928c1c1e8f1",
+          "source_id": "oh:browser-artifact",
+          "generation": "307",
+          "due_at": "2026-10-22T22:55:22.562Z",
+          "status": "browser_artifact_unavailable",
+          "started_at": "2026-10-22T23:00:20.631Z",
+          "finished_at": "2026-10-22T23:00:22.446Z",
+          "accounting": {
+            "probe": true
+          }
+        },
+        {
+          "run_id": "4630a399-ba0b-4730-8f2c-295f2a9d4551",
+          "source_id": "ca:mission-trails-wine-spirits",
+          "generation": "560",
+          "due_at": "2026-10-22T22:40:26.398Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T22:45:20.549Z",
+          "finished_at": "2026-10-22T22:45:26.303Z",
+          "accounting": {
+            "feed": 3,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 3,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "a66028ce-3cd6-49d1-9ddc-55e39c506c67",
+          "source_id": "fl:abc",
+          "generation": "418",
+          "due_at": "2026-10-22T22:35:24.607Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T22:40:20.621Z",
+          "finished_at": "2026-10-22T22:40:24.397Z",
+          "accounting": {
+            "feed": 652,
+            "accepted": 2848,
+            "baseline": false,
+            "collected": 2848,
+            "candidates": 200,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "8eecb853-0557-4592-9f16-4ffa9b84069d",
+          "source_id": "nc:board-shipments",
+          "generation": "569",
+          "due_at": "2026-10-22T22:25:24.527Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T22:30:20.507Z",
+          "finished_at": "2026-10-22T22:30:23.889Z",
+          "accounting": {
+            "feed": 712,
+            "accepted": 718,
+            "baseline": false,
+            "collected": 1179,
+            "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
+            "boardCount": 172,
+            "candidates": 200,
+            "observedAt": "2026-10-22T15:06:26.000Z",
+            "roadblocks": 0,
+            "recordCount": 84021,
+            "retrievedAt": "2026-10-22T22:30:23.313Z",
+            "productCount": 2517,
+            "trackedSignalCount": 1179,
+            "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.",
+            "priceEnrichedSignalCount": 0,
+            "controlledDistributionSignalCount": 0
+          }
+        },
+        {
+          "run_id": "75df7bad-0ed9-40fa-a140-f338e0160246",
+          "source_id": "ca:chips-liquor",
+          "generation": "569",
+          "due_at": "2026-10-22T22:25:23.102Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T22:30:20.501Z",
+          "finished_at": "2026-10-22T22:30:22.614Z",
+          "accounting": {
+            "feed": 0,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "114ec261-5ba6-4d9b-b7c9-62c467c24bb1",
+          "source_id": "ca:mission-trails-wine-spirits",
+          "generation": "559",
+          "due_at": "2026-10-22T22:05:26.066Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T22:10:20.407Z",
+          "finished_at": "2026-10-22T22:10:26.398Z",
+          "accounting": {
+            "feed": 3,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 3,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "e99cd8dc-c9a6-458d-9f32-91e393cb3e9f",
+          "source_id": "fl:abc",
+          "generation": "417",
+          "due_at": "2026-10-22T22:00:25.465Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T22:05:20.588Z",
+          "finished_at": "2026-10-22T22:05:24.644Z",
+          "accounting": {
+            "feed": 654,
+            "accepted": 2851,
+            "baseline": false,
+            "collected": 2851,
+            "candidates": 200,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "dafd5594-1643-4d87-8445-0aad549cc9dc",
+          "source_id": "nc:board-shipments",
+          "generation": "568",
+          "due_at": "2026-10-22T21:50:24.569Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T21:55:20.881Z",
+          "finished_at": "2026-10-22T21:55:24.547Z",
+          "accounting": {
+            "feed": 712,
+            "accepted": 718,
+            "baseline": false,
+            "collected": 1179,
+            "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
+            "boardCount": 172,
+            "candidates": 200,
+            "observedAt": "2026-10-22T15:06:26.000Z",
+            "roadblocks": 0,
+            "recordCount": 84021,
+            "retrievedAt": "2026-10-22T21:55:23.923Z",
+            "productCount": 2517,
+            "trackedSignalCount": 1179,
+            "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.",
+            "priceEnrichedSignalCount": 0,
+            "controlledDistributionSignalCount": 0
+          }
+        },
+        {
+          "run_id": "c3d0c643-3bd5-47a9-be91-a34c086328a2",
+          "source_id": "ca:chips-liquor",
+          "generation": "568",
+          "due_at": "2026-10-22T21:50:23.089Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T21:55:20.874Z",
+          "finished_at": "2026-10-22T21:55:23.102Z",
+          "accounting": {
+            "feed": 0,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "73123f76-a83d-41c1-a12b-8fbf95411983",
+          "source_id": "oh:browser-artifact",
+          "generation": "306",
+          "due_at": "2026-10-22T21:50:22.064Z",
+          "status": "browser_artifact_unavailable",
+          "started_at": "2026-10-22T21:55:20.869Z",
+          "finished_at": "2026-10-22T21:55:22.562Z",
+          "accounting": {
+            "probe": true
+          }
+        },
+        {
+          "run_id": "17d5f873-5851-4f2d-9178-524fcd8363d5",
+          "source_id": "ca:mission-trails-wine-spirits",
+          "generation": "558",
+          "due_at": "2026-10-22T21:30:26.611Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T21:35:20.376Z",
+          "finished_at": "2026-10-22T21:35:26.067Z",
+          "accounting": {
+            "feed": 3,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 3,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "31a60853-4c6c-4d1b-a781-90ba40c05626",
+          "source_id": "fl:abc",
+          "generation": "416",
+          "due_at": "2026-10-22T21:25:24.745Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T21:30:20.429Z",
+          "finished_at": "2026-10-22T21:30:25.501Z",
+          "accounting": {
+            "feed": 654,
+            "accepted": 2851,
+            "baseline": false,
+            "collected": 2851,
+            "candidates": 200,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "874a3769-9ff3-4f6c-b5b5-3f766844798a",
+          "source_id": "ca:del-mesa-liquor",
+          "generation": "540",
+          "due_at": "2026-10-22T21:15:26.970Z",
+          "status": "source_identity_or_schema_failure",
+          "started_at": "2026-10-22T21:20:20.842Z",
+          "finished_at": "2026-10-22T21:20:22.201Z",
+          "accounting": {
+            "probe": false
+          }
+        },
+        {
+          "run_id": "06238c1a-86b2-4f2f-b07a-53cfdccf9faa",
+          "source_id": "ca:chips-liquor",
+          "generation": "567",
+          "due_at": "2026-10-22T21:15:22.686Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T21:20:20.839Z",
+          "finished_at": "2026-10-22T21:20:23.089Z",
+          "accounting": {
+            "feed": 0,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "01c70c04-1d3e-475e-89be-90bcf81ce93f",
+          "source_id": "nc:board-shipments",
+          "generation": "567",
+          "due_at": "2026-10-22T21:15:24.198Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T21:20:20.811Z",
+          "finished_at": "2026-10-22T21:20:24.588Z",
+          "accounting": {
+            "feed": 712,
+            "accepted": 718,
+            "baseline": false,
+            "collected": 1179,
+            "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
+            "boardCount": 172,
+            "candidates": 200,
+            "observedAt": "2026-10-22T15:06:26.000Z",
+            "roadblocks": 0,
+            "recordCount": 84021,
+            "retrievedAt": "2026-10-22T21:20:23.870Z",
+            "productCount": 2517,
+            "trackedSignalCount": 1179,
+            "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.",
+            "priceEnrichedSignalCount": 0,
+            "controlledDistributionSignalCount": 0
+          }
+        },
+        {
+          "run_id": "d5e895e9-402d-4e8f-aed7-a30feb2a84d3",
+          "source_id": "ca:mission-trails-wine-spirits",
+          "generation": "557",
+          "due_at": "2026-10-22T20:55:25.975Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T21:00:20.465Z",
+          "finished_at": "2026-10-22T21:00:26.611Z",
+          "accounting": {
+            "feed": 3,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 3,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "467df10f-742c-4ef1-b312-d831999935d7",
+          "source_id": "fl:abc",
+          "generation": "415",
+          "due_at": "2026-10-22T20:50:24.262Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:55:20.961Z",
+          "finished_at": "2026-10-22T20:55:24.781Z",
+          "accounting": {
+            "feed": 654,
+            "accepted": 2790,
+            "baseline": false,
+            "collected": 2790,
+            "candidates": 200,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "c4d83d65-0682-411d-9f79-9aab9fb4088b",
+          "source_id": "oh:browser-artifact",
+          "generation": "305",
+          "due_at": "2026-10-22T20:45:22.928Z",
+          "status": "browser_artifact_unavailable",
+          "started_at": "2026-10-22T20:50:20.602Z",
+          "finished_at": "2026-10-22T20:50:22.064Z",
+          "accounting": {
+            "probe": true
+          }
+        },
+        {
+          "run_id": "7fe81cc4-d84b-4f90-a03a-eaffeae4496b",
+          "source_id": "ca:chips-liquor",
+          "generation": "566",
+          "due_at": "2026-10-22T20:40:22.439Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:45:20.652Z",
+          "finished_at": "2026-10-22T20:45:22.686Z",
+          "accounting": {
+            "feed": 0,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "96b135a4-91e1-49c7-931f-d7fb2b58c9fd",
+          "source_id": "ca:del-mesa-liquor",
+          "generation": "539",
+          "due_at": "2026-10-22T20:40:26.543Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:45:20.649Z",
+          "finished_at": "2026-10-22T20:45:26.970Z",
+          "accounting": {
+            "feed": 7,
+            "accepted": 9,
+            "baseline": false,
+            "collected": 9,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "d2134c60-bd87-44c2-bd46-2ba2a2f6501c",
+          "source_id": "nc:board-shipments",
+          "generation": "566",
+          "due_at": "2026-10-22T20:40:23.939Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:45:20.631Z",
+          "finished_at": "2026-10-22T20:45:24.218Z",
+          "accounting": {
+            "feed": 712,
+            "accepted": 718,
+            "baseline": false,
+            "collected": 1179,
+            "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
+            "boardCount": 172,
+            "candidates": 200,
+            "observedAt": "2026-10-22T15:06:26.000Z",
+            "roadblocks": 0,
+            "recordCount": 84021,
+            "retrievedAt": "2026-10-22T20:45:23.576Z",
+            "productCount": 2517,
+            "trackedSignalCount": 1179,
+            "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.",
+            "priceEnrichedSignalCount": 0,
+            "controlledDistributionSignalCount": 0
+          }
+        },
+        {
+          "run_id": "fce12aca-d8f2-4091-a384-26e8bac0d528",
+          "source_id": "ca:mission-trails-wine-spirits",
+          "generation": "556",
+          "due_at": "2026-10-22T20:20:25.942Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:25:20.734Z",
+          "finished_at": "2026-10-22T20:25:25.975Z",
+          "accounting": {
+            "feed": 3,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 3,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "48dfb746-794b-43ab-8eb7-6f69da833bcf",
+          "source_id": "fl:abc",
+          "generation": "414",
+          "due_at": "2026-10-22T20:15:25.374Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:20:20.541Z",
+          "finished_at": "2026-10-22T20:20:24.298Z",
+          "accounting": {
+            "feed": 654,
+            "accepted": 2790,
+            "baseline": false,
+            "collected": 2790,
+            "candidates": 200,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "fb6a054e-3240-4406-a7e0-2140d4863ee3",
+          "source_id": "ca:del-mesa-liquor",
+          "generation": "538",
+          "due_at": "2026-10-22T20:05:28.103Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:10:20.407Z",
+          "finished_at": "2026-10-22T20:10:26.543Z",
+          "accounting": {
+            "feed": 7,
+            "accepted": 9,
+            "baseline": false,
+            "collected": 9,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "5d286769-5226-495d-8e2e-6675cb96015e",
+          "source_id": "nc:board-shipments",
+          "generation": "565",
+          "due_at": "2026-10-22T20:05:24.229Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:10:20.403Z",
+          "finished_at": "2026-10-22T20:10:23.961Z",
+          "accounting": {
+            "feed": 712,
+            "accepted": 718,
+            "baseline": false,
+            "collected": 1179,
+            "sourceUrl": "https://abc2.nc.gov/Search/StockShippedData",
+            "boardCount": 172,
+            "candidates": 200,
+            "observedAt": "2026-10-22T15:06:26.000Z",
+            "roadblocks": 0,
+            "recordCount": 84021,
+            "retrievedAt": "2026-10-22T20:10:23.327Z",
+            "productCount": 2517,
+            "trackedSignalCount": 1179,
+            "strictProductPolicy": "Only explicit tracked names are accepted for shipment rows to avoid false positives from loose bottle-name matching.",
+            "priceEnrichedSignalCount": 0,
+            "controlledDistributionSignalCount": 0
+          }
+        },
+        {
+          "run_id": "2583efa8-f8eb-4c02-a896-ca7314394661",
+          "source_id": "ca:chips-liquor",
+          "generation": "565",
+          "due_at": "2026-10-22T20:05:22.895Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T20:10:20.401Z",
+          "finished_at": "2026-10-22T20:10:22.439Z",
+          "accounting": {
+            "feed": 0,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "57ffaadb-9330-400e-ac59-2dcd6017e80f",
+          "source_id": "ca:mission-trails-wine-spirits",
+          "generation": "555",
+          "due_at": "2026-10-22T19:45:26.687Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T19:50:20.861Z",
+          "finished_at": "2026-10-22T19:50:25.942Z",
+          "accounting": {
+            "feed": 3,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 3,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "c25010f5-868a-473f-89dc-316c3750f8eb",
+          "source_id": "fl:abc",
+          "generation": "413",
+          "due_at": "2026-10-22T19:40:25.602Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T19:45:20.614Z",
+          "finished_at": "2026-10-22T19:45:25.414Z",
+          "accounting": {
+            "feed": 655,
+            "accepted": 2793,
+            "baseline": false,
+            "collected": 2793,
+            "candidates": 200,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "7883bfd9-d73e-49c1-ad1f-d0baaf683713",
+          "source_id": "oh:browser-artifact",
+          "generation": "304",
+          "due_at": "2026-10-22T19:40:23.176Z",
+          "status": "browser_artifact_unavailable",
+          "started_at": "2026-10-22T19:45:20.603Z",
+          "finished_at": "2026-10-22T19:45:22.929Z",
+          "accounting": {
+            "probe": true
+          }
+        },
+        {
+          "run_id": "6d23c5f7-827a-4eeb-8993-668fe4348439",
+          "source_id": "ca:chips-liquor",
+          "generation": "564",
+          "due_at": "2026-10-22T19:30:25.235Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T19:35:20.400Z",
+          "finished_at": "2026-10-22T19:35:22.895Z",
+          "accounting": {
+            "feed": 0,
+            "accepted": 3,
+            "baseline": false,
+            "collected": 3,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        },
+        {
+          "run_id": "dedacbb9-9fc0-46ed-99d2-c24b1de9fdba",
+          "source_id": "ca:del-mesa-liquor",
+          "generation": "537",
+          "due_at": "2026-10-22T19:30:26.664Z",
+          "status": "accepted",
+          "started_at": "2026-10-22T19:35:20.395Z",
+          "finished_at": "2026-10-22T19:35:28.103Z",
+          "accounting": {
+            "feed": 7,
+            "accepted": 9,
+            "baseline": false,
+            "collected": 9,
+            "candidates": 0,
+            "roadblocks": 0
+          }
+        }
+      ],
+      "schedulingHealthy": true,
+      "collectionHealthy": false,
+      "sourceHealth": [
+        {
+          "source": "nc:board-shipments",
+          "status": "healthy",
+          "dependency": false,
+          "acceptedAt": "2026-10-22T23:40:24.018Z",
+          "reason": "accepted"
+        },
+        {
+          "source": "fl:abc",
+          "status": "healthy",
+          "dependency": false,
+          "acceptedAt": "2026-10-22T23:50:24.700Z",
+          "reason": "accepted"
+        },
+        {
+          "source": "fl:jensens-miami",
+          "status": "healthy",
+          "dependency": false,
+          "acceptedAt": "2026-10-23T00:00:23.089Z",
+          "reason": "accepted"
+        },
+        {
+          "source": "ca:del-mesa-liquor",
+          "status": "stale",
+          "dependency": false,
+          "acceptedAt": "2026-10-22T20:45:26.970Z",
+          "reason": "source_identity_or_schema_failure"
+        },
+        {
+          "source": "ca:mission-trails-wine-spirits",
+          "status": "healthy",
+          "dependency": false,
+          "acceptedAt": "2026-10-22T23:55:27.372Z",
+          "reason": "accepted"
+        },
+        {
+          "source": "ca:chips-liquor",
+          "status": "healthy",
+          "dependency": false,
+          "acceptedAt": "2026-10-22T23:40:23.952Z",
+          "reason": "accepted"
+        },
+        {
+          "source": "oh:browser-artifact",
+          "status": "dependency_unavailable",
+          "dependency": true,
+          "acceptedAt": null,
+          "reason": "browser_artifact_unavailable"
+        }
+      ]
+    }
+  },
+  "receipts": [
+    {
+      "url": "https://www.bourbonsignal.com/api/drops?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792713804133-7c29b502a5dc",
+      "status": 200,
+      "receivedAt": "2026-10-23T00:03:33.590Z",
+      "sha256": "66f0d90b6a8cbb7f9206d82417e77c32be9f43ee4089ad7f9d1626949eeef072",
+      "payload": {
+        "contractVersion": "bourbon-signal/source-receipt@1",
+        "surface": "feed",
+        "sourceId": "ca:mission-trails-wine-spirits",
+        "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc:source:b2057ca49490a22adc82a528:232bb24047c17205953d5b7f",
+        "receivedAt": "2026-10-23T00:03:25.482Z",
+        "total": 0,
+        "identities": []
+      }
+    },
+    {
+      "url": "https://www.bourbonsignal.com/api/coverage?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792713813590-d26d8abbecc7",
+      "status": 200,
+      "receivedAt": "2026-10-23T00:03:41.857Z",
+      "sha256": "92a106eb4cb34c141f3bfe6fb977f8a1ee5879614a59db847e8c823c36c5e6c3",
+      "payload": {
+        "contractVersion": "bourbon-signal/source-receipt@1",
+        "surface": "coverage",
+        "sourceId": "ca:mission-trails-wine-spirits",
+        "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+        "receivedAt": "2026-10-23T00:03:34.568Z",
+        "total": 0,
+        "identities": []
+      }
+    },
+    {
+      "url": "https://www.bourbonsignal.com/api/drops?state=FL&limit=1&source_receipt=fl%3Ajensens-miami&_bs_verify=1792713821857-74dc8afa80d6",
+      "status": 200,
+      "receivedAt": "2026-10-23T00:03:42.987Z",
+      "sha256": "9711c1ef9e2bce05907c43ee36b0a312fae3af58ff30fcd4b43c7c22e2a13170",
+      "payload": {
+        "contractVersion": "bourbon-signal/source-receipt@1",
+        "surface": "feed",
+        "sourceId": "fl:jensens-miami",
+        "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc:source:f79dc149318cfe28dbbd7b14:eccd4e7b626d5495f9d246b9",
+        "receivedAt": "2026-10-23T00:03:42.943Z",
+        "total": 1,
+        "identities": [
+          {
+            "sourceId": "fl:jensens-miami",
+            "runId": "a3cb9536-589e-408a-ac2c-935a38fefd5c",
+            "generation": 1,
+            "state": "FL",
+            "storeId": "jensens-liquors:1646-sw-27th",
+            "canonicalBottleId": "bb_3566c2a0088ec99a",
+            "productId": "15414448390218",
+            "variantId": "67703590977610",
+            "observedAt": "2026-10-23T00:00:22.687Z"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://www.bourbonsignal.com/api/coverage?state=FL&limit=1&source_receipt=fl%3Ajensens-miami&_bs_verify=1792713822987-c0d20ade35fa",
+      "status": 200,
+      "receivedAt": "2026-10-23T00:03:49.651Z",
+      "sha256": "70323cd1502166d7e1892c0bc4f76dc8d6dd2438e83443e16210457525a2bb08",
+      "payload": {
+        "contractVersion": "bourbon-signal/source-receipt@1",
+        "surface": "coverage",
+        "sourceId": "fl:jensens-miami",
+        "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+        "receivedAt": "2026-10-23T00:03:43.103Z",
+        "total": 1,
+        "identities": [
+          {
+            "sourceId": "fl:jensens-miami",
+            "runId": "a3cb9536-589e-408a-ac2c-935a38fefd5c",
+            "generation": 1,
+            "state": "FL",
+            "storeId": "jensens-liquors:1646-sw-27th",
+            "canonicalBottleId": "bb_3566c2a0088ec99a",
+            "productId": "15414448390218",
+            "variantId": "67703590977610",
+            "observedAt": "2026-10-23T00:00:22.687Z"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

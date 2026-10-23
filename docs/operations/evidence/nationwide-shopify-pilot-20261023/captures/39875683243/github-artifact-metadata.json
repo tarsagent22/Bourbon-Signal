@@ -1,0 +1,30 @@
+{
+  "run": {
+    "id": 39875683243,
+    "event": "workflow_dispatch",
+    "headSha": "be8ad383b04d08882fe753958a95be2e118dd707",
+    "status": "completed",
+    "conclusion": "failure",
+    "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39875683243"
+  },
+  "artifact": {
+    "id": 12467354141,
+    "node_id": "MDg6QXJ0aWZhY3QxMjQ2NzM1NDE0MQ==",
+    "name": "nationwide-pilot-39875683243",
+    "size_in_bytes": 5457,
+    "url": "https://api.github.com/repos/tarsagent22/Bourbon-Signal/actions/artifacts/12467354141",
+    "archive_download_url": "https://api.github.com/repos/tarsagent22/Bourbon-Signal/actions/artifacts/12467354141/zip",
+    "expired": false,
+    "digest": "sha256:508e1b74148ba64d70d39649e62728f4bc0fadea880c3cb10e5436c6a51adee4",
+    "created_at": "2026-10-23T00:03:50Z",
+    "updated_at": "2026-10-23T00:03:50Z",
+    "expires_at": "2026-11-22T00:03:49Z",
+    "workflow_run": {
+      "id": 39875683243,
+      "repository_id": 1186564840,
+      "head_repository_id": 1186564840,
+      "head_branch": "main",
+      "head_sha": "be8ad383b04d08882fe753958a95be2e118dd707"
+    }
+  }
+}

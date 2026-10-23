@@ -1,0 +1,21 @@
+OFFLINE SYNTHETIC FROZEN-INPUT CHECKS — no database queries or production evidence.
+PASS 1: two frozen generations produce a deduplicated key union spanning their cadence gap
+PASS 2: replacement run cannot relabel frozen ownership
+PASS 3: generation mismatch remains pending
+PASS 4: queue identity helper derivation is enforced
+PASS 5: legacy aliases cannot be omitted
+PASS 6: incomplete projected mappings fail closed
+PASS 7: identity implementation hash must match
+PASS 8: nonzero frozen counts are not accepted as zero
+PASS 9: original proof must have five minutes after finish
+PASS 10: old query versions are not upgraded by inference
+PASS 11: conflicting otherwise valid mappings for one run are rejected
+PASS 12: whole-window cutoff must be five minutes after latest finish
+PASS 13: missing aggregate is unknown, never an invented zero
+PASS 14: null aggregate counts cannot be coerced into zero
+PASS 15: blank or boolean aggregate counts cannot be coerced into zero
+PASS 16: measured whole-window nonzero attempts veto a zero claim
+PASS 17: measured zero aggregates retain the explicit limited window scope
+PASS 18: Neon Date timestamps normalize to ISO before validation and storage
+PASS 19: invalid Date timestamps remain unknown instead of authorizing zero
+{"offlineFrozenInputCases":19,"pass":true,"productionEvidence":false,"queryVersion":"pilot-owned-key-counts@2"}
