@@ -1,6 +1,6 @@
 # Nationwide preparation pass — 2026-10-23 08:36 UTC
 
-Scheduled preparation only. Production remains `a86a0433c7b0b051761fdc5e3625128bbac42281` (#823); the released CA/FL pilot and its original bounded observer are retained. No PR, release lock, deployment, source activation, monitor change, due-time reset, merchant request, business contact or purchase occurred in this pass. The five-store/three-state target remains pending, with zero newly accepted inventory connections.
+Scheduled preparation only. Production remains `a86a0433c7b0b051761fdc5e3625128bbac42281` (#823); the released CA/FL pilot and its original bounded observer are retained. No PR, release lock, production deployment, source activation, monitor change, due-time reset, merchant request, business contact or purchase occurred in this pass. The five-store/three-state target remains pending, with zero newly accepted inventory connections.
 
 ## Observation evidence
 
@@ -12,7 +12,7 @@ The immutable analysis is under `C:/Users/chand/Documents/Bourbon Signal/feed-so
 
 ## Corrected directory scope
 
-The first production baseline's zero directory-overlap result covered selected engine store universes, not the app's complete sighting/license directory. All five V2 candidates have directory context in `src/data/sighting-store-directory.generated.json` (38,095 rows, generated October 8, SHA-256 `ef594f72535e3a42f968d7d1649f0bbad78938c55e06389a54eb00779a26f1c9`). They are directory-known premises seeking new inventory connections, not newly discovered physical addresses.
+The first production baseline's zero directory-overlap result covered selected engine store universes, not the app's complete sighting/license directory. All five V2 candidates have directory context in `src/data/sighting-store-directory.generated.json` (38,095 rows, generated October 8, SHA-256 `ef594f72535e3a42f968d7d1649f0bbad78938c55e06389a54eb00779a26f1c9`). Four have exact physical address matches and Hot Spot has an unresolved unit-designator match. Prospective gains are new inventory connections at directory-known or directory-linked locations, not newly discovered physical addresses.
 
 The generic public-data matcher returns four exact physical address matches and one ambiguous Hot Spot Suite100/APT100 match. Differing licensed names are preserved and never establish merchant identity; duplicate premises/IDs and conflicting units are ambiguous. Remedy's base-address/Suite B relation uses the separately approved exact alias. Meaningful house-number hyphens remain distinct. The new pure module `engine/src/discovery/premises-directory-reconciliation.mjs` accepts supplied candidates/public directory rows, performs no I/O, and cannot establish inventory, current availability, historical absence or admission. Inputs are bounded at 25 candidates and 100,000 rows; match truncation is explicit.
 
