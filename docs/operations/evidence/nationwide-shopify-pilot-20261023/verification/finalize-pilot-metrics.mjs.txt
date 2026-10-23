@@ -1,0 +1,50 @@
+import { readFile, writeFile } from 'node:fs/promises';
+const root = 'C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence';
+const read = async file => JSON.parse(await readFile(`${root}/${file}`, 'utf8'));
+const [evaluation, ledger, queue, health, bible] = await Promise.all([
+  read('acceptance-final.json'), read('live-ledger-final.json'), read('queue-soak-audit.json'), read('production-health-final.json'),
+  readFile('engine/out/bourbon-bible.json', 'utf8').then(JSON.parse),
+]);
+if (!evaluation.acceptance?.ok || evaluation.status !== 'accepted') throw new Error('Pilot acceptance remains pending.');
+if (queue.status !== 'zero_owned_key_emissions_whole_window' || queue.errors.length || queue.counts?.newQueueRows !== 0 || queue.counts?.deliveryAttempts !== 0) throw new Error('Whole-window owned-key audit remains pending.');
+if (health.body?.release?.commit !== 'be8ad383b04d08882fe753958a95be2e118dd707' || health.body.release.status !== 'healthy' || health.body.cron?.status !== 'healthy') throw new Error('Current production release or alert cron is unverified.');
+const ca = queue.frozenRuns.filter(run => run.sourceId === 'ca:mission-trails-wine-spirits').sort((a,b) => a.generation-b.generation);
+if (ca.length !== 2 || JSON.stringify([...ca[0].stableKeys].sort()) !== JSON.stringify([...ca[1].stableKeys].sort())) throw new Error('The quiet-repeat pilot lacks two unchanged frozen CA identity sets.');
+const names = new Map(bible.records.map(row => [row.id, row.canonical]));
+const sources = evaluation.evidence.sources.map(source => {
+  const latest = source.runs.at(-1), job = ledger.jobs.find(row => row.source_id === source.sourceId);
+  const currentLedgerRun = ledger.runs.find(row => row.source_id === source.sourceId && Number(row.generation) === Number(job?.generation));
+  if (source.runs.length < 2 || job?.last_reason !== 'accepted' || Number(job.failures) !== 0 || Number(job.generation) !== latest?.generation
+    || currentLedgerRun?.run_id !== latest.runId || currentLedgerRun.status !== 'accepted'
+    || currentLedgerRun.accounting?.trigger !== 'scheduled' || currentLedgerRun.accounting.manualDueReset !== false) throw new Error(`Current independent ledger does not corroborate ${source.sourceId}.`);
+  return { sourceId: source.sourceId, state: source.state, existingPremise: true,
+    evidenceClass: source.state === 'FL' ? 'exact_variant_pickup_offer' : 'online_orderability_with_general_pickup_policy',
+    storeId: latest.observations[0].storeId, address: latest.observations[0].storeAddress,
+    acceptedScheduledRuns: source.runs.length, latestRunId: latest.runId, latestGeneration: latest.generation,
+    currentCanonicalBottles: [...new Set(latest.observations.map(row => row.canonicalBottleId))].map(id => ({ id, name: names.get(id) })),
+    currentStoreBottlePairs: latest.observations.map(row => ({ storeId: row.storeId, canonicalBottleId: row.canonicalBottleId, productId: row.productId, variantId: row.variantId, observedAt: row.observedAt })),
+    dueToStartMs: source.runs.map(run => Date.parse(run.startedAt)-Date.parse(run.dueAt)),
+    acceptedRunIntervalsMs: source.runs.slice(1).map((run,index) => Date.parse(run.startedAt)-Date.parse(source.runs[index].startedAt)),
+    measuredRuns: source.runs.map(run => ({ runId: run.runId, generation: run.generation, dueAt: run.dueAt, startedAt: run.startedAt, finishedAt: run.finishedAt,
+      requests: run.requests, bytes: run.bytes, elapsedMs: run.durationMs, projectedCandidateCount: run.projectedCandidateCount, bootstrap: run.bootstrap })),
+    latestObservationAgeSeconds: latest.observations.map(row => Math.round((Date.parse(evaluation.assembledAt)-Date.parse(row.observedAt))/1000)),
+    expirySeconds: 3600,
+  };
+});
+const current = sources.flatMap(source => source.currentStoreBottlePairs);
+const metrics = { contractVersion: 'bourbon-signal/pilot-metrics@1', status: 'verified', evaluatedAt: evaluation.assembledAt,
+  productionCommit: health.body.release.commit, productionDeployment: health.body.release.deploymentId,
+  scope: { states: 2, cities: ['San Diego, CA','Miami, FL'], existingPremises: 2, demonstratedNewPhysicalStores: 0,
+    newIndependentScheduledConnections: 1, functioningRetailerAvailabilityConnections: 2, exactVariantPickupPremises: 1,
+    generalPickupPolicyPremises: 1, currentCanonicalBottles: new Set(current.map(row=>row.canonicalBottleId)).size,
+    currentStoreBottlePairs: new Set(current.map(row=>`${row.storeId}|${row.canonicalBottleId}`)).size,
+    currentExactVariantPickupCanonicalPairs: sources.filter(source=>source.state==='FL').reduce((n,source)=>n+source.currentStoreBottlePairs.length,0) },
+  sources, quietRepeatIdentityCheck: { sourceId: 'ca:mission-trails-wine-spirits', generations: ca.map(run=>run.generation), unchangedFrozenStableKeys: true },
+  queueAudit: { scope: queue.scope, window: queue.window, stableAndLegacyKeyCount: queue.stableKeys.length, counts: queue.counts,
+    limitation: 'Surviving queue rows and recorded attempts for the frozen owned keys only; no deleted-row, unrecorded provider, future-attempt, other-key or phone-display claim.' },
+  costScope: 'Measured successful pilot collections. Provider billing, long-term maintenance labor and all legacy failure costs were not audited.',
+  productionHealth: { release: health.body.release.status, alertCron: health.body.cron.status, globalEngine: health.body.engine },
+  scaling: 'Paused pending broader snapshot freshness and monitoring maintenance review; additional Shopify premises remain backlog.',
+  businessContact: 'none', purchasesOrAgreements: 'none', manualDueReset: false };
+await writeFile(`${root}/pilot-metrics.json`,JSON.stringify(metrics,null,2)+'\n');
+console.log(JSON.stringify({status:metrics.status,scope:metrics.scope,runs:sources.map(source=>({sourceId:source.sourceId,count:source.acceptedScheduledRuns,latestGeneration:source.latestGeneration})),queueCounts:queue.counts,globalEngine:health.body.engine.status}));

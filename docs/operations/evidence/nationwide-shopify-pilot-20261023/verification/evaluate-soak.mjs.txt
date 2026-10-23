@@ -5,14 +5,16 @@ import { fileURLToPath } from 'node:url';
 import { evaluateNationwidePilotAcceptance, NATIONWIDE_PILOT_EVIDENCE_VERSION } from '../scripts/lib/nationwide-pilot-acceptance.mjs';
 import { stableUnderlyingAlertKey } from '../src/lib/alert-dedupe.ts';
 import { COUNT_SQL as QUEUE_COUNT_SQL, VERSION as QUEUE_QUERY_VERSION } from './capture-queue-proof.mjs';
+import assert from 'node:assert/strict';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SOURCES = { 'ca:mission-trails-wine-spirits': 'CA', 'fl:jensens-miami': 'FL' };
+const STORES = { 'ca:mission-trails-wine-spirits': 'mission-trails-wine-spirits:8181-mission-gorge', 'fl:jensens-miami': 'jensens-liquors:1646-sw-27th' };
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const isHash = value => typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value);
 const time = value => typeof value === 'string' ? Date.parse(value) : NaN;
 const stable = value => JSON.stringify(value && typeof value === 'object' ? Array.isArray(value) ? value.map(v => JSON.parse(stable(v))) : Object.fromEntries(Object.keys(value).sort().map(k => [k, JSON.parse(stable(value[k]))])) : value ?? null);
-const identityKey = row => [row.sourceId, row.runId, row.generation, row.storeId, row.canonicalBottleId, row.productId, row.variantId, row.observedAt].join('|');
+const identityKey = row => [row?.sourceId, row?.runId, row?.generation, row?.storeId, row?.canonicalBottleId, row?.productId, row?.variantId, row?.observedAt].join('|');
 function artifactUrl(value) {
   try { const url = new URL(value); return url.origin === 'https://github.com' && /^\/tarsagent22\/Bourbon-Signal\/actions\/(?:runs\/\d+\/)?artifacts\/\d+\/?$/.test(url.pathname) && !url.search && !url.hash; } catch { return false; }
 }
@@ -106,9 +108,77 @@ function receiptUrl(value, sourceId, surface) {
   } catch { return false; }
 }
 
+/** Select newest indexed capture first; known unavailability must veto old positives. */
+export function validateLatestCapture(captures, now) {
+  const failures = [], sources = [];
+  const indexed = captures.filter(entry => artifactUrl(entry?.provenance?.url) && isHash(entry?.provenance?.sha256));
+  const stamp = entry => time(entry.capture?.capturedAt);
+  if (indexed.some(entry => !Number.isFinite(stamp(entry)))) failures.push('Hash-verified capture has malformed capturedAt; latest current state cannot be ordered safely.');
+  const latest = indexed.filter(entry => Number.isFinite(stamp(entry))).sort((a, b) => stamp(b) - stamp(a))[0];
+  if (!latest) return { ok: false, failures: [...failures, 'Latest timestamped hash-verified capture unavailable.'], sources };
+  if (!Number.isFinite(time(now)) || stamp(latest) > time(now)) failures.push('Latest capture timestamp is invalid or in the future.');
+  const { capture, provenance } = latest;
+  if (capture?.contractVersion !== 'bourbon-signal/pilot-capture@1' || !Array.isArray(capture.errors) || capture.errors.length !== 0
+    || capture.scheduler?.status !== 200 || capture.scheduler.payload?.enabled !== true) {
+    return { ok: false, failures: [...failures, 'Newest hash-verified capture is incomplete, unavailable, or scheduler-disabled; older healthy captures cannot substitute.'],
+      provenance, capturedAt: capture?.capturedAt, schedulerReceivedAt: capture?.scheduler?.receivedAt || null, sources };
+  }
+  const scheduler = capture.scheduler.payload;
+  for (const [sourceId, state] of Object.entries(SOURCES)) {
+    const problems = [], jobs = (Array.isArray(scheduler.jobs) ? scheduler.jobs : []).filter(job => job?.source_id === sourceId), job = jobs[0];
+    const generation = Number(job?.generation);
+    if (jobs.length !== 1 || job.last_reason !== 'accepted' || ![0, '0'].includes(job.failures)
+      || !Number.isSafeInteger(generation) || generation <= 0) problems.push('current job is missing, failed, pending, or not an accepted positive generation');
+    const traces = (Array.isArray(scheduler.traces) ? scheduler.traces : []).filter(trace => trace?.source_id === sourceId)
+      .sort((a, b) => Number(b.generation) - Number(a.generation) || time(b.started_at) - time(a.started_at));
+    const current = traces[0];
+    if (!current || current.status !== 'accepted' || Number(current.generation) !== generation || !current.run_id
+      || current.accounting?.trigger !== 'scheduled' || current.accounting?.manualDueReset !== false
+      || !Array.isArray(current.accounting?.observations) || !current.accounting.observations.length) problems.push('newest source trace does not prove the current accepted scheduled generation');
+    const close = (left, right) => Number.isFinite(time(left)) && Number.isFinite(time(right)) && Math.abs(time(left) - time(right)) <= 1000;
+    if (!close(job?.last_started_at, current?.started_at) || !close(job?.last_completed_at, current?.finished_at)
+      || !Number.isFinite(time(current?.finished_at)) || time(current.finished_at) < time(current.started_at)) problems.push('current job and trace collection clocks disagree');
+    const health = (Array.isArray(scheduler.sourceHealth) ? scheduler.sourceHealth : []).filter(row => (row?.source || row?.source_id) === sourceId);
+    if (!Array.isArray(scheduler.sourceHealth) || health.length !== 1 || health[0].status !== 'healthy') problems.push('mandatory selected source health array must contain exactly one healthy row');
+    const sets = [], observations = Array.isArray(current?.accounting?.observations) ? current.accounting.observations : [];
+    for (const surface of ['feed', 'coverage']) {
+      const responses = (Array.isArray(capture.receipts) ? capture.receipts : []).filter(response => response?.payload?.sourceId === sourceId && response.payload.surface === surface);
+      const response = responses[0], payload = response?.payload;
+      if (responses.length !== 1 || response?.status !== 200 || payload?.contractVersion !== 'bourbon-signal/source-receipt@1'
+        || !receiptUrl(response?.url, sourceId, surface) || !isHash(response?.sha256) || !Array.isArray(payload?.identities)
+        || payload.identities.length === 0 || payload.total !== payload.identities.length || !nonEmptySnapshot(payload.snapshot)
+        || !Number.isFinite(time(payload.receivedAt)) || time(payload.receivedAt) < time(current?.finished_at)
+        || time(payload.receivedAt) > time(now) || !Number.isFinite(time(response?.receivedAt)) || time(response.receivedAt) < time(payload.receivedAt) - 1000) {
+        problems.push(`latest capture lacks its own nonzero valid ${surface} receipt`); sets.push([]); continue;
+      }
+      const identities = [];
+      for (const identity of payload.identities) {
+        const matching = observations.filter(observation => identityKey({ ...observation, sourceId, runId: current?.run_id, generation }) === identityKey(identity));
+        if (identity?.sourceId !== sourceId || identity.state !== state || identity.storeId !== STORES[sourceId] || identity.runId !== current?.run_id
+          || Number(identity.generation) !== generation || !Number.isSafeInteger(Number(identity.generation))
+          || !identity.canonicalBottleId || !identity.productId || !identity.variantId || matching.length !== 1
+          || !Number.isFinite(time(identity.observedAt)) || time(identity.observedAt) < time(current?.started_at)
+          || time(identity.observedAt) > time(current?.finished_at) || time(now) - time(identity.observedAt) > 3600_000) {
+          problems.push(`latest ${surface} identity is not an exact current-generation observation`);
+        }
+        identities.push(identityKey(identity));
+      }
+      if (new Set(identities).size !== identities.length) problems.push(`latest ${surface} receipt duplicates canonical identities`);
+      sets.push(identities.sort());
+    }
+    if (!sets[0]?.length || stable(sets[0]) !== stable(sets[1])) problems.push('latest feed and coverage do not agree on nonzero current canonical identities');
+    failures.push(...problems.map(problem => `${sourceId}: ${problem}.`));
+    sources.push({ sourceId, generation: Number.isSafeInteger(generation) ? generation : null, runId: current?.run_id || null,
+      currentIdentityCount: sets[0]?.length || 0, ok: problems.length === 0, failures: problems });
+  }
+  return { ok: failures.length === 0, failures, provenance, capturedAt: capture.capturedAt, schedulerReceivedAt: capture.scheduler.receivedAt || null, sources };
+}
+function nonEmptySnapshot(value) { return typeof value === 'string' && value.trim().length > 0; }
+
 /** Pure offline assembly. File authenticity is checked by loadIndex before this boundary. */
 export function assembleSoakEvidence(captures, suppliedMaintenance, { now = new Date().toISOString(), allowedBottleIds = [], inputFailures = [], queueProof = null } = {}) {
   const diagnostics = [], failures = [...inputFailures], runMap = new Map(), receipts = [], monitors = [];
+  const currentCaptureGate = validateLatestCapture(captures, now); failures.push(...currentCaptureGate.failures);
   for (const entry of captures) {
     const { capture, provenance } = entry;
     if (!artifactUrl(provenance?.url) || !isHash(provenance?.sha256)) { failures.push('Capture lacks indexed immutable artifact provenance.'); continue; }
@@ -199,7 +269,7 @@ export function assembleSoakEvidence(captures, suppliedMaintenance, { now = new 
   const acceptance = evaluateNationwidePilotAcceptance(evidence, { now, allowedBottleIds });
   acceptance.failures.unshift(...failures); acceptance.ok = acceptance.failures.length === 0;
   return { contractVersion: 'bourbon-signal/pilot-soak-evaluation@1', assembledAt: now, status: acceptance.ok ? 'accepted' : 'pending',
-    evidence, acceptance, diagnostics, inputProvenance: captures.map(row => row.provenance),
+    evidence, acceptance, currentCaptureGate, diagnostics, inputProvenance: captures.map(row => row.provenance),
     limitation: 'Offline evaluation of supplied, hash-checked artifacts. No remote artifact or signature authenticity was independently verified.' };
 }
 
@@ -251,4 +321,114 @@ async function main() {
   console.log(JSON.stringify({ status: result.status, output, counts: result.acceptance.counts, failures: result.acceptance.failures, diagnostics: result.diagnostics }));
   if (!result.acceptance.ok) process.exitCode = 2;
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch(error => { console.error(error.message); process.exitCode = 2; });
+async function currentCaptureChecks() {
+  const now = '2026-10-23T02:50:00.000Z';
+  function fixture(index) {
+    const started = Date.parse('2026-10-23T02:00:00.000Z') + index * 2100_000, iso = offset => new Date(started + offset).toISOString();
+    const traces = [], jobs = [], receipts = [], sourceHealth = [];
+    for (const [sourceId, state] of Object.entries(SOURCES)) {
+      const runId = `synthetic-${state}-${index}`, generation = index + 1;
+      const observation = { state, storeId: STORES[sourceId], canonicalBottleId: `synthetic-${state}`, productId: state === 'FL' ? '15414448390218' : '123',
+        variantId: state === 'FL' ? '67703590977610' : '456', observedAt: iso(1000) };
+      traces.push({ source_id: sourceId, run_id: runId, generation, due_at: iso(0), started_at: iso(0), finished_at: iso(2000), status: 'accepted',
+        accounting: { trigger: 'scheduled', manualDueReset: false, observations: [observation], candidates: 0, projectedCandidateKeys: [], requestCount: 2, bytes: 1000, elapsedMs: 2000, baseline: false } });
+      jobs.push({ source_id: sourceId, generation, last_reason: 'accepted', failures: 0, last_started_at: iso(0), last_completed_at: iso(2000) });
+      sourceHealth.push({ source: sourceId, status: 'healthy' });
+      for (const surface of ['feed', 'coverage']) receipts.push({ status: 200, url: `https://www.bourbonsignal.com/api/${surface === 'feed' ? 'drops' : 'coverage'}?state=${state}&limit=1&source_receipt=${sourceId}&_bs_verify=${started}-abc`,
+        sha256: 'c'.repeat(64), receivedAt: iso(60_100), payload: { contractVersion: 'bourbon-signal/source-receipt@1', sourceId, surface, snapshot: 'synthetic-snapshot',
+          receivedAt: iso(60_000), total: 1, identities: [{ ...observation, sourceId, runId, generation }] } });
+    }
+    return { capture: { contractVersion: 'bourbon-signal/pilot-capture@1', capturedAt: iso(3000), errors: [], receipts,
+      scheduler: { status: 200, receivedAt: iso(4000), payload: { enabled: true, healthy: false, jobs, traces, sourceHealth } } },
+      provenance: { url: `https://github.com/tarsagent22/Bourbon-Signal/actions/runs/123/artifacts/${456 + index}`, sha256: 'a'.repeat(64) } };
+  }
+  const old = fixture(0), current = fixture(1), ca = 'ca:mission-trails-wine-spirits';
+  const gate = value => validateLatestCapture([old, value], now);
+  let passed = 0;
+  const check = (name, operation) => { operation(); passed++; console.log(`PASS ${passed}: ${name}`); };
+  console.log('OFFLINE SYNTHETIC CURRENT-CAPTURE CHECKS — no DB queries, production data, or remote authentication checks.');
+  check('healthy pilot sources pass even when unrelated global monitoring is unhealthy', () => assert.equal(gate(current).ok, true));
+  check('newest capture selection follows capture clocks, not supplied array order', () => assert.equal(validateLatestCapture([current, old], now).sources[0].generation, 2));
+  for (const [name, mutate] of Object.entries({
+    'newest captured errors veto older healthy capture': capture => capture.errors.push('Source scheduler unavailable.'),
+    'newest scheduler HTTP503 vetoes older healthy capture': capture => { capture.scheduler.status = 503; capture.scheduler.payload = { error: 'unavailable' }; },
+    'newest disabled scheduler vetoes older healthy capture': capture => capture.scheduler.payload.enabled = false,
+    'newest absent scheduler response vetoes older healthy capture': capture => delete capture.scheduler,
+  })) check(name, () => {
+    const changed = structuredClone(current); mutate(changed.capture);
+    const result = gate(changed); assert.equal(result.ok, false); assert.equal(result.provenance.url, changed.provenance.url);
+    assert.ok(result.failures.some(error => error.includes('older healthy captures cannot substitute')));
+  });
+  check('malformed capturedAt cannot hide behind a valid scheduler response timestamp', () => {
+    const changed = structuredClone(current); changed.capture.capturedAt = 'invalid';
+    assert.equal(gate(changed).ok, false); assert.ok(gate(changed).failures.some(error => error.includes('malformed capturedAt')));
+  });
+  check('any unorderable indexed capture remains pending even alongside a healthy newest timestamp', () => {
+    const changed = structuredClone(old); delete changed.capture.capturedAt;
+    assert.equal(validateLatestCapture([changed, current], now).ok, false);
+  });
+  check('newer failed generation vetoes two older accepted runs and historical receipt pairs', () => {
+    const changed = structuredClone(current), scheduler = changed.capture.scheduler.payload, job = scheduler.jobs.find(row => row.source_id === ca);
+    changed.capture.capturedAt = '2026-10-23T02:45:00.000Z'; changed.capture.scheduler.receivedAt = '2026-10-23T02:45:01.000Z';
+    job.generation = 3; job.failures = 1; job.last_reason = 'timeout'; job.last_started_at = '2026-10-23T02:44:00.000Z'; job.last_completed_at = '2026-10-23T02:44:50.000Z';
+    scheduler.traces.push({ source_id: ca, run_id: 'synthetic-failed-3', generation: 3, status: 'timeout', started_at: job.last_started_at, finished_at: job.last_completed_at, accounting: {} });
+    const result = assembleSoakEvidence([old, current, changed], {}, { now, allowedBottleIds: ['synthetic-CA', 'synthetic-FL'] });
+    assert.equal(result.evidence.sources[0].runs.length, 2); assert.equal(result.currentCaptureGate.ok, false);
+    assert.ok(result.acceptance.failures.some(error => error.includes(ca) && error.includes('current job')));
+  });
+  check('newer running generation cannot borrow the prior accepted generation', () => {
+    const changed = structuredClone(current), scheduler = changed.capture.scheduler.payload, job = scheduler.jobs[0];
+    job.generation = 3; job.last_started_at = '2026-10-23T02:44:00.000Z';
+    scheduler.traces.push({ source_id: ca, run_id: 'synthetic-running-3', generation: 3, status: 'running', started_at: job.last_started_at, finished_at: null, accounting: {} });
+    assert.equal(gate(changed).ok, false);
+  });
+  check('current job generation without its own accepted trace remains pending', () => {
+    const changed = structuredClone(current); changed.capture.scheduler.payload.jobs[0].generation = 3; assert.equal(gate(changed).ok, false);
+  });
+  check('missing latest trace collection cannot make an older complete capture current', () => {
+    const changed = structuredClone(current); delete changed.capture.scheduler.payload.traces; assert.equal(gate(changed).ok, false);
+  });
+  for (const surface of ['feed', 'coverage']) check(`missing latest ${surface} cannot borrow a historical response`, () => {
+    const changed = structuredClone(current); changed.capture.receipts = changed.capture.receipts.filter(response => !(response.payload.sourceId === ca && response.payload.surface === surface));
+    assert.equal(gate(changed).ok, false);
+  });
+  check('latest receipt identities must use current source run and generation', () => {
+    const changed = structuredClone(current); changed.capture.receipts[0].payload.identities[0].generation = 1; assert.equal(gate(changed).ok, false);
+  });
+  check('latest feed and coverage must agree even when both identities appear in trace observations', () => {
+    const changed = structuredClone(current), observation = { ...changed.capture.scheduler.payload.traces[0].accounting.observations[0], productId: 'extra-product' };
+    changed.capture.scheduler.payload.traces[0].accounting.observations.push(observation);
+    const response = changed.capture.receipts.find(row => row.payload.sourceId === ca && row.payload.surface === 'feed');
+    response.payload.identities.push({ ...response.payload.identities[0], productId: observation.productId }); response.payload.total++;
+    assert.equal(gate(changed).ok, false);
+  });
+  check('selected stale source health vetoes positive cached cards', () => {
+    const changed = structuredClone(current); changed.capture.scheduler.payload.sourceHealth[0].status = 'stale'; assert.equal(gate(changed).ok, false);
+  });
+  check('present source-health list must include the selected source', () => {
+    const changed = structuredClone(current); changed.capture.scheduler.payload.sourceHealth.shift(); assert.equal(gate(changed).ok, false);
+  });
+  check('missing source-health field cannot bypass mandatory selected-source health', () => {
+    const changed = structuredClone(current); delete changed.capture.scheduler.payload.sourceHealth; assert.equal(gate(changed).ok, false);
+  });
+  check('non-array source health cannot authorize current positives', () => {
+    const changed = structuredClone(current); changed.capture.scheduler.payload.sourceHealth = {}; assert.equal(gate(changed).ok, false);
+  });
+  check('duplicate healthy rows for one selected source remain ambiguous', () => {
+    const changed = structuredClone(current); changed.capture.scheduler.payload.sourceHealth.push({ ...changed.capture.scheduler.payload.sourceHealth[0] });
+    assert.equal(gate(changed).ok, false);
+  });
+  check('subsecond completed-clock adapter variation is accepted', () => {
+    const changed = structuredClone(current); changed.capture.scheduler.payload.jobs[0].last_completed_at = '2026-10-23T02:35:02.500Z'; assert.equal(gate(changed).ok, true);
+  });
+  check('material completed-clock mismatch remains pending', () => {
+    const changed = structuredClone(current); changed.capture.scheduler.payload.jobs[0].last_completed_at = '2026-10-23T02:35:04.000Z'; assert.equal(gate(changed).ok, false);
+  });
+  check('missing current job and malformed current identities fail closed', () => {
+    const changed = structuredClone(current); changed.capture.scheduler.payload.jobs.shift(); changed.capture.receipts[0].payload.identities = [null]; assert.equal(gate(changed).ok, false);
+  });
+  console.log(JSON.stringify({ offlineCurrentCaptureCases: passed, pass: true, productionEvidence: false }));
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  (process.argv.includes('--self-test-current') ? currentCaptureChecks() : main()).catch(error => { console.error(error.message); process.exitCode = 2; });
+}

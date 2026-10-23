@@ -1,0 +1,301 @@
+{
+  "contractVersion": "bourbon-signal/pilot-soak-queue-audit@1",
+  "status": "zero_owned_key_emissions_whole_window",
+  "checkedAt": "2026-10-23T01:11:27.219Z",
+  "queryVersion": "pilot-owned-key-counts@2",
+  "countSql": "SELECT\n (SELECT count(*)::text FROM alert_candidates\n   WHERE stable_match_key=ANY($1::text[]) AND created_at >= $2::timestamptz AND created_at < $3::timestamptz) AS new_queue_rows,\n (SELECT count(*)::text FROM alert_deliveries d JOIN alert_candidates c ON c.id=d.candidate_id\n   WHERE c.stable_match_key=ANY($1::text[]) AND d.attempted_at >= $2::timestamptz AND d.attempted_at < $3::timestamptz) AS delivery_attempts,\n clock_timestamp() AS queried_at",
+  "querySha256": "0d049465eb961dee95966156d1dd7d81b6dc5c781281ba52e696879890332e06",
+  "identityFunction": "src/lib/alert-dedupe.ts#stableUnderlyingAlertKey",
+  "identityFunctionSha256": "def5607048360f4fae12a363649b8c224857db877f9886c4a0f5553dcff349ce",
+  "window": {
+    "startAt": "2026-10-23T00:30:20.757Z",
+    "endAt": "2026-10-23T01:11:27.219Z",
+    "endExclusive": true,
+    "latestRunFinishedAt": "2026-10-23T01:05:24.446Z",
+    "minimumAfterLatestFinishMs": 300000
+  },
+  "inputProofs": [
+    {
+      "file": "C:\\Users\\chand\\Documents\\Bourbon Signal\\nationwide-engine-coverage-20261022-evidence\\queue-proof-ca563.json",
+      "sha256": "7eba8ac1a24babe0bc27cf7677a3547afbcaa4149d20df447395ba44515b4680"
+    },
+    {
+      "file": "C:\\Users\\chand\\Documents\\Bourbon Signal\\nationwide-engine-coverage-20261022-evidence\\queue-proof-ca564.json",
+      "sha256": "52c6d8e9bf77d0a914d540c34a8f38e5305c30ad37a47c4c57ba1235c0ee6fd1"
+    }
+  ],
+  "frozenRuns": [
+    {
+      "sourceId": "ca:mission-trails-wine-spirits",
+      "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+      "generation": 563,
+      "dueAt": "2026-10-23T00:25:27.372Z",
+      "startedAt": "2026-10-23T00:30:20.757Z",
+      "finishedAt": "2026-10-23T00:30:27.294Z",
+      "projectedCandidateCount": 3,
+      "projectedCandidateKeys": [
+        "66ad4d9d8faa07d7",
+        "0c4f04a879e7df56",
+        "7000038328fcf307"
+      ],
+      "stableKeys": [
+        "0c4f04a879e7df56",
+        "480dd3268b264c9a",
+        "66ad4d9d8faa07d7",
+        "7000038328fcf307",
+        "availability-episode:4c64b3fbb5649646",
+        "availability-episode:e2142f2e44d77356",
+        "availability-episode:f2a7e1a12ab49f25",
+        "c0e4ef73e4fe8b10",
+        "dbe6113520dabeea"
+      ],
+      "mappings": [
+        {
+          "projectedKey": "66ad4d9d8faa07d7",
+          "stableKey": "availability-episode:e2142f2e44d77356",
+          "legacyAliases": [
+            "480dd3268b264c9a",
+            "66ad4d9d8faa07d7"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "65f82384-044c-4b57-9886-680ba4fe0548",
+          "currentProjectionGeneration": 563,
+          "currentCandidateObservedAt": "2026-10-23T00:30:22.113Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:e2142f2e44d77356",
+            "availabilityEpisodeId": "e2142f2e44d77356",
+            "legacyDedupeKey": "480dd3268b264c9a",
+            "matchKey": "9513b4efd3ce6adb",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T00:30:22.113Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_78043ec3da926c43",
+            "productId": "15434358718676",
+            "variantId": "67908145905876",
+            "observedAt": "2026-10-23T00:30:22.113Z"
+          }
+        },
+        {
+          "projectedKey": "0c4f04a879e7df56",
+          "stableKey": "availability-episode:4c64b3fbb5649646",
+          "legacyAliases": [
+            "0c4f04a879e7df56",
+            "dbe6113520dabeea"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "65f82384-044c-4b57-9886-680ba4fe0548",
+          "currentProjectionGeneration": 563,
+          "currentCandidateObservedAt": "2026-10-23T00:30:22.113Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:4c64b3fbb5649646",
+            "availabilityEpisodeId": "4c64b3fbb5649646",
+            "legacyDedupeKey": "dbe6113520dabeea",
+            "matchKey": "a0c5d96f1cecbcd4",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T00:30:22.113Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+            "productId": "9340179415252",
+            "variantId": "48650261790932",
+            "observedAt": "2026-10-23T00:30:22.113Z"
+          }
+        },
+        {
+          "projectedKey": "7000038328fcf307",
+          "stableKey": "availability-episode:f2a7e1a12ab49f25",
+          "legacyAliases": [
+            "7000038328fcf307",
+            "c0e4ef73e4fe8b10"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "65f82384-044c-4b57-9886-680ba4fe0548",
+          "currentProjectionGeneration": 563,
+          "currentCandidateObservedAt": "2026-10-23T00:30:22.113Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:f2a7e1a12ab49f25",
+            "availabilityEpisodeId": "f2a7e1a12ab49f25",
+            "legacyDedupeKey": "c0e4ef73e4fe8b10",
+            "matchKey": "977acf2c81cc74bb",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T00:30:22.113Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_ef203a18f5f98f23",
+            "productId": "15419521695956",
+            "variantId": "67716188766420",
+            "observedAt": "2026-10-23T00:30:22.113Z"
+          }
+        }
+      ],
+      "originalWindow": {
+        "startAt": "2026-10-23T00:30:20.757Z",
+        "endAt": "2026-10-23T00:36:48.394Z",
+        "endBasis": "checked_at",
+        "minimumAfterFinishMs": 300000,
+        "nextRun": null
+      },
+      "originalCheckedAt": "2026-10-23T00:36:48.394Z",
+      "originalCounts": {
+        "newQueueRows": 0,
+        "deliveryAttempts": 0
+      },
+      "input": {
+        "file": "C:\\Users\\chand\\Documents\\Bourbon Signal\\nationwide-engine-coverage-20261022-evidence\\queue-proof-ca563.json",
+        "sha256": "7eba8ac1a24babe0bc27cf7677a3547afbcaa4149d20df447395ba44515b4680"
+      }
+    },
+    {
+      "sourceId": "ca:mission-trails-wine-spirits",
+      "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+      "generation": 564,
+      "dueAt": "2026-10-23T01:00:27.293Z",
+      "startedAt": "2026-10-23T01:05:20.509Z",
+      "finishedAt": "2026-10-23T01:05:24.446Z",
+      "projectedCandidateCount": 3,
+      "projectedCandidateKeys": [
+        "66ad4d9d8faa07d7",
+        "0c4f04a879e7df56",
+        "7000038328fcf307"
+      ],
+      "stableKeys": [
+        "0c4f04a879e7df56",
+        "480dd3268b264c9a",
+        "66ad4d9d8faa07d7",
+        "7000038328fcf307",
+        "availability-episode:4c64b3fbb5649646",
+        "availability-episode:e2142f2e44d77356",
+        "availability-episode:f2a7e1a12ab49f25",
+        "c0e4ef73e4fe8b10",
+        "dbe6113520dabeea"
+      ],
+      "mappings": [
+        {
+          "projectedKey": "66ad4d9d8faa07d7",
+          "stableKey": "availability-episode:e2142f2e44d77356",
+          "legacyAliases": [
+            "480dd3268b264c9a",
+            "66ad4d9d8faa07d7"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+          "currentProjectionGeneration": 564,
+          "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:e2142f2e44d77356",
+            "availabilityEpisodeId": "e2142f2e44d77356",
+            "legacyDedupeKey": "480dd3268b264c9a",
+            "matchKey": "9513b4efd3ce6adb",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T01:05:21.592Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_78043ec3da926c43",
+            "productId": "15434358718676",
+            "variantId": "67908145905876",
+            "observedAt": "2026-10-23T01:05:21.592Z"
+          }
+        },
+        {
+          "projectedKey": "0c4f04a879e7df56",
+          "stableKey": "availability-episode:4c64b3fbb5649646",
+          "legacyAliases": [
+            "0c4f04a879e7df56",
+            "dbe6113520dabeea"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+          "currentProjectionGeneration": 564,
+          "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:4c64b3fbb5649646",
+            "availabilityEpisodeId": "4c64b3fbb5649646",
+            "legacyDedupeKey": "dbe6113520dabeea",
+            "matchKey": "a0c5d96f1cecbcd4",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T01:05:21.592Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+            "productId": "9340179415252",
+            "variantId": "48650261790932",
+            "observedAt": "2026-10-23T01:05:21.592Z"
+          }
+        },
+        {
+          "projectedKey": "7000038328fcf307",
+          "stableKey": "availability-episode:f2a7e1a12ab49f25",
+          "legacyAliases": [
+            "7000038328fcf307",
+            "c0e4ef73e4fe8b10"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+          "currentProjectionGeneration": 564,
+          "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:f2a7e1a12ab49f25",
+            "availabilityEpisodeId": "f2a7e1a12ab49f25",
+            "legacyDedupeKey": "c0e4ef73e4fe8b10",
+            "matchKey": "977acf2c81cc74bb",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T01:05:21.592Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_ef203a18f5f98f23",
+            "productId": "15419521695956",
+            "variantId": "67716188766420",
+            "observedAt": "2026-10-23T01:05:21.592Z"
+          }
+        }
+      ],
+      "originalWindow": {
+        "startAt": "2026-10-23T01:05:20.509Z",
+        "endAt": "2026-10-23T01:11:18.336Z",
+        "endBasis": "checked_at",
+        "minimumAfterFinishMs": 300000,
+        "nextRun": null
+      },
+      "originalCheckedAt": "2026-10-23T01:11:18.336Z",
+      "originalCounts": {
+        "newQueueRows": 0,
+        "deliveryAttempts": 0
+      },
+      "input": {
+        "file": "C:\\Users\\chand\\Documents\\Bourbon Signal\\nationwide-engine-coverage-20261022-evidence\\queue-proof-ca564.json",
+        "sha256": "52c6d8e9bf77d0a914d540c34a8f38e5305c30ad37a47c4c57ba1235c0ee6fd1"
+      }
+    }
+  ],
+  "stableKeys": [
+    "0c4f04a879e7df56",
+    "480dd3268b264c9a",
+    "66ad4d9d8faa07d7",
+    "7000038328fcf307",
+    "availability-episode:4c64b3fbb5649646",
+    "availability-episode:e2142f2e44d77356",
+    "availability-episode:f2a7e1a12ab49f25",
+    "c0e4ef73e4fe8b10",
+    "dbe6113520dabeea"
+  ],
+  "counts": {
+    "newQueueRows": 0,
+    "deliveryAttempts": 0
+  },
+  "queriedAt": "2026-10-23T01:11:27.328Z",
+  "errors": [],
+  "scope": "Supplementary audit only: new queue rows and recorded delivery attempts for the union of frozen owned stable keys across this explicit whole window, including cadence gaps. No current-projection remapping, future-attempt, other-key, or nationwide claim."
+}

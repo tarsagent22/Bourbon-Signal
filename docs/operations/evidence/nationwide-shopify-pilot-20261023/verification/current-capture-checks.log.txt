@@ -1,0 +1,26 @@
+OFFLINE SYNTHETIC CURRENT-CAPTURE CHECKS — no DB queries, production data, or remote authentication checks.
+PASS 1: healthy pilot sources pass even when unrelated global monitoring is unhealthy
+PASS 2: newest capture selection follows capture clocks, not supplied array order
+PASS 3: newest captured errors veto older healthy capture
+PASS 4: newest scheduler HTTP503 vetoes older healthy capture
+PASS 5: newest disabled scheduler vetoes older healthy capture
+PASS 6: newest absent scheduler response vetoes older healthy capture
+PASS 7: malformed capturedAt cannot hide behind a valid scheduler response timestamp
+PASS 8: any unorderable indexed capture remains pending even alongside a healthy newest timestamp
+PASS 9: newer failed generation vetoes two older accepted runs and historical receipt pairs
+PASS 10: newer running generation cannot borrow the prior accepted generation
+PASS 11: current job generation without its own accepted trace remains pending
+PASS 12: missing latest trace collection cannot make an older complete capture current
+PASS 13: missing latest feed cannot borrow a historical response
+PASS 14: missing latest coverage cannot borrow a historical response
+PASS 15: latest receipt identities must use current source run and generation
+PASS 16: latest feed and coverage must agree even when both identities appear in trace observations
+PASS 17: selected stale source health vetoes positive cached cards
+PASS 18: present source-health list must include the selected source
+PASS 19: missing source-health field cannot bypass mandatory selected-source health
+PASS 20: non-array source health cannot authorize current positives
+PASS 21: duplicate healthy rows for one selected source remain ambiguous
+PASS 22: subsecond completed-clock adapter variation is accepted
+PASS 23: material completed-clock mismatch remains pending
+PASS 24: missing current job and malformed current identities fail closed
+{"offlineCurrentCaptureCases":24,"pass":true,"productionEvidence":false}

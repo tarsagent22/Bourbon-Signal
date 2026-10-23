@@ -1,0 +1,322 @@
+{
+  "contractVersion": "bourbon-signal/pilot-queue-proof@1",
+  "checkedAt": "2026-10-23T01:11:18.336Z",
+  "queryVersion": "pilot-owned-key-counts@2",
+  "querySha256": "0d049465eb961dee95966156d1dd7d81b6dc5c781281ba52e696879890332e06",
+  "countSql": "SELECT\n (SELECT count(*)::text FROM alert_candidates\n   WHERE stable_match_key=ANY($1::text[]) AND created_at >= $2::timestamptz AND created_at < $3::timestamptz) AS new_queue_rows,\n (SELECT count(*)::text FROM alert_deliveries d JOIN alert_candidates c ON c.id=d.candidate_id\n   WHERE c.stable_match_key=ANY($1::text[]) AND d.attempted_at >= $2::timestamptz AND d.attempted_at < $3::timestamptz) AS delivery_attempts,\n clock_timestamp() AS queried_at",
+  "identityFunction": "src/lib/alert-dedupe.ts#stableUnderlyingAlertKey",
+  "identityFunctionSha256": "def5607048360f4fae12a363649b8c224857db877f9886c4a0f5553dcff349ce",
+  "scope": "Only newly created queue rows and recorded delivery attempts for the mapped owned stable keys in each explicit window. No claim about other keys, older rows, source notification coverage, or eventual future attempts.",
+  "currentProjectionPreparation": [
+    {
+      "sourceId": "ca:mission-trails-wine-spirits",
+      "generation": 564,
+      "acceptedAt": "2026-10-23T01:05:24.445Z",
+      "candidates": [
+        {
+          "projectedKey": "66ad4d9d8faa07d7",
+          "stableKey": "availability-episode:e2142f2e44d77356",
+          "legacyAliases": [
+            "480dd3268b264c9a",
+            "66ad4d9d8faa07d7"
+          ],
+          "state": "CA",
+          "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+          "canonicalBottleId": "bb_78043ec3da926c43",
+          "productId": "15434358718676",
+          "variantId": "67908145905876"
+        },
+        {
+          "projectedKey": "0c4f04a879e7df56",
+          "stableKey": "availability-episode:4c64b3fbb5649646",
+          "legacyAliases": [
+            "0c4f04a879e7df56",
+            "dbe6113520dabeea"
+          ],
+          "state": "CA",
+          "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+          "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+          "productId": "9340179415252",
+          "variantId": "48650261790932"
+        },
+        {
+          "projectedKey": "7000038328fcf307",
+          "stableKey": "availability-episode:f2a7e1a12ab49f25",
+          "legacyAliases": [
+            "7000038328fcf307",
+            "c0e4ef73e4fe8b10"
+          ],
+          "state": "CA",
+          "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+          "canonicalBottleId": "bb_ef203a18f5f98f23",
+          "productId": "15419521695956",
+          "variantId": "67716188766420"
+        }
+      ]
+    },
+    {
+      "sourceId": "fl:jensens-miami",
+      "generation": 3,
+      "acceptedAt": "2026-10-23T01:10:22.309Z",
+      "candidates": []
+    }
+  ],
+  "runs": [
+    {
+      "sourceId": "ca:mission-trails-wine-spirits",
+      "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+      "generation": 563,
+      "status": "pending",
+      "trigger": "scheduled",
+      "dueAt": "2026-10-23T00:25:27.372Z",
+      "startedAt": "2026-10-23T00:30:20.757Z",
+      "finishedAt": "2026-10-23T00:30:27.294Z",
+      "checkedAt": "2026-10-23T01:11:18.336Z",
+      "projectedCandidateCount": 3,
+      "projectedCandidateKeys": [
+        "66ad4d9d8faa07d7",
+        "0c4f04a879e7df56",
+        "7000038328fcf307"
+      ],
+      "mappings": [],
+      "stableKeys": [],
+      "counts": null,
+      "queriedAt": null,
+      "errors": [
+        "Projected key 66ad4d9d8faa07d7: target run/generation has been replaced; historical remapping prohibited.",
+        "Projected key 0c4f04a879e7df56: target run/generation has been replaced; historical remapping prohibited.",
+        "Projected key 7000038328fcf307: target run/generation has been replaced; historical remapping prohibited."
+      ],
+      "window": {
+        "startAt": "2026-10-23T00:30:20.757Z",
+        "endAt": "2026-10-23T01:05:20.509Z",
+        "endBasis": "next_source_run_started_at",
+        "minimumAfterFinishMs": 300000,
+        "nextRun": {
+          "sourceId": "ca:mission-trails-wine-spirits",
+          "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+          "generation": 564,
+          "status": "accepted",
+          "startedAt": "2026-10-23T01:05:20.509Z"
+        }
+      }
+    },
+    {
+      "sourceId": "ca:mission-trails-wine-spirits",
+      "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+      "generation": 564,
+      "status": "zero_owned_key_emissions",
+      "trigger": "scheduled",
+      "dueAt": "2026-10-23T01:00:27.293Z",
+      "startedAt": "2026-10-23T01:05:20.509Z",
+      "finishedAt": "2026-10-23T01:05:24.446Z",
+      "checkedAt": "2026-10-23T01:11:18.336Z",
+      "projectedCandidateCount": 3,
+      "projectedCandidateKeys": [
+        "66ad4d9d8faa07d7",
+        "0c4f04a879e7df56",
+        "7000038328fcf307"
+      ],
+      "mappings": [
+        {
+          "projectedKey": "66ad4d9d8faa07d7",
+          "stableKey": "availability-episode:e2142f2e44d77356",
+          "legacyAliases": [
+            "480dd3268b264c9a",
+            "66ad4d9d8faa07d7"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+          "currentProjectionGeneration": 564,
+          "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:e2142f2e44d77356",
+            "availabilityEpisodeId": "e2142f2e44d77356",
+            "legacyDedupeKey": "480dd3268b264c9a",
+            "matchKey": "9513b4efd3ce6adb",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T01:05:21.592Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_78043ec3da926c43",
+            "productId": "15434358718676",
+            "variantId": "67908145905876",
+            "observedAt": "2026-10-23T01:05:21.592Z"
+          }
+        },
+        {
+          "projectedKey": "0c4f04a879e7df56",
+          "stableKey": "availability-episode:4c64b3fbb5649646",
+          "legacyAliases": [
+            "0c4f04a879e7df56",
+            "dbe6113520dabeea"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+          "currentProjectionGeneration": 564,
+          "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:4c64b3fbb5649646",
+            "availabilityEpisodeId": "4c64b3fbb5649646",
+            "legacyDedupeKey": "dbe6113520dabeea",
+            "matchKey": "a0c5d96f1cecbcd4",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T01:05:21.592Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+            "productId": "9340179415252",
+            "variantId": "48650261790932",
+            "observedAt": "2026-10-23T01:05:21.592Z"
+          }
+        },
+        {
+          "projectedKey": "7000038328fcf307",
+          "stableKey": "availability-episode:f2a7e1a12ab49f25",
+          "legacyAliases": [
+            "7000038328fcf307",
+            "c0e4ef73e4fe8b10"
+          ],
+          "mappingBasis": "exact_target_run_generation_current_source_projection",
+          "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+          "currentProjectionGeneration": 564,
+          "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+          "identityFields": {
+            "eventIdentityKey": "availability-episode:f2a7e1a12ab49f25",
+            "availabilityEpisodeId": "f2a7e1a12ab49f25",
+            "legacyDedupeKey": "c0e4ef73e4fe8b10",
+            "matchKey": "977acf2c81cc74bb",
+            "changeType": "current_inventory_signal",
+            "signalAt": "2026-10-23T01:05:21.592Z"
+          },
+          "observation": {
+            "state": "CA",
+            "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+            "canonicalBottleId": "bb_ef203a18f5f98f23",
+            "productId": "15419521695956",
+            "variantId": "67716188766420",
+            "observedAt": "2026-10-23T01:05:21.592Z"
+          }
+        }
+      ],
+      "stableKeys": [
+        "0c4f04a879e7df56",
+        "480dd3268b264c9a",
+        "66ad4d9d8faa07d7",
+        "7000038328fcf307",
+        "availability-episode:4c64b3fbb5649646",
+        "availability-episode:e2142f2e44d77356",
+        "availability-episode:f2a7e1a12ab49f25",
+        "c0e4ef73e4fe8b10",
+        "dbe6113520dabeea"
+      ],
+      "counts": {
+        "newQueueRows": 0,
+        "deliveryAttempts": 0
+      },
+      "queriedAt": "2026-10-23T01:11:18.578Z",
+      "errors": [],
+      "window": {
+        "startAt": "2026-10-23T01:05:20.509Z",
+        "endAt": "2026-10-23T01:11:18.336Z",
+        "endBasis": "checked_at",
+        "minimumAfterFinishMs": 300000,
+        "nextRun": null
+      }
+    },
+    {
+      "sourceId": "fl:jensens-miami",
+      "runId": "a3cb9536-589e-408a-ac2c-935a38fefd5c",
+      "generation": 1,
+      "status": "no_projected_candidates",
+      "trigger": "scheduled",
+      "dueAt": "2026-10-23T00:00:21.304Z",
+      "startedAt": "2026-10-23T00:00:21.304Z",
+      "finishedAt": "2026-10-23T00:00:23.089Z",
+      "checkedAt": "2026-10-23T01:11:18.336Z",
+      "projectedCandidateCount": 0,
+      "projectedCandidateKeys": [],
+      "mappings": [],
+      "stableKeys": [],
+      "counts": null,
+      "queriedAt": null,
+      "errors": [],
+      "window": {
+        "startAt": "2026-10-23T00:00:21.304Z",
+        "endAt": "2026-10-23T00:35:20.404Z",
+        "endBasis": "next_source_run_started_at",
+        "minimumAfterFinishMs": 300000,
+        "nextRun": {
+          "sourceId": "fl:jensens-miami",
+          "runId": "b15625d2-fa8c-4473-b9a4-11e7ea3c15e1",
+          "generation": 2,
+          "status": "accepted",
+          "startedAt": "2026-10-23T00:35:20.404Z"
+        }
+      }
+    },
+    {
+      "sourceId": "fl:jensens-miami",
+      "runId": "b15625d2-fa8c-4473-b9a4-11e7ea3c15e1",
+      "generation": 2,
+      "status": "no_projected_candidates",
+      "trigger": "scheduled",
+      "dueAt": "2026-10-23T00:30:23.089Z",
+      "startedAt": "2026-10-23T00:35:20.404Z",
+      "finishedAt": "2026-10-23T00:35:21.995Z",
+      "checkedAt": "2026-10-23T01:11:18.336Z",
+      "projectedCandidateCount": 0,
+      "projectedCandidateKeys": [],
+      "mappings": [],
+      "stableKeys": [],
+      "counts": null,
+      "queriedAt": null,
+      "errors": [],
+      "window": {
+        "startAt": "2026-10-23T00:35:20.404Z",
+        "endAt": "2026-10-23T01:10:20.718Z",
+        "endBasis": "next_source_run_started_at",
+        "minimumAfterFinishMs": 300000,
+        "nextRun": {
+          "sourceId": "fl:jensens-miami",
+          "runId": "5fd98c57-54c3-4205-95f6-3bff48497e91",
+          "generation": 3,
+          "status": "accepted",
+          "startedAt": "2026-10-23T01:10:20.718Z"
+        }
+      }
+    },
+    {
+      "sourceId": "fl:jensens-miami",
+      "runId": "5fd98c57-54c3-4205-95f6-3bff48497e91",
+      "generation": 3,
+      "status": "pending",
+      "trigger": "scheduled",
+      "dueAt": "2026-10-23T01:05:21.995Z",
+      "startedAt": "2026-10-23T01:10:20.718Z",
+      "finishedAt": "2026-10-23T01:10:22.309Z",
+      "checkedAt": "2026-10-23T01:11:18.336Z",
+      "projectedCandidateCount": 0,
+      "projectedCandidateKeys": [],
+      "mappings": [],
+      "stableKeys": [],
+      "counts": null,
+      "queriedAt": null,
+      "errors": [
+        "Observation window has not covered five minutes after run finish."
+      ],
+      "window": {
+        "startAt": "2026-10-23T01:10:20.718Z",
+        "endAt": "2026-10-23T01:11:18.336Z",
+        "endBasis": "checked_at",
+        "minimumAfterFinishMs": 300000,
+        "nextRun": null
+      }
+    }
+  ],
+  "errors": []
+}

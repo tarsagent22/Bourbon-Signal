@@ -42,7 +42,9 @@ function fixture(index) {
       total: 1, identities: [{ ...observation, sourceId, runId, generation }] },
   }));
   const captured = {
-    capture: { contractVersion: 'bourbon-signal/pilot-capture@1', errors: [], scheduler: { status: 200, payload: { enabled: true, traces: [trace] } }, receipts },
+    capture: { contractVersion: 'bourbon-signal/pilot-capture@1', capturedAt: iso(3000), errors: [], scheduler: { status: 200, receivedAt: iso(4000),
+      payload: { enabled: true, traces: [trace], jobs: [{ source_id: sourceId, generation, last_reason: 'accepted', failures: 0,
+        last_started_at: trace.started_at, last_completed_at: trace.finished_at }], sourceHealth: [{ source: sourceId, status: 'healthy' }] } }, receipts },
     provenance: { url: `https://github.com/tarsagent22/Bourbon-Signal/actions/runs/123/artifacts/${456 + index}`, sha256: 'a'.repeat(64) },
   };
   const proofRun = {

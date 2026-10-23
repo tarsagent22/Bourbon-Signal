@@ -25,5 +25,18 @@
   "limitations": [
     "UI lookup verifies store status and address only, not bottle-level pickup",
     "No signed-in account, message, purchase, physical phone or shelf count was exercised"
-  ]
+  ],
+  "publicFeed": {
+    "checkedAt": "2026-10-23T00:39:55.930Z",
+    "url": "https://www.bourbonsignal.com/#drops",
+    "signedIn": false,
+    "visibleTitle": "Elijah Craig 18 Year",
+    "visibleLocation": "Jensen's Liquors - SW 27th Ave",
+    "visibleState": "Florida",
+    "visiblePrecisionLabel": "Store-level",
+    "retailerPriceDisplayVerified": false,
+    "detail": "Free preview keeps member-only detail private; no account or preview bypass used",
+    "headlineStoresMonitoredObserved": 4468,
+    "headlineCountLimitation": "Existing headline count is not independently reconciled physical premises or a count of current exact-store inventory connections."
+  }
 }

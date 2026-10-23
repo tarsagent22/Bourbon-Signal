@@ -1,0 +1,9 @@
+import {neon} from '@neondatabase/serverless';
+import {writeFile} from 'node:fs/promises';
+const ids=['ca:mission-trails-wine-spirits','fl:jensens-miami'];
+const sql=neon(process.env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || process.env.BOURBON_QUEUE_DATABASE_URL,{fetchOptions:{signal:AbortSignal.timeout(15000)}});
+const jobs=await sql.query('SELECT source_id,cadence_seconds,next_due_at,generation,last_started_at,last_completed_at,last_reason,accepted_at,failures,projection FROM source_poll_jobs WHERE source_id=ANY($1::text[]) ORDER BY source_id',[ids]);
+const runs=await sql.query('SELECT run_id,source_id,generation,due_at,started_at,finished_at,status,accounting FROM source_poll_runs WHERE source_id=ANY($1::text[]) ORDER BY started_at DESC LIMIT 10',[ids]);
+const result={checkedAt:new Date().toISOString(),jobs,runs};
+await writeFile('.operator/live-ledger.json',JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify({checkedAt:result.checkedAt,jobs:jobs.map(({projection,...job})=>({...job,feedRows:projection?.drops?.length})),runs:runs.slice(0,4).map(({accounting,...run})=>({...run,trigger:accounting.trigger,requests:accounting.requestCount,bytes:accounting.bytes,observations:accounting.observations?.length,candidates:accounting.candidates}))}));
