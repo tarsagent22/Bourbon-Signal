@@ -88,7 +88,7 @@
     },
     {
       "file": "pilot-report.md",
-      "sha256": "c7958fbbc25be8c742d2b20c61470f8fcaa13a69521ca803a2264884d353a434"
+      "sha256": "a6c497ea13dbf7228b085805d37ae4cf1254720adfc50e1bb31b10ca1aa2e9b7"
     },
     {
       "file": "pre-release-baseline.json",
@@ -108,7 +108,7 @@
     },
     {
       "file": "progress.json",
-      "sha256": "aae637a6921957b42c225450e519c32d88a36c9f04972d2dc671ab98e1e88017"
+      "sha256": "b8cb22dd6db83f22691fbee8ea59d5716b54e00ea7eedb104558f7c96bf8aa87"
     },
     {
       "file": "queue-proof-ca563.json",
@@ -128,7 +128,7 @@
     },
     {
       "file": "release-cleanup.json",
-      "sha256": "8fc06efb7243eff65cd7c7927510246031d3f1d590979bd124808d852e128958"
+      "sha256": "89b5ea2a0f30286eb9bfd1f30750c08939bc2599b49517b6c8e1f533bdc4bef6"
     },
     {
       "file": "required-ci.log",

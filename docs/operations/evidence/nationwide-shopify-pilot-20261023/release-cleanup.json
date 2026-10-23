@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-23T01:23:42.067Z",
+  "checkedAt": "2026-10-23T01:25:13.408Z",
   "objectiveId": "bsf-3e22b27077b27fbf",
   "issue": 816,
   "issueState": "CLOSED",
@@ -24,5 +24,18 @@
       "gitBundleVerification": "passed"
     }
   ],
-  "unrelatedWorkPreserved": true
+  "unrelatedWorkPreserved": true,
+  "releaseWorktreeRegistered": false,
+  "preparationWorktreeRegistered": false,
+  "dependencyResiduePreserved": [
+    "C:/Users/chand/projects/bs-nationwide-shopify-release-20261022/node_modules",
+    "C:/Users/chand/projects/bs-nationwide-shopify-pilot-20261022/node_modules"
+  ],
+  "cleanupPolicyBlock": {
+    "action": "Delete dependency residue from the two unregistered worktree directories",
+    "outcome": "Rejected by automatic approval review",
+    "statedReason": "blocked by policy",
+    "alternateDeletionAttempted": false
+  },
+  "evidenceWorktreeRetained": "C:/Users/chand/projects/bs-nationwide-shopify-evidence-20261023"
 }
