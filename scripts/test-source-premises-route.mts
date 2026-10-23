@@ -8,14 +8,18 @@ const {authorizeOpsBearer}=((opsAuthModule as any).default || opsAuthModule) as 
 const {readSourcePremisesBaseline}=((premisesModule as any).default || premisesModule) as typeof import('../src/lib/source-premises-baseline.ts');
 
 async function harness() {
-  const calls = { queries:0, collections:0, monitors:0, lanePolls:0 }, env = { CRON_SECRET:'fixture-cron',SOURCE_SCHEDULER_SECRET:'fixture-source',VERCEL_GIT_COMMIT_SHA:'a'.repeat(40) };
+  const calls = { queries:0, retailerReads:0, collections:0, monitors:0, lanePolls:0 }, env = { CRON_SECRET:'fixture-cron',SOURCE_SCHEDULER_SECRET:'fixture-source',VERCEL_GIT_COMMIT_SHA:'a'.repeat(40) };
   const executor = { query: async () => { calls.queries++; return {rows:[{statement_at:new Date().toISOString(),heads:[],premises:[]}]}; } };
-  let fail = false;
+  let fail = false, retailerFail=false;
   const source = await readFile(new URL('../src/app/api/ops/source-scheduler/route.ts',import.meta.url),'utf8');
   const code = (await transform(source,{loader:'ts',format:'cjs',target:'node22'})).code;
   const requireStub = (name:string) => {
     if(name.includes('ops-auth'))return {authorizeOpsBearer,getDedicatedScorecardReadSecret:()=> 'fixture-read'};
     if(name.includes('source-premises-baseline'))return {readSourcePremisesBaseline:async (...args:Parameters<typeof readSourcePremisesBaseline>)=>{if(fail)throw Error('SECRET_FAILURE');return readSourcePremisesBaseline(...args);}};
+    if(name.includes('retailer-premises-baseline'))return {readVerifiedRetailerPremisesBaseline:async ()=>{
+      calls.retailerReads++;if(retailerFail)throw Error('SECRET_RETAILER_FAILURE');
+      return {contractVersion:'bourbon-signal/verified-retailer-premises-baseline@1',premises:[],gaps:[],completeness:{historicalAbsenceProven:false}};
+    }};
     if(name.includes('alert-queue/runtime'))return {createProductionAlertQueueSqlExecutor:()=>executor};
     if(name.includes('source-lane-runtime'))return {pollRuntimeSourceLanes:()=>{calls.lanePolls++;}};
     if(name==='@/lib/source-lane')return {SOURCE_LANES:[]};
@@ -25,7 +29,7 @@ async function harness() {
   const module={exports:{} as {GET:(request:Request)=>Promise<Response>}};
   new Function('require','module','exports','process',code)(requireStub,module,module.exports,{env});
   const get=(query:string,secret='fixture-read')=>module.exports.GET(new Request(`https://www.bourbonsignal.com/api/ops/source-scheduler${query}`,{headers:{authorization:`Bearer ${secret}`}}));
-  return {get,calls,setFailure:()=>{fail=true;}};
+  return {get,calls,setFailure:()=>{fail=true;},setRetailerFailure:()=>{retailerFail=true;}};
 }
 
 test('all existing authorized read roles can obtain only sanitized premises without collection or monitor writes',async()=>{
@@ -35,20 +39,27 @@ test('all existing authorized read roles can obtain only sanitized premises with
     assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'private, no-store');
     assert.equal(body.contractVersion,'bourbon-signal/source-premises-baseline@1');assert.equal(body.releaseCommit,'a'.repeat(40));
     assert.deepEqual(body.premises,[]);assert.equal(body.completeness.historicalAbsenceProven,false);
+    assert.equal(body.retailerPremises.contractVersion,'bourbon-signal/verified-retailer-premises-baseline@1');
+    assert.equal(body.retailerPremises.completeness.historicalAbsenceProven,false);
   }
-  assert.deepEqual(h.calls,{queries:3,collections:0,monitors:0,lanePolls:0});
+  assert.deepEqual(h.calls,{queries:3,retailerReads:3,collections:0,monitors:0,lanePolls:0});
 });
 test('unauthorized requests cannot touch SQL or trigger a fallback',async()=>{
   const h=await harness();assert.equal((await h.get('?read=1&premises=1','wrong')).status,401);
-  assert.deepEqual(h.calls,{queries:0,collections:0,monitors:0,lanePolls:0});
+  assert.deepEqual(h.calls,{queries:0,retailerReads:0,collections:0,monitors:0,lanePolls:0});
 });
 for(const query of ['?premises=1','?read=0&premises=1','?read=1&premises=0','?read=1&premises=1&monitor=1','?read=1&premises=1&source=private',
   '?read=1&read=1&premises=1','?read=1&premises=1&premises=1'])test(`invalid premises query cannot become collection: ${query}`,async()=>{
   const h=await harness();assert.equal((await h.get(query,'fixture-cron')).status,400);
-  assert.deepEqual(h.calls,{queries:0,collections:0,monitors:0,lanePolls:0});
+  assert.deepEqual(h.calls,{queries:0,retailerReads:0,collections:0,monitors:0,lanePolls:0});
 });
 test('database failure exports no partial baseline or private error and never starts recovery',async()=>{
   const h=await harness();h.setFailure();const response=await h.get('?read=1&premises=1');
   assert.equal(response.status,503);assert.doesNotMatch(await response.text(),/SECRET/);
-  assert.deepEqual(h.calls,{queries:0,collections:0,monitors:0,lanePolls:0});
+  assert.deepEqual(h.calls,{queries:0,retailerReads:1,collections:0,monitors:0,lanePolls:0});
+});
+test('retailer supplement failure cannot return a successful partial source baseline or private reason',async()=>{
+  const h=await harness();h.setRetailerFailure();const response=await h.get('?read=1&premises=1');
+  assert.equal(response.status,503);assert.doesNotMatch(await response.text(),/SECRET|source-premises-baseline|retailer-premises-baseline/);
+  assert.deepEqual(h.calls,{queries:1,retailerReads:1,collections:0,monitors:0,lanePolls:0});
 });
