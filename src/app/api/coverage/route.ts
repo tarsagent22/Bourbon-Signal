@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { readCurrentCoverageContract, searchCurrentCoverageTargets, readCoveragePilotReceipt } from "@/lib/coverage-server";
 import { authorizePilotReceipt, PILOT_RECEIPT_HEADER } from '@/lib/nationwide-pilot-receipt';
 
-const PUBLIC_CACHE = "public, s-maxage=60, stale-while-revalidate=300";
+// Current source failures, disablement and expiry must be evaluated on each
+// request, just as they are for the normal Drop Feed.
+const PUBLIC_CACHE = "private, no-store";
 
 export async function GET(request:Request) {
   if(request) {

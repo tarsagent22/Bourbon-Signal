@@ -1,6 +1,5 @@
 import { failClosedPollRows } from '../../engine/src/sources/poll-policy.mjs';
 import { readPollProjection, pollCandidatesValid, schedulerEnabled, POLL_SOURCES, tracePollCandidates } from './source-scheduler';
-import { unstable_cache } from "next/cache";
 
 import { aggregateAreaWatchlistDemand, areaWatchlistPriority, type AreaWatchlistDemand } from './demand-intelligence';
 import { buildSourceLaneUsefulness } from '../../engine/src/optimization/source-usefulness-report.mjs';
@@ -65,12 +64,10 @@ async function readUncachedSourceDropOverlay(drops: Row[], snapshotId: string | 
   } catch { return { drops: drops.filter(d => !inRegisteredScope(d)), version: 'unavailable' }; }
 }
 
-const readCachedSourceDropOverlay = unstable_cache(
-  async (drops: Row[], snapshotId: string | null, _pollEnabled: boolean) => readUncachedSourceDropOverlay(drops, snapshotId),
-  ['public-source-drop-overlay-v1'], { revalidate: 15 },
-);
 export async function readRuntimeSourceDropOverlay(drops: Row[], snapshotId: string | null) {
-  const original = !storageEnabled() || !snapshotId ? await readUncachedSourceDropOverlay(drops, snapshotId) : await readCachedSourceDropOverlay(drops, snapshotId, promotionEnabled());
+  // Source heads, failures and expiry are mutable independently of the broad
+  // snapshot. Read them for every request; only the immutable base is cached.
+  const original = await readUncachedSourceDropOverlay(drops, snapshotId);
   try { const poll=await readPollProjection(original.drops, 'drops');return {drops:poll.rows,version:original.version+':'+poll.version}; }
   catch { return {drops:failClosedPollRows(original.drops,POLL_SOURCES,'drops'),version:original.version+':poll-unavailable'}; }
 }
