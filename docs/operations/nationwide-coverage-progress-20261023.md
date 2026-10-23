@@ -1,0 +1,41 @@
+# Nationwide coverage progress — October 23, 2026
+
+Lead checkpoint at 03:05 UTC. This updates the earlier readiness audit; its historical observations and raw evidence remain intact.
+
+## Released correction and continuing pilot
+
+[PR 819](https://github.com/tarsagent22/Bourbon-Signal/pull/819) resolved [818](https://github.com/tarsagent22/Bourbon-Signal/issues/818). Production commit `e237c76e089dd9635013c33804ff443df1654440` has the exact reviewed tree. Required CI `39890558047` and merged-main CI `39891364350` passed. Deployment `dpl_Doo9PQgZmfhGxLhTbVuZ9gCYMhtv` identifies that commit with healthy release/cron identity. The broader engine still reports `collector_delay`; selected pilot health is assessed separately.
+
+The normal Feed route caches immutable broad preparation, composes current source authority after both cache layers, and returns `private, no-store`, as does normal Coverage. Production unfiltered guest Feed and Coverage returned HTTP 200 with those headers. Fourteen route-transition tests and sixteen observer tests passed, with independent review. Existing device/client caches remain a separate limit. No mobile update or physical-device acceptance is claimed.
+
+The released CA Mission Trails / FL Jensen pilot remains scheduled. CA still means general retailer pickup policy plus online orderability; Jensen has exact-variant pickup and unknown physical quantity. Neither existing premise counts toward the next five-store target.
+
+## Bounded unattended observation
+
+Installed task `BourbonSignalSourceObservation818` runs the reviewed capture-only runner every ten minutes, bounded from `2026-10-23T02:51:11Z` to `2026-10-25T02:51:11Z`, maximum 288 reservations. Runner SHA-256 is `c1e6ca5b9f29d1a08a95a1dd8d8bad4135a27a37be8e2041560289cc628c17f3`. The existing five-minute engine monitor remains unchanged. Source collection/rescue is skipped by these dispatches; normal read telemetry remains. Windows must remain running with the signed-in session. Gaps stay gaps.
+
+| Capture | Provenance | Result |
+| --- | --- | --- |
+| `bs-818-20261023-s0`, 02:52 UTC | [Run 39891869052](https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39891869052), artifact `12474807493`; JSON SHA `faedef6a542ebcfee53c11be717165f30f6fbcd8cd831ecf52161755aff5a040` | Healthy CA generation 567 and Jensen generation 5; three plus one identical canonical pairs in Feed and Coverage, matching accepted scheduled traces. |
+| `bs-818-20261023-s1`, 03:03 UTC | [Run 39892865881](https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39892865881), artifact `12475084454`; JSON SHA `8a05d80ccef36bd19ecbc7134249f18a5900698f59488875695c37a1320ae47c` | Natural Windows task tick; healthy CA 567 and Jensen 6; matching latest jobs, scheduled traces and both customer pipelines. CA had no intervening generation yet. |
+
+This proves a repeated observer tick and Jensen's subsequent scheduled collection, not a 24-hour pass or uninterrupted health. The first complete receipt pair ended about 02:52:26 UTC. Assess all subsequent captures, missed slots, current policy, source clocks, advancing due collections and queue evidence over the recorded window. Do not substitute an older positive capture. A changed production commit fails the exact-release guard; do not silently rebind/reset the window to hide a gap or incident.
+
+## Five-store preparation, zero new stores counted
+
+[820](https://github.com/tarsagent22/Bourbon-Signal/issues/820) targets five genuinely new physical inventory connections across at least three states, subject to feasibility. Prepared candidates are Remedy Glendale, Main Street El Cajon and Christie's La Crescenta in CA, Vino Lexington in NY, and Hot Spot Austin in TX. Five saved exact-variant pickup pairs use one unchanged collector, SHA `82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206`, through two Shopify section families. The saved local catalog has 188 records and SHA `e5883ec9034802bff14dcae918fba4abc7d9baf2f5cc069c6013469e027e82be`; the five seeds cover three canonical bottle families. Fixture replay is not live production proof.
+
+The reusable admission helper is pure, unused by production, defaults to no descriptors, and can return only disabled descriptors. It binds exact code/config/catalog hashes, source/premise/variant/canonical tuples and independently reviewed evidence. It includes no real admission artifact. Its final SHA is `70b205f1c1aa48737787e0a80415e27eb94ccaa75b3f2e4d4a160945bb5bb13d`. Independent review passed. Generic collector 66, unchanged Jensen 34, admission helper 11 and baseline tool 12 offline tests cover the prepared components.
+
+The manual read-only baseline workflow/script is prepared and independently reviewed, restricted to reviewed main execution. It reads only four whitelisted public exports through the existing verified snapshot reader, preserves stale/history connections and provenance, and discards incomplete historical snapshots. It has not been released, registered or credentialed-run. Its bounded history explicitly cannot establish exhaustive historical absence. Existing coverage searches and an older diagnostics artifact are incomplete evidence. Premises newness, suite/address aliases, independent scheduler overlays and older history therefore remain unresolved. No store is counted or activated.
+
+Current production policy deliberately rejects the cohort: Vino exports no rows; the other four can export fixture rows; all five yield zero inventory candidates. This is a central integration task, not a reason to lower guards. Before admission, implement one platform policy reused across CA/NY/TX, explicit collector dispatch and unknown-kind rejection, disabled-aware scheduler health, exact tuple ownership, source accounting, durable negative episode history, bootstrap suppression and receipt/evaluator selection. See `shopify-cohort-runtime-integration.md` and `shopify-cohort-baseline-plan.md`. Do not add five merchant-specific branches or disguise Shopify as CityHive.
+
+## Coordinated next work
+
+1. Keep the pilot and bounded observer running; evaluate evidence at 24 hours and within its fixed 48-hour cap. Continue research and offline preparation concurrently. The six-hour `nationwide-coverage-milestone-preparation` heartbeat is preparation-only, with no independent release/source activation.
+2. Rank high-value repairs with expansion: investigate broad freshness and capture cadence, diagnose existing Del Mesa schema failure, and profile [821](https://github.com/tarsagent22/Bourbon-Signal/issues/821). Normal Feed preparation measured 5.38 seconds first read and 3.38 seconds cache hit with a 1,383,964-byte base; these two samples are not p95 or an isolated SQL diagnosis. Preserve fresh vetoes while profiling.
+3. Prepare one shared policy/scheduler foundation with new descriptors disabled, negative/failure/recovery tests and independent review. Route a reviewed baseline capture through the single release lane, then reconcile candidate newness against all relevant evidence before any source admission. Keep production release changes explicit during the observer window.
+4. Activate only evidence-qualified candidates through the established lane, then require repeated genuinely due scheduled collection and matching normal customer results. Demonstrate at least three of stores two through five reuse unchanged connector code. Report gross additions, recoveries, directory reuse, duplicates, net new premises/states, relevant bottle depth, freshness, request/byte/latency costs and maintenance exceptions separately. Five/three are targets, not permission to weaken proof.
+
+CityHive cooldowns and Indiana's existing coverage threshold remain enforced; no blind retry. Partnership opportunities remain research. No business was contacted, no access purchased, and no agreement entered. Subagents perform focused preparation/review; the lead owns shared-file integration and the sole production release lane, which was empty after 819 cleanup.

@@ -1,0 +1,511 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "bourbon-signal/nationwide-candidate-research@1",
+  "researchedAt": "2026-10-23T02:25:28.520Z",
+  "scope": "research_only_not_consumed_or_activated",
+  "target": {
+    "newPhysicalStores": 5,
+    "minimumStates": 3,
+    "sameUnchangedConnectorForAtLeastThreeOfStoresTwoThroughFive": true
+  },
+  "counts": {
+    "primaryCandidates": 5,
+    "states": 3,
+    "netNewPhysicalStoresProven": 0,
+    "currentPositiveVariantPickupPairs": 5,
+    "expectedCanonicalFamiliesIfReviewed": 3
+  },
+  "transport": "Unmodified engine/src/core/fetcher.mjs default production HTTP client, unauthenticated GETs; public /api/coverage POST search only.",
+  "candidates": [
+    {
+      "id": "remedy-glendale",
+      "name": "Remedy Liquor",
+      "state": "CA",
+      "city": "Glendale",
+      "host": "www.remedyliquor.com",
+      "address": "1700 W Glenoaks Blvd., Glendale, CA 91201",
+      "pickupName": "1700 W Glenoaks Blvd.,",
+      "productFile": "remedy-buffalo-product.json",
+      "pickupCapture": "remedy-buffalo-pickup",
+      "productCapture": "remedy-buffalo-product",
+      "baseline": "remedy-coverage-baseline",
+      "sectionId": "pickup-availability",
+      "canonicalFamilyCandidate": "Buffalo Trace Bourbon",
+      "price": 19.99,
+      "limitations": [
+        "Pickup source omits suite B seen in store website; premises reconciliation must resolve base-address versus suite before activation.",
+        "Raw retailer title needs exact canonical review; tasting notes do not establish bottle identity."
+      ],
+      "classification": "research_verified_variant_pickup_not_onboarded",
+      "activationAuthorized": false,
+      "netNewPhysicalStoreProven": false,
+      "product": {
+        "id": "7687049674980",
+        "variantId": "43038323638500",
+        "handle": "buffalo-trace-kentucky-whisky",
+        "title": "BUFFALO TRACE BOURBON WHISKEY KENTUCKY 750ML",
+        "variantTitle": "Default Title",
+        "sku": "935163",
+        "sizeMl": 750,
+        "canonicalMappingStatus": "review_required"
+      },
+      "currentClaim": "Retailer reports pickup available at one exact named address; unknown shelf count.",
+      "evidence": {
+        "product": {
+          "id": "remedy-buffalo-product",
+          "file": "remedy-buffalo-product.json",
+          "requestedUrl": "https://www.remedyliquor.com/products/buffalo-trace-kentucky-whisky.json",
+          "finalUrl": "https://www.remedyliquor.com/products/buffalo-trace-kentucky-whisky.json",
+          "capturedAt": "2026-10-23T02:20:36.430Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2522,
+          "sha256": "d72b305e5dc6f7de28a1a6aa2288d0679571e3bf135f38a04a6be27f82a35d75"
+        },
+        "pickup": {
+          "id": "remedy-buffalo-pickup",
+          "file": "remedy-buffalo-pickup.html",
+          "requestedUrl": "https://www.remedyliquor.com/variants/43038323638500/?section_id=pickup-availability",
+          "finalUrl": "https://www.remedyliquor.com/variants/43038323638500/?section_id=pickup-availability",
+          "capturedAt": "2026-10-23T02:20:36.644Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2660,
+          "sha256": "23cf6221a44b82d1d05759e1e7080339b1c3540b156e55d0c35abbecfed2d4e9"
+        },
+        "baseline": {
+          "id": "remedy-coverage-baseline",
+          "file": "remedy-coverage-baseline.json",
+          "requestedUrl": "https://www.bourbonsignal.com/api/coverage",
+          "method": "POST",
+          "query": {
+            "state": "CA",
+            "query": "1700 W Glenoaks Glendale"
+          },
+          "capturedAt": "2026-10-23T02:22:41.666Z",
+          "status": 200,
+          "bytes": 265,
+          "sha256": "18053342228a36841d6c32fd3e3a661d6710e50b4aa1087a89280085d957b57c"
+        }
+      },
+      "sourceCost": {
+        "requestsPerSuccessfulSeedRun": 2,
+        "capturedResponseBytes": 5182,
+        "modeledDailyRequestsAt30MinuteCadence": 96,
+        "modeledOnly": true
+      },
+      "provisionalNovelty": {
+        "repositorySameHostOrAddressHit": false,
+        "productionSearchStatus": "not-found",
+        "limitations": "Address search and tracked-registry scan are not a frozen exhaustive current and historical production inventory census."
+      },
+      "nextAction": "Complete generic connector fixture/canonical review, freeze current and historical premises baseline, then apply normal staged source admission and customer verification."
+    },
+    {
+      "id": "main-street-el-cajon",
+      "name": "Main Street Liquor",
+      "state": "CA",
+      "city": "El Cajon",
+      "host": "mainstreetliquor.com",
+      "address": "120 South Mollison Avenue, Unit 100, El Cajon, CA 92020",
+      "pickupName": "MAIN STREET LIQUOR",
+      "productFile": "main-street-buffalo-product.json",
+      "pickupCapture": "main-street-buffalo-pickup",
+      "productCapture": "main-street-buffalo-product",
+      "baseline": "main-street-coverage-baseline",
+      "sectionId": "store-availability",
+      "canonicalFamilyCandidate": "Buffalo Trace Bourbon",
+      "price": 22.99,
+      "limitations": [
+        "Unit 100 is mandatory premises evidence.",
+        "Store-availability theme differs from Jensen; shared parser must support the reviewed theme without retailer branches."
+      ],
+      "classification": "research_verified_variant_pickup_not_onboarded",
+      "activationAuthorized": false,
+      "netNewPhysicalStoreProven": false,
+      "product": {
+        "id": "6860137562249",
+        "variantId": "40199925563529",
+        "handle": "buffalo-trace-bourbon",
+        "title": "Buffalo Trace Bourbon 750mL",
+        "variantTitle": "Default Title",
+        "sku": "19212",
+        "sizeMl": 750,
+        "canonicalMappingStatus": "review_required"
+      },
+      "currentClaim": "Retailer reports pickup available at one exact named address; unknown shelf count.",
+      "evidence": {
+        "product": {
+          "id": "main-street-buffalo-product",
+          "file": "main-street-buffalo-product.json",
+          "requestedUrl": "https://mainstreetliquor.com/products/buffalo-trace-bourbon.json",
+          "finalUrl": "https://mainstreetliquor.com/products/buffalo-trace-bourbon.json",
+          "capturedAt": "2026-10-23T02:20:37.364Z",
+          "status": 200,
+          "error": null,
+          "bytes": 8219,
+          "sha256": "4e108469d05e30b7d1905c0c925ece6b86aa33a3bf8df05c50a7e84a7b18fdb8"
+        },
+        "pickup": {
+          "id": "main-street-buffalo-pickup",
+          "file": "main-street-buffalo-pickup.html",
+          "requestedUrl": "https://mainstreetliquor.com/variants/40199925563529/?section_id=store-availability",
+          "finalUrl": "https://mainstreetliquor.com/variants/40199925563529/?section_id=store-availability",
+          "capturedAt": "2026-10-23T02:20:37.567Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2666,
+          "sha256": "e9497ac8ba0d1107019ebe8e87a0245a363ce7517400f7717ac565912648335e"
+        },
+        "baseline": {
+          "id": "main-street-coverage-baseline",
+          "file": "main-street-coverage-baseline.json",
+          "requestedUrl": "https://www.bourbonsignal.com/api/coverage",
+          "method": "POST",
+          "query": {
+            "state": "CA",
+            "query": "120 South Mollison El Cajon"
+          },
+          "capturedAt": "2026-10-23T02:22:48.265Z",
+          "status": 200,
+          "bytes": 268,
+          "sha256": "f267d0e0531e4e0ae4f8da2744a34defaa8c1c06dbbdc3428471349204c3da85"
+        }
+      },
+      "sourceCost": {
+        "requestsPerSuccessfulSeedRun": 2,
+        "capturedResponseBytes": 10885,
+        "modeledDailyRequestsAt30MinuteCadence": 96,
+        "modeledOnly": true
+      },
+      "provisionalNovelty": {
+        "repositorySameHostOrAddressHit": false,
+        "productionSearchStatus": "not-found",
+        "limitations": "Address search and tracked-registry scan are not a frozen exhaustive current and historical production inventory census."
+      },
+      "nextAction": "Complete generic connector fixture/canonical review, freeze current and historical premises baseline, then apply normal staged source admission and customer verification."
+    },
+    {
+      "id": "christies-la-crescenta",
+      "name": "Christie's Liquor",
+      "state": "CA",
+      "city": "La Crescenta",
+      "host": "www.christiesliquor.com",
+      "address": "3040 Foothill Boulevard, La Crescenta, CA 91214",
+      "pickupName": "Christie's Liquor",
+      "productFile": "christies-bookers-product.json",
+      "pickupCapture": "christies-bookers-pickup",
+      "productCapture": "christies-bookers-product",
+      "baseline": "christies-coverage-baseline",
+      "sectionId": "pickup-availability",
+      "canonicalFamilyCandidate": "Booker's Bourbon",
+      "price": 99.99,
+      "limitations": [
+        "Preserve retailer Batch 2020-03 claim; exact canonical product review remains required."
+      ],
+      "classification": "research_verified_variant_pickup_not_onboarded",
+      "activationAuthorized": false,
+      "netNewPhysicalStoreProven": false,
+      "product": {
+        "id": "9252461445359",
+        "variantId": "47839390040303",
+        "handle": "bookers-750-ml",
+        "title": "Booker’s Bourbon 750ml – Batch 2020-03",
+        "variantTitle": "Default Title",
+        "sku": "080686011408",
+        "sizeMl": 750,
+        "canonicalMappingStatus": "review_required"
+      },
+      "currentClaim": "Retailer reports pickup available at one exact named address; unknown shelf count.",
+      "evidence": {
+        "product": {
+          "id": "christies-bookers-product",
+          "file": "christies-bookers-product.json",
+          "requestedUrl": "https://www.christiesliquor.com/products/bookers-750-ml.json",
+          "finalUrl": "https://www.christiesliquor.com/products/bookers-750-ml.json",
+          "capturedAt": "2026-10-23T02:24:56.357Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2149,
+          "sha256": "6fb6a2c0457285454fb146283e3d646aee498a16e115abf7bce67ef0969eb979"
+        },
+        "pickup": {
+          "id": "christies-bookers-pickup",
+          "file": "christies-bookers-pickup.html",
+          "requestedUrl": "https://www.christiesliquor.com/variants/47839390040303/?section_id=pickup-availability",
+          "finalUrl": "https://www.christiesliquor.com/variants/47839390040303/?section_id=pickup-availability",
+          "capturedAt": "2026-10-23T02:24:56.549Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2680,
+          "sha256": "1ef76ba6cfb0f06eb6dc8a7d14649fe64e72593829e14fcd002b606d5eac9b22"
+        },
+        "baseline": {
+          "id": "christies-coverage-baseline",
+          "file": "christies-coverage-baseline.json",
+          "requestedUrl": "https://www.bourbonsignal.com/api/coverage",
+          "method": "POST",
+          "query": {
+            "state": "CA",
+            "query": "3040 Foothill La Crescenta"
+          },
+          "capturedAt": "2026-10-23T02:25:28.520Z",
+          "status": 200,
+          "bytes": 267,
+          "sha256": "3363d69f2ea13436d4c632ded27038b12dfbe1e729a118d5d3422c1f2927a30e"
+        }
+      },
+      "sourceCost": {
+        "requestsPerSuccessfulSeedRun": 2,
+        "capturedResponseBytes": 4829,
+        "modeledDailyRequestsAt30MinuteCadence": 96,
+        "modeledOnly": true
+      },
+      "provisionalNovelty": {
+        "repositorySameHostOrAddressHit": false,
+        "productionSearchStatus": "not-found",
+        "limitations": "Address search and tracked-registry scan are not a frozen exhaustive current and historical production inventory census."
+      },
+      "nextAction": "Complete generic connector fixture/canonical review, freeze current and historical premises baseline, then apply normal staged source admission and customer verification."
+    },
+    {
+      "id": "vino-new-york",
+      "name": "Vino Fine Wine & Spirits",
+      "state": "NY",
+      "city": "New York",
+      "host": "vinosite.com",
+      "address": "184 Lexington Ave, New York, NY 10016",
+      "pickupName": "Vino Fine Wine & Spirits",
+      "productFile": "vino-weller-product.json",
+      "pickupCapture": "vino-weller-pickup",
+      "productCapture": "vino-weller-product",
+      "baseline": "vino-coverage-baseline",
+      "sectionId": "pickup-availability",
+      "canonicalFamilyCandidate": "Weller Single Barrel",
+      "price": 750,
+      "limitations": [
+        "Raw title contains wheated and 97 Proof; requires reviewed exact canonical mapping, not broad family matching.",
+        "Retailer collector price is not an MSRP or value claim."
+      ],
+      "classification": "research_verified_variant_pickup_not_onboarded",
+      "activationAuthorized": false,
+      "netNewPhysicalStoreProven": false,
+      "product": {
+        "id": "8204164661380",
+        "variantId": "44700008808580",
+        "handle": "w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml",
+        "title": "W.L. Weller The Original Wheated Single Barrel Kentucky Straight Bourbon 97 Proof 750mL",
+        "variantTitle": "Default Title",
+        "sku": "88004039646",
+        "sizeMl": 750,
+        "canonicalMappingStatus": "review_required"
+      },
+      "currentClaim": "Retailer reports pickup available at one exact named address; unknown shelf count.",
+      "evidence": {
+        "product": {
+          "id": "vino-weller-product",
+          "file": "vino-weller-product.json",
+          "requestedUrl": "https://vinosite.com/products/w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml.json",
+          "finalUrl": "https://vinosite.com/products/w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml.json",
+          "capturedAt": "2026-10-23T02:20:36.943Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2267,
+          "sha256": "7d0815db2b6d9eaf9a3f3e7a17bf926f761b2641a40bbe235cf0ee876b8306e5"
+        },
+        "pickup": {
+          "id": "vino-weller-pickup",
+          "file": "vino-weller-pickup.html",
+          "requestedUrl": "https://vinosite.com/variants/44700008808580/?section_id=pickup-availability",
+          "finalUrl": "https://vinosite.com/variants/44700008808580/?section_id=pickup-availability",
+          "capturedAt": "2026-10-23T02:20:37.082Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2729,
+          "sha256": "ef8f9dd22cb3705f452e51a5c01fffc4c5ca074054095f5c5c0708c4e1ce2512"
+        },
+        "baseline": {
+          "id": "vino-coverage-baseline",
+          "file": "vino-coverage-baseline.json",
+          "requestedUrl": "https://www.bourbonsignal.com/api/coverage",
+          "method": "POST",
+          "query": {
+            "state": "NY",
+            "query": "184 Lexington Ave"
+          },
+          "capturedAt": "2026-10-23T02:23:01.637Z",
+          "status": 200,
+          "bytes": 258,
+          "sha256": "7e25d3815a71653c07f6799934fb2f1558e56970380d113b2306d5ca94cdbd87"
+        }
+      },
+      "sourceCost": {
+        "requestsPerSuccessfulSeedRun": 2,
+        "capturedResponseBytes": 4996,
+        "modeledDailyRequestsAt30MinuteCadence": 96,
+        "modeledOnly": true
+      },
+      "provisionalNovelty": {
+        "repositorySameHostOrAddressHit": false,
+        "productionSearchStatus": "not-found",
+        "limitations": "Address search and tracked-registry scan are not a frozen exhaustive current and historical production inventory census."
+      },
+      "nextAction": "Complete generic connector fixture/canonical review, freeze current and historical premises baseline, then apply normal staged source admission and customer verification."
+    },
+    {
+      "id": "hot-spot-austin",
+      "name": "Hot Spot Austin",
+      "state": "TX",
+      "city": "Austin",
+      "host": "hotspot.fun",
+      "address": "411 Brazos Street, Suite 100, Austin, TX 78701",
+      "pickupName": "Hot Spot Austin",
+      "productFile": "hotspot-bookers-product.json",
+      "pickupCapture": "hotspot-bookers-store-pickup",
+      "productCapture": "hotspot-bookers-product",
+      "baseline": "hotspot-coverage-baseline",
+      "sectionId": "store-availability",
+      "canonicalFamilyCandidate": "Booker's Bourbon",
+      "price": 134.99,
+      "limitations": [
+        "Pickup section repeats only variant label 750mL, not full product title; generic contract must validate exact product/variant binding and explicit variant title.",
+        "Suite 100 is mandatory; metadata body SGWS does not establish bottle identity."
+      ],
+      "classification": "research_verified_variant_pickup_not_onboarded",
+      "activationAuthorized": false,
+      "netNewPhysicalStoreProven": false,
+      "product": {
+        "id": "15264836976800",
+        "variantId": "53124475551904",
+        "handle": "bookers-small-batch-bourbon",
+        "title": "Bookers Small Batch Bourbon",
+        "variantTitle": "750mL",
+        "sku": "BBSBB611616",
+        "sizeMl": 750,
+        "canonicalMappingStatus": "review_required"
+      },
+      "currentClaim": "Retailer reports pickup available at one exact named address; unknown shelf count.",
+      "evidence": {
+        "product": {
+          "id": "hotspot-bookers-product",
+          "file": "hotspot-bookers-product.json",
+          "requestedUrl": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+          "finalUrl": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+          "capturedAt": "2026-10-23T02:21:53.639Z",
+          "status": 200,
+          "error": null,
+          "bytes": 1120,
+          "sha256": "63793020363392f6ec18287fefc68eba4f832f6d42d98838790081cad767b521"
+        },
+        "pickup": {
+          "id": "hotspot-bookers-store-pickup",
+          "file": "hotspot-bookers-store-pickup.html",
+          "requestedUrl": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+          "finalUrl": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+          "capturedAt": "2026-10-23T02:22:02.501Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2748,
+          "sha256": "5787c9bd2f560daaaf78a66c779dee26beedeb9feed250e27c86fd502f091611"
+        },
+        "baseline": {
+          "id": "hotspot-coverage-baseline",
+          "file": "hotspot-coverage-baseline.json",
+          "requestedUrl": "https://www.bourbonsignal.com/api/coverage",
+          "method": "POST",
+          "query": {
+            "state": "TX",
+            "query": "411 Brazos Austin"
+          },
+          "capturedAt": "2026-10-23T02:23:08.287Z",
+          "status": 200,
+          "bytes": 258,
+          "sha256": "cdab9473059e9552813560e63f4b3605b92896a963881be275f478fcbfa68f02"
+        }
+      },
+      "sourceCost": {
+        "requestsPerSuccessfulSeedRun": 2,
+        "capturedResponseBytes": 3868,
+        "modeledDailyRequestsAt30MinuteCadence": 96,
+        "modeledOnly": true
+      },
+      "provisionalNovelty": {
+        "repositorySameHostOrAddressHit": false,
+        "productionSearchStatus": "not-found",
+        "limitations": "Address search and tracked-registry scan are not a frozen exhaustive current and historical production inventory census."
+      },
+      "nextAction": "Complete generic connector fixture/canonical review, freeze current and historical premises baseline, then apply normal staged source admission and customer verification."
+    }
+  ],
+  "reserves": [
+    {
+      "id": "barrel-tap-spring-valley",
+      "state": "CA",
+      "address": "9410 Jamacha Blvd, Spring Valley, CA 91977",
+      "productId": "9104379936993",
+      "variantId": "47247796568289",
+      "title": "Elijah Craig Barrel Proof Bourbon Batch C925 750mL",
+      "price": 79.99,
+      "sizeMl": 750,
+      "pickupUrl": "https://www.thebarreltap.com/variants/47247796568289/?section_id=store-availability",
+      "status": "unsupported_product_binding_in_current_generic_contract",
+      "limitation": "Positive pickup section has no product title, variant title or volume; do not weaken generic heading contract to force store count.",
+      "positiveCapture": "barrel-tap-c925-pickup",
+      "negativeCapture": "barrel-tap-ecbp-pickup",
+      "nextAction": "Find independent published binding evidence or another supported seed, otherwise keep research-only."
+    }
+  ],
+  "otherResearch": [
+    {
+      "id": "coolvines-newark",
+      "state": "NJ",
+      "productId": "8363774869787",
+      "variantId": "45491765477659",
+      "url": "https://newark.coolvines.com/variants/45491765477659/?section_id=store-availability",
+      "observedAt": "2026-10-23T02:19:41.631Z",
+      "http": 200,
+      "status": "pickup_preview_only",
+      "limitation": "Preview names CoolVines Newark without an independently named address; product metadata has no explicit size."
+    },
+    {
+      "id": "liquor-cave",
+      "state": "NJ",
+      "productId": "7671083696174",
+      "variantId": "42786995470382",
+      "url": "https://www.liquorcave.com/variants/42786995470382/?section_id=pickup-availability",
+      "observedAt": "2026-10-23T02:20:37.825Z",
+      "http": 200,
+      "status": "empty_pickup_section",
+      "limitation": "77-byte wrapper has no stock or address evidence despite positive catalog availability; historic indexed multi-store pickup text is not current inventory."
+    },
+    {
+      "id": "craftbottlz-new-canaan",
+      "state": "CT",
+      "address": "1 Morse Court, New Canaan, CT 06840",
+      "url": "https://craftbottlz.com/products/up-n-down-bourbon",
+      "productId": "6984327659583",
+      "variantId": "39748772298815",
+      "observedAt": "2026-10-23T02:19:04.663Z",
+      "http": 200,
+      "status": "static_general_pickup_text_only",
+      "limitation": "Product page pickup text links to a contact page; variant pickup endpoint404 and no explicit product size. Do not count as exact variant pickup."
+    },
+    {
+      "id": "collective-wine-supply",
+      "state": "NY",
+      "url": "https://collectivewinesupply.com/products/rabbit-hole-dareringer-px-sherry-finish-bourbon-750-ml.json",
+      "productId": "8731223949400",
+      "variantId": "43970966978648",
+      "observedAt": "2026-10-23T02:19:57.820Z",
+      "http": 404,
+      "status": "catalog_without_verified_pickup",
+      "limitation": "Product JSON200, tested pickup-availability section404. Theme structure not researched further."
+    }
+  ],
+  "accessLimits": [
+    "No authentication, orders, outreach, purchases, source activation, alternate-client retries, or denied-source/cooldown probes.",
+    "NY/CO recorded direct CityHive denials remain excluded until source-specific Oct23 about14:20UTC nextAllowedAt and changed access evidence.",
+    "All source observations are local snapshots; current availability must be freshly recollected for admission."
+  ],
+  "rawManifest": ".operator/cohort-preflight/manifest.json"
+}

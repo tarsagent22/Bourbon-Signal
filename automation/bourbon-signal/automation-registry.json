@@ -2,6 +2,26 @@
   "schemaVersion": 1,
   "automations": [
     {
+      "id": "github-coverage-premises-baseline",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/coverage-premises-baseline.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "manual main-branch dispatch with exact live production commit",
+      "agent": { "provider": null, "model": null, "reasoning": null },
+      "externalApi": {
+        "classes": ["vercel_blob", "customer_domain_http"],
+        "maxRequestsPerRun": 150
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": ["out/coverage-premises-baseline.json"],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-native-label-reader",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/native-label-reader.yml",

@@ -1,0 +1,60 @@
+{
+  "contractVersion": "bourbon-signal/pilot-parity@1",
+  "baselineCommit": "e237c76e089dd9635013c33804ff443df1654440",
+  "scope": "evaluated_source_configuration_and_unchanged_collector_observer_bytes_not_long_window_acceptance",
+  "originalSources": 7,
+  "newSources": 7,
+  "genericRegistryEntries": 0,
+  "configurationSha256": "6ce66db003359dfef9b816beeaf1217b9c406d035fbd723474620b6733d3b472",
+  "selectedPilotSourceIds": [
+    "ca:mission-trails-wine-spirits",
+    "fl:jensens-miami"
+  ],
+  "configurationsEqual": true,
+  "unchangedFiles": [
+    {
+      "path": "engine/src/collectors/florida-jensens-runtime-source.mjs",
+      "beforeSha256": "a017a1aff7289da7df1fd3f9cf8bcb33d81ce4f191452714bba0df1721733443",
+      "afterSha256": "a017a1aff7289da7df1fd3f9cf8bcb33d81ce4f191452714bba0df1721733443"
+    },
+    {
+      "path": "engine/src/collectors/california-runtime-source.mjs",
+      "beforeSha256": "553626852136dc65649aecb0172bc521ce0a7872aaf662e547c9c22c5d34e268",
+      "afterSha256": "553626852136dc65649aecb0172bc521ce0a7872aaf662e547c9c22c5d34e268"
+    },
+    {
+      "path": "engine/src/collectors/california-san-diego-surfaces.mjs",
+      "beforeSha256": "7f43b03098a5e0896d0882d72a079c98fe555cc9fa2cf21194ef18bf27afe425",
+      "afterSha256": "7f43b03098a5e0896d0882d72a079c98fe555cc9fa2cf21194ef18bf27afe425"
+    },
+    {
+      "path": "src/lib/source-lane-runtime.ts",
+      "beforeSha256": "6c7a8b9ab965fcc438568829099544b538692498798daacf6145ff024ed9d561",
+      "afterSha256": "6c7a8b9ab965fcc438568829099544b538692498798daacf6145ff024ed9d561"
+    },
+    {
+      "path": "scripts/source-observation-runner.mjs",
+      "beforeSha256": "c1e6ca5b9f29d1a08a95a1dd8d8bad4135a27a37be8e2041560289cc628c17f3",
+      "afterSha256": "c1e6ca5b9f29d1a08a95a1dd8d8bad4135a27a37be8e2041560289cc628c17f3"
+    },
+    {
+      "path": ".github/workflows/source-scheduler-monitor.yml",
+      "beforeSha256": "5e0b41fad217f799492c34f4100b8ebd10458bfb85c168d01de1f5f651b843d7",
+      "afterSha256": "5e0b41fad217f799492c34f4100b8ebd10458bfb85c168d01de1f5f651b843d7"
+    }
+  ],
+  "validation": [
+    "test:nationwide-coverage-pilot",
+    "test:feed-source-freshness",
+    "test:shopify-cohort-foundation",
+    "test:coverage",
+    "test:coverage-depth"
+  ],
+  "observation": {
+    "preserveOriginalId": true,
+    "preserveStartAndDeadline": true,
+    "preserveAllReservationsAndFailures": true,
+    "transitionRecordedSeparately": true,
+    "singleCommit24HourAcceptance": false
+  }
+}

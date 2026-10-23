@@ -7,6 +7,11 @@ import { fingerprintName } from '../../engine/src/core/text.mjs';
 import { withCollectionContext } from '../../engine/src/core/collection-context.mjs';
 import { collectCaliforniaSource } from '../../engine/src/collectors/california-runtime-source.mjs';
 import { collectJensensSource, JENSENS_RUNTIME_SOURCE } from '../../engine/src/collectors/florida-jensens-runtime-source.mjs';
+import { collectShopifyVariantPickup } from '../../engine/src/collectors/shopify-variant-pickup.mjs';
+import { SHOPIFY_PICKUP_SOURCES } from '../../engine/src/sources/shopify-pickup-policy.mjs';
+import { buildShopifyPollProjection } from '../../engine/src/sources/shopify-poll-projection.mjs';
+import dropFeedClassification from '../data/drop-feed-classification.generated.json';
+import { getDropClassificationIndex, resolveDropClassification, type DropClassificationBottle } from './drop-classification';
 import { cityHiveSafeBottleMatch } from '../../engine/src/collectors/safe-bottle-match.mjs';
 import { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES } from '../../engine/src/collectors/california-san-diego-surfaces.mjs';
 import { collectNorthCarolinaShipments } from '../../engine/src/collectors/north-carolina-intelligence.mjs';
@@ -18,7 +23,9 @@ import { recoveryPolicy, mergePollProjection, suppressDisabledPollSources, sourc
 import { readLatestOhlqWorkerEnvelope } from './ohlq-worker-artifact-store';
 
 type Row = Record<string, any>;
-export const POLL_SOURCES: Row[] = [
+type PollSource = Row & { id:string;state:string;kind:string;expiryHours:number };
+export const POLL_SOURCES: PollSource[] = [
+  ...SHOPIFY_PICKUP_SOURCES,
   {id:'nc:board-shipments',state:'NC',kind:'nc-shipments',cadence:1800,expiryHours:168},
   {id:'fl:abc',state:'FL',kind:'fl-abc',chain:'abc-fine-wine-spirits',cadence:1800,expiryHours:1},
   {id:'fl:jensens-miami',state:'FL',kind:'jensens',chain:'jensens-liquors',cadence:1800,expiryHours:1,
@@ -30,8 +37,8 @@ export const POLL_SOURCES: Row[] = [
   {id:'oh:browser-artifact',state:'OH',kind:'oh-probe',cadence:900,expiryHours:1},
 ];
 // Keep disabled sources registered as partition owners so old stock cannot revive.
-const pollSourceRegistry = (): Row[] => POLL_SOURCES.map((source): Row => ({...source,
-  disabled:source.id==='fl:jensens-miami' && process.env.JENSENS_SOURCE_POLL_ENABLED==='0'}));
+export const pollSourceRegistry = (): PollSource[] => POLL_SOURCES.map((source): PollSource => ({...source,
+  disabled:source.disabled===true || (source.kind==='shopify-variant-pickup' && !schedulerEnabled()) || (source.id==='fl:jensens-miami' && process.env.JENSENS_SOURCE_POLL_ENABLED==='0')}));
 export const schedulerEnabled = () => process.env.SOURCE_SCHEDULER_ENABLED === '1';
 const sql = () => createProductionAlertQueueSqlExecutor();
 export async function pollJobs() { return (await sql().query('SELECT * FROM source_poll_jobs ORDER BY source_id')).rows as Row[]; }
@@ -41,15 +48,19 @@ async function context() {
   if (!bottles.snapshotId || bottles.snapshotId!==health.snapshotId || bottles.snapshotId!==drops.snapshotId || bottles.snapshotId!==alerts.snapshotId
     || bottles.source!=='remote-snapshot' || !Number.isFinite(age) || age<0 || age>7*86400000
     || health.payload?.quarantine || health.payload?.bootstrap || alerts.payload?.quarantine || alerts.payload?.bootstrap || alerts.payload?.manualRefresh) throw new Error('policy_snapshot_unavailable');
-  const records=(Array.isArray(bottles.payload?.bottles) ? bottles.payload.bottles as Row[] : []).map((b: Row)=>({ ...b,id:b.canonical_id || b.id,canonical:b.canonical_name || b.name, normalizedKey:fingerprintName(b.canonical_name || b.name),aliases:b.aliases || [] }));
+  const records:Row[]=(Array.isArray(bottles.payload?.bottles) ? bottles.payload.bottles as Row[] : []).map((b: Row)=>({ ...b,id:b.canonical_id || b.id,canonical:b.canonical_name || b.name, normalizedKey:fingerprintName(b.canonical_name || b.name),aliases:b.aliases || [] }));
   const bible=new BourbonBible(records); const lookup=bibleLookup(records);
-  return {bible,lookup,drops:Array.isArray(drops.payload?.drops) ? drops.payload.drops as Row[] : [],snapshotId:bottles.snapshotId,health:health.payload};
+  const classificationIndex=getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
+  const byState=Object.fromEntries([...new Set(SHOPIFY_PICKUP_SOURCES.map((source:Row)=>source.state))].map(state=>[state,
+    bibleLookup(records.map(record=>({...record,tier:resolveDropClassification({state,canonical_id:record.id,canonical_name:record.canonical,tier:record.tier},classificationIndex).tier})))]));
+  return {bible,lookup:{...lookup,byState},drops:Array.isArray(drops.payload?.drops) ? drops.payload.drops as Row[] : [],snapshotId:bottles.snapshotId,health:health.payload};
 }
 async function collect(source: Row, ctx: Awaited<ReturnType<typeof context>>, signal: AbortSignal) {
   const observedAt=new Date().toISOString();
   if (source.kind==='nc-shipments') return collectNorthCarolinaShipments(ctx.bible,{signal});
   if (source.kind==='ca') return withCollectionContext({signal},()=>collectCaliforniaSource({id:'CA'},ctx.bible,source.definition,observedAt,signal));
   if (source.kind==='jensens') return withCollectionContext({signal},()=>collectJensensSource(ctx.bible,{observedAt,signal}));
+  if (source.kind==='shopify-variant-pickup') return withCollectionContext({signal},()=>collectShopifyVariantPickup(ctx.bible,source.definition,{signal}));
   if (source.kind==='fl-abc') {
     const result=await withCollectionContext({signal},()=>collectFloridaAbcExpansion({observedAt,signal,fetchText,
       matchBottle:(name: string)=>cityHiveSafeBottleMatch(name,ctx.bible)}));
@@ -61,6 +72,7 @@ async function collect(source: Row, ctx: Awaited<ReturnType<typeof context>>, si
     }
     return result;
   }
+  if (source.kind!=='oh-probe') throw new Error('source_identity_or_schema_failure: unsupported collector kind');
   const artifact=await readLatestOhlqWorkerEnvelope();
   if (!artifact || Date.now()-Date.parse(artifact.generatedAt)>3600000) throw new Error('browser_artifact_unavailable');
   // The existing signed artifact ingestion retains ownership of Ohio conversion.
@@ -93,6 +105,19 @@ export async function runSourceScheduler({trigger='unspecified'}:{trigger?:strin
       if(result.probe) {
         await executor.query('SELECT source_poll_finish($1,$2,$3,$4::jsonb,$5,$6,$7,$8::jsonb)',[source.id,owner,lease.generation,JSON.stringify({probe:true}),'dependency_ready',0,0,JSON.stringify(result.accounting)]);
         return {source:source.id,status:'dependency_ready'};
+      }
+      if(source.kind==='shopify-variant-pickup') {
+        const built=buildShopifyPollProjection({source,ctx,lease,result,owner});
+        const accounting={...result.accounting,collected:result.signals?.length || 0,accepted:built.signals.length,feed:built.drops.length,candidates:built.candidates.length,
+          baseline:!lease.projection,elapsedMs:Date.now()-runStartedAt,trigger,manualDueReset:false,collectorSha256:source.collectorSha256,configSha256:source.configSha256,
+          observations:built.observations.map((row:Row)=>({state:row.state,storeId:row.storeId,storeAddress:row.storeAddress,sourceUrl:row.sourceUrl,
+            canonicalBottleId:row.canonicalBottleId,productId:row.productId,variantId:row.variantId,observedAt:row.observedAt,availability:row.availabilityStatus,
+            locationPrecision:'store_level',quantitySemantics:'binary_orderability',quantity:0,quantityIsExact:false,
+            fulfillmentEvidenceType:'variant_pickup_offer',pickupVerified:row.availabilityStatus==='in_stock'})),
+          projectedCandidateKeys:built.candidates.map((row:Row)=>row.dedupeKey)};
+        const committed=(await executor.query('SELECT source_poll_finish($1,$2,$3,$4::jsonb,$5,$6,$7,$8::jsonb) AS committed',
+          [source.id,owner,lease.generation,JSON.stringify(built.projection),'accepted',0,0,JSON.stringify(accounting)])).rows[0]?.committed;
+        return {source:source.id,status:committed?'accepted':'fenced',...accounting};
       }
       const signals=(result.signals || []).filter((s: Row)=>!s.stale && !s.raw?.cacheFallback && s.canonicalBottleId && sourceScopeMatches(source,s));
       const previous=lease.projection?.drops || ctx.drops.filter((d: Row)=>sourceScopeMatches(source,d));
@@ -148,18 +173,33 @@ export async function readPollProjection(rows: Row[], kind: 'drops'|'candidates'
   if (!schedulerEnabled()) return {rows:suppressDisabledPollSources(rows,pollSourceRegistry(),kind),version:'off'};
   const [jobs,ctx]=await Promise.all([pollJobs(),context()]);
   const registry=pollSourceRegistry();
-  const permitted=validatePollPolicy(jobs,registry,ctx.lookup,ctx.health,process.env.BOURBON_SIGNAL_QUARANTINED_STATES || '');
+  const permitted=validatePollPolicy(jobs,registry,ctx.lookup,ctx.health,process.env.BOURBON_SIGNAL_QUARANTINED_STATES || '',ctx.snapshotId);
   const merged=mergePollProjection(rows,permitted,registry,kind);
   await tracePollCandidates(merged.filter((r: Row)=>r.sourcePollId),kind==='drops'?'feed_read':'candidate_read');
   return {rows:merged,version:createHash('sha256').update(JSON.stringify(jobs.map(j=>[j.source_id,j.generation,j.accepted_at]))).digest('hex').slice(0,24)};
 }
 export async function pollCandidatesValid(candidates: Row[]) {
-  if(suppressDisabledPollSources(candidates,pollSourceRegistry(),'candidates').length!==candidates.length) return false;
-  const polled=candidates.filter(c=>c.sourcePollId);
-  if(!polled.length)return true;
-  if(!schedulerEnabled())return false;
+  const registry=pollSourceRegistry();
+  if(suppressDisabledPollSources(candidates,registry,'candidates').length!==candidates.length) return false;
+  const genericSources=registry.filter(source=>source.kind==='shopify-variant-pickup');
+  const genericOwned=(candidate:Row)=>candidate.sourceCollectorVersion==='shopify-variant-pickup-v1' || genericSources.some(source=>
+    candidate.sourceRuntimeId===source.id || candidate.sourcePollId===source.id || sourceScopeMatches(source,candidate));
+  const polled=candidates.filter(c=>c.sourcePollId || genericOwned(c));
+  if(!polled.length && !genericSources.length)return true;
+  if(!schedulerEnabled())return polled.length===0;
   const current=(await readPollProjection([], 'candidates')).rows;
-  return polled.every(c=>current.some((r: Row)=>r.id===c.id && r.dedupeKey===c.dedupeKey));
+  const proofValue=(value:unknown)=>JSON.stringify(value,(_key,item)=>item && typeof item==='object' && !Array.isArray(item)
+    ? Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])) : item);
+  return candidates.every(c=>{
+    const matching=current.find((r:Row)=>r.id===c.id && r.dedupeKey===c.dedupeKey);
+    // Decide authority from the accepted projection as well as the incoming
+    // identity. Removing every incoming marker cannot evade the current owner.
+    // Bind every persisted source-candidate field, including fulfillment,
+    // display aliases, clocks and channel policy. Queue enrichment may add its
+    // own fields; it cannot rewrite the accepted source payload under one ID.
+    if(genericOwned(c) || (matching && genericSources.some(source=>source.id===matching.sourcePollId)))return !!matching && Object.entries(matching).every(([field,value])=>proofValue(value)===proofValue(c[field]));
+    return !c.sourcePollId || !!matching;
+  });
 }
 export async function tracePollCandidates(rows: Row[],stage: string,channel='',at=new Date().toISOString()) {
   const sources=new Map<string,number>();
@@ -169,17 +209,18 @@ export async function tracePollCandidates(rows: Row[],stage: string,channel='',a
 }
 export async function sourceSchedulerHealth(writeMonitor=false) {
   const executor=sql(); const jobs=await pollJobs();
+  const registry=pollSourceRegistry(), enabledSources=registry.filter(source=>!source.disabled), enabledIds=new Set(enabledSources.map(source=>source.id));
   const heartbeat=(await executor.query('SELECT name,checked_at FROM source_scheduler_heartbeat')).rows;
-  const late=jobs.filter(j=>Date.now()-Date.parse(j.next_due_at)>10*60000 && (!j.paused_until || Date.parse(j.paused_until)<Date.now()) && (!j.lease_until || Date.parse(j.lease_until)<Date.now()));
+  const late=jobs.filter(j=>enabledIds.has(j.source_id) && Date.now()-Date.parse(j.next_due_at)>10*60000 && (!j.paused_until || Date.parse(j.paused_until)<Date.now()) && (!j.lease_until || Date.parse(j.lease_until)<Date.now()));
   const lanes=process.env.SOURCE_LANE_POLL_ENABLED==='1'?(await executor.query('SELECT source_id,next_due_at,lease_until,accepted_at,last_reason,failures,healthy FROM source_lane_heads')).rows as Row[]:[];
   const laneLate=lanes.filter(j=>Date.now()-Date.parse(j.next_due_at)>10*60000 && (!j.lease_until || Date.parse(j.lease_until)<Date.now()));
   const incidents=(await executor.query('SELECT source_id,reason,first_at,last_at,occurrences FROM source_poll_incidents WHERE resolved_at IS NULL')).rows;
   const traces=(await executor.query("SELECT run_id,source_id,generation,due_at,status,started_at,finished_at,accounting FROM source_poll_runs ORDER BY started_at DESC LIMIT 40")).rows;
   const pipeline=(await executor.query('SELECT * FROM source_poll_trace ORDER BY source_id,stage')).rows;
-  const sourceHealth=sourceAcceptanceHealth(jobs.map(j=>({source_id:String(j.source_id),accepted_at:j.accepted_at,last_reason:j.last_reason,failures:j.failures})),POLL_SOURCES as Array<{id:string;kind:string;expiryHours:number}>);
-  const result={pipeline,lanes,enabled:schedulerEnabled(),healthy:late.length===0 && laneLate.length===0 && jobs.length===POLL_SOURCES.length && heartbeat.some(h=>h.name==='scheduler' && Date.now()-Date.parse(String(h.checked_at))<15*60000),lateSources:[...late,...laneLate].map(j=>j.source_id),jobs:jobs.map(({projection,...j})=>({...j,feedRows:projection?.drops?.length || 0,candidates:projection?.candidates?.length || 0})),incidents,heartbeat,traces};
+  const sourceHealth=sourceAcceptanceHealth(jobs.map(j=>({source_id:String(j.source_id),accepted_at:j.accepted_at,last_reason:j.last_reason,failures:j.failures})),registry as Array<{id:string;kind:string;expiryHours:number;disabled?:boolean}>);
+  const result={pipeline,lanes,enabled:schedulerEnabled(),healthy:late.length===0 && laneLate.length===0 && enabledSources.every(source=>jobs.some(job=>job.source_id===source.id)) && heartbeat.some(h=>h.name==='scheduler' && Date.now()-Date.parse(String(h.checked_at))<15*60000),lateSources:[...late,...laneLate].map(j=>j.source_id),jobs:jobs.map(({projection,...j})=>({...j,disabled:registry.find(source=>source.id===j.source_id)?.disabled===true,feedRows:projection?.drops?.length || 0,candidates:projection?.candidates?.length || 0})),incidents,heartbeat,traces};
   const schedulingHealthy=result.healthy;
-  const collectionHealthy=sourceHealth.filter(row=>!row.dependency).every(row=>row.status==='healthy')
+  const collectionHealthy=sourceHealth.filter(row=>!row.dependency && row.status!=='disabled').every(row=>row.status==='healthy')
     && lanes.every(row=>row.healthy===true && Number(row.failures || 0)===0);
   const health={...result,schedulingHealthy,collectionHealthy,sourceHealth,healthy:schedulingHealthy && collectionHealthy};
   if(writeMonitor)await executor.query(`INSERT INTO source_scheduler_heartbeat VALUES('independent-monitor',now(),$1::jsonb) ON CONFLICT(name) DO UPDATE SET checked_at=EXCLUDED.checked_at,payload=EXCLUDED.payload`,[JSON.stringify({healthy:health.healthy,schedulingHealthy,collectionHealthy,late:late.length})]);

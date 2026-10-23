@@ -1,0 +1,43 @@
+name: Read-only coverage premises baseline
+on:
+  workflow_dispatch:
+    inputs:
+      expected_production_commit:
+        description: Exact reviewed live production commit (40 lowercase hex characters)
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: coverage-premises-baseline-read
+  cancel-in-progress: false
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify offline projection and consistency guards
+        run: node --experimental-strip-types --test scripts/test-coverage-premises-baseline.mts
+      - name: Read pinned exports and project public premises only
+        env:
+          BASELINE_EXPECTED_COMMIT: ${{ inputs.expected_production_commit }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+          SOURCE_SCHEDULER_SECRET: ${{ secrets.SOURCE_SCHEDULER_SECRET }}
+        run: node --experimental-strip-types scripts/capture-coverage-premises-baseline.mts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-premises-baseline-${{ github.run_id }}
+          path: out/coverage-premises-baseline.json
+          if-no-files-found: error
+          retention-days: 30

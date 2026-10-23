@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "scope": "offline_research_fixtures_not_production_coverage",
+  "captures": [
+    {
+      "id": "remedy-buffalo-product",
+      "file": "remedy-buffalo-product.json",
+      "requestedUrl": "https://www.remedyliquor.com/products/buffalo-trace-kentucky-whisky.json",
+      "finalUrl": "https://www.remedyliquor.com/products/buffalo-trace-kentucky-whisky.json",
+      "capturedAt": "2026-10-23T02:20:36.430Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2522,
+      "sha256": "d72b305e5dc6f7de28a1a6aa2288d0679571e3bf135f38a04a6be27f82a35d75"
+    },
+    {
+      "id": "remedy-buffalo-pickup",
+      "file": "remedy-buffalo-pickup.html",
+      "requestedUrl": "https://www.remedyliquor.com/variants/43038323638500/?section_id=pickup-availability",
+      "finalUrl": "https://www.remedyliquor.com/variants/43038323638500/?section_id=pickup-availability",
+      "capturedAt": "2026-10-23T02:20:36.644Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2660,
+      "sha256": "23cf6221a44b82d1d05759e1e7080339b1c3540b156e55d0c35abbecfed2d4e9"
+    },
+    {
+      "id": "vino-weller-product",
+      "file": "vino-weller-product.json",
+      "requestedUrl": "https://vinosite.com/products/w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml.json",
+      "finalUrl": "https://vinosite.com/products/w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml.json",
+      "capturedAt": "2026-10-23T02:20:36.943Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2267,
+      "sha256": "7d0815db2b6d9eaf9a3f3e7a17bf926f761b2641a40bbe235cf0ee876b8306e5"
+    },
+    {
+      "id": "vino-weller-pickup",
+      "file": "vino-weller-pickup.html",
+      "requestedUrl": "https://vinosite.com/variants/44700008808580/?section_id=pickup-availability",
+      "finalUrl": "https://vinosite.com/variants/44700008808580/?section_id=pickup-availability",
+      "capturedAt": "2026-10-23T02:20:37.082Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2729,
+      "sha256": "ef8f9dd22cb3705f452e51a5c01fffc4c5ca074054095f5c5c0708c4e1ce2512"
+    },
+    {
+      "id": "main-street-buffalo-product",
+      "file": "main-street-buffalo-product.json",
+      "requestedUrl": "https://mainstreetliquor.com/products/buffalo-trace-bourbon.json",
+      "finalUrl": "https://mainstreetliquor.com/products/buffalo-trace-bourbon.json",
+      "capturedAt": "2026-10-23T02:20:37.364Z",
+      "status": 200,
+      "error": null,
+      "bytes": 8219,
+      "sha256": "4e108469d05e30b7d1905c0c925ece6b86aa33a3bf8df05c50a7e84a7b18fdb8"
+    },
+    {
+      "id": "main-street-buffalo-pickup",
+      "file": "main-street-buffalo-pickup.html",
+      "requestedUrl": "https://mainstreetliquor.com/variants/40199925563529/?section_id=store-availability",
+      "finalUrl": "https://mainstreetliquor.com/variants/40199925563529/?section_id=store-availability",
+      "capturedAt": "2026-10-23T02:20:37.567Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2666,
+      "sha256": "e9497ac8ba0d1107019ebe8e87a0245a363ce7517400f7717ac565912648335e"
+    },
+    {
+      "id": "hotspot-bookers-product",
+      "file": "hotspot-bookers-product.json",
+      "requestedUrl": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+      "finalUrl": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+      "capturedAt": "2026-10-23T02:21:53.639Z",
+      "status": 200,
+      "error": null,
+      "bytes": 1120,
+      "sha256": "63793020363392f6ec18287fefc68eba4f832f6d42d98838790081cad767b521"
+    },
+    {
+      "id": "hotspot-bookers-store-pickup",
+      "file": "hotspot-bookers-store-pickup.html",
+      "requestedUrl": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+      "finalUrl": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+      "capturedAt": "2026-10-23T02:22:02.501Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2748,
+      "sha256": "5787c9bd2f560daaaf78a66c779dee26beedeb9feed250e27c86fd502f091611"
+    },
+    {
+      "id": "christies-bookers-product",
+      "file": "christies-bookers-product.json",
+      "requestedUrl": "https://www.christiesliquor.com/products/bookers-750-ml.json",
+      "finalUrl": "https://www.christiesliquor.com/products/bookers-750-ml.json",
+      "capturedAt": "2026-10-23T02:24:56.357Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2149,
+      "sha256": "6fb6a2c0457285454fb146283e3d646aee498a16e115abf7bce67ef0969eb979"
+    },
+    {
+      "id": "christies-bookers-pickup",
+      "file": "christies-bookers-pickup.html",
+      "requestedUrl": "https://www.christiesliquor.com/variants/47839390040303/?section_id=pickup-availability",
+      "finalUrl": "https://www.christiesliquor.com/variants/47839390040303/?section_id=pickup-availability",
+      "capturedAt": "2026-10-23T02:24:56.549Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2680,
+      "sha256": "1ef76ba6cfb0f06eb6dc8a7d14649fe64e72593829e14fcd002b606d5eac9b22"
+    },
+    {
+      "id": "barrel-tap-c925-product",
+      "file": "barrel-tap-c925-product.json",
+      "requestedUrl": "https://www.thebarreltap.com/products/elijah-craig-barrel-proof-batch-c925.json",
+      "finalUrl": "https://www.thebarreltap.com/products/elijah-craig-barrel-proof-batch-c925.json",
+      "capturedAt": "2026-10-23T02:23:48.818Z",
+      "status": 200,
+      "error": null,
+      "bytes": 9892,
+      "sha256": "b05ec10146c6bd715f37680f5bbead3f92c80f95c0bffc7a6d9ddbe7c1a38b3e"
+    },
+    {
+      "id": "barrel-tap-c925-pickup",
+      "file": "barrel-tap-c925-pickup.html",
+      "requestedUrl": "https://www.thebarreltap.com/variants/47247796568289/?section_id=store-availability",
+      "finalUrl": "https://www.thebarreltap.com/variants/47247796568289/?section_id=store-availability",
+      "capturedAt": "2026-10-23T02:23:48.985Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2849,
+      "sha256": "16c20d38a6c4d795bdec28390ae691bbe1a15b74d6bedf44a7339f7be79fff02"
+    },
+    {
+      "id": "barrel-tap-ecbp-product",
+      "file": "barrel-tap-ecbp-product.json",
+      "requestedUrl": "https://www.thebarreltap.com/products/elijah-craig-barrel-proof-batch-b524.json",
+      "finalUrl": "https://www.thebarreltap.com/products/elijah-craig-barrel-proof-batch-b524.json",
+      "capturedAt": "2026-10-23T02:23:06.467Z",
+      "status": 200,
+      "error": null,
+      "bytes": 3580,
+      "sha256": "467c129f3ded3ae86d6895bd0d2f2a44a0a9b92866757557c7232be589c43ddf"
+    },
+    {
+      "id": "barrel-tap-ecbp-pickup",
+      "file": "barrel-tap-ecbp-pickup.html",
+      "requestedUrl": "https://www.thebarreltap.com/variants/45394129518817/?section_id=store-availability",
+      "finalUrl": "https://www.thebarreltap.com/variants/45394129518817/?section_id=store-availability",
+      "capturedAt": "2026-10-23T02:23:25.626Z",
+      "status": 200,
+      "error": null,
+      "bytes": 2689,
+      "sha256": "e1489a9d1403b8088cc190453e06245801a81ca285c94f60577238aa15eba39a"
+    },
+    {
+      "id": "liquorcave-rare-character-pickup",
+      "file": "liquorcave-rare-character-pickup.html",
+      "requestedUrl": "https://www.liquorcave.com/variants/42786995470382/?section_id=pickup-availability",
+      "finalUrl": "https://www.liquorcave.com/variants/42786995470382/?section_id=pickup-availability",
+      "capturedAt": "2026-10-23T02:20:37.825Z",
+      "status": 200,
+      "error": null,
+      "bytes": 77,
+      "sha256": "4735e594b2763c86456e1b64135a5c948f1bd536cdd06bed797a471456d57273"
+    }
+  ]
+}
