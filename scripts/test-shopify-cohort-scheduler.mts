@@ -271,6 +271,8 @@ test('final-send validation binds unchanged candidate identity to its current fu
     ['location precision', row => { row.locationPrecision = 'state_level'; }],
     ['pickup URL', row => { row.sourceProductBinding = 'https://unreviewed.example/variants/123'; }],
     ['proof', row => { row.pickupOfferVerified = false; }],
+    ['contradictory variant availability', row => { row.variantAvailable = false; }],
+    ['customer city', row => { row.city = 'A different city'; }],
     ['unknown source marker', row => { row.sourcePollId = 'unreviewed-source'; }],
     ['removed source marker', row => { delete row.sourcePollId; }],
     ['all source markers stripped and chain changed', row => { delete row.sourcePollId; delete row.sourceRuntimeId; delete row.sourceCollectorVersion; row.sourceChain = 'unreviewed-chain'; }],
