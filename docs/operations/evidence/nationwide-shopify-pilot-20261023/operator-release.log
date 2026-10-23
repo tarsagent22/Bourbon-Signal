@@ -1,0 +1,30 @@
+
+> bourbon-signal@0.1.0 operator:objective
+> python scripts/run-with-release-lane-lock.py -- node scripts/operator-objective.mjs release --disposition resolved --worktree C:\Users\chand\projects\bs-nationwide-shopify-release-20261022 --repo tarsagent22/Bourbon-Signal --apply
+
+{
+  "mode": "apply",
+  "action": "release",
+  "objectiveId": "bsf-3e22b27077b27fbf",
+  "disposition": "resolved",
+  "lockFile": "C:\\Users\\chand\\projects\\bs-engine-expansion-control-20261022\\.operator\\objective-lock.json",
+  "worktree": "C:\\Users\\chand\\projects\\bs-nationwide-shopify-release-20261022",
+  "safety": {
+    "registered": {
+      "path": "C:\\Users\\chand\\projects\\bs-nationwide-shopify-release-20261022",
+      "branch": "operator/bsf-3e22b27077b27fbf-verify-reliable-shopify-inventory-across-califor",
+      "head": "941324e737057c0ab8989bf41cd27050b2c7f2be"
+    },
+    "merged": false,
+    "archived": true,
+    "head": "941324e737057c0ab8989bf41cd27050b2c7f2be",
+    "branchExists": true
+  },
+  "mutations": [
+    "update-canonical-disposition",
+    "remove-worktree",
+    "remove-local-branch",
+    "remove-merged-remote-branch",
+    "remove-lock"
+  ]
+}

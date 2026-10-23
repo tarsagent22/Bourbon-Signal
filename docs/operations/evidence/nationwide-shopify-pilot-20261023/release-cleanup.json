@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-23T01:23:42.067Z",
+  "objectiveId": "bsf-3e22b27077b27fbf",
+  "issue": 816,
+  "issueState": "CLOSED",
+  "objectiveLockPresent": false,
+  "operatorRemoteRemoved": true,
+  "releaseWorktreeRemoved": false,
+  "preparationWorktreeRemoved": false,
+  "archiveBranch": "archive/nationwide-shopify-pilot-20261022-941324e7",
+  "archivedHead": "941324e737057c0ab8989bf41cd27050b2c7f2be",
+  "main": "be8ad383b04d08882fe753958a95be2e118dd707",
+  "mainTree": "fd715b104527bab563cc35375d168aa98dfcb7be",
+  "controlStatus": "",
+  "sourceBundles": [
+    {
+      "file": "prepared-source.bundle",
+      "sha256": "1044534f40051e4dbe866b334aab1b3d0f72ce388669f794c2679aad99ba9274",
+      "gitBundleVerification": "passed"
+    },
+    {
+      "file": "reviewed-release-source.bundle",
+      "sha256": "4c0e78bc6f21a1ed52fe8ebc0195557efa0a01c0e971c10c52cb598a9313e2f3",
+      "gitBundleVerification": "passed"
+    }
+  ],
+  "unrelatedWorkPreserved": true
+}

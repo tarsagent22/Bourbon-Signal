@@ -79,12 +79,16 @@
       "sha256": "f6c222ce383127d1d88d23b7ec99cd23c5422031ea75dba882daeb72d0bbe8c9"
     },
     {
+      "file": "operator-release.log",
+      "sha256": "9ca35dc5f34829c05d54ec715bdbdc0b025a4250adc3b933d133bb9d4bf56681"
+    },
+    {
       "file": "pilot-metrics.json",
       "sha256": "047d0e0f662cde2cd0c97f0d782bc9806d561010f054b28cb1dea7dc53c86dae"
     },
     {
       "file": "pilot-report.md",
-      "sha256": "de63db3db505f6014dc216e3ff8bb97abd86fa7ce78edf8c765119c9288b6fc5"
+      "sha256": "c7958fbbc25be8c742d2b20c61470f8fcaa13a69521ca803a2264884d353a434"
     },
     {
       "file": "pre-release-baseline.json",
@@ -104,7 +108,7 @@
     },
     {
       "file": "progress.json",
-      "sha256": "92de270f2ff187fcdf46308fffde99e0a7bb840f0025f0a3ddac13e3248498a2"
+      "sha256": "aae637a6921957b42c225450e519c32d88a36c9f04972d2dc671ab98e1e88017"
     },
     {
       "file": "queue-proof-ca563.json",
@@ -121,6 +125,10 @@
     {
       "file": "README.md",
       "sha256": "1ce8b51387cd88485ed085443afaeb1c94a1064392a68973a040c98a107501e8"
+    },
+    {
+      "file": "release-cleanup.json",
+      "sha256": "8fc06efb7243eff65cd7c7927510246031d3f1d590979bd124808d852e128958"
     },
     {
       "file": "required-ci.log",
