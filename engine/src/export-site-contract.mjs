@@ -387,7 +387,8 @@ function virginiaPremisesProofState(signal) {
   return { productCode, codeConflict, proofRequired, proofAllowed };
 }
 
-const genericShopifyPickupRow = row => row?.sourceCollectorVersion === 'shopify-variant-pickup-v1' || row?.raw?.collectorVersion === 'shopify-variant-pickup-v1';
+const genericShopifyPickupRow = row => [row?.sourceCollectorVersion, row?.raw?.collectorVersion]
+  .some(version => typeof version === 'string' && version.startsWith('shopify-variant-pickup-'));
 
 export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } = {}) {
   const isShopifyPickup = genericShopifyPickupRow(signal) || shopifyPolicy?.owns(signal) === true;
@@ -531,7 +532,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     sourceUrl: signal.sourceUrl,
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
     sourceRuntimeId: signal.sourceRuntimeId || signal.raw?.sourceRuntimeId || null,
-    ...(isShopifyPickup ? { sourceCollectorVersion: 'shopify-variant-pickup-v1', sourcePolicySnapshotId: signal.sourcePolicySnapshotId || null } : {}),
+    ...(isShopifyPickup ? { sourceCollectorVersion: signal.raw?.collectorVersion || signal.sourceCollectorVersion, sourcePolicySnapshotId: signal.sourcePolicySnapshotId || null } : {}),
     leafSourceRuntimeId: signal.leafSourceRuntimeId || signal.raw?.leafSourceRuntimeId || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,

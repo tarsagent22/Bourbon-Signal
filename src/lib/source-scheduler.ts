@@ -196,7 +196,8 @@ export async function pollCandidatesValid(candidates: Row[]) {
   const registry=pollSourceRegistry();
   if(suppressDisabledPollSources(candidates,registry,'candidates').length!==candidates.length) return false;
   const genericSources=registry.filter(source=>source.kind==='shopify-variant-pickup');
-  const genericOwned=(candidate:Row)=>candidate.sourceCollectorVersion==='shopify-variant-pickup-v1' || genericSources.some(source=>
+  const genericOwned=(candidate:Row)=>[candidate.sourceCollectorVersion,candidate.raw?.collectorVersion]
+    .some(version=>typeof version==='string' && version.startsWith('shopify-variant-pickup-')) || genericSources.some(source=>
     candidate.sourceRuntimeId===source.id || candidate.sourcePollId===source.id || sourceScopeMatches(source,candidate));
   const polled=candidates.filter(c=>c.sourcePollId || genericOwned(c));
   if(!polled.length && !genericSources.length)return true;

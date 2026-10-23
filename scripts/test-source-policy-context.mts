@@ -148,6 +148,16 @@ test('actual customer drops, candidates and final-send read one three-export bun
   assert.deepEqual(h.state.writes, []); h.safe();
 });
 
+test('unregistered current and future Shopify versions cannot take the legacy final-send fast path', async () => {
+  const h = await harness(); h.scheduler.POLL_SOURCES.splice(0); h.env.SOURCE_SCHEDULER_ENABLED = '0';
+  for (const version of ['shopify-variant-pickup-v1', 'shopify-variant-pickup-v2-strict-premises', 'shopify-variant-pickup-future']) {
+    assert.equal(await h.valid([{ id: 'unregistered', sourceCollectorVersion: version }]), false, version);
+    assert.equal(await h.valid([{ id: 'unregistered', raw: { collectorVersion: version } }]), false, `${version} raw`);
+  }
+  assert.equal(await h.valid([{ id: 'unrelated-legacy' }]), true);
+  assert.deepEqual(h.state.reads, []); assert.deepEqual(h.state.writes, []); h.safe();
+});
+
 test('actual collection keeps one four-export bundle, matching Bible, broad history and silent bootstrap', async () => {
   const h = await harness(), episode = h.initial.drops[0].availabilityEpisodeId;
   h.state.jobs.clear(); h.state.broadDrops = h.initial.drops; h.state.now += 60_000;

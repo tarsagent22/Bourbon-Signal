@@ -17,14 +17,16 @@ type Row = Record<string, any>;
 const root = fileURLToPath(new URL('../', import.meta.url));
 const original = new URL('../engine/test/fixtures/shopify-variant-pickup/', import.meta.url);
 const v2 = new URL('v2/', original);
-const configs = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-cohort-v2.json', import.meta.url), 'utf8')).sources;
+const historicalV2 = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-cohort-v2.json', import.meta.url), 'utf8')).sources;
+const currentManifest = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-cohort-v3.json', import.meta.url), 'utf8'));
+const configs = currentManifest.sources;
 const v1Configs = JSON.parse(await readFile(new URL('../engine/data/shopify-pickup-onboarding-candidates.json', import.meta.url), 'utf8')).sources;
 const catalogText = await readFile(new URL('current-bourbon-bible.json', original), 'utf8');
 const catalog = JSON.parse(catalogText), bible = new BourbonBible(catalog.records), lookup = bibleLookup(catalog.records);
 const catalogSha256 = createHash('sha256').update(catalogText).digest('hex');
 const collectorSha256 = createHash('sha256').update(await readFile(new URL('../engine/src/collectors/shopify-variant-pickup.mjs', import.meta.url))).digest('hex');
 const bodies = new Map<string, string>(), evidence = new Map<string, Row>();
-for (const directory of [original, v2]) {
+for (const directory of [original, v2, new URL('v3/', original)]) {
   const manifest = JSON.parse(await readFile(new URL('manifest.json', directory), 'utf8'));
   for (const capture of manifest.captures) {
     const bytes = await readFile(new URL(capture.file, directory));
@@ -107,14 +109,19 @@ function normal(row: Row, clock = now) { return customer.projectInventoryEvidenc
 function current(rows: Row[], clock = now) { return rows.map(row => normal(row, clock)).filter(row => customer.isPublicDropFeedEligible(row) && customer.isCurrentInventoryEvidence(row, clock)); }
 async function coverage(rows: Row[]) { coverageInput = rows; return customer.readCurrentCoverageContract(); }
 
-test('v2 reuses exact unchanged collector and changes only the two reviewed product seeds', () => {
-  assert.equal(collectorSha256, '82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206');
+test('current shared collector replays V2 identities while V3 binds its reviewed premise fix for all stores', () => {
+  assert.equal(collectorSha256, currentManifest.collectorSha256);
+  assert.equal(currentManifest.previousCollectorSha256, '82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206');
+  const identity = (source: Row) => ({ ...source, products: source.products.map((product: Row) => {
+    const { evidence, ...fields } = product; return fields;
+  }) });
+  assert.deepEqual(configs.map(identity), historicalV2.map(identity), 'Only capture bindings change after the bounded fresh preflight');
   assert.equal(configs.length, 5); assert.deepEqual(states.sort(), ['CA', 'NY', 'TX']);
   for (const config of configs) {
     const previous = v1Configs.find((source: Row) => source.id === config.id);
     assert.ok(previous); assert.deepEqual({ ...config, products: [] }, { ...previous, products: [] });
     if (['remedy-glendale', 'main-street-el-cajon'].includes(config.id)) assert.notEqual(config.products[0].productId, previous.products[0].productId);
-    else assert.deepEqual(config.products, previous.products);
+    else assert.deepEqual(identity(config).products, identity(previous).products);
     for (const capture of Object.values(config.products[0].evidence) as Row[]) assert.equal(evidence.get(capture.url)?.sha256, capture.sha256);
   }
 });

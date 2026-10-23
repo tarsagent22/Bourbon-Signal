@@ -220,7 +220,9 @@
     "test:legal-acceptance": "tsx --test scripts/test-legal-acceptance.ts",
     "test:nationwide-coverage-pilot": "node --test engine/test/florida-jensens-runtime-source.test.mjs engine/test/nationwide-pilot-poll-policy.test.mjs scripts/test-nationwide-pilot-acceptance.mjs && tsx --test scripts/test-nationwide-pilot-receipt.mts scripts/test-pilot-runtime-rollback.mts",
     "test:feed-source-freshness": "tsx --test scripts/test-feed-source-freshness.mts && node --test scripts/test-source-observation-runner.mjs",
-    "test:shopify-cohort-foundation": "node --test engine/test/shopify-variant-pickup.test.mjs engine/test/shopify-cohort-runtime.test.mjs engine/test/shopify-pickup-policy.test.mjs engine/test/premises-directory-reconciliation.test.mjs && tsx --test scripts/test-shopify-cohort-scheduler.mts scripts/test-shopify-cohort-customer.mts scripts/test-shopify-cohort-v2.mts scripts/test-source-premises-route.mts && node --experimental-strip-types --test scripts/test-source-premises-baseline.mts scripts/test-coverage-premises-baseline.mts scripts/test-retailer-premises-baseline.mts"
+    "test:shopify-cohort-foundation": "node --test engine/test/shopify-variant-pickup.test.mjs engine/test/shopify-cohort-runtime.test.mjs engine/test/shopify-pickup-policy.test.mjs engine/test/premises-directory-reconciliation.test.mjs engine/test/shopify-premises-identity.test.mjs engine/test/shopify-premises-runtime.test.mjs && tsx --test scripts/test-shopify-cohort-scheduler.mts scripts/test-shopify-cohort-customer.mts scripts/test-shopify-cohort-v2.mts scripts/test-source-premises-route.mts && node --experimental-strip-types --test scripts/test-source-premises-baseline.mts scripts/test-coverage-premises-baseline.mts scripts/test-retailer-premises-baseline.mts && npm run test:shopify-onboarding-preparation",
+    "prepare:shopify-onboarding": "tsx scripts/prepare-shopify-onboarding.mts",
+    "test:shopify-onboarding-preparation": "tsx --test scripts/test-shopify-batch-onboarding.mts scripts/test-prepare-shopify-onboarding.mts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

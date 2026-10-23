@@ -47,7 +47,7 @@ test('fixture provenance hashes and exact request URLs match original public cap
   }
 });
 
-test('catalog and preparation readiness bind actual current code/input hashes and canonical IDs', async () => {
+test('historical readiness stays frozen while the current cohort binds actual collector and identity code', async () => {
   for (const input of catalogProvenance.inputs) {
     if (input.missing) continue;
     const bytes = await readFile(new URL(`../../${input.file}`, import.meta.url));
@@ -55,7 +55,11 @@ test('catalog and preparation readiness bind actual current code/input hashes an
   }
   const readiness = JSON.parse(await readFile(new URL('readiness.json', fixtureDir), 'utf8'));
   const code = await readFile(new URL('../src/collectors/shopify-variant-pickup.mjs', import.meta.url));
-  assert.equal(readiness.collectorSha256, createHash('sha256').update(code).digest('hex'));
+  const current = JSON.parse(await readFile(new URL('../data/shopify-pickup-onboarding-cohort-v3.json', import.meta.url), 'utf8'));
+  assert.equal(readiness.collectorSha256, current.previousCollectorSha256);
+  assert.equal(current.collectorSha256, createHash('sha256').update(code).digest('hex'));
+  const identity = await readFile(new URL('../src/collectors/shopify-premises-identity.mjs', import.meta.url));
+  assert.equal(current.premisesIdentitySha256, createHash('sha256').update(identity).digest('hex'));
   assert.equal(readiness.catalogSha256, catalogProvenance.catalogSha256);
   const expected = { 'Buffalo Trace Bourbon': ['bb_317836b9e64a7620', 'allocated'], 'Weller Single Barrel': ['bb_1fd1f694742e0a1e', 'unicorn'], "Booker's Bourbon": ['bb_8b9546b93a7fbe72', 'limited'] };
   for (const result of readiness.results) {

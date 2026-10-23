@@ -4,13 +4,13 @@ import { stableId, stripHtml } from '../core/text.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { parseCaliforniaShopifyProducts } from './california-san-diego-surfaces.mjs';
 import { MalformedSourceError, SourceTimeoutError, TransientSourceError, sourceErrorForHttp } from '../sources/source-error.mjs';
+import { sameShopifyPremiseAddress, shopifyPremiseAddressSignature } from './shopify-premises-identity.mjs';
 
-export const SHOPIFY_VARIANT_PICKUP_VERSION = 'shopify-variant-pickup-v1';
+export const SHOPIFY_VARIANT_PICKUP_VERSION = 'shopify-variant-pickup-v2-strict-premises';
 export const SHOPIFY_VARIANT_PICKUP_BUDGETS = Object.freeze({ maxProducts: 2, maxStores: 5, maxRequests: 6, maxElapsedMs: 50_000, requestTimeoutMs: 12_000, maxBodyBytes: 2 * 1024 * 1024, maxTotalBytes: 4 * 1024 * 1024 });
 const malformed = message => new MalformedSourceError(`Shopify variant pickup: ${message}`);
 const plain = value => stripHtml(value).replace(/&#0*39;|&apos;|[’‘]/gu, "'");
 const normalized = value => plain(value).toLowerCase().replace(/[^a-z0-9]+/gu, ' ').trim();
-const premises = value => normalized(value).replace(/\bunited states(?: of america)?\b/gu, '').replace(/\s+/gu, ' ').trim();
 const sha256 = text => createHash('sha256').update(text).digest('hex');
 const textField = value => typeof value === 'string' && value.trim() && value.length <= 500;
 const numericId = value => typeof value === 'string' && /^[1-9]\d{0,19}$/u.test(value);
@@ -38,10 +38,11 @@ export function validateShopifyVariantSource(input) {
   if (!Array.isArray(source.stores) || !source.stores.length || source.stores.length > SHOPIFY_VARIANT_PICKUP_BUDGETS.maxStores) throw malformed('premises budget');
   const storeIds = new Set(), addresses = new Set();
   for (const store of source.stores) {
+    const address = shopifyPremiseAddressSignature(store.address, { city: store.city, state: source.state, zip: store.zip });
     if (![store.id, store.name, store.pickupName, store.address, store.city].every(textField)
-      || !/^\d{5}$/u.test(store.zip || '') || !premises(store.address).includes(normalized(`${source.state} ${store.zip}`))) throw malformed('exact premises identity missing');
-    if (storeIds.has(store.id) || addresses.has(premises(store.address))) throw malformed('duplicate premises');
-    storeIds.add(store.id); addresses.add(premises(store.address));
+      || !/^\d{5}$/u.test(store.zip || '') || !address) throw malformed('exact premises identity missing');
+    if (storeIds.has(store.id) || addresses.has(address.key)) throw malformed('duplicate premises');
+    storeIds.add(store.id); addresses.add(address.key);
   }
   if (!Array.isArray(source.products) || !source.products.length || source.products.length > SHOPIFY_VARIANT_PICKUP_BUDGETS.maxProducts) throw malformed('reviewed product budget');
   const variants = new Set();
@@ -150,7 +151,8 @@ function pickupRows(rawHtml, source, seed, variant) {
     const paragraphs = [...String(addressContainer || '').matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/giu)].map(match => match[1]);
     const addresses = paragraphs.filter(value => /\b[A-Z]{2}\s+\d{5}\b/iu.test(plain(value)));
     if (addresses.length !== 1) throw malformed('exact address missing or ambiguous');
-    const store = source.stores.find(item => normalized(item.pickupName) === normalized(name) && premises(item.address) === premises(addresses[0]));
+    const store = source.stores.find(item => normalized(item.pickupName) === normalized(name)
+      && sameShopifyPremiseAddress(item.address, addresses[0], { city: item.city, state: source.state, zip: item.zip }));
     if (!store || found.has(store.id)) throw malformed('unknown or duplicate pickup premises');
     found.add(store.id);
     const statusMarkup = source.sectionId === 'pickup-availability' ? block.replace(/<address\b[\s\S]*?<\/address>/giu, ' ') : block.replace(addresses[0], ' ');
