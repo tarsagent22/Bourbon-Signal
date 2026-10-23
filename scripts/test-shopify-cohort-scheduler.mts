@@ -249,6 +249,57 @@ test('current final candidate policy rejects source disable, state block and can
   h.state.catalogAllowed = false; assert.equal(await h.validateCandidates([candidate]), false); h.state.catalogAllowed = true;
   h.source.disabled = true; assert.equal(await h.validateCandidates([candidate]), false); h.safe();
 });
+
+test('final-send validation binds unchanged candidate identity to its current full source proof', async () => {
+  const h = await harness(); await h.run(); h.next(); h.state.mode = 'negative'; await h.run(); h.next(); h.state.mode = 'positive'; await h.run();
+  const current = structuredClone(h.inventoryCandidates()[0]); assert.ok(current);
+  assert.equal(await h.validateCandidates([current]), true);
+  const changes: Array<[string, (row: Row) => void]> = [
+    ['host', row => { row.sourceUrl = 'https://unreviewed.example/products/same-id'; }],
+    ['price', row => { row.price = Number(row.price) + 10; }],
+    ['tier', row => { row.tier = row.tier === 'unicorn' ? 'allocated' : 'unicorn'; }],
+    ['canonical', row => { row.canonicalBottleId = 'unreviewed-canonical'; }],
+    ['canonical name', row => { row.canonicalName = 'A different bottle'; }],
+    ['policy', row => { row.sourcePolicySnapshotId = 'unreviewed-policy'; }],
+    ['generation', row => { row.sourcePollGeneration++; }],
+    ['run', row => { row.sourcePollRun = 'unreviewed-run'; }],
+    ['runtime', row => { row.sourceRuntimeId = 'unreviewed-runtime'; }],
+    ['product', row => { row.productId = 'unreviewed-product'; }],
+    ['variant', row => { row.variantId = 'unreviewed-variant'; }],
+    ['premises', row => { row.storeAddress = 'A different physical premise'; }],
+    ['source chain', row => { row.sourceChain = 'a-different-retailer'; }],
+    ['location precision', row => { row.locationPrecision = 'state_level'; }],
+    ['pickup URL', row => { row.sourceProductBinding = 'https://unreviewed.example/variants/123'; }],
+    ['proof', row => { row.pickupOfferVerified = false; }],
+    ['unknown source marker', row => { row.sourcePollId = 'unreviewed-source'; }],
+    ['removed source marker', row => { delete row.sourcePollId; }],
+    ['all source markers stripped and chain changed', row => { delete row.sourcePollId; delete row.sourceRuntimeId; delete row.sourceCollectorVersion; row.sourceChain = 'unreviewed-chain'; }],
+    ['expired observation clock', row => { row.observedAt = '2000-01-01T00:00:00.000Z'; }],
+    ['expired confirmation clock', row => { row.lastConfirmedAt = '2000-01-01T00:00:00.000Z'; }],
+    ['email promotion', row => { row.eligibleForEmail = true; }],
+    ['SMS promotion', row => { row.eligibleForSms = true; }],
+    ['delivery class promotion', row => { row.actionabilityClass = 'release_event'; }],
+  ];
+  const acceptedMutations: string[] = [];
+  for (const [name, mutate] of changes) {
+    const changed = structuredClone(current); mutate(changed);
+    assert.equal(changed.id, current.id); assert.equal(changed.dedupeKey, current.dedupeKey);
+    if (await h.validateCandidates([changed])) acceptedMutations.push(name);
+  }
+  assert.deepEqual(acceptedMutations, [], 'Same episode identity must not authorize a different or stale source payload');
+  h.safe();
+});
+
+test('unchanged episode keys never authorize a superseded queued source generation', async () => {
+  const h = await harness(); await h.run(); h.next(); h.state.mode = 'negative'; await h.run(); h.next(); h.state.mode = 'positive'; await h.run();
+  const current = structuredClone(h.inventoryCandidates()[0]); assert.ok(current);
+  assert.equal(await h.validateCandidates([current]), true);
+  h.next(); await h.run(); const reconfirmed = structuredClone(h.inventoryCandidates()[0]);
+  assert.equal(reconfirmed.id, current.id); assert.equal(reconfirmed.dedupeKey, current.dedupeKey);
+  assert.notEqual(reconfirmed.sourcePollGeneration, current.sourcePollGeneration);
+  assert.equal(await h.validateCandidates([current]), false, 'Queued old-generation payload is fenced until refreshed, despite stable episode key');
+  assert.equal(await h.validateCandidates([reconfirmed]), true); h.safe();
+});
 test('policy snapshot advance revokes old stamps until a fresh accepted generation without a fake new episode', async () => {
   const h = await harness(configs.find((config: Row) => config.state === 'NY')); await h.run(); h.next(); h.state.mode = 'negative'; await h.run(); h.next(); h.state.mode = 'positive'; await h.run();
   const candidate = structuredClone(h.inventoryCandidates()[0]), episode = h.projection().drops[0].availabilityEpisodeId;
