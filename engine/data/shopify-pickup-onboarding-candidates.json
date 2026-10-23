@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "scope": "preparation_only_no_activation",
+  "sources": [
+    {
+      "id": "remedy-glendale",
+      "runtimeId": "ca:remedy-glendale",
+      "state": "CA",
+      "chain": "remedy-glendale",
+      "merchantId": "remedy-glendale-shopify",
+      "sourceLabel": "Remedy Liquor - Glendale Shopify pickup inventory",
+      "baseUrl": "https://www.remedyliquor.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "remedy-glendale:91201",
+          "name": "Remedy Liquor - Glendale",
+          "pickupName": "1700 W Glenoaks Blvd.,",
+          "address": "1700 W Glenoaks Blvd., Glendale CA 91201",
+          "city": "Glendale",
+          "zip": "91201"
+        }
+      ],
+      "products": [
+        {
+          "productId": "7687049674980",
+          "variantId": "43038323638500",
+          "handle": "buffalo-trace-kentucky-whisky",
+          "title": "BUFFALO TRACE BOURBON WHISKEY KENTUCKY 750ML",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "evidence": {
+            "product": {
+              "url": "https://www.remedyliquor.com/products/buffalo-trace-kentucky-whisky.json",
+              "sha256": "d72b305e5dc6f7de28a1a6aa2288d0679571e3bf135f38a04a6be27f82a35d75",
+              "capturedAt": "2026-10-23T02:20:36.430Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://www.remedyliquor.com/variants/43038323638500/?section_id=pickup-availability",
+              "sha256": "23cf6221a44b82d1d05759e1e7080339b1c3540b156e55d0c35abbecfed2d4e9",
+              "capturedAt": "2026-10-23T02:20:36.644Z",
+              "status": 200
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "vino-lexington",
+      "runtimeId": "ny:vino-lexington",
+      "state": "NY",
+      "chain": "vino-lexington",
+      "merchantId": "vino-lexington-shopify",
+      "sourceLabel": "Vino Fine Wine & Spirits Shopify pickup inventory",
+      "baseUrl": "https://vinosite.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "vino-lexington:10016",
+          "name": "Vino Fine Wine & Spirits",
+          "pickupName": "Vino Fine Wine & Spirits",
+          "address": "184 Lexington Ave, New York NY 10016",
+          "city": "New York",
+          "zip": "10016"
+        }
+      ],
+      "products": [
+        {
+          "productId": "8204164661380",
+          "variantId": "44700008808580",
+          "handle": "w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml",
+          "title": "W.L. Weller The Original Wheated Single Barrel Kentucky Straight Bourbon 97 Proof 750mL",
+          "canonicalName": "Weller Single Barrel",
+          "evidence": {
+            "product": {
+              "url": "https://vinosite.com/products/w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml.json",
+              "sha256": "7d0815db2b6d9eaf9a3f3e7a17bf926f761b2641a40bbe235cf0ee876b8306e5",
+              "capturedAt": "2026-10-23T02:20:36.943Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://vinosite.com/variants/44700008808580/?section_id=pickup-availability",
+              "sha256": "ef8f9dd22cb3705f452e51a5c01fffc4c5ca074054095f5c5c0708c4e1ce2512",
+              "capturedAt": "2026-10-23T02:20:37.082Z",
+              "status": 200
+            }
+          },
+          "titleMapping": {
+            "rawTitle": "W.L. Weller The Original Wheated Single Barrel Kentucky Straight Bourbon 97 Proof 750mL",
+            "canonicalName": "Weller Single Barrel",
+            "reason": "Exact reviewed title explicitly names Weller Single Barrel; original/wheated/97-proof marketing descriptors are not a new expression. No Weller Special Reserve or Full Proof mapping.",
+            "allowedUnsafeReasons": [
+              "wheated_matched_non_wheated"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "main-street-el-cajon",
+      "runtimeId": "ca:main-street-el-cajon",
+      "state": "CA",
+      "chain": "main-street-el-cajon",
+      "merchantId": "main-street-el-cajon-shopify",
+      "sourceLabel": "Main Street Liquor Shopify pickup inventory",
+      "baseUrl": "https://mainstreetliquor.com",
+      "sectionId": "store-availability",
+      "stores": [
+        {
+          "id": "main-street-el-cajon:92020",
+          "name": "Main Street Liquor",
+          "pickupName": "MAIN STREET LIQUOR",
+          "address": "120 South Mollison Avenue 100 El Cajon CA 92020",
+          "city": "El Cajon",
+          "zip": "92020"
+        }
+      ],
+      "products": [
+        {
+          "productId": "6860137562249",
+          "variantId": "40199925563529",
+          "handle": "buffalo-trace-bourbon",
+          "title": "Buffalo Trace Bourbon 750mL",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "evidence": {
+            "product": {
+              "url": "https://mainstreetliquor.com/products/buffalo-trace-bourbon.json",
+              "sha256": "4e108469d05e30b7d1905c0c925ece6b86aa33a3bf8df05c50a7e84a7b18fdb8",
+              "capturedAt": "2026-10-23T02:20:37.364Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://mainstreetliquor.com/variants/40199925563529/?section_id=store-availability",
+              "sha256": "e9497ac8ba0d1107019ebe8e87a0245a363ce7517400f7717ac565912648335e",
+              "capturedAt": "2026-10-23T02:20:37.567Z",
+              "status": 200
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "hot-spot-austin",
+      "runtimeId": "tx:hot-spot-austin",
+      "state": "TX",
+      "chain": "hot-spot-austin",
+      "merchantId": "hot-spot-austin-shopify",
+      "sourceLabel": "Hot Spot Austin Shopify pickup inventory",
+      "baseUrl": "https://hotspot.fun",
+      "sectionId": "store-availability",
+      "stores": [
+        {
+          "id": "hot-spot-austin:78701",
+          "name": "Hot Spot Austin",
+          "pickupName": "Hot Spot Austin",
+          "address": "411 Brazos Street Suite 100 Austin TX 78701",
+          "city": "Austin",
+          "zip": "78701"
+        }
+      ],
+      "products": [
+        {
+          "productId": "15264836976800",
+          "variantId": "53124475551904",
+          "handle": "bookers-small-batch-bourbon",
+          "title": "Bookers Small Batch Bourbon",
+          "canonicalName": "Booker's Bourbon",
+          "evidence": {
+            "product": {
+              "url": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+              "sha256": "63793020363392f6ec18287fefc68eba4f832f6d42d98838790081cad767b521",
+              "capturedAt": "2026-10-23T02:21:53.639Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+              "sha256": "5787c9bd2f560daaaf78a66c779dee26beedeb9feed250e27c86fd502f091611",
+              "capturedAt": "2026-10-23T02:22:02.501Z",
+              "status": 200
+            }
+          },
+          "variantTitle": "750mL",
+          "headingException": "Published theme omits product heading; exact numeric product/variant JSON binding and endpoint plus explicit 750mL variant heading and independently named addressed Austin premises required.",
+          "titleMapping": {
+            "rawTitle": "Bookers Small Batch Bourbon",
+            "canonicalName": "Booker's Bourbon",
+            "reason": "Exact reviewed Bookers Small Batch Bourbon title maps to existing Booker's Bourbon family; current strict raw matcher returns no match because of small-batch modifier. No new canonical expression.",
+            "allowedUnsafeReasons": []
+          }
+        }
+      ],
+      "headingIdentity": "variant_title"
+    },
+    {
+      "id": "christies-la-crescenta",
+      "runtimeId": "ca:christies-la-crescenta",
+      "state": "CA",
+      "chain": "christies-la-crescenta",
+      "merchantId": "christies-la-crescenta-shopify",
+      "sourceLabel": "Christie's Liquor Shopify pickup inventory",
+      "baseUrl": "https://www.christiesliquor.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "christies-la-crescenta:91214",
+          "name": "Christie's Liquor",
+          "pickupName": "Christie's Liquor",
+          "address": "3040 Foothill Boulevard La Crescenta CA 91214",
+          "city": "La Crescenta",
+          "zip": "91214"
+        }
+      ],
+      "products": [
+        {
+          "productId": "9252461445359",
+          "variantId": "47839390040303",
+          "handle": "bookers-750-ml",
+          "title": "Booker’s Bourbon 750ml – Batch 2020-03",
+          "canonicalName": "Booker's Bourbon",
+          "evidence": {
+            "product": {
+              "url": "https://www.christiesliquor.com/products/bookers-750-ml.json",
+              "sha256": "6fb6a2c0457285454fb146283e3d646aee498a16e115abf7bce67ef0969eb979",
+              "capturedAt": "2026-10-23T02:24:56.357Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://www.christiesliquor.com/variants/47839390040303/?section_id=pickup-availability",
+              "sha256": "1ef76ba6cfb0f06eb6dc8a7d14649fe64e72593829e14fcd002b606d5eac9b22",
+              "capturedAt": "2026-10-23T02:24:56.549Z",
+              "status": 200
+            }
+          },
+          "titleMapping": {
+            "rawTitle": "Booker’s Bourbon 750ml – Batch 2020-03",
+            "canonicalName": "Booker's Bourbon",
+            "reason": "Exact reviewed Booker's Bourbon Batch 2020-03 title maps only to existing Booker's Bourbon family; batch stays raw metadata, never a distinct canonical batch assertion.",
+            "allowedUnsafeReasons": []
+          }
+        }
+      ]
+    }
+  ],
+  "unsupported": [
+    {
+      "host": "www.thebarreltap.com",
+      "reason": "Published store-availability response omits both product and variant headings; positive C925 and negative B524 controls retained but unsupported by strict heading contract."
+    },
+    {
+      "host": "www.liquorcave.com",
+      "reason": "Empty pickup section; no exact premises status proof."
+    }
+  ]
+}

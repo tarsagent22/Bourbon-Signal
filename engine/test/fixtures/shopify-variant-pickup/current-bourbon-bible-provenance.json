@@ -1,0 +1,49 @@
+{
+  "scope": "offline_current_catalog_fixture",
+  "method": "Exact current build-bible.mjs executed with mkdir disabled and output captured in memory; only this fixture written.",
+  "generatedAt": "2026-10-23T02:30:47.458Z",
+  "count": 188,
+  "catalogSha256": "e5883ec9034802bff14dcae918fba4abc7d9baf2f5cc069c6013469e027e82be",
+  "inputs": [
+    {
+      "file": "engine/src/build-bible.mjs",
+      "sha256": "95d501a2562c0e3cf25e3d44ac723f8a11aac81371b2800b35953748baff9cae"
+    },
+    {
+      "file": "engine/data/bourbon-bible-seed.json",
+      "sha256": "ee61891174d44833a4b5f3d05421ff27cac5ae5e4673f18648c99df40ab3a7a1"
+    },
+    {
+      "file": "engine/data/bourbon-bible-additions.json",
+      "sha256": "88cc5671d0daac36b8f2de2005c2257023568a94023fd851fe17a2d0b3a499ec"
+    },
+    {
+      "file": "engine/data/south-carolina-dunes-bible-additions.json",
+      "sha256": "f4293db442a515e77cfd62c38aaaf0142d93b9ff861479da93d4b5bfb7b02c68"
+    },
+    {
+      "file": "engine/data/pennsylvania-fwgs-bible-additions.json",
+      "sha256": "a772728083f54162dd78c457c3d43264d91c6495b8d71206272353d4942ac1f2"
+    },
+    {
+      "file": "src/data/bottles.ts",
+      "sha256": "cd494f39155335f771ac9311fb62bae3e621155ed90c865f10c452931406bb1f"
+    },
+    {
+      "file": "src/data/drops.json",
+      "sha256": "d1ccce941a38fd94f0f127923b2ad1b5f2b501a52d633297c1faa7df8b1a4c58"
+    },
+    {
+      "file": "engine/src/core/text.mjs",
+      "sha256": "241aa346ce6c1ee2886b4fd704b03deb70e87a6300253bb44a32d28f10bd03e7"
+    },
+    {
+      "file": "engine/src/core/bible.mjs",
+      "sha256": "fb835a049b4f743f51849d38dfae5ccf654bf616fcaca02dbce8061c5a6b4135"
+    },
+    {
+      "file": "engine/src/collectors/safe-bottle-match.mjs",
+      "sha256": "5e497e030ad9c36bd3fd7374147b514151b038b960eb53cf86392e12b8ba8f26"
+    }
+  ]
+}
