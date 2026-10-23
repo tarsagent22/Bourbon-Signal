@@ -1,5 +1,7 @@
 # Shopify cohort premises baseline preparation
 
+Latest review: #824 is the sole draft for the sanitized retailer supplement and #821 serving-cost repair, with all exact-head checks passing. `nationwide-review-pass-20261023T0940.md` records the final street/punctuation guards,281 preparation tests, the approved narrow Hot Spot physical alias and remaining history/admission gates. The original production baseline remains unchanged; no deployed retailer supplement or new capture is implied by this preparation.
+
 Current checkpoint, 08:36 UTC: the first main-only capture ran successfully after #823 (run 39899012800, production a86a0433) and was independently verified. Its original scope omits verified-retailer reporting and the separate 38,095-row sighting/license directory. All five V2 candidates are present in that license directory. This scheduled preparation pass adds an unreleased retailer-only public SQL projection and a pure candidate-focused directory reconciler; no new production capture is authorized by this heartbeat. The historical preparation sections below retain their original scope and costs. See `shopify-v2-historical-identity-audit-20261023T0836.md` for the directory correction.
 
 Prepared 2026-10-23. No credentialed capture, workflow dispatch, source collection or activation has run. The five researched premises remain candidates; this preparation proves zero new physical stores.
