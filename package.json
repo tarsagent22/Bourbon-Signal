@@ -202,7 +202,7 @@
     "test:google-membership": "tsx --test scripts/test-google-membership.ts",
     "test:community-leaders": "node --experimental-strip-types scripts/test-community-leader-badges.mjs",
     "test:mobile-activity": "tsx --test scripts/test-mobile-activity.ts",
-    "test:engine-dependability": "tsx --test scripts/test-source-scheduler-schema.mts scripts/test-source-acceptance-health.ts && node --test engine/test/poll-policy.test.mjs && npm --prefix apps/mobile run test:engine-readiness && npm run test:nationwide-coverage-pilot && npm run test:feed-source-freshness && npm run test:shopify-cohort-foundation",
+    "test:engine-dependability": "tsx --test scripts/test-source-scheduler-schema.mts scripts/test-source-acceptance-health.ts scripts/test-source-policy-context.mts && node --test engine/test/poll-policy.test.mjs && npm --prefix apps/mobile run test:engine-readiness && npm run test:nationwide-coverage-pilot && npm run test:feed-source-freshness && npm run test:shopify-cohort-foundation",
     "migrate:source-scheduler": "node scripts/migrate-app-storage.mjs --source-scheduler-only --check",
     "migrate:source-scheduler:apply": "node scripts/migrate-app-storage.mjs --source-scheduler-only --apply",
     "test:bottle-mutes": "tsx --test scripts/test-bottle-mutes.ts",
@@ -220,7 +220,7 @@
     "test:legal-acceptance": "tsx --test scripts/test-legal-acceptance.ts",
     "test:nationwide-coverage-pilot": "node --test engine/test/florida-jensens-runtime-source.test.mjs engine/test/nationwide-pilot-poll-policy.test.mjs scripts/test-nationwide-pilot-acceptance.mjs && tsx --test scripts/test-nationwide-pilot-receipt.mts scripts/test-pilot-runtime-rollback.mts",
     "test:feed-source-freshness": "tsx --test scripts/test-feed-source-freshness.mts && node --test scripts/test-source-observation-runner.mjs",
-    "test:shopify-cohort-foundation": "node --test engine/test/shopify-variant-pickup.test.mjs engine/test/shopify-cohort-runtime.test.mjs engine/test/shopify-pickup-policy.test.mjs && tsx --test scripts/test-shopify-cohort-scheduler.mts scripts/test-shopify-cohort-customer.mts scripts/test-shopify-cohort-v2.mts scripts/test-source-premises-route.mts && node --experimental-strip-types --test scripts/test-source-premises-baseline.mts scripts/test-coverage-premises-baseline.mts"
+    "test:shopify-cohort-foundation": "node --test engine/test/shopify-variant-pickup.test.mjs engine/test/shopify-cohort-runtime.test.mjs engine/test/shopify-pickup-policy.test.mjs && tsx --test scripts/test-shopify-cohort-scheduler.mts scripts/test-shopify-cohort-customer.mts scripts/test-shopify-cohort-v2.mts scripts/test-source-premises-route.mts && node --experimental-strip-types --test scripts/test-source-premises-baseline.mts scripts/test-coverage-premises-baseline.mts scripts/test-retailer-premises-baseline.mts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
