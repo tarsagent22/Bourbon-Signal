@@ -902,15 +902,15 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
       details.push({ label: "Release timing", value: scheduledReleaseCopy.statusLine });
       details.push({ label: "Before you go", value: scheduledReleaseCopy.detail });
       if (reportedLabel) details.push({ label: "Last checked", value: reportedLabel });
-      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "MSRP", value: `$${Math.round(drop.retail_price)}` });
+      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "Listed price", value: `$${drop.retail_price.toFixed(2)}` });
     } else if (isBoardLevelSignal(drop)) {
       details.push({ label: "What this means", value: `${signalTrust.label}; exact store can vary.` });
       if (reportedLabel) details.push({ label: "Reported", value: reportedLabel });
-      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "MSRP", value: `$${Math.round(drop.retail_price)}` });
+      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "Listed price", value: `$${drop.retail_price.toFixed(2)}` });
     } else {
       details.push({ label: "What this means", value: signalTrust.detail });
       if (reportedLabel) details.push({ label: "Reported", value: reportedLabel });
-      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "MSRP", value: `$${Math.round(drop.retail_price)}` });
+      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "Listed price", value: `$${drop.retail_price.toFixed(2)}` });
       if (drop.quantity_in_stock && drop.quantity_in_stock > 0 && !drop.locations.some((location) => Boolean(location.quantity))) {
         details.push({
           label: drop.event_type === "nc_statewide_warehouse_stock" ? "Warehouse" : "Source-reported",

@@ -8,6 +8,7 @@ const {
   DROP_FEED_CLASSIFICATION_TIERS,
   getDropClassificationIndex,
   resolveDropClassification,
+  classifyPublicDrop,
 } = (dropClassificationModule.default || dropClassificationModule) as typeof import("../src/lib/drop-classification.ts");
 const { groupDrops, TIER_CONFIG } = (dropsModule.default || dropsModule) as typeof import("../src/lib/drops.ts");
 
@@ -183,8 +184,8 @@ assert.doesNotMatch(generatorSource, /localeCompare/, "generated classification 
 assert.match(generatorSource, /compareCodeUnits/, "generated classification order must use a byte-stable comparator");
 assert.match(generatorSource, /getStaticBourbonBible/, "generated classification must exclude machine-local durable catalog records");
 assert.match(apiSource, /DROP_FEED_CLASSIFICATION_TIERS/, "API filters must share the canonical feed tier set");
-assert.match(apiSource, /resolveDropClassification/, "API must resolve classifications before returning cards");
-assert.match(apiSource, /classification_source/, "API cards must preserve whether the tier came from state or national evidence");
+assert.match(apiSource, /classifyPublicDrop/, "API must resolve classifications before returning cards");
+assert.equal(classifyPublicDrop({ state: 'VA', canonical_id: bottle.id, tier: 'limited' }, index).classification_source, 'state_override', "shared public classification must preserve state evidence on API cards");
 assert.doesNotMatch(apiSource, /retailerTierForAvailability|submission\.availability/, "free-form retailer availability text must never control scarcity classification");
 assert.match(apiSource, /classification:\$\{classificationIndex\.version\}/, "pagination snapshots must include the classification version");
 assert.match(evidenceSource, /"unicorn", "highly_allocated", "allocated", "limited"/, "Highly Allocated must be eligible while Regular remains excluded");

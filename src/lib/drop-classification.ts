@@ -151,6 +151,13 @@ function findBottle(drop: DropClassificationInput, index: DropClassificationInde
   return null;
 }
 
+/** Apply the same classification fields before Feed or Coverage eligibility. */
+export function classifyPublicDrop<T extends Record<string, unknown>>(drop: T, index: DropClassificationIndex) {
+  const classification = resolveDropClassification(drop, index);
+  return { ...drop, tier: classification.tier, rarity_tier: classification.tier, classification_source: classification.source,
+    classification_state: classification.state, classification_bottle_id: classification.bottleId, national_tier: classification.nationalTier };
+}
+
 export function resolveDropClassification(
   drop: DropClassificationInput,
   index: DropClassificationIndex,

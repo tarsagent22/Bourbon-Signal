@@ -12,3 +12,10 @@ test('a punctual scheduler does not make failed, expired, or absent source accep
   ], sources, now);
   assert.deepEqual(rows.map(row => row.status), ['healthy', 'degraded', 'stale', 'never_accepted']);
 });
+
+test('disabled registered owners are reported disabled without requiring a job or current acceptance', () => {
+  const sources = [{ id: 'staged', kind: 'shopify-variant-pickup', expiryHours: 1, disabled: true }];
+  assert.equal(sourceAcceptanceHealth([], sources)[0].status, 'disabled');
+  assert.equal(sourceAcceptanceHealth([{ source_id: 'staged', accepted_at: '2020-01-01T00:00:00Z', last_reason: 'source_access_denied', failures: 4 }], sources)[0].status, 'disabled');
+  assert.equal(sourceAcceptanceHealth([], [{ ...sources[0], disabled: false }])[0].status, 'never_accepted');
+});

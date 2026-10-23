@@ -97,3 +97,17 @@ test('partially read historical snapshot contributes no partial premise rows', a
     health: async () => ({ release: { status: 'healthy', commit }, engine: { snapshotId: active.active } }) });
   assert.deepEqual(result.history.gaps, [pointer.active]); assert.ok(result.premises.every(row => row.origin !== 'retained_history'));
 });
+
+test('independent source premises retain separate provenance inside the pinned release/pointer capture', async () => {
+  const { options } = await setup();
+  const independent = { contractVersion:'bourbon-signal/source-premises-baseline@1',releaseCommit:commit,heads:[],premises:[],completeness:{historicalAbsenceProven:false} };
+  const result=await captureCoveragePremisesBaseline({...options,independentSources:async()=>independent});
+  assert.deepEqual(result.independentSources,independent);assert.equal(result.independentSourcesMissing,false);
+  assert.equal(result.history.exhaustiveHistoricalAbsenceProven,false);
+});
+test('missing independent capture is explicit; wrong release, contract or read failure cannot export a mixed baseline', async () => {
+  const { options } = await setup();assert.equal((await captureCoveragePremisesBaseline(options)).independentSourcesMissing,true);
+  for(const value of [{contractVersion:'other',releaseCommit:commit},{contractVersion:'bourbon-signal/source-premises-baseline@1',releaseCommit:'f'.repeat(40)}])
+    await assert.rejects(()=>captureCoveragePremisesBaseline({...options,independentSources:async()=>value}),/identity mismatch/);
+  await assert.rejects(()=>captureCoveragePremisesBaseline({...options,independentSources:async()=>{throw Error('unavailable');}}));
+});

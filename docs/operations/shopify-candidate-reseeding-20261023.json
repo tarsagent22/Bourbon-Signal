@@ -1,0 +1,351 @@
+{
+  "contractVersion": "bourbon-signal/shopify-candidate-reseeding@1",
+  "createdAt": "2026-10-23T03:30:06.085Z",
+  "scope": "preparation_only_no_activation",
+  "reason": "The existing Buffalo Trace seeds classify regular/common on the actual CA customer surface and cannot satisfy the rare-bottle gate.",
+  "unchangedCollector": true,
+  "collectorSha256": "82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206",
+  "catalog": {
+    "count": 188,
+    "sha256": "e5883ec9034802bff14dcae918fba4abc7d9baf2f5cc069c6013469e027e82be",
+    "inputsReverified": true
+  },
+  "codeProvenance": [
+    {
+      "file": "engine/src/collectors/shopify-variant-pickup.mjs",
+      "sha256": "82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206"
+    },
+    {
+      "file": "engine/src/collectors/safe-bottle-match.mjs",
+      "sha256": "5e497e030ad9c36bd3fd7374147b514151b038b960eb53cf86392e12b8ba8f26"
+    },
+    {
+      "file": "src/lib/drop-classification.ts",
+      "sha256": "e92fbc1b8e6300faa6a50f1df5d374dd6184a9c4255b59173739fdb85229f977"
+    },
+    {
+      "file": "src/lib/bottle-scarcity.ts",
+      "sha256": "ea0972bea772a3f685c3c4cedd3346e84d27ca571857026d6aba3384913b2931"
+    },
+    {
+      "file": "src/data/bottle-identity-redirects.ts",
+      "sha256": "358a7a9fa6d0f2aa46f710e1bdcd748364e8645c32ab3b85b369a53b8c943edb"
+    },
+    {
+      "file": "src/data/drop-feed-classification.generated.json",
+      "sha256": "1683ff7a0cfbd5cf013b971056bbbdeeb7fb622bf699656b21ccb41ae0a918ad"
+    }
+  ],
+  "proposedConfig": {
+    "file": ".operator/reseed-20261023/proposed-shopify-pickup-candidates.json",
+    "sha256": "912fa4405c4a738fc3f97de34a151d86b0dcd0cc5835db96534e55f83f69a4f9",
+    "requiresIndependentReview": true
+  },
+  "evidenceRoot": ".operator/reseed-20261023",
+  "captures": [
+    {
+      "merchant": "remedy",
+      "id": "remedy-eagle-search",
+      "requestedUrl": "https://www.remedyliquor.com/search/suggest.json?q=Eagle%20Rare&resources[type]=product&resources[limit]=6",
+      "startedAt": "2026-10-23T03:26:36.326Z",
+      "status": 200,
+      "blocked": false,
+      "capturedAt": "2026-10-23T03:26:36.671Z",
+      "ok": true,
+      "finalUrl": "https://www.remedyliquor.com/search/suggest.json?q=Eagle%20Rare&resources[type]=product&resources[limit]=6",
+      "error": null,
+      "bytes": 11583,
+      "elapsedMs": 344,
+      "retryAfterSeconds": 0,
+      "file": "remedy-eagle-search.json",
+      "sha256": "3ea3d3095b4a1b97a9798873764f79088d50e35ffedaf347efb06f5ffd2a2179"
+    },
+    {
+      "merchant": "main-street",
+      "id": "main-street-eagle-search",
+      "requestedUrl": "https://mainstreetliquor.com/search/suggest.json?q=Eagle%20Rare&resources[type]=product&resources[limit]=6",
+      "startedAt": "2026-10-23T03:26:36.962Z",
+      "status": 200,
+      "blocked": false,
+      "capturedAt": "2026-10-23T03:26:37.324Z",
+      "ok": true,
+      "finalUrl": "https://mainstreetliquor.com/search/suggest.json?q=Eagle%20Rare&resources[type]=product&resources[limit]=6",
+      "error": null,
+      "bytes": 37066,
+      "elapsedMs": 360,
+      "retryAfterSeconds": 0,
+      "file": "main-street-eagle-search.json",
+      "sha256": "545ed1113e7639369a93c0f40a6d95868c5859151d94cd59c262ce66d2fbb57b"
+    },
+    {
+      "merchant": "remedy",
+      "id": "remedy-eagle-product",
+      "requestedUrl": "https://www.remedyliquor.com/products/eagle-rare-bourbon-kentucky-90pf-10yr-750ml.json",
+      "startedAt": "2026-10-23T03:26:53.835Z",
+      "status": 200,
+      "blocked": false,
+      "capturedAt": "2026-10-23T03:26:54.058Z",
+      "ok": true,
+      "finalUrl": "https://www.remedyliquor.com/products/eagle-rare-bourbon-kentucky-90pf-10yr-750ml.json",
+      "error": null,
+      "bytes": 2585,
+      "elapsedMs": 222,
+      "retryAfterSeconds": 0,
+      "file": "remedy-eagle-product.json",
+      "sha256": "513b0e9b644ff317413b81706a8d66beb5a444e8e146e6ac82628fecbdef8561"
+    },
+    {
+      "merchant": "main-street",
+      "id": "main-street-eagle-product",
+      "requestedUrl": "https://mainstreetliquor.com/products/eagle-rare.json",
+      "startedAt": "2026-10-23T03:26:54.356Z",
+      "status": 200,
+      "blocked": false,
+      "capturedAt": "2026-10-23T03:26:54.676Z",
+      "ok": true,
+      "finalUrl": "https://mainstreetliquor.com/products/eagle-rare.json",
+      "error": null,
+      "bytes": 8670,
+      "elapsedMs": 318,
+      "retryAfterSeconds": 0,
+      "file": "main-street-eagle-product.json",
+      "sha256": "5fb2dd154250715a085b1167d46c974c0bf1ccdf09de9c701e9d9906cdaa848b"
+    },
+    {
+      "merchant": "remedy",
+      "id": "remedy-eagle-pickup",
+      "requestedUrl": "https://www.remedyliquor.com/variants/43038898290916/?section_id=pickup-availability",
+      "startedAt": "2026-10-23T03:27:00.885Z",
+      "status": 200,
+      "blocked": false,
+      "capturedAt": "2026-10-23T03:27:01.194Z",
+      "ok": true,
+      "finalUrl": "https://www.remedyliquor.com/variants/43038898290916/?section_id=pickup-availability",
+      "error": null,
+      "bytes": 2659,
+      "elapsedMs": 308,
+      "retryAfterSeconds": 0,
+      "file": "remedy-eagle-pickup.html",
+      "sha256": "e6790df73476dae04d5cac3dd5dc60a1b4efabceb4a3bbf883085c132da69bc8"
+    },
+    {
+      "merchant": "main-street",
+      "id": "main-street-eagle-pickup",
+      "requestedUrl": "https://mainstreetliquor.com/variants/45411077685385/?section_id=store-availability",
+      "startedAt": "2026-10-23T03:27:01.502Z",
+      "status": 200,
+      "blocked": false,
+      "capturedAt": "2026-10-23T03:27:01.829Z",
+      "ok": true,
+      "finalUrl": "https://mainstreetliquor.com/variants/45411077685385/?section_id=store-availability",
+      "error": null,
+      "bytes": 2730,
+      "elapsedMs": 326,
+      "retryAfterSeconds": 0,
+      "file": "main-street-eagle-pickup.html",
+      "sha256": "b369133ab9b752588c094639b6359d9c942ad0a5355e372858d4c3065335a4b6"
+    },
+    {
+      "merchant": "remedy",
+      "id": "remedy-ecbp-product",
+      "requestedUrl": "https://www.remedyliquor.com/products/elijah-craig-bourbon-barrel-proof-750ml.json",
+      "startedAt": "2026-10-23T03:28:08.311Z",
+      "status": 200,
+      "blocked": false,
+      "capturedAt": "2026-10-23T03:28:08.576Z",
+      "ok": true,
+      "finalUrl": "https://www.remedyliquor.com/products/elijah-craig-bourbon-barrel-proof-750ml.json",
+      "error": null,
+      "bytes": 2354,
+      "elapsedMs": 264,
+      "retryAfterSeconds": 0,
+      "file": "remedy-ecbp-product.json",
+      "sha256": "68c9f59901dbf03026d9960eb027650ab3dcc085b871351991c07e694959a990"
+    },
+    {
+      "merchant": "remedy",
+      "id": "remedy-ecbp-pickup",
+      "requestedUrl": "https://www.remedyliquor.com/variants/43040880197860/?section_id=pickup-availability",
+      "startedAt": "2026-10-23T03:28:14.124Z",
+      "status": 200,
+      "blocked": false,
+      "capturedAt": "2026-10-23T03:28:14.367Z",
+      "ok": true,
+      "finalUrl": "https://www.remedyliquor.com/variants/43040880197860/?section_id=pickup-availability",
+      "error": null,
+      "bytes": 2664,
+      "elapsedMs": 241,
+      "retryAfterSeconds": 0,
+      "file": "remedy-ecbp-pickup.html",
+      "sha256": "e645b9bff24a1cc534e3ffc92ad6e38112f931964912ee650b6a2d2513923f27"
+    }
+  ],
+  "merchantBudgets": [
+    {
+      "merchant": "remedy",
+      "maximumRequests": 6,
+      "requestsUsed": 5,
+      "bytes": 21845,
+      "catalogPages": 0,
+      "discoveryRequests": 1,
+      "retries": 0,
+      "denials": 0
+    },
+    {
+      "merchant": "main-street",
+      "maximumRequests": 6,
+      "requestsUsed": 3,
+      "bytes": 48466,
+      "catalogPages": 0,
+      "discoveryRequests": 1,
+      "retries": 0,
+      "denials": 0
+    }
+  ],
+  "replacements": [
+    {
+      "sourceId": "remedy-glendale",
+      "canonicalBottleId": "bb_be6a0afd4ba5f963",
+      "canonicalName": "Elijah Craig Barrel Proof",
+      "tier": "allocated",
+      "price": 55.99,
+      "storeId": "remedy-glendale:91201",
+      "address": "1700 W Glenoaks Blvd., Glendale CA 91201",
+      "productId": "7687686488292",
+      "variantId": "43040880197860",
+      "quantity": 0,
+      "quantityIsExact": false,
+      "customerClassification": {
+        "tier": "limited",
+        "source": "national_baseline",
+        "state": "CA",
+        "bottleId": "elijah-craig-barrel-proof",
+        "nationalTier": "limited"
+      },
+      "sizeMl": 750,
+      "unknownPhysicalQuantity": true,
+      "collectorAccounting": {
+        "requestCount": 2,
+        "bytes": 5018,
+        "elapsedMs": 6,
+        "completeSnapshot": true,
+        "productsChecked": 1,
+        "positiveProducts": 1,
+        "negativeProducts": 0,
+        "premisesChecked": 1
+      },
+      "productEvidence": {
+        "url": "https://www.remedyliquor.com/products/elijah-craig-bourbon-barrel-proof-750ml.json",
+        "sha256": "68c9f59901dbf03026d9960eb027650ab3dcc085b871351991c07e694959a990",
+        "capturedAt": "2026-10-23T03:28:08.576Z",
+        "status": 200
+      },
+      "pickupEvidence": {
+        "url": "https://www.remedyliquor.com/variants/43040880197860/?section_id=pickup-availability",
+        "sha256": "e645b9bff24a1cc534e3ffc92ad6e38112f931964912ee650b6a2d2513923f27",
+        "capturedAt": "2026-10-23T03:28:14.367Z",
+        "status": 200
+      },
+      "exactTitleMapping": {
+        "rawTitle": "ELIJAH CRAIG BOURBON BARREL PROOF KENTUCKY 750ML",
+        "canonicalName": "Elijah Craig Barrel Proof",
+        "reason": "Exact first-party raw title includes every Elijah Craig Barrel Proof identity token and explicit 750ML. The strict matcher returns null for inserted BOURBON/KENTUCKY words; no batch, age, private-barrel or other expression is inferred.",
+        "allowedUnsafeReasons": []
+      },
+      "headingIdentity": "product_title",
+      "priceClock": "Current first-party product capture only; not a price guarantee.",
+      "newPhysicalStoreProven": false,
+      "limitations": [
+        "Pickup repeats the original base street address and omits suite B; the existing suite ambiguity remains unresolved.",
+        "Exact title mapping is a proposed data exception within the unchanged collector; strict raw matcher alone returns null. No unsafe modifier is allowed.",
+        "Canonical identity is Elijah Craig Barrel Proof family; no batch/age/private-barrel identity is inferred."
+      ]
+    },
+    {
+      "sourceId": "main-street-el-cajon",
+      "canonicalBottleId": "bb_d0fe561ac45db2d5",
+      "canonicalName": "Eagle Rare 10 Year",
+      "tier": "allocated",
+      "price": 44.99,
+      "storeId": "main-street-el-cajon:92020",
+      "address": "120 South Mollison Avenue 100 El Cajon CA 92020",
+      "productId": "6860137169033",
+      "variantId": "45411077685385",
+      "quantity": 0,
+      "quantityIsExact": false,
+      "customerClassification": {
+        "tier": "allocated",
+        "source": "national_baseline",
+        "state": "CA",
+        "bottleId": "eagle-rare-10",
+        "nationalTier": "allocated"
+      },
+      "sizeMl": 750,
+      "unknownPhysicalQuantity": true,
+      "collectorAccounting": {
+        "requestCount": 2,
+        "bytes": 11400,
+        "elapsedMs": 2,
+        "completeSnapshot": true,
+        "productsChecked": 1,
+        "positiveProducts": 1,
+        "negativeProducts": 0,
+        "premisesChecked": 1
+      },
+      "productEvidence": {
+        "url": "https://mainstreetliquor.com/products/eagle-rare.json",
+        "sha256": "5fb2dd154250715a085b1167d46c974c0bf1ccdf09de9c701e9d9906cdaa848b",
+        "capturedAt": "2026-10-23T03:26:54.676Z",
+        "status": 200
+      },
+      "pickupEvidence": {
+        "url": "https://mainstreetliquor.com/variants/45411077685385/?section_id=store-availability",
+        "sha256": "b369133ab9b752588c094639b6359d9c942ad0a5355e372858d4c3065335a4b6",
+        "capturedAt": "2026-10-23T03:27:01.829Z",
+        "status": 200
+      },
+      "exactTitleMapping": null,
+      "headingIdentity": "product_title",
+      "priceClock": "Current first-party product capture only; not a price guarantee.",
+      "newPhysicalStoreProven": false,
+      "limitations": [
+        "Pickup explicitly preserves address line 100 (the existing Unit 100 identity).",
+        "Direct strict raw bottle match succeeds; no title mapping exception proposed."
+      ]
+    }
+  ],
+  "rejectedAttempts": [
+    {
+      "merchant": "remedy",
+      "productId": "7687265878244",
+      "variantId": "43038898290916",
+      "title": "EAGLE RARE BOURBON KENTUCKY 90PF 10YR 750ML",
+      "price": 54.99,
+      "pickupPositive": true,
+      "sizeMl": 750,
+      "classification": "Not a proposed replacement",
+      "reason": "Unchanged collector rejects raw10YR title: independent matcher returns null and canonical 10 Year tokens are not all present. Saved positive pickup is not enough to weaken identity checks."
+    }
+  ],
+  "totals": {
+    "liveRequests": 8,
+    "liveResponseBytes": 70311,
+    "replacementPremises": 2,
+    "fixedPairRequestsPerMerchant": 2,
+    "fixedPairResponseBytes": 16418,
+    "netNewPhysicalPremisesProven": 0
+  },
+  "acceptance": {
+    "collectorFrozenReplay": true,
+    "actualCustomerCATierResolved": true,
+    "sourceAdmission": false,
+    "productionNewness": false,
+    "scheduledRuns": false,
+    "normalCustomerFeedAndCoverage": false
+  },
+  "caveats": [
+    "Research captures are point-in-time merchant claims, not a shelf count or held inventory.",
+    "Original candidate configuration and fixture history were not edited. Source activation and full baseline/customer acceptance remain pending.",
+    "No merchant contact, purchase, login, denied-route retry, client substitution or access agreement occurred."
+  ]
+}
