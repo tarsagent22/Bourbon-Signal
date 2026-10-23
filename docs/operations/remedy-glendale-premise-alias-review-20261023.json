@@ -1,0 +1,102 @@
+{
+  "contractVersion": "bourbon-signal/reviewed-premise-alias@1",
+  "reviewedAt": "2026-10-23T04:06:52.050Z",
+  "scope": "preparation_only_no_activation",
+  "sourceId": "ca:remedy-glendale",
+  "storeId": "remedy-glendale:91201",
+  "merchantHost": "www.remedyliquor.com",
+  "conclusion": "sufficient_first_party_evidence_for_same_premise_address_alias",
+  "confidence": "high_for_this_exact_merchant_premise_pair",
+  "canonicalPremise": {
+    "name": "Remedy Liquor - Glendale",
+    "address": "1700 W Glenoaks Blvd, Suite B, Glendale, CA 91201",
+    "street": "1700 W Glenoaks Blvd",
+    "unit": "B",
+    "city": "Glendale",
+    "state": "CA",
+    "zip": "91201"
+  },
+  "pickupAddressLiteral": "1700 W Glenoaks Blvd., Glendale CA 91201",
+  "officialAddressLiteral": "1700 W. Glenoaks Blvd. #B, Glendale, CA 91201",
+  "samePremiseReasons": [
+    "The same reviewed HTTPS merchant publishes both records.",
+    "Exact house number, street/direction, city, state and ZIP agree; the only substantive address difference is the suite omitted by pickup.",
+    "The official locations block contains exactly one Glendale/91201 location and explicitly supplies unit B; it lists other branches in different cities/states.",
+    "The frozen exact-variant pickup section has exactly one location row at this Glendale base address and repeats the product title.",
+    "Public Shopify shopId 64706445540 on the official page agrees with shop digits in the frozen product image CDN path."
+  ],
+  "officialLocationEvidence": {
+    "scope": "public_location_identity_review_not_inventory",
+    "requestedUrl": "https://www.remedyliquor.com/pages/customer-service",
+    "finalUrl": "https://www.remedyliquor.com/pages/customer-service",
+    "capturedAt": "2026-10-23T04:05:22.413Z",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "bytes": 800069,
+    "sha256": "63a3b30373a427782caae204fc0f6cd7b6a2dbb309e563b07d289e4fd8c8ad64",
+    "elapsedMs": 514,
+    "error": null,
+    "requests": 1,
+    "retries": 0,
+    "stockRequests": 0,
+    "blocked": false,
+    "file": ".operator/remedy-premise-alias-20261023/location-page.html",
+    "locationParagraph": "Los Angeles: 1700 W. Glenoaks Blvd. #B Glendale, CA 91201",
+    "locationParagraphCount": 1,
+    "publicShopId": "64706445540"
+  },
+  "frozenVariantEvidence": {
+    "productId": "7687686488292",
+    "variantId": "43040880197860",
+    "product": {
+      "file": ".operator/reseed-20261023/remedy-ecbp-product.json",
+      "sha256": "68c9f59901dbf03026d9960eb027650ab3dcc085b871351991c07e694959a990",
+      "capturedAt": "2026-10-23T03:28:08.576Z",
+      "url": "https://www.remedyliquor.com/products/elijah-craig-bourbon-barrel-proof-750ml.json"
+    },
+    "pickup": {
+      "file": ".operator/reseed-20261023/remedy-ecbp-pickup.html",
+      "sha256": "e645b9bff24a1cc534e3ffc92ad6e38112f931964912ee650b6a2d2513923f27",
+      "capturedAt": "2026-10-23T03:28:14.367Z",
+      "url": "https://www.remedyliquor.com/variants/43040880197860/?section_id=pickup-availability",
+      "locationRows": 1
+    }
+  },
+  "proposedAliasRule": {
+    "requiresExactSourceId": "ca:remedy-glendale",
+    "requiresExactStoreId": "remedy-glendale:91201",
+    "requiresMerchantHost": "www.remedyliquor.com",
+    "requiresExactBaseStreet": "1700 W Glenoaks Blvd",
+    "requiresCity": "Glendale",
+    "requiresState": "CA",
+    "requiresZip": "91201",
+    "acceptedUnitRelation": "Merchant pickup omits unit; the same merchant official location supplies unit B.",
+    "rejectExplicitConflictingUnits": true,
+    "globalUnitOmissionRule": false,
+    "collectorAddressMutation": false
+  },
+  "implementationRecommendation": "Keep the collector source address literal and strict captured comparison unchanged. Attach this reviewed physical-premise alias/canonical address to reconciliation/admission metadata; do not strip arbitrary unit differences.",
+  "excludedConclusions": {
+    "historicalAbsenceProven": false,
+    "newPhysicalStoreProven": false,
+    "currentInventoryReconfirmed": false,
+    "exactQuantityProven": false,
+    "otherChainLocationsQualified": false,
+    "activationAuthorized": false
+  },
+  "limits": [
+    "Neither capture supplies a numeric Shopify location ID. In this case the shared merchant and unique matching Glendale address support an address alias without that extra identifier.",
+    "No conflict with unit A or another same-address merchant was observed in these specific records; this is not a property occupancy census.",
+    "If later evidence explicitly names another unit, another Glendale pickup location or another merchant, require a fresh identity review rather than applying this alias.",
+    "The frozen pickup is a point-in-time source claim. Newness still needs the independent production baseline; scheduled/customer acceptance remains separate."
+  ],
+  "operations": {
+    "generalLocationPageRequests": 1,
+    "newStockOrAPIRequests": 0,
+    "retries": 0,
+    "contacts": 0,
+    "purchases": 0,
+    "registryOrFixtureEdits": 0,
+    "productionChanges": 0
+  }
+}
