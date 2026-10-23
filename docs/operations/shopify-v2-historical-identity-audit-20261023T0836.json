@@ -1,0 +1,1077 @@
+{
+  "contractVersion": "bourbon-signal/candidate-historical-identity-audit@1",
+  "createdAt": "2026-10-23T08:43:46.747Z",
+  "scope": "local_saved_evidence_preparation_only_no_network",
+  "frozenCheckout": "af78b839c7053ed509a86500339c590c1481921d",
+  "window": {
+    "since": "2026-09-23T08:36:00Z",
+    "until": "2026-10-23T08:36:00Z",
+    "refs": "all locally available refs; no fetch; unreachable/pruned objects excluded"
+  },
+  "allReachableCommitsInWindow": 390,
+  "inputs": {
+    "registry": {
+      "file": "engine/data/shopify-pickup-onboarding-cohort-v2.json",
+      "sha256": "1f77e01ef3222ce547c01b208ab8c970c3cc89b1205aa0894e0510dd16a45731"
+    },
+    "directory": {
+      "file": "src/data/sighting-store-directory.generated.json",
+      "sha256": "ef594f72535e3a42f968d7d1649f0bbad78938c55e06389a54eb00779a26f1c9",
+      "generatedAt": "2026-10-08T18:08:21.792Z",
+      "rowCount": 38095,
+      "contractVersion": "bourbon-signal/sighting-store-directory@1",
+      "buildSources": [
+        {
+          "label": "New York active liquor store licenses",
+          "state": "NY",
+          "url": "https://data.ny.gov/resource/9s3h-dpkz.json?$where=class%3D'0100'&$limit=10000&$order=licensepermitid",
+          "count": 3399,
+          "checkedAt": "2026-10-08T16:55:07.051Z",
+          "sha256": "a588508031c978d6d9ba2c9d96fd0211bc1d01c58daedab177572e845c018178"
+        },
+        {
+          "label": "CA official spirits retail licenses",
+          "state": "CA",
+          "url": "https://www.abc.ca.gov/wp-content/uploads/DailyExport-CSV.zip",
+          "count": 13956,
+          "checkedAt": "2026-10-08T18:08:20.893Z",
+          "publishedAt": "\"Updated Thursday 8th of October 2026 03:50:21 AM\"",
+          "sha256": "ba007fc2d23f310a680192b8a28a44df56e07dda6c485615fefadae4e5219490"
+        },
+        {
+          "label": "TX official spirits retail licenses",
+          "state": "TX",
+          "url": "https://data.texas.gov/resource/7hf9-qc9f.json?$where=license_type%3D'P'%20and%20primary_status%3D'Active'&$limit=10000&$order=license_id",
+          "count": 3731,
+          "checkedAt": "2026-10-08T16:44:23.676Z"
+        }
+      ]
+    },
+    "approvedRemedyAlias": {
+      "file": "docs/operations/remedy-glendale-premise-alias-review-20261023.json",
+      "sha256": "6655129bd2e98be11124ca6e2587e1ad3bf915154ae0e55c6b762102cf0a652a"
+    },
+    "baselineArtifactSha256": "dc10511a128a67eb4a1b9982235e6e5fc8f82e0e0060e6de1bfb0dc99d31e674"
+  },
+  "candidateResults": [
+    {
+      "candidate": {
+        "sourceId": "ca:remedy-glendale",
+        "storeId": "remedy-glendale:91201",
+        "merchantName": "Remedy Liquor - Glendale",
+        "sourceHost": "www.remedyliquor.com",
+        "pickupAddressLiteral": "1700 W Glenoaks Blvd., Glendale CA 91201",
+        "canonicalPhysicalAddress": "1700 W Glenoaks Blvd, Suite B, Glendale, CA 91201",
+        "city": "Glendale",
+        "state": "CA",
+        "zip": "91201",
+        "canonicalFamilies": [
+          "Elijah Craig Barrel Proof"
+        ]
+      },
+      "normalizedKey": "[\"CA\",\"91201\",\"1700 w glenoaks blvd\",\"b\"]",
+      "aliasReviewSha256": "6655129bd2e98be11124ca6e2587e1ad3bf915154ae0e55c6b762102cf0a652a",
+      "canonicalStreet": "1700 w glenoaks blvd",
+      "canonicalUnit": "b",
+      "researchIdentityLabels": [
+        "ca:remedy-glendale",
+        "remedy-glendale:91201"
+      ],
+      "directoryMatches": [
+        {
+          "directoryId": "ca-abc-00512898",
+          "licensedName": "REMEDY LIQUORS",
+          "address": "1700 W GLENOAKS BLVD, UNIT #B",
+          "city": "GLENDALE",
+          "state": "CA",
+          "zip": "91201",
+          "publicAliases": [
+            "REMEDY WHOLESALE LLC",
+            "00512898"
+          ],
+          "source": "California ABC active Off-Sale General licenses",
+          "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+          "normalizedKey": "[\"CA\",\"91201\",\"1700 w glenoaks blvd\",\"b\"]",
+          "classification": "directory_only_no_inventory_evidence",
+          "merchantLegalEntityEquivalenceProven": false,
+          "physicalMatchStatus": "exact_physical_address",
+          "reviewReasons": []
+        }
+      ],
+      "directoryKnown": true,
+      "priorInventoryObservedInThisDirectory": false,
+      "everNewProven": false,
+      "merchantLegalEntityEquivalenceProven": false,
+      "physicalMatchStatus": "exact_physical_address",
+      "unitDesignatorReviewPending": false
+    },
+    {
+      "candidate": {
+        "sourceId": "ny:vino-lexington",
+        "storeId": "vino-lexington:10016",
+        "merchantName": "Vino Fine Wine & Spirits",
+        "sourceHost": "vinosite.com",
+        "pickupAddressLiteral": "184 Lexington Ave, New York NY 10016",
+        "canonicalPhysicalAddress": "184 Lexington Ave, New York NY 10016",
+        "city": "New York",
+        "state": "NY",
+        "zip": "10016",
+        "canonicalFamilies": [
+          "Weller Single Barrel"
+        ]
+      },
+      "normalizedKey": "[\"NY\",\"10016\",\"184 lexington ave\",null]",
+      "aliasReviewSha256": null,
+      "canonicalStreet": "184 lexington ave",
+      "canonicalUnit": null,
+      "researchIdentityLabels": [
+        "ny:vino-lexington",
+        "vino-lexington:10016",
+        "vino-new-york"
+      ],
+      "directoryMatches": [
+        {
+          "directoryId": "ny-sla-0100-22-115836",
+          "licensedName": "VINO FINE WINE AND SPIRITS",
+          "address": "184 LEXINGTON AVE",
+          "city": "NEW YORK",
+          "state": "NY",
+          "zip": "10016",
+          "publicAliases": [
+            "LINET LIQUOR LLC",
+            "1341039"
+          ],
+          "source": "New York State Liquor Authority active Liquor Store licenses",
+          "sourceUrl": "https://data.ny.gov/d/9s3h-dpkz",
+          "normalizedKey": "[\"NY\",\"10016\",\"184 lexington ave\",null]",
+          "classification": "directory_only_no_inventory_evidence",
+          "merchantLegalEntityEquivalenceProven": false,
+          "physicalMatchStatus": "exact_physical_address",
+          "reviewReasons": []
+        }
+      ],
+      "directoryKnown": true,
+      "priorInventoryObservedInThisDirectory": false,
+      "everNewProven": false,
+      "merchantLegalEntityEquivalenceProven": false,
+      "physicalMatchStatus": "exact_physical_address",
+      "unitDesignatorReviewPending": false
+    },
+    {
+      "candidate": {
+        "sourceId": "ca:main-street-el-cajon",
+        "storeId": "main-street-el-cajon:92020",
+        "merchantName": "Main Street Liquor",
+        "sourceHost": "mainstreetliquor.com",
+        "pickupAddressLiteral": "120 South Mollison Avenue 100 El Cajon CA 92020",
+        "canonicalPhysicalAddress": "120 South Mollison Avenue 100 El Cajon CA 92020",
+        "city": "El Cajon",
+        "state": "CA",
+        "zip": "92020",
+        "canonicalFamilies": [
+          "Eagle Rare 10 Year"
+        ]
+      },
+      "normalizedKey": "[\"CA\",\"92020\",\"120 s mollison ave\",\"100\"]",
+      "aliasReviewSha256": null,
+      "canonicalStreet": "120 s mollison ave",
+      "canonicalUnit": "100",
+      "researchIdentityLabels": [
+        "ca:main-street-el-cajon",
+        "main-street-el-cajon:92020"
+      ],
+      "directoryMatches": [
+        {
+          "directoryId": "ca-abc-00635911",
+          "licensedName": "MURPHY CANYON GAS & WASH INC",
+          "address": "120 S MOLLISON AVE, # 100",
+          "city": "EL CAJON",
+          "state": "CA",
+          "zip": "92020-4895",
+          "publicAliases": [
+            "MURPHY CANYON GAS & WASH INC",
+            "00635911"
+          ],
+          "source": "California ABC active Off-Sale General licenses",
+          "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+          "normalizedKey": "[\"CA\",\"92020\",\"120 s mollison ave\",\"100\"]",
+          "classification": "directory_only_no_inventory_evidence",
+          "merchantLegalEntityEquivalenceProven": false,
+          "physicalMatchStatus": "exact_physical_address",
+          "reviewReasons": []
+        }
+      ],
+      "directoryKnown": true,
+      "priorInventoryObservedInThisDirectory": false,
+      "everNewProven": false,
+      "merchantLegalEntityEquivalenceProven": false,
+      "physicalMatchStatus": "exact_physical_address",
+      "unitDesignatorReviewPending": false
+    },
+    {
+      "candidate": {
+        "sourceId": "tx:hot-spot-austin",
+        "storeId": "hot-spot-austin:78701",
+        "merchantName": "Hot Spot Austin",
+        "sourceHost": "hotspot.fun",
+        "pickupAddressLiteral": "411 Brazos Street Suite 100 Austin TX 78701",
+        "canonicalPhysicalAddress": "411 Brazos Street Suite 100 Austin TX 78701",
+        "city": "Austin",
+        "state": "TX",
+        "zip": "78701",
+        "canonicalFamilies": [
+          "Booker's Bourbon"
+        ]
+      },
+      "normalizedKey": "[\"TX\",\"78701\",\"411 brazos st\",\"100\"]",
+      "aliasReviewSha256": null,
+      "canonicalStreet": "411 brazos st",
+      "canonicalUnit": "100",
+      "researchIdentityLabels": [
+        "tx:hot-spot-austin",
+        "hot-spot-austin:78701"
+      ],
+      "directoryMatches": [
+        {
+          "directoryId": "tx-tabc-104949013",
+          "licensedName": "HOT SPOT AUSTIN",
+          "address": "411 BRAZOS ST APT 100",
+          "city": "Austin",
+          "state": "TX",
+          "zip": "78701",
+          "publicAliases": [
+            "Houston Dot #1, LLC",
+            "P 961166"
+          ],
+          "source": "Texas TABC current Package Store permits",
+          "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f",
+          "normalizedKey": "[\"TX\",\"78701\",\"411 brazos st\",\"100\"]",
+          "classification": "directory_only_no_inventory_evidence",
+          "merchantLegalEntityEquivalenceProven": false,
+          "physicalMatchStatus": "ambiguous_unit_designator",
+          "reviewReasons": [
+            "apartment_vs_suite_requires_explicit_review"
+          ]
+        }
+      ],
+      "directoryKnown": true,
+      "priorInventoryObservedInThisDirectory": false,
+      "everNewProven": false,
+      "merchantLegalEntityEquivalenceProven": false,
+      "physicalMatchStatus": "ambiguous_unit_designator",
+      "unitDesignatorReviewPending": true
+    },
+    {
+      "candidate": {
+        "sourceId": "ca:christies-la-crescenta",
+        "storeId": "christies-la-crescenta:91214",
+        "merchantName": "Christie's Liquor",
+        "sourceHost": "www.christiesliquor.com",
+        "pickupAddressLiteral": "3040 Foothill Boulevard La Crescenta CA 91214",
+        "canonicalPhysicalAddress": "3040 Foothill Boulevard La Crescenta CA 91214",
+        "city": "La Crescenta",
+        "state": "CA",
+        "zip": "91214",
+        "canonicalFamilies": [
+          "Booker's Bourbon"
+        ]
+      },
+      "normalizedKey": "[\"CA\",\"91214\",\"3040 foothill blvd\",null]",
+      "aliasReviewSha256": null,
+      "canonicalStreet": "3040 foothill blvd",
+      "canonicalUnit": null,
+      "researchIdentityLabels": [
+        "ca:christies-la-crescenta",
+        "christies-la-crescenta:91214"
+      ],
+      "directoryMatches": [
+        {
+          "directoryId": "ca-abc-00488625",
+          "licensedName": "CHRISTIES LIQUOR INC",
+          "address": "3040 FOOTHILL BLVD",
+          "city": "LA CRESCENTA",
+          "state": "CA",
+          "zip": "91214-2713",
+          "publicAliases": [
+            "CHRISTIES LIQUOR INC",
+            "00488625"
+          ],
+          "source": "California ABC active Off-Sale General licenses",
+          "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+          "normalizedKey": "[\"CA\",\"91214\",\"3040 foothill blvd\",null]",
+          "classification": "directory_only_no_inventory_evidence",
+          "merchantLegalEntityEquivalenceProven": false,
+          "physicalMatchStatus": "exact_physical_address",
+          "reviewReasons": []
+        }
+      ],
+      "directoryKnown": true,
+      "priorInventoryObservedInThisDirectory": false,
+      "everNewProven": false,
+      "merchantLegalEntityEquivalenceProven": false,
+      "physicalMatchStatus": "exact_physical_address",
+      "unitDesignatorReviewPending": false
+    }
+  ],
+  "lineage": {
+    "coreMatchingCommits": [
+      {
+        "commit": "a86a0433c7b0b051761fdc5e3625128bbac42281",
+        "authorTime": "2026-10-23T00:06:42-04:00",
+        "subject": "Add shared Shopify admission and align customer coverage (#823)",
+        "category": "disabled_admission_foundation_not_activation",
+        "changedFiles": [
+          "engine/data/nationwide-candidate-research-20261023.json",
+          "engine/data/shopify-pickup-onboarding-candidates.json",
+          "engine/data/shopify-pickup-onboarding-cohort-v2.json",
+          "engine/src/sources/poll-policy.mjs",
+          "engine/src/sources/shopify-pickup-policy.mjs",
+          "engine/src/sources/shopify-poll-projection.mjs"
+        ],
+        "productionPolicyEvidence": {
+          "file": "engine/src/sources/shopify-pickup-policy.mjs",
+          "sha256": "4d4b25aaacc89bcbc7d4e1ec8f99d54b45926138ee68c17f9dfdcf895fabd6b8",
+          "productionAuthorityEmpty": true
+        }
+      },
+      {
+        "commit": "fbad3a2986dc47f49a4abe4144f82c7d0d91d36c",
+        "authorTime": "2026-10-22T23:35:02-04:00",
+        "subject": "Implement shared disabled Shopify admission and customer coverage parity",
+        "category": "disabled_admission_foundation_not_activation",
+        "changedFiles": [
+          "engine/data/shopify-pickup-onboarding-cohort-v2.json",
+          "engine/src/sources/poll-policy.mjs",
+          "engine/src/sources/shopify-pickup-policy.mjs",
+          "engine/src/sources/shopify-poll-projection.mjs"
+        ],
+        "productionPolicyEvidence": {
+          "file": "engine/src/sources/shopify-pickup-policy.mjs",
+          "sha256": "4d4b25aaacc89bcbc7d4e1ec8f99d54b45926138ee68c17f9dfdcf895fabd6b8",
+          "productionAuthorityEmpty": true
+        }
+      },
+      {
+        "commit": "64d12f592415c57c0548cf38aebace356f1d7294",
+        "authorTime": "2026-10-22T22:39:56-04:00",
+        "subject": "Keep raw fixture bytes and normalize onboarding metadata",
+        "category": "new_preparation_and_fixture_lineage_not_publication",
+        "changedFiles": [
+          "engine/data/shopify-pickup-onboarding-candidates.json"
+        ]
+      },
+      {
+        "commit": "5b793c857f8d1a6b122a1cd68fe3a3a43d8f73fc",
+        "authorTime": "2026-10-22T22:39:28-04:00",
+        "subject": "Prepare shared Shopify onboarding for five candidate premises",
+        "category": "new_preparation_and_fixture_lineage_not_publication",
+        "changedFiles": [
+          "engine/data/nationwide-candidate-research-20261023.json",
+          "engine/data/shopify-pickup-onboarding-candidates.json"
+        ]
+      },
+      {
+        "commit": "25719ef7c7637c0fbf4d3bd5ab6f131f5f57ef5b",
+        "authorTime": "2026-10-22T23:35:02-04:00",
+        "subject": "Implement shared disabled Shopify admission and customer coverage parity",
+        "category": "disabled_admission_foundation_not_activation",
+        "changedFiles": [
+          "engine/data/shopify-pickup-onboarding-cohort-v2.json",
+          "engine/src/sources/poll-policy.mjs",
+          "engine/src/sources/shopify-pickup-policy.mjs",
+          "engine/src/sources/shopify-poll-projection.mjs"
+        ],
+        "productionPolicyEvidence": {
+          "file": "engine/src/sources/shopify-pickup-policy.mjs",
+          "sha256": "4d4b25aaacc89bcbc7d4e1ec8f99d54b45926138ee68c17f9dfdcf895fabd6b8",
+          "productionAuthorityEmpty": true
+        }
+      },
+      {
+        "commit": "1ca058f23604082bfe750e340844a4743cea8e12",
+        "authorTime": "2026-10-22T22:39:56-04:00",
+        "subject": "Keep raw fixture bytes and normalize onboarding metadata",
+        "category": "new_preparation_and_fixture_lineage_not_publication",
+        "changedFiles": [
+          "engine/data/shopify-pickup-onboarding-candidates.json"
+        ]
+      },
+      {
+        "commit": "1679e7105437d29788c6ab20d41c8591587f96df",
+        "authorTime": "2026-10-22T22:39:28-04:00",
+        "subject": "Prepare shared Shopify onboarding for five candidate premises",
+        "category": "new_preparation_and_fixture_lineage_not_publication",
+        "changedFiles": [
+          "engine/data/nationwide-candidate-research-20261023.json",
+          "engine/data/shopify-pickup-onboarding-candidates.json"
+        ]
+      }
+    ],
+    "directoryMatchingCommits": [
+      {
+        "commit": "d3c9aac6baf413313b21e63a6a868dd9341f3303",
+        "authorTime": "2026-10-08T14:17:05-04:00",
+        "subject": "Complete NC ABC sighting store selection and expand state directories (#695)",
+        "fileSha256": "ef594f72535e3a42f968d7d1649f0bbad78938c55e06389a54eb00779a26f1c9",
+        "generatedAt": "2026-10-08T18:08:21.792Z",
+        "rowCount": 38095,
+        "targetMatches": [
+          {
+            "sourceId": "ca:remedy-glendale",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00512898",
+                "licensedName": "REMEDY LIQUORS",
+                "address": "1700 W GLENOAKS BLVD, UNIT #B",
+                "city": "GLENDALE",
+                "state": "CA",
+                "zip": "91201",
+                "publicAliases": [
+                  "REMEDY WHOLESALE LLC",
+                  "00512898"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"91201\",\"1700 w glenoaks blvd\",\"b\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "ny:vino-lexington",
+            "matches": [
+              {
+                "directoryId": "ny-sla-0100-22-115836",
+                "licensedName": "VINO FINE WINE AND SPIRITS",
+                "address": "184 LEXINGTON AVE",
+                "city": "NEW YORK",
+                "state": "NY",
+                "zip": "10016",
+                "publicAliases": [
+                  "LINET LIQUOR LLC",
+                  "1341039"
+                ],
+                "source": "New York State Liquor Authority active Liquor Store licenses",
+                "sourceUrl": "https://data.ny.gov/d/9s3h-dpkz",
+                "normalizedKey": "[\"NY\",\"10016\",\"184 lexington ave\",null]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "ca:main-street-el-cajon",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00635911",
+                "licensedName": "MURPHY CANYON GAS & WASH INC",
+                "address": "120 S MOLLISON AVE, # 100",
+                "city": "EL CAJON",
+                "state": "CA",
+                "zip": "92020-4895",
+                "publicAliases": [
+                  "MURPHY CANYON GAS & WASH INC",
+                  "00635911"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"92020\",\"120 s mollison ave\",\"100\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "tx:hot-spot-austin",
+            "matches": [
+              {
+                "directoryId": "tx-tabc-104949013",
+                "licensedName": "HOT SPOT AUSTIN",
+                "address": "411 BRAZOS ST APT 100",
+                "city": "Austin",
+                "state": "TX",
+                "zip": "78701",
+                "publicAliases": [
+                  "Houston Dot #1, LLC",
+                  "P 961166"
+                ],
+                "source": "Texas TABC current Package Store permits",
+                "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f",
+                "normalizedKey": "[\"TX\",\"78701\",\"411 brazos st\",\"100\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "ambiguous_unit_designator",
+                "reviewReasons": [
+                  "apartment_vs_suite_requires_explicit_review"
+                ]
+              }
+            ]
+          },
+          {
+            "sourceId": "ca:christies-la-crescenta",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00488625",
+                "licensedName": "CHRISTIES LIQUOR INC",
+                "address": "3040 FOOTHILL BLVD",
+                "city": "LA CRESCENTA",
+                "state": "CA",
+                "zip": "91214-2713",
+                "publicAliases": [
+                  "CHRISTIES LIQUOR INC",
+                  "00488625"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"91214\",\"3040 foothill blvd\",null]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "commit": "753efbc74e68bbecaea1d51b6e05496e73a61cc9",
+        "authorTime": "2026-10-08T14:09:36-04:00",
+        "subject": "Complete South Carolina and expand Tennessee with official public store licenses",
+        "fileSha256": "ef594f72535e3a42f968d7d1649f0bbad78938c55e06389a54eb00779a26f1c9",
+        "generatedAt": "2026-10-08T18:08:21.792Z",
+        "rowCount": 38095,
+        "targetMatches": [
+          {
+            "sourceId": "ca:remedy-glendale",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00512898",
+                "licensedName": "REMEDY LIQUORS",
+                "address": "1700 W GLENOAKS BLVD, UNIT #B",
+                "city": "GLENDALE",
+                "state": "CA",
+                "zip": "91201",
+                "publicAliases": [
+                  "REMEDY WHOLESALE LLC",
+                  "00512898"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"91201\",\"1700 w glenoaks blvd\",\"b\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "ny:vino-lexington",
+            "matches": [
+              {
+                "directoryId": "ny-sla-0100-22-115836",
+                "licensedName": "VINO FINE WINE AND SPIRITS",
+                "address": "184 LEXINGTON AVE",
+                "city": "NEW YORK",
+                "state": "NY",
+                "zip": "10016",
+                "publicAliases": [
+                  "LINET LIQUOR LLC",
+                  "1341039"
+                ],
+                "source": "New York State Liquor Authority active Liquor Store licenses",
+                "sourceUrl": "https://data.ny.gov/d/9s3h-dpkz",
+                "normalizedKey": "[\"NY\",\"10016\",\"184 lexington ave\",null]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "ca:main-street-el-cajon",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00635911",
+                "licensedName": "MURPHY CANYON GAS & WASH INC",
+                "address": "120 S MOLLISON AVE, # 100",
+                "city": "EL CAJON",
+                "state": "CA",
+                "zip": "92020-4895",
+                "publicAliases": [
+                  "MURPHY CANYON GAS & WASH INC",
+                  "00635911"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"92020\",\"120 s mollison ave\",\"100\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "tx:hot-spot-austin",
+            "matches": [
+              {
+                "directoryId": "tx-tabc-104949013",
+                "licensedName": "HOT SPOT AUSTIN",
+                "address": "411 BRAZOS ST APT 100",
+                "city": "Austin",
+                "state": "TX",
+                "zip": "78701",
+                "publicAliases": [
+                  "Houston Dot #1, LLC",
+                  "P 961166"
+                ],
+                "source": "Texas TABC current Package Store permits",
+                "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f",
+                "normalizedKey": "[\"TX\",\"78701\",\"411 brazos st\",\"100\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "ambiguous_unit_designator",
+                "reviewReasons": [
+                  "apartment_vs_suite_requires_explicit_review"
+                ]
+              }
+            ]
+          },
+          {
+            "sourceId": "ca:christies-la-crescenta",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00488625",
+                "licensedName": "CHRISTIES LIQUOR INC",
+                "address": "3040 FOOTHILL BLVD",
+                "city": "LA CRESCENTA",
+                "state": "CA",
+                "zip": "91214-2713",
+                "publicAliases": [
+                  "CHRISTIES LIQUOR INC",
+                  "00488625"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"91214\",\"3040 foothill blvd\",null]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "commit": "be525f2e8771b0f81ff621780db9899c42f99c08",
+        "authorTime": "2026-10-08T13:56:23-04:00",
+        "subject": "Expand Illinois sighting locations from verified off-premises licenses",
+        "fileSha256": "cc3c1302a9a7889e6ba3639606b7aa26455b1adfa2de3ab7ffca6067ff84d7a2",
+        "generatedAt": "2026-10-08T17:55:53.234Z",
+        "rowCount": 35971,
+        "targetMatches": [
+          {
+            "sourceId": "ca:remedy-glendale",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00512898",
+                "licensedName": "REMEDY LIQUORS",
+                "address": "1700 W GLENOAKS BLVD, UNIT #B",
+                "city": "GLENDALE",
+                "state": "CA",
+                "zip": "91201",
+                "publicAliases": [
+                  "REMEDY WHOLESALE LLC",
+                  "00512898"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"91201\",\"1700 w glenoaks blvd\",\"b\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "ny:vino-lexington",
+            "matches": [
+              {
+                "directoryId": "ny-sla-0100-22-115836",
+                "licensedName": "VINO FINE WINE AND SPIRITS",
+                "address": "184 LEXINGTON AVE",
+                "city": "NEW YORK",
+                "state": "NY",
+                "zip": "10016",
+                "publicAliases": [
+                  "LINET LIQUOR LLC",
+                  "1341039"
+                ],
+                "source": "New York State Liquor Authority active Liquor Store licenses",
+                "sourceUrl": "https://data.ny.gov/d/9s3h-dpkz",
+                "normalizedKey": "[\"NY\",\"10016\",\"184 lexington ave\",null]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "ca:main-street-el-cajon",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00635911",
+                "licensedName": "MURPHY CANYON GAS & WASH INC",
+                "address": "120 S MOLLISON AVE, # 100",
+                "city": "EL CAJON",
+                "state": "CA",
+                "zip": "92020-4895",
+                "publicAliases": [
+                  "MURPHY CANYON GAS & WASH INC",
+                  "00635911"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"92020\",\"120 s mollison ave\",\"100\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "tx:hot-spot-austin",
+            "matches": [
+              {
+                "directoryId": "tx-tabc-104949013",
+                "licensedName": "HOT SPOT AUSTIN",
+                "address": "411 BRAZOS ST APT 100",
+                "city": "Austin",
+                "state": "TX",
+                "zip": "78701",
+                "publicAliases": [
+                  "Houston Dot #1, LLC",
+                  "P 961166"
+                ],
+                "source": "Texas TABC current Package Store permits",
+                "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f",
+                "normalizedKey": "[\"TX\",\"78701\",\"411 brazos st\",\"100\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "ambiguous_unit_designator",
+                "reviewReasons": [
+                  "apartment_vs_suite_requires_explicit_review"
+                ]
+              }
+            ]
+          },
+          {
+            "sourceId": "ca:christies-la-crescenta",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00488625",
+                "licensedName": "CHRISTIES LIQUOR INC",
+                "address": "3040 FOOTHILL BLVD",
+                "city": "LA CRESCENTA",
+                "state": "CA",
+                "zip": "91214-2713",
+                "publicAliases": [
+                  "CHRISTIES LIQUOR INC",
+                  "00488625"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"91214\",\"3040 foothill blvd\",null]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "commit": "26a7cc7790c2b126ec59bc9dd57169aed5f7935c",
+        "authorTime": "2026-10-08T13:37:17-04:00",
+        "subject": "Complete NC ABC sighting store selection and expand verified state directories",
+        "fileSha256": "8e276b9f0a815fce6b0348c16c642bb3061669a951bdea92433f39052eeb7b6e",
+        "generatedAt": "2026-10-08T16:55:08.869Z",
+        "rowCount": 33324,
+        "targetMatches": [
+          {
+            "sourceId": "ca:remedy-glendale",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00512898",
+                "licensedName": "REMEDY LIQUORS",
+                "address": "1700 W GLENOAKS BLVD, UNIT #B",
+                "city": "GLENDALE",
+                "state": "CA",
+                "zip": "91201",
+                "publicAliases": [
+                  "REMEDY WHOLESALE LLC",
+                  "00512898"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"91201\",\"1700 w glenoaks blvd\",\"b\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "ny:vino-lexington",
+            "matches": [
+              {
+                "directoryId": "ny-sla-0100-22-115836",
+                "licensedName": "VINO FINE WINE AND SPIRITS",
+                "address": "184 LEXINGTON AVE",
+                "city": "NEW YORK",
+                "state": "NY",
+                "zip": "10016",
+                "publicAliases": [
+                  "LINET LIQUOR LLC",
+                  "1341039"
+                ],
+                "source": "New York State Liquor Authority active Liquor Store licenses",
+                "sourceUrl": "https://data.ny.gov/d/9s3h-dpkz",
+                "normalizedKey": "[\"NY\",\"10016\",\"184 lexington ave\",null]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "ca:main-street-el-cajon",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00635911",
+                "licensedName": "MURPHY CANYON GAS & WASH INC",
+                "address": "120 S MOLLISON AVE, # 100",
+                "city": "EL CAJON",
+                "state": "CA",
+                "zip": "92020-4895",
+                "publicAliases": [
+                  "MURPHY CANYON GAS & WASH INC",
+                  "00635911"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"92020\",\"120 s mollison ave\",\"100\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          },
+          {
+            "sourceId": "tx:hot-spot-austin",
+            "matches": [
+              {
+                "directoryId": "tx-tabc-104949013",
+                "licensedName": "HOT SPOT AUSTIN",
+                "address": "411 BRAZOS ST APT 100",
+                "city": "Austin",
+                "state": "TX",
+                "zip": "78701",
+                "publicAliases": [
+                  "Houston Dot #1, LLC",
+                  "P 961166"
+                ],
+                "source": "Texas TABC current Package Store permits",
+                "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f",
+                "normalizedKey": "[\"TX\",\"78701\",\"411 brazos st\",\"100\"]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "ambiguous_unit_designator",
+                "reviewReasons": [
+                  "apartment_vs_suite_requires_explicit_review"
+                ]
+              }
+            ]
+          },
+          {
+            "sourceId": "ca:christies-la-crescenta",
+            "matches": [
+              {
+                "directoryId": "ca-abc-00488625",
+                "licensedName": "CHRISTIES LIQUOR INC",
+                "address": "3040 FOOTHILL BLVD",
+                "city": "LA CRESCENTA",
+                "state": "CA",
+                "zip": "91214-2713",
+                "publicAliases": [
+                  "CHRISTIES LIQUOR INC",
+                  "00488625"
+                ],
+                "source": "California ABC active Off-Sale General licenses",
+                "sourceUrl": "https://www.abc.ca.gov/licensing/licensing-reports/",
+                "normalizedKey": "[\"CA\",\"91214\",\"3040 foothill blvd\",null]",
+                "classification": "directory_only_no_inventory_evidence",
+                "merchantLegalEntityEquivalenceProven": false,
+                "physicalMatchStatus": "exact_physical_address",
+                "reviewReasons": []
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "extraSyntheticTestChanges": [
+      {
+        "commit": "3ef31b3fe0c3b4a50c33cca5f05d07b1fd484d60",
+        "authorTime": "2026-10-23T00:02:38-04:00",
+        "subject": "Separate customer source policy reads from collection history"
+      }
+    ],
+    "earliestDirectoryParent": {
+      "commit": "a1bb6843e12d1d1ba4a2c84cb0a86cb51645041b",
+      "filePresent": false
+    },
+    "interpretation": "Core research/configuration/disabled-admission changes are not historical inventory publication; directory rows predate this cohort."
+  },
+  "baselineReconciliation": {
+    "selectedBaselineOverlapCounts": [
+      {
+        "sourceId": "ca:remedy-glendale",
+        "counts": {
+          "prior_current": 0,
+          "prior_stale": 0,
+          "history": 0,
+          "directory": 0,
+          "ambiguous": 0
+        }
+      },
+      {
+        "sourceId": "ny:vino-lexington",
+        "counts": {
+          "prior_current": 0,
+          "prior_stale": 0,
+          "history": 0,
+          "directory": 0,
+          "ambiguous": 0
+        }
+      },
+      {
+        "sourceId": "ca:main-street-el-cajon",
+        "counts": {
+          "prior_current": 0,
+          "prior_stale": 0,
+          "history": 0,
+          "directory": 0,
+          "ambiguous": 0
+        }
+      },
+      {
+        "sourceId": "tx:hot-spot-austin",
+        "counts": {
+          "prior_current": 0,
+          "prior_stale": 0,
+          "history": 0,
+          "directory": 0,
+          "ambiguous": 0
+        }
+      },
+      {
+        "sourceId": "ca:christies-la-crescenta",
+        "counts": {
+          "prior_current": 0,
+          "prior_stale": 0,
+          "history": 0,
+          "directory": 0,
+          "ambiguous": 0
+        }
+      }
+    ],
+    "selectedBaselineHistory": {
+      "independentSourcesIncluded": true,
+      "currentSourceHeadsComplete": true,
+      "independentPremisesComplete": false,
+      "broadHistoryLimited": true,
+      "broadHistoricalGaps": [
+        "2026-10-23T00-45-53-498Z-13349db8859e34cc"
+      ],
+      "retainedHistoryComplete": false,
+      "verifiedRetailerPremisesIncluded": false,
+      "historicalAbsenceProven": false
+    },
+    "additionalLocalDirectoryKnownPremises": 5,
+    "netNewPhysicalPremisesProven": 0,
+    "inventoryDelta": "Potential inventory connections at directory-known or potentially matching physical premises; Hot Spot Suite100 vs APT100 remains an unresolved physical alias. Prior inventory absence remains unresolved.",
+    "exactPhysicalDirectoryMatches": 4,
+    "ambiguousPhysicalDirectoryMatches": 1
+  },
+  "supersession": [
+    {
+      "older": "nationwide-next-cohort-20261023.md and shopify-variant-onboarding.md v1 tables/readiness",
+      "authoritative": "shopify-shared-foundation-release-20261023.md and engine/data/shopify-pickup-onboarding-cohort-v2.json",
+      "reason": "V1 CA Buffalo Trace seeds are regular-bottle regression controls; V2 replaces only those seeds with ECBP/Eagle Rare."
+    },
+    {
+      "older": "Earlier notes saying Remedy suite unresolved",
+      "authoritative": "remedy-glendale-premise-alias-review-20261023.json",
+      "reason": "Exact approved base-address to Suite B alias; no generic unit omission rule."
+    },
+    {
+      "older": "Zero directory overlap in selected production baseline",
+      "authoritative": "Selected-baseline result plus this separately hashed sighting directory",
+      "reason": "Earlier result remains correct for selected inputs only; all five already exist in the separate product directory."
+    }
+  ],
+  "limits": [
+    "Local Git branches/tags do not enumerate production database submissions or every archived activation; no whole-history coverage claim.",
+    "Official license directory identity is directory-only and not a live merchant, stock, verified-retailer or prior inventory claim.",
+    "APT100/Suite100 has the same numeric unit but different designators; the physical match remains ambiguous until explicit review. Legal entity and merchant equivalence are not inferred.",
+    "Prior current/stale/retained inventory absence remains bounded by the frozen baseline; missing snapshot, older/pruned history and verified-retailer exclusions remain.",
+    "The verified-retailer supplement is owned separately; no database query or SQL change was made here."
+  ],
+  "tests": {
+    "status": "pass",
+    "command": "node --test engine/test/premises-directory-reconciliation.test.mjs",
+    "tests": 8,
+    "cases": [
+      "UNIT #B retains B",
+      "APT100/Suite100 ambiguous pending explicit review",
+      "138-44 differs from138 44 and12-14 differs from12 14",
+      "explicit A differs from B",
+      "missing100 differs from100",
+      "ZIP+4 normalizesZIP5",
+      "actual38095directory has4exact+1ambiguous physical matches",
+      "duplicate premises remain ambiguous"
+    ],
+    "supersedesInitialHelperDesignatorEquivalence": true
+  },
+  "operations": {
+    "networkRequests": 0,
+    "merchantRequests": 0,
+    "productionReads": 0,
+    "sourceOrRegistryEdits": 0,
+    "commits": 0,
+    "netNewPhysicalPremisesProven": 0
+  },
+  "reviewRevision": {
+    "reason": "Independent review preserved house-number hyphens and made Suite100/APT100 physically ambiguous.",
+    "authoritativeNormalizer": "engine/src/discovery/premises-directory-reconciliation.mjs",
+    "ignoredInitialHelper": "Retains original coarse unit-token audit; must not be used to override this stricter reviewed result."
+  }
+}
