@@ -138,6 +138,9 @@ test('actual scheduler read mode never runs collectors or writes a monitor heart
   const calls: Array<Record<string, unknown>> = [];
   const requireStub = (name: string) => {
     if (name.includes('ops-auth')) return opsAuth;
+    if (name.includes('source-premises-baseline')) return { readSourcePremisesBaseline: () => assert.fail('Normal monitor/read must not invoke premises capture') };
+    if (name.includes('alert-queue/runtime')) return { createProductionAlertQueueSqlExecutor: () => assert.fail('Normal monitor/read must not create baseline executor') };
+    if (name === '@/lib/source-lane') return { SOURCE_LANES: [] };
     if (name.includes('source-lane-runtime')) return { pollRuntimeSourceLanes: async (dryRun: boolean) => { calls.push({ lanePoll: dryRun }); } };
     if (name.includes('source-scheduler')) return {
       sourceSchedulerHealth: async (writeMonitor: boolean) => { calls.push({ writeMonitor }); return { enabled: true }; },

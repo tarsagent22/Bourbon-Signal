@@ -106,18 +106,8 @@ for (const config of configurations) test(`real exporter episode identity and cu
   const firstEpisode = buildAvailabilityEpisodeIndex(first.signals).get(subject);
   const nextEpisode = buildAvailabilityEpisodeIndex([...first.signals, ...next.signals]).get(subject);
   assert.equal(nextEpisode.id, firstEpisode.id); assert.equal(nextEpisode.lastConfirmedAt, nextAt);
-  if (config.state === 'NY') {
-    assert.deepEqual(previous, []); // Existing metro registry has no Vino source.
-    assert.deepEqual(buildDrops(next.signals, lookup, next.signals, [], next.signals), []);
-    return;
-  }
-  assert.equal(previous.length, 1);
-  const current = buildDrops(next.signals, lookup, next.signals, previous, next.signals);
-  assert.equal(current.length, 1); assert.equal(current[0].availabilityEpisodeId, previous[0].availabilityEpisodeId);
-  assert.equal(current[0].firstSeenAt, new Date(firstAt).toISOString()); assert.equal(current[0].lastConfirmedAt, new Date(nextAt).toISOString());
-  // CA's existing binary inventory gate allows only the two existing merchants;
-  // TX's current inventory policy requires registered CityHive identities.
-  // These policy changes remain explicitly pending rather than bypassed here.
-  assert.deepEqual(buildCurrentInventoryAlertsFromDrops(previous), []);
-  assert.deepEqual(buildCurrentInventoryAlertsFromDrops(current), []);
+  // The shared platform gate now fails closed before exporting any generic
+  // Shopify source unless a trusted current policy explicitly admits it.
+  assert.deepEqual(previous, []);
+  assert.deepEqual(buildDrops(next.signals, lookup, next.signals, [], next.signals), []);
 });

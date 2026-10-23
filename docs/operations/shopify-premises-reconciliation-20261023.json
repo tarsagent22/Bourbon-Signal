@@ -1,0 +1,890 @@
+{
+  "contractVersion": "bourbon-signal/premise-reconciliation-research@1",
+  "createdAt": "2026-10-23T03:13:55.605488+00:00",
+  "checkout": "72122775800cd7bf9554d0830394a86c4994ab7a",
+  "scope": "fixed_local_evidence_only_no_activation",
+  "counts": {
+    "targets": 5,
+    "states": 3,
+    "netNewPhysicalPremisesProven": 0
+  },
+  "inputs": [
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\nationwide-candidate-research-20261023.json",
+      "bytes": 23029,
+      "sha256": "67a4970659373b61d47ab849cae26e59ed182267695a26abc487c11bfefbf406"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\shopify-pickup-onboarding-candidates.json",
+      "bytes": 10258,
+      "sha256": "a57d7999c42be63a67bc31b3141d83dcd341259892ffb3f392334fb83d542e6d"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\store-universe\\CA.json",
+      "bytes": 2392,
+      "sha256": "9f294b14d5dbf6d4668b32351530841f5d061b266fc56b9ff7fd41cd61e2d5cb"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\store-universe\\FL.json",
+      "bytes": 28279,
+      "sha256": "a5e847668a658014f296a35dabbf1646d9d9e565a6365091120402c17fa169e4"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\store-universe\\MS.json",
+      "bytes": 640444,
+      "sha256": "fc067e9b832bf73b3ed1273b01bd66c98eda93ca3e91e6c84eaf86632792ba96"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\store-universe\\NV.json",
+      "bytes": 3858,
+      "sha256": "1968a19654f0846eb3977e0fbfff614173648aa114352c0d7aa413cdad98c12d"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\store-universe\\SC.json",
+      "bytes": 21571,
+      "sha256": "d7e162be0303fa93fd24b0449d71dc3b8c38c2d7d4e6c6c17a2d8a76242812cc"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\store-universe\\TN.json",
+      "bytes": 216122,
+      "sha256": "5cb0a2415255272be4718da02a64126e52f2da98a62cc052aa57d3d9c80625cd"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\engine\\data\\store-universe\\WV.json",
+      "bytes": 71865,
+      "sha256": "e9ae834092d10e7e6882a7524b99019f52d4cf211cdc76d29d529e45daa348e1"
+    },
+    {
+      "path": "C:\\Users\\chand\\Documents\\Bourbon Signal\\feed-source-freshness-818-evidence\\captures\\39892865881\\nationwide-pilot-capture.json",
+      "bytes": 69738,
+      "sha256": "8a05d80ccef36bd19ecbc7134249f18a5900698f59488875695c37a1320ae47c"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\remedy-coverage-baseline.json",
+      "bytes": 265,
+      "sha256": "18053342228a36841d6c32fd3e3a661d6710e50b4aa1087a89280085d957b57c"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\remedy-buffalo-product.json",
+      "bytes": 2522,
+      "sha256": "d72b305e5dc6f7de28a1a6aa2288d0679571e3bf135f38a04a6be27f82a35d75"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\remedy-buffalo-pickup.html",
+      "bytes": 2660,
+      "sha256": "23cf6221a44b82d1d05759e1e7080339b1c3540b156e55d0c35abbecfed2d4e9"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\main-street-coverage-baseline.json",
+      "bytes": 268,
+      "sha256": "f267d0e0531e4e0ae4f8da2744a34defaa8c1c06dbbdc3428471349204c3da85"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\main-street-buffalo-product.json",
+      "bytes": 8219,
+      "sha256": "4e108469d05e30b7d1905c0c925ece6b86aa33a3bf8df05c50a7e84a7b18fdb8"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\main-street-buffalo-pickup.html",
+      "bytes": 2666,
+      "sha256": "e9497ac8ba0d1107019ebe8e87a0245a363ce7517400f7717ac565912648335e"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\christies-coverage-baseline.json",
+      "bytes": 267,
+      "sha256": "3363d69f2ea13436d4c632ded27038b12dfbe1e729a118d5d3422c1f2927a30e"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\christies-bookers-product.json",
+      "bytes": 2149,
+      "sha256": "6fb6a2c0457285454fb146283e3d646aee498a16e115abf7bce67ef0969eb979"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\christies-bookers-pickup.html",
+      "bytes": 2680,
+      "sha256": "1ef76ba6cfb0f06eb6dc8a7d14649fe64e72593829e14fcd002b606d5eac9b22"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\vino-coverage-baseline.json",
+      "bytes": 258,
+      "sha256": "7e25d3815a71653c07f6799934fb2f1558e56970380d113b2306d5ca94cdbd87"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\vino-weller-product.json",
+      "bytes": 2267,
+      "sha256": "7d0815db2b6d9eaf9a3f3e7a17bf926f761b2641a40bbe235cf0ee876b8306e5"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\vino-weller-pickup.html",
+      "bytes": 2729,
+      "sha256": "ef8f9dd22cb3705f452e51a5c01fffc4c5ca074054095f5c5c0708c4e1ce2512"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\hotspot-coverage-baseline.json",
+      "bytes": 258,
+      "sha256": "cdab9473059e9552813560e63f4b3605b92896a963881be275f478fcbfa68f02"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\hotspot-bookers-product.json",
+      "bytes": 1120,
+      "sha256": "63793020363392f6ec18287fefc68eba4f832f6d42d98838790081cad767b521"
+    },
+    {
+      "path": "C:\\Users\\chand\\projects\\bs-feed-freshness-prep-20261023\\.operator\\cohort-preflight\\hotspot-bookers-store-pickup.html",
+      "bytes": 2748,
+      "sha256": "5787c9bd2f560daaaf78a66c779dee26beedeb9feed250e27c86fd502f091611"
+    }
+  ],
+  "archivedDiagnostics": {
+    "archivePath": "C:\\Users\\chand\\Documents\\Bourbon Signal\\nationwide-cohort-preparation-20261023-evidence\\baseline-12471759580.zip",
+    "artifactId": 12471759580,
+    "runId": 39885089139,
+    "archiveSha256": "3c68c2f95ed9f5eb58b91f28951c6154d7d77d8783a2e441041c8944de15dabc",
+    "states": [
+      {
+        "entry": "states/CA.json",
+        "bytes": 56277,
+        "sha256": "f574ef18afb40bcac460214cdae6930054123e311e971930f6ecc1df3d2f51ff",
+        "state": "CA",
+        "finishedAt": "2026-10-23T01:18:00.039Z",
+        "lastGoodAt": "2026-10-22T21:55:55.751Z",
+        "reportStale": false,
+        "signalsInspected": 15
+      },
+      {
+        "entry": "states/NY.json",
+        "bytes": 357434,
+        "sha256": "878884191b16fb975a0e0a5a56cd6d6876b3e576e00ba79c3a36bd6a314c180a",
+        "state": "NY",
+        "finishedAt": "2026-10-23T01:18:00.072Z",
+        "lastGoodAt": "2026-10-22T19:35:29.598Z",
+        "reportStale": true,
+        "signalsInspected": 81
+      },
+      {
+        "entry": "states/TX.json",
+        "bytes": 9415571,
+        "sha256": "6eba9f74e84c8dd9e4264ad9d703812f4114e2135e3de84e685ef969161efa14",
+        "state": "TX",
+        "finishedAt": "2026-10-23T01:20:28.172Z",
+        "lastGoodAt": "2026-10-23T01:20:28.170Z",
+        "reportStale": false,
+        "signalsInspected": 410
+      }
+    ],
+    "sourceRunHistory": {
+      "entry": "optimization/source-run-history.json",
+      "sha256": "7763fd05b89df77c0e8ec3d5914863020ac894f1cad1bf669f16dabf1fba0997"
+    },
+    "publicationMetadata": {
+      "entry": "site-refresh-status.json",
+      "sha256": "89d1b35db6c8ee0a7499b1d24e7d7561e28613c405cb52951a048551d14d2a4d",
+      "startedAt": "2026-10-23T01:40:53.838Z",
+      "finishedAt": "2026-10-23T01:48:58.504Z",
+      "activationProven": false,
+      "limitation": "Refresh diagnostics and site deployment metadata do not bind these reports to the activated customer snapshot."
+    }
+  },
+  "sourceRegistryScope": [
+    {
+      "path": "engine\\src\\collectors\\arizona-source-attempts.mjs",
+      "sha256": "e94659ff8faf31f547d6407d0cddd3a49a86361581dfd989ae417026ef6e9c47"
+    },
+    {
+      "path": "engine\\src\\collectors\\arizona-xapi-matching.mjs",
+      "sha256": "36d701d032767d5e97a644f35598cbf255673a195b685d444b5a4e1f3e4b180a"
+    },
+    {
+      "path": "engine\\src\\collectors\\arizona-xapi.mjs",
+      "sha256": "21afcb0c9adf557a6cd3932040f358c72c09a295f03f6536cd8ef6e06a2cebcb"
+    },
+    {
+      "path": "engine\\src\\collectors\\buffalo-cityhive-discovery.mjs",
+      "sha256": "d6bf3effbe4c949d0277fe52b9dc116f9466459dcd3b03e98a517bb5b73f0afb"
+    },
+    {
+      "path": "engine\\src\\collectors\\california-runtime-source.mjs",
+      "sha256": "553626852136dc65649aecb0172bc521ce0a7872aaf662e547c9c22c5d34e268"
+    },
+    {
+      "path": "engine\\src\\collectors\\california-san-diego-surfaces.mjs",
+      "sha256": "7f43b03098a5e0896d0882d72a079c98fe555cc9fa2cf21194ef18bf27afe425"
+    },
+    {
+      "path": "engine\\src\\collectors\\cityhive-hardening.mjs",
+      "sha256": "ab8e5c76f715e0325e07f74e432ce376ef12be2edd5dcbac78b396d784eb466e"
+    },
+    {
+      "path": "engine\\src\\collectors\\cityhive-rare-probes.mjs",
+      "sha256": "5e18947881de67ce994967a42b2af151a413ac1bfdf3eb85c617217b2c0d1dba"
+    },
+    {
+      "path": "engine\\src\\collectors\\cityhive-surfaces.mjs",
+      "sha256": "a5eb302078ef5dd8f2d1a751c82ba0ddbbc353040fbaaedf69121ddf72290ead"
+    },
+    {
+      "path": "engine\\src\\collectors\\costco.mjs",
+      "sha256": "35be6376a5869ca4b472f7c2ef3aa1cb19ac0fb4bab95d2be2e35f1b2e25087e"
+    },
+    {
+      "path": "engine\\src\\collectors\\florida-15-20-expansion.mjs",
+      "sha256": "27571a5d739bb73db83ddd382952e18da118e92f7a8a8ab312d6adab3c2344d8"
+    },
+    {
+      "path": "engine\\src\\collectors\\florida-cityhive-policy.mjs",
+      "sha256": "3da13e95d8b390c98ac6b7d3a0ae9193d0b5e5b35c9d80d623672297ece12e1c"
+    },
+    {
+      "path": "engine\\src\\collectors\\florida-jensens-runtime-source.mjs",
+      "sha256": "a017a1aff7289da7df1fd3f9cf8bcb33d81ce4f191452714bba0df1721733443"
+    },
+    {
+      "path": "engine\\src\\collectors\\florida-pensacola-surfaces.mjs",
+      "sha256": "d0b9891a9a96e8885df91579deefdd08bca08e47f7f0125ce1d6d5b54f27d030"
+    },
+    {
+      "path": "engine\\src\\collectors\\florida-retailer-surfaces.mjs",
+      "sha256": "9b618328da270eec3b4b0697db416bd9e7538b8f1bbbd71062dcc7aef4a949ee"
+    },
+    {
+      "path": "engine\\src\\collectors\\florida-tampa-surfaces.mjs",
+      "sha256": "a132952b08787637a365c6f36e6e9547e2e7ab910c4b97bb44bcef0ea48d106b"
+    },
+    {
+      "path": "engine\\src\\collectors\\fwgs-reviewed-matching.mjs",
+      "sha256": "b21b3b33982cbbeb2c3ca194c7cb8d0a5a500c7b83954dbd5c523500cdb19ebf"
+    },
+    {
+      "path": "engine\\src\\collectors\\generic-state.mjs",
+      "sha256": "e457b3a35a67f02b59afb341715594b1697251070accbe33ae4c94c83c54feb5"
+    },
+    {
+      "path": "engine\\src\\collectors\\georgia-retailer-surfaces.mjs",
+      "sha256": "5ec89a1023af47c9e6758e2b4fd16826f0911e344a05f4bbaf21f2c39a45e2ef"
+    },
+    {
+      "path": "engine\\src\\collectors\\gotoliquorstore-surfaces.mjs",
+      "sha256": "7becbd567d4e6eb49ac46760f9818ea293b110703473adf08045396093db9a17"
+    },
+    {
+      "path": "engine\\src\\collectors\\illinois-binnys-matching.mjs",
+      "sha256": "84d384ec11a0229941bcf75d0aa522a44027d4c76ecf39beb27070966e9385d1"
+    },
+    {
+      "path": "engine\\src\\collectors\\indiana-retailer-matching.mjs",
+      "sha256": "471a455fdae90e03e415247f17f4b3cb685ee45085c490dd1640e44ff345482e"
+    },
+    {
+      "path": "engine\\src\\collectors\\indiana-retailer-surfaces.mjs",
+      "sha256": "931425c8d9ab287ac6e44dddc45b33c816e5ccdcd6211f6d47d3f0408aeb2ec2"
+    },
+    {
+      "path": "engine\\src\\collectors\\indiana-source-denial-policy.mjs",
+      "sha256": "bca5bc4567347f708fe9fe535403299e0652f28fba916e8bfcfa56c4ab706952"
+    },
+    {
+      "path": "engine\\src\\collectors\\massachusetts-retailer-collector.mjs",
+      "sha256": "99410bbb04b151bd619a1d00868987e93ba30dda6808cc7aa2298571137adc4f"
+    },
+    {
+      "path": "engine\\src\\collectors\\massachusetts-retailer-surfaces.mjs",
+      "sha256": "d5c14ceb2d9085b1de7410cc80d269d7035625d24c26e9411731ae65b0b619b2"
+    },
+    {
+      "path": "engine\\src\\collectors\\metro-cityhive-depth-policy.mjs",
+      "sha256": "3994a12eab8907696f06f465bba676b28421782a77d3fefd37511448cc796618"
+    },
+    {
+      "path": "engine\\src\\collectors\\metro-expansion-sources.mjs",
+      "sha256": "942051f9d1fd6220f6dd6ed05a9c05cf8ca785aaead921f21dbc21aaf5071f13"
+    },
+    {
+      "path": "engine\\src\\collectors\\metro-refresh-state.mjs",
+      "sha256": "a14990574f0dea5f0ab74ba390f956f985bb375134e835dcbcb77bb5883ee2db"
+    },
+    {
+      "path": "engine\\src\\collectors\\metro-retailer-surfaces.mjs",
+      "sha256": "5abb35c29f77699dcc25f32459f06fe73c7e2d2a5155285ef8f9002e7e8c6154"
+    },
+    {
+      "path": "engine\\src\\collectors\\mississippi-official-intelligence.mjs",
+      "sha256": "03eb8242467b2ff302414dcff5e0825b0556c2bf847deaeab60c1eb9d7ef975b"
+    },
+    {
+      "path": "engine\\src\\collectors\\mississippi-retailer-collector.mjs",
+      "sha256": "79eb2d3a1b23cb64bb3b917be89979181d8a0aac106eb7a720512a6fd57bb7fa"
+    },
+    {
+      "path": "engine\\src\\collectors\\mississippi-retailer-surfaces.mjs",
+      "sha256": "17e8e10ed6ddf469105da224b1e2a8812f9fc7fd13e922213f452fdbccde4f81"
+    },
+    {
+      "path": "engine\\src\\collectors\\mississippi-run-plan.mjs",
+      "sha256": "56ed7b4c9dc49dfeef2546e9d85ade113adc8a1681bdbcd7e226b545560e01b0"
+    },
+    {
+      "path": "engine\\src\\collectors\\nc-dated-announcements.mjs",
+      "sha256": "f14fa0f8a32261d5320e86b842af5ddb715606eecbd8e46dceb821c35b0c32a5"
+    },
+    {
+      "path": "engine\\src\\collectors\\nevada-retailer-surfaces.mjs",
+      "sha256": "89821a8bb6b33347deed28a3c13ae37f2e9b45767580b0e58e07f00ccb2ebe01"
+    },
+    {
+      "path": "engine\\src\\collectors\\north-carolina-intelligence.mjs",
+      "sha256": "4e5f88fb94a975fe8f80a1ccd8b88f531d8b10546cb1cf9ad2328788303a037b"
+    },
+    {
+      "path": "engine\\src\\collectors\\ohio-inventory-recovery.mjs",
+      "sha256": "7a27a4a914cd8f929f20419ac95b2aa7bc52deede8aaa05508a9a54eece25907"
+    },
+    {
+      "path": "engine\\src\\collectors\\pennsylvania-direct-source-policy.mjs",
+      "sha256": "6024c718912965a286b4a5453bc865690eb388e73d305b265a74722b35dd0efd"
+    },
+    {
+      "path": "engine\\src\\collectors\\precision-probes.mjs",
+      "sha256": "cfd2936abeeb61316b88a95ae1c722f2903658d0aec91f44aa28f6f78d821b2c"
+    },
+    {
+      "path": "engine\\src\\collectors\\probe-hardening.mjs",
+      "sha256": "c5d716cab24b3a988af65ab43e579b9ba09f2a882de34008dbc97a107f4ce923"
+    },
+    {
+      "path": "engine\\src\\collectors\\safe-bottle-match.mjs",
+      "sha256": "5e497e030ad9c36bd3fd7374147b514151b038b960eb53cf86392e12b8ba8f26"
+    },
+    {
+      "path": "engine\\src\\collectors\\shopify-cohort-runtime.mjs",
+      "sha256": "70b205f1c1aa48737787e0a80415e27eb94ccaa75b3f2e4d4a160945bb5bb13d"
+    },
+    {
+      "path": "engine\\src\\collectors\\shopify-variant-pickup.mjs",
+      "sha256": "82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206"
+    },
+    {
+      "path": "engine\\src\\collectors\\south-carolina-discount-square.mjs",
+      "sha256": "a40772aadb5e011df51e10f34ba0f5a5e455897f3d264427c213df292cbdf566"
+    },
+    {
+      "path": "engine\\src\\collectors\\south-carolina-square.mjs",
+      "sha256": "83fd43f256a0ef4146583a27e3b5e3ab10a537a75c76af0edc58aaa15bb17aed"
+    },
+    {
+      "path": "engine\\src\\collectors\\south-carolina-taste.mjs",
+      "sha256": "2c2091be1a77ec406ee9cd6572fda186990ae0e64b9f4854f486358edb552008"
+    },
+    {
+      "path": "engine\\src\\collectors\\tennessee-cityhive-policy.mjs",
+      "sha256": "7c3067223e21ef3adfa14d5a35c66f852edda7b7d54ded14a243aa8589fe8135"
+    },
+    {
+      "path": "engine\\src\\collectors\\tennessee-retailer-surfaces.mjs",
+      "sha256": "34b449e5db494f376a96773dd76cd7c6785ec97c1ce301fc918bc968065de6c1"
+    },
+    {
+      "path": "engine\\src\\collectors\\virginia-inventory-recovery.mjs",
+      "sha256": "3ebe851d3c34b3eabbb56a1edf1a42b5d25f9898644fc0fd774f926fd8788416"
+    },
+    {
+      "path": "engine\\src\\collectors\\west-virginia-official.mjs",
+      "sha256": "cf61b607fabfd796231ec7b3d9fc25739453c853854894a17ef7b02abf27e461"
+    },
+    {
+      "path": "engine\\src\\state-sources.mjs",
+      "sha256": "039b2c7470823d35a43ca2c83bf9e79aff182c692ed0b0bbd84d031f524f42a9"
+    },
+    {
+      "path": "src\\lib\\source-scheduler.ts",
+      "sha256": "8aefda616d56a3babbd0831ce99cc71f7ac5cf512a92018762049ab559d4dfae"
+    },
+    {
+      "path": "src\\lib\\source-lane.ts",
+      "sha256": "3fd2265f828ff6c1ff8ab5331f99c3ab446f9921467f994f02ee241bf2051d12"
+    }
+  ],
+  "targets": [
+    {
+      "candidateId": "remedy-glendale",
+      "state": "CA",
+      "city": "Glendale",
+      "sourceHost": "www.remedyliquor.com",
+      "preparedConfigId": "remedy-glendale",
+      "preparedRuntimeId": "ca:remedy-glendale",
+      "preparedStoreId": "remedy-glendale:91201",
+      "preparedOnly": true,
+      "addressAliases": [
+        {
+          "address": "1700 W Glenoaks Blvd., Glendale, CA 91201",
+          "origin": "reviewed_first_party_pickup_capture",
+          "resolved": false
+        },
+        {
+          "address": "1700 W Glenoaks Blvd., Glendale CA 91201",
+          "origin": "prepared_not_activated_configuration",
+          "resolved": false
+        },
+        {
+          "address": "1700 W Glenoaks Blvd Suite B, Glendale CA 91201",
+          "origin": "earlier_website_location_copy_not_independent_suite_verification",
+          "resolved": false
+        }
+      ],
+      "matchingRule": "same state plus normalized street prefix OR same host; candidate matches require manual unit/address review",
+      "priorCurrentInventory": {
+        "status": "unresolved_active_baseline_not_captured",
+        "countProven": 0
+      },
+      "priorStaleOrHistoricalMatchesInSelectedReports": [],
+      "directoryMatchesInSelectedRegistry": [],
+      "registeredSourceHostLiteralMatches": [],
+      "publicAddressSearch": {
+        "capturedAt": "2026-10-23T02:22:41.666Z",
+        "sha256": "18053342228a36841d6c32fd3e3a661d6710e50b4aa1087a89280085d957b57c",
+        "status": 200,
+        "query": {
+          "state": "CA",
+          "query": "1700 W Glenoaks Glendale"
+        },
+        "responseStatus": "not-found",
+        "newnessProof": false
+      },
+      "pickupEvidence": {
+        "product": {
+          "id": "remedy-buffalo-product",
+          "file": "remedy-buffalo-product.json",
+          "requestedUrl": "https://www.remedyliquor.com/products/buffalo-trace-kentucky-whisky.json",
+          "finalUrl": "https://www.remedyliquor.com/products/buffalo-trace-kentucky-whisky.json",
+          "capturedAt": "2026-10-23T02:20:36.430Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2522,
+          "sha256": "d72b305e5dc6f7de28a1a6aa2288d0679571e3bf135f38a04a6be27f82a35d75"
+        },
+        "pickup": {
+          "id": "remedy-buffalo-pickup",
+          "file": "remedy-buffalo-pickup.html",
+          "requestedUrl": "https://www.remedyliquor.com/variants/43038323638500/?section_id=pickup-availability",
+          "finalUrl": "https://www.remedyliquor.com/variants/43038323638500/?section_id=pickup-availability",
+          "capturedAt": "2026-10-23T02:20:36.644Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2660,
+          "sha256": "23cf6221a44b82d1d05759e1e7080339b1c3540b156e55d0c35abbecfed2d4e9"
+        }
+      },
+      "newPhysicalStoreProven": false,
+      "ambiguities": [
+        "Pickup source omits suite B seen in store website; premises reconciliation must resolve base-address versus suite before activation.",
+        "Raw retailer title needs exact canonical review; tasting notes do not establish bottle identity."
+      ],
+      "requiredSupplements": [
+        "Pinned active broad export baseline and bounded retained historical manifests",
+        "Sanitized independent scheduler/lane premise heads and retained identity history",
+        "Verified-retailer premise-only census or explicit unresolved limitation",
+        "Physical address/unit/brand alias review; prior unscanned or pruned history remains unknown"
+      ]
+    },
+    {
+      "candidateId": "main-street-el-cajon",
+      "state": "CA",
+      "city": "El Cajon",
+      "sourceHost": "mainstreetliquor.com",
+      "preparedConfigId": "main-street-el-cajon",
+      "preparedRuntimeId": "ca:main-street-el-cajon",
+      "preparedStoreId": "main-street-el-cajon:92020",
+      "preparedOnly": true,
+      "addressAliases": [
+        {
+          "address": "120 South Mollison Avenue, Unit 100, El Cajon, CA 92020",
+          "origin": "reviewed_first_party_pickup_capture",
+          "resolved": true
+        },
+        {
+          "address": "120 South Mollison Avenue 100 El Cajon CA 92020",
+          "origin": "prepared_not_activated_configuration",
+          "resolved": true
+        }
+      ],
+      "matchingRule": "same state plus normalized street prefix OR same host; candidate matches require manual unit/address review",
+      "priorCurrentInventory": {
+        "status": "unresolved_active_baseline_not_captured",
+        "countProven": 0
+      },
+      "priorStaleOrHistoricalMatchesInSelectedReports": [],
+      "directoryMatchesInSelectedRegistry": [],
+      "registeredSourceHostLiteralMatches": [],
+      "publicAddressSearch": {
+        "capturedAt": "2026-10-23T02:22:48.265Z",
+        "sha256": "f267d0e0531e4e0ae4f8da2744a34defaa8c1c06dbbdc3428471349204c3da85",
+        "status": 200,
+        "query": {
+          "state": "CA",
+          "query": "120 South Mollison El Cajon"
+        },
+        "responseStatus": "not-found",
+        "newnessProof": false
+      },
+      "pickupEvidence": {
+        "product": {
+          "id": "main-street-buffalo-product",
+          "file": "main-street-buffalo-product.json",
+          "requestedUrl": "https://mainstreetliquor.com/products/buffalo-trace-bourbon.json",
+          "finalUrl": "https://mainstreetliquor.com/products/buffalo-trace-bourbon.json",
+          "capturedAt": "2026-10-23T02:20:37.364Z",
+          "status": 200,
+          "error": null,
+          "bytes": 8219,
+          "sha256": "4e108469d05e30b7d1905c0c925ece6b86aa33a3bf8df05c50a7e84a7b18fdb8"
+        },
+        "pickup": {
+          "id": "main-street-buffalo-pickup",
+          "file": "main-street-buffalo-pickup.html",
+          "requestedUrl": "https://mainstreetliquor.com/variants/40199925563529/?section_id=store-availability",
+          "finalUrl": "https://mainstreetliquor.com/variants/40199925563529/?section_id=store-availability",
+          "capturedAt": "2026-10-23T02:20:37.567Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2666,
+          "sha256": "e9497ac8ba0d1107019ebe8e87a0245a363ce7517400f7717ac565912648335e"
+        }
+      },
+      "newPhysicalStoreProven": false,
+      "ambiguities": [
+        "Unit 100 is mandatory premises evidence.",
+        "Store-availability theme differs from Jensen; shared parser must support the reviewed theme without retailer branches."
+      ],
+      "requiredSupplements": [
+        "Pinned active broad export baseline and bounded retained historical manifests",
+        "Sanitized independent scheduler/lane premise heads and retained identity history",
+        "Verified-retailer premise-only census or explicit unresolved limitation",
+        "Physical address/unit/brand alias review; prior unscanned or pruned history remains unknown"
+      ]
+    },
+    {
+      "candidateId": "christies-la-crescenta",
+      "state": "CA",
+      "city": "La Crescenta",
+      "sourceHost": "www.christiesliquor.com",
+      "preparedConfigId": "christies-la-crescenta",
+      "preparedRuntimeId": "ca:christies-la-crescenta",
+      "preparedStoreId": "christies-la-crescenta:91214",
+      "preparedOnly": true,
+      "addressAliases": [
+        {
+          "address": "3040 Foothill Boulevard, La Crescenta, CA 91214",
+          "origin": "reviewed_first_party_pickup_capture",
+          "resolved": true
+        },
+        {
+          "address": "3040 Foothill Boulevard La Crescenta CA 91214",
+          "origin": "prepared_not_activated_configuration",
+          "resolved": true
+        }
+      ],
+      "matchingRule": "same state plus normalized street prefix OR same host; candidate matches require manual unit/address review",
+      "priorCurrentInventory": {
+        "status": "unresolved_active_baseline_not_captured",
+        "countProven": 0
+      },
+      "priorStaleOrHistoricalMatchesInSelectedReports": [],
+      "directoryMatchesInSelectedRegistry": [],
+      "registeredSourceHostLiteralMatches": [],
+      "publicAddressSearch": {
+        "capturedAt": "2026-10-23T02:25:28.520Z",
+        "sha256": "3363d69f2ea13436d4c632ded27038b12dfbe1e729a118d5d3422c1f2927a30e",
+        "status": 200,
+        "query": {
+          "state": "CA",
+          "query": "3040 Foothill La Crescenta"
+        },
+        "responseStatus": "not-found",
+        "newnessProof": false
+      },
+      "pickupEvidence": {
+        "product": {
+          "id": "christies-bookers-product",
+          "file": "christies-bookers-product.json",
+          "requestedUrl": "https://www.christiesliquor.com/products/bookers-750-ml.json",
+          "finalUrl": "https://www.christiesliquor.com/products/bookers-750-ml.json",
+          "capturedAt": "2026-10-23T02:24:56.357Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2149,
+          "sha256": "6fb6a2c0457285454fb146283e3d646aee498a16e115abf7bce67ef0969eb979"
+        },
+        "pickup": {
+          "id": "christies-bookers-pickup",
+          "file": "christies-bookers-pickup.html",
+          "requestedUrl": "https://www.christiesliquor.com/variants/47839390040303/?section_id=pickup-availability",
+          "finalUrl": "https://www.christiesliquor.com/variants/47839390040303/?section_id=pickup-availability",
+          "capturedAt": "2026-10-23T02:24:56.549Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2680,
+          "sha256": "1ef76ba6cfb0f06eb6dc8a7d14649fe64e72593829e14fcd002b606d5eac9b22"
+        }
+      },
+      "newPhysicalStoreProven": false,
+      "ambiguities": [
+        "Preserve retailer Batch 2020-03 claim; exact canonical product review remains required."
+      ],
+      "requiredSupplements": [
+        "Pinned active broad export baseline and bounded retained historical manifests",
+        "Sanitized independent scheduler/lane premise heads and retained identity history",
+        "Verified-retailer premise-only census or explicit unresolved limitation",
+        "Physical address/unit/brand alias review; prior unscanned or pruned history remains unknown"
+      ]
+    },
+    {
+      "candidateId": "vino-new-york",
+      "state": "NY",
+      "city": "New York",
+      "sourceHost": "vinosite.com",
+      "preparedConfigId": "vino-lexington",
+      "preparedRuntimeId": "ny:vino-lexington",
+      "preparedStoreId": "vino-lexington:10016",
+      "preparedOnly": true,
+      "addressAliases": [
+        {
+          "address": "184 Lexington Ave, New York, NY 10016",
+          "origin": "reviewed_first_party_pickup_capture",
+          "resolved": true
+        },
+        {
+          "address": "184 Lexington Ave, New York NY 10016",
+          "origin": "prepared_not_activated_configuration",
+          "resolved": true
+        }
+      ],
+      "matchingRule": "same state plus normalized street prefix OR same host; candidate matches require manual unit/address review",
+      "priorCurrentInventory": {
+        "status": "unresolved_active_baseline_not_captured",
+        "countProven": 0
+      },
+      "priorStaleOrHistoricalMatchesInSelectedReports": [],
+      "directoryMatchesInSelectedRegistry": [],
+      "registeredSourceHostLiteralMatches": [],
+      "publicAddressSearch": {
+        "capturedAt": "2026-10-23T02:23:01.637Z",
+        "sha256": "7e25d3815a71653c07f6799934fb2f1558e56970380d113b2306d5ca94cdbd87",
+        "status": 200,
+        "query": {
+          "state": "NY",
+          "query": "184 Lexington Ave"
+        },
+        "responseStatus": "not-found",
+        "newnessProof": false
+      },
+      "pickupEvidence": {
+        "product": {
+          "id": "vino-weller-product",
+          "file": "vino-weller-product.json",
+          "requestedUrl": "https://vinosite.com/products/w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml.json",
+          "finalUrl": "https://vinosite.com/products/w-l-weller-the-original-wheated-single-barrel-kentucky-straight-bourbon-97-proof-750ml.json",
+          "capturedAt": "2026-10-23T02:20:36.943Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2267,
+          "sha256": "7d0815db2b6d9eaf9a3f3e7a17bf926f761b2641a40bbe235cf0ee876b8306e5"
+        },
+        "pickup": {
+          "id": "vino-weller-pickup",
+          "file": "vino-weller-pickup.html",
+          "requestedUrl": "https://vinosite.com/variants/44700008808580/?section_id=pickup-availability",
+          "finalUrl": "https://vinosite.com/variants/44700008808580/?section_id=pickup-availability",
+          "capturedAt": "2026-10-23T02:20:37.082Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2729,
+          "sha256": "ef8f9dd22cb3705f452e51a5c01fffc4c5ca074054095f5c5c0708c4e1ce2512"
+        }
+      },
+      "newPhysicalStoreProven": false,
+      "ambiguities": [
+        "Raw title contains wheated and 97 Proof; requires reviewed exact canonical mapping, not broad family matching.",
+        "Retailer collector price is not an MSRP or value claim."
+      ],
+      "requiredSupplements": [
+        "Pinned active broad export baseline and bounded retained historical manifests",
+        "Sanitized independent scheduler/lane premise heads and retained identity history",
+        "Verified-retailer premise-only census or explicit unresolved limitation",
+        "Physical address/unit/brand alias review; prior unscanned or pruned history remains unknown"
+      ]
+    },
+    {
+      "candidateId": "hot-spot-austin",
+      "state": "TX",
+      "city": "Austin",
+      "sourceHost": "hotspot.fun",
+      "preparedConfigId": "hot-spot-austin",
+      "preparedRuntimeId": "tx:hot-spot-austin",
+      "preparedStoreId": "hot-spot-austin:78701",
+      "preparedOnly": true,
+      "addressAliases": [
+        {
+          "address": "411 Brazos Street, Suite 100, Austin, TX 78701",
+          "origin": "reviewed_first_party_pickup_capture",
+          "resolved": true
+        },
+        {
+          "address": "411 Brazos Street Suite 100 Austin TX 78701",
+          "origin": "prepared_not_activated_configuration",
+          "resolved": true
+        }
+      ],
+      "matchingRule": "same state plus normalized street prefix OR same host; candidate matches require manual unit/address review",
+      "priorCurrentInventory": {
+        "status": "unresolved_active_baseline_not_captured",
+        "countProven": 0
+      },
+      "priorStaleOrHistoricalMatchesInSelectedReports": [],
+      "directoryMatchesInSelectedRegistry": [],
+      "registeredSourceHostLiteralMatches": [],
+      "publicAddressSearch": {
+        "capturedAt": "2026-10-23T02:23:08.287Z",
+        "sha256": "cdab9473059e9552813560e63f4b3605b92896a963881be275f478fcbfa68f02",
+        "status": 200,
+        "query": {
+          "state": "TX",
+          "query": "411 Brazos Austin"
+        },
+        "responseStatus": "not-found",
+        "newnessProof": false
+      },
+      "pickupEvidence": {
+        "product": {
+          "id": "hotspot-bookers-product",
+          "file": "hotspot-bookers-product.json",
+          "requestedUrl": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+          "finalUrl": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+          "capturedAt": "2026-10-23T02:21:53.639Z",
+          "status": 200,
+          "error": null,
+          "bytes": 1120,
+          "sha256": "63793020363392f6ec18287fefc68eba4f832f6d42d98838790081cad767b521"
+        },
+        "pickup": {
+          "id": "hotspot-bookers-store-pickup",
+          "file": "hotspot-bookers-store-pickup.html",
+          "requestedUrl": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+          "finalUrl": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+          "capturedAt": "2026-10-23T02:22:02.501Z",
+          "status": 200,
+          "error": null,
+          "bytes": 2748,
+          "sha256": "5787c9bd2f560daaaf78a66c779dee26beedeb9feed250e27c86fd502f091611"
+        }
+      },
+      "newPhysicalStoreProven": false,
+      "ambiguities": [
+        "Pickup section repeats only variant label 750mL, not full product title; generic contract must validate exact product/variant binding and explicit variant title.",
+        "Suite 100 is mandatory; metadata body SGWS does not establish bottle identity."
+      ],
+      "requiredSupplements": [
+        "Pinned active broad export baseline and bounded retained historical manifests",
+        "Sanitized independent scheduler/lane premise heads and retained identity history",
+        "Verified-retailer premise-only census or explicit unresolved limitation",
+        "Physical address/unit/brand alias review; prior unscanned or pruned history remains unknown"
+      ]
+    }
+  ],
+  "nameCollisionExamples": [],
+  "delMesa": {
+    "captureReceivedAt": "2026-10-23T03:03:08.497Z",
+    "sourceId": "ca:del-mesa-liquor",
+    "generation": "540",
+    "lastAcceptedAt": "2026-10-22T20:45:26.970Z",
+    "lastFailureAt": "2026-10-22T21:20:22.201Z",
+    "lastReason": "source_identity_or_schema_failure",
+    "pausedUntil": "2026-10-23T03:20:22.201Z",
+    "retainedFeedRows": 7,
+    "restorationPremisesUpperBound": 1,
+    "netNewPhysicalPremises": 0,
+    "archivedPremises": [
+      {
+        "state": "CA",
+        "storeId": "del-mesa-liquor:6090-friars",
+        "sourceId": "ca:del-mesa-liquor",
+        "sourceChain": "del-mesa-liquor",
+        "name": "Del Mesa Liquor",
+        "address": "6090 Friars Road, San Diego, CA 92108-1002",
+        "city": "San Diego",
+        "zip": "92108-1002",
+        "sourceHost": "delmesaliquor.com",
+        "observedAt": "2026-10-22T21:55:55.751Z",
+        "inventoryType": "retailer_store_inventory_result",
+        "inventoryFlag": true,
+        "staleFlag": false
+      }
+    ],
+    "broadSourceHistory": [
+      {
+        "sourceId": "ca:del-mesa-liquor",
+        "observedAt": "2026-10-22T21:55:59.858Z",
+        "outcome": "success",
+        "attemptCount": 1,
+        "runtimeMs": 4104
+      },
+      {
+        "sourceId": "ca:del-mesa-liquor",
+        "observedAt": "2026-10-22T21:55:55.751Z",
+        "outcome": "not_due",
+        "attemptCount": 0,
+        "runtimeMs": null
+      },
+      {
+        "sourceId": "ca:del-mesa-liquor",
+        "observedAt": "2026-10-22T17:06:02.128Z",
+        "outcome": "success",
+        "attemptCount": 1,
+        "runtimeMs": 3397
+      },
+      {
+        "sourceId": "ca:del-mesa-liquor",
+        "observedAt": "2026-10-22T17:05:58.728Z",
+        "outcome": "not_due",
+        "attemptCount": 0,
+        "runtimeMs": null
+      },
+      {
+        "sourceId": "ca:del-mesa-liquor",
+        "observedAt": "2026-10-22T12:44:42.712Z",
+        "outcome": "success",
+        "attemptCount": 1,
+        "runtimeMs": 4619
+      },
+      {
+        "sourceId": "ca:del-mesa-liquor",
+        "observedAt": "2026-10-22T12:44:38.091Z",
+        "outcome": "not_due",
+        "attemptCount": 0,
+        "runtimeMs": null
+      },
+      {
+        "sourceId": "ca:del-mesa-liquor",
+        "observedAt": "2026-10-22T07:58:49.540Z",
+        "outcome": "success",
+        "attemptCount": 1,
+        "runtimeMs": 5367
+      },
+      {
+        "sourceId": "ca:del-mesa-liquor",
+        "observedAt": "2026-10-22T07:58:44.171Z",
+        "outcome": "not_due",
+        "attemptCount": 0,
+        "runtimeMs": null
+      }
+    ],
+    "rootCauseProven": false,
+    "networkRequested": false,
+    "limitation": "Separate broad-run success and independent scheduler failure do not establish current merchant stock or exact failure branch."
+  },
+  "limitations": [
+    "No active encrypted snapshot or database was read.",
+    "Selected report absence is not exhaustive historical absence.",
+    "No current/stale customer premise census can be inferred from report freshness or directory flags.",
+    "Address prefixes identify review candidates, not automatic physical equivalence.",
+    "This ledger is immutable evidence for this bounded pass, not a runtime-consumed registry."
+  ]
+}

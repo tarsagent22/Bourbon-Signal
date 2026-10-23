@@ -19,6 +19,8 @@ import { normalizeDropForSite, readSiteExportResults } from "@/lib/site-engine-c
 import { normalizePublicDropEvidenceInput, isPublicDropFeedEligible, isCurrentInventoryEvidence } from "@/lib/public-drop-evidence";
 import { pilotReceiptPayload } from './nationwide-pilot-receipt';
 import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
+import dropFeedClassification from "@/data/drop-feed-classification.generated.json";
+import { classifyPublicDrop, getDropClassificationIndex, type DropClassificationBottle } from "@/lib/drop-classification";
 
 interface CoverageStatsPayload {
   generatedAt?: string;
@@ -66,6 +68,7 @@ async function readCoverageInputs() {
   const stores = (storesResult.payload || {}) as CoverageStoresPayload;
   const drops = (dropsResult.payload || {}) as CoverageDropsPayload;
   const overlay = await readRuntimeSourceDropOverlay(Array.isArray(drops.drops) ? drops.drops : [], dropsResult.snapshotId);
+  const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
   return {
     lifecycle: STATE_LIFECYCLE_CONFIG,
     stateRows: Array.isArray(stats.stateCoverage?.states) ? stats.stateCoverage.states : [],
@@ -79,7 +82,7 @@ async function readCoverageInputs() {
     drops: [
       ...overlay.drops,
       ...retailerDrops,
-    ].map((drop) => normalizePublicDropEvidenceInput(normalizeDropForSite(drop as Record<string, unknown>))),
+    ].map((drop) => normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite(drop as Record<string, unknown>), classificationIndex))),
     degradedStates: Array.isArray(stats.refreshHealth?.degradedStates) ? stats.refreshHealth.degradedStates : [],
     generatedAt: stats.generatedAt,
     asOf: now.toISOString(),

@@ -34,7 +34,7 @@ import { dropFeedStoreQueryMatches } from "@/lib/feed-area-options";
 import {
   DROP_FEED_CLASSIFICATION_TIERS,
   getDropClassificationIndex,
-  resolveDropClassification,
+  classifyPublicDrop,
   type DropClassificationBottle,
 } from "@/lib/drop-classification";
 
@@ -152,16 +152,7 @@ async function publicRetailerSubmissions() {
 
 function normalizePublicFeedRow(drop: Record<string, unknown>, classificationIndex: ReturnType<typeof getDropClassificationIndex>) {
   const normalized = normalizeDropForSite(drop);
-  const classification = resolveDropClassification(normalized, classificationIndex);
-  return {
-    ...normalized,
-    tier: classification.tier,
-    rarity_tier: classification.tier,
-    classification_source: classification.source,
-    classification_state: classification.state,
-    classification_bottle_id: classification.bottleId,
-    national_tier: classification.nationalTier,
-  };
+  return classifyPublicDrop(normalized, classificationIndex);
 }
 
 // Only immutable export rows and their generated classification enter the heavy

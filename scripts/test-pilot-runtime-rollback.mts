@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import * as crypto from 'node:crypto';
 import { transform } from 'esbuild';
 import * as policy from '../engine/src/sources/poll-policy.mjs';
+import * as shopifyPolicy from '../engine/src/sources/shopify-pickup-policy.mjs';
 import { JENSENS_RUNTIME_SOURCE } from '../engine/src/collectors/florida-jensens-runtime-source.mjs';
 import { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES } from '../engine/src/collectors/california-san-diego-surfaces.mjs';
 
@@ -26,6 +27,7 @@ async function runtime() {
   const scheduler = await load('src/lib/source-scheduler.ts', name => {
     if (name === 'node:crypto') return crypto;
     if (name.endsWith('/sources/poll-policy.mjs')) return policy;
+    if (name.endsWith('/sources/shopify-pickup-policy.mjs')) return shopifyPolicy;
     if (name.endsWith('/florida-jensens-runtime-source.mjs')) return { JENSENS_RUNTIME_SOURCE, collectJensensSource: forbidden('collector') };
     if (name.endsWith('/california-san-diego-surfaces.mjs')) return { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES };
     if (name === './alert-queue/runtime') return { createProductionAlertQueueSqlExecutor: forbidden('database') };

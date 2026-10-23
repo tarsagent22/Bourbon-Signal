@@ -1,3 +1,5 @@
+import { createShopifyPickupPolicy } from './shopify-pickup-policy.mjs';
+
 export function recoveryPolicy(reason, failures = 0, retryAfter = 0, source = {}) {
   const identity = /identity|schema|digest|malformed|extract_datetime|incomplete|fulfillment/.test(reason);
   const dependency = /artifact|dependency|not_configured|access_denied/.test(reason);
@@ -12,6 +14,8 @@ export function recoveryPolicy(reason, failures = 0, retryAfter = 0, source = {}
 export function sourceScopeMatches(source, row) {
   if (source.kind === 'oh-probe' || row.state !== source.state) return false;
   if (source.kind === 'nc-shipments') return (row.type || row.eventType) === 'nc_board_shipment_snapshot';
+  if (source.kind === 'shopify-variant-pickup') return row.sourceChain === source.chain && (source.partitionBindings || []).some(binding =>
+    String(row.storeId || row.store_id || '') === binding.storeId && String(row.productId || '') === binding.productId && String(row.variantId || '') === binding.variantId);
   return row.sourceChain === source.chain
     && (!source.storeIds || source.storeIds.includes(String(row.storeId || row.store_id || '')))
     && (!source.productIds || source.productIds.includes(String(row.productId || '')))
@@ -55,14 +59,18 @@ function projectionRows(projection, kind) { return Array.isArray(projection?.[ki
 
 // Reapply current bottle and state authority at every consumption, including sends.
 // Invalid policy removes candidates while retaining non-alertable feed history.
-export function validatePollPolicy(jobs,registry,lookup,health,quarantined='') {
+export function validatePollPolicy(jobs,registry,lookup,health,quarantined='',policySnapshotId='') {
   const blocked=new Set(quarantined.split(',').filter(Boolean));
   for(const row of health?.states || []) if(row.health==='blocked')blocked.add(row.state);
+  const descriptors=registry.filter(source=>source.kind==='shopify-variant-pickup');
+  const shopifyPolicy=descriptors.length?createShopifyPickupPolicy({descriptors,enabledSourceIds:descriptors.filter(source=>!source.disabled).map(source=>source.id),
+    collectorSha256:descriptors[0].collectorSha256,catalogSha256:descriptors[0].catalogSha256,lookup,policySnapshotId,blockedStates:[...blocked]}):null;
   return jobs.map(job=>{
     const source=registry.find(s=>s.id===job.source_id);
     if(!source || !job.projection)return job;
     const allowed=row=> {
       if(blocked.has(source.state))return false;
+      if(source.kind==='shopify-variant-pickup')return shopifyPolicy.eligible(row);
       const record=lookup.byId?.get?.(row.canonicalBottleId || row.canonicalId) || lookup.byId?.[row.canonicalBottleId || row.canonicalId];
       return !!record && ['limited','allocated','unicorn'].includes(record.tier);
     };

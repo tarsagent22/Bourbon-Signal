@@ -54,15 +54,17 @@ async function bounded<T>(operation: Promise<T>, ms = 15_000): Promise<T> {
 }
 
 /** No collection/writes. Storage exposes read capabilities only. History absence is never a newness proof. */
-export async function captureCoveragePremisesBaseline({ storage, encryptionKey, expectedCommit, health, history = async () => ({ ids: [], limited: true }), registry = [], now = () => Date.now() }: {
+export async function captureCoveragePremisesBaseline({ storage, encryptionKey, expectedCommit, health, independentSources, history = async () => ({ ids: [], limited: true }), registry = [], now = () => Date.now() }: {
   storage: { readPointer(): Promise<Row | null>; readObject(key: string): Promise<string | null> }; encryptionKey: string; expectedCommit: string;
-  health(): Promise<Row>; history?: () => Promise<{ ids: string[]; limited: boolean; eventCount?: number }>; registry?: Row[]; now?: () => number;
+  health(): Promise<Row>; independentSources?: () => Promise<Row>; history?: () => Promise<{ ids: string[]; limited: boolean; eventCount?: number }>; registry?: Row[]; now?: () => number;
 }) {
   if (!/^[a-f0-9]{40}$/.test(expectedCommit)) throw new Error('Exact expected production commit required');
   const pointer = await bounded(storage.readPointer());
   if (!pointer || !snapshotId(pointer.active)) throw new Error('Active pointer missing');
   const pointerHash = hash(JSON.stringify(canonical(pointer))), active = pointer.active;
   healthMatches(await bounded(health()), expectedCommit, active);
+  const independent = independentSources ? await bounded(independentSources()) : null;
+  if (independent && (independent.contractVersion !== 'bourbon-signal/source-premises-baseline@1' || independent.releaseCommit !== expectedCommit)) throw new Error('Independent source baseline identity mismatch');
   const retained = await bounded(history());
   if (!Array.isArray(retained.ids) || retained.ids.some(id => !snapshotId(id)) || retained.ids.length > MAX_EVENT_ROWS) throw new Error('Invalid bounded history identities');
   const selected = [...new Set([active, ...(snapshotId(pointer.previous) ? [pointer.previous] : []), ...retained.ids])].slice(0, MAX_SNAPSHOTS);
@@ -130,10 +132,11 @@ export async function captureCoveragePremisesBaseline({ storage, encryptionKey, 
   })).values()];
   return { contractVersion: 'bourbon-signal/premises-baseline@1', capturedAt: new Date(now()).toISOString(), expectedProductionCommit: expectedCommit,
     activeSnapshotId: active, activePointerSha256: pointerHash, provenance: snapshots, readAccounting: { objectReads: reads, encryptedAndManifestBytes: bytes },
+    independentSources: independent, independentSourcesMissing: independent === null,
     history: { scope: 'bounded_retained_activation_window', requestedSnapshots: selected.length, eventCount: retained.eventCount ?? null,
       limited: retained.limited || new Set([active, pointer.previous, ...retained.ids].filter(Boolean)).size > MAX_SNAPSHOTS || gaps.length > 0, gaps,
       exhaustiveHistoricalAbsenceProven: false },
-    limits: ['Independent scheduler overlays and verified-retailer submissions are not in this encrypted broad snapshot.', 'Selected JSON registries do not enumerate every source configuration or address alias.',
+    limits: ['Independent scheduler projections are separately timestamped when captured; verified-retailer submissions are excluded.', 'Selected JSON registries do not enumerate every source configuration or address alias.',
       'One-hour raw inventory flag is a conservative classification, not customer feed eligibility or physical stock verification.', 'No matching address is not proof of a new physical store.'],
     premises: unique };
 }
@@ -151,6 +154,15 @@ async function main() {
     registryFiles.push({ file: `engine/data/store-universe/${file}`, sha256: hash(raw) });
   }
   const result = await captureCoveragePremisesBaseline({ storage, encryptionKey: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '', expectedCommit: process.env.BASELINE_EXPECTED_COMMIT || '', registry,
+    independentSources: async () => {
+      if (!process.env.SOURCE_SCHEDULER_SECRET) throw new Error('Independent source read credential missing');
+      const response = await fetch('https://www.bourbonsignal.com/api/ops/source-scheduler?read=1&premises=1', {
+        headers: { authorization: `Bearer ${process.env.SOURCE_SCHEDULER_SECRET}` }, signal: AbortSignal.timeout(15_000), cache: 'no-store', redirect: 'error',
+      });
+      if (response.status !== 200) throw new Error('Independent source premises unavailable');
+      const raw = await response.text(); if (Buffer.byteLength(raw) > 2 * 1024 * 1024) throw new Error('Independent source premises bound');
+      return JSON.parse(raw);
+    },
     health: async () => {
       const response = await fetch('https://www.bourbonsignal.com/api/ops/health', { signal: AbortSignal.timeout(15_000), cache: 'no-store' });
       if (![200, 503].includes(response.status)) throw new Error('Health unavailable');
