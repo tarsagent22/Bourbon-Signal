@@ -1,0 +1,1135 @@
+{
+  "contractVersion": "bourbon-signal/pilot-soak-evaluation@1",
+  "assembledAt": "2026-10-23T01:15:29.588Z",
+  "status": "accepted",
+  "evidence": {
+    "contractVersion": "nationwide-pilot-evidence@1",
+    "sources": [
+      {
+        "sourceId": "ca:mission-trails-wine-spirits",
+        "state": "CA",
+        "cadenceSeconds": 1800,
+        "runs": [
+          {
+            "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+            "generation": 563,
+            "status": "accepted",
+            "trigger": "scheduled",
+            "manualDueReset": false,
+            "dueAt": "2026-10-23T00:25:27.372Z",
+            "startedAt": "2026-10-23T00:30:20.757Z",
+            "finishedAt": "2026-10-23T00:30:27.294Z",
+            "bootstrap": false,
+            "requests": 4,
+            "bytes": 3970983,
+            "durationMs": 6480,
+            "provenance": {
+              "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39878660651/artifacts/12469009451",
+              "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188",
+              "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39878660651/nationwide-pilot-capture.json"
+            },
+            "observations": [
+              {
+                "state": "CA",
+                "sizeMl": null,
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "quantity": 0,
+                "productId": "15434358718676",
+                "sourceUrl": "https://missiontrailswineandspirits.com/products/makers-mark-cellar-aged-straight-bourbon-2026-release",
+                "variantId": "67908145905876",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "availability": "in_stock",
+                "storeAddress": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+                "pickupVerified": false,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "not_published",
+                "canonicalBottleId": "bb_78043ec3da926c43",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "retailer_pickup_policy",
+                "fulfillmentPolicyVerified": true
+              },
+              {
+                "state": "CA",
+                "sizeMl": 750,
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "quantity": 0,
+                "productId": "15419521695956",
+                "sourceUrl": "https://missiontrailswineandspirits.com/products/heaven-hill-7-year-bottled-in-bond-gift-pack-w-mixing-glass",
+                "variantId": "67716188766420",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "availability": "in_stock",
+                "storeAddress": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+                "pickupVerified": false,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "source_metadata",
+                "canonicalBottleId": "bb_ef203a18f5f98f23",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "retailer_pickup_policy",
+                "fulfillmentPolicyVerified": true
+              },
+              {
+                "state": "CA",
+                "sizeMl": null,
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "quantity": 0,
+                "productId": "9340179415252",
+                "sourceUrl": "https://missiontrailswineandspirits.com/products/parker-s-heritage-collection-20th-edition-14-year-rye-backset-bourbon",
+                "variantId": "48650261790932",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "availability": "in_stock",
+                "storeAddress": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+                "pickupVerified": false,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "not_published",
+                "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "retailer_pickup_policy",
+                "fulfillmentPolicyVerified": true
+              }
+            ],
+            "customerReceipts": [
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                "generation": 563,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_78043ec3da926c43",
+                "productId": "15434358718676",
+                "variantId": "67908145905876",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T00:32:30.929Z",
+                "responseReceivedAt": "2026-10-23T00:32:31.074Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc:source:423a908df3d3a96c0fd57fe3:10709c4ad8e04090bd0d2f14",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39878660651/artifacts/12469009451",
+                  "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39878660651/nationwide-pilot-capture.json",
+                  "responseSha256": "411d5edb8949cb76f759195327f1f87866bb9c6602d6bf177295910f2f7814b1",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792715542391-5d8a81cf0a97"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                "generation": 563,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_78043ec3da926c43",
+                "productId": "15434358718676",
+                "variantId": "67908145905876",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T00:32:31.305Z",
+                "responseReceivedAt": "2026-10-23T00:32:38.449Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39878660651/artifacts/12469009451",
+                  "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39878660651/nationwide-pilot-capture.json",
+                  "responseSha256": "ee2ac3b145b41b16e2eea8375cb2d918a107858fd367e39f6112538888165722",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792715551074-7b1ece2ccebf"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                "generation": 563,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_ef203a18f5f98f23",
+                "productId": "15419521695956",
+                "variantId": "67716188766420",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T00:32:30.929Z",
+                "responseReceivedAt": "2026-10-23T00:32:31.074Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc:source:423a908df3d3a96c0fd57fe3:10709c4ad8e04090bd0d2f14",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39878660651/artifacts/12469009451",
+                  "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39878660651/nationwide-pilot-capture.json",
+                  "responseSha256": "411d5edb8949cb76f759195327f1f87866bb9c6602d6bf177295910f2f7814b1",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792715542391-5d8a81cf0a97"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                "generation": 563,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_ef203a18f5f98f23",
+                "productId": "15419521695956",
+                "variantId": "67716188766420",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T00:32:31.305Z",
+                "responseReceivedAt": "2026-10-23T00:32:38.449Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39878660651/artifacts/12469009451",
+                  "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39878660651/nationwide-pilot-capture.json",
+                  "responseSha256": "ee2ac3b145b41b16e2eea8375cb2d918a107858fd367e39f6112538888165722",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792715551074-7b1ece2ccebf"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                "generation": 563,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+                "productId": "9340179415252",
+                "variantId": "48650261790932",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T00:32:30.929Z",
+                "responseReceivedAt": "2026-10-23T00:32:31.074Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc:source:423a908df3d3a96c0fd57fe3:10709c4ad8e04090bd0d2f14",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39878660651/artifacts/12469009451",
+                  "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39878660651/nationwide-pilot-capture.json",
+                  "responseSha256": "411d5edb8949cb76f759195327f1f87866bb9c6602d6bf177295910f2f7814b1",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792715542391-5d8a81cf0a97"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                "generation": 563,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+                "productId": "9340179415252",
+                "variantId": "48650261790932",
+                "observedAt": "2026-10-23T00:30:22.113Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T00:32:31.305Z",
+                "responseReceivedAt": "2026-10-23T00:32:38.449Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39878660651/artifacts/12469009451",
+                  "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39878660651/nationwide-pilot-capture.json",
+                  "responseSha256": "ee2ac3b145b41b16e2eea8375cb2d918a107858fd367e39f6112538888165722",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792715551074-7b1ece2ccebf"
+                }
+              }
+            ],
+            "candidateCount": 0,
+            "candidateKeys": [],
+            "projectedCandidateCount": 3,
+            "projectedCandidateKeys": [
+              "66ad4d9d8faa07d7",
+              "0c4f04a879e7df56",
+              "7000038328fcf307"
+            ],
+            "queueEvidence": {
+              "provenance": {
+                "url": "https://github.com/tarsagent22/Bourbon-Signal/blob/67726992297a17ac4810f9b4462962a84edf5b7a/docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca563.json",
+                "sha256": "7eba8ac1a24babe0bc27cf7677a3547afbcaa4149d20df447395ba44515b4680"
+              },
+              "queryVersion": "pilot-owned-key-counts@2",
+              "querySha256": "0d049465eb961dee95966156d1dd7d81b6dc5c781281ba52e696879890332e06",
+              "identityFunctionSha256": "def5607048360f4fae12a363649b8c224857db877f9886c4a0f5553dcff349ce",
+              "checkedAt": "2026-10-23T00:36:48.394Z",
+              "queriedAt": "2026-10-23T00:36:48.927Z",
+              "window": {
+                "startAt": "2026-10-23T00:30:20.757Z",
+                "endAt": "2026-10-23T00:36:48.394Z",
+                "endBasis": "checked_at",
+                "minimumAfterFinishMs": 300000,
+                "nextRun": null
+              },
+              "counts": {
+                "newQueueRows": 0,
+                "deliveryAttempts": 0
+              },
+              "projectedCandidateCount": 3,
+              "projectedCandidateKeys": [
+                "66ad4d9d8faa07d7",
+                "0c4f04a879e7df56",
+                "7000038328fcf307"
+              ],
+              "stableKeys": [
+                "0c4f04a879e7df56",
+                "480dd3268b264c9a",
+                "66ad4d9d8faa07d7",
+                "7000038328fcf307",
+                "availability-episode:4c64b3fbb5649646",
+                "availability-episode:e2142f2e44d77356",
+                "availability-episode:f2a7e1a12ab49f25",
+                "c0e4ef73e4fe8b10",
+                "dbe6113520dabeea"
+              ],
+              "mappings": [
+                {
+                  "projectedKey": "66ad4d9d8faa07d7",
+                  "stableKey": "availability-episode:e2142f2e44d77356",
+                  "legacyAliases": [
+                    "480dd3268b264c9a",
+                    "66ad4d9d8faa07d7"
+                  ],
+                  "mappingBasis": "exact_target_run_generation_current_source_projection",
+                  "currentProjectionRunId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                  "currentProjectionGeneration": 563,
+                  "currentCandidateObservedAt": "2026-10-23T00:30:22.113Z",
+                  "identityFields": {
+                    "eventIdentityKey": "availability-episode:e2142f2e44d77356",
+                    "availabilityEpisodeId": "e2142f2e44d77356",
+                    "legacyDedupeKey": "480dd3268b264c9a",
+                    "matchKey": "9513b4efd3ce6adb",
+                    "changeType": "current_inventory_signal",
+                    "signalAt": "2026-10-23T00:30:22.113Z"
+                  },
+                  "observation": {
+                    "state": "CA",
+                    "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                    "canonicalBottleId": "bb_78043ec3da926c43",
+                    "productId": "15434358718676",
+                    "variantId": "67908145905876",
+                    "observedAt": "2026-10-23T00:30:22.113Z"
+                  }
+                },
+                {
+                  "projectedKey": "0c4f04a879e7df56",
+                  "stableKey": "availability-episode:4c64b3fbb5649646",
+                  "legacyAliases": [
+                    "0c4f04a879e7df56",
+                    "dbe6113520dabeea"
+                  ],
+                  "mappingBasis": "exact_target_run_generation_current_source_projection",
+                  "currentProjectionRunId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                  "currentProjectionGeneration": 563,
+                  "currentCandidateObservedAt": "2026-10-23T00:30:22.113Z",
+                  "identityFields": {
+                    "eventIdentityKey": "availability-episode:4c64b3fbb5649646",
+                    "availabilityEpisodeId": "4c64b3fbb5649646",
+                    "legacyDedupeKey": "dbe6113520dabeea",
+                    "matchKey": "a0c5d96f1cecbcd4",
+                    "changeType": "current_inventory_signal",
+                    "signalAt": "2026-10-23T00:30:22.113Z"
+                  },
+                  "observation": {
+                    "state": "CA",
+                    "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                    "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+                    "productId": "9340179415252",
+                    "variantId": "48650261790932",
+                    "observedAt": "2026-10-23T00:30:22.113Z"
+                  }
+                },
+                {
+                  "projectedKey": "7000038328fcf307",
+                  "stableKey": "availability-episode:f2a7e1a12ab49f25",
+                  "legacyAliases": [
+                    "7000038328fcf307",
+                    "c0e4ef73e4fe8b10"
+                  ],
+                  "mappingBasis": "exact_target_run_generation_current_source_projection",
+                  "currentProjectionRunId": "65f82384-044c-4b57-9886-680ba4fe0548",
+                  "currentProjectionGeneration": 563,
+                  "currentCandidateObservedAt": "2026-10-23T00:30:22.113Z",
+                  "identityFields": {
+                    "eventIdentityKey": "availability-episode:f2a7e1a12ab49f25",
+                    "availabilityEpisodeId": "f2a7e1a12ab49f25",
+                    "legacyDedupeKey": "c0e4ef73e4fe8b10",
+                    "matchKey": "977acf2c81cc74bb",
+                    "changeType": "current_inventory_signal",
+                    "signalAt": "2026-10-23T00:30:22.113Z"
+                  },
+                  "observation": {
+                    "state": "CA",
+                    "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                    "canonicalBottleId": "bb_ef203a18f5f98f23",
+                    "productId": "15419521695956",
+                    "variantId": "67716188766420",
+                    "observedAt": "2026-10-23T00:30:22.113Z"
+                  }
+                }
+              ],
+              "limitation": "Zero new queue rows and zero recorded delivery attempts only for these owned keys in this observed window. Retained projection candidates remain present."
+            },
+            "rawObservationCount": 3,
+            "matchedObservationCount": 3
+          },
+          {
+            "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+            "generation": 564,
+            "status": "accepted",
+            "trigger": "scheduled",
+            "manualDueReset": false,
+            "dueAt": "2026-10-23T01:00:27.293Z",
+            "startedAt": "2026-10-23T01:05:20.509Z",
+            "finishedAt": "2026-10-23T01:05:24.446Z",
+            "bootstrap": false,
+            "requests": 4,
+            "bytes": 3970983,
+            "durationMs": 3922,
+            "provenance": {
+              "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882576570/artifacts/12471510379",
+              "sha256": "3df5a92a772ff095f7e8a825d312fa8fb50cc341106ad9c09bea82ccc70196d8",
+              "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882576570/nationwide-pilot-capture.json"
+            },
+            "observations": [
+              {
+                "state": "CA",
+                "sizeMl": null,
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "quantity": 0,
+                "productId": "15434358718676",
+                "sourceUrl": "https://missiontrailswineandspirits.com/products/makers-mark-cellar-aged-straight-bourbon-2026-release",
+                "variantId": "67908145905876",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "availability": "in_stock",
+                "storeAddress": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+                "pickupVerified": false,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "not_published",
+                "canonicalBottleId": "bb_78043ec3da926c43",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "retailer_pickup_policy",
+                "fulfillmentPolicyVerified": true
+              },
+              {
+                "state": "CA",
+                "sizeMl": 750,
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "quantity": 0,
+                "productId": "15419521695956",
+                "sourceUrl": "https://missiontrailswineandspirits.com/products/heaven-hill-7-year-bottled-in-bond-gift-pack-w-mixing-glass",
+                "variantId": "67716188766420",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "availability": "in_stock",
+                "storeAddress": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+                "pickupVerified": false,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "source_metadata",
+                "canonicalBottleId": "bb_ef203a18f5f98f23",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "retailer_pickup_policy",
+                "fulfillmentPolicyVerified": true
+              },
+              {
+                "state": "CA",
+                "sizeMl": null,
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "quantity": 0,
+                "productId": "9340179415252",
+                "sourceUrl": "https://missiontrailswineandspirits.com/products/parker-s-heritage-collection-20th-edition-14-year-rye-backset-bourbon",
+                "variantId": "48650261790932",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "availability": "in_stock",
+                "storeAddress": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+                "pickupVerified": false,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "not_published",
+                "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "retailer_pickup_policy",
+                "fulfillmentPolicyVerified": true
+              }
+            ],
+            "customerReceipts": [
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                "generation": 564,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_78043ec3da926c43",
+                "productId": "15434358718676",
+                "variantId": "67908145905876",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T01:14:58.238Z",
+                "responseReceivedAt": "2026-10-23T01:15:05.322Z",
+                "snapshot": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a:source:7ac1cd35ff7faaa71c45848a:45ea116edb7e414f18048014",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882874962/artifacts/12470783283",
+                  "sha256": "8d2e6e4aac0f04267f5a7d98f37b5d84fadecc18aae0da4b9ee626840584a690",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882874962/nationwide-pilot-capture.json",
+                  "responseSha256": "bb8fa614b29d601b65d1a79b20b0f5e2cc4614ab2112972ba676b86e22d47aa2",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792718097272-42e1aa8645b2"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                "generation": 564,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_78043ec3da926c43",
+                "productId": "15434358718676",
+                "variantId": "67908145905876",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T01:12:07.861Z",
+                "responseReceivedAt": "2026-10-23T01:12:14.594Z",
+                "snapshot": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882576570/artifacts/12471510379",
+                  "sha256": "3df5a92a772ff095f7e8a825d312fa8fb50cc341106ad9c09bea82ccc70196d8",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882576570/nationwide-pilot-capture.json",
+                  "responseSha256": "5c52d351e4934b51283c5d425fb351619c3ca47c829c7b33247578dd8d308a0c",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792717927544-a9a65124fb40"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                "generation": 564,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_ef203a18f5f98f23",
+                "productId": "15419521695956",
+                "variantId": "67716188766420",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T01:14:58.238Z",
+                "responseReceivedAt": "2026-10-23T01:15:05.322Z",
+                "snapshot": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a:source:7ac1cd35ff7faaa71c45848a:45ea116edb7e414f18048014",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882874962/artifacts/12470783283",
+                  "sha256": "8d2e6e4aac0f04267f5a7d98f37b5d84fadecc18aae0da4b9ee626840584a690",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882874962/nationwide-pilot-capture.json",
+                  "responseSha256": "bb8fa614b29d601b65d1a79b20b0f5e2cc4614ab2112972ba676b86e22d47aa2",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792718097272-42e1aa8645b2"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                "generation": 564,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_ef203a18f5f98f23",
+                "productId": "15419521695956",
+                "variantId": "67716188766420",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T01:12:07.861Z",
+                "responseReceivedAt": "2026-10-23T01:12:14.594Z",
+                "snapshot": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882576570/artifacts/12471510379",
+                  "sha256": "3df5a92a772ff095f7e8a825d312fa8fb50cc341106ad9c09bea82ccc70196d8",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882576570/nationwide-pilot-capture.json",
+                  "responseSha256": "5c52d351e4934b51283c5d425fb351619c3ca47c829c7b33247578dd8d308a0c",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792717927544-a9a65124fb40"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                "generation": 564,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+                "productId": "9340179415252",
+                "variantId": "48650261790932",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T01:14:58.238Z",
+                "responseReceivedAt": "2026-10-23T01:15:05.322Z",
+                "snapshot": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a:source:7ac1cd35ff7faaa71c45848a:45ea116edb7e414f18048014",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882874962/artifacts/12470783283",
+                  "sha256": "8d2e6e4aac0f04267f5a7d98f37b5d84fadecc18aae0da4b9ee626840584a690",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882874962/nationwide-pilot-capture.json",
+                  "responseSha256": "bb8fa614b29d601b65d1a79b20b0f5e2cc4614ab2112972ba676b86e22d47aa2",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792718097272-42e1aa8645b2"
+                }
+              },
+              {
+                "sourceId": "ca:mission-trails-wine-spirits",
+                "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                "generation": 564,
+                "state": "CA",
+                "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+                "productId": "9340179415252",
+                "variantId": "48650261790932",
+                "observedAt": "2026-10-23T01:05:21.592Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T01:12:07.861Z",
+                "responseReceivedAt": "2026-10-23T01:12:14.594Z",
+                "snapshot": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882576570/artifacts/12471510379",
+                  "sha256": "3df5a92a772ff095f7e8a825d312fa8fb50cc341106ad9c09bea82ccc70196d8",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882576570/nationwide-pilot-capture.json",
+                  "responseSha256": "5c52d351e4934b51283c5d425fb351619c3ca47c829c7b33247578dd8d308a0c",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=CA&limit=1&source_receipt=ca%3Amission-trails-wine-spirits&_bs_verify=1792717927544-a9a65124fb40"
+                }
+              }
+            ],
+            "candidateCount": 0,
+            "candidateKeys": [],
+            "projectedCandidateCount": 3,
+            "projectedCandidateKeys": [
+              "66ad4d9d8faa07d7",
+              "0c4f04a879e7df56",
+              "7000038328fcf307"
+            ],
+            "queueEvidence": {
+              "provenance": {
+                "url": "https://github.com/tarsagent22/Bourbon-Signal/blob/b27fca7bc8c79767e2510b3308e69fbaebc51646/docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca564.json",
+                "sha256": "52c6d8e9bf77d0a914d540c34a8f38e5305c30ad37a47c4c57ba1235c0ee6fd1"
+              },
+              "queryVersion": "pilot-owned-key-counts@2",
+              "querySha256": "0d049465eb961dee95966156d1dd7d81b6dc5c781281ba52e696879890332e06",
+              "identityFunctionSha256": "def5607048360f4fae12a363649b8c224857db877f9886c4a0f5553dcff349ce",
+              "checkedAt": "2026-10-23T01:11:18.336Z",
+              "queriedAt": "2026-10-23T01:11:18.578Z",
+              "window": {
+                "startAt": "2026-10-23T01:05:20.509Z",
+                "endAt": "2026-10-23T01:11:18.336Z",
+                "endBasis": "checked_at",
+                "minimumAfterFinishMs": 300000,
+                "nextRun": null
+              },
+              "counts": {
+                "newQueueRows": 0,
+                "deliveryAttempts": 0
+              },
+              "projectedCandidateCount": 3,
+              "projectedCandidateKeys": [
+                "66ad4d9d8faa07d7",
+                "0c4f04a879e7df56",
+                "7000038328fcf307"
+              ],
+              "stableKeys": [
+                "0c4f04a879e7df56",
+                "480dd3268b264c9a",
+                "66ad4d9d8faa07d7",
+                "7000038328fcf307",
+                "availability-episode:4c64b3fbb5649646",
+                "availability-episode:e2142f2e44d77356",
+                "availability-episode:f2a7e1a12ab49f25",
+                "c0e4ef73e4fe8b10",
+                "dbe6113520dabeea"
+              ],
+              "mappings": [
+                {
+                  "projectedKey": "66ad4d9d8faa07d7",
+                  "stableKey": "availability-episode:e2142f2e44d77356",
+                  "legacyAliases": [
+                    "480dd3268b264c9a",
+                    "66ad4d9d8faa07d7"
+                  ],
+                  "mappingBasis": "exact_target_run_generation_current_source_projection",
+                  "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                  "currentProjectionGeneration": 564,
+                  "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+                  "identityFields": {
+                    "eventIdentityKey": "availability-episode:e2142f2e44d77356",
+                    "availabilityEpisodeId": "e2142f2e44d77356",
+                    "legacyDedupeKey": "480dd3268b264c9a",
+                    "matchKey": "9513b4efd3ce6adb",
+                    "changeType": "current_inventory_signal",
+                    "signalAt": "2026-10-23T01:05:21.592Z"
+                  },
+                  "observation": {
+                    "state": "CA",
+                    "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                    "canonicalBottleId": "bb_78043ec3da926c43",
+                    "productId": "15434358718676",
+                    "variantId": "67908145905876",
+                    "observedAt": "2026-10-23T01:05:21.592Z"
+                  }
+                },
+                {
+                  "projectedKey": "0c4f04a879e7df56",
+                  "stableKey": "availability-episode:4c64b3fbb5649646",
+                  "legacyAliases": [
+                    "0c4f04a879e7df56",
+                    "dbe6113520dabeea"
+                  ],
+                  "mappingBasis": "exact_target_run_generation_current_source_projection",
+                  "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                  "currentProjectionGeneration": 564,
+                  "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+                  "identityFields": {
+                    "eventIdentityKey": "availability-episode:4c64b3fbb5649646",
+                    "availabilityEpisodeId": "4c64b3fbb5649646",
+                    "legacyDedupeKey": "dbe6113520dabeea",
+                    "matchKey": "a0c5d96f1cecbcd4",
+                    "changeType": "current_inventory_signal",
+                    "signalAt": "2026-10-23T01:05:21.592Z"
+                  },
+                  "observation": {
+                    "state": "CA",
+                    "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                    "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+                    "productId": "9340179415252",
+                    "variantId": "48650261790932",
+                    "observedAt": "2026-10-23T01:05:21.592Z"
+                  }
+                },
+                {
+                  "projectedKey": "7000038328fcf307",
+                  "stableKey": "availability-episode:f2a7e1a12ab49f25",
+                  "legacyAliases": [
+                    "7000038328fcf307",
+                    "c0e4ef73e4fe8b10"
+                  ],
+                  "mappingBasis": "exact_target_run_generation_current_source_projection",
+                  "currentProjectionRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+                  "currentProjectionGeneration": 564,
+                  "currentCandidateObservedAt": "2026-10-23T01:05:21.592Z",
+                  "identityFields": {
+                    "eventIdentityKey": "availability-episode:f2a7e1a12ab49f25",
+                    "availabilityEpisodeId": "f2a7e1a12ab49f25",
+                    "legacyDedupeKey": "c0e4ef73e4fe8b10",
+                    "matchKey": "977acf2c81cc74bb",
+                    "changeType": "current_inventory_signal",
+                    "signalAt": "2026-10-23T01:05:21.592Z"
+                  },
+                  "observation": {
+                    "state": "CA",
+                    "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+                    "canonicalBottleId": "bb_ef203a18f5f98f23",
+                    "productId": "15419521695956",
+                    "variantId": "67716188766420",
+                    "observedAt": "2026-10-23T01:05:21.592Z"
+                  }
+                }
+              ],
+              "limitation": "Zero new queue rows and zero recorded delivery attempts only for these owned keys in this observed window. Retained projection candidates remain present."
+            },
+            "rawObservationCount": 3,
+            "matchedObservationCount": 3
+          }
+        ]
+      },
+      {
+        "sourceId": "fl:jensens-miami",
+        "state": "FL",
+        "cadenceSeconds": 1800,
+        "runs": [
+          {
+            "runId": "a3cb9536-589e-408a-ac2c-935a38fefd5c",
+            "generation": 1,
+            "status": "accepted",
+            "trigger": "scheduled",
+            "manualDueReset": false,
+            "dueAt": "2026-10-23T00:00:21.304Z",
+            "startedAt": "2026-10-23T00:00:21.304Z",
+            "finishedAt": "2026-10-23T00:00:23.089Z",
+            "bootstrap": true,
+            "requests": 2,
+            "bytes": 11112,
+            "durationMs": 1764,
+            "provenance": {
+              "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39875683243/artifacts/12467354141",
+              "sha256": "89adda28150edf51d7486c99ca6bee6ee035302163c45f4fd929b01830a4a79f",
+              "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39875683243/nationwide-pilot-capture.json"
+            },
+            "observations": [
+              {
+                "state": "FL",
+                "sizeMl": 750,
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "quantity": 0,
+                "productId": "15414448390218",
+                "sourceUrl": "https://jensensliquors.com/products/elijah-craig-single-barrel-18-years-bourbon-whiskey",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T00:00:22.687Z",
+                "availability": "in_stock",
+                "storeAddress": "1646 SW 27th Ave, Miami, FL 33145",
+                "pickupVerified": true,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "source_metadata",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "variant_pickup_offer",
+                "fulfillmentPolicyVerified": false
+              }
+            ],
+            "customerReceipts": [
+              {
+                "sourceId": "fl:jensens-miami",
+                "runId": "a3cb9536-589e-408a-ac2c-935a38fefd5c",
+                "generation": 1,
+                "state": "FL",
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "productId": "15414448390218",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T00:00:22.687Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T00:03:42.943Z",
+                "responseReceivedAt": "2026-10-23T00:03:42.987Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc:source:f79dc149318cfe28dbbd7b14:eccd4e7b626d5495f9d246b9",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39875683243/artifacts/12467354141",
+                  "sha256": "89adda28150edf51d7486c99ca6bee6ee035302163c45f4fd929b01830a4a79f",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39875683243/nationwide-pilot-capture.json",
+                  "responseSha256": "9711c1ef9e2bce05907c43ee36b0a312fae3af58ff30fcd4b43c7c22e2a13170",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=FL&limit=1&source_receipt=fl%3Ajensens-miami&_bs_verify=1792713821857-74dc8afa80d6"
+                }
+              },
+              {
+                "sourceId": "fl:jensens-miami",
+                "runId": "a3cb9536-589e-408a-ac2c-935a38fefd5c",
+                "generation": 1,
+                "state": "FL",
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "productId": "15414448390218",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T00:00:22.687Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T00:03:43.103Z",
+                "responseReceivedAt": "2026-10-23T00:03:49.651Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39875683243/artifacts/12467354141",
+                  "sha256": "89adda28150edf51d7486c99ca6bee6ee035302163c45f4fd929b01830a4a79f",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39875683243/nationwide-pilot-capture.json",
+                  "responseSha256": "70323cd1502166d7e1892c0bc4f76dc8d6dd2438e83443e16210457525a2bb08",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=FL&limit=1&source_receipt=fl%3Ajensens-miami&_bs_verify=1792713822987-c0d20ade35fa"
+                }
+              }
+            ],
+            "candidateCount": 0,
+            "candidateKeys": [],
+            "projectedCandidateCount": 0,
+            "projectedCandidateKeys": [],
+            "rawObservationCount": 1,
+            "matchedObservationCount": 1
+          },
+          {
+            "runId": "b15625d2-fa8c-4473-b9a4-11e7ea3c15e1",
+            "generation": 2,
+            "status": "accepted",
+            "trigger": "scheduled",
+            "manualDueReset": false,
+            "dueAt": "2026-10-23T00:30:23.089Z",
+            "startedAt": "2026-10-23T00:35:20.404Z",
+            "finishedAt": "2026-10-23T00:35:21.995Z",
+            "bootstrap": false,
+            "requests": 2,
+            "bytes": 11112,
+            "durationMs": 1562,
+            "provenance": {
+              "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39879154095/artifacts/12469842285",
+              "sha256": "1a6ab132fab69f2ab6b242e3bb736406819ebcef90bb0a7fc5303047da63d1ef",
+              "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39879154095/nationwide-pilot-capture.json"
+            },
+            "observations": [
+              {
+                "state": "FL",
+                "sizeMl": 750,
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "quantity": 0,
+                "productId": "15414448390218",
+                "sourceUrl": "https://jensensliquors.com/products/elijah-craig-single-barrel-18-years-bourbon-whiskey",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T00:35:21.611Z",
+                "availability": "in_stock",
+                "storeAddress": "1646 SW 27th Ave, Miami, FL 33145",
+                "pickupVerified": true,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "source_metadata",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "variant_pickup_offer",
+                "fulfillmentPolicyVerified": false
+              }
+            ],
+            "customerReceipts": [
+              {
+                "sourceId": "fl:jensens-miami",
+                "runId": "b15625d2-fa8c-4473-b9a4-11e7ea3c15e1",
+                "generation": 2,
+                "state": "FL",
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "productId": "15414448390218",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T00:35:21.611Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T00:37:30.288Z",
+                "responseReceivedAt": "2026-10-23T00:37:30.332Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc:source:7f7c7316208745a18c29a3c5:61af027a5f877a97ea5d71be",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39879154095/artifacts/12469842285",
+                  "sha256": "1a6ab132fab69f2ab6b242e3bb736406819ebcef90bb0a7fc5303047da63d1ef",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39879154095/nationwide-pilot-capture.json",
+                  "responseSha256": "56828070d041eb28d2aaf46337b50f4fd7a6dbdbe730268bb9621a46866d517d",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=FL&limit=1&source_receipt=fl%3Ajensens-miami&_bs_verify=1792715849333-37cb6b959c9c"
+                }
+              },
+              {
+                "sourceId": "fl:jensens-miami",
+                "runId": "b15625d2-fa8c-4473-b9a4-11e7ea3c15e1",
+                "generation": 2,
+                "state": "FL",
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "productId": "15414448390218",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T00:35:21.611Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T00:37:30.416Z",
+                "responseReceivedAt": "2026-10-23T00:37:37.309Z",
+                "snapshot": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39879154095/artifacts/12469842285",
+                  "sha256": "1a6ab132fab69f2ab6b242e3bb736406819ebcef90bb0a7fc5303047da63d1ef",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39879154095/nationwide-pilot-capture.json",
+                  "responseSha256": "e1a6a035afdfca4571ef80bcbfb12aeb0c4c3a5009280447345e14462851872d",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=FL&limit=1&source_receipt=fl%3Ajensens-miami&_bs_verify=1792715850332-2472b580a34c"
+                }
+              }
+            ],
+            "candidateCount": 0,
+            "candidateKeys": [],
+            "projectedCandidateCount": 0,
+            "projectedCandidateKeys": [],
+            "rawObservationCount": 1,
+            "matchedObservationCount": 1
+          },
+          {
+            "runId": "5fd98c57-54c3-4205-95f6-3bff48497e91",
+            "generation": 3,
+            "status": "accepted",
+            "trigger": "scheduled",
+            "manualDueReset": false,
+            "dueAt": "2026-10-23T01:05:21.995Z",
+            "startedAt": "2026-10-23T01:10:20.718Z",
+            "finishedAt": "2026-10-23T01:10:22.309Z",
+            "bootstrap": false,
+            "requests": 2,
+            "bytes": 11112,
+            "durationMs": 1575,
+            "provenance": {
+              "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882576570/artifacts/12471510379",
+              "sha256": "3df5a92a772ff095f7e8a825d312fa8fb50cc341106ad9c09bea82ccc70196d8",
+              "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882576570/nationwide-pilot-capture.json"
+            },
+            "observations": [
+              {
+                "state": "FL",
+                "sizeMl": 750,
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "quantity": 0,
+                "productId": "15414448390218",
+                "sourceUrl": "https://jensensliquors.com/products/elijah-craig-single-barrel-18-years-bourbon-whiskey",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T01:10:21.838Z",
+                "availability": "in_stock",
+                "storeAddress": "1646 SW 27th Ave, Miami, FL 33145",
+                "pickupVerified": true,
+                "quantityIsExact": false,
+                "sizeEvidenceType": "source_metadata",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "locationPrecision": "store_level",
+                "quantitySemantics": "binary_orderability",
+                "fulfillmentEvidenceType": "variant_pickup_offer",
+                "fulfillmentPolicyVerified": false
+              }
+            ],
+            "customerReceipts": [
+              {
+                "sourceId": "fl:jensens-miami",
+                "runId": "5fd98c57-54c3-4205-95f6-3bff48497e91",
+                "generation": 3,
+                "state": "FL",
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "productId": "15414448390218",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T01:10:21.838Z",
+                "surface": "feed",
+                "receivedAt": "2026-10-23T01:15:11.943Z",
+                "responseReceivedAt": "2026-10-23T01:15:11.958Z",
+                "snapshot": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a:source:7ac1cd35ff7faaa71c45848a:45ea116edb7e414f18048014",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882874962/artifacts/12470783283",
+                  "sha256": "8d2e6e4aac0f04267f5a7d98f37b5d84fadecc18aae0da4b9ee626840584a690",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882874962/nationwide-pilot-capture.json",
+                  "responseSha256": "222eab0081cf860ec4438151b643fed2be88030bab24fa75050401fd3608e427",
+                  "responseUrl": "https://www.bourbonsignal.com/api/drops?state=FL&limit=1&source_receipt=fl%3Ajensens-miami&_bs_verify=1792718111669-f4e85e83732f"
+                }
+              },
+              {
+                "sourceId": "fl:jensens-miami",
+                "runId": "5fd98c57-54c3-4205-95f6-3bff48497e91",
+                "generation": 3,
+                "state": "FL",
+                "storeId": "jensens-liquors:1646-sw-27th",
+                "canonicalBottleId": "bb_3566c2a0088ec99a",
+                "productId": "15414448390218",
+                "variantId": "67703590977610",
+                "observedAt": "2026-10-23T01:10:21.838Z",
+                "surface": "coverage",
+                "receivedAt": "2026-10-23T01:12:14.890Z",
+                "responseReceivedAt": "2026-10-23T01:12:21.348Z",
+                "snapshot": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a",
+                "provenance": {
+                  "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882576570/artifacts/12471510379",
+                  "sha256": "3df5a92a772ff095f7e8a825d312fa8fb50cc341106ad9c09bea82ccc70196d8",
+                  "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882576570/nationwide-pilot-capture.json",
+                  "responseSha256": "527a210b74aaa5d03201e6dc0f27f350d711dedfd05cf5d05259a822c916112a",
+                  "responseUrl": "https://www.bourbonsignal.com/api/coverage?state=FL&limit=1&source_receipt=fl%3Ajensens-miami&_bs_verify=1792717934794-acade2a41004"
+                }
+              }
+            ],
+            "candidateCount": 0,
+            "candidateKeys": [],
+            "projectedCandidateCount": 0,
+            "projectedCandidateKeys": [],
+            "rawObservationCount": 1,
+            "matchedObservationCount": 1
+          }
+        ]
+      }
+    ],
+    "maintenance": {
+      "boundedBackoff": true,
+      "fencedLeases": true,
+      "sourceIsolationVerified": true,
+      "staleSuppressionVerified": true,
+      "rollbackVerified": true,
+      "evidenceScope": "Required CI executed the real SQL lease functions, poll policy, actual runtime wrappers and collector to exporter regressions. No production disable or due reset was performed.",
+      "regressionReceipt": {
+        "status": "passed",
+        "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+        "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5",
+        "file": "C:\\Users\\chand\\Documents\\Bourbon Signal\\nationwide-engine-coverage-20261022-evidence\\required-ci.log"
+      },
+      "receipts": {
+        "boundedBackoff": {
+          "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+          "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+        },
+        "fencedLeases": {
+          "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+          "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+        },
+        "sourceIsolationVerified": {
+          "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+          "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+        },
+        "staleSuppressionVerified": {
+          "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+          "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+        },
+        "rollbackVerified": {
+          "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+          "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+        }
+      },
+      "queueEvidence": [
+        {
+          "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/queue-proof-ca563.json",
+          "sha256": "7eba8ac1a24babe0bc27cf7677a3547afbcaa4149d20df447395ba44515b4680",
+          "commit": "67726992297a17ac4810f9b4462962a84edf5b7a",
+          "repositoryPath": "docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca563.json",
+          "url": "https://github.com/tarsagent22/Bourbon-Signal/blob/67726992297a17ac4810f9b4462962a84edf5b7a/docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca563.json"
+        },
+        {
+          "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/queue-proof-ca564.json",
+          "sha256": "52c6d8e9bf77d0a914d540c34a8f38e5305c30ad37a47c4c57ba1235c0ee6fd1",
+          "commit": "b27fca7bc8c79767e2510b3308e69fbaebc51646",
+          "repositoryPath": "docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca564.json",
+          "url": "https://github.com/tarsagent22/Bourbon-Signal/blob/b27fca7bc8c79767e2510b3308e69fbaebc51646/docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca564.json"
+        }
+      ],
+      "monitorReceiptAt": "2026-10-23T01:14:56.691Z",
+      "monitorProvenance": {
+        "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882874962/artifacts/12470783283",
+        "sha256": "8d2e6e4aac0f04267f5a7d98f37b5d84fadecc18aae0da4b9ee626840584a690",
+        "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882874962/nationwide-pilot-capture.json"
+      }
+    }
+  },
+  "acceptance": {
+    "contractVersion": "nationwide-pilot-acceptance@1",
+    "ok": true,
+    "evaluatedAt": "2026-10-23T01:15:29.588Z",
+    "evidenceScope": "supplied_receipts",
+    "failures": [],
+    "counts": {
+      "sources": 2,
+      "states": 2,
+      "physicalPremises": 2,
+      "runs": 5,
+      "emittedCandidateKeys": 0
+    }
+  },
+  "currentCaptureGate": {
+    "ok": true,
+    "failures": [],
+    "provenance": {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882874962/artifacts/12470783283",
+      "sha256": "8d2e6e4aac0f04267f5a7d98f37b5d84fadecc18aae0da4b9ee626840584a690",
+      "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882874962/nationwide-pilot-capture.json"
+    },
+    "capturedAt": "2026-10-23T01:14:56.865Z",
+    "schedulerReceivedAt": "2026-10-23T01:14:57.271Z",
+    "sources": [
+      {
+        "sourceId": "ca:mission-trails-wine-spirits",
+        "generation": 564,
+        "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+        "currentIdentityCount": 3,
+        "ok": true,
+        "failures": []
+      },
+      {
+        "sourceId": "fl:jensens-miami",
+        "generation": 3,
+        "runId": "5fd98c57-54c3-4205-95f6-3bff48497e91",
+        "currentIdentityCount": 1,
+        "ok": true,
+        "failures": []
+      }
+    ]
+  },
+  "diagnostics": [],
+  "inputProvenance": [
+    {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39875683243/artifacts/12467354141",
+      "sha256": "89adda28150edf51d7486c99ca6bee6ee035302163c45f4fd929b01830a4a79f",
+      "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39875683243/nationwide-pilot-capture.json"
+    },
+    {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39878660651/artifacts/12469009451",
+      "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188",
+      "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39878660651/nationwide-pilot-capture.json"
+    },
+    {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39879154095/artifacts/12469842285",
+      "sha256": "1a6ab132fab69f2ab6b242e3bb736406819ebcef90bb0a7fc5303047da63d1ef",
+      "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39879154095/nationwide-pilot-capture.json"
+    },
+    {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882576570/artifacts/12471510379",
+      "sha256": "3df5a92a772ff095f7e8a825d312fa8fb50cc341106ad9c09bea82ccc70196d8",
+      "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882576570/nationwide-pilot-capture.json"
+    },
+    {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39882874962/artifacts/12470783283",
+      "sha256": "8d2e6e4aac0f04267f5a7d98f37b5d84fadecc18aae0da4b9ee626840584a690",
+      "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/captures/39882874962/nationwide-pilot-capture.json"
+    }
+  ],
+  "limitation": "Offline evaluation of supplied, hash-checked artifacts. No remote artifact or signature authenticity was independently verified."
+}

@@ -1,0 +1,78 @@
+{
+  "recordedAt": "2026-10-22T23:59:24.759Z",
+  "status": "pilot_verified_release_cleanup_pending",
+  "pilotVerified": true,
+  "scope": {
+    "existingPremises": 2,
+    "newIndependentConnections": 1,
+    "demonstratedNewPhysicalStores": 0,
+    "exactVariantPickupPremises": 1,
+    "generalPickupPolicyPremises": 1
+  },
+  "leadReleaseOnly": true,
+  "researchAgents": "Three focused GPT-6.1 Sol subagents; initial investigations read-only",
+  "issue": "https://github.com/tarsagent22/Bourbon-Signal/issues/816",
+  "pullRequest": "https://github.com/tarsagent22/Bourbon-Signal/pull/817",
+  "head": "941324e737057c0ab8989bf41cd27050b2c7f2be",
+  "baselineMain": "c9a33bf16e55e0a842b685a2559dfd3d6a54d48f",
+  "requiredCiRun": 39874034699,
+  "releaseWorktree": "C:\\Users\\chand\\projects\\bs-nationwide-shopify-release-20261022",
+  "controlRepository": "C:\\Users\\chand\\projects\\bs-engine-expansion-control-20261022",
+  "preparationWorktree": "C:\\Users\\chand\\projects\\bs-nationwide-shopify-pilot-20261022",
+  "objectiveId": "bsf-3e22b27077b27fbf",
+  "objectiveBranch": "operator/bsf-3e22b27077b27fbf-verify-reliable-shopify-inventory-across-califor",
+  "localChecks": {
+    "focusedTests": 135,
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "coverageSuite": "passed",
+    "engineSiteAndDataPlane": "passed",
+    "independentReview": "approved"
+  },
+  "nativePreflight": {
+    "currentRows": 1,
+    "requests": 2,
+    "bytes": 11112,
+    "elapsedMs": 429
+  },
+  "premisesBaseline": {
+    "MissionTrails": "already actively monitored",
+    "Jensens": "already actively monitored",
+    "newPhysicalStoresClaimed": 0
+  },
+  "acceptancePending": [],
+  "outreach": "none",
+  "agreementsOrAccessPurchases": "none",
+  "mergeCommit": "be8ad383b04d08882fe753958a95be2e118dd707",
+  "productionDeployment": "dpl_5tSH8dKgvMwkAxyuufueCETny1tF",
+  "requiredCiStatus": "success",
+  "updatedAt": "2026-10-23T01:20:03.093Z",
+  "phase": "acceptance_passed",
+  "pr": 817,
+  "sourceHead": "941324e737057c0ab8989bf41cd27050b2c7f2be",
+  "ci": {
+    "requiredPrRun": 39874034699,
+    "mainRun": 39875195855,
+    "status": "success"
+  },
+  "production": {
+    "releaseIdentity": "healthy",
+    "alertCron": "healthy",
+    "broaderEngine": "degraded",
+    "broadSnapshotFreshness": "healthy"
+  },
+  "soak": {
+    "status": "accepted",
+    "missionTrailsScheduledRuns": 2,
+    "jensenScheduledRuns": 3,
+    "manualDueReset": false,
+    "latestGenerations": {
+      "California": 564,
+      "Jensen": 3
+    }
+  },
+  "acceptedAt": "2026-10-23T01:15:29.588Z",
+  "releaseLaneCleanup": "pending",
+  "maintenanceFinding": "https://github.com/tarsagent22/Bourbon-Signal/issues/818",
+  "scaling": "paused"
+}

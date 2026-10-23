@@ -1,0 +1,174 @@
+{
+  "productionCommit": "be8ad383b04d08882fe753958a95be2e118dd707",
+  "sourceHead": "941324e737057c0ab8989bf41cd27050b2c7f2be",
+  "files": [
+    {
+      "file": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "file": "acceptance-cache-mismatch.json",
+      "sha256": "bc7ae1eca24451f4c49767540c12e303a3c99666e6b267a116e6f5fe7b58051a"
+    },
+    {
+      "file": "acceptance-final.json",
+      "sha256": "4e2566789d23bdf4ae871b7901859b74d1f9eb1d4b9996e51c2139f1ae4a0607"
+    },
+    {
+      "file": "browser-coverage-observations.json",
+      "sha256": "130c02e0ac374f78200d516e839d840cb4b576b03e037911a13584cf70b05132"
+    },
+    {
+      "file": "capture-index.json",
+      "sha256": "e5830eb8870b33c08449c05f9f3319e64a13b6ae920adbe266e1a2b610f196ed"
+    },
+    {
+      "file": "captures/39875683243/github-artifact-metadata.json",
+      "sha256": "a3da4a066860f214494326a5a81077e3dabf09804486681f178a5191ccb782dc"
+    },
+    {
+      "file": "captures/39875683243/nationwide-pilot-capture.json",
+      "sha256": "89adda28150edf51d7486c99ca6bee6ee035302163c45f4fd929b01830a4a79f"
+    },
+    {
+      "file": "captures/39878660651/github-artifact-metadata.json",
+      "sha256": "c908ebba65622164521e507470ddd3deffa0233887dfdccceae0d3cda1ecb81a"
+    },
+    {
+      "file": "captures/39878660651/nationwide-pilot-capture.json",
+      "sha256": "2983ad2bb4eeab1ef48cfb43fbe3f905ac56f157bb9826fffb4813f8709cc188"
+    },
+    {
+      "file": "captures/39879154095/github-artifact-metadata.json",
+      "sha256": "566ce7f8610977f0eba7dc725ff7a8e52cb04cddab15ba8dd49dffebb4c6843c"
+    },
+    {
+      "file": "captures/39879154095/nationwide-pilot-capture.json",
+      "sha256": "1a6ab132fab69f2ab6b242e3bb736406819ebcef90bb0a7fc5303047da63d1ef"
+    },
+    {
+      "file": "captures/39882576570/github-artifact-metadata.json",
+      "sha256": "5975219e478ec7347c80eb28d3107b3ef62c92cf3928c53891ace4d80d810f6c"
+    },
+    {
+      "file": "captures/39882576570/nationwide-pilot-capture.json",
+      "sha256": "3df5a92a772ff095f7e8a825d312fa8fb50cc341106ad9c09bea82ccc70196d8"
+    },
+    {
+      "file": "captures/39882874962/github-artifact-metadata.json",
+      "sha256": "4e22d4bd86825d016d115c139c7cafdcf900ad8935a8a772802712765066a516"
+    },
+    {
+      "file": "captures/39882874962/nationwide-pilot-capture.json",
+      "sha256": "8d2e6e4aac0f04267f5a7d98f37b5d84fadecc18aae0da4b9ee626840584a690"
+    },
+    {
+      "file": "independent-review.json",
+      "sha256": "c7d606372ca07e21ac5b171d63b42fb3fac1b5fbb1424d240b73c54c5dd6e410"
+    },
+    {
+      "file": "initial-audit.json",
+      "sha256": "be4e0cfcd156523eb628fb476f6bb7ad7a7ec8aa0233c5898a35931f0371ae24"
+    },
+    {
+      "file": "live-ledger-final.json",
+      "sha256": "d6f335efeeb14415efe1e873e15e2004bf84fdb7ab654f923fd4a2e16335666f"
+    },
+    {
+      "file": "maintenance.json",
+      "sha256": "f6c222ce383127d1d88d23b7ec99cd23c5422031ea75dba882daeb72d0bbe8c9"
+    },
+    {
+      "file": "pilot-metrics.json",
+      "sha256": "047d0e0f662cde2cd0c97f0d782bc9806d561010f054b28cb1dea7dc53c86dae"
+    },
+    {
+      "file": "pilot-report.md",
+      "sha256": "de63db3db505f6014dc216e3ff8bb97abd86fa7ce78edf8c765119c9288b6fc5"
+    },
+    {
+      "file": "pre-release-baseline.json",
+      "sha256": "3f7062cb6316ea39e7a28ca185ef1a7cf0e756d3cb2a1516cd6260f20eb41a01"
+    },
+    {
+      "file": "production-deployment.json",
+      "sha256": "ebf0cd4b9f3e82c6013d108407b8ef3fdffef57d4ac37ee3643db69398d307c2"
+    },
+    {
+      "file": "production-health-final.json",
+      "sha256": "2dffd3dd500ba630e56117852d20eea9cf536c012a15bebf1954808df77fffc6"
+    },
+    {
+      "file": "production-health-latest.json",
+      "sha256": "e488751ca5791c3b941f16d60d0d714be35df66e28b15fdf66c25f0436bff89c"
+    },
+    {
+      "file": "progress.json",
+      "sha256": "92de270f2ff187fcdf46308fffde99e0a7bb840f0025f0a3ddac13e3248498a2"
+    },
+    {
+      "file": "queue-proof-ca563.json",
+      "sha256": "7eba8ac1a24babe0bc27cf7677a3547afbcaa4149d20df447395ba44515b4680"
+    },
+    {
+      "file": "queue-proof-ca564.json",
+      "sha256": "52c6d8e9bf77d0a914d540c34a8f38e5305c30ad37a47c4c57ba1235c0ee6fd1"
+    },
+    {
+      "file": "queue-soak-audit.json",
+      "sha256": "f3cabf3b767db3cf6263b6930cb8bae2e8e0e7426c952396aa9c04ac8b8d8a3b"
+    },
+    {
+      "file": "README.md",
+      "sha256": "1ce8b51387cd88485ed085443afaeb1c94a1064392a68973a040c98a107501e8"
+    },
+    {
+      "file": "required-ci.log",
+      "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+    },
+    {
+      "file": "verification/capture-queue-proof.mjs.txt",
+      "sha256": "63259b33a26e80c3335d9317dda3bc901959b2e0decbf31dd31d7ef1ad9f6ab2"
+    },
+    {
+      "file": "verification/capture-soak-queue-audit.mjs.txt",
+      "sha256": "3f9c263f0bb8eed0b6654e424f48b73892df6f5ae281432972ee292637732a47"
+    },
+    {
+      "file": "verification/current-capture-checks.log.txt",
+      "sha256": "941472c22d50a171ce2ff2d9f6dbf0f3f9920a0fb4f6776f4e33531e564d3a97"
+    },
+    {
+      "file": "verification/download-pilot-capture.mjs.txt",
+      "sha256": "d1efa42d2ef14f05026f0c7fd61d854bc099fb96426c07fac7a599ef953a78c6"
+    },
+    {
+      "file": "verification/evaluate-soak.mjs.txt",
+      "sha256": "a67d957bc0c6b3c9ac4e930f4e5391272cd7207a8ebd412ebb9bcea1b1c01f6d"
+    },
+    {
+      "file": "verification/finalize-pilot-metrics.mjs.txt",
+      "sha256": "db8179db16807abf48b3d88c77ac48baa41e72e2215443a740873fcf681caf59"
+    },
+    {
+      "file": "verification/queue-proof-checks.log.txt",
+      "sha256": "cb04bc75c1db4ecf6bab52d9a35289634b1ab789ce27f89c87c43d15ae226f36"
+    },
+    {
+      "file": "verification/queue-proof-checks.mjs.txt",
+      "sha256": "f729820916391f7f0ae1c670664d537cbc18a671669a2dbac29585a809dfcb13"
+    },
+    {
+      "file": "verification/read-pilot-ledger.mjs.txt",
+      "sha256": "fb0dfd3b94fce384168bd1d0dcb01c72ad756b04316235da2a11c61d9492813d"
+    },
+    {
+      "file": "verification/soak-queue-audit-checks.log.txt",
+      "sha256": "682652e424a2eef4f96a0b0b53bfb31423adc42f85063728d82168d73cb6b1dc"
+    },
+    {
+      "file": "verification/write-final-report.mjs.txt",
+      "sha256": "cef6a114e18e1ab6909ee03b1052c08b57fd635190f7583c6ee63e9df8ac1caa"
+    }
+  ]
+}

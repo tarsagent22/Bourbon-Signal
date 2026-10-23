@@ -1,0 +1,245 @@
+{
+  "contractVersion": "bourbon-signal/pilot-metrics@1",
+  "status": "verified",
+  "evaluatedAt": "2026-10-23T01:15:29.588Z",
+  "productionCommit": "be8ad383b04d08882fe753958a95be2e118dd707",
+  "productionDeployment": "dpl_5tSH8dKgvMwkAxyuufueCETny1tF",
+  "scope": {
+    "states": 2,
+    "cities": [
+      "San Diego, CA",
+      "Miami, FL"
+    ],
+    "existingPremises": 2,
+    "demonstratedNewPhysicalStores": 0,
+    "newIndependentScheduledConnections": 1,
+    "functioningRetailerAvailabilityConnections": 2,
+    "exactVariantPickupPremises": 1,
+    "generalPickupPolicyPremises": 1,
+    "currentCanonicalBottles": 4,
+    "currentStoreBottlePairs": 4,
+    "currentExactVariantPickupCanonicalPairs": 1
+  },
+  "sources": [
+    {
+      "sourceId": "ca:mission-trails-wine-spirits",
+      "state": "CA",
+      "existingPremise": true,
+      "evidenceClass": "online_orderability_with_general_pickup_policy",
+      "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+      "address": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+      "acceptedScheduledRuns": 2,
+      "latestRunId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+      "latestGeneration": 564,
+      "currentCanonicalBottles": [
+        {
+          "id": "bb_78043ec3da926c43",
+          "name": "Maker's Mark Cellar Aged"
+        },
+        {
+          "id": "bb_ef203a18f5f98f23",
+          "name": "Heaven Hill Bottled-in-Bond 7 Year"
+        },
+        {
+          "id": "bb_4c7a7e87b31d67fc",
+          "name": "Parker's Heritage Collection"
+        }
+      ],
+      "currentStoreBottlePairs": [
+        {
+          "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+          "canonicalBottleId": "bb_78043ec3da926c43",
+          "productId": "15434358718676",
+          "variantId": "67908145905876",
+          "observedAt": "2026-10-23T01:05:21.592Z"
+        },
+        {
+          "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+          "canonicalBottleId": "bb_ef203a18f5f98f23",
+          "productId": "15419521695956",
+          "variantId": "67716188766420",
+          "observedAt": "2026-10-23T01:05:21.592Z"
+        },
+        {
+          "storeId": "mission-trails-wine-spirits:8181-mission-gorge",
+          "canonicalBottleId": "bb_4c7a7e87b31d67fc",
+          "productId": "9340179415252",
+          "variantId": "48650261790932",
+          "observedAt": "2026-10-23T01:05:21.592Z"
+        }
+      ],
+      "dueToStartMs": [
+        293385,
+        293216
+      ],
+      "acceptedRunIntervalsMs": [
+        2099752
+      ],
+      "measuredRuns": [
+        {
+          "runId": "65f82384-044c-4b57-9886-680ba4fe0548",
+          "generation": 563,
+          "dueAt": "2026-10-23T00:25:27.372Z",
+          "startedAt": "2026-10-23T00:30:20.757Z",
+          "finishedAt": "2026-10-23T00:30:27.294Z",
+          "requests": 4,
+          "bytes": 3970983,
+          "elapsedMs": 6480,
+          "projectedCandidateCount": 3,
+          "bootstrap": false
+        },
+        {
+          "runId": "a91ce1f1-f481-4009-91ea-ce6f04ee05fa",
+          "generation": 564,
+          "dueAt": "2026-10-23T01:00:27.293Z",
+          "startedAt": "2026-10-23T01:05:20.509Z",
+          "finishedAt": "2026-10-23T01:05:24.446Z",
+          "requests": 4,
+          "bytes": 3970983,
+          "elapsedMs": 3922,
+          "projectedCandidateCount": 3,
+          "bootstrap": false
+        }
+      ],
+      "latestObservationAgeSeconds": [
+        608,
+        608,
+        608
+      ],
+      "expirySeconds": 3600
+    },
+    {
+      "sourceId": "fl:jensens-miami",
+      "state": "FL",
+      "existingPremise": true,
+      "evidenceClass": "exact_variant_pickup_offer",
+      "storeId": "jensens-liquors:1646-sw-27th",
+      "address": "1646 SW 27th Ave, Miami, FL 33145",
+      "acceptedScheduledRuns": 3,
+      "latestRunId": "5fd98c57-54c3-4205-95f6-3bff48497e91",
+      "latestGeneration": 3,
+      "currentCanonicalBottles": [
+        {
+          "id": "bb_3566c2a0088ec99a",
+          "name": "Elijah Craig 18 Year"
+        }
+      ],
+      "currentStoreBottlePairs": [
+        {
+          "storeId": "jensens-liquors:1646-sw-27th",
+          "canonicalBottleId": "bb_3566c2a0088ec99a",
+          "productId": "15414448390218",
+          "variantId": "67703590977610",
+          "observedAt": "2026-10-23T01:10:21.838Z"
+        }
+      ],
+      "dueToStartMs": [
+        0,
+        297315,
+        298723
+      ],
+      "acceptedRunIntervalsMs": [
+        2099100,
+        2100314
+      ],
+      "measuredRuns": [
+        {
+          "runId": "a3cb9536-589e-408a-ac2c-935a38fefd5c",
+          "generation": 1,
+          "dueAt": "2026-10-23T00:00:21.304Z",
+          "startedAt": "2026-10-23T00:00:21.304Z",
+          "finishedAt": "2026-10-23T00:00:23.089Z",
+          "requests": 2,
+          "bytes": 11112,
+          "elapsedMs": 1764,
+          "projectedCandidateCount": 0,
+          "bootstrap": true
+        },
+        {
+          "runId": "b15625d2-fa8c-4473-b9a4-11e7ea3c15e1",
+          "generation": 2,
+          "dueAt": "2026-10-23T00:30:23.089Z",
+          "startedAt": "2026-10-23T00:35:20.404Z",
+          "finishedAt": "2026-10-23T00:35:21.995Z",
+          "requests": 2,
+          "bytes": 11112,
+          "elapsedMs": 1562,
+          "projectedCandidateCount": 0,
+          "bootstrap": false
+        },
+        {
+          "runId": "5fd98c57-54c3-4205-95f6-3bff48497e91",
+          "generation": 3,
+          "dueAt": "2026-10-23T01:05:21.995Z",
+          "startedAt": "2026-10-23T01:10:20.718Z",
+          "finishedAt": "2026-10-23T01:10:22.309Z",
+          "requests": 2,
+          "bytes": 11112,
+          "elapsedMs": 1575,
+          "projectedCandidateCount": 0,
+          "bootstrap": false
+        }
+      ],
+      "latestObservationAgeSeconds": [
+        308
+      ],
+      "expirySeconds": 3600
+    }
+  ],
+  "quietRepeatIdentityCheck": {
+    "sourceId": "ca:mission-trails-wine-spirits",
+    "generations": [
+      563,
+      564
+    ],
+    "unchangedFrozenStableKeys": true
+  },
+  "queueAudit": {
+    "scope": "Supplementary audit only: new queue rows and recorded delivery attempts for the union of frozen owned stable keys across this explicit whole window, including cadence gaps. No current-projection remapping, future-attempt, other-key, or nationwide claim.",
+    "window": {
+      "startAt": "2026-10-23T00:30:20.757Z",
+      "endAt": "2026-10-23T01:11:27.219Z",
+      "endExclusive": true,
+      "latestRunFinishedAt": "2026-10-23T01:05:24.446Z",
+      "minimumAfterLatestFinishMs": 300000
+    },
+    "stableAndLegacyKeyCount": 9,
+    "counts": {
+      "newQueueRows": 0,
+      "deliveryAttempts": 0
+    },
+    "limitation": "Surviving queue rows and recorded attempts for the frozen owned keys only; no deleted-row, unrecorded provider, future-attempt, other-key or phone-display claim."
+  },
+  "costScope": "Measured successful pilot collections. Provider billing, long-term maintenance labor and all legacy failure costs were not audited.",
+  "productionHealth": {
+    "release": "healthy",
+    "alertCron": "healthy",
+    "globalEngine": {
+      "status": "degraded",
+      "generatedAt": "2026-10-23T00:50:04.705Z",
+      "ageMinutes": 22.8,
+      "staleAfterMinutes": 45,
+      "failedStateCount": 0,
+      "degradedStateCount": 11,
+      "staleStateCount": 4,
+      "freshnessStage": "healthy",
+      "recoveryAction": "none",
+      "snapshotId": "2026-10-23T00-54-26-751Z-9d2e8f976c2c770a",
+      "dataSource": "remote-snapshot",
+      "exportGeneratedAt": "2026-10-23T00:54:26.751Z",
+      "snapshotUploadedAt": "2026-10-23T00:55:18.498Z",
+      "snapshotActivatedAt": "2026-10-23T00:55:18.498Z",
+      "productionObservedAt": "2026-10-23T01:12:54.184Z",
+      "lastRollback": null,
+      "provenance": {
+        "appCommit": "be8ad383b04d08882fe753958a95be2e118dd707",
+        "engineCommit": "be8ad383b04d08882fe753958a95be2e118dd707",
+        "collectionRunId": "2026-10-23T00:50:04.705Z"
+      }
+    }
+  },
+  "scaling": "Paused pending broader snapshot freshness and monitoring maintenance review; additional Shopify premises remain backlog.",
+  "businessContact": "none",
+  "purchasesOrAgreements": "none",
+  "manualDueReset": false
+}

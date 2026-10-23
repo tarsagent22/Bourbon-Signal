@@ -1,0 +1,52 @@
+{
+  "boundedBackoff": true,
+  "fencedLeases": true,
+  "sourceIsolationVerified": true,
+  "staleSuppressionVerified": true,
+  "rollbackVerified": true,
+  "evidenceScope": "Required CI executed the real SQL lease functions, poll policy, actual runtime wrappers and collector to exporter regressions. No production disable or due reset was performed.",
+  "regressionReceipt": {
+    "status": "passed",
+    "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+    "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5",
+    "file": "C:\\Users\\chand\\Documents\\Bourbon Signal\\nationwide-engine-coverage-20261022-evidence\\required-ci.log"
+  },
+  "receipts": {
+    "boundedBackoff": {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+      "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+    },
+    "fencedLeases": {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+      "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+    },
+    "sourceIsolationVerified": {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+      "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+    },
+    "staleSuppressionVerified": {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+      "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+    },
+    "rollbackVerified": {
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39874034699",
+      "sha256": "d70690061a734d55ccf928c5fd56cb6926bc5d3392922d52598fd713c964f5d5"
+    }
+  },
+  "queueEvidence": [
+    {
+      "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/queue-proof-ca563.json",
+      "sha256": "7eba8ac1a24babe0bc27cf7677a3547afbcaa4149d20df447395ba44515b4680",
+      "commit": "67726992297a17ac4810f9b4462962a84edf5b7a",
+      "repositoryPath": "docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca563.json",
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/blob/67726992297a17ac4810f9b4462962a84edf5b7a/docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca563.json"
+    },
+    {
+      "file": "C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence/queue-proof-ca564.json",
+      "sha256": "52c6d8e9bf77d0a914d540c34a8f38e5305c30ad37a47c4c57ba1235c0ee6fd1",
+      "commit": "b27fca7bc8c79767e2510b3308e69fbaebc51646",
+      "repositoryPath": "docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca564.json",
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/blob/b27fca7bc8c79767e2510b3308e69fbaebc51646/docs/operations/evidence/nationwide-shopify-pilot-20261023/queue-proof-ca564.json"
+    }
+  ]
+}
