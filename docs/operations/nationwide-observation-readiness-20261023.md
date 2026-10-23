@@ -1,5 +1,7 @@
 # Nationwide observation readiness — October 23, 2026
 
+Current checkpoint, 08:36 UTC: the historical readiness audit below predates installation. The separate bounded observer is now running, with 35 independently verified captures through s34 and about 5.685 hours of response evidence. Its original start/deadline and reviewed release transition are preserved. No selected-pilot mismatch or gap above 15 minutes was found in that fixed cutoff; 24-hour acceptance remains pending. The current evidence is `feed-source-freshness-818-evidence/analysis/20261023T0836Z/observation-analysis.md`. The ordinary GitHub monitor's sparse cron history and broad-engine incidents remain separate. The baseline also needs the full sighting/license directory and the prepared verified-retailer supplement; the earlier zero directory-overlap result covered only its selected inputs.
+
 Read-only audit cutoff: **2026-10-23 02:28:39 UTC**. Preparation base: `c545aed873d41156feb18a5e2df09c3c046d2dd0`. The audit made no operational changes. Subsequent authorized preparation added the capture-only code described below; it has not been installed or started. No source collection or database query was performed. This is a readiness report, not a completed observation window.
 
 ## Finding and priority

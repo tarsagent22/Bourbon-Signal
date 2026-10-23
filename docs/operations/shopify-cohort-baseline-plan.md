@@ -1,5 +1,7 @@
 # Shopify cohort premises baseline preparation
 
+Current checkpoint, 08:36 UTC: the first main-only capture ran successfully after #823 (run 39899012800, production a86a0433) and was independently verified. Its original scope omits verified-retailer reporting and the separate 38,095-row sighting/license directory. All five V2 candidates are present in that license directory. This scheduled preparation pass adds an unreleased retailer-only public SQL projection and a pure candidate-focused directory reconciler; no new production capture is authorized by this heartbeat. The historical preparation sections below retain their original scope and costs. See `shopify-v2-historical-identity-audit-20261023T0836.md` for the directory correction.
+
 Prepared 2026-10-23. No credentialed capture, workflow dispatch, source collection or activation has run. The five researched premises remain candidates; this preparation proves zero new physical stores.
 
 ## Read-only capture path
