@@ -1,0 +1,183 @@
+{
+  "contractVersion": "bourbon-signal/production-premises-reconciliation@1",
+  "candidateCohortVersion": "v2",
+  "collectorSha256": "82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206",
+  "artifactSha256": "dc10511a128a67eb4a1b9982235e6e5fc8f82e0e0060e6de1bfb0dc99d31e674",
+  "registrySha256": "1f77e01ef3222ce547c01b208ab8c970c3cc89b1205aa0894e0510dd16a45731",
+  "expectedProductionCommit": "a86a0433c7b0b051761fdc5e3625128bbac42281",
+  "activeSnapshotId": "2026-10-23T03-40-10-771Z-fd2196a326946310",
+  "activePointerSha256": "8c271d3ed6c580aab38b1d36352705bb2921232ba353efdbdeaa43f8f91d8bc1",
+  "baselineCapturedAt": "2026-10-23T04:12:30.988Z",
+  "independentStatementAt": "2026-10-23T04:12:21.955Z",
+  "independentHeadsSha256": "189659c4ff895d471c3a6149f138df1d9ae16c4d9695cc45fd5663818615bcfe",
+  "inputCounts": {
+    "broadPremiseRows": 66571,
+    "independentPremiseRows": 130,
+    "candidates": 5
+  },
+  "completeness": {
+    "independentSourcesIncluded": true,
+    "currentSourceHeadsComplete": true,
+    "independentPremisesComplete": false,
+    "broadHistoryLimited": true,
+    "broadHistoricalGaps": [
+      "2026-10-23T00-45-53-498Z-13349db8859e34cc"
+    ],
+    "retainedHistoryComplete": false,
+    "verifiedRetailerPremisesIncluded": false,
+    "historicalAbsenceProven": false
+  },
+  "candidateResults": [
+    {
+      "candidate": {
+        "sourceId": "ca:remedy-glendale",
+        "storeId": "remedy-glendale:91201",
+        "name": "Remedy Liquor - Glendale",
+        "address": "1700 W Glenoaks Blvd., Glendale CA 91201",
+        "city": "Glendale",
+        "state": "CA",
+        "zip": "91201"
+      },
+      "normalizedKey": "[\"CA\",\"91201\",\"1700 w glenoaks blvd\",null]",
+      "unitReviewPending": false,
+      "unitReviewReason": null,
+      "reviewedAlias": {
+        "reviewSha256": "6655129bd2e98be11124ca6e2587e1ad3bf915154ae0e55c6b762102cf0a652a",
+        "primarySha256": "63a3b30373a427782caae204fc0f6cd7b6a2dbb309e563b07d289e4fd8c8ad64",
+        "productSha256": "68c9f59901dbf03026d9960eb027650ab3dcc085b871351991c07e694959a990",
+        "pickupSha256": "e645b9bff24a1cc534e3ffc92ad6e38112f931964912ee650b6a2d2513923f27",
+        "canonicalAddress": "1700 W Glenoaks Blvd, Suite B, Glendale, CA 91201",
+        "sourceId": "ca:remedy-glendale",
+        "storeId": "remedy-glendale:91201",
+        "merchantHost": "www.remedyliquor.com"
+      },
+      "counts": {
+        "prior_current": 0,
+        "prior_stale": 0,
+        "history": 0,
+        "directory": 0,
+        "ambiguous": 0
+      },
+      "matches": [],
+      "matchesLimited": false,
+      "decision": "no_match_in_captured_window_only",
+      "newPhysicalStoreProven": false,
+      "historicalAbsenceProven": false
+    },
+    {
+      "candidate": {
+        "sourceId": "ny:vino-lexington",
+        "storeId": "vino-lexington:10016",
+        "name": "Vino Fine Wine & Spirits",
+        "address": "184 Lexington Ave, New York NY 10016",
+        "city": "New York",
+        "state": "NY",
+        "zip": "10016"
+      },
+      "normalizedKey": "[\"NY\",\"10016\",\"184 lexington ave\",null]",
+      "unitReviewPending": false,
+      "unitReviewReason": null,
+      "reviewedAlias": null,
+      "counts": {
+        "prior_current": 0,
+        "prior_stale": 0,
+        "history": 0,
+        "directory": 0,
+        "ambiguous": 0
+      },
+      "matches": [],
+      "matchesLimited": false,
+      "decision": "no_match_in_captured_window_only",
+      "newPhysicalStoreProven": false,
+      "historicalAbsenceProven": false
+    },
+    {
+      "candidate": {
+        "sourceId": "ca:main-street-el-cajon",
+        "storeId": "main-street-el-cajon:92020",
+        "name": "Main Street Liquor",
+        "address": "120 South Mollison Avenue 100 El Cajon CA 92020",
+        "city": "El Cajon",
+        "state": "CA",
+        "zip": "92020"
+      },
+      "normalizedKey": "[\"CA\",\"92020\",\"120 s mollison ave\",\"100\"]",
+      "unitReviewPending": false,
+      "unitReviewReason": null,
+      "reviewedAlias": null,
+      "counts": {
+        "prior_current": 0,
+        "prior_stale": 0,
+        "history": 0,
+        "directory": 0,
+        "ambiguous": 0
+      },
+      "matches": [],
+      "matchesLimited": false,
+      "decision": "no_match_in_captured_window_only",
+      "newPhysicalStoreProven": false,
+      "historicalAbsenceProven": false
+    },
+    {
+      "candidate": {
+        "sourceId": "tx:hot-spot-austin",
+        "storeId": "hot-spot-austin:78701",
+        "name": "Hot Spot Austin",
+        "address": "411 Brazos Street Suite 100 Austin TX 78701",
+        "city": "Austin",
+        "state": "TX",
+        "zip": "78701"
+      },
+      "normalizedKey": "[\"TX\",\"78701\",\"411 brazos st\",\"100\"]",
+      "unitReviewPending": false,
+      "unitReviewReason": null,
+      "reviewedAlias": null,
+      "counts": {
+        "prior_current": 0,
+        "prior_stale": 0,
+        "history": 0,
+        "directory": 0,
+        "ambiguous": 0
+      },
+      "matches": [],
+      "matchesLimited": false,
+      "decision": "no_match_in_captured_window_only",
+      "newPhysicalStoreProven": false,
+      "historicalAbsenceProven": false
+    },
+    {
+      "candidate": {
+        "sourceId": "ca:christies-la-crescenta",
+        "storeId": "christies-la-crescenta:91214",
+        "name": "Christie's Liquor",
+        "address": "3040 Foothill Boulevard La Crescenta CA 91214",
+        "city": "La Crescenta",
+        "state": "CA",
+        "zip": "91214"
+      },
+      "normalizedKey": "[\"CA\",\"91214\",\"3040 foothill blvd\",null]",
+      "unitReviewPending": false,
+      "unitReviewReason": null,
+      "reviewedAlias": null,
+      "counts": {
+        "prior_current": 0,
+        "prior_stale": 0,
+        "history": 0,
+        "directory": 0,
+        "ambiguous": 0
+      },
+      "matches": [],
+      "matchesLimited": false,
+      "decision": "no_match_in_captured_window_only",
+      "newPhysicalStoreProven": false,
+      "historicalAbsenceProven": false
+    }
+  ],
+  "netNewPhysicalPremisesProven": 0,
+  "limitations": [
+    "No-match means only no matching row in the captured bounded inputs; older/pruned history and verified-retailer premises remain unresolved.",
+    "Address keys preserve unit identity; only the explicit hash-pinned Remedy review can reconcile its base address with suite B. Other unit or ZIP conflicts remain ambiguous.",
+    "Prior-current flags come from the captured source classification, not physical stock verification or proof of uninterrupted customer visibility.",
+    "Artifact bytes and registry hashes identify inputs; external GHA provenance must be independently verified."
+  ]
+}
