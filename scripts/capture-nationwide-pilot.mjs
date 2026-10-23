@@ -7,6 +7,7 @@ const base='https://www.bourbonsignal.com';
 const out=path.resolve(process.argv.find(arg=>arg.startsWith('--output='))?.slice(9) || '.operator/nationwide-pilot-capture.json');
 const evidence={contractVersion:'bourbon-signal/pilot-capture@1',capturedAt:new Date().toISOString(),
   commit:process.env.GITHUB_SHA || null,verificationRunId:process.env.GITHUB_RUN_ID || null,
+  observationId:/^[A-Za-z0-9_-]{1,80}$/.test(process.env.SOURCE_OBSERVATION_ID || '')?process.env.SOURCE_OBSERVATION_ID:null,
   scheduler:null,receipts:[],errors:[]};
 async function get(url,headers={}) {
   const response=await fetch(url,{headers:{...headers,'cache-control':'no-cache'},signal:AbortSignal.timeout(15000)});

@@ -12,7 +12,6 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { normalizeDropForSite, readSiteExportResults, readSiteExportIdentity, siteExportHeaders } from "@/lib/site-engine-contract";
 import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
-import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { compareDropFeedNewestFirst, dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { sortDropsByCanonicalSignalOrder } from "@/lib/signals/signal-contract";
 import { isFreshPublicDrop, publicDropFreshnessWindow, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode, projectInventoryEvidenceFreshness } from "@/lib/public-drop-evidence";
@@ -151,71 +150,88 @@ async function publicRetailerSubmissions() {
   }
 }
 
-async function preparePublicFeedSnapshot() {
-  const [[dropResult, statsResult], retailerSubmissions] = await Promise.all([
-    readSiteExportResults(["drops", "stats"]),
-    publicRetailerSubmissions(),
-  ]);
-  const exportPayload = dropResult.payload;
-  const statsPayload = statsResult.payload;
-  const sourceOverlay = await readRuntimeSourceDropOverlay(Array.isArray(exportPayload?.drops) ? exportPayload.drops : [], dropResult.snapshotId);
-  const rawDrops = sourceOverlay.drops;
-  const independentlyVerifiedIds = new Set(rawDrops.filter((drop: Record<string, unknown>) => (drop.sourcePollId || drop.sourceLaneId) && drop.stale !== true && (drop.canAlertAsInventory === true || drop.canAlertAsWatch === true)).map((drop: Record<string, unknown>) => String(drop.id)));
-  const retailerDrops = retailerSubmissions
-    .map((submission) => retailerSubmissionToFeedCard(submission, new Date()))
-    .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
-  const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
-  const preparationKey = JSON.stringify([dropResult.snapshotId || exportPayload?.generatedAt, sourceOverlay.version, classificationIndex.version, retailerFeedSnapshot(retailerSubmissions)]);
-  const normalizedDrops = preparedDropCache.get(preparationKey, () => sortDropsByCanonicalSignalOrder([...rawDrops, ...retailerDrops]
-    .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))
-    .map((drop) => {
-      const classification = resolveDropClassification(drop, classificationIndex);
-      return {
-        ...drop,
-        tier: classification.tier,
-        rarity_tier: classification.tier,
-        classification_source: classification.source,
-        classification_state: classification.state,
-        classification_bottle_id: classification.bottleId,
-        national_tier: classification.nationalTier,
-      };
-    })));
-
-  const degradedStates = degradedEngineStates(statsPayload);
-  const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, { degradedStateCodes: independentlyVerifiedIds.has(String((drop as Record<string, unknown>).id)) ? undefined : degradedStates }));
-  const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
-  return { dropResult, statsResult, retailerVersion: retailerFeedSnapshot(retailerSubmissions), retailerCount: retailerSubmissions.length, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
+function normalizePublicFeedRow(drop: Record<string, unknown>, classificationIndex: ReturnType<typeof getDropClassificationIndex>) {
+  const normalized = normalizeDropForSite(drop);
+  const classification = resolveDropClassification(normalized, classificationIndex);
+  return {
+    ...normalized,
+    tier: classification.tier,
+    rarity_tier: classification.tier,
+    classification_source: classification.source,
+    classification_state: classification.state,
+    classification_bottle_id: classification.bottleId,
+    national_tier: classification.nationalTier,
+  };
 }
 
+// Only immutable export rows and their generated classification enter the heavy
+// shared caches. Keep all rows: current source ownership must be applied before
+// eligibility, including an empty result or a veto of formerly positive stock.
+async function preparePublicFeedBase() {
+  const [dropResult, statsResult] = await readSiteExportResults(["drops", "stats"]);
+  const exportPayload = dropResult.payload;
+  const statsPayload = statsResult.payload;
+  const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
+  const preparationKey = JSON.stringify([dropResult.snapshotId || exportPayload?.generatedAt, classificationIndex.version]);
+  const normalizedDrops = preparedDropCache.get(preparationKey, () => sortDropsByCanonicalSignalOrder(
+    (Array.isArray(exportPayload?.drops) ? exportPayload.drops : []).map((drop) => normalizePublicFeedRow(drop as Record<string, unknown>, classificationIndex)),
+  ));
+  const degradedStates = degradedEngineStates(statsPayload);
+  const eligible = normalizedDrops;
+  const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
+  return { dropResult, exportPayload, statsPayload, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
+}
 
-type PublicPreparation = Awaited<ReturnType<typeof preparePublicFeedSnapshot>>;
-const readPackedPublicFeed = unstable_cache(async (_identity: string, _classification: string, _sourceConfig: string) => {
-  const prepared = await preparePublicFeedSnapshot();
-  // Keep only public metadata, with each row stored once. Retailer submission
-  // records and classification lookup maps are not persisted in this cache.
+type PublicFeedBase = Awaited<ReturnType<typeof preparePublicFeedBase>>;
+const readPackedPublicFeed = unstable_cache(async (_identity: string, _classification: string) => {
+  const prepared = await preparePublicFeedBase();
+  // No durable source projection, runtime policy, or retailer submission is
+  // persisted here. Those are read after both shared cache layers on every GET.
   const { drops: _rawDrops, ...exportMetadata } = prepared.exportPayload || {};
   const metadata = {
     dropResult: { ...prepared.dropResult, payload: exportMetadata },
     exportPayload: exportMetadata, statsPayload: prepared.statsPayload,
-    retailerVersion: prepared.retailerVersion, retailerCount: prepared.retailerCount,
-    sourceOverlay: { version: prepared.sourceOverlay.version },
     classificationIndex: { version: prepared.classificationIndex.version },
   };
-  return packPublicFeed({ ...prepared, normalizedDrops: prepared.eligible }, metadata);
-}, ['public-feed-packed-v2', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 15 });
+  return packPublicFeed(prepared, metadata);
+}, ['public-feed-immutable-base-v3', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 15 });
 async function readSharedPublicPreparation(identity: string) {
   const classification = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]).version;
-  const config = JSON.stringify([process.env.SOURCE_LANE_STORAGE_ENABLED, process.env.SOURCE_LANE_POLL_ENABLED]);
   try {
-    const packed = await readPackedPublicFeed(identity, classification, config);
-    return { ...unpackPublicFeed<PublicPreparation>(packed), packedBytes: Buffer.byteLength(packed) };
+    const packed = await readPackedPublicFeed(identity, classification);
+    return { ...unpackPublicFeed<PublicFeedBase>(packed), packedBytes: Buffer.byteLength(packed) };
   } catch {
-    // Corrupt/oversized/unavailable cache entries cannot become empty success or
-    // bypass source verification. The normal authoritative preparation remains usable.
-    return { ...await preparePublicFeedSnapshot(), packedBytes: 0 };
+    // Cache failure may reread the immutable base; it cannot bypass the fresh
+    // source composition that follows this function on every normal request.
+    return { ...await preparePublicFeedBase(), packedBytes: 0 };
   }
 }
 const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof readSharedPublicPreparation>>>();
+
+async function preparePublicFeedSnapshot(base: PublicFeedBase) {
+  const [sourceOverlay, retailerSubmissions] = await Promise.all([
+    readRuntimeSourceDropOverlay(base.normalizedDrops, base.dropResult.snapshotId),
+    publicRetailerSubmissions(),
+  ]);
+  const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
+  const immutableRows = new Set<object>(base.normalizedDrops);
+  const runtimeDrops = sourceOverlay.drops.map((drop: Record<string, unknown>) => immutableRows.has(drop)
+    ? drop as typeof base.normalizedDrops[number]
+    : normalizePublicFeedRow(drop, classificationIndex));
+  const retailerDrops = retailerSubmissions
+    .map((submission) => retailerSubmissionToFeedCard(submission, new Date()))
+    .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop))
+    .map((drop) => normalizePublicFeedRow(drop as Record<string, unknown>, classificationIndex));
+  const normalizedDrops = sortDropsByCanonicalSignalOrder([...runtimeDrops, ...retailerDrops]);
+  const independentlyVerifiedIds = new Set(sourceOverlay.drops.filter((drop: Record<string, unknown>) => (drop.sourcePollId || drop.sourceLaneId)
+    && drop.stale !== true && (drop.canAlertAsInventory === true || drop.canAlertAsWatch === true)).map((drop: Record<string, unknown>) => String(drop.id)));
+  const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, {
+    degradedStateCodes: independentlyVerifiedIds.has(String((drop as Record<string, unknown>).id)) ? undefined : base.degradedStates,
+  }));
+  const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
+  return { ...base, sourceOverlay, classificationIndex, normalizedDrops, eligible, freshness,
+    retailerVersion: retailerFeedSnapshot(retailerSubmissions), retailerCount: retailerSubmissions.length };
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -316,9 +332,9 @@ export async function GET(request: Request) {
     const preparationStart = performance.now();
     const identity = await readSiteExportIdentity();
     const prepared = include === "all" && !historicalMode
-      ? { value: { ...await preparePublicFeedSnapshot(), packedBytes: 0 }, hit: false }
+      ? { value: { ...await preparePublicFeedBase(), packedBytes: 0 }, hit: false }
       : await publicFeedSnapshotCache.get(identity, () => readSharedPublicPreparation(identity));
-    const { dropResult, retailerVersion, retailerCount, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness } = prepared.value;
+    const { dropResult, retailerVersion, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness } = await preparePublicFeedSnapshot(prepared.value);
     const preparationMs = performance.now() - preparationStart;
     const filterStart = performance.now();
     let drops = [...normalizedDrops];
@@ -525,9 +541,10 @@ export async function GET(request: Request) {
       {
         headers: {
           ...siteExportHeaders(dropResult.source, dropResult.snapshotId),
-          ...(retailerCount > 0 && !isSignedIn
-            ? { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30", Vary: "Cookie, Authorization" }
-            : dropFeedCacheHeaders(isSignedIn)),
+          // Normal requests must execute the current source veto. Only the
+          // immutable base preparation is shared, never the composed response.
+          "Cache-Control": "private, no-store",
+          Vary: "Cookie, Authorization",
           "X-Public-Feed-Cache-Bytes": String(prepared.value.packedBytes),
           "Server-Timing": `prepare;dur=${preparationMs.toFixed(1)};desc="${prepared.hit ? "cache" : "build"}", filter;dur=${(performance.now() - filterStart).toFixed(1)}`,
           "X-Drops-Source": dropResult.source,
