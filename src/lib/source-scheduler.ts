@@ -181,15 +181,25 @@ export async function readPollProjection(rows: Row[], kind: 'drops'|'candidates'
 export async function pollCandidatesValid(candidates: Row[]) {
   const registry=pollSourceRegistry();
   if(suppressDisabledPollSources(candidates,registry,'candidates').length!==candidates.length) return false;
-  const polled=candidates.filter(c=>c.sourcePollId);
-  if(!polled.length)return true;
-  if(!schedulerEnabled())return false;
+  const genericSources=registry.filter(source=>source.kind==='shopify-variant-pickup');
+  const genericOwned=(candidate:Row)=>candidate.sourceCollectorVersion==='shopify-variant-pickup-v1' || genericSources.some(source=>
+    candidate.sourceRuntimeId===source.id || candidate.sourcePollId===source.id || sourceScopeMatches(source,candidate));
+  const polled=candidates.filter(c=>c.sourcePollId || genericOwned(c));
+  if(!polled.length && !genericSources.length)return true;
+  if(!schedulerEnabled())return polled.length===0;
   const current=(await readPollProjection([], 'candidates')).rows;
-  const proofFields=['state','sourcePollId','sourceRuntimeId','sourceCollectorVersion','sourcePollRun','sourcePollGeneration','sourcePolicySnapshotId',
-    'canonicalBottleId','canonicalId','canonicalName','rawName','tier','merchantId','productId','variantId','storeId','storeAddress',
-    'sourceUrl','sourceProductBinding','availabilityStatus','quantity','quantityIsExact','sourceAvailabilityVerified','pickupOfferVerified','premisesVerified','inventorySemantics','price'];
-  return polled.every(c=>current.some((r: Row)=>r.id===c.id && r.dedupeKey===c.dedupeKey &&
-    (registry.find(source=>source.id===c.sourcePollId)?.kind!=='shopify-variant-pickup' || proofFields.every(field=>c[field]===r[field]))));
+  const proofValue=(value:unknown)=>JSON.stringify(value,(_key,item)=>item && typeof item==='object' && !Array.isArray(item)
+    ? Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])) : item);
+  return candidates.every(c=>{
+    const matching=current.find((r:Row)=>r.id===c.id && r.dedupeKey===c.dedupeKey);
+    // Decide authority from the accepted projection as well as the incoming
+    // identity. Removing every incoming marker cannot evade the current owner.
+    // Bind every persisted source-candidate field, including fulfillment,
+    // display aliases, clocks and channel policy. Queue enrichment may add its
+    // own fields; it cannot rewrite the accepted source payload under one ID.
+    if(genericOwned(c) || (matching && genericSources.some(source=>source.id===matching.sourcePollId)))return !!matching && Object.entries(matching).every(([field,value])=>proofValue(value)===proofValue(c[field]));
+    return !c.sourcePollId || !!matching;
+  });
 }
 export async function tracePollCandidates(rows: Row[],stage: string,channel='',at=new Date().toISOString()) {
   const sources=new Map<string,number>();
