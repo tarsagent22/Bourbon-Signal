@@ -1,6 +1,6 @@
 # Feed serving cost: next bounded repair (#821)
 
-Preparation analysis only, 2026-10-23. Inspected worktree head `8891a19ef512f5517bc504dc06a3403fb9abb1a9`; no runtime, source configuration, admission, database, task, or release changes. Implement after the #822 baseline and the separately owned #823 release have been preserved. Production source admission remains unchanged.
+Initial preparation analysis, 2026-10-23, inspected worktree head `8891a19ef512f5517bc504dc06a3403fb9abb1a9`. The analysis made no runtime, source configuration, admission, database, task, or release changes. The later preparation implementation and baseline evidence are recorded below; production source admission remains unchanged.
 
 ## Evidence and limits
 
@@ -78,3 +78,32 @@ Use the actual saved scheduler/context and route modules with infrastructure stu
 - Add bounded timings for pointer identity, immutable base read/unpack, SC policy/heads, scheduler policy/heads, retailer read, source composition/classification and trace writes. Report response shape/deployment/snapshot, cold versus warm/cache hit and sample count. Keep existing prepare/filter totals so results remain comparable. Avoid SQL text, source URLs, credentials or private row data in timing headers.
 
 Accept the repair only after correctness suites and the baseline observation evidence remain intact, then compare normal customer responses from the same deployed version with an appropriately described sample set. Any measured improvement is scoped to those observations; no p95 or fleet-wide cost reduction claim follows from five sequential requests. Fresh source failure, disable, negative and expiry handling are release requirements regardless of the measured latency benefit.
+
+## Preparation implementation and verification update
+
+The minimal context split is implemented in preparation commit `3ef31b3fe0c3b4a50c33cca5f05d07b1fd484d60`, with only `src/lib/source-scheduler.ts` and the new `scripts/test-source-policy-context.mts` changed. Customer drops, candidate consumption and final-send validation now request a single pinned `bottles` / `state-health` / `alerts` bundle and do not construct a `BourbonBible`. Collection continues to read its original four exports together, including drops, and retains matching Bible construction, broad-history episode continuity and bootstrap-zero delivery candidates. Shared policy guards are preserved. This preparation introduces no query optimization, cache change, instrumentation, collector change, or source activation.
+
+Independent review approved the split. The 18 new actual saved-scheduler/wrapper regressions cover exact requested export lists, Bible/collector counters, shared fail-closed policy gates, torn snapshot IDs, current failures and canonical/state policy, expiry without a generation change, recovery, final-send field equality, and the released Jensen/Mission Trails pilot. Commit `bd708d87` wires the new test into the first `test:engine-dependability` tsx group; that combined group passed 21/21. The prepared remote head reported for this verification is `07f5884340cdac3d4dc489193dcb6911abb83d46`; it is not a claim that #821 is deployed.
+
+The originally reported 201 relevant tests and typecheck were repeated with raw files saved at that prepared head, 04:11:56–04:12:09 UTC. Scheduler source SHA-256 `ad97a0e798f0b2d4bb022d21ad2f5de4fb0b82307d452e29deb95945d32b3f90` and focused-test SHA-256 `a1174a7c4ad345536f3d384cadc0137cb423668f5640fec41e66d857472ef575` match the reviewed implementation.
+
+| Saved repeat | Result |
+| --- | --- |
+| Context, actual generic scheduler/customer/v2, normal-feed freshness and pilot rollback suites | 84/84 passed |
+| Poll/pilot policy, Jensen collector and shared Shopify policy suites | 117/117 passed |
+| `tsc --noEmit --incremental false` | Exit 0; empty stdout/stderr |
+
+Raw logs and their command/clock/checkout/hash manifest are under `C:/Users/chand/projects/bs-feed-freshness-prep-20261023/.operator/feed-serving-cost-821-verification/`: `focused-84.stdout.log`, `policy-pilot-117.stdout.log`, `tsc-noemit.stdout.log`, matching stderr files, and `manifest.json`. These are saved repetitions, not retroactively attributed files from the earlier tool-transcript-only run. The shared collector remains unchanged at SHA-256 `82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206`. No elapsed serving benefit has been measured for the split.
+
+## New production manifest evidence, separate from the local benchmark
+
+Successful baseline run [39899012800](https://github.com/tarsagent22/Bourbon-Signal/actions/runs/39899012800) produced the locally preserved `C:/Users/chand/Documents/Bourbon Signal/shopify-shared-foundation-20261023-evidence/baseline/39899012800/coverage-premises-baseline.json`, captured at `2026-10-23T04:12:30.988Z` and bound to expected production commit `a86a0433c7b0b051761fdc5e3625128bbac42281`. Its active snapshot is `2026-10-23T03-40-10-771Z-fd2196a326946310` and its active manifest SHA-256 is `60d14a7d071542fa47f18677d02623e1b1388a6da45a7ce4e0d434523450519c`.
+
+| Active production manifest descriptor | Plaintext bytes | SHA-256 |
+| --- | --- | --- |
+| drops | **49,049,948** | `3b06ace203d508aa72375fe0c45753cbff4e30561d39b61276f9b1e931592fce` |
+| state-health | 30,477 | `658fc7c059a4b9b8481a3f62aa7bc0f96cf4ff2fe01f741a5b3044c783082927` |
+
+The **49,049,948-byte production drops plaintext** is distinct from the **12,861,662-byte local bundled drops fixture** used in the CPU-only parse experiment. The prepared policy-only consumer no longer requests that drops export; collection still does. The production descriptor strengthens the priority of removing unnecessary payload processing, but provides no measured milliseconds saved or isolated bottleneck attribution.
+
+Neither plaintext size is an encrypted wire-transfer measurement, the 1,345,156-byte packed public feed cache, or the roughly 35 KB normal feed response. The baseline's separate `readAccounting` records 42 object reads and 16,044,542 encrypted-and-manifest bytes across its multi-snapshot baseline capture. Those totals are not the cost of a single normal customer request, and must not be used as a per-request transfer-savings estimate. The original serving timings predate this active 03:40 snapshot and the prepared context split; they are not a before/after comparison of the repair.
