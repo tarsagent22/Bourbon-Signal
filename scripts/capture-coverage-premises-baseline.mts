@@ -10,6 +10,39 @@ const MAX_SNAPSHOTS = 6, MAX_EVENT_ROWS = 20, MAX_OBJECT_BYTES = 12 * 1024 * 102
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
 const canonical = (value: any): any => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object'
   ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+const RETAILER_PREMISE_FIELDS = new Set(['sourceId','origin','physicalPremiseId','name','address','state','zip','currentStoreName','currentStoreAddress',
+  'currentStorePhysicalPremiseId','kind','submissionKind','observedAt','availabilityStartsAt','expiresAt','lifecycle','current','retained','directoryCurrent',
+  'inventoryReported','staleOrUnconfirmed','soldOut','identityConflict','publicationObserved','customerEligibilityProven']);
+const closedKeys=(value:any,keys:string[])=>!!value && typeof value==='object' && !Array.isArray(value)
+  && Object.keys(value).length===keys.length && Object.keys(value).every(key=>keys.includes(key));
+const RETAILER_HISTORY_GAPS=['deleted_submissions_unavailable','revoked_or_unverified_history_excluded','rejected_or_unsupported_history_excluded',
+  'overwritten_store_identities_unavailable','publication_audit_unavailable'];
+function validRetailerMetadata(value:Row) {
+  return closedKeys(value,['contractVersion','capturedAt','statementAt','premises','gaps','provenance','historyGaps','completeness','limits','caveats'])
+    && closedKeys(value.provenance,['statementSha256','premisesSha256'])
+    && closedKeys(value.completeness,['currentlyVerifiedScopeComplete','verifiedStoreDirectoryIncluded','reviewedSubmissionRetentionIncluded',
+      'historicalAbsenceProven','retainedHistoryComplete','publicationHistoryComplete','deletedOrRevokedHistoryIncluded'])
+    && Object.values(value.completeness).every(item=>typeof item==='boolean') && value.completeness.deletedOrRevokedHistoryIncluded===false
+    && closedKeys(value.limits,['rawRows','responseBytes','sentinelRows']) && value.limits.rawRows===10_000
+    && value.limits.responseBytes===2*1024*1024 && value.limits.sentinelRows===1
+    && Array.isArray(value.historyGaps) && value.historyGaps.length===RETAILER_HISTORY_GAPS.length
+    && new Set(value.historyGaps).size===RETAILER_HISTORY_GAPS.length && value.historyGaps.every((item:any)=>RETAILER_HISTORY_GAPS.includes(item))
+    && Array.isArray(value.caveats) && value.caveats.length<=10 && value.caveats.every((item:any)=>typeof item==='string' && item.length<=500 && !/[\u0000-\u001f\u007f]/.test(item))
+    && Array.isArray(value.gaps) && value.gaps.every((gap:any)=>closedKeys(gap,['reason','rows']) &&
+      ['public_premise_identity_incomplete','submission_current_store_identity_conflict','public_observation_clock_invalid','submission_temporal_metadata_invalid'].includes(gap.reason)
+      && Number.isSafeInteger(gap.rows) && gap.rows>0 && gap.rows<=10_000);
+}
+function validRetailerPremise(row: Row) {
+  return row && typeof row==='object' && !Array.isArray(row) && Object.keys(row).every(key=>RETAILER_PREMISE_FIELDS.has(key))
+    && Object.values(row).every(value=>value===null || ['string','boolean'].includes(typeof value))
+    && row.sourceId==='verified-retailer' && ['verified_store_directory','reviewed_submission'].includes(row.origin)
+    && /^verified-retailer-premise:[a-f0-9]{64}$/.test(row.physicalPremiseId || '')
+    && typeof row.address==='string' && row.address.length>0 && row.address.length<=240
+    && typeof row.name==='string' && row.name.length>0 && row.name.length<=120
+    && /^[A-Z]{2}$/.test(row.state || '') && /^\d{5}(?:-\d{4})?$/.test(row.zip || '')
+    && (row.currentStorePhysicalPremiseId===null || /^verified-retailer-premise:[a-f0-9]{64}$/.test(row.currentStorePhysicalPremiseId || ''))
+    && row.publicationObserved===false && row.customerEligibilityProven===false;
+}
 const snapshotId = (value: any) => typeof value === 'string' && /^[A-Za-z0-9._:-]{1,180}$/.test(value);
 const scalar = (value: any, limit = 240) => typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, limit) : '';
 const first = (...values: any[]) => values.map(value => scalar(value)).find(Boolean) || '';
@@ -54,9 +87,9 @@ async function bounded<T>(operation: Promise<T>, ms = 15_000): Promise<T> {
 }
 
 /** No collection/writes. Storage exposes read capabilities only. History absence is never a newness proof. */
-export async function captureCoveragePremisesBaseline({ storage, encryptionKey, expectedCommit, health, independentSources, history = async () => ({ ids: [], limited: true }), registry = [], now = () => Date.now() }: {
+export async function captureCoveragePremisesBaseline({ storage, encryptionKey, expectedCommit, health, independentSources, requireVerifiedRetailerPremises = false, history = async () => ({ ids: [], limited: true }), registry = [], now = () => Date.now() }: {
   storage: { readPointer(): Promise<Row | null>; readObject(key: string): Promise<string | null> }; encryptionKey: string; expectedCommit: string;
-  health(): Promise<Row>; independentSources?: () => Promise<Row>; history?: () => Promise<{ ids: string[]; limited: boolean; eventCount?: number }>; registry?: Row[]; now?: () => number;
+  health(): Promise<Row>; independentSources?: () => Promise<Row>; requireVerifiedRetailerPremises?: boolean; history?: () => Promise<{ ids: string[]; limited: boolean; eventCount?: number }>; registry?: Row[]; now?: () => number;
 }) {
   if (!/^[a-f0-9]{40}$/.test(expectedCommit)) throw new Error('Exact expected production commit required');
   const pointer = await bounded(storage.readPointer());
@@ -65,6 +98,16 @@ export async function captureCoveragePremisesBaseline({ storage, encryptionKey, 
   healthMatches(await bounded(health()), expectedCommit, active);
   const independent = independentSources ? await bounded(independentSources()) : null;
   if (independent && (independent.contractVersion !== 'bourbon-signal/source-premises-baseline@1' || independent.releaseCommit !== expectedCommit)) throw new Error('Independent source baseline identity mismatch');
+  const retailer=independent?.retailerPremises;
+  const hasRetailer=retailer!==undefined && retailer!==null;
+  if(requireVerifiedRetailerPremises && !hasRetailer)throw new Error('Verified retailer premises supplement unavailable or invalid');
+  if(hasRetailer && (!validRetailerMetadata(retailer) || retailer.contractVersion!=='bourbon-signal/verified-retailer-premises-baseline@1'
+    || !Array.isArray(retailer.premises) || retailer.premises.length>10_000 || !Array.isArray(retailer.gaps)
+    || !Number.isFinite(Date.parse(retailer.capturedAt)) || !Number.isFinite(Date.parse(retailer.statementAt))
+    || !/^[a-f0-9]{64}$/.test(retailer.provenance?.statementSha256 || '') || !/^[a-f0-9]{64}$/.test(retailer.provenance?.premisesSha256 || '')
+    || retailer.premises.some((row:Row)=>!validRetailerPremise(row)) || hash(JSON.stringify(canonical(retailer.premises)))!==retailer.provenance.premisesSha256
+    || retailer.completeness?.historicalAbsenceProven!==false || retailer.completeness?.retainedHistoryComplete!==false
+    || retailer.completeness?.publicationHistoryComplete!==false || Buffer.byteLength(JSON.stringify(retailer))>2*1024*1024)) throw new Error('Verified retailer premises supplement unavailable or invalid');
   const retained = await bounded(history());
   if (!Array.isArray(retained.ids) || retained.ids.some(id => !snapshotId(id)) || retained.ids.length > MAX_EVENT_ROWS) throw new Error('Invalid bounded history identities');
   const selected = [...new Set([active, ...(snapshotId(pointer.previous) ? [pointer.previous] : []), ...retained.ids])].slice(0, MAX_SNAPSHOTS);
@@ -132,11 +175,11 @@ export async function captureCoveragePremisesBaseline({ storage, encryptionKey, 
   })).values()];
   return { contractVersion: 'bourbon-signal/premises-baseline@1', capturedAt: new Date(now()).toISOString(), expectedProductionCommit: expectedCommit,
     activeSnapshotId: active, activePointerSha256: pointerHash, provenance: snapshots, readAccounting: { objectReads: reads, encryptedAndManifestBytes: bytes },
-    independentSources: independent, independentSourcesMissing: independent === null,
+    independentSources: independent, independentSourcesMissing: independent === null, verifiedRetailerPremisesIncluded: hasRetailer,
     history: { scope: 'bounded_retained_activation_window', requestedSnapshots: selected.length, eventCount: retained.eventCount ?? null,
       limited: retained.limited || new Set([active, pointer.previous, ...retained.ids].filter(Boolean)).size > MAX_SNAPSHOTS || gaps.length > 0, gaps,
       exhaustiveHistoricalAbsenceProven: false },
-    limits: ['Independent scheduler projections are separately timestamped when captured; verified-retailer submissions are excluded.', 'Selected JSON registries do not enumerate every source configuration or address alias.',
+    limits: [hasRetailer ? 'Independent source and verified-retailer projections have separate SQL clocks; deleted, revoked and unverified retailer history is excluded.' : 'Independent scheduler projections are separately timestamped when captured; verified-retailer premises were not required by this capture.', 'Selected JSON registries do not enumerate every source configuration or address alias.',
       'One-hour raw inventory flag is a conservative classification, not customer feed eligibility or physical stock verification.', 'No matching address is not proof of a new physical store.'],
     premises: unique };
 }
@@ -153,14 +196,14 @@ async function main() {
     const parsed = JSON.parse(raw); registry.push(...(parsed.stores || []).map((row: Row) => ({ ...row, state: row.state || parsed.state })));
     registryFiles.push({ file: `engine/data/store-universe/${file}`, sha256: hash(raw) });
   }
-  const result = await captureCoveragePremisesBaseline({ storage, encryptionKey: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '', expectedCommit: process.env.BASELINE_EXPECTED_COMMIT || '', registry,
+  const result = await captureCoveragePremisesBaseline({ storage, encryptionKey: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '', expectedCommit: process.env.BASELINE_EXPECTED_COMMIT || '', registry, requireVerifiedRetailerPremises:true,
     independentSources: async () => {
       if (!process.env.SOURCE_SCHEDULER_SECRET) throw new Error('Independent source read credential missing');
       const response = await fetch('https://www.bourbonsignal.com/api/ops/source-scheduler?read=1&premises=1', {
         headers: { authorization: `Bearer ${process.env.SOURCE_SCHEDULER_SECRET}` }, signal: AbortSignal.timeout(15_000), cache: 'no-store', redirect: 'error',
       });
       if (response.status !== 200) throw new Error('Independent source premises unavailable');
-      const raw = await response.text(); if (Buffer.byteLength(raw) > 2 * 1024 * 1024) throw new Error('Independent source premises bound');
+      const raw = await response.text(); if (Buffer.byteLength(raw) > 4 * 1024 * 1024) throw new Error('Independent source premises bound');
       return JSON.parse(raw);
     },
     health: async () => {

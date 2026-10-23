@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { InMemoryObjectStorage, publishSiteSnapshot } from '../engine/src/data-plane/site-snapshot-publisher.mjs';
 import { captureCoveragePremisesBaseline, projectPremise, BASELINE_FILES } from './capture-coverage-premises-baseline.mts';
+import { createHash } from 'node:crypto';
+import { PGlite } from '@electric-sql/pglite';
+import { readVerifiedRetailerPremisesBaseline } from '../src/lib/retailer-premises-baseline.ts';
 const commit = 'e'.repeat(40), encryptionKey = Buffer.alloc(32, 7).toString('base64url'), clock = Date.parse('2026-10-23T03:00:00Z');
 async function setup() {
   const storage = new InMemoryObjectStorage();
@@ -110,4 +113,65 @@ test('missing independent capture is explicit; wrong release, contract or read f
   for(const value of [{contractVersion:'other',releaseCommit:commit},{contractVersion:'bourbon-signal/source-premises-baseline@1',releaseCommit:'f'.repeat(40)}])
     await assert.rejects(()=>captureCoveragePremisesBaseline({...options,independentSources:async()=>value}),/identity mismatch/);
   await assert.rejects(()=>captureCoveragePremisesBaseline({...options,independentSources:async()=>{throw Error('unavailable');}}));
+});
+
+function retailerSupplement() {
+  return {contractVersion:'bourbon-signal/verified-retailer-premises-baseline@1',capturedAt:'2026-10-23T03:00:00Z',statementAt:'2026-10-23T02:59:59Z',
+    premises:[],gaps:[],provenance:{statementSha256:'a'.repeat(64),premisesSha256:createHash('sha256').update('[]').digest('hex')},
+    historyGaps:['deleted_submissions_unavailable','revoked_or_unverified_history_excluded','rejected_or_unsupported_history_excluded','overwritten_store_identities_unavailable','publication_audit_unavailable'],
+    completeness:{currentlyVerifiedScopeComplete:true,verifiedStoreDirectoryIncluded:true,reviewedSubmissionRetentionIncluded:true,
+      historicalAbsenceProven:false,retainedHistoryComplete:false,publicationHistoryComplete:false,deletedOrRevokedHistoryIncluded:false},
+    limits:{rawRows:10000,responseBytes:2*1024*1024,sentinelRows:1},caveats:[]};
+}
+test('required verified-retailer supplement stays separately clocked inside the pinned source/release capture',async()=>{
+  const {options}=await setup(),retailer=retailerSupplement();
+  const independent={contractVersion:'bourbon-signal/source-premises-baseline@1',releaseCommit:commit,retailerPremises:retailer};
+  const result=await captureCoveragePremisesBaseline({...options,requireVerifiedRetailerPremises:true,independentSources:async()=>independent});
+  assert.equal(result.verifiedRetailerPremisesIncluded,true);assert.deepEqual(result.independentSources.retailerPremises,retailer);
+  assert.equal(result.history.exhaustiveHistoricalAbsenceProven,false);
+});
+test('missing or malformed required retailer supplement fails before export reads and cannot imply complete history',async()=>{
+  const {options,requested}=await setup();
+  await assert.rejects(()=>captureCoveragePremisesBaseline({...options,requireVerifiedRetailerPremises:true}),/supplement/);
+  for(const retailer of [undefined,false,0,[],{...retailerSupplement(),contractVersion:'other'},
+    {...retailerSupplement(),statementAt:'bad-clock'},{...retailerSupplement(),premises:Array.from({length:10001},()=>({}))},
+    {...retailerSupplement(),completeness:{...retailerSupplement().completeness,historicalAbsenceProven:true}},
+    {...retailerSupplement(),premises:[{sourceId:'verified-retailer',userId:'PRIVATE_ACCOUNT'}]},
+    {...retailerSupplement(),provenance:{...retailerSupplement().provenance,premisesSha256:'invalid'}}]) {
+    await assert.rejects(()=>captureCoveragePremisesBaseline({...options,requireVerifiedRetailerPremises:true,independentSources:async()=>({
+      contractVersion:'bourbon-signal/source-premises-baseline@1',releaseCommit:commit,retailerPremises:retailer})}),/supplement/);
+  }
+  assert.equal(requested.length,0);
+});
+test('real retailer SQL projection survives strict encrypted-baseline integration without account or submission data',async()=>{
+  const db=new PGlite();
+  try {
+    await db.exec(await readFile(new URL('../src/lib/retailer-schema.sql',import.meta.url),'utf8'));
+    await db.query(`INSERT INTO retailer_applications(user_id,account_email,first_name,store_name,store_address,listed_phone,applicant_role,status)
+      VALUES('PRIVATE_ACCOUNT','PRIVATE_EMAIL','PRIVATE_NAME','Public Store','12 Main St, Albany NY 12207','PRIVATE_PHONE','PRIVATE_ROLE','verified')`);
+    await db.query(`INSERT INTO retailer_stores(id,user_id,store_name,store_address,listed_phone,status,updated_at)
+      VALUES('primary:PRIVATE_ACCOUNT','PRIVATE_ACCOUNT','Public Store','12 Main St, Albany NY 12207','PRIVATE_PHONE','verified','2026-10-23T02:00:00Z')`);
+    await db.query(`INSERT INTO retailer_submissions(id,user_id,store_id,store_name,store_address,status,payload,created_at)
+      VALUES('PRIVATE_SUBMISSION','PRIVATE_ACCOUNT','primary:PRIVATE_ACCOUNT','Public Store','12 Main St, Albany NY 12207','reviewed',$1::jsonb,'2026-10-23T02:30:00Z')`,
+      [JSON.stringify({kind:'bottle_drop',startsAt:'2026-10-23T02:00:00.000Z',expiresAt:'2026-10-23T04:00:00.000Z',soldOutAt:'',notes:'PRIVATE_NOTES',bottleId:'PRIVATE_BOTTLE'})]);
+    const retailer=await readVerifiedRetailerPremisesBaseline({query:async(query:string,values?:unknown[])=>await db.query(query,values) as any},{now:clock});
+    const {options}=await setup();
+    const result=await captureCoveragePremisesBaseline({...options,requireVerifiedRetailerPremises:true,independentSources:async()=>({
+      contractVersion:'bourbon-signal/source-premises-baseline@1',releaseCommit:commit,retailerPremises:retailer})});
+    assert.equal(result.verifiedRetailerPremisesIncluded,true);assert.equal(retailer.premises.length,2);
+    assert.equal(retailer.premises.find(row=>row.kind==='inventory_report')!.current,true);
+    assert.equal(retailer.completeness.publicationHistoryComplete,false);assert.doesNotMatch(JSON.stringify(result),/PRIVATE_/);
+  } finally {await db.close();}
+});
+test('unexpected retailer metadata fields never export private data, including optional-library callers',async()=>{
+  const {options,requested}=await setup();
+  for(const retailer of [{...retailerSupplement(),userId:'PRIVATE_ACCOUNT'},
+    {...retailerSupplement(),gaps:[{reason:'public_premise_identity_incomplete',rows:1,userId:'PRIVATE_ACCOUNT'}]},
+    {...retailerSupplement(),provenance:{...retailerSupplement().provenance,userId:'PRIVATE_ACCOUNT'}},
+    {...retailerSupplement(),completeness:{...retailerSupplement().completeness,userId:'PRIVATE_ACCOUNT'}},
+    {...retailerSupplement(),limits:{...retailerSupplement().limits,userId:'PRIVATE_ACCOUNT'}}]) {
+    for(const required of [true,false])await assert.rejects(()=>captureCoveragePremisesBaseline({...options,requireVerifiedRetailerPremises:required,
+      independentSources:async()=>({contractVersion:'bourbon-signal/source-premises-baseline@1',releaseCommit:commit,retailerPremises:retailer})}),/supplement/);
+  }
+  assert.equal(requested.length,0);
 });
