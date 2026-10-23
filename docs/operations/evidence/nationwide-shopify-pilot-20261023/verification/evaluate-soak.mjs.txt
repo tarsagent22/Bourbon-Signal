@@ -1,0 +1,254 @@
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { evaluateNationwidePilotAcceptance, NATIONWIDE_PILOT_EVIDENCE_VERSION } from '../scripts/lib/nationwide-pilot-acceptance.mjs';
+import { stableUnderlyingAlertKey } from '../src/lib/alert-dedupe.ts';
+import { COUNT_SQL as QUEUE_COUNT_SQL, VERSION as QUEUE_QUERY_VERSION } from './capture-queue-proof.mjs';
+
+const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const SOURCES = { 'ca:mission-trails-wine-spirits': 'CA', 'fl:jensens-miami': 'FL' };
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const isHash = value => typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value);
+const time = value => typeof value === 'string' ? Date.parse(value) : NaN;
+const stable = value => JSON.stringify(value && typeof value === 'object' ? Array.isArray(value) ? value.map(v => JSON.parse(stable(v))) : Object.fromEntries(Object.keys(value).sort().map(k => [k, JSON.parse(stable(value[k]))])) : value ?? null);
+const identityKey = row => [row.sourceId, row.runId, row.generation, row.storeId, row.canonicalBottleId, row.productId, row.variantId, row.observedAt].join('|');
+function artifactUrl(value) {
+  try { const url = new URL(value); return url.origin === 'https://github.com' && /^\/tarsagent22\/Bourbon-Signal\/actions\/(?:runs\/\d+\/)?artifacts\/\d+\/?$/.test(url.pathname) && !url.search && !url.hash; } catch { return false; }
+}
+function proof(value) {
+  try { return isHash(value?.sha256) && new URL(value.url).protocol === 'https:'; } catch { return false; }
+}
+const sortedKeys = values => Array.isArray(values) ? [...new Set(values)].sort() : null;
+function immutableQueueMetadata(value) {
+  try {
+    return typeof value?.commit === 'string' && /^[a-f0-9]{40}$/.test(value.commit) && isHash(value.sha256)
+      && path.isAbsolute(value.file) && typeof value.repositoryPath === 'string' && /^[a-zA-Z0-9_./-]+\.json$/.test(value.repositoryPath)
+      && !value.repositoryPath.split('/').some(part => !part || part === '.' || part === '..')
+      && value.url === `https://github.com/tarsagent22/Bourbon-Signal/blob/${value.commit}/${value.repositoryPath}`;
+  } catch { return false; }
+}
+function queueZeroProof(trace, loaded, now) {
+  if (!loaded?.hashVerified || !immutableQueueMetadata(loaded.metadata)) return { error: 'Hash-verified immutable queue proof unavailable.' };
+  const document = loaded.document;
+  if (document?.contractVersion !== 'bourbon-signal/pilot-queue-proof@1' || document.queryVersion !== QUEUE_QUERY_VERSION
+    || document.countSql !== QUEUE_COUNT_SQL || hash(document.countSql) !== document.querySha256
+    || document.identityFunction !== 'src/lib/alert-dedupe.ts#stableUnderlyingAlertKey' || !isHash(document.identityFunctionSha256)
+    || !Array.isArray(document.errors) || document.errors.length || !Array.isArray(document.runs)) return { error: 'Queue proof query or identity version invalid.' };
+  const matches = document.runs.filter(row => row.sourceId === trace.source_id && row.runId === trace.run_id && row.generation === Number(trace.generation));
+  if (matches.length !== 1) return { error: 'Exact queue proof run/generation unavailable or ambiguous.' };
+  const run = matches[0], accounting = trace.accounting;
+  if (run.status !== 'zero_owned_key_emissions' || run.trigger !== 'scheduled' || run.projectedCandidateCount !== accounting.candidates
+    || stable(sortedKeys(run.projectedCandidateKeys)) !== stable(sortedKeys(accounting.projectedCandidateKeys))
+    || !Array.isArray(run.errors) || run.errors.length || run.counts?.newQueueRows !== 0 || run.counts?.deliveryAttempts !== 0
+    || !Array.isArray(run.mappings) || run.mappings.length !== accounting.candidates) return { error: 'Zero owned-key aggregate counts and complete projected mapping required.' };
+  if (time(run.dueAt) !== time(trace.due_at) || time(run.startedAt) !== time(trace.started_at) || time(run.finishedAt) !== time(trace.finished_at)
+    || time(run.window?.startAt) !== time(trace.started_at) || !Number.isFinite(time(run.checkedAt)) || run.checkedAt !== document.checkedAt
+    || time(run.checkedAt) > time(now) || !Number.isFinite(time(run.queriedAt)) || time(run.queriedAt) < time(run.checkedAt) || time(run.queriedAt) > time(now)
+    || !Number.isFinite(time(run.window?.endAt)) || time(run.window.endAt) > time(run.checkedAt)
+    || time(run.window.endAt) - time(trace.finished_at) < 300_000 || run.window.minimumAfterFinishMs !== 300_000) return { error: 'Queue observation clocks/window incomplete or shorter than five minutes.' };
+  if (run.window.endBasis === 'checked_at') {
+    if (time(run.window.endAt) !== time(run.checkedAt) || run.window.nextRun !== null) return { error: 'Queue checked-at boundary invalid.' };
+  } else if (run.window.endBasis === 'next_source_run_started_at') {
+    if (run.window.nextRun?.sourceId !== trace.source_id || !run.window.nextRun.runId || !Number.isSafeInteger(run.window.nextRun.generation)
+      || time(run.window.nextRun.startedAt) !== time(run.window.endAt)) return { error: 'Next source run boundary invalid.' };
+  } else return { error: 'Unknown queue window boundary.' };
+  const derived = [], mappedKeys = [];
+  for (const mapping of run.mappings) {
+    if (!mapping || mapping.mappingBasis !== 'exact_target_run_generation_current_source_projection'
+      || !accounting.projectedCandidateKeys.includes(mapping.projectedKey) || mappedKeys.includes(mapping.projectedKey)
+      || mapping.currentProjectionRunId !== trace.run_id || mapping.currentProjectionGeneration !== Number(trace.generation)
+      || mapping.stableKey !== stableUnderlyingAlertKey({ ...mapping.identityFields, dedupeKey: mapping.projectedKey })) return { error: 'Stable queue key mapping does not follow the actual queue identity function.' };
+    const aliases = sortedKeys([mapping.identityFields?.legacyDedupeKey, mapping.projectedKey].filter(key => typeof key === 'string' && key.trim() && key !== mapping.stableKey));
+    if (stable(sortedKeys(mapping.legacyAliases)) !== stable(aliases)) return { error: 'Legacy alias coverage missing.' };
+    const associations = (Array.isArray(accounting.observations) ? accounting.observations : []).filter(observation => identityKey({ ...observation,
+      sourceId: trace.source_id, runId: trace.run_id, generation: Number(trace.generation) }) === identityKey({ ...mapping.observation,
+      sourceId: trace.source_id, runId: trace.run_id, generation: Number(trace.generation) }));
+    if (associations.length !== 1 || mapping.observation.state !== SOURCES[trace.source_id]) return { error: 'Queue key has no exact run observation association.' };
+    mappedKeys.push(mapping.projectedKey); derived.push(mapping.stableKey, ...aliases);
+  }
+  if (!derived.length || stable(sortedKeys(derived)) !== stable(sortedKeys(run.stableKeys))) return { error: 'Aggregate query key set does not cover all derived owned identities.' };
+  return { evidence: { provenance: { url: loaded.metadata.url, sha256: loaded.metadata.sha256 }, queryVersion: document.queryVersion,
+    querySha256: document.querySha256, identityFunctionSha256: document.identityFunctionSha256, checkedAt: run.checkedAt, queriedAt: run.queriedAt,
+    window: run.window, counts: run.counts, projectedCandidateCount: run.projectedCandidateCount, projectedCandidateKeys: run.projectedCandidateKeys,
+    stableKeys: run.stableKeys, mappings: run.mappings,
+    limitation: 'Zero new queue rows and zero recorded delivery attempts only for these owned keys in this observed window. Retained projection candidates remain present.' } };
+}
+function selectQueueZeroProof(trace, supplied, now) {
+  const documents = Array.isArray(supplied) ? supplied : supplied ? [supplied] : [];
+  const accepted = [], rejected = [];
+  for (const loaded of documents) {
+    // A measured later nonzero result must never be hidden by an earlier zero.
+    if (loaded?.hashVerified && immutableQueueMetadata(loaded.metadata) && loaded.document?.queryVersion === QUEUE_QUERY_VERSION
+      && loaded.document?.countSql === QUEUE_COUNT_SQL && hash(QUEUE_COUNT_SQL) === loaded.document?.querySha256) {
+      const contradiction = (Array.isArray(loaded.document.runs) ? loaded.document.runs : []).some(run => run?.sourceId === trace.source_id && run.runId === trace.run_id
+        && run.generation === Number(trace.generation) && (run.counts?.newQueueRows > 0 || run.counts?.deliveryAttempts > 0));
+      if (contradiction) return { error: 'A supplied immutable proof records nonzero queue creation or delivery attempts for this exact run.' };
+    }
+    const checked = queueZeroProof(trace, loaded, now);
+    if (checked.evidence) accepted.push(checked.evidence); else rejected.push(checked.error);
+  }
+  if (!accepted.length) return { error: rejected[0] || 'Hash-verified immutable queue proof unavailable.' };
+  const identitySignature = evidence => stable({ stableKeys: sortedKeys(evidence.stableKeys), mappings: evidence.mappings.map(mapping => ({ projectedKey: mapping.projectedKey,
+    stableKey: mapping.stableKey, legacyAliases: sortedKeys(mapping.legacyAliases), identityFields: mapping.identityFields, observation: mapping.observation,
+    currentProjectionRunId: mapping.currentProjectionRunId, currentProjectionGeneration: mapping.currentProjectionGeneration })).sort((a, b) => a.projectedKey.localeCompare(b.projectedKey)) });
+  if (new Set(accepted.map(identitySignature)).size !== 1) return { error: 'Conflicting accepted immutable queue proofs for the same run/generation.' };
+  accepted.sort((a, b) => time(b.window.endAt) - time(a.window.endAt) || time(b.checkedAt) - time(a.checkedAt));
+  return { evidence: accepted[0] };
+}
+function receiptUrl(value, sourceId, surface) {
+  try {
+    const url = new URL(value), keys = [...url.searchParams.keys()];
+    return url.origin === 'https://www.bourbonsignal.com' && url.pathname === (surface === 'feed' ? '/api/drops' : '/api/coverage')
+      && keys.length === 4 && new Set(keys).size === 4 && keys.every(k => ['state', 'limit', 'source_receipt', '_bs_verify'].includes(k))
+      && url.searchParams.get('source_receipt') === sourceId && url.searchParams.get('state') === SOURCES[sourceId] && url.searchParams.get('limit') === '1'
+      && /^\d{13}-[a-f0-9]{1,16}$/.test(url.searchParams.get('_bs_verify') || '');
+  } catch { return false; }
+}
+
+/** Pure offline assembly. File authenticity is checked by loadIndex before this boundary. */
+export function assembleSoakEvidence(captures, suppliedMaintenance, { now = new Date().toISOString(), allowedBottleIds = [], inputFailures = [], queueProof = null } = {}) {
+  const diagnostics = [], failures = [...inputFailures], runMap = new Map(), receipts = [], monitors = [];
+  for (const entry of captures) {
+    const { capture, provenance } = entry;
+    if (!artifactUrl(provenance?.url) || !isHash(provenance?.sha256)) { failures.push('Capture lacks indexed immutable artifact provenance.'); continue; }
+    if (capture?.contractVersion !== 'bourbon-signal/pilot-capture@1' || !Array.isArray(capture.errors) || capture.errors.length
+      || capture.scheduler?.status !== 200) { diagnostics.push({ artifact: provenance.url, reason: 'capture_incomplete_or_scheduler_unavailable' }); continue; }
+    const scheduler = capture.scheduler.payload;
+    if (!scheduler?.enabled || !Array.isArray(scheduler.traces)) { diagnostics.push({ artifact: provenance.url, reason: 'scheduler_disabled_or_missing_traces' }); continue; }
+    const monitor = scheduler.heartbeat?.find(row => row.name === 'independent-monitor');
+    if (Number.isFinite(time(monitor?.checked_at))) monitors.push({ at: monitor.checked_at, provenance });
+    for (const trace of scheduler.traces) {
+      if (!Object.hasOwn(SOURCES, trace?.source_id) || trace.status !== 'accepted' || trace.accounting?.trigger !== 'scheduled'
+        || trace.accounting.manualDueReset !== false) continue;
+      const generation = Number(trace.generation), key = [trace.source_id, trace.run_id, generation].join('|');
+      if (!trace.run_id || !Number.isSafeInteger(generation) || generation <= 0 || !Number.isFinite(time(trace.due_at))
+        || !Number.isFinite(time(trace.started_at)) || !Number.isFinite(time(trace.finished_at))) { diagnostics.push({ sourceId: trace.source_id, reason: 'trace_missing_run_generation_or_clocks' }); continue; }
+      const prior = runMap.get(key);
+      if (prior && stable(prior.trace) !== stable(trace)) { prior.conflicted = true; failures.push(`Conflicting immutable accepted trace ${key}.`); }
+      else if (!prior) runMap.set(key, { trace, provenance });
+    }
+    for (const response of Array.isArray(capture.receipts) ? capture.receipts : []) {
+      const payload = response?.payload, sourceId = payload?.sourceId, surface = payload?.surface;
+      if (response.status !== 200 || payload?.contractVersion !== 'bourbon-signal/source-receipt@1' || !Object.hasOwn(SOURCES, sourceId)
+        || !['feed', 'coverage'].includes(surface) || !receiptUrl(response.url, sourceId, surface) || !isHash(response.sha256)
+        || !Number.isFinite(time(response.receivedAt)) || !Number.isFinite(time(payload.receivedAt)) || !Array.isArray(payload.identities)
+        || payload.total !== payload.identities.length || typeof payload.snapshot !== 'string' || !payload.snapshot) continue;
+      if (new Set(payload.identities.map(row => `${row.runId}|${row.generation}`)).size > 1) { failures.push(`Mixed receipt generations in ${provenance.url}.`); continue; }
+      if (new Set(payload.identities.map(identityKey)).size !== payload.identities.length) { failures.push(`Duplicate canonical identities within customer receipt ${provenance.url}.`); continue; }
+      for (const identity of payload.identities) {
+        if (identity?.sourceId !== sourceId || identity.state !== SOURCES[sourceId]) continue;
+        receipts.push({ ...identity, generation: Number(identity.generation), surface, receivedAt: payload.receivedAt,
+          responseReceivedAt: response.receivedAt, snapshot: payload.snapshot, provenance: { ...provenance, responseSha256: response.sha256, responseUrl: response.url } });
+      }
+    }
+  }
+  const sources = Object.entries(SOURCES).map(([sourceId, state]) => {
+    const runs = [];
+    for (const { trace, provenance, conflicted } of runMap.values()) {
+      if (trace.source_id !== sourceId || conflicted) continue;
+      const accounting = trace.accounting;
+      let queueEvidence;
+      if (!Number.isSafeInteger(accounting.candidates) || accounting.candidates < 0 || !Array.isArray(accounting.projectedCandidateKeys)
+        || accounting.projectedCandidateKeys.length !== accounting.candidates || new Set(accounting.projectedCandidateKeys).size !== accounting.candidates) {
+        failures.push(`${sourceId}/${trace.run_id}: projected candidate accounting missing or inconsistent.`); continue;
+      }
+      if (accounting.candidates > 0) {
+        const supplementary = selectQueueZeroProof(trace, queueProof, now);
+        queueEvidence = supplementary.evidence;
+        if (!queueEvidence) {
+        diagnostics.push({ sourceId, runId: trace.run_id, reason: 'queue_emission_evidence_required', projectedCandidates: accounting.candidates });
+        failures.push(`${sourceId}/${trace.run_id}: ${supplementary.error}`); continue;
+        }
+      }
+      const observations = [], customerReceipts = [];
+      for (const observation of Array.isArray(accounting.observations) ? accounting.observations : []) {
+        if (!observation || observation.state !== state) continue;
+        const wanted = identityKey({ ...observation, sourceId, runId: trace.run_id, generation: Number(trace.generation) });
+        const pair = ['feed', 'coverage'].map(surface => receipts.filter(receipt => receipt.surface === surface && identityKey(receipt) === wanted
+          && time(receipt.receivedAt) >= time(trace.finished_at) && time(receipt.receivedAt) <= time(now)
+          && time(receipt.responseReceivedAt) >= time(receipt.receivedAt) && time(receipt.receivedAt) - time(observation.observedAt) <= 3600_000)
+          .sort((a, b) => time(a.receivedAt) - time(b.receivedAt))[0]);
+        if (pair.every(Boolean)) { observations.push(observation); customerReceipts.push(...pair); }
+      }
+      if (!observations.length) { diagnostics.push({ sourceId, runId: trace.run_id, reason: 'no_contemporaneous_canonical_customer_receipt_pair' }); continue; }
+      runs.push({ runId: trace.run_id, generation: Number(trace.generation), status: trace.status, trigger: accounting.trigger,
+        manualDueReset: accounting.manualDueReset, dueAt: trace.due_at, startedAt: trace.started_at, finishedAt: trace.finished_at,
+        bootstrap: accounting.baseline, requests: accounting.requestCount, bytes: accounting.bytes, durationMs: accounting.elapsedMs,
+        provenance, observations, customerReceipts, candidateCount: 0, candidateKeys: [],
+        projectedCandidateCount: accounting.candidates, projectedCandidateKeys: accounting.projectedCandidateKeys,
+        ...(queueEvidence ? { queueEvidence } : {}),
+        rawObservationCount: accounting.observations.length, matchedObservationCount: observations.length });
+    }
+    runs.sort((a, b) => time(a.startedAt) - time(b.startedAt));
+    const latestAccepted = [...runMap.values()].filter(row => row.trace.source_id === sourceId && !row.conflicted)
+      .sort((a, b) => time(b.trace.started_at) - time(a.trace.started_at))[0]?.trace;
+    if (latestAccepted && !runs.some(run => run.runId === latestAccepted.run_id && run.generation === Number(latestAccepted.generation))) {
+      failures.push(`${sourceId}: latest supplied accepted scheduled generation lacks complete customer/queue evidence.`);
+    }
+    // Preserve the complete chronological evidence; the evaluator checks distinct
+    // due periods, advancing observation clocks, and latest-run freshness.
+    return { sourceId, state, cadenceSeconds: 1800, runs };
+  });
+  const maintenance = structuredClone(suppliedMaintenance?.maintenance ?? suppliedMaintenance ?? {});
+  const latestMonitor = monitors.filter(row => time(row.at) <= time(now)).sort((a, b) => time(b.at) - time(a.at))[0];
+  if (!maintenance.monitorReceiptAt && latestMonitor) { maintenance.monitorReceiptAt = latestMonitor.at; maintenance.monitorProvenance = latestMonitor.provenance; }
+  const regression = maintenance.regressionReceipt;
+  if (regression?.status !== 'passed' || !proof(regression)) failures.push('A supplied actual passing regression receipt is required; no maintenance checks were inferred.');
+  const evidence = { contractVersion: NATIONWIDE_PILOT_EVIDENCE_VERSION, sources, maintenance };
+  const acceptance = evaluateNationwidePilotAcceptance(evidence, { now, allowedBottleIds });
+  acceptance.failures.unshift(...failures); acceptance.ok = acceptance.failures.length === 0;
+  return { contractVersion: 'bourbon-signal/pilot-soak-evaluation@1', assembledAt: now, status: acceptance.ok ? 'accepted' : 'pending',
+    evidence, acceptance, diagnostics, inputProvenance: captures.map(row => row.provenance),
+    limitation: 'Offline evaluation of supplied, hash-checked artifacts. No remote artifact or signature authenticity was independently verified.' };
+}
+
+async function loadIndex(file) {
+  const index = JSON.parse(await readFile(file, 'utf8'));
+  if (!Array.isArray(index)) throw new Error('Index must be an array.');
+  const captures = [], failures = [];
+  for (const entry of index) {
+    try {
+      if (!path.isAbsolute(entry?.file) || !artifactUrl(entry?.artifactUrl) || !isHash(entry?.sha256)) throw new Error('Invalid absolute file, artifact URL, or file hash.');
+      const bytes = await readFile(entry.file);
+      if (bytes.length > 32 * 1024 * 1024 || hash(bytes) !== entry.sha256.toLowerCase()) throw new Error('Capture size or SHA256 verification failed.');
+      captures.push({ capture: JSON.parse(bytes.toString('utf8')), provenance: { url: entry.artifactUrl, sha256: entry.sha256.toLowerCase(), file: entry.file } });
+    } catch (error) { failures.push(`${entry?.file || 'unknown capture'}: ${error.message}`); }
+  }
+  return { captures, failures };
+}
+
+async function main() {
+  const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+  const indexPath = arg('index'), maintenancePath = arg('maintenance'), outputPath = arg('output');
+  if (!indexPath || !maintenancePath || !outputPath) throw new Error('Usage: node .operator/evaluate-soak.mjs --index=... --maintenance=... --output=...');
+  const { captures, failures } = await loadIndex(path.resolve(indexPath));
+  const maintenance = JSON.parse(await readFile(path.resolve(maintenancePath), 'utf8'));
+  const body = maintenance.maintenance ?? maintenance;
+  const queueProof = [];
+  for (const metadata of Array.isArray(body.queueEvidence) ? body.queueEvidence : body.queueEvidence ? [body.queueEvidence] : []) {
+    try {
+      if (!immutableQueueMetadata(metadata)) throw new Error('Queue evidence requires an exact GitHub blob commit/path and absolute local file metadata.');
+      const bytes = await readFile(metadata.file);
+      if (bytes.length > 8 * 1024 * 1024 || hash(bytes) !== metadata.sha256.toLowerCase()) throw new Error('Supplemental queue proof file hash mismatch.');
+      const document = JSON.parse(bytes.toString('utf8'));
+      if (hash(await readFile(path.join(ROOT, 'src/lib/alert-dedupe.ts'))) !== document.identityFunctionSha256) throw new Error('Queue identity function differs from the trusted local implementation.');
+      queueProof.push({ metadata, document, hashVerified: true });
+    } catch (error) { failures.push(error.message); }
+  }
+  for (const [name, value] of Object.entries({ ...(body.receipts || {}), regressionReceipt: body.regressionReceipt, monitorProvenance: body.monitorProvenance })) {
+    if (value?.file) {
+      try { if (!path.isAbsolute(value.file) || !isHash(value.sha256) || hash(await readFile(value.file)) !== value.sha256.toLowerCase()) failures.push(`Maintenance file hash mismatch: ${name}.`); }
+      catch { failures.push(`Maintenance file unavailable: ${name}.`); }
+    }
+  }
+  let allowedBottleIds = [];
+  try { const bible = JSON.parse(await readFile(path.join(ROOT, 'engine/out/bourbon-bible.json'), 'utf8')); allowedBottleIds = bible.records.map(row => row.id).filter(id => typeof id === 'string' && id); }
+  catch { failures.push('Trusted local canonical Bible unavailable.'); }
+  const result = assembleSoakEvidence(captures, maintenance, { allowedBottleIds, inputFailures: failures, queueProof });
+  const output = path.resolve(outputPath);
+  await mkdir(path.dirname(output), { recursive: true }); await writeFile(output, JSON.stringify(result, null, 2) + '\n');
+  console.log(JSON.stringify({ status: result.status, output, counts: result.acceptance.counts, failures: result.acceptance.failures, diagnostics: result.diagnostics }));
+  if (!result.acceptance.ok) process.exitCode = 2;
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch(error => { console.error(error.message); process.exitCode = 2; });

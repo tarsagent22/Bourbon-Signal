@@ -1,0 +1,126 @@
+// Offline synthetic checks only. No database client is created or queried.
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { mapProjectedCandidates, COUNT_SQL, VERSION } from './capture-queue-proof.mjs';
+import { assembleSoakEvidence } from './evaluate-soak.mjs';
+
+const hash = value => createHash('sha256').update(value).digest('hex');
+const sourceId = 'ca:mission-trails-wine-spirits';
+const helperHash = hash(await readFile(new URL('../src/lib/alert-dedupe.ts', import.meta.url)));
+function fixture(index) {
+  const started = Date.parse('2026-10-23T00:30:00.000Z') + index * 1800_000;
+  const iso = offset => new Date(started + offset).toISOString();
+  const runId = `synthetic-run-${index}`, generation = 563 + index;
+  const observation = {
+    state: 'CA', storeId: 'mission-trails-wine-spirits:8181-mission-gorge',
+    storeAddress: '8181 Mission Gorge Rd, Ste A, San Diego, CA 92120',
+    sourceUrl: 'https://missiontrailswineandspirits.com/products/eagle-rare',
+    canonicalBottleId: 'synthetic-eagle', productId: '123', variantId: '456', observedAt: iso(1000),
+    availability: 'in_stock', locationPrecision: 'store_level', quantitySemantics: 'binary_orderability',
+    quantity: 0, quantityIsExact: false, sizeMl: 750, sizeEvidenceType: 'source_metadata',
+    fulfillmentEvidenceType: 'retailer_pickup_policy', fulfillmentPolicyVerified: true, pickupVerified: false,
+  };
+  const candidate = {
+    ...observation, sourcePollId: sourceId, sourcePollRun: runId, sourcePollGeneration: generation,
+    dedupeKey: 'synthetic-projected-key', eventIdentityKey: 'availability-episode:synthetic-episode',
+    legacyDedupeKey: 'synthetic-legacy-key', availabilityEpisodeId: 'synthetic-episode',
+  };
+  const mapped = mapProjectedCandidates(sourceId, [candidate.dedupeKey], [observation], [candidate], { runId, generation });
+  assert.deepEqual(mapped.errors, []);
+  assert.equal(mapped.mappings[0].stableKey, 'availability-episode:synthetic-episode');
+  const trace = {
+    source_id: sourceId, run_id: runId, generation, due_at: iso(0), started_at: iso(0), finished_at: iso(2000), status: 'accepted',
+    accounting: { trigger: 'scheduled', manualDueReset: false, observations: [observation], requestCount: 2, bytes: 1000,
+      elapsedMs: 2000, baseline: false, candidates: 1, projectedCandidateKeys: [candidate.dedupeKey] },
+  };
+  const receipts = ['feed', 'coverage'].map(surface => ({
+    url: `https://www.bourbonsignal.com/api/${surface === 'feed' ? 'drops' : 'coverage'}?state=CA&limit=1&source_receipt=${sourceId}&_bs_verify=${started}-abc`,
+    status: 200, receivedAt: iso(60_100), sha256: 'c'.repeat(64),
+    payload: { contractVersion: 'bourbon-signal/source-receipt@1', surface, sourceId, snapshot: 'synthetic-snapshot', receivedAt: iso(60_000),
+      total: 1, identities: [{ ...observation, sourceId, runId, generation }] },
+  }));
+  const captured = {
+    capture: { contractVersion: 'bourbon-signal/pilot-capture@1', errors: [], scheduler: { status: 200, payload: { enabled: true, traces: [trace] } }, receipts },
+    provenance: { url: `https://github.com/tarsagent22/Bourbon-Signal/actions/runs/123/artifacts/${456 + index}`, sha256: 'a'.repeat(64) },
+  };
+  const proofRun = {
+    sourceId, runId, generation, status: 'zero_owned_key_emissions', trigger: 'scheduled',
+    dueAt: trace.due_at, startedAt: trace.started_at, finishedAt: trace.finished_at, checkedAt: iso(600_000), queriedAt: iso(600_050),
+    projectedCandidateCount: 1, projectedCandidateKeys: [candidate.dedupeKey], mappings: mapped.mappings,
+    stableKeys: ['availability-episode:synthetic-episode', 'synthetic-legacy-key', candidate.dedupeKey].sort(),
+    counts: { newQueueRows: 0, deliveryAttempts: 0 }, errors: [],
+    window: { startAt: trace.started_at, endAt: iso(600_000), endBasis: 'checked_at', minimumAfterFinishMs: 300_000, nextRun: null },
+  };
+  // The pure assembly boundary is injected with synthetic verified input. CLI
+  // file hashing and remote artifact authenticity are not claimed by these tests.
+  const queueProof = {
+    hashVerified: true,
+    metadata: { file: path.resolve(`.operator/synthetic-proof-${index}.json`), sha256: 'd'.repeat(64), commit: 'a'.repeat(40),
+      repositoryPath: `docs/evidence/synthetic-proof-${index}.json`,
+      url: `https://github.com/tarsagent22/Bourbon-Signal/blob/${'a'.repeat(40)}/docs/evidence/synthetic-proof-${index}.json` },
+    document: { contractVersion: 'bourbon-signal/pilot-queue-proof@1', checkedAt: proofRun.checkedAt, queryVersion: VERSION,
+      countSql: COUNT_SQL, querySha256: hash(COUNT_SQL), identityFunction: 'src/lib/alert-dedupe.ts#stableUnderlyingAlertKey',
+      identityFunctionSha256: helperHash, errors: [], runs: [proofRun] },
+  };
+  return { observation, candidate, trace, captured, proofRun, queueProof };
+}
+
+const first = fixture(0), second = fixture(1);
+const options = { now: '2026-10-23T01:11:00.000Z', allowedBottleIds: ['synthetic-eagle'] };
+const later = structuredClone(second.queueProof);
+later.document.runs.unshift({ ...structuredClone(first.proofRun), status: 'pending', counts: null, mappings: [], stableKeys: [], errors: ['Historical mapping prohibited.'] });
+const assemble = proofs => assembleSoakEvidence([first.captured, second.captured], {}, { ...options, queueProof: proofs });
+let passed = 0;
+function check(name, operation) { operation(); passed++; console.log(`PASS ${passed}: ${name}`); }
+
+console.log('OFFLINE SYNTHETIC CHECKS — no database queries, production evidence, or remote authentication checks.');
+check('replacement run cannot map a historical run with the same projected key', () => {
+  assert.ok(mapProjectedCandidates(sourceId, [first.candidate.dedupeKey], [first.observation], [second.candidate],
+    { runId: first.trace.run_id, generation: first.trace.generation }).errors.some(error => error.includes('historical remapping')));
+});
+check('matching run id with a wrong generation is rejected', () => {
+  assert.ok(mapProjectedCandidates(sourceId, [first.candidate.dedupeKey], [first.observation], [first.candidate],
+    { runId: first.trace.run_id, generation: first.trace.generation + 1 }).errors.length);
+});
+check('missing expected run and generation cannot authorize a mapping', () => {
+  assert.ok(mapProjectedCandidates(sourceId, [first.candidate.dedupeKey], [first.observation], [first.candidate]).errors.length);
+});
+check('two separately captured current proofs retain both exact generations', () => {
+  const result = assemble([first.queueProof, later]);
+  assert.equal(result.evidence.sources[0].runs.length, 2);
+  assert.ok(result.evidence.sources[0].runs.every(run => run.projectedCandidateCount === 1 && run.candidateCount === 0));
+  assert.equal(result.status, 'pending'); // No FL or maintenance proof is supplied.
+});
+check('a later historical-pending row cannot substitute for the original proof', () => {
+  assert.equal(assemble([later]).evidence.sources[0].runs.length, 1);
+});
+check('forged historical mapping to the replacement generation is rejected', () => {
+  const changed = structuredClone(first.queueProof);
+  changed.document.runs[0].mappings[0].currentProjectionGeneration = second.trace.generation;
+  changed.document.runs[0].mappings[0].currentProjectionRunId = second.trace.run_id;
+  assert.equal(assemble([changed, later]).evidence.sources[0].runs.length, 1);
+});
+check('conflicting otherwise accepted stable identity proofs remain pending', () => {
+  const changed = structuredClone(first.queueProof), run = changed.document.runs[0];
+  run.mappings[0].identityFields.eventIdentityKey = 'availability-episode:synthetic-conflict';
+  run.mappings[0].stableKey = 'availability-episode:synthetic-conflict';
+  run.stableKeys = ['availability-episode:synthetic-conflict', 'synthetic-legacy-key', first.candidate.dedupeKey].sort();
+  const result = assemble([first.queueProof, changed, later]);
+  assert.equal(result.evidence.sources[0].runs.length, 1);
+  assert.ok(result.acceptance.failures.some(error => error.includes('Conflicting accepted')));
+});
+check('measured nonzero attempts veto an earlier zero for that exact run', () => {
+  const changed = structuredClone(first.queueProof); changed.document.runs[0].counts.deliveryAttempts = 1;
+  assert.equal(assemble([first.queueProof, changed, later]).evidence.sources[0].runs.length, 1);
+});
+check('compatible extended zero windows preserve both generations', () => {
+  const changed = structuredClone(first.queueProof), run = changed.document.runs[0];
+  run.checkedAt = '2026-10-23T00:41:00.000Z'; changed.document.checkedAt = run.checkedAt;
+  run.queriedAt = '2026-10-23T00:41:00.050Z'; run.window.endAt = run.checkedAt;
+  const result = assemble([first.queueProof, changed, later]);
+  assert.equal(result.evidence.sources[0].runs.length, 2);
+  assert.equal(result.evidence.sources[0].runs[0].queueEvidence.window.endAt, run.window.endAt);
+});
+console.log(JSON.stringify({ offlineCurrentGenerationAndMultiProofCases: passed, pass: passed === 9, productionEvidence: false, queryVersion: VERSION }));

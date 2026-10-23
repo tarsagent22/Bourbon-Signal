@@ -1,0 +1,11 @@
+OFFLINE SYNTHETIC CHECKS — no database queries, production evidence, or remote authentication checks.
+PASS 1: replacement run cannot map a historical run with the same projected key
+PASS 2: matching run id with a wrong generation is rejected
+PASS 3: missing expected run and generation cannot authorize a mapping
+PASS 4: two separately captured current proofs retain both exact generations
+PASS 5: a later historical-pending row cannot substitute for the original proof
+PASS 6: forged historical mapping to the replacement generation is rejected
+PASS 7: conflicting otherwise accepted stable identity proofs remain pending
+PASS 8: measured nonzero attempts veto an earlier zero for that exact run
+PASS 9: compatible extended zero windows preserve both generations
+{"offlineCurrentGenerationAndMultiProofCases":9,"pass":true,"productionEvidence":false,"queryVersion":"pilot-owned-key-counts@2"}

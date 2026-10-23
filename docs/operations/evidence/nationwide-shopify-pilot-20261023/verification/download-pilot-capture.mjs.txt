@@ -1,0 +1,31 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
+
+const exec = promisify(execFile);
+const repo = 'tarsagent22/Bourbon-Signal';
+const run = process.argv[2];
+const root = 'C:/Users/chand/Documents/Bourbon Signal/nationwide-engine-coverage-20261022-evidence';
+if (!/^\d+$/.test(run || '')) throw new Error('A numeric verification run ID is required.');
+const gh = async args => (await exec('gh', args, { encoding: 'utf8', windowsHide: true, timeout: 30000, maxBuffer: 8 * 1024 * 1024 })).stdout;
+const metadata = JSON.parse(await gh(['api', `repos/${repo}/actions/runs/${run}`]));
+if (metadata.path !== '.github/workflows/source-scheduler-monitor.yml' || metadata.head_sha !== 'be8ad383b04d08882fe753958a95be2e118dd707') throw new Error('Unexpected verification workflow or commit.');
+const artifacts = JSON.parse(await gh(['api', `repos/${repo}/actions/runs/${run}/artifacts`]));
+const matches = artifacts.artifacts.filter(row => row.name === `nationwide-pilot-${run}` && !row.expired);
+if (matches.length !== 1) throw new Error('Exactly one retained pilot artifact is required.');
+const artifact = matches[0], directory = path.join(root, 'captures', run), file = path.join(directory, 'nationwide-pilot-capture.json');
+await mkdir(directory, { recursive: true });
+try { await access(file); } catch { await gh(['run', 'download', run, '--repo', repo, '--name', artifact.name, '--dir', directory]); }
+const bytes = await readFile(file), capture = JSON.parse(bytes);
+if (capture.verificationRunId !== run || capture.commit !== metadata.head_sha) throw new Error('Capture identity disagrees with GitHub run metadata.');
+const record = { file: file.replaceAll('\\', '/'), artifactUrl: `https://github.com/${repo}/actions/runs/${run}/artifacts/${artifact.id}`, sha256: createHash('sha256').update(bytes).digest('hex'), archiveDigest: artifact.digest, githubHeadSha: metadata.head_sha, capturedAt: capture.capturedAt, workflowConclusion: metadata.conclusion };
+const indexFile = path.join(root, 'capture-index.json');
+const index = JSON.parse(await readFile(indexFile, 'utf8'));
+const prior = index.find(row => row.artifactUrl === record.artifactUrl);
+if (prior && prior.sha256 !== record.sha256) throw new Error('Previously indexed capture changed.');
+if (!prior) index.push(record);
+await writeFile(indexFile, JSON.stringify(index, null, 2) + '\n');
+await writeFile(path.join(directory, 'github-artifact-metadata.json'), JSON.stringify({ run: { id: metadata.id, event: metadata.event, headSha: metadata.head_sha, status: metadata.status, conclusion: metadata.conclusion, url: metadata.html_url }, artifact }, null, 2) + '\n');
+console.log(JSON.stringify({ ...record, errors: capture.errors, receipts: capture.receipts?.map(row => ({ sourceId: row.payload?.sourceId, surface: row.payload?.surface, status: row.status, total: row.payload?.total, generations: [...new Set((row.payload?.identities || []).map(identity => identity.generation))] })) }));

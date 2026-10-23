@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-23T00:15:35.029Z",
+  "method": "Live IAB coverage UI using accessible controls; signed out",
+  "mutation": "Read-only public city/store search",
+  "results": [
+    {
+      "state": "FL",
+      "query": "Jensen",
+      "store": "Jensen's Liquors - SW 27th Ave",
+      "city": "Miami",
+      "address": "1646 SW 27th Ave, Miami, FL 33145",
+      "label": "CURRENT BOTTLE AVAILABILITY",
+      "explanation": "We check this store for current bottle availability when information is available."
+    },
+    {
+      "state": "CA",
+      "query": "Mission Trails",
+      "store": "Mission Trails Wine & Spirits",
+      "city": "San Diego",
+      "address": "8181 Mission Gorge Rd, Ste A, San Diego, CA 92120",
+      "label": "CURRENT BOTTLE AVAILABILITY",
+      "explanation": "We check this store for current bottle availability when information is available."
+    }
+  ],
+  "limitations": [
+    "UI lookup verifies store status and address only, not bottle-level pickup",
+    "No signed-in account, message, purchase, physical phone or shelf count was exercised"
+  ]
+}

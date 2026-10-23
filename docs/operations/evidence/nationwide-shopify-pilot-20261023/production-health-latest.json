@@ -1,0 +1,80 @@
+{
+  "checkedAt": "2026-10-23T00:08:01.649Z",
+  "status": 503,
+  "body": {
+    "ok": false,
+    "checkedAt": "2026-10-23T00:08:27.663Z",
+    "release": {
+      "status": "healthy",
+      "reason": "deployment_identity_verified",
+      "commit": "be8ad383b04d08882fe753958a95be2e118dd707",
+      "deploymentId": "dpl_5tSH8dKgvMwkAxyuufueCETny1tF",
+      "environment": "production"
+    },
+    "cron": {
+      "path": "/api/alerts/deliver?cron=v3",
+      "expectedSchedule": "*/5 * * * *",
+      "expectedCadenceMinutes": 5,
+      "staleAfterMinutes": 12,
+      "status": "healthy",
+      "lastRunAt": "2026-10-23T00:05:33.077Z",
+      "ageMinutes": 2.9,
+      "lastRunOk": true,
+      "lastRunDryRun": false,
+      "deploymentId": "dpl_5tSH8dKgvMwkAxyuufueCETny1tF"
+    },
+    "engine": {
+      "status": "stale",
+      "generatedAt": "2026-10-22T22:19:31.894Z",
+      "ageMinutes": 108.9,
+      "staleAfterMinutes": 45,
+      "failedStateCount": 0,
+      "degradedStateCount": 10,
+      "staleStateCount": 4,
+      "freshnessStage": "collector_delay",
+      "recoveryAction": "trigger_guarded_refresh",
+      "snapshotId": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+      "dataSource": "remote-snapshot",
+      "exportGeneratedAt": "2026-10-22T22:22:47.882Z",
+      "snapshotUploadedAt": "2026-10-22T23:55:34.058Z",
+      "snapshotActivatedAt": "2026-10-22T23:57:11.513Z",
+      "productionObservedAt": "2026-10-23T00:08:27.663Z",
+      "lastRollback": {
+        "at": "2026-10-22T23:57:11.513Z",
+        "from": "2026-10-22T23-54-31-022Z-db514c3fead03ed5",
+        "to": "2026-10-22T22-22-47-882Z-bf436e4363d5e2fc"
+      },
+      "provenance": {
+        "appCommit": "6ceb0c635439c0b04f1b6b98c30ab3b677a2d696",
+        "engineCommit": "6ceb0c635439c0b04f1b6b98c30ab3b677a2d696",
+        "collectionRunId": "2026-10-22T22:19:31.894Z"
+      }
+    },
+    "delivery": {
+      "cronSecretConfigured": true,
+      "blobHeartbeatConfigured": true,
+      "onSiteEnabled": true,
+      "emailEnabled": false,
+      "smsEnabled": false,
+      "monitorOnly": false,
+      "alertAudit": {
+        "status": "ok",
+        "queueModeActive": true,
+        "windowStart": "2026-10-23T00:00:00.000Z",
+        "windowEnd": "2026-10-24T00:00:00.000Z",
+        "deliveredRows": 0,
+        "uniqueRecipients": 0,
+        "channelCounts": {
+          "onSite": 0,
+          "email": 0,
+          "sms": 0
+        },
+        "repeatedIdentityGroups": 0,
+        "repeatedPayloadGroups": 0,
+        "repeatedUnderlyingBottleGroups": 0,
+        "latestDeliveryAt": null,
+        "latestRepeatedUnderlyingBottleAt": null
+      }
+    }
+  }
+}

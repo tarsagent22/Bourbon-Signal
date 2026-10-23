@@ -1,0 +1,50 @@
+{
+  "baselineCommit": "c9a33bf16e55e0a842b685a2559dfd3d6a54d48f",
+  "discovery": {
+    "implementation": "discovery/state-source-discovery.mjs",
+    "platformHints": "discovery/platform-fingerprints.mjs",
+    "controls": ["rotating state cohorts","domain deduplication","bounded queries","inventoryEvidence false","promotionEligible false"],
+    "classification": "Candidates and fingerprints do not establish working inventory ingestion."
+  },
+  "reuseDecision": {
+    "pilot": "Existing Shopify parsers, safe matcher, public fetcher, source scheduler and customer projection",
+    "cityHive": "Mature identity-controlled connector, but reviewed NY and CO routes have active denial cooldowns",
+    "wooCommerce": "Reviewed SC All American route is catalog-only and cannot qualify as exact-store stock",
+    "directIntegrations": "Existing verified retailer submissions can publish expiring authenticated reports; POS partnerships remain research"
+  },
+  "registry": {
+    "knownStoreUniverses": ["CA","FL","MS","NV","SC","TN","WV"],
+    "identityCaution": "Contract deduplication is not independent physical-premises reconciliation; platform and chain namespaces must remain in source store IDs.",
+    "coverageCountsRemainDistinct": ["directory","discovery","catalog","shipments","online availability","fresh exact-premises retailer availability"]
+  },
+  "productionScheduling": {
+    "broadRefresh": "GitHub refresh-feed.yml at minutes 7 and 37",
+    "sourceScheduler": "Vercel every five minutes; durable jobs enforce source due times, leases and backoff",
+    "baselineJobs": ["NC board shipments","FL ABC","CA Del Mesa","CA Mission Trails","CA Chips catalog watch","OH browser artifact dependency"],
+    "baselineRepeatedRuntimeProof": [39806910124,39840817800,39866879288],
+    "baselineLatestHealth": "Scheduling punctual; Del Mesa collection degraded and Ohio dependency unavailable",
+    "sourceScopedPublication": "Existing reviewed source scopes support SC only; no unsupported NY or CO scope was supplied.",
+    "windowsEngineMonitor": {"lastRunLocal":"2026-10-22 19:50:01 America/New_York","lastTaskResult":0,"nextRunLocal":"2026-10-22 19:55:00 America/New_York","claim":"Execution evidence; does not establish production restoration."},
+    "backupWatchdog": {"lastTaskResult":1,"claim":"Task status observed only; reason and backup validity not audited in this pilot."}
+  },
+  "publication": {
+    "rolledBackRun":39868907365,
+    "reason":"California customer count 3 below required floor 4",
+    "retainedSnapshot":"2026-10-22T22-22-47-882Z-bf436e4363d5e2fc",
+    "globalQualityGuards":"Preserved"
+  },
+  "measurement": {
+    "initialCurrentContractStoreIdentities":729,
+    "currentStates":8,
+    "stateCityPairs":430,
+    "observedInventoryIdentities":1270,
+    "staleObservedIdentities":541,
+    "searchableDirectoryEntries":5575,
+    "configuredExportStates":24,
+    "canonicalBottles":188,
+    "evaluatedAt":"2026-10-22T23:30:54Z",
+    "limitations":"Counts derive from timestamped production contracts; physically unique stores and current relevant bottle breadth are measured separately for the bounded pilot."
+  },
+  "initialResearchMutations":"None; read-only phase completed before implementation",
+  "businessContact":"None"
+}

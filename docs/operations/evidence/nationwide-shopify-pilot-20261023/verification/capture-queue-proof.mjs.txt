@@ -1,0 +1,126 @@
+import { neon } from '@neondatabase/serverless';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { stableUnderlyingAlertKey } from '../src/lib/alert-dedupe.ts';
+
+const SOURCES = ['ca:mission-trails-wine-spirits', 'fl:jensens-miami'];
+export const VERSION = 'pilot-owned-key-counts@2';
+export const COUNT_SQL = `SELECT
+ (SELECT count(*)::text FROM alert_candidates
+   WHERE stable_match_key=ANY($1::text[]) AND created_at >= $2::timestamptz AND created_at < $3::timestamptz) AS new_queue_rows,
+ (SELECT count(*)::text FROM alert_deliveries d JOIN alert_candidates c ON c.id=d.candidate_id
+   WHERE c.stable_match_key=ANY($1::text[]) AND d.attempted_at >= $2::timestamptz AND d.attempted_at < $3::timestamptz) AS delivery_attempts,
+ clock_timestamp() AS queried_at`;
+const hash = value => createHash('sha256').update(value).digest('hex');
+const iso = value => value instanceof Date ? value.toISOString() : String(value || '');
+const time = value => Date.parse(iso(value));
+const nonempty = value => typeof value === 'string' && value.trim() ? value.trim() : null;
+const association = row => [row?.state, row?.storeId, row?.canonicalBottleId || row?.canonicalId, String(row?.productId || ''), String(row?.variantId || '')].join('|');
+const unique = values => [...new Set(values.filter(Boolean))].sort();
+
+export function mapProjectedCandidates(sourceId, projectedKeys, observations, candidates, expectedRun) {
+  const mappings = [], errors = [];
+  if (!nonempty(expectedRun?.runId) || !Number.isSafeInteger(expectedRun?.generation) || expectedRun.generation <= 0) return { mappings, errors: ['Exact target run/generation required.'] };
+  if (!Array.isArray(projectedKeys) || new Set(projectedKeys).size !== projectedKeys.length || projectedKeys.some(k => !nonempty(k))) return { mappings, errors: ['Projected keys missing or ambiguous.'] };
+  for (const projectedKey of projectedKeys) {
+    const found = candidates.filter(candidate => candidate?.sourcePollId === sourceId && candidate.dedupeKey === projectedKey);
+    if (found.length !== 1) { errors.push(`Projected key ${projectedKey}: exact current retained candidate mapping unavailable.`); continue; }
+    const candidate = found[0], stableKey = stableUnderlyingAlertKey(candidate);
+    if (candidate.sourcePollRun !== expectedRun.runId || Number(candidate.sourcePollGeneration) !== expectedRun.generation) {
+      errors.push(`Projected key ${projectedKey}: target run/generation has been replaced; historical remapping prohibited.`); continue;
+    }
+    const matched = observations.filter(observation => association(observation) === association(candidate));
+    if (!nonempty(stableKey) || matched.length !== 1 || !matched[0].canonicalBottleId || !matched[0].productId || !matched[0].variantId || !matched[0].storeId) {
+      errors.push(`Projected key ${projectedKey}: stable queue identity or exact observation association unavailable.`); continue;
+    }
+    const observation = matched[0];
+    mappings.push({ projectedKey, stableKey,
+      legacyAliases: unique([nonempty(candidate.legacyDedupeKey), projectedKey]).filter(key => key !== stableKey),
+      mappingBasis: 'exact_target_run_generation_current_source_projection',
+      currentProjectionRunId: candidate.sourcePollRun || null, currentProjectionGeneration: Number(candidate.sourcePollGeneration) || null,
+      currentCandidateObservedAt: candidate.observedAt || null,
+      identityFields: { eventIdentityKey: candidate.eventIdentityKey || null, availabilityEpisodeId: candidate.availabilityEpisodeId || null,
+        legacyDedupeKey: candidate.legacyDedupeKey || null, matchKey: candidate.matchKey || null, changeType: candidate.changeType || null, signalAt: candidate.signalAt || null },
+      observation: { state: observation.state, storeId: observation.storeId, canonicalBottleId: observation.canonicalBottleId,
+        productId: String(observation.productId), variantId: String(observation.variantId), observedAt: observation.observedAt } });
+  }
+  return { mappings, errors };
+}
+
+async function main() {
+  const output = process.argv.find(arg => arg.startsWith('--output='))?.slice(9);
+  if (!output) throw new Error('Usage: node --env-file=.env.local .operator/capture-queue-proof.mjs --output=...');
+  const connection = process.env.BOURBON_QUEUE_DATABASE_URL || process.env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
+  if (!connection) throw new Error('Authorized production database connection unavailable.');
+  const sql = neon(connection);
+  // Supported by the installed Neon query options; each SELECT gets its own
+  // bounded request signal instead of one timer shared across the whole script.
+  const query = (text, params = []) => {
+    if (!/^SELECT\b/i.test(text.trim())) throw new Error('Only SELECT queries are permitted.');
+    return sql.query(text, params, { fetchOptions: { signal: AbortSignal.timeout(15_000) } });
+  };
+  // Only SELECT statements. The count subqueries return aggregates only; joining
+  // on candidate_id never exposes IDs, members, provider fields, or payloads.
+  const [clock] = await query('SELECT clock_timestamp() AS checked_at');
+  const checkedAt = iso(clock.checked_at);
+  const jobs = await query("SELECT source_id,generation,accepted_at,projection->'candidates' AS candidates FROM source_poll_jobs WHERE source_id=ANY($1::text[])", [SOURCES]);
+  const traces = await query(`SELECT run_id,source_id,generation,due_at,status,started_at,finished_at,accounting
+    FROM source_poll_runs WHERE source_id=ANY($1::text[]) AND started_at >= $2::timestamptz-interval '24 hours'
+    AND started_at <= $2::timestamptz ORDER BY source_id,started_at LIMIT 500`, [SOURCES, checkedAt]);
+  const document = { contractVersion: 'bourbon-signal/pilot-queue-proof@1', checkedAt, queryVersion: VERSION, querySha256: hash(COUNT_SQL), countSql: COUNT_SQL,
+    identityFunction: 'src/lib/alert-dedupe.ts#stableUnderlyingAlertKey', identityFunctionSha256: hash(await readFile(new URL('../src/lib/alert-dedupe.ts', import.meta.url))),
+    scope: 'Only newly created queue rows and recorded delivery attempts for the mapped owned stable keys in each explicit window. No claim about other keys, older rows, source notification coverage, or eventual future attempts.',
+    currentProjectionPreparation: [], runs: [], errors: [] };
+  for (const sourceId of SOURCES) {
+    const job = jobs.find(row => row.source_id === sourceId), candidates = Array.isArray(job?.candidates) ? job.candidates : [];
+    document.currentProjectionPreparation.push({ sourceId, generation: Number(job?.generation) || null, acceptedAt: iso(job?.accepted_at),
+      candidates: candidates.map(candidate => ({ projectedKey: candidate.dedupeKey || null, stableKey: stableUnderlyingAlertKey(candidate) || null,
+        legacyAliases: unique([nonempty(candidate.legacyDedupeKey), nonempty(candidate.dedupeKey)]),
+        state: candidate.state, storeId: candidate.storeId, canonicalBottleId: candidate.canonicalBottleId || candidate.canonicalId,
+        productId: String(candidate.productId || ''), variantId: String(candidate.variantId || '') })) });
+    const ordered = traces.filter(row => row.source_id === sourceId).sort((a, b) => time(a.started_at) - time(b.started_at));
+    for (const [index, trace] of ordered.entries()) {
+      const accounting = trace.accounting;
+      if (trace.status !== 'accepted' || accounting?.trigger !== 'scheduled' || accounting.manualDueReset !== false) continue;
+      const run = { sourceId, runId: trace.run_id, generation: Number(trace.generation), status: 'pending', trigger: accounting.trigger,
+        dueAt: iso(trace.due_at), startedAt: iso(trace.started_at), finishedAt: iso(trace.finished_at), checkedAt,
+        projectedCandidateCount: accounting.candidates, projectedCandidateKeys: accounting.projectedCandidateKeys,
+        mappings: [], stableKeys: [], counts: null, queriedAt: null, errors: [],
+        window: { startAt: iso(trace.started_at), endAt: index + 1 < ordered.length ? iso(ordered[index + 1].started_at) : checkedAt,
+          endBasis: index + 1 < ordered.length ? 'next_source_run_started_at' : 'checked_at', minimumAfterFinishMs: 300_000,
+          nextRun: index + 1 < ordered.length ? { sourceId, runId: ordered[index + 1].run_id, generation: Number(ordered[index + 1].generation),
+            status: ordered[index + 1].status, startedAt: iso(ordered[index + 1].started_at) } : null } };
+      if (!Number.isSafeInteger(run.generation) || run.generation <= 0 || !Number.isFinite(time(run.startedAt)) || !Number.isFinite(time(run.finishedAt))
+        || !Number.isFinite(time(run.dueAt)) || time(run.dueAt) > time(run.startedAt) || time(run.finishedAt) < time(run.startedAt)) run.errors.push('Run identity or clocks invalid.');
+      if (!Array.isArray(accounting.observations) || !Number.isSafeInteger(accounting.candidates) || accounting.candidates < 0
+        || !Array.isArray(accounting.projectedCandidateKeys) || accounting.projectedCandidateKeys.length !== accounting.candidates) run.errors.push('Persisted current accounting/mapping missing.');
+      else {
+        const mapped = mapProjectedCandidates(sourceId, accounting.projectedCandidateKeys, accounting.observations, candidates, { runId: trace.run_id, generation: Number(trace.generation) });
+        run.mappings = mapped.mappings; run.errors.push(...mapped.errors);
+        run.stableKeys = unique(mapped.mappings.flatMap(mapping => [mapping.stableKey, ...mapping.legacyAliases]));
+      }
+      if (time(run.window.endAt) - time(run.finishedAt) < 300_000 || time(run.window.endAt) > time(checkedAt)) run.errors.push('Observation window has not covered five minutes after run finish.');
+      if (!run.errors.length && run.stableKeys.length) {
+        try {
+          const [counts] = await query(COUNT_SQL, [run.stableKeys, run.window.startAt, run.window.endAt]);
+          const newQueueRows = Number(counts.new_queue_rows), deliveryAttempts = Number(counts.delivery_attempts);
+          if (![newQueueRows, deliveryAttempts].every(value => Number.isSafeInteger(value) && value >= 0)) throw new Error('Unrecognized aggregate result.');
+          run.counts = { newQueueRows, deliveryAttempts }; run.queriedAt = iso(counts.queried_at);
+          if (newQueueRows === 0 && deliveryAttempts === 0) run.status = 'zero_owned_key_emissions';
+          else run.errors.push('Nonzero owned-key queue creation or delivery attempt remains pending.');
+        } catch { run.errors.push('Aggregate query unavailable; no zero inferred.'); }
+      } else if (!run.errors.length && accounting.candidates === 0) {
+        run.status = 'no_projected_candidates'; // No aggregate count or invented zero.
+      }
+      document.runs.push(run);
+    }
+  }
+  await mkdir(path.dirname(path.resolve(output)), { recursive: true });
+  await writeFile(path.resolve(output), JSON.stringify(document, null, 2) + '\n');
+  console.log(JSON.stringify({ output: path.resolve(output), checkedAt, runs: document.runs.map(run => ({ sourceId: run.sourceId, runId: run.runId,
+    generation: run.generation, status: run.status, projectedCandidates: run.projectedCandidateCount, stableKeyCount: run.stableKeys.length, counts: run.counts, errors: run.errors })),
+    preparation: document.currentProjectionPreparation.map(row => ({ sourceId: row.sourceId, generation: row.generation, projectedCandidates: row.candidates.length })) }));
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch(() => { console.error('Queue proof capture failed; no zero or successful proof inferred.'); process.exitCode = 2; });
