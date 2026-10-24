@@ -1,4 +1,5 @@
 import { describeShopifyVariantSource, validateShopifyVariantSource } from './shopify-variant-pickup.mjs';
+import { shopifyPremiseAddressSignature } from './shopify-premises-identity.mjs';
 
 // Preparation contract only: never imported by the runtime registry. No collector
 // execution, environment reads, network, storage, lifecycle changes, or sends.
@@ -51,7 +52,8 @@ export function buildShopifyCohortDescriptors(configurations, { admissions = [],
       bindings.set(key, binding);
     }
     for (const store of source.stores) {
-      const key = `${source.state}|${store.address.toLowerCase().replace(/[^a-z0-9]+/gu, ' ').trim()}`;
+      const key = shopifyPremiseAddressSignature(store.address, { city: store.city, state: source.state, zip: store.zip })?.key;
+      if (!key) fail('physical premises syntax unresolved');
       if (physicalKeys.has(key)) fail('duplicate admitted physical premises');
       physicalKeys.add(key);
     }

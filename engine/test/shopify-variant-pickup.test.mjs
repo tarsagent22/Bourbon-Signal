@@ -47,15 +47,21 @@ test('fixture provenance hashes and exact request URLs match original public cap
   }
 });
 
-test('catalog and preparation readiness bind actual current code/input hashes and canonical IDs', async () => {
+test('old readiness and matcher-generation pins are stale; reviewed runtime hashes require fresh readiness', async () => {
   for (const input of catalogProvenance.inputs) {
     if (input.missing) continue;
     const bytes = await readFile(new URL(`../../${input.file}`, import.meta.url));
-    assert.equal(createHash('sha256').update(bytes).digest('hex'), input.sha256, input.file);
+    const actual = createHash('sha256').update(bytes).digest('hex');
+    if (input.file === 'engine/src/collectors/safe-bottle-match.mjs') assert.notEqual(actual, input.sha256, 'Frozen matcher-generation evidence is stale, not current readiness');
+    else assert.equal(actual, input.sha256, input.file);
   }
   const readiness = JSON.parse(await readFile(new URL('readiness.json', fixtureDir), 'utf8'));
   const code = await readFile(new URL('../src/collectors/shopify-variant-pickup.mjs', import.meta.url));
-  assert.equal(readiness.collectorSha256, createHash('sha256').update(code).digest('hex'));
+  assert.equal(readiness.collectorSha256, '82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206');
+  assert.notEqual(readiness.collectorSha256, createHash('sha256').update(code).digest('hex'), 'Historical readiness cannot authorize the new runtime');
+  assert.equal(createHash('sha256').update(code).digest('hex'), 'ec8c71f52bf700d20ed98ff304c62057a990473f952fc428ad4df13abd439983');
+  const identity = await readFile(new URL('../src/collectors/shopify-premises-identity.mjs', import.meta.url));
+  assert.equal(createHash('sha256').update(identity).digest('hex'), '95620888325f9ad59a60b304f56df3bac1527b923a845da23a38995976a08ed3');
   assert.equal(readiness.catalogSha256, catalogProvenance.catalogSha256);
   const expected = { 'Buffalo Trace Bourbon': ['bb_317836b9e64a7620', 'allocated'], 'Weller Single Barrel': ['bb_1fd1f694742e0a1e', 'unicorn'], "Booker's Bourbon": ['bb_8b9546b93a7fbe72', 'limited'] };
   for (const result of readiness.results) {

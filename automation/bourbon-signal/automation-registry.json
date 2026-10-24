@@ -2,6 +2,34 @@
   "schemaVersion": 1,
   "automations": [
     {
+      "id": "github-shopify-cohort-receipts",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/shopify-cohort-receipts.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "manual only; explicitly bounded observation slots after reviewed release",
+      "delivery": "github_only",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "customer_domain_http"
+        ],
+        "maxRequestsPerRun": 13
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": [
+        "out/shopify-cohort-receipts.json"
+      ]
+    },
+    {
       "id": "github-shopify-canonical-context-read",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/shopify-canonical-context-read.yml",

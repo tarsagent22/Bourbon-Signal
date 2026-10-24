@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { encryptSnapshotObject } from '../engine/src/data-plane/site-snapshot-contract.mjs';
 import { InMemoryObjectStorage, publishSiteSnapshot } from '../engine/src/data-plane/site-snapshot-publisher.mjs';
 import { captureShopifyCanonicalContext, CANONICAL_CONTEXT_CAPTURE_LIMITS, CANONICAL_CONTEXT_DEPENDENCY_FILES,
   CANONICAL_CONTEXT_SELECTION, CANONICAL_CONTEXT_STATE_PAIRS } from './lib/shopify-canonical-context-capture.mts';
@@ -178,4 +179,37 @@ test('final capture clock cannot precede the verified snapshot', async () => {
   const value = await setup(); let calls = 0;
   value.input.now = () => ++calls < 5 ? clock : Date.parse(generatedAt) - 1;
   await rejected(value.input, 'capture_clock_invalid');
+});
+
+// Exact selected health scalars from authenticated inventory-refresh40139706129,
+// artifact12578531473, site/state-health.json plaintext SHA
+// 7eafeec5364056df19ef8304fcf2080440cf0c38e06ed0652a4c989dc94c9bb0.
+// Encrypted snapshot/provenance below remain synthetic offline fixtures.
+test('verified stale_useful broad state preserves canonical classifications without fresh inventory authority', async () => {
+  const healthy = await setup(), control = await captureShopifyCanonicalContext(healthy.input);
+  const value = await setup(files => {
+    const health = { CA: 'degraded', FL: 'healthy', NY: 'stale_useful', TX: 'degraded' };
+    for (const row of files['state-health.json'].states) row.health = health[row.state as keyof typeof health];
+  });
+  const output = await captureShopifyCanonicalContext(value.input); safe(output);
+  assert.deepEqual(output.canonicalRows, control.canonicalRows);
+  assert.deepEqual(output.stateClassifications, control.stateClassifications);
+  assert.ok(output.caveats.some(text => text.includes('does not establish fresh state inventory')));
+  assert.equal(output.accounting.immutableReads, 4); assert.equal(output.accounting.pointerReads, 2); assert.equal(output.accounting.releaseReads, 2);
+});
+for (const health of ['blocked', 'unknown', { privateAccount: 'PRIVATE_CANARY' }]) test(`selected noneligible/unknown health still fails closed: ${typeof health === 'string' ? health : 'nested'}`, async () => {
+  const value = await setup(files => { files['state-health.json'].states.find((row: Row) => row.state === 'NY').health = health; });
+  await rejected(value.input, 'selected_state_policy_missing_or_blocked');
+});
+test('changing encrypted raw state policy cannot reuse the old plaintext descriptor proof', async () => {
+  const value = await setup(files => { files['state-health.json'].states.find((row: Row) => row.state === 'NY').health = 'blocked'; });
+  const original = value.input.storage.readObject;
+  value.input.storage.readObject = async (path: string) => {
+    if (path.endsWith('/files/state-health.json.enc')) {
+      const forged = structuredClone(value.files['state-health.json']); forged.states.find((row: Row) => row.state === 'NY').health = 'stale_useful';
+      return encryptSnapshotObject(JSON.stringify(forged), key);
+    }
+    return original(path);
+  };
+  await rejected(value.input); // actual AES/hash reader, not a policy stub
 });

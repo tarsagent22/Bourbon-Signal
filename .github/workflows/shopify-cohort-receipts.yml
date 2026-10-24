@@ -1,0 +1,51 @@
+name: Read-only admitted Shopify cohort receipts
+run-name: Shopify cohort observation ${{ inputs.observation_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      expected_production_commit:
+        description: Exact reviewed current main/live production commit
+        type: string
+        required: true
+      observation_id:
+        description: Explicit bounded observation slot ID; this workflow never schedules itself
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: shopify-cohort-receipt-capture
+  cancel-in-progress: false
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify receipt scope and capture budgets offline
+        run: npx tsx --test scripts/test-cohort-source-receipt.mts scripts/test-cohort-receipt-capture.mts scripts/test-nationwide-pilot-receipt.mts
+      - name: Read normal customer receipts and scheduler status only
+        env:
+          COHORT_EXPECTED_COMMIT: ${{ inputs.expected_production_commit }}
+          COHORT_OBSERVATION_ID: ${{ inputs.observation_id }}
+          SOURCE_SCHEDULER_SECRET: ${{ secrets.SOURCE_SCHEDULER_SECRET }}
+          ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+        run: npx tsx scripts/capture-shopify-cohort-receipts.mts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shopify-cohort-receipts-${{ github.run_id }}
+          path: |
+            out/shopify-cohort-capture.json
+            out/shopify-cohort-capture.reservation.json
+          if-no-files-found: error
+          retention-days: 30

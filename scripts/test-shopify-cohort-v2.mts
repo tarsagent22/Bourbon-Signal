@@ -107,8 +107,10 @@ function normal(row: Row, clock = now) { return customer.projectInventoryEvidenc
 function current(rows: Row[], clock = now) { return rows.map(row => normal(row, clock)).filter(row => customer.isPublicDropFeedEligible(row) && customer.isCurrentInventoryEvidence(row, clock)); }
 async function coverage(rows: Row[]) { coverageInput = rows; return customer.readCurrentCoverageContract(); }
 
-test('v2 reuses exact unchanged collector and changes only the two reviewed product seeds', () => {
-  assert.equal(collectorSha256, '82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206');
+test('historical v2 fixtures retain their seed-only comparison and replay against the reviewed stricter collector', () => {
+  // Preserve the historical manifest's original code pin. Current premise and
+  // product grammar hardening is a new reviewed runtime, not historical reuse.
+  assert.equal(collectorSha256, 'ec8c71f52bf700d20ed98ff304c62057a990473f952fc428ad4df13abd439983');
   assert.equal(configs.length, 5); assert.deepEqual(states.sort(), ['CA', 'NY', 'TX']);
   for (const config of configs) {
     const previous = v1Configs.find((source: Row) => source.id === config.id);

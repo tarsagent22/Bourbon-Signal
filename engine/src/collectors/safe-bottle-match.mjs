@@ -45,10 +45,10 @@ export function cityHiveUnsafeBottleMatchReason(rawName, record) {
     if (!new RegExp(`\\b${yearExpression}\\b`).test(raw)) return `missing_expression:${yearExpression}`;
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*year\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*(?:year|yr|y)\\b`).test(raw)) return `missing_age:${year}`;
+    if (!new RegExp(`\\b${year}\\s*(?:years?|yr|y)\\b`).test(raw)) return `missing_age:${year}`;
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*y\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*(?:y|yr|year)\\b`).test(raw)) return `missing_age:${year}y`;
+    if (!new RegExp(`\\b${year}\\s*(?:y|yr|years?)\\b`).test(raw)) return `missing_age:${year}y`;
   }
   return null;
 }
