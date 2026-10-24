@@ -80,7 +80,7 @@
     "test:nationwide-radar": "node --no-warnings --experimental-strip-types --test scripts/test-nationwide-geography.mts scripts/test-monitoring-scopes.mts scripts/test-community-contributor-standing.mts scripts/test-community-alert-candidates.mts scripts/test-geography-activity.mts scripts/test-nationwide-radar-contracts.mts",
     "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts && npm run test:bottle-profile && npm run test:collection-history",
     "test:native-post-composer": "node --no-warnings --experimental-strip-types --test scripts/test-native-post-composer.mts",
-    "verify:mobile": "npm --prefix apps/mobile ci && npm --prefix apps/mobile run verify",
+    "verify:mobile": "npm --prefix apps/mobile ci && node --test scripts/test-expo-zod-compatibility.mjs && npm --prefix apps/mobile run verify",
     "test:main-feed-composer": "node --no-warnings --experimental-strip-types scripts/test-main-feed-composer.mts",
     "test:campaign-click-tracking": "node --no-warnings --experimental-strip-types scripts/test-campaign-click-tracking.mts",
     "test:public-acquisition-ctas": "node --no-warnings --experimental-strip-types scripts/test-public-acquisition-ctas.mts",
@@ -269,7 +269,8 @@
   "overrides": {
     "ws": "8.21.0",
     "@humanfs/node": "0.16.8",
-    "fast-uri": "3.1.8",
+    "fast-uri": "3.1.9",
+    "zod": "4.6.6",
     "fflate": "0.8.3",
     "nanoid": "3.3.18",
     "next": {
