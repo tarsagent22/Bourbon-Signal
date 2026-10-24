@@ -135,6 +135,19 @@ test('malformed temporal JSON, impossible expiry and over24h windows become expl
   assert.ok(result.gaps.some(row => row.reason === 'submission_temporal_metadata_invalid')); assert.equal(result.completeness.currentlyVerifiedScopeComplete, false);
 });
 
+test('impossible availability start remains a retained temporal gap rather than a normalized current report', async () => {
+  await seed();
+  await submission({ data: payload({ startsAt: '2026-09-31T00:00:00.000Z', expiresAt: '2026-10-01T18:00:00.000Z' }) });
+  const at = Date.parse('2026-10-01T12:00:00.000Z');
+  await db.query("UPDATE retailer_submissions SET created_at='2026-10-01T07:00:00Z'");
+  const result = await readVerifiedRetailerPremisesBaseline({ query: async text => await db.query(text) as any }, { now: at });
+  const report = result.premises.find(row => row.kind === 'inventory_report')!;
+  assert.equal(report.current, false); assert.equal(report.retained, true);
+  assert.equal(report.availabilityStartsAt, null); assert.equal(report.expiresAt, null);
+  assert.ok(result.gaps.some(row => row.reason === 'submission_temporal_metadata_invalid'));
+  assert.equal(result.completeness.currentlyVerifiedScopeComplete, false);
+});
+
 test('original submitted premise remains separate after verified store relocation or unit/name changes', async () => {
   await seed(); await submission();
   await db.query("UPDATE retailer_stores SET store_address='88 New Avenue Unit 7, Albany NY 12207',store_name='Renamed Store' WHERE id=$1", ['primary:CANARY_ACCOUNT']);

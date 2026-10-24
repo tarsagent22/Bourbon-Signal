@@ -115,9 +115,10 @@ export async function readVerifiedRetailerPremisesBaseline(executor: SqlExecutor
     const kind = directory ? null : String(raw.kind);
     const availability = kind === 'bottle_drop' || kind === 'barrel_pick';
     const startsAt = clean(raw.starts_at, 80), expiresAt = clean(raw.expires_at, 80);
+    const canonicalStartsAt = !!date(startsAt) && new Date(startsAt).toISOString() === startsAt;
     const temporalValid = !directory && raw.temporal_shape_valid && !!date(expiresAt)
       && new Date(expiresAt).toISOString() === expiresAt
-      && (!availability || !!date(startsAt) && Date.parse(expiresAt) > Date.parse(startsAt)
+      && (!availability || canonicalStartsAt && Date.parse(expiresAt) > Date.parse(startsAt)
         && Date.parse(expiresAt) - Date.parse(startsAt) <= 24 * 3600000);
     if (!directory && !temporalValid) gap('submission_temporal_metadata_invalid');
     // Reuse customer lifecycle and exact expiry authority, but do not call its
@@ -131,7 +132,7 @@ export async function readVerifiedRetailerPremisesBaseline(executor: SqlExecutor
       currentStoreName: currentStore?.name || null, currentStoreAddress: currentStore?.address || null,
       currentStorePhysicalPremiseId: currentStore?.physicalPremiseId || null,
       kind: directory ? 'directory' : availability ? 'inventory_report' : 'event', submissionKind: kind,
-      observedAt, availabilityStartsAt: availability && date(startsAt) ? date(startsAt) : null,
+      observedAt, availabilityStartsAt: availability && canonicalStartsAt ? startsAt : null,
       expiresAt: !directory && temporalValid ? expiresAt : null, lifecycle, current, retained,
       directoryCurrent: directory, inventoryReported: availability, staleOrUnconfirmed: availability && !current,
       soldOut: !directory && raw.sold_out, identityConflict,
