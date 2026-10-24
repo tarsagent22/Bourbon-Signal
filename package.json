@@ -225,7 +225,9 @@
     "test:shopify-onboarding-preparation": "tsx --test scripts/test-shopify-batch-onboarding.mts scripts/test-prepare-shopify-onboarding.mts && npm run test:shopify-admission-review",
     "prepare:shopify-admission-review": "tsx scripts/prepare-shopify-admission-review.mts",
     "test:shopify-admission-review": "tsx --test scripts/test-shopify-admission-review-packet.mts && npm run test:shopify-canonical-policy-capture",
-    "test:shopify-canonical-policy-capture": "tsx --test scripts/test-shopify-canonical-policy-capture.mts"
+    "test:shopify-canonical-policy-capture": "tsx --test scripts/test-shopify-canonical-policy-capture.mts && npm run test:shopify-canonical-policy-review",
+    "test:shopify-canonical-policy-review": "tsx --test scripts/test-shopify-canonical-policy-review.mts",
+    "prepare:shopify-canonical-policy-review": "tsx scripts/prepare-shopify-canonical-policy-review.mts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
