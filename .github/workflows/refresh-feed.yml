@@ -575,6 +575,16 @@ jobs:
           path: engine/out/site
           key: inventory-published-site-${{ runner.os }}-${{ github.run_id }}
 
+      - name: Project bounded Tennessee cache status without collection
+        id: tn-cityhive-public-status
+        if: always()
+        continue-on-error: true
+        run: |
+          projection_status="$(node scripts/project-tn-cityhive-public-status.mjs)"
+          if [ "$projection_status" = "CREATED" ]; then
+            printf '%s\n' 'artifact_path=engine/out/optimization/tn-cityhive-public-status.json' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Preserve refresh diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -604,6 +614,7 @@ jobs:
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
+            ${{ steps.tn-cityhive-public-status.outputs.artifact_path }}
             engine/out/optimization/metro-source-attempts
             engine/out/states/*.json
             engine/out/source-refresh-verification.json

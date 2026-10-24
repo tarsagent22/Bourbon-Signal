@@ -219,7 +219,7 @@
     "test:collection-history": "tsx scripts/test-collection-history.mts",
     "test:legal-acceptance": "tsx --test scripts/test-legal-acceptance.ts",
     "test:nationwide-coverage-pilot": "node --test engine/test/florida-jensens-runtime-source.test.mjs engine/test/nationwide-pilot-poll-policy.test.mjs scripts/test-nationwide-pilot-acceptance.mjs && tsx --test scripts/test-nationwide-pilot-receipt.mts scripts/test-pilot-runtime-rollback.mts",
-    "test:feed-source-freshness": "tsx --test scripts/test-feed-source-freshness.mts && node --test scripts/test-source-observation-runner.mjs",
+    "test:feed-source-freshness": "tsx --test scripts/test-feed-source-freshness.mts && node --test scripts/test-source-observation-runner.mjs && npm run test:source-observation-transition-review",
     "test:shopify-cohort-foundation": "node --test engine/test/safe-bottle-match-age-grammar.test.mjs engine/test/shopify-variant-pickup.test.mjs engine/test/shopify-cohort-runtime.test.mjs engine/test/shopify-pickup-policy.test.mjs engine/test/premises-directory-reconciliation.test.mjs engine/test/shopify-premises-identity.test.mjs engine/test/shopify-premises-runtime.test.mjs && tsx --test scripts/test-shopify-cohort-scheduler.mts scripts/test-shopify-cohort-customer.mts scripts/test-shopify-cohort-v2.mts scripts/test-source-premises-route.mts && node --experimental-strip-types --test scripts/test-source-premises-baseline.mts scripts/test-coverage-premises-baseline.mts scripts/test-retailer-premises-baseline.mts && npm run test:shopify-onboarding-preparation",
     "prepare:shopify-onboarding": "tsx scripts/prepare-shopify-onboarding.mts",
     "test:shopify-onboarding-preparation": "tsx --test scripts/test-shopify-batch-onboarding.mts scripts/test-prepare-shopify-onboarding.mts && npm run test:shopify-admission-review",
@@ -227,7 +227,10 @@
     "test:shopify-admission-review": "tsx --test scripts/test-shopify-admission-review-packet.mts && npm run test:shopify-canonical-policy-capture",
     "test:shopify-canonical-policy-capture": "tsx --test scripts/test-shopify-canonical-policy-capture.mts && npm run test:shopify-canonical-policy-review",
     "test:shopify-canonical-policy-review": "tsx --test scripts/test-shopify-canonical-policy-review.mts",
-    "prepare:shopify-canonical-policy-review": "tsx scripts/prepare-shopify-canonical-policy-review.mts"
+    "prepare:shopify-canonical-policy-review": "tsx scripts/prepare-shopify-canonical-policy-review.mts",
+    "test:source-observation-transition-review": "node --test scripts/test-source-observation-transition-review.mjs && npm run test:tn-cityhive-public-status",
+    "review:source-observation-transition": "node scripts/review-source-observation-transition.mjs",
+    "test:tn-cityhive-public-status": "node --test scripts/test-tn-cityhive-public-status.mjs"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
