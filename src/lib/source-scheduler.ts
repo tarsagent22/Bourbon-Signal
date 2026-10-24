@@ -1,7 +1,7 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { sourceAcceptanceHealth } from './source-acceptance-health';
 import { createProductionAlertQueueSqlExecutor } from './alert-queue/runtime';
-import { readSiteExportResults } from './site-engine-contract';
+import { readSiteExportResults, type SiteExportResult } from './site-engine-contract';
 import { BourbonBible } from '../../engine/src/core/bible.mjs';
 import { fingerprintName } from '../../engine/src/core/text.mjs';
 import { withCollectionContext } from '../../engine/src/core/collection-context.mjs';
@@ -42,20 +42,34 @@ export const pollSourceRegistry = (): PollSource[] => POLL_SOURCES.map((source):
 export const schedulerEnabled = () => process.env.SOURCE_SCHEDULER_ENABLED === '1';
 const sql = () => createProductionAlertQueueSqlExecutor();
 export async function pollJobs() { return (await sql().query('SELECT * FROM source_poll_jobs ORDER BY source_id')).rows as Row[]; }
-async function context() {
-  const [bottles,drops,health,alerts] = await readSiteExportResults(['bottles','drops','state-health','alerts']);
+function policyContextFromExports(bottles: SiteExportResult, health: SiteExportResult, alerts: SiteExportResult) {
   const age = Date.now()-Date.parse(bottles.generatedAt || '');
-  if (!bottles.snapshotId || bottles.snapshotId!==health.snapshotId || bottles.snapshotId!==drops.snapshotId || bottles.snapshotId!==alerts.snapshotId
+  if (!bottles.snapshotId || bottles.snapshotId!==health.snapshotId || bottles.snapshotId!==alerts.snapshotId
     || bottles.source!=='remote-snapshot' || !Number.isFinite(age) || age<0 || age>7*86400000
     || health.payload?.quarantine || health.payload?.bootstrap || alerts.payload?.quarantine || alerts.payload?.bootstrap || alerts.payload?.manualRefresh) throw new Error('policy_snapshot_unavailable');
   const records:Row[]=(Array.isArray(bottles.payload?.bottles) ? bottles.payload.bottles as Row[] : []).map((b: Row)=>({ ...b,id:b.canonical_id || b.id,canonical:b.canonical_name || b.name, normalizedKey:fingerprintName(b.canonical_name || b.name),aliases:b.aliases || [] }));
-  const bible=new BourbonBible(records); const lookup=bibleLookup(records);
+  const lookup=bibleLookup(records);
   const classificationIndex=getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
   const byState=Object.fromEntries([...new Set(SHOPIFY_PICKUP_SOURCES.map((source:Row)=>source.state))].map(state=>[state,
     bibleLookup(records.map(record=>({...record,tier:resolveDropClassification({state,canonical_id:record.id,canonical_name:record.canonical,tier:record.tier},classificationIndex).tier})))]));
-  return {bible,lookup:{...lookup,byState},drops:Array.isArray(drops.payload?.drops) ? drops.payload.drops as Row[] : [],snapshotId:bottles.snapshotId,health:health.payload};
+  return {records,lookup:{...lookup,byState},snapshotId:bottles.snapshotId,health:health.payload};
 }
-async function collect(source: Row, ctx: Awaited<ReturnType<typeof context>>, signal: AbortSignal) {
+async function readPollPolicyContext() {
+  // Current customer authority needs no broad drop history or matching Bible.
+  // One bundled read pins all policy exports to the same selected snapshot.
+  const [bottles,health,alerts] = await readSiteExportResults(['bottles','state-health','alerts']);
+  const {records:_records,...policy}=policyContextFromExports(bottles,health,alerts);
+  return policy;
+}
+async function readCollectionContext() {
+  // Collection retains its original history and one pinned four-export bundle;
+  // a separate history read could race activation of a different snapshot.
+  const [bottles,drops,health,alerts] = await readSiteExportResults(['bottles','drops','state-health','alerts']);
+  if(bottles.snapshotId!==drops.snapshotId) throw new Error('policy_snapshot_unavailable');
+  const {records,...policy}=policyContextFromExports(bottles,health,alerts);
+  return {...policy,bible:new BourbonBible(records),drops:Array.isArray(drops.payload?.drops) ? drops.payload.drops as Row[] : []};
+}
+async function collect(source: Row, ctx: Awaited<ReturnType<typeof readCollectionContext>>, signal: AbortSignal) {
   const observedAt=new Date().toISOString();
   if (source.kind==='nc-shipments') return collectNorthCarolinaShipments(ctx.bible,{signal});
   if (source.kind==='ca') return withCollectionContext({signal},()=>collectCaliforniaSource({id:'CA'},ctx.bible,source.definition,observedAt,signal));
@@ -83,7 +97,7 @@ export async function runSourceScheduler({trigger='unspecified'}:{trigger?:strin
   const executor=sql();
   await executor.query(`INSERT INTO source_scheduler_heartbeat VALUES('scheduler',now(),$1::jsonb)
     ON CONFLICT(name) DO UPDATE SET checked_at=EXCLUDED.checked_at,payload=EXCLUDED.payload`,[JSON.stringify({sources:POLL_SOURCES.length})]);
-  const sharedContext=context();
+  const sharedContext=readCollectionContext();
   // Each due source records context/dependency failures in its own incident.
   void sharedContext.catch(()=>undefined);
   const results=await Promise.allSettled(pollSourceRegistry().map(async source=>{
@@ -171,7 +185,7 @@ export function classifyPollError(error: unknown) {
 }
 export async function readPollProjection(rows: Row[], kind: 'drops'|'candidates') {
   if (!schedulerEnabled()) return {rows:suppressDisabledPollSources(rows,pollSourceRegistry(),kind),version:'off'};
-  const [jobs,ctx]=await Promise.all([pollJobs(),context()]);
+  const [jobs,ctx]=await Promise.all([pollJobs(),readPollPolicyContext()]);
   const registry=pollSourceRegistry();
   const permitted=validatePollPolicy(jobs,registry,ctx.lookup,ctx.health,process.env.BOURBON_SIGNAL_QUARANTINED_STATES || '',ctx.snapshotId);
   const merged=mergePollProjection(rows,permitted,registry,kind);
