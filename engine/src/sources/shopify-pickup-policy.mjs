@@ -1,4 +1,5 @@
 import { buildShopifyCohortDescriptors } from '../collectors/shopify-cohort-runtime.mjs';
+import { sameShopifyPremiseAddress } from '../collectors/shopify-premises-identity.mjs';
 
 // Production authority is deliberately empty. Research manifests are never
 // imported here. Changing this registry is an explicit reviewed release action.
@@ -83,7 +84,8 @@ export function createShopifyPickupPolicy({ descriptors = SHOPIFY_PICKUP_SOURCES
       || !coherentOptional([raw.variantPickupUrl, raw.productBinding], pickupUrl)) return reject('product_or_pickup_url_mismatch');
     if (!same([row.storeId, row.store_id], store.id)
       || !same([row.storeName, row.locationName], store.name, normalize)
-      || !present(row.storeAddress) || !same([row.storeAddress, row.address, raw.pickupAddress], store.address, normalize)
+      || !present(row.storeAddress) || ![row.storeAddress, row.address, raw.pickupAddress].filter(present)
+        .every(address => sameShopifyPremiseAddress(address, store.address, { city: store.city, state: source.state, zip: store.zip }))
       || !same([row.city, row.storeCity], store.city, normalize)
       || !same([row.zip, row.postalCode, row.storePostalCode], store.zip)) return reject('premises_mismatch');
     const record = lookup?.byId?.get?.(binding.canonicalBottleId) || lookup?.byId?.[binding.canonicalBottleId];

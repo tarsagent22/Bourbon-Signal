@@ -175,7 +175,7 @@ export async function captureShopifyCanonicalContext(input: ShopifyCanonicalCont
   if (!Array.isArray(states) || states.length > 64) fail('state_policy_schema_invalid');
   for (const state of new Set(CANONICAL_CONTEXT_STATE_PAIRS.map(row => row.state))) {
     const rows = states.filter((row: Row) => row?.state === state);
-    if (rows.length !== 1 || !['healthy', 'degraded'].includes(rows[0].health)) fail('selected_state_policy_missing_or_blocked');
+    if (rows.length !== 1 || !['healthy', 'degraded', 'stale_useful'].includes(rows[0].health)) fail('selected_state_policy_missing_or_blocked');
   }
   const bottles = results.get('bottles')!.payload.bottles;
   if (!Array.isArray(bottles) || bottles.length < 4 || bottles.length > limits.bottleRows) fail('bottle_shape_or_count_invalid');
@@ -210,7 +210,7 @@ export async function captureShopifyCanonicalContext(input: ShopifyCanonicalCont
       classificationImplementationSha256: dependencyHashes.classificationImplementation, beforeReleaseSha256, afterReleaseSha256,
       dependencyScope: 'classification_data_and_implementation_only_not_all_transitive_hashes' }, accounting, limits,
     admissions: [], descriptors: [], activated: false, acceptedNewStores: 0, requiresExplicitLeadReview: true,
-    caveats: ['Only selected production canonical identities and current state classifications are established; no merchant, premise, product, variant or inventory binding is made.',
+    caveats: ['Only selected production canonical identities and current state classifications are established; no merchant, premise, product, variant or inventory binding is made. Broad state health may be stale_useful; canonical policy does not establish fresh state inventory.',
       'Storage SDKs may buffer or retry before post-read checks; logical read budgets and timeouts do not guarantee provider request limits or cancellation.',
       'The historical selected-canonical-policy@1 artifact consumer does not accept this @2 contract; explicit offline adaptation and independent lineage review remain required.'] };
   if (Buffer.byteLength(JSON.stringify(output)) > limits.outputBytes) fail('output_byte_limit');
