@@ -1,0 +1,50 @@
+# Nationwide observation assessment and policy capture preparation
+
+Assessment cutoff: **2026-10-24T03:01:31.273Z**. The five-store target remains **zero accepted additions, zero claimed inventory recoveries**, with five proposed premises across CA/FL/NY/TX. The released CA/FL pilot and #818 correction remain in place. Main is `a86a0433c7b0b051761fdc5e3625128bbac42281`; sole draft [#824](https://github.com/tarsagent22/Bourbon-Signal/pull/824) remains frozen at `6e5d7a79a2aafbb288f833ab77e84244dd0b771e`. This scheduled follow-up does not release or activate anything.
+
+## Full-day result: not accepted
+
+All **131 actual captures, s0–s130**, were checked against their GitHub metadata, retained ZIP digests, exact JSON members, HTTP payload hashes and source/customer identities. They contain 655 payload checks and 524 matching Feed/Coverage receipts. Complete responses span **21.6846 hours**, ending `2026-10-24T00:33:30.220Z`. Wall-clock age exceeded a day, but the last response was **148.01755 minutes** before cutoff. Fourteen due slots, **131–144**, have no reservations/captures. Slot145's normal03:02 tick was after cutoff and is separately preserved.
+
+At00:42 the local observer runner failed closed and left `reservations.json.lock`. Subsequent ticks reported `writer_locked`. Its PID18924 no longer existed; process, task, state and writer checks were preserved. The installed wrapper did not retain the underlying error, so the original runner failure remains **unknown**. Do not infer a merchant/source outage from a sampler failure. Captured selected-source health applies only at the recorded clocks.
+
+The lead quarantined only that proven orphan **observer-local** lock at `03:07:05.0570977Z`, after preserving the original bytes and independent diagnosis. The lock SHA is `23db6ab62f4d8acc400d6013ce842e3a3cc443fc7459b4bf8c48e96ad767cbe8`. Reservation state, installation, rebind journal, task definition, runner and wrapper bytes remained unchanged during repair. An initial repair-script date-parsing failure occurred before mutation; that failed attempt is preserved too. No automatic lock deletion, task change, release-lock change, catch-up dispatch or due-time reset was introduced.
+
+One subsequent **natural** task tick produced [run40057375384](https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40057375384), s146. Actual artifact12546290354 and its body were verified: ZIP SHA `ff1ee83093e0b931335705bdbe6ad7bad9a115a669f41dd8e83d042934b1e15a`, JSON SHA `4f44b24eed1bf4ae23bf05d1da4b60cf43f828ec81931fb151963217307653c4`. At `03:13:11.203Z`, scheduled CA generation608 had three matching Feed/Coverage rows; Jensen generation47 had one. This verifies observer recovery at that capture, **not** missing observations or continuous24-hour acceptance. Slots131–145 remain absent after recovery.
+
+The original window remains `2026-10-23T02:51:11.6844346+00:00` through `2026-10-25T02:51:11.6844346+00:00`, maximum288 reservations. Its reviewed e237→a86 transition and earlier incidents remain visible. Less than24hours remain after recovery: do not silently restart, extend, or call the original window a continuous-day pass. Continue the deterministic task to its existing bound and assess its final evidence honestly. A new bounded observation design/window, if needed, belongs in a separately reviewed operational decision.
+
+## Measured usefulness and cost
+
+Through the fixed cutoff, the immutable ledger shows37 accepted CA scheduled collections, generations568–604, costing148 source GETs /146,963,167 reported bytes; Jensen38 accepted scheduled collections, generations6–43, costing76 GETs /422,256 bytes. These are observed source accounting, not billing or exhaustive unseen-run totals. The recovery capture separately records CA4GETs /3,969,752bytes and Jensen2GETs /11,112bytes; do not mix it into cutoff totals.
+
+CA still offers retailer pickup policy plus online orderability; Jensen supplies exact-variant pickup orderability. Physical on-hand quantity remains unknown. No newly verified phone display, full card copy, alert delivery, queue emission or physical inventory count is claimed. Early Del Mesa staleness and persistent Ohio dependency incidents remain in the historical record; neither is erased by later healthy snapshots. Ohio/POS work stays deferred.
+
+## Reusable production-policy read prepared
+
+The next-five admission review was blocked on current canonical/market authority as well as retailer/history scope. This pass implements a narrowly scoped, read-only capture using the existing verified encrypted snapshot reader:
+
+- `scripts/lib/shopify-canonical-policy-capture.mts` reads one memoized immutable manifest plus exactly three exports: bottles, state-health and alerts. Two pointer reads and two release-health reads must agree with independently verified expected snapshot/pointer pins and the exact production/producer commit.
+- `engine/data/shopify-next-five-policy-bindings-20261024.json` binds the five reviewed source/config/state/store/product/variant tuples to four canonical IDs/names. It stores no preflight freshness, market eligibility conclusion or admission authority.
+- The module validates exact reviewed manifest, bindings and seven listed dependency bytes; current production canonicals must be unique, correctly named and market-eligible under the actual classification implementation. Missing, stale, quarantined, corrupt, mixed-clock, changed-pointer, blocked-policy or private nested data fail closed. Fixture catalog provenance stays separate from actual production catalog provenance.
+- The main-only CLI rejects extra arguments, local execution, wrong refs and mismatched commits before credentialed reads. Its fixed output is create-only. No source requests, source scheduling, inventory writes, admissions, activation or alert sending occur.
+- `.github/workflows/shopify-canonical-policy-read.yml` is manual, read-only, script-only and shares baseline concurrency. Its registry entry classifies the workflow; it is **not released or dispatched**. Registering the source file in this prepared branch does not enable a production workflow.
+
+Enforced logical limits are4 immutable object reads,2 pointer reads,2 health reads,100,000 catalog rows,64KiB output, finite per-object/total byte limits,15-second read races and60-second total capture time. The Blob SDK buffers content before postread limits, may retry, and follows its transport's redirect behavior; timeouts cannot guarantee cancellation of uncooperative storage calls. Registry16 requests is a **nominal HTTP estimate**, not a hard HTTP cap. The output records those caveats. Selected states may be healthy or degraded; other policy gates remain separate. Seven named dependency hashes are not a claim of a full transitive closure or deployment-environment/source-admission authority.
+
+During independent review an unknown budget-key canary could leak through returned limits. The writer corrected this before integration: unknown keys reject before reads, and output limits use a closed key list. Original failure evidence remains; scalar and nested canary regressions now pass. Independent final review approves preparation only.
+
+## Integration checks and next decisions
+
+The integrated engine-dependability chain passes **744 tests, one skipped, zero failed** (745 total), including34 actual encrypted-reader capture tests. TypeScript, production build and automation-registry verification pass. Independent reviewers checked the module, real encrypted fixtures, five tuple bindings, CLI execution fences, observation gap and narrow lock repair. Validation is local preparation evidence, not a deployed workflow or source acceptance.
+
+Ranked next actions:
+
+1. **Readiness repair:** retain the recovered observer and original failure/gap record through its fixed deadline. Improve error diagnostics only in a separately reviewed change; the original node error cannot be reconstructed from task success/failure codes.
+2. **High-value shared repair:** preserve sole draft824 for the existing release operator. Its serving-cost change and verified-retailer current/retained baseline address a broader correctness/cost gap than another merchant-specific parser. No independent draft, merge or dispatch is authorized by this heartbeat.
+3. **Five-store preparation:** queue the prepared canonical-policy capture behind the sole release lane. Once authorized and released, obtain fresh mutually pinned baseline/policy evidence, reconcile retained retailer premises and exact aliases, then refresh each allowed fixed-pair source preflight at actual admission time. Old16:55 fixtures remain useful regressions but are now stale evidence.
+4. **Admission and acceptance:** only after evidence-qualified centralized admission/release, require repeated genuinely due scheduled collections and current normal Feed/Coverage results, with negative/disable/expiry and queue policy retained. Count new connected premises separately from recoveries and existing directory entries. Demonstrate at least three later stores reuse the unchanged connector in production.
+
+The selected five remain Remedy Glendale, Main Street El Cajon, Spirits4Less Miami, Vino Lexington and Hot Spot Austin; Christie's is reserve. All use one unchanged collector in offline preparation, cover four canonical families, and include collector-price offers rather than promised bargains. Production reuse, operator onboarding minutes and ongoing maintenance cost remain unmeasured. No merchant was reprobed simply to refresh an expiring review packet; no business contact, purchase or agreement occurred. The follow-up remains active because the five-store milestone is unmet.
+
+Evidence: `C:/Users/chand/Documents/Bourbon Signal/nationwide-24h-assessment-20261024T0301-evidence`; immutable cutoff analysis: `feed-source-freshness-818-evidence/analysis/20261024T0301Z/observation-analysis.json`. Prior evidence/manifests stay historical, not overwritten by the recovery supplement.

@@ -1,0 +1,52 @@
+name: Read-only selected Shopify canonical policy
+on:
+  workflow_dispatch:
+    inputs:
+      expected_production_commit:
+        description: Exact reviewed live production commit, also this main checkout
+        type: string
+        required: true
+      expected_snapshot_id:
+        description: Exact active snapshot from the independently verified premises baseline
+        type: string
+        required: true
+      expected_pointer_sha256:
+        description: Exact canonical pointer hash from the same premises baseline
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: coverage-premises-baseline-read
+  cancel-in-progress: false
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify selected policy capture guards offline
+        run: npx tsx --test scripts/test-shopify-canonical-policy-capture.mts
+      - name: Read exact pinned policy context only
+        env:
+          POLICY_EXPECTED_COMMIT: ${{ inputs.expected_production_commit }}
+          POLICY_EXPECTED_SNAPSHOT: ${{ inputs.expected_snapshot_id }}
+          POLICY_EXPECTED_POINTER_SHA256: ${{ inputs.expected_pointer_sha256 }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+        run: npx tsx scripts/capture-shopify-canonical-policy.mts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shopify-canonical-policy-${{ github.run_id }}
+          path: out/shopify-canonical-policy.json
+          if-no-files-found: error
+          retention-days: 30

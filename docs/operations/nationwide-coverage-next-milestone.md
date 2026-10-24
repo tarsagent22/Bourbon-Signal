@@ -1,5 +1,7 @@
 # Nationwide coverage: next milestone
 
+Latest assessment: [full-day result and policy capture preparation](nationwide-24h-assessment-20261024T0301.md) supersedes earlier observation checkpoints. At03:01 UTC,131 actual captures span21.6846hours, with14 missed due slots and a148-minute uncaptured tail; full-day acceptance failed. A preserved orphan observer lock was quarantined, and one natural post-repair capture verified CA608/Jensen47 with matching normal results. The gap remains. The current production canonical-policy read is now implemented and independently reviewed as preparation only; zero new stores/sources are counted or activated, and #824 stays frozen.
+
 Decision recorded October 23, 2026, following the owner's revised instruction. Keep the released CA/FL pilot scheduled. Fix finding [818](https://github.com/tarsagent22/Bourbon-Signal/issues/818), observe unattended operation, and continue nationwide research and reusable onboarding preparation concurrently. The earlier one-additional-store recommendation and blanket preparation pause are superseded.
 
 ## Outcome and counting

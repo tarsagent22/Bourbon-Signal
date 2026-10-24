@@ -2,6 +2,26 @@
   "schemaVersion": 1,
   "automations": [
     {
+      "id": "github-shopify-canonical-policy-read",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/shopify-canonical-policy-read.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "manual main exact-live pins; 16 nominal HTTP, SDK retries/redirects extra",
+      "agent": { "provider": null, "model": null, "reasoning": null },
+      "externalApi": {
+        "classes": ["vercel_blob", "customer_domain_http"],
+        "maxRequestsPerRun": 16
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": ["out/shopify-canonical-policy.json"],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-coverage-premises-baseline",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/coverage-premises-baseline.yml",

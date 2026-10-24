@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "scope": "read_only_policy_capture_bindings_no_admission_or_activation",
+  "bindings": [
+    {
+      "sourceId": "ca:remedy-glendale",
+      "configSha256": "164d10e5f121ab12dba209bf25ef637c32495753a530daf37aab6c733e880c70",
+      "state": "CA",
+      "storeId": "remedy-glendale:91201",
+      "productId": "7687686488292",
+      "variantId": "43040880197860",
+      "canonicalId": "bb_be6a0afd4ba5f963",
+      "canonicalName": "Elijah Craig Barrel Proof"
+    },
+    {
+      "sourceId": "ca:main-street-el-cajon",
+      "configSha256": "d7a6ed2b9b67d80f13037d3d70804308aaedcbe5eeedd4cdad59b150764b42d6",
+      "state": "CA",
+      "storeId": "main-street-el-cajon:92020",
+      "productId": "6860137169033",
+      "variantId": "45411077685385",
+      "canonicalId": "bb_d0fe561ac45db2d5",
+      "canonicalName": "Eagle Rare 10 Year"
+    },
+    {
+      "sourceId": "fl:spirits4less-miami",
+      "configSha256": "8c8e8eaaf9901d05b343da35a98324da2d9fef1ee3691e976f25ce48a80dcf0a",
+      "state": "FL",
+      "storeId": "spirits4less-miami:33135",
+      "productId": "8771180658929",
+      "variantId": "46003928727793",
+      "canonicalId": "bb_d0fe561ac45db2d5",
+      "canonicalName": "Eagle Rare 10 Year"
+    },
+    {
+      "sourceId": "ny:vino-lexington",
+      "configSha256": "8b58cd54cd57625b48f235ad16e051059c4779822e022ed0ab2c010ccf34ba7c",
+      "state": "NY",
+      "storeId": "vino-lexington:10016",
+      "productId": "8204164661380",
+      "variantId": "44700008808580",
+      "canonicalId": "bb_1fd1f694742e0a1e",
+      "canonicalName": "Weller Single Barrel"
+    },
+    {
+      "sourceId": "tx:hot-spot-austin",
+      "configSha256": "e956fa76fbabca65b0f9a7c79bdda77769af04a1bf4d4e0e9a69b3f855a6bc64",
+      "state": "TX",
+      "storeId": "hot-spot-austin:78701",
+      "productId": "15264836976800",
+      "variantId": "53124475551904",
+      "canonicalId": "bb_8b9546b93a7fbe72",
+      "canonicalName": "Booker's Bourbon"
+    }
+  ]
+}
