@@ -230,7 +230,8 @@
     "prepare:shopify-canonical-policy-review": "tsx scripts/prepare-shopify-canonical-policy-review.mts",
     "test:source-observation-transition-review": "node --test scripts/test-source-observation-transition-review.mjs && npm run test:tn-cityhive-public-status",
     "review:source-observation-transition": "node scripts/review-source-observation-transition.mjs",
-    "test:tn-cityhive-public-status": "node --test scripts/test-tn-cityhive-public-status.mjs"
+    "test:tn-cityhive-public-status": "node --test scripts/test-tn-cityhive-public-status.mjs && npm run test:shopify-canonical-context",
+    "test:shopify-canonical-context": "tsx --test scripts/test-shopify-canonical-context-capture.mts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
