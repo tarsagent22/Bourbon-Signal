@@ -1,0 +1,52 @@
+name: Read-only selected canonical context
+on:
+  workflow_dispatch:
+    inputs:
+      expected_production_commit:
+        description: Exact reviewed live production commit, also this main checkout
+        type: string
+        required: true
+      expected_snapshot_id:
+        description: Exact active snapshot from independently verified premises baseline
+        type: string
+        required: true
+      expected_pointer_sha256:
+        description: Exact pointer hash from the same independently verified baseline
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: coverage-premises-baseline-read
+  cancel-in-progress: false
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify selected context guards offline
+        run: npm run test:shopify-canonical-context
+      - name: Read pinned canonical and state policy only
+        env:
+          CONTEXT_EXPECTED_COMMIT: ${{ inputs.expected_production_commit }}
+          CONTEXT_EXPECTED_SNAPSHOT: ${{ inputs.expected_snapshot_id }}
+          CONTEXT_EXPECTED_POINTER_SHA256: ${{ inputs.expected_pointer_sha256 }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+        run: npx tsx scripts/capture-shopify-canonical-context.mts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shopify-canonical-context-${{ github.run_id }}
+          path: out/shopify-canonical-context.json
+          if-no-files-found: error
+          retention-days: 30

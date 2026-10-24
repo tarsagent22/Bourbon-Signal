@@ -27,7 +27,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Verify offline projection and consistency guards
-        run: node --experimental-strip-types --test scripts/test-coverage-premises-baseline.mts
+        run: node --experimental-strip-types --test scripts/test-coverage-premises-baseline.mts scripts/test-retailer-premises-baseline.mts
       - name: Read pinned exports and project public premises only
         env:
           BASELINE_EXPECTED_COMMIT: ${{ inputs.expected_production_commit }}
