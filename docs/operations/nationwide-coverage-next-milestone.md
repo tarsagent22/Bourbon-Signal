@@ -1,5 +1,7 @@
 # Nationwide coverage: next milestone
 
+Latest October 24, 23:55 UTC: [released infrastructure, five denied Shopify sources and the next shared-platform/repair batch](nationwide-release-outcome-20261024.md). Production is at `542c2c9f` after #824 and #825; the release lane is empty. Five first product GETs returned 403 and all five sources are held pending changed access evidence. Zero new connections/restorations/activations. The original observer deadline and all gaps/failures remain. Earlier checkpoints below are historical.
+
 Latest October 24, 23:24 UTC: [released #824, reviewed #825 and the remaining admission evidence](nationwide-release-progress-20261024.md). Production is at `ff7b9a95`; #825 is the sole draft with an empty source-admission registry. New accepted premises remain 0. The original observer deadline, gap and failure history are preserved; older checkpoints below are historical.
 
 

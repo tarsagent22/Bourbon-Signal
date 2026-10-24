@@ -1,5 +1,7 @@
 # Nationwide release and admission progress — October 24
 
+Latest October 24, 23:55 UTC: [released infrastructure, five denied Shopify sources and the next shared-platform/repair batch](nationwide-release-outcome-20261024.md). Production is at `542c2c9f` after #824 and #825; the release lane is empty. Five first product GETs returned 403 and all five sources are held pending changed access evidence. Zero new connections/restorations/activations. The original observer deadline and all gaps/failures remain. Earlier checkpoints below are historical.
+
 Checkpoint 23:24 UTC. The direct human instruction authorizes the established release-and-admission process. The lead owns integration and release; GPT-6.1 Sol agents provide focused implementation proposals and independent review. Ohio, POS work, contacts, purchases and agreements remain excluded.
 
 [PR #824](https://github.com/tarsagent22/Bourbon-Signal/pull/824) is released as `ff7b9a95f0d2f02ae6e9d5ac366d18b29da586e0`, with matching healthy production deployment and natural cron heartbeat. The prior “frozen draft #824” checkpoint is historical. The original #818 observer has the same deadline/reservation ledger and its second reviewed commit transition; its missing slots, 160-minute response gap and CA HTTP 5xx are preserved. Continuous 24-hour acceptance remains false.

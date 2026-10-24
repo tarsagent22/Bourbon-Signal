@@ -1,0 +1,82 @@
+{
+  "contractVersion": "bourbon-signal/nationwide-source-access-holds@1",
+  "recordedAt": "2026-10-24T23:53:04.222Z",
+  "scope": "Preparation access holds; no source activation, inventory-negative claim, runtime schedule mutation or admission.",
+  "sourceCaptureManifestSha256": "1f82e142e51110b16fd45a0c9b73b30646421b353adc5981bb8244a76651ff70",
+  "sourcePassPath": "C:\\Users\\chand\\Documents\\Bourbon Signal\\nationwide-release-admission-20261024T2221-evidence\\chosen-five-preflight",
+  "minimumHoldHours": 24,
+  "policy": "No automatic retry. Passing nextAllowedAt does not clear the hold. Require new primary access evidence and explicit reviewed clearance before a separately authorized bounded request. Do not change client, user agent, proxy or egress to bypass the denial.",
+  "actualRequests": 5,
+  "actualBytes": 34620,
+  "pickupRequests": 0,
+  "retries": 0,
+  "completePairs": 0,
+  "newAcceptedPremises": 0,
+  "holds": [
+    {
+      "sourceId": "ca:remedy-glendale",
+      "host": "www.remedyliquor.com",
+      "status": 403,
+      "deniedAt": "2026-10-24T23:46:56.388Z",
+      "nextAllowedAt": "2026-10-25T23:46:56.388Z",
+      "automaticRetryAllowed": false,
+      "requiresChangedAccessEvidence": true,
+      "reason": "RECORDED_TARGET_DENIAL_REQUIRES_CHANGED_EVIDENCE",
+      "bodySha256": "24bc16b530e1eb35ba7b1fcba0dfa2242131d0fc4ec4d9fe9a4df051dbfeaa34",
+      "bytes": 6924,
+      "receiptFile": "chosen-five-preflight/remedy-glendale-product.meta.json"
+    },
+    {
+      "sourceId": "ca:main-street-el-cajon",
+      "host": "mainstreetliquor.com",
+      "status": 403,
+      "deniedAt": "2026-10-24T23:46:56.550Z",
+      "nextAllowedAt": "2026-10-25T23:46:56.550Z",
+      "automaticRetryAllowed": false,
+      "requiresChangedAccessEvidence": true,
+      "reason": "RECORDED_TARGET_DENIAL_REQUIRES_CHANGED_EVIDENCE",
+      "bodySha256": "24bc16b530e1eb35ba7b1fcba0dfa2242131d0fc4ec4d9fe9a4df051dbfeaa34",
+      "bytes": 6924,
+      "receiptFile": "chosen-five-preflight/main-street-el-cajon-product.meta.json"
+    },
+    {
+      "sourceId": "fl:spirits4less-miami",
+      "host": "spirits4less.com",
+      "status": 403,
+      "deniedAt": "2026-10-24T23:46:56.755Z",
+      "nextAllowedAt": "2026-10-25T23:46:56.755Z",
+      "automaticRetryAllowed": false,
+      "requiresChangedAccessEvidence": true,
+      "reason": "RECORDED_TARGET_DENIAL_REQUIRES_CHANGED_EVIDENCE",
+      "bodySha256": "24bc16b530e1eb35ba7b1fcba0dfa2242131d0fc4ec4d9fe9a4df051dbfeaa34",
+      "bytes": 6924,
+      "receiptFile": "chosen-five-preflight/spirits4less-miami-product.meta.json"
+    },
+    {
+      "sourceId": "ny:vino-lexington",
+      "host": "vinosite.com",
+      "status": 403,
+      "deniedAt": "2026-10-24T23:46:56.918Z",
+      "nextAllowedAt": "2026-10-25T23:46:56.918Z",
+      "automaticRetryAllowed": false,
+      "requiresChangedAccessEvidence": true,
+      "reason": "RECORDED_TARGET_DENIAL_REQUIRES_CHANGED_EVIDENCE",
+      "bodySha256": "24bc16b530e1eb35ba7b1fcba0dfa2242131d0fc4ec4d9fe9a4df051dbfeaa34",
+      "bytes": 6924,
+      "receiptFile": "chosen-five-preflight/vino-lexington-product.meta.json"
+    },
+    {
+      "sourceId": "tx:hot-spot-austin",
+      "host": "hotspot.fun",
+      "status": 403,
+      "deniedAt": "2026-10-24T23:46:57.066Z",
+      "nextAllowedAt": "2026-10-25T23:46:57.066Z",
+      "automaticRetryAllowed": false,
+      "requiresChangedAccessEvidence": true,
+      "reason": "RECORDED_TARGET_DENIAL_REQUIRES_CHANGED_EVIDENCE",
+      "bodySha256": "24bc16b530e1eb35ba7b1fcba0dfa2242131d0fc4ec4d9fe9a4df051dbfeaa34",
+      "bytes": 6924,
+      "receiptFile": "chosen-five-preflight/hot-spot-austin-product.meta.json"
+    }
+  ]
+}
