@@ -26,7 +26,8 @@
       "silencePolicy": "report_output",
       "killSwitch": "github_workflow_disable",
       "artifacts": [
-        "out/shopify-cohort-receipts.json"
+        "out/shopify-cohort-capture.json",
+        "out/shopify-cohort-capture.reservation.json"
       ]
     },
     {
