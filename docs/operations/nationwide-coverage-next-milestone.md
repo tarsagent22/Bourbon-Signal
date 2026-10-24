@@ -1,5 +1,8 @@
 # Nationwide coverage: next milestone
 
+Latest October 24, 23:24 UTC: [released #824, reviewed #825 and the remaining admission evidence](nationwide-release-progress-20261024.md). Production is at `ff7b9a95`; #825 is the sole draft with an empty source-admission registry. New accepted premises remain 0. The original observer deadline, gap and failure history are preserved; older checkpoints below are historical.
+
+
 Latest21:06 UTC follow-up: [six-file canonical-only delivery candidate and current coverage evidence](nationwide-followup-20261024T2106.md).239 artifacts verify;37new samples have no new selected-pilot failures. The original gap/s214 failure remain and24-hour acceptance is false. A six-file read-only canonical-context@2 patch passed exact-#824 apply-check and56 isolated tests without runtime/collector edits or PR changes. All selectedfive/reserve still have0matches in checked lateststate/baseline scopes; omitted retailer/history prevents novelty certification.0new stores/activations; production and sole draft unchanged.
 
 Historical15:02 UTC follow-up: [source incidents/recoveries, cohort reconciliation and diagnostics](nationwide-followup-20261024T1502.md).202 actual artifacts verify, but CA failed generation628 at s214 before scheduled629 recovery; the original15 missing slots/160-minute gap remain and24-hour acceptance is false. Del Mesa resumed after cooldown and recovered a later HTTP5xx naturally. Newer Corkdorks cache observations supersede an assumed current outage. Bounded scalar diagnostics and subsequent-release review are prepared/independently reviewed only;0new stores/activations, stale selected-five checks, unchanged production and frozen #824 remain explicit.

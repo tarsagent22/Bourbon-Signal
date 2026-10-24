@@ -1,7 +1,7 @@
 import {open,mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {captureShopifyCanonicalContext,CANONICAL_CONTEXT_DEPENDENCY_FILES,CANONICAL_CONTEXT_CAPTURE_LIMITS} from './lib/shopify-canonical-context-capture.mts';
+import {captureShopifyCanonicalContext,CanonicalContextCaptureError,CANONICAL_CONTEXT_DEPENDENCY_FILES,CANONICAL_CONTEXT_CAPTURE_LIMITS} from './lib/shopify-canonical-context-capture.mts';
 
 async function boundedLocal(file:string,limit:number){
   const handle=await open(file,'r');
@@ -35,6 +35,8 @@ async function main(){
   console.log(JSON.stringify({status:'captured',snapshotId:result.activeSnapshotId,canonicalRows:result.canonicalRows.length,
     stateClassifications:result.stateClassifications.length,scope:result.scope,acceptedNewStores:0,activated:false}));
 }
-if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)main().catch(()=>{
+if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)main().catch((error:unknown)=>{
+  const code=error instanceof CanonicalContextCaptureError&&/^[a-z][a-z0-9_]{0,79}$/u.test(error.code)?error.code:'capture_failed_closed';
+  console.error(JSON.stringify({status:'rejected',code,scope:'read_only_canonical_context_no_inventory_or_admission'}));
   console.error('Selected canonical context capture failed closed; no partial artifact, credentials, inventory or admissions emitted.');process.exitCode=1;
 });
