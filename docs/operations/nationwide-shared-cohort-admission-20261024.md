@@ -22,7 +22,7 @@ Canonical capture [40141150087](https://github.com/tarsagent22/Bourbon-Signal/ac
 
 ## This release and next acceptance
 
-The shared runtime adds strict premise identity, exact tuple ownership, a conservative plural-year product grammar repair, v2 provenance preservation, and generic receipt capture. All five later configurations use the same collector; no merchant-specific code branch is added. Historical fixtures and their old capture clocks remain historical. A separate manual main-only sensor reads normal customer receipts and selected scheduler scalars; it never collects or activates sources.
+The shared runtime adds strict premise identity, exact tuple ownership, a conservative plural-year product grammar repair, v2 provenance preservation, and generic receipt capture. All five later configurations use the same collector; no merchant-specific code branch is added. Historical fixtures and their old capture clocks remain historical. A separate manual main-only sensor reads normal customer receipts and selected scheduler scalars; it never collects or activates sources. These normal reads retain existing internal source-read telemetry; the sensor adds no collection or activation flow.
 
 The production admission registry remains empty in this prerequisite release. Before enabling it, the lead must acquire a successful authenticated canonical capture, run a bounded fresh ten-request merchant preflight, replay the actual unchanged connector, reconcile all premise aliases/history, and seal the actual approval/configuration bytes. An independent review and the single guarded release lane are required. Local fixtures and passing tests earn zero stores.
 

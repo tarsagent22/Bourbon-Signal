@@ -34,7 +34,7 @@ function mockRead(mod:ReturnType<typeof load>,changes:Row={}){
     const source=mod.sources.find(s=>s.id===u.searchParams.get('source_receipt'));assert.ok(source);
     const b=source.admission.bindings[0];
     const identity={sourceId:source.id,runId:`run-${source.id}`,generation:1,state:source.state,storeId:b.storeId,productId:b.productId,variantId:b.variantId,canonicalBottleId:b.canonicalBottleId,observedAt:iso(changes.stale?now-3600001:now-1000)};
-    const p={contractVersion:mod.receipt.PILOT_RECEIPT_CONTRACT,surface:u.pathname==='/api/drops'?'feed':'coverage',sourceId:source.id,snapshot:'snapshot',receivedAt:iso(now),total:source.disabled?0:1,identities:source.disabled?[]:[identity],...(changes.privateReceipt?{private:'PRIVATE_CANARY'}:{})};
+    const p={contractVersion:mod.receipt.PILOT_RECEIPT_CONTRACT,surface:u.pathname==='/api/drops'?'feed':'coverage',sourceId:source.id,snapshot:u.pathname==='/api/drops'?'snapshot:source:'+('1'.repeat(24))+':'+('2'.repeat(24)):'snapshot',receivedAt:iso(now),total:source.disabled?0:1,identities:source.disabled?[]:[identity],...(changes.privateReceipt?{private:'PRIVATE_CANARY'}:{})};
     if(changes.mismatch&&u.pathname==='/api/coverage')p.identities[0].generation=2;
     return {status:200,body:body(p)};
   };return {read,calls};
@@ -149,4 +149,26 @@ test('unconfigured actual CLI reaches its prerequisite fence through the real No
     assert.doesNotMatch(child.stderr,/SyntaxError|does not provide an export|UNEXPECTED_NETWORK_ATTEMPT/);
     await assert.rejects(stat(join(directory,'out')),{code:'ENOENT'});
   }finally{await rm(directory,{recursive:true,force:true});}
+});
+
+for(const mode of ['actual_route_shape','lane_off','unrelated_lane_unavailable','wrong_feed_base','wrong_coverage_base','bare_feed','unknown_lane','poll_off','poll_unavailable','extra_suffix','truncated_poll'])test('normal receipt broad/overlay snapshot binding: '+mode,async()=>{
+  const mod=load(),base=mockRead(mod),lane='1'.repeat(24),poll='2'.repeat(24);
+  const read=async(url:string,headers:Row,limits:Row)=>{
+    const r=await base.read(url,headers,limits),u=new URL(url),p=JSON.parse(r.body.toString());
+    if(u.pathname==='/api/drops'){
+      const shapes:Row={actual_route_shape:'snapshot:source:'+lane+':'+poll,lane_off:'snapshot:source:off:'+poll,unrelated_lane_unavailable:'snapshot:source:unavailable:'+poll,
+        wrong_feed_base:'other-snapshot:source:'+lane+':'+poll,bare_feed:'snapshot',unknown_lane:'snapshot:source:invented:'+poll,poll_off:'snapshot:source:'+lane+':off',
+        poll_unavailable:'snapshot:source:'+lane+':poll-unavailable',extra_suffix:'snapshot:source:'+lane+':'+poll+':classification:other',truncated_poll:'snapshot:source:'+lane+':abc'};
+      if(shapes[mode])p.snapshot=shapes[mode];
+    }
+    if(u.pathname==='/api/coverage'&&mode==='wrong_coverage_base')p.snapshot='other-snapshot';
+    return {status:r.status,body:body(p)};
+  };
+  const result=await mod.capture.captureCohortReceipts(options(read));
+  const positive=['actual_route_shape','lane_off','unrelated_lane_unavailable'].includes(mode);
+  assert.equal(result.complete,true);assert.equal(result.allPairsMatch,positive);
+  assert.equal(result.receipts[0].payload.snapshot,JSON.parse(result.receipts[0].body).snapshot);
+  assert.equal(result.receipts[0].sha256,crypto.createHash('sha256').update(result.receipts[0].body).digest('hex'));
+  assert.equal(result.receipts[1].payload.snapshot,mode==='wrong_coverage_base'?'other-snapshot':'snapshot');
+  assert.equal(result.accounting.requests,13);assert.equal(result.acceptedNewStores,0);assert.equal(result.activated,false);
 });

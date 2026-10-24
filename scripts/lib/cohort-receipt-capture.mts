@@ -32,6 +32,14 @@ function schedulerProjection(payload:Row,sources:ReturnType<typeof cohortReceipt
     caveat:'Only selected public source scalars retained; raw scheduler body hash records acquisition, not reconstructable raw-body publication.'};
 }
 
+/** Bind the broad snapshot without rewriting either normal receipt. Feed adds
+ * the exact mutable lane/poll overlay token; Coverage carries the broad ID. */
+function sameBroadSnapshot(feed:Row,coverage:Row,expected:string){
+  const prefix=expected+':source:';
+  return coverage.snapshot===expected&&typeof feed.snapshot==='string'&&feed.snapshot.startsWith(prefix)
+    &&/^(?:off|unavailable|[a-f0-9]{24}):[a-f0-9]{24}$/.test(feed.snapshot.slice(prefix.length));
+}
+
 function validateReceipt(p:Row,surface:string,source:ReturnType<typeof cohortReceiptSources>[number],requestStartedAt:string,receivedAt:string){
   if(!closed(p,['contractVersion','surface','sourceId','snapshot','receivedAt','total','identities'])||p.contractVersion!==PILOT_RECEIPT_CONTRACT||p.surface!==surface||p.sourceId!==source.sourceId
     ||typeof p.snapshot!=='string'||!id(p.snapshot)||!utc(p.receivedAt)||!Array.isArray(p.identities)||p.identities.length>200||p.total!==p.identities.length)throw Error('receipt_schema');
@@ -94,7 +102,7 @@ export async function captureCohortReceipts({expectedCommit,producerCommit,produ
       const identity=(p:Row)=>JSON.stringify(p.identities.map((r:Row)=>JSON.stringify(r)).sort());
       const current=(p:Row)=>p.identities.every((r:Row)=>Date.parse(r.observedAt)<=now()&&now()-Date.parse(r.observedAt)<=3600000);
       const matched=!!feed&&!!coverage&&feed.total>0&&identity(feed)===identity(coverage)&&current(feed)&&current(coverage)
-        &&feed.snapshot===result.releaseBefore.payload.engine.snapshotId&&coverage.snapshot===feed.snapshot;
+        &&sameBroadSnapshot(feed,coverage,result.releaseBefore.payload.engine.snapshotId);
       const jobs=result.scheduler.payload.jobs.filter((r:Row)=>r.sourceId===source.sourceId),job=jobs.length===1?jobs[0]:null;
       const health=result.scheduler.payload.sourceHealth.filter((r:Row)=>r.sourceId===source.sourceId);
       const headHealthy=!!job&&result.scheduler.payload.enabled===true&&job.disabled===false&&job.failures===0&&job.reason==='accepted'

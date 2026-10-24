@@ -21,7 +21,7 @@
         ],
         "maxRequestsPerRun": 13
       },
-      "customerMutation": "none",
+      "customerMutation": "internal_state",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "github_workflow_disable",
