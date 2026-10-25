@@ -1,0 +1,386 @@
+{
+  "contractVersion": "bourbon-signal/grocery-xapi-preparation@1",
+  "executable": false,
+  "baseMain": "564012d40ef34704cb15c4ad8b7b6f66643155ef",
+  "sourceAdmissions": [],
+  "sourceActivations": [],
+  "customerGainsThisPass": 0,
+  "restoredStoresThisPass": 0,
+  "targetStates": 3,
+  "targetNewStores": 5,
+  "sourcePositiveProspects": [
+    {
+      "sourceId": "xapi:nv:albertsons:4024",
+      "state": "NV",
+      "merchantId": "4024",
+      "banner": "albertsons",
+      "host": "www.albertsons.com",
+      "premise": {
+        "storeId": "albertsons:4024",
+        "name": "Albertsons #4024",
+        "address": "2835 S Nellis Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "zip": "89121",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "sourceCapture": {
+        "originalBodySha256": "52561869254edf2cb0cf9e45e4b0a03f8b64a1213ed5d89ca96bcf1036dc508f",
+        "originalBodyBytes": 297502,
+        "originalResponseDocumentCount": 99,
+        "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1792897999116&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=4024&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:13:20.052Z",
+        "elapsedMs": 936,
+        "rawArchiveRelativeReference": "nv-two-stock-ca-directory/request-1.body.raw"
+      },
+      "resolverCapture": {
+        "originalBodySha256": "9eed5cde1c509975823c03fb85751648fa8b60a84eb155face867a168c1eae04",
+        "originalBodyBytes": 171266,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=89121&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:10:27.607Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "xapi-nv-viability/resolver-continuation/request-2.body.raw"
+      },
+      "bindings": [
+        {
+          "productId": "960051942",
+          "variantId": "960051942",
+          "canonicalBottleId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "observedReportedQuantity": 10
+        },
+        {
+          "productId": "189032017",
+          "variantId": "189032017",
+          "canonicalBottleId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "observedReportedQuantity": 14
+        }
+      ],
+      "currentCanonicalAndMarketEligibilityVerified": false,
+      "allTimeNoveltyProven": false,
+      "unattendedAcceptance": false,
+      "customerConnectionAccepted": false
+    },
+    {
+      "sourceId": "xapi:nv:albertsons:1059",
+      "state": "NV",
+      "merchantId": "1059",
+      "banner": "albertsons",
+      "host": "www.albertsons.com",
+      "premise": {
+        "storeId": "albertsons:1059",
+        "name": "Albertsons #1059",
+        "address": "5500 Boulder Hwy",
+        "city": "Las Vegas",
+        "state": "NV",
+        "zip": "89122",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "sourceCapture": {
+        "originalBodySha256": "82906c705bbdc1e28878ddfa564620367de5af203506ebcbf732dd4ba895478b",
+        "originalBodyBytes": 294887,
+        "originalResponseDocumentCount": 99,
+        "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1792898000967&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1059&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:13:21.666Z",
+        "elapsedMs": 699,
+        "rawArchiveRelativeReference": "nv-two-stock-ca-directory/request-2.body.raw"
+      },
+      "resolverCapture": {
+        "originalBodySha256": "9eed5cde1c509975823c03fb85751648fa8b60a84eb155face867a168c1eae04",
+        "originalBodyBytes": 171266,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=89121&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:10:27.607Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "xapi-nv-viability/resolver-continuation/request-2.body.raw"
+      },
+      "bindings": [
+        {
+          "productId": "960051942",
+          "variantId": "960051942",
+          "canonicalBottleId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "observedReportedQuantity": 5
+        },
+        {
+          "productId": "189032017",
+          "variantId": "189032017",
+          "canonicalBottleId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "observedReportedQuantity": 4
+        }
+      ],
+      "currentCanonicalAndMarketEligibilityVerified": false,
+      "allTimeNoveltyProven": false,
+      "unattendedAcceptance": false,
+      "customerConnectionAccepted": false
+    },
+    {
+      "sourceId": "xapi:ca:albertsons:745",
+      "state": "CA",
+      "merchantId": "745",
+      "banner": "albertsons",
+      "host": "www.albertsons.com",
+      "premise": {
+        "storeId": "albertsons:745",
+        "name": "Albertsons #745",
+        "address": "655 14th St",
+        "city": "San Diego",
+        "state": "CA",
+        "zip": "92101",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "sourceCapture": {
+        "originalBodySha256": "49d81a710a24aa38d1efb32ae6d75109ab3bd492ec35b2094de63f9ff8dd0b54",
+        "originalBodyBytes": 319852,
+        "originalResponseDocumentCount": 100,
+        "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1792898207967&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=745&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:16:49.087Z",
+        "elapsedMs": 1120,
+        "rawArchiveRelativeReference": "ca-two-stock/request-1.body.raw"
+      },
+      "resolverCapture": {
+        "originalBodySha256": "da53c88af9a4d241767f1ee2ecf311b497c3fcad508fbefab98247d3d2cd8479",
+        "originalBodyBytes": 167043,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=92101&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:13:23.273Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "nv-two-stock-ca-directory/request-3.body.raw"
+      },
+      "bindings": [
+        {
+          "productId": "960051942",
+          "variantId": "960051942",
+          "canonicalBottleId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "observedReportedQuantity": 6
+        },
+        {
+          "productId": "189032017",
+          "variantId": "189032017",
+          "canonicalBottleId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "observedReportedQuantity": 12
+        }
+      ],
+      "currentCanonicalAndMarketEligibilityVerified": false,
+      "allTimeNoveltyProven": false,
+      "unattendedAcceptance": false,
+      "customerConnectionAccepted": false
+    },
+    {
+      "sourceId": "xapi:ca:albertsons:707",
+      "state": "CA",
+      "merchantId": "707",
+      "banner": "albertsons",
+      "host": "www.albertsons.com",
+      "premise": {
+        "storeId": "albertsons:707",
+        "name": "Albertsons #707",
+        "address": "7090 Broadway",
+        "city": "Lemon Grove",
+        "state": "CA",
+        "zip": "91945",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "sourceCapture": {
+        "originalBodySha256": "e6c4fe59a61bc4c003096cbdb08994f54b35df33b6b284bafef678235365984a",
+        "originalBodyBytes": 319882,
+        "originalResponseDocumentCount": 99,
+        "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1792898209995&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=707&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:16:51.044Z",
+        "elapsedMs": 1049,
+        "rawArchiveRelativeReference": "ca-two-stock/request-2.body.raw"
+      },
+      "resolverCapture": {
+        "originalBodySha256": "da53c88af9a4d241767f1ee2ecf311b497c3fcad508fbefab98247d3d2cd8479",
+        "originalBodyBytes": 167043,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=92101&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:13:23.273Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "nv-two-stock-ca-directory/request-3.body.raw"
+      },
+      "bindings": [
+        {
+          "productId": "960051942",
+          "variantId": "960051942",
+          "canonicalBottleId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "observedReportedQuantity": 5
+        },
+        {
+          "productId": "189032017",
+          "variantId": "189032017",
+          "canonicalBottleId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "observedReportedQuantity": 5
+        }
+      ],
+      "currentCanonicalAndMarketEligibilityVerified": false,
+      "allTimeNoveltyProven": false,
+      "unattendedAcceptance": false,
+      "customerConnectionAccepted": false
+    },
+    {
+      "sourceId": "xapi:az:safeway:1749",
+      "state": "AZ",
+      "merchantId": "1749",
+      "banner": "safeway",
+      "host": "www.safeway.com",
+      "premise": {
+        "storeId": "safeway:1749",
+        "state": "AZ",
+        "name": "Safeway #1749",
+        "address": "9100 N Silverbell Rd, Tucson, AZ 85743",
+        "city": "Tucson",
+        "zip": "85743"
+      },
+      "sourceCapture": {
+        "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1792919759146&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1749&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+        "capturedAt": "2026-10-25T09:16:00.050Z",
+        "status": 200,
+        "originalBodySha256": "af4bb70404acdf4f65847aa56f19b3fb46f716e889595b977477eeddbfa061e3",
+        "originalBodyBytes": 292945
+      },
+      "resolverCapture": {
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=85701&radius=50&size=100",
+        "capturedAt": "2026-10-25T03:53:47.907Z",
+        "status": 206,
+        "partial": true,
+        "originalBodySha256": "121e98aa10657b08014c894822ee862d3b89f006768156ae1eab2388ea974bc2",
+        "originalBodyBytes": 170861,
+        "archiveSha256": "c0157752e51abdfa8139a499cad6b8082e847a1b033cf8a2664aac1349384a0b"
+      },
+      "bindings": [
+        {
+          "productId": "289031989",
+          "variantId": "289031989",
+          "canonicalBottleId": "bb_22604f9ddde2b6ba",
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "observedReportedQuantity": 3
+        },
+        {
+          "productId": "960051942",
+          "variantId": "960051942",
+          "canonicalBottleId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "observedReportedQuantity": 19
+        },
+        {
+          "productId": "189032017",
+          "variantId": "189032017",
+          "canonicalBottleId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "observedReportedQuantity": 31
+        },
+        {
+          "productId": "960137024",
+          "variantId": "960137024",
+          "canonicalBottleId": "bb_8924180d0cc2d853",
+          "canonicalName": "Blade and Bow Bourbon",
+          "observedReportedQuantity": 4
+        },
+        {
+          "productId": "970889019",
+          "variantId": "970889019",
+          "canonicalBottleId": "bb_473aba10a697b5fc",
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "observedReportedQuantity": 2
+        }
+      ],
+      "currentCanonicalAndMarketEligibilityVerified": false,
+      "allTimeNoveltyProven": false,
+      "unattendedAcceptance": false,
+      "customerConnectionAccepted": false
+    }
+  ],
+  "existingControls": [
+    {
+      "storeId": "safeway:1207",
+      "state": "AZ",
+      "role": "historically_released_1207_not_new",
+      "newCredit": 0
+    },
+    {
+      "storeId": "safeway:2799",
+      "state": "AZ",
+      "role": "released_in_829",
+      "newCredit": 0
+    }
+  ],
+  "sharedRuntime": [
+    {
+      "file": "engine/src/collectors/grocery-xapi.mjs",
+      "sha256": "606d24e184d8592cc197e369aa63fa0160fb51404798e83fa79d010b75be3009"
+    },
+    {
+      "file": "engine/src/collectors/grocery-xapi-runtime-source.mjs",
+      "sha256": "9860b3227ffceefbafdfbe324ba6951b6eabaea0d724e0ef430bba3b8a597671"
+    }
+  ],
+  "runtimeReuse": {
+    "requestParserMatcherSerializerReplayedAcrossFive": true,
+    "perProspectRuntimeBranches": 0,
+    "productionConnectorReuseAccepted": false,
+    "explicitExceptions": [
+      "Existing NV source ID and confidence compatibility branch",
+      "AZ exact Buffalo Trace product identity matcher reused",
+      "Future CA/NV public admission and state classification still required",
+      "Current AZ128 collector remains unchanged; AZ1749 is not selected or activated"
+    ]
+  },
+  "collectionBounds": {
+    "maxSources": 6,
+    "requestsPerSource": 1,
+    "maxDecodedBytes": 2097152,
+    "timeoutMs": 12000,
+    "redirects": 0,
+    "retries": 0,
+    "scope": "First bourbon search page; never whole-catalog or absence-as-stock proof"
+  },
+  "acquisitionThisPass": {
+    "merchantRequests": 1,
+    "decodedBytes": 292945,
+    "elapsedMs": 902,
+    "retries": 0,
+    "redirects": 0,
+    "deniedSourcesRetried": 0
+  },
+  "ongoingCost": {
+    "measured": false,
+    "providerCostPerAcceptedStore": null,
+    "onboardingMinutesPerStore": null,
+    "sourceCadenceAdmitted": false
+  },
+  "nextGates": [
+    "Current/bounded-historical baseline reconciliation and fresh source preflights",
+    "Current per-state canonical classification and public identity policy",
+    "Reviewed poll source ownership, explicit negatives versus unknown search absence, durable cooldown and due accounting",
+    "Normal customer Feed/Coverage and silent bootstrap/owned queue verification",
+    "Sole authorized release lane and genuinely due repeated unattended runs"
+  ]
+}

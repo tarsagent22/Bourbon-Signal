@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseNevadaAlbertsonsXapi, NEVADA_RETAILER_SOURCES, mergeNevadaSourceCacheSignals } from '../src/collectors/nevada-retailer-surfaces.mjs';
 import { isNevadaRetailerInventory } from '../src/nevada-retailer-policy.mjs';
+import { collectNevada } from '../src/collectors/precision-probes.mjs';
+import { BourbonBible } from '../src/core/bible.mjs';
 const merchantId = '662';
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/nevada-xapi/2026-10-25-store662-public.json', import.meta.url), 'utf8'));
 const source = NEVADA_RETAILER_SOURCES.find(row => row.id === 'albertsons-las-vegas-662');
@@ -71,26 +73,21 @@ test('only accepted store-bound row can reach the frozen public identity policy 
   assert.deepEqual(parse(product({ storeId: '9999' })), []);
 });
 
-// Actual saved collectNevada function body, offline I/O only. The signal mapper
-// isolates canonical/presentation work outside this parser task; it never grants
-// source eligibility. The parser, source definition and cache merge are real.
+// Import the real caller, parser and serializer with injected offline I/O.
+const completeFixture = JSON.parse(readFileSync(new URL('./fixtures/nevada-xapi/2026-10-25-store662-complete-derived.json', import.meta.url)));
+const bible = new BourbonBible(JSON.parse(readFileSync(new URL('./fixtures/shopify-variant-pickup/current-bourbon-bible.json', import.meta.url))).records);
 async function actualCollector(payload) {
-  const code = readFileSync(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
-  const begin = code.indexOf('async function collectNevada('), end = code.indexOf('async function collectKentucky(', begin);
-  assert.ok(begin > 0 && end > begin); let requests = 0, cacheWrites = 0;
-  const dependencies = { NEVADA_RETAILER_SOURCES: [source], readNevadaRetailerCache: async () => null,
-    process: { env: {} }, NEVADA_RETAILER_ARTIFACT_PATH: 'synthetic-cache-not-written',
-    cachedNevadaSignals: () => [], textFetch: async () => { requests++; return { ok: true, status: 200, text: JSON.stringify(payload) }; },
-    AZ_ALBERTSONS_SEARCH_KEY: 'offline-synthetic-token', sleep: async () => {}, NEVADA_RETAILER_SOURCE_DELAY_MS: 900,
-    parseNevadaAlbertsonsXapi, mergeNevadaSourceCacheSignals,
-    writeNevadaRetailerCache: async () => { cacheWrites++; },
-    nevadaRetailerSignal: (_config, configured, row) => ({ ...row, id: row.productId, eventType: 'retailer_store_inventory_result', sourceChain: configured.id }) };
-  const fn = new Function(...Object.keys(dependencies), code.slice(begin, end) + '\nreturn collectNevada;')(...Object.values(dependencies));
-  const result = await fn({ id: 'NV' }, null); return { result, requests, cacheWrites };
+  let requests = 0, cacheWrites = 0;
+  const result = await collectNevada({ id: 'NV' }, bible, {
+    sourceIds: [source.id], readCache: async () => null, sleep: async () => {},
+    fetchText: async () => { requests++; return { ok: true, status: 200, text: JSON.stringify(payload) }; },
+    writeCache: async () => { cacheWrites++; },
+  });
+  return { result, requests, cacheWrites };
 }
 test('actual collector passes source merchantId to actual parser; foreign captured store never becomes a source signal', async () => {
-  const good = await actualCollector(fixture); assert.equal(good.requests, 1); assert.equal(good.result.signals.length, 2);
-  const changed = structuredClone(fixture); for (const doc of changed.response.docs) doc.storeId = '4024';
+  const good = await actualCollector(completeFixture); assert.equal(good.requests, 1); assert.equal(good.result.signals.length, 2);
+  const changed = structuredClone(completeFixture); for (const doc of changed.response.docs) doc.storeId = '4024';
   const bad = await actualCollector(changed); assert.equal(bad.requests, 1); assert.equal(bad.result.signals.length, 0); assert.equal(bad.cacheWrites, 0);
   assert.ok(bad.result.roadblocks.some(row => row.status === 'reachable_no_safe_inventory_rows'));
 });

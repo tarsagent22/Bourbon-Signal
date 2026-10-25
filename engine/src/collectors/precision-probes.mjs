@@ -6,6 +6,7 @@ import { validateFwgsFullArtifact } from '../fwgs-artifact-policy.mjs';
 import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
 import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
+import { collectGroceryXapiSource, groceryXapiSourceFromNevada } from './grocery-xapi-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
@@ -111,7 +112,6 @@ import {
   mergeNevadaSourceCacheSignals,
   parseNevadaCityHiveHtml,
   parseNevadaPos360Html,
-  parseNevadaAlbertsonsXapi,
   verifyNevadaCityHiveStorePage,
   verifyNevadaFulfillmentPolicy,
 } from './nevada-retailer-surfaces.mjs';
@@ -9381,9 +9381,12 @@ function nevadaRetailerSignal(config, source, row, bible, observedAt, fulfillmen
   };
 }
 
-async function collectNevada(config, bible) {
+export async function collectNevada(config, bible, options = {}) {
+  const signal = collectionRequestSignal(options.signal);
+  const fetchSource = options.fetchText || textFetch;
+  const pause = options.sleep || sleep;
   const observedAt = new Date().toISOString();
-  const cache = await readNevadaRetailerCache();
+  const cache = await (options.readCache || readNevadaRetailerCache)();
   if (process.env.BOURBON_SIGNAL_NV_FORCE_LIVE !== '1' && cache) {
     return {
       signals: cachedNevadaSignals(cache),
@@ -9394,31 +9397,33 @@ async function collectNevada(config, bible) {
   const liveSignals = [];
   const roadblocks = [];
   const completedSourceIds = new Set();
-  for (const source of NEVADA_RETAILER_SOURCES.filter((candidate) => candidate.inventoryEligible)) {
+  for (const source of NEVADA_RETAILER_SOURCES.filter((candidate) => candidate.inventoryEligible
+    && (!options.sourceIds || options.sourceIds.includes(candidate.id)))) {
+    signal?.throwIfAborted();
     let fulfillmentPolicyVerified = false;
     let rows = [];
     if (source.platform === 'cityhive') {
-      const res = await textFetch(source.productsUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 35_000 });
+      const res = await fetchSource(source.productsUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 35_000, signal });
       if (!res.ok || !verifyNevadaCityHiveStorePage(source, res.text)) {
         roadblocks.push({ state: config.id, source: source.sourceLabel, url: source.productsUrl, status: res.status || (res.ok ? 'identity_or_store_schema_mismatch' : 0), error: res.ok ? 'First-party CityHive page no longer proves the exact merchant and Nevada premises identity.' : (res.error || `HTTP ${res.status}`), nextRoute: 'Fail closed; re-audit the exact merchant/store page without bypassing retailer controls.' });
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
+        await pause(NEVADA_RETAILER_SOURCE_DELAY_MS);
         continue;
       }
       fulfillmentPolicyVerified = true;
       rows = parseNevadaCityHiveHtml(res.text);
       completedSourceIds.add(source.id);
     } else if (source.platform === 'pos360') {
-      const policyRes = await textFetch(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 35_000 });
+      const policyRes = await fetchSource(source.fulfillmentPolicyUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 35_000, signal });
       fulfillmentPolicyVerified = policyRes.ok && verifyNevadaFulfillmentPolicy(source, policyRes.text);
       if (!fulfillmentPolicyVerified) {
         roadblocks.push({ state: config.id, source: source.sourceLabel, url: source.fulfillmentPolicyUrl, status: policyRes.status || (policyRes.ok ? 'missing_fulfillment_evidence' : 0), error: policyRes.ok ? 'First-party page no longer proves in-store pickup at the exact Nevada premises.' : (policyRes.error || `HTTP ${policyRes.status}`), nextRoute: 'Fail closed and re-audit first-party pickup policy.' });
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
+        await pause(NEVADA_RETAILER_SOURCE_DELAY_MS);
         continue;
       }
       const seenRows = new Set();
       for (let page = 1; page <= source.maxPages; page++) {
         const url = page === 1 ? source.productsUrl : `${source.productsUrl}?page=${page}`;
-        const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 35_000 });
+        const res = await fetchSource(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 35_000, signal });
         if (!res.ok) {
           roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Stop this bounded collection page sequence and retain only fresh prior-source cache rows.' });
           break;
@@ -9428,36 +9433,39 @@ async function collectNevada(config, bible) {
           const key = `${row.productId}:${row.variantId}`;
           if (!seenRows.has(key)) { seenRows.add(key); rows.push(row); }
         }
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
+        await pause(NEVADA_RETAILER_SOURCE_DELAY_MS);
       }
       if (rows.length > 0) completedSourceIds.add(source.id);
     } else if (source.platform === 'albertsons-xapi') {
-      const host = `https://${source.host}`;
-      const params = new URLSearchParams({
-        'request-id': String(Date.now()), url: host, pageurl: host, pagename: 'search', rows: '100', start: '0',
-        'search-type': 'keyword', storeid: source.merchantId, featured: 'true', 'search-uid': '', q: 'bourbon', channel: 'instore', banner: source.banner,
-      });
-      const url = `${source.productsUrl}?${params}`;
-      const res = await textFetch(url, { headers: { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_SEARCH_KEY }, timeoutMs: 30_000 });
-      if (!res.ok) {
-        roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Refresh the public storefront search key and retry the exact frozen Nevada store at low cadence.' });
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
-        continue;
+      try {
+        const definition = groceryXapiSourceFromNevada(source);
+        const result = await collectGroceryXapiSource(bible, definition, {
+          signal, fetchText: fetchSource,
+          subscriptionKey: AZ_ALBERTSONS_SEARCH_KEY,
+          policies: { NV: { admitSource: (candidate) =>
+            NEVADA_RETAILER_SOURCES.some((registered) => registered.id === candidate.id
+              && registered.inventoryEligible && registered.platform === 'albertsons-xapi'
+              && registered.host === candidate.host && registered.merchantId === candidate.merchantId
+              && registered.store.address === candidate.premise.address),
+          // Current Bible identity is required by the shared matcher. Confidence,
+          // lifecycle and public classification remain normal downstream gates.
+          admitBottle: (record) => Boolean(record?.id && record.canonical) } },
+        });
+        liveSignals.push(...result.signals);
+        completedSourceIds.add(source.id);
+        if (!result.signals.length) roadblocks.push({ state: config.id, source: source.sourceLabel,
+          url: source.productsUrl, status: 'reachable_no_safe_inventory_rows',
+          error: 'No safely matched exact-store XAPI inventory survived the shared guards.',
+          nextRoute: 'Inspect current source evidence without weakening guards.' });
+      } catch (error) {
+        signal?.throwIfAborted();
+        throwIfCollectionAborted();
+        roadblocks.push({ state: config.id, source: source.sourceLabel, url: source.productsUrl,
+          status: error.status || error.kind || 0, error: error.message,
+          nextRoute: 'Do not retry in this collection; source-specific durable cooldown remains required before new source admission.' });
       }
-      let payload;
-      try { payload = JSON.parse(res.text); } catch (error) {
-        roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the reachable XAPI response shape; malformed data fails closed.' });
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
-        continue;
-      }
-      if (!Array.isArray(payload?.response?.docs)) {
-        roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: 'malformed_reachable_payload', error: 'XAPI response did not contain response.docs.', nextRoute: 'Inspect the public response without weakening store or in-store channel guards.' });
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
-        continue;
-      }
-      rows = parseNevadaAlbertsonsXapi(payload, { merchantId: source.merchantId });
-      fulfillmentPolicyVerified = true;
-      completedSourceIds.add(source.id);
+      await pause(NEVADA_RETAILER_SOURCE_DELAY_MS);
+      continue;
     }
 
     for (const row of rows) {
@@ -9467,11 +9475,13 @@ async function collectNevada(config, bible) {
     if (!liveSignals.some((signal) => signal.sourceChain === source.id)) {
       roadblocks.push({ state: config.id, source: source.sourceLabel, url: source.productsUrl, status: 'reachable_no_safe_inventory_rows', error: `${source.platform} returned ${rows.length} candidate rows but no safely matched available bourbon rows survived source, size, format, product, and premises guards.`, nextRoute: 'Inspect current first-party product identity without weakening safety or premises guards.' });
     }
-    await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
+    await pause(NEVADA_RETAILER_SOURCE_DELAY_MS);
   }
 
   const signals = mergeNevadaSourceCacheSignals(liveSignals, cachedNevadaSignals(cache), completedSourceIds);
-  if (completedSourceIds.size > 0 && signals.length > 0) await writeNevadaRetailerCache(signals, roadblocks);
+  signal?.throwIfAborted();
+  throwIfCollectionAborted();
+  if (completedSourceIds.size > 0 && signals.length > 0) await (options.writeCache || writeNevadaRetailerCache)(signals, roadblocks);
   if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
     roadblocks.push({ state: config.id, source: 'Nevada first-party retailer availability', url: NEVADA_RETAILER_SOURCES.filter((source) => source.inventoryEligible).map((source) => source.productsUrl).join(', '), status: 'reachable_no_inventory_rows', error: 'No fresh, identity-bound Nevada retailer pickup/orderability rows survived the guarded collector.', nextRoute: 'Keep Nevada unpromoted until qualified first-party rows are runner-reachable; do not substitute catalog, shipping, or marketplace presence.' });
   }
