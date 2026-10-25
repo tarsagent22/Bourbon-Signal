@@ -52,7 +52,7 @@ test('old readiness and matcher-generation pins are stale; reviewed runtime hash
     if (input.missing) continue;
     const bytes = await readFile(new URL(`../../${input.file}`, import.meta.url));
     const actual = createHash('sha256').update(bytes).digest('hex');
-    if (input.file === 'engine/src/collectors/safe-bottle-match.mjs') assert.notEqual(actual, input.sha256, 'Frozen matcher-generation evidence is stale, not current readiness');
+    if (['engine/src/collectors/safe-bottle-match.mjs', 'engine/src/build-bible.mjs', 'engine/src/core/bible.mjs'].includes(input.file)) assert.notEqual(actual, input.sha256, 'Frozen matcher-generation evidence is stale, not current readiness');
     else assert.equal(actual, input.sha256, input.file);
   }
   const readiness = JSON.parse(await readFile(new URL('readiness.json', fixtureDir), 'utf8'));

@@ -114,12 +114,12 @@ test('Binny generic, distinct finish and unqualified edition identities remain r
     'Henry McKenna Bourbon',
     'Henry McKenna 10 year old Single Barrel Bottled in Bond',
     'Old Fitzgerald Prime Bourbon',
-    "Michter's US*1 Small Batch Bourbon",
     "Booker's Bourbon Southern Thunder 2026-3",
     "Baker's 7 Year Kentucky Straight Bourbon",
     'Small Batch 1792 Bottled in Bond Limited Release',
   ]) assert.equal(binnysBottleMatch(name, bible).record, null, name);
   assert.equal(binnysBottleMatch('Woodford Reserve Double Oaked Bourbon', bible).record?.canonical, 'Woodford Reserve Double Oaked Bourbon');
+  assert.equal(binnysBottleMatch("Michter's US*1 Small Batch Bourbon", bible).record?.canonical, "Michter's US 1 Straight Bourbon Small Batch", 'The app library now supplies this exact expression identity');
   assert.equal(binnysBottleMatch('Evan Williams 1783 Bourbon', bible).record?.canonical, 'Evan Williams 1783 Bourbon');
   assert.equal(binnysProductRelevant({ productName: 'Buffalo Trace Bourbon Cream Liqueur', productVarietal: 'Bourbon' }, bible), false);
 });

@@ -94,6 +94,12 @@ jobs:
           npm run bible
           node --test test/customer-surface-e2e.test.mjs
 
+      - name: Synchronize the full customer bottle library before collection
+        working-directory: engine
+        run: |
+          node src/sync-library-catalog.mjs
+          BOURBON_SIGNAL_LIBRARY_CATALOG_FILE=out/library-catalog.json npm run bible
+
       - name: Validate source-scoped dispatch before collection
         if: ${{ inputs.sources != '' }}
         run: node --input-type=module -e "import {sourceRefreshScope} from './engine/src/source-scoped-refresh.mjs'; sourceRefreshScope(); if (process.env.FORCE_ALL === 'true') throw Error('Source refresh cannot force all states');"
@@ -451,6 +457,10 @@ jobs:
         working-directory: engine
         run: npm run verify:state-isolation
 
+      - name: Audit every scarce library bottle across all states
+        working-directory: engine
+        run: node src/library-coverage-audit.mjs
+
       - name: Refuse publication from a stale main checkout
         id: release-guard
         continue-on-error: true
@@ -601,6 +611,10 @@ jobs:
             engine/out/az-expansion-verification.json
             engine/out/pa-expansion-verification.json
             engine/out/verification/in-improvements.json
+            engine/out/verification/library-coverage.json
+            engine/out/verification/library-coverage.md
+            engine/out/library-catalog.json
+            engine/out/bourbon-bible.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json

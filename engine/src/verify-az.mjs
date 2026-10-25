@@ -2,6 +2,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isArizonaRetailerInventory } from './arizona-retailer-policy.mjs';
+import classification from '../../src/data/drop-feed-classification.generated.json' with { type: 'json' };
+import { isLibraryDetectionTarget } from './core/library-catalog.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT } from './collectors/arizona-xapi.mjs';
 
 export const ARIZONA_EXPANSION_EXPECTATIONS = Object.freeze({
@@ -44,10 +46,11 @@ function validPremises(entry) {
     && text(entry.address.match(/,\s*([^,]+),\s*AZ\s+\d{5}/)?.[1]) === text(entry.city);
 }
 
-export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, now = Date.now(), expectations = {} } = {}) {
+export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, now = Date.now(), expectations = {}, libraryRecords = classification.records } = {}) {
   const errors = [];
   const check = (condition, message) => { if (!condition) errors.push(message); };
   const expected = { ...ARIZONA_EXPANSION_EXPECTATIONS, ...expectations };
+  const allowedTerms = new Set(['bourbon', "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...libraryRecords.filter(isLibraryDetectionTarget).map(row => row.canonicalName)]);
   for (const [key, value] of Object.entries(expected)) check(Number.isSafeInteger(value) && value >= 0, `Invalid verifier expectation: ${key}.`);
   const nowMs = now instanceof Date ? now.getTime() : Number(now);
   const startMs = Date.parse(state?.startedAt);
@@ -112,7 +115,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
         && url.searchParams.get('rows') === String(ARIZONA_XAPI_SEARCH_ROWS) && url.searchParams.get('start') === '0'
         && url.searchParams.get('channel') === 'instore' && url.searchParams.get('banner') === banner);
       check(binding, 'XAPI inventory request does not bind the selected store, query and bounded page.');
-      check(['bourbon', "blanton's", 'weller', 'buffalo trace', 'e.h. taylor'].includes(request.term), 'XAPI request contains an unreviewed search term.');
+      check(allowedTerms.has(request.term), 'XAPI request contains an unreviewed search term.');
       if (request.term === 'bourbon') bourbonStores.add(storeKey);
       if (binding && numericStatus(request.status) === 200 && request.ok === true) successfulQueries.add(`${storeKey}|${request.term}`);
     } else check(request.kind === 'resolver' && url.origin === 'https://www.safeway.com' && url.pathname === '/abs/pub/xapi/storeresolver/v2/all'
@@ -200,7 +203,8 @@ async function main() {
   const out = path.resolve(process.env.BOURBON_SIGNAL_OUT_DIR || 'out');
   const [state, drops, stats, alerts] = await Promise.all(['states/AZ.json', 'site/drops.json', 'site/stats.json', 'site/alerts.json']
     .map(async (file) => JSON.parse(await readFile(path.join(out, file), 'utf8'))));
-  const input = { state, drops, stats, alerts };
+  const catalog = JSON.parse(await readFile(path.join(out, 'library-catalog.json'), 'utf8').catch(error => { if (error.code === 'ENOENT') return JSON.stringify(classification); throw error; }));
+  const input = { state, drops, stats, alerts, libraryRecords: catalog.records };
   const diagnostics = diagnoseArizonaExpansionArtifact(input);
   await writeFile(path.join(out, 'az-expansion-verification.json'), JSON.stringify({
     checkedAt: new Date().toISOString(), runId: stats.runId, ...diagnostics,

@@ -9,6 +9,8 @@ import { pathToFileURL } from 'node:url';
 import { pipeline } from 'node:stream/promises';
 import { createGunzip, createGzip } from 'node:zlib';
 import { fingerprintName, normalizeBottleName, stableId } from './core/text.mjs';
+import { BourbonBible } from './core/bible.mjs';
+import { libraryIdentityKey } from './core/library-catalog.mjs';
 import { precisionRank } from './location-precision.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { getStateLifecycle, lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
@@ -239,6 +241,7 @@ export function bibleLookup(records = []) {
       }
     }
     const directKey = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    if (record.strictLibraryIdentity) return;
     const fingerprintKey = fingerprintName(name);
     for (const key of [directKey, fingerprintKey, normalizedKey]) {
       if (key) byName.set(key, record);
@@ -246,10 +249,10 @@ export function bibleLookup(records = []) {
   };
   for (const record of records) {
     if (record.id) byId.set(record.id, record);
-    if (record.normalizedKey) byName.set(record.normalizedKey, record);
+    if (record.normalizedKey && !record.strictLibraryIdentity) byName.set(record.normalizedKey, record);
     for (const name of [record.canonical, ...(record.aliases || [])]) addName(name, record);
   }
-  return { byId, byName, byExactName };
+  return { byId, byName, byExactName, identityMatcher: new BourbonBible(records) };
 }
 
 function findBibleRecord(signal, bible) {
@@ -265,6 +268,8 @@ function findBibleRecord(signal, bible) {
   if ((['ID', 'IA', 'MD-MONTGOMERY', 'OH', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:')) || isIowaUnmatchedDeliveryLead || isAggregateSourceNamedLead) return null;
 
   const exactRawName = normalizeBottleName(String(signal.rawName || '')).toLowerCase().replace(/\s+/g, ' ').trim();
+  const libraryKey = libraryIdentityKey(signal.rawName || '');
+  if (bible.identityMatcher?.byLibraryCanonical.has(libraryKey)) return bible.identityMatcher.byLibraryCanonical.get(libraryKey);
   const exactRawRecord = exactRawName ? bible.byExactName?.get(exactRawName) : null;
   if (exactRawRecord) return exactRawRecord;
 

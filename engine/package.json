@@ -11,6 +11,8 @@
     "probe": "node src/probe.mjs",
     "probe:buffalo-depth": "npm run bible && node src/probe-buffalo-depth.mjs",
     "bible": "node src/build-bible.mjs",
+    "sync:library": "node src/sync-library-catalog.mjs",
+    "report:library-coverage": "node src/library-coverage-audit.mjs",
     "rare": "node src/rare-report.mjs",
     "location": "node src/location-report.mjs",
     "location:bible": "node src/collect-location-bible.mjs",

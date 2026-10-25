@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-25T23:46:25.528Z",
+  "summary": {
+    "startedAt": "2026-10-25T23:40:48.895Z",
+    "finishedAt": "2026-10-25T23:46:25.528Z",
+    "selectedStores": 134,
+    "sourceRows": 833,
+    "publicRows": 580,
+    "publicStores": 132,
+    "bottles": [
+      "E.H. Taylor Small Batch",
+      "Buffalo Trace Bourbon",
+      "Bulleit Bourbon",
+      "Blade and Bow Bourbon",
+      "Heaven Hill Bottled-in-Bond 7 Year",
+      "Penelope Four Grain Bourbon",
+      "WhistlePig PiggyBack 6 Year Bourbon",
+      "Crown Royal Chocolate",
+      "Weller Special Reserve",
+      "1792 Full Proof"
+    ],
+    "queries": 150,
+    "roadblocks": [],
+    "byId": {
+      "E.H. Taylor Small Batch": {
+        "id": "bb_152c90f782b801f5",
+        "rows": 76
+      },
+      "Buffalo Trace Bourbon": {
+        "id": "bb_317836b9e64a7620",
+        "rows": 131
+      },
+      "Bulleit Bourbon": {
+        "id": "bb_13fcb09e58792e06",
+        "rows": 207
+      },
+      "Blade and Bow Bourbon": {
+        "id": "bb_8924180d0cc2d853",
+        "rows": 76
+      },
+      "Heaven Hill Bottled-in-Bond 7 Year": {
+        "id": "bb_ef203a18f5f98f23",
+        "rows": 80
+      },
+      "Penelope Four Grain Bourbon": {
+        "id": "bb_473aba10a697b5fc",
+        "rows": 103
+      },
+      "WhistlePig PiggyBack 6 Year Bourbon": {
+        "id": "bb_8480bae3e0e97a02",
+        "rows": 102
+      },
+      "Crown Royal Chocolate": {
+        "id": "bb_bb21b6ea0533babb",
+        "rows": 46
+      },
+      "Weller Special Reserve": {
+        "id": "bb_54f5df2f8ee5d7c9",
+        "rows": 9
+      },
+      "1792 Full Proof": {
+        "id": "bb_ee4b5c90535d24d7",
+        "rows": 3
+      }
+    },
+    "auditArizona": {
+      "state": "AZ",
+      "active": true,
+      "evidenceClass": "live_store_inventory",
+      "targetCount": 230,
+      "exactMatchCount": 235,
+      "freshPublicBottleCount": 7,
+      "inventoryAlertBottleCount": 4,
+      "sourceRoadblockCount": 0,
+      "knownLane": {
+        "knownQueryTerms": [],
+        "pinnedProducts": [],
+        "maxPinnedProductsPerRun": null,
+        "completeStateRetrievalProven": false
+      },
+      "exhaustiveDetectionVerified": false
+    },
+    "matchingGaps": 0
+  },
+  "allocationExample": [
+    {
+      "id": "6e3a33a207730ebb",
+      "state": "AZ",
+      "sourceLabel": "Safeway Arizona XAPI store inventory",
+      "sourceUrl": "https://www.safeway.com/shop/product-details.971174674.html",
+      "sourceChain": "safeway",
+      "merchantId": "3173",
+      "rawName": "1792 Full Proof 750 Ml - 750 ML",
+      "canonicalBottleId": "bb_ee4b5c90535d24d7",
+      "canonicalName": "1792 Full Proof",
+      "tier": "allocated",
+      "confidence": 1,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Safeway #3173",
+      "storeName": "Safeway #3173",
+      "storeId": "safeway:3173",
+      "storeAddress": "40950 N Ironwood Rd, San Tan Valley, AZ 85140",
+      "city": "San Tan Valley",
+      "stateCode": "AZ",
+      "postalCode": "85140",
+      "zip": "85140",
+      "lat": null,
+      "lng": null,
+      "quantity": 0,
+      "price": 57.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "Retailer reports in-store inventory",
+      "sourceAvailabilityVerified": true,
+      "observedAt": "2026-10-25T23:42:07.685Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Albertsons Companies XAPI reports positive in-store inventory but no exact item quantity; verify before driving.",
+      "evidence": "Safeway Arizona XAPI store inventory reports 1792 Full Proof 750 Ml - 750 ML available at 40950 N Ironwood Rd, San Tan Valley."
+    },
+    {
+      "id": "7bf364271608e6ee",
+      "state": "AZ",
+      "sourceLabel": "Safeway Arizona XAPI store inventory",
+      "sourceUrl": "https://www.safeway.com/shop/product-details.971174674.html",
+      "sourceChain": "safeway",
+      "merchantId": "72",
+      "rawName": "1792 Full Proof 750 Ml - 750 ML",
+      "canonicalBottleId": "bb_ee4b5c90535d24d7",
+      "canonicalName": "1792 Full Proof",
+      "tier": "allocated",
+      "confidence": 1,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Safeway #72",
+      "storeName": "Safeway #72",
+      "storeId": "safeway:72",
+      "storeAddress": "8010 W Happy Valley Rd, Peoria, AZ 85383",
+      "city": "Peoria",
+      "stateCode": "AZ",
+      "postalCode": "85383",
+      "zip": "85383",
+      "lat": null,
+      "lng": null,
+      "quantity": 0,
+      "price": 57.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "Retailer reports in-store inventory",
+      "sourceAvailabilityVerified": true,
+      "observedAt": "2026-10-25T23:44:31.569Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Albertsons Companies XAPI reports positive in-store inventory but no exact item quantity; verify before driving.",
+      "evidence": "Safeway Arizona XAPI store inventory reports 1792 Full Proof 750 Ml - 750 ML available at 8010 W Happy Valley Rd, Peoria."
+    },
+    {
+      "id": "d503a8aa7240eacf",
+      "state": "AZ",
+      "sourceLabel": "Safeway Arizona XAPI store inventory",
+      "sourceUrl": "https://www.safeway.com/shop/product-details.971174674.html",
+      "sourceChain": "safeway",
+      "merchantId": "1253",
+      "rawName": "1792 Full Proof 750 Ml - 750 ML",
+      "canonicalBottleId": "bb_ee4b5c90535d24d7",
+      "canonicalName": "1792 Full Proof",
+      "tier": "allocated",
+      "confidence": 1,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Safeway #1253",
+      "storeName": "Safeway #1253",
+      "storeId": "safeway:1253",
+      "storeAddress": "23565 N Scottsdale Rd, Scottsdale, AZ 85255",
+      "city": "Scottsdale",
+      "stateCode": "AZ",
+      "postalCode": "85255",
+      "zip": "85255",
+      "lat": null,
+      "lng": null,
+      "quantity": 0,
+      "price": 57.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "Retailer reports in-store inventory",
+      "sourceAvailabilityVerified": true,
+      "observedAt": "2026-10-25T23:46:10.276Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Albertsons Companies XAPI reports positive in-store inventory but no exact item quantity; verify before driving.",
+      "evidence": "Safeway Arizona XAPI store inventory reports 1792 Full Proof 750 Ml - 750 ML available at 23565 N Scottsdale Rd, Scottsdale."
+    }
+  ],
+  "catalog": "4b0c4224cb1c22a05fe7a9106f5d4b86162f581e1140b0004dc8b59d74e5aa2c"
+}
