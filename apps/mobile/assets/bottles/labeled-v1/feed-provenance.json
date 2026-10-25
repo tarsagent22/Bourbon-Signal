@@ -88,6 +88,18 @@
       "reviewed": true,
       "reviewNotes": "Complete bottle, branding and transparent export visually checked. Edition absent from retailer listing; series artwork deliberately contains no edition claims.",
       "bytes": 185501
+    },
+    {
+      "key": "makers-mark-wood-finishing-series-fae-01",
+      "masterSha256": "a1fa8c1aa1142bc48bab6572a6fd0bfa346dd9a0a01a976e0579feff6d0f8fff",
+      "sha256": "1062c16c36243c492ab803d7d9af5e893a395b42e63e0a9d69706f76cfd178a3",
+      "prompt": "Create a premium front-view transparent labeled bottle illustration from the Maker's Mark producer press image. Preserve the exact 2021 LIMITED RELEASE FAE-01 packaging, red wax and medallion, Maker's Mark Wood Finishing Series lettering, cream edition panel, 110.6 proof and 55.3% ABV. Full bottle centered, studio reflections, no barrel, staves, background or props. Match existing realistic Bourbon Signal bottle artwork.",
+      "reference": "https://breakingbourbon.com/bourbon-whiskey-press-releases/makers-mark-r-unveils-2021-limited-edition-wood-finishing-series-bourbons",
+      "referenceImage": "https://cdn.prod.website-files.com/5ace2bae31f6d3c07d267cb9/6035181ce435844a8399f8e3_FAE-01%20w.%20Staves_WEB.jpg",
+      "method": "Built-in image generation from producer press image; transparent PNG export",
+      "reviewed": true,
+      "reviewNotes": "Compared with producer press image: exact FAE-01 2021 panel, 110.6 proof, 55.3 percent ABV, red wax closure and round shoulder medallion. Distinct from BRT-01, BRT-02 and unspecified series artwork. Transparent pixels and full uncropped bottle verified.",
+      "bytes": 250347
     }
   ]
 }

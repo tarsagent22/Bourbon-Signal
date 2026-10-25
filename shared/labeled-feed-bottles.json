@@ -97,5 +97,12 @@
     "sha256": "4e722226eb77a3f77611cb7b2a5aedfde7c1f672941dbb12a4d60836cc3e5ede",
     "reference": "https://www.beamdistilling.com/littlebook/whiskies",
     "caption": "Series artwork · edition not specified"
+  },
+  {
+    "id": "makers-mark-wood-finishing-series-fae-01",
+    "name": "Maker's Mark Wood Finishing Series FAE-01",
+    "names": [],
+    "sha256": "1062c16c36243c492ab803d7d9af5e893a395b42e63e0a9d69706f76cfd178a3",
+    "reference": "https://breakingbourbon.com/bourbon-whiskey-press-releases/makers-mark-r-unveils-2021-limited-edition-wood-finishing-series-bourbons"
   }
 ]
