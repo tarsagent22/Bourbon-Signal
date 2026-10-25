@@ -10,6 +10,7 @@ import { buildLibraryCoverageAudit, isLibraryObservation, US_STATES } from '../s
 import { libraryDetectionQueries } from '../src/library-query-plan.mjs';
 import { arizonaXapiRequestPlan, parseArizonaXapiInventory } from '../src/collectors/arizona-xapi.mjs';
 import { bibleLookup, publicSignal } from '../src/export-site-contract.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
 
 const bottle = (id, name, extra = {}) => ({ id, canonicalName: name, aliases: [name], nationalTier: 'allocated', stateOverrides: [], ...extra });
 const nowMs = Date.parse('2026-10-25T18:00:00Z');
@@ -55,6 +56,18 @@ test('library ingestion validates completeness, identities, age and digest; stal
     await write({ ...snapshot, digest: 'wrong' });
     await assert.rejects(readLibraryCatalog({ liveFile: file, nowMs }), /stale or corrupt/);
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('syncing a library identity cannot enable alerts explicitly disabled in its library record', () => {
+  const entries = [bottle('disabled', 'Example Allocated Bourbon', { isAlertEligible: false })];
+  const bible = new BourbonBible(integrateLibraryCatalog([], { records: entries }));
+  const signal = { state: 'AZ', eventType: 'retailer_store_inventory_result', canonicalBottleId: 'disabled', canonicalName: 'Example Allocated Bourbon', rawName: 'Example Allocated Bourbon', canAlertAsInventory: true, canAlertAsWatch: true };
+  const canonical = canonicalizeSignal(signal, bible);
+  assert.equal(canonical.canAlertAsInventory, false);
+  assert.equal(canonical.canAlertAsWatch, false);
+  const exported = publicSignal(signal, bibleLookup(bible.records));
+  assert.equal(exported.canAlertAsInventory, false);
+  assert.equal(exported.canAlertAsWatch, false);
 });
 
 test('all-state audit separates unsupported, source observations, freshness, publishing and inventory alert permission', () => {

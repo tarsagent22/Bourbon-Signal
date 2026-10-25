@@ -73,6 +73,7 @@ export function integrateLibraryCatalog(legacy, catalog) {
       record = { id: bottle.id, canonical: bottle.canonicalName, normalizedKey: `library:${bottle.id}`,
         aliases: [], tier: bottle.nationalTier === 'highly_allocated' ? 'unicorn' : bottle.nationalTier,
         producer: null, sources: ['app:library'], strictLibraryIdentity: true };
+      if (typeof bottle.isAlertEligible === 'boolean') record.libraryAlertEligible = bottle.isAlertEligible;
       if (records.some(row => row.id === record.id)) throw new Error(`Conflicting engine/library id ${record.id}`);
       records.push(record);
     }

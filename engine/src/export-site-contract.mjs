@@ -499,8 +499,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
             : signal.state === 'SC'
               ? Boolean(signal.canAlertAsWatch) && (!isScRetailerEvent || isScRetailerInventory)
               : Boolean(signal.canAlertAsWatch));
-  const canAlertAsInventory = lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
-  const canAlertAsWatch = lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
+  const canAlertAsInventory = bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
+  const canAlertAsWatch = bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
     : isMsSparseOnSiteInventory
@@ -1007,6 +1007,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
       canonical_key: record.normalizedKey || null,
       name: record.canonical,
       aliases: record.aliases || [],
+      library_alert_eligible: record.libraryAlertEligible,
       tier: record.tier || null,
       producer: record.producer || null,
       signalCount: 0,

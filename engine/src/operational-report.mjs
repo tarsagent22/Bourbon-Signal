@@ -82,7 +82,11 @@ export function canonicalizeSignal(signal, bible) {
   const storeId = signal.storeId || signal.raw?.storeId || signal.raw?.store?.locationId || null;
   const key = [signal.state, bottleId || canonicalName || 'unknown', signal.eventType, signal.sourceLabel, locationPrecision, storeId || locationName || 'statewide'].join('|').toLowerCase();
   const policy = confidenceForSignal(signal);
-  const sourceAlertPolicy = enforceArchivedSourceAlertPolicy(signal);
+  const sourceAlertPolicy = { ...enforceArchivedSourceAlertPolicy(signal) };
+  if (record?.libraryAlertEligible === false) {
+    sourceAlertPolicy.canAlertAsInventory = false;
+    sourceAlertPolicy.canAlertAsWatch = false;
+  }
   return {
     key: stableId([key]),
     sourceSignalId: signal.id,
