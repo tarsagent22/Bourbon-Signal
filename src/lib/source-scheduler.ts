@@ -10,6 +10,10 @@ import { collectJensensSource, JENSENS_RUNTIME_SOURCE } from '../../engine/src/c
 import { collectShopifyVariantPickup } from '../../engine/src/collectors/shopify-variant-pickup.mjs';
 import { SHOPIFY_PICKUP_SOURCES } from '../../engine/src/sources/shopify-pickup-policy.mjs';
 import { buildShopifyPollProjection } from '../../engine/src/sources/shopify-poll-projection.mjs';
+import { GROCERY_XAPI_SOURCES, createGroceryXapiPolicy, isGroceryXapiManagedRow } from '../../engine/src/sources/grocery-xapi-policy.mjs';
+import { buildGroceryXapiPollProjection } from '../../engine/src/sources/grocery-xapi-poll-projection.mjs';
+import { collectGroceryXapiPoll } from '../../engine/src/collectors/grocery-xapi-poll-runtime.mjs';
+import { groceryXapiSearchKey } from '../../engine/src/collectors/grocery-xapi-access.mjs';
 import dropFeedClassification from '../data/drop-feed-classification.generated.json';
 import { getDropClassificationIndex, resolveDropClassification, type DropClassificationBottle } from './drop-classification';
 import { cityHiveSafeBottleMatch } from '../../engine/src/collectors/safe-bottle-match.mjs';
@@ -19,13 +23,14 @@ import { collectFloridaAbcExpansion } from '../../engine/src/collectors/florida-
 import { fetchWithMeta as fetchText } from '../../engine/src/core/fetcher.mjs';
 import { bibleLookup, buildDrops, buildCurrentInventoryAlertsFromDrops, buildRegionalWatchAlertsFromDrops, applyAlertPolicyToCandidate } from '../../engine/src/export-site-contract.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from '../../engine/src/state-lifecycle.mjs';
-import { recoveryPolicy, mergePollProjection, suppressDisabledPollSources, sourceScopeMatches, validatePollPolicy } from '../../engine/src/sources/poll-policy.mjs';
+import { recoveryPolicy, mergePollProjection, suppressDisabledPollSources, sourceScopeMatches, validatePollPolicy, validateGroceryXapiRows } from '../../engine/src/sources/poll-policy.mjs';
 import { readLatestOhlqWorkerEnvelope } from './ohlq-worker-artifact-store';
 
 type Row = Record<string, any>;
 type PollSource = Row & { id:string;state:string;kind:string;expiryHours:number };
 export const POLL_SOURCES: PollSource[] = [
   ...SHOPIFY_PICKUP_SOURCES,
+  ...GROCERY_XAPI_SOURCES,
   {id:'nc:board-shipments',state:'NC',kind:'nc-shipments',cadence:1800,expiryHours:168},
   {id:'fl:abc',state:'FL',kind:'fl-abc',chain:'abc-fine-wine-spirits',cadence:1800,expiryHours:1},
   {id:'fl:jensens-miami',state:'FL',kind:'jensens',chain:'jensens-liquors',cadence:1800,expiryHours:1,
@@ -38,7 +43,7 @@ export const POLL_SOURCES: PollSource[] = [
 ];
 // Keep disabled sources registered as partition owners so old stock cannot revive.
 export const pollSourceRegistry = (): PollSource[] => POLL_SOURCES.map((source): PollSource => ({...source,
-  disabled:source.disabled===true || (source.kind==='shopify-variant-pickup' && !schedulerEnabled()) || (source.id==='fl:jensens-miami' && process.env.JENSENS_SOURCE_POLL_ENABLED==='0')}));
+  disabled:source.disabled===true || (['shopify-variant-pickup','grocery-xapi'].includes(source.kind) && !schedulerEnabled()) || (source.id==='fl:jensens-miami' && process.env.JENSENS_SOURCE_POLL_ENABLED==='0')}));
 export const schedulerEnabled = () => process.env.SOURCE_SCHEDULER_ENABLED === '1';
 const sql = () => createProductionAlertQueueSqlExecutor();
 export async function pollJobs() { return (await sql().query('SELECT * FROM source_poll_jobs ORDER BY source_id')).rows as Row[]; }
@@ -50,7 +55,7 @@ function policyContextFromExports(bottles: SiteExportResult, health: SiteExportR
   const records:Row[]=(Array.isArray(bottles.payload?.bottles) ? bottles.payload.bottles as Row[] : []).map((b: Row)=>({ ...b,id:b.canonical_id || b.id,canonical:b.canonical_name || b.name, normalizedKey:fingerprintName(b.canonical_name || b.name),aliases:b.aliases || [] }));
   const lookup=bibleLookup(records);
   const classificationIndex=getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
-  const byState=Object.fromEntries([...new Set(SHOPIFY_PICKUP_SOURCES.map((source:Row)=>source.state))].map(state=>[state,
+  const byState=Object.fromEntries([...new Set([...SHOPIFY_PICKUP_SOURCES,...GROCERY_XAPI_SOURCES].map((source:Row)=>source.state))].map(state=>[state,
     bibleLookup(records.map(record=>({...record,tier:resolveDropClassification({state,canonical_id:record.id,canonical_name:record.canonical,tier:record.tier},classificationIndex).tier})))]));
   return {records,lookup:{...lookup,byState},snapshotId:bottles.snapshotId,health:health.payload};
 }
@@ -69,12 +74,21 @@ async function readCollectionContext() {
   const {records,...policy}=policyContextFromExports(bottles,health,alerts);
   return {...policy,bible:new BourbonBible(records),drops:Array.isArray(drops.payload?.drops) ? drops.payload.drops as Row[] : []};
 }
+function groceryPolicyFor(source:Row,ctx:Awaited<ReturnType<typeof readCollectionContext>>) {
+  return createGroceryXapiPolicy({descriptors:[source],lookup:ctx.lookup,policySnapshotId:ctx.snapshotId,
+    enabledSourceIds:source.disabled?[]:[source.id],
+    blockedStates:(Array.isArray(ctx.health?.states)?ctx.health.states as Row[]:[]).filter((row:Row)=>row.health==='blocked').map((row:Row)=>row.state)});
+}
 async function collect(source: Row, ctx: Awaited<ReturnType<typeof readCollectionContext>>, signal: AbortSignal) {
   const observedAt=new Date().toISOString();
   if (source.kind==='nc-shipments') return collectNorthCarolinaShipments(ctx.bible,{signal});
   if (source.kind==='ca') return withCollectionContext({signal},()=>collectCaliforniaSource({id:'CA'},ctx.bible,source.definition,observedAt,signal));
   if (source.kind==='jensens') return withCollectionContext({signal},()=>collectJensensSource(ctx.bible,{observedAt,signal}));
   if (source.kind==='shopify-variant-pickup') return withCollectionContext({signal},()=>collectShopifyVariantPickup(ctx.bible,source.definition,{signal}));
+  if (source.kind==='grocery-xapi') return withCollectionContext({signal},()=>collectGroceryXapiPoll(ctx.bible,source,{
+    signal,fetchText,marketLookup:ctx.lookup.byState?.[source.state],policySnapshotId:ctx.snapshotId,
+    groceryPolicy:groceryPolicyFor(source,ctx),subscriptionKey:groceryXapiSearchKey(),
+  }));
   if (source.kind==='fl-abc') {
     const result=await withCollectionContext({signal},()=>collectFloridaAbcExpansion({observedAt,signal,fetchText,
       matchBottle:(name: string)=>cityHiveSafeBottleMatch(name,ctx.bible)}));
@@ -107,6 +121,7 @@ export async function runSourceScheduler({trigger='unspecified'}:{trigger?:strin
     if (!lease) return {source:source.id,status:'not_due'};
     const runStartedAt=Date.now();
     const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),50000);
+    let groceryAccounting:Row|undefined;
     try {
       const ctx=await sharedContext;
       if (String(process.env.BOURBON_SIGNAL_QUARANTINED_STATES || '').split(',').includes(source.state) || (Array.isArray(ctx.health?.states) ? ctx.health.states as Row[] : []).some((s: Row)=>s.state===source.state && s.health==='blocked')) throw new Error('global_schema_quarantine');
@@ -128,6 +143,19 @@ export async function runSourceScheduler({trigger='unspecified'}:{trigger?:strin
             canonicalBottleId:row.canonicalBottleId,productId:row.productId,variantId:row.variantId,observedAt:row.observedAt,availability:row.availabilityStatus,
             locationPrecision:'store_level',quantitySemantics:'binary_orderability',quantity:0,quantityIsExact:false,
             fulfillmentEvidenceType:'variant_pickup_offer',pickupVerified:row.availabilityStatus==='in_stock'})),
+          projectedCandidateKeys:built.candidates.map((row:Row)=>row.dedupeKey)};
+        const committed=(await executor.query('SELECT source_poll_finish($1,$2,$3,$4::jsonb,$5,$6,$7,$8::jsonb) AS committed',
+          [source.id,owner,lease.generation,JSON.stringify(built.projection),'accepted',0,0,JSON.stringify(accounting)])).rows[0]?.committed;
+        return {source:source.id,status:committed?'accepted':'fenced',...accounting};
+      }
+      if(source.kind==='grocery-xapi') {
+        groceryAccounting=result.accounting;
+        const built=buildGroceryXapiPollProjection({source,ctx,lease,result,owner,groceryPolicy:groceryPolicyFor(source,ctx)});
+        const accounting={...result.accounting,collected:result.signals?.length || 0,accepted:built.signals.length,
+          feed:built.drops.length,candidates:built.candidates.length,baseline:!lease.projection,
+          elapsedMs:Date.now()-runStartedAt,trigger,manualDueReset:false,
+          runtimeSha256:source.runtimeSha256,configSha256:source.configSha256,admissionSha256:source.admissionSha256,
+          completeSnapshot:false,absenceIsOutOfStock:false,observations:built.observations,
           projectedCandidateKeys:built.candidates.map((row:Row)=>row.dedupeKey)};
         const committed=(await executor.query('SELECT source_poll_finish($1,$2,$3,$4::jsonb,$5,$6,$7,$8::jsonb) AS committed',
           [source.id,owner,lease.generation,JSON.stringify(built.projection),'accepted',0,0,JSON.stringify(accounting)])).rows[0]?.committed;
@@ -166,7 +194,7 @@ export async function runSourceScheduler({trigger='unspecified'}:{trigger?:strin
       return {source:source.id,status:committed?'accepted':'fenced',...accounting};
     } catch(error) {
       const reason=classifyPollError(error);const recovery=recoveryPolicy(reason,Number(lease.failures),(error as Row)?.details?.retryAfterSeconds,source);
-      await executor.query('SELECT source_poll_finish($1,$2,$3,NULL,$4,$5,$6,$7::jsonb)',[source.id,owner,lease.generation,reason,recovery.backoff,recovery.pause,JSON.stringify({probe:!!lease.paused_until,trigger,...(error as Row)?.details?.accounting})]);
+      await executor.query('SELECT source_poll_finish($1,$2,$3,NULL,$4,$5,$6,$7::jsonb)',[source.id,owner,lease.generation,reason,recovery.backoff,recovery.pause,JSON.stringify({probe:!!lease.paused_until,trigger,...groceryAccounting,...(error as Row)?.details?.accounting})]);
       return {source:source.id,status:reason,backoffSeconds:recovery.backoff,pauseSeconds:recovery.pause};
     } finally {clearTimeout(timer);controller.abort();}
   }));
@@ -176,28 +204,28 @@ export function classifyPollError(error: unknown) {
   const message=error instanceof Error?error.message:String(error);
   if ((error as Row)?.kind==='malformed' || /quarantine/.test(message)) return 'source_identity_or_schema_failure';
   if ((error as Row)?.status===403 || (error as Row)?.status===401) return 'source_access_denied';
-  if (/abort|timeout/i.test(message)) return 'timeout';
-  if (/429|rate.limit/i.test(message)) return 'rate_limited';
+  if ((error as Row)?.kind==='timeout' || /abort|timeout/i.test(message)) return 'timeout';
+  if ((error as Row)?.status===429 || /429|rate.limit/i.test(message)) return 'rate_limited';
   if (/artifact/i.test(message)) return 'browser_artifact_unavailable';
   if (/identity|schema|malformed|extract_datetime|fulfillment|missing_feed|incomplete/i.test(message)) return message.includes('missing_feed')?'accepted_evidence_missing_feed':'source_identity_or_schema_failure';
-  if (/5\d\d/.test(message)) return 'http_5xx';
+  if (Number((error as Row)?.status)>=500 && Number((error as Row)?.status)<=599 || /5\d\d/.test(message)) return 'http_5xx';
   return 'transport_failure';
 }
 export async function readPollProjection(rows: Row[], kind: 'drops'|'candidates') {
-  if (!schedulerEnabled()) return {rows:suppressDisabledPollSources(rows,pollSourceRegistry(),kind),version:'off'};
+  if (!schedulerEnabled()) return {rows:validateGroceryXapiRows(suppressDisabledPollSources(rows,pollSourceRegistry(),kind),[],null,null,'','',kind),version:'off'};
   const [jobs,ctx]=await Promise.all([pollJobs(),readPollPolicyContext()]);
   const registry=pollSourceRegistry();
   const permitted=validatePollPolicy(jobs,registry,ctx.lookup,ctx.health,process.env.BOURBON_SIGNAL_QUARANTINED_STATES || '',ctx.snapshotId);
-  const merged=mergePollProjection(rows,permitted,registry,kind);
+  const merged=validateGroceryXapiRows(mergePollProjection(rows,permitted,registry,kind),registry,ctx.lookup,ctx.health,process.env.BOURBON_SIGNAL_QUARANTINED_STATES || '',ctx.snapshotId,kind);
   await tracePollCandidates(merged.filter((r: Row)=>r.sourcePollId),kind==='drops'?'feed_read':'candidate_read');
   return {rows:merged,version:createHash('sha256').update(JSON.stringify(jobs.map(j=>[j.source_id,j.generation,j.accepted_at]))).digest('hex').slice(0,24)};
 }
 export async function pollCandidatesValid(candidates: Row[]) {
   const registry=pollSourceRegistry();
   if(suppressDisabledPollSources(candidates,registry,'candidates').length!==candidates.length) return false;
-  const genericSources=registry.filter(source=>source.kind==='shopify-variant-pickup');
+  const genericSources=registry.filter(source=>['shopify-variant-pickup','grocery-xapi'].includes(source.kind));
   const genericOwned=(candidate:Row)=>[candidate.sourceCollectorVersion,candidate.raw?.collectorVersion]
-    .some(version=>typeof version==='string' && version.startsWith('shopify-variant-pickup-')) || genericSources.some(source=>
+    .some(version=>typeof version==='string' && version.startsWith('shopify-variant-pickup-')) || isGroceryXapiManagedRow(candidate) || genericSources.some(source=>
     candidate.sourceRuntimeId===source.id || candidate.sourcePollId===source.id || sourceScopeMatches(source,candidate));
   const polled=candidates.filter(c=>c.sourcePollId || genericOwned(c));
   if(!polled.length && !genericSources.length)return true;

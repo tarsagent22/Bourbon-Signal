@@ -171,6 +171,7 @@ test('actual Nevada caller propagates abort without fetching a sibling or publis
 test('existing owned-partition policy supports expiry, error, disablement and denied-source pauses', async () => {
   const row = fixture.sources[0], signal = (await collect(row)).signals[0];
   const source = { id: row.sourceId, kind: 'grocery-xapi', state: row.state, chain: row.sourceId,
+    definition: { premise: { storeId: row.premise.storeId }, bindings: row.products.map(({expected})=>({productId:expected.productId,variantId:expected.productId})) },
     storeIds: [row.premise.storeId], expiryHours: 1, failClosedOnError: true,
     noImmediateRetry: true, accessDeniedPauseSeconds: 86400, rateLimitedPauseSeconds: 14400 };
   assert.equal(sourceScopeMatches(source, signal), true);

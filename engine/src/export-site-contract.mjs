@@ -387,10 +387,24 @@ function virginiaPremisesProofState(signal) {
   return { productCode, codeConflict, proofRequired, proofAllowed };
 }
 
+const genericGroceryXapiRow = row => [row?.sourceRuntimeId,row?.sourceChain,row?.sourcePollId].some(value=>String(value || '').startsWith('xapi:'))
+  || [row?.sourceCollectorVersion, row?.raw?.collectorVersion].some(version => typeof version === 'string' && version.startsWith('grocery-xapi-'));
+const groceryXapiPublicProof = row => ({
+  sourceConfigSha256: row.sourceConfigSha256, sourceAdmissionSha256: row.sourceAdmissionSha256,
+  sourceRuntimeSha256: row.sourceRuntimeSha256, sourceCollectorVersion: row.sourceCollectorVersion,
+  sourcePolicySnapshotId: row.sourcePolicySnapshotId, completeSnapshot: row.completeSnapshot,
+  absenceIsOutOfStock: row.absenceIsOutOfStock,
+  raw: { collectorVersion: row.sourceCollectorVersion, volumeMl: row.raw?.volumeMl,
+    packageCount: row.raw?.packageCount, fulfillmentPolicyVerified: row.raw?.fulfillmentPolicyVerified,
+    reportedQuantity: row.raw?.reportedQuantity },
+});
 const genericShopifyPickupRow = row => [row?.sourceCollectorVersion, row?.raw?.collectorVersion]
   .some(version => typeof version === 'string' && version.startsWith('shopify-variant-pickup-'));
 
-export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } = {}) {
+export function publicSignal(signal, bible, freshness = null, { shopifyPolicy, groceryPolicy } = {}) {
+  const isGroceryXapi = genericGroceryXapiRow(signal) || groceryPolicy?.owns(signal) === true;
+  const groceryProof = isGroceryXapi ? groceryPolicy?.evaluate(signal) : null;
+  const groceryAllowed = groceryProof?.eligible === true;
   const isShopifyPickup = genericShopifyPickupRow(signal) || shopifyPolicy?.owns(signal) === true;
   const shopifyPickupProof = isShopifyPickup ? shopifyPolicy?.evaluate(signal) : null;
   const shopifyPickupAllowed = shopifyPickupProof?.eligible === true;
@@ -402,7 +416,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isKyOfficialDistillery = isKentuckyOfficialDistillerySignal(signal);
   const isWvOfficialBarrelSelection = isWestVirginiaOfficialBarrelSelectionSignal(signal);
   const isWvRecentPurchase = isWestVirginiaRecentPurchaseSignal(signal);
-  const preferOfficialSourceName = (!isShopifyPickup && preferRetailerName) || isKentuckyOfficialDistilleryReleaseWatchSignal(signal) || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
+  const preferOfficialSourceName = (!isGroceryXapi && !isShopifyPickup && preferRetailerName) || isKentuckyOfficialDistilleryReleaseWatchSignal(signal) || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
   const isTnCityHiveInventory = isTennesseeCityHiveInventory(signal);
@@ -425,7 +439,9 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const isMetroRetailerEvent = ['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
-  const inventorySemantics = isNcBoardShipment
+  const inventorySemantics = isGroceryXapi
+    ? signal.inventorySemantics
+    : isNcBoardShipment
     ? (signal.inventorySemantics || 'Official NC ABC board-level shipment units; this is a shipment to the local board, not exact store shelf inventory or current availability.')
     : isCostcoWarehouseInventory
     ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
@@ -460,7 +476,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const parsedPublicQuantity = Number(signal.quantity ?? signal.storeQty ?? 0);
   const publicQuantity = isMassachusettsResearchInventory(signal) ? null
     : Number.isSafeInteger(parsedPublicQuantity) && parsedPublicQuantity >= 0 ? parsedPublicQuantity : 0;
-  const policyCanAlertAsInventory = virginiaProofAllowed && exactScRetailerIdentityAllowed && !staleFallback && (isShopifyPickup ? shopifyPickupAllowed : isCostcoWarehouseInventory
+  const policyCanAlertAsInventory = virginiaProofAllowed && exactScRetailerIdentityAllowed && !staleFallback && (isGroceryXapi ? groceryAllowed : isShopifyPickup ? shopifyPickupAllowed : isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
       ? isAzRetailerInventory
@@ -477,7 +493,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
             : signal.state === 'SC'
               ? (isScRetailerEvent ? Boolean(signal.canAlertAsInventory) && isScRetailerInventory : Boolean(signal.canAlertAsInventory))
               : Boolean(signal.canAlertAsInventory));
-  const policyCanAlertAsWatch = !isShopifyPickup && virginiaProofAllowed && exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
+  const policyCanAlertAsWatch = !isGroceryXapi && !isShopifyPickup && virginiaProofAllowed && exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsWatch)
     : signal.state === 'AZ'
       ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
@@ -522,9 +538,10 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     canonicalName,
     rawName: signal.rawName || null,
     aliases: preferOfficialSourceName ? [] : (bibleRecord?.aliases || []),
-    tier: shopifyPickupAllowed ? shopifyPickupProof.marketTier : exportedTier(signal, bibleRecord),
+    tier: groceryAllowed ? groceryProof.marketTier : shopifyPickupAllowed ? shopifyPickupProof.marketTier : exportedTier(signal, bibleRecord),
     producer: preferOfficialSourceName ? null : (signal.producer || bibleRecord?.producer || null),
     type: signal.eventType,
+    ...(isGroceryXapi ? { eventType: signal.eventType, ...groceryXapiPublicProof(signal) } : {}),
     signalCategory: signal.signalCategory || null,
     signalLabel: signal.signalLabel || null,
     source: signal.sourceLabel,
@@ -593,10 +610,14 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
       : (signal.boardShipmentQuantity ?? null),
     shipmentStoreEquivalent: signal.shipmentStoreEquivalent === true,
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
-    quantitySemantics: isNcBoardShipment
+    quantitySemantics: isGroceryXapi
+      ? signal.inventorySemantics
+      : isNcBoardShipment
       ? (signal.quantitySemantics || signal.raw?.quantitySemantics || 'board_shipment_units_not_store_inventory')
       : (signal.quantitySemantics || signal.raw?.quantitySemantics || null),
-    reportedQuantity: isVirginiaExactPremisesProduct
+    reportedQuantity: isGroceryXapi
+      ? (signal.raw?.reportedQuantity ?? signal.reportedQuantity ?? null)
+      : isVirginiaExactPremisesProduct
       ? (Number.isSafeInteger(Number(signal.reportedQuantity)) && Number(signal.reportedQuantity) >= 0 ? Number(signal.reportedQuantity) : null)
       : ['FL', 'GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? (isMetroInventory && signal.quantityIsExact === true ? signal.storeQty : null)))
         ? Number(signal.reportedQuantity ?? signal.storeQty)
@@ -649,7 +670,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
       sourceRuntimeNonAlertable: true,
       staleFallback: true,
       staleNonAlertable: true,
-    } : isMsSparseOnSiteInventory ? {
+    } : isGroceryXapi ? groceryXapiPublicProof(signal).raw : isMsSparseOnSiteInventory ? {
       chain: signal.raw?.chain || signal.sourceChain || null,
       sourceRuntimeId: signal.raw?.sourceRuntimeId || signal.sourceRuntimeId || null,
       merchantId: signal.raw?.merchantId || signal.merchantId || null,
@@ -683,6 +704,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
         ? 'Official distillery release-watch intelligence only; not retailer store inventory or a store shipment alert.'
       : ohioFeedStaleCaveat(signal)
         ? 'Stale OHLQ store-status signal. OHLQ collection is currently blocked/stale, so this is the latest cached status; verify on OHLQ or call the store before driving.'
+        : isGroceryXapi && canAlertAsInventory
+          ? 'Retailer-reported count for this exact store and bottle. Search absence is unknown; verify availability before driving.'
         : isShopifyPickup && canAlertAsInventory
           ? 'Retailer-published pickup availability for this exact product variant and store address. Exact shelf quantity is not published; confirm before driving.'
         : signal.state === 'CA' && canAlertAsInventory
@@ -1294,7 +1317,8 @@ function aggregateLeadIdentity(signal) {
   ].map((value) => String(value).toLowerCase().replace(/\s+/g, ' ').trim()).join('|');
 }
 
-function isSafePublicSignal(signal, shopifyPolicy) {
+function isSafePublicSignal(signal, shopifyPolicy, groceryPolicy) {
+  if (genericGroceryXapiRow(signal) || groceryPolicy?.owns(signal)) return groceryPolicy?.eligible(signal) === true;
   if (genericShopifyPickupRow(signal) || shopifyPolicy?.owns(signal)) return shopifyPolicy?.eligible(signal) === true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
   const type = String(signal.eventType || '');
@@ -1349,7 +1373,7 @@ function publicDisplaySortTimestamp(signal, freshnessIndex) {
   return freshness?.eventAt || freshness?.firstSeenAt || signal.observedAt || signal.fetchedAt || freshness?.lastConfirmedAt || '';
 }
 
-export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy } = {}) {
+export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy, groceryPolicy } = {}) {
   const seenSourceIds = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals, previousDrops, availabilityHistory);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
@@ -1366,7 +1390,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
     .filter(Boolean));
   const seenAggregateLeadIds = new Set();
   return signals
-    .filter((s) => isSafePublicSignal(s, shopifyPolicy))
+    .filter((s) => isSafePublicSignal(s, shopifyPolicy, groceryPolicy))
     .filter((s) => !isGeorgiaRetailerProjectionSignal(s) || currentGeorgiaRetailerKeys.has(currentProjectionKey(s)))
     .filter((s) => isFreshCurrentInventorySignal(s, currentKeys))
     .filter((s) => {
@@ -1395,7 +1419,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
       seenAggregateLeadIds.add(aggregateId);
       return true;
     })
-    .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal)), { shopifyPolicy }))
+    .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal)), { shopifyPolicy, groceryPolicy }))
     .filter((drop) => isCustomerDropTier(drop))
     .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.ncCode, x.sourceUrl, x.storeId, x.locationName, x.storeAddress, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.ncCode, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
     .slice(0, 10000);
@@ -1929,8 +1953,9 @@ function ohioFeedStaleCaveat(signal) {
   return isOhioOhlqStoreInventorySignal(signal) && signalAgeHours(signal) > FAST_STORE_INVENTORY_MAX_AGE_HOURS;
 }
 
-export function dropHasPositiveAlertInventory(drop, shopifyPolicy) {
+export function dropHasPositiveAlertInventory(drop, shopifyPolicy, groceryPolicy) {
   if (drop?.stale || drop?.sourceStale || drop?.raw?.staleFallback) return false;
+  if (genericGroceryXapiRow(drop) || groceryPolicy?.owns(drop)) return groceryPolicy?.eligible(drop) === true;
   if (genericShopifyPickupRow(drop) || shopifyPolicy?.owns(drop)) return shopifyPolicy?.eligible(drop) === true;
   if (drop?.state === 'IN') return isIndianaRetailerInventory(drop);
   if (drop?.state === 'TX') return isTexasRetailerInventory(drop);
@@ -1956,15 +1981,16 @@ export function dropHasPositiveAlertInventory(drop, shopifyPolicy) {
     && ['limited_supply', 'in_stock'].includes(String(drop?.availabilityStatus || '').toLowerCase());
 }
 
-export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = {}) {
+export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy, groceryPolicy } = {}) {
   return (drops || [])
     .filter((drop) => drop && drop.canAlertAsInventory && drop.locationPrecision === 'store_level')
     .filter((drop) => dropAgeHours(drop) <= CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS)
-    .filter((drop) => dropHasPositiveAlertInventory(drop, shopifyPolicy))
+    .filter((drop) => dropHasPositiveAlertInventory(drop, shopifyPolicy, groceryPolicy))
     .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
     .sort(alertDropSort)
     .map((drop) => {
       const shopifyBinaryBaseline = shopifyPolicy?.eligible(drop) === true;
+      const groceryBaseline = groceryPolicy?.eligible(drop) === true;
       const georgiaBaseline = drop.state === 'GA';
       const metroBaseline = ['NY', 'CO'].includes(drop.state);
       const indianaBinaryBaseline = drop.state === 'IN' && Number(drop.quantity || 0) === 0 && drop.quantityIsExact === false && isIndianaRetailerInventory(drop);
@@ -1995,12 +2021,12 @@ export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = 
       reliabilityScore: drop.tier === 'unicorn' ? 92 : drop.tier === 'allocated' ? 88 : 82,
       eligibleForDelivery: true,
       eligibleForOnSite: true,
-      eligibleForEmail: shopifyBinaryBaseline || drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : true,
-      eligibleForSms: shopifyBinaryBaseline || drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
+      eligibleForEmail: groceryBaseline || shopifyBinaryBaseline || drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : true,
+      eligibleForSms: groceryBaseline || shopifyBinaryBaseline || drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
       actionabilityClass: 'store_inventory',
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'onsite_candidate',
-      sendRecommendation: shopifyBinaryBaseline || drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
+      sendRecommendation: groceryBaseline || shopifyBinaryBaseline || drop.state === 'CA' || indianaBinaryBaseline || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
       signalAt: dropSignalAt(drop),
       observedAt: drop.observedAt || drop.signalAt || null,
       freshnessHours: Number(dropAgeHours(drop).toFixed(2)),
@@ -2016,7 +2042,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = 
       matchKey: stableId([drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName || 'regional']),
       gates: ['current_public_drop', 'store_level', southCarolinaInStoreBaseline || southCarolinaCityHiveBinaryBaseline
         ? 'verified_binary_in_store_availability'
-        : binaryRetailerOrderability || drop.state === 'CA' ? 'verified_binary_orderability' : 'positive_quantity'],
+        : binaryRetailerOrderability || (drop.state === 'CA' && !groceryBaseline) ? 'verified_binary_orderability' : 'positive_quantity'],
       blockers: [],
       cautions: ['verify_before_driving'],
       state: drop.state,
@@ -2033,6 +2059,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = 
       sourceUrl: drop.sourceUrl,
       sourceChain: drop.sourceChain || null,
       sourceRuntimeId: drop.sourceRuntimeId || null,
+      ...(groceryBaseline ? { ...groceryXapiPublicProof(drop), canAlertAsInventory: true, canAlertAsWatch: false } : {}),
       ...(drop.sourceCollectorVersion ? { sourceCollectorVersion: drop.sourceCollectorVersion, sourcePolicySnapshotId: drop.sourcePolicySnapshotId || null,
         lastConfirmedAt: drop.lastConfirmedAt || drop.observedAt || null } : {}),
       leafSourceRuntimeId: drop.leafSourceRuntimeId || null,
@@ -2078,7 +2105,9 @@ export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = 
       confidence: drop.confidence,
       policyMode: drop.policyMode,
       inventorySemantics: safeString(drop.inventorySemantics, 700),
-      reason: shopifyBinaryBaseline
+      reason: groceryBaseline
+        ? 'Current retailer-reported availability for this exact store and bottle; verify before driving.'
+        : shopifyBinaryBaseline
         ? 'Current retailer-published pickup availability at the exact product variant and premises; exact shelf quantity is not published. Confirm before driving.'
         : drop.state === 'CA'
         ? 'Current first-party binary retailer orderability plus separately verified pickup/collection policy eligible for San Diego member matching.'

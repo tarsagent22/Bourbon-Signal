@@ -1,4 +1,5 @@
 import { createShopifyPickupPolicy } from './shopify-pickup-policy.mjs';
+import { createGroceryXapiPolicy, isGroceryXapiManagedRow } from './grocery-xapi-policy.mjs';
 
 export function recoveryPolicy(reason, failures = 0, retryAfter = 0, source = {}) {
   const identity = /identity|schema|digest|malformed|extract_datetime|incomplete|fulfillment/.test(reason);
@@ -14,6 +15,9 @@ export function recoveryPolicy(reason, failures = 0, retryAfter = 0, source = {}
 export function sourceScopeMatches(source, row) {
   if (source.kind === 'oh-probe' || row.state !== source.state) return false;
   if (source.kind === 'nc-shipments') return (row.type || row.eventType) === 'nc_board_shipment_snapshot';
+  if (source.kind === 'grocery-xapi') return row.sourceChain === source.chain
+    && String(row.storeId || row.store_id || '') === source.definition?.premise?.storeId
+    && (source.definition?.bindings || []).some(binding => String(row.productId || '') === binding.productId && String(row.variantId || '') === binding.variantId);
   if (source.kind === 'shopify-variant-pickup') return row.sourceChain === source.chain && (source.partitionBindings || []).some(binding =>
     String(row.storeId || row.store_id || '') === binding.storeId && String(row.productId || '') === binding.productId && String(row.variantId || '') === binding.variantId);
   return row.sourceChain === source.chain
@@ -65,12 +69,16 @@ export function validatePollPolicy(jobs,registry,lookup,health,quarantined='',po
   const descriptors=registry.filter(source=>source.kind==='shopify-variant-pickup');
   const shopifyPolicy=descriptors.length?createShopifyPickupPolicy({descriptors,enabledSourceIds:descriptors.filter(source=>!source.disabled).map(source=>source.id),
     collectorSha256:descriptors[0].collectorSha256,catalogSha256:descriptors[0].catalogSha256,lookup,policySnapshotId,blockedStates:[...blocked]}):null;
+  const groceryDescriptors=registry.filter(source=>source.kind==='grocery-xapi');
+  const groceryPolicy=groceryDescriptors.length?createGroceryXapiPolicy({descriptors:groceryDescriptors,
+    enabledSourceIds:groceryDescriptors.filter(source=>!source.disabled).map(source=>source.id),lookup,policySnapshotId,blockedStates:[...blocked]}):null;
   return jobs.map(job=>{
     const source=registry.find(s=>s.id===job.source_id);
     if(!source || !job.projection)return job;
     const allowed=row=> {
       if(blocked.has(source.state))return false;
       if(source.kind==='shopify-variant-pickup')return shopifyPolicy.eligible(row);
+      if(source.kind==='grocery-xapi')return groceryPolicy.eligible(row);
       const record=lookup.byId?.get?.(row.canonicalBottleId || row.canonicalId) || lookup.byId?.[row.canonicalBottleId || row.canonicalId];
       return !!record && ['limited','allocated','unicorn'].includes(record.tier);
     };
@@ -80,7 +88,21 @@ export function validatePollPolicy(jobs,registry,lookup,health,quarantined='',po
 }
 
 export function failClosedPollRows(rows,registry,kind) {
- const owned=row=>registry.some(source=>sourceScopeMatches(source,row));
+ const owned=row=>isGroceryXapiManagedRow(row) || registry.some(source=>sourceScopeMatches(source,row));
  return kind==='candidates'?rows.filter(row=>!owned(row) && !row.sourcePollId)
   : rows.map(row=>owned(row)?{...row,stale:true,canAlertAsInventory:false,canAlertAsWatch:false}:row);
+}
+
+// Current authority also covers cached base rows after registry removal.
+/** @param {any[]} rows @param {any[]} registry @param {any} lookup @param {any} health */
+export function validateGroceryXapiRows(rows,registry,lookup,health,quarantined='',policySnapshotId='',kind='drops') {
+  const blocked=new Set(quarantined.split(',').filter(Boolean));
+  for(const row of health?.states || []) if(row.health==='blocked')blocked.add(row.state);
+  const descriptors=registry.filter(source=>source.kind==='grocery-xapi');
+  const policy=createGroceryXapiPolicy({descriptors,enabledSourceIds:descriptors.filter(source=>!source.disabled).map(source=>source.id),
+    lookup,policySnapshotId,blockedStates:[...blocked]});
+  return rows.map(row=>{
+    if(!policy.owns(row) || policy.eligible(row))return row;
+    return kind==='candidates'?null:{...row,stale:true,canAlertAsInventory:false,canAlertAsWatch:false};
+  }).filter(Boolean);
 }

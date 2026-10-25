@@ -16,7 +16,7 @@ export function groceryXapiSourceFromNevada(source) {
 export function serializeGroceryXapiCandidate(candidate, source) {
   const { premise } = source;
   const legacyNevada = source.platform === 'albertsons-xapi' && source.state === 'NV';
-  const chain = source.id || `${source.banner}:${source.merchantId}`;
+  const chain = source.sourceChain || source.id || `${source.banner}:${source.merchantId}`;
   const record = candidate.record;
   return {
     id: stableId(legacyNevada
