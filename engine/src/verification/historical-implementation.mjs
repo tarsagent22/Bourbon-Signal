@@ -8,6 +8,13 @@ const verifierImport = "import { normalizeHistoricalImplementationBytes } from '
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
 const normalizedVerifierRead = `normalizeHistoricalImplementationBytes(file, ${originalVerifierRead})`;
 const indianaCandidateProof = "    ...(sig.state === 'IN' ? { sourceProductBinding: sig.sourceProductBinding || null } : {}),\n";
+export const libraryAlertPolicyBoundary = `  const sourceAlertPolicy = { ...enforceArchivedSourceAlertPolicy(signal) };
+  if (record?.libraryAlertEligible === false) {
+    sourceAlertPolicy.canAlertAsInventory = false;
+    sourceAlertPolicy.canAlertAsWatch = false;
+  }
+`;
+export const originalLibraryAlertPolicyBoundary = '  const sourceAlertPolicy = enforceArchivedSourceAlertPolicy(signal);\n';
 const originalFloridaProofBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
 const floridaProofBoundary = `    } : undefined,
     ...(signal.state === 'FL' ? {
@@ -39,8 +46,12 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (name === 'engine/src/operational-report.mjs') {
     // Reverse only this exact FL proof-preservation addition at its original
     // canonicalization boundary. The original MS full-file digest stays pinned.
-    const text = replaceUnique(bytes.toString('utf8'), floridaProofBoundary, originalFloridaProofBoundary, `${name}: FL proof`);
-    return Buffer.from(replaceUnique(text, indianaCandidateProof, '', `${name}: IN candidate proof`));
+    let text = replaceUnique(bytes.toString('utf8'), floridaProofBoundary, originalFloridaProofBoundary, `${name}: FL proof`);
+    text = replaceUnique(text, indianaCandidateProof, '', `${name}: IN candidate proof`);
+    // Permit only the exact shared library suppression. It cannot enable an
+    // alert or change the pinned Mississippi source and inventory policies.
+    text = replaceUnique(text, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, `${name}: library alert suppression`);
+    return Buffer.from(text);
   }
   if (name === 'scripts/test-coverage-contract.mts') {
     // Only the two expanded-area expectations differ from this pinned test.

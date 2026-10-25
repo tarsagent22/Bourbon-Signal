@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { normalizeHistoricalImplementationBytes } from '../engine/src/verification/historical-implementation.mjs';
+import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -18,7 +18,8 @@ test('MS historical implementation bytes remain pinned, including policy', async
   assert.ok(hashes);
   for (const [name, hash] of Object.entries(hashes)) {
     // Only reviewed NY/CO/AZ metadata, area expectations, the verifier's hooks and
-    // the exact FL/IN proof additions may differ. Original digests pin other bytes.
+    // the exact FL/IN proof additions and shared alert suppression may differ.
+    // Original digests pin all other bytes.
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, await readFile(new URL('../'+name,import.meta.url)))),hash,name);
   }
 });
@@ -54,7 +55,8 @@ function signalSort(a, b) {
   const normalized = normalizeHistoricalImplementationBytes(name, Buffer.from(current));
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
-  assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, ''));
+  assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
+    .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary));
   for (const altered of [
     current.replace(addition, originalBoundary),
     current + '\n' + addition,
@@ -66,6 +68,10 @@ function signalSort(a, b) {
     current + '\n' + indianaAddition,
     current.replace(indianaAddition, indianaAddition.replace("sig.state === 'IN'", "sig.state === 'MS'")),
     current.replace(indianaAddition, indianaAddition.replace('sig.sourceProductBinding || null', 'sig.raw || null')),
+    current.replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary),
+    current + '\n' + libraryAlertPolicyBoundary,
+    current.replace(libraryAlertPolicyBoundary, libraryAlertPolicyBoundary.replace('libraryAlertEligible === false', 'libraryAlertEligible !== false')),
+    current.replace(libraryAlertPolicyBoundary, libraryAlertPolicyBoundary.replace('canAlertAsInventory = false', 'canAlertAsInventory = true')),
   ]) {
     assert.notEqual(altered, current);
     assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(altered)), /exact historical verification hook/);
