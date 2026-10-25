@@ -1,5 +1,7 @@
 # Nationwide release outcome and next batch
 
+Latest 2026-10-25T03:38:05.231Z: [source-first XAPI qualification and concluded original observation](nationwide-xapi-viability-20261025.md). Five source-positive prospects across AZ/NV/CA are prepared; zero new customer connections, restorations or activations. Same guarded parser replays all five plus an existing AZ control. Source clocks/history gaps remain. The original 48-hour observation ended without continuous acceptance. Shopify holds remain. Prepared code branch `prepared/nv-xapi-store-binding-20261025` at `5ac383d5` is unmerged; no PR or release lock was changed. This supersedes the older Shopify-first priority; earlier checkpoints below are historical.
+
 Latest verification: 2026-10-25T00:05:17.926Z. Releases occurred October 24 UTC. This supersedes the 23:24 preparation checkpoint; earlier files and failures remain historical evidence. The direct human authorized this pass. GPT-6.1 Sol agents supplied focused research, engineering proposals and independent verification; the lead alone coordinated shared files and releases.
 
 **Customer coverage gained this pass: zero newly connected premises, zero independently confirmed restorations.** Five new inventory-connected physical premises across at least three states remains the target. Directory identity, old inventory, catalog offers, shipping and successful workflows do not satisfy it.
