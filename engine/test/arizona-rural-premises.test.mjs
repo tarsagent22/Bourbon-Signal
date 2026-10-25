@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { collectArizonaAlbertsons } from '../src/collectors/precision-probes.mjs';
-import { ARIZONA_XAPI_PREVIOUS_STORE_IDS } from '../src/collectors/arizona-xapi.mjs';
+import { ARIZONA_XAPI_PASS1_STORE_IDS } from '../src/collectors/arizona-xapi.mjs';
 import { canonicalizeSignal } from '../src/operational-report.mjs';
 import { bibleLookup, buildDrops, buildCurrentInventoryAlertsFromDrops } from '../src/export-site-contract.mjs';
 const fixture = JSON.parse(await readFile(new URL('./fixtures/arizona-xapi/2026-10-25-rural-premises.json', import.meta.url), 'utf8'));
@@ -14,7 +14,7 @@ test('live Globe, Payson, Show Low and Page captures reach public inventory and 
   const signals = [];
   for (const capture of fixture.captures) {
     assert.equal(capture.status, 200);
-    assert.ok(!ARIZONA_XAPI_PREVIOUS_STORE_IDS.includes(capture.store.locationId));
+    assert.ok(!ARIZONA_XAPI_PASS1_STORE_IDS.includes(capture.store.locationId));
     const result = await collectArizonaAlbertsons({ id: 'AZ' }, bible, capture.observedAt, {
       zips: [capture.store.address.zipcode], maxStores: 1, sleep: async () => {},
       fetchText: async value => {

@@ -14,7 +14,7 @@ export const ARIZONA_XAPI_OCT22_STORE_IDS = Object.freeze([
 ]);
 // Exact selected cohort in published run d8f638dd54b1231d. Resolver evidence
 // must still bind every premise; a historical ID never manufactures inventory.
-export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
+export const ARIZONA_XAPI_PASS1_STORE_IDS = Object.freeze([
   ...ARIZONA_XAPI_OCT22_STORE_IDS,
   '236', '2054', '2709', '1055', '370', '2835', '1747', '1521',
   '253', '1732', '261', '2075', '1639', '1275', '2052', '1584',
@@ -23,8 +23,15 @@ export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
   '1637', '23', '174', '1605', '1511', '1971', '48', '270',
   '2821', '966', '2716', '980', '981', '343', '2699', '991',
 ]);
-export const ARIZONA_XAPI_DEFAULT_STORES = 128;
-export const ARIZONA_XAPI_SEARCH_LIMIT = 144;
+// Selected premises in production run 645ddec3ca79f1d2 (2026-10-25).
+// New-store counts compare against this full released cohort.
+export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
+  ...ARIZONA_XAPI_PASS1_STORE_IDS,
+  '1536', '2076', '1733', '3187', '249', '2017', '2069', '2648', '3189', '272', '1291', '1543', '1771', '1887', '1654', '1948', '1566', '197', '72', '1591', '958', '1221', '1750', '2799', '2952', '1002', '1549', '2042', '2644', '1849', '1515', '1874', '3989', '1663', '1201', '963', '2922', '1253', '240', '250', '1988', '1979', '1255', '2097', '960', '1980', '413', '1984',
+]);
+export const ARIZONA_XAPI_DEFAULT_STORES = 134;
+export const ARIZONA_XAPI_SEARCH_LIMIT = 150;
+export const ARIZONA_XAPI_SEARCH_ROWS = 120;
 export const ARIZONA_XAPI_RARE_QUERY_LIMIT = 16;
 // Both premises passed resolver and store-specific bourbon proofs. Prefer them
 // among equally unrepresented cities; they still require fresh resolver rows.
@@ -143,7 +150,7 @@ export function parseArizonaXapiInventory(payload, store, bible, { observedAt, q
   for (const product of Array.isArray(payload?.response?.docs) ? payload.response.docs : []) {
     const rawName = stripHtml(String(product?.name || '')).trim();
     const productId = String(product?.id || product?.pid || product?.upc || '');
-    if (!/^\d+$/.test(productId) || String(product?.storeId || '') !== String(store.locationId) || seen.has(productId) || !/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor|booker'?s/i.test(rawName)) continue;
+    if (!/^\d+$/.test(productId) || String(product?.storeId || '') !== String(store.locationId) || seen.has(productId) || !/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|heaven hill|e\.?\s*h\.?\s*taylor|booker'?s/i.test(rawName)) continue;
     const size = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l|liter)\b/i);
     const sizeMl = size ? Number(size[1]) * (/^l/i.test(size[2]) ? 1000 : 1) : null;
     if (sizeMl != null && sizeMl < 375) continue;

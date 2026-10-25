@@ -1,0 +1,520 @@
+{
+  "pages": [
+    {
+      "observedAt": "2026-10-25T16:05:16.045Z",
+      "sourceUrl": "https://www.smartandfinal.com/sm/pickup/rsid/730/product/buffalo-trace-straight-bourbon-id-00080244009236",
+      "sourceSha256": "267b309c331c47198330c3d2efe6cb83748b2e22cde5f56edff017ce57d21e3d",
+      "store": {
+        "id": "1e8fc7e7-24cb-4d4a-b9f2-bbd9e945b3f5",
+        "status": "Active",
+        "type": "Regular",
+        "name": "730 - Gilbert",
+        "addressLine1": "750 N GILBERT ROAD",
+        "addressLine2": "",
+        "addressLine3": "",
+        "countyProvinceState": "AZ",
+        "postCode": "85234",
+        "city": "GILBERT",
+        "country": "United States",
+        "email": "",
+        "phone": "(480) 926-2669",
+        "retailerStoreId": "730",
+        "timeZone": "America/Phoenix",
+        "currency": "USD",
+        "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+        "location": {
+          "longitude": -111.789822,
+          "latitude": 33.362623
+        },
+        "languages": [
+          {
+            "isoCode": "en-US",
+            "isDefault": true
+          }
+        ],
+        "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+        "urls": [],
+        "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+        "shoppingModes": [
+          "planning",
+          "pickup",
+          "delivery"
+        ]
+      },
+      "page": {
+        "stores": {
+          "activeStoreDetails": {
+            "id": "1e8fc7e7-24cb-4d4a-b9f2-bbd9e945b3f5",
+            "status": "Active",
+            "type": "Regular",
+            "name": "730 - Gilbert",
+            "addressLine1": "750 N GILBERT ROAD",
+            "addressLine2": "",
+            "addressLine3": "",
+            "countyProvinceState": "AZ",
+            "postCode": "85234",
+            "city": "GILBERT",
+            "country": "United States",
+            "email": "",
+            "phone": "(480) 926-2669",
+            "retailerStoreId": "730",
+            "timeZone": "America/Phoenix",
+            "currency": "USD",
+            "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+            "location": {
+              "longitude": -111.789822,
+              "latitude": 33.362623
+            },
+            "languages": [
+              {
+                "isoCode": "en-US",
+                "isDefault": true
+              }
+            ],
+            "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+            "urls": [],
+            "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+            "shoppingModes": [
+              "planning",
+              "pickup",
+              "delivery"
+            ]
+          },
+          "retailerStoreId": "730"
+        },
+        "shoppingModes": {
+          "shoppingModesList": [
+            {
+              "displayName": "delivery",
+              "shoppingModeId": "22222222-2222-2222-2222-222222222222",
+              "description": "Delivery Shopping Mode",
+              "enabled": true
+            },
+            {
+              "displayName": "planning",
+              "shoppingModeId": "33333333-3333-3333-3333-333333333333",
+              "description": "Planning Shopping Mode",
+              "enabled": true
+            },
+            {
+              "displayName": "pickup",
+              "shoppingModeId": "11111111-1111-1111-1111-111111111111",
+              "description": "Pickup Shopping Mode",
+              "enabled": true
+            }
+          ],
+          "selectedShoppingMode": {
+            "displayName": "pickup",
+            "shoppingModeId": "11111111-1111-1111-1111-111111111111",
+            "description": "Pickup Shopping Mode",
+            "enabled": true
+          },
+          "isEcommerceStore": false
+        },
+        "product": {
+          "sku": "00080244009236",
+          "name": "Buffalo Trace Straight Bourbon",
+          "brand": "Buffalo Trace",
+          "available": true,
+          "attributes": {
+            "alcohol_restricted": true,
+            "StockStatus": "plenty"
+          },
+          "unitOfSize": {
+            "abbreviation": "ml",
+            "label": "Millilitre",
+            "size": 750,
+            "type": "millilitre"
+          },
+          "price": "$23.99"
+        }
+      }
+    },
+    {
+      "observedAt": "2026-10-25T16:05:18.035Z",
+      "sourceUrl": "https://www.smartandfinal.com/sm/pickup/rsid/499/product/buffalo-trace-straight-bourbon-id-00080244009236",
+      "sourceSha256": "ce705fc8e6c5eb87baa46a2c8548c9255de7ae8dc50e4d6130b2f69d44cc2395",
+      "store": {
+        "id": "5a007e5e-ced6-4f49-9e42-ee685bcbae4a",
+        "status": "Active",
+        "type": "Regular",
+        "name": "499 - Phoenix - N. 43rd Ave",
+        "addressLine1": "1450 N 43RD AVENUE",
+        "addressLine2": "",
+        "addressLine3": "",
+        "countyProvinceState": "AZ",
+        "postCode": "85009",
+        "city": "PHOENIX",
+        "country": "United States",
+        "email": "",
+        "phone": "(602) -35-3-05",
+        "retailerStoreId": "499",
+        "timeZone": "America/Phoenix",
+        "currency": "USD",
+        "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+        "location": {
+          "longitude": -112.152005,
+          "latitude": 33.464216
+        },
+        "languages": [
+          {
+            "isoCode": "en-US",
+            "isDefault": true
+          }
+        ],
+        "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+        "urls": [],
+        "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+        "shoppingModes": [
+          "planning",
+          "pickup",
+          "delivery"
+        ]
+      },
+      "page": {
+        "stores": {
+          "activeStoreDetails": {
+            "id": "5a007e5e-ced6-4f49-9e42-ee685bcbae4a",
+            "status": "Active",
+            "type": "Regular",
+            "name": "499 - Phoenix - N. 43rd Ave",
+            "addressLine1": "1450 N 43RD AVENUE",
+            "addressLine2": "",
+            "addressLine3": "",
+            "countyProvinceState": "AZ",
+            "postCode": "85009",
+            "city": "PHOENIX",
+            "country": "United States",
+            "email": "",
+            "phone": "(602) -35-3-05",
+            "retailerStoreId": "499",
+            "timeZone": "America/Phoenix",
+            "currency": "USD",
+            "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+            "location": {
+              "longitude": -112.152005,
+              "latitude": 33.464216
+            },
+            "languages": [
+              {
+                "isoCode": "en-US",
+                "isDefault": true
+              }
+            ],
+            "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+            "urls": [],
+            "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+            "shoppingModes": [
+              "planning",
+              "pickup",
+              "delivery"
+            ]
+          },
+          "retailerStoreId": "499"
+        },
+        "shoppingModes": {
+          "shoppingModesList": [
+            {
+              "displayName": "delivery",
+              "shoppingModeId": "22222222-2222-2222-2222-222222222222",
+              "description": "Delivery Shopping Mode",
+              "enabled": true
+            },
+            {
+              "displayName": "planning",
+              "shoppingModeId": "33333333-3333-3333-3333-333333333333",
+              "description": "Planning Shopping Mode",
+              "enabled": true
+            },
+            {
+              "displayName": "pickup",
+              "shoppingModeId": "11111111-1111-1111-1111-111111111111",
+              "description": "Pickup Shopping Mode",
+              "enabled": true
+            }
+          ],
+          "selectedShoppingMode": {
+            "displayName": "pickup",
+            "shoppingModeId": "11111111-1111-1111-1111-111111111111",
+            "description": "Pickup Shopping Mode",
+            "enabled": true
+          },
+          "isEcommerceStore": false
+        },
+        "product": {
+          "sku": "",
+          "name": "",
+          "brand": "",
+          "available": true,
+          "attributes": {},
+          "unitOfSize": {
+            "abbreviation": "",
+            "label": null,
+            "size": 0,
+            "type": ""
+          },
+          "price": "0"
+        }
+      }
+    }
+  ],
+  "discoveredStores": [
+    {
+      "id": "1e8fc7e7-24cb-4d4a-b9f2-bbd9e945b3f5",
+      "status": "Active",
+      "type": "Regular",
+      "name": "730 - Gilbert",
+      "addressLine1": "750 N GILBERT ROAD",
+      "addressLine2": "",
+      "addressLine3": "",
+      "countyProvinceState": "AZ",
+      "postCode": "85234",
+      "city": "GILBERT",
+      "country": "United States",
+      "email": "",
+      "phone": "(480) 926-2669",
+      "retailerStoreId": "730",
+      "timeZone": "America/Phoenix",
+      "currency": "USD",
+      "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+      "location": {
+        "longitude": -111.789822,
+        "latitude": 33.362623
+      },
+      "languages": [
+        {
+          "isoCode": "en-US",
+          "isDefault": true
+        }
+      ],
+      "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+      "urls": [],
+      "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+      "shoppingModes": [
+        "planning",
+        "pickup",
+        "delivery"
+      ]
+    },
+    {
+      "id": "5a007e5e-ced6-4f49-9e42-ee685bcbae4a",
+      "status": "Active",
+      "type": "Regular",
+      "name": "499 - Phoenix - N. 43rd Ave",
+      "addressLine1": "1450 N 43RD AVENUE",
+      "addressLine2": "",
+      "addressLine3": "",
+      "countyProvinceState": "AZ",
+      "postCode": "85009",
+      "city": "PHOENIX",
+      "country": "United States",
+      "email": "",
+      "phone": "(602) -35-3-05",
+      "retailerStoreId": "499",
+      "timeZone": "America/Phoenix",
+      "currency": "USD",
+      "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+      "location": {
+        "longitude": -112.152005,
+        "latitude": 33.464216
+      },
+      "languages": [
+        {
+          "isoCode": "en-US",
+          "isDefault": true
+        }
+      ],
+      "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+      "urls": [],
+      "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+      "shoppingModes": [
+        "planning",
+        "pickup",
+        "delivery"
+      ]
+    },
+    {
+      "id": "6b13047f-074f-499d-995b-e558ab0dfcaf",
+      "status": "Active",
+      "type": "Regular",
+      "name": "721 - Phoenix - Tatum",
+      "addressLine1": "13823 N TATUM BLVD",
+      "addressLine2": "",
+      "addressLine3": "",
+      "countyProvinceState": "AZ",
+      "postCode": "85032",
+      "city": "PHOENIX",
+      "country": "United States",
+      "email": "",
+      "phone": "(602) 569-9484",
+      "retailerStoreId": "721",
+      "timeZone": "America/Phoenix",
+      "currency": "USD",
+      "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+      "location": {
+        "longitude": -111.977743,
+        "latitude": 33.610316
+      },
+      "languages": [
+        {
+          "isoCode": "en-US",
+          "isDefault": true
+        }
+      ],
+      "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+      "urls": [],
+      "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+      "shoppingModes": [
+        "planning",
+        "pickup",
+        "delivery"
+      ]
+    },
+    {
+      "id": "6b678b30-2220-4f3f-8c66-4754dc28b79a",
+      "status": "Active",
+      "type": "Regular",
+      "name": "720 - Phoenix - Greenway",
+      "addressLine1": "3434 W GREENWAY ROAD",
+      "addressLine2": "",
+      "addressLine3": "",
+      "countyProvinceState": "AZ",
+      "postCode": "85053",
+      "city": "PHOENIX",
+      "country": "United States",
+      "email": "",
+      "phone": "(602) 843-3363",
+      "retailerStoreId": "720",
+      "timeZone": "America/Phoenix",
+      "currency": "USD",
+      "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+      "location": {
+        "longitude": -112.13253,
+        "latitude": 33.626407
+      },
+      "languages": [
+        {
+          "isoCode": "en-US",
+          "isDefault": true
+        }
+      ],
+      "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+      "urls": [],
+      "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+      "shoppingModes": [
+        "planning",
+        "pickup",
+        "delivery"
+      ]
+    },
+    {
+      "id": "6cdf6f76-bbe8-46c5-af88-efcec590c90e",
+      "status": "Active",
+      "type": "Regular",
+      "name": "491 - Phoenix - E. Indiana School Rd",
+      "addressLine1": "2742 E. INDIAN SCHOOL ROAD",
+      "addressLine2": "",
+      "addressLine3": "",
+      "countyProvinceState": "AZ",
+      "postCode": "85016",
+      "city": "PHOENIX",
+      "country": "United States",
+      "email": "",
+      "phone": "(602) 224-6118",
+      "retailerStoreId": "491",
+      "timeZone": "America/Phoenix",
+      "currency": "USD",
+      "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+      "location": {
+        "longitude": -112.0228,
+        "latitude": 33.495121
+      },
+      "languages": [
+        {
+          "isoCode": "en-US",
+          "isDefault": true
+        }
+      ],
+      "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+      "urls": [],
+      "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+      "shoppingModes": [
+        "planning"
+      ]
+    },
+    {
+      "id": "ec1348dc-5365-445d-8bc6-09f9c2ad575c",
+      "status": "Active",
+      "type": "Regular",
+      "name": "497 - Yuma",
+      "addressLine1": "276 E 16TH STREET",
+      "addressLine2": "",
+      "addressLine3": "",
+      "countyProvinceState": "AZ",
+      "postCode": "85364",
+      "city": "YUMA",
+      "country": "United States",
+      "email": "",
+      "phone": "(928) 329-9985",
+      "retailerStoreId": "497",
+      "timeZone": "America/Phoenix",
+      "currency": "USD",
+      "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+      "location": {
+        "longitude": -114.618502,
+        "latitude": 32.69869
+      },
+      "languages": [
+        {
+          "isoCode": "en-US",
+          "isDefault": true
+        }
+      ],
+      "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+      "urls": [],
+      "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+      "shoppingModes": [
+        "planning",
+        "pickup",
+        "delivery"
+      ]
+    },
+    {
+      "id": "ee3258f4-933a-4a9f-b9a3-fc5b81bffcb9",
+      "status": "Active",
+      "type": "Regular",
+      "name": "826 - Bullhead City",
+      "addressLine1": "2250 HIGHWAY 95, SUITE 496",
+      "addressLine2": "",
+      "addressLine3": "",
+      "countyProvinceState": "AZ",
+      "postCode": "86442",
+      "city": "BULLHEAD CITY",
+      "country": "United States",
+      "email": "",
+      "phone": "(928) 758-1505",
+      "retailerStoreId": "826",
+      "timeZone": "America/Phoenix",
+      "currency": "USD",
+      "openingHours": "Sunday-Saturday: 6 AM - 10 PM",
+      "location": {
+        "longitude": -114.5961277,
+        "latitude": 35.1052662
+      },
+      "languages": [
+        {
+          "isoCode": "en-US",
+          "isDefault": true
+        }
+      ],
+      "siteId": "5797e4fe-f06a-4963-818c-84a859f260f3",
+      "urls": [],
+      "categoryHierarchyId": "8985d699-97f7-4198-9f73-5ab5d7a91ed5",
+      "shoppingModes": [
+        "planning",
+        "pickup",
+        "delivery"
+      ]
+    }
+  ]
+}

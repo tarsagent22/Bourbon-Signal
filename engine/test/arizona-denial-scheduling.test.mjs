@@ -328,6 +328,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
       if (url.includes('/storeresolver/')) return { instore: { stores: [{ locationId: '1491', polarisBannerName: 'safeway', domainName: 'Safeway', distance: 1, address: { line1: '7920 E Chaparral Rd', city: 'Scottsdale', state: 'AZ', zipcode: '85250' } }] } };
       if (url.includes('/search/substitute')) return { response: { docs: [{ id: '189032017', storeId: '1491', name: 'Buffalo Trace Bourbon 750ml', price: 34.99, channelInventory: { instore: '1', instoreItemQty: 3 } }] } };
       if (parsed.hostname === 'redsky.target.com') return { data: { search: { products: [] } } };
+      if (parsed.hostname === 'www.smartandfinal.com') return {};
       throw new Error('Unexpected fixture URL: ' + url);
     }
     globalThis.fetch = async (url) => new Response(JSON.stringify(await fixture(url)), { status: 200, headers: { 'content-type': 'application/json' } });

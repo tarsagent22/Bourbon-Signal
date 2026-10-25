@@ -1,5 +1,6 @@
 const TARGET_ARIZONA_STORE_IDS = new Set(['233','251','319','363','639','700','825','851','854','855','884','909','935','936','950','1141','1209','1242','1316','1327','1335','1360','1361','1386','1429','1432','1439','1838','1863','1905','1959','1960','2083','2140','2149','2176','2227','2236','2341','2354','2365','2368','2400','2747','2915','2920','2944','2953','3261']);
 
+const SMART_FINAL_IDS = new Set(['491', '497', '499', '720', '721', '730', '826']);
 const ARIZONA_RETAILER_IDENTITIES = new Map([
   ['Paradise Liquor Mini Mart Phoenix CityHive store inventory', { chain: 'paradise-liquor-phoenix', hostname: 'paradiseliquoraz.com', merchants: new Set(['6060f68f2641d516427b8bc6']) }],
   ['Liquor Vault Scottsdale CityHive store inventory', { chain: 'liquor-vault-scottsdale', hostname: 'azliquorvault.com', merchants: new Set(['6060f74f93fbc722f35ec763']) }],
@@ -33,6 +34,17 @@ export function isArizonaRetailerSignalIdentity(signal) {
       && /^\d{2,5}$/.test(merchantId)
       && TARGET_ARIZONA_STORE_IDS.has(merchantId)
       && String(signal.storeId || '') === `target:${merchantId}`;
+  }
+  if (source === 'Smart & Final Arizona store inventory') {
+    const proof = signal.sourceProductBinding;
+    return chain === 'smart-final' && sourceHostname === 'smartandfinal.com' && SMART_FINAL_IDS.has(merchantId)
+      && signal.storeId === `smart-final:${merchantId}`
+      && signal.sourceUrl === `https://www.smartandfinal.com/sm/pickup/rsid/${merchantId}/product/buffalo-trace-straight-bourbon-id-00080244009236`
+      && proof?.schemaVersion === 1 && proof.source === 'smart-final-az' && proof.merchantId === merchantId
+      && proof.sku === '00080244009236' && proof.available === true && proof.sizeMl === 750
+      && ['plenty', 'low'].includes(proof.stockStatus) && proof.shoppingMode === 'pickup'
+      && proof.storeAddress === signal.storeAddress && /^[a-f0-9-]{36}$/.test(proof.storeUuid || '')
+      && Number(signal.quantity || 0) === 0 && signal.quantityIsExact === false;
   }
   const identity = ARIZONA_RETAILER_IDENTITIES.get(source);
   return Boolean(identity && chain === identity.chain && identity.merchants.has(merchantId) && sourceHostname === identity.hostname);

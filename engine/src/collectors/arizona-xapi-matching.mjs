@@ -9,24 +9,31 @@ const BUFFALO_TRACE = Object.freeze({
   canonical: 'Buffalo Trace Bourbon',
 });
 
+// Source-specific exact identities, reviewed against current producer product
+// specifications. These are not aliases for other retailers or expressions.
+const REVIEWED_PRODUCTS = Object.freeze([BUFFALO_TRACE,
+  { id: '970022436', upc: '0009674900242', name: 'Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)', canonical: 'Heaven Hill Bottled-in-Bond 7 Year', abv: 50 },
+  { id: '970468334', upc: '0081008055003', name: 'Whistlepig Piggyback 6 Yr Bourbon - 750 ML', canonical: 'WhistlePig PiggyBack 6 Year Bourbon', abv: 50 },
+  { id: '960293806', upc: '0008800400549', name: 'E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)', canonical: 'E.H. Taylor Small Batch', abv: 50 },
+]);
+
 function exactText(value) {
   return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
 export function reviewedArizonaXapiBottleMatch(product, bible, { storeId } = {}) {
   const name = String(product?.name || '');
-  const referencesReviewedProduct = [product?.id, product?.pid].some((value) => String(value || '') === BUFFALO_TRACE.id)
-    || String(product?.upc || '') === BUFFALO_TRACE.upc
-    || exactText(name) === exactText(BUFFALO_TRACE.name);
-  if (!referencesReviewedProduct) return cityHiveSafeBottleMatch(name, bible);
+  const reviewed = REVIEWED_PRODUCTS.find(row => [product?.id, product?.pid].some(value => String(value || '') === row.id)
+    || String(product?.upc || '') === row.upc || exactText(name) === exactText(row.name));
+  if (!reviewed) return cityHiveSafeBottleMatch(name, bible);
 
   const rejected = { match: null, record: null, unsafeReason: 'unverified_arizona_xapi_product_identity' };
-  if (String(product?.id || '') !== BUFFALO_TRACE.id
-    || String(product?.pid || '') !== BUFFALO_TRACE.id
-    || String(product?.upc || '') !== BUFFALO_TRACE.upc
-    || exactText(name) !== exactText(BUFFALO_TRACE.name)
+  if (String(product?.id || '') !== reviewed.id
+    || String(product?.pid || '') !== reviewed.id
+    || String(product?.upc || '') !== reviewed.upc
+    || exactText(name) !== exactText(reviewed.name)
     || product?.containsAlcohol !== true
-    || Number(product?.alcoholVolumePct) !== 45
+    || Number(product?.alcoholVolumePct) !== (reviewed.abv ?? 45)
     || Number(product?.dispItemSizeQty) !== 750
     || exactText(product?.dispUnitOfMeasure) !== 'ml'
     || exactText(product?.unitOfMeasure) !== 'ml'
@@ -34,8 +41,8 @@ export function reviewedArizonaXapiBottleMatch(product, bible, { storeId } = {})
     || !/^\d{2,6}$/.test(String(storeId || ''))
     || String(product?.storeId || '') !== String(storeId)) return rejected;
 
-  const match = bible.match(BUFFALO_TRACE.canonical);
-  if (!match?.record || match.record.canonical !== BUFFALO_TRACE.canonical) return rejected;
+  const match = bible.match(reviewed.canonical);
+  if (!match?.record || match.record.canonical !== reviewed.canonical) return rejected;
   return {
     match: { ...match, confidence: 1, method: 'reviewed-arizona-xapi-product-identity' },
     record: match.record,
