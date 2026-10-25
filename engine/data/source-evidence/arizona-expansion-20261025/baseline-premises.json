@@ -1,0 +1,409 @@
+{
+  "sourceCommit": "368bb45943f6253a3a5986f3f9ab940d0b08927b",
+  "snapshotRunId": "d8f638dd54b1231d",
+  "selectedStores": [
+    {
+      "storeId": "safeway:216",
+      "city": "Lake Havasu City",
+      "address": "1650 Mcculloch Blvd N, Lake Havasu City, AZ 86403"
+    },
+    {
+      "storeId": "albertsons:3204",
+      "city": "Lake Havasu City",
+      "address": "1980 Mcculloch Blvd, Lake Havasu City, AZ 86403"
+    },
+    {
+      "storeId": "safeway:1491",
+      "city": "Scottsdale",
+      "address": "7920 E Chaparral Rd, Scottsdale, AZ 85250"
+    },
+    {
+      "storeId": "safeway:245",
+      "city": "Prescott",
+      "address": "1044 Willow Creek Rd, Prescott, AZ 86301"
+    },
+    {
+      "storeId": "albertsons:2955",
+      "city": "Scottsdale",
+      "address": "2785 N Scottsdale Rd, Scottsdale, AZ 85257"
+    },
+    {
+      "storeId": "safeway:1684",
+      "city": "Tucson",
+      "address": "1940 E Broadway Blvd, Tucson, AZ 85719"
+    },
+    {
+      "storeId": "safeway:255",
+      "city": "Tucson",
+      "address": "1551 W St Marys Rd, Tucson, AZ 85745"
+    },
+    {
+      "storeId": "albertsons:3931",
+      "city": "Yuma",
+      "address": "2378 W 24th St, Yuma, AZ 85364"
+    },
+    {
+      "storeId": "safeway:274",
+      "city": "Prescott",
+      "address": "450 White Spar Rd, Prescott, AZ 86303"
+    },
+    {
+      "storeId": "albertsons:3203",
+      "city": "Tucson",
+      "address": "1350 N Silverbell Rd, Tucson, AZ 85745"
+    },
+    {
+      "storeId": "safeway:247",
+      "city": "Mesa",
+      "address": "1225 W Guadalupe, Mesa, AZ 85202"
+    },
+    {
+      "storeId": "safeway:209",
+      "city": "Queen Creek",
+      "address": "22983 E Riggs Rd, Queen Creek, AZ 85142"
+    },
+    {
+      "storeId": "albertsons:961",
+      "city": "Tucson",
+      "address": "2854 N Campbell Ave, Tucson, AZ 85719"
+    },
+    {
+      "storeId": "safeway:1983",
+      "city": "Tucson",
+      "address": "2140 W Grant Rd, Tucson, AZ 85745"
+    },
+    {
+      "storeId": "albertsons:2951",
+      "city": "Yuma",
+      "address": "252 W 32nd St, Yuma, AZ 85364"
+    },
+    {
+      "storeId": "safeway:2060",
+      "city": "Tucson",
+      "address": "1767 E Prince Rd, Tucson, AZ 85719"
+    },
+    {
+      "storeId": "safeway:2083",
+      "city": "Sierra Vista",
+      "address": "2190 E Fry Blvd, Sierra Vista, AZ 85635"
+    },
+    {
+      "storeId": "safeway:1487",
+      "city": "Tempe",
+      "address": "926 E Broadway Rd, Tempe, AZ 85282"
+    },
+    {
+      "storeId": "safeway:1819",
+      "city": "Queen Creek",
+      "address": "18495 E Queen Creek Rd, Queen Creek, AZ 85142"
+    },
+    {
+      "storeId": "safeway:3173",
+      "city": "San Tan Valley",
+      "address": "40950 N Ironwood Rd, San Tan Valley, AZ 85140"
+    },
+    {
+      "storeId": "safeway:2032",
+      "city": "Scottsdale",
+      "address": "10773 N Scottsdale Rd, Scottsdale, AZ 85254"
+    },
+    {
+      "storeId": "albertsons:2988",
+      "city": "Tucson",
+      "address": "5085 N La Canada Dr, Tucson, AZ 85704"
+    },
+    {
+      "storeId": "safeway:752",
+      "city": "Phoenix",
+      "address": "4747 E Elliot Rd, Phoenix, AZ 85044"
+    },
+    {
+      "storeId": "safeway:267",
+      "city": "Tucson",
+      "address": "2940 W Valencia Rd, Tucson, AZ 85746"
+    },
+    {
+      "storeId": "safeway:1534",
+      "city": "Gilbert",
+      "address": "90 S Val Vista Dr, Gilbert, AZ 85296"
+    },
+    {
+      "storeId": "safeway:3151",
+      "city": "Goodyear",
+      "address": "9890 S Estrella Pkwy, Goodyear, AZ 85338"
+    },
+    {
+      "storeId": "safeway:1604",
+      "city": "Chandler",
+      "address": "1159 W Chandler Blvd, Chandler, AZ 85224"
+    },
+    {
+      "storeId": "safeway:1841",
+      "city": "Peoria",
+      "address": "12320 N 83rd Ave, Peoria, AZ 85381"
+    },
+    {
+      "storeId": "safeway:1997",
+      "city": "Surprise",
+      "address": "17049 W Bell Rd, Surprise, AZ 85374"
+    },
+    {
+      "storeId": "albertsons:3926",
+      "city": "Litchfield Park",
+      "address": "12970 W Indian School Rd, Litchfield Park, AZ 85340"
+    },
+    {
+      "storeId": "albertsons:3941",
+      "city": "Glendale",
+      "address": "5040 W Cactus Rd, Glendale, AZ 85304"
+    },
+    {
+      "storeId": "safeway:1225",
+      "city": "Flagstaff",
+      "address": "1500 E Cedar Ave, Flagstaff, AZ 86004"
+    },
+    {
+      "storeId": "safeway:236",
+      "city": "Sun City",
+      "address": "10926 W Bell Rd, Sun City, AZ 85351"
+    },
+    {
+      "storeId": "safeway:2054",
+      "city": "Sun City West",
+      "address": "13503 Camino Del Sol, Sun City West, AZ 85375"
+    },
+    {
+      "storeId": "safeway:2709",
+      "city": "Laveen",
+      "address": "5035 W Baseline Rd, Laveen, AZ 85339"
+    },
+    {
+      "storeId": "safeway:1055",
+      "city": "Prescott Valley",
+      "address": "7720 E Hwy 69, Prescott Valley, AZ 86314"
+    },
+    {
+      "storeId": "safeway:370",
+      "city": "Buckeye",
+      "address": "1535 N Verrado Way, Buckeye, AZ 85396"
+    },
+    {
+      "storeId": "safeway:2835",
+      "city": "Florence",
+      "address": "3325 N Hunt Hwy, Florence, AZ 85132"
+    },
+    {
+      "storeId": "safeway:1747",
+      "city": "Chino Valley",
+      "address": "1031 N US Hwy 89, Chino Valley, AZ 86323"
+    },
+    {
+      "storeId": "safeway:1521",
+      "city": "Oro Valley",
+      "address": "12122 N Rancho Vistoso Blvd, Oro Valley, AZ 85755"
+    },
+    {
+      "storeId": "safeway:253",
+      "city": "Apache Junction",
+      "address": "3185 W Apache Trail, Apache Junction, AZ 85120"
+    },
+    {
+      "storeId": "safeway:1732",
+      "city": "Coolidge",
+      "address": "1449 N Arizona Blvd, Coolidge, AZ 85128"
+    },
+    {
+      "storeId": "safeway:261",
+      "city": "Bisbee",
+      "address": "101 Naco Hwy, Bisbee, AZ 85603"
+    },
+    {
+      "storeId": "safeway:2075",
+      "city": "Parker",
+      "address": "121 W Riverside Dr, Parker, AZ 85344"
+    },
+    {
+      "storeId": "safeway:1639",
+      "city": "Williams",
+      "address": "637 W Route 66, Williams, AZ 86046"
+    },
+    {
+      "storeId": "safeway:1275",
+      "city": "Benson",
+      "address": "599 W 4th St, Benson, AZ 85602"
+    },
+    {
+      "storeId": "safeway:2052",
+      "city": "Cottonwood",
+      "address": "1635 E Cottonwood St, Cottonwood, AZ 86326"
+    },
+    {
+      "storeId": "safeway:1584",
+      "city": "Wickenburg",
+      "address": "1999 W Wickenburg Way, Wickenburg, AZ 85390"
+    },
+    {
+      "storeId": "safeway:1207",
+      "city": "Sedona",
+      "address": "2300 W Hwy 89A, Sedona, AZ 86336"
+    },
+    {
+      "storeId": "safeway:1474",
+      "city": "Fort Mohave",
+      "address": "4823 S Hwy 95, Fort Mohave, AZ 86426"
+    },
+    {
+      "storeId": "safeway:2809",
+      "city": "Vail",
+      "address": "13380 E Mary Ann Cleveland Way, Vail, AZ 85641"
+    },
+    {
+      "storeId": "safeway:1229",
+      "city": "Nogales",
+      "address": "465 W Mariposa Rd, Nogales, AZ 85621"
+    },
+    {
+      "storeId": "safeway:248",
+      "city": "Bullhead City",
+      "address": "1751 Hwy 95, Bullhead City, AZ 86442"
+    },
+    {
+      "storeId": "safeway:2044",
+      "city": "Green Valley",
+      "address": "260 W Continental Rd, Green Valley, AZ 85622"
+    },
+    {
+      "storeId": "safeway:2651",
+      "city": "Phoenix",
+      "address": "340 E Mcdowell Rd, Phoenix, AZ 85004"
+    },
+    {
+      "storeId": "safeway:1748",
+      "city": "Gilbert",
+      "address": "5137 E Baseline Rd, Gilbert, AZ 85234"
+    },
+    {
+      "storeId": "safeway:1717",
+      "city": "Mesa",
+      "address": "1902 W Main St, Mesa, AZ 85201"
+    },
+    {
+      "storeId": "albertsons:2997",
+      "city": "Chandler",
+      "address": "4060 W Ray Rd, Chandler, AZ 85226"
+    },
+    {
+      "storeId": "safeway:1662",
+      "city": "Peoria",
+      "address": "10641 W Olive Ave, Peoria, AZ 85345"
+    },
+    {
+      "storeId": "safeway:1535",
+      "city": "Tempe",
+      "address": "1515 E Elliot Rd, Tempe, AZ 85284"
+    },
+    {
+      "storeId": "safeway:2618",
+      "city": "Goodyear",
+      "address": "440 N Estrella Pkwy, Goodyear, AZ 85338"
+    },
+    {
+      "storeId": "albertsons:977",
+      "city": "Surprise",
+      "address": "14551 W Grand Ave, Surprise, AZ 85374"
+    },
+    {
+      "storeId": "safeway:1510",
+      "city": "Glendale",
+      "address": "20205 N 67th Ave #100, Glendale, AZ 85308"
+    },
+    {
+      "storeId": "safeway:2028",
+      "city": "Flagstaff",
+      "address": "1201 S Plaza Way, Flagstaff, AZ 86001"
+    },
+    {
+      "storeId": "safeway:1637",
+      "city": "Mesa",
+      "address": "3622 E Southern Ave, Mesa, AZ 85206"
+    },
+    {
+      "storeId": "albertsons:23",
+      "city": "Gilbert",
+      "address": "861 E Warner Rd, Gilbert, AZ 85296"
+    },
+    {
+      "storeId": "safeway:174",
+      "city": "Phoenix",
+      "address": "520 W Osborn Rd, Phoenix, AZ 85013"
+    },
+    {
+      "storeId": "safeway:1605",
+      "city": "Chandler",
+      "address": "1060 E Ray Rd, Chandler, AZ 85225"
+    },
+    {
+      "storeId": "safeway:1511",
+      "city": "Goodyear",
+      "address": "14175 W Indian School Rd, Goodyear, AZ 85395"
+    },
+    {
+      "storeId": "albertsons:1971",
+      "city": "Peoria",
+      "address": "8950 W Bell Rd, Peoria, AZ 85382"
+    },
+    {
+      "storeId": "safeway:48",
+      "city": "Surprise",
+      "address": "17230 W Peoria, Surprise, AZ 85388"
+    },
+    {
+      "storeId": "safeway:270",
+      "city": "Flagstaff",
+      "address": "4910 N Hwy 89, Flagstaff, AZ 86004"
+    },
+    {
+      "storeId": "safeway:2821",
+      "city": "Glendale",
+      "address": "3800 W Happy Valley Rd, Glendale, AZ 85310"
+    },
+    {
+      "storeId": "albertsons:966",
+      "city": "Scottsdale",
+      "address": "6965 N Hayden Rd, Scottsdale, AZ 85250"
+    },
+    {
+      "storeId": "safeway:2716",
+      "city": "Phoenix",
+      "address": "4750 E Indian School Rd, Phoenix, AZ 85018"
+    },
+    {
+      "storeId": "albertsons:980",
+      "city": "Mesa",
+      "address": "1951 W Baseline Rd, Mesa, AZ 85202"
+    },
+    {
+      "storeId": "albertsons:981",
+      "city": "Chandler",
+      "address": "3145 S Alma School Rd, Chandler, AZ 85248"
+    },
+    {
+      "storeId": "safeway:343",
+      "city": "Gilbert",
+      "address": "3960 S Val Vista Dr, Gilbert, AZ 85297"
+    },
+    {
+      "storeId": "safeway:2699",
+      "city": "Surprise",
+      "address": "13828 W Waddell Rd, Surprise, AZ 85379"
+    },
+    {
+      "storeId": "albertsons:991",
+      "city": "Peoria",
+      "address": "8240 W Deer Valley Rd, Peoria, AZ 85382"
+    }
+  ],
+  "publicStores": 79,
+  "publicRows": 190,
+  "publicCities": 39
+}

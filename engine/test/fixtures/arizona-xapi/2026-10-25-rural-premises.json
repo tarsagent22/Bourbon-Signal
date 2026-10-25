@@ -1,0 +1,209 @@
+{
+  "source": "Original public resolver and inventory values; only unused fields removed.",
+  "captures": [
+    {
+      "store": {
+        "locationId": "3187",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "distance": 11.03,
+        "address": {
+          "line1": "240 S Hill St",
+          "city": "Globe",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85501"
+        }
+      },
+      "observedAt": "2026-10-25T03:58:02.863Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1792900682029&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3187&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "products": [
+        {
+          "id": "960051942",
+          "pid": "960051942",
+          "upc": "0008024400923",
+          "storeId": "3187",
+          "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "price": 26.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "dispItemPackageQty": "1",
+          "restrictedValue": "2",
+          "channelInventory": {
+            "delivery": "1",
+            "pickup": "1",
+            "instore": "1",
+            "deliveryItemQty": 2,
+            "pickupItemQty": 2,
+            "instoreItemQty": 2,
+            "shipping": "0"
+          },
+          "channelEligibility": {
+            "pickUp": false,
+            "delivery": false,
+            "inStore": true,
+            "shipping": false
+          },
+          "inventoryAvailable": "1"
+        }
+      ]
+    },
+    {
+      "store": {
+        "locationId": "1536",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "distance": 1.69,
+        "address": {
+          "line1": "401 State Route 260",
+          "city": "Payson",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85541"
+        }
+      },
+      "observedAt": "2026-10-25T03:57:57.453Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1792900676775&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1536&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "products": [
+        {
+          "id": "960051942",
+          "pid": "960051942",
+          "upc": "0008024400923",
+          "storeId": "1536",
+          "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "price": 26.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "dispItemPackageQty": "1",
+          "restrictedValue": "2",
+          "channelInventory": {
+            "delivery": "1",
+            "pickup": "1",
+            "instore": "1",
+            "deliveryItemQty": 16,
+            "pickupItemQty": 16,
+            "instoreItemQty": 16,
+            "shipping": "0"
+          },
+          "channelEligibility": {
+            "pickUp": false,
+            "delivery": false,
+            "inStore": true,
+            "shipping": false
+          },
+          "inventoryAvailable": "1"
+        }
+      ]
+    },
+    {
+      "store": {
+        "locationId": "1733",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "distance": 7.61,
+        "address": {
+          "line1": "900 W Deuce Of Clubs",
+          "city": "Show Low",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85901"
+        }
+      },
+      "observedAt": "2026-10-25T03:58:01.112Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1792900680265&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1733&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "products": [
+        {
+          "id": "960051942",
+          "pid": "960051942",
+          "upc": "0008024400923",
+          "storeId": "1733",
+          "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "price": 26.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "dispItemPackageQty": "1",
+          "restrictedValue": "2",
+          "channelInventory": {
+            "delivery": "1",
+            "pickup": "1",
+            "instore": "1",
+            "deliveryItemQty": 5,
+            "pickupItemQty": 5,
+            "instoreItemQty": 5,
+            "shipping": "0"
+          },
+          "channelEligibility": {
+            "pickUp": false,
+            "delivery": false,
+            "inStore": true,
+            "shipping": false
+          },
+          "inventoryAvailable": "1"
+        }
+      ]
+    },
+    {
+      "store": {
+        "locationId": "249",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "distance": 11.62,
+        "address": {
+          "line1": "650 Elm St",
+          "city": "Page",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "86040"
+        }
+      },
+      "observedAt": "2026-10-25T03:58:04.547Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1792900683780&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=249&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "products": [
+        {
+          "id": "960051942",
+          "pid": "960051942",
+          "upc": "0008024400923",
+          "storeId": "249",
+          "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "price": 26.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "dispItemPackageQty": "1",
+          "restrictedValue": "2",
+          "channelInventory": {
+            "delivery": "1",
+            "pickup": "1",
+            "instore": "1",
+            "deliveryItemQty": 5,
+            "pickupItemQty": 5,
+            "instoreItemQty": 5,
+            "shipping": "0"
+          },
+          "channelEligibility": {
+            "pickUp": false,
+            "delivery": false,
+            "inStore": true,
+            "shipping": false
+          },
+          "inventoryAvailable": "1"
+        }
+      ]
+    }
+  ]
+}

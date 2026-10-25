@@ -951,7 +951,7 @@ const AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL = 'Flagstaff Liquor Shopify store invento
 const AZ_FLAGSTAFF_LIQUOR_STORE = { id: 'flagstaff-liquor:1700-e-route-66', name: 'Flagstaff Liquor', address: '1700 E Route 66, Flagstaff, AZ 86004', city: 'Flagstaff', zip: '86004' };
 const AZ_ALBERTSONS_STORE_KEY = process.env.BOURBON_SIGNAL_ALBERTSONS_STORE_KEY || '7bad9afbb87043b28519c4443106db06';
 const AZ_ALBERTSONS_SEARCH_KEY = process.env.BOURBON_SIGNAL_ALBERTSONS_SEARCH_KEY || 'e914eec9448c4d5eb672debf5011cf8f';
-const AZ_ALBERTSONS_ZIPS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_ZIPS || '85001,85251,85301,85201,85224,85234,85142,85323,85338,85345,85374,85396,85701,85635,85364,86403,86001,86301').split(',').map((x) => x.trim()).filter(Boolean);
+const AZ_ALBERTSONS_ZIPS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_ZIPS || '85001,85251,85301,85201,85224,85234,85142,85323,85338,85345,85374,85396,85701,85635,85364,86403,86001,86301,85501,85541,85901,85938,85607,85621,86326,86336,86401,85390,85546,85614,86040,86503').split(',').map((x) => x.trim()).filter(Boolean);
 const AZ_ALBERTSONS_TERMS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || "bourbon,blanton's,weller,buffalo trace,e.h. taylor").split(',').map((x) => x.trim()).filter(Boolean);
 const AZ_ALBERTSONS_MAX_STORES = Math.max(1, Math.min(ARIZONA_XAPI_DEFAULT_STORES, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_MAX_STORES) || ARIZONA_XAPI_DEFAULT_STORES));
 const AZ_ALBERTSONS_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_DELAY_MS) || 900));

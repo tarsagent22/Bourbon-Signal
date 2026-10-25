@@ -8,13 +8,23 @@ export const ARIZONA_XAPI_BASELINE_STORE_IDS = Object.freeze([
   '1487', '1491', '1684', '1819', '1983', '2032', '2060', '2083',
   '2951', '2955', '2988', '3173', '3203', '3204', '3931',
 ]);
-// Preserve the entire released 32-store cohort while adding new premises.
-export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
+export const ARIZONA_XAPI_OCT22_STORE_IDS = Object.freeze([
   ...ARIZONA_XAPI_BASELINE_STORE_IDS,
   '1604', '1225', '1534', '3151', '1841', '1997', '3926', '3941',
 ]);
-export const ARIZONA_XAPI_DEFAULT_STORES = 80;
-export const ARIZONA_XAPI_SEARCH_LIMIT = 96;
+// Exact selected cohort in published run d8f638dd54b1231d. Resolver evidence
+// must still bind every premise; a historical ID never manufactures inventory.
+export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
+  ...ARIZONA_XAPI_OCT22_STORE_IDS,
+  '236', '2054', '2709', '1055', '370', '2835', '1747', '1521',
+  '253', '1732', '261', '2075', '1639', '1275', '2052', '1584',
+  '1207', '1474', '2809', '1229', '248', '2044', '2651', '1748',
+  '1717', '2997', '1662', '1535', '2618', '977', '1510', '2028',
+  '1637', '23', '174', '1605', '1511', '1971', '48', '270',
+  '2821', '966', '2716', '980', '981', '343', '2699', '991',
+]);
+export const ARIZONA_XAPI_DEFAULT_STORES = 128;
+export const ARIZONA_XAPI_SEARCH_LIMIT = 144;
 export const ARIZONA_XAPI_RARE_QUERY_LIMIT = 16;
 // Both premises passed resolver and store-specific bourbon proofs. Prefer them
 // among equally unrepresented cities; they still require fresh resolver rows.

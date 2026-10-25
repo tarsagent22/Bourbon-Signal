@@ -56,31 +56,31 @@ test('missingdistance, zero distance and duplicate resolver lanes produce stable
   assert.deepEqual(selectArizonaXapiStores([a, { ...a, address: { ...a.address, line1: '999 Different Ave' } }]), []);
 });
 
-test('default80 bourbon plus rotating16 rare requests stay within96 and honor explicit overrides', () => {
-  const all = [...baseline, ...additions, ...Array.from({ length: 55 }, (_, i) => store(8000 + i, `City${i}`, i))];
+test('default128 bourbon plus rotating16 rare requests stay within144 and honor explicit overrides', () => {
+  const all = [...baseline, ...additions, ...Array.from({ length: 150 }, (_, i) => store(8000 + i, `City${i}`, i))];
   const terms = ['bourbon', 'weller', 'buffalo trace'];
   const plan = arizonaXapiRequestPlan(all, { terms, nowMs });
-  assert.equal(plan.length, 80);
+  assert.equal(plan.length, 128);
   assert.ok(plan.some((row) => row.store.locationId === '1604'));
   assert.ok(plan.some((row) => row.store.locationId === '1225'));
-  assert.equal(plan.flatMap((row) => row.terms).length, 96);
+  assert.equal(plan.flatMap((row) => row.terms).length, 144);
   assert.equal(plan.filter((row) => row.terms.length === 2).length, 16);
   const today = plan.filter((row) => row.terms.length === 2).map((row) => row.store.locationId);
-  const cycle = Array.from({ length: 5 }, (_, day) => arizonaXapiRequestPlan(all, { terms, nowMs: nowMs + day * 86_400_000 }).filter((row) => row.terms.length === 2).map((row) => row.store.locationId));
-  assert.equal(new Set(cycle.flat()).size, 80);
+  const cycle = Array.from({ length: 8 }, (_, day) => arizonaXapiRequestPlan(all, { terms, nowMs: nowMs + day * 86_400_000 }).filter((row) => row.terms.length === 2).map((row) => row.store.locationId));
+  assert.equal(new Set(cycle.flat()).size, 128);
   assert.equal(arizonaXapiRequestPlan(all, { maxStores: 10, terms, nowMs }).length, 10);
   const high = arizonaXapiRequestPlan(all, { maxStores: 80, terms, nowMs });
   assert.equal(high.length, 80);
   assert.equal(high.flatMap((row) => row.terms).length, 96);
-  assert.equal(arizonaXapiRequestPlan(all, { maxStores: 10000, terms, nowMs }).flatMap((row) => row.terms).length, 96);
+  assert.equal(arizonaXapiRequestPlan(all, { maxStores: 10000, terms, nowMs }).flatMap((row) => row.terms).length, 144);
   assert.equal(today.length, 16);
 });
 
-test('expansion preserves all 32 released premises before filling unrepresented cities', () => {
+test('expansion preserves all 80 released premises before filling unrepresented cities', () => {
   const previous = ARIZONA_XAPI_PREVIOUS_STORE_IDS.map((id, index) => store(id, 'Phoenix', index + 100));
   const newStores = Array.from({ length: 100 }, (_, index) => store(7000 + index, `City${index}`, index));
   const selected = selectArizonaXapiStores([...previous, ...newStores]);
-  assert.equal(selected.length, 80);
+  assert.equal(selected.length, 128);
   assert.ok(ARIZONA_XAPI_PREVIOUS_STORE_IDS.every(id => selected.some(row => row.locationId === id)));
   assert.equal(selected.filter(row => !ARIZONA_XAPI_PREVIOUS_STORE_IDS.includes(row.locationId)).length, 48);
   assert.equal(new Set(selected.map(row => row.address.city)).size, 49);
@@ -88,14 +88,14 @@ test('expansion preserves all 32 released premises before filling unrepresented 
 
 test('each store visits all four rare terms across even and odd rotating cohorts within the daily budget', () => {
   const rareTerms = ["blanton's", 'weller', 'buffalo trace', 'e.h. taylor'];
-  for (const count of [80, 79, 32, 31, 20]) {
+  for (const count of [128, 127, 80, 79, 32, 31, 20]) {
     const all = Array.from({ length: count }, (_, index) => store(5000 + index, `City${index}`, index));
     const visited = new Map(all.map((row) => [row.locationId, []]));
     const days = Math.ceil(count / 16) * 4;
     for (let day = 0; day < days; day += 1) {
       const plan = arizonaXapiRequestPlan(all, { maxStores: count, terms: ['bourbon', ...rareTerms], nowMs: nowMs + day * 86_400_000 });
       assert.equal(plan.length, count);
-      assert.ok(plan.flatMap((row) => row.terms).length <= 96);
+      assert.ok(plan.flatMap((row) => row.terms).length <= 144);
       assert.equal(plan.filter((row) => row.terms.length === 2).length, 16);
       for (const row of plan) if (row.terms[1]) visited.get(row.store.locationId).push(row.terms[1]);
     }
@@ -106,24 +106,24 @@ test('each store visits all four rare terms across even and odd rotating cohorts
   }
 });
 
-test('collector enforces80override search ceiling and reports exact selected premises and every request', async () => {
-  const all = [...baseline, ...Array.from({ length: 60 }, (_, i) => store(8000 + i, `City${i}`, i))];
+test('collector enforces the128-store ceiling and reports exact selected premises and every request', async () => {
+  const all = [...baseline, ...Array.from({ length: 150 }, (_, i) => store(8000 + i, `City${i}`, i))];
   const urls = [];
   const result = await collectArizonaAlbertsons({ id: 'AZ' }, { match: () => null }, observedAt, {
-    zips: ['85224'], maxStores: 80, nowMs, sleep: async () => {},
+    zips: ['85224'], maxStores: 10000, nowMs, sleep: async () => {},
     fetchText: async (url) => {
       urls.push(url);
       return { ok: true, status: 200, text: JSON.stringify(url.includes('storeresolver') ? { instore: { stores: all } } : { response: { docs: [] } }) };
     },
   });
-  assert.equal(urls.length, 97);
-  assert.equal(result.metadata.selectedStores.length, 80);
+  assert.equal(urls.length, 145);
+  assert.equal(result.metadata.selectedStores.length, 128);
   assert.equal(result.metadata.baselineStores.length, 24);
-  assert.equal(result.metadata.bourbonSearchCount, 80);
+  assert.equal(result.metadata.bourbonSearchCount, 128);
   assert.equal(result.metadata.rareSearchCount, 16);
-  assert.equal(result.metadata.totalSearchCount, 96);
-  assert.equal(result.metadata.maxSearchCount, 96);
-  assert.equal(result.metadata.requests.length, 97);
+  assert.equal(result.metadata.totalSearchCount, 144);
+  assert.equal(result.metadata.maxSearchCount, 144);
+  assert.equal(result.metadata.requests.length, 145);
   assert.ok(result.metadata.selectedStores.every((row) => row.city && /, AZ \d{5}/.test(row.address)));
 });
 
