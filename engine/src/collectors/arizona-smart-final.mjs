@@ -60,7 +60,13 @@ export async function collectArizonaSmartFinal(config, bible, observedAt, { fetc
     signal?.throwIfAborted();
     let result;
     try { result = await fetchText(url, { timeoutMs: 6_000, signal, headers: { accept: 'text/html' } }); }
-    catch (error) { signal?.throwIfAborted(); result = { ok: false, status: 0, error: error.message }; }
+    catch (error) {
+      signal?.throwIfAborted();
+      // The persisted denial wrapper uses private control exceptions to end
+      // the whole source pass. Never swallow those and probe another store.
+      if (!['TypeError', 'AbortError', 'TimeoutError'].includes(error?.name)) throw error;
+      result = { ok: false, status: 0, error: error.message };
+    }
     requests.push({ url, status: result.status || 0 });
     return result;
   };

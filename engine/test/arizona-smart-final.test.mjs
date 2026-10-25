@@ -7,6 +7,8 @@ import { isArizonaRetailerInventory } from '../src/arizona-retailer-policy.mjs';
 import { canonicalizeSignal } from '../src/operational-report.mjs';
 import { bibleLookup, buildDrops } from '../src/export-site-contract.mjs';
 import { isPublicDropFeedEligible } from '../../src/lib/public-drop-evidence.ts';
+import { runArizonaSourcesWithDenialBackoff } from '../src/collectors/arizona-source-attempts.mjs';
+import { ARIZONA_SMART_FINAL_SOURCE } from '../src/collectors/arizona-smart-final.mjs';
 const fixture = JSON.parse(await readFile(new URL('./fixtures/arizona-smart-final/2026-10-25.json', import.meta.url)));
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
 const positive = fixture.pages[0];
@@ -55,4 +57,19 @@ test('collector discovers current exact premises, excludes planning-only stores 
   assert.equal(result.signals.length, 0);
   assert.ok(urls.every(url => !url.includes('/rsid/491/product/')));
   assert.equal(result.metadata.discoveredStores.length, 7);
+});
+
+test('persistent denial control escapes the adapter and stops the entire retailer source pass', async () => {
+  const urls = [];
+  const result = await runArizonaSourcesWithDenialBackoff([ARIZONA_SMART_FINAL_SOURCE],
+    (_source, { fetchText }) => collectArizonaSmartFinal({ id: 'AZ' }, bible, positive.observedAt, { fetchText, sleep: async () => {} }),
+    { writeAttempts: async () => {}, fetchText: async url => {
+      urls.push(url);
+      return urls.length === 1 ? { ok: true, status: 200, text: html({ stores: { availablePlanningStores: { items: fixture.discoveredStores } } }) }
+        : { ok: false, status: 403, text: '' };
+    } });
+  assert.equal(urls.length, 2, 'no later premise may be requested after access denial');
+  assert.equal(result.values.length, 0);
+  assert.equal(result.roadblocks[0].status, 403);
+  assert.equal(result.metadata.sourceAttempts['smart-final'].status, 'access_denied');
 });
