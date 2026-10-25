@@ -1,0 +1,610 @@
+{
+  "schemaVersion": 3,
+  "scope": "offline_six_case_five_prospect_replay_no_admission_or_activation",
+  "guardPatchSha256": "0a151ba415343386d2af5085d9ad5355f5cb508bc2fa7cc06670d003354dd96c",
+  "implementationProvenance": {
+    "collectors/nevada-retailer-surfaces.mjs": {
+      "sha256": "25ae5c3a64a9c0e074653c7e64c7987fc7f2a668059b0b079a4d25d6e795f790",
+      "bytes": 20840
+    },
+    "collectors/arizona-xapi-matching.mjs": {
+      "sha256": "36d701d032767d5e97a644f35598cbf255673a195b685d444b5a4e1f3e4b180a",
+      "bytes": 2045
+    },
+    "collectors/safe-bottle-match.mjs": {
+      "sha256": "f415b32f402b7c02ae404afc4646037982ea74e5a502aa24bf4adebd5de97aa7",
+      "bytes": 3444
+    },
+    "core/bible.mjs": {
+      "sha256": "fb835a049b4f743f51849d38dfae5ccf654bf616fcaca02dbce8061c5a6b4135",
+      "bytes": 3364
+    },
+    "core/text.mjs": {
+      "sha256": "241aa346ce6c1ee2886b4fd704b03deb70e87a6300253bb44a32d28f10bd03e7",
+      "bytes": 2930
+    }
+  },
+  "bible": {
+    "repoPath": "engine/test/fixtures/shopify-variant-pickup/current-bourbon-bible.json",
+    "sha256": "e5883ec9034802bff14dcae918fba4abc7d9baf2f5cc069c6013469e027e82be",
+    "records": 188,
+    "authority": "historical_lexical_reference_not_current_state_classification"
+  },
+  "summary": {
+    "premises": 6,
+    "prospects": 5,
+    "existingAZControls": 1,
+    "states": [
+      "NV",
+      "CA",
+      "AZ"
+    ],
+    "productObjects": 16,
+    "admissions": [],
+    "descriptors": [],
+    "activated": false,
+    "newCustomerStores": 0,
+    "fullConnectorReuseProven": false
+  },
+  "sources": [
+    {
+      "sourceId": "xapi:nv:albertsons:4024",
+      "role": "five_prospect",
+      "state": "NV",
+      "merchantId": "4024",
+      "host": "www.albertsons.com",
+      "premise": {
+        "storeId": "albertsons:4024",
+        "name": "Albertsons #4024",
+        "address": "2835 S Nellis Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "zip": "89121",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "source": {
+        "originalBodySha256": "52561869254edf2cb0cf9e45e4b0a03f8b64a1213ed5d89ca96bcf1036dc508f",
+        "originalBodyBytes": 297502,
+        "originalResponseDocumentCount": 99,
+        "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1792897999116&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=4024&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:13:20.052Z",
+        "elapsedMs": 936,
+        "rawArchiveRelativeReference": "nv-two-stock-ca-directory/request-1.body.raw"
+      },
+      "resolver": {
+        "originalBodySha256": "9eed5cde1c509975823c03fb85751648fa8b60a84eb155face867a168c1eae04",
+        "originalBodyBytes": 171266,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=89121&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:10:27.607Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "xapi-nv-viability/resolver-continuation/request-2.body.raw"
+      },
+      "requestBudget": {
+        "sourceGETsAlreadyPerformed": 1,
+        "maxDecodedBodyBytes": 2097152,
+        "timeoutMs": 12000,
+        "retries": 0,
+        "redirects": 0,
+        "offlineReplayRequests": 0,
+        "additionalRequestsAuthorized": 0
+      },
+      "proposedIdentitySha256": "58d2e6efe83e058a584aa08f259da13e60413e93f2d1511ea0491b979c24c037",
+      "products": [
+        {
+          "productId": "960051942",
+          "rawTitle": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "variantId": "960051942",
+          "canonicalId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "reportedQuantity": 10,
+          "quantity": 10,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "reviewed-arizona-xapi-product-identity",
+          "existingNVCanonicalId": null
+        },
+        {
+          "productId": "189032017",
+          "rawTitle": "Bulleit Bourbon Whiskey - 750 Ml",
+          "variantId": "189032017",
+          "canonicalId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "reportedQuantity": 14,
+          "quantity": 14,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_13fcb09e58792e06"
+        }
+      ]
+    },
+    {
+      "sourceId": "xapi:nv:albertsons:1059",
+      "role": "five_prospect",
+      "state": "NV",
+      "merchantId": "1059",
+      "host": "www.albertsons.com",
+      "premise": {
+        "storeId": "albertsons:1059",
+        "name": "Albertsons #1059",
+        "address": "5500 Boulder Hwy",
+        "city": "Las Vegas",
+        "state": "NV",
+        "zip": "89122",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "source": {
+        "originalBodySha256": "82906c705bbdc1e28878ddfa564620367de5af203506ebcbf732dd4ba895478b",
+        "originalBodyBytes": 294887,
+        "originalResponseDocumentCount": 99,
+        "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1792898000967&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1059&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:13:21.666Z",
+        "elapsedMs": 699,
+        "rawArchiveRelativeReference": "nv-two-stock-ca-directory/request-2.body.raw"
+      },
+      "resolver": {
+        "originalBodySha256": "9eed5cde1c509975823c03fb85751648fa8b60a84eb155face867a168c1eae04",
+        "originalBodyBytes": 171266,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=89121&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:10:27.607Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "xapi-nv-viability/resolver-continuation/request-2.body.raw"
+      },
+      "requestBudget": {
+        "sourceGETsAlreadyPerformed": 1,
+        "maxDecodedBodyBytes": 2097152,
+        "timeoutMs": 12000,
+        "retries": 0,
+        "redirects": 0,
+        "offlineReplayRequests": 0,
+        "additionalRequestsAuthorized": 0
+      },
+      "proposedIdentitySha256": "72c4b91f9f519537631a173e57d7e4adaa1e6d9f8d2861c37e844db2401f42e7",
+      "products": [
+        {
+          "productId": "960051942",
+          "rawTitle": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "variantId": "960051942",
+          "canonicalId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "reportedQuantity": 5,
+          "quantity": 5,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "reviewed-arizona-xapi-product-identity",
+          "existingNVCanonicalId": null
+        },
+        {
+          "productId": "189032017",
+          "rawTitle": "Bulleit Bourbon Whiskey - 750 Ml",
+          "variantId": "189032017",
+          "canonicalId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "reportedQuantity": 4,
+          "quantity": 4,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_13fcb09e58792e06"
+        }
+      ]
+    },
+    {
+      "sourceId": "xapi:ca:albertsons:745",
+      "role": "five_prospect",
+      "state": "CA",
+      "merchantId": "745",
+      "host": "www.albertsons.com",
+      "premise": {
+        "storeId": "albertsons:745",
+        "name": "Albertsons #745",
+        "address": "655 14th St",
+        "city": "San Diego",
+        "state": "CA",
+        "zip": "92101",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "source": {
+        "originalBodySha256": "49d81a710a24aa38d1efb32ae6d75109ab3bd492ec35b2094de63f9ff8dd0b54",
+        "originalBodyBytes": 319852,
+        "originalResponseDocumentCount": 100,
+        "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1792898207967&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=745&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:16:49.087Z",
+        "elapsedMs": 1120,
+        "rawArchiveRelativeReference": "ca-two-stock/request-1.body.raw"
+      },
+      "resolver": {
+        "originalBodySha256": "da53c88af9a4d241767f1ee2ecf311b497c3fcad508fbefab98247d3d2cd8479",
+        "originalBodyBytes": 167043,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=92101&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:13:23.273Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "nv-two-stock-ca-directory/request-3.body.raw"
+      },
+      "requestBudget": {
+        "sourceGETsAlreadyPerformed": 1,
+        "maxDecodedBodyBytes": 2097152,
+        "timeoutMs": 12000,
+        "retries": 0,
+        "redirects": 0,
+        "offlineReplayRequests": 0,
+        "additionalRequestsAuthorized": 0
+      },
+      "proposedIdentitySha256": "f5afa144f0939383cc812349da1ea25151ea262cd17cca7e9ba47b2b62ef13de",
+      "products": [
+        {
+          "productId": "960051942",
+          "rawTitle": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "variantId": "960051942",
+          "canonicalId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "reportedQuantity": 6,
+          "quantity": 6,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "reviewed-arizona-xapi-product-identity",
+          "existingNVCanonicalId": null
+        },
+        {
+          "productId": "189032017",
+          "rawTitle": "Bulleit Bourbon Whiskey - 750 Ml",
+          "variantId": "189032017",
+          "canonicalId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "reportedQuantity": 12,
+          "quantity": 12,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_13fcb09e58792e06"
+        }
+      ]
+    },
+    {
+      "sourceId": "xapi:ca:albertsons:707",
+      "role": "five_prospect",
+      "state": "CA",
+      "merchantId": "707",
+      "host": "www.albertsons.com",
+      "premise": {
+        "storeId": "albertsons:707",
+        "name": "Albertsons #707",
+        "address": "7090 Broadway",
+        "city": "Lemon Grove",
+        "state": "CA",
+        "zip": "91945",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "source": {
+        "originalBodySha256": "e6c4fe59a61bc4c003096cbdb08994f54b35df33b6b284bafef678235365984a",
+        "originalBodyBytes": 319882,
+        "originalResponseDocumentCount": 99,
+        "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1792898209995&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=707&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:16:51.044Z",
+        "elapsedMs": 1049,
+        "rawArchiveRelativeReference": "ca-two-stock/request-2.body.raw"
+      },
+      "resolver": {
+        "originalBodySha256": "da53c88af9a4d241767f1ee2ecf311b497c3fcad508fbefab98247d3d2cd8479",
+        "originalBodyBytes": 167043,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=92101&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:13:23.273Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "nv-two-stock-ca-directory/request-3.body.raw"
+      },
+      "requestBudget": {
+        "sourceGETsAlreadyPerformed": 1,
+        "maxDecodedBodyBytes": 2097152,
+        "timeoutMs": 12000,
+        "retries": 0,
+        "redirects": 0,
+        "offlineReplayRequests": 0,
+        "additionalRequestsAuthorized": 0
+      },
+      "proposedIdentitySha256": "122a0f80ac620d6a9646af269083b4c75ba191cc3e9b141149b5fcc5b6d9b04d",
+      "products": [
+        {
+          "productId": "960051942",
+          "rawTitle": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "variantId": "960051942",
+          "canonicalId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "reportedQuantity": 5,
+          "quantity": 5,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "reviewed-arizona-xapi-product-identity",
+          "existingNVCanonicalId": null
+        },
+        {
+          "productId": "189032017",
+          "rawTitle": "Bulleit Bourbon Whiskey - 750 Ml",
+          "variantId": "189032017",
+          "canonicalId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "reportedQuantity": 5,
+          "quantity": 5,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_13fcb09e58792e06"
+        }
+      ]
+    },
+    {
+      "sourceId": "xapi:az:safeway:1207",
+      "role": "existing_AZ_control",
+      "state": "AZ",
+      "merchantId": "1207",
+      "host": "www.safeway.com",
+      "premise": {
+        "storeId": "safeway:1207",
+        "name": "Safeway #1207",
+        "address": "2300 W Hwy 89A",
+        "city": "Sedona",
+        "state": "AZ",
+        "zip": "86336",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "source": {
+        "originalBodySha256": "43f9427b2a54750e8c41c635c04ad82d244eee4ea2eeb552653adc1e7672befd",
+        "originalBodyBytes": 286445,
+        "originalResponseDocumentCount": 100,
+        "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1792898396608&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1207&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:19:57.533Z",
+        "elapsedMs": 925,
+        "rawArchiveRelativeReference": "az-existing-anchor/request-2.body.raw"
+      },
+      "resolver": {
+        "originalBodySha256": "9faaa38a57503230b40520092cf627c54ac67f3dcbe46bb12a48204af5eae294",
+        "originalBodyBytes": 87793,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=86336&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T03:19:55.702Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "az-existing-anchor/request-1.body.raw"
+      },
+      "requestBudget": {
+        "sourceGETsAlreadyPerformed": 1,
+        "maxDecodedBodyBytes": 2097152,
+        "timeoutMs": 12000,
+        "retries": 0,
+        "redirects": 0,
+        "offlineReplayRequests": 0,
+        "additionalRequestsAuthorized": 0
+      },
+      "proposedIdentitySha256": "b706c340a2fd7e113e115d9d8d6f486eaf7c43620aa2bd25c4a685031a6f6436",
+      "products": [
+        {
+          "productId": "960051942",
+          "rawTitle": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "variantId": "960051942",
+          "canonicalId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "reportedQuantity": 31,
+          "quantity": 31,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "reviewed-arizona-xapi-product-identity",
+          "existingNVCanonicalId": null
+        },
+        {
+          "productId": "189032017",
+          "rawTitle": "Bulleit Bourbon Whiskey - 750 Ml",
+          "variantId": "189032017",
+          "canonicalId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "reportedQuantity": 19,
+          "quantity": 19,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_13fcb09e58792e06"
+        },
+        {
+          "productId": "960137024",
+          "rawTitle": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "variantId": "960137024",
+          "canonicalId": "bb_8924180d0cc2d853",
+          "canonicalName": "Blade and Bow Bourbon",
+          "reportedQuantity": 3,
+          "quantity": 3,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_8924180d0cc2d853"
+        },
+        {
+          "productId": "970889019",
+          "rawTitle": "Penelope Four Grain Bourbon - 750 Ml",
+          "variantId": "970889019",
+          "canonicalId": "bb_473aba10a697b5fc",
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "reportedQuantity": 11,
+          "quantity": 11,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_473aba10a697b5fc"
+        }
+      ]
+    },
+    {
+      "sourceId": "xapi:az:safeway:2799",
+      "role": "five_prospect",
+      "state": "AZ",
+      "merchantId": "2799",
+      "host": "www.safeway.com",
+      "premise": {
+        "storeId": "safeway:2799",
+        "name": "Safeway #2799",
+        "address": "28455 N Vistancia Blvd",
+        "city": "Peoria",
+        "state": "AZ",
+        "zip": "85383",
+        "country": "US",
+        "lanes": [
+          "instore",
+          "pickup"
+        ]
+      },
+      "source": {
+        "originalBodySha256": "77142d05ffa1b6fb339a9d1b86c070380e228ef8c2509be7bd843895d23341eb",
+        "originalBodyBytes": 288796,
+        "originalResponseDocumentCount": 100,
+        "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1792898813540&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2799&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+        "status": 200,
+        "capturedAt": "2026-10-25T03:26:54.729Z",
+        "elapsedMs": 1189,
+        "rawArchiveRelativeReference": "az-one-new-prospect/request-1.body.raw"
+      },
+      "resolver": {
+        "originalBodySha256": "87228f78a860ea423dc0f4118060004aa60baf57c201c1ee420cc816cb65adf7",
+        "originalBodyBytes": 166501,
+        "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=85374&radius=50&size=100",
+        "status": 206,
+        "capturedAt": "2026-10-25T00:14:40.846Z",
+        "partial": true,
+        "rawArchiveRelativeReference": "arizona-engine-expansion-20261024-evidence/preflight/discovery.json#captures[].text",
+        "discoverySha256": "ca3a42493493c96176db0b956b896a063aaa5eab80dc15bb9b00245d67953ea8",
+        "planSha256": "32031d83381febcf2be39954b3ab6bff6b1e1c01f19c1fd940555f74b6f9e73e"
+      },
+      "requestBudget": {
+        "sourceGETsAlreadyPerformed": 1,
+        "maxDecodedBodyBytes": 2097152,
+        "timeoutMs": 12000,
+        "retries": 0,
+        "redirects": 0,
+        "offlineReplayRequests": 0,
+        "additionalRequestsAuthorized": 0
+      },
+      "products": [
+        {
+          "productId": "960051942",
+          "rawTitle": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "variantId": "960051942",
+          "canonicalId": "bb_317836b9e64a7620",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "reportedQuantity": 11,
+          "quantity": 11,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "reviewed-arizona-xapi-product-identity",
+          "existingNVCanonicalId": null
+        },
+        {
+          "productId": "189032017",
+          "rawTitle": "Bulleit Bourbon Whiskey - 750 Ml",
+          "variantId": "189032017",
+          "canonicalId": "bb_13fcb09e58792e06",
+          "canonicalName": "Bulleit Bourbon",
+          "reportedQuantity": 39,
+          "quantity": 39,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_13fcb09e58792e06"
+        },
+        {
+          "productId": "960137024",
+          "rawTitle": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "variantId": "960137024",
+          "canonicalId": "bb_8924180d0cc2d853",
+          "canonicalName": "Blade and Bow Bourbon",
+          "reportedQuantity": 3,
+          "quantity": 3,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_8924180d0cc2d853"
+        },
+        {
+          "productId": "970889019",
+          "rawTitle": "Penelope Four Grain Bourbon - 750 Ml",
+          "variantId": "970889019",
+          "canonicalId": "bb_473aba10a697b5fc",
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "reportedQuantity": 5,
+          "quantity": 5,
+          "inventorySemantics": "exact_retailer_quantity",
+          "volumeMl": 750,
+          "packageCount": 1,
+          "matchMethod": "exact-normalized-alias",
+          "existingNVCanonicalId": "bb_473aba10a697b5fc"
+        }
+      ],
+      "noveltyScope": {
+        "planSha256": "32031d83381febcf2be39954b3ab6bff6b1e1c01f19c1fd940555f74b6f9e73e",
+        "selected80Matches": 0,
+        "published333Matches": 0,
+        "threeBoundedBaselinesMatchingRows": 0,
+        "historyGapsRetained": true,
+        "notAlltimeAbsence": true
+      }
+    }
+  ],
+  "projectPass": {
+    "actualMerchantGETs": 10,
+    "totalDecodedBytes": 2524332,
+    "requestsDuringThisReplay": 0
+  },
+  "limits": [
+    "Exact saved source/parser reuse only; no full collector or state policy/customer acceptance. Each first100-result page is bounded and not an exhaustive bottle catalogue.",
+    "Saved188-record Bible is lexical reference, not fresh authenticated production catalogue/classification.",
+    "NV existing runtime uses generic cityHiveSafeBottleMatch, not the AZ exact BuffaloTrace identity correction; adoption requires explicit reviewed shared matching integration.",
+    "CA has no admitted grocery XAPI runtime/config/public-source policy. NV new source configs remain unadmitted.",
+    "First-party instore quantities are merchant-reported availability, not guaranteed physical shelf count; parser >=100 sentinel remains binary.",
+    "Resolver HTTP206 is partial directory; instore/pickup directory lanes do not independently prove product pickup readiness.",
+    "Bounded baseline zeros/directory-only history do not establish all-time absence. No new/restored customer store is claimed."
+  ],
+  "executable": false,
+  "enabled": false,
+  "requiresExplicitLeadReview": true,
+  "admissions": [],
+  "descriptors": [],
+  "activated": false
+}

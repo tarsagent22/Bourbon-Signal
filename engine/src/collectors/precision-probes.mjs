@@ -9455,7 +9455,7 @@ async function collectNevada(config, bible) {
         await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
         continue;
       }
-      rows = parseNevadaAlbertsonsXapi(payload);
+      rows = parseNevadaAlbertsonsXapi(payload, { merchantId: source.merchantId });
       fulfillmentPolicyVerified = true;
       completedSourceIds.add(source.id);
     }

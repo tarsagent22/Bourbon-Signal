@@ -1,0 +1,53 @@
+{
+  "fixtureScope": "selected_public_fields_from_two_actual662_control_products_no_new_store_claim",
+  "sourceCapture": {
+    "file": "xapi-nv-viability/request-1.body.raw",
+    "sha256": "d957a2660e2c37b20aec0686ee19cd8fa7e083616eab5efe8df1cd87759661f8",
+    "bytes": 290866,
+    "status": 200,
+    "expectedStoreId": "662",
+    "totalResponseDocs": 99
+  },
+  "response": {
+    "docs": [
+      {
+        "id": "960051942",
+        "pid": "960051942",
+        "upc": "0008024400923",
+        "storeId": "662",
+        "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "price": 25.99,
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "deliveryItemQty": 24,
+          "pickupItemQty": 24,
+          "instoreItemQty": 24,
+          "shipping": "0"
+        },
+        "restrictedValue": "2",
+        "containsAlcohol": true
+      },
+      {
+        "id": "189032017",
+        "pid": "189032017",
+        "upc": "0008700000552",
+        "storeId": "662",
+        "name": "Bulleit Bourbon Whiskey - 750 Ml",
+        "price": 30.99,
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "deliveryItemQty": 8,
+          "pickupItemQty": 8,
+          "instoreItemQty": 8,
+          "shipping": "0"
+        },
+        "restrictedValue": "2",
+        "containsAlcohol": true
+      }
+    ]
+  }
+}

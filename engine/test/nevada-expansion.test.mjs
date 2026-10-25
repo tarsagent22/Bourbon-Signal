@@ -196,17 +196,17 @@ test('Nevada WooCommerce parser requires purchasable in-stock singleton products
 
 test('Nevada Albertsons XAPI parser requires positive in-store inventory and preserves exact versus binary semantics', () => {
   const payload = { response: { docs: [
-    { id: 'x-1', pid: '960100', name: 'Buffalo Trace Kentucky Straight Bourbon 750ml', price: 29.99, channelInventory: { instore: '1', instoreItemQty: 4 } },
-    { id: 'x-2', pid: '960200', name: 'Eagle Rare 10 Year Bourbon 750ml', price: 49.99, channelInventory: { instore: '1' } },
-    { id: 'x-3', pid: '960300', name: 'Weller Bourbon 750ml', channelInventory: { instore: '0', instoreItemQty: 8 } },
+    { storeId: '662', id: 'x-1', pid: '960100', name: 'Buffalo Trace Kentucky Straight Bourbon 750ml', price: 29.99, channelInventory: { instore: '1', instoreItemQty: 4 } },
+    { storeId: '662', id: 'x-2', pid: '960200', name: 'Eagle Rare 10 Year Bourbon 750ml', price: 49.99, channelInventory: { instore: '1' } },
+    { storeId: '662', id: 'x-3', pid: '960300', name: 'Weller Bourbon 750ml', channelInventory: { instore: '0', instoreItemQty: 8 } },
   ] } };
-  const rows = parseNevadaAlbertsonsXapi(payload);
+  const rows = parseNevadaAlbertsonsXapi(payload, { merchantId: '662' });
   assert.equal(rows.length, 2);
   assert.equal(rows[0].quantity, 4);
   assert.equal(rows[0].inventorySemantics, 'exact_retailer_quantity');
   assert.equal(rows[1].quantity, 0);
   assert.equal(rows[1].inventorySemantics, 'binary_retailer_orderable_no_exact_count');
-  assert.deepEqual(parseNevadaAlbertsonsXapi('{bad'), []);
+  assert.deepEqual(parseNevadaAlbertsonsXapi('{bad', { merchantId: '662' }), []);
 });
 
 test('Nevada parsers reject unavailable, 375ml-or-smaller, bundles, and every multipack spelling', () => {

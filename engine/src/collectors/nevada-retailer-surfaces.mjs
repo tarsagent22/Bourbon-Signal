@@ -286,7 +286,19 @@ export function parseNevadaWooCommerceProducts(payload) {
   return rows;
 }
 
-export function parseNevadaAlbertsonsXapi(payload) {
+// Only the exact requested store may supply inventory for its frozen premises.
+// Absent quantity is binary availability; present invalid/nonpositive stock is
+// never promoted to a binary positive. Preserve >=100 sentinel presentation.
+export function parseNevadaAlbertsonsXapi(payload, { merchantId } = {}) {
+  if (typeof merchantId !== 'string' || !/^\d{2,6}$/u.test(merchantId)) return [];
+  const positiveWhole = (value) => {
+    if (typeof value === 'string') {
+      const scalar = value.trim();
+      if (!/^[1-9][0-9]*$/u.test(scalar)) return null;
+      value = Number(scalar);
+    }
+    return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null;
+  };
   const parsed = parsePayload(payload);
   if (!Array.isArray(parsed?.response?.docs)) return [];
   const rows = [];
@@ -295,12 +307,18 @@ export function parseNevadaAlbertsonsXapi(payload) {
     const title = String(product.name || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     if (!usefulBottle(`${title} ${product.size || ''} ${normalizedText(product.categories)}`)) continue;
     if (String(product?.restrictedValue || '').toLowerCase() === 'true' && product?.containsAlcohol === false) continue;
-    const inventory = product.channelInventory || {};
-    if (String(inventory.instore ?? inventory.inStore ?? '') !== '1') continue;
+    if (product.storeId !== merchantId) continue;
+    const inventory = product.channelInventory;
+    if (!inventory || typeof inventory !== 'object' || Array.isArray(inventory)) continue;
+    const stockFlags = ['instore', 'inStore'].filter((key) => Object.hasOwn(inventory, key));
+    if (!stockFlags.length || !stockFlags.every((key) => inventory[key] === 1 || inventory[key] === '1')) continue;
+    const quantityFields = ['instoreItemQty', 'inStoreItemQty'].filter((key) => Object.hasOwn(inventory, key));
+    const counts = quantityFields.map((key) => positiveWhole(inventory[key]));
+    if (counts.some((value) => value === null) || new Set(counts).size > 1) continue;
+    const reportedQuantity = counts.length ? counts[0] : null;
     const productId = String(product.id || product.pid || product.upc || '').trim();
     if (!productId) continue;
-    const reportedQuantity = Number(inventory.instoreItemQty ?? inventory.inStoreItemQty);
-    const exact = Number.isFinite(reportedQuantity) && reportedQuantity > 0 && reportedQuantity < 100;
+    const exact = reportedQuantity !== null && reportedQuantity < 100;
     rows.push({ productId, variantId: String(product.pid || product.id || product.upc || '').trim(), title, handle: String(product.pid || product.id || product.upc || '').trim(), size: String(product.size || '').trim() || null, price: finitePrice(product.price), quantity: exact ? Math.floor(reportedQuantity) : 0, reportedQuantity: Number.isFinite(reportedQuantity) ? reportedQuantity : null, sourceAvailabilityVerified: true, inventorySemantics: exact ? 'exact_retailer_quantity' : 'binary_retailer_orderable_no_exact_count' });
   }
   return rows;
