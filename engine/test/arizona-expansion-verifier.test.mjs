@@ -13,12 +13,12 @@ const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', impor
 const lookup = bibleLookup(bible.records);
 const observations = fixture.captures.map((capture) => Date.parse(capture.observedAt));
 const now = Math.max(...observations) + 5 * 60_000;
-const expectations = { minimumSelectedStores: 2, minimumBaselineStores: 0, minimumAddedStores: 2, minimumPositiveXapiStores: 2, minimumPublicRows: 2 };
+const expectations = { minimumSelectedStores: 2, minimumBaselineStores: 0, minimumAddedStores: 2, minimumPositiveXapiStores: 2, minimumPublicRows: 2, minimumAddedPublicStores: 1, minimumNewSelectedStores: 0, minimumNewPublicStores: 0 };
 
 async function capturedPipeline(t, { binary = false } = {}) {
   t.mock.timers.enable({ apis: ['Date'], now });
   const signals = [];
-  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, rareSearchCount: 0, maxSearchCount: 48 };
+  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, rareSearchCount: 0, maxSearchCount: 96 };
   for (const capture of fixture.captures) {
     const products = structuredClone(capture.products);
     if (binary) for (const product of products) delete product.channelInventory.instoreItemQty;
@@ -67,7 +67,7 @@ test('captured collector to canonical JSON to public rows passes diagnostics wit
   assert.equal(result.addedPublicStores, 2);
   const strict = diagnoseArizonaExpansionArtifact({ ...input, expectations: undefined });
   assert.equal(strict.status, 'failed');
-  assert.match(strict.errors.join('\n'), /required depth|baseline store|38-row baseline/);
+  assert.match(strict.errors.join('\n'), /required depth|baseline store|public inventory floor/);
 });
 
 test('verifier rejects unsafe source identity, format, stock and original timestamps', async (t) => {
@@ -108,9 +108,16 @@ test('verifier binds metadata to exact premises, classification and a bounded de
   }, /16 rare queries/);
 });
 
+test('previously released stores cannot satisfy the genuinely new public-store gate', async (t) => {
+  const input = await capturedPipeline(t);
+  assert.equal(verifyArizonaExpansionArtifact(input).newPublicStores, 0);
+  rejected(input, row => { row.expectations.minimumNewPublicStores = 1; }, /Genuinely new stores/);
+  rejected(input, row => { row.expectations.minimumNewSelectedStores = 1; }, /32 previously released|genuinely new store floor/);
+});
+
 test('verifier rejects lost public proof, old coverage metadata and watch or stale alerts', async (t) => {
   const input = await capturedPipeline(t);
-  rejected(input, (row) => { row.drops.drops = []; }, /38-row baseline|survive public export/);
+  rejected(input, (row) => { row.drops.drops = []; }, /public inventory floor|survive public export/);
   rejected(input, (row) => { row.drops.drops[0].productId = 'wrong-sku'; }, /product.*proof/);
   rejected(input, (row) => { row.drops.drops[0].sourceUrl = row.drops.drops[0].sourceUrl.replace('960051942', '960051943'); }, /product.*proof/);
   rejected(input, (row) => { row.drops.drops[0].price += 1; }, /price.*proof/);
@@ -142,7 +149,7 @@ test('copied valid public rows cannot satisfy the 38-row floor or inflate alert 
   assert.equal(diagnostics.status, 'failed');
   assert.equal(diagnostics.publicRows, 2, 'the floor counts distinct source/store/product/URL identities');
   assert.match(diagnostics.errors.join('\n'), /Duplicate published Arizona inventory/);
-  assert.match(diagnostics.errors.join('\n'), /38-row baseline/);
+  assert.match(diagnostics.errors.join('\n'), /public inventory floor/);
   rejected(input, (row) => { row.alerts.alerts.push(structuredClone(row.alerts.alerts[0])); }, /candidate keys must be unique and nonempty/);
 });
 

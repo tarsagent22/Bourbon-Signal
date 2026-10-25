@@ -8,7 +8,13 @@ export const ARIZONA_XAPI_BASELINE_STORE_IDS = Object.freeze([
   '1487', '1491', '1684', '1819', '1983', '2032', '2060', '2083',
   '2951', '2955', '2988', '3173', '3203', '3204', '3931',
 ]);
-export const ARIZONA_XAPI_SEARCH_LIMIT = 48;
+// Preserve the entire released 32-store cohort while adding new premises.
+export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
+  ...ARIZONA_XAPI_BASELINE_STORE_IDS,
+  '1604', '1225', '1534', '3151', '1841', '1997', '3926', '3941',
+]);
+export const ARIZONA_XAPI_DEFAULT_STORES = 80;
+export const ARIZONA_XAPI_SEARCH_LIMIT = 96;
 export const ARIZONA_XAPI_RARE_QUERY_LIMIT = 16;
 // Both premises passed resolver and store-specific bourbon proofs. Prefer them
 // among equally unrepresented cities; they still require fresh resolver rows.
@@ -59,8 +65,8 @@ export function mergeArizonaXapiStores(stores, payload, conflicts = new Set()) {
   return stores;
 }
 
-export function selectArizonaXapiStores(input, { maxStores = 32 } = {}) {
-  const limit = Math.max(1, Math.min(ARIZONA_XAPI_SEARCH_LIMIT, Math.floor(Number(maxStores) || 32)));
+export function selectArizonaXapiStores(input, { maxStores = ARIZONA_XAPI_DEFAULT_STORES } = {}) {
+  const limit = Math.max(1, Math.min(ARIZONA_XAPI_DEFAULT_STORES, Math.floor(Number(maxStores) || ARIZONA_XAPI_DEFAULT_STORES)));
   const stores = new Map();
   const conflicts = new Set();
   mergeArizonaXapiStores(stores, { instore: { stores: [...input] } }, conflicts);
@@ -68,6 +74,12 @@ export function selectArizonaXapiStores(input, { maxStores = 32 } = {}) {
   const protectedIds = new Set(ARIZONA_XAPI_BASELINE_STORE_IDS);
   const selected = candidates.filter((store) => protectedIds.has(store.locationId)).slice(0, limit);
   const selectedIds = new Set(selected.map((store) => store.locationId));
+  for (const store of candidates.filter((row) => ARIZONA_XAPI_PREVIOUS_STORE_IDS.includes(row.locationId))) {
+    if (selected.length >= limit) break;
+    if (selectedIds.has(store.locationId)) continue;
+    selected.push(store);
+    selectedIds.add(store.locationId);
+  }
   // Keep the former 24-store lane intact before adding geographical breadth.
   for (const store of candidates) {
     if (selected.length >= Math.min(24, limit)) break;
@@ -94,7 +106,7 @@ export function selectArizonaXapiStores(input, { maxStores = 32 } = {}) {
   return selected;
 }
 
-export function arizonaXapiRequestPlan(input, { maxStores = 32, terms = [], nowMs = Date.now() } = {}) {
+export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT_STORES, terms = [], nowMs = Date.now() } = {}) {
   const selected = selectArizonaXapiStores(input, { maxStores });
   const rareTerms = [...new Set(terms.map((term) => String(term).trim()).filter((term) => term && term !== 'bourbon'))];
   const dayBucket = Math.floor(nowMs / 86_400_000);
