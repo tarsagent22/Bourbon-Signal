@@ -1,3 +1,4 @@
+import { parseCityHiveStockCount } from './cityhive-stock-count.mjs';
 export function oldestSourceEvidenceCohort(sources, signals, cohortSize, sourceKey = (source) => String(source?.[0] || '')) {
   if (!Array.isArray(sources) || sources.length === 0) return [];
   const latestByKey = new Map();
@@ -24,8 +25,7 @@ export function rotatingSourceCohort(sources, observedAt, cohortSize, rotationMs
 }
 
 export function normalizeCityHiveReportedQuantity(value) {
-  const parsed = Number(value);
-  const reportedQuantity = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  const reportedQuantity = parseCityHiveStockCount(value) ?? 0;
   const binaryAvailability = reportedQuantity >= 100;
   return { reportedQuantity, binaryAvailability, quantity: binaryAvailability ? 1 : reportedQuantity };
 }

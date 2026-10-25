@@ -1,6 +1,6 @@
 # Nationwide release outcome and next batch
 
-Checkpoint: October 24, 2026, 23:55 UTC. This supersedes the 23:24 preparation checkpoint; earlier files and failures remain historical evidence. The direct human authorized this pass. GPT-6.1 Sol agents supplied focused research, engineering proposals and independent verification; the lead alone coordinated shared files and releases.
+Latest verification: 2026-10-25T00:05:17.926Z. Releases occurred October 24 UTC. This supersedes the 23:24 preparation checkpoint; earlier files and failures remain historical evidence. The direct human authorized this pass. GPT-6.1 Sol agents supplied focused research, engineering proposals and independent verification; the lead alone coordinated shared files and releases.
 
 **Customer coverage gained this pass: zero newly connected premises, zero independently confirmed restorations.** Five new inventory-connected physical premises across at least three states remains the target. Directory identity, old inventory, catalog offers, shipping and successful workflows do not satisfy it.
 
@@ -29,13 +29,23 @@ The manifest remains exactly `2a44588d58137fb4463a116fc1612f1888ad391d7829982530
 
 The GA/MS/KY research pool is **not** a five-new-store executable cohort. Common CityHive parsing and guards are reusable; GA/IN still have distinct state loops and quantity contracts. Record actual changed connector hashes and exceptions. Most later stores using the same unchanged connector remains an acceptance condition to demonstrate, not something inferred from sharing a platform. Incremental current bottle coverage/geographic gain is zero; per-new-store maintenance cost is not measurable with zero accepted stores. The observed request costs above cannot be extrapolated into a working-store cost estimate.
 
-Offline review independently reproduced common CityHive risks with synthetic boolean/array/fractional quantities and significant unit punctuation. A narrow proposed safety correction and meaningful regression fixtures are being prepared separately. Those probes are not observed retailer payloads and do not prove the cause of Georgia's collapse. Fixing a parser is not coverage restoration.
+Offline review independently reproduced common CityHive risks with synthetic boolean/array/fractional quantities and significant unit punctuation. The lead integrated the six-file correction into PREP only: patch `bda2eaa0ee21dff57a1385af2ca15c9fc3f3cddf8043fb37fb7d5e43bfe789c6`, with 21 focused local tests and 163 independent impacted tests passing. Saved GA49/IN809 option quantities and the checked complete GA/MS fixture rows remain unchanged. The rejected encoding-damaged version is archived. These are synthetic/historical checks, not observed current retailer stock or a diagnosis of Georgia's collapse.
+
+This incremental fix rejects malformed stock and distinguishes ASCII hyphen/slash/internal-period identities. Seven pre-existing Unicode/ampersand/colon address collisions remain documented. A bounded fail-closed unsupported house/unit grammar preserving common # presentation is required before cohort activation; no universal exact-premise, unchanged full connector or release approval is claimed. Production remains at #825. Never merge the broad preparation branch wholesale; extract only reviewed narrow changes onto current main for a later release. Fixing a parser is not coverage restoration.
 
 ## Original pilot observation
 
 Keep the released CA/FL sources. The original deterministic observer was rebound through the reviewed commit-only transition `7f396690e196433390c1010829bc7cc8` to #825. Its original start `2026-10-23T02:51:11.6844346Z`, deadline `2026-10-25T02:51:11.6844346Z`, 288-slot cap, runner/task bytes, all prior reservations, source failures and missing slots remain intact. The new skipped slot 269 remains alongside 131–145. The initial failed rebind attempt is preserved; the later successful operation does not erase it.
 
 Completed capture jobs are not accepted collections. The 160-minute response gap and CA source HTTP 5xx remain disqualifying for a continuous 24-hour claim. Assess one finite subsequent natural capture using actual provider ZIP/member bytes and normal Feed/Coverage receipts; do not dispatch extra captures or use AI as a polling loop. The broad monitor cannot establish this soak. The separately prepared new-cohort sampler remains uninstalled because no cohort was admitted.
+
+## Actual subsequent natural pilot capture
+
+The lead acquired [run 40144504570](https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40144504570), original slot 270, with one reserved archive invocation and four metadata reads. No source requests or dispatches were made by acquisition. Actual producer is #825; raw ZIP SHA-256 `6ad45351004ded967e12ab6e949912a7076b2144c2573f4c77de05ecea274f8b`, single CRC-checked 74,255-byte member `ffd00641b41332f634ad5c05deea0d2e9f89a7ca942000fe775fa16f8f1775ea`. Independent offline review passed 120 checks and replayed the three-transition ownership from frozen bytes. The original ledger/index was not overwritten.
+
+All four normal HTTP 200 receipts contain matching Feed/Coverage identities for two existing physical stores: CA generation 644 has three canonical identities, Jensen generation 83 has one. California's accepted scheduled collection began at 23:20:20.653Z, before #825; it was still fresh and served after release. Florida's began at 23:50:20.537Z, after release. Receipt observation ages are about 33 minutes and 3 minutes respectively. This proves the checked current identity projection, not all card copy, quantity displays or a new post-release CA collection. Recorded collection cost is six requests, 3,983,687 body-accounting bytes and 7,721 ms across the two underlying runs. Do not multiply this into a nationwide maintenance estimate.
+
+The missing slots 131–145 and 269 and CA generation 628 HTTP 5xx remain. Slot 271 was a current-slot timing question, not adjudicated as a permanent gap. Continuous 24-hour acceptance remains false. The CA three projected candidates and Florida zero are not queue-emission evidence. No new store, restoration, admission, activation or new-cohort bootstrap occurred. The independent assessment is `independent-post825-pilot-continuity-review.json`, SHA-256 `b113a088e572acf4d40fed88a59be8f6e15f05ed351caef31d60f5665b29db47`.
 
 ## Evidence and follow-up
 

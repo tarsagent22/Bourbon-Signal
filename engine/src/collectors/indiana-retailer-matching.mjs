@@ -1,3 +1,4 @@
+import { parseCityHiveStockCount } from './cityhive-stock-count.mjs';
 import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 
 export const INDIANA_PAYLESS_SOURCE = Object.freeze({
@@ -12,8 +13,8 @@ const text = (value) => String(value || '').normalize('NFKC').replace(/[’‘]/
 const words = (value) => text(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 export function normalizeIndianaCityHiveQuantity(value) {
-  const reportedQuantity = typeof value === 'number' || (typeof value === 'string' && value.trim()) ? Number(value) : NaN;
-  const valid = Number.isSafeInteger(reportedQuantity) && reportedQuantity >= 0;
+  const reportedQuantity = parseCityHiveStockCount(value);
+  const valid = reportedQuantity !== null;
   const binaryAvailability = valid && reportedQuantity >= 100;
   return {
     reportedQuantity: valid ? reportedQuantity : null,

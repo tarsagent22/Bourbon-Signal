@@ -1,6 +1,6 @@
 # Nationwide release and admission progress — October 24
 
-Latest October 24, 23:55 UTC: [released infrastructure, five denied Shopify sources and the next shared-platform/repair batch](nationwide-release-outcome-20261024.md). Production is at `542c2c9f` after #824 and #825; the release lane is empty. Five first product GETs returned 403 and all five sources are held pending changed access evidence. Zero new connections/restorations/activations. The original observer deadline and all gaps/failures remain. Earlier checkpoints below are historical.
+Latest verification 2026-10-25T00:05:17.926Z: [released infrastructure, five denied Shopify sources and the next shared-platform/repair batch](nationwide-release-outcome-20261024.md). Production is at `542c2c9f` after #824 and #825; the release lane is empty. Five first product GETs returned 403 and all five sources are held pending changed access evidence. Zero new connections/restorations/activations. The original observer deadline and all gaps/failures remain. Earlier checkpoints below are historical.
 
 Checkpoint 23:24 UTC. The direct human instruction authorizes the established release-and-admission process. The lead owns integration and release; GPT-6.1 Sol agents provide focused implementation proposals and independent review. Ohio, POS work, contacts, purchases and agreements remain excluded.
 

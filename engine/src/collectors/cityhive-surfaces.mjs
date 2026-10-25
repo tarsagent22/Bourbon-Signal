@@ -1,3 +1,4 @@
+import { parseCityHiveStockCount } from './cityhive-stock-count.mjs';
 const MAX_BYTES = 8 * 1024 * 1024;
 const MAX_NODES = 25_000;
 
@@ -27,7 +28,12 @@ export function normalizeCityHivePremises(value) {
     .replace(/\bavenue\b/gu, 'ave')
     .replace(/\bboulevard\b/gu, 'blvd')
     .replace(/\bsuite\b/gu, 'ste')
-    .replace(/[^a-z0-9]+/gu, ' ')
+    // House/unit separators are identity, not word boundaries. Preserve slash,
+    // hyphen and internal periods; normalize only surrounding separator spaces.
+    // Abbreviation-ending periods (St.) remain ordinary presentation punctuation.
+    .replace(/(?<![a-z0-9])\.|\.(?![a-z0-9])/gu, ' ')
+    .replace(/[^a-z0-9./-]+/gu, ' ')
+    .replace(/\s*([/-])\s*/gu, '$1')
     .replace(/\s+/gu, ' ')
     .trim();
 }
@@ -157,8 +163,8 @@ export function parseCityHiveProducts(html, candidateSource, {
           const optionMerchantId = String(option.merchant_id || option.merchantId || parentId);
           if (optionMerchantId !== source.merchantId || !exactPremises(entityAddress(option), source)) continue;
           if (!pickup(merchant.offer_types, merchant.offerTypes, merchant.fulfillment, option.offer_types, option.offerTypes, option.fulfillment)) continue;
-          const reportedQuantity = Number(option.quantity);
-          if (!Number.isInteger(reportedQuantity) || reportedQuantity <= 0) continue;
+          const reportedQuantity = parseCityHiveStockCount(option.quantity);
+          if (reportedQuantity === null || reportedQuantity <= 0) continue;
           const productId = String(option.product_id || option.productId || product.id || product._id || '').trim();
           const variantId = String(option.option_id || option.optionId || option.id || option._id || '').trim();
           const title = normalize(option.option_display_data?.name || option.optionDisplayData?.name || product.name || product.title);

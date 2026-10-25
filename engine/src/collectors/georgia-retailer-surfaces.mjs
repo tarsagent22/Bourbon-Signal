@@ -1,3 +1,4 @@
+import { parseCityHiveStockCount } from './cityhive-stock-count.mjs';
 import { parseGoToLiquorStoreProducts } from './gotoliquorstore-surfaces.mjs';
 
 function merchant(id, name, address, city, zip) {
@@ -343,8 +344,7 @@ export function isAllowedGeorgiaBourbonIdentity(rawName, canonicalName) {
 }
 
 export function normalizeGeorgiaCityHiveQuantity(value) {
-  const parsed = Number(value);
-  const reportedQuantity = Number.isFinite(parsed) && Number.isInteger(parsed) && parsed > 0 ? parsed : 0;
+  const reportedQuantity = parseCityHiveStockCount(value) ?? 0;
   const binaryAvailability = reportedQuantity >= 100;
   return {
     reportedQuantity,
