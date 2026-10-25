@@ -28,7 +28,7 @@ async function collectCapture(capture, { products = capture.products, stores = [
       if (url.pathname.includes('/storeresolver/')) return { ok: true, status: 206, text: JSON.stringify({ instore: { stores: structuredClone(stores) } }) };
       assert.equal(url.searchParams.get('storeid'), String(capture.store.locationId));
       assert.equal(url.searchParams.get('start'), '0');
-      assert.equal(url.searchParams.get('rows'), '100');
+      assert.equal(url.searchParams.get('rows'), '120');
       return { ok: true, status: 200, text: JSON.stringify({ response: { docs: url.searchParams.get('q') === 'bourbon' ? structuredClone(products) : [] } }) };
     },
   });

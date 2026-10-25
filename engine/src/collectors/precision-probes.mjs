@@ -8,7 +8,7 @@ import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
-import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
+import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { renameSync } from 'node:fs';
 import { mkdir, readFile, rm } from 'node:fs/promises';
@@ -128,6 +128,7 @@ import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
 import { collectMetroCityHiveRows, selectMetroSourcesForRefresh } from './buffalo-cityhive-discovery.mjs';
 import { metroHttpSourceError, metroSourceAttempts, readMetroSourceAttempts, updateMetroSourceAttempts, writeMetroSourceAttempts } from './metro-refresh-state.mjs';
 import { runArizonaSourcesWithDenialBackoff } from './arizona-source-attempts.mjs';
+import { ARIZONA_SMART_FINAL_SOURCE, collectArizonaSmartFinal } from './arizona-smart-final.mjs';
 import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaLiquorLibraryInventory } from '../south-carolina-retailer-policy.mjs';
 import {
   buildIndianaTargetStoreLocationSignals,
@@ -4694,7 +4695,7 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
     for (const term of terms) {
       options.signal?.throwIfAborted();
       if (metadata.totalSearchCount >= ARIZONA_XAPI_SEARCH_LIMIT || blockedHosts.has(new URL(host).host)) break;
-      const params = new URLSearchParams({ 'request-id': String(Date.now()), url: host, pageurl: host, pagename: 'search', rows: '100', start: '0', 'search-type': 'keyword', storeid: String(store.locationId), featured: 'true', 'search-uid': '', q: term, channel: 'instore', banner });
+      const params = new URLSearchParams({ 'request-id': String(Date.now()), url: host, pageurl: host, pagename: 'search', rows: String(ARIZONA_XAPI_SEARCH_ROWS), start: '0', 'search-type': 'keyword', storeid: String(store.locationId), featured: 'true', 'search-uid': '', q: term, channel: 'instore', banner });
       const url = `${host}/abs/pub/xapi/search/substitute?${params}`;
       const res = await request(url, { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_SEARCH_KEY }, 'inventory', String(store.locationId), term);
       if (!res) continue;
@@ -5919,7 +5920,7 @@ async function collectGeorgia(config, bible, options = {}) {
 }
 
 function arizonaAttemptSources() {
-  return [...AZ_CITYHIVE_SOURCES, { id: 'flagstaff-liquor', sourceLabel: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, baseUrl: AZ_FLAGSTAFF_LIQUOR_URL }]
+  return [...AZ_CITYHIVE_SOURCES, { id: 'flagstaff-liquor', sourceLabel: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, baseUrl: AZ_FLAGSTAFF_LIQUOR_URL }, ARIZONA_SMART_FINAL_SOURCE]
     .map((source) => ({ ...source, stateCode: 'AZ' }));
 }
 
@@ -6128,11 +6129,15 @@ async function collectArizona(config, bible, options = {}) {
     { signal: options.signal, registeredSources: arizonaAttemptSources(), directRequestCount: 1, writeAttempts: options.writeArizonaSourceAttempts, attemptStateAvailable: cityHive.metadata.attemptStateAvailable });
   const flagstaffLiquor = flagstaffRun.values[0]?.value || { signals: [], roadblocks: [] };
   const albertsons = await collectArizonaAlbertsons(config, bible, observedAt, options);
+  const smartFinalRun = await runArizonaSourcesWithDenialBackoff([ARIZONA_SMART_FINAL_SOURCE],
+    (_source, { fetchText }) => collectArizonaSmartFinal(config, bible, observedAt, { ...options, fetchText }),
+    { fetchText: options.fetchText || textFetch, signal: options.signal, registeredSources: arizonaAttemptSources(), writeAttempts: options.writeArizonaSourceAttempts, attemptStateAvailable: cityHive.metadata.attemptStateAvailable });
+  const smartFinal = smartFinalRun.values[0]?.value || { signals: [], roadblocks: [] };
   const target = await collectArizonaTarget(config, bible, observedAt, options);
   return {
-    signals: [...cityHive.signals, ...mesaLiquor.signals, ...bestLiquor.signals, ...flagstaffLiquor.signals, ...albertsons.signals, ...target.signals],
-    roadblocks: [...cityHive.roadblocks, ...mesaLiquor.roadblocks, ...bestLiquor.roadblocks, ...flagstaffLiquor.roadblocks, ...flagstaffRun.roadblocks, ...albertsons.roadblocks, ...target.roadblocks],
-    metadata: { cityhive: cityHive.metadata, flagstaff: flagstaffRun.metadata, xapi: albertsons.metadata },
+    signals: [...cityHive.signals, ...mesaLiquor.signals, ...bestLiquor.signals, ...flagstaffLiquor.signals, ...albertsons.signals, ...smartFinal.signals, ...target.signals],
+    roadblocks: [...cityHive.roadblocks, ...mesaLiquor.roadblocks, ...bestLiquor.roadblocks, ...flagstaffLiquor.roadblocks, ...flagstaffRun.roadblocks, ...albertsons.roadblocks, ...smartFinal.roadblocks, ...smartFinalRun.roadblocks, ...target.roadblocks],
+    metadata: { cityhive: cityHive.metadata, flagstaff: flagstaffRun.metadata, xapi: albertsons.metadata, smartFinal: { ...smartFinal.metadata, ...smartFinalRun.metadata } },
   };
 }
 

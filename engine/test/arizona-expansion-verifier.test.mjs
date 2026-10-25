@@ -13,12 +13,12 @@ const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', impor
 const lookup = bibleLookup(bible.records);
 const observations = fixture.captures.map((capture) => Date.parse(capture.observedAt));
 const now = Math.max(...observations) + 5 * 60_000;
-const expectations = { minimumSelectedStores: 2, minimumBaselineStores: 0, minimumAddedStores: 2, minimumPositiveXapiStores: 2, minimumPublicRows: 2, minimumAddedPublicStores: 1, minimumNewSelectedStores: 0, minimumNewPublicStores: 0 };
+const expectations = { minimumSelectedStores: 2, minimumBaselineStores: 0, minimumAddedStores: 2, minimumPositiveXapiStores: 2, minimumPublicRows: 2, minimumAddedPublicStores: 1, minimumNewSelectedStores: 0, minimumNewPublicStores: 0, minimumReviewedDepthRows: 0, minimumSmartFinalStores: 0 };
 
 async function capturedPipeline(t, { binary = false } = {}) {
   t.mock.timers.enable({ apis: ['Date'], now });
   const signals = [];
-  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, rareSearchCount: 0, maxSearchCount: 144 };
+  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, rareSearchCount: 0, maxSearchCount: 150 };
   for (const capture of fixture.captures) {
     const products = structuredClone(capture.products);
     if (binary) for (const product of products) delete product.channelInventory.instoreItemQty;
@@ -97,7 +97,7 @@ test('verifier binds metadata to exact premises, classification and a bounded de
   rejected(input, (row) => { row.state.precisionMetadata.xapi.baselineStores.push(row.state.precisionMetadata.xapi.addedStores.pop()); }, /misclassified/);
   rejected(input, (row) => { row.state.precisionMetadata.xapi.totalSearchCount += 1; }, /request ledger/);
   rejected(input, (row) => { row.state.precisionMetadata.xapi.requests[0].status = 403; }, /after denial/);
-  rejected(input, (row) => { const req = row.state.precisionMetadata.xapi.requests.find((entry) => entry.kind === 'inventory'); req.url = req.url.replace('rows=100', 'rows=1000'); }, /bounded page/);
+  rejected(input, (row) => { const req = row.state.precisionMetadata.xapi.requests.find((entry) => entry.kind === 'inventory'); req.url = req.url.replace('rows=120', 'rows=1000'); }, /bounded page/);
   rejected(input, (row) => { const req = row.state.precisionMetadata.xapi.requests.find((entry) => entry.kind === 'inventory'); const url = new URL(req.url); url.port = '444'; req.url = url.href; }, /bounded page/);
   rejected(input, (row) => { const req = row.state.precisionMetadata.xapi.requests.find((entry) => entry.kind === 'resolver'); const url = new URL(req.url); url.port = '444'; req.url = url.href; }, /configured public route/);
   rejected(input, (row) => {
@@ -112,7 +112,7 @@ test('previously released stores cannot satisfy the genuinely new public-store g
   const input = await capturedPipeline(t);
   assert.equal(verifyArizonaExpansionArtifact(input).newPublicStores, 0);
   rejected(input, row => { row.expectations.minimumNewPublicStores = 1; }, /Genuinely new stores/);
-  rejected(input, row => { row.expectations.minimumNewSelectedStores = 1; }, /80 previously released|genuinely new store floor/);
+  rejected(input, row => { row.expectations.minimumNewSelectedStores = 1; }, /128 previously released|genuinely new store floor/);
 });
 
 test('verifier rejects lost public proof, old coverage metadata and watch or stale alerts', async (t) => {
