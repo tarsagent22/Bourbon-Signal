@@ -1,12 +1,12 @@
 {
-  "scope": 946,
-  "labeled": 946,
-  "illustrations": 804,
+  "scope": 972,
+  "labeled": 972,
+  "illustrations": 830,
   "remaining": 0,
   "complete": true,
   "catalogScope": 929,
   "ownerScope": 3,
-  "feedScope": 10,
-  "libraryScope": 4,
-  "registryRevision": "a9ab33e0ec836b4811fb00f64b296d196e4eb8104e6a7af64ad3dd76eb3f6329"
+  "feedScope": 11,
+  "libraryScope": 29,
+  "registryRevision": "ea15a2b3d300dd6ebec31bd03f4cccff08c1a52358ac9ecb41d620976bcf2a19"
 }

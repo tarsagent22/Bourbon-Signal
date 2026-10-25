@@ -12,6 +12,7 @@ import feedProducts from '../shared/labeled-feed-bottles.json';
 import libraryProducts from '../shared/labeled-library-bottles.json';
 import feedFixture from './fixtures/feed-bottle-artwork-20261017.json';
 import scannerFixture from './fixtures/feed-bottle-artwork-scanner-20261017.json';
+import currentFeedFixture from './fixtures/feed-bottle-artwork-20261025.json';
 const { catalogBottlePhoto } = require('../src/lib/bottle-photos.ts') as typeof import('../src/lib/bottle-photos');
 
 test('every previously illustrated catalog and public owner bottle has labeled artwork', () => {
@@ -90,12 +91,41 @@ test('retailer feed names and package suffixes resolve existing labeled artwork'
 });
 
 test('observed collector reconstruction identities resolve on mobile and web', () => {
-  for (const row of [...feedFixture.entries, ...scannerFixture.entries]) {
+  for (const row of [...feedFixture.entries, ...scannerFixture.entries, ...currentFeedFixture.entries]) {
     const artwork = resolve(row, catalog);
     assert.ok(artwork, JSON.stringify(row));
     assert.equal(artwork.catalogId, row.expectedArtworkId, row.bottleName);
     assert.equal(catalogBottlePhoto({id:row.bottleId,canonicalName:row.bottleName})?.sha256,artwork.sha256);
   }
+});
+
+test('current retailer names preserve exact expression and edition boundaries', () => {
+  const buffaloName = 'Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)';
+  assert.equal(resolve({bottleName:buffaloName}, catalog)?.catalogId, 'buffalo-trace-bourbon');
+  for (const identity of [
+    {bottleId:'buffalo-trace-single-barrel-select',bottleName:buffaloName},
+    {bottleName:buffaloName.replace('90 Proof', '100 Proof')},
+    {bottleName:buffaloName.replace('Bourbon 90', 'Rye 90')},
+    {bottleName:"Maker's Mark Wood Finishing Series FAE-02"},
+    {bottleName:'Old Fitzgerald BIB 10Y Spring 27 Decanter'},
+    {bottleId:'old-fitzgerald-bottled-in-bond-10y-decanter',bottleName:'Old Fitzgerald BIB 10Y Spring 26 Decanter'},
+    {bottleName:'Russells Reserve Single Rickhouse Reiease Camp Nelson F'},
+  ]) assert.equal(resolve(identity,catalog),undefined,JSON.stringify(identity));
+  const fae=resolve({bottleName:"Maker's Mark Wood Finishing Series FAE-01"},catalog)!;
+  assert.ok(fae);
+  assert.notEqual(fae.sha256,resolve({bottleId:'makers-mark-wood-finishing-series-brt-01'},catalog)?.sha256);
+  assert.notEqual(fae.sha256,resolve({bottleId:'bb_dcbadbe1cd262fe4'},catalog)?.sha256);
+  for (const bottleName of [
+    'Penelope Cigar Sessions Chapter 01',
+    'Old Overholt 11 Year Cask Strength Rye (2026)',
+    'Green River Wheated Full Proof Bourbon 2027',
+    'Dark Arts Blunt Blend Volume 4',
+    'Balcones Texas Rye Single Barrel (CBS Pick)',
+    'Fiddler Georgia Heartwood Bourbon (Cramerton ABC Pick)',
+    'Rare Character Single Barrel Stateline Beverage Warehouse ELE-015',
+    'Old Charter Oak Finest Oak 2026',
+    'J. T. S. Brown',
+  ]) assert.equal(resolve({bottleName},catalog),undefined,bottleName);
 });
 
 test('the three screenshot identities resolve, including literal retailer display names', () => {
