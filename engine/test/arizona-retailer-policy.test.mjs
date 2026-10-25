@@ -4,11 +4,26 @@ import assert from 'node:assert/strict';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from '../src/arizona-retailer-policy.mjs';
 import { curlTextFetch, legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
+import { selectScheduledStates } from '../src/optimization/state-run-plan.mjs';
 
 test('Arizona precision collection gets one bounded long attempt instead of two guaranteed timeouts', () => {
-  assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', {}, {}), { timeoutMs: 300_000, maxAttempts: 1 });
+  const cadence = { baseCadenceMs: 1_800_000, minCadenceMs: 1_800_000, maxCadenceMs: 1_800_000 };
+  assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', {}, {}), { timeoutMs: 600_000, maxAttempts: 1, ...cadence });
   assert.deepEqual(legacyPrecisionRuntimeOptions('NC', {}, {}), { timeoutMs: 120_000, maxAttempts: 2 });
-  assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', { timeoutMs: 42, maxAttempts: 3 }, {}), { timeoutMs: 42, maxAttempts: 3 });
+  assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', { timeoutMs: 42, maxAttempts: 3 }, {}), { timeoutMs: 42, maxAttempts: 3, ...cadence });
+});
+
+test('Arizona state scheduling remains due at 30 minutes despite unchanged-result backoff', () => {
+  const lastProbeAt = '2026-10-25T00:00:00.000Z';
+  const metric = { lastProbeAt, probes: 100, usefulChanges: 0, consecutiveUnchanged: 80 };
+  const options = { now: '2026-10-25T00:31:00.000Z', baseCadenceMs: 30 * 60_000, maxCadenceMs: 24 * 60 * 60_000 };
+  const schedule = selectScheduledStates([{ id: 'AZ' }, { id: 'GA' }], { AZ: metric, GA: metric }, options);
+  assert.equal(schedule[0].run, true);
+  assert.equal(schedule[0].cadenceMs, 30 * 60_000);
+  assert.equal(schedule[1].run, false);
+  assert.equal(selectScheduledStates([{ id: 'AZ' }], { AZ: metric }, { ...options, now: '2026-10-25T00:29:00.000Z' })[0].run, false);
+  const cooled = { ...metric, cooldownUntil: '2026-10-25T04:00:00.000Z' };
+  assert.equal(selectScheduledStates([{ id: 'AZ' }], { AZ: cooled }, options)[0].nextProbeAt, cooled.cooldownUntil);
 });
 
 test('Arizona curl probes terminate when the outer source runtime aborts', async () => {

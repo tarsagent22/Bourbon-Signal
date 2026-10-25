@@ -8,7 +8,7 @@ import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
-import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
+import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { renameSync } from 'node:fs';
 import { mkdir, readFile, rm } from 'node:fs/promises';
@@ -953,7 +953,7 @@ const AZ_ALBERTSONS_STORE_KEY = process.env.BOURBON_SIGNAL_ALBERTSONS_STORE_KEY 
 const AZ_ALBERTSONS_SEARCH_KEY = process.env.BOURBON_SIGNAL_ALBERTSONS_SEARCH_KEY || 'e914eec9448c4d5eb672debf5011cf8f';
 const AZ_ALBERTSONS_ZIPS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_ZIPS || '85001,85251,85301,85201,85224,85234,85142,85323,85338,85345,85374,85396,85701,85635,85364,86403,86001,86301').split(',').map((x) => x.trim()).filter(Boolean);
 const AZ_ALBERTSONS_TERMS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || "bourbon,blanton's,weller,buffalo trace,e.h. taylor").split(',').map((x) => x.trim()).filter(Boolean);
-const AZ_ALBERTSONS_MAX_STORES = Math.max(1, Math.min(80, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_MAX_STORES) || 32));
+const AZ_ALBERTSONS_MAX_STORES = Math.max(1, Math.min(ARIZONA_XAPI_DEFAULT_STORES, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_MAX_STORES) || ARIZONA_XAPI_DEFAULT_STORES));
 const AZ_ALBERTSONS_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_DELAY_MS) || 900));
 const AZ_TARGET_KEY = process.env.BOURBON_SIGNAL_TARGET_REDSKY_KEY || '9f36aeafbe60771e321a7cc95a78140772ab3e96';
 const AZ_TARGET_STORES = new Map([
@@ -9541,16 +9541,16 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['IN', 'TN', 'FL'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['IN', 'TN', 'FL', 'AZ'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
   const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
-  const texasCadence = stateKey === 'TX' ? 30 * 60_000 : null;
+  const inventoryCadence = ['TX', 'AZ'].includes(stateKey) ? 30 * 60_000 : null;
   return {
     ...sourceRunnerOptions,
     ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),
-    ...(texasCadence ? {
-      baseCadenceMs: sourceRunnerOptions.baseCadenceMs ?? texasCadence,
-      minCadenceMs: sourceRunnerOptions.minCadenceMs ?? texasCadence,
-      maxCadenceMs: sourceRunnerOptions.maxCadenceMs ?? texasCadence,
+    ...(inventoryCadence ? {
+      baseCadenceMs: sourceRunnerOptions.baseCadenceMs ?? inventoryCadence,
+      minCadenceMs: sourceRunnerOptions.minCadenceMs ?? inventoryCadence,
+      maxCadenceMs: sourceRunnerOptions.maxCadenceMs ?? inventoryCadence,
     } : {}),
     timeoutMs: sourceRunnerOptions.timeoutMs ?? Number(stateTimeout || env.BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS || defaultTimeoutMs),
     maxAttempts: sourceRunnerOptions.maxAttempts ?? Number(stateAttempts || env.BOURBON_SIGNAL_LEGACY_PRECISION_ATTEMPTS || defaultMaxAttempts),

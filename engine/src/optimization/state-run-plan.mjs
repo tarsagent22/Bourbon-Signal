@@ -12,7 +12,12 @@ export function selectScheduledStates(configs, metrics = {}, options = {}) {
     }));
   }
   return configs.map((config) => {
-    const schedule = decideSourceSchedule({ sourceId: config.id, ...(metrics[config.id] || {}) }, options);
+    // Arizona's exact-store rows expire while unchanged/failure backoff can
+    // otherwise stretch to a day. Per-source denial cooldowns still apply.
+    const stateOptions = config.id === 'AZ'
+      ? { ...options, maxCadenceMs: Math.min(options.maxCadenceMs ?? 30 * 60_000, 30 * 60_000) }
+      : options;
+    const schedule = decideSourceSchedule({ sourceId: config.id, ...(metrics[config.id] || {}) }, stateOptions);
     return { id: config.id, config, run: schedule.decision === 'probe_now', ...schedule };
   });
 }
