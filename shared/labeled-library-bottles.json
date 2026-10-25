@@ -26,5 +26,180 @@
     "names": [],
     "sha256": "4637e3e9f62a54cce9d8dbb23fcc1c854d6228e373302d8c2e1d4c053c124b8f",
     "reference": "https://greenriverwhiskey.com/kentucky-straight-rye/"
+  },
+  {
+    "id": "owner-a01753d2-f534-4e86-86d2-66eef53d122c",
+    "name": "Dark Arts Toasted Mizunara Stave Finished Bourbon",
+    "names": [],
+    "sha256": "101bff4d4a2664c90099b32f5b7c59867409b4acd75c6c69b554d067d6cf3a21",
+    "reference": "https://www.darkartswhiskey.com/toasted-mizunara-bourbon"
+  },
+  {
+    "id": "owner-0a935833-b95d-46ac-8dce-d6baeca51a43",
+    "name": "Old Forester Single Barrel Barrel Strength Rye",
+    "names": [],
+    "sha256": "71ae4ae2689d2aaac22ac594c035c250a2cc8025028e4746c2f1fc1bc025f81d",
+    "reference": "https://www.oldforester.com/products/old-forester-single-barrel-rye/"
+  },
+  {
+    "id": "owner-5183df6b-7e8e-470a-8cf2-ccf8f8c14c8c",
+    "name": "Old Dominick 8 Year Reserve Bourbon Batch 2",
+    "names": [],
+    "sha256": "bf4406bba1714e7ed4047f444e1d35819edcb288e09787b94c32d993782ea5cc",
+    "reference": "https://olddominick.com/products/old-dominick-eight-year-old-reserve-bourbon-whiskey/"
+  },
+  {
+    "id": "owner-ba8dbbad-7b9b-44ac-95de-b84f506824a4",
+    "name": "Mad River Straight Bourbon",
+    "names": [],
+    "sha256": "a80855fa0c3b836a5d2104856fd971a1861ed1907a84894ec3e22e2736232cc0",
+    "reference": "https://www.madriverdistillers.com/product/mad-river-straight-bourbon-whiskey/"
+  },
+  {
+    "id": "owner-e1581d19-6295-4f69-84f5-d55731d7ab92",
+    "name": "Dark Arts Blunt Blend Volume 3",
+    "names": [],
+    "sha256": "91d2f75ebc226b5ec717f8f57eafd8c2f6434c3a2249584fc83a57370a86dee7",
+    "reference": "https://store.darkartswhiskey.com/products/dark-arts-blunt-blend-volume-3"
+  },
+  {
+    "id": "owner-dfcea0a1-9f63-4da6-bce2-d0b3db1feba7",
+    "name": "Maker's Mark Wood Finishing Series 2025 Keepers Release",
+    "names": [],
+    "sha256": "a14c388db771f115c10a5d5b3f28009cf53773378b688a48698c0744661b1c97",
+    "reference": "https://www.makersmark.com/bourbons/makers-mark-wood-finishing-series-bourbon-keepers-release"
+  },
+  {
+    "id": "owner-de6b9ba8-9c90-4573-a02f-282c141a6165",
+    "name": "Heaven Hill Grain to Glass Specialty Barrel Series Wheated Bourbon (Chinquapin Oak)",
+    "names": [],
+    "sha256": "d7894e80174e8084551bf5ad23b0d7de56f4c807c58c6465f4d4ef9cc3489952",
+    "reference": "https://blog.heavenhilldistillery.com/detail.php?post_name=heaven-hill-distillery-announces-first-release-of-heaven-hill-grain-to-glass-specialty-barrel-series"
+  },
+  {
+    "id": "owner-2a032320-8108-4f5d-8873-ec3d0cebeea6",
+    "name": "Duck Club High Brass Bourbon",
+    "names": [],
+    "sha256": "21afd4a19d1fd9a34878c2b7401762602748b115303a1007b334c58f7b7cc493",
+    "reference": "https://duckclubbourbon.com/products/duck-club-bourbon-110-proof"
+  },
+  {
+    "id": "owner-2a1eae59-b239-451c-a507-0b6b18fa560c",
+    "name": "Kings County Barrel Strength Empire Rye",
+    "names": [],
+    "sha256": "5cd220bad68ab1c6496ecfd4dae2f469bf794b4225c1a9deea5a55c6deb46b74",
+    "reference": "https://www.kingscountydistillery.com/collections/for-the-whiskey-lovers/products/empire-rye-750ml"
+  },
+  {
+    "id": "owner-e83d814b-16c0-405f-97af-e1abcf910ba5",
+    "name": "Green River Wheated Full Proof Bourbon",
+    "names": [],
+    "sha256": "77ec7971c652fe5e2500884bfa1e37dc4e3be486ed64155ed364f90eb171f52d",
+    "reference": "https://greenriverwhiskey.com/our-whiskey-new-changes/"
+  },
+  {
+    "id": "owner-78885ff2-1fa6-4691-866e-a02ee6d99e9b",
+    "name": "Sagamore Cask Strength Rye",
+    "names": [],
+    "sha256": "40ffd287c28d917b6f26a194755e82fc91b46eb7998a57940245600857a9c6e0",
+    "reference": "https://sagamorespirit.com/spirits/cask-strength-rye-whiskey/"
+  },
+  {
+    "id": "owner-9bc37feb-fabb-4a35-a7d0-38ccb2954668",
+    "name": "Mad River Burnt Rock Bourbon",
+    "names": [],
+    "sha256": "3b3788a0b875a8c40dd7fb31a99f6b94676bdbe2ad046baea978968098bb1479",
+    "reference": "https://www.madriverdistillers.com/liquor-type/burnt-rock-bourbon/"
+  },
+  {
+    "id": "owner-9270236e-a93a-451f-9dab-c26b85980403",
+    "name": "Jack Daniel's Gentleman Jack",
+    "names": [],
+    "sha256": "56be96f1ab4cc9775622c1057efd13cc12182b2c9eba54ea09f73aa599768ba1",
+    "reference": "https://shop.jackdaniels.de/jack-daniel-s-gentleman-jack.html"
+  },
+  {
+    "id": "owner-22b6e6dc-e1ea-4808-9316-d970e34afbb8",
+    "name": "Old Soul Estate Collection No. 3 Sorghum Bourbon",
+    "names": [],
+    "sha256": "a90181d7c3ceee44647f2e6920a4b659747706e8c099cf7db546d3ff3f03afcb",
+    "reference": "https://catheaddistillery.com/shop-spirits/estate-collection-3/"
+  },
+  {
+    "id": "owner-a1e54d2d-2aea-4e5b-ae51-77f1c84ab19b",
+    "name": "Driftless Glen Single Barrel Bourbon",
+    "names": [],
+    "sha256": "8721748e7d64618f68801ba3b6e5e272042bfcf278447f9e54db8dc6e0a08d84",
+    "reference": "https://driftlessglen.com/spirits"
+  },
+  {
+    "id": "owner-6337850c-78cb-4fb9-95f8-ca5231a883fe",
+    "name": "Smooth Ambler Old Scout Bourbon",
+    "names": [],
+    "sha256": "2560f627a3a8d5167beaf4a5cd16825b3b4b35ebb41f07d17d5c6db0a0af9827",
+    "reference": "https://smoothambler.com/smooth-ambler-old-scout-7-bourbon-whiskey/"
+  },
+  {
+    "id": "penelope-barrel-strength-bourbon",
+    "name": "Penelope Barrel Strength Bourbon",
+    "names": [],
+    "sha256": "d24370643863abb159090193eb0e1e3e591e848a4a768f4380b2b043a2df2554",
+    "reference": "https://shop.penelopebourbon.com/products/barrel-strength"
+  },
+  {
+    "id": "penelope-cigar-sessions-chapter-02",
+    "name": "Penelope Cigar Sessions Chapter 02",
+    "names": [],
+    "sha256": "06ee444f02ddf3d9c893a8640ee775b250f87d1e9ce26fbc3b4196360bc51589",
+    "reference": "https://shop.penelopebourbon.com/products/cigar-sessions-chapter-02"
+  },
+  {
+    "id": "penelope-toasted-rye",
+    "name": "Penelope Toasted Rye",
+    "names": [],
+    "sha256": "013c08a99f8c3d59e4cbe8f58d66e514f543a5bb862a8834a3706daa9427a954",
+    "reference": "https://shop.penelopebourbon.com/products/penelope-toasted-rye"
+  },
+  {
+    "id": "penelope-serena-and-lily",
+    "name": "Penelope Serena & Lily",
+    "names": [],
+    "sha256": "60e119a769ad0a7baeed0a157b736be43c3836ffbc7a4df7f984608d05b4334a",
+    "reference": "https://shop.penelopebourbon.com/products/serena-lily"
+  },
+  {
+    "id": "penelope-estate-collection-conundrum",
+    "name": "Penelope Estate Collection Conundrum Rye",
+    "names": [],
+    "sha256": "f180803ab70328bd9fefbeafb7ac0c57595a2cadef007c1664e90e86c27af5be",
+    "reference": "https://abc2.nc.gov/Pricing/ViewItemDetails/181867"
+  },
+  {
+    "id": "high-west-prisoners-share",
+    "name": "High West The Prisoner's Share",
+    "names": [],
+    "sha256": "acb086d227bfabdd0aaac1981f192a557666d8a57c177ba44f86db061a3fd37c",
+    "reference": "https://www.cbrands.com/blogs/press-releases/high-west-whiskey-and-the-prisoner-debut-first-collaboration"
+  },
+  {
+    "id": "penelope-madagascar",
+    "name": "Penelope Madagascar",
+    "names": [],
+    "sha256": "afddc764415d11c0caf90e9d834f566c8948a2b66474c0df6a77c6f110708b6f",
+    "reference": "https://shop.penelopebourbon.com/products/madagascar"
+  },
+  {
+    "id": "georgia-moon",
+    "name": "Georgia Moon",
+    "names": [],
+    "sha256": "5332e0e45b408677547166318a0ecedb96857d375c382b3948c0723b3f68a6dd",
+    "reference": "https://www.abc.virginia.gov/products/whiskey/georgia-moon-fruit-jar-100-proof"
+  },
+  {
+    "id": "old-overholt-11-cask-strength-2024",
+    "name": "Old Overholt 11 Year Cask Strength Rye (2024)",
+    "names": [],
+    "sha256": "ef419ef8223b47c16a40459a4f2ef27fd604b827a076bc3c6ca59dea5376cfe6",
+    "reference": "https://www.miralomamarket.com/products/old-overholt-11-year-cask-strength-rye-2024-release"
   }
 ]

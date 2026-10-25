@@ -29,7 +29,7 @@ for (const job of jobs) {
   const row = { id: bottle.id, name: bottle.name, names: [], sha256, reference: job.reference };
   additions = [...additions.filter(b => b.id !== bottle.id), row];
   registry.entries = [...registry.entries.filter(b => b.catalogId !== bottle.id), { catalogId: bottle.id, displayName: bottle.name, exactNames: [bottle.name], sha256, width: 400, height: 600 }];
-  const evidence = { key: bottle.id, masterSha256: hash(master), sha256, prompt: job.prompt, reference: job.reference, method: 'Built-in image generation from producer reference; transparent PNG export', reviewed: true, reviewNotes: job.reviewNotes, bytes: bytes.length };
+  const evidence = { key: bottle.id, masterSha256: hash(master), sha256, prompt: job.prompt, reference: job.reference, ...(job.referenceImage?.startsWith('https://') ? { referenceImage: job.referenceImage } : {}), method: 'Built-in image generation from verified packaging reference; transparent PNG export', reviewed: true, reviewNotes: job.reviewNotes, bytes: bytes.length };
   retained.assets = [...retained.assets.filter(b => b.key !== bottle.id), evidence];
   provenance.assets = [...provenance.assets.filter(b => b.key !== bottle.id), evidence];
   if (!imports.includes(`'${sha256}'`)) imports = imports.replace(/\n};\s*$/, `\n  '${sha256}': require('../../assets/bottles/labeled-v1/${sha256}.png'),\n};\n`);
