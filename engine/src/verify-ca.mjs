@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { isCaliforniaRetailerInventory } from './california-retailer-policy.mjs';
 import { unexpectedCaliforniaRoadblocks } from './california-release-policy.mjs';
+import { expectedCaliforniaInventoryAlerts, assertCaliforniaInventoryAlertIdentities } from './california-alert-verification.mjs';
 
 const state = JSON.parse(await readFile('out/states/CA.json', 'utf8'));
 const storeUniverse = JSON.parse(await readFile('data/store-universe/CA.json', 'utf8'));
@@ -9,6 +10,7 @@ const siteStores = JSON.parse(await readFile('out/site/stores.json', 'utf8'));
 const siteLocations = JSON.parse(await readFile('out/site/locations.json', 'utf8'));
 const siteAlerts = JSON.parse(await readFile('out/site/alerts.json', 'utf8'));
 const stateQuality = JSON.parse(await readFile('out/site/state-quality.json', 'utf8'));
+const bible = JSON.parse(await readFile('out/bourbon-bible.json', 'utf8'));
 const signals = Array.isArray(state.signals) ? state.signals : [];
 const inventory = signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
 const allowSafeRetainedNotDue = !process.argv.includes('--require-complete') || process.argv.includes('--allow-safe-retained-not-due');
@@ -50,12 +52,10 @@ const exportedAlerts = (siteAlerts.alerts ?? []).filter((row) => row.state === '
 if (!scheduledNonStale) assert.ok(exportedStores.length >= 2, 'root store export must include both inventory-eligible San Diego stores');
 if (!scheduledNonStale) assert.ok(exportedLocations.length >= 3, 'root location export must include San Diego inventory and watch locations');
 assert.ok(exportedStores.every((row) => row.city === 'San Diego' && row.address), 'exported California stores require exact San Diego addresses');
-if (freshInventory.length > 0 && exportedAlerts.length < Math.min(12, freshInventory.length)) {
-  assert.ok(scheduledOnlyException, 'fresh California inventory must expose on-site orderability alerts');
-  if (!scheduledNonStale) assert.ok(stateDrops.length >= 12, 'a retained-not-due California partition may omit duplicate baseline alerts only while its customer-facing drops remain intact');
-  assert.ok(exportedAlerts.every((row) => row.eligibleForEmail === false && row.eligibleForSms === false), 'a retained-not-due California partition must never leak outbound alerts');
-} else if (freshInventory.length > 0) {
-  assert.ok(exportedAlerts.length >= Math.min(12, freshInventory.length), 'fresh California inventory must expose on-site orderability alerts');
+if (freshInventory.length > 0) {
+  const expected = expectedCaliforniaInventoryAlerts(signals, bible.records, { maxAgeMs: currentInventoryAlertMaxAgeMs });
+  assertCaliforniaInventoryAlertIdentities(expected, exportedAlerts, { allowMissing: scheduledOnlyException });
+  if (scheduledOnlyException) assert.ok(exportedAlerts.every((row) => row.eligibleForEmail === false && row.eligibleForSms === false), 'a retained-not-due California partition must never leak outbound alerts');
 } else {
   assert.equal(exportedAlerts.length, 0, 'stale California inventory must not produce alert candidates');
 }
