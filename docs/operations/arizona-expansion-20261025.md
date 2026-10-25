@@ -12,6 +12,8 @@ Live preflight from 2026-10-25T03:54:59.305Z to 2026-10-25T03:59:47.439Z returne
 
 The sequential collector keeps its existing request pace, one bounded ten-minute source attempt, 16 rotating rare searches and immediate per-host denial stops. The ceiling becomes 144 searches: one bourbon query at each of 128 selected premises plus 16 rare queries. All per-source denial cooldowns and exact quantity and bottle identity checks remain enforced. No ambiguous bottle match is loosened to inflate coverage.
 
+The current-main restoration run 40159855934 exposed a parent watchdog mismatch: Arizona still inherited the generic 180-second state limit and correctly retained stale non-alertable fallback when its fresh collection exceeded that limit. Add an explicit twelve-minute Arizona parent budget above the ten-minute source attempt. Regression checks load the actual runner policy without executing collection, verify the nested budgets and confirm explicit overrides and other states remain independent.
+
 Publication requires all 80 prior selected premises, 48 genuinely new selected premises, at least 32 genuinely new public stores, at least 110 positive grocery stores and at least 190 distinct public inventory rows. Earlier fixtures continue to use their historical baseline.
 
 The prior state and source cadence caps remain in effect. The new pass also observed a gap in GitHub scheduled refresh execution despite active workflow definitions; configured cadence is not proof that the scheduler ran. A bounded current-main refresh restores existing coverage while this release is prepared. This change does not claim to repair external scheduling reliability.
