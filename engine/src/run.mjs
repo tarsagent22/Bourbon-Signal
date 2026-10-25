@@ -2,6 +2,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { ALL_STATE_SOURCES, STATE_SOURCES } from './state-sources.mjs';
 import { sourceRefreshScope } from './source-scoped-refresh.mjs';
 import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
@@ -57,6 +58,9 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // fallback while still keeping hard failure bounds.
   VA: Number(process.env.BOURBON_SIGNAL_VA_STATE_TIMEOUT_MS || 1_200_000),
   IN: Number(process.env.BOURBON_SIGNAL_IN_STATE_TIMEOUT_MS || 900_000),
+  // Arizona's sequential exact-store sweep has a bounded ten-minute source
+  // attempt. Its parent must outlive that budget, including generic probes.
+  AZ: Number(process.env.BOURBON_SIGNAL_AZ_STATE_TIMEOUT_MS || 720_000),
   // NC board intelligence + county inventory probes can cross the generic
   // timeout during normal successful runs. Give it the same scheduled-run
   // budget as other broad inventory states so stale fallback only indicates a
@@ -128,7 +132,7 @@ const BROWSER_PREFLIGHT_JOBS = [
 const MIN_FWGS_POSITIVE_ROWS = Number(process.env.BOURBON_SIGNAL_MIN_FWGS_POSITIVE_ROWS || 1000);
 const MIN_OHLQ_OK_PRODUCTS = Number(process.env.BOURBON_SIGNAL_MIN_OHLQ_OK_PRODUCTS || 1);
 
-function stateTimeoutMs(config) {
+export function stateTimeoutMs(config) {
   return STATE_TIMEOUT_OVERRIDES_MS[config.id] || STATE_TIMEOUT_MS;
 }
 
@@ -679,7 +683,9 @@ async function main() {
   console.log(`Done: ${summary.stateCount} states, ${summary.signalCount} signals, ${summary.roadblockCount} roadblocks.`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

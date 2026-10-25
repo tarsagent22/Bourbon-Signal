@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { collectArizonaAlbertsons } from '../src/collectors/precision-probes.mjs';
-import { ARIZONA_XAPI_PREVIOUS_STORE_IDS } from '../src/collectors/arizona-xapi.mjs';
+import { ARIZONA_XAPI_OCT22_STORE_IDS as ARIZONA_XAPI_PREVIOUS_STORE_IDS } from '../src/collectors/arizona-xapi.mjs';
 import { canonicalizeSignal } from '../src/operational-report.mjs';
 import { bibleLookup, buildDrops, buildCurrentInventoryAlertsFromDrops } from '../src/export-site-contract.mjs';
 const fixture = JSON.parse(await readFile(new URL('./fixtures/arizona-xapi/2026-10-24-new-premises.json', import.meta.url), 'utf8'));
