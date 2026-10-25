@@ -5,8 +5,8 @@ import { isArizonaRetailerInventory } from './arizona-retailer-policy.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_RARE_QUERY_LIMIT } from './collectors/arizona-xapi.mjs';
 
 export const ARIZONA_EXPANSION_EXPECTATIONS = Object.freeze({
-  minimumSelectedStores: 80, minimumBaselineStores: 24, minimumAddedStores: 56,
-  minimumPositiveXapiStores: 64, minimumAddedPublicStores: 40, minimumPublicRows: 82,
+  minimumSelectedStores: 128, minimumBaselineStores: 24, minimumAddedStores: 104,
+  minimumPositiveXapiStores: 110, minimumAddedPublicStores: 80, minimumPublicRows: 190,
   minimumNewSelectedStores: 48, minimumNewPublicStores: 32,
   maximumSearchCount: ARIZONA_XAPI_SEARCH_LIMIT, maximumRareSearchCount: ARIZONA_XAPI_RARE_QUERY_LIMIT, maximumAgeMs: 2 * 60 * 60_000,
 });
@@ -87,8 +87,8 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   check(sameEntries(baseline, expectedBaseline) && baseline.length >= expected.minimumBaselineStores, 'XAPI baseline store selection is missing or misclassified.');
   check(sameEntries(added, expectedAdded) && added.length >= expected.minimumAddedStores, 'XAPI added store selection is missing or misclassified.');
   if (expected.minimumBaselineStores === 24) check(ARIZONA_XAPI_BASELINE_STORE_IDS.every((id) => selected.some((entry) => String(entry?.storeId).split(':')[1] === id)), 'All 24 protected baseline XAPI stores must remain selected.');
-  if (expected.minimumNewSelectedStores > 0) check(ARIZONA_XAPI_PREVIOUS_STORE_IDS.every((id) => selected.some((entry) => String(entry?.storeId).split(':')[1] === id)), 'All 32 previously released XAPI stores must remain selected.');
-  check(newStores.length >= expected.minimumNewSelectedStores, 'Selection does not reach the genuinely new store floor against the released 32-store cohort.');
+  if (expected.minimumNewSelectedStores > 0) check(ARIZONA_XAPI_PREVIOUS_STORE_IDS.every((id) => selected.some((entry) => String(entry?.storeId).split(':')[1] === id)), 'All 80 previously released XAPI stores must remain selected.');
+  check(newStores.length >= expected.minimumNewSelectedStores, 'Selection does not reach the genuinely new store floor against the released 80-store cohort.');
 
   const requests = Array.isArray(metadata?.requests) ? metadata.requests : [];
   const search = requests.filter((request) => request?.kind === 'inventory');
@@ -118,7 +118,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
       && /^\d{5}$/.test(url.searchParams.get('zipcode') || '') && url.searchParams.get('radius') === '50' && url.searchParams.get('size') === '100', 'XAPI resolver request violates the configured public route.');
   }
   check(search.length === metadata?.totalSearchCount && bourbon.length === metadata?.bourbonSearchCount && rare.length === metadata?.rareSearchCount, 'XAPI search counts do not match the request ledger.');
-  check(search.length <= Math.min(ARIZONA_XAPI_SEARCH_LIMIT, expected.maximumSearchCount) && rare.length <= Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, expected.maximumRareSearchCount) && metadata?.maxSearchCount === ARIZONA_XAPI_SEARCH_LIMIT, 'XAPI request budget exceeds 96 searches or 16 rare queries.');
+  check(search.length <= Math.min(ARIZONA_XAPI_SEARCH_LIMIT, expected.maximumSearchCount) && rare.length <= Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, expected.maximumRareSearchCount) && metadata?.maxSearchCount === ARIZONA_XAPI_SEARCH_LIMIT, 'XAPI request budget exceeds 144 searches or 16 rare queries.');
   check(bourbon.length === selected.length && bourbonStores.size === selected.length && selected.every((entry) => bourbonStores.has(entry?.storeId)), 'Each selected XAPI store must receive exactly one bourbon query.');
   for (const row of xapi) {
     const entry = byStore.get(row.storeId);

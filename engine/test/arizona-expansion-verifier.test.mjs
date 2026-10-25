@@ -18,7 +18,7 @@ const expectations = { minimumSelectedStores: 2, minimumBaselineStores: 0, minim
 async function capturedPipeline(t, { binary = false } = {}) {
   t.mock.timers.enable({ apis: ['Date'], now });
   const signals = [];
-  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, rareSearchCount: 0, maxSearchCount: 96 };
+  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, rareSearchCount: 0, maxSearchCount: 144 };
   for (const capture of fixture.captures) {
     const products = structuredClone(capture.products);
     if (binary) for (const product of products) delete product.channelInventory.instoreItemQty;
@@ -112,7 +112,7 @@ test('previously released stores cannot satisfy the genuinely new public-store g
   const input = await capturedPipeline(t);
   assert.equal(verifyArizonaExpansionArtifact(input).newPublicStores, 0);
   rejected(input, row => { row.expectations.minimumNewPublicStores = 1; }, /Genuinely new stores/);
-  rejected(input, row => { row.expectations.minimumNewSelectedStores = 1; }, /32 previously released|genuinely new store floor/);
+  rejected(input, row => { row.expectations.minimumNewSelectedStores = 1; }, /80 previously released|genuinely new store floor/);
 });
 
 test('verifier rejects lost public proof, old coverage metadata and watch or stale alerts', async (t) => {
