@@ -1,0 +1,437 @@
+{
+  "capturedAt": "2026-10-26T01:49:07.708Z",
+  "signals": [
+    {
+      "id": "302292aa08e80ae2",
+      "state": "AZ",
+      "sourceLabel": "Mesa Liquor WooCommerce store inventory",
+      "sourceUrl": "https://mesaliquorstore.com/product/little-book-whiskey-58-9-p-750ml/",
+      "sourceChain": "mesa-liquor",
+      "merchantId": "mesa-liquor-woocommerce",
+      "rawName": "Little Book Whiskey 58.9P 750ml",
+      "canonicalBottleId": "bb_eb5da0badfc03902",
+      "canonicalName": "Little Book",
+      "tier": "allocated",
+      "confidence": 0.8,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Mesa Liquor",
+      "storeName": "Mesa Liquor",
+      "storeId": "mesa-liquor:7143-e-southern",
+      "storeAddress": "7143 E Southern Ave, Mesa, AZ 85209",
+      "city": "Mesa",
+      "stateCode": "AZ",
+      "postalCode": "85209",
+      "zip": "85209",
+      "quantity": 0,
+      "price": 239.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "Retailer reports in stock",
+      "sourceAvailabilityVerified": true,
+      "observedAt": "2026-10-26T01:42:36.881Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Mesa Liquor’s public WooCommerce Store API reports this bottle in stock and purchasable. It does not expose exact on-hand quantity; verify directly before driving.",
+      "evidence": "Mesa Liquor WooCommerce reports Little Book Whiskey 58.9P 750ml in stock at $239.99 for its Mesa store. Exact quantity is not published.",
+      "raw": {
+        "chain": "mesa-liquor",
+        "merchantId": "mesa-liquor-woocommerce",
+        "product": {
+          "id": 57199,
+          "sku": "80686008675",
+          "is_in_stock": true,
+          "is_purchasable": true,
+          "is_on_backorder": false,
+          "low_stock_remaining": null,
+          "prices": {
+            "price": "23999",
+            "regular_price": "23999",
+            "sale_price": "23999",
+            "price_range": null,
+            "currency_code": "USD",
+            "currency_symbol": "$",
+            "currency_minor_unit": 2,
+            "currency_decimal_separator": ".",
+            "currency_thousand_separator": ",",
+            "currency_prefix": "$",
+            "currency_suffix": ""
+          }
+        }
+      },
+      "sourceRuntimeId": "precision:az"
+    },
+    {
+      "id": "d1f739bcb4f8f60f",
+      "state": "AZ",
+      "sourceLabel": "Mesa Liquor WooCommerce store inventory",
+      "sourceUrl": "https://mesaliquorstore.com/product/little-book-whiskey-118-p-750ml/",
+      "sourceChain": "mesa-liquor",
+      "merchantId": "mesa-liquor-woocommerce",
+      "rawName": "Little Book Whiskey 118P 750ml",
+      "canonicalBottleId": "bb_eb5da0badfc03902",
+      "canonicalName": "Little Book",
+      "tier": "allocated",
+      "confidence": 0.8,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Mesa Liquor",
+      "storeName": "Mesa Liquor",
+      "storeId": "mesa-liquor:7143-e-southern",
+      "storeAddress": "7143 E Southern Ave, Mesa, AZ 85209",
+      "city": "Mesa",
+      "stateCode": "AZ",
+      "postalCode": "85209",
+      "zip": "85209",
+      "quantity": 0,
+      "price": 204,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "Retailer reports in stock",
+      "sourceAvailabilityVerified": true,
+      "observedAt": "2026-10-26T01:42:36.881Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Mesa Liquor’s public WooCommerce Store API reports this bottle in stock and purchasable. It does not expose exact on-hand quantity; verify directly before driving.",
+      "evidence": "Mesa Liquor WooCommerce reports Little Book Whiskey 118P 750ml in stock at $204.00 for its Mesa store. Exact quantity is not published.",
+      "raw": {
+        "chain": "mesa-liquor",
+        "merchantId": "mesa-liquor-woocommerce",
+        "product": {
+          "id": 57197,
+          "sku": "80686007814",
+          "is_in_stock": true,
+          "is_purchasable": true,
+          "is_on_backorder": false,
+          "low_stock_remaining": null,
+          "prices": {
+            "price": "20400",
+            "regular_price": "20400",
+            "sale_price": "20400",
+            "price_range": null,
+            "currency_code": "USD",
+            "currency_symbol": "$",
+            "currency_minor_unit": 2,
+            "currency_decimal_separator": ".",
+            "currency_thousand_separator": ",",
+            "currency_prefix": "$",
+            "currency_suffix": ""
+          }
+        }
+      },
+      "sourceRuntimeId": "precision:az"
+    },
+    {
+      "id": "a81140ff04bd8452",
+      "state": "AZ",
+      "sourceLabel": "Best Liquor Tempe WooCommerce store inventory",
+      "sourceUrl": "https://bestliquortempe.com/product/little-book-whiskey-58-9-p-750ml/",
+      "sourceChain": "best-liquor-tempe",
+      "merchantId": "best-liquor-tempe-woocommerce",
+      "rawName": "Little Book Whiskey 58.9P 750ml",
+      "canonicalBottleId": "bb_eb5da0badfc03902",
+      "canonicalName": "Little Book",
+      "tier": "allocated",
+      "confidence": 0.8,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Best Liquor",
+      "storeName": "Best Liquor",
+      "storeId": "best-liquor-tempe:3320-s-priest",
+      "storeAddress": "3320 S Priest Dr, Tempe, AZ 85282",
+      "city": "Tempe",
+      "stateCode": "AZ",
+      "postalCode": "85282",
+      "zip": "85282",
+      "quantity": 0,
+      "price": 239.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "Retailer reports in stock",
+      "sourceAvailabilityVerified": true,
+      "observedAt": "2026-10-26T01:42:36.881Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Best Liquor’s public WooCommerce Store API reports this bottle in stock and purchasable. It does not expose exact on-hand quantity; verify directly before driving.",
+      "evidence": "Best Liquor WooCommerce reports Little Book Whiskey 58.9P 750ml in stock at $239.99 for its Tempe store. Exact quantity is not published.",
+      "raw": {
+        "chain": "best-liquor-tempe",
+        "merchantId": "best-liquor-tempe-woocommerce",
+        "product": {
+          "id": 59788,
+          "sku": "80686008675",
+          "is_in_stock": true,
+          "is_purchasable": true,
+          "is_on_backorder": false,
+          "low_stock_remaining": null,
+          "prices": {
+            "price": "23999",
+            "regular_price": "23999",
+            "sale_price": "23999",
+            "price_range": null,
+            "currency_code": "USD",
+            "currency_symbol": "$",
+            "currency_minor_unit": 2,
+            "currency_decimal_separator": ".",
+            "currency_thousand_separator": ",",
+            "currency_prefix": "$",
+            "currency_suffix": ""
+          }
+        }
+      },
+      "sourceRuntimeId": "precision:az"
+    },
+    {
+      "id": "76074078176b7eda",
+      "state": "AZ",
+      "sourceLabel": "Best Liquor Tempe WooCommerce store inventory",
+      "sourceUrl": "https://bestliquortempe.com/product/little-book-whiskey-118-p-750ml/",
+      "sourceChain": "best-liquor-tempe",
+      "merchantId": "best-liquor-tempe-woocommerce",
+      "rawName": "Little Book Whiskey 118P 750ml",
+      "canonicalBottleId": "bb_eb5da0badfc03902",
+      "canonicalName": "Little Book",
+      "tier": "allocated",
+      "confidence": 0.8,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Best Liquor",
+      "storeName": "Best Liquor",
+      "storeId": "best-liquor-tempe:3320-s-priest",
+      "storeAddress": "3320 S Priest Dr, Tempe, AZ 85282",
+      "city": "Tempe",
+      "stateCode": "AZ",
+      "postalCode": "85282",
+      "zip": "85282",
+      "quantity": 0,
+      "price": 204,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "Retailer reports in stock",
+      "sourceAvailabilityVerified": true,
+      "observedAt": "2026-10-26T01:42:36.881Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Best Liquor’s public WooCommerce Store API reports this bottle in stock and purchasable. It does not expose exact on-hand quantity; verify directly before driving.",
+      "evidence": "Best Liquor WooCommerce reports Little Book Whiskey 118P 750ml in stock at $204.00 for its Tempe store. Exact quantity is not published.",
+      "raw": {
+        "chain": "best-liquor-tempe",
+        "merchantId": "best-liquor-tempe-woocommerce",
+        "product": {
+          "id": 59786,
+          "sku": "80686007814",
+          "is_in_stock": true,
+          "is_purchasable": true,
+          "is_on_backorder": false,
+          "low_stock_remaining": null,
+          "prices": {
+            "price": "20400",
+            "regular_price": "20400",
+            "sale_price": "20400",
+            "price_range": null,
+            "currency_code": "USD",
+            "currency_symbol": "$",
+            "currency_minor_unit": 2,
+            "currency_decimal_separator": ".",
+            "currency_thousand_separator": ",",
+            "currency_prefix": "$",
+            "currency_suffix": ""
+          }
+        }
+      },
+      "sourceRuntimeId": "precision:az"
+    },
+    {
+      "id": "e3975668989751b0",
+      "state": "AZ",
+      "sourceLabel": "Smart & Final Arizona store inventory",
+      "sourceUrl": "https://www.smartandfinal.com/sm/pickup/rsid/730/product/weller-full-proof-id-00088004031497",
+      "sourceChain": "smart-final",
+      "merchantId": "730",
+      "productId": "00088004031497",
+      "rawName": "Weller Full Proof - 750 ml",
+      "canonicalBottleId": "bb_a3c16eb6f814785b",
+      "canonicalName": "Weller Full Proof",
+      "tier": "unicorn",
+      "sourceProductBinding": {
+        "schemaVersion": 2,
+        "source": "smart-final-az",
+        "merchantId": "730",
+        "storeUuid": "1e8fc7e7-24cb-4d4a-b9f2-bbd9e945b3f5",
+        "storeAddress": "750 N GILBERT ROAD, Gilbert, AZ 85234",
+        "sku": "00088004031497",
+        "sizeMl": 750,
+        "rawName": "Weller Full Proof - 750 ml",
+        "canonicalBottleId": "bb_a3c16eb6f814785b",
+        "canonicalName": "Weller Full Proof",
+        "discoveryUrl": "https://www.smartandfinal.com/sm/pickup/rsid/730/results?q=bourbon",
+        "discoveryStoreUuid": "1e8fc7e7-24cb-4d4a-b9f2-bbd9e945b3f5",
+        "available": true,
+        "stockStatus": "plenty",
+        "shoppingMode": "pickup"
+      },
+      "confidence": 0.86,
+      "eventType": "retailer_store_inventory_result",
+      "locationPrecision": "store_level",
+      "locationName": "Smart & Final #730",
+      "storeName": "Smart & Final #730",
+      "storeId": "smart-final:730",
+      "storeAddress": "750 N GILBERT ROAD, Gilbert, AZ 85234",
+      "city": "Gilbert",
+      "stateCode": "AZ",
+      "postalCode": "85234",
+      "zip": "85234",
+      "lat": 33.362623,
+      "lng": -111.789822,
+      "quantity": 0,
+      "quantityIsExact": false,
+      "price": 69.99,
+      "availabilityStatus": "in_stock",
+      "availabilityLabel": "Retailer reports available at this store",
+      "sourceAvailabilityVerified": true,
+      "observedAt": "2026-10-26T01:42:36.881Z",
+      "canAlertAsInventory": true,
+      "canAlertAsWatch": true,
+      "inventorySemantics": "Smart & Final selected-store pickup page reports availability and a positive stock status. Exact shelf quantity is not published; verify before driving.",
+      "evidence": "Smart & Final #730 reports Weller Full Proof 750 ml available at 750 N GILBERT ROAD, Gilbert.",
+      "raw": {
+        "chain": "smart-final",
+        "merchantId": "730",
+        "product": {
+          "id": "00088004031497",
+          "sku": "00088004031497",
+          "name": "Weller Full Proof",
+          "available": true,
+          "stockStatus": "plenty",
+          "sizeMl": 750
+        },
+        "selectedStore": {
+          "id": "1e8fc7e7-24cb-4d4a-b9f2-bbd9e945b3f5",
+          "retailerStoreId": "730",
+          "address": "750 N GILBERT ROAD",
+          "city": "GILBERT",
+          "zip": "85234"
+        },
+        "shoppingMode": "pickup"
+      },
+      "sourceRuntimeId": "precision:az"
+    }
+  ],
+  "records": [
+    {
+      "id": "bb_eb5da0badfc03902",
+      "canonical": "Little Book",
+      "normalizedKey": "little book",
+      "aliases": [
+        "Little Book",
+        "Little Book Chapter"
+      ],
+      "tier": "allocated",
+      "producer": "Jim Beam",
+      "sources": [
+        "seed"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "little-book",
+          "canonicalName": "Little Book",
+          "aliases": [
+            "Little Book",
+            "Little Book Chapter",
+            "little book",
+            "little book whiskey"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "little-book-chapter-10",
+      "canonical": "Little Book Chapter 10",
+      "normalizedKey": "library:little-book-chapter-10",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "little-book-chapter-10",
+          "canonicalName": "Little Book Chapter 10",
+          "aliases": [
+            "Little Book Chapter 10"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "little-book-the-infinite-ii",
+      "canonical": "Little Book the Infinite II",
+      "normalizedKey": "library:little-book-the-infinite-ii",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "little-book-the-infinite-ii",
+          "canonicalName": "Little Book the Infinite II",
+          "aliases": [
+            "Little Book the Infinite II"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_a3c16eb6f814785b",
+      "canonical": "Weller Full Proof",
+      "normalizedKey": "weller full proof",
+      "aliases": [
+        "W.L. Weller Full Proof",
+        "Weller FP",
+        "Weller Full Proof"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "weller-full-proof",
+          "canonicalName": "W.L. Weller Full Proof",
+          "aliases": [
+            "W.L. Weller Full Proof",
+            "Weller FP",
+            "Weller Full Proof",
+            "weller fp",
+            "weller full proof"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

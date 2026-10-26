@@ -45,6 +45,7 @@ export function buildLibrarySourceSearchPlan(bible, { sourceKey, budget, broadTe
   return { schemaVersion: 1, sourceKey, budget, targetCount: libraryDetectionQueries(bible).length,
     poolSize: pool.length, terms: [...fixed, ...rotating].slice(0, budget), fixedTerms: fixed, rotatingTerms: rotating,
     nextCursor: pool.length ? (offset + count) % pool.length : 0,
+    nextTermKey: pool.length ? libraryIdentityKey(pool[(offset + count) % pool.length]) : null,
     sourceInvocationsPerSweep: count ? Math.ceil(pool.length / count) : null,
     exhaustiveRetrievalVerified: false };
 }

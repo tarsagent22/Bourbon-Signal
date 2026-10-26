@@ -153,3 +153,17 @@ test('an exact allocated rye survives actual metro collection, canonicalization,
  assert.equal(isMetroRetailerInventory({...signal,sourceProductBinding:{...signal.sourceProductBinding,productId:'wrong'}}),false);
  const canon=canonicalizeSignal(signal,bible);assert(isMetroRetailerInventory(canon),JSON.stringify(canon));const pub=publicSignal(canon,bibleLookup(bible.records));assert(isPublicDropFeedEligible(pub),JSON.stringify(pub));const drops=buildDrops([canon],bibleLookup(bible.records),[canon]);assert.equal(drops.length,1);assert(isPublicDropFeedEligible(drops[0]));
 });
+
+test('library additions and tier edits preserve the next source query instead of restarting the first few bottles',async()=>{
+ const dir=await mkdtemp(path.join(tmpdir(),'library-growth-'));
+ try{
+  const first=await librarySourceSearchPlan(bible,{sourceKey:'test:growth',budget:2,cursorDir:dir});
+  const originalPool=librarySearchPool(bible);const expectedNext=originalPool[first.nextCursor];
+  const updated=new BourbonBible(integrateLibraryCatalog([],{records:[...entries,bottle('a-new-unicorn','A New Unicorn',{nationalTier:'unicorn'})]}));
+  const second=await librarySourceSearchPlan(updated,{sourceKey:'test:growth',budget:2,cursorDir:dir});
+  assert.equal(second.terms[0],expectedNext);
+  const seen=new Set([...first.terms,...second.terms]);
+  for(let i=0;i<10;i++)(await librarySourceSearchTerms(updated,{sourceKey:'test:growth',budget:2,cursorDir:dir})).forEach(term=>seen.add(term));
+  for(const term of librarySearchPool(updated))assert(seen.has(term),term);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});

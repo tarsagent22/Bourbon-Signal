@@ -1938,6 +1938,7 @@ function ohioFeedStaleCaveat(signal) {
 export function dropHasPositiveAlertInventory(drop, shopifyPolicy) {
   if (drop?.stale || drop?.sourceStale || drop?.raw?.staleFallback) return false;
   if (genericShopifyPickupRow(drop) || shopifyPolicy?.owns(drop)) return shopifyPolicy?.eligible(drop) === true;
+  if (drop?.state === 'AZ') return isArizonaRetailerInventory(drop);
   if (drop?.state === 'IN') return isIndianaRetailerInventory(drop);
   if (drop?.state === 'TX') return isTexasRetailerInventory(drop);
   if (isSouthCarolinaDunesSignal(drop)) return isSouthCarolinaDunesInventory(drop);
@@ -1962,6 +1963,36 @@ export function dropHasPositiveAlertInventory(drop, shopifyPolicy) {
     && ['limited_supply', 'in_stock'].includes(String(drop?.availabilityStatus || '').toLowerCase());
 }
 
+// Operational changes may identify a source product that public admission
+// rejects as ambiguous. Inventory alerts must bind to the same admitted row;
+// a matching store, a family name, or a different source is insufficient.
+export function bindReportedInventoryAlertsToPublicDrops(candidates, drops, {shopifyPolicy} = {}) {
+  const identity = row => JSON.stringify([
+    row.state || row.stateCode, row.sourceLabel || row.source, row.sourceChain,
+    row.merchantId, row.storeId, row.productId || row.sourceProductProofId || row.sku,
+    row.variantId, row.sourceUrl, row.rawName,
+  ].map(value => String(value ?? '')));
+  const byIdentity = new Map();
+  for (const drop of drops || []) {
+    if (!drop.canAlertAsInventory || drop.locationPrecision !== 'store_level'
+      || dropAgeHours(drop) > CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS
+      || !dropHasPositiveAlertInventory(drop, shopifyPolicy)) continue;
+    const key = identity(drop);
+    if (!byIdentity.has(key)) byIdentity.set(key, []);
+    byIdentity.get(key).push(drop);
+  }
+  return (candidates || []).filter(candidate => candidate.action !== 'inventory_alert_candidate'
+    || (byIdentity.get(identity(candidate)) || []).some(drop =>
+      candidate.observedAt === drop.observedAt
+      && candidate.availabilityStatus === drop.availabilityStatus
+      && String(candidate.eventType || candidate.type) === String(drop.type || drop.eventType)
+      && Number(candidate.quantity || 0) === Number(drop.quantity || 0)
+      && Number(candidate.price || 0) === Number(drop.price || 0)
+      && candidate.storeAddress === drop.storeAddress && candidate.city === drop.city
+      && !(drop.quantityIsExact === false && candidate.quantityIsExact !== false)
+      && !(Number(drop.quantity || 0) === 0 && candidate.quantityIsExact === true)));
+}
+
 export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = {}) {
   return (drops || [])
     .filter((drop) => drop && drop.canAlertAsInventory && drop.locationPrecision === 'store_level')
@@ -1971,6 +2002,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = 
     .sort(alertDropSort)
     .map((drop) => {
       const shopifyBinaryBaseline = shopifyPolicy?.eligible(drop) === true;
+      const arizonaBinaryBaseline = drop.state === 'AZ' && Number(drop.quantity || 0) === 0 && drop.quantityIsExact !== true && isArizonaRetailerInventory(drop);
       const georgiaBaseline = drop.state === 'GA';
       const metroBaseline = ['NY', 'CO'].includes(drop.state);
       const indianaBinaryBaseline = drop.state === 'IN' && Number(drop.quantity || 0) === 0 && drop.quantityIsExact === false && isIndianaRetailerInventory(drop);
@@ -1987,7 +2019,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = 
       const southCarolinaBinaryBaseline = isTasteInventory(drop) || isSouthCarolinaSouthernSpiritsInventory(drop)
         || southCarolinaInStoreBaseline
         || southCarolinaCityHiveBinaryBaseline;
-      const binaryRetailerOrderability = shopifyBinaryBaseline || indianaBinaryBaseline || (drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)) || floridaBinaryBaseline || isTasteInventory(drop) || isSouthCarolinaSouthernSpiritsInventory(drop) || (
+      const binaryRetailerOrderability = arizonaBinaryBaseline || shopifyBinaryBaseline || indianaBinaryBaseline || (drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)) || floridaBinaryBaseline || isTasteInventory(drop) || isSouthCarolinaSouthernSpiritsInventory(drop) || (
         (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
         && Number(drop.quantity || 0) === 0
@@ -2065,7 +2097,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = 
       zip: drop.zip || null,
       quantity: drop.quantity || 0,
       storeQty: Number(drop.storeQty ?? drop.quantity ?? 0) || 0,
-      quantityIsExact: drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)
+      quantityIsExact: arizonaBinaryBaseline || (drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop))
         ? false : typeof drop.quantityIsExact === 'boolean' ? drop.quantityIsExact : null,
       quantitySemantics: drop.quantitySemantics || null,
       reportedQuantity: drop.reportedQuantity ?? null,
@@ -2468,7 +2500,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
   }).filter((event) => isActiveCustomerStateRow(event, activeStateIds));
   const alertableCurrentDrops = freshRunDrops.filter((drop) => !fallbackStateIds.has(String(drop.state || drop.state_code || '').toUpperCase()));
   const freshReportedAlertCandidates = selectFreshRunDrops({ drops: alerts.candidates, freshStateIds: summary.freshStateIds });
-  const reportedAlertCandidates = buildAlerts({ candidates: freshReportedAlertCandidates.filter((candidate) => activeStateIds.has(candidate.state) && !fallbackStateIds.has(String(candidate.state).toUpperCase())) });
+  const reportedAlertCandidates = bindReportedInventoryAlertsToPublicDrops(buildAlerts({ candidates: freshReportedAlertCandidates.filter((candidate) => activeStateIds.has(candidate.state) && !fallbackStateIds.has(String(candidate.state).toUpperCase())) }), alertableCurrentDrops);
   const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(alertableCurrentDrops);
   const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(alertableCurrentDrops);
   const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...buildAnnouncementAlerts(events).filter(c => activeStateIds.has(c.state) && !fallbackStateIds.has(c.state)), ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)
