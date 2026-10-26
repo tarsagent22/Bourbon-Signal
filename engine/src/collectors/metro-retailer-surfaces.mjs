@@ -424,10 +424,11 @@ export function isAllowedMetroBottle(value, {
   explicitUnit = null,
   packSize = null,
   containerType = null,
+  libraryIdentity = false,
 } = {}) {
   const text = normalizedText(value);
-  if (!text || !BOURBON_IDENTITY_RE.test(text) || UNSAFE_PRODUCT_RE.test(text)) return false;
-  if (/\brye\b/iu.test(text) && !/\bbourbon\b/iu.test(text)) return false;
+  if (!text || (!libraryIdentity && !BOURBON_IDENTITY_RE.test(text)) || UNSAFE_PRODUCT_RE.test(text)) return false;
+  if (!libraryIdentity && /\brye\b/iu.test(text) && !/\bbourbon\b/iu.test(text)) return false;
   if (NON_BOTTLE_RE.test(text)) return false;
   if (packSize != null && packSize !== '' && Number(packSize) !== 1) return false;
   if (containerType && !/^bottle$/iu.test(String(containerType).trim())) return false;
@@ -629,7 +630,7 @@ function jsonLdObjects(html) {
   return values;
 }
 
-function cityHiveItemListRows(source, html, configurations) {
+function cityHiveItemListRows(source, html, configurations, isLibraryTarget = () => false) {
   if (source.inventoryMode !== 'itemlist_binary' || source.stores.length !== 1) return [];
   const store = source.stores[0];
   if (!merchantPickupEligible(configurations, store.merchantId, store)) return [];
@@ -642,9 +643,10 @@ function cityHiveItemListRows(source, html, configurations) {
       const offer = Array.isArray(product.offers) ? product.offers[0] : product.offers;
       const title = normalizedText(product.name);
       const description = normalizedText([product.description, product.brand, product.sku, title]);
+      const libraryIdentity = isLibraryTarget(title);
       if (!/InStock$/iu.test(String(offer?.availability || ''))
-        || !isAllowedMetroBottle(title)
-        || !isAllowedMetroBottle(description)) continue;
+        || !isAllowedMetroBottle(title, {libraryIdentity})
+        || !isAllowedMetroBottle(description, {libraryIdentity})) continue;
       const variantId = String(product.productID || product.sku || '').trim();
       const productUrl = exactProductUrl(product.url || offer?.url, source, variantId, variantId, { allowNullProductId: true });
       if (!variantId || !productUrl) continue;
@@ -677,7 +679,7 @@ function cityHiveItemListRows(source, html, configurations) {
   return rows;
 }
 
-export function parseMetroCityHiveHtml(html, candidateSource) {
+export function parseMetroCityHiveHtml(html, candidateSource, {isLibraryTarget = () => false} = {}) {
   const source = canonicalSource(candidateSource);
   if (!source || source.platform !== 'cityhive' || !source.inventoryEligible) return [];
   const embeddedValues = embeddedJsonValues(html);
@@ -708,8 +710,9 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
             ?? product?.size?.measure;
           const packSize = option?.pack_size ?? option?.packSize ?? product?.pack_size ?? product?.packSize;
           const containerType = option?.container_type ?? option?.containerType ?? product?.container_type ?? product?.containerType;
-          if (!isAllowedMetroBottle(title, { explicitSize, explicitUnit, packSize, containerType })
-            || !isAllowedMetroBottle(description, { explicitSize, explicitUnit, packSize, containerType })) continue;
+          const libraryIdentity = isLibraryTarget(title);
+          if (!isAllowedMetroBottle(title, { explicitSize, explicitUnit, packSize, containerType, libraryIdentity })
+            || !isAllowedMetroBottle(description, { explicitSize, explicitUnit, packSize, containerType, libraryIdentity })) continue;
           const productId = String(option?.product_id || option?.productId || product?.id || product?._id || '').trim();
           const variantId = String(option?.option_id || option?.optionId || option?.id || option?._id || '').trim();
           if (!productId || !variantId) continue;
@@ -746,7 +749,7 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
       }
     }
   }
-  const result = rows.length > 0 ? rows : cityHiveItemListRows(source, html, configurations);
+  const result = rows.length > 0 ? rows : cityHiveItemListRows(source, html, configurations, isLibraryTarget);
   Object.defineProperty(result, 'unavailableVariantKeys', { value: [...unavailableVariantKeys].sort() });
   return result;
 }

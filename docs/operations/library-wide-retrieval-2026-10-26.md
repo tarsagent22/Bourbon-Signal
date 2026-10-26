@@ -10,7 +10,7 @@ Each source has a durable independent cursor. It advances when that source actua
 
 Arizona grocery maintains 134 selected stores, a broad bourbon request at every store and 16 library searches within the 150-request ceiling. Both store selection for supplemental searches and the query pool now advance on actual source invocation. This does not claim every bottle at every store is checked each refresh.
 
-Fixed candidate filters in the changed retail and North Carolina lanes now admit exact scarce library identities, including rye and new brands. Existing heuristic matches stay inside their previous rules. Ages, finishes, proofs, ambiguous identities, store bindings, denied routes and stock semantics remain guarded.
+Fixed candidate filters in the changed retail and North Carolina lanes now admit exact scarce library identities, including rye and new brands. New York and Colorado parsing and customer eligibility also accept exact library rye identities with a retained merchant/product/variant proof. Existing heuristic matches stay inside their previous rules. Ages, finishes, proofs, ambiguous identities, store bindings, denied routes and stock semantics remain guarded.
 
 ## Smart & Final
 

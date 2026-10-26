@@ -73,7 +73,8 @@ function exactProductUrl(signal, source) {
     const query = [...url.searchParams.entries()];
     const variantId = String(signal.variantId || '');
     const productId = String(signal.productId || '');
-    const itemListIdentityMode = String(signal?.raw?.productIdentityMode || '') === 'cityhive_itemlist_option_id';
+    const proofMode = signal.sourceProductBinding?.source === 'metro-library-identity' ? signal.sourceProductBinding.productIdentityMode : null;
+    const itemListIdentityMode = String(signal?.raw?.productIdentityMode || proofMode || '') === 'cityhive_itemlist_option_id';
     const handle = String(signal?.productHandle || signal?.raw?.product?.handle || '').trim();
     return parts.length === 4
       && parts[0] === 'shop'
@@ -147,10 +148,16 @@ export function isMetroRetailerInventory(signal) {
   const rawName = String(signal.rawName || '').trim();
   const canonicalName = String(signal.canonicalName || signal.bottleName || '').trim();
   if (!rawName || !String(signal.canonicalBottleId || signal.bottleId || signal.canonicalId || '').trim()) return false;
+  const proof = signal.sourceProductBinding;
+  const libraryIdentity = proof?.schemaVersion === 1 && proof.source === 'metro-library-identity'
+    && proof.rawName === rawName && (proof.canonicalName === canonicalName || proof.rawName === canonicalName)
+    && (proof.canonicalBottleId === signal.canonicalBottleId || proof.rawName === canonicalName)
+    && Boolean(proof.canonicalBottleId) && proof.storeId === signal.storeId && proof.merchantId === signal.merchantId
+    && proof.productId === signal.productId && proof.variantId === signal.variantId;
   if (!canonicalName
-    || !isAllowedMetroBottle(rawName)
-    || !isAllowedMetroBottle(canonicalName)
-    || !isAllowedMetroBottle(formatDescription(signal))) return false;
+    || !isAllowedMetroBottle(rawName, {libraryIdentity})
+    || !isAllowedMetroBottle(canonicalName, {libraryIdentity})
+    || !isAllowedMetroBottle(formatDescription(signal), {libraryIdentity})) return false;
   if (/\brye\b/iu.test(rawName) !== /\brye\b/iu.test(canonicalName)) return false;
   if (signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true || signal.raw?.sourceRuntimeNonAlertable === true) return false;
   if (signal.canAlertAsInventory === false) return false;

@@ -8782,7 +8782,7 @@ export async function fetchMetroRetailerRows(source, signal, bible) {
     if (source.depthDiscovery) {
       return collectMetroCityHiveRows(source, {
         fetchText: textFetch,
-        parseHtml: parseMetroCityHiveHtml,
+        parseHtml: (html, candidate) => parseMetroCityHiveHtml(html, candidate, {isLibraryTarget:name => isExactLibraryTarget(name, bible)}),
         ...(libraryDetectionQueries(bible || {}).length ? {searchTerms: await librarySourceSearchTerms(bible, {sourceKey:`${source.stateCode}:${source.id}`, budget:4, priorityTerms:(source.depthDiscovery.queryTerms || []).slice(0, 1)})} : {}),
         signal,
         sleepFn: sleepWithSignal,
@@ -8799,7 +8799,7 @@ export async function fetchMetroRetailerRows(source, signal, bible) {
         signal,
       });
       if (!response.ok) throw failedMetroResponse(response, `${source.sourceLabel} CityHive merchant ${store.merchantId}`);
-      for (const row of parseMetroCityHiveHtml(response.text, source)) {
+      for (const row of parseMetroCityHiveHtml(response.text, source, {isLibraryTarget:name => isExactLibraryTarget(name, bible)})) {
         if (row.merchantId !== store.merchantId) continue;
         const key = `${row.merchantId}:${row.productId}:${row.variantId}`;
         if (seen.has(key)) continue;
@@ -8833,7 +8833,7 @@ export async function fetchMetroRetailerRows(source, signal, bible) {
   };
 }
 
-async function collectMetroRetailerSource(config, bible, source, observedAt, signal) {
+export async function collectMetroRetailerSource(config, bible, source, observedAt, signal) {
   const fetched = await fetchMetroRetailerRows(source, signal, bible);
   const discoveryMetadata = fetched.metadata || null;
   const signals = [];
@@ -8858,6 +8858,7 @@ async function collectMetroRetailerSource(config, bible, source, observedAt, sig
       rawName: row.title,
       canonicalBottleId: record.id,
       canonicalName: record.canonical,
+      ...(isExactLibraryTarget(row.title,bible) ? {sourceProductBinding:{schemaVersion:1,source:'metro-library-identity',productIdentityMode:row.productIdentityMode || null,rawName:row.title,canonicalName:record.canonical,canonicalBottleId:record.id,storeId:store.id,merchantId:row.merchantId,productId:row.productId,variantId:row.variantId}} : {}),
       tier: record.tier,
       confidence: Math.min(0.92, match.confidence),
       eventType: 'retailer_store_inventory_result',

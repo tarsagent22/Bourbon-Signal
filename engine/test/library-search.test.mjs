@@ -1,3 +1,6 @@
+import {collectMetroRetailerSource} from '../src/collectors/precision-probes.mjs';
+import {METRO_RETAILER_SOURCES,parseMetroCityHiveHtml} from '../src/collectors/metro-retailer-surfaces.mjs';
+import {isMetroRetailerInventory} from '../src/metro-retailer-policy.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
@@ -11,7 +14,7 @@ import {librarySourceSearchPlan,librarySourceSearchTerms,withLibrarySearchAudit,
 import {discoverArizonaSmartFinalProducts,parseArizonaSmartFinalInventory,smartFinalProductUrl} from '../src/collectors/arizona-smart-final.mjs';
 import {isArizonaRetailerInventory} from '../src/arizona-retailer-policy.mjs';
 import {canonicalizeSignal} from '../src/operational-report.mjs';
-import {bibleLookup,buildDrops} from '../src/export-site-contract.mjs';
+import {bibleLookup,buildDrops,publicSignal} from '../src/export-site-contract.mjs';
 import {isPublicDropFeedEligible} from '../../src/lib/public-drop-evidence.ts';
 import {arizonaXapiRequestPlan} from '../src/collectors/arizona-xapi.mjs';
 const bottle=(id,canonicalName,extra={})=>({id,canonicalName,aliases:[canonicalName],nationalTier:'allocated',stateOverrides:[],...extra});
@@ -132,4 +135,21 @@ test('allocated and unicorn targets lead the search rotation ahead of limited or
  const b=new BourbonBible(integrateLibraryCatalog([],{records:rows}));
  const plan=buildLibrarySourceSearchPlan(b,{sourceKey:'test:rarity',budget:1});
  assert.equal(plan.terms[0],'Unicorn Example');
+});
+
+test('an exact allocated rye survives actual metro collection, canonicalization, export and customer evidence while unknown rye and unsafe formats remain excluded',async t=>{
+ const source=METRO_RETAILER_SOURCES.find(s=>s.id==='michaeltowne-wines');const store=source.stores[0];
+ const observedAt=new Date().toISOString();
+ const makePage=title=>`<html data-ch-merchant-id="${store.merchantId}"><script type="application/json">${JSON.stringify({merchant_configs:[{merchant:{id:store.merchantId,pickup:true,address:{full_address:store.address}}}]})}</script><script type="application/ld+json">${JSON.stringify({'@type':'ItemList',itemListElement:[{'@type':'Product',name:title,description:title,productID:'test-rye',url:`${source.baseUrl}/shop/product/whiskey/null?option-id=test-rye`,offers:{availability:'https://schema.org/InStock',price:'79.99'}}]})}</script></html>`;
+ const options={isLibraryTarget:name=>isExactLibraryTarget(name,bible)};
+ assert.equal(parseMetroCityHiveHtml(makePage('Another Rye Barrel Proof'),source,options).length,1);
+ assert.equal(parseMetroCityHiveHtml(makePage('Unknown Rye Barrel Proof'),source,options).length,0);
+ assert.equal(parseMetroCityHiveHtml(makePage('Another Rye Barrel Proof 50 ml'),source,options).length,0);
+ assert.equal(parseMetroCityHiveHtml(makePage('Another Rye Barrel Proof Gift Set'),source,options).length,0);
+ t.mock.method(globalThis,'fetch',async()=>new Response(makePage('Another Rye Barrel Proof'),{status:200,headers:{'content-type':'text/html'}}));
+ const result=await collectMetroRetailerSource({id:'NY'},bible,source,observedAt);
+ assert.equal(result.signals.length,1);const signal=result.signals[0];assert(isMetroRetailerInventory(signal));
+ assert.equal(isMetroRetailerInventory({...signal,sourceProductBinding:null}),false);
+ assert.equal(isMetroRetailerInventory({...signal,sourceProductBinding:{...signal.sourceProductBinding,productId:'wrong'}}),false);
+ const canon=canonicalizeSignal(signal,bible);assert(isMetroRetailerInventory(canon),JSON.stringify(canon));const pub=publicSignal(canon,bibleLookup(bible.records));assert(isPublicDropFeedEligible(pub),JSON.stringify(pub));const drops=buildDrops([canon],bibleLookup(bible.records),[canon]);assert.equal(drops.length,1);assert(isPublicDropFeedEligible(drops[0]));
 });
