@@ -1,6 +1,8 @@
 ﻿import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fingerprintName, normalizeBottleName, stableId, titleCase } from './core/text.mjs';
+import { integrateLibraryCatalog, readLibraryCatalog } from './core/library-catalog.mjs';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve('..');
 const OUT = path.resolve('out');
@@ -83,10 +85,13 @@ async function main() {
     for (const drop of oldDrops.drops || []) addRecord(records, drop.tracked_brand_name || drop.brand_name, { sources: ['site:old-drops'] });
   } catch {}
 
-  const uniqueRecords = [...new Map([...records.values()].map((record) => [record.id, record])).values()];
+  const legacyRecords = [...new Map([...records.values()].map((record) => [record.id, record])).values()];
+  const libraryCatalog = await readLibraryCatalog({ root: pathToFileURL(`${ROOT}${path.sep}`), liveFile: process.env.BOURBON_SIGNAL_LIBRARY_CATALOG_FILE });
+  const uniqueRecords = integrateLibraryCatalog(legacyRecords, libraryCatalog);
   const bible = {
     generatedAt: new Date().toISOString(),
     count: uniqueRecords.length,
+    libraryCatalog: { ...libraryCatalog, records: undefined, count: libraryCatalog.records.length },
     verifiedAliasNotes,
     records: uniqueRecords.sort((a, b) => a.canonical.localeCompare(b.canonical))
   };

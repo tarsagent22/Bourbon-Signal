@@ -9,6 +9,7 @@ import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
+import { libraryDetectionQueries } from '../library-query-plan.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { renameSync } from 'node:fs';
 import { mkdir, readFile, rm } from 'node:fs/promises';
@@ -344,6 +345,14 @@ function slugifyVirginiaProduct(name) {
 }
 
 const VIRGINIA_PRODUCTS_PER_RUN = Math.max(15, Math.min(VIRGINIA_PRODUCTS.length, Number(process.env.BOURBON_SIGNAL_VA_PRODUCTS_PER_RUN || 15)));
+// These are reviewed inputs to particular lanes, not an inventory guarantee or
+// an exhaustive description of every source in the state.
+export function precisionRetrievalAuditInputs(state) {
+  return { knownQueryTerms: [...(TRACKED_TERMS[state] || [])],
+    pinnedProducts: state === 'VA' ? VIRGINIA_PRODUCTS.map(({ code, name }) => ({ code, name })) : [],
+    maxPinnedProductsPerRun: state === 'VA' ? VIRGINIA_PRODUCTS_PER_RUN : null,
+    completeStateRetrievalProven: false };
+}
 const VIRGINIA_COLD_START_PRODUCTS_PER_RUN = Math.max(15, Math.min(VIRGINIA_PRODUCTS.length, Number(process.env.BOURBON_SIGNAL_VA_COLD_START_PRODUCTS_PER_RUN || 15)));
 const VIRGINIA_REGULAR_REFRESH_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_REGULAR_REFRESH_MS || 4 * 60 * 60_000));
 const VIRGINIA_LIMITED_REFRESH_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_LIMITED_REFRESH_MS || 20 * 60 * 60_000));
@@ -4623,12 +4632,13 @@ async function collectArizonaFlagstaffLiquor(config, bible, observedAt, options 
   }
   for (const product of products) {
     const rawName = htmlToText(product?.title || '');
-    if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor/i.test(rawName)) continue;
     const sizeMatch = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l)\b/i);
     const sizeMl = sizeMatch ? Number(sizeMatch[1]) * (sizeMatch[2].toLowerCase() === 'l' ? 1000 : 1) : null;
     if (sizeMl != null && sizeMl < 375) continue;
     const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
     if (!record) continue;
+    if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|e\.?\s*h\.?\s*taylor/i.test(rawName)
+      && match?.method !== 'exact-library-identity') continue;
     for (const variant of product?.variants || []) {
       if (variant?.available !== true) continue;
       const price = Number(variant?.price || 0) || null;
@@ -4679,7 +4689,10 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
     } catch (error) { roadblocks.push({ state: config.id, source: 'Albertsons/Safeway Arizona store resolver', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the public resolver response shape.' }); }
     await pause(AZ_ALBERTSONS_DELAY_MS);
   }
-  const plan = arizonaXapiRequestPlan(stores.values(), { maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms: AZ_ALBERTSONS_TERMS, nowMs: options.nowMs ?? Date.now() });
+  const terms = process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS ? AZ_ALBERTSONS_TERMS : [...AZ_ALBERTSONS_TERMS, ...libraryDetectionQueries(bible)];
+  const plan = arizonaXapiRequestPlan(stores.values(), { maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms, nowMs: options.nowMs ?? Date.now() });
+  metadata.targetedQueryPool = [...new Set(terms.filter(term => term !== 'bourbon'))];
+  metadata.targetedQueryCoverage = 'rotating_subset_not_exhaustive';
   const describeStore = (store) => ({ storeId: `${arizonaXapiBanner(store)}:${store.locationId}`, city: store.address.city, address: `${store.address.line1}, ${store.address.city}, AZ ${store.address.zipcode}` });
   const baselineIds = new Set(ARIZONA_XAPI_BASELINE_STORE_IDS);
   metadata.discoveredStores = [...stores.values()].sort((a, b) => String(a.locationId).localeCompare(String(b.locationId), 'en', { numeric: true })).map(describeStore);

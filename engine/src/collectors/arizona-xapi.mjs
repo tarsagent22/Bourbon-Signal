@@ -127,6 +127,9 @@ export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT
   const selected = selectArizonaXapiStores(input, { maxStores });
   const rareTerms = [...new Set(terms.map((term) => String(term).trim()).filter((term) => term && term !== 'bourbon'))];
   const dayBucket = Math.floor(nowMs / 86_400_000);
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  let termStride = Math.max(1, selected.length);
+  while (rareTerms.length && gcd(termStride, rareTerms.length) !== 1) termStride += 1;
   const rareCount = rareTerms.length ? Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, ARIZONA_XAPI_SEARCH_LIMIT - selected.length, selected.length) : 0;
   // Advance each store's term on its own visits, independent of which day
   // selects its cohort. Day parity otherwise traps a 32/16 split on two terms.
@@ -136,7 +139,7 @@ export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT
   }));
   return selected.map((store, index) => ({
     store,
-    terms: ['bourbon', ...(rareVisits.has(index) ? [rareTerms[(rareVisits.get(index) + index) % rareTerms.length]] : [])],
+    terms: ['bourbon', ...(rareVisits.has(index) ? [rareTerms[(rareVisits.get(index) * termStride + index) % rareTerms.length]] : [])],
   }));
 }
 
@@ -150,12 +153,17 @@ export function parseArizonaXapiInventory(payload, store, bible, { observedAt, q
   for (const product of Array.isArray(payload?.response?.docs) ? payload.response.docs : []) {
     const rawName = stripHtml(String(product?.name || '')).trim();
     const productId = String(product?.id || product?.pid || product?.upc || '');
-    if (!/^\d+$/.test(productId) || String(product?.storeId || '') !== String(store.locationId) || seen.has(productId) || !/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|heaven hill|e\.?\s*h\.?\s*taylor|booker'?s/i.test(rawName)) continue;
+    if (!/^\d+$/.test(productId) || String(product?.storeId || '') !== String(store.locationId) || seen.has(productId)) continue;
     const size = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l|liter)\b/i);
     const sizeMl = size ? Number(size[1]) * (/^l/i.test(size[2]) ? 1000 : 1) : null;
     if (sizeMl != null && sizeMl < 375) continue;
     const { match, record } = matchProduct(product, bible, { storeId: String(store.locationId) });
-    if (!record || String(product?.restrictedValue || '').toLowerCase() === 'true' && product?.containsAlcohol === false) continue;
+    if (!record || product?.containsAlcohol === false) continue;
+    // The expanded path requires exact library identity. Previously excluded
+    // brands must not enter via legacy family containment (e.g. an unnamed
+    // Heritage whiskey resolving to a specific toasted release).
+    if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|heaven hill|e\.?\s*h\.?\s*taylor|booker'?s/i.test(rawName)
+      && match?.method !== 'exact-library-identity') continue;
     const inventory = product.channelInventory || {};
     if (String(inventory.instore ?? inventory.inStore ?? '') !== '1') continue;
     const rawQuantity = inventory.instoreItemQty ?? inventory.inStoreItemQty;

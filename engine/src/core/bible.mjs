@@ -1,6 +1,7 @@
 ﻿import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fingerprintName, normalizeBottleName } from './text.mjs';
+import { libraryIdentityKey } from './library-catalog.mjs';
 
 export class BourbonBible {
   constructor(records) {
@@ -8,7 +9,16 @@ export class BourbonBible {
     this.byKey = new Map();
     this.byNormalizedAlias = new Map();
     this.aliasIndex = [];
+    this.byLibraryAlias = new Map();
     for (const record of records) {
+      for (const bottle of record.libraryIdentities || []) {
+        for (const alias of [bottle.canonicalName, ...bottle.aliases]) {
+          const key = libraryIdentityKey(alias);
+          if (this.byLibraryAlias.has(key) && this.byLibraryAlias.get(key) !== record) this.byLibraryAlias.set(key, null);
+          else if (!this.byLibraryAlias.has(key)) this.byLibraryAlias.set(key, record);
+        }
+      }
+      if (record.strictLibraryIdentity) continue;
       if (this.byKey.has(record.normalizedKey) && this.byKey.get(record.normalizedKey) !== record) this.byKey.set(record.normalizedKey, null);
       else if (!this.byKey.has(record.normalizedKey)) this.byKey.set(record.normalizedKey, record);
       for (const alias of [record.canonical, ...(record.aliases || [])]) {
@@ -22,6 +32,16 @@ export class BourbonBible {
       }
     }
     this.aliasIndex.sort((a, b) => b.key.length - a.key.length);
+    const libraryCanonicals = new Map();
+    for (const record of records) for (const bottle of record.libraryIdentities || []) {
+      const key = libraryIdentityKey(bottle.canonicalName);
+      if (libraryCanonicals.has(key) && libraryCanonicals.get(key) !== record) libraryCanonicals.set(key, null);
+      else if (!libraryCanonicals.has(key)) libraryCanonicals.set(key, record);
+    }
+    // A complete canonical expression outranks an alias borrowed by an older
+    // family record. Conflicting canonical identities still fail closed.
+    for (const [key, record] of libraryCanonicals) this.byLibraryAlias.set(key, record);
+    this.byLibraryCanonical = libraryCanonicals;
   }
 
   static async load(file = path.resolve('out/bourbon-bible.json')) {
@@ -32,7 +52,13 @@ export class BourbonBible {
   match(rawName) {
     const normalized = normalizeBottleName(rawName);
     const normalizedAlias = normalized.toLowerCase().replace(/\s+/g, ' ').trim();
+    const libraryKey = libraryIdentityKey(rawName);
     const exactAlias = this.byNormalizedAlias.get(normalizedAlias);
+    if (exactAlias && !this.byLibraryCanonical.has(libraryKey)) return { record: exactAlias, confidence: 1, method: 'exact-normalized-alias' };
+    if (this.byLibraryAlias.has(libraryKey)) {
+      const record = this.byLibraryAlias.get(libraryKey);
+      return record ? { record, confidence: 1, method: 'exact-library-identity' } : null;
+    }
     if (this.byNormalizedAlias.has(normalizedAlias) && !exactAlias) return null;
     if (exactAlias) return { record: exactAlias, confidence: 1, method: 'exact-normalized-alias' };
     if (/\b(?:small batch|limited edition|single barrel|barrel proof|double oaked|straight bourbon)\b/iu.test(normalized)) return null;

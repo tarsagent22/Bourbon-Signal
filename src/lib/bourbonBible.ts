@@ -236,6 +236,7 @@ function tierFromEngine(value: unknown): AvailabilityTier {
   if (tier === "unicorn") return "unicorn";
   if (tier === "allocated") return "allocated";
   if (tier === "limited") return "limited";
+  if (tier === "regular") return "common";
   return "limited";
 }
 
@@ -264,7 +265,7 @@ async function readEngineBibleBottles(): Promise<BibleBottleInput[]> {
           buyerVerdict: tier === "unicorn" ? "special_find" : "grab_at_msrp",
           aliases: [canonicalName, ...aliases],
           isSignalTracked: true,
-          isAlertEligible: tier !== "common",
+          isAlertEligible: typeof item!.library_alert_eligible === "boolean" ? item!.library_alert_eligible : tier !== "common",
           engineScarcityEvidence: {
             tier: engineTier,
             stateCount: typeof item!.stateCount === "number" ? Math.max(0, Math.floor(item!.stateCount)) : 0,
