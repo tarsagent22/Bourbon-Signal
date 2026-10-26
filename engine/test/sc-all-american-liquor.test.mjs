@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 
 import { BourbonBible } from '../src/core/bible.mjs';
-import { buildSouthCarolinaAllAmericanSignal, isSouthCarolinaAllAmericanCacheUsable } from '../src/collectors/precision-probes.mjs';
+import { buildSouthCarolinaAllAmericanSignal, collectSouthCarolinaAllAmerican, isSouthCarolinaAllAmericanCacheUsable } from '../src/collectors/precision-probes.mjs';
+import { LIBRARY_SEARCH_LANES } from '../src/library-query-plan.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { buildAlerts, buildCurrentInventoryAlertsFromDrops, buildDrops } from '../src/export-site-contract.mjs';
 import { candidateFromChange, canonicalizeSignal } from '../src/operational-report.mjs';
@@ -455,5 +459,39 @@ test('All American cache rejects legacy inventory rows without the reviewed proo
     const legacy = structuredClone(row);
     mutate(legacy);
     assert.equal(isSouthCarolinaAllAmericanCacheUsable([legacy], generatedAt, nowMs), false);
+  }
+});
+
+
+test('quarantined All American production collection ignores catalog cache and makes zero source requests', async () => {
+  const temp = await mkdtemp(path.join(os.tmpdir(), 'sc-all-american-quarantine-'));
+  const previousCwd = process.cwd();
+  const previousFetch = globalThis.fetch;
+  const observedAt = new Date().toISOString();
+  let requests = 0;
+  try {
+    await mkdir(path.join(temp, 'out/browser'), { recursive: true });
+    await writeFile(path.join(temp, 'out/browser/SC-all-american-inventory.json'), JSON.stringify({
+      generatedAt: observedAt, signals: [signal()], roadblocks: [],
+    }));
+    process.chdir(temp);
+    globalThis.fetch = async () => { requests++; throw new Error('Quarantined catalog request'); };
+    const result = await collectSouthCarolinaAllAmerican({ id: 'SC' }, bible, observedAt);
+    assert.equal(requests, 0);
+    assert.equal(result.signals.length, 1);
+    const [location] = result.signals;
+    assert.equal(location.eventType, 'retailer_store_location');
+    assert.equal(isSouthCarolinaAllAmericanLocation(location), true);
+    assert.equal(location.canAlertAsInventory, false);
+    assert.equal(location.canAlertAsWatch, false);
+    assert.equal(location.raw.cacheFallback, undefined);
+    assert.equal(result.metadata.inventoryQuarantined, true);
+    assert.equal(result.metadata.catalogRequests, 0);
+    assert.equal(LIBRARY_SEARCH_LANES.SC.includes('all-american-liquor'), false);
+    assert.deepEqual(result.roadblocks, []);
+  } finally {
+    globalThis.fetch = previousFetch;
+    process.chdir(previousCwd);
+    await rm(temp, { recursive: true, force: true });
   }
 });

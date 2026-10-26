@@ -1148,10 +1148,7 @@ const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHI
 const SC_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_PAGE_DELAY_MS || 650);
 const SC_ALL_AMERICAN_BASE_URL = 'https://www.aalmauldin.com';
 const SC_ALL_AMERICAN_SOURCE_LABEL = 'All American Liquor Mauldin WooCommerce in-store availability';
-const SC_ALL_AMERICAN_ARTIFACT_PATH = 'out/browser/SC-all-american-inventory.json';
 const SC_ALL_AMERICAN_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_ALL_AMERICAN_CACHE_MAX_AGE_MS || 2 * 60 * 60_000);
-const SC_ALL_AMERICAN_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_ALL_AMERICAN_DELAY_MS || 650);
-const SC_ALL_AMERICAN_TERMS = ['blanton', 'weller', 'eagle rare', 'stagg', 'taylor', '1792', 'buffalo trace', 'booker', 'baker'];
 const SC_ALL_AMERICAN_STORE = { id: 'all-american-liquor-mauldin', name: 'All American Liquor', address: '121 W Butler Rd, Mauldin, SC 29662', city: 'Mauldin', zip: '29662' };
 const SC_DUNES_BASE_URL = 'https://www.dunesliquor.com';
 const SC_DUNES_SOURCE_LABEL = 'Dunes Liquor Myrtle Beach integrated-cart inventory';
@@ -7579,54 +7576,19 @@ async function collectSouthCarolinaDiscountLiquor(config, bible, observedAt) {
   return result;
 }
 
-async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
-  try {
-    const cached = JSON.parse(await readFile(SC_ALL_AMERICAN_ARTIFACT_PATH, 'utf8'));
-    if (process.env.BOURBON_SIGNAL_SC_FORCE_ALL_AMERICAN_LIVE !== '1'
-      && isSouthCarolinaAllAmericanCacheUsable(cached.signals, cached.generatedAt)) {
-      return { signals: cached.signals.map((signal) => ({ ...signal, observedAt: cached.generatedAt, fetchedAt: observedAt, raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cached.generatedAt } })), roadblocks: cached.roadblocks || [] };
-    }
-  } catch {}
-
-  const signals = [southCarolinaStoreLocationSignal(config, SC_ALL_AMERICAN_SOURCE_LABEL, SC_ALL_AMERICAN_BASE_URL, SC_ALL_AMERICAN_STORE, observedAt, 'all-american-liquor')];
-  const roadblocks = [];
-  const seen = new Set();
-  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `SC:all-american-liquor`, budget: SC_ALL_AMERICAN_TERMS.length, broadTerms: ['bourbon', 'whiskey', 'rye'] })) {
-    const url = `${SC_ALL_AMERICAN_BASE_URL}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=20`;
-    const res = await textFetch(url, { headers: { accept: 'application/json' }, timeoutMs: 18_000 });
-    if (!res.ok) {
-      roadblocks.push({ state: config.id, source: SC_ALL_AMERICAN_SOURCE_LABEL, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API at low cadence; retain recent cache for no more than two hours.' });
-      await sleep(SC_ALL_AMERICAN_DELAY_MS);
-      continue;
-    }
-    let products = [];
-    try { products = JSON.parse(res.text); } catch (error) {
-      roadblocks.push({ state: config.id, source: SC_ALL_AMERICAN_SOURCE_LABEL, url, status: res.status || 200, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the WooCommerce response shape before promoting additional rows.' });
-      continue;
-    }
-    for (const product of Array.isArray(products) ? products : []) {
-      if (seen.has(product?.id)) continue;
-      const signal = buildSouthCarolinaAllAmericanSignal(config, product, bible, observedAt);
-      if (!signal) continue;
-      seen.add(product.id);
-      signals.push(signal);
-    }
-    await sleep(SC_ALL_AMERICAN_DELAY_MS);
-  }
-  try {
-    await mkdir(path.dirname(SC_ALL_AMERICAN_ARTIFACT_PATH), { recursive: true });
-    await writeFile(SC_ALL_AMERICAN_ARTIFACT_PATH, JSON.stringify({ generatedAt: observedAt, signals, roadblocks }, null, 2));
-  } catch (error) {
-    roadblocks.push({
-      state: config.id,
-      source: SC_ALL_AMERICAN_SOURCE_LABEL,
-      url: SC_ALL_AMERICAN_BASE_URL,
-      status: 'cache_write_failed',
-      error: error instanceof Error ? error.message : String(error),
-      nextRoute: 'Serve this bounded live result without cache reuse and retry cache persistence on the next scheduled run.',
-    });
-  }
-  return { signals, roadblocks };
+export async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
+  // This source is quarantined from inventory. Its catalog cannot establish live
+  // stock, so do not spend library queries or replay cached catalog observations.
+  const location = southCarolinaStoreLocationSignal(config, SC_ALL_AMERICAN_SOURCE_LABEL, SC_ALL_AMERICAN_BASE_URL, SC_ALL_AMERICAN_STORE, observedAt, 'all-american-liquor');
+  return {
+    signals: [location],
+    roadblocks: [],
+    metadata: {
+      inventoryQuarantined: true,
+      catalogRequests: 0,
+      reason: 'Configured directory premise only; current stock proof has not been reviewed.',
+    },
+  };
 }
 
 export async function runIsolatedSouthCarolinaSourceLane({ name, source, run }, config) {

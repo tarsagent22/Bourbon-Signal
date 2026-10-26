@@ -60,7 +60,7 @@ export function isExactLibraryTarget(rawName, bible) {
 // These are source capabilities, not statewide coverage promises.
 export const LIBRARY_SEARCH_LANES = Object.freeze({
   AZ: ['grocery-xapi', 'mesa-liquor', 'best-liquor-tempe', 'smart-final'],
-  TN: ['gateway-grabbl'], SC: ['da-brown-bag', 'liquor-store-near-me', 'dunes', 'all-american-liquor'],
+  TN: ['gateway-grabbl'], SC: ['da-brown-bag', 'liquor-store-near-me', 'dunes'],
   NC: ['wake', 'greensboro', 'high-point-suggestions'], IL: ['binnys'], UT: ['dabs'],
   'MD-MONTGOMERY': ['abs-autocomplete', 'abs-postback', 'abs-opendata'],
   NY: ['reviewed-cityhive-depth'], CO: ['reviewed-cityhive-depth'],

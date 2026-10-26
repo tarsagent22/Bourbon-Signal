@@ -32,3 +32,13 @@ Acceptance requires the full engine regression suite, conservative identity and 
 The first multi-state production candidate was retained as rejected evidence because two operational Little Book alert rows referred to retailer product IDs absent from the deduplicated public feed. Distinct retailer products had mapped to one legacy bottle family. Public inventory and the alert change path therefore selected different products/prices. Inventory change alerts now require the exact fresh public source, premise, product/variant, URL, raw title, observation, quantity and price. Canonical engine IDs and source display IDs remain separate; an overlapping family or store cannot substitute for a product binding. The existing Arizona verifier and its inventory-binding requirements remain unchanged.
 
 Verified Arizona binary availability also participates in the current-inventory alert path using the existing Arizona source policy. Zero remains an unknown count, `quantityIsExact` stays false, and positive source availability is still required. Captured production fixtures reproduce both rejected product IDs, retain the admitted variants and Weller, and reject changed source, premise, SKU, timestamp, price or quantity.
+
+
+## Quarantined source query budget
+
+All American Liquor remains directory-only while its current inventory proof is quarantined. Its production collector makes zero catalog requests, ignores old catalog caches and emits only the configured Mauldin directory premise with inventory and watch alerts disabled. It is excluded from the library inventory search registry. A catalog listing discovered during the second rejected production candidate did not prove stock and could not satisfy the existing location-only publication contract. That contract and the inventory policy remain unchanged. Re-enabling this source requires a separate reviewed current-stock proof.
+
+
+The captured second candidate also failed the separate complete-state SC baseline when replayed locally: rate-limited CityHive routes left seven required stores without current evidence (15 current inventory stores against a 22-store floor). No baseline or quality requirement is relaxed. Verify the other changed states in their targeted run, then verify the working SC Dunes connector through the existing source-scoped refresh path, which requires current exact-store inventory and customer-visible rows and marks unrequested siblings stale and non-alertable. Complete-state SC coverage remains unresolved.
+
+Targeted South Carolina workflow dispatches now force Dunes live collection, matching the other reviewed manual SC source lanes. Its six-hour cache cannot substitute for the source-scoped verifier requirement that observations originate in this run.
