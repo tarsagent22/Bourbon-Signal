@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { normalizeLibraryCatalog, integrateLibraryCatalog, readLibraryCatalog, catalogDigest, isLibraryDetectionTarget } from '../src/core/library-catalog.mjs';
 import { cityHiveSafeBottleMatch } from '../src/collectors/safe-bottle-match.mjs';
@@ -56,6 +58,41 @@ test('library ingestion validates completeness, identities, age and digest; stal
     await write({ ...snapshot, digest: 'wrong' });
     await assert.rejects(readLibraryCatalog({ liveFile: file, nowMs }), /stale or corrupt/);
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('production selects the live catalog for every subprocess rebuild, while offline builds remain deterministic', async () => {
+  const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const jobEnvironment = workflow.slice(0, workflow.indexOf('    steps:'));
+  assert.match(jobEnvironment, /BOURBON_SIGNAL_LIBRARY_CATALOG_FILE:.*github\.workspace.*\/engine\/out\/library-catalog\.json/);
+  assert(workflow.indexOf('- name: Synchronize the full customer bottle library') < workflow.indexOf('- name: Verify deterministic customer-surface regressions'));
+  const root = await mkdtemp(path.join(tmpdir(), 'library-rebuild-'));
+  const engine = path.join(root, 'engine');
+  const { mkdir } = await import('node:fs/promises');
+  await mkdir(engine, { recursive: true });
+  await mkdir(path.join(root, 'src/data'), { recursive: true });
+  const records = normalizeLibraryCatalog({ records: [bottle('offline', 'Offline Example 12 Year'), bottle('approved', 'Approved Example 15 Year')] });
+  const liveFile = path.join(root, 'live-library.json');
+  const env = { ...process.env };
+  delete env.BOURBON_SIGNAL_LIBRARY_CATALOG_FILE;
+  const build = selectedEnv => {
+    const child = spawnSync(process.execPath, [fileURLToPath(new URL('../src/build-bible.mjs', import.meta.url))], { cwd: engine, env: selectedEnv, encoding: 'utf8', windowsHide: true });
+    assert.equal(child.status, 0, child.stderr || child.stdout);
+    return readFile(path.join(engine, 'out/bourbon-bible.json'), 'utf8').then(JSON.parse);
+  };
+  try {
+    await writeFile(path.join(root, 'src/data/drop-feed-classification.generated.json'), JSON.stringify({ records: records.slice(0, 1) }));
+    await writeFile(liveFile, JSON.stringify({ schemaVersion: 1, source: 'fixture', fetchedAt: new Date().toISOString(), records, digest: catalogDigest(records) }));
+    const selectedEnv = { ...env, BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: liveFile };
+    for (let rebuild = 0; rebuild < 2; rebuild++) {
+      const payload = await build(selectedEnv);
+      assert.equal(payload.libraryCatalog.digest, catalogDigest(records));
+      assert.equal(payload.libraryCatalog.mode, 'live');
+      assert.equal(payload.records.length, 2);
+    }
+    const offline = await build(env);
+    assert.equal(offline.libraryCatalog.mode, 'static');
+    assert.equal(offline.records.length, 1);
+  } finally { await rm(root, { recursive: true, force: true }); }
 });
 
 test('syncing a library identity cannot enable alerts explicitly disabled in its library record', () => {

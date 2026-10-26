@@ -6,6 +6,8 @@ The customer library and engine matcher previously had different identity sets. 
 
 Production refresh now reads the complete public customer catalog before collection. The sync validates record identities, tiers, uniqueness and response total; the engine requires a fresh, digest-verified sync. Offline builds use the existing deterministic classification catalog. An unavailable or invalid live sync stops the new refresh and preserves the existing published snapshot.
 
+The live-catalog selection is set for the whole production job, before the first build. The refresh runner and later verification subprocesses rebuild the matcher, so a step-local environment variable is insufficient. All these rebuilds must retain the same live digest. Subprocess regression tests check consecutive live rebuilds and an independent offline build; the final snapshot audit verifies the production digest before publication.
+
 New scarce expressions use exact library identity matching. Expression words, ages, proofs, finishes and release years remain significant. Only packaging size, punctuation and equivalent age notation are normalized. Ambiguous aliases fail closed. New records never enter legacy substring matching or general page scanning. Existing canonical IDs remain stable; a specific library canonical expression takes precedence over an old broad family alias. The public exporter also excludes new identities from lossy fingerprint matching.
 
 The live catalog captured on October 25 contained 1,177 entries and 235 targets whose national or state tier was limited, allocated, highly allocated or unicorn. Against that same target set:

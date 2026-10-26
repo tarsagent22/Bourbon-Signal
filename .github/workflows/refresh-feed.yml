@@ -65,6 +65,7 @@ jobs:
       BOURBON_SIGNAL_VA_REQUIRED_STORE_ID: ${{ inputs.va_required_store_id || '' }}
       BOURBON_SIGNAL_REFRESH_SOURCES: ${{ inputs.sources || '' }}
       BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
+      BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: ${{ github.workspace }}/engine/out/library-catalog.json
     steps:
       - name: Reject superseded queued refresh before collection
         env:
@@ -88,17 +89,15 @@ jobs:
       - name: Install dependencies
         run: npm ci && npm --prefix engine ci
 
+      - name: Synchronize the full customer bottle library before collection
+        working-directory: engine
+        run: node src/sync-library-catalog.mjs
+
       - name: Verify deterministic customer-surface regressions before collection
         working-directory: engine
         run: |
           npm run bible
           node --test test/customer-surface-e2e.test.mjs
-
-      - name: Synchronize the full customer bottle library before collection
-        working-directory: engine
-        run: |
-          node src/sync-library-catalog.mjs
-          BOURBON_SIGNAL_LIBRARY_CATALOG_FILE=out/library-catalog.json npm run bible
 
       - name: Validate source-scoped dispatch before collection
         if: ${{ inputs.sources != '' }}
