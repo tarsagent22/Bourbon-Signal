@@ -126,3 +126,10 @@ test('Arizona supplemental store coverage advances on invocation even within the
  }
  assert.equal(visited.size,134);
 });
+
+test('allocated and unicorn targets lead the search rotation ahead of limited or explicitly alert-disabled expressions',()=>{
+ const rows=[bottle('a-limited','Limited Example',{nationalTier:'limited'}),bottle('z-unicorn','Unicorn Example',{nationalTier:'unicorn'}),bottle('b-disabled','Disabled Example',{nationalTier:'unicorn',isAlertEligible:false})];
+ const b=new BourbonBible(integrateLibraryCatalog([],{records:rows}));
+ const plan=buildLibrarySourceSearchPlan(b,{sourceKey:'test:rarity',budget:1});
+ assert.equal(plan.terms[0],'Unicorn Example');
+});

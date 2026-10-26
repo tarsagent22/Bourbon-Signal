@@ -7,7 +7,11 @@ export function libraryDetectionQueries(bible) {
   const identities = (bible.records || []).flatMap(record => (record.libraryIdentities || [])
     .filter(isLibraryDetectionTarget).map(bottle => ({ bottle, record })));
   const seen = new Set();
-  return identities.sort((a, b) => Number(Boolean(b.record.strictLibraryIdentity)) - Number(Boolean(a.record.strictLibraryIdentity))
+  const tierRank = {regular:0,limited:1,allocated:2,highly_allocated:3,unicorn:4};
+  const priority = bottle => Math.max(tierRank[bottle.nationalTier] || 0, ...bottle.stateOverrides.map(o => tierRank[o.tier] || 0));
+  return identities.sort((a, b) => Number(b.bottle.isAlertEligible !== false) - Number(a.bottle.isAlertEligible !== false)
+    || priority(b.bottle) - priority(a.bottle)
+    || Number(Boolean(b.record.strictLibraryIdentity)) - Number(Boolean(a.record.strictLibraryIdentity))
     || a.bottle.id.localeCompare(b.bottle.id))
     .filter(({ bottle }) => { const key = libraryIdentityKey(bottle.canonicalName); if (seen.has(key)) return false; seen.add(key); return true; })
     .map(({ bottle }) => bottle.canonicalName);
