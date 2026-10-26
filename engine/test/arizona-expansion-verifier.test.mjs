@@ -134,7 +134,8 @@ test('verifier preserves explicit false exact-quantity semantics without inventi
   const input = await capturedPipeline(t, { binary: true });
   assert.ok(input.state.signals.every((row) => row.quantity === 0 && row.quantityIsExact === false));
   assert.ok(input.drops.drops.every((row) => row.quantity === 0 && row.quantityIsExact === false));
-  assert.equal(input.alerts.alerts.length, 0);
+  assert.equal(input.alerts.alerts.length, input.drops.drops.length);
+  assert.ok(input.alerts.alerts.every(row => row.quantity === 0 && row.quantityIsExact === false && row.gates.includes('verified_binary_orderability')));
   assert.equal(verifyArizonaExpansionArtifact(input).status, 'ok');
   rejected(input, (row) => { row.drops.drops[0].quantityIsExact = true; }, /quantity.*proof/);
   rejected(input, (row) => { row.state.signals[0].quantity = 17; }, /exact quantity/);
