@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { verifySourceScopedEvidence } from '../src/source-scoped-refresh.mjs';
 import test from 'node:test';
 
 import { BourbonBible } from '../src/core/bible.mjs';
@@ -319,4 +322,65 @@ test('Dunes parser rejects malformed quantity, price, search identity, and respo
     mutate(entry);
     assert.equal(parseSouthCarolinaDunesItemDetail(entry.response, { searchRow: entry.searchRow, observedAt: '2026-07-30T19:36:44.157Z' }), null);
   }
+});
+
+
+test('Dunes mesh routing identity survives normalization, public export and source-scoped verification', () => {
+  const entry = detailFor(89103);
+  const parsed = parseSouthCarolinaDunesItemDetail(entry.response, { searchRow: entry.searchRow });
+  const observedAt = new Date().toISOString();
+  const signal = buildSouthCarolinaDunesSignal({ id: 'SC' }, parsed, {
+    observedAt, record: { id: '1792-full-proof', canonical: '1792 Full Proof', tier: 'allocated' }, match: { confidence: 0.97 },
+  });
+  const wrapped = { ...signal, sourceRuntimeId: 'precision:sc', leafSourceRuntimeId: 'sc:dunes' };
+  const normalized = canonicalizeSignal(wrapped, bible);
+  assert.equal(isSouthCarolinaDunesInventory(wrapped), true);
+  assert.equal(isSouthCarolinaDunesInventory(normalized), true);
+  const record = { id: normalized.canonicalBottleId, canonical: normalized.canonicalName, tier: 'allocated', aliases: [] };
+  const lookup = { byId: new Map([[record.id, record]]), byName: new Map() };
+  const drops = buildDrops([normalized], lookup, [normalized]);
+  assert.equal(drops.length, 1);
+  assert.equal(drops[0].leafSourceRuntimeId, 'sc:dunes');
+  assert.equal(isSouthCarolinaDunesInventory(drops[0]), true);
+  assert.equal(isSouthCarolinaDunesInventory(buildCurrentInventoryAlertsFromDrops(drops)[0]), true);
+  const result = verifySourceScopedEvidence({ state: 'SC', startedAt: observedAt, sourceRefresh: { sourceIds: ['dunes'] }, signals: [wrapped] }, drops, ['dunes']);
+  assert.equal(result.verified, true);
+  for (const mutate of [
+    row => { row.leafSourceRuntimeId = 'sc:unknown'; },
+    row => { row.raw.leafSourceRuntimeId = 'retailer:sc:dunes:9999'; },
+    row => { row.raw.runtimeStoreId = '9999'; },
+    row => { row.sourceUrl = row.sourceUrl.replace('89103', '99999'); },
+    row => { row.quantity = 0; },
+  ]) {
+    const invalid = structuredClone(wrapped); mutate(invalid);
+    assert.equal(isSouthCarolinaDunesInventory(invalid), false);
+    assert.equal(confidenceForSignal(invalid).canAlertAsInventory, false);
+  }
+});
+
+test('Dunes rotates bounded detail slots beyond the first search-result cohort', async () => {
+  const cursorDir = await mkdtemp(path.join(os.tmpdir(), 'dunes-detail-rotation-'));
+  const products = itemCapture.items.slice(0, 5);
+  const detailIds = [];
+  const fetcher = async (url, options = {}) => {
+    let payload;
+    if (url === 'https://www.dunesliquor.com') return { ok: true, status: 200, text: storefrontCapture };
+    if (url.endsWith('/Home/LoadBasicData')) payload = metadataCapture.response;
+    if (url.endsWith('/Home/GetSearchResult')) payload = { StatusVal: true, Data: { lstFilterResult: products.map(p => p.searchRow) } };
+    if (url.endsWith('/ListManage/LoadItemDescription')) {
+      const sku = String(JSON.parse(options.body).SKU); detailIds.push(sku);
+      payload = products.find(p => String(p.searchRow.ID) === sku).response;
+    }
+    return { ok: true, status: 200, text: JSON.stringify(payload) };
+  };
+  try {
+    for (let i = 0; i < 3; i++) {
+      await collectSouthCarolinaDunes({ id: 'SC' }, bible, new Date().toISOString(), {
+        fetcher, sleepFn: async () => {}, useCache: false, persistCache: false,
+        searchTerms: ['bourbon'], maxItems: 2, cursorDir,
+      });
+      assert.equal(detailIds.length, (i + 1) * 2);
+    }
+    assert.equal(new Set(detailIds).size, 5);
+  } finally { await rm(cursorDir, { recursive: true, force: true }); }
 });
