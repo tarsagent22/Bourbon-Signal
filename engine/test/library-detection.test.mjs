@@ -112,7 +112,7 @@ test('all-state audit separates unsupported, source observations, freshness, pub
   const catalog = { records, digest: catalogDigest(records) };
   const bible = { records: integrateLibraryCatalog([], catalog), libraryCatalog: { digest: catalog.digest, mode: 'live' } };
   const observedAt = new Date(nowMs).toISOString();
-  const reports = { AZ: { finishedAt: observedAt, signals: [{ canonicalBottleId: 'example', observedAt }], precisionMetadata: { xapi: { requests: [{ kind: 'inventory', term: 'Example 12 Year', ok: true }] } } } };
+  const reports = { AZ: { startedAt: observedAt, finishedAt: observedAt, signals: [{ canonicalBottleId: 'example', observedAt }], precisionMetadata: { xapi: { requests: [{ kind: 'inventory', term: 'Example 12 Year', ok: true, requestedAt:observedAt }] } } } };
   const audit = buildLibraryCoverageAudit({ bible, catalog, reports, nowMs });
   assert.equal(US_STATES.length, 50);
   assert.equal(new Set(US_STATES).size, 50);
@@ -125,6 +125,7 @@ test('all-state audit separates unsupported, source observations, freshness, pub
   assert.equal(audit.cells.find(row => row.state === 'IA').stateInventoryAlertsPermitted, false);
   const stale = buildLibraryCoverageAudit({ bible, catalog, reports, nowMs: nowMs + 3 * 3_600_000 });
   assert.equal(stale.cells.find(row => row.state === 'AZ').freshSourceRows, 0);
+  assert.equal(stale.cells.find(row => row.state === 'AZ').searchedExactExpressionThisRun, false);
   reports.AZ.stale = true;
   assert.equal(buildLibraryCoverageAudit({ bible, catalog, reports, nowMs }).cells.find(row => row.state === 'AZ').freshSourceRows, 0);
   assert(audit.states.every(row => row.exhaustiveDetectionVerified === false));

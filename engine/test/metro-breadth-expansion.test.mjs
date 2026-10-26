@@ -34,7 +34,7 @@ test('breadth adds eight exact pickup premises with canonical bottle evidence an
     assert.ok(manifest.some(entry => entry.id === source.id && entry.canonicalMatches.length > 0), source.id);
     if (source.depthDiscovery) {
       assert.deepEqual(source.depthDiscovery.queryTerms, ['buffalo trace']);
-      assert.equal(source.depthDiscovery.maxRequests, 2);
+      assert.equal(source.depthDiscovery.maxRequests, 5);
     }
   }
 });

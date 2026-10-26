@@ -5,7 +5,7 @@ import { BourbonBible } from './core/bible.mjs';
 import { DROP_TIERS, isLibraryDetectionTarget, libraryIdentityKey } from './core/library-catalog.mjs';
 import { cityHiveSafeBottleMatch } from './collectors/safe-bottle-match.mjs';
 import { STATE_LIFECYCLE, CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
-import { libraryDetectionQueries } from './library-query-plan.mjs';
+import { libraryDetectionQueries, LIBRARY_SEARCH_LANES } from './library-query-plan.mjs';
 import { precisionRetrievalAuditInputs } from './collectors/precision-probes.mjs';
 import { WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST } from './collectors/west-virginia-official.mjs';
 import { isPublicDropFeedEligible } from '../../src/lib/public-drop-evidence.ts';
@@ -46,7 +46,12 @@ export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops 
     const report = reports[state];
     const signals = report?.signals || [];
     const sourceRows = new Map(signals.map(row => [sourceIdentity(row), row]));
-    const sourceQueries = report?.precisionMetadata?.xapi?.requests || [];
+    const sourceQueries = [...(report?.precisionMetadata?.xapi?.requests || []), ...(report?.precisionMetadata?.librarySearch?.requests || []), ...(report?.precisionMetadata?.smartFinal?.searches || [])];
+    const currentQueries = sourceQueries.filter(q => {
+      const at = Date.parse(q.requestedAt || '');
+      return !report?.stale && !report?.sourceStale && Number.isFinite(at) && at >= Date.parse(report?.startedAt || '') && at <= Date.parse(report?.finishedAt || '') && nowMs - at <= maxAgeMs && at <= nowMs;
+    });
+    const searchPlans = report?.precisionMetadata?.librarySearch?.plans || [];
     const plan = precisionRetrievalAuditInputs(state);
     if (state === 'WV') plan.pinnedProducts = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.map(row => ({ name: row.query, code: row.expectedProductId }));
     for (const bottle of targets) {
@@ -58,11 +63,13 @@ export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops 
       const alertRows = alerts.filter(row => row.state === state && fresh(row) && sameBottle(row)
         && row.action === 'inventory_alert_candidate' && row.eligibleForOnSite === true && !(row.blockers?.length) && row.alertSuppressed !== true);
       const tier = bottle.stateOverrides.find(o => o.jurisdiction === state)?.tier || bottle.nationalTier;
-      const directQuery = sourceQueries.some(q => q.kind === 'inventory' && q.ok && libraryIdentityKey(q.term) === libraryIdentityKey(bottle.canonicalName));
+      const directQuery = currentQueries.some(q => (!q.kind || q.kind === 'inventory') && q.ok && libraryIdentityKey(q.term) === libraryIdentityKey(bottle.canonicalName));
       cells.push({ state, bottleId: bottle.id, canonicalName: bottle.canonicalName, tier, targetInState: DROP_TIERS.has(tier),
         engineId: record?.id || null, exactMatch: Boolean(record), matchIssue: result.unsafeReason,
         retrieval: !active ? 'no_active_state_collector' : state === 'AZ' && queryPool.has(libraryIdentityKey(bottle.canonicalName)) ? 'bounded_broad_search_and_targeted_rotation' : 'bounded_sources_completeness_unverified',
-        searchedExactExpressionThisRun: state === 'AZ' ? directQuery : null,
+        searchedExactExpressionThisRun: active ? directQuery : null,
+        libraryRotationPlanned: searchPlans.some(plan => plan.targetCount >= targets.length),
+        familySearchSucceededThisRun: currentQueries.some(q => q.ok && (!q.kind || q.kind === 'inventory') && libraryIdentityKey(q.term).length >= 4 && libraryIdentityKey(bottle.canonicalName).includes(libraryIdentityKey(q.term))),
         knownLaneQueryTermHits: plan.knownQueryTerms.filter(term => libraryIdentityKey(bottle.canonicalName).includes(libraryIdentityKey(term))),
         knownLaneProductIds: plan.pinnedProducts.filter(product => {
           const hit = cityHiveSafeBottleMatch(product.name, matcher).record;
@@ -86,6 +93,10 @@ export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops 
       freshPublicBottleCount: rows.filter(row => row.freshPublicRows > 0).length,
       inventoryAlertBottleCount: rows.filter(row => row.inventoryAlertCandidateRows > 0).length,
       sourceRoadblockCount: reports[state]?.roadblocks?.length ?? null,
+      librarySearchLanes: LIBRARY_SEARCH_LANES[state] || [],
+      librarySearchPlans: reports[state]?.precisionMetadata?.librarySearch?.plans || [],
+      librarySearchRequests: reports[state]?.precisionMetadata?.librarySearch?.requests || [],
+      retrievalGap: !CUSTOMER_ACTIVE_STATE_IDS.has(state) ? 'needs_verified_active_source' : ['VA','WV'].includes(state) ? 'reviewed_product_codes_only_needs_catalog_discovery' : LIBRARY_SEARCH_LANES[state] ? 'library_rotation_and_bounded_retrieval_need_store_expression_sweep' : 'bounded_catalog_pages_and_source_coverage_need_expansion',
       knownLane: precisionRetrievalAuditInputs(state), exhaustiveDetectionVerified: false };
   });
   return { schemaVersion: 1, generatedAt: new Date(nowMs).toISOString(), runId: stats.runId || null,
@@ -95,12 +106,12 @@ export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops 
     caveat: 'Matching is capability, not inventory. Bounded retrieval is not exhaustive. No fresh public evidence means unknown availability, never out of stock. Maryland county coverage is not statewide. Alert candidate counts do not prove delivery.',
     arizona: { queryPoolSize: queryPool.size, selectedStores: reports.AZ?.precisionMetadata?.xapi?.selectedStores?.length ?? null,
       maxTargetedQueriesPerRun: 16, fullStoreExpressionSweepVerified: false,
-      smartAndFinal: 'Buffalo Trace SKU only; the shared library does not expand this fixed-SKU connector.' },
+      smartAndFinal: 'Library-wide selected-store search with independent product-page stock verification; bounded pages and detail slots.' },
     states, cells };
 }
 
 export function libraryCoverageMarkdown(audit) {
-  return `# Library detection coverage\n\nGenerated ${audit.generatedAt}; snapshot ${audit.runId || 'not supplied'}.\n\n${audit.library.count} library entries; ${audit.library.targetCount} scarce-bottle targets (national or state limited/allocated/unicorn); ${audit.matchingGapCount} exact-name matching gaps.\n\n${audit.caveat}\n\n| State / jurisdiction | Active | Target bottles | Fresh public bottles | Inventory alert candidate bottles | Exhaustive retrieval verified |\n|---|---|---:|---:|---:|---|\n${audit.states.map(row => `| ${row.state} | ${row.active ? 'Yes' : 'No'} | ${row.targetCount} | ${row.freshPublicBottleCount} | ${row.inventoryAlertBottleCount} | No |`).join('\n')}\n\nThe JSON contains every bottle/jurisdiction pair, exact matching, retrieval limits, source freshness, public observations and alert eligibility. Arizona targets rotate within 16 supplemental searches per run. Every store/expression is not checked on each refresh. Smart & Final remains Buffalo Trace only.\n`;
+  return `# Library detection coverage\n\nGenerated ${audit.generatedAt}; snapshot ${audit.runId || 'not supplied'}.\n\n${audit.library.count} library entries; ${audit.library.targetCount} scarce-bottle targets (national or state limited/allocated/unicorn); ${audit.matchingGapCount} exact-name matching gaps.\n\n${audit.caveat}\n\n| State / jurisdiction | Active | Target bottles | Fresh public bottles | Inventory alert candidate bottles | Exhaustive retrieval verified |\n|---|---|---:|---:|---:|---|\n${audit.states.map(row => `| ${row.state} | ${row.active ? 'Yes' : 'No'} | ${row.targetCount} | ${row.freshPublicBottleCount} | ${row.inventoryAlertBottleCount} | No |`).join('\n')}\n\nThe JSON contains every bottle/jurisdiction pair, exact matching, retrieval limits, source freshness, public observations and alert eligibility. Arizona targets rotate within 16 supplemental searches per run. Every store/expression is not checked on each refresh. Smart & Final discovers library targets through selected-store searches and independently verifies product-page stock. Other searchable lanes persist library rotation; unsupported states and pinned-product lanes remain explicit retrieval gaps.\n`;
 }
 
 async function main() {

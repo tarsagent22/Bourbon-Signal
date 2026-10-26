@@ -1,0 +1,48 @@
+{
+  "capturedAt": "2026-10-26T01:17:41.915Z",
+  "grocery": {
+    "startedAt": "2026-10-26T01:10:55.631Z",
+    "finishedAt": "2026-10-26T01:16:31.802Z",
+    "selectedStores": 134,
+    "sourceRows": 837,
+    "publicRows": 584,
+    "publicStores": 132,
+    "bottles": [
+      "1792 Full Proof 750 Ml - 750 ML",
+      "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+      "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+      "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+      "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+      "Penelope Four Grain Bourbon - 750 Ml",
+      "W.l Weller Special Reserve Bourbon - 1 LT",
+      "Whistlepig Piggyback 6 Yr Bourbon - 750 ML"
+    ],
+    "queries": 150,
+    "roadblocks": []
+  },
+  "smartFinal": {
+    "publicEvidenceOnly": true,
+    "signalCount": 6,
+    "stores": [
+      "smart-final:730",
+      "smart-final:721",
+      "smart-final:720"
+    ],
+    "bottles": [
+      "Buffalo Trace Bourbon",
+      "Weller Full Proof",
+      "Woodford Reserve Double Oaked Bourbon",
+      "Crown Royal Chocolate"
+    ],
+    "requestCount": 31,
+    "elapsedMs": 56901
+  },
+  "virginiaCatalogDiscovery": {
+    "url": "https://www.abc.virginia.gov/library/products/other-documents/quarterly-price-list-oct--dec-2026.xlsx",
+    "status": 403,
+    "sha256": "9e1a12619c18723a152f47717a88a011bc678432bbb2231b166f8c07128c007c",
+    "attempts": 1,
+    "furtherAttempts": 0
+  },
+  "caveat": "Preflight is source evidence; production and customer visibility require the accepted immutable snapshot."
+}

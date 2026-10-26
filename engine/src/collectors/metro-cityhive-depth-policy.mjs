@@ -23,10 +23,10 @@ export function metroCityHiveDepthPolicy(sourceId) {
     maxCategoryPages: 1,
     includeWhiskey: false,
     queryTerms,
-    maxRequests: 1 + queryTerms.length,
-    maxElapsedMs: 20_000,
+    maxRequests: 5,
+    maxElapsedMs: 25_000,
     maxBodyBytes: 1_024 * 1_024,
-    maxTotalBytes: 3 * 1_024 * 1_024,
+    maxTotalBytes: 6 * 1_024 * 1_024,
     maxProducts: 150,
     requestTimeoutMs: 8_000,
   });

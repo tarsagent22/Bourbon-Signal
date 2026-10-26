@@ -9,7 +9,8 @@ import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
-import { libraryDetectionQueries } from '../library-query-plan.mjs';
+import { libraryDetectionQueries, isExactLibraryTarget } from '../library-query-plan.mjs';
+import { librarySourceSearchTerms, librarySourceSearchPlan, withLibrarySearchAudit, recordLibrarySearchResponse } from '../library-search-runtime.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { renameSync } from 'node:fs';
 import { mkdir, readFile, rm } from 'node:fs/promises';
@@ -1767,9 +1768,11 @@ async function textFetch(url, options = {}) {
     });
     const res = response = fetched.response;
     const text = (await readBoundedCollectionBody(res, { maxBytes: options.maxBytes, signal })).toString('utf8');
+    recordLibrarySearchResponse(url, options, res);
     return { ok: res.ok, status: res.status, url: fetched.url, contentType: res.headers.get('content-type') || '', rawSetCookie: res.headers.get('set-cookie') || '', retryAfter: res.headers.get('retry-after'), text, error: null };
   } catch (error) {
     if (options.signal?.aborted) throw error;
+    recordLibrarySearchResponse(url, options, {ok:false, status:response?.status || 0});
     return { ok: false, status: response?.status || 0, url, contentType: '', text: '', error: error instanceof Error ? error.message : String(error) };
   } finally {
     if (timeout) clearTimeout(timeout);
@@ -4223,7 +4226,8 @@ async function collectTennesseeCoolSprings(config, bible, observedAt, options = 
   return { signals, roadblocks };
 }
 
-function isGrabblBourbonRelevantProduct(item) {
+function isGrabblBourbonRelevantProduct(item, bible) {
+  if (isExactLibraryTarget([item?.productName, item?.size].filter(Boolean).join(' '), bible)) return true;
   const text = `${item?.productName || ''} ${item?.brand || ''} ${item?.productSubCategory || ''} ${item?.productDescription || ''}`;
   if (/vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|cream|coffee|bitters|margarita|brandy|cognac|mezcal/i.test(text)
     && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|1792|booker|baker|four roses|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(text)) return false;
@@ -4306,7 +4310,7 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt, options 
   }
 
   let returnedRows = 0;
-  for (const term of TN_GRABBL_GATEWAY_SEARCH_TERMS.slice(0, TN_GRABBL_MAX_TERMS)) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `TN:gateway-grabbl`, budget: TN_GRABBL_MAX_TERMS, broadTerms: ['bourbon', 'whiskey', 'rye'] })) {
     options.signal?.throwIfAborted();
     const page = await fetchGatewayGrabblProducts(term, options);
     if (!page.ok) {
@@ -4322,7 +4326,7 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt, options 
     }
     returnedRows += page.products.length;
     for (const product of page.products) {
-      if (!product?.productId || !isGrabblBourbonRelevantProduct(product)) continue;
+      if (!product?.productId || !isGrabblBourbonRelevantProduct(product, bible)) continue;
       const storeProducts = Array.isArray(product.storeProduct) ? product.storeProduct : [];
       for (const storeProduct of storeProducts) {
         if (storeProduct?.storeId && storeProduct.storeId !== TN_GRABBL_GATEWAY_STORE.id) continue;
@@ -4403,7 +4407,8 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt, options 
   return { signals, roadblocks };
 }
 
-function isSouthCarolinaRetailerCandidate(value) {
+function isSouthCarolinaRetailerCandidate(value, bible) {
+  if (isExactLibraryTarget(value, bible)) return true;
   const text = String(value || '').replace(/\s+/g, ' ').trim();
   if (!text || !SC_RETAILER_WATCH_RE.test(text)) return false;
   if (SC_RETAILER_EXCLUDE_RE.test(text)) return false;
@@ -4576,7 +4581,7 @@ async function collectArizonaWooCommerceRetailer(config, bible, observedAt, reta
   const signals = [];
   const roadblocks = [];
   const seen = new Set();
-  for (const term of AZ_MESA_LIQUOR_TERMS) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `AZ:${retailer.chain}`, budget: AZ_MESA_LIQUOR_TERMS.length, broadTerms: ['bourbon', 'whiskey', 'rye'] })) {
     options.signal?.throwIfAborted();
     const url = `${retailer.baseUrl}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=100&page=1`;
     const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000, signal: options.signal });
@@ -4674,7 +4679,7 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
     const host = new URL(url).host;
     if (blockedHosts.has(host)) return null;
     const res = await fetchText(url, { headers, timeoutMs: kind === 'resolver' ? 20_000 : 25_000, signal: options.signal });
-    metadata.requests.push({ kind, url, storeId, term, status: res.status || 0, ok: res.ok || res.status === 206 });
+    metadata.requests.push({ requestedAt:new Date().toISOString(), kind, url, storeId, term, status: res.status || 0, ok: res.ok || res.status === 206 });
     if ([401, 403, 429].includes(res.status)) blockedHosts.add(host);
     return res;
   }
@@ -4689,8 +4694,9 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
     } catch (error) { roadblocks.push({ state: config.id, source: 'Albertsons/Safeway Arizona store resolver', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the public resolver response shape.' }); }
     await pause(AZ_ALBERTSONS_DELAY_MS);
   }
-  const terms = process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS ? AZ_ALBERTSONS_TERMS : [...AZ_ALBERTSONS_TERMS, ...libraryDetectionQueries(bible)];
-  const plan = arizonaXapiRequestPlan(stores.values(), { maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms, nowMs: options.nowMs ?? Date.now() });
+  const libraryPlan = process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || !libraryDetectionQueries(bible).length ? null : await librarySourceSearchPlan(bible, {sourceKey:'AZ:grocery-xapi', budget:16});
+  const terms = libraryPlan?.terms || AZ_ALBERTSONS_TERMS;
+  const plan = arizonaXapiRequestPlan(stores.values(), {rotationIndex:libraryPlan?.invocation, maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms, nowMs: options.nowMs ?? Date.now() });
   metadata.targetedQueryPool = [...new Set(terms.filter(term => term !== 'bourbon'))];
   metadata.targetedQueryCoverage = 'rotating_subset_not_exhaustive';
   const describeStore = (store) => ({ storeId: `${arizonaXapiBanner(store)}:${store.locationId}`, city: store.address.city, address: `${store.address.line1}, ${store.address.city}, AZ ${store.address.zipcode}` });
@@ -6254,7 +6260,7 @@ function southCarolinaCityHiveEvidenceHasUsableInventory(evidence, bible, mercha
     if (typeof option.full_address !== 'string' || !/,\s*SC\s+\d{5}/i.test(option.full_address)) continue;
     const rawName = option.option_display_data?.name || option.product_name || product.name || '';
     const candidateText = JSON.stringify({ name: rawName, productName: option.product_name || product.name, category: option.basic_category || product.basic_category, tags: option.product_tags, storeTags: option.store_specific_tags, props: option.additional_properties });
-    if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
+    if (!isSouthCarolinaRetailerCandidate(candidateText, bible)) continue;
     if (!isSafeSouthCarolinaCityHiveBottleOption(option, rawName)) continue;
     if (normalizeCityHiveReportedQuantity(option.quantity).quantity <= 0) continue;
     if (southCarolinaCityHiveBottleMatch(rawName, bible).record) return true;
@@ -6440,7 +6446,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                 if (!/,\s*SC\s+\d{5}/i.test(fullAddress)) continue;
                 const rawName = option.option_display_data?.name || option.product_name || product.name || '';
                 const candidateText = JSON.stringify({ name: rawName, productName: option.product_name || product.name, category: option.basic_category || product.basic_category, tags: option.product_tags, storeTags: option.store_specific_tags, props: option.additional_properties });
-                if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
+                if (!isSouthCarolinaRetailerCandidate(candidateText, bible)) continue;
                 if (!isSafeSouthCarolinaCityHiveBottleOption(option, rawName)) continue;
                 const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
                 if (quantity <= 0) continue;
@@ -6557,7 +6563,7 @@ async function collectSouthCarolinaDaBrownBag(config, bible, observedAt) {
   const failures = [];
   let successfulSearches = 0;
   let returnedRows = 0;
-  for (const term of SC_DA_BROWN_BAG_SEARCH_TERMS) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `SC:da-brown-bag`, budget: SC_DA_BROWN_BAG_SEARCH_TERMS.length, broadTerms: ['bourbon', 'whiskey', 'rye'] })) {
     const page = await fetchDaBrownBagSearch(term);
     if (!page.ok) {
       failures.push(page);
@@ -6568,7 +6574,7 @@ async function collectSouthCarolinaDaBrownBag(config, bible, observedAt) {
     for (const item of page.items) {
       if (!item?.uuid || seenItems.has(item.uuid)) continue;
       const rawName = item.name || item.alternate_name || '';
-      if (!isSouthCarolinaRetailerCandidate(rawName)) continue;
+      if (!isSouthCarolinaRetailerCandidate(rawName, bible)) continue;
       const quantity = Number(item.stockCount || 0) || 0;
       if (quantity <= 0 || item.forcedOutOfStock) continue;
       const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
@@ -6644,7 +6650,7 @@ export function buildSouthCarolinaSouthernSpiritsSignal(product, bible, observed
   const availableVariant = product.variants.find((variant) => variant?.available === true);
   if (!availableVariant) return null;
   const candidateText = southernSpiritsProductText(product, availableVariant);
-  if (!isSouthCarolinaRetailerCandidate(candidateText)) return null;
+  if (!isSouthCarolinaRetailerCandidate(candidateText, bible)) return null;
   const rawName = [product.title, availableVariant.title && !/^default title$/i.test(availableVariant.title) ? availableVariant.title : null].filter(Boolean).join(' ');
   const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
   if (!record) return null;
@@ -6978,7 +6984,7 @@ async function collectSouthCarolinaLiquorStoreNearMe(config, bible, observedAt) 
   const queryFailures = [];
   const seen = new Set();
   let returnedRows = 0;
-  for (const term of SC_LIQUOR_STORE_NEAR_ME_TERMS) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `SC:liquor-store-near-me`, budget: SC_LIQUOR_STORE_NEAR_ME_TERMS.length, broadTerms: ['bourbon', 'whiskey', 'rye'] })) {
     const url = `${SC_LIQUOR_STORE_NEAR_ME_BASE_URL}/wp-json/wc/store/products?search=${encodeURIComponent(term)}&per_page=20`;
     const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 18_000 });
     if (!res.ok) {
@@ -6996,7 +7002,7 @@ async function collectSouthCarolinaLiquorStoreNearMe(config, bible, observedAt) 
     for (const product of products) {
       const rawName = htmlToText(product?.name || '');
       if (!rawName || seen.has(product.id || rawName)) continue;
-      if (!isSouthCarolinaRetailerCandidate(rawName)) continue;
+      if (!isSouthCarolinaRetailerCandidate(rawName, bible)) continue;
       seen.add(product.id || rawName);
       const price = wcStoreApiPrice(product?.prices);
       signals.push(phase1CatalogSignal(config, 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', product?.permalink || url, SC_LIQUOR_STORE_NEAR_ME_STORE, rawName, bible, observedAt, {
@@ -7080,7 +7086,7 @@ async function collectSouthCarolinaOwensTether(config, bible, observedAt) {
   let parsed = 0;
   for (const product of products.slice(0, 20)) {
     const rawName = product.name || '';
-    if (!isSouthCarolinaRetailerCandidate(rawName)) continue;
+    if (!isSouthCarolinaRetailerCandidate(rawName, bible)) continue;
     parsed += 1;
     signals.push(phase1CatalogSignal(config, 'Owens Liquors guarded CityHive discovery', product.url || url, SC_OWENS_STORE, rawName, bible, observedAt, { raw: { chain: 'owens-liquors', product: { id: product.id, name: product.name } } }));
   }
@@ -7227,7 +7233,7 @@ export async function collectSouthCarolinaDunes(config, bible, observedAt, optio
   const persistCache = options.persistCache !== false;
   const maxItems = Math.max(1, Math.min(SC_DUNES_MAX_ITEMS, Number(options.maxItems) || SC_DUNES_MAX_ITEMS));
   const detailConcurrency = Math.max(1, Math.min(SC_DUNES_DETAIL_CONCURRENCY, Number(options.detailConcurrency) || SC_DUNES_DETAIL_CONCURRENCY));
-  const searchTerms = (options.searchTerms || SC_DUNES_SEARCH_TERMS).slice(0, SC_DUNES_SEARCH_TERMS.length);
+  const searchTerms = options.searchTerms ? options.searchTerms.slice(0, SC_DUNES_SEARCH_TERMS.length) : await librarySourceSearchTerms(bible, {sourceKey:'SC:dunes', budget:SC_DUNES_SEARCH_TERMS.length, broadTerms:['bourbon','whiskey','rye']});
   const matchBottle = options.matchBottle || ((rawName) => cityHiveSafeBottleMatch(rawName, bible));
 
   if (useCache) {
@@ -7293,7 +7299,7 @@ export async function collectSouthCarolinaDunes(config, bible, observedAt, optio
         continue;
       }
       const parsed = parseSouthCarolinaDunesItemDetail(detail.payload, { searchRow });
-      if (!parsed || !isSouthCarolinaRetailerCandidate(parsed.rawName)) continue;
+      if (!parsed || !isSouthCarolinaRetailerCandidate(parsed.rawName, bible)) continue;
       const { match, record } = matchBottle(parsed.rawName) || {};
       if (!record) continue;
       const signal = buildSouthCarolinaDunesSignal(config, parsed, { observedAt, record, match });
@@ -7373,7 +7379,7 @@ export function buildSouthCarolinaAllAmericanSignal(config, product, bible, obse
     || product?.is_on_backorder !== false
     || isSouthCarolinaAllAmericanPreviewCatalogProduct(product)
     || isUnsafeSouthCarolinaAllAmericanFormat(rawName)
-    || !isSouthCarolinaRetailerCandidate(rawName)) return null;
+    || !isSouthCarolinaRetailerCandidate(rawName, bible)) return null;
   let sourceUrl;
   try {
     const parsed = new URL(String(product?.permalink || ''));
@@ -7585,7 +7591,7 @@ async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
   const signals = [southCarolinaStoreLocationSignal(config, SC_ALL_AMERICAN_SOURCE_LABEL, SC_ALL_AMERICAN_BASE_URL, SC_ALL_AMERICAN_STORE, observedAt, 'all-american-liquor')];
   const roadblocks = [];
   const seen = new Set();
-  for (const term of SC_ALL_AMERICAN_TERMS) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `SC:all-american-liquor`, budget: SC_ALL_AMERICAN_TERMS.length, broadTerms: ['bourbon', 'whiskey', 'rye'] })) {
     const url = `${SC_ALL_AMERICAN_BASE_URL}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=20`;
     const res = await textFetch(url, { headers: { accept: 'application/json' }, timeoutMs: 18_000 });
     if (!res.ok) {
@@ -8771,12 +8777,13 @@ async function fetchMetroShopifyProducts(source, signal) {
   return products;
 }
 
-export async function fetchMetroRetailerRows(source, signal) {
+export async function fetchMetroRetailerRows(source, signal, bible) {
   if (source.platform === 'cityhive') {
     if (source.depthDiscovery) {
       return collectMetroCityHiveRows(source, {
         fetchText: textFetch,
-        parseHtml: parseMetroCityHiveHtml,
+        parseHtml: (html, candidate) => parseMetroCityHiveHtml(html, candidate, {isLibraryTarget:name => isExactLibraryTarget(name, bible)}),
+        ...(libraryDetectionQueries(bible || {}).length ? {searchTerms: await librarySourceSearchTerms(bible, {sourceKey:`${source.stateCode}:${source.id}`, budget:4, priorityTerms:(source.depthDiscovery.queryTerms || []).slice(0, 1)})} : {}),
         signal,
         sleepFn: sleepWithSignal,
       });
@@ -8792,7 +8799,7 @@ export async function fetchMetroRetailerRows(source, signal) {
         signal,
       });
       if (!response.ok) throw failedMetroResponse(response, `${source.sourceLabel} CityHive merchant ${store.merchantId}`);
-      for (const row of parseMetroCityHiveHtml(response.text, source)) {
+      for (const row of parseMetroCityHiveHtml(response.text, source, {isLibraryTarget:name => isExactLibraryTarget(name, bible)})) {
         if (row.merchantId !== store.merchantId) continue;
         const key = `${row.merchantId}:${row.productId}:${row.variantId}`;
         if (seen.has(key)) continue;
@@ -8826,8 +8833,8 @@ export async function fetchMetroRetailerRows(source, signal) {
   };
 }
 
-async function collectMetroRetailerSource(config, bible, source, observedAt, signal) {
-  const fetched = await fetchMetroRetailerRows(source, signal);
+export async function collectMetroRetailerSource(config, bible, source, observedAt, signal) {
+  const fetched = await fetchMetroRetailerRows(source, signal, bible);
   const discoveryMetadata = fetched.metadata || null;
   const signals = [];
   for (const row of fetched.rows) {
@@ -8851,6 +8858,7 @@ async function collectMetroRetailerSource(config, bible, source, observedAt, sig
       rawName: row.title,
       canonicalBottleId: record.id,
       canonicalName: record.canonical,
+      ...(isExactLibraryTarget(row.title,bible) ? {sourceProductBinding:{schemaVersion:1,source:'metro-library-identity',productIdentityMode:row.productIdentityMode || null,rawName:row.title,canonicalName:record.canonical,canonicalBottleId:record.id,storeId:store.id,merchantId:row.merchantId,productId:row.productId,variantId:row.variantId}} : {}),
       tier: record.tier,
       confidence: Math.min(0.92, match.confidence),
       eventType: 'retailer_store_inventory_result',
@@ -9518,6 +9526,10 @@ function precisionRuntimeUrl(config) {
 }
 
 async function collectPrecisionProbesDirect(config, bible, existingSignals = [], options = {}) {
+  return withLibrarySearchAudit(() => collectPrecisionProbesUntraced(config, bible, existingSignals, options));
+}
+
+async function collectPrecisionProbesUntraced(config, bible, existingSignals = [], options = {}) {
   if (config.id === 'MS') return collectMississippiRetailers(config, {
     ...options,
     matchBottle: (rawName) => {
@@ -9655,6 +9667,7 @@ function binnysProductName(hit) {
 
 export function binnysProductRelevant(hit, bible = null) {
   const productName = binnysProductName(hit);
+  if (isExactLibraryTarget(productName, bible)) return true;
   const classification = `${hit.productType || ''} ${hit.productVarietal || ''}`;
   const identityText = `${productName} ${hit.productBrandName || ''} ${classification} ${hit.area || ''} ${(hit.designations || []).join(' ')}`;
   if (BINNYS_EXCLUDE_CLASSIFICATION_RE.test(classification) || BINNYS_EXCLUDE_PRODUCT_NAME_RE.test(productName)) return false;
@@ -9755,7 +9768,7 @@ export async function collectIllinois(config, bible, options = {}) {
 
   const productMap = new Map();
   const productQueries = [];
-  const searchTerms = [...new Set([...(TRACKED_TERMS.IL || []), 'bourbon'])];
+  const searchTerms = await librarySourceSearchTerms(bible, {sourceKey:'IL:binnys', budget:TRACKED_TERMS.IL.length + 1, broadTerms:['bourbon'], priorityTerms:['Buffalo Trace']});
   for (const term of searchTerms) {
     const maxPages = term === 'bourbon' ? BINNYS_MAX_BOURBON_PAGES : 2;
     for (let page = 0; page < maxPages; page++) {
@@ -9764,7 +9777,7 @@ export async function collectIllinois(config, bible, options = {}) {
           query: term === 'bourbon' ? '' : term,
           page,
           hitsPerPage: BINNYS_HITS_PER_PAGE,
-          facetFilters: ['productVarietal:Bourbon'],
+          ...(term === 'bourbon' ? {facetFilters: ['productVarietal:Bourbon']} : {}),
           attributesToRetrieve: ['objectID', 'variantCode', 'productName', 'shortDescription', 'productBrandName', 'productType', 'productVarietal', 'area', 'country', 'itemSize', 'priceUnitLabel', 'proof', 'productUrl', 'onlineStoreBestPrice', 'isInStoreOnly', 'isSoldOut', 'designations', 'storesPriceAndInventory', 'inStockStores', 'onSaleStores', 'storeSaleAvailability', 'productDescriptionLong']
         };
         const result = await query(BINNYS_PRODUCT_INDEX, params);
@@ -10612,7 +10625,7 @@ export function transformUtahAggregateRow(config, bible, row, { observedAt = nul
 
 async function collectUtah(config, bible) {
   const signals = [], roadblocks = [];
-  for (const term of TRACKED_TERMS.UT) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `UT:dabs`, budget: TRACKED_TERMS.UT.length, broadTerms: [] })) {
     try {
       const itemRes = await textFetch(`https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetItemsForTerm?term=${encodeURIComponent(term)}`, { headers: { 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }});
       const items = JSON.parse(itemRes.text);
@@ -10972,7 +10985,7 @@ function parseWakeProducts(html, config, bible, url, term) {
 
   for (const block of blocks) {
     const rawName = stripHtml(block.match(/<h4[^>]*>([\s\S]*?)<\/h4>/i)?.[1] || '').replace(/\s+/g, ' ').trim();
-    if (!rawName || !WAKE_WATCH_ITEM_RE.test(rawName) || WAKE_EXCLUDED_ITEM_RE.test(rawName)) continue;
+    if (!rawName || (!isExactLibraryTarget(rawName, bible) && (!WAKE_WATCH_ITEM_RE.test(rawName) || WAKE_EXCLUDED_ITEM_RE.test(rawName)))) continue;
     if (/^BAKER'?S$/i.test(rawName)) continue;
     const plu = stripHtml(block.match(/PLU:\s*([^<]+)/i)?.[1] || '').replace(/\s+/g, ' ').trim();
     const price = Number(stripHtml(block.match(/<span[^>]+class=["']price["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || '').replace(/[^\d.]/g, '')) || null;
@@ -11028,7 +11041,7 @@ async function collectWakeNc(config, bible) {
   const probeReports = [];
   const url = 'https://wakeabc.com/search-results/';
 
-  for (const term of NC_STORE_INVENTORY_TERMS) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `NC:wake`, budget: NC_STORE_INVENTORY_TERMS.length, broadTerms: [] })) {
     try {
       const res = await textFetch(url, {
         method: 'POST',
@@ -11111,6 +11124,7 @@ function greensboroProductUrl(item) {
 }
 
 function isGreensboroBourbonWatchItem(name, bible) {
+  if (isExactLibraryTarget(name, bible)) return true;
   if (!name || !GREENSBORO_WATCH_ITEM_RE.test(name)) return false;
   if (GREENSBORO_EXCLUDED_ITEM_RE.test(name)) return false;
   return Boolean(bible.match(name)?.record);
@@ -11229,7 +11243,7 @@ async function collectHighPointPowerBiNc(config, bible) {
     const rawName = String(row.G1 || '').replace(/\s+/g, ' ').trim();
     const ncCode = String(row.G0 || '').trim();
     const hay = `${rawName} ${ncCode}`;
-    if (!rawName || !HIGH_POINT_WATCH_ITEM_RE.test(hay) || HIGH_POINT_EXCLUDED_ITEM_RE.test(hay)) continue;
+    if (!rawName || (!isExactLibraryTarget(rawName, bible) && (!HIGH_POINT_WATCH_ITEM_RE.test(hay) || HIGH_POINT_EXCLUDED_ITEM_RE.test(hay)))) continue;
     matchedProducts.add(`${ncCode}|${rawName}`);
     const price = Number(row.M7 || 0) || null;
     const sizeLiters = Number(row.M8 || 0) || null;
@@ -11286,7 +11300,7 @@ async function collectHighPointNc(config, bible) {
   roadblocks.push(...powerBi.roadblocks);
   probeReports.push(...(powerBi.probeReports || []));
 
-  for (const term of NC_STORE_INVENTORY_TERMS) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `NC:high-point-suggestions`, budget: NC_STORE_INVENTORY_TERMS.length, broadTerms: [] })) {
     const url = `${HIGH_POINT_ABC_BASE_URL}/search/suggest.json?q=${encodeURIComponent(term)}&resources[type]=product&resources[limit]=10`;
     let json;
     try {
@@ -11310,7 +11324,7 @@ async function collectHighPointNc(config, bible) {
     for (const product of json.resources?.results?.products || []) {
       const rawName = stripHtml(product.body || product.title || '').replace(/\s+/g, ' ').trim() || stripHtml(product.title || '');
       const hay = `${product.title || ''} ${product.body || ''}`;
-      if (!rawName || !HIGH_POINT_WATCH_ITEM_RE.test(hay) || HIGH_POINT_EXCLUDED_ITEM_RE.test(hay)) continue;
+      if (!rawName || (!isExactLibraryTarget(rawName, bible) && (!HIGH_POINT_WATCH_ITEM_RE.test(hay) || HIGH_POINT_EXCLUDED_ITEM_RE.test(hay)))) continue;
       const productId = String(product.id || product.handle || rawName);
       if (seen.has(productId)) continue;
       seen.add(productId);
@@ -11384,7 +11398,7 @@ async function collectGreensboroNc(config, bible) {
     note: 'Maps SuiteCommerce internal pickup location IDs to Greensboro ABC public store names and addresses.'
   }];
 
-  for (const term of NC_STORE_INVENTORY_TERMS) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `NC:greensboro`, budget: NC_STORE_INVENTORY_TERMS.length, broadTerms: [] })) {
     const apiUrl = `${GREENSBORO_ABC_BASE_URL}/api/items?c=${GREENSBORO_ABC_COMPANY_ID}&country=US&currency=USD&fieldset=search&include=facets&language=en&limit=24&n=${GREENSBORO_ABC_SITE_ID}&offset=0&pricelevel=5&q=${encodeURIComponent(term)}&sort=custitem_ns_sc_ext_ts_7_quantity%3Adesc&use_pcv=T`;
     let json;
     try {
@@ -11973,7 +11987,7 @@ async function collectMontgomery(config, bible) {
   const signals = [], roadblocks = [];
   await collectMontgomeryOpenData(config, bible, signals, roadblocks);
   const url = 'https://www2.montgomerycountymd.gov/abssearch/webservice.asmx/SearchByName';
-  for (const term of TRACKED_TERMS['MD-MONTGOMERY']) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `MD:abs-autocomplete`, budget: TRACKED_TERMS['MD-MONTGOMERY'].length, broadTerms: [] })) {
     try {
       const res = await textFetch(url, { method: 'POST', headers: { 'content-type': 'application/json; charset=utf-8', accept: 'application/json,*/*' }, body: `{'Name':'${term.replace(/'/g, '')}'}` });
       const json = JSON.parse(res.text);
@@ -11985,7 +11999,7 @@ async function collectMontgomery(config, bible) {
     } catch (error) { roadblocks.push({ state: config.id, source: 'Montgomery ABS SearchByName', url, status: 0, error: error.message, nextRoute: 'Replay ASP.NET selected item/postback to open StoreInventory modal.' }); }
   }
   const pageUrl = 'https://www2.montgomerycountymd.gov/abssearch/default.aspx';
-  for (const term of TRACKED_TERMS['MD-MONTGOMERY']) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `MD:abs-postback`, budget: TRACKED_TERMS['MD-MONTGOMERY'].length, broadTerms: [] })) {
     try {
       const first = await textFetch(pageUrl);
       const state = (name) => first.text.match(new RegExp(`name=["']${name}["'][^>]*value=["']([^"']*)`, 'i'))?.[1]
@@ -12007,7 +12021,7 @@ async function collectMontgomery(config, bible) {
       const cards = res.text.split(/<div class="col-md-2 mb-3 card-size">/i).slice(1);
       for (const card of cards) {
         const rawName = stripHtml(card.match(/<span class="indigo-text descfont">([\s\S]*?)<\/span>/i)?.[1] || '').replace(/\s+/g, ' ').trim();
-        if (!rawName || !RARE_RE.test(rawName)) continue;
+        if (!rawName || (!isExactLibraryTarget(rawName, bible) && !RARE_RE.test(rawName))) continue;
         const code = stripHtml(card.match(/#\s*([^|<]+)/i)?.[1] || '').trim();
         const size = stripHtml(card.match(/<span class="blue-text">([^<]+)<\/span>/i)?.[1] || '').trim();
         const price = Number((card.match(/item-price">\$([0-9,.]+)/i)?.[1] || '').replace(/,/g, '').trim()) || null;
@@ -12058,7 +12072,7 @@ async function collectMontgomeryOpenData(config, bible, signals, roadblocks) {
   }
 
   const rows = [];
-  for (const term of TRACKED_TERMS['MD-MONTGOMERY']) {
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `MD:abs-opendata`, budget: TRACKED_TERMS['MD-MONTGOMERY'].length, broadTerms: [] })) {
     const safe = term.toLowerCase().replace(/'/g, "''");
     rows.push(...await fetchRows(term, `select code,category,description,size,totalinventory,price,saleprice,saleenddate where lower(description) like '%${safe}%' limit 50`));
   }

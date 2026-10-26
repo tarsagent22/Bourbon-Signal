@@ -144,6 +144,14 @@ jobs:
           restore-keys: |
             inventory-metro-attempts-${{ runner.os }}-
 
+      - name: Restore library search progress independently of publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/cache/library-search
+          key: inventory-library-search-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-library-search-${{ runner.os }}-
+
       - name: Restore North Carolina board intelligence
         id: nc-intelligence-cache
         uses: actions/cache/restore@v4
@@ -569,6 +577,13 @@ jobs:
         with:
           path: engine/out/optimization/metro-source-attempts
           key: inventory-metro-attempts-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save library search progress independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/cache/library-search
+          key: inventory-library-search-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save browser source artifacts
         if: always()

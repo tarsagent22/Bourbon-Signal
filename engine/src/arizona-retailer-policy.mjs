@@ -39,9 +39,18 @@ export function isArizonaRetailerSignalIdentity(signal) {
     const proof = signal.sourceProductBinding;
     return chain === 'smart-final' && sourceHostname === 'smartandfinal.com' && SMART_FINAL_IDS.has(merchantId)
       && signal.storeId === `smart-final:${merchantId}`
-      && signal.sourceUrl === `https://www.smartandfinal.com/sm/pickup/rsid/${merchantId}/product/buffalo-trace-straight-bourbon-id-00080244009236`
-      && proof?.schemaVersion === 1 && proof.source === 'smart-final-az' && proof.merchantId === merchantId
-      && proof.sku === '00080244009236' && proof.available === true && proof.sizeMl === 750
+      && proof?.source === 'smart-final-az' && proof.merchantId === merchantId
+      && (proof.schemaVersion === 1
+        ? signal.sourceUrl === `https://www.smartandfinal.com/sm/pickup/rsid/${merchantId}/product/buffalo-trace-straight-bourbon-id-00080244009236` && proof.sku === '00080244009236' && proof.sizeMl === 750
+        : proof.schemaVersion === 2 && /^\d{14}$/.test(proof.sku || '') && signal.productId === proof.sku
+          && (proof.canonicalName === signal.canonicalName || proof.rawName === signal.canonicalName)
+          && (proof.rawName === signal.canonicalName || proof.canonicalBottleId === signal.canonicalBottleId)
+          && proof.rawName === signal.rawName && Boolean(proof.canonicalBottleId)
+          && signal.sourceUrl.startsWith(`https://www.smartandfinal.com/sm/pickup/rsid/${merchantId}/product/`)
+          && signal.sourceUrl.endsWith(`-id-${proof.sku}`)
+          && proof.discoveryUrl?.startsWith(`https://www.smartandfinal.com/sm/pickup/rsid/${merchantId}/results?q=`)
+          && proof.discoveryStoreUuid === proof.storeUuid && Number(proof.sizeMl) >= 375 && Number(proof.sizeMl) <= 1750)
+      && proof.available === true
       && ['plenty', 'low'].includes(proof.stockStatus) && proof.shoppingMode === 'pickup'
       && proof.storeAddress === signal.storeAddress && /^[a-f0-9-]{36}$/.test(proof.storeUuid || '')
       && Number(signal.quantity || 0) === 0 && signal.quantityIsExact === false;
