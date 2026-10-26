@@ -5,6 +5,7 @@ import { renameSync } from 'node:fs';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { writeCollectionFile, collectionSignal } from './core/collection-context.mjs';
+import { libraryIdentityKey } from './core/library-catalog.mjs';
 import { buildLibrarySourceSearchPlan, librarySearchPool } from './library-query-plan.mjs';
 
 const sessions = new AsyncLocalStorage();
@@ -19,7 +20,14 @@ export async function librarySourceSearchPlan(bible, options) {
   let previous;
   try { previous = JSON.parse(await readFile(file, 'utf8')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
-  const cursor = previous?.schemaVersion === 1 && previous.sourceKey === options.sourceKey && previous.poolDigest === poolDigest ? previous.nextCursor : 0;
+  const sameSource = previous?.schemaVersion === 1 && previous.sourceKey === options.sourceKey;
+  let cursor = sameSource ? previous.nextCursor : 0;
+  if (sameSource && previous.poolDigest !== poolDigest && previous.nextTermKey) {
+    const fixed = new Set([...(options.broadTerms || []), ...(options.priorityTerms || [])].map(libraryIdentityKey));
+    const pool = librarySearchPool(bible).filter(term => !fixed.has(libraryIdentityKey(term)));
+    const next = pool.findIndex(term => libraryIdentityKey(term) === previous.nextTermKey);
+    if (next >= 0) cursor = next;
+  }
   const plan = buildLibrarySourceSearchPlan(bible, { ...options, cursor });
   plan.plannedAt = new Date().toISOString();
   plan.invocation = Number.isSafeInteger(previous?.invocation) ? previous.invocation + 1 : 0;
@@ -27,7 +35,7 @@ export async function librarySourceSearchPlan(bible, options) {
   const temporary = `${file}.${process.pid}.${randomUUID()}.tmp`;
   // Atomic replacement preserves a valid cursor when the collector is stopped.
   try {
-    await writeCollectionFile(temporary, JSON.stringify({schemaVersion:1, sourceKey:options.sourceKey, poolDigest, nextCursor:plan.nextCursor, invocation:plan.invocation, updatedAt:new Date().toISOString()}));
+    await writeCollectionFile(temporary, JSON.stringify({schemaVersion:1, sourceKey:options.sourceKey, poolDigest, nextCursor:plan.nextCursor, nextTermKey:plan.nextTermKey, invocation:plan.invocation, updatedAt:new Date().toISOString()}));
     collectionSignal()?.throwIfAborted();
     renameSync(temporary, file);
   } finally { await rm(temporary, {force:true}); }
