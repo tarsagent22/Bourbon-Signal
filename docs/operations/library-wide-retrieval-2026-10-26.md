@@ -53,3 +53,14 @@ The Dunes source-scoped run 40263963054 was rejected before activation. It colle
 Dunes detail slots now persist their progress beyond the first result cohort. Utah retains five baseline query families and six library-rotation slots in its existing eleven-query budget. Its four detail slots per query rotate too, and duplicate product codes are fetched once per pass. The live Utah preflight found 21 distinct board aggregate rows in 36 requests under the existing 55-request maximum. These remain statewide informational aggregates with no exact-store or alert claim. Neither source correction is production-verified until its subsequent targeted publication succeeds.
 
 Complete-state SC coverage, Montgomery County recovery, Colorado rate limits, Virginia/WV code discovery, other bounded retrieval gaps and states without active sources remain under finding #839. No quality threshold is reduced to accept a rotating cohort.
+
+
+## Source acceptance and complete planned pair coverage
+
+The follow-up source corrections were accepted on merge `6cbf743e682a1d0f7a21028d8286a8858d5e05e7`. Utah workflow 40267402037 accepted snapshot `120aaeb3df91c9a3`: 18 current aggregate rows, 10 positive, five exported aggregate drops, four customer-eligible aggregate rows and zero inventory alert candidates. Dunes workflow 40267404543 accepted snapshot `d0a890a74e0e6d1a`: eight verified source inventory rows and three public rows, including 1792 Full Proof at $49.99. Live coverage confirmed Dunes actively monitored. Overall SC coverage also contains retained earlier observations within their original freshness windows; the source receipt is not a full-state coverage claim.
+
+A long-cycle audit then found the invocation-based Arizona grocery plan advanced its store and query positions in lockstep. With 134 stores and 350 library search terms sharing a factor of two, it visited only 23,450 of the 46,900 possible term/premise pairs. Prefixes overlap, so this is not evidence that half the bottles were missed, but the persistent pairing gap was real.
+
+The planner now shifts the store assignment after each full query-pool cycle using a stride coprime to the selected store count. The durable source invocation counter supplies progress, including after failed publication; no clock reset is required. Tests cover every planned pair for the production dimensions, other shared-factor dimensions, small selected cohorts and a shifted query cursor. Small cohorts retain their original supplemental request budget. The default 134 broad bourbon searches plus 16 supplemental requests still total at most 150.
+
+This proves scheduling reachability under a stable source and library, not successful HTTP execution, stock, or an observed complete store/expression sweep. The all-state audit keeps exhaustive detection false. Catalog changes, inaccessible sources, inventory freshness and request limits remain explicit constraints.

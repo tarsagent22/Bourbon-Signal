@@ -123,10 +123,40 @@ export function selectArizonaXapiStores(input, { maxStores = ARIZONA_XAPI_DEFAUL
   return selected;
 }
 
-export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT_STORES, terms = [], nowMs = Date.now(), rotationIndex = null } = {}) {
+// Shift the store assignment after each complete query-pool cycle. Advancing
+// store and query positions in lockstep strands pairs whenever their sizes share
+// a factor (134 stores and 350 terms previously visited only half the pairs).
+export function arizonaXapiLibraryQueryAssignments(storeCount, { terms = [], poolSize, invocation } = {}) {
+  if (!Number.isInteger(storeCount) || storeCount < 1 || storeCount > ARIZONA_XAPI_DEFAULT_STORES
+    || !Number.isSafeInteger(poolSize) || poolSize < terms.length || poolSize > Number.MAX_SAFE_INTEGER / storeCount
+    || !Number.isSafeInteger(invocation) || invocation < 0
+    || !terms.length || terms.length > Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, storeCount)
+    || terms.some(term => typeof term !== 'string' || !term.trim()) || new Set(terms).size !== terms.length) {
+    throw new Error('Invalid Arizona library query assignment');
+  }
+  const start = invocation * terms.length;
+  if (!Number.isSafeInteger(start + terms.length)) throw new Error('Arizona library query position exceeds safe integer range');
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  let stride = poolSize;
+  while (gcd(stride, storeCount) !== 1) stride += 1;
+  return terms.map((term, offset) => {
+    const position = start + offset;
+    const cycle = Math.floor(position / poolSize) % storeCount;
+    return { term, storeIndex: (cycle * stride + position % poolSize) % storeCount };
+  });
+}
+
+export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT_STORES, terms = [], nowMs = Date.now(), rotationIndex = null, queryPoolSize = null } = {}) {
   const selected = selectArizonaXapiStores(input, { maxStores });
   const rareTerms = [...new Set(terms.map((term) => String(term).trim()).filter((term) => term && term !== 'bourbon'))];
   const usesInvocation = Number.isSafeInteger(rotationIndex) && rotationIndex >= 0;
+  if (usesInvocation && queryPoolSize !== null && rareTerms.length && selected.length) {
+    const supplemental = Array.from({ length: selected.length }, () => []);
+    for (const { term, storeIndex } of arizonaXapiLibraryQueryAssignments(selected.length, { terms: rareTerms, poolSize: queryPoolSize, invocation: rotationIndex })) {
+      supplemental[storeIndex].push(term);
+    }
+    return selected.map((store, index) => ({ store, terms: ['bourbon', ...supplemental[index]] }));
+  }
   const dayBucket = usesInvocation ? rotationIndex : Math.floor(nowMs / 86_400_000);
   const gcd = (a, b) => b ? gcd(b, a % b) : a;
   let termStride = Math.max(1, selected.length);

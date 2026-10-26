@@ -8,7 +8,7 @@ import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
-import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
+import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, arizonaXapiBanner, arizonaXapiRequestPlan, selectArizonaXapiStores, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
 import { libraryDetectionQueries, isExactLibraryTarget } from '../library-query-plan.mjs';
 import { librarySourceSearchTerms, librarySourceSearchPlan, withLibrarySearchAudit, recordLibrarySearchResponse, rotateLibraryProductCandidates } from '../library-search-runtime.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
@@ -4691,9 +4691,11 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
     } catch (error) { roadblocks.push({ state: config.id, source: 'Albertsons/Safeway Arizona store resolver', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the public resolver response shape.' }); }
     await pause(AZ_ALBERTSONS_DELAY_MS);
   }
-  const libraryPlan = process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || !libraryDetectionQueries(bible).length ? null : await librarySourceSearchPlan(bible, {sourceKey:'AZ:grocery-xapi', budget:16});
+  const selectedStores = selectArizonaXapiStores(stores.values(), { maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES });
+  const queryBudget = Math.min(16, selectedStores.length);
+  const libraryPlan = !queryBudget || process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || !libraryDetectionQueries(bible).length ? null : await librarySourceSearchPlan(bible, {sourceKey:'AZ:grocery-xapi', budget:queryBudget});
   const terms = libraryPlan?.terms || AZ_ALBERTSONS_TERMS;
-  const plan = arizonaXapiRequestPlan(stores.values(), {rotationIndex:libraryPlan?.invocation, maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms, nowMs: options.nowMs ?? Date.now() });
+  const plan = arizonaXapiRequestPlan(selectedStores, {rotationIndex:libraryPlan?.invocation, queryPoolSize:libraryPlan?.poolSize ?? null, maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms, nowMs: options.nowMs ?? Date.now() });
   metadata.targetedQueryPool = [...new Set(terms.filter(term => term !== 'bourbon'))];
   metadata.targetedQueryCoverage = 'rotating_subset_not_exhaustive';
   const describeStore = (store) => ({ storeId: `${arizonaXapiBanner(store)}:${store.locationId}`, city: store.address.city, address: `${store.address.line1}, ${store.address.city}, AZ ${store.address.zipcode}` });
