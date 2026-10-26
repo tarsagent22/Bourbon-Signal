@@ -10,7 +10,7 @@ import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, arizonaXapiBanner, arizonaXapiRequestPlan, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
 import { libraryDetectionQueries, isExactLibraryTarget } from '../library-query-plan.mjs';
-import { librarySourceSearchTerms, librarySourceSearchPlan, withLibrarySearchAudit, recordLibrarySearchResponse } from '../library-search-runtime.mjs';
+import { librarySourceSearchTerms, librarySourceSearchPlan, withLibrarySearchAudit, recordLibrarySearchResponse, rotateLibraryProductCandidates } from '../library-search-runtime.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { renameSync } from 'node:fs';
 import { mkdir, readFile, rm } from 'node:fs/promises';
@@ -7282,7 +7282,7 @@ export async function collectSouthCarolinaDunes(config, bible, observedAt, optio
     roadblocks.push({ state: config.id, source: SC_DUNES_SOURCE_LABEL, url: `${SC_DUNES_BASE_URL}/Home/GetSearchResult`, status: 'partial_search_failure', error: `${searchFailureCount} of ${searchTerms.length} bounded Dunes search requests failed or returned malformed data.`, nextRoute: 'Retry the same bounded public search cohort; do not broaden request volume.' });
   }
 
-  const rows = [...searchRows.values()].slice(0, maxItems);
+  const rows = await rotateLibraryProductCandidates([...searchRows.values()].map(row => ({ ...row, sku: String(row.ID) })), { sourceKey: 'SC:dunes:details', limit: maxItems, cursorDir: options.cursorDir });
   let detailFailureCount = 0;
   for (let offset = 0; offset < rows.length; offset += detailConcurrency) {
     const chunk = rows.slice(offset, offset + detailConcurrency);
@@ -10585,16 +10585,21 @@ export function transformUtahAggregateRow(config, bible, row, { observedAt = nul
   return { id: stableId([config.id, row.sku, row.storeQty, row.warehouseQty, row.status]), ...base, tier: record?.tier || 'unknown', eventType: 'board_inventory_aggregate', locationPrecision: 'board_warehouse', locationName: 'Utah DABS statewide locator aggregate', storeQty, warehouseQty, quantity: null, onOrderQty: row.onOrderQty ?? null, price: Number(row.bottlePrice || row.currentPrice || 0) || null, availabilityStatus: storeQty > 0 ? 'STORE_AGGREGATE_POSITIVE' : warehouseQty > 0 ? 'WAREHOUSE_AGGREGATE_POSITIVE' : 'AGGREGATE_ZERO', availabilityLabel: storeQty > 0 ? `${storeQty} statewide store units reported` : warehouseQty > 0 ? `${warehouseQty} warehouse units reported` : 'No aggregate stock reported', observedAt: base.fetchedAt, canAlertAsInventory: false, canAlertAsWatch: false, inventorySemantics: 'Utah DABS Product Locator reports statewide storeQty and warehouseQty aggregates by SKU. This is board/warehouse intelligence, not exact store shelf inventory.', evidence: `Utah DABS API row for ${row.name}: storeQty=${row.storeQty}, warehouseQty=${row.warehouseQty}, status=${row.status}. This is statewide aggregate data, not a per-store shelf count.`, raw: { ...row, sourceCaveat: 'Statewide store/warehouse aggregate; exact store drilldown not extracted.', sourceMatchStatus: base.sourceMatchStatus, unsafeReason: unsafeReason || null } };
 }
 
-async function collectUtah(config, bible) {
+export async function collectUtah(config, bible, options = {}) {
   const signals = [], roadblocks = [];
-  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `UT:dabs`, budget: TRACKED_TERMS.UT.length, broadTerms: [] })) {
+  const fetcher = options.fetcher || textFetch;
+  const seen = new Set();
+  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `UT:dabs`, budget: TRACKED_TERMS.UT.length, priorityTerms: ['Elijah Craig', 'Michter', 'Buffalo Trace', 'Willett', 'Weller'], cursorDir: options.cursorDir })) {
     try {
-      const itemRes = await textFetch(`https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetItemsForTerm?term=${encodeURIComponent(term)}`, { headers: { 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }});
+      const itemRes = await fetcher(`https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetItemsForTerm?term=${encodeURIComponent(term)}`, { headers: { 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }});
       const items = JSON.parse(itemRes.text);
-      for (const item of items.slice(0, 4)) {
+      const selected = await rotateLibraryProductCandidates(items.map(item => ({ ...item, sku: item.code })), { sourceKey: `UT:dabs:details:${term}`, limit: 4, cursorDir: options.cursorDir });
+      for (const item of selected) {
+        if (seen.has(item.code)) continue;
+        seen.add(item.code);
         const params = new URLSearchParams({ draw: '1', start: '0', length: '10', item_code: item.code, item_name: '', category: '', sub_category: '', price_min: '', price_max: '', on_spa: 'false', new_items: 'false', in_stock: 'false', status: '', 'order[0][column]': '0', 'order[0][dir]': 'asc', 'search[value]': '', 'search[regex]': 'false' });
         ['name','sku','displayGroup','status','warehouseQty','storeQty','onOrderQty','caseCost','bottlePrice','splitCaseFee','onSpa','isNewItem'].forEach((c,i)=>{ params.set(`columns[${i}][data]`, c); params.set(`columns[${i}][searchable]`, 'true'); params.set(`columns[${i}][orderable]`, 'true'); params.set(`columns[${i}][search][value]`, ''); params.set(`columns[${i}][search][regex]`, 'false'); });
-        const res = await textFetch('https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }, body: params });
+        const res = await fetcher('https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-requested-with': 'XMLHttpRequest', accept: 'application/json,*/*' }, body: params });
         const json = JSON.parse(res.text);
         for (const row of json.data || []) {
           signals.push(transformUtahAggregateRow(config, bible, row));

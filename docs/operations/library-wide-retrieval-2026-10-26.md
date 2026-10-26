@@ -42,3 +42,14 @@ All American Liquor remains directory-only while its current inventory proof is 
 The captured second candidate also failed the separate complete-state SC baseline when replayed locally: rate-limited CityHive routes left seven required stores without current evidence (15 current inventory stores against a 22-store floor). No baseline or quality requirement is relaxed. Verify the other changed states in their targeted run, then verify the working SC Dunes connector through the existing source-scoped refresh path, which requires current exact-store inventory and customer-visible rows and marks unrequested siblings stale and non-alertable. Complete-state SC coverage remains unresolved.
 
 Targeted South Carolina workflow dispatches now force Dunes live collection, matching the other reviewed manual SC source lanes. Its six-hour cache cannot substitute for the source-scoped verifier requirement that observations originate in this run.
+
+
+## Accepted production and remaining source corrections
+
+Workflow 40263961014 accepted snapshot `fb9c64a9ae0627af` on merge `095d9cb5a6d3d042d20e09137462f7003b988f36`. Live API verification found 585 fresh Arizona rows across 136 premises, zero newly added Arizona premises, and Weller Full Proof 750 ml at Smart & Final Gilbert #730 for $69.99. Five affected state lanes had fresh search outcomes. Colorado, Utah and Montgomery County retained explicit stale reports; those were not counted as successful fresh expansions.
+
+The Dunes source-scoped run 40263963054 was rejected before activation. It collected fresh stock, but the SC wrapper stamped `sc:dunes` over the source's leaf routing field; the Dunes policy recognized only `retailer:sc:dunes:6178`. The policy now recognizes that exact reviewed SC route while retaining runtime 6178, SKU URL, exact premises, cart, stock, quantity, price, freshness and fulfillment requirements. Conflicting raw runtime proof fails closed. Captured replay retains three customer rows, including 1792 Full Proof at $49.99. Unknown routes, conflicting runtime, changed SKU and zero stock are rejected.
+
+Dunes detail slots now persist their progress beyond the first result cohort. Utah retains five baseline query families and six library-rotation slots in its existing eleven-query budget. Its four detail slots per query rotate too, and duplicate product codes are fetched once per pass. The live Utah preflight found 21 distinct board aggregate rows in 36 requests under the existing 55-request maximum. These remain statewide informational aggregates with no exact-store or alert claim. Neither source correction is production-verified until its subsequent targeted publication succeeds.
+
+Complete-state SC coverage, Montgomery County recovery, Colorado rate limits, Virginia/WV code discovery, other bounded retrieval gaps and states without active sources remain under finding #839. No quality threshold is reduced to accept a rotating cohort.

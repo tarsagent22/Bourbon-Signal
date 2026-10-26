@@ -35,7 +35,10 @@ export function isSouthCarolinaDunesInventory(signal, nowMs = Date.now()) {
     && eventType === 'retailer_store_inventory_result'
     && signal?.sourceLabel === DUNES_SOURCE_LABEL
     && signal?.sourceRuntimeId === 'precision:sc'
-    && (signal?.leafSourceRuntimeId || signal?.raw?.leafSourceRuntimeId) === DUNES_RUNTIME_ID
+    // The SC mesh stamps its reviewed routing identity; the underlying store
+    // proof still binds runtime 6178, SKU, premises, cart, quantity and price.
+    && [DUNES_RUNTIME_ID, 'sc:dunes'].includes(signal?.leafSourceRuntimeId || signal?.raw?.leafSourceRuntimeId)
+    && (signal?.raw?.leafSourceRuntimeId == null || signal.raw.leafSourceRuntimeId === DUNES_RUNTIME_ID)
     && signal?.storeId === DUNES_STORE_ID
     && signal?.storeName === 'Dunes Liquor'
     && signal?.city === 'Myrtle Beach'
