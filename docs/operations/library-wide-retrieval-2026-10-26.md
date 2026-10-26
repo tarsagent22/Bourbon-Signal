@@ -40,3 +40,5 @@ All American Liquor remains directory-only while its current inventory proof is 
 
 
 The captured second candidate also failed the separate complete-state SC baseline when replayed locally: rate-limited CityHive routes left seven required stores without current evidence (15 current inventory stores against a 22-store floor). No baseline or quality requirement is relaxed. Verify the other changed states in their targeted run, then verify the working SC Dunes connector through the existing source-scoped refresh path, which requires current exact-store inventory and customer-visible rows and marks unrequested siblings stale and non-alertable. Complete-state SC coverage remains unresolved.
+
+Targeted South Carolina workflow dispatches now force Dunes live collection, matching the other reviewed manual SC source lanes. Its six-hour cache cannot substitute for the source-scoped verifier requirement that observations originate in this run.
