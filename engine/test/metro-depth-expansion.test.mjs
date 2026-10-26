@@ -33,7 +33,7 @@ test('depth is enabled only where live canonical gains justify additional reques
       ? 'premises_quantity' : 'itemlist_binary');
     assert.equal(candidate.depthDiscovery.maxCategoryPages, 1);
     assert.equal(candidate.depthDiscovery.includeWhiskey, false);
-    assert.ok(candidate.depthDiscovery.maxRequests <= 3);
+    assert.equal(candidate.depthDiscovery.maxRequests, 5);
     assert.equal(candidate.depthDiscovery.refreshCadenceMs, undefined);
     assert.ok(Object.isFrozen(candidate.depthDiscovery.queryTerms));
   }

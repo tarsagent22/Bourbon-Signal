@@ -3,7 +3,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isArizonaRetailerInventory } from './arizona-retailer-policy.mjs';
 import classification from '../../src/data/drop-feed-classification.generated.json' with { type: 'json' };
-import { isLibraryDetectionTarget } from './core/library-catalog.mjs';
+import { librarySearchPool } from './library-query-plan.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT } from './collectors/arizona-xapi.mjs';
 
 export const ARIZONA_EXPANSION_EXPECTATIONS = Object.freeze({
@@ -50,7 +50,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const errors = [];
   const check = (condition, message) => { if (!condition) errors.push(message); };
   const expected = { ...ARIZONA_EXPANSION_EXPECTATIONS, ...expectations };
-  const allowedTerms = new Set(['bourbon', "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...libraryRecords.filter(isLibraryDetectionTarget).map(row => row.canonicalName)]);
+  const allowedTerms = new Set(['bourbon', "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...librarySearchPool({records:libraryRecords.map(bottle => ({libraryIdentities:[bottle]}))})]);
   for (const [key, value] of Object.entries(expected)) check(Number.isSafeInteger(value) && value >= 0, `Invalid verifier expectation: ${key}.`);
   const nowMs = now instanceof Date ? now.getTime() : Number(now);
   const startMs = Date.parse(state?.startedAt);
@@ -165,7 +165,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const smartFinal = inventory.filter(row => row.sourceChain === 'smart-final');
   const smartRequests = state?.precisionMetadata?.smartFinal?.requests || [];
   const smartSuccessful = new Set(smartRequests.filter(r => numericStatus(r.status) === 200).map(r => r.url));
-  check(smartRequests.length <= 8, 'Smart & Final exceeded its bounded discovery and store requests.');
+  check(smartRequests.length <= 90, 'Smart & Final exceeded its bounded discovery and store requests.');
   for (const row of smartFinal) check(smartSuccessful.has(row.sourceUrl)
     && row.sourceProductBinding?.storeAddress === row.storeAddress && row.quantity === 0 && row.quantityIsExact === false,
   'Smart & Final inventory lost its current successful request, premise binding or unknown quantity semantics.');

@@ -123,10 +123,11 @@ export function selectArizonaXapiStores(input, { maxStores = ARIZONA_XAPI_DEFAUL
   return selected;
 }
 
-export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT_STORES, terms = [], nowMs = Date.now() } = {}) {
+export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT_STORES, terms = [], nowMs = Date.now(), rotationIndex = null } = {}) {
   const selected = selectArizonaXapiStores(input, { maxStores });
   const rareTerms = [...new Set(terms.map((term) => String(term).trim()).filter((term) => term && term !== 'bourbon'))];
-  const dayBucket = Math.floor(nowMs / 86_400_000);
+  const usesInvocation = Number.isSafeInteger(rotationIndex) && rotationIndex >= 0;
+  const dayBucket = usesInvocation ? rotationIndex : Math.floor(nowMs / 86_400_000);
   const gcd = (a, b) => b ? gcd(b, a % b) : a;
   let termStride = Math.max(1, selected.length);
   while (rareTerms.length && gcd(termStride, rareTerms.length) !== 1) termStride += 1;
@@ -137,9 +138,10 @@ export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT
     const slot = dayBucket * rareCount + offset;
     return [slot % selected.length, Math.floor(slot / selected.length)];
   }));
+  const visitTerms = new Map(Array.from(rareVisits.keys()).map((index, offset) => [index, !usesInvocation ? rareTerms[(rareVisits.get(index) * termStride + index) % rareTerms.length] : rareTerms[offset % rareTerms.length]]));
   return selected.map((store, index) => ({
     store,
-    terms: ['bourbon', ...(rareVisits.has(index) ? [rareTerms[(rareVisits.get(index) * termStride + index) % rareTerms.length]] : [])],
+    terms: ['bourbon', ...(rareVisits.has(index) ? [visitTerms.get(index)] : [])],
   }));
 }
 
