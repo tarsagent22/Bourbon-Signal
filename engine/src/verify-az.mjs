@@ -7,6 +7,7 @@ import { librarySearchPool } from './library-query-plan.mjs';
 import { libraryIdentityKey } from './core/library-catalog.mjs';
 import { stripHtml } from './core/text.mjs';
 import { arizonaXapiLibraryIdentity } from './collectors/arizona-xapi-library-identity.mjs';
+import { isPublicDropFeedEligible } from '../../src/lib/public-drop-evidence.ts';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT } from './collectors/arizona-xapi.mjs';
 
 export const ARIZONA_EXPANSION_EXPECTATIONS = Object.freeze({
@@ -153,15 +154,26 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   check(positiveStores.size >= expected.minimumPositiveXapiStores, 'XAPI positive inventory does not reach the required store floor.');
 
   const published = rows(drops, 'drops').filter((row) => row?.state === 'AZ' || row?.stateCode === 'AZ');
-  const publicInventory = published.filter(inventoryType);
-  const publicIdentities = new Set(publicInventory.map(identity));
-  check(publicIdentities.size === publicInventory.length, 'Duplicate published Arizona inventory identities cannot inflate public coverage.');
+  const inventoryCandidates = published.filter(inventoryType);
   const sourceByIdentity = new Map(inventory.map((row) => [identity(row), row]));
+  const disabledKeys = new Set(libraryRecords.filter(bottle => bottle.isAlertEligible === false)
+    .flatMap(bottle => [bottle.canonicalName, ...bottle.aliases]).map(libraryIdentityKey));
+  const explicitlyDisabled = row => {
+    const source = sourceByIdentity.get(identity(row));
+    return Boolean(source && disabledKeys.has(libraryIdentityKey(source.canonicalName)));
+  };
+  const publicInventory = inventoryCandidates.filter(row => !explicitlyDisabled(row) && isPublicDropFeedEligible(row));
+  const publicIdentities = new Set(publicInventory.map(identity));
+  check(new Set(inventoryCandidates.map(identity)).size === inventoryCandidates.length, 'Duplicate published Arizona inventory identities cannot inflate public coverage.');
   const matchSource = (row, source) => Boolean(source && row.storeAddress === source.storeAddress && row.city === source.city
     && row.observedAt === source.observedAt && Number(row.quantity || 0) === Number(source.quantity || 0)
     && Number(row.price || 0) === Number(source.price || 0) && row.availabilityStatus === source.availabilityStatus
     && !(source.quantityIsExact === false && row.quantityIsExact !== false) && !(Number(source.quantity || 0) === 0 && row.quantityIsExact === true));
-  for (const row of publicInventory) check(isArizonaRetailerInventory(row) && row.canAlertAsInventory === true && currentObservation(row)
+  for (const row of inventoryCandidates) check(isArizonaRetailerInventory(row)
+    && (explicitlyDisabled(row)
+      ? row.canAlertAsInventory === false && row.canAlertAsWatch === false && row.eligibleForOnSite === false
+      : row.canAlertAsInventory === true)
+    && currentObservation(row)
     && row.stale !== true && row.sourceStale !== true && !miniature(row) && ['unicorn', 'allocated', 'limited'].includes(row.tier)
     && matchSource(row, sourceByIdentity.get(identity(row))), 'Published Arizona inventory lost original source, store, product, price, quantity or observation proof.');
   check(!published.some((row) => !inventoryType(row) && row.canAlertAsInventory === true), 'Published catalog or watch rows cannot claim inventory.');
@@ -198,6 +210,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
     selectedStores: selected.length, baselineStores: baseline.length, addedStores: added.length, positiveXapiStores: positiveStores.size,
     publicRows: publicIdentities.size, addedPublicStores: addedPublicStores.size, buffaloTracePublicRows: buffalo.length, alerts: publishedAlerts.length,
     newSelectedStores: newStores.length, newPublicStores: newPublicStores.size, reviewedDepthRows: reviewedDepthRows.length, smartFinalPublicStores: smartPublicStores.size,
+    candidateInventoryRows: inventoryCandidates.length, catalogDisabledCandidateRows: inventoryCandidates.filter(explicitlyDisabled).length,
     searchCount: search.length, bourbonSearchCount: bourbon.length, whiskeySearchCount: whiskey.length, rareSearchCount: rare.length, maximumAgeMinutes: ageLimit / 60_000 };
 }
 
