@@ -90,6 +90,8 @@ export function isMetroRetailerProof(row) {
     &&p.identityName===wheelIdentityName(p.product,p.publishedProduct)
     &&p.premise?.['@id']===retailer.baseUrl+'/'&&p.premise?.name===retailer.store.name&&p.premise?.address?.streetAddress===retailer.store.street&&p.premise?.address?.postalCode===retailer.store.zip
     &&p.premise?.address?.addressLocality===retailer.store.city&&p.premise?.address?.addressRegion==='AZ'
+    &&Number.isFinite(Number(p.premise?.geo?.latitude))&&Number.isFinite(Number(p.premise?.geo?.longitude))
+    &&Number(row.lat)===Number(p.premise.geo.latitude)&&Number(row.lng)===Number(p.premise.geo.longitude)
     &&p.product?.name===p.rawName&&p.publishedProduct?.id===p.productId&&p.publishedProduct?.name===p.rawName
     &&Number(p.publishedProduct?.price)===p.price&&offer?.availability==='https://schema.org/InStock'&&offer?.priceCurrency==='USD'
     &&Number(offer.price)===p.price&&offer?.seller?.url===row.sourceUrl&&offer?.seller?.name===retailer.store.name

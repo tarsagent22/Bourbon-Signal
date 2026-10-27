@@ -21,6 +21,8 @@ function metroSignal(retailer,record,{productId,sourceUrl,rawName,price,observed
     sourceUrl,productId,rawName,canonicalBottleId:record.id,canonicalName:record.canonical,tier:record.tier,confidence:0.86,
     eventType:'retailer_store_inventory_result',locationPrecision:'store_level',locationName:retailer.store.name,storeName:retailer.store.name,
     storeId:retailer.store.id,storeAddress:retailer.store.address,city:retailer.store.city,stateCode:'AZ',postalCode:retailer.store.zip,zip:retailer.store.zip,
+    lat:proof.premise?.geo?.latitude!=null&&Number.isFinite(Number(proof.premise.geo.latitude))?Number(proof.premise.geo.latitude):null,
+    lng:proof.premise?.geo?.longitude!=null&&Number.isFinite(Number(proof.premise.geo.longitude))?Number(proof.premise.geo.longitude):null,
     quantity:0,quantityIsExact:false,price,observedAt,availabilityStatus:'in_stock',availabilityLabel:'Retailer reports available at this store',
     sourceAvailabilityVerified:true,canAlertAsInventory:true,canAlertAsWatch:true,
     inventorySemantics:'The retailer publishes positive availability and price at its verified store. Exact shelf quantity is not published; verify before driving.',

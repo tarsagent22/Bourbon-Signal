@@ -29,6 +29,7 @@ test('captured Phoenix pickup rows and abbreviated Mesa releases survive the act
   const drops=JSON.parse(JSON.stringify(buildDrops(op,bibleLookup(bible.records),op))).filter(isPublicDropFeedEligible);
   assert(drops.some(d=>d.rawName==='Larceny Bbn Brl Proof 750ml'&&d.tier==='limited'),'the actual library limited tier must win over the old PA standard seed for a proven exact identity');
   assert(drops.some(d=>d.rawName==="Blanton's Bourbon"));
+  assert(drops.filter(d=>d.sourceChain==='liquor-wheel-2-phoenix').every(d=>d.lat===33.4712824&&d.lng===-112.0474803),'published first-party coordinates must survive nearby-feed export');
   for(const d of drops){assert(isMetroRetailerProof(d));assert.equal(d.quantity,0);assert.equal(d.quantityIsExact,false);}
   assert(drops.filter(d=>d.sourceChain==='mesa-liquor').every(d=>d.storeAddress==='1930 E Broadway Rd, Mesa, AZ 85204'));
 });
