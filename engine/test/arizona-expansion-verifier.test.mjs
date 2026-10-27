@@ -67,7 +67,7 @@ async function withDisabledCandidate(t) {
   source.observedAt = candidate.observedAt = input.state.signals[0].observedAt;
   input.state.signals.push(source);
   input.drops.drops.push(candidate);
-  input.libraryRecords = bible.records.flatMap(record => record.libraryIdentities || []);
+  input.libraryRecords = [...bible.records.flatMap(record => record.libraryIdentities || []).filter(bottle => bottle.id !== disabledFixture.catalogRecord.id), disabledFixture.catalogRecord];
   const meta = input.state.precisionMetadata.xapi;
   const premise = { storeId: source.storeId, address: source.storeAddress, city: source.city };
   meta.selectedStores.push(premise); meta.addedStores.push(premise);

@@ -179,5 +179,15 @@
     "inventorySemantics": "Arizona is a private retail market. Whitelisted public retailer CityHive sources expose store-level bottle availability, price, and sometimes exact quantity; alert as retailer-published availability with a verify-before-driving caveat.",
     "sourceInventorySemantics": "Arizona is a private retail market. Explicitly whitelisted CityHive merchant pages can expose store-level bottle availability and price; alert as retailer-published availability with a verify-before-d",
     "evidence": "Safeway Arizona XAPI store inventory reports Penelope Havana Bourbon 750 Ml - 750 ML available at 32551 N Scottsdale Rd, Scottsdale."
+  },
+  "catalogRecord": {
+    "id": "penelope-havana",
+    "canonicalName": "Penelope Havana",
+    "aliases": [
+      "Penelope Havana"
+    ],
+    "nationalTier": "allocated",
+    "stateOverrides": [],
+    "isAlertEligible": false
   }
 }
