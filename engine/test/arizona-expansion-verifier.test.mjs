@@ -10,6 +10,7 @@ import { diagnoseArizonaExpansionArtifact, verifyArizonaExpansionArtifact } from
 
 const fixture = JSON.parse(await readFile(new URL('./fixtures/arizona-xapi/2026-10-22-buffalo-trace.json', import.meta.url), 'utf8'));
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
+const disabledFixture = JSON.parse(await readFile(new URL('./fixtures/arizona-xapi/2026-10-27-catalog-disabled.json', import.meta.url), 'utf8'));
 const lookup = bibleLookup(bible.records);
 const observations = fixture.captures.map((capture) => Date.parse(capture.observedAt));
 const now = Math.max(...observations) + 5 * 60_000;
@@ -56,6 +57,57 @@ function rejected(input, mutate, pattern) {
   mutate(changed);
   assert.throws(() => verifyArizonaExpansionArtifact(changed), pattern);
 }
+
+async function withDisabledCandidate(t) {
+  const input = await capturedPipeline(t);
+  const source = structuredClone(disabledFixture.source);
+  const candidate = structuredClone(disabledFixture.candidate);
+  // Keep the captured premise/SKU/stock intact; move only its clock into the
+  // existing fixture window so freshness tests remain deterministic.
+  source.observedAt = candidate.observedAt = input.state.signals[0].observedAt;
+  input.state.signals.push(source);
+  input.drops.drops.push(candidate);
+  input.libraryRecords = [...bible.records.flatMap(record => record.libraryIdentities || []).filter(bottle => bottle.id !== disabledFixture.catalogRecord.id), disabledFixture.catalogRecord];
+  const meta = input.state.precisionMetadata.xapi;
+  const premise = { storeId: source.storeId, address: source.storeAddress, city: source.city };
+  meta.selectedStores.push(premise); meta.addedStores.push(premise);
+  const base = meta.requests.find(request => request.kind === 'inventory' && request.term === 'bourbon');
+  for (const term of new Set(['bourbon', source.raw.queryTerm])) {
+    const request = structuredClone(base), url = new URL(request.url);
+    request.storeId = source.merchantId; request.term = term;
+    url.searchParams.set('storeid', source.merchantId); url.searchParams.set('q', term); request.url = url.href;
+    meta.requests.push(request); meta.totalSearchCount++;
+    if (term === 'bourbon') meta.bourbonSearchCount++; else if (term === 'whiskey') meta.whiskeySearchCount++; else meta.rareSearchCount++;
+  }
+  return input;
+}
+
+test('catalog-disabled source inventory stays hidden and cannot inflate public rows or alerts', async t => {
+  const input = await withDisabledCandidate(t);
+  const result = verifyArizonaExpansionArtifact(input);
+  assert.equal(result.candidateInventoryRows, 3);
+  assert.equal(result.catalogDisabledCandidateRows, 1);
+  assert.equal(result.publicRows, 2); assert.equal(result.alerts, 2);
+  rejected(input, row => { row.expectations.minimumPublicRows = 3; }, /public inventory floor/);
+});
+
+test('hidden catalog-disabled candidates still require exact source stock, price, identity and freshness', async t => {
+  const input = await withDisabledCandidate(t);
+  for (const patch of [{ price: 1 }, { quantity: 99 }, { sourceUrl: 'https://example.test/false-stock' }, { observedAt: '2020-01-01T00:00:00Z' }]) {
+    rejected(input, row => Object.assign(row.drops.drops.at(-1), patch), /original source.*proof/);
+  }
+  rejected(input, row => { row.libraryRecords = row.libraryRecords.filter(bottle => bottle.canonicalName !== 'Penelope Havana'); }, /original source.*proof/);
+});
+
+test('an explicit catalog opt-out cannot be promoted into public inventory or an alert', async t => {
+  const input = await withDisabledCandidate(t);
+  for (const patch of [{ canAlertAsInventory: true }, { canAlertAsWatch: true }, { eligibleForOnSite: true }]) {
+    rejected(input, row => Object.assign(row.drops.drops.at(-1), patch), /original source.*proof/);
+  }
+  rejected(input, row => {
+    row.alerts.alerts.push({ ...row.alerts.alerts[0], ...row.drops.drops.at(-1), action: 'inventory_alert_candidate', actionabilityClass: 'store_inventory', id: 'disabled-alert', dedupeKey: 'disabled-alert' });
+  }, /alerts cannot contain/);
+});
 
 test('captured collector to canonical JSON to public rows passes diagnostics without lowering strict CLI defaults', async (t) => {
   const input = await capturedPipeline(t);
