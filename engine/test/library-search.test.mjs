@@ -120,11 +120,11 @@ test('production preserves search progress even when inventory publication fails
 
 test('Arizona supplemental store coverage advances on invocation even within the same wall-clock bucket',()=>{
  const stores=Array.from({length:134},(_,i)=>({locationId:String(10000+i),polarisBannerName:'safeway',domainName:'safeway',address:{line1:`${i+1} Main St`,city:'Phoenix',state:'AZ',zipcode:'85001'}}));
- const terms=Array.from({length:16},(_,i)=>`Example expression ${i}`);const visited=new Set();
+ const terms=Array.from({length:48},(_,i)=>`Example expression ${i}`);const visited=new Set();
  for(let invocation=0;invocation<9;invocation++){
   const plan=arizonaXapiRequestPlan(stores,{terms,nowMs:Date.parse('2026-10-25T12:00:00Z'),rotationIndex:invocation});
-  assert.equal(plan.flatMap(row=>row.terms).length,150);
-  const targets=plan.filter(row=>row.terms.length>1);assert.equal(new Set(targets.map(row=>row.terms[1])).size,16);
+  assert.equal(plan.flatMap(row=>row.terms).length,316);
+  const targets=plan.filter(row=>row.terms.length>2);assert.equal(new Set(targets.map(row=>row.terms[2])).size,48);
   targets.forEach(row=>visited.add(row.store.locationId));
  }
  assert.equal(visited.size,134);

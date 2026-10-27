@@ -4,6 +4,9 @@ import { pathToFileURL } from 'node:url';
 import { isArizonaRetailerInventory } from './arizona-retailer-policy.mjs';
 import classification from '../../src/data/drop-feed-classification.generated.json' with { type: 'json' };
 import { librarySearchPool } from './library-query-plan.mjs';
+import { libraryIdentityKey } from './core/library-catalog.mjs';
+import { stripHtml } from './core/text.mjs';
+import { arizonaXapiLibraryIdentity } from './collectors/arizona-xapi-library-identity.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT } from './collectors/arizona-xapi.mjs';
 
 export const ARIZONA_EXPANSION_EXPECTATIONS = Object.freeze({
@@ -46,11 +49,12 @@ function validPremises(entry) {
     && text(entry.address.match(/,\s*([^,]+),\s*AZ\s+\d{5}/)?.[1]) === text(entry.city);
 }
 
-export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, now = Date.now(), expectations = {}, libraryRecords = classification.records } = {}) {
+export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, now = Date.now(), expectations = {}, libraryRecords = classification.records, bibleRecords } = {}) {
   const errors = [];
   const check = (condition, message) => { if (!condition) errors.push(message); };
   const expected = { ...ARIZONA_EXPANSION_EXPECTATIONS, ...expectations };
-  const allowedTerms = new Set(['bourbon', "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...librarySearchPool({records:libraryRecords.map(bottle => ({libraryIdentities:[bottle]}))})]);
+  const libraryBible = { records: bibleRecords || libraryRecords.map(bottle => ({ id: bottle.id, canonical: bottle.canonicalName, libraryIdentities: [bottle] })) };
+  const allowedTerms = new Set(['bourbon', 'whiskey', "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...librarySearchPool({records:libraryRecords.map(bottle => ({libraryIdentities:[bottle]}))})]);
   for (const [key, value] of Object.entries(expected)) check(Number.isSafeInteger(value) && value >= 0, `Invalid verifier expectation: ${key}.`);
   const nowMs = now instanceof Date ? now.getTime() : Number(now);
   const startMs = Date.parse(state?.startedAt);
@@ -97,7 +101,8 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const requests = Array.isArray(metadata?.requests) ? metadata.requests : [];
   const search = requests.filter((request) => request?.kind === 'inventory');
   const bourbon = search.filter((request) => request.term === 'bourbon');
-  const rare = search.filter((request) => request.term !== 'bourbon');
+  const whiskey = search.filter((request) => request.term === 'whiskey');
+  const rare = search.filter((request) => !['bourbon', 'whiskey'].includes(request.term));
   const blockedHosts = new Set();
   const successfulQueries = new Set();
   const bourbonStores = new Set();
@@ -121,8 +126,8 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
     } else check(request.kind === 'resolver' && url.origin === 'https://www.safeway.com' && url.pathname === '/abs/pub/xapi/storeresolver/v2/all'
       && /^\d{5}$/.test(url.searchParams.get('zipcode') || '') && url.searchParams.get('radius') === '50' && url.searchParams.get('size') === '100', 'XAPI resolver request violates the configured public route.');
   }
-  check(search.length === metadata?.totalSearchCount && bourbon.length === metadata?.bourbonSearchCount && rare.length === metadata?.rareSearchCount, 'XAPI search counts do not match the request ledger.');
-  check(search.length <= Math.min(ARIZONA_XAPI_SEARCH_LIMIT, expected.maximumSearchCount) && rare.length <= Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, expected.maximumRareSearchCount) && metadata?.maxSearchCount === ARIZONA_XAPI_SEARCH_LIMIT, 'XAPI request budget exceeds 150 searches or 16 rare queries.');
+  check(search.length === metadata?.totalSearchCount && bourbon.length === metadata?.bourbonSearchCount && rare.length === metadata?.rareSearchCount && whiskey.length === (metadata?.whiskeySearchCount || 0), 'XAPI search counts do not match the request ledger.');
+  check(search.length <= Math.min(ARIZONA_XAPI_SEARCH_LIMIT, expected.maximumSearchCount) && rare.length <= Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, expected.maximumRareSearchCount) && metadata?.maxSearchCount === ARIZONA_XAPI_SEARCH_LIMIT, 'XAPI request budget exceeds the bounded broad and library query caps.');
   check(bourbon.length === selected.length && bourbonStores.size === selected.length && selected.every((entry) => bourbonStores.has(entry?.storeId)), 'Each selected XAPI store must receive exactly one bourbon query.');
   for (const row of xapi) {
     const entry = byStore.get(row.storeId);
@@ -136,6 +141,13 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
       && /^\d+$/.test(id) && String(row.raw?.product?.pid || '') === id && /^\d+$/.test(String(row.raw?.product?.upc || ''))
       && successfulQueries.has(`${row.storeId}|${row.raw?.queryTerm}`)), 'XAPI inventory lacks matching store, product URL or successful request evidence.');
     check(channelPositive && quantitySafe, 'XAPI stock or exact quantity contradicts the original channel evidence.');
+    if (row.sourceBottleMatchMethod === 'exact-arizona-library-identity' || row.raw?.product?.name) {
+      const match = arizonaXapiLibraryIdentity({ ...row.raw?.product, storeId: row.raw?.merchantId }, libraryBible, { storeId: String(row.merchantId) });
+      const names = match.record?.libraryIdentities?.flatMap(bottle => [bottle.canonicalName, ...bottle.aliases]) || [];
+      check(stripHtml(row.raw?.product?.name) === row.rawName && Boolean(match.record)
+        && names.some(name => libraryIdentityKey(name) === libraryIdentityKey(row.canonicalName)),
+      'XAPI library identity lost its original title, strength, package or complete expression proof.');
+    }
   }
   const positiveStores = new Set(xapi.map((row) => row.storeId));
   check(positiveStores.size >= expected.minimumPositiveXapiStores, 'XAPI positive inventory does not reach the required store floor.');
@@ -186,7 +198,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
     selectedStores: selected.length, baselineStores: baseline.length, addedStores: added.length, positiveXapiStores: positiveStores.size,
     publicRows: publicIdentities.size, addedPublicStores: addedPublicStores.size, buffaloTracePublicRows: buffalo.length, alerts: publishedAlerts.length,
     newSelectedStores: newStores.length, newPublicStores: newPublicStores.size, reviewedDepthRows: reviewedDepthRows.length, smartFinalPublicStores: smartPublicStores.size,
-    searchCount: search.length, bourbonSearchCount: bourbon.length, rareSearchCount: rare.length, maximumAgeMinutes: ageLimit / 60_000 };
+    searchCount: search.length, bourbonSearchCount: bourbon.length, whiskeySearchCount: whiskey.length, rareSearchCount: rare.length, maximumAgeMinutes: ageLimit / 60_000 };
 }
 
 export function verifyArizonaExpansionArtifact(input) {
@@ -204,7 +216,8 @@ async function main() {
   const [state, drops, stats, alerts] = await Promise.all(['states/AZ.json', 'site/drops.json', 'site/stats.json', 'site/alerts.json']
     .map(async (file) => JSON.parse(await readFile(path.join(out, file), 'utf8'))));
   const catalog = JSON.parse(await readFile(path.join(out, 'library-catalog.json'), 'utf8').catch(error => { if (error.code === 'ENOENT') return JSON.stringify(classification); throw error; }));
-  const input = { state, drops, stats, alerts, libraryRecords: catalog.records };
+  const bible = JSON.parse(await readFile(path.join(out, 'bourbon-bible.json'), 'utf8'));
+  const input = { state, drops, stats, alerts, libraryRecords: catalog.records, bibleRecords: bible.records };
   const diagnostics = diagnoseArizonaExpansionArtifact(input);
   await writeFile(path.join(out, 'az-expansion-verification.json'), JSON.stringify({
     checkedAt: new Date().toISOString(), runId: stats.runId, ...diagnostics,

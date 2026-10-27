@@ -1,0 +1,51 @@
+{
+  "scope": "Arizona bottle depth and one candidate new exact premise; production verification required",
+  "baseline": {
+    "runId": "2b66b05a44ae77ad",
+    "publicRows": 596,
+    "publicStores": 138,
+    "grocerySelectedStores": 134
+  },
+  "livePreflight": {
+    "startedAt": "2026-10-27T00:09:44.572Z",
+    "finishedAt": "2026-10-27T00:20:37.829Z",
+    "httpRequests": 348,
+    "inventoryQueries": 316,
+    "bourbonQueries": 134,
+    "whiskeyQueries": 134,
+    "libraryQueries": 48,
+    "currentMatcherReplayPublicRows": 759,
+    "currentMatcherReplayPublicStores": 132,
+    "positiveGroceryStores": 133,
+    "roadblocks": 0
+  },
+  "newPremise": {
+    "chain": "A1 Liquor",
+    "storeId": "a1-liquor-phoenix:68dd5e50f9a9491455c941be",
+    "address": "901 E Indian School Rd, Phoenix, AZ 85014, USA",
+    "observedAt": "2026-10-27T00:15:39.279Z",
+    "requests": 8,
+    "exactQuantitySource": "CityHive selected-merchant product options; sentinel 100 remains excluded from inventory"
+  },
+  "identityRules": [
+    "Exact complete library expression after documented retailer formatting only; no family containment.",
+    "Preserve age, rye, finish, batch, single barrel, barrel proof, full proof and expression years.",
+    "Validate product ID, UPC shape, store, single-bottle size and published strength; conflicting proof/ABV stays excluded.",
+    "BIB expands to bottled in bond only at 50 percent ABV.",
+    "E.H. Taylor honorific and Jr. formatting cannot erase the expression. Variable-proof annotation is removable only when barrel proof remains explicit.",
+    "A canonical complete library expression outranks a legacy alias; remaining ambiguous identities fail closed."
+  ],
+  "producerReferences": [
+    "https://heavenhilldistillery.com/old-fitzgerald-7-year-old.php",
+    "https://buffalotracedistillery.getanchor.io/our-brands/e-h-taylor-jr/e-h-taylor-jr-barrel-proof/index.html"
+  ],
+  "runtimeBudgetsMs": {
+    "source": 900000,
+    "parentState": 1020000,
+    "workflowRunStep": 1320000,
+    "workflowRefreshStep": 1500000,
+    "publicInventoryMaximumAge": 7200000
+  },
+  "exhaustiveDetectionVerified": false,
+  "schedulerReliabilityVerified": false
+}

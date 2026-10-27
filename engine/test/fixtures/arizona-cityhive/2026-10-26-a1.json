@@ -1,0 +1,873 @@
+{
+  "sourceUrl": "https://a1liquorstore.com/shop/?subtype=bourbon&merchant-id=68dd5e50f9a9491455c941be",
+  "observedAt": "2026-10-27T00:15:40.261Z",
+  "products": [
+    {
+      "id": "5521cef065613100036c0000",
+      "name": "Buffalo Trace Bourbon",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "description": "This deep amber whiskey has a complex aroma of vanilla, mint and molasses. Pleasantly sweet to the taste with notes of brown sugar and spice that give way to oak, toffee, dark fruit and anise. This whiskey finishes long and smooth with serious depth.",
+      "images": {
+        "primary": {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/original.png",
+          "large": "https://cityhive-production-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/thumbnail.png"
+        },
+        "more_images": []
+      },
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "tags": [
+        "whisky",
+        "kentucky",
+        "united stated",
+        "bourbon whiskey",
+        "straight",
+        "buffalo trace"
+      ],
+      "views": [
+        "alcohol",
+        "spirits"
+      ],
+      "customer_favorite": false,
+      "is_taxed": true,
+      "options": [],
+      "merchants": [
+        {
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521cef065613100036c0000",
+              "option_id": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://a1liquorstore.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+              "product_url_path": "/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+              "original_option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "stock_components": [],
+              "units_of_measure": [],
+              "badge": {},
+              "product_badge_icons": [
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c899ee99fdb2bbce716c7",
+                  "group_name": "Products From Kentucky",
+                  "group_label": "",
+                  "group_name_slug": "products-from-kentucky",
+                  "group_tooltip": null
+                },
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c812cb1c8472bdc199722",
+                  "group_name": "Products From USA",
+                  "group_label": "",
+                  "group_name_slug": "products-from-usa",
+                  "group_tooltip": null
+                }
+              ],
+              "product_badges": [],
+              "store_credit_price": 0,
+              "quantity": 10,
+              "max_purchase_quantity": null,
+              "min_purchase_quantity": null,
+              "staff_pick": false,
+              "pinned_as_default": false,
+              "staff_pick_description": null,
+              "store_specific_description": "",
+              "staff_pick_recommender": null,
+              "product_modifiers": [],
+              "preorder_details": null,
+              "store_specific_tags": [
+                "bourbon whiskey"
+              ],
+              "allowed_offer_types": null,
+              "product_tags": [
+                "whisky",
+                "kentucky",
+                "united stated",
+                "bourbon whiskey",
+                "straight",
+                "buffalo trace"
+              ],
+              "product_lists_info": null,
+              "available_in_merchant_ids": null,
+              "past_purchase": false,
+              "rich_properties": [],
+              "cityhive_rank": 0,
+              "product_page_custom_content": [],
+              "product_stats": null,
+              "merchant_id": "68dd5e50f9a9491455c941be",
+              "merchant_name": "A1 liqour",
+              "coordinates": [
+                -112.0626265,
+                33.4945021
+              ],
+              "full_address": "901 E Indian School Rd, Phoenix, AZ 85014, USA",
+              "price": 27.99,
+              "original_price": 0,
+              "discount_value": null,
+              "discount_style": {},
+              "description": "",
+              "option_display_data": {
+                "name": "Buffalo Trace Bourbon",
+                "description": "This deep amber whiskey has a complex aroma of vanilla, mint and molasses. Pleasantly sweet to the taste with notes of brown sugar and spice that give way to oak, toffee, dark fruit and anise. This whiskey finishes long and smooth with serious depth.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/66f71978065dbd3fa633d7ce/thumbnail.png"
+                  },
+                  "more_images": []
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Buffalo Trace"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "45%",
+                  "brand": "Buffalo Trace"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "additional_properties": {
+                "type": "spirits",
+                "subtype": "bourbon, whiskey",
+                "content": "45%",
+                "country": "United States",
+                "state": "Kentucky",
+                "brands": "Buffalo Trace"
+              },
+              "default_option": true
+            }
+          ],
+          "additional_properties": {},
+          "merchant_id": "68dd5e50f9a9491455c941be",
+          "merchant_name": "A1 liqour",
+          "coordinates": [
+            -112.0626265,
+            33.4945021
+          ],
+          "full_address": "901 E Indian School Rd, Phoenix, AZ 85014, USA"
+        }
+      ],
+      "product_rating": 4.1,
+      "number_of_product_ratings": 80,
+      "variations": null,
+      "product_modifiers": null,
+      "additional_properties": {
+        "type": "spirits",
+        "subtype": "bourbon, whiskey",
+        "content": "45%",
+        "country": "United States",
+        "state": "Kentucky",
+        "brands": "Buffalo Trace"
+      },
+      "is_enriched": false,
+      "brand_action": null,
+      "rich_properties": null
+    },
+    {
+      "id": "5521cefd65613100033e0400",
+      "name": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "description": "As founding father of the bourbon industry, Colonel Edmund Haynes Taylor, Jr. left an indelible legacy. His dedication to distilling began at the close of the Civil War when he purchased O.F C. Distillery. There, he developed innovative techniques that are still in use today. Made by hand, this Small Batch Bourbon Whiskey has been aged inside century old warehouses constructed by E.H. Taylor, Jr.  Barrels are evaluated and selected to create a perfect blend of distinctive character that is like no other. This bourbon is a true sipping bourbon that honors the uncompromising legacy of E.H. Taylor, Jr.",
+      "images": {
+        "primary": {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/original.png",
+          "large": "https://cityhive-production-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/thumbnail.png"
+        },
+        "more_images": []
+      },
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "tags": [
+        "bourbon",
+        "gift",
+        "collector",
+        "limited",
+        "allocation",
+        "whiskey",
+        "bottle in bond",
+        "buffalo trace"
+      ],
+      "views": [
+        "spirits"
+      ],
+      "customer_favorite": false,
+      "is_taxed": true,
+      "options": [],
+      "merchants": [
+        {
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521cefd65613100033e0400",
+              "option_id": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://a1liquorstore.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+              "product_url_path": "/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+              "original_option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "stock_components": [],
+              "units_of_measure": [],
+              "badge": {},
+              "product_badge_icons": [
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c899ee99fdb2bbce716c7",
+                  "group_name": "Products From Kentucky",
+                  "group_label": "",
+                  "group_name_slug": "products-from-kentucky",
+                  "group_tooltip": null
+                },
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c812cb1c8472bdc199722",
+                  "group_name": "Products From USA",
+                  "group_label": "",
+                  "group_name_slug": "products-from-usa",
+                  "group_tooltip": null
+                }
+              ],
+              "product_badges": [],
+              "store_credit_price": 0,
+              "quantity": 5,
+              "max_purchase_quantity": null,
+              "min_purchase_quantity": null,
+              "staff_pick": false,
+              "pinned_as_default": false,
+              "staff_pick_description": null,
+              "store_specific_description": "",
+              "staff_pick_recommender": null,
+              "product_modifiers": [],
+              "preorder_details": null,
+              "store_specific_tags": [
+                "bourbon whiskey"
+              ],
+              "allowed_offer_types": null,
+              "product_tags": [
+                "bourbon",
+                "gift",
+                "collector",
+                "limited",
+                "allocation",
+                "whiskey",
+                "bottle in bond",
+                "buffalo trace"
+              ],
+              "product_lists_info": null,
+              "available_in_merchant_ids": null,
+              "past_purchase": false,
+              "rich_properties": [],
+              "cityhive_rank": 0,
+              "product_page_custom_content": [],
+              "product_stats": null,
+              "merchant_id": "68dd5e50f9a9491455c941be",
+              "merchant_name": "A1 liqour",
+              "coordinates": [
+                -112.0626265,
+                33.4945021
+              ],
+              "full_address": "901 E Indian School Rd, Phoenix, AZ 85014, USA",
+              "price": 49.99,
+              "original_price": 0,
+              "discount_value": null,
+              "discount_style": {},
+              "description": "",
+              "option_display_data": {
+                "name": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+                "description": "As founding father of the bourbon industry, Colonel Edmund Haynes Taylor, Jr. left an indelible legacy. His dedication to distilling began at the close of the Civil War when he purchased O.F C. Distillery. There, he developed innovative techniques that are still in use today. Made by hand, this Small Batch Bourbon Whiskey has been aged inside century old warehouses constructed by E.H. Taylor, Jr.  Barrels are evaluated and selected to create a perfect blend of distinctive character that is like no other. This bourbon is a true sipping bourbon that honors the uncompromising legacy of E.H. Taylor, Jr.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/654bbd1e4fd16d6f3372634c/thumbnail.png"
+                  },
+                  "more_images": []
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "E.H. Taylor"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "50%"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "additional_properties": {
+                "type": "spirits",
+                "subtype": "bourbon, whiskey",
+                "content": "50%",
+                "country": "United States",
+                "state": "Kentucky",
+                "brands": "E.H. Taylor"
+              },
+              "default_option": true
+            }
+          ],
+          "additional_properties": {},
+          "merchant_id": "68dd5e50f9a9491455c941be",
+          "merchant_name": "A1 liqour",
+          "coordinates": [
+            -112.0626265,
+            33.4945021
+          ],
+          "full_address": "901 E Indian School Rd, Phoenix, AZ 85014, USA"
+        }
+      ],
+      "product_rating": 4.1,
+      "number_of_product_ratings": 56,
+      "variations": null,
+      "product_modifiers": null,
+      "additional_properties": {
+        "type": "spirits",
+        "subtype": "bourbon, whiskey",
+        "content": "50%",
+        "country": "United States",
+        "state": "Kentucky",
+        "brands": "E.H. Taylor"
+      },
+      "is_enriched": false,
+      "brand_action": null,
+      "rich_properties": null
+    },
+    {
+      "id": "5521cef16561310003020100",
+      "name": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "description": "Eagle Rare Bourbon Whiskey is masterfully crafted and carefully aged for no less than ten years. Every barrel is discriminately selected to offer consistent flavor but with a seemingly individual personality. Eagle Rare is a bourbon that lives up to its name with its lofty, distinctive taste experience.\r\n\r\nThe nose is complex, with aromas of toffee, hints of orange peel, herbs, honey, leather and oak. The taste is bold, dry and delicate with notes of candied almonds and very rich cocoa. The finish is dry and lingering.",
+      "images": {
+        "primary": {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/original.png",
+          "large": "https://cityhive-production-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/thumbnail.png"
+        },
+        "more_images": []
+      },
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "tags": [
+        "bourbon",
+        "whiskey",
+        "eagle",
+        "rare",
+        "smooth"
+      ],
+      "views": [
+        "spirits"
+      ],
+      "customer_favorite": false,
+      "is_taxed": true,
+      "options": [],
+      "merchants": [
+        {
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521cef16561310003020100",
+              "option_id": "2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://a1liquorstore.com/shop/product/eagle-rare-10-year-kentucky-straight-bourbon/5521cef16561310003020100?option-id=2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+              "product_url_path": "/product/eagle-rare-10-year-kentucky-straight-bourbon/5521cef16561310003020100?option-id=2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+              "original_option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "stock_components": [],
+              "units_of_measure": [],
+              "badge": {},
+              "product_badge_icons": [
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c899ee99fdb2bbce716c7",
+                  "group_name": "Products From Kentucky",
+                  "group_label": "",
+                  "group_name_slug": "products-from-kentucky",
+                  "group_tooltip": null
+                },
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c812cb1c8472bdc199722",
+                  "group_name": "Products From USA",
+                  "group_label": "",
+                  "group_name_slug": "products-from-usa",
+                  "group_tooltip": null
+                }
+              ],
+              "product_badges": [],
+              "store_credit_price": 0,
+              "quantity": 5,
+              "max_purchase_quantity": null,
+              "min_purchase_quantity": null,
+              "staff_pick": false,
+              "pinned_as_default": false,
+              "staff_pick_description": null,
+              "store_specific_description": "",
+              "staff_pick_recommender": null,
+              "product_modifiers": [],
+              "preorder_details": null,
+              "store_specific_tags": [
+                "bourbon whiskey"
+              ],
+              "allowed_offer_types": null,
+              "product_tags": [
+                "bourbon",
+                "whiskey",
+                "eagle",
+                "rare",
+                "smooth"
+              ],
+              "product_lists_info": null,
+              "available_in_merchant_ids": null,
+              "past_purchase": false,
+              "rich_properties": [],
+              "cityhive_rank": 0,
+              "product_page_custom_content": [],
+              "product_stats": null,
+              "merchant_id": "68dd5e50f9a9491455c941be",
+              "merchant_name": "A1 liqour",
+              "coordinates": [
+                -112.0626265,
+                33.4945021
+              ],
+              "full_address": "901 E Indian School Rd, Phoenix, AZ 85014, USA",
+              "price": 59.99,
+              "original_price": 0,
+              "discount_value": null,
+              "discount_style": {},
+              "description": "",
+              "option_display_data": {
+                "name": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+                "description": "Eagle Rare Bourbon Whiskey is masterfully crafted and carefully aged for no less than ten years. Every barrel is discriminately selected to offer consistent flavor but with a seemingly individual personality. Eagle Rare is a bourbon that lives up to its name with its lofty, distinctive taste experience.\r\n\r\nThe nose is complex, with aromas of toffee, hints of orange peel, herbs, honey, leather and oak. The taste is bold, dry and delicate with notes of candied almonds and very rich cocoa. The finish is dry and lingering.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6015ceeec64dde0aec332b08/thumbnail.png"
+                  },
+                  "more_images": []
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Eagle Rare"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "10",
+                  "content": "45%"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "additional_properties": {
+                "type": "spirits",
+                "subtype": "bourbon, whiskey",
+                "age": "10",
+                "content": "45%",
+                "country": "United States",
+                "state": "Kentucky",
+                "brands": "Eagle Rare"
+              },
+              "default_option": true
+            }
+          ],
+          "additional_properties": {},
+          "merchant_id": "68dd5e50f9a9491455c941be",
+          "merchant_name": "A1 liqour",
+          "coordinates": [
+            -112.0626265,
+            33.4945021
+          ],
+          "full_address": "901 E Indian School Rd, Phoenix, AZ 85014, USA"
+        }
+      ],
+      "product_rating": 3.9,
+      "number_of_product_ratings": 69,
+      "variations": null,
+      "product_modifiers": null,
+      "additional_properties": {
+        "type": "spirits",
+        "subtype": "bourbon, whiskey",
+        "age": "10",
+        "content": "45%",
+        "country": "United States",
+        "state": "Kentucky",
+        "brands": "Eagle Rare"
+      },
+      "is_enriched": false,
+      "brand_action": null,
+      "rich_properties": null
+    },
+    {
+      "id": "5521ceef6561310003530000",
+      "name": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "description": "Experience the world's first single barrel bourbon. The taste profile is sweet with citrus and oak. A creamy vanilla nose features hints of nuts, caramel, orange and light chocolate. Blanton's Original set the standard for single barrel bourbons. Best served neat or on the rocks. 46.5% alcohol by volume.",
+      "images": {
+        "primary": {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/original.png",
+          "large": "https://cityhive-production-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/thumbnail.png"
+        },
+        "more_images": []
+      },
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "tags": [
+        "bourbon",
+        "whiskey",
+        "united states",
+        "small batch",
+        "single barrel"
+      ],
+      "views": [
+        "alcohol",
+        "spirits"
+      ],
+      "customer_favorite": false,
+      "is_taxed": true,
+      "options": [],
+      "merchants": [
+        {
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521ceef6561310003530000",
+              "option_id": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://a1liquorstore.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+              "product_url_path": "/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+              "original_option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "stock_components": [],
+              "units_of_measure": [],
+              "badge": {},
+              "product_badge_icons": [
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c899ee99fdb2bbce716c7",
+                  "group_name": "Products From Kentucky",
+                  "group_label": "",
+                  "group_name_slug": "products-from-kentucky",
+                  "group_tooltip": null
+                },
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c812cb1c8472bdc199722",
+                  "group_name": "Products From USA",
+                  "group_label": "",
+                  "group_name_slug": "products-from-usa",
+                  "group_tooltip": null
+                }
+              ],
+              "product_badges": [],
+              "store_credit_price": 0,
+              "quantity": 5,
+              "max_purchase_quantity": null,
+              "min_purchase_quantity": null,
+              "staff_pick": false,
+              "pinned_as_default": false,
+              "staff_pick_description": null,
+              "store_specific_description": "",
+              "staff_pick_recommender": null,
+              "product_modifiers": [],
+              "preorder_details": null,
+              "store_specific_tags": [
+                "bourbon whiskey"
+              ],
+              "allowed_offer_types": null,
+              "product_tags": [
+                "bourbon",
+                "whiskey",
+                "united states",
+                "small batch",
+                "single barrel"
+              ],
+              "product_lists_info": null,
+              "available_in_merchant_ids": null,
+              "past_purchase": false,
+              "rich_properties": [],
+              "cityhive_rank": 0,
+              "product_page_custom_content": [],
+              "product_stats": null,
+              "merchant_id": "68dd5e50f9a9491455c941be",
+              "merchant_name": "A1 liqour",
+              "coordinates": [
+                -112.0626265,
+                33.4945021
+              ],
+              "full_address": "901 E Indian School Rd, Phoenix, AZ 85014, USA",
+              "price": 159.99,
+              "original_price": 0,
+              "discount_value": null,
+              "discount_style": {},
+              "description": "",
+              "option_display_data": {
+                "name": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+                "description": "Experience the world's first single barrel bourbon. The taste profile is sweet with citrus and oak. A creamy vanilla nose features hints of nuts, caramel, orange and light chocolate. Blanton's Original set the standard for single barrel bourbons. Best served neat or on the rocks. 46.5% alcohol by volume.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/65cf84a6e037ef2b85d1513c/thumbnail.png"
+                  },
+                  "more_images": []
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Blanton's "
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "46.5%",
+                  "brand": "Blanton's "
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "additional_properties": {
+                "type": "spirits",
+                "subtype": "bourbon, whiskey",
+                "content": "46.5%",
+                "country": "United States",
+                "state": "Kentucky",
+                "brands": "Blanton's "
+              },
+              "default_option": true
+            }
+          ],
+          "additional_properties": {},
+          "merchant_id": "68dd5e50f9a9491455c941be",
+          "merchant_name": "A1 liqour",
+          "coordinates": [
+            -112.0626265,
+            33.4945021
+          ],
+          "full_address": "901 E Indian School Rd, Phoenix, AZ 85014, USA"
+        }
+      ],
+      "product_rating": 3.9,
+      "number_of_product_ratings": 104,
+      "variations": null,
+      "product_modifiers": null,
+      "additional_properties": {
+        "type": "spirits",
+        "subtype": "bourbon, whiskey",
+        "content": "46.5%",
+        "country": "United States",
+        "state": "Kentucky",
+        "brands": "Blanton's "
+      },
+      "is_enriched": false,
+      "brand_action": null,
+      "rich_properties": null
+    }
+  ]
+}

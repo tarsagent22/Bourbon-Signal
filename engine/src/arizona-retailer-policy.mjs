@@ -2,6 +2,7 @@ const TARGET_ARIZONA_STORE_IDS = new Set(['233','251','319','363','639','700','8
 
 const SMART_FINAL_IDS = new Set(['491', '497', '499', '720', '721', '730', '826']);
 const ARIZONA_RETAILER_IDENTITIES = new Map([
+  ['A1 Liquor Phoenix CityHive store inventory', { chain: 'a1-liquor-phoenix', hostname: 'a1liquorstore.com', merchants: new Set(['68dd5e50f9a9491455c941be']) }],
   ['Paradise Liquor Mini Mart Phoenix CityHive store inventory', { chain: 'paradise-liquor-phoenix', hostname: 'paradiseliquoraz.com', merchants: new Set(['6060f68f2641d516427b8bc6']) }],
   ['Liquor Vault Scottsdale CityHive store inventory', { chain: 'liquor-vault-scottsdale', hostname: 'azliquorvault.com', merchants: new Set(['6060f74f93fbc722f35ec763']) }],
   ['Skyline Liquor Arizona CityHive store inventory', { chain: 'skyline-liquor', hostname: 'skylinebroadway.com', merchants: new Set(['598100c3d05b4360e32fa9b6', '686c048672e27f25df6deeda']) }],
@@ -56,7 +57,9 @@ export function isArizonaRetailerSignalIdentity(signal) {
       && Number(signal.quantity || 0) === 0 && signal.quantityIsExact === false;
   }
   const identity = ARIZONA_RETAILER_IDENTITIES.get(source);
-  return Boolean(identity && chain === identity.chain && identity.merchants.has(merchantId) && sourceHostname === identity.hostname);
+  return Boolean(identity && chain === identity.chain && identity.merchants.has(merchantId) && sourceHostname === identity.hostname
+    && (chain !== 'a1-liquor-phoenix' || (signal.storeId === `a1-liquor-phoenix:${merchantId}`
+      && signal.storeAddress === '901 E Indian School Rd, Phoenix, AZ 85014, USA')));
 }
 
 export function isArizonaRetailerInventory(signal) {

@@ -63,7 +63,7 @@ test('exact captured XAPI identity adds two Buffalo Trace public rows and alerts
     assert.equal(signal.quantity, product.channelInventory.instoreItemQty);
     assert.equal(signal.raw.channelInventory.instore, '1');
     assert.equal(result.metadata.bourbonSearchCount, 1);
-    assert.equal(result.metadata.totalSearchCount, 2, 'matching adds no source request');
+    assert.equal(result.metadata.totalSearchCount, 3, 'matching adds no source request beyond the two broad and one supplemental searches');
     after.push(signal);
   }
   assert.deepEqual(project(before).drops, []);

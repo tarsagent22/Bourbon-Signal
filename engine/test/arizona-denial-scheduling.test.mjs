@@ -90,14 +90,15 @@ function sweep(directory, {
   return JSON.parse(child.stdout);
 }
 
-test('production 403 seeds suppress all 20 CityHive requests, preserve clocks, and retain the Flagstaff 429', (t) => {
+test('production denials remain parked while the new source gets its independent first attempt', (t) => {
   const directory = workspace(t);
   const first = sweep(directory, { at: '2026-10-22T17:50:00.000Z' });
-  assert.deepEqual(first.calls, []);
+  assert.equal(first.calls.length, 1);
+  assert.equal(new URL(first.calls[0]).hostname, 'a1liquorstore.com');
   assert.equal(first.result.signals.length, 0);
-  assert.deepEqual(first.result.metadata.skippedSourceIds, AZ_CITYHIVE_SOURCES.map(source => source.id));
-  assert.equal(Object.keys(first.ledger.sourceAttempts).length, 8);
-  for (const source of AZ_CITYHIVE_SOURCES) {
+  assert.deepEqual(first.result.metadata.skippedSourceIds, AZ_CITYHIVE_SOURCES.filter(source => source.id !== 'a1-liquor-phoenix').map(source => source.id));
+  assert.equal(Object.keys(first.ledger.sourceAttempts).length, 9);
+  for (const source of AZ_CITYHIVE_SOURCES.filter(source => source.id !== 'a1-liquor-phoenix')) {
     assert.equal(first.ledger.sourceAttempts[source.id].lastAttemptAt, '2026-10-22T17:07:44.857Z');
     assert.equal(first.ledger.sourceAttempts[source.id].nextAllowedAt, '2026-10-23T17:07:44.857Z');
   }
@@ -111,8 +112,8 @@ test('production 403 seeds suppress all 20 CityHive requests, preserve clocks, a
 for (const status of [401, 403, 429]) test(`HTTP ${status} stops every source after one request and survives a fresh process with ledger only`, (t) => {
   const directory = workspace(t);
   const first = sweep(directory, { status });
-  assert.equal(first.calls.length, 7);
-  assert.equal(new Set(first.calls.map(url => new URL(url).hostname)).size, 7);
+  assert.equal(first.calls.length, AZ_CITYHIVE_SOURCES.length);
+  assert.equal(new Set(first.calls.map(url => new URL(url).hostname)).size, AZ_CITYHIVE_SOURCES.length);
   assert.equal(first.result.signals.length, 0);
   for (const source of AZ_CITYHIVE_SOURCES) {
     const attempt = first.ledger.sourceAttempts[source.id];
@@ -124,7 +125,7 @@ for (const status of [401, 403, 429]) test(`HTTP ${status} stops every source af
   assert.deepEqual(restarted.calls, []);
   assert.deepEqual(restarted.ledger, first.ledger);
   const due = sweep(directory, { status, at: status === 429 ? '2026-10-24T16:00:00.000Z' : '2026-10-25T12:00:00.000Z' });
-  assert.equal(due.calls.length, 7);
+  assert.equal(due.calls.length, AZ_CITYHIVE_SOURCES.length);
 });
 
 test('a failed nationwide publication with zero inventory does not discard the denial ledger', (t) => {
@@ -321,7 +322,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
       if (parsed.hostname === 'mesaliquorstore.com' || parsed.hostname === 'bestliquortempe.com') {
         if (${JSON.stringify(ledgerFailure)} !== 'initial') {
           const ledger = JSON.parse(await readFile(${JSON.stringify(ledgerPath)}, 'utf8'));
-          assert.equal(Object.keys(ledger.sourceAttempts).length, 8);
+          assert.equal(Object.keys(ledger.sourceAttempts).length, ${JSON.stringify(ledgerFailure)} === 'none' ? 9 : 8);
         }
         return [{ id: 123, name: 'Buffalo Trace Bourbon 750ml', is_in_stock: true, is_purchasable: true, is_on_backorder: false, permalink: parsed.origin + '/product/buffalo-trace/', prices: { price: '3499', currency_minor_unit: 2 } }];
       }
@@ -336,7 +337,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
       sourceRunnerOptions: { schedule: false, maxAttempts: 3 },
       fetchText: async url => {
         const source = AZ_CITYHIVE_SOURCES.find(source => new URL(source.baseUrl).hostname === new URL(url).hostname);
-        if (source && ['denial', 'success'].includes(${JSON.stringify(ledgerFailure)})) {
+        if (source && (source.id === 'a1-liquor-phoenix' || ['denial', 'success'].includes(${JSON.stringify(ledgerFailure)}))) {
           calls.push(url);
           return { ok: ${ledgerFailure === 'success'}, status: ${ledgerFailure === 'success' ? 200 : 403}, text: ${ledgerFailure === 'success'} ? page(source) : '' };
         }
@@ -364,7 +365,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
   assert.ok(result.signals.every(signal => signal.observedAt === at));
   assert.ok(result.roadblocks.every(roadblock => roadblock.sourceRuntimeId === 'precision:az'));
   const riskyRequests = calls.filter(url => AZ_CITYHIVE_SOURCES.some(source => new URL(source.baseUrl).hostname === new URL(url).hostname));
-  assert.equal(riskyRequests.length, ['denial', 'success'].includes(ledgerFailure) ? 1 : 0);
+  assert.equal(riskyRequests.length, ledgerFailure === 'initial' ? 0 : 1);
   assert.ok(!calls.some(url => new URL(url).hostname === 'flagstaffliquor.com'));
   assert.equal(result.metadata.cityhive.requestCount, riskyRequests.length);
   assert.equal(result.metadata.cityhive.attemptStateAvailable, ledgerFailure === 'none');

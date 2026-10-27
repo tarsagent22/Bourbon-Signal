@@ -1,0 +1,729 @@
+{
+  "captures": [
+    {
+      "observedAt": "2026-10-27T00:10:30.046Z",
+      "store": {
+        "distance": 0.4,
+        "locationId": "216",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "1650 Mcculloch Blvd N",
+          "city": "Lake Havasu City",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "86403"
+        }
+      },
+      "product": {
+        "name": "Old Fitzgerald Bourbon Bib 7 Year Whiskey - 700 Ml (limited quantities may be available in store)",
+        "pid": "971288938",
+        "upc": "0009674900579",
+        "id": "971288938",
+        "storeId": "216",
+        "inventoryAvailable": "1",
+        "price": 58.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "deliveryItemQty": 3,
+          "pickupItemQty": 3,
+          "instoreItemQty": 3,
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "700",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 50
+      },
+      "canonicalName": "Old Fitzgerald 7Y Bottled in Bond",
+      "capturedProductSha256": "a88941a2f9877d6eaa43031ca09d758e9fee24b0f87526b4852107928289e8b7"
+    },
+    {
+      "observedAt": "2026-10-27T00:10:30.046Z",
+      "store": {
+        "distance": 0.4,
+        "locationId": "216",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "1650 Mcculloch Blvd N",
+          "city": "Lake Havasu City",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "86403"
+        }
+      },
+      "product": {
+        "name": "Angels Envy Kentucky Straight Bourbon Whiskey - 750 Ml",
+        "pid": "960080976",
+        "upc": "0085004700300",
+        "id": "960080976",
+        "storeId": "216",
+        "inventoryAvailable": "1",
+        "price": 44.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": true,
+          "delivery": true,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "deliveryItemQty": 6,
+          "pickupItemQty": 6,
+          "instoreItemQty": 6,
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 43
+      },
+      "canonicalName": "Angel's Envy Bourbon",
+      "capturedProductSha256": "c4d8b069f8eefe6c71ea42127d2927e61818d7e872ccb4583e5e0d45918c620b"
+    },
+    {
+      "observedAt": "2026-10-27T00:10:35.864Z",
+      "store": {
+        "distance": 0.68,
+        "locationId": "3204",
+        "polarisBannerName": "albertsons",
+        "domainName": "Albertsons",
+        "address": {
+          "line1": "1980 Mcculloch Blvd",
+          "city": "Lake Havasu City",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "86403"
+        }
+      },
+      "product": {
+        "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "189031042",
+        "upc": "0008800402134",
+        "id": "189031042",
+        "storeId": "3204",
+        "inventoryAvailable": "1",
+        "price": 49.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 45
+      },
+      "canonicalName": "Eagle Rare 10 Year",
+      "capturedProductSha256": "83efc52e85a99cc3559d83f56f8aa6bb633d9e84f9c0298e082aabe240223a22"
+    },
+    {
+      "observedAt": "2026-10-27T00:10:35.864Z",
+      "store": {
+        "distance": 0.68,
+        "locationId": "3204",
+        "polarisBannerName": "albertsons",
+        "domainName": "Albertsons",
+        "address": {
+          "line1": "1980 Mcculloch Blvd",
+          "city": "Lake Havasu City",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "86403"
+        }
+      },
+      "product": {
+        "name": "Elijah Craig Barrel Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960260471",
+        "upc": "0009674900386",
+        "id": "960260471",
+        "storeId": "3204",
+        "inventoryAvailable": "1",
+        "price": 94.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 62
+      },
+      "canonicalName": "Elijah Craig Barrel Proof",
+      "capturedProductSha256": "d79f1df0ca09a01eeaac4521d5c197722de0eb456d0844c9c114bd7c3741aea8"
+    },
+    {
+      "observedAt": "2026-10-27T00:10:35.864Z",
+      "store": {
+        "distance": 0.68,
+        "locationId": "3204",
+        "polarisBannerName": "albertsons",
+        "domainName": "Albertsons",
+        "address": {
+          "line1": "1980 Mcculloch Blvd",
+          "city": "Lake Havasu City",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "86403"
+        }
+      },
+      "product": {
+        "name": "Bookers Kentucky Straight Bourbon - 750 Ml (limited quantities may be available in store)",
+        "pid": "189031062",
+        "upc": "0008068601140",
+        "id": "189031062",
+        "storeId": "3204",
+        "inventoryAvailable": "1",
+        "price": 112.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 61
+      },
+      "canonicalName": "Booker's Bourbon",
+      "capturedProductSha256": "d1adc3fcffb5b417a0dc15b7d6a5dd918c05b60107d0fd1f1952b7a1117d3826"
+    },
+    {
+      "observedAt": "2026-10-27T00:10:35.864Z",
+      "store": {
+        "distance": 0.68,
+        "locationId": "3204",
+        "polarisBannerName": "albertsons",
+        "domainName": "Albertsons",
+        "address": {
+          "line1": "1980 Mcculloch Blvd",
+          "city": "Lake Havasu City",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "86403"
+        }
+      },
+      "product": {
+        "name": "Larceny Barrel Proof Whiskey  - 750 Ml (limited quantities may be available in store)",
+        "pid": "960560465",
+        "upc": "0009674900265",
+        "id": "960560465",
+        "storeId": "3204",
+        "inventoryAvailable": "1",
+        "price": 79.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 62
+      },
+      "canonicalName": "Larceny Barrel Proof",
+      "capturedProductSha256": "2ff24fc3b1f947297c44a5b15af02215e874455790a3c237220f048264475f8a"
+    },
+    {
+      "observedAt": "2026-10-27T00:10:42.258Z",
+      "store": {
+        "distance": 1.08,
+        "locationId": "1491",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "7920 E Chaparral Rd",
+          "city": "Scottsdale",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85250"
+        }
+      },
+      "product": {
+        "name": "Eagle Rare 12yr Bourbon - 750 ML (limited quantities may be available in store)",
+        "pid": "971300456",
+        "upc": "0008800407245",
+        "id": "971300456",
+        "storeId": "1491",
+        "inventoryAvailable": "1",
+        "price": 54.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 45
+      },
+      "canonicalName": "Eagle Rare 12 Year",
+      "capturedProductSha256": "e5acd1af4beacf37a822fc4379f40277cd72cefd6f9c01b46adbc5b68fb91793"
+    },
+    {
+      "observedAt": "2026-10-27T00:10:42.258Z",
+      "store": {
+        "distance": 1.08,
+        "locationId": "1491",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "7920 E Chaparral Rd",
+          "city": "Scottsdale",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85250"
+        }
+      },
+      "product": {
+        "name": "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960488502",
+        "upc": "0008800400552",
+        "id": "960488502",
+        "storeId": "1491",
+        "inventoryAvailable": "1",
+        "price": 92.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 63
+      },
+      "canonicalName": "E.H. Taylor Jr. Barrel Proof Bourbon",
+      "capturedProductSha256": "55b8e1f9a76094b095bed4379b9c761e654ceba78359ff2fa6d577368df5cecd"
+    },
+    {
+      "observedAt": "2026-10-27T00:11:32.418Z",
+      "store": {
+        "distance": 3.36,
+        "locationId": "209",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "22983 E Riggs Rd",
+          "city": "Queen Creek",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85142"
+        }
+      },
+      "product": {
+        "name": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960540802",
+        "upc": "0008800403149",
+        "id": "960540802",
+        "storeId": "209",
+        "inventoryAvailable": "1",
+        "price": 69.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 57
+      },
+      "canonicalName": "Weller Full Proof",
+      "capturedProductSha256": "e4c8e1256a90e7c416948e7c0bc36d78d18dd63d803159c1c99f7ab38cfff78a"
+    },
+    {
+      "observedAt": "2026-10-27T00:11:32.418Z",
+      "store": {
+        "distance": 3.36,
+        "locationId": "209",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "22983 E Riggs Rd",
+          "city": "Queen Creek",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85142"
+        }
+      },
+      "product": {
+        "name": "E H Taylor Jr Cured Oak - 750 Ml (limited quantities may be available in store)",
+        "pid": "971425296",
+        "upc": "0008800402129",
+        "id": "971425296",
+        "storeId": "209",
+        "inventoryAvailable": "1",
+        "price": 83.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 50
+      },
+      "canonicalName": "E.H. Taylor Cured Oak",
+      "capturedProductSha256": "eee5f79fb22779c2c787dd17915a7f1da7d0a66721ea1d6e1ec3d559c139673d"
+    },
+    {
+      "observedAt": "2026-10-27T00:15:18.140Z",
+      "store": {
+        "distance": 4.76,
+        "locationId": "2044",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "260 W Continental Rd",
+          "city": "Green Valley",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85622"
+        }
+      },
+      "product": {
+        "name": "E.H. Taylor Straight Kentucky Rye Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960288652",
+        "upc": "0008800400550",
+        "id": "960288652",
+        "storeId": "2044",
+        "inventoryAvailable": "1",
+        "price": 89.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 50
+      },
+      "canonicalName": "E.H. Taylor Jr. Straight Rye Whiskey",
+      "capturedProductSha256": "26cf629e0e067572b9cf8861ef10a04fa50c3b463bc82d3a2078cd63ad57149d"
+    },
+    {
+      "observedAt": "2026-10-27T00:17:44.180Z",
+      "store": {
+        "distance": 8.79,
+        "locationId": "1549",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "14696 N Frank Lloyd Wright Blvd",
+          "city": "Scottsdale",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85260"
+        }
+      },
+      "product": {
+        "name": "Knob Creek 12 Year 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960544435",
+        "upc": "0008068601678",
+        "id": "960544435",
+        "storeId": "1549",
+        "inventoryAvailable": "1",
+        "price": 76.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 50
+      },
+      "canonicalName": "Knob Creek 12 Year",
+      "capturedProductSha256": "afa7b1d34f5d0ec4ff2448e20c0f73950ce2263f1ca2d75282e881c12d7a8257"
+    },
+    {
+      "observedAt": "2026-10-27T00:17:55.003Z",
+      "store": {
+        "distance": 9.29,
+        "locationId": "2097",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "4747 E Greenway Rd",
+          "city": "Phoenix",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85032"
+        }
+      },
+      "product": {
+        "name": "Basil Hayden 10 Year 80 Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960526788",
+        "upc": "0008068601220",
+        "id": "960526788",
+        "storeId": "2097",
+        "inventoryAvailable": "1",
+        "price": 101.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 40
+      },
+      "canonicalName": "Basil Hayden 10 Year",
+      "capturedProductSha256": "5afebafca43eaabccdd85dbcc433e8ac589d949e2c973bbc7fde9e09525e67fe"
+    }
+  ],
+  "excluded": [
+    {
+      "observedAt": "2026-10-27T00:10:35.864Z",
+      "store": {
+        "distance": 0.68,
+        "locationId": "3204",
+        "polarisBannerName": "albertsons",
+        "domainName": "Albertsons",
+        "address": {
+          "line1": "1980 Mcculloch Blvd",
+          "city": "Lake Havasu City",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "86403"
+        }
+      },
+      "product": {
+        "name": "George T. Stagg Jr Kentucky Straight Bourbon Whiskey Varying Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960488503",
+        "upc": "0008800401858",
+        "id": "960488503",
+        "storeId": "3204",
+        "inventoryAvailable": "1",
+        "price": 71.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 62
+      },
+      "capturedProductSha256": "d8f0748f63d954496f4ff04bce6a389abb3f11b57356054ae5ef735753c0ffb5"
+    },
+    {
+      "observedAt": "2026-10-27T00:10:42.258Z",
+      "store": {
+        "distance": 1.08,
+        "locationId": "1491",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "7920 E Chaparral Rd",
+          "city": "Scottsdale",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85250"
+        }
+      },
+      "product": {
+        "name": "W.L. Weller 12 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960307027",
+        "upc": "0008800402774",
+        "id": "960307027",
+        "storeId": "1491",
+        "inventoryAvailable": "1",
+        "price": 52.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 40
+      },
+      "capturedProductSha256": "29c051a88ae252775c310770ef9612e391c8c3baab870c8398b18d4a376b369e"
+    },
+    {
+      "observedAt": "2026-10-27T00:12:55.138Z",
+      "store": {
+        "distance": 1.35,
+        "locationId": "3151",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "9890 S Estrella Pkwy",
+          "city": "Goodyear",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85338"
+        }
+      },
+      "product": {
+        "name": "Henry Mckenna Single Barrel 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "960237814",
+        "upc": "0009674920056",
+        "id": "960237814",
+        "storeId": "3151",
+        "inventoryAvailable": "1",
+        "price": 69.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 50
+      },
+      "capturedProductSha256": "327616b392a6fa1adee87e3c24c7379c817fc292a5c5287a0bdd862cf902232a"
+    }
+  ]
+}

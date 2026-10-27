@@ -18,7 +18,7 @@ const expectations = { minimumSelectedStores: 2, minimumBaselineStores: 0, minim
 async function capturedPipeline(t, { binary = false } = {}) {
   t.mock.timers.enable({ apis: ['Date'], now });
   const signals = [];
-  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, rareSearchCount: 0, maxSearchCount: 150 };
+  const metadata = { selectedStores: [], baselineStores: [], addedStores: [], requests: [], totalSearchCount: 0, bourbonSearchCount: 0, whiskeySearchCount: 0, rareSearchCount: 0, maxSearchCount: 316 };
   for (const capture of fixture.captures) {
     const products = structuredClone(capture.products);
     if (binary) for (const product of products) delete product.channelInventory.instoreItemQty;
@@ -34,7 +34,7 @@ async function capturedPipeline(t, { binary = false } = {}) {
     assert.equal(result.signals.length, 1);
     signals.push(...result.signals);
     for (const key of ['selectedStores', 'baselineStores', 'addedStores', 'requests']) metadata[key].push(...result.metadata[key]);
-    for (const key of ['totalSearchCount', 'bourbonSearchCount', 'rareSearchCount']) metadata[key] += result.metadata[key];
+    for (const key of ['totalSearchCount', 'bourbonSearchCount', 'whiskeySearchCount', 'rareSearchCount']) metadata[key] += result.metadata[key];
   }
   // Explicitly retain a conservative quantity flag at the serialization boundary.
   if (binary) for (const signal of signals) signal.quantityIsExact = false;
@@ -102,10 +102,10 @@ test('verifier binds metadata to exact premises, classification and a bounded de
   rejected(input, (row) => { const req = row.state.precisionMetadata.xapi.requests.find((entry) => entry.kind === 'resolver'); const url = new URL(req.url); url.port = '444'; req.url = url.href; }, /configured public route/);
   rejected(input, (row) => {
     const meta = row.state.precisionMetadata.xapi;
-    const rare = meta.requests.find((entry) => entry.kind === 'inventory' && entry.term !== 'bourbon');
-    for (let index = 0; index < 17; index++) meta.requests.push(structuredClone(rare));
-    meta.totalSearchCount += 17; meta.rareSearchCount += 17;
-  }, /16 rare queries/);
+    const rare = meta.requests.find((entry) => entry.kind === 'inventory' && !['bourbon','whiskey'].includes(entry.term));
+    for (let index = 0; index < 49; index++) meta.requests.push(structuredClone(rare));
+    meta.totalSearchCount += 49; meta.rareSearchCount += 49;
+  }, /bounded broad and library query caps/);
 });
 
 test('previously released stores cannot satisfy the genuinely new public-store gate', async (t) => {

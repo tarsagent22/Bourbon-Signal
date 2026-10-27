@@ -1,4 +1,5 @@
 import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
+import { arizonaXapiLibraryIdentity } from './arizona-xapi-library-identity.mjs';
 
 // Exact Safeway XAPI identity reviewed in both Arizona captures on 2026-10-22.
 // This source's title includes a stock caveat that is not a bottle expression.
@@ -25,7 +26,10 @@ export function reviewedArizonaXapiBottleMatch(product, bible, { storeId } = {})
   const name = String(product?.name || '');
   const reviewed = REVIEWED_PRODUCTS.find(row => [product?.id, product?.pid].some(value => String(value || '') === row.id)
     || String(product?.upc || '') === row.upc || exactText(name) === exactText(row.name));
-  if (!reviewed) return cityHiveSafeBottleMatch(name, bible);
+  if (!reviewed) {
+    const legacy = cityHiveSafeBottleMatch(name, bible);
+    return legacy.record ? legacy : arizonaXapiLibraryIdentity(product, bible, { storeId });
+  }
 
   const rejected = { match: null, record: null, unsafeReason: 'unverified_arizona_xapi_product_identity' };
   if (String(product?.id || '') !== reviewed.id
