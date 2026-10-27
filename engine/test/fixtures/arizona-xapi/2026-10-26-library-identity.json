@@ -1,0 +1,48 @@
+{
+  "captures": [
+    {
+      "observedAt": "2026-10-27T00:03:27.912Z",
+      "store": {
+        "distance": 2.75,
+        "locationId": "174",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "520 W Osborn Rd",
+          "city": "Phoenix",
+          "state": "AZ",
+          "country": "US",
+          "zipcode": "85013"
+        }
+      },
+      "product": {
+        "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "pid": "189031042",
+        "upc": "0008800402134",
+        "id": "189031042",
+        "storeId": "174",
+        "inventoryAvailable": "1",
+        "price": 49.99,
+        "unitOfMeasure": "ML",
+        "channelEligibility": {
+          "pickUp": false,
+          "delivery": false,
+          "inStore": true,
+          "shipping": false
+        },
+        "channelInventory": {
+          "delivery": "1",
+          "pickup": "1",
+          "instore": "1",
+          "shipping": "0"
+        },
+        "dispItemSizeQty": "750",
+        "dispItemPackageQty": "1",
+        "dispUnitOfMeasure": "ML",
+        "containsAlcohol": true,
+        "alcoholVolumePct": 45
+      },
+      "capturedProductSha256": "38b99aa417aec8643b88e242ed4c11fe9aeed1738750e213f34a4da88b7595ad"
+    }
+  ]
+}

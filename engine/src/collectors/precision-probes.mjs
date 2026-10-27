@@ -8,7 +8,7 @@ import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
-import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, arizonaXapiBanner, arizonaXapiRequestPlan, selectArizonaXapiStores, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
+import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT, arizonaXapiBanner, arizonaXapiRequestPlan, selectArizonaXapiStores, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
 import { libraryDetectionQueries, isExactLibraryTarget } from '../library-query-plan.mjs';
 import { librarySourceSearchTerms, librarySourceSearchPlan, withLibrarySearchAudit, recordLibrarySearchResponse, rotateLibraryProductCandidates } from '../library-search-runtime.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
@@ -946,6 +946,13 @@ export const AZ_CITYHIVE_SOURCES = [
     baseUrl: 'https://liquorexpresstempe.store',
     merchantIds: ['5f88c1ab8f687229c6c2c8a4'],
     urls: ['https://liquorexpresstempe.store/shop/?subtype=bourbon', 'https://liquorexpresstempe.store/shop/?search=bourbon']
+  },
+  {
+    id: 'a1-liquor-phoenix', chainName: 'A1 Liquor',
+    sourceLabel: 'A1 Liquor Phoenix CityHive store inventory', baseUrl: 'https://a1liquorstore.com',
+    merchantIds: ['68dd5e50f9a9491455c941be'],
+    premiseAddress: '901 E Indian School Rd, Phoenix, AZ 85014, USA',
+    urls: ['https://a1liquorstore.com/shop/?subtype=bourbon'],
   }
 ];
 
@@ -4671,7 +4678,7 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
   const blockedHosts = new Set();
   const fetchText = options.fetchText || textFetch;
   const pause = options.sleep || sleep;
-  const metadata = { discoveredStores: [], selectedStores: [], baselineStores: [], addedStores: [], bourbonSearchCount: 0, rareSearchCount: 0, totalSearchCount: 0, maxSearchCount: ARIZONA_XAPI_SEARCH_LIMIT, requests: [] };
+  const metadata = { discoveredStores: [], selectedStores: [], baselineStores: [], addedStores: [], bourbonSearchCount: 0, whiskeySearchCount: 0, rareSearchCount: 0, totalSearchCount: 0, maxSearchCount: ARIZONA_XAPI_SEARCH_LIMIT, requests: [] };
   async function request(url, headers, kind, storeId = null, term = null) {
     const host = new URL(url).host;
     if (blockedHosts.has(host)) return null;
@@ -4692,7 +4699,7 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
     await pause(AZ_ALBERTSONS_DELAY_MS);
   }
   const selectedStores = selectArizonaXapiStores(stores.values(), { maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES });
-  const queryBudget = Math.min(16, selectedStores.length);
+  const queryBudget = Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, selectedStores.length);
   const libraryPlan = !queryBudget || process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || !libraryDetectionQueries(bible).length ? null : await librarySourceSearchPlan(bible, {sourceKey:'AZ:grocery-xapi', budget:queryBudget});
   const terms = libraryPlan?.terms || AZ_ALBERTSONS_TERMS;
   const plan = arizonaXapiRequestPlan(selectedStores, {rotationIndex:libraryPlan?.invocation, queryPoolSize:libraryPlan?.poolSize ?? null, maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms, nowMs: options.nowMs ?? Date.now() });
@@ -4718,7 +4725,7 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
       const res = await request(url, { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_SEARCH_KEY }, 'inventory', String(store.locationId), term);
       if (!res) continue;
       metadata.totalSearchCount += 1;
-      if (term === 'bourbon') metadata.bourbonSearchCount += 1; else metadata.rareSearchCount += 1;
+      if (term === 'bourbon') metadata.bourbonSearchCount += 1; else if (term === 'whiskey') metadata.whiskeySearchCount += 1; else metadata.rareSearchCount += 1;
       if (!res.ok) { roadblocks.push({ state: config.id, source: `${store.domainName || banner} Arizona XAPI inventory`, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public XAPI source at low cadence without bypassing retailer protection.' }); await pause(AZ_ALBERTSONS_DELAY_MS); continue; }
       try {
         for (const signal of parseArizonaXapiInventory(JSON.parse(res.text), store, bible, { observedAt, queryTerm: term, matchProduct: options.matchProduct })) {
@@ -5949,9 +5956,14 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
   const seenStores = new Set();
   const detailChecksBySource = new Map();
 
-  const sourceRun = await runArizonaSourcesWithDenialBackoff(AZ_CITYHIVE_SOURCES, async (source, { fetchText }) => {
+  if (options.cityHiveSourceIds && (!Array.isArray(options.cityHiveSourceIds) || !options.cityHiveSourceIds.length
+    || options.cityHiveSourceIds.some(id => !AZ_CITYHIVE_SOURCES.some(source => source.id === id)))) throw new Error('Unreviewed Arizona CityHive source selection');
+  const sources = options.cityHiveSourceIds ? AZ_CITYHIVE_SOURCES.filter(source => options.cityHiveSourceIds.includes(source.id)) : AZ_CITYHIVE_SOURCES;
+  const sourceRun = await runArizonaSourcesWithDenialBackoff(sources, async (source, { fetchText }) => {
     const sourceMerchantIds = new Set(source.merchantIds || []);
-    for (const seedUrl of source.urls) {
+    const terms = libraryDetectionQueries(bible).length ? await librarySourceSearchTerms(bible, { sourceKey: `AZ:cityhive:${source.id}`, budget: 3, broadTerms: ['rye'], cursorDir: options.cursorDir }) : [];
+    const urls = [...new Set([...source.urls, ...terms.map(term => `${source.baseUrl}/shop/?search=${encodeURIComponent(term)}`)])];
+    for (const seedUrl of urls) {
       for (const merchantId of source.merchantIds || []) {
         for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, AZ_CITYHIVE_MAX_PAGES)) {
           options.signal?.throwIfAborted();
@@ -6015,6 +6027,7 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
                 if (!sourceMerchantIds.has(optionMerchantId)) continue;
                 const fullAddress = option.full_address || '';
                 if (!/,\s*AZ\s+\d{5}/i.test(fullAddress)) continue;
+                if (source.premiseAddress && fullAddress !== source.premiseAddress) continue;
                 if (!isBourbonRelevantProduct(product, option)) continue;
                 const reportedQuantity = Number(option.quantity || 0) || 0;
                 if (reportedQuantity <= 0) continue;
@@ -9535,7 +9548,7 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['IN', 'TN', 'FL', 'AZ'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 900_000 : ['IN', 'TN', 'FL'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
   const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
   const inventoryCadence = ['TX', 'AZ'].includes(stateKey) ? 30 * 60_000 : null;
   return {

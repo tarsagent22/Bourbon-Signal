@@ -30,9 +30,9 @@ export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
   '1536', '2076', '1733', '3187', '249', '2017', '2069', '2648', '3189', '272', '1291', '1543', '1771', '1887', '1654', '1948', '1566', '197', '72', '1591', '958', '1221', '1750', '2799', '2952', '1002', '1549', '2042', '2644', '1849', '1515', '1874', '3989', '1663', '1201', '963', '2922', '1253', '240', '250', '1988', '1979', '1255', '2097', '960', '1980', '413', '1984',
 ]);
 export const ARIZONA_XAPI_DEFAULT_STORES = 134;
-export const ARIZONA_XAPI_SEARCH_LIMIT = 150;
+export const ARIZONA_XAPI_SEARCH_LIMIT = 316;
 export const ARIZONA_XAPI_SEARCH_ROWS = 120;
-export const ARIZONA_XAPI_RARE_QUERY_LIMIT = 16;
+export const ARIZONA_XAPI_RARE_QUERY_LIMIT = 48;
 // Both premises passed resolver and store-specific bourbon proofs. Prefer them
 // among equally unrepresented cities; they still require fresh resolver rows.
 const REVIEWED_ADDITIONAL_STORE_IDS = new Set(['1604', '1225']);
@@ -148,20 +148,20 @@ export function arizonaXapiLibraryQueryAssignments(storeCount, { terms = [], poo
 
 export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT_STORES, terms = [], nowMs = Date.now(), rotationIndex = null, queryPoolSize = null } = {}) {
   const selected = selectArizonaXapiStores(input, { maxStores });
-  const rareTerms = [...new Set(terms.map((term) => String(term).trim()).filter((term) => term && term !== 'bourbon'))];
+  const rareTerms = [...new Set(terms.map((term) => String(term).trim()).filter((term) => term && !['bourbon', 'whiskey'].includes(term)))];
   const usesInvocation = Number.isSafeInteger(rotationIndex) && rotationIndex >= 0;
   if (usesInvocation && queryPoolSize !== null && rareTerms.length && selected.length) {
     const supplemental = Array.from({ length: selected.length }, () => []);
     for (const { term, storeIndex } of arizonaXapiLibraryQueryAssignments(selected.length, { terms: rareTerms, poolSize: queryPoolSize, invocation: rotationIndex })) {
       supplemental[storeIndex].push(term);
     }
-    return selected.map((store, index) => ({ store, terms: ['bourbon', ...supplemental[index]] }));
+    return selected.map((store, index) => ({ store, terms: ['bourbon', 'whiskey', ...supplemental[index]] }));
   }
   const dayBucket = usesInvocation ? rotationIndex : Math.floor(nowMs / 86_400_000);
   const gcd = (a, b) => b ? gcd(b, a % b) : a;
   let termStride = Math.max(1, selected.length);
   while (rareTerms.length && gcd(termStride, rareTerms.length) !== 1) termStride += 1;
-  const rareCount = rareTerms.length ? Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, ARIZONA_XAPI_SEARCH_LIMIT - selected.length, selected.length) : 0;
+  const rareCount = rareTerms.length ? Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, ARIZONA_XAPI_SEARCH_LIMIT - selected.length * 2, selected.length) : 0;
   // Advance each store's term on its own visits, independent of which day
   // selects its cohort. Day parity otherwise traps a 32/16 split on two terms.
   const rareVisits = new Map(Array.from({ length: rareCount }, (_, offset) => {
@@ -171,7 +171,7 @@ export function arizonaXapiRequestPlan(input, { maxStores = ARIZONA_XAPI_DEFAULT
   const visitTerms = new Map(Array.from(rareVisits.keys()).map((index, offset) => [index, !usesInvocation ? rareTerms[(rareVisits.get(index) * termStride + index) % rareTerms.length] : rareTerms[offset % rareTerms.length]]));
   return selected.map((store, index) => ({
     store,
-    terms: ['bourbon', ...(rareVisits.has(index) ? [visitTerms.get(index)] : [])],
+    terms: ['bourbon', 'whiskey', ...(rareVisits.has(index) ? [visitTerms.get(index)] : [])],
   }));
 }
 
@@ -195,7 +195,7 @@ export function parseArizonaXapiInventory(payload, store, bible, { observedAt, q
     // brands must not enter via legacy family containment (e.g. an unnamed
     // Heritage whiskey resolving to a specific toasted release).
     if (!/bourbon|blanton|weller|eagle rare|buffalo trace|stagg|heaven hill|e\.?\s*h\.?\s*taylor|booker'?s/i.test(rawName)
-      && match?.method !== 'exact-library-identity') continue;
+      && !['exact-library-identity', 'exact-arizona-library-identity'].includes(match?.method)) continue;
     const inventory = product.channelInventory || {};
     if (String(inventory.instore ?? inventory.inStore ?? '') !== '1') continue;
     const rawQuantity = inventory.instoreItemQty ?? inventory.inStoreItemQty;
@@ -208,6 +208,7 @@ export function parseArizonaXapiInventory(payload, store, bible, { observedAt, q
       id: stableId(['AZ', 'albertsons-xapi', store.locationId, productId]), state: 'AZ',
       sourceLabel, sourceUrl: `${host}/shop/product-details.${productId}.html`, sourceChain: banner, merchantId: String(store.locationId),
       rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
+      ...(match?.method === 'exact-arizona-library-identity' ? { sourceBottleMatchMethod: match.method } : {}),
       confidence: quantity > 0 ? 0.86 : Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
       locationName: `${store.domainName || banner} #${store.locationId}`, storeName: `${store.domainName || banner} #${store.locationId}`, storeId: `${banner}:${store.locationId}`,
       storeAddress: `${address.line1}, ${address.city}, AZ ${address.zipcode}`, city: address.city, stateCode: 'AZ', postalCode: address.zipcode, zip: address.zipcode,
@@ -216,7 +217,7 @@ export function parseArizonaXapiInventory(payload, store, bible, { observedAt, q
       canAlertAsInventory: true, canAlertAsWatch: true,
       inventorySemantics: quantity > 0 ? 'Albertsons Companies XAPI reports positive store/channel inventory and an item quantity.' : 'Albertsons Companies XAPI reports positive in-store inventory but no exact item quantity; verify before driving.',
       evidence: `${sourceLabel} reports ${rawName} available at ${address.line1}, ${address.city}${quantity > 0 ? ` with quantity ${quantity}` : ''}.`,
-      raw: { chain: banner, merchantId: String(store.locationId), queryTerm, product: { id: product.id, pid: product.pid, upc: product.upc, inventoryAvailable: product.inventoryAvailable }, channelInventory: inventory, channelEligibility: product.channelEligibility },
+      raw: { chain: banner, merchantId: String(store.locationId), queryTerm, product: { id: product.id, pid: product.pid, upc: product.upc, inventoryAvailable: product.inventoryAvailable, ...(match?.method === 'exact-arizona-library-identity' ? { name: product.name, containsAlcohol: product.containsAlcohol, alcoholVolumePct: product.alcoholVolumePct, dispItemSizeQty: product.dispItemSizeQty, dispUnitOfMeasure: product.dispUnitOfMeasure, unitOfMeasure: product.unitOfMeasure, dispItemPackageQty: product.dispItemPackageQty } : {}) }, channelInventory: inventory, channelEligibility: product.channelEligibility },
     });
   }
   return signals;

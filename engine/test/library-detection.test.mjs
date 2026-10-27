@@ -162,19 +162,19 @@ test('Arizona recognizes a library rye without brand-list filtering but still re
   assert.equal(vague.length, 0, 'A newly admitted brand must not inherit a specific expression through old family aliases');
 });
 
-test('the expanded Arizona query rotation reaches the whole library pool and each store without increasing the daily cap', () => {
+test('the expanded Arizona query rotation reaches the whole library pool and each store within the expanded bounded query cap', () => {
   const stores = Array.from({ length: 134 }, (_, index) => ({ locationId: String(5000 + index), domainName: 'Safeway',
     address: { line1: `${index + 1} Main St`, city: `City${index}`, state: 'AZ', zipcode: '85001' } }));
   const terms = Array.from({ length: 235 }, (_, index) => `Example expression ${index}`);
   const seen = new Set();
   for (let day = 0; day < 32; day++) {
     const plan = arizonaXapiRequestPlan(stores, { terms: ['bourbon', ...terms], nowMs: nowMs + day * 86_400_000 });
-    assert.equal(plan.flatMap(row => row.terms).length, 150);
-    for (const row of plan) if (row.terms[1]) seen.add(row.terms[1]);
+    assert.equal(plan.flatMap(row => row.terms).length, 316);
+    for (const row of plan) if (row.terms[2]) seen.add(row.terms[2]);
   }
   assert.equal(seen.size, terms.length);
   const visits = new Map(stores.slice(0, 7).map(row => [row.locationId, new Set()]));
   for (let day = 0; day < 20; day++) for (const row of arizonaXapiRequestPlan(stores.slice(0, 7), {
-    terms: ['bourbon', ...terms.slice(0, 20)], nowMs: nowMs + day * 86_400_000 })) visits.get(row.store.locationId).add(row.terms[1]);
+    terms: ['bourbon', ...terms.slice(0, 20)], nowMs: nowMs + day * 86_400_000 })) visits.get(row.store.locationId).add(row.terms[2]);
   assert([...visits.values()].every(queries => queries.size === 20));
 });

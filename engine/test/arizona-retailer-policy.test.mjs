@@ -8,7 +8,7 @@ import { selectScheduledStates } from '../src/optimization/state-run-plan.mjs';
 
 test('Arizona precision collection gets one bounded long attempt instead of two guaranteed timeouts', () => {
   const cadence = { baseCadenceMs: 1_800_000, minCadenceMs: 1_800_000, maxCadenceMs: 1_800_000 };
-  assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', {}, {}), { timeoutMs: 600_000, maxAttempts: 1, ...cadence });
+  assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', {}, {}), { timeoutMs: 900_000, maxAttempts: 1, ...cadence });
   assert.deepEqual(legacyPrecisionRuntimeOptions('NC', {}, {}), { timeoutMs: 120_000, maxAttempts: 2 });
   assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', { timeoutMs: 42, maxAttempts: 3 }, {}), { timeoutMs: 42, maxAttempts: 3, ...cadence });
 });
