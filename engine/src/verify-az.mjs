@@ -7,6 +7,7 @@ import { librarySearchPool } from './library-query-plan.mjs';
 import { libraryIdentityKey } from './core/library-catalog.mjs';
 import { stripHtml } from './core/text.mjs';
 import { arizonaXapiLibraryIdentity } from './collectors/arizona-xapi-library-identity.mjs';
+import { metroBottleMatch } from './collectors/arizona-metro-retailer-proof.mjs';
 import { isPublicDropFeedEligible } from '../../src/lib/public-drop-evidence.ts';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT } from './collectors/arizona-xapi.mjs';
 
@@ -154,6 +155,15 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   check(positiveStores.size >= expected.minimumPositiveXapiStores, 'XAPI positive inventory does not reach the required store floor.');
 
   const published = rows(drops, 'drops').filter((row) => row?.state === 'AZ' || row?.stateCode === 'AZ');
+  const metroRequests = state?.precisionMetadata?.metro?.sources?.flatMap(source => source.requests || []) || [];
+  const metroSuccessful = new Set(metroRequests.filter(r => r.ok === true && numericStatus(r.status) === 200).map(r => r.url));
+  for (const row of inventory.filter(row => ['mesa-liquor','best-liquor-tempe','liquor-wheel-2-phoenix'].includes(row.sourceChain))) {
+    const proof = row.sourceProductBinding;
+    const match = metroBottleMatch(proof?.identityName || row.rawName, libraryBible);
+    check(Boolean(match) && match.id === row.canonicalBottleId
+      && (row.sourceChain === 'liquor-wheel-2-phoenix' ? metroSuccessful.has(row.sourceUrl) : metroSuccessful.has(proof?.premiseUrl) && metroSuccessful.has(proof?.productQueryUrl)),
+    'Phoenix metro inventory lost its complete bottle identity or successful current source proof.');
+  }
   const inventoryCandidates = published.filter(inventoryType);
   const sourceByIdentity = new Map(inventory.map((row) => [identity(row), row]));
   const disabledKeys = new Set(libraryRecords.filter(bottle => bottle.isAlertEligible === false)

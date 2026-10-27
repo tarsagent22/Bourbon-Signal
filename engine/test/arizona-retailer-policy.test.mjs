@@ -86,7 +86,7 @@ test('central confidence policy enables only the exact Arizona retailer inventor
   assert.equal(sentinel.canAlertAsInventory, false);
 });
 
-test('Mesa Liquor WooCommerce orderability is alertable without inventing exact quantity', () => {
+test('legacy Mesa stock flags without the current premise and product proof cannot alert', () => {
   const mesa = {
     state: 'AZ', eventType: 'retailer_store_inventory_result', sourceLabel: 'Mesa Liquor WooCommerce store inventory',
     sourceUrl: 'https://mesaliquorstore.com/product/woodford-double-oaked/', sourceChain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce',
@@ -94,8 +94,8 @@ test('Mesa Liquor WooCommerce orderability is alertable without inventing exact 
     quantity: 0, availabilityStatus: 'in_stock', confidence: 0.82,
     raw: { chain: 'mesa-liquor', product: { id: 123, is_in_stock: true } }
   };
-  assert.equal(isArizonaRetailerInventory(mesa), true);
-  assert.equal(confidenceForSignal(mesa).canAlertAsInventory, true);
+  assert.equal(isArizonaRetailerInventory(mesa), false);
+  assert.equal(confidenceForSignal(mesa).canAlertAsInventory, false);
   assert.equal(isArizonaRetailerInventory({ ...mesa, raw: { ...mesa.raw, product: { id: 123, is_in_stock: false } } }), false);
   assert.equal(confidenceForSignal({ ...mesa, sourceUrl: 'https://attacker.example/product/123' }).canAlertAsInventory, false);
 });

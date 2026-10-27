@@ -1,0 +1,252 @@
+{
+  "observedAt": "2026-10-27T18:15:29.447Z",
+  "baseline": {
+    "runId": "963beb33dd03646d",
+    "workflow": 40549540210,
+    "publicRows": 779,
+    "publicStores": 138,
+    "commit": "9e810235e9f3eb30ff146a7d84a10c256df0db40"
+  },
+  "status": "read_only_preflight_not_production_delivery",
+  "sources": [
+    {
+      "id": "mesa-liquor",
+      "sourceRows": 11,
+      "publicRows": 5,
+      "requests": [
+        {
+          "url": "https://mesaliquorstore.com/contact/",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://mesaliquorstore.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100&page=1",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://mesaliquorstore.com/wp-json/wc/store/v1/products?category=237&per_page=100&page=1",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://mesaliquorstore.com/wp-json/wc/store/v1/products?category=237&per_page=100&page=2",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://mesaliquorstore.com/wp-json/wc/store/v1/products?category=237&per_page=100&page=3",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://mesaliquorstore.com/wp-json/wc/store/v1/products?category=237&per_page=100&page=4",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://mesaliquorstore.com/wp-json/wc/store/v1/products?category=237&per_page=100&page=5",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://mesaliquorstore.com/wp-json/wc/store/v1/products?search=Blanton's%20Gold&per_page=100&page=1",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://mesaliquorstore.com/wp-json/wc/store/v1/products?search=Blanton's%20Gold%20Single%20Barrel%20Select&per_page=100&page=1",
+          "status": 200,
+          "ok": true
+        }
+      ],
+      "categoryComplete": true,
+      "uniqueProducts": 452,
+      "publicNames": [
+        "Elijah Craig Bourbon Rye 750ml",
+        "Buffalo Trace Bourbon 750ml",
+        "E. H. Taylor Straightrye 750ml",
+        "Larceny Bbn Brl Proof 750ml",
+        "E. H. Taylor Small Batch 750ml"
+      ]
+    },
+    {
+      "id": "best-liquor-tempe",
+      "sourceRows": 11,
+      "publicRows": 5,
+      "requests": [
+        {
+          "url": "https://bestliquortempe.com/contact/",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://bestliquortempe.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100&page=1",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://bestliquortempe.com/wp-json/wc/store/v1/products?category=237&per_page=100&page=1",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://bestliquortempe.com/wp-json/wc/store/v1/products?category=237&per_page=100&page=2",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://bestliquortempe.com/wp-json/wc/store/v1/products?category=237&per_page=100&page=3",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://bestliquortempe.com/wp-json/wc/store/v1/products?search=Blanton's%20Gold&per_page=100&page=1",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://bestliquortempe.com/wp-json/wc/store/v1/products?search=Blanton's%20Gold%20Single%20Barrel%20Select&per_page=100&page=1",
+          "status": 200,
+          "ok": true
+        }
+      ],
+      "categoryComplete": true,
+      "uniqueProducts": 248,
+      "publicNames": [
+        "Elijah Craig Bourbon Rye 750ml",
+        "Buffalo Trace Bourbon 750ml",
+        "E. H. Taylor Straightrye 750ml",
+        "Larceny Bbn Brl Proof 750ml",
+        "E. H. Taylor Small Batch 750ml"
+      ]
+    },
+    {
+      "id": "liquor-wheel-2-phoenix",
+      "sourceRows": 4,
+      "publicRows": 3,
+      "requests": [
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/liquor/?in_stock=1&liquor_type=whiskey",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/blanton-s-bourbon.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/eagle-rare-10-year.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/e-h-taylor-small-batch.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/coke-12-pk-cans-12-oz.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/pepsi-12pk-12-oz.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/sprite-12pk-12-oz.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/diet-coke-12pk-12-oz.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/coke-2-liter.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/angel-s-envy-bourbon.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/caribou-crossing-single-barrel.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/buchanan-s-pineapple.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/jack-daniels-cola.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/fireball-cinnamon-whiskey-50ml-10-pack.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/house-of-stuart-750-ml.html",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "https://liquorwheel2.com/phoenix-liquor-delivery/j-b-750-ml.html",
+          "status": 200,
+          "ok": true
+        }
+      ],
+      "publicNames": [
+        "Blanton's Bourbon",
+        "Eagle Rare 10 Year",
+        "E H Taylor Small batch"
+      ]
+    }
+  ],
+  "corrections": [
+    {
+      "source": "mesa-liquor",
+      "oldAddress": "7143 E Southern Ave, Mesa, AZ 85209",
+      "verifiedAddress": "1930 E Broadway Rd, Mesa, AZ 85204",
+      "classification": "corrected_premise_not_a_new_retailer"
+    },
+    {
+      "source": "best-liquor-tempe",
+      "verifiedAddress": "3320 S Priest Dr Suite #2, Tempe, AZ 85282",
+      "evidence": "Current contact map and page header; stale generic footer is not used for premise binding."
+    }
+  ],
+  "excluded": [
+    {
+      "source": "Liquor Wheel 2",
+      "rawName": "George T. Stagg Barrel Proof- unfiltered",
+      "reason": "The reviewed retailer image depicts Stagg, contradicting George T. Stagg in the title."
+    },
+    {
+      "source": "BevMo",
+      "status": 403,
+      "reason": "No further requests after the captured denial."
+    },
+    {
+      "source": "BottleRover",
+      "status": 403,
+      "reason": "No further requests after the captured denial."
+    },
+    {
+      "source": "Pitch storefronts",
+      "reason": "No usable allocated inventory feed; one linked storefront redirects to unrelated content."
+    }
+  ],
+  "rawCaptures": "Preserved in isolated research and release operator evidence; immutable production and canonical customer API verification required before claiming delivery."
+}

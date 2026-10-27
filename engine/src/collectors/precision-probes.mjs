@@ -131,6 +131,7 @@ import { collectMetroCityHiveRows, selectMetroSourcesForRefresh } from './buffal
 import { metroHttpSourceError, metroSourceAttempts, readMetroSourceAttempts, updateMetroSourceAttempts, writeMetroSourceAttempts } from './metro-refresh-state.mjs';
 import { runArizonaSourcesWithDenialBackoff } from './arizona-source-attempts.mjs';
 import { ARIZONA_SMART_FINAL_SOURCE, collectArizonaSmartFinal } from './arizona-smart-final.mjs';
+import { PHOENIX_METRO_RETAILERS, LIQUOR_WHEEL_PHOENIX, metroRetailerSources as arizonaMetroRetailerSources, collectMetroWooCommerce, collectLiquorWheelPhoenix } from './arizona-metro-retailers.mjs';
 import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaLiquorLibraryInventory } from '../south-carolina-retailer-policy.mjs';
 import {
   buildIndianaTargetStoreLocationSignals,
@@ -956,14 +957,6 @@ export const AZ_CITYHIVE_SOURCES = [
   }
 ];
 
-const AZ_MESA_LIQUOR_BASE_URL = 'https://mesaliquorstore.com';
-const AZ_MESA_LIQUOR_SOURCE_LABEL = 'Mesa Liquor WooCommerce store inventory';
-const AZ_MESA_LIQUOR_STORE = { id: 'mesa-liquor:7143-e-southern', name: 'Mesa Liquor', address: '7143 E Southern Ave, Mesa, AZ 85209', city: 'Mesa', zip: '85209' };
-const AZ_MESA_LIQUOR_TERMS = ['bourbon', 'blanton', 'weller', 'eagle rare', 'buffalo trace', 'stagg', 'e h taylor'];
-const AZ_MESA_LIQUOR_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_AZ_MESA_LIQUOR_DELAY_MS) || 900));
-const AZ_BEST_LIQUOR_BASE_URL = 'https://bestliquortempe.com';
-const AZ_BEST_LIQUOR_SOURCE_LABEL = 'Best Liquor Tempe WooCommerce store inventory';
-const AZ_BEST_LIQUOR_STORE = { id: 'best-liquor-tempe:3320-s-priest', name: 'Best Liquor', address: '3320 S Priest Dr, Tempe, AZ 85282', city: 'Tempe', zip: '85282' };
 const AZ_FLAGSTAFF_LIQUOR_URL = 'https://flagstaffliquor.com/products.json?limit=250';
 const AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL = 'Flagstaff Liquor Shopify store inventory';
 const AZ_FLAGSTAFF_LIQUOR_STORE = { id: 'flagstaff-liquor:1700-e-route-66', name: 'Flagstaff Liquor', address: '1700 E Route 66, Flagstaff, AZ 86004', city: 'Flagstaff', zip: '86004' };
@@ -4581,55 +4574,6 @@ async function writeSouthCarolinaCityHiveCache(signals, roadblocks) {
   await writeFile(SC_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
 }
 
-async function collectArizonaWooCommerceRetailer(config, bible, observedAt, retailer, options = {}) {
-  const signals = [];
-  const roadblocks = [];
-  const seen = new Set();
-  for (const term of await librarySourceSearchTerms(bible, {sourceKey: `AZ:${retailer.chain}`, budget: AZ_MESA_LIQUOR_TERMS.length, broadTerms: ['bourbon', 'whiskey', 'rye'] })) {
-    options.signal?.throwIfAborted();
-    const url = `${retailer.baseUrl}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=100&page=1`;
-    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 20_000, signal: options.signal });
-    if (!res.ok) {
-      roadblocks.push({ state: config.id, source: retailer.sourceLabel, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API at low cadence.' });
-      await sleep(AZ_MESA_LIQUOR_DELAY_MS);
-      continue;
-    }
-    let products = [];
-    try { products = JSON.parse(res.text); } catch (error) {
-      roadblocks.push({ state: config.id, source: retailer.sourceLabel, url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the WooCommerce Store API response shape.' });
-      continue;
-    }
-    if (!Array.isArray(products)) continue;
-    for (const product of products) {
-      const rawName = htmlToText(product?.name || '');
-      const sizeMatch = rawName.match(/\b(\d+(?:\.\d+)?)\s*(ml|l)\b/i);
-      const sizeMl = sizeMatch ? Number(sizeMatch[1]) * (sizeMatch[2].toLowerCase() === 'l' ? 1000 : 1) : null;
-      const productKey = `${rawName.toLowerCase().replace(/\s+/g, ' ').trim()}|${wcStoreApiPrice(product?.prices) || ''}`;
-      if (!rawName || (sizeMl != null && sizeMl < 375) || seen.has(productKey) || product?.is_in_stock !== true || product?.is_purchasable === false || product?.is_on_backorder === true) continue;
-      seen.add(productKey);
-      const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
-      if (!record) continue;
-      const price = wcStoreApiPrice(product?.prices);
-      signals.push({
-        id: stableId([config.id, 'woocommerce-store-inventory', retailer.chain, product.id]), state: config.id,
-        sourceLabel: retailer.sourceLabel, sourceUrl: product?.permalink || url, sourceChain: retailer.chain, merchantId: retailer.merchantId,
-        rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
-        confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
-        locationName: retailer.store.name, storeName: retailer.store.name, storeId: retailer.store.id,
-        storeAddress: retailer.store.address, city: retailer.store.city, stateCode: 'AZ', postalCode: retailer.store.zip, zip: retailer.store.zip,
-        quantity: 0, price, availabilityStatus: 'in_stock', availabilityLabel: 'Retailer reports in stock', sourceAvailabilityVerified: true, observedAt,
-        canAlertAsInventory: true, canAlertAsWatch: true,
-        inventorySemantics: `${retailer.store.name}’s public WooCommerce Store API reports this bottle in stock and purchasable. It does not expose exact on-hand quantity; verify directly before driving.`,
-        evidence: `${retailer.store.name} WooCommerce reports ${rawName} in stock${price ? ` at $${price.toFixed(2)}` : ''} for its ${retailer.store.city} store. Exact quantity is not published.`,
-        raw: { chain: retailer.chain, merchantId: retailer.merchantId, product: { id: product.id, sku: product.sku, is_in_stock: product.is_in_stock, is_purchasable: product.is_purchasable, is_on_backorder: product.is_on_backorder, low_stock_remaining: product.low_stock_remaining, prices: product.prices } }
-      });
-    }
-    await sleep(AZ_MESA_LIQUOR_DELAY_MS);
-  }
-  if (!signals.length) roadblocks.push({ state: config.id, source: retailer.sourceLabel, url: `${retailer.baseUrl}/wp-json/wc/store/v1/products`, status: 'reachable_no_safe_inventory_rows', error: 'Public WooCommerce searches produced no safely matched in-stock bourbon rows.', nextRoute: 'Inspect product names and Store API stock flags without weakening bottle or availability guards.' });
-  return { signals, roadblocks };
-}
-
 async function collectArizonaFlagstaffLiquor(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
@@ -5945,7 +5889,7 @@ async function collectGeorgia(config, bible, options = {}) {
 }
 
 function arizonaAttemptSources() {
-  return [...AZ_CITYHIVE_SOURCES, { id: 'flagstaff-liquor', sourceLabel: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, baseUrl: AZ_FLAGSTAFF_LIQUOR_URL }, ARIZONA_SMART_FINAL_SOURCE]
+  return [...AZ_CITYHIVE_SOURCES, ...arizonaMetroRetailerSources(), { id: 'flagstaff-liquor', sourceLabel: AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL, baseUrl: AZ_FLAGSTAFF_LIQUOR_URL }, ARIZONA_SMART_FINAL_SOURCE]
     .map((source) => ({ ...source, stateCode: 'AZ' }));
 }
 
@@ -6153,8 +6097,12 @@ async function collectArizona(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const cityHive = await collectArizonaCityHive(config, bible, observedAt, options);
   options.signal?.throwIfAborted();
-  const mesaLiquor = await collectArizonaWooCommerceRetailer(config, bible, observedAt, { baseUrl: AZ_MESA_LIQUOR_BASE_URL, sourceLabel: AZ_MESA_LIQUOR_SOURCE_LABEL, chain: 'mesa-liquor', merchantId: 'mesa-liquor-woocommerce', store: AZ_MESA_LIQUOR_STORE }, options);
-  const bestLiquor = await collectArizonaWooCommerceRetailer(config, bible, observedAt, { baseUrl: AZ_BEST_LIQUOR_BASE_URL, sourceLabel: AZ_BEST_LIQUOR_SOURCE_LABEL, chain: 'best-liquor-tempe', merchantId: 'best-liquor-tempe-woocommerce', store: AZ_BEST_LIQUOR_STORE }, options);
+  const metroRun = await runArizonaSourcesWithDenialBackoff(arizonaMetroRetailerSources(),
+    (source, { fetchText }) => source.id === LIQUOR_WHEEL_PHOENIX.id
+      ? collectLiquorWheelPhoenix(config, bible, observedAt, { ...options, fetchText })
+      : collectMetroWooCommerce(config, bible, observedAt, PHOENIX_METRO_RETAILERS.find(r => r.id === source.id), { ...options, fetchText }),
+    { fetchText: options.fetchText || textFetch, signal: options.signal, registeredSources: arizonaAttemptSources(), writeAttempts: options.writeArizonaSourceAttempts, attemptStateAvailable: cityHive.metadata.attemptStateAvailable });
+  const metro = { signals: metroRun.values.flatMap(r => r.value.signals), roadblocks: metroRun.values.flatMap(r => r.value.roadblocks) };
   const flagstaffRun = await runArizonaSourcesWithDenialBackoff(arizonaAttemptSources().filter((source) => source.id === 'flagstaff-liquor'),
     () => collectArizonaFlagstaffLiquor(config, bible, observedAt, options),
     { signal: options.signal, registeredSources: arizonaAttemptSources(), directRequestCount: 1, writeAttempts: options.writeArizonaSourceAttempts, attemptStateAvailable: cityHive.metadata.attemptStateAvailable });
@@ -6166,9 +6114,9 @@ async function collectArizona(config, bible, options = {}) {
   const smartFinal = smartFinalRun.values[0]?.value || { signals: [], roadblocks: [] };
   const target = await collectArizonaTarget(config, bible, observedAt, options);
   return {
-    signals: [...cityHive.signals, ...mesaLiquor.signals, ...bestLiquor.signals, ...flagstaffLiquor.signals, ...albertsons.signals, ...smartFinal.signals, ...target.signals],
-    roadblocks: [...cityHive.roadblocks, ...mesaLiquor.roadblocks, ...bestLiquor.roadblocks, ...flagstaffLiquor.roadblocks, ...flagstaffRun.roadblocks, ...albertsons.roadblocks, ...smartFinal.roadblocks, ...smartFinalRun.roadblocks, ...target.roadblocks],
-    metadata: { cityhive: cityHive.metadata, flagstaff: flagstaffRun.metadata, xapi: albertsons.metadata, smartFinal: { ...smartFinal.metadata, ...smartFinalRun.metadata } },
+    signals: [...cityHive.signals, ...metro.signals, ...flagstaffLiquor.signals, ...albertsons.signals, ...smartFinal.signals, ...target.signals],
+    roadblocks: [...cityHive.roadblocks, ...metro.roadblocks, ...metroRun.roadblocks, ...flagstaffLiquor.roadblocks, ...flagstaffRun.roadblocks, ...albertsons.roadblocks, ...smartFinal.roadblocks, ...smartFinalRun.roadblocks, ...target.roadblocks],
+    metadata: { cityhive: cityHive.metadata, metro: { ...metroRun.metadata, sources: metroRun.values.map(r => ({ sourceId: r.sourceId, ...r.value.metadata })) }, flagstaff: flagstaffRun.metadata, xapi: albertsons.metadata, smartFinal: { ...smartFinal.metadata, ...smartFinalRun.metadata } },
   };
 }
 

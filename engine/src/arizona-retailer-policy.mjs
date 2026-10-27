@@ -1,5 +1,6 @@
 const TARGET_ARIZONA_STORE_IDS = new Set(['233','251','319','363','639','700','825','851','854','855','884','909','935','936','950','1141','1209','1242','1316','1327','1335','1360','1361','1386','1429','1432','1439','1838','1863','1905','1959','1960','2083','2140','2149','2176','2227','2236','2341','2354','2365','2368','2400','2747','2915','2920','2944','2953','3261']);
 
+import { isMetroRetailerProof } from './collectors/arizona-metro-retailer-proof.mjs';
 const SMART_FINAL_IDS = new Set(['491', '497', '499', '720', '721', '730', '826']);
 const ARIZONA_RETAILER_IDENTITIES = new Map([
   ['A1 Liquor Phoenix CityHive store inventory', { chain: 'a1-liquor-phoenix', hostname: 'a1liquorstore.com', merchants: new Set(['68dd5e50f9a9491455c941be']) }],
@@ -22,6 +23,7 @@ export function isArizonaRetailerSignalIdentity(signal) {
   const chain = String(signal.sourceChain || signal.raw?.chain || '');
   let sourceHostname = '';
   try { sourceHostname = new URL(String(signal.sourceUrl || '')).hostname.replace(/^www\./i, '').toLowerCase(); } catch {}
+  if (['mesa-liquor','best-liquor-tempe','liquor-wheel-2-phoenix'].includes(chain)) return isMetroRetailerProof(signal);
   if (/^(Safeway|Albertsons) Arizona XAPI store inventory$/.test(source)) {
     const expectedChain = source.startsWith('Albertsons') ? 'albertsons' : 'safeway';
     return chain === expectedChain
