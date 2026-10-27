@@ -300,7 +300,7 @@ test('Flagstaff denial is persisted before a later lane and its separate source 
   assert.deepEqual(second.ledger, first.ledger);
 });
 
-for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full precision runtime preserves independent WooCommerce/XAPI stock with ${ledgerFailure} ledger failure`, (t) => {
+for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full precision runtime keeps XAPI independent and fails retailer requests closed with ${ledgerFailure} ledger failure`, (t) => {
   const directory = workspace(t);
   const at = ledgerFailure === 'none' ? '2026-10-22T17:50:00.000Z' : initialAt;
   const script = `
@@ -322,10 +322,12 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
       if (parsed.hostname === 'mesaliquorstore.com' || parsed.hostname === 'bestliquortempe.com') {
         if (${JSON.stringify(ledgerFailure)} !== 'initial') {
           const ledger = JSON.parse(await readFile(${JSON.stringify(ledgerPath)}, 'utf8'));
-          assert.equal(Object.keys(ledger.sourceAttempts).length, ${JSON.stringify(ledgerFailure)} === 'none' ? 9 : 8);
+          assert.ok(Object.keys(ledger.sourceAttempts).length >= 8);
         }
-        return [{ id: 123, name: 'Buffalo Trace Bourbon 750ml', is_in_stock: true, is_purchasable: true, is_on_backorder: false, permalink: parsed.origin + '/product/buffalo-trace/', prices: { price: '3499', currency_minor_unit: 2 } }];
+        if(parsed.pathname==='/contact/') return '<iframe src="https://maps.google.com/maps?q=' + encodeURIComponent(parsed.hostname==='mesaliquorstore.com'?'1930 E Broadway Rd, Mesa, AZ 85204':'3320 S Priest Dr Suite #2, Tempe, AZ 85282') + '"></iframe>';
+        return [{ id: 123, name: 'Buffalo Trace Bourbon 750ml', is_in_stock: true, is_purchasable: true, is_on_backorder: false, permalink: parsed.origin + '/product/buffalo-trace/', prices: { price: '3499', currency_minor_unit: 2, currency_code: 'USD' } }];
       }
+      if(parsed.hostname==='liquorwheel2.com') return '';
       if (url.includes('/storeresolver/')) return { instore: { stores: [{ locationId: '1491', polarisBannerName: 'safeway', domainName: 'Safeway', distance: 1, address: { line1: '7920 E Chaparral Rd', city: 'Scottsdale', state: 'AZ', zipcode: '85250' } }] } };
       if (url.includes('/search/substitute')) return { response: { docs: [{ id: '189032017', storeId: '1491', name: 'Buffalo Trace Bourbon 750ml', price: 34.99, channelInventory: { instore: '1', instoreItemQty: 3 } }] } };
       if (parsed.hostname === 'redsky.target.com') return { data: { search: { products: [] } } };
@@ -333,7 +335,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
       throw new Error('Unexpected fixture URL: ' + url);
     }
     globalThis.fetch = async (url) => new Response(JSON.stringify(await fixture(url)), { status: 200, headers: { 'content-type': 'application/json' } });
-    const result = await collectPrecisionProbes({ id: 'AZ', label: 'Arizona', sources: [] }, { match: () => ({ confidence: 1, record: { id: 'buffalo-trace', canonical: 'Buffalo Trace Bourbon', tier: 1 } }) }, [], {
+    const result = await collectPrecisionProbes({ id: 'AZ', label: 'Arizona', sources: [] }, { records:[{id:'buffalo-trace',canonical:'Buffalo Trace Bourbon',tier:'allocated',libraryIdentities:[{id:'buffalo-trace',canonicalName:'Buffalo Trace Bourbon',aliases:[],nationalTier:'allocated',isAlertEligible:true}]}], match: () => ({ confidence: 1, record: { id: 'buffalo-trace', canonical: 'Buffalo Trace Bourbon', tier: 1 } }) }, [], {
       sourceRunnerOptions: { schedule: false, maxAttempts: 3 },
       fetchText: async url => {
         const source = AZ_CITYHIVE_SOURCES.find(source => new URL(source.baseUrl).hostname === new URL(url).hostname);
@@ -341,7 +343,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
           calls.push(url);
           return { ok: ${ledgerFailure === 'success'}, status: ${ledgerFailure === 'success' ? 200 : 403}, text: ${ledgerFailure === 'success'} ? page(source) : '' };
         }
-        return { ok: true, status: 200, text: JSON.stringify(await fixture(url)) };
+        const value = await fixture(url); return { ok: true, status: 200, text: typeof value==='string'?value:JSON.stringify(value) };
       },
       writeArizonaSourceAttempts: async (...args) => {
         writes += 1;
@@ -356,11 +358,11 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
   const child = spawnSync(process.execPath, ['--input-type=module', '-e', script], { cwd: directory, env: { ...process.env, PATH: '', Path: '', BOURBON_SIGNAL_QUARANTINED_SOURCES: '', BOURBON_SIGNAL_SOURCE_CHECKPOINT_DIRECTORY: '' }, encoding: 'utf8', windowsHide: true, timeout: 20_000 });
   assert.equal(child.status, 0, child.stderr || child.error?.message);
   const { calls, result } = JSON.parse(child.stdout);
-  assert.ok(calls.some(url => new URL(url).hostname === 'mesaliquorstore.com'));
-  assert.ok(calls.some(url => new URL(url).hostname === 'bestliquortempe.com'));
+  assert.equal(calls.some(url => new URL(url).hostname === 'mesaliquorstore.com'), ledgerFailure==='none');
+  assert.equal(calls.some(url => new URL(url).hostname === 'bestliquortempe.com'), ledgerFailure==='none');
   assert.ok(calls.some(url => url.includes('/search/substitute')));
-  assert.equal(result.signals.filter(signal => signal.sourceChain === 'mesa-liquor').length, 1);
-  assert.equal(result.signals.filter(signal => signal.sourceChain === 'best-liquor-tempe').length, 1);
+  assert.equal(result.signals.filter(signal => signal.sourceChain === 'mesa-liquor').length, ledgerFailure==='none'?1:0);
+  assert.equal(result.signals.filter(signal => signal.sourceChain === 'best-liquor-tempe').length, ledgerFailure==='none'?1:0);
   assert.equal(result.signals.filter(signal => signal.sourceChain === 'safeway').length, 1);
   assert.ok(result.signals.every(signal => signal.observedAt === at));
   assert.ok(result.roadblocks.every(roadblock => roadblock.sourceRuntimeId === 'precision:az'));

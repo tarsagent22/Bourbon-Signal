@@ -15,6 +15,9 @@ export const libraryAlertPolicyBoundary = `  const sourceAlertPolicy = { ...enfo
   }
 `;
 export const originalLibraryAlertPolicyBoundary = '  const sourceAlertPolicy = enforceArchivedSourceAlertPolicy(signal);\n';
+export const arizonaMetroTierImport = "import { metroLibraryTier } from './collectors/arizona-metro-retailer-proof.mjs';\n";
+export const arizonaMetroTierBoundary = "    tier: (signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null,\n";
+export const originalArizonaMetroTierBoundary = '    tier: record?.tier || null,\n';
 const originalFloridaProofBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
 const floridaProofBoundary = `    } : undefined,
     ...(signal.state === 'FL' ? {
@@ -51,6 +54,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     // Permit only the exact shared library suppression. It cannot enable an
     // alert or change the pinned Mississippi source and inventory policies.
     text = replaceUnique(text, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, `${name}: library alert suppression`);
+    // Only this exact AZ-gated, proof-checked catalog tier may differ. All MS
+    // implementation bytes and the original full-file digest remain pinned.
+    text = replaceUnique(text, arizonaMetroTierImport, '', `${name}: AZ tier import`);
+    text = replaceUnique(text, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, `${name}: AZ tier proof`);
     return Buffer.from(text);
   }
   if (name === 'scripts/test-coverage-contract.mts') {

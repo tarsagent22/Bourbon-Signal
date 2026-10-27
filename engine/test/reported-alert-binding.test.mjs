@@ -15,12 +15,12 @@ function replay(t){
  return{op,drops,alerts};
 }
 
-test('captured Little Book alerts for a discarded product ID cannot bypass public admission while the admitted variant and verified Weller remain alertable',t=>{
+test('legacy Little Book rows without current store proof stay excluded while verified Weller remains alertable',t=>{
  const{drops,alerts}=replay(t);
- assert.equal(drops.length,3);assert.equal(drops.filter(d=>d.sourceChain==='smart-final').length,1);
- assert.equal(alerts.length,5,'Reproduce two unadmitted product IDs alongside the three admitted listings');
+ assert.equal(drops.length,1);assert.equal(drops.filter(d=>d.sourceChain==='smart-final').length,1);
+ assert.equal(alerts.length,1,'Old unproven Mesa and Tempe rows cannot enter either the public feed or alert candidates');
  const bound=bindReportedInventoryAlertsToPublicDrops(alerts,drops);
- assert.equal(bound.length,3);const weller=bound.find(a=>a.sourceChain==='smart-final');assert.equal(weller.bottle,'Weller Full Proof');assert.equal(weller.price,69.99);assert(bound.every(a=>!a.sourceUrl.includes('118-p')));
+ assert.equal(bound.length,1);const weller=bound.find(a=>a.sourceChain==='smart-final');assert.equal(weller.bottle,'Weller Full Proof');assert.equal(weller.price,69.99);assert(bound.every(a=>!a.sourceUrl.includes('118-p')));
 });
 
 test('reported inventory binding requires the same fresh source, premise, product, observation, price and quantity',t=>{

@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary } from '../engine/src/verification/historical-implementation.mjs';
+import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -56,7 +56,8 @@ function signalSort(a, b) {
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
-    .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary));
+    .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary)
+    .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary));
   for (const altered of [
     current.replace(addition, originalBoundary),
     current + '\n' + addition,
@@ -65,6 +66,9 @@ function signalSort(a, b) {
     current.replace(addition, addition.replace('Object.hasOwn(signal.raw, field)', 'true')),
     current.replace(addition, addition.replace('function signalSort(a, b)', 'function signalSort(a, ignored)')),
     current.replace(indianaAddition, ''),
+    current.replace(arizonaMetroTierImport, ''),
+    current.replace(arizonaMetroTierBoundary, arizonaMetroTierBoundary.replace("signal.state === 'AZ'", "signal.state === 'MS'")),
+    current.replace(arizonaMetroTierBoundary, arizonaMetroTierBoundary.replace("signal.state === 'AZ'", 'true')),
     current + '\n' + indianaAddition,
     current.replace(indianaAddition, indianaAddition.replace("sig.state === 'IN'", "sig.state === 'MS'")),
     current.replace(indianaAddition, indianaAddition.replace('sig.sourceProductBinding || null', 'sig.raw || null')),
