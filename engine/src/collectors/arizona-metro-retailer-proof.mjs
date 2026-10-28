@@ -45,7 +45,7 @@ export function metroLibraryTier(signal,bible) {
   const bottle=(canonical.length?canonical:entries)[0]?.bottle;
   if(bottle?.isAlertEligible!==true)return null;
   const tier=bottle.stateOverrides?.find(o=>o.jurisdiction==='AZ')?.tier||bottle.nationalTier;
-  return ['unicorn','allocated','limited','common'].includes(tier)?tier:null;
+  return ({regular:'standard',common:'standard',highly_allocated:'unicorn',unicorn:'unicorn',allocated:'allocated',limited:'limited'})[tier] || null;
 }
 export function metroPremiseMatches(query,store) {
   const raw=String(query||'');const start=raw.search(/\d/);if(start<0)return false;

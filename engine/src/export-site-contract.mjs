@@ -1304,6 +1304,9 @@ function isSafePublicSignal(signal, shopifyPolicy) {
   if (genericShopifyPickupRow(signal) || shopifyPolicy?.owns(signal)) return shopifyPolicy?.eligible(signal) === true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
   const type = String(signal.eventType || '');
+  // Old snapshots must meet today's Arizona retailer proof before becoming candidates.
+  if (signal.state === 'AZ' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(type)
+    && !isArizonaRetailerInventory(signal)) return false;
   const virginiaProof = virginiaPremisesProofState(signal);
   if (virginiaProof.proofRequired && !virginiaProof.proofAllowed) return false;
   if (signal.state === 'FL'
@@ -1359,6 +1362,8 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
   const seenSourceIds = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals, previousDrops, availabilityHistory);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
+  const arizonaInventory = s => s.state === 'AZ' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(s.eventType || s.type || ''));
+  const currentArizonaKeys = new Set(currentSignals.filter(arizonaInventory).map(currentProjectionKey));
   const currentGeorgiaRetailerKeys = new Set((currentSignals || [])
     .filter(isGeorgiaRetailerProjectionSignal)
     .map(currentProjectionKey));
@@ -1373,6 +1378,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
   const seenAggregateLeadIds = new Set();
   return signals
     .filter((s) => isSafePublicSignal(s, shopifyPolicy))
+    .filter((s) => !arizonaInventory(s) || currentArizonaKeys.has(currentProjectionKey(s)))
     .filter((s) => !isGeorgiaRetailerProjectionSignal(s) || currentGeorgiaRetailerKeys.has(currentProjectionKey(s)))
     .filter((s) => isFreshCurrentInventorySignal(s, currentKeys))
     .filter((s) => {

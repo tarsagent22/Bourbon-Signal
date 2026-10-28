@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { PHOENIX_METRO_RETAILERS, parseLiquorWheelProduct, parseMetroWooProduct, wooPremiseMap, metroBottleMatch, isMetroRetailerProof, collectMetroWooCommerce, collectLiquorWheelPhoenix } from '../src/collectors/arizona-metro-retailers.mjs';
+import { metroLibraryTier } from '../src/collectors/arizona-metro-retailer-proof.mjs';
 import { isArizonaRetailerInventory } from '../src/arizona-retailer-policy.mjs';
 import { canonicalizeSignal } from '../src/operational-report.mjs';
 import { bibleLookup, buildDrops } from '../src/export-site-contract.mjs';
@@ -94,4 +95,44 @@ test('unrecognized product URL slugs rotate through detail verification instead 
     assert(r.metadata.selectedProductUrls.includes(known.url));assert(r.signals.some(s=>s.rawName==='Eagle Rare 10 Year'));
   }
   assert(opaque.every(url=>seen.has(url)),'both sweeps together inspect every opaque product detail URL');
+});
+
+
+test('obsolete accepted Metro history cannot reenter publication after retailer proof changes', async()=>{
+  const previous=JSON.parse(await readFile(new URL('./fixtures/arizona-metro/2026-10-27-previous-operational.json',import.meta.url)));
+  assert.equal(previous.signals.length,5);
+  assert(previous.signals.some(s=>s.storeAddress==='7143 E Southern Ave, Mesa, AZ 85209'));
+  const current=[...fixture.wheel.map(w=>parseLiquorWheelProduct(html(w),w.url,bible,{observedAt:now})),
+    ...PHOENIX_METRO_RETAILERS.flatMap((r,i)=>fixture.woo[i===0?'mesa':'best'].products.map(p=>parseMetroWooProduct(p,r,bible,{
+      observedAt:now,premiseMapQuery:wooPremiseMap(fixture.woo[i===0?'mesa':'best'].contactMapHtml,r),
+      productQueryUrl:r.baseUrl+'/wp-json/wc/store/v1/products?category=237&per_page=100&page=1',
+    })))].filter(Boolean).map(s=>canonicalizeSignal(s,bible));
+  const lookup=bibleLookup(bible.records);
+  const fresh=buildDrops(current,lookup,current);
+  const older=clone(current);
+  for(const row of older){row.observedAt='2026-10-26T15:00:00.000Z';row.sourceProductBinding.observedAt=row.observedAt;}
+  assert(older.every(isArizonaRetailerInventory),'the old positive proofs remain valid but cannot replace current observations');
+  const merged=buildDrops([...previous.signals,...older,...current],lookup,current);
+  assert.equal(fresh.length,11);
+  const inventory=rows=>rows.map(r=>({store:r.storeId,name:r.rawName,observedAt:r.observedAt,price:r.price,quantity:r.quantity,inventory:r.canAlertAsInventory})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  assert.deepEqual(inventory(merged),inventory(fresh),'history may preserve first seen dates but cannot replace current stock observations');
+  assert(merged.every(r=>r.observedAt===now));
+  assert(merged.every(isPublicDropFeedEligible));
+  assert(merged.every(isArizonaRetailerInventory));
+});
+
+test('proven Metro classification honors regular, highly allocated and Arizona override tiers',()=>{
+  for(const [nationalTier,stateOverrides,expected] of [
+    ['regular',[],'standard'],['highly_allocated',[],'unicorn'],['allocated',[],'allocated'],
+    ['regular',[{jurisdiction:'AZ',tier:'allocated'}],'allocated'],
+    ['allocated',[{jurisdiction:'AZ',tier:'regular'}],'standard'],
+  ]){
+    const records=clone(fixture.records);const record=records.find(r=>r.canonical==='Larceny Barrel Proof');
+    record.tier='allocated';Object.assign(record.libraryIdentities[0],{nationalTier,stateOverrides});
+    const b=new BourbonBible(records);const signal=parseMetroWooProduct(larceny,mesa,b,wooOptions);
+    assert(signal);assert.equal(metroLibraryTier(signal,b),expected);
+    const op=canonicalizeSignal(signal,b);assert.equal(op.tier,expected);
+    const drops=buildDrops([op],bibleLookup(b.records),[op]).filter(isPublicDropFeedEligible);
+    assert.equal(drops.length,expected==='standard'?0:1);
+  }
 });
