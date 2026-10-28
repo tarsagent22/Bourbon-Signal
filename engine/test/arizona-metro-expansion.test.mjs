@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -13,6 +13,8 @@ import { isPublicDropFeedEligible } from '../../src/lib/public-drop-evidence.ts'
 const fixture=JSON.parse(await readFile(new URL('./fixtures/arizona-metro/2026-10-27.json',import.meta.url)));
 const bible=new BourbonBible(fixture.records);
 const now=fixture.observedAt;
+// Replay source observations at their captured clock, independent of the run date.
+beforeEach(t=>t.mock.timers.enable({apis:['Date'],now:Date.parse(now)}));
 const clone=value=>structuredClone(value);
 const html=w=>`<script type="application/ld+json">${JSON.stringify(w.premise)}</script><script type="application/ld+json">${JSON.stringify(w.product)}</script><script>const product = ${JSON.stringify(w.publishedProduct)};</script>${w.pickupAvailable?'<span class="pickup-only-label widget-label">In-Store Pickup Available</span>':''}`;
 const wheel=name=>fixture.wheel.find(w=>w.product.name===name);
