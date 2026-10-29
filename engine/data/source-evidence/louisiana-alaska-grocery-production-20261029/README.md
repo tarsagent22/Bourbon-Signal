@@ -53,7 +53,7 @@ Requests are sequential with 400ms spacing, exact registered HTTPS URLs and
 native headers, no redirects, and decoded bodies capped at4MiB. Request timeout
 plus spacing fits each child deadline; an incomplete cohort cannot write a
 usable inventory cache. The original80-request preflight finished in about109
-seconds. No capacity admission is claimed. LA/AK planning forecasts remain absent until three genuine full-cohort hosted runtimes exist per state. Set each expected runtime to twice the maximum of those three observations, rounded up to30seconds, then evaluate the actual complete future active cohort against the four-worker/30minute interval and five-minute reserve. The source/parent hardcaps above remain unchanged.
+seconds. No capacity admission is claimed. LA/AK planning forecasts remain absent until one genuine full-cohort hosted calibration runtime exists per state. Set each expected runtime to twice that single measured observation, rounded up to30seconds (one sample, not a p95 claim), then evaluate the actual complete future active cohort against the four-worker/30minute interval and five-minute reserve. The source/parent hardcaps above remain unchanged.
 
 Complete cohort caches last30minutes and preserve original observation clocks.
 Current library eligibility is applied again on reuse. Failure cannot refresh a
@@ -100,3 +100,5 @@ alert enabling and changes outside those exact additions. No current frozen
 promotion source was edited.
 
 Complete-cohort command, only after the future five-state source head is final and the shared lane is idle: `gh workflow run state-expansion-shadow.yml --ref <reviewed-research-ref> -f states=LA,AK,MA,CT,RI -f limit=5`. Run sequentially three times; each must genuinely qualify. Do not reuse the earlier six-request access preflight. Canary replay requires exact source SHA equality and retains original clocks. No lifecycle activation or publication is performed here.
+
+Current proof sequence additionally requires the actual four-state admission commit before calibration. After the one real five-state calibration and honest full-cohort capacity check, freeze the updated metadata head and collect three newly qualifying source observations. A calibration on changed metadata is not included in final shadow counters.

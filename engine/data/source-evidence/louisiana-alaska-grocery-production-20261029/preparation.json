@@ -40,10 +40,14 @@
     }
   },
   "prospectiveCapacity": {
-    "status": "pending_three_complete_hosted_source_runtimes",
-    "forecastFormula": "ceil((2 * max(three qualifying hosted per-state runtimesMs)) / 30000) * 30000",
+    "status": "pending_one_complete_hosted_calibration_before_final_source_freeze",
+    "forecastFormula": "ceil((2 * single complete hosted per-state runtimeMs) / 30000) * 30000",
+    "sampleCount": 0,
+    "sampleStatisticClaimed": "single_sample_not_p95",
     "sourceAndParentBudgetsUnchanged": true,
-    "capacityAdmissionClaimed": false
+    "capacityAdmissionClaimed": false,
+    "calibrationCountsTowardFinalShadowProof": false,
+    "finalProtocol": "After actual four-state admission and calibration-based capacity check, freeze final metadata head then collect three fresh qualifying complete-cohort source observations."
   },
   "localScope": "Captured product/mock collection plus actual nonpreview customer services/routes; no actual authenticated session, hosted source run, preview deployment or provider delivery.",
   "localFileSha256": {
