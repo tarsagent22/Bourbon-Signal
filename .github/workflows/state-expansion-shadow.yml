@@ -24,6 +24,7 @@ permissions:
 
 jobs:
   collect-shadow-evidence:
+    if: ${{ inputs.states != 'NJ,MI' && inputs.states != 'NJ' && inputs.states != 'MI' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -85,3 +86,9 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
           path: engine/out/shadow
+
+  collect-nj-mi-research:
+    if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI' }}
+    uses: ./.github/workflows/nj-mi-research-preflight.yml
+    with:
+      states: ${{ inputs.states }}

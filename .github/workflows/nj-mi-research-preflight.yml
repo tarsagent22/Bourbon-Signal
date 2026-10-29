@@ -1,5 +1,11 @@
 name: Bounded New Jersey and Michigan research source pass
 on:
+  workflow_call:
+    inputs:
+      states:
+        type: string
+        required: false
+        default: NJ,MI
   workflow_dispatch:
     inputs:
       states:
