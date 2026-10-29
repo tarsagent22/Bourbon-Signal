@@ -11543,9 +11543,13 @@ export function virginiaStoreSignals(product, json, config, bible, url, supporte
     const storeId = store.storeId ?? store.storeNumber ?? store.id;
     if (!storeId || (supportedStoreIds && !supportedStoreIds.has(String(storeId)))
       || (requiresPremisesProof && !targetStoreIds.has(String(storeId)))) continue;
-    const quantity = Number(store.quantity);
-    if (!Number.isSafeInteger(quantity) || quantity < 0
+    const reportedQuantity = Number(store.quantity);
+    if (store.quantity == null || String(store.quantity).trim() === '' || !Number.isSafeInteger(reportedQuantity)
       || (requiresPremisesProof && (!origin || !virginiaInventoryPremisesMatch(store, origin)))) continue;
+    // A negative retailer accounting balance is a response from this origin,
+    // never a positive stock reading or an exact zero. Preserve it separately.
+    const negativeInventoryBalance = reportedQuantity < 0;
+    const quantity = negativeInventoryBalance ? 0 : reportedQuantity;
     const productUrl = `https://www.abc.virginia.gov/products/bourbon/${product.slug}`;
     const storeUrl = `https://www.abc.virginia.gov/stores/${storeId}`;
     const apiPhone = store.PhoneNumber?.FormattedPhoneNumber || null;
@@ -11562,7 +11566,7 @@ export function virginiaStoreSignals(product, json, config, bible, url, supporte
     signals.push({
       id: stableId([config.id, 'va-store-nearby', product.code, storeId]),
       ...base,
-      eventType: quantity > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock',
+      eventType: negativeInventoryBalance ? 'store_inventory_negative_balance' : quantity > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock',
       locationPrecision: 'store_level',
       locationName: `Virginia ABC Store ${storeId}`,
       storeName: `Virginia ABC Store ${storeId}`,
@@ -11583,20 +11587,27 @@ export function virginiaStoreSignals(product, json, config, bible, url, supporte
       longitude: Number.isFinite(verifiedLng) ? verifiedLng : null,
       distance: Number(store.distance ?? 0) || null,
       quantity,
-      reportedQuantity: quantity,
-      quantityIsExact: true,
-      availabilityStatus: quantity > 0 ? 'in_stock' : 'out_of_stock',
-      availabilityLabel: quantity > 0 ? `${quantity} reported available` : 'Out of stock',
-      sourceAvailabilityVerified: true,
+      reportedQuantity,
+      quantityIsExact: !negativeInventoryBalance,
+      negativeInventoryBalance,
+      quantitySemantics: negativeInventoryBalance ? 'unknown_count_negative_source_balance' : 'exact_retailer_reported_quantity',
+      availabilityStatus: negativeInventoryBalance ? 'unknown' : quantity > 0 ? 'in_stock' : 'out_of_stock',
+      availabilityLabel: negativeInventoryBalance ? 'Availability unconfirmed: negative retailer inventory balance' : quantity > 0 ? `${quantity} reported available` : 'Out of stock',
+      sourceAvailabilityVerified: !negativeInventoryBalance,
       premisesVerified: true,
       sourcePremisesProofVersion: requiresPremisesProof ? 1 : null,
       virginiaCacheSchemaVersion: requiresPremisesProof ? 3 : 2,
       targetStoreIds: requiresPremisesProof ? [...targetStoreIds] : null,
       observedAt: base.fetchedAt,
       canAlertAsInventory: quantity > 0,
-      canAlertAsWatch: true,
-      inventorySemantics: 'Virginia ABC public storeNearby API reports an exact source quantity for the selected official store at collection time. Inventory can move quickly and is not a reservation; verify before driving.',
-      evidence: `Virginia ABC reports ${quantity} bottle(s) of ${product.name} at Store ${storeId}${verifiedCity ? ` in ${verifiedCity}` : ''}. ${product.limitedCaveat ? 'Limited-availability products may be intentionally hidden or randomized outside authorized release windows.' : 'This is a normal-product inventory reading.'} Verify before driving.`,
+      canAlertAsWatch: !negativeInventoryBalance,
+      ...(negativeInventoryBalance ? {alertable:false} : {}),
+      inventorySemantics: negativeInventoryBalance
+        ? 'Virginia ABC returned a negative accounting balance for this exact product and selected origin. Availability and bottle count are unconfirmed. This observation accounts for the origin response only and cannot produce inventory or watch alerts.'
+        : 'Virginia ABC public storeNearby API reports an exact source quantity for the selected official store at collection time. Inventory can move quickly and is not a reservation; verify before driving.',
+      evidence: negativeInventoryBalance
+        ? `Virginia ABC returned inventory balance ${reportedQuantity} for ${product.name} at Store ${storeId}; this is not a bottle count or confirmed availability.`
+        : `Virginia ABC reports ${quantity} bottle(s) of ${product.name} at Store ${storeId}${verifiedCity ? ` in ${verifiedCity}` : ''}. ${product.limitedCaveat ? 'Limited-availability products may be intentionally hidden or randomized outside authorized release windows.' : 'This is a normal-product inventory reading.'} Verify before driving.`,
       raw: {
         product: { ...product, url: productUrl },
         store,
@@ -11605,7 +11616,8 @@ export function virginiaStoreSignals(product, json, config, bible, url, supporte
         storeUrl,
         productUrl,
         sourceQuantityReported: true,
-        sourceAvailabilityVerified: true,
+        sourceAvailabilityVerified: !negativeInventoryBalance,
+        negativeInventoryBalance,
         premisesVerified: true,
         sourcePremisesProofVersion: requiresPremisesProof ? 1 : null,
         premisesAuthority: requiresPremisesProof ? {
@@ -11640,7 +11652,7 @@ function enrichVirginiaCachedSignal(signal, cacheGeneratedAt) {
   return {
     ...signal,
     quantity,
-    reportedQuantity: quantity,
+    reportedQuantity: signal.negativeInventoryBalance === true ? signal.reportedQuantity : quantity,
     eventType,
     availabilityStatus: quantityValid ? signal.availabilityStatus || (quantity > 0 ? 'in_stock' : 'out_of_stock') : 'out_of_stock',
     availabilityLabel: quantityValid ? signal.availabilityLabel || (quantity > 0 ? `${quantity} reported available` : 'Out of stock') : 'Out of stock',

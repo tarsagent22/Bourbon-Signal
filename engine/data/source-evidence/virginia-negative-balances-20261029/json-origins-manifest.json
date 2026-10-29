@@ -1,0 +1,191 @@
+{
+  "capturedAt": "2026-10-29T15:36:18.722Z",
+  "requestCount": 5,
+  "results": [
+    {
+      "url": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=103&productCode=019880&mileRadius=999&storeCount=5&buffer=0",
+      "status": 200,
+      "contentType": "application/json;charset=UTF-8",
+      "observedAt": "2026-10-29T15:36:18.325Z",
+      "sha256": "8843b5d721518f9229ae2141c3853942f699b3bb1fbdbc29aacd3d820ce3a6ab",
+      "store": "103",
+      "product": "019880",
+      "origins": [
+        {
+          "productId": "019880",
+          "storeId": 103,
+          "quantity": -8,
+          "distance": 0,
+          "latitude": 38.13279,
+          "longitude": -77.523362,
+          "address": "6348 Patriot Highway Spotsylvania VA 22551",
+          "PhoneNumber": {
+            "AreaCode": "540",
+            "Prefix": "582",
+            "LineNumber": "7336",
+            "FormattedPhoneNumber": "(540) 582-7336"
+          },
+          "url": "/stores/103",
+          "address1": "6348 Patriot Highway",
+          "address2": null,
+          "city": "Spotsylvania",
+          "state": "VA",
+          "zip": "22551",
+          "hours": "Mon-Sat 10 am-9 pm / Sun 10 am-6 pm",
+          "shoppingCenter": "Travelers Row Shopping Center",
+          "closeForEcommerce": 0,
+          "counterService": false,
+          "wholesale": false
+        }
+      ]
+    },
+    {
+      "url": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=330&productCode=022092&mileRadius=999&storeCount=5&buffer=0",
+      "status": 200,
+      "contentType": "application/json;charset=UTF-8",
+      "observedAt": "2026-10-29T15:36:18.413Z",
+      "sha256": "972493c217a3f29928f6ac7787c6990de2e2106ea484409dfc270bd56d0499ef",
+      "store": "330",
+      "product": "022092",
+      "origins": [
+        {
+          "productId": "022092",
+          "storeId": 330,
+          "quantity": -1,
+          "distance": 0,
+          "latitude": 37.44314,
+          "longitude": -77.474431,
+          "address": "5722 Hopkins Road Richmond VA 23234-6614",
+          "PhoneNumber": {
+            "AreaCode": "804",
+            "Prefix": "743",
+            "LineNumber": "2212",
+            "FormattedPhoneNumber": "(804) 743-2212"
+          },
+          "url": "/stores/330",
+          "address1": "5722 Hopkins Road",
+          "address2": null,
+          "city": "Richmond",
+          "state": "VA",
+          "zip": "23234-6614",
+          "hours": "Mon-Sat 10 am-10 pm / Sun 10 am-6 pm",
+          "shoppingCenter": "Meadowbrook Plaza Shopping Center",
+          "closeForEcommerce": 0,
+          "counterService": false,
+          "wholesale": false
+        }
+      ]
+    },
+    {
+      "url": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=103&productCode=020376&mileRadius=999&storeCount=5&buffer=0",
+      "status": 200,
+      "contentType": "application/json;charset=UTF-8",
+      "observedAt": "2026-10-29T15:36:18.507Z",
+      "sha256": "b5754c9e810ae30a758b9a5b7180833b263e1ad886f4deee084bd28a641dbe50",
+      "store": "103",
+      "product": "020376",
+      "origins": [
+        {
+          "productId": "020376",
+          "storeId": 103,
+          "quantity": -5,
+          "distance": 0,
+          "latitude": 38.13279,
+          "longitude": -77.523362,
+          "address": "6348 Patriot Highway Spotsylvania VA 22551",
+          "PhoneNumber": {
+            "AreaCode": "540",
+            "Prefix": "582",
+            "LineNumber": "7336",
+            "FormattedPhoneNumber": "(540) 582-7336"
+          },
+          "url": "/stores/103",
+          "address1": "6348 Patriot Highway",
+          "address2": null,
+          "city": "Spotsylvania",
+          "state": "VA",
+          "zip": "22551",
+          "hours": "Mon-Sat 10 am-9 pm / Sun 10 am-6 pm",
+          "shoppingCenter": "Travelers Row Shopping Center",
+          "closeForEcommerce": 0,
+          "counterService": false,
+          "wholesale": false
+        }
+      ]
+    },
+    {
+      "url": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=134&productCode=018006&mileRadius=999&storeCount=5&buffer=0",
+      "status": 200,
+      "contentType": "application/json;charset=UTF-8",
+      "observedAt": "2026-10-29T15:36:18.606Z",
+      "sha256": "d80fb814b8d7891769982125e04d1eee1a2ef8dbfb10fc43c80011abd582cfb3",
+      "store": "134",
+      "product": "018006",
+      "origins": [
+        {
+          "productId": "018006",
+          "storeId": 134,
+          "quantity": -12,
+          "distance": 0,
+          "latitude": 36.872614,
+          "longitude": -76.296506,
+          "address": "2301 M Colley Avenue Norfolk VA 23517-1144",
+          "PhoneNumber": {
+            "AreaCode": "757",
+            "Prefix": "828",
+            "LineNumber": "3100",
+            "FormattedPhoneNumber": "(757) 828-3100"
+          },
+          "url": "/stores/134",
+          "address1": "2301 M Colley Avenue",
+          "address2": null,
+          "city": "Norfolk",
+          "state": "VA",
+          "zip": "23517-1144",
+          "hours": "Mon-Sat 10 am-9 pm / Sun 10 am-6 pm",
+          "shoppingCenter": "Colley Village Shopping Center",
+          "closeForEcommerce": 0,
+          "counterService": false,
+          "wholesale": false
+        }
+      ]
+    },
+    {
+      "url": "https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=312&productCode=016483&mileRadius=999&storeCount=5&buffer=0",
+      "status": 200,
+      "contentType": "application/json;charset=UTF-8",
+      "observedAt": "2026-10-29T15:36:18.722Z",
+      "sha256": "d0718cb13672ce488f6e17a4845ff83dd4ecb386b5adae26059566b64ade6ff4",
+      "store": "312",
+      "product": "016483",
+      "origins": [
+        {
+          "productId": "016483",
+          "storeId": 312,
+          "quantity": -6,
+          "distance": 0,
+          "latitude": 36.776715,
+          "longitude": -76.583952,
+          "address": "2815-G Godwin Boulevard Suffolk VA 23434-4337",
+          "PhoneNumber": {
+            "AreaCode": "757",
+            "Prefix": "925",
+            "LineNumber": "2240",
+            "FormattedPhoneNumber": "(757) 925-2240"
+          },
+          "url": "/stores/312",
+          "address1": "2815-G Godwin Boulevard",
+          "address2": null,
+          "city": "Suffolk",
+          "state": "VA",
+          "zip": "23434-4337",
+          "hours": "Mon-Sat 10 am-9 pm / Sun 10 am-6 pm",
+          "shoppingCenter": "Kensington Square",
+          "closeForEcommerce": 0,
+          "counterService": false,
+          "wholesale": false
+        }
+      ]
+    }
+  ]
+}

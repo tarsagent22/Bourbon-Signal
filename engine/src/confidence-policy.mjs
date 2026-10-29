@@ -341,6 +341,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     && /store_inventory/i.test(eventType)
     && (!Number.isFinite(virginiaObservedAt) || Date.now() - virginiaObservedAt > VIRGINIA_INVENTORY_MAX_AGE_MS);
   const runtimeAlertBlocked = signal.stale === true
+    || (signal.state === 'VA' && eventType === 'store_inventory_negative_balance')
     || signal.sourceStale === true
     || virginiaInventoryExpired
     || signal.quarantined === true
