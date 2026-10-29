@@ -1,131 +1,68 @@
-name: Rotating state expansion shadow collection
-
+name: Read-only immutable fleet cache replay
 on:
-  schedule:
-    # Six evenly spaced UTC runs/day; the 05:15 UTC run lands in the Eastern early-morning batch during DST.
-    - cron: "15 1,5,9,13,17,21 * * *"
   workflow_dispatch:
-    inputs:
-      states:
-        description: "Optional comma-separated shadowEligible non-active state IDs"
-        required: false
-        default: ""
-      limit:
-        description: "Maximum eligible states to collect"
-        required: false
-        default: "5"
-
-concurrency:
-  group: state-expansion-shadow
-  cancel-in-progress: false
-
 permissions:
   contents: read
-
+  actions: read
+concurrency:
+  group: readonly-fleet-cache-replay
+  cancel-in-progress: false
 jobs:
-  collect-shadow-evidence:
-    if: ${{ inputs.states != 'NJ,MI' && inputs.states != 'NJ' && inputs.states != 'MI' }}
+  replay:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    env:
-      BOURBON_SIGNAL_AUTO_DEPLOY: "0"
-      BOURBON_SIGNAL_ALERT_QUEUE_MODE: shadow
-      ALERT_DELIVERY_ENABLED: "0"
-      ALERT_ONSITE_DELIVERY_ENABLED: "0"
-      ALERT_EMAIL_DELIVERY_ENABLED: "0"
-      ALERT_SMS_DELIVERY_ENABLED: "0"
-      BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS: "0"
-      BROWSER_HEADLESS: "1"
-      BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
-      BOURBON_SIGNAL_OR_BROWSER_PREREQUISITE_TIMEOUT_MS: "180000"
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-
-      - name: Install engine dependencies
-        run: npm ci --prefix engine
-
-      - uses: actions/cache/restore@v4
-        id: research-cache
-        with:
-          path: |
-            engine/out/research-source-attempts
-            engine/out/cache/library-search
-          key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
-          restore-keys: research-shadow-${{ runner.os }}-${{ github.ref_name }}-
-
-      - name: Restore NJ MI host incidents for every shadow selection path
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix engine
+      - name: Restore exact immutable collector cache without saving
+        id: collector
         uses: actions/cache/restore@v4
         with:
-          path: engine/out/research-source-attempts/nj-mi-incidents.json
-          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            nj-mi-research-incidents-${{ runner.os }}-
-
-      - name: Refresh full current app catalog
-        working-directory: engine
-        run: npm run sync:library
-
-      - name: Generate deterministic Bourbon Bible
-        working-directory: engine
-        run: npm run bible
-
-      - name: Validate manual shadow inputs
-        id: validate
-        shell: bash
-        env:
-          RAW_STATES: ${{ inputs.states || '' }}
-          RAW_LIMIT: ${{ inputs.limit || '5' }}
-        run: |
-          set -euo pipefail
-          if [[ -n "$RAW_STATES" && ! "$RAW_STATES" =~ ^[A-Z]{2}(-[A-Z0-9]+)?(,[A-Z]{2}(-[A-Z0-9]+)?)*$ ]]; then
-            echo "states must be a comma-separated list of uppercase state IDs" >&2
-            exit 1
-          fi
-          if [[ ! "$RAW_LIMIT" =~ ^[1-5]$ ]]; then
-            echo "limit must be an integer from 1 through 5" >&2
-            exit 1
-          fi
-          echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
-          echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
-
-      - name: Collect bounded shadow evidence only
-        working-directory: engine
-        env:
-          STATES: ${{ steps.validate.outputs.states }}
-          LIMIT: ${{ steps.validate.outputs.limit }}
-        run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
-
-      - uses: actions/cache/save@v4
-        if: always()
-        with:
           path: |
-            engine/out/research-source-attempts
-            engine/out/cache/library-search
-          key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
-
-      - name: Save NJ MI host incidents for every shadow selection path
-        if: always()
-        uses: actions/cache/save@v4
+            engine/out/browser
+            engine/out/cache
+            engine/out/states
+            engine/out/snapshots
+            engine/out/history/snapshots
+            engine/out/location-bible-official.json
+            engine/out/site-refresh-status.json
+            engine/out/optimization/source-run-history.json
+            engine/out/optimization/georgia-retailer-activation.json
+            engine/out/optimization/state-run-metrics.json
+          key: inventory-collector-state-Linux-40907316461
+          fail-on-cache-miss: true
+      - name: Restore exact last-published input without saving
+        id: published
+        uses: actions/cache/restore@v4
         with:
-          path: engine/out/research-source-attempts/nj-mi-incidents.json
-          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Preserve isolated shadow evidence
+          path: engine/out/site
+          key: inventory-published-site-Linux-40897791021
+          fail-on-cache-miss: true
+      - name: Read immutable capture and its original implementation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/replay-fleet-cache.mjs --prepare
+          legacy_sha=$(gh api repos/${{ github.repository }}/actions/runs/40907316461 --jq .head_sha)
+          git worktree add --detach "$RUNNER_TEMP/fleet-legacy" "$legacy_sha"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/fleet-legacy/node_modules"
+          ln -s "$GITHUB_WORKSPACE/engine/node_modules" "$RUNNER_TEMP/fleet-legacy/engine/node_modules"
+          echo "FLEET_LEGACY_ROOT=$RUNNER_TEMP/fleet-legacy" >> "$GITHUB_ENV"
+          echo "FLEET_LEGACY_SHA=$legacy_sha" >> "$GITHUB_ENV"
+      - name: Replay cached source rows only; no collector or publisher
+        env:
+          FLEET_COLLECTOR_CACHE_EXACT: ${{ steps.collector.outputs.cache-hit }}
+          FLEET_PUBLISHED_CACHE_EXACT: ${{ steps.published.outputs.cache-hit }}
+        run: node --expose-gc --max-old-space-size=12288 scripts/replay-fleet-cache.mjs
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: state-expansion-shadow-${{ github.run_id }}
-          retention-days: 30
+          name: readonly-fleet-replay-${{ github.run_id }}
+          path: engine/out/fleet-replay/summary.json
           if-no-files-found: warn
-          path: engine/out/shadow
-
-  collect-nj-mi-research:
-    if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI' }}
-    uses: ./.github/workflows/nj-mi-research-preflight.yml
-    with:
-      states: ${{ inputs.states }}
