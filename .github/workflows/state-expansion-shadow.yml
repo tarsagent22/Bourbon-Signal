@@ -14,9 +14,13 @@ on:
         description: "Maximum eligible states to collect"
         required: false
         default: "5"
+      renew_active_states:
+        description: "Manual research renewal only: explicit reviewed WA,NM,WI,OK subset, also included in states"
+        required: false
+        default: ""
 
 concurrency:
-  group: state-expansion-shadow
+  group: ${{ inputs.renew_active_states != '' && 'production-inventory-refresh' || 'state-expansion-shadow' }}
   cancel-in-progress: false
 
 permissions:
@@ -24,7 +28,7 @@ permissions:
 
 jobs:
   collect-shadow-evidence:
-    if: ${{ inputs.states != 'NJ,MI' && inputs.states != 'NJ' && inputs.states != 'MI' }}
+    if: ${{ inputs.renew_active_states != '' || (inputs.states != 'NJ,MI' && inputs.states != 'NJ' && inputs.states != 'MI') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -56,7 +60,38 @@ jobs:
             engine/out/research-source-attempts
             engine/out/cache/library-search
           key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
-          restore-keys: research-shadow-${{ runner.os }}-${{ github.ref_name }}-
+          restore-keys: |
+            research-shadow-${{ runner.os }}-${{ github.ref_name }}-
+            research-shadow-${{ runner.os }}-
+
+      - name: Restore active-four research incidents across proof branches
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            engine/out/research-source-attempts/grocery-WA.json
+            engine/out/research-source-attempts/grocery-NM.json
+            engine/out/research-source-attempts/WI.json
+            engine/out/research-source-attempts/OK.json
+            engine/out/research-source-attempts/central-cityhive-journals
+            engine/out/research-source-attempts/active-renewal-journals
+          key: active-four-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: active-four-research-incidents-${{ runner.os }}-
+
+      - name: Restore production WA NM holds before manual research renewal
+        if: ${{ inputs.renew_active_states != '' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/western-grocery
+          key: inventory-western-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: inventory-western-grocery-incidents-${{ runner.os }}-
+
+      - name: Restore production WI OK holds before manual research renewal
+        if: ${{ inputs.renew_active_states != '' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/central-cityhive
+          key: inventory-central-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: inventory-central-cityhive-incidents-${{ runner.os }}-
 
       - name: Restore NJ MI host incidents for every shadow selection path
         uses: actions/cache/restore@v4
@@ -96,25 +131,42 @@ jobs:
         env:
           RAW_STATES: ${{ inputs.states || '' }}
           RAW_LIMIT: ${{ inputs.limit || '5' }}
+          RAW_RENEWAL: ${{ inputs.renew_active_states || '' }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           if [[ -n "$RAW_STATES" && ! "$RAW_STATES" =~ ^[A-Z]{2}(-[A-Z0-9]+)?(,[A-Z]{2}(-[A-Z0-9]+)?)*$ ]]; then
             echo "states must be a comma-separated list of uppercase state IDs" >&2
             exit 1
           fi
-          if [[ ! "$RAW_LIMIT" =~ ^[1-5]$ ]]; then
-            echo "limit must be an integer from 1 through 5" >&2
+          MAX_LIMIT=5
+          if [[ -n "$RAW_RENEWAL" ]]; then
+            if [[ "$EVENT_NAME" != workflow_dispatch || ! "$RAW_RENEWAL" =~ ^(WA|NM|WI|OK)(,(WA|NM|WI|OK))*$ || -z "$RAW_STATES" ]]; then
+              echo "renewal requires manual workflow_dispatch, explicit states and the reviewed active-four IDs" >&2
+              exit 1
+            fi
+            MAX_LIMIT=9
+            # Actions caches are ref-scoped. A research-ref incident save is
+            # not visible to main. Do not issue HTTP until a reviewed main-scope
+            # incident import/qualification protocol replaces this parked gate.
+            echo "Active research renewal is parked pending main-scope incident authority" >&2
+            exit 1
+          fi
+          if [[ ! "$RAW_LIMIT" =~ ^[1-9]$ || "$RAW_LIMIT" -gt "$MAX_LIMIT" ]]; then
+            echo "limit must be 1..5, or 1..9 for explicit manual active renewal" >&2
             exit 1
           fi
           echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
           echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
+          echo "renewal=$RAW_RENEWAL" >> "$GITHUB_OUTPUT"
 
       - name: Collect bounded shadow evidence only
         working-directory: engine
         env:
           STATES: ${{ steps.validate.outputs.states }}
           LIMIT: ${{ steps.validate.outputs.limit }}
-        run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
+          RENEWAL: ${{ steps.validate.outputs.renewal }}
+        run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT" --renew-active-states="$RENEWAL"
 
       - uses: actions/cache/save@v4
         if: always()
@@ -123,6 +175,19 @@ jobs:
             engine/out/research-source-attempts
             engine/out/cache/library-search
           key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save active-four research incidents even after abort or incomplete proof
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            engine/out/research-source-attempts/grocery-WA.json
+            engine/out/research-source-attempts/grocery-NM.json
+            engine/out/research-source-attempts/WI.json
+            engine/out/research-source-attempts/OK.json
+            engine/out/research-source-attempts/central-cityhive-journals
+            engine/out/research-source-attempts/active-renewal-journals
+          key: active-four-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save NJ MI host incidents for every shadow selection path
         if: always()
@@ -166,8 +231,23 @@ jobs:
           if-no-files-found: warn
           path: engine/out/shadow
 
+      - name: Preserve renewal incident-only evidence for reviewed main-scope handoff
+        if: always() && inputs.renew_active_states != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: active-four-research-incidents-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            engine/out/research-source-attempts/active-renewal-journals
+            engine/out/research-source-attempts/central-cityhive-journals
+            engine/out/research-source-attempts/grocery-WA.json
+            engine/out/research-source-attempts/grocery-NM.json
+            engine/out/research-source-attempts/WI.json
+            engine/out/research-source-attempts/OK.json
+
   collect-nj-mi-research:
-    if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI' }}
+    if: ${{ inputs.renew_active_states == '' && (inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI') }}
     uses: ./.github/workflows/nj-mi-research-preflight.yml
     with:
       states: ${{ inputs.states }}
