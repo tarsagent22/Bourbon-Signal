@@ -42,7 +42,7 @@ export function louisianaAlaskaGroceryPromotionAllowed(state,config=STATE_LIFECY
     &&entry.promotionEvidence.immutableEvidence.sourceConfigHash===louisianaAlaskaGrocerySourceConfigHash(state,manifest));
 }
 const silent=row=>({...row,canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
-  eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false});
+  eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false});
 async function readJson(file,{strict=false}={}){try{return JSON.parse(await readFile(file,'utf8'));}catch(error){if(error.code==='ENOENT'||!strict)return null;throw error;}}
 const validateIncidents=validateLouisianaAlaskaIncidentJournal;
 function completeCohortMetadata(metadata,state){

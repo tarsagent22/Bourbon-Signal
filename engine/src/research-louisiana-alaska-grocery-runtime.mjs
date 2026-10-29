@@ -4,7 +4,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {collectLouisianaAlaskaGrocery} from './collectors/louisiana-alaska-grocery-expansion.mjs';
 import {LOUISIANA_ALASKA_GROCERY_SOURCES} from './collectors/louisiana-alaska-grocery-premises.mjs';
 import {LOUISIANA_ALASKA_GROCERY_BUDGETS} from './louisiana-alaska-grocery-production-config.mjs';
-import {isLouisianaAlaskaGroceryInventory} from './louisiana-alaska-grocery-policy.mjs';
+import {isLouisianaAlaskaGroceryInventory,louisianaAlaskaGroceryLibraryTier} from './louisiana-alaska-grocery-policy.mjs';
 import {fetchReviewedLouisianaAlaskaText,validateLouisianaAlaskaIncidentJournal,persistLouisianaAlaskaIncidentJournal} from './collectors/louisiana-alaska-grocery-transport.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex'),DENIALS=new Set([401,403,429,435]),DAY=86400000;
 const names={LA:'Louisiana',AK:'Alaska'};
@@ -33,7 +33,7 @@ export async function collectLouisianaAlaskaResearchReport(config,bible,{env=pro
   receipts.push({url,finalUrl:result.url,status:Number(result.status)||0,observedAt:at,bytes:bytes.length,sha256:digest,artifactPath});return result;
  };
  const result=await collectLouisianaAlaskaGrocery(config,bible,{fetchText:capture,observedAt:startedAt,signal:bounded,sleep,cursorDir,persistAttempts:async()=>{}});
- bounded.throwIfAborted();const finishedAt=new Date().toISOString(),healthy=result.metadata.complete===true,sourceId=`research:${state.toLowerCase()}:grocery-xapi`,signals=result.signals.map(row=>silent({...row,sourceRuntimeId:sourceId}));
+ bounded.throwIfAborted();const finishedAt=new Date().toISOString(),healthy=result.metadata.complete===true,sourceId=`research:${state.toLowerCase()}:grocery-xapi`,signals=result.signals.flatMap(row=>{const tier=louisianaAlaskaGroceryLibraryTier(row,bible);return ['limited','allocated','unicorn'].includes(tier)?[silent({...row,tier,sourceRuntimeId:sourceId})]:[];});
  const sources=[{sourceRuntimeId:sourceId,label:config.label,url:config.sources[0].url,ok:healthy,status:healthy?200:0,signalType:'retailer_store_inventory_result',matchedBottleCount:signals.length,error:healthy?null:'Incomplete closed LA/AK grocery cohort'}];
  const origin=env.GITHUB_ACTIONS==='true'&&/^\d+$/.test(env.GITHUB_RUN_ID||'')&&/^[a-f0-9]{40}$/.test(env.GITHUB_SHA||'')?{kind:'github_actions',repository:env.GITHUB_REPOSITORY,workflowRunId:env.GITHUB_RUN_ID,commitSha:env.GITHUB_SHA,runAttempt:env.GITHUB_RUN_ATTEMPT||'1'}:{kind:'local_shadow_not_workflow_issued'};
  return{state,label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,startedAt,finishedAt,lastGoodAt:healthy?finishedAt:null,status:signals.length?healthy?'useful':'partial_useful':'no_trusted_inventory',stale:false,signals,sources,sourceResults:sources.map(row=>({...row,sourceId,alertable:false,inventoryAlertable:false,watchAlertable:false})),roadblocks:result.roadblocks,metadata:{...result.metadata,receipts,origin,bibleRecordsSha256:hash(JSON.stringify(bible.records)),shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false}};
