@@ -36,4 +36,3 @@ export async function resolveNevadaXapiPremises(sources, { request, pause = asyn
   return new Map(sources.filter(source => nevadaXapiPremiseMatches(source, stores.get(source.merchantId)?.store))
     .map(source => [source.id, stores.get(source.merchantId).store]));
 }
-
