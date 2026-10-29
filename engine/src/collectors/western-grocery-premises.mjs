@@ -1,7 +1,8 @@
+import { NEW_MEXICO_GROCERY_SOURCES } from './new-mexico-grocery-premises.mjs';
 import { CALIFORNIA_GROCERY_SOURCES } from './california-grocery-premises.mjs';
 // First-party resolver and local-page geographic captures reviewed 2026-10-28.
 // These candidates remain inactive until their state promotion contract passes.
-export const WESTERN_GROCERY_RESOLVER_ZIPS = Object.freeze({WA:Object.freeze(['98101','99201','98402']),CA:Object.freeze(['94103','90001','92101','95814'])});
+export const WESTERN_GROCERY_RESOLVER_ZIPS = Object.freeze({WA:Object.freeze(['98101','99201','98402']),CA:Object.freeze(['94103','90001','92101','95814']),NM:Object.freeze(['87101','87501','88001'])});
 export const WESTERN_GROCERY_EXPANSION_SOURCES = Object.freeze([
   {
     "id": "safeway-wa-1551",
@@ -931,4 +932,4 @@ export const WESTERN_GROCERY_EXPANSION_SOURCES = Object.freeze([
     "sourceLabel": "Safeway Washington XAPI store inventory",
     "premiseUrl": "https://local.safeway.com/safeway/wa/puyallup/708-shaw-rd-e.html"
   }
-].map(source=>Object.freeze(source)).concat(CALIFORNIA_GROCERY_SOURCES));
+].map(source=>Object.freeze(source)).concat(CALIFORNIA_GROCERY_SOURCES,NEW_MEXICO_GROCERY_SOURCES));

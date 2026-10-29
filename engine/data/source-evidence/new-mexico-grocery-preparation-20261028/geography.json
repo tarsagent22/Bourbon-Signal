@@ -1,0 +1,226 @@
+[
+  {
+    "merchantId": "3917",
+    "lat": 35.027852721604056,
+    "lng": -106.68264994028505,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/1625-rio-bravo-blvd-sw.html",
+    "capturedAt": "2026-10-29T02:12:06.625Z",
+    "address": {
+      "line1": "1625 Rio Bravo Blvd SW",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87105"
+    },
+    "decodedSha256": "7d060931692ff1aa71bbdd1291c3deabe6943a5476fba91299605be4d3f78ab8"
+  },
+  {
+    "merchantId": "1904",
+    "lat": 35.12958461311132,
+    "lng": -106.58801347039116,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/4950-montgomery-blvd-ne.html",
+    "capturedAt": "2026-10-29T02:12:06.628Z",
+    "address": {
+      "line1": "4950 Montgomery Blvd NE",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87109"
+    },
+    "decodedSha256": "73edbd4adbbe33de9b596a9db821796e98989c6df0bcd919439e78dbe2901ad3"
+  },
+  {
+    "merchantId": "3911",
+    "lat": 35.11461700621149,
+    "lng": -106.53447480532122,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/2801-a-eubank-blvd-ne.html",
+    "capturedAt": "2026-10-29T02:12:07.108Z",
+    "address": {
+      "line1": "2801 A Eubank Blvd NE",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87112"
+    },
+    "decodedSha256": "b1fcddae72fd2e3e0248690df84e5a36cb35350956a6a860d844fad8f933e0de"
+  },
+  {
+    "merchantId": "1915",
+    "lat": 35.15246869676769,
+    "lng": -106.68212389814757,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/6200-coors-blvd-nw.html",
+    "capturedAt": "2026-10-29T02:12:07.110Z",
+    "address": {
+      "line1": "6200 Coors Blvd NW",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87120"
+    },
+    "decodedSha256": "f759af614cc4a86f60c6a23e16722c29203ce2cbfa595bea178ee3852011e7da"
+  },
+  {
+    "merchantId": "2928",
+    "lat": 35.08820124530421,
+    "lng": -106.51596325642458,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/11825-lomas-blvd-ne.html",
+    "capturedAt": "2026-10-29T02:12:07.594Z",
+    "address": {
+      "line1": "11825 Lomas Blvd NE",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87112"
+    },
+    "decodedSha256": "27e6a382c683825e3bfa1244bf8f533c5a225737ad1c4760820859ecd9069eec"
+  },
+  {
+    "merchantId": "938",
+    "lat": 35.16014229759738,
+    "lng": -106.56073316942638,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/7101-wyoming-blvd-ne.html",
+    "capturedAt": "2026-10-29T02:12:07.722Z",
+    "address": {
+      "line1": "7101 Wyoming Blvd NE",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87109"
+    },
+    "decodedSha256": "88695976ba45570edb8b75c76bed1a8124a520e138440e05ceb9b5fa0cb80932"
+  },
+  {
+    "merchantId": "905",
+    "lat": 35.115362981502216,
+    "lng": -106.51384325357867,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/2910-juan-tabo-blvd-ne.html",
+    "capturedAt": "2026-10-29T02:12:08.186Z",
+    "address": {
+      "line1": "2910 Juan Tabo Blvd NE",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87112"
+    },
+    "decodedSha256": "8184ece579b3081aab2996d2aea42437ac01a18e40551fda8744ec8145206d4e"
+  },
+  {
+    "merchantId": "937",
+    "lat": 35.20065274887265,
+    "lng": -106.65042400360107,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/10131-coors-rd-nw.html",
+    "capturedAt": "2026-10-29T02:12:08.283Z",
+    "address": {
+      "line1": "10131 Coors Rd NW",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87114"
+    },
+    "decodedSha256": "a6dc5f9db59822e16c78807cc92edcf7c373acc5563a053b549e63bc841156cd"
+  },
+  {
+    "merchantId": "924",
+    "lat": 35.17536494966843,
+    "lng": -106.54012084007263,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/8100-ventura-st-ne.html",
+    "capturedAt": "2026-10-29T02:12:08.757Z",
+    "address": {
+      "line1": "8100 Ventura St NE",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87122"
+    },
+    "decodedSha256": "f340096af55b35f7d08b105ed67cdfff2f27f561f736996bd82f02f28a82b32b"
+  },
+  {
+    "merchantId": "2939",
+    "lat": 35.15395128181732,
+    "lng": -106.49899118029225,
+    "url": "https://local.albertsonsmarket.com/nm/albuquerque/12201-academy-rd-ne.html",
+    "capturedAt": "2026-10-29T02:12:08.780Z",
+    "address": {
+      "line1": "12201 Academy Rd NE",
+      "city": "Albuquerque",
+      "state": "NM",
+      "zipcode": "87111"
+    },
+    "decodedSha256": "f845894f793be21d6471f0377e7eff4c75e68f6da3ea67bd753c408d8c227b27"
+  },
+  {
+    "merchantId": "903",
+    "lat": 35.253899166956344,
+    "lng": -106.65028722616626,
+    "url": "https://local.albertsonsmarket.com/nm/rio-rancho/4300-ridgecrest-dr.html",
+    "capturedAt": "2026-10-29T02:12:09.262Z",
+    "address": {
+      "line1": "4300 Ridgecrest Dr",
+      "city": "Rio Rancho",
+      "state": "NM",
+      "zipcode": "87124"
+    },
+    "decodedSha256": "c8dc6d7ae24232b50b60ee9985677fc8364b83f0ecd0aefeddb01a5abfad8c30"
+  },
+  {
+    "merchantId": "2923",
+    "lat": 35.32338951950443,
+    "lng": -106.5766141712993,
+    "url": "https://local.albertsonsmarket.com/nm/rio-rancho/7800-enchanted-hills-dr-ne.html",
+    "capturedAt": "2026-10-29T02:12:09.263Z",
+    "address": {
+      "line1": "7800 Enchanted Hills Dr NE",
+      "city": "Rio Rancho",
+      "state": "NM",
+      "zipcode": "87144"
+    },
+    "decodedSha256": "4c72c0d4b74ac8b3fd3abd9412eae634c732ca279b180e185ffc9a5d77e1b5e1"
+  },
+  {
+    "merchantId": "1919",
+    "lat": 34.80433011186184,
+    "lng": -106.70373398072115,
+    "url": "https://local.albertsonsmarket.com/nm/los-lunas/2351-main-st-se.html",
+    "capturedAt": "2026-10-29T02:12:09.708Z",
+    "address": {
+      "line1": "2351 Main St SE",
+      "city": "Los Lunas",
+      "state": "NM",
+      "zipcode": "87031"
+    },
+    "decodedSha256": "073997a0a6797b0bdcc0e862ada9cf87f2a715927e737b99fc91a02ced27000a"
+  },
+  {
+    "merchantId": "3987",
+    "lat": 35.64560990373605,
+    "lng": -105.95534051150122,
+    "url": "https://local.albertsonsmarket.com/nm/santa-fe/3001-s-st-francis-dr.html",
+    "capturedAt": "2026-10-29T02:12:09.776Z",
+    "address": {
+      "line1": "3001 S St Francis Dr",
+      "city": "Santa Fe",
+      "state": "NM",
+      "zipcode": "87501"
+    },
+    "decodedSha256": "280b451676e7e20660594e1c4675ed08be8c591de73719f6cd061ddbf57a7be4"
+  },
+  {
+    "merchantId": "2920",
+    "lat": 36.393267380496674,
+    "lng": -105.58247485760148,
+    "url": "https://local.albertsonsmarket.com/nm/taos/710-a-paseo-del-pueblo-sur.html",
+    "capturedAt": "2026-10-29T02:12:10.233Z",
+    "address": {
+      "line1": "710 A Paseo del Pueblo Sur",
+      "city": "Taos",
+      "state": "NM",
+      "zipcode": "87571"
+    },
+    "decodedSha256": "ebef164c01591266171ee7944d8509b57b1c1cb92f9f019525f34b3eb520c6f5"
+  },
+  {
+    "merchantId": "986",
+    "lat": 35.64089718272241,
+    "lng": -106.01345837116241,
+    "url": "https://local.albertsonsmarket.com/nm/santa-fe/3542-zafarano-dr.html",
+    "capturedAt": "2026-10-29T02:12:10.295Z",
+    "address": {
+      "line1": "3542 Zafarano Dr",
+      "city": "Santa Fe",
+      "state": "NM",
+      "zipcode": "87507"
+    },
+    "decodedSha256": "cc8f05da0862668ddbbf7593da98347942789ed7a1e8981f26c121066cd78d06"
+  }
+]

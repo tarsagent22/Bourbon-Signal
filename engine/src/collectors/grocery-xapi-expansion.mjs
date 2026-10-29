@@ -7,8 +7,8 @@ import { WESTERN_GROCERY_EXPANSION_SOURCES, WESTERN_GROCERY_RESOLVER_ZIPS } from
 const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn']);
 export const GROCERY_EXPANSION_REQUEST_LIMIT = 127;
-export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:168});
-const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({WA:58,CA:78});
+export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:168,NM:43});
+const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({WA:58,CA:78,NM:16});
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
 

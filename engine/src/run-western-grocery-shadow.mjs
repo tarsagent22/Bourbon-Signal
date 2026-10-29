@@ -9,7 +9,7 @@ import { BourbonBible } from './core/bible.mjs';
 import { collectGroceryExpansion } from './collectors/grocery-xapi-expansion.mjs';
 
 const args=Object.fromEntries(process.argv.slice(2).map(arg=>{const split=arg.indexOf('=');return[arg.slice(2,split),arg.slice(split+1)];}));
-if(!['WA','CA'].includes(args.state) || !args.output)throw new Error('Use --state=WA|CA --output=<new directory>');
+if(!['WA','CA','NM'].includes(args.state) || !args.output)throw new Error('Use --state=WA|CA|NM --output=<new directory>');
 const output=path.resolve(args.output);
 await mkdir(output,{recursive:false});
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -26,7 +26,7 @@ for(const file of ['out/library-catalog.json','out/bourbon-bible.json']){
   const bytes=await readFile(file);await writeFile(path.join(output,path.basename(file)),bytes);inputs[file]=hash(bytes);
 }
 const sourceFiles={};
-for(const file of ['collectors/grocery-xapi-expansion.mjs','collectors/grocery-xapi-identity.mjs','collectors/western-grocery-premises.mjs','collectors/california-grocery-premises.mjs','collectors/arizona-xapi-matching.mjs','collectors/arizona-xapi-library-identity.mjs','collectors/safe-bottle-match.mjs','library-search-runtime.mjs','library-query-plan.mjs']){
+for(const file of ['collectors/grocery-xapi-expansion.mjs','collectors/grocery-xapi-identity.mjs','collectors/western-grocery-premises.mjs','collectors/california-grocery-premises.mjs','collectors/new-mexico-grocery-premises.mjs','collectors/arizona-xapi-matching.mjs','collectors/arizona-xapi-library-identity.mjs','collectors/safe-bottle-match.mjs','library-search-runtime.mjs','library-query-plan.mjs']){
   sourceFiles[file]=hash(await readFile(new URL(file,import.meta.url)));
 }
 let requestNumber=0;const captures=[];
