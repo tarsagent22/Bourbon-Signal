@@ -128,3 +128,18 @@ jobs:
           path: engine/out/promotion-provenance/${{ steps.validate.outputs.state }}.json
           retention-days: 90
           if-no-files-found: error
+
+      - name: Preserve exact replay inputs bound by the provenance file digests
+        if: steps.validate.outputs.shadow_run != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: grocery-promotion-replay-${{ steps.validate.outputs.state }}-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            engine/data/canary-inputs/${{ steps.validate.outputs.state }}.json
+            engine/out/grocery-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
+            engine/out/canary/${{ steps.validate.outputs.state }}/public-projection.json
+            engine/out/canary/${{ steps.validate.outputs.state }}/site/states/${{ steps.validate.outputs.state }}/drops.json
+            engine/out/canary/${{ steps.validate.outputs.state }}/site/lifecycle-preview.json
+            engine/out/canary/${{ steps.validate.outputs.state }}/site/canary-preview-policy.json
