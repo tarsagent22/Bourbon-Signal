@@ -20,7 +20,7 @@ export function isNewEnglandInventory(row,{nowMs=Date.now()}={}){
     &&p.premisesVerified===true&&p.pickupOfferVerified===true&&p.optionPickupRestrictionVerified===true&&p.preorderExcluded===true
     &&p.coordinatesVerified===true&&p.latitude===source.lat&&p.longitude===source.lng&&row.lat===source.lat&&row.lng===source.lng
     &&row.quantity===0&&row.quantityIsExact===false&&row.quantitySemantics==='binary_retailer_orderable_no_exact_count'
-    &&p.quantitySemantics===row.quantitySemantics&&Number.isInteger(p.reportedQuantity)&&p.reportedQuantity>0
+    &&p.quantitySemantics===row.quantitySemantics&&(row.inventorySemantics==null||row.inventorySemantics===p.quantitySemantics)&&Number.isInteger(p.reportedQuantity)&&p.reportedQuantity>0
     &&(row.raw?.reportedQuantity==null||row.raw.reportedQuantity===p.reportedQuantity)
     &&row.availabilityStatus==='in_stock'&&row.sourceAvailabilityVerified===true&&row.stale!==true&&row.sourceStale!==true
     &&row.raw?.staleFallback!==true&&row.raw?.sourceRuntimeNonAlertable!==true&&Number.isFinite(age)&&age>=0&&age<=2*60*60_000;
