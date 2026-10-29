@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "source": "Public first-party product and addressed variant pickup responses",
+  "captures": [
+    {
+      "sourceId": "hot-spot-austin",
+      "kind": "product",
+      "file": "hot-spot-austin-product.json",
+      "requestedUrl": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+      "finalUrl": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+      "status": 200,
+      "capturedAt": "2026-10-29T12:48:25.200Z",
+      "bytes": 1120,
+      "sha256": "cdb4ac9221a4dc1b53f36956a818cc15993ed1da28be8de0d38d4ae4965309b5"
+    },
+    {
+      "sourceId": "hot-spot-austin",
+      "kind": "pickup",
+      "file": "hot-spot-austin-pickup.html",
+      "requestedUrl": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+      "finalUrl": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+      "status": 200,
+      "capturedAt": "2026-10-29T12:48:25.467Z",
+      "bytes": 2748,
+      "sha256": "5787c9bd2f560daaaf78a66c779dee26beedeb9feed250e27c86fd502f091611"
+    },
+    {
+      "sourceId": "wine-palace-livonia",
+      "kind": "product",
+      "file": "wine-palace-livonia-product.json",
+      "requestedUrl": "https://winepalacemi.com/products/blantons-bourbon-original-single-barrel-store-pick-750ml.json",
+      "finalUrl": "https://winepalacemi.com/products/blantons-bourbon-original-single-barrel-store-pick-750ml.json",
+      "status": 200,
+      "capturedAt": "2026-10-29T12:48:25.616Z",
+      "bytes": 3197,
+      "sha256": "80e97ca42641273703fdc9854ee7178d0d655cf05ff7484ffd42b03487a1ebc6"
+    },
+    {
+      "sourceId": "wine-palace-livonia",
+      "kind": "pickup",
+      "file": "wine-palace-livonia-pickup.html",
+      "requestedUrl": "https://winepalacemi.com/variants/44700164522202/?section_id=pickup-availability",
+      "finalUrl": "https://winepalacemi.com/variants/44700164522202/?section_id=pickup-availability",
+      "status": 200,
+      "capturedAt": "2026-10-29T12:48:25.847Z",
+      "bytes": 2740,
+      "sha256": "941955cdfb844e1db055d2931884b70c4a7663131809f1ffb52137362bae6803"
+    },
+    {
+      "sourceId": "hot-spot-austin",
+      "kind": "product",
+      "file": "hot-spot-austin-eagle-product.json",
+      "requestedUrl": "https://hotspot.fun/products/z-eagle-rare-bourbon.json",
+      "finalUrl": "https://hotspot.fun/products/z-eagle-rare-bourbon.json",
+      "status": 200,
+      "capturedAt": "2026-10-29T12:52:23.166Z",
+      "bytes": 2323,
+      "sha256": "b1891938133ae77daac3b5558d99f3442d6a1600f5325c20e1668918201c286b"
+    },
+    {
+      "sourceId": "hot-spot-austin",
+      "kind": "pickup",
+      "file": "hot-spot-austin-eagle-pickup.html",
+      "requestedUrl": "https://hotspot.fun/variants/41693171187872/?section_id=store-availability",
+      "finalUrl": "https://hotspot.fun/variants/41693171187872/?section_id=store-availability",
+      "status": 200,
+      "capturedAt": "2026-10-29T12:52:23.628Z",
+      "bytes": 2749,
+      "sha256": "9698a1f7538eb6738c7d56aafdca9b311f1b463d142fa0e324a14f6fec8d0af1"
+    }
+  ]
+}

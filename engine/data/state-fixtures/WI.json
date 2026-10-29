@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "state": "WI",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "wi-reviewed-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 1,
+        "canonicalNames": [
+          "Michter's 10 Year Rye"
+        ]
+      }
+    },
+    {
+      "id": "wi-unidentified",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wi-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wi-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wi-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "semantics": "binary_retailer_orderable_no_exact_count"
+      }
+    },
+    {
+      "id": "wi-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wi-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa",
+        "ageMinutes": 300
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "wi-foreign-source",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wi-shadow-never-public",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa",
+        "shadowOnly": true
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 0,
+        "deliveryEligible": false,
+        "confidenceInventoryAllowed": false
+      }
+    },
+    {
+      "id": "wi-shipping-only",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "liquorguys-wauwatosa",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    }
+  ]
+}

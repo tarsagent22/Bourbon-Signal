@@ -2,6 +2,8 @@ import { findDocumentLinks, stableId, stripHtml, titleCase } from '../core/text.
 import { fetchWithMeta, tryParseJson } from '../core/fetcher.mjs';
 import { FALLBACK_HINTS } from '../fallback-hints.mjs';
 import { collectPrecisionProbes } from './precision-probes.mjs';
+import { collectTexasShopifyPickup, isTexasShopifyPickupInventory } from './texas-shopify-pickup.mjs';
+import { texasLegacyPrecisionPolicyReport } from './texas-legacy-source-policy.mjs';
 import { LOCATION_PROFILES } from '../location-precision.mjs';
 import { readFile } from 'node:fs/promises';
 import { collectCostco } from './costco.mjs';
@@ -611,7 +613,18 @@ export async function collectState(config, bible, options = {}) {
     });
   }
 
-  const precisionProbe = await collectPrecisionProbes(config, bible, signals, {
+  if(config.id==='TX'){
+    const pickup=await collectTexasShopifyPickup(config,bible,{
+      ...options.texasShopifyOptions,fetchText:options.texasShopifyOptions?.fetchText||fetcher,
+      previousSourceResults:options.previousSourceResults,sourceRunnerOptions:options.sourceRunnerOptions,
+      sourceCircuitBreaker,
+    });
+    signals.push(...pickup.signals);roadblocks.push(...pickup.roadblocks);
+    sourceReports.push(...pickup.sourceReports);sourceResults.push(...pickup.sourceResults);
+  }
+  const precisionProbe = config.id === 'TX'
+    ? texasLegacyPrecisionPolicyReport({ previousSourceResults: options.previousSourceResults })
+    : await collectPrecisionProbes(config, bible, signals, {
     sourceCircuitBreaker,
     sourceRunnerOptions: options.sourceRunnerOptions,
     previousSourceResults: options.previousSourceResults,
@@ -651,7 +664,11 @@ export async function collectState(config, bible, options = {}) {
   const lastGoodAt = sourceResults.length
     ? sourceLastGoodTimes.length ? new Date(Math.max(...sourceLastGoodTimes)).toISOString() : null
     : finishedAt;
-  const reportStale = Boolean(precisionProbe.stale || staleRetainedNotDue);
+  // A healthy independent pickup leaf remains current when the unrelated
+  // legacy Texas precision lane fails. Its siblings retain their stale flags;
+  // the unchanged state volume guard still owns partial fallback publication.
+  const currentTexasPickup=config.id==='TX'&&dedupedSignals.some(row=>isTexasShopifyPickupInventory(row));
+  const reportStale = Boolean((precisionProbe.stale&&!currentTexasPickup) || staleRetainedNotDue);
   return {
     state: config.id,
     label: config.label,

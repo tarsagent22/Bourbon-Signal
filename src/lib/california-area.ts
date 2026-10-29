@@ -1,4 +1,8 @@
-export const SUPPORTED_CALIFORNIA_AREAS = ["San Diego"] as const;
+import { STATE_LIFECYCLE_CONFIG } from "../config/stateLifecycle.ts";
+
+// City choices share the reviewed lifecycle menu; they are not county or metro
+// catchments and do not imply current inventory at every store in that city.
+export const SUPPORTED_CALIFORNIA_AREAS = STATE_LIFECYCLE_CONFIG.states.CA.areaOptions;
 
 function normalizeLocation(value: unknown) {
   return typeof value === "string"
@@ -19,16 +23,25 @@ export function parseCaliforniaAreaQuery(value: unknown): { requested: boolean; 
   return { requested: true, valid: areas.length > 0, areas };
 }
 
-function isSanDiegoField(value: unknown) {
+function fieldMatchesCity(value: unknown, area: string) {
   const normalized = normalizeLocation(value);
-  if (!normalized || normalized.includes("san diego county")) return false;
-  if (normalized === "san diego" || normalized === "san diego ca") return true;
-  return /\bsan diego ca(?:\s+\d{5}(?:\s+\d{4})?)?\b/.test(normalized);
+  const city = normalizeLocation(area);
+  if (!normalized || !city) return false;
+  if (normalized === city) return true;
+  // Retain locality boundaries: South San Francisco is not San Francisco,
+  // West Sacramento is not Sacramento, and county labels are not cities.
+  const locality = normalizeLocation(String(value)
+    .replace(/,?\s+(?:USA|United States(?: of America)?)\.?\s*$/i, "")
+    .split(",").slice(-2).join(" "));
+  return new RegExp(`^${city} (?:ca|california)(?: \\d{5}(?: \\d{4})?)?$`).test(locality);
+}
+
+export function matchedCaliforniaArea(fields: unknown[], selectedAreas: unknown): string | null {
+  return normalizeCaliforniaAreas(selectedAreas).find((area) => fields.some((field) => fieldMatchesCity(field, area))) || null;
 }
 
 export function californiaAreaMatchesFields(fields: unknown[], selectedAreas: unknown): boolean {
   const areas = normalizeCaliforniaAreas(selectedAreas);
   if (!areas.length) return true;
-  if (!areas.includes("San Diego")) return false;
-  return fields.some(isSanDiegoField);
+  return matchedCaliforniaArea(fields, areas) !== null;
 }

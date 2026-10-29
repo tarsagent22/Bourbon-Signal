@@ -380,7 +380,7 @@ test('canary verification rejects forged source URLs and stale inventory', () =>
 });
 
 test('New York and Colorado are runner-routed metro inventory states with conservative public scope', async () => {
-  for (const [state, areas] of [['NY', ['New York City', 'Nassau County', 'Buffalo', 'Rochester Metro', 'Hudson Valley', 'Lake George']], ['CO', ['Denver Metro', 'Boulder County', 'Colorado Springs']]]) {
+  for (const [state, areas] of [['NY', ['New York City', 'Nassau County', 'Suffolk County', 'Buffalo', 'Rochester Metro', 'Hudson Valley', 'Lake George']], ['CO', ['Denver Metro', 'Boulder County', 'Colorado Springs']]]) {
     const lifecycle = getStateLifecycle(state);
     assert.ok(['shadow', 'active'].includes(lifecycle?.publicStatus));
     assert.equal(lifecycle.coverageTier, 'live_store_inventory');

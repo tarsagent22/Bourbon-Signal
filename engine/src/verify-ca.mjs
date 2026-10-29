@@ -2,6 +2,19 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { isCaliforniaRetailerInventory } from './california-retailer-policy.mjs';
 import { unexpectedCaliforniaRoadblocks } from './california-release-policy.mjs';
+import { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES } from './collectors/california-san-diego-surfaces.mjs';
+import { CALIFORNIA_GROCERY_SOURCES } from './collectors/california-grocery-premises.mjs';
+
+const reviewedPremises = new Map([
+  ...CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.map(source => [source.store.id, source.store]),
+  ...CALIFORNIA_GROCERY_SOURCES.map(source => [source.storeId, source]),
+]);
+const groceryPremiseIds = new Set(CALIFORNIA_GROCERY_SOURCES.map(source => source.storeId));
+const exactReviewedPremise = row => {
+  const premise = reviewedPremises.get(row.storeId || row.id);
+  return Boolean(premise && (row.storeAddress || row.address) === premise.address
+    && (row.store_city || row.storeCity || row.city) === premise.city);
+};
 
 const state = JSON.parse(await readFile('out/states/CA.json', 'utf8'));
 const storeUniverse = JSON.parse(await readFile('data/store-universe/CA.json', 'utf8'));
@@ -29,27 +42,27 @@ assert.ok(['useful', 'useful_retained_not_due'].includes(state.status), `Califor
 const unexpectedRoadblocks = unexpectedCaliforniaRoadblocks(state.roadblocks, { scheduledNonStale });
 if (!scheduledNonStale) assert.equal(unexpectedRoadblocks.length, 0, `California has blocking collector roadblocks: ${JSON.stringify(unexpectedRoadblocks)}`);
 if (!scheduledNonStale) assert.ok(inventory.length >= 12, `expected at least 12 California inventory rows; got ${inventory.length}`);
-if (!scheduledNonStale) assert.ok(new Set(inventory.map((signal) => signal.storeId)).size >= 2, 'expected at least two independently identity-bound San Diego stores');
+if (!scheduledNonStale) assert.ok(new Set(inventory.map((signal) => signal.storeId)).size >= 2, 'expected at least two independently identity-bound California stores');
 assert.ok(inventory.every(isCaliforniaRetailerInventory), 'every California inventory row must pass the exact identity and semantics policy');
-assert.ok(inventory.every((signal) => signal.state === 'CA' && (signal.storeCity || signal.city) === 'San Diego'), 'California launch inventory must remain scoped to San Diego city');
-assert.ok(inventory.every((signal) => signal.quantity === 0 && signal.inventorySemantics === 'binary_retailer_orderable_no_exact_count'), 'Shopify availability must stay binary and must not fabricate quantity');
+assert.ok(inventory.every((signal) => signal.state === 'CA' && exactReviewedPremise(signal)), 'California inventory must bind to a reviewed exact physical premise');
+assert.ok(inventory.filter(signal=>signal.sourceProductBinding?.source!=='grocery-xapi').every((signal) => signal.quantity === 0 && signal.inventorySemantics === 'binary_retailer_orderable_no_exact_count'), 'Shopify availability must stay binary and must not fabricate quantity');
 assert.ok(inventory.every((signal) => signal.sourceAvailabilityVerified === true), 'inventory rows must carry positive source availability evidence');
-assert.ok(inventory.every((signal) => signal.productId && signal.variantId && (signal.raw?.productId || signal.raw?.product?.id) && (signal.raw?.variantId || signal.raw?.variant?.id)), 'inventory identity must survive in top-level and raw fields');
-assert.ok(inventory.every((signal) => /^https:\/\/(?:www\.delmesaliquor\.com|missiontrailswineandspirits\.com)\//.test(signal.sourceUrl)), 'inventory source URLs must remain on the whitelisted retailer hosts');
+assert.ok(inventory.every((signal) => signal.productId && signal.variantId && (signal.raw?.productId || signal.raw?.product?.id) && (signal.raw?.variantId || signal.raw?.variant?.id || (signal.sourceProductBinding?.source === 'grocery-xapi' && signal.raw?.product?.pid))), 'inventory identity must survive in top-level and raw fields');
 assert.ok((storeUniverse.stores ?? []).filter((store) => store.city === 'San Diego').length >= 3, 'store universe must include the audited San Diego retailer set');
 
 const stateDrops = JSON.parse(await readFile('out/site/states/CA/drops.json', 'utf8')).drops ?? [];
 if (!scheduledNonStale) assert.ok(stateDrops.length >= 12, 'California state partition should include customer-facing rows');
-assert.ok(stateDrops.every((row) => row.state === 'CA' && (row.store_city || row.city) === 'San Diego'), 'California drops must stay scoped to San Diego city');
+assert.ok(stateDrops.every((row) => row.state === 'CA' && exactReviewedPremise(row)), 'California drops must remain bound to reviewed physical premises');
+assert.ok(stateDrops.filter(row => groceryPremiseIds.has(row.storeId)).every(isCaliforniaRetailerInventory), 'California grocery drops must retain closed-registry source, product, quantity and availability proof');
 assert.ok(stateDrops.every((row) => row.sourceChain && row.merchantId && row.productId && row.variantId), 'California drops must preserve source and product identity');
 assert.ok(stateDrops.every((row) => !/\b(?:50|100|200|375)\s*m[lL]\b/.test(`${row.rawName || ''} ${row.bottleName || ''}`)), 'California drops must reject small formats');
 
 const exportedStores = (siteStores.stores ?? []).filter((row) => row.state === 'CA');
 const exportedLocations = (siteLocations.locations ?? []).filter((row) => row.state === 'CA');
 const exportedAlerts = (siteAlerts.alerts ?? []).filter((row) => row.state === 'CA');
-if (!scheduledNonStale) assert.ok(exportedStores.length >= 2, 'root store export must include both inventory-eligible San Diego stores');
-if (!scheduledNonStale) assert.ok(exportedLocations.length >= 3, 'root location export must include San Diego inventory and watch locations');
-assert.ok(exportedStores.every((row) => row.city === 'San Diego' && row.address), 'exported California stores require exact San Diego addresses');
+if (!scheduledNonStale) assert.ok(exportedStores.length >= 2, 'root store export must include at least two reviewed California inventory stores');
+if (!scheduledNonStale) assert.ok(exportedLocations.length >= 3, 'root location export must include reviewed California inventory and watch locations');
+assert.ok(exportedStores.every(exactReviewedPremise), 'exported California stores require exact reviewed addresses and cities');
 if (freshInventory.length > 0 && exportedAlerts.length < Math.min(12, freshInventory.length)) {
   assert.ok(scheduledOnlyException, 'fresh California inventory must expose on-site orderability alerts');
   if (!scheduledNonStale) assert.ok(stateDrops.length >= 12, 'a retained-not-due California partition may omit duplicate baseline alerts only while its customer-facing drops remain intact');

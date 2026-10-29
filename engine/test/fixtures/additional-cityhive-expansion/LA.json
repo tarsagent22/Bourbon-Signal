@@ -1,0 +1,146 @@
+{
+  "state": "LA",
+  "merchantId": "601852f0adbba92713925e59",
+  "capturedAt": "2026-10-29T02:04:52.199Z",
+  "sourceUrl": "https://martinwine.com/shop/?ch-query=barrel%20proof&merchant-id=601852f0adbba92713925e59",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "60185cd772cad546183b6b3f",
+        "name": "Martin's Lobdell",
+        "address": {
+          "full_address": "1670 Lobdell Ave, Baton Rouge, LA 70806, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -91.11144,
+              30.4344818
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "601852f0adbba92713925e59",
+        "name": "Martin's Metairie",
+        "address": {
+          "full_address": "714 Elmeer Ave, Metairie, LA 70005, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.1364095,
+              30.0027963
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "5fff6e6e47e52326c610cc70",
+        "name": "Martin's New Orleans",
+        "address": {
+          "full_address": "3827 Baronne St, New Orleans, LA 70115, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.0966536,
+              29.9290854
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "601afbe7241975272cf12914",
+        "name": "Martin's National Shipping",
+        "address": {
+          "full_address": "714 Elmeer Ave, Metairie, LA 70005, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.1364095,
+              30.0027963
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "601859b84642933f5fb2db01",
+        "name": "Martin's Moss Side Lane",
+        "address": {
+          "full_address": "6463 Moss Side Ln, Baton Rouge, LA 70808, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -91.1226282,
+              30.4055009
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "59653a92355d0935c14d7491",
+      "name": "1792 Bourbon Full Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "601852f0adbba92713925e59",
+          "full_address": "714 Elmeer Ave, Metairie, LA 70005, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "59653a92355d0935c14d7491",
+              "option_id": "dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+              "merchant_id": "601852f0adbba92713925e59",
+              "full_address": "714 Elmeer Ave, Metairie, LA 70005, USA",
+              "product_url": "https://martinwine.com/shop/product/1792-bourbon-full-proof/59653a92355d0935c14d7491?option-id=dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+              "quantity": 1,
+              "price": 46,
+              "option_display_data": {
+                "name": "1792 Bourbon Full Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "1792"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "brand": "1792"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

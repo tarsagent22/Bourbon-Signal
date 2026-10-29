@@ -11,6 +11,7 @@ import {
 } from './collectors/florida-15-20-expansion.mjs';
 import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collectors/metro-retailer-surfaces.mjs';
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
+import { CENTRAL_CITYHIVE_STATE_CONFIGS } from './central-cityhive-state-config.mjs';
 
 const GEORGIA_RETAILER_SOURCES = [
   ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
@@ -420,7 +421,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'NY', label: 'Selected New York first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
-    value: 'Exact-premises New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, and Lake George retailer inventory from configured CityHive and Shopify storefronts. Coverage is intentionally limited to the named premises; binary availability is never projected as an exact count.',
+    value: 'Exact-premises New York City, Nassau County, Suffolk County, Buffalo, Rochester Metro, Hudson Valley, and Lake George retailer inventory from configured CityHive and Shopify storefronts. Coverage is intentionally limited to the named premises; binary availability is never projected as an exact count.',
     rareSignalTarget: true,
     sources: NEW_YORK_RETAILER_SOURCES.map(metroSourceRecord),
     apiCandidates: []
@@ -474,13 +475,7 @@ const BASE_STATE_SOURCES = [
     sources: [],
     apiCandidates: []
   },
-  {
-    id: 'WI', label: 'Wisconsin Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
-    value: 'Costco-only expansion state. Wisconsin Costco spirits access can produce useful bourbon warehouse signals where verified.',
-    rareSignalTarget: false,
-    sources: [],
-    apiCandidates: []
-  },
+  ...CENTRAL_CITYHIVE_STATE_CONFIGS,
   {
     id: 'GA', label: 'Georgia retailer inventory + Costco warehouse watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
     value: 'Exact-identity first-party Georgia retailer inventory plus Costco warehouse observations where verified. Binary Add to Cart/orderability is distinct from exact CityHive quantity, and every store signal carries a verify-before-driving caveat.',

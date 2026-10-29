@@ -1,0 +1,215 @@
+{
+  "capturedAt": "2026-10-29T01:48:30.962Z",
+  "requests": [
+    {
+      "state": "IL",
+      "url": "https://shoprandalls.com/shop/?ch-query=barrel%20proof&merchant-id=5e7abc5f5c462e6bc1248e6e",
+      "at": "2026-10-29T01:48:30.962Z",
+      "status": 200,
+      "file": "c32028bddc103046.html"
+    },
+    {
+      "state": "IL",
+      "url": "https://shoprandalls.com/shop/?ch-query=Blanton's%20Gold&merchant-id=5e7abc5f5c462e6bc1248e6e",
+      "at": "2026-10-29T01:48:33.224Z",
+      "status": 200,
+      "file": "a58ac71777101c14.html"
+    }
+  ],
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "5e7abd775c462e6bb92453ec",
+        "name": "Randall's - Ballwin/Manchester",
+        "address": {
+          "full_address": "14201 Manchester Rd, Ballwin, MO 63011, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.50178,
+              38.5939065
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "5e7abcdaf6e97c7f51638b96",
+        "name": "Randall's - Old Halls Ferry Rd, St. Louis",
+        "address": {
+          "full_address": "11000 Old Halls Ferry Rd, St. Louis, MO 63136, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.26029799999999,
+              38.7717846
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "5e7abc5f5c462e6bc1248e6e",
+        "name": "Randall's - Fairview Heights",
+        "address": {
+          "full_address": "10800 Lincoln Trail, Fairview Heights, IL 62208, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -89.99190569999999,
+              38.5924162
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "5e6d8e2a90ed122417f9338a",
+        "name": "Randall's - Jefferson Ave, St. Louis",
+        "address": {
+          "full_address": "1910 S Jefferson Ave, St. Louis, MO 63104, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.2203512,
+              38.6123531
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "615fa307ff6375479c112c44",
+        "name": "Randall's - Southwest Ave, St. Louis",
+        "address": {
+          "full_address": "4925 Southwest Ave, St. Louis, MO 63110, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.2686798,
+              38.6129325
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5e7abc5f5c462e6bc1248e6e",
+          "full_address": "10800 Lincoln Trail, Fairview Heights, IL 62208, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "5e7abc5f5c462e6bc1248e6e",
+              "full_address": "10800 Lincoln Trail, Fairview Heights, IL 62208, USA",
+              "product_url": "https://shoprandalls.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 2,
+              "price": 69.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "68dd38395502c95bfb2772e4",
+      "name": "Elijah Craig Barrel Proof Rye",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5e7abc5f5c462e6bc1248e6e",
+          "full_address": "10800 Lincoln Trail, Fairview Heights, IL 62208, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "68dd38395502c95bfb2772e4",
+              "option_id": "6f5c1f9332a70ee9e1e362504b391ca8fd36381d0c01071ab3e0863841763555",
+              "merchant_id": "5e7abc5f5c462e6bc1248e6e",
+              "full_address": "10800 Lincoln Trail, Fairview Heights, IL 62208, USA",
+              "product_url": "https://shoprandalls.com/shop/product/elijah-craig-barrel-proof-rye/68dd38395502c95bfb2772e4?option-id=6f5c1f9332a70ee9e1e362504b391ca8fd36381d0c01071ab3e0863841763555",
+              "quantity": 2,
+              "price": 69.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof Rye",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rye"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rye"
+                  ],
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "12"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

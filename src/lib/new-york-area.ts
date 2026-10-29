@@ -1,4 +1,4 @@
-export const SUPPORTED_NEW_YORK_AREAS = ["New York City", "Nassau County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"] as const;
+export const SUPPORTED_NEW_YORK_AREAS = ["New York City", "Nassau County", "Suffolk County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"] as const;
 export type NewYorkArea = (typeof SUPPORTED_NEW_YORK_AREAS)[number];
 
 const CANONICAL_AREA_BY_TOKEN = new Map<string, NewYorkArea>([
@@ -7,6 +7,9 @@ const CANONICAL_AREA_BY_TOKEN = new Map<string, NewYorkArea>([
   ["nyc", "New York City"],
   ["nassau", "Nassau County"],
   ["nassau county", "Nassau County"],
+  ["suffolk", "Suffolk County"],
+  ["suffolk county", "Suffolk County"],
+  ["east northport", "Suffolk County"],
   ["buffalo", "Buffalo"],
   ["buffalo ny", "Buffalo"],
   ["rochester metro", "Rochester Metro"],
@@ -31,6 +34,7 @@ const NASSAU_COUNTY_LOCALITIES = [
   "garden city",
   "wantagh",
   "westbury",
+  "syosset",
 ] as const;
 
 function normalize(value: string): string {
@@ -101,6 +105,25 @@ function fieldMatchesBuffalo(field: string): boolean {
     || /\bbuffalo (?:ny|new york)(?: \d{5}(?: \d{4})?)?(?: usa)?$/.test(token);
 }
 
+function fieldMatchesSuffolkCounty(field: string): boolean {
+  const token = normalize(field);
+  return token === "suffolk" || token === "suffolk county" || token === "suffolk county ny"
+    || token === "suffolk county new york" || token === "east northport"
+    || /\beast northport (?:ny|new york)(?: 11731(?: \d{4})?)?(?: usa)?$/.test(token);
+}
+
+// Older snapshots lack county metadata for these two reviewed premises.
+// This supplies geography for preferences only, never inventory admission.
+export function reviewedNewYorkStoreCounty(row: Record<string, unknown>): "Suffolk County" | "Nassau County" | null {
+  const state = String(row.state || row.storeState || row.store_state || "").toUpperCase();
+  const address = row.storeAddress || row.store_address;
+  if (state !== "NY" || typeof address !== "string") return null;
+  const id = row.storeId || row.store_id, location = normalize(address);
+  if (id === "winecity-east-northport:11731" && location === "4000 jericho tpke east northport ny 11731") return "Suffolk County";
+  if (id === "grand-wine-cellar:11791" && location === "40 cold spring rd syosset ny 11791") return "Nassau County";
+  return null;
+}
+
 export function matchedNewYorkArea(fields: readonly unknown[], selectedAreas: readonly string[]): NewYorkArea | null {
   const areas = normalizeNewYorkAreas([...selectedAreas]);
   for (const area of areas) {
@@ -108,6 +131,8 @@ export function matchedNewYorkArea(fields: readonly unknown[], selectedAreas: re
       ? fieldMatchesNewYorkCity
       : area === "Nassau County"
         ? fieldMatchesNassauCounty
+        : area === "Suffolk County"
+          ? fieldMatchesSuffolkCounty
         : area === "Buffalo"
           ? fieldMatchesBuffalo
           : (field: string) => {

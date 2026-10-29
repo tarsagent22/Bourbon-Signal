@@ -13,8 +13,8 @@ import {
   SUPPORTED_COLORADO_AREAS,
 } from "../src/lib/colorado-area.ts";
 
-assert.deepEqual(SUPPORTED_NEW_YORK_AREAS, ["New York City", "Nassau County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]);
-assert.deepEqual(normalizeNewYorkAreas(["NYC", "new york city", "nassau", "Buffalo NY", "Rochester", "Hudson Valley", "Lake George"]), ["New York City", "Nassau County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]);
+assert.deepEqual(SUPPORTED_NEW_YORK_AREAS, ["New York City", "Nassau County", "Suffolk County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]);
+assert.deepEqual(normalizeNewYorkAreas(["NYC", "new york city", "nassau", "Suffolk County", "Buffalo NY", "Rochester", "Hudson Valley", "Lake George"]), ["New York City", "Nassau County", "Suffolk County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]);
 assert.deepEqual(parseNewYorkAreaQuery(null), { requested: false, valid: true, areas: [] });
 assert.deepEqual(parseNewYorkAreaQuery("New York City"), { requested: true, valid: true, areas: ["New York City"] });
 assert.deepEqual(parseNewYorkAreaQuery("Nassau County"), { requested: true, valid: true, areas: ["Nassau County"] });

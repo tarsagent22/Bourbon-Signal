@@ -1,4 +1,5 @@
 import { isTexasExpansionSignalIdentity } from './collectors/texas-cityhive-expansion.mjs';
+import { isTexasShopifyPickupIdentity, isTexasShopifyPickupInventory } from './collectors/texas-shopify-pickup.mjs';
 
 const TEXAS_RETAILER_IDENTITIES = new Map([
   ['Twin Liquors CityHive store inventory', { chain: 'twin-liquors', hostname: 'twinliquors.com', merchantPattern: /^[0-9a-f]{24}$/i }],
@@ -23,6 +24,7 @@ function sourceHostname(signal) {
 }
 
 export function isTexasRetailerSignalIdentity(signal) {
+  if(isTexasShopifyPickupIdentity(signal))return true;
   if(isTexasExpansionSignalIdentity(signal))return true;
   const source = String(signal.sourceLabel || signal.source || '');
   const identity = TEXAS_RETAILER_IDENTITIES.get(source);
@@ -38,6 +40,7 @@ export function isTexasRetailerSignalIdentity(signal) {
 }
 
 export function isTexasRetailerInventory(signal) {
+  if(isTexasShopifyPickupIdentity(signal))return isTexasShopifyPickupInventory(signal);
   const quantity = Number(signal.quantity || 0);
   const positiveAvailability = quantity > 0
     || (quantity === 0 && signal.availabilityStatus === 'in_stock' && signal.sourceAvailabilityVerified === true);

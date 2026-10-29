@@ -294,7 +294,7 @@ test('California policy rejects spoofed host, store, geography, missing variant 
   assert.equal(isCaliforniaRetailerInventory(californiaSignal({ sourceChain: 'chips-liquor', sourceLabel: 'Chips Liquor Shopify online catalog watch', sourceUrl: 'https://chipsliquor.com/products/test', merchantId: 'chips-liquor-shopify', storeId: 'chips-liquor:1926-garnet', storeAddress: '1926 Garnet Ave, San Diego, CA 92109', eventType: 'retailer_catalog_availability', canAlertAsInventory: false })), false);
 });
 
-test('California registry and lifecycle expose one truthful San Diego customer area', () => {
+test('California retains San Diego sources and exposes reviewed California retailer cities', () => {
   const california = ALL_STATE_SOURCES.find((row) => row.id === 'CA');
   const labels = new Set(california.sources.map((source) => source.label || source.name));
   for (const label of [
@@ -307,7 +307,11 @@ test('California registry and lifecycle expose one truthful San Diego customer a
   assert.equal(lifecycle.lifecycle, 'retailer_store_inventory');
   assert.equal(lifecycle.coverageTier, 'live_store_inventory');
   assert.equal(lifecycle.refinementLevel, 'area');
-  assert.deepEqual(lifecycle.areaOptions, ['San Diego']);
+  for(const city of ['San Diego','Los Angeles','San Francisco','Sacramento'])assert.ok(lifecycle.areaOptions.includes(city));
+  assert.equal(lifecycle.areaOptions.length,29);
+  assert.equal(lifecycle.areaOptions.includes('California'),false);
+  assert.equal(lifecycle.areaOptions.includes('San Diego County'),false);
+  assert.match(lifecycle.customerSummary,/selected California grocery and independent liquor stores/);
 });
 
 test('current inventory alert projection uses only fresh-run rows rather than historical or cached rows', async () => {

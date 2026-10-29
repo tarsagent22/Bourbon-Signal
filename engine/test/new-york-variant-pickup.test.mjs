@@ -6,6 +6,8 @@ import { BourbonBible } from '../src/core/bible.mjs';
 import { NEW_YORK_VARIANT_PICKUP_SOURCES, collectNewYorkVariantPickup } from '../src/collectors/new-york-variant-pickup.mjs';
 import { NEW_YORK_RETAILER_SOURCES } from '../src/collectors/metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from '../src/metro-retailer-policy.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { bibleLookup, buildDrops, dropHasPositiveAlertInventory } from '../src/export-site-contract.mjs';
 import { sameShopifyPremiseAddress, shopifyPremiseAddressSignature } from '../src/collectors/shopify-premises-identity.mjs';
 
 const dir = new URL('./fixtures/new-york-variant-pickup-20261028/', import.meta.url);
@@ -57,6 +59,27 @@ test('current out-of-stock pickup withdraws every new retailer row rather than r
     const transport = fetcher((text,url) => url.endsWith('.json') ? text : text.replace(/Pickup available/giu, 'Pickup unavailable'));
     const result = await collectNewYorkVariantPickup({ id: 'NY' }, bible, source, observedAt, transport);
     assert.equal(result.signals.length, 0); assert.equal(result.observations[0].availabilityStatus, 'out_of_stock');
+  }
+});
+
+test('every reviewed NY pickup retains availability proof through operational and compact public projections', async () => {
+  for (const source of NEW_YORK_VARIANT_PICKUP_SOURCES) {
+    const {signals} = await collectNewYorkVariantPickup({id:'NY'}, bible, source, observedAt, fetcher());
+    const row=signals[0],operational=canonicalizeSignal(row,bible);
+    assert.equal(isMetroRetailerInventory({...row,sourceProductBinding:{...row.sourceProductBinding,variantAvailable:false}}),false);
+    assert.equal(isMetroRetailerInventory(operational),true,source.id);
+    const drops=buildDrops([operational],bibleLookup(bible.records),[operational]);
+    assert.equal(drops.length,1,source.id);
+    const drop=drops[0];assert.equal(drop.raw,undefined);
+    assert.equal(dropHasPositiveAlertInventory(drop),true,source.id);
+    for(const patch of [
+      {variantAvailable:false}, {variantId:'wrong-variant'}, {storeId:'wrong-store'}, {stale:true},
+      {sourceProductBinding:{...drop.sourceProductBinding,variantAvailable:false}},
+      {sourceProductBinding:{...drop.sourceProductBinding,variantAvailable:undefined}},
+      {sourceProductBinding:{...drop.sourceProductBinding,observedAt:'2020-01-01T00:00:00Z'}},
+      {raw:{variant:{id:drop.variantId,available:false}}},
+      {raw:{variant:{id:'wrong-variant',available:true}}},
+    ])assert.equal(isMetroRetailerInventory({...drop,...patch}),false,JSON.stringify(patch));
   }
 });
 test('wrong premise, product, variant, and pickup identity each fail closed', async () => {

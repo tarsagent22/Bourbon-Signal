@@ -1,0 +1,509 @@
+{
+  "capturedAt": "2026-10-29T02:13:11.956Z",
+  "store": {
+    "distance": 5.91,
+    "locationId": "1915",
+    "timezone": "America/Denver",
+    "polarisBannerName": "shopalbertsonsmarket",
+    "domainName": "Albertsons Market",
+    "address": {
+      "line1": "6200 Coors Blvd NW",
+      "city": "Albuquerque",
+      "state": "NM",
+      "country": "US",
+      "zipcode": "87120"
+    },
+    "justForU": false,
+    "localPage": "https://local.albertsonsmarket.com/nm/albuquerque/6200-coors-blvd-nw.html",
+    "storeRewards": {
+      "storeId": "1915",
+      "hasGroceryDelivery": true,
+      "hasDUG": true,
+      "hasRushDelivery": false,
+      "hasGroceryRewards": true,
+      "storeLogoName": "shopalbertsonsmarket_logo",
+      "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/shopalbertsonsmarket_logo"
+    },
+    "isDUGStore": true,
+    "isPickupStore": true,
+    "isWFC": false,
+    "isNonMigratedStore": false,
+    "division": {
+      "name": "United",
+      "number": "15"
+    },
+    "storeFeatures": {
+      "isErumStore": true,
+      "isGuestCartEnabled": false,
+      "isMFC": false,
+      "isAutoReplenishmentEnabled": true,
+      "isSNAP2Eligible": false,
+      "isSubstitutions2Enabled": true,
+      "isExpressStore": true,
+      "isWGDEnabled": true,
+      "isStoreTippingEnabled": true,
+      "isDarkStore": false,
+      "isWineD2CEnabled": false,
+      "isScanAndPayEnabled": false,
+      "isPaymentV2": true,
+      "isSNAPEligible": false,
+      "isFullAuthEnabled": true,
+      "isEditOrderEnabled": true,
+      "isWYSIWYGEnabled": true,
+      "isEnterpriseTaxation": true,
+      "isSubscriptionUDC": false,
+      "isRolloutWYSIWYGEnabled": true,
+      "isPromisePlatformStore": true,
+      "isHourlyStore": false,
+      "isSequentialTenderingMLModel": false,
+      "isOttValveEnabled": false,
+      "isFlashDugEnabled": true,
+      "isFlashDeliveryEnabled": true,
+      "isFlash2Enabled": false,
+      "isApprovedSubsEnabled": true,
+      "is3PLBatching": false,
+      "is3PLShopAndDriveEnabled": false,
+      "isAltPickUpEnabled": true,
+      "isMerchPickingEnabled": false,
+      "isDirectedSpendEnabled": true,
+      "isFoodIsMedicineNBEnabled": false,
+      "isCustomerCentricTillingEnabled": true,
+      "isSNSCNCEnabled": true,
+      "isBagFeeWaivedforEBT": false,
+      "isB2BStore": false,
+      "isDeliveryPreference": true,
+      "isPrePickingEnabled": false,
+      "isIntradayFastPickingEnabled": false,
+      "isISMLocationServiceEnabled": false,
+      "is2WayCommunication": false,
+      "isFoodIsMedicineBentoEnabled": true,
+      "isSNSB2BEnabled": true,
+      "isCustBagPreference": true,
+      "is3PPEnabled": true,
+      "isOrderAmends": true,
+      "isDynamicSlotEnabled": false,
+      "isGiftEnabled": true,
+      "showDUGEndTime": false,
+      "isFlashCapacityEnabled": false,
+      "isSlowPickingEnabled": false,
+      "isBNCEnabled": true,
+      "isDCMEnabled": false,
+      "isSOAEnabled": true,
+      "isSOAUXEnabled": false,
+      "isDeptUpdateNotification": false,
+      "isInHomeServiceEnabled": false,
+      "isSCEEnabled": false,
+      "isAisleGeoLocation": false,
+      "isLaborHealthEnabled": false,
+      "isLaborHealthUXEnabled": false,
+      "isCrossStreetsEnabled": false,
+      "legalNotAllowed": false
+    },
+    "tplPartners": [
+      "DIRECTCONTRACT",
+      "INSTACART",
+      "BENTO"
+    ],
+    "departmentsDetail": [
+      {
+        "departmentName": "Bakery",
+        "departmentId": "22",
+        "serviceDepartmentType": "Bakery",
+        "serviceDepartEnabled": true,
+        "acuview1POrderprep": true,
+        "pickUpAtCounter": false,
+        "bufferEstTime": "0",
+        "serviceDeptStatus": true,
+        "digitalTicketingEnabled": false,
+        "isECOM1PEnabled": true,
+        "isAcuViewEnabled": true,
+        "acuviewInstoreOrder": false,
+        "pickerBufferTime": "0",
+        "isApplyBakeryHoursRestrictionEnabled": false,
+        "isCateringEnabled": true,
+        "dayOfWeek": [
+          {
+            "day": "Monday",
+            "startHour": "0700",
+            "endHour": "1900"
+          },
+          {
+            "day": "Tuesday",
+            "startHour": "0700",
+            "endHour": "1900"
+          },
+          {
+            "day": "Wednesday",
+            "startHour": "0700",
+            "endHour": "1900"
+          },
+          {
+            "day": "Thursday",
+            "startHour": "0700",
+            "endHour": "1900"
+          },
+          {
+            "day": "Friday",
+            "startHour": "0700",
+            "endHour": "1900"
+          },
+          {
+            "day": "Saturday",
+            "startHour": "0700",
+            "endHour": "1900"
+          },
+          {
+            "day": "Sunday",
+            "startHour": "0700",
+            "endHour": "1900"
+          }
+        ]
+      },
+      {
+        "departmentName": "Deli",
+        "departmentId": "27",
+        "serviceDepartmentType": "Deli",
+        "serviceDepartEnabled": true,
+        "acuview1POrderprep": true,
+        "pickUpAtCounter": false,
+        "bufferEstTime": "15",
+        "serviceDeptStatus": true,
+        "digitalTicketingEnabled": false,
+        "isECOM1PEnabled": true,
+        "isAcuViewEnabled": true,
+        "acuviewInstoreOrder": true,
+        "pickerBufferTime": "15",
+        "isCateringEnabled": true,
+        "dayOfWeek": [
+          {
+            "day": "Monday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Tuesday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Wednesday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Thursday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Friday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Saturday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Sunday",
+            "startHour": "0700",
+            "endHour": "2100"
+          }
+        ]
+      }
+    ],
+    "ecomStore": true
+  },
+  "source": {
+    "id": "shopalbertsonsmarket-nm-1915",
+    "name": "Albertsons Market #1915",
+    "stateCode": "NM",
+    "banner": "shopalbertsonsmarket",
+    "resolverDomainName": "Albertsons Market",
+    "host": "www.shopalbertsonsmarket.com",
+    "merchantId": "1915",
+    "storeId": "shopalbertsonsmarket:1915",
+    "address": "6200 Coors Blvd NW, Albuquerque, NM 87120",
+    "city": "Albuquerque",
+    "zip": "87120",
+    "lat": 35.15246869676769,
+    "lng": -106.68212389814757,
+    "sourceLabel": "Albertsons Market New Mexico XAPI store inventory",
+    "premiseUrl": "https://local.albertsonsmarket.com/nm/albuquerque/6200-coors-blvd-nw.html",
+    "releaseStage": "research_only_requires_state_promotion"
+  },
+  "products": [
+    {
+      "status": "active",
+      "name": "1792 Full Proof 750 Ml - 750 ML",
+      "pid": "971174674",
+      "upc": "0008800406373",
+      "id": "971174674",
+      "storeId": "1915",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/971174674",
+      "rogCd": "UNTD",
+      "price": 48.99,
+      "promoDescription": "Safeway Club Price: $48.99 SAVE up to: $11.0",
+      "promoText": " $48.99 SAVE up to: $11.0",
+      "promoType": "P",
+      "promoEndDate": "2027-01-03T23:59:00",
+      "basePrice": 59.99,
+      "basePricePer": 2.37,
+      "pricePer": 1.93,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Wine/Beer/Spirits",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "",
+      "prop65WarningText": "",
+      "prop65WarningIconRequired": false,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": true,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 62
+    },
+    {
+      "status": "active",
+      "name": "Elijah Craig Barrel Proof - 750 Ml (limited quantities may be available in store)",
+      "pid": "960260471",
+      "upc": "0009674900386",
+      "id": "960260471",
+      "storeId": "1915",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/960260471",
+      "rogCd": "UNTD",
+      "price": 95.99,
+      "promoEndDate": null,
+      "basePrice": 95.99,
+      "basePricePer": 3.79,
+      "pricePer": 3.79,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Wine/Beer/Spirits",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "",
+      "prop65WarningText": "",
+      "prop65WarningIconRequired": false,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "wineEligible": "ALL",
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 62
+    }
+  ],
+  "records": [
+    {
+      "id": "bb_ee4b5c90535d24d7",
+      "canonical": "1792 Full Proof",
+      "normalizedKey": "1792 full proof",
+      "aliases": [
+        "1792 FP",
+        "1792 Full Proof",
+        "Barton 1792 Full Proof"
+      ],
+      "tier": "allocated",
+      "producer": "Barton",
+      "sources": [
+        "seed"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "1792-full-proof",
+          "canonicalName": "1792 Full Proof",
+          "aliases": [
+            "1792 FP",
+            "1792 Full Proof",
+            "1792 fp",
+            "Barton 1792 Full Proof",
+            "full proof 1792"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_be6a0afd4ba5f963",
+      "canonical": "Elijah Craig Barrel Proof",
+      "normalizedKey": "elijah craig proof",
+      "aliases": [
+        "ECBP",
+        "Elijah Craig BP",
+        "Elijah Craig Barrel Proof"
+      ],
+      "tier": "allocated",
+      "producer": "Heaven Hill",
+      "sources": [
+        "seed",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "elijah-craig-barrel-proof",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "aliases": [
+            "ECBP",
+            "Elijah Craig BP",
+            "Elijah Craig Barrel Proof",
+            "Elijah Craig Barrel Proof Small Batch",
+            "ecbp",
+            "elijah craig barrel proof",
+            "elijah craig bp"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

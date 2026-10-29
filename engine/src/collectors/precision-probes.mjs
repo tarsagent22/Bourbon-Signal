@@ -1,6 +1,8 @@
+import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID } from './california-grocery-runtime-source.mjs';
 import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS, nevadaRetailerCohortKey, nevadaRetailerCacheMatchesCohort } from './nevada-xapi-runtime.mjs';
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
 import { collectTexasCityHiveExpansion } from './texas-cityhive-expansion.mjs';
+import { collectMidwestCityHiveExpansion } from './midwest-cityhive-expansion.mjs';
 import { pennsylvaniaDirectFwgsRoadblock } from './pennsylvania-direct-source-policy.mjs';
 import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
 import { reviewedIndianaCityHiveBottleMatch, reviewedIndianaPaylessBottleMatch, buildIndianaPaylessAvailabilityProof, normalizeIndianaCityHiveQuantity, indianaSourceBottleMismatchReason } from './indiana-retailer-matching.mjs';
@@ -131,6 +133,8 @@ import {
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
 import { collectMetroCityHiveRows, selectMetroSourcesForRefresh } from './buffalo-cityhive-discovery.mjs';
 import { collectNewYorkVariantPickup } from './new-york-variant-pickup.mjs';
+import { collectPromotedCentralCityHiveState } from '../research-cityhive-runtime.mjs';
+import { CENTRAL_CITYHIVE_STATE_IDS } from '../central-cityhive-policy.mjs';
 import { metroHttpSourceError, metroSourceAttempts, readMetroSourceAttempts, updateMetroSourceAttempts, writeMetroSourceAttempts } from './metro-refresh-state.mjs';
 import { runArizonaSourcesWithDenialBackoff } from './arizona-source-attempts.mjs';
 import { ARIZONA_SMART_FINAL_SOURCE, collectArizonaSmartFinal } from './arizona-smart-final.mjs';
@@ -9164,7 +9168,7 @@ function cachedCaliforniaSourceResults(cache) {
   }));
 }
 
-async function collectCalifornia(config, bible, options = {}) {
+async function collectCaliforniaShopify(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const cache = await readCaliforniaSanDiegoShopifyCache();
   if (process.env.BOURBON_SIGNAL_CA_FORCE_SHOPIFY_LIVE !== '1' && cache) {
@@ -9233,6 +9237,37 @@ async function collectCalifornia(config, bible, options = {}) {
     });
   }
   return { signals, roadblocks, sourceResults: isolated.results.map(summarizeSourceResult) };
+}
+
+
+export async function collectCalifornia(config,bible,options={}) {
+  // Each retailer lane owns its observation cache and source result. A Shopify
+  // cache hit or failure cannot skip or discard current grocery observations.
+  const [shopify,groceryRun]=await Promise.all([
+    collectCaliforniaShopify(config,bible,options),
+    runSourceAdapters([createSourceAdapter({
+      id:CALIFORNIA_GROCERY_RUNTIME_ID,label:'California reviewed exact-store grocery inventory',
+      url:'https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all',
+      metadata:{stateId:'CA',lane:'california_grocery'},
+      execute:(_context,{signal})=>collectCaliforniaGrocerySource(config,bible,{...options.grocerySourceOptions,
+        signal:options.signal?AbortSignal.any([options.signal,signal]):signal}),
+      validate:value=>Array.isArray(value?.signals)&&Array.isArray(value?.roadblocks)
+        &&(value?.metadata?.complete===true||value.signals.length>0)?true:'California grocery has no current verified observations',
+      recordCount:(value,{candidate}={})=>candidate?.metadata?.complete===false?NaN:value.signals.length,
+    })],{}, {...options.sourceRunnerOptions,previousResults:options.previousSourceResults,
+      circuitBreaker:options.sourceCircuitBreaker,concurrency:1,perDomain:1,schedule:false,
+      timeoutMs:Number(process.env.BOURBON_SIGNAL_CA_GROCERY_SOURCE_TIMEOUT_MS||600_000),maxAttempts:1}),
+  ]);
+  const grocery=groceryRun.results[0];
+  const roadblocks=[...(shopify.roadblocks||[]),...(grocery.value?.roadblocks||[])];
+  if(!grocery.ok)roadblocks.push({state:'CA',source:'California reviewed exact-store grocery inventory',
+    sourceRuntimeId:CALIFORNIA_GROCERY_RUNTIME_ID,url:'https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all',
+    status:grocery.status,error:grocery.error?.message||'Independent grocery source failed',
+    nextRoute:'Retain the independent denial ledger and only non-alertable failed-source fallback; preserve healthy Shopify siblings.'});
+  return {signals:[...(shopify.signals||[]),...(grocery.value?.signals||[])],roadblocks,
+    sourceResults:[...(shopify.sourceResults||[]),...groceryRun.results.map(summarizeSourceResult)],
+    metadata:{grocery:grocery.value?.metadata||null,grocerySourceStatus:grocery.status,
+      shopifySourceStatuses:(shopify.sourceResults||[]).map(result=>({sourceId:result.sourceId,status:result.status}))}};
 }
 
 async function readNevadaRetailerCache() {
@@ -9464,6 +9499,7 @@ async function collectKentucky(config, bible) {
 }
 
 const LEGACY_PRECISION_RUNTIME_STATES = new Set([
+  'WI', 'OK',
   'KY', 'OH', 'OR', 'IA', 'UT', 'ID', 'AL', 'NC', 'IL', 'IN', 'TN', 'AZ', 'NV', 'FL', 'GA', 'SC', 'TX', 'VA', 'PA', 'MD-MONTGOMERY', 'NY', 'CO',
 ]);
 
@@ -9479,6 +9515,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
 }
 
 async function collectPrecisionProbesUntraced(config, bible, existingSignals = [], options = {}) {
+  if(CENTRAL_CITYHIVE_STATE_IDS.has(config.id))return collectPromotedCentralCityHiveState(config,bible,options);
   if (config.id === 'MS') return collectMississippiRetailers(config, {
     ...options,
     matchBottle: (rawName) => {
@@ -9494,7 +9531,7 @@ async function collectPrecisionProbesUntraced(config, bible, existingSignals = [
   if (config.id === 'ID') return collectIdaho(config, bible);
   if (config.id === 'AL') return collectAlabama(config, bible);
   if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory, options);
-  if (config.id === 'IL') return collectIllinois(config, bible);
+  if (config.id === 'IL') return collectIllinois(config, bible, options);
   if (config.id === 'IN') return collectIndiana(config, bible, existingSignals, options);
   if (config.id === 'TN') return collectTennessee(config, bible, options);
   if (config.id === 'AZ') return collectArizona(config, bible, options);
@@ -9663,6 +9700,12 @@ export async function collectIllinois(config, bible, options = {}) {
   const observedAt = options.observedAt || new Date().toISOString();
   const query = options.query || binnysAlgoliaQuery;
   const pause = options.sleep || sleep;
+
+  if(!options.query||options.expansionFetchText){
+    const expansion=await collectMidwestCityHiveExpansion(config,bible,{observedAt,signal:options.signal,
+      fetchText:options.expansionFetchText||textFetch,sleep:pause,cacheFile:options.expansionCacheFile,cursorDir:options.cursorDir});
+    signals.push(...expansion.signals);roadblocks.push(...expansion.roadblocks);
+  }
 
   let stores = [];
   const storesByCode = new Map();

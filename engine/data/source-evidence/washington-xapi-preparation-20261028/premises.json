@@ -1,0 +1,314 @@
+[
+  {
+    "id": "1551",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "1410 E John St",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98112"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/seattle/1410-e-john-st.html"
+  },
+  {
+    "id": "1600",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "300 Bellevue Way NE",
+      "city": "Bellevue",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98004"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/bellevue/300-bellevue-way-ne.html"
+  },
+  {
+    "id": "3120",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "12725 1st Ave S",
+      "city": "Burien",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98168"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/burien/12725-1st-ave-s.html"
+  },
+  {
+    "id": "342",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "1616 W Northwest Blvd",
+      "city": "Spokane",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "99205"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/spokane/1616-w-northwest-blvd.html"
+  },
+  {
+    "id": "1740",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "2710 1st St",
+      "city": "Cheney",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "99004"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/cheney/2710-1st-st.html"
+  },
+  {
+    "id": "2248",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "1304 N Liberty Lake Rd",
+      "city": "Liberty Lake",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "99019"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/liberty-lake/1304-n-liberty-lake-rd.html"
+  },
+  {
+    "id": "251",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "1220 Morgan St",
+      "city": "Davenport",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "99122"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/davenport/1220-morgan-st.html"
+  },
+  {
+    "id": "1159",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "121 W Walnut St",
+      "city": "Newport",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "99156"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/newport/121-w-walnut-st.html"
+  },
+  {
+    "id": "337",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "10 W Colville Ave",
+      "city": "Chewelah",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "99109"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/chewelah/10-w-colville-ave.html"
+  },
+  {
+    "id": "329",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "1112 S M St",
+      "city": "Tacoma",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98405"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/tacoma/1112-s-m-st.html"
+  },
+  {
+    "id": "3545",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "900 E Meridian Ave Suite 12",
+      "city": "Milton",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98354"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/milton/900-e-meridian-ave-suite-12.html"
+  },
+  {
+    "id": "1645",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "10223 Gravelly Lake Dr SW",
+      "city": "Lakewood",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98499"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/lakewood/10223-gravelly-lake-dr-sw.html"
+  },
+  {
+    "id": "3321",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "4831 Point Fosdick Dr NW",
+      "city": "Gig Harbor",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98335"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/gig-harbor/4831-point-fosdick-dr-nw.html"
+  },
+  {
+    "id": "1555",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "1207 S 320th St",
+      "city": "Federal Way",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98003"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/federal-way/1207-s-320th-st.html"
+  },
+  {
+    "id": "3106",
+    "banner": "albertsons",
+    "domain": "Albertsons",
+    "address": {
+      "line1": "11012 Canyon Rd E",
+      "city": "Puyallup",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98373"
+    },
+    "localPage": "https://local.albertsons.com/wa/puyallup/11012-canyon-rd-e.html"
+  },
+  {
+    "id": "1186",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "27035 Pacific Hwy S",
+      "city": "Des Moines",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98198"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/des-moines/27035-pacific-hwy-s.html"
+  },
+  {
+    "id": "1885",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "516 1st Ave W",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98119"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/seattle/516-1st-ave-w.html"
+  },
+  {
+    "id": "1993",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "2201 E Madison St",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98112"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/seattle/2201-e-madison-st.html"
+  },
+  {
+    "id": "3275",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "2100 Queen Anne Ave N",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98109"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/seattle/2100-queen-anne-ave-n.html"
+  },
+  {
+    "id": "2932",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "2622 California Ave SW",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98116"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/seattle/2622-california-ave-sw.html"
+  },
+  {
+    "id": "1508",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "3820 Rainier Ave S",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98118"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/seattle/3820-rainier-ave-s.html"
+  },
+  {
+    "id": "3408",
+    "banner": "albertsons",
+    "domain": "Albertsons",
+    "address": {
+      "line1": "2550 32nd Ave W",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98199"
+    },
+    "localPage": "https://local.albertsons.com/wa/seattle/2550-32nd-ave-w.html"
+  },
+  {
+    "id": "2980",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "4732 Brooklyn Ave NE",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98105"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/seattle/4732-brooklyn-ave-ne.html"
+  },
+  {
+    "id": "1062",
+    "banner": "safeway",
+    "domain": "Safeway",
+    "address": {
+      "line1": "4754 42nd Ave SW",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "zipcode": "98116"
+    },
+    "localPage": "https://local.safeway.com/safeway/wa/seattle/4754-42nd-ave-sw.html"
+  }
+]
