@@ -740,7 +740,8 @@ function isFastMovingStoreInventory(signal) {
   const type = String(signal.eventType || signal.type || '').toLowerCase();
   const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
   if (signal.locationPrecision !== 'store_level') return false;
-  if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)) return false;
+  if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)
+    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)) return false;
   if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
