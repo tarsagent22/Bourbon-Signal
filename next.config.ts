@@ -30,7 +30,7 @@ const SECURITY_HEADERS = [
 ] as const;
 
 const canaryTraceFiles = (names: string[]) => names.map(name => `./canary-site-export/${name}.json`);
-const canaryTracing = process.env.BOURBON_SIGNAL_CANARY_PREVIEW === "1" ? {
+const canaryTracing: Record<string, string[]> = process.env.BOURBON_SIGNAL_CANARY_PREVIEW === "1" ? {
   "/api/coverage": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
   "/coverage": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
   "/api/locations": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
