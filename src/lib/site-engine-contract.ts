@@ -1,4 +1,5 @@
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
+import { isCentralCityHiveCanaryOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -370,7 +371,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     store_id: firstNonEmptyString(drop.storeId, drop.store_id) || undefined,
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
     quantity_shipped: shipmentQuantity || undefined,
-    quantity: quantity || (isGroceryExpansionOnSiteSignal(drop) ? 0 : undefined),
+    quantity: quantity || (isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveCanaryOnSiteSignal(drop) ? 0 : undefined),
     rarity_tier: asString(drop.tier, "unknown"),
     retail_price: asNumber(drop.price) || null,
     state,

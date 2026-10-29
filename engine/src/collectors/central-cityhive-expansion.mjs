@@ -8,24 +8,8 @@ import midwestExpansion from '../../data/midwest-cityhive-expansion-sources.json
 import additionalExpansion from '../../data/additional-cityhive-expansion-sources.json' with {type:'json'};
 import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 export {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
-
-function source(id, name, state, baseUrl, merchantId, address, city, zip) {
-  return Object.freeze({id, name, state, stateCode:state, platform:'cityhive', baseUrl,
-    hostname:new URL(baseUrl).hostname, merchantId, address, city, zip,
-    storeId:`${id}:${merchantId}`, sourceLabel:`${name} first-party pickup inventory`,
-    categoryUrl:`${baseUrl}/shop/?subtype=Bourbon&merchant-id=${merchantId}`});
-}
-
-// Exact first-party merchant configurations captured on 2026-10-29 UTC.
-// These sources remain research until the separate state promotion contract passes.
-export const CENTRAL_CITYHIVE_EXPANSION_SOURCES = Object.freeze([
-  source('liquorguys-wauwatosa','Liquorguys','WI','https://liquorguys.com','634464e2ec82c44b45abf3ef',
-    '11728 W North Ave, Wauwatosa, WI 53226, USA','Wauwatosa','53226'),
-  source('yucatan-liquor-okc','Yucatan Liquor','OK','https://yucatanliquor.com','67fe7b7c8a5eea0bf6837355',
-    '9109 S May Ave, Oklahoma City, OK 73159, USA','Oklahoma City','73159'),
-  source('byrons-liquor-okc',"Byron's Liquor Warehouse",'OK','https://byronsliquor.com','6060f5bded7ffb6a9c4c64b8',
-    '2322 N Broadway Ave, Oklahoma City, OK 73103, USA','Oklahoma City','73103'),
-]);
+import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
+export {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
 export const MINNESOTA_CITYHIVE_EXPANSION_SOURCES=Object.freeze(minnesotaExpansion.stores.map(Object.freeze));
 export const MIDWEST_CITYHIVE_EXPANSION_SOURCES=Object.freeze(midwestExpansion.stores.map(Object.freeze));
