@@ -121,7 +121,7 @@
       "siteArtifact": "engine/data/canary-site/four-state-20261029"
     },
     "production": {
-      "status": "pending_release",
+      "status": "awaiting_first_publication",
       "url": "https://www.bourbonsignal.com/api/drops?state=NM",
       "assertion": "Prepared admission only. Production requires guarded merge, fresh closed-cohort collection, immutable publication and canonical exact-premise checks; all alerts remain disabled."
     },
