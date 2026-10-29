@@ -1,5 +1,5 @@
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
-import { isCentralCityHiveCanaryOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
+import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
   ["retailer:ms:cityhive:68ba2980113a7a29c2076fc3", "029254"],
   ["retailer:ms:moonshine:323", "044411"],
@@ -152,7 +152,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && !canAlert;
 
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
-  if (['WI','OK'].includes(state) && drop.previewOnly === true) return isCentralCityHiveCanaryOnSiteSignal(drop);
+  if (['WI','OK'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);
   if (!type) return false;
   if (type === "wv_abca_retailer_recent_purchase_window") return isWestVirginiaRecentPurchase;
   if (isWestVirginiaOfficialBarrelSelection) return true;

@@ -6,6 +6,8 @@ import { FALLBACK_HINTS } from '../fallback-hints.mjs';
 import { collectPrecisionProbes } from './precision-probes.mjs';
 import { collectTexasShopifyPickup, isTexasShopifyPickupInventory } from './texas-shopify-pickup.mjs';
 import { texasLegacyPrecisionPolicyReport } from './texas-legacy-source-policy.mjs';
+import {collectCentralCityHiveProductionState} from './central-cityhive-production.mjs';
+import {CENTRAL_CITYHIVE_PRODUCTION_STATES} from '../central-cityhive-production-config.mjs';
 import { LOCATION_PROFILES } from '../location-precision.mjs';
 import { readFile } from 'node:fs/promises';
 import { collectCostco } from './costco.mjs';
@@ -475,6 +477,7 @@ function skippedConfiguredSource(source, sourceId, result) {
 
 export async function collectState(config, bible, options = {}) {
   if (WESTERN_GROCERY_PRODUCTION_STATES.includes(config.id)) return collectWesternGroceryProductionState(config,bible,options);
+  if(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(config.id))return collectCentralCityHiveProductionState(config,bible,options);
   const startedAt = new Date().toISOString();
   const sourceReports = [];
   const sourceResults = [];

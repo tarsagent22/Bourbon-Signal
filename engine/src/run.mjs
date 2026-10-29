@@ -140,6 +140,8 @@ const MIN_FWGS_POSITIVE_ROWS = Number(process.env.BOURBON_SIGNAL_MIN_FWGS_POSITI
 const MIN_OHLQ_OK_PRODUCTS = Number(process.env.BOURBON_SIGNAL_MIN_OHLQ_OK_PRODUCTS || 1);
 
 export function stateTimeoutMs(config) {
+  if(config.id==='WI')return 150_000;
+  if(config.id==='OK')return 240_000;
   return STATE_TIMEOUT_OVERRIDES_MS[config.id] || STATE_TIMEOUT_MS;
 }
 

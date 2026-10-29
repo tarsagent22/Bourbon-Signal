@@ -1,6 +1,6 @@
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
-import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory } from './central-cityhive-policy.mjs';
+import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
@@ -429,6 +429,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
   const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal);
+  const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal);
+  const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory;
   const isMetroInventory = isMetroRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
@@ -513,7 +515,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const canAlertAsWatch = !isGroceryOnSiteInventory && bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
-    : isMsSparseOnSiteInventory || isGroceryOnSiteInventory
+    : nonAlertingOnSiteInventory
       ? 'onsite_inventory'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
       ? 'actionable_inventory'
@@ -646,16 +648,16 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isGroceryOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isMsSparseOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: nonAlertingOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
-    alertable: isGroceryOnSiteInventory || staleFallback ? false : undefined,
-    eligibleForOnSite: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
-    eligibleForDropFeed: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
-    eligibleForWatch: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
-    eligibleForDelivery: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
-    eligibleForEmail: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
-    eligibleForSms: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    alertable: staleFallback || nonAlertingOnSiteInventory ? false : undefined,
+    eligibleForOnSite: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
+    eligibleForDropFeed: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
+    eligibleForWatch: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
+    eligibleForDelivery: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
+    eligibleForEmail: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForSms: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
     raw: staleFallback ? {
       lastKnownAvailabilityStatus: signal.raw?.lastKnownAvailabilityStatus || null,
       lastKnownAvailabilityLabel: signal.raw?.lastKnownAvailabilityLabel || null,
@@ -712,6 +714,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
           ? 'First-party product orderability plus a separately fetched first-party pickup/collection policy for this single-location San Diego retailer. Exact shelf quantity is not published; verify pickup before driving.'
         : ['NY', 'CO'].includes(signal.state) && canAlertAsInventory
           ? 'Identity-bound first-party retailer availability at the exact configured premises. Binary orderability is not an exact count; verify pickup before driving.'
+        : isCentralOnSiteInventory
+          ? 'Reviewed first-party pickup availability at the named store. Exact shelf count is not published; verify before driving.'
         : isMsSparseOnSiteInventory
           ? 'Sparse Mississippi first-party store orderability. No exact bottle count or hold is claimed; verify directly with the store before driving.'
         : canAlertAsInventory && signal.locationPrecision === 'store_level'
@@ -1078,7 +1082,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
-  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)));
+  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)||isCentralCityHiveProductionOnSiteSignal(signal)));
   const sameStore = (left, right) => {
     if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);
     return left.state === right.state

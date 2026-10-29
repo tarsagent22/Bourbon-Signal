@@ -24,6 +24,13 @@ export const groceryExpansionTierImport = "import { groceryExpansionLibraryTier 
 export const groceryExpansionProofImport = "import { groceryExpansionLibraryTier, isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';\n";
 export const centralCityHiveTierImport = "import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';\n";
 export const texasShopifyPickupTierImport = "import { texasShopifyPickupLibraryTier } from './collectors/texas-shopify-pickup.mjs';\n";
+export const centralProductionOnSiteImport = "import {isCentralCityHiveProductionOnSiteSignal} from './central-cityhive-policy.mjs';\n";
+export const centralProductionOnSiteBoundary = `    ...(isCentralCityHiveProductionOnSiteSignal(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`;
 export const reviewedExpansionTierBoundary = "    tier: texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),\n";
 export const originalNewYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'GA' && signal.inventorySemantics\n";
 export const newYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
@@ -76,6 +83,8 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, groceryExpansionTierImport, '', `${name}: grocery tier import`);
     text = replaceUnique(text, centralCityHiveTierImport, '', `${name}: CityHive tier import`);
     text = replaceUnique(text, texasShopifyPickupTierImport, '', `${name}: TX exact pickup tier import`);
+    text = replaceUnique(text, centralProductionOnSiteImport, '', `${name}: Central on-site import`);
+    text = replaceUnique(text, centralProductionOnSiteBoundary, '', `${name}: Central false-alert on-site proof`);
     text = replaceUnique(text, reviewedExpansionTierBoundary, arizonaMetroTierBoundary, `${name}: reviewed source tier proof`);
     text = replaceUnique(text, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, `${name}: NY variant semantics`);
     // Only this exact AZ-gated, proof-checked catalog tier may differ. All MS

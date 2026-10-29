@@ -4,7 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES, collectCentralCityHiveExpansion } from './collectors/central-cityhive-expansion.mjs';
 import { metroSourceAttempts } from './collectors/metro-refresh-state.mjs';
 import { fetchWithMeta } from './core/fetcher.mjs';
-import { getStateLifecycle } from './state-lifecycle.mjs';
+import {centralCityHiveProductionAllowed,collectCentralCityHiveProductionSource} from './collectors/central-cityhive-production.mjs';
 
 const names = Object.freeze({ WI:'Wisconsin', OK:'Oklahoma' });
 const configurations = new Map(Object.entries(names).map(([state,name]) => [state,Object.freeze({
@@ -52,13 +52,11 @@ export async function collectCityHiveResearchReport(config,bible,options={}){
   return collectCityHiveStateReport(config,bible,options,true);
 }
 export async function collectPromotedCentralCityHiveState(config,bible,options={}){
-  const canonical=configurations.get(config?.id),lifecycle=getStateLifecycle(config?.id);
-  const labels=new Set((config?.sources||[]).map(source=>source.label||source.name));
-  if(!canonical||lifecycle?.publicStatus!=='active'||!canonical.sources.every(source=>labels.has(source.label)))return{
+  const canonical=configurations.get(config?.id);
+  if(!canonical||!centralCityHiveProductionAllowed(config.id,options.lifecycleConfig,{manifest:options.promotionManifest,env:options.env}))return{
     signals:[],roadblocks:[{state:config?.id,status:'promotion_required',source:'Reviewed central retailer inventory',error:'Authoritative active lifecycle and registered first-party sources are required.'}],
   };
-  const report=await collectCityHiveStateReport(canonical,bible,options,false);
-  return{signals:report.signals,roadblocks:report.roadblocks,metadata:report.metadata};
+  return collectCentralCityHiveProductionSource(config,bible,options);
 }
 async function collectCityHiveStateReport(config,bible,inputOptions={},shadowOnly) {
   const {

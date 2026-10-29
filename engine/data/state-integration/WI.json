@@ -9,9 +9,10 @@
   },
   "collector": {
     "sourceIds": [
-      "precision:wi"
+      "wi:central-cityhive"
     ],
-    "registration": "Reviewed state-source configuration, promotion-gated precision collector, reusable shadow runtime, and central CityHive policy. Inactive lifecycle entries cannot collect production inventory."
+    "registration": "Closed reviewed CityHive cohort with immutable semantic manifest admission before cache or HTTP. Production observations are on-site only and cannot alert or deliver.",
+    "cohortSha256": "1da638a6f97c3a85778b304023bb800c88e65de06df54d7b7aef29f7a0ae5ba9"
   },
   "storeIdentity": {
     "mode": "exact_reviewed_merchant_and_premises",
@@ -20,8 +21,8 @@
   },
   "sourceSemantics": {
     "availability": "Binary retailer-published pickup availability. Positive options never create an exact shelf count; verify before driving.",
-    "inventoryAlertable": true,
-    "watchAlertable": true
+    "inventoryAlertable": false,
+    "watchAlertable": false
   },
   "customerPaths": {
     "stateFilter": {

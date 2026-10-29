@@ -72,17 +72,18 @@ export function reviewedCentralCityHiveIdentity(option, product) {
   return null;
 }
 
-export function parseCentralCityHiveInventory(html, candidate, bible, {observedAt}={}) {
+export function parseCentralCityHiveInventory(html, candidate, bible, {observedAt,onVerifiedPremise}={}) {
   const source=ALL_SOURCES.find(s=>s===candidate);
   if(!source || !Number.isFinite(Date.parse(observedAt)))return [];
   return parseCityHiveProducts(html,source,{sources:ALL_SOURCES,
     isAllowedOption:centralCityHiveBottleFormat,
     reviewOption:reviewedCentralCityHiveIdentity,
     isAllowedMerchantConfiguration:merchant=>{
-      if(source.lat==null&&source.lng==null)return true;
+      if(source.lat==null&&source.lng==null){onVerifiedPremise?.(source);return true;}
       const point=merchant.address?.location,coordinates=point?.coordinates;
-      return point?.type==='Point'&&Array.isArray(coordinates)&&coordinates.length===2
+      const allowed=point?.type==='Point'&&Array.isArray(coordinates)&&coordinates.length===2
         &&coordinates.every(Number.isFinite)&&coordinates[1]===source.lat&&coordinates[0]===source.lng;
+      if(allowed)onVerifiedPremise?.(source);return allowed;
     },
   }).flatMap(row=>{
     const identity=row.reviewedIdentity;
@@ -117,7 +118,7 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
 export async function collectCentralCityHiveExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal,
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now()}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
-  const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts};
+  const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
   const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA'].includes(config.id);
   const groups=Map.groupBy(ALL_SOURCES.filter(s=>s.state===config.id),s=>perStore?s.id:s.chainId||s.id);
   for(const [groupId,sources] of groups){
@@ -138,9 +139,11 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
         if(denied){sourceAttempts[groupId]={lastAttemptAt:observedAt,status:'access_denied',httpStatus:response.status,nextAllowedAt:new Date(nowMs+24*60*60_000).toISOString()};sourceAttempts[source.hostname]=sourceAttempts[groupId];break;}
         continue;
       }
-      for(const candidate of sources)for(const row of parseCentralCityHiveInventory(response.text,candidate,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
+      for(const candidate of sources)for(const row of parseCentralCityHiveInventory(response.text,candidate,bible,{observedAt,onVerifiedPremise:source=>verifiedPremises.add(source.storeId)}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
     }
     if(!denied)sourceAttempts[groupId]={lastAttemptAt:observedAt,status:seen.size?'success':'no_qualified_inventory',httpStatus:200,nextAllowedAt:new Date(nowMs+30*60_000).toISOString()};
   }
-  return {signals,roadblocks,metadata:{requests,sourceAttempts}};
+  const selectedStores=ALL_SOURCES.filter(source=>source.state===config.id).map(source=>source.storeId);
+  return {signals,roadblocks,metadata:{requests,sourceAttempts,selectedStores,verifiedPremises:[...verifiedPremises],
+    complete:requests.length>0&&requests.every(request=>request.ok)&&selectedStores.every(id=>verifiedPremises.has(id)),exhaustiveCatalogVerified:false}};
 }

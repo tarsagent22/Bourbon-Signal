@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, groceryExpansionProofImport, groceryExpansionSemanticsBoundary, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary } from '../engine/src/verification/historical-implementation.mjs';
+import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, groceryExpansionProofImport, groceryExpansionSemanticsBoundary, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, centralProductionOnSiteImport, centralProductionOnSiteBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -61,6 +61,7 @@ function signalSort(a, b) {
     .replace(groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary)
     .replace(westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary)
     .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '').replace(texasShopifyPickupTierImport, '')
+    .replace(centralProductionOnSiteImport, '').replace(centralProductionOnSiteBoundary, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
     .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary));
@@ -78,6 +79,12 @@ function signalSort(a, b) {
     current.replace(groceryExpansionProofImport, ''),
     current.replace(centralCityHiveTierImport, ''),
     current.replace(texasShopifyPickupTierImport, ''),
+    current.replace(centralProductionOnSiteImport, ''),
+    current + '\n' + centralProductionOnSiteImport,
+    current.replace(centralProductionOnSiteBoundary, ''),
+    current + '\n' + centralProductionOnSiteBoundary,
+    current.replace(centralProductionOnSiteBoundary, centralProductionOnSiteBoundary.replace('canAlertAsInventory:false', 'canAlertAsInventory:true')),
+    current.replace(centralProductionOnSiteBoundary, centralProductionOnSiteBoundary.replace('isCentralCityHiveProductionOnSiteSignal(signal)', "isCentralCityHiveProductionOnSiteSignal({...signal,state:'MS'})")),
     current.replace(texasShopifyPickupTierImport, texasShopifyPickupTierImport.replace('./collectors/texas-shopify-pickup.mjs', './collectors/unreviewed-pickup.mjs')),
     current + '\n' + groceryExpansionTierImport,
     current + '\n' + centralCityHiveTierImport,
