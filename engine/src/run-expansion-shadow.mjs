@@ -6,7 +6,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { withResearchLifecycle, researchSourceForState, collectResearchStateReport } from './research-state-registry.mjs';
-import {selectActiveResearchRenewals, suppressActiveRenewalReport, isActiveRenewalResearchInventory} from './active-research-renewal.mjs';
+import {selectActiveResearchRenewals, suppressActiveRenewalReport, isActiveRenewalResearchInventory,
+  validateActiveRenewalMaintenance, ACTIVE_RENEWAL_PRODUCTION_STATUSES, ACTIVE_RENEWAL_REPOSITORY} from './active-research-renewal.mjs';
 import {westernGroceryPromotionAllowed} from './collectors/western-grocery-production.mjs';
 import {centralCityHiveProductionAllowed} from './collectors/central-cityhive-production.mjs';
 import {WESTERN_GROCERY_EXPANSION_SOURCES} from './collectors/western-grocery-premises.mjs';
@@ -16,6 +17,7 @@ import {fetchReviewedFirstPartyText, readCityHiveIncidentJournal, validateCityHi
 import {sourceErrorForHttp} from './sources/source-error.mjs';
 import {BourbonBible} from './core/bible.mjs';
 import {randomUUID} from 'node:crypto';
+import {readBoundedCollectionBody} from './core/collection-http.mjs';
 import {isCentralCityHiveResearchInventory} from './central-cityhive-policy.mjs';
 import {isNjMiResearchSourceInventory} from './nj-mi-research-policy.mjs';
 import { promisify } from 'node:util';
@@ -23,6 +25,7 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const SHADOW_INVENTORY_MAX_AGE_MS = 2 * 60 * 60_000;
 const OREGON_PREREQUISITE_TIMEOUT_MS = 3 * 60_000;
+const verifiedMaintenance = new WeakSet();
 
 function stateId(value) { return String(value || '').trim().toUpperCase(); }
 function asArray(value) { return Array.isArray(value) ? value : []; }
@@ -210,6 +213,32 @@ async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
+export async function verifyActiveRenewalMaintenance({env = process.env, requestJson} = {}) {
+  if (env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || env.GITHUB_ACTIONS !== 'true'
+    || env.GITHUB_REPOSITORY !== ACTIVE_RENEWAL_REPOSITORY || !/^\d+$/.test(env.GITHUB_RUN_ID || ''))
+    throw Error('Active renewal maintenance requires an actual manual repository workflow');
+  const request = requestJson || (async route => {
+    if (!env.GITHUB_TOKEN) throw Error('Read-only GitHub workflow authority token is required');
+    const response = await fetch(`https://api.github.com/repos/${ACTIVE_RENEWAL_REPOSITORY}/actions/${route}`, {
+      redirect: 'error', signal: AbortSignal.timeout(10_000), headers: {accept: 'application/vnd.github+json',
+        authorization: `Bearer ${env.GITHUB_TOKEN}`, 'x-github-api-version': '2022-11-28',
+        'user-agent': 'BourbonSignalEngine/0.1 (+https://bourbonsignal.com; research prototype)'}});
+    if (!response.ok) throw Error(`GitHub maintenance authority read failed: HTTP ${response.status}`);
+    return JSON.parse((await readBoundedCollectionBody(response, {maxBytes: 2 * 1024 * 1024})).toString('utf8'));
+  });
+  const workflow = await request('workflows/refresh-feed.yml');
+  if (workflow?.state !== 'disabled_manually' || workflow.path !== '.github/workflows/refresh-feed.yml'
+    || !Number.isSafeInteger(workflow.id) || workflow.id < 1)
+    throw Error('Production refresh must be disabled_manually before active research renewal');
+  const queues = {};
+  for (const status of ACTIVE_RENEWAL_PRODUCTION_STATUSES)
+    queues[status] = await request(`workflows/${workflow.id}/runs?status=${status}&per_page=1`);
+  const recent = await request(`workflows/${workflow.id}/runs?per_page=20`);
+  const proof = validateActiveRenewalMaintenance({workflow, queues, recent, checkedAt: new Date().toISOString(), workflowRunId: env.GITHUB_RUN_ID});
+  verifiedMaintenance.add(proof);
+  return proof;
+}
+
 const renewalGrocery = state => ['WA', 'NM'].includes(state);
 function renewalSources(state) {
   return renewalGrocery(state)
@@ -254,8 +283,10 @@ export async function assertActiveRenewalIncidentSafety(state, {out = path.resol
   }
 }
 
-export async function createActiveRenewalFetch(state, {out = path.resolve('out'),
+export async function createActiveRenewalFetch(state, {out = path.resolve('out'), maintenance,
   fetchText = fetchReviewedFirstPartyText, persistJournal = persistCityHiveIncidentJournal} = {}) {
+  if (!verifiedMaintenance.has(maintenance) || Date.now() - Date.parse(maintenance.checkedAt) > 60_000)
+    throw Error('A just-verified manual production-maintenance observation is required before renewal transport');
   if (!['WA','NM','WI','OK'].includes(state)) throw Error('Only the reviewed active four may use renewal transport');
   await assertActiveRenewalIncidentSafety(state, {out});
   const sources = renewalSources(state), file = path.join(out, 'research-source-attempts/active-renewal-journals', `${state}.json`);
@@ -301,14 +332,18 @@ async function collectActiveResearchRenewalChild(state, lifecycle) {
   if (process.env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || !process.env.BOURBON_SIGNAL_STATE_OUT_FILE)
     throw Error('Active renewal child requires the isolated shadow output and disabled delivery environment');
   await assertActiveRenewalIncidentSafety(state);
+  const maintenance = await verifyActiveRenewalMaintenance();
   const output = process.env.BOURBON_SIGNAL_STATE_OUT_FILE;
   const report = await collectResearchStateReport(researchSourceForState(state), await BourbonBible.load(), {
-    reportDirectory: path.dirname(output), fetchText: await createActiveRenewalFetch(state)});
-  await writeFile(output, JSON.stringify(suppressActiveRenewalReport(state, report), null, 2));
+    reportDirectory: path.dirname(output), fetchText: await createActiveRenewalFetch(state, {maintenance})});
+  const suppressed = suppressActiveRenewalReport(state, report);
+  suppressed.metadata.manualActiveRenewal.maintenance = maintenance;
+  await writeFile(output, JSON.stringify(suppressed, null, 2));
 }
 
 export async function runExpansionShadow({ lifecycle, states = [], renewActiveStates = [], env = process.env,
-  limit = 5, outDir = path.resolve('out', 'shadow'), cwd = process.cwd(), runCollector = runStateChild, prepareCandidate = runCandidatePrerequisite } = {}) {
+  limit = 5, outDir = path.resolve('out', 'shadow'), cwd = process.cwd(), maintenanceRequestJson,
+  runCollector = runStateChild, prepareCandidate = runCandidatePrerequisite } = {}) {
   const renewals = selectActiveResearchRenewals({lifecycle, states, renewActiveStates, eventName: env.GITHUB_EVENT_NAME,
     researchSourceForState, productionAllowed: (state, config) => (['WA','NM'].includes(state)
       ? westernGroceryPromotionAllowed : centralCityHiveProductionAllowed)(state, config, {env})});
@@ -318,6 +353,11 @@ export async function runExpansionShadow({ lifecycle, states = [], renewActiveSt
   // Validate the entire explicit batch before a sibling prerequisite or HTTP.
   validateShadowRunRequest(lifecycle, {requestedStates: states, candidates});
   for (const state of renewals) await assertActiveRenewalIncidentSafety(state, {out: path.join(cwd, 'out')});
+  const maintenance = renewals.length ? await verifyActiveRenewalMaintenance({env, requestJson: maintenanceRequestJson}) : null;
+  if (maintenance) {
+    await mkdir(outDir, {recursive: true});
+    await writeFile(path.join(outDir, 'active-renewal-maintenance.json'), JSON.stringify(maintenance, null, 2));
+  }
   const runId = new Date().toISOString().replace(/[:.]/g, '-');
   const results = [];
   for (const state of candidates) {
@@ -331,6 +371,7 @@ export async function runExpansionShadow({ lifecycle, states = [], renewActiveSt
       ? parsedReport
       : { state, status: 'failed_shadow_collection', startedAt: null, finishedAt: null, signals: [], sources: [], sourceResults: [], roadblocks: [{ state, error: execution.error || 'missing_or_invalid_shadow_report' }] };
     if (renewals.includes(state) && isValidShadowReport(state, report)) report = suppressActiveRenewalReport(state, report);
+    if (renewals.includes(state) && report.metadata?.manualActiveRenewal) report.metadata.manualActiveRenewal.batchMaintenance = maintenance;
     await writeFile(reportFile, JSON.stringify(report, null, 2));
     const evidence = buildShadowEvidence(state, report);
     evidence.prerequisite = {
@@ -362,6 +403,7 @@ export async function runExpansionShadow({ lifecycle, states = [], renewActiveSt
     schemaVersion: 1,
     mode: 'shadow',
     manualActiveRenewalStates: renewals,
+    maintenance,
     runId,
     generatedAt: new Date().toISOString(),
     candidates,

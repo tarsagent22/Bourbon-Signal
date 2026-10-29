@@ -9,7 +9,7 @@ import {westernGroceryPromotionAllowed} from '../src/collectors/western-grocery-
 import {centralCityHiveProductionAllowed} from '../src/collectors/central-cityhive-production.mjs';
 import {selectActiveResearchRenewals, suppressActiveRenewalReport, isActiveRenewalResearchInventory} from '../src/active-research-renewal.mjs';
 import {runExpansionShadow, selectShadowCandidates, classifyShadowReadiness, assertActiveRenewalIncidentSafety,
-  createActiveRenewalFetch} from '../src/run-expansion-shadow.mjs';
+  createActiveRenewalFetch, verifyActiveRenewalMaintenance} from '../src/run-expansion-shadow.mjs';
 import {buildStateCanaryPreview} from '../src/build-state-canary-preview.mjs';
 import {persistCityHiveIncidentJournal} from '../src/collectors/central-cityhive-transport.mjs';
 import {BourbonBible} from '../src/core/bible.mjs';
@@ -22,6 +22,12 @@ const all = [...four, 'LA', 'AK', 'MA', 'CT', 'RI'];
 const lifecycle = () => {const config=structuredClone(STATE_LIFECYCLE_CONFIG),pending=['LA','AK','MA','CT','RI'];config.activeStates=config.activeStates.filter(state=>!pending.includes(state));for(const state of pending)if(config.states[state])config.states[state].publicStatus='research_only';return withResearchLifecycle(config);};
 const authority = (state, config) => (['WA', 'NM'].includes(state) ? westernGroceryPromotionAllowed : centralCityHiveProductionAllowed)(state, config, {env: {}});
 const directory = () => mkdtemp(path.join(tmpdir(), 'bs-active-research-renewal-'));
+// Offline GitHub API schema fixtures only, never workflow maintenance evidence.
+const manualEnv = {GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_ACTIONS: 'true', GITHUB_RUN_ID: '123',
+  GITHUB_REPOSITORY: 'tarsagent22/Bourbon-Signal'};
+const maintenanceFixture = async route => route === 'workflows/refresh-feed.yml'
+  ? {id: 311991230, path: '.github/workflows/refresh-feed.yml', state: 'disabled_manually'}
+  : {total_count: 0, workflow_runs: []};
 
 test('actual admitted four retain production authority but remain excluded from ordinary shadow selection', () => {
   const config = lifecycle(), before = JSON.stringify(config);
@@ -67,7 +73,7 @@ test('all-nine manual research routes only the four admitted states through rene
   const root = await directory(), calls = [], observedAt = new Date().toISOString();
   try {
     const summary = await runExpansionShadow({lifecycle: lifecycle(), states: all, renewActiveStates: four, limit: 9,
-      env: {GITHUB_EVENT_NAME: 'workflow_dispatch'}, cwd: root, outDir: path.join(root, 'shadow'),
+      env: manualEnv, maintenanceRequestJson: maintenanceFixture, cwd: root, outDir: path.join(root, 'shadow'),
       runCollector: async (state, file, _cwd, options) => {
         calls.push([state, options.renewal]);
         await writeFile(file, JSON.stringify({state, strategy: 'retailer_store_inventory', status: 'no_trusted_inventory',
@@ -137,14 +143,15 @@ test('native header-first denial survives parent abort, honors longer Retry-Afte
   const out = await directory(), originalFetch = globalThis.fetch, controller = new AbortController(); let calls = 0;
   try {
     globalThis.fetch = async () => {calls++; controller.abort(); return new Response('', {status: 429, headers: {'retry-after': String(3 * 86400)}});};
-    const fetchText = await createActiveRenewalFetch('WA', {out});
+    const maintenance = await verifyActiveRenewalMaintenance({env: manualEnv, requestJson: maintenanceFixture});
+    const fetchText = await createActiveRenewalFetch('WA', {out, maintenance});
     const response = await fetchText('https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=98101&radius=50&size=100', {signal: controller.signal});
     assert.equal(response.status, 429); assert.equal(calls, 1);
     const journal = JSON.parse(await readFile(path.join(out, 'research-source-attempts/active-renewal-journals/WA.json'), 'utf8'));
     assert.equal(journal.inFlight, null);
     assert.ok(Date.parse(journal.hosts['www.safeway.com'].nextAllowedAt) - Date.parse(journal.hosts['www.safeway.com'].lastAttemptAt) >= 3 * 86400_000);
     assert.equal(JSON.stringify(journal).includes('signals'), false);
-    await assert.rejects(() => createActiveRenewalFetch('WA', {out}), /review/);
+    await assert.rejects(() => createActiveRenewalFetch('WA', {out, maintenance}), /review/);
     assert.equal(calls, 1);
   } finally { globalThis.fetch = originalFetch; await rm(out, {recursive: true, force: true}); }
 });
@@ -152,13 +159,14 @@ test('native header-first denial survives parent abort, honors longer Retry-Afte
 test('denial journal write failure preserves observed HTTP status and unresolved durable latch without stock', async () => {
   const out = await directory(); let calls = 0;
   try {
-    const fetchText = await createActiveRenewalFetch('NM', {out,
+    const maintenance = await verifyActiveRenewalMaintenance({env: manualEnv, requestJson: maintenanceFixture});
+    const fetchText = await createActiveRenewalFetch('NM', {out, maintenance,
       fetchText: async (_url, options) => {calls++; await options.onResponse({status: 403, retryAfterSeconds: 172800}); throw Error('must not reach body');},
       persistJournal: (file, journal) => {if (Object.keys(journal.hosts).length) throw Object.assign(Error('synthetic rename failure'), {code: 'EIO'}); return persistCityHiveIncidentJournal(file, journal);}});
     await assert.rejects(() => fetchText('https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all'), error => error.status === 403);
     const journal = JSON.parse(await readFile(path.join(out, 'research-source-attempts/active-renewal-journals/NM.json'), 'utf8'));
     assert.ok(journal.inFlight); assert.deepEqual(journal.hosts, {}); assert.equal(JSON.stringify(journal).includes('signals'), false);
-    await assert.rejects(() => createActiveRenewalFetch('NM', {out}), /unresolved/i); assert.equal(calls, 1);
+    await assert.rejects(() => createActiveRenewalFetch('NM', {out, maintenance}), /unresolved/i); assert.equal(calls, 1);
   } finally { await rm(out, {recursive: true, force: true}); }
 });
 
@@ -166,7 +174,7 @@ test('a newly captured renewal denial stops the batch before the next shared-hos
   const root = await directory(), out = path.join(root, 'out'); let calls = 0;
   try {
     await assert.rejects(() => runExpansionShadow({lifecycle: lifecycle(), states: ['NM','WA'], renewActiveStates: ['NM','WA'], limit: 2,
-      env: {GITHUB_EVENT_NAME: 'workflow_dispatch'}, cwd: root, outDir: path.join(root, 'shadow'),
+      env: manualEnv, maintenanceRequestJson: maintenanceFixture, cwd: root, outDir: path.join(root, 'shadow'),
       runCollector: async (state, file) => {
         calls++; const clock = new Date().toISOString(), journal = path.join(out, 'research-source-attempts/active-renewal-journals', state + '.json');
         persistCityHiveIncidentJournal(journal, {schemaVersion: 1, state, inFlight: null, hosts: {'www.safeway.com': {
@@ -198,7 +206,7 @@ test('actual preview builder accepts already-active lifecycle without changing p
   } finally { await rm(root, {recursive: true, force: true}); }
 });
 
-test('workflow keeps default schedule, serializes renewal with production and parks HTTP until main-scope incident handoff exists', async () => {
+test('workflow keeps default schedule, serializes renewal with production and requires read-only maintenance authority', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/state-expansion-shadow.yml', import.meta.url), 'utf8');
   assert.match(workflow, /cron: "15 1,5,9,13,17,21 \* \* \*"/);
   assert.match(workflow, /MAX_LIMIT=5/); assert.match(workflow, /EVENT_NAME.*workflow_dispatch/);
@@ -210,5 +218,50 @@ test('workflow keeps default schedule, serializes renewal with production and pa
   assert.equal(workflow.includes('grocery-production-cache.json'), false);
   assert.match(workflow, /inputs\.renew_active_states == '' && \(inputs\.states == 'NJ,MI'/);
   assert.match(workflow, /inputs\.renew_active_states != '' && 'production-inventory-refresh' \|\| 'state-expansion-shadow'/);
-  assert.match(workflow, /Active research renewal is parked pending main-scope incident authority[^\n]*\n\s*exit 1/);
+  assert.match(workflow, /actions: read/); assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github.token \}\}/);
+  assert.match(workflow, /refresh-feed\.yml must be disabled_manually and idle/);
+  assert.equal(workflow.includes('gh workflow disable'), false); assert.equal(workflow.includes('gh workflow enable'), false);
+});
+
+test('actual maintenance verifier requires disabled_manually and zero every active queue before collection', async () => {
+  const routes = [], requestJson = async route => {routes.push(route); return maintenanceFixture(route);};
+  const proof = await verifyActiveRenewalMaintenance({env: manualEnv, requestJson});
+  assert.equal(proof.workflowState, 'disabled_manually'); assert.equal(proof.productionReenableAllowed, false);
+  assert.equal(proof.researchCachesVisibleToMain, false); assert.equal(proof.activeProductionRunCount, 0);
+  assert.equal(routes.length, 7);
+  for (const state of ['active','disabled_inactivity','disabled_fork',undefined]) {
+    await assert.rejects(() => verifyActiveRenewalMaintenance({env: manualEnv, requestJson: async route => route === 'workflows/refresh-feed.yml'
+      ? {id: 311991230, path: '.github/workflows/refresh-feed.yml', state} : maintenanceFixture(route)}), /disabled_manually/);
+  }
+  for (const status of ['queued','in_progress','requested','waiting','pending']) {
+    await assert.rejects(() => verifyActiveRenewalMaintenance({env: manualEnv, requestJson: async route => route.includes(`status=${status}&`)
+      ? {total_count: 1, workflow_runs: [{workflow_id: 311991230, status}]} : maintenanceFixture(route)}), /zero/);
+  }
+  await assert.rejects(() => verifyActiveRenewalMaintenance({env: manualEnv, requestJson: async route => route.endsWith('per_page=20')
+    ? {total_count: 1, workflow_runs: [{workflow_id: 311991230, status: 'future_unknown_status'}]} : maintenanceFixture(route)}), /Unknown or active/);
+  await assert.rejects(() => verifyActiveRenewalMaintenance({env: manualEnv, requestJson: async () => {throw Error('synthetic 403');}}), /403/);
+  for (const env of [{...manualEnv, GITHUB_EVENT_NAME: 'schedule'}, {...manualEnv, GITHUB_REPOSITORY: 'foreign/repo'},
+    {...manualEnv, GITHUB_ACTIONS: 'false'}, {...manualEnv, GITHUB_RUN_ID: ''}])
+    await assert.rejects(() => verifyActiveRenewalMaintenance({env, requestJson}), /actual manual/);
+});
+
+test('maintenance failure stops the complete nine-state batch before any prerequisite or source collector', async () => {
+  const root = await directory(); let calls = 0;
+  try {
+    for (const requestJson of [async () => {throw Error('synthetic GitHub unavailable');}, async route => route === 'workflows/refresh-feed.yml'
+      ? {id: 311991230, path: '.github/workflows/refresh-feed.yml', state: 'active'} : maintenanceFixture(route)]) {
+      await assert.rejects(() => runExpansionShadow({lifecycle: lifecycle(), states: all, renewActiveStates: four, limit: 9,
+        env: manualEnv, maintenanceRequestJson: requestJson, cwd: root, outDir: path.join(root, 'shadow'),
+        runCollector: async () => {calls++;}, prepareCandidate: async () => {calls++;}}));
+      assert.equal(calls, 0);
+    }
+  } finally {await rm(root, {recursive: true, force: true});}
+});
+
+test('direct renewal transport cannot replace a verified API maintenance observation with body flags', async () => {
+  let calls = 0;
+  for (const maintenance of [undefined, {workflowState: 'disabled_manually', activeProductionRunCount: 0, checkedAt: new Date().toISOString()}]) {
+    await assert.rejects(() => createActiveRenewalFetch('WA', {maintenance, fetchText: async () => {calls++;}}), /just-verified/);
+  }
+  assert.equal(calls, 0);
 });

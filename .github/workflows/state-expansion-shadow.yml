@@ -25,6 +25,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   collect-shadow-evidence:
@@ -42,6 +43,7 @@ jobs:
       BROWSER_HEADLESS: "1"
       BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
       BOURBON_SIGNAL_OR_BROWSER_PREREQUISITE_TIMEOUT_MS: "180000"
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
 
@@ -146,11 +148,9 @@ jobs:
               exit 1
             fi
             MAX_LIMIT=9
-            # Actions caches are ref-scoped. A research-ref incident save is
-            # not visible to main. Do not issue HTTP until a reviewed main-scope
-            # incident import/qualification protocol replaces this parked gate.
-            echo "Active research renewal is parked pending main-scope incident authority" >&2
-            exit 1
+            # Runtime reads GitHub's actual workflow state and queues before
+            # collection: refresh-feed.yml must be disabled_manually and idle.
+            # Root keeps it disabled until every research incident is reviewed.
           fi
           if [[ ! "$RAW_LIMIT" =~ ^[1-9]$ || "$RAW_LIMIT" -gt "$MAX_LIMIT" ]]; then
             echo "limit must be 1..5, or 1..9 for explicit manual active renewal" >&2
@@ -245,6 +245,8 @@ jobs:
             engine/out/research-source-attempts/grocery-NM.json
             engine/out/research-source-attempts/WI.json
             engine/out/research-source-attempts/OK.json
+            engine/out/research-source-attempts/louisiana-alaska-grocery-journals
+            engine/out/source-incidents
 
   collect-nj-mi-research:
     if: ${{ inputs.renew_active_states == '' && (inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI') }}
