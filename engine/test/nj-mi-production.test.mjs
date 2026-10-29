@@ -149,4 +149,3 @@ test('the native HTTP boundary journals denied headers and Retry-After before bo
     assert.equal(requests,1);
   }
 });
-

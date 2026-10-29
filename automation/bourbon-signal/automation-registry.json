@@ -897,7 +897,9 @@
       "killSwitch": "workflow_dispatch_only",
       "artifacts": [
         "engine/out/nj-mi-research",
-        "engine/out/research-source-attempts/nj-mi.json"
+        "engine/out/research-source-attempts/nj-mi-incidents.json",
+        "engine/out/library-catalog.json",
+        "engine/out/bourbon-bible.json"
       ],
       "delivery": "github_only"
     }

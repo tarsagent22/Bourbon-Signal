@@ -141,4 +141,3 @@ test('native NJ/MI research persists denied headers before aborted body reads an
   await assert.rejects(()=>collectNjMiResearchReport(njMiResearchSourceForState('NJ'),bible,{...options,fetchText:()=>{requests++;}}),/Unresolved NJ\/MI/);
   assert.equal(requests,1);
 });
-
