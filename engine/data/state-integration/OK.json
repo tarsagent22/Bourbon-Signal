@@ -20,8 +20,8 @@
   },
   "sourceSemantics": {
     "availability": "Binary retailer-published pickup availability. Positive options never create an exact shelf count; verify before driving.",
-    "inventoryAlertable": true,
-    "watchAlertable": true
+    "inventoryAlertable": false,
+    "watchAlertable": false
   },
   "customerPaths": {
     "stateFilter": {

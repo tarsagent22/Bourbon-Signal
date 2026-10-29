@@ -58,6 +58,36 @@ if (['WA', 'NM'].includes(state)) files.push(
   `engine/out/grocery-shadow-input/${state}/provenance.json`,
 );
 const fileDigests = {};
+if (['WI', 'OK'].includes(state)) files.push(
+  'engine/src/prepare-central-cityhive-canary.mjs',
+  'engine/src/research-cityhive-runtime.mjs',
+  'engine/src/research-state-registry.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/src/collectors/central-cityhive-premises.mjs',
+  'engine/src/collectors/cityhive-surfaces.mjs',
+  'engine/src/collectors/safe-bottle-match.mjs',
+  'engine/src/collectors/central-cityhive-market-policy.mjs',
+  'engine/src/central-cityhive-policy.mjs',
+  'engine/src/central-cityhive-fixtures.mjs',
+  'engine/src/operational-report.mjs',
+  'engine/src/verify-state-fixtures.mjs',
+  'engine/out/library-catalog.json',
+  'engine/out/bourbon-bible.json',
+  'src/lib/drop-feed-visibility.ts',
+  'src/lib/public-drop-evidence.ts',
+  'src/lib/site-engine-contract.ts',
+  'src/lib/sighting-store-directory.ts',
+  'src/app/api/coverage/route.ts',
+  'src/app/api/stores/route.ts',
+  'src/app/api/locations/route.ts',
+  'next.config.ts',
+  'scripts/download-cityhive-shadow.mjs',
+  'scripts/test-central-cityhive-public-canary.mjs',
+  '.github/workflows/state-expansion-canary.yml',
+  '.github/workflows/state-promotion-provenance.yml',
+  `engine/out/cityhive-shadow-input/${state}/provenance.json`,
+  `engine/out/canary/${state}/public-projection.json`,
+);
 for (const file of files) {
   const content = await readFile(path.join(root, file));
   fileDigests[file] = createHash('sha256').update(content).digest('hex');

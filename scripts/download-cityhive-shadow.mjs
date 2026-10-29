@@ -11,6 +11,8 @@ const preparationOnly=file=>[
   'engine/test/central-cityhive-canary.test.mjs','scripts/test-cityhive-shadow-download.mjs',
   'scripts/test-central-cityhive-public-canary.mjs','scripts/build-promotion-provenance.mjs',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
+  'scripts/download-grocery-shadow.mjs','docs/operations/grocery-state-promotion.md',
+  'scripts/test-central-cityhive-canary-workflow.mjs',
 ].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WI|OK)\.json$/.test(file);
 
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
