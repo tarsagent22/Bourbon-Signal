@@ -36,11 +36,12 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
+  'engine/src/nj-mi-research-policy.mjs',
   'engine/src/collectors/optional-source-suspensions.mjs',
   'engine/data/source-evidence/optional-suspensions-20261029/policy.json',
   'engine/src/stale-signal-policy.mjs',
@@ -104,6 +105,43 @@ if (['WA', 'NM'].includes(state)) files.push(
   `engine/out/grocery-shadow-input/${state}/provenance.json`,
 );
 const fileDigests = {};
+if (['NJ','MI'].includes(state)) files.push(
+  'engine/src/prepare-nj-mi-canary.mjs',
+  'engine/src/nj-mi-research-runtime.mjs',
+  'engine/src/nj-mi-research-journal.mjs',
+  'engine/src/nj-mi-research-fixtures.mjs',
+  'engine/src/nj-mi-production-config.mjs',
+  'engine/src/collectors/nj-mi-candidate-inventory.mjs',
+  'engine/src/collectors/nj-mi-cityhive-production.mjs',
+  'engine/src/collectors/nj-mi-research-premises.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/src/collectors/central-cityhive-premises.mjs',
+  'engine/src/collectors/cityhive-surfaces.mjs',
+  'engine/src/collectors/safe-bottle-match.mjs',
+  'engine/src/collectors/central-cityhive-market-policy.mjs',
+  'engine/data/additional-cityhive-expansion-sources.json',
+  'engine/src/research-state-registry.mjs',
+  'engine/src/operational-report.mjs',
+  'engine/src/verify-state-fixtures.mjs',
+  'src/config/stateLifecycle.ts',
+  'src/lib/drop-feed-visibility.ts',
+  'src/lib/public-drop-evidence.ts',
+  'src/lib/site-engine-contract.ts',
+  'src/lib/sighting-store-directory.ts',
+  'src/app/api/coverage/route.ts',
+  'src/app/api/stores/route.ts',
+  'src/app/api/locations/route.ts',
+  'next.config.ts',
+  'scripts/download-njmi-shadow.mjs',
+  'scripts/test-nj-mi-public-canary.mjs',
+  'scripts/test-nj-mi-production-path.mts',
+  'scripts/run-nj-mi-research-pass.mjs',
+  '.github/workflows/nj-mi-research-preflight.yml',
+  '.github/workflows/state-expansion-canary.yml',
+  '.github/workflows/state-promotion-provenance.yml',
+  `engine/out/njmi-shadow-input/${state}/provenance.json`,
+  `engine/out/canary/${state}/public-projection.json`,
+);
 if (['WI', 'OK'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',

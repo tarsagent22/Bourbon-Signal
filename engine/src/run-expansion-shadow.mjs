@@ -5,6 +5,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { withResearchLifecycle } from './research-state-registry.mjs';
 import {isCentralCityHiveResearchInventory} from './central-cityhive-policy.mjs';
+import {isNjMiResearchSourceInventory} from './nj-mi-research-policy.mjs';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -51,7 +52,7 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
   const nowMs = Date.parse(String(now || ''));
   return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
     || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
-      &&report.metadata.customerDeliveryAllowed===false&&isCentralCityHiveResearchInventory(row,{nowMs}))
+      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
     && String(row?.storeId ?? '').trim()

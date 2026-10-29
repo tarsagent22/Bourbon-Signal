@@ -24,6 +24,7 @@ permissions:
 
 jobs:
   collect-shadow-evidence:
+    if: ${{ inputs.states != 'NJ,MI' && inputs.states != 'NJ' && inputs.states != 'MI' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -56,6 +57,14 @@ jobs:
             engine/out/cache/library-search
           key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: research-shadow-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Restore NJ MI host incidents for every shadow selection path
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/research-source-attempts/nj-mi-incidents.json
+          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            nj-mi-research-incidents-${{ runner.os }}-
 
       - name: Refresh full current app catalog
         working-directory: engine
@@ -99,6 +108,13 @@ jobs:
             engine/out/cache/library-search
           key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
+      - name: Save NJ MI host incidents for every shadow selection path
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/research-source-attempts/nj-mi-incidents.json
+          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Preserve isolated shadow evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -107,3 +123,9 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
           path: engine/out/shadow
+
+  collect-nj-mi-research:
+    if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI' }}
+    uses: ./.github/workflows/nj-mi-research-preflight.yml
+    with:
+      states: ${{ inputs.states }}

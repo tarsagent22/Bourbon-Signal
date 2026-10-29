@@ -35,7 +35,7 @@ export function isNjMiRetailerEvent(row){return ['NJ','MI'].includes(row?.state)
 export function isNjMiResearchSourceInventory(row,options={}){
   return isNjMiResearchInventory(row,options)&&!Object.hasOwn(row,'previewOnly')
     &&row.raw?.shadowOnly===true&&row.sourceProductBinding.shadowOnly===true
-    &&row.sourceRuntimeId?.startsWith(`research:${row.state.toLowerCase()}:`)
+    &&row.sourceRuntimeId===`research:${row.state.toLowerCase()}:${row.sourceChain}`
     &&row.sourceProductBinding.productionOnSiteOnly!==true&&!row.sourceProductBinding.productionCohortSha256
     &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.alertable===false
     &&row.eligibleForOnSite===false&&row.eligibleForDropFeed===false&&row.eligibleForWatch===false

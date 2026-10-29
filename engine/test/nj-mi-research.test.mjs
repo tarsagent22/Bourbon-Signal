@@ -115,7 +115,8 @@ test('hosted workflow always persists its incident-only file and synchronizes th
   const commonSteps=common.split(/\r?\n {6}- /);
   assert.ok(commonSteps.some(step=>step.includes('actions/cache/restore@v4')&&step.includes(file)));
   assert.ok(commonSteps.some(step=>step.includes('actions/cache/save@v4')&&step.includes(file)&&step.includes('if: always()')));
-  assert.ok(common.includes('src/sync-library-catalog.mjs && npm run bible'));
+  const syncStep=common.indexOf('run: npm run sync:library'),bibleStep=common.indexOf('run: npm run bible');
+  assert.ok(syncStep>=0&&bibleStep>syncStep,'the current catalog must be synchronized before the shared Bible build');
 });
 
 test('native NJ/MI research persists denied headers before aborted body reads and failed writes retain a durable latch',async t=>{
