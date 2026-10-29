@@ -1,4 +1,6 @@
+import {isNewEnglandProductionOnSiteSignal} from './new-england-policy.mjs';
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
+import {isLouisianaAlaskaGroceryInventory} from './louisiana-alaska-grocery-policy.mjs';
 import {isGroceryExpansionInventory} from './grocery-xapi-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { ncShipmentWatchEligible } from './nc-shipment-policy.mjs';
@@ -187,6 +189,7 @@ const COSTCO_WAREHOUSE_POLICY = {
 };
 
 function policyForSignal(signal, nowMs = Date.now()) {
+  if(isNewEnglandProductionOnSiteSignal(signal,{nowMs}))return{maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:'Reviewed exact-store pickup with explicit option restrictions and preorder exclusions. Binary availability is not a shelf count; verify before driving.',defaultCadence:'30m'};
   if(isCentralCityHiveProductionOnSiteSignal(signal,{nowMs})||isNjMiProductionOnSiteSignal(signal,{nowMs}))return{
     maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:'Reviewed exact-store pickup availability; binary availability is not an exact shelf count. Verify before driving.',defaultCadence:'30m'};
   if(isCentralCityHiveRetailerEvent(signal)&&isCentralCityHiveInventory(signal,{nowMs})) return {
@@ -194,6 +197,7 @@ function policyForSignal(signal, nowMs = Date.now()) {
     inventorySemantics:'Exact-premises first-party retailer pickup availability; binary availability is not an exact shelf count. Verify before driving.',
     defaultCadence:'30-60m',
   };
+  if (['LA', 'AK'].includes(signal.state) && isLouisianaAlaskaGroceryInventory(signal)) return {maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:signal.sourceProductBinding.inventorySemantics,defaultCadence:'30m'};
   if (['WA', 'NM'].includes(signal.state) && isGroceryExpansionInventory(signal)) return {maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:signal.sourceProductBinding.inventorySemantics,defaultCadence:'30m'};
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');

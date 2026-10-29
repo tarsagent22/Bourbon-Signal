@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "state": "RI",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "ri-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e"
+      },
+      "expected": {
+        "sourceRows": 2,
+        "inventoryProofRows": 2
+      }
+    },
+    {
+      "id": "ri-standard-negative",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-rtd",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "rawName": "Elijah Craig Barrel Proof Cocktail"
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-mini",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-binary",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "allNotificationsDisabled": true
+      }
+    },
+    {
+      "id": "ri-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-preserve-clock",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "ageMinutes": 5
+      },
+      "expected": {
+        "sourceRows": 2,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "ri-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "ageMinutes": 121
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-foreign-host",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-shipping-option",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-preorder",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "preorder": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-zero-stock",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+        "stock": 0
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ri-research-isolation",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "golds-wine:60e4de26cedf7461ed8e3c8e"
+      },
+      "expected": {
+        "sourceRows": 2,
+        "researchExportRows": 0,
+        "allNotificationsDisabled": true
+      }
+    }
+  ]
+}
