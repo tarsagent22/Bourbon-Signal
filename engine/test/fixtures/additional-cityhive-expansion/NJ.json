@@ -1,0 +1,113 @@
+{
+  "state": "NJ",
+  "merchantId": "5a77cf07f4a66176eb13a6d6",
+  "capturedAt": "2026-10-29T02:05:27.944Z",
+  "sourceUrl": "https://garyswine.com/shop/?ch-query=barrel%20proof&merchant-id=5a77cf07f4a66176eb13a6d6",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "5963aaf8155cb61a06cfe5de",
+        "name": "National Shipping Store",
+        "address": {
+          "full_address": "100 Morristown Rd, Bernardsville, NJ 07924, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -74.56383500000001,
+              40.7201875
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "5a77cf07f4a66176eb13a6d6",
+        "name": "Gary's Madison",
+        "address": {
+          "full_address": "121 Main St, Madison, NJ 07940, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -74.412853,
+              40.7571364
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "546ba8a93932330002a60000",
+        "name": "Gary's Bernardsville",
+        "address": {
+          "full_address": "100 Morristown Rd, Bernardsville, NJ 07924, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -74.56383500000001,
+              40.7201875
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "68dd38395502c95bfb2772e4",
+      "name": "Elijah Craig Barrel Proof Rye",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5a77cf07f4a66176eb13a6d6",
+          "full_address": "121 Main St, Madison, NJ 07940, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "68dd38395502c95bfb2772e4",
+              "option_id": "6f5c1f9332a70ee9e1e362504b391ca8fd36381d0c01071ab3e0863841763555",
+              "merchant_id": "5a77cf07f4a66176eb13a6d6",
+              "full_address": "121 Main St, Madison, NJ 07940, USA",
+              "product_url": "https://garyswine.com/shop/product/elijah-craig-barrel-proof-rye/68dd38395502c95bfb2772e4?option-id=6f5c1f9332a70ee9e1e362504b391ca8fd36381d0c01071ab3e0863841763555",
+              "quantity": 1,
+              "price": 81.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof Rye",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rye"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rye"
+                  ],
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "12"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

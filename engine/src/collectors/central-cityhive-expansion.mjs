@@ -5,6 +5,7 @@ import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
 import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
 import minnesotaExpansion from '../../data/minnesota-cityhive-expansion-sources.json' with {type:'json'};
 import midwestExpansion from '../../data/midwest-cityhive-expansion-sources.json' with {type:'json'};
+import additionalExpansion from '../../data/additional-cityhive-expansion-sources.json' with {type:'json'};
 
 function source(id, name, state, baseUrl, merchantId, address, city, zip) {
   return Object.freeze({id, name, state, stateCode:state, platform:'cityhive', baseUrl,
@@ -26,7 +27,8 @@ export const CENTRAL_CITYHIVE_EXPANSION_SOURCES = Object.freeze([
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
 export const MINNESOTA_CITYHIVE_EXPANSION_SOURCES=Object.freeze(minnesotaExpansion.stores.map(Object.freeze));
 export const MIDWEST_CITYHIVE_EXPANSION_SOURCES=Object.freeze(midwestExpansion.stores.map(Object.freeze));
-const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES]);
+export const ADDITIONAL_CITYHIVE_EXPANSION_SOURCES=Object.freeze(additionalExpansion.stores.map(Object.freeze));
+const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES]);
 
 export function centralCityHiveBottleFormat(option, product) {
   const data=option.option_display_data || option.optionDisplayData || {};
@@ -100,13 +102,13 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now()}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts};
-  const perStore=['TX','MN','MO','IL'].includes(config.id);
+  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA'].includes(config.id);
   const groups=Map.groupBy(ALL_SOURCES.filter(s=>s.state===config.id),s=>perStore?s.id:s.chainId||s.id);
   for(const [groupId,sources] of groups){
     const source=sources[0];
     if(Date.parse(attempts[groupId]?.nextAllowedAt || '')>nowMs || Date.parse(sourceAttempts[source.hostname]?.nextAllowedAt||'')>nowMs)continue;
     const terms=await librarySourceSearchTerms(bible,{sourceKey:`${config.id}:${groupId}`,budget:perStore?2:4,
-      priorityTerms:perStore?['barrel proof']:config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'],broadTerms:[],cursorDir});
+      priorityTerms:perStore?[source.prioritySearchTerm||'barrel proof']:config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'],broadTerms:[],cursorDir});
     const queryUrls=terms.map(term=>source.baseUrl+'/shop/?ch-query='+encodeURIComponent(term)+'&merchant-id='+source.merchantId);
     const urls=perStore?queryUrls:[source.categoryUrl,...queryUrls];
     const seen=new Set();let denied=false;

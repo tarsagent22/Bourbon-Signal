@@ -1,0 +1,83 @@
+{
+  "state": "MI",
+  "merchantId": "61425fe1c3063702b3ce0d4e",
+  "capturedAt": "2026-10-29T02:04:59.950Z",
+  "sourceUrl": "https://thewinegardenco.com/shop/?ch-query=barrel%20proof&merchant-id=61425fe1c3063702b3ce0d4e",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "61425fe1c3063702b3ce0d4e",
+        "name": "The Wine Garden Saint Clair Shores",
+        "address": {
+          "full_address": "22425 Harper, St Clair Shores, MI 48080, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -82.9102757,
+              42.461744
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "61425fe1c3063702b3ce0d4e",
+          "full_address": "22425 Harper, St Clair Shores, MI 48080, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "61425fe1c3063702b3ce0d4e",
+              "full_address": "22425 Harper, St Clair Shores, MI 48080, USA",
+              "product_url": "https://thewinegardenco.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 14,
+              "price": 64.79,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
