@@ -17,7 +17,9 @@ import {NEW_MEXICO_GROCERY_SOURCES} from '../src/collectors/new-mexico-grocery-p
 import {parseGroceryExpansionInventory} from '../src/collectors/grocery-xapi-expansion.mjs';
 const four = ['WA', 'NM', 'WI', 'OK'];
 const all = [...four, 'LA', 'AK', 'MA', 'CT', 'RI'];
-const lifecycle = () => withResearchLifecycle(structuredClone(STATE_LIFECYCLE_CONFIG));
+// Qualification occurs before the five new states are admitted; preserve that
+// explicit fixture context even when the suite rehearses an active33 lifecycle.
+const lifecycle = () => {const config=structuredClone(STATE_LIFECYCLE_CONFIG),pending=['LA','AK','MA','CT','RI'];config.activeStates=config.activeStates.filter(state=>!pending.includes(state));for(const state of pending)if(config.states[state])config.states[state].publicStatus='research_only';return withResearchLifecycle(config);};
 const authority = (state, config) => (['WA', 'NM'].includes(state) ? westernGroceryPromotionAllowed : centralCityHiveProductionAllowed)(state, config, {env: {}});
 const directory = () => mkdtemp(path.join(tmpdir(), 'bs-active-research-renewal-'));
 
