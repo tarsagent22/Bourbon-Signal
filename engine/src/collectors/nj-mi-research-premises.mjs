@@ -3,6 +3,13 @@ import shopify from '../../data/independent-shopify-pickup-sources.json' with {t
 
 const freeze=value=>{if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
 export const NJ_MI_CITYHIVE_PREMISES=freeze(additional.stores.filter(row=>['NJ','MI'].includes(row.state)));
+export const NJ_MI_CANDIDATE_STORE_IDS=Object.freeze([
+  'garys-wine:5a77cf07f4a66176eb13a6d6','garys-wine:546ba8a93932330002a60000',
+  'buy-rite:546baa333932330002bc0100','buy-rite:6671d4d62e48272941d55a75',
+  'wine-garden:61425fe1c3063702b3ce0d4e',
+]);
+export const NJ_MI_CANDIDATE_PREMISES=Object.freeze(NJ_MI_CITYHIVE_PREMISES.filter(row=>NJ_MI_CANDIDATE_STORE_IDS.includes(row.storeId)));
+export const NJ_MI_PARKED_DISCOVERY_PREMISES=Object.freeze(NJ_MI_CITYHIVE_PREMISES.filter(row=>!NJ_MI_CANDIDATE_STORE_IDS.includes(row.storeId)));
 export const MI_WINE_PALACE=freeze(shopify.sources.find(row=>row.id==='wine-palace-livonia'));
 export const NJ_MI_RESEARCH_NAMES=Object.freeze({NJ:'New Jersey',MI:'Michigan'});
 

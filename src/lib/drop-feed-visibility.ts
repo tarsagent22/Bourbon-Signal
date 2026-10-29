@@ -1,4 +1,5 @@
 import { isCentralCityHiveCanaryOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
+import { isNjMiCanaryOnSiteSignal } from '../../engine/src/nj-mi-research-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
   ["retailer:ms:cityhive:68ba2980113a7a29c2076fc3", "029254"],
   ["retailer:ms:moonshine:323", "044411"],
@@ -151,6 +152,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && !canAlert;
 
   if (['WI','OK'].includes(state) && drop.previewOnly === true) return isCentralCityHiveCanaryOnSiteSignal(drop);
+  if (['NJ','MI'].includes(state) && drop.previewOnly === true) return isNjMiCanaryOnSiteSignal(drop);
   if (!type) return false;
   if (type === "wv_abca_retailer_recent_purchase_window") return isWestVirginiaRecentPurchase;
   if (isWestVirginiaOfficialBarrelSelection) return true;

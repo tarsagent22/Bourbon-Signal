@@ -5,7 +5,7 @@ import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {BourbonBible} from '../src/core/bible.mjs';
-import {collectNjMiResearchReport,njMiResearchSourceForState} from '../src/nj-mi-research-runtime.mjs';
+import {collectNjMiResearchReport,njMiResearchSourceForState,collectNjMiDiscoveryReport,njMiDiscoverySourceForState} from '../src/nj-mi-research-runtime.mjs';
 import {withCollectionContext} from '../src/core/collection-context.mjs';
 import {researchSourceForState,withResearchLifecycle} from '../src/research-state-registry.mjs';
 import {confidenceForSignal} from '../src/confidence-policy.mjs';
@@ -34,6 +34,8 @@ test('NJ/MI research registration cannot activate customer states or alert polic
     assert.equal(researchSourceForState(state,{shadowMode:false}),null);
     assert.equal(researchSourceForState(state,{shadowMode:true}),njMiResearchSourceForState(state));
     assert.equal(isActiveCustomerStateRow({state}),false);
+    assert.equal(njMiResearchSourceForState(state).sources.length,state==='NJ'?4:1);
+    assert.equal(njMiDiscoverySourceForState(state).sources.length,state==='NJ'?5:10);
   }
 });
 
@@ -57,8 +59,8 @@ test('zero strict value parks remaining premises on the same host and survives a
   const collect=()=>collectNjMiResearchReport(njMiResearchSourceForState('NJ'),bible,{...options,fetchText:async url=>{
     seen.push(new URL(url).hostname);return{url,ok:true,status:200,text:'<html>No products</html>'};
   }});
-  const result=await collect();assert.equal(result.signals.length,0);assert.equal(seen.length,4);
-  assert.equal(new Set(seen).size,4);await collect();assert.equal(seen.length,4);
+  const result=await collect();assert.equal(result.signals.length,0);assert.equal(seen.length,3);
+  assert.equal(new Set(seen).size,3);await collect();assert.equal(seen.length,3);
 });
 
 test('malformed existing journal fails closed before retailer HTTP and remains unchanged',async t=>{
@@ -69,7 +71,7 @@ test('malformed existing journal fails closed before retailer HTTP and remains u
 
 test('MI native exact Blanton variant is an independent fallback with portable hashed receipts and inactive projection',async t=>{
   const options=await setup(t),urls=[];
-  const result=await collectNjMiResearchReport(njMiResearchSourceForState('MI'),bible,{...options,fetchText:async url=>{
+  const result=await collectNjMiDiscoveryReport(njMiDiscoverySourceForState('MI'),bible,{...options,fetchText:async url=>{
     urls.push(url);return native.has(url)?{url,ok:true,status:200,text:native.get(url)}:{url,ok:false,status:403,text:''};
   }});
   assert.equal(result.signals.length,1);assert.equal(result.signals[0].canonicalName,"Blanton's Original Single Barrel");

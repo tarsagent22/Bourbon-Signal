@@ -34,6 +34,7 @@ const canaryTracing: Record<string, string[]> = process.env.BOURBON_SIGNAL_CANAR
   "/api/coverage": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
   "/coverage": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
   "/api/locations": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
+  "/api/stores": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
   "/api/stats": canaryTraceFiles(["stats", "bottles", "stores", "drops"]),
   "/api/drops": [...canaryTraceFiles(["manifest", "stats", "drops", "state-health"]), "./canary-site-export/states/**/*.json"],
 } : {};

@@ -1,12 +1,8 @@
-import {NJ_MI_CITYHIVE_PREMISES} from './collectors/nj-mi-research-premises.mjs';
+import {NJ_MI_CITYHIVE_PREMISES,NJ_MI_CANDIDATE_STORE_IDS} from './collectors/nj-mi-research-premises.mjs';
 
 // Exactly the five premises with positive current first-party rows in immutable
 // hosted run40895908381. Other reviewed candidates receive no customer admission.
-export const NJ_MI_POSITIVE_RESEARCH_PREMISES=new Set([
-  'garys-wine:5a77cf07f4a66176eb13a6d6','garys-wine:546ba8a93932330002a60000',
-  'buy-rite:546baa333932330002bc0100','buy-rite:6671d4d62e48272941d55a75',
-  'wine-garden:61425fe1c3063702b3ce0d4e',
-]);
+export const NJ_MI_POSITIVE_RESEARCH_PREMISES=new Set(NJ_MI_CANDIDATE_STORE_IDS);
 export function isNjMiResearchInventory(row,{nowMs=Date.now()}={}){
   const source=NJ_MI_CITYHIVE_PREMISES.find(source=>source.storeId===row?.storeId&&source.state===row?.state);
   const p=row?.sourceProductBinding,age=nowMs-Date.parse(row?.observedAt||'');
