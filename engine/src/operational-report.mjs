@@ -192,8 +192,8 @@ export function canonicalizeSignal(signal, bible) {
         ? signal.inventorySemantics
         : policy.inventorySemantics,
     locationValue: policy.locationValue,
-    canAlertAsInventory: sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,
-    canAlertAsWatch: sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,
+    canAlertAsInventory: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,
+    canAlertAsWatch: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,
     archivedSourceAlertBlocked: sourceAlertPolicy.raw?.archivedSourceAlertBlocked === true,
     sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal),
     staleSourceCaveat: signal.staleSourceCaveat || (virginiaInventoryExpired(signal) ? 'Virginia ABC inventory is older than the 24-hour live-inventory window; verify with the store.' : null),

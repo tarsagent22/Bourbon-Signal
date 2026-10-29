@@ -65,6 +65,9 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // its parent expires, including a slow storefront sibling.
   NV: Number(process.env.BOURBON_SIGNAL_NV_STATE_TIMEOUT_MS || 720_000),
   CA: Number(process.env.BOURBON_SIGNAL_CA_STATE_TIMEOUT_MS || 720_000),
+  // Closed grocery children are bounded at600s/180s; keep parent cleanup room.
+  WA: Number(process.env.BOURBON_SIGNAL_WA_STATE_TIMEOUT_MS || 720_000),
+  NM: Number(process.env.BOURBON_SIGNAL_NM_STATE_TIMEOUT_MS || 300_000),
   // NC board intelligence + county inventory probes can cross the generic
   // timeout during normal successful runs. Give it the same scheduled-run
   // budget as other broad inventory states so stale fallback only indicates a

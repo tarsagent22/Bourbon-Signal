@@ -68,7 +68,9 @@ export const STATE_LIFECYCLE_CONFIG = {
       "IN": 240000,
       "TN": 180000,
       "SC": 180000,
-      "KY": 180000
+      "KY": 180000,
+      "WA": 720000,
+      "NM": 300000
     }
   },
   "states": {
@@ -919,15 +921,15 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "WA": {
       "customerLabel": "Washington",
-      "sourceLabel": "Washington Costco warehouse bourbon watch",
+      "sourceLabel": "Washington reviewed exact-store grocery inventory",
       "publicStatus": "research_only",
       "shadowEligible": true,
-      "lifecycle": "blocked_costco_inventory_research",
-      "coverageTier": "blocked",
-      "refinementLevel": "warehouse",
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
       "inventoryAlertable": false,
       "watchAlertable": false,
-      "customerSummary": "Research-only: Washington has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+      "customerSummary": "Research preparation only. Current first-party store observations require a separate verified promotion before customer coverage can activate."
     },
     "WI": {
       "customerLabel": "Wisconsin",
@@ -940,6 +942,18 @@ export const STATE_LIFECYCLE_CONFIG = {
       "inventoryAlertable": false,
       "watchAlertable": false,
       "customerSummary": "Research-only: Wisconsin has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+    },
+    "NM": {
+      "customerLabel": "New Mexico",
+      "sourceLabel": "New Mexico reviewed exact-store grocery inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research preparation only. Current first-party store observations require a separate verified promotion before customer coverage can activate."
     }
   }
 } as const;

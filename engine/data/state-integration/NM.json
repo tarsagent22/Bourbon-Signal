@@ -9,9 +9,10 @@
   },
   "collector": {
     "sourceIds": [
-      "research:nm:grocery-xapi"
+      "nm:grocery-xapi"
     ],
-    "registration": "Closed first-party grocery registry is reachable only through isolated research. Authoritative production lifecycle and collection remain unchanged."
+    "cohortSha256": "b6db60bccc43452bc5293f272755cbaf8a0c50cf37866dad43ef5f610b3db95d",
+    "registration": "Closed production grocery adapter is registered but makes zero requests until the authoritative lifecycle and immutable promotion evidence both admit this exact cohort. Initial output is on-site only; all alerts stay disabled."
   },
   "storeIdentity": {
     "mode": "exact_resolver_banner_domain_store_and_premises",

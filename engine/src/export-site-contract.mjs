@@ -508,8 +508,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
             : signal.state === 'SC'
               ? Boolean(signal.canAlertAsWatch) && (!isScRetailerEvent || isScRetailerInventory)
               : Boolean(signal.canAlertAsWatch));
-  const canAlertAsInventory = bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
-  const canAlertAsWatch = bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
+  const canAlertAsInventory = !isGroceryOnSiteInventory && bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
+  const canAlertAsWatch = !isGroceryOnSiteInventory && bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
     : isMsSparseOnSiteInventory || isGroceryOnSiteInventory
@@ -645,16 +645,16 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isMsSparseOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: isGroceryOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isMsSparseOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
-    alertable: staleFallback ? false : undefined,
+    alertable: isGroceryOnSiteInventory || staleFallback ? false : undefined,
     eligibleForOnSite: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
     eligibleForDropFeed: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
-    eligibleForWatch: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
-    eligibleForDelivery: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
-    eligibleForEmail: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
-    eligibleForSms: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForWatch: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
+    eligibleForDelivery: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
+    eligibleForEmail: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForSms: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
     raw: staleFallback ? {
       lastKnownAvailabilityStatus: signal.raw?.lastKnownAvailabilityStatus || null,
       lastKnownAvailabilityLabel: signal.raw?.lastKnownAvailabilityLabel || null,
@@ -683,7 +683,11 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     dataLane,
     informationalOnly: dataLane === 'informational',
     availabilityScope: isNcBoardShipment ? 'board' : undefined,
-    inventoryCaveat: isCostcoWarehouseInventory
+    inventoryCaveat: isGroceryOnSiteInventory
+      ? (signal.quantityIsExact === true
+        ? 'The retailer reports this in-store quantity. Availability can change; confirm before driving.'
+        : 'The retailer reports in-store availability. An exact shelf count is not published; confirm before driving.')
+      : isCostcoWarehouseInventory
       ? 'Costco warehouse signal. Fast-moving bottles can disappear quickly; verify with the warehouse/app before driving.'
       : isNcBoardShipment
         ? 'Official NC ABC board shipment. Units were shipped to the named local board; this does not prove an exact store, shelf quantity, or current availability.'
@@ -1073,7 +1077,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
-  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal)));
+  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)));
   const sameStore = (left, right) => {
     if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);
     return left.state === right.state

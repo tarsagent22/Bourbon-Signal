@@ -1,3 +1,4 @@
+import {WESTERN_GROCERY_PRODUCTION_CONFIGS,WESTERN_GROCERY_PRODUCTION_STATES} from './western-grocery-production-config.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { costcoSourceForState } from './costco-eligibility.mjs';
 import { GEORGIA_CITYHIVE_SOURCES, GEORGIA_GOTOLIQUOR_STORES, GEORGIA_LIGHTSPEED_STORES } from './collectors/georgia-retailer-surfaces.mjs';
@@ -468,13 +469,7 @@ const BASE_STATE_SOURCES = [
     ],
     apiCandidates: []
   },
-  {
-    id: 'WA', label: 'Washington Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
-    value: 'Costco-only expansion state. Washington is a high-signal Costco spirits market and should be monitored through warehouse/app observations.',
-    rareSignalTarget: false,
-    sources: [],
-    apiCandidates: []
-  },
+  ...WESTERN_GROCERY_PRODUCTION_CONFIGS,
   ...CENTRAL_CITYHIVE_STATE_CONFIGS,
   {
     id: 'GA', label: 'Georgia retailer inventory + Costco warehouse watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
@@ -508,7 +503,7 @@ const BASE_STATE_SOURCES = [
 ];
 
 export const ALL_STATE_SOURCES = BASE_STATE_SOURCES.map((source) => {
-  const costcoSource = costcoSourceForState(source.id);
+  const costcoSource = WESTERN_GROCERY_PRODUCTION_STATES.includes(source.id) ? null : costcoSourceForState(source.id);
   return costcoSource ? { ...source, sources: [...source.sources, costcoSource] } : source;
 });
 

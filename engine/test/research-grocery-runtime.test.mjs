@@ -17,6 +17,9 @@ test('grocery registration is shadow-only and its lifecycle overlay never activa
   assert.equal(researchSourceForState('WA',{shadowMode:false}),null);
   assert.equal(researchSourceForState('NM',{shadowMode:true}),config);
   const production=JSON.parse(await readFile(new URL('../../src/config/state-lifecycle.json',import.meta.url)));
+  // Exercise the inactive overlay contract independently of later real promotion.
+  production.activeStates=production.activeStates.filter(state=>!['WA','NM'].includes(state));
+  for(const state of ['WA','NM'])production.states[state]={...production.states[state],publicStatus:'research_only'};
   const before=JSON.stringify(production),overlay=withResearchLifecycle(production);
   assert.equal(JSON.stringify(production),before);assert.deepEqual(overlay.activeStates,production.activeStates);
   assert.equal(overlay.states.WA.refinementLevel,'store');assert.equal(overlay.states.WA.publicStatus,'research_only');
