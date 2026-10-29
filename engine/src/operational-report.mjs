@@ -1,3 +1,4 @@
+import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -199,6 +200,11 @@ export function canonicalizeSignal(signal, bible) {
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
       eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    ...(isNjMiProductionOnSiteSignal(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
     archivedSourceAlertBlocked: sourceAlertPolicy.raw?.archivedSourceAlertBlocked === true,
     sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal),

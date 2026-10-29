@@ -588,15 +588,15 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "MI": {
       "customerLabel": "Michigan",
-      "sourceLabel": "Michigan Costco warehouse bourbon watch",
+      "sourceLabel": "Michigan exact-premises research",
       "publicStatus": "research_only",
       "shadowEligible": true,
-      "lifecycle": "blocked_costco_inventory_research",
-      "coverageTier": "blocked",
-      "refinementLevel": "warehouse",
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
       "inventoryAlertable": false,
       "watchAlertable": false,
-      "customerSummary": "Research-only: Michigan has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+      "customerSummary": "Inactive research at 1 reviewed Michigan stores; production coverage and all alerts remain blocked pending promotion."
     },
     "MN": {
       "customerLabel": "Minnesota",
@@ -954,6 +954,18 @@ export const STATE_LIFECYCLE_CONFIG = {
       "inventoryAlertable": false,
       "watchAlertable": false,
       "customerSummary": "Research preparation only. Current first-party store observations require a separate verified promotion before customer coverage can activate."
+    },
+    "NJ": {
+      "customerLabel": "New Jersey",
+      "sourceLabel": "New Jersey exact-premises research",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Inactive research at 4 reviewed New Jersey stores; production coverage and all alerts remain blocked pending promotion."
     }
   }
 } as const;
