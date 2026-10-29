@@ -38,14 +38,15 @@ test('independent pickup research remains unactivated and binds every primary ca
 
 for(const source of reviewed.sources)test(`unchanged strict collector proves addressed pickup: ${source.runtimeId}`,async()=>{
   let requests=0;
-  const observedAt=source.products[0].evidence.pickup.capturedAt;
+  const observedAt=source.products.map(seed=>seed.evidence.pickup.capturedAt).sort().at(-1);
   const result=await collectShopifyVariantPickup(bible,source,{observedAt,fetchText:async url=>{
     requests++;assert.ok(captures.has(url));return {ok:true,status:200,url,text:captures.get(url).text};
   }});
-  assert.equal(requests,2);
-  assert.equal(result.signals.length,1);
+  assert.equal(requests,source.products.length*2);
+  assert.equal(result.signals.length,source.products.length);
   assert.equal(result.accounting.completeSnapshot,true);
-  const row=result.signals[0],seed=source.products[0],store=source.stores[0];
+  for(const row of result.signals){
+  const seed=source.products.find(seed=>seed.variantId===row.variantId),store=source.stores[0];
   assert.equal(row.storeId,store.id);
   assert.equal(row.storeAddress,store.address);
   assert.equal(row.productId,seed.productId);
@@ -56,6 +57,7 @@ for(const source of reviewed.sources)test(`unchanged strict collector proves add
   assert.equal(row.premisesVerified,true);
   assert.equal(row.quantity,0);
   assert.equal(row.quantityIsExact,false);
+  }
 });
 
 test('Livonia capture cannot prove a changed premise or a different Blanton edition',async()=>{

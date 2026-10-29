@@ -51,6 +51,29 @@
             "reason": "Exact reviewed Bookers Small Batch Bourbon title maps to existing Booker's Bourbon family; current strict raw matcher returns no match because of small-batch modifier. No new canonical expression.",
             "allowedUnsafeReasons": []
           }
+        },
+        {
+          "productId": "7238504841376",
+          "variantId": "41693171187872",
+          "handle": "z-eagle-rare-bourbon",
+          "title": "Eagle Rare Bourbon 10 Year",
+          "canonicalName": "Eagle Rare 10 Year",
+          "variantTitle": "750 mL",
+          "headingException": "Published theme omits product heading; exact numeric product/variant JSON binding and endpoint plus explicit 750mL variant heading and independently named addressed Austin premises required.",
+          "evidence": {
+            "product": {
+              "url": "https://hotspot.fun/products/z-eagle-rare-bourbon.json",
+              "sha256": "b1891938133ae77daac3b5558d99f3442d6a1600f5325c20e1668918201c286b",
+              "capturedAt": "2026-10-29T12:52:23.166Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://hotspot.fun/variants/41693171187872/?section_id=store-availability",
+              "sha256": "9698a1f7538eb6738c7d56aafdca9b311f1b463d142fa0e324a14f6fec8d0af1",
+              "capturedAt": "2026-10-29T12:52:23.628Z",
+              "status": 200
+            }
+          }
         }
       ],
       "headingIdentity": "variant_title"

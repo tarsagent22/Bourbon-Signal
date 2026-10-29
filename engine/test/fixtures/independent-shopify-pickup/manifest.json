@@ -45,6 +45,28 @@
       "capturedAt": "2026-10-29T12:48:25.847Z",
       "bytes": 2740,
       "sha256": "941955cdfb844e1db055d2931884b70c4a7663131809f1ffb52137362bae6803"
+    },
+    {
+      "sourceId": "hot-spot-austin",
+      "kind": "product",
+      "file": "hot-spot-austin-eagle-product.json",
+      "requestedUrl": "https://hotspot.fun/products/z-eagle-rare-bourbon.json",
+      "finalUrl": "https://hotspot.fun/products/z-eagle-rare-bourbon.json",
+      "status": 200,
+      "capturedAt": "2026-10-29T12:52:23.166Z",
+      "bytes": 2323,
+      "sha256": "b1891938133ae77daac3b5558d99f3442d6a1600f5325c20e1668918201c286b"
+    },
+    {
+      "sourceId": "hot-spot-austin",
+      "kind": "pickup",
+      "file": "hot-spot-austin-eagle-pickup.html",
+      "requestedUrl": "https://hotspot.fun/variants/41693171187872/?section_id=store-availability",
+      "finalUrl": "https://hotspot.fun/variants/41693171187872/?section_id=store-availability",
+      "status": 200,
+      "capturedAt": "2026-10-29T12:52:23.628Z",
+      "bytes": 2749,
+      "sha256": "9698a1f7538eb6738c7d56aafdca9b311f1b463d142fa0e324a14f6fec8d0af1"
     }
   ]
 }
