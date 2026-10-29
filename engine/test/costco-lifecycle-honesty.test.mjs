@@ -29,8 +29,10 @@ test('Costco research stays blocked unless a distinct retailer integration passe
     const lifecycle = STATE_LIFECYCLE_CONFIG.states[state];
     const research = ALL_STATE_SOURCES.find((source) => source.id === state);
     assert.ok(research, `${state} source configuration must be retained`);
-    if(research.strategy==='costco_warehouse_inventory_watch')assert.ok(research.sources.some(source=>source.kind==='costco'));
-    else assert.ok(research.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
+    if(state==='WA'){
+      assert.equal(research.strategy,'retailer_store_inventory');assert.equal(lifecycle.refinementLevel,'store');
+      assert.ok(research.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
+    }else assert.ok(research.sources.some(source=>source.kind==='costco'));
     assert.equal(grandfathered.has(state), false, `${state} must not bypass the promotion contract`);
     if(active.has(state)){
       assert.notEqual(research.strategy,'costco_warehouse_inventory_watch',`${state} needs separately reviewed retailer inventory`);
