@@ -67,6 +67,9 @@ jobs:
       - name: Build and verify
         run: npm run verify:ci
 
+      - name: Smoke relocated production route bundles
+        run: node scripts/test-production-route-bundle.mjs
+
   single-release-lane:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
