@@ -634,5 +634,6 @@ jobs:
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
             engine/out/optimization/metro-source-attempts
+            engine/out/cache/texas-cityhive-expansion.json
             engine/out/states/*.json
             engine/out/source-refresh-verification.json
