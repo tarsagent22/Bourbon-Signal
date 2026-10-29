@@ -79,7 +79,8 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
       evidence:`${source.name} reports ${row.title} available for pickup at ${source.address} for $${row.price.toFixed(2)}.`,
       sourceProductBinding:{schemaVersion:1,source:'central-cityhive',merchantId:source.merchantId,storeId:source.storeId,
         storeAddress:source.address,productId:row.productId,optionId:row.variantId,rawName:row.title,
-        canonicalBottleId:record.id,price:row.price,observedAt,premisesVerified:true,pickupOfferVerified:true},
+        canonicalBottleId:record.id,canonicalName:record.canonical,price:row.price,observedAt,premisesVerified:true,pickupOfferVerified:true,
+        reportedQuantity:row.reportedQuantity,quantitySemantics:'binary_retailer_orderable_no_exact_count'},
       raw:{chain:source.chainId||source.id,merchantId:source.merchantId,productId:row.productId,optionId:row.variantId,
         reportedQuantity:row.reportedQuantity,quantitySemantics:'binary_retailer_orderable_no_exact_count'}}];
   });

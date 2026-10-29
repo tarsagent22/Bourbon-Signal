@@ -21,7 +21,7 @@ export function withResearchLifecycle(production) {
   if (production.activeStates.includes('MA') || production.states.MA) throw new Error('MA production/research registration requires reconciliation.');
   const additions=cityHiveResearchLifecycleEntries();
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
-    throw new Error(`${state} production/research registration requires reconciliation.`);
+    delete additions[state];
   }
   return {
     ...production, activeStates: [...production.activeStates], states: {

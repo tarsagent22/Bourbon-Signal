@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "state": "WI",
+  "lifecycle": {
+    "customerLabel": "Wisconsin",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "precision:wi"
+    ],
+    "registration": "Reviewed state-source configuration, promotion-gated precision collector, reusable shadow runtime, and central CityHive policy. Inactive lifecycle entries cannot collect production inventory."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "proof": "Current first-party merchant configuration, address, product ID, option ID, same-host product URL and pickup offer must agree. Stored source bindings are rechecked in confidence and export policy."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability. Positive options never create an exact shelf count; verify before driving.",
+    "inventoryAlertable": true,
+    "watchAlertable": true
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The existing lifecycle-backed stateFilter contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "The existing lifecycle-backed areaFilter contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "The existing lifecycle-backed preferences contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "The existing lifecycle-backed dashboard contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The existing lifecycle-backed dropFeedApi contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "The existing lifecycle-backed finder contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Source identity, freshness, delivery flags and lifecycle are rechecked; shadow candidates never authorize delivery."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The existing lifecycle-backed monitoring contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Executable state fixtures call the actual parser, inventory policy and site export with wrong-source, stale, shipping-only and shadow-isolation negatives."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Local live preflights exist separately; attach accepted workflow-issued shadow evidence for this reviewed commit before promotion."
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Two accepted canary runs and isolated preview are required before promotion."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "No production activation has been performed.",
+      "reason": "Promotion and immutable provenance remain pending."
+    }
+  },
+  "rollback": {
+    "disableSource": "Keep authoritative state inactive; restore prior lifecycle and source configuration via guarded release."
+  }
+}

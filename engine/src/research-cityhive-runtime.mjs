@@ -4,6 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES, collectCentralCityHiveExpansion } from './collectors/central-cityhive-expansion.mjs';
 import { metroSourceAttempts } from './collectors/metro-refresh-state.mjs';
 import { fetchWithMeta } from './core/fetcher.mjs';
+import { getStateLifecycle } from './state-lifecycle.mjs';
 
 const names = Object.freeze({ WI:'Wisconsin', OK:'Oklahoma' });
 const configurations = new Map(Object.entries(names).map(([state,name]) => [state,Object.freeze({
@@ -44,15 +45,28 @@ export function cityHiveResearchLifecycleEntries() {
 // This adapter is deliberately reusable across research states. The reviewed
 // source list supplies premises; actual HTTP reports supply each run's proof.
 // It never edits authoritative lifecycle files, publishes snapshots or sends.
-export async function collectCityHiveResearchReport(config,bible,{
-  fetchText=fetchWithMeta,readAttempts=readResearchAttempts,writeAttempts=writeResearchAttempts,
-  captureRoot=process.env.BOURBON_SIGNAL_STATE_OUT_FILE
-    ? path.join(path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE),'source-captures')
-    : path.resolve('out','research-source-captures'),...options
-}={}) {
+export async function collectCityHiveResearchReport(config,bible,options={}){
   if(process.env.BOURBON_SIGNAL_SHADOW_MODE!=='1'||configurations.get(config?.id)!==config) {
     throw new Error('CityHive research requires the registered isolated shadow source.');
   }
+  return collectCityHiveStateReport(config,bible,options,true);
+}
+export async function collectPromotedCentralCityHiveState(config,bible,options={}){
+  const canonical=configurations.get(config?.id),lifecycle=getStateLifecycle(config?.id);
+  const labels=new Set((config?.sources||[]).map(source=>source.label||source.name));
+  if(!canonical||lifecycle?.publicStatus!=='active'||!canonical.sources.every(source=>labels.has(source.label)))return{
+    signals:[],roadblocks:[{state:config?.id,status:'promotion_required',source:'Reviewed central retailer inventory',error:'Authoritative active lifecycle and registered first-party sources are required.'}],
+  };
+  const report=await collectCityHiveStateReport(canonical,bible,options,false);
+  return{signals:report.signals,roadblocks:report.roadblocks,metadata:report.metadata};
+}
+async function collectCityHiveStateReport(config,bible,inputOptions={},shadowOnly) {
+  const {
+  fetchText=fetchWithMeta,readAttempts=readResearchAttempts,writeAttempts=writeResearchAttempts,
+  captureRoot=shadowOnly&&process.env.BOURBON_SIGNAL_STATE_OUT_FILE
+    ? path.join(path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE),'source-captures')
+    : shadowOnly?path.resolve('out','research-source-captures'):null,...options
+  }=inputOptions;
   const startedAt=new Date().toISOString(),sources=CENTRAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state===config.id);
   // Successful research validation runs make new observations. Persisted
   // permission/rate denials remain authoritative across separate shadow runs.
@@ -89,13 +103,14 @@ export async function collectCityHiveResearchReport(config,bible,{
       error:ok?null:attempted.length?'source_request_failed':'source_not_due_or_permission_cooldown'};
   });
   const healthy=sourceReports.length>0&&sourceReports.every(source=>source.ok);
-  const signals=result.signals.map(row=>({...row,sourceRuntimeId:`research:${config.id.toLowerCase()}:${row.sourceChain}`,
+  const signals=result.signals.map(row=>shadowOnly?({...row,sourceRuntimeId:`research:${config.id.toLowerCase()}:${row.sourceChain}`,
     alertable:false,eligibleForOnSite:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
-    raw:{...row.raw,shadowOnly:true}}));
+    sourceProductBinding:{...row.sourceProductBinding,shadowOnly:true},
+    raw:{...row.raw,shadowOnly:true}}):({...row,sourceRuntimeId:`precision:${config.id.toLowerCase()}`,raw:{...row.raw,shadowOnly:false}}));
   return{state:config.id,label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,
     startedAt,finishedAt,lastGoodAt:healthy?finishedAt:null,status:signals.length?healthy?'useful':'partial_useful':'no_trusted_inventory',
     stale:false,signals,sources:sourceReports,sourceResults:sourceReports.map(row=>({sourceId:row.sourceRuntimeId,sourceLabel:row.label,
       sourceUrl:row.url,ok:row.ok,status:row.ok?'success':'failed',checkedAt:finishedAt,lastGoodAt:row.ok?finishedAt:null,
       alertable:false,inventoryAlertable:false,watchAlertable:false})),roadblocks:result.roadblocks,
-    metadata:{...result.metadata,receipts,productionActivationAllowed:false,customerDeliveryAllowed:false}};
+    metadata:{...result.metadata,receipts,shadowOnly,productionActivationAllowed:!shadowOnly,customerDeliveryAllowed:!shadowOnly}};
 }

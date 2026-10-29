@@ -19,14 +19,17 @@ const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
 test('WI and OK research registration cannot activate a source or mutate production lifecycle',()=>{
   assert.equal(researchSourceForState('WI',{shadowMode:false}),null);
   assert.equal(researchSourceForState('OK',{shadowMode:false}),null);
-  const candidate=withResearchLifecycle(STATE_LIFECYCLE_CONFIG);
-  assert.deepEqual(candidate.activeStates,STATE_LIFECYCLE_CONFIG.activeStates);
+  const researchProduction={...STATE_LIFECYCLE_CONFIG,activeStates:STATE_LIFECYCLE_CONFIG.activeStates.filter(state=>!['WI','OK'].includes(state)),
+    states:{...STATE_LIFECYCLE_CONFIG.states,WI:{publicStatus:'research_only'},OK:{publicStatus:'research_only'}}};
+  const candidate=withResearchLifecycle(researchProduction);
+  assert.deepEqual(candidate.activeStates,researchProduction.activeStates);
   for(const state of ['WI','OK']){
     assert.equal(candidate.states[state].publicStatus,'research_only');assert.equal(candidate.states[state].shadowEligible,true);
     assert.equal(candidate.states[state].inventoryAlertable,false);assert.equal(candidate.states[state].watchAlertable,false);
   }
   assert.equal(JSON.stringify(STATE_LIFECYCLE_CONFIG),frozen);
-  assert.throws(()=>withResearchLifecycle({...STATE_LIFECYCLE_CONFIG,activeStates:[...STATE_LIFECYCLE_CONFIG.activeStates,'OK']}),/reconciliation/);
+  const active=withResearchLifecycle({...STATE_LIFECYCLE_CONFIG,activeStates:[...STATE_LIFECYCLE_CONFIG.activeStates,'OK'],states:{...STATE_LIFECYCLE_CONFIG.states,OK:{publicStatus:'active'}}});
+  assert.equal(active.states.OK.publicStatus,'active');
 });
 
 test('registered WI/OK shadow collection executes real parser, retains receipts, and disables every delivery flag',async()=>{

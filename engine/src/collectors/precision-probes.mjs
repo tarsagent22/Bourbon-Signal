@@ -132,6 +132,8 @@ import {
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
 import { collectMetroCityHiveRows, selectMetroSourcesForRefresh } from './buffalo-cityhive-discovery.mjs';
 import { collectNewYorkVariantPickup } from './new-york-variant-pickup.mjs';
+import { collectPromotedCentralCityHiveState } from '../research-cityhive-runtime.mjs';
+import { CENTRAL_CITYHIVE_STATE_IDS } from '../central-cityhive-policy.mjs';
 import { metroHttpSourceError, metroSourceAttempts, readMetroSourceAttempts, updateMetroSourceAttempts, writeMetroSourceAttempts } from './metro-refresh-state.mjs';
 import { runArizonaSourcesWithDenialBackoff } from './arizona-source-attempts.mjs';
 import { ARIZONA_SMART_FINAL_SOURCE, collectArizonaSmartFinal } from './arizona-smart-final.mjs';
@@ -9494,6 +9496,7 @@ async function collectKentucky(config, bible) {
 }
 
 const LEGACY_PRECISION_RUNTIME_STATES = new Set([
+  'WI', 'OK',
   'KY', 'OH', 'OR', 'IA', 'UT', 'ID', 'AL', 'NC', 'IL', 'IN', 'TN', 'AZ', 'NV', 'FL', 'GA', 'SC', 'TX', 'VA', 'PA', 'MD-MONTGOMERY', 'NY', 'CO',
 ]);
 
@@ -9509,6 +9512,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
 }
 
 async function collectPrecisionProbesUntraced(config, bible, existingSignals = [], options = {}) {
+  if(CENTRAL_CITYHIVE_STATE_IDS.has(config.id))return collectPromotedCentralCityHiveState(config,bible,options);
   if (config.id === 'MS') return collectMississippiRetailers(config, {
     ...options,
     matchBottle: (rawName) => {

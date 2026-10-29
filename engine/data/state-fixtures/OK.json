@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "state": "OK",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "ok-reviewed-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "yucatan-liquor-okc"
+      },
+      "expected": {
+        "sourceRows": 5,
+        "inventoryProofRows": 5,
+        "candidateCount": 5,
+        "canonicalNames": [
+          "1792 Full Proof",
+          "Eagle Rare 10 Year",
+          "Elijah Craig Barrel Proof",
+          "Weller Special Reserve"
+        ]
+      }
+    },
+    {
+      "id": "ok-unidentified",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "yucatan-liquor-okc",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ok-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "yucatan-liquor-okc",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ok-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "yucatan-liquor-okc",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ok-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "yucatan-liquor-okc"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "semantics": "binary_retailer_orderable_no_exact_count"
+      }
+    },
+    {
+      "id": "ok-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "yucatan-liquor-okc",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ok-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "yucatan-liquor-okc",
+        "ageMinutes": 300
+      },
+      "expected": {
+        "sourceRows": 5,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "ok-foreign-source",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "yucatan-liquor-okc",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ok-shadow-never-public",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "yucatan-liquor-okc",
+        "shadowOnly": true
+      },
+      "expected": {
+        "sourceRows": 5,
+        "inventoryProofRows": 5,
+        "candidateCount": 0,
+        "deliveryEligible": false,
+        "confidenceInventoryAllowed": false
+      }
+    },
+    {
+      "id": "ok-shipping-only",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "yucatan-liquor-okc",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    }
+  ]
+}
