@@ -7,7 +7,7 @@ import nmManifest from '../../data/state-integration/NM.json' with {type:'json'}
 import {STATE_LIFECYCLE_CONFIG} from '../state-lifecycle.mjs';
 import {validateImmutablePromotionEvidence,evaluateStateControl} from '../reliability-policy.mjs';
 import {collectionSignal,collectionRequestSignal} from '../core/collection-context.mjs';
-import {fetchWithMeta} from '../core/fetcher.mjs';
+import {fetchReviewedFirstPartyText,validateCityHiveIncidentJournal} from './central-cityhive-transport.mjs';
 import {sourceErrorForHttp} from '../sources/source-error.mjs';
 import {createSourceAdapter} from '../sources/source-adapter.mjs';
 import {runSourceAdapters} from '../sources/source-runner.mjs';
@@ -44,7 +44,7 @@ export function westernGroceryPromotionAllowed(state,config=STATE_LIFECYCLE_CONF
 }
 const silent=row=>({...row,canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
   eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false});
-async function readJson(file,{strict=false}={}){try{return JSON.parse(await readFile(file,'utf8'));}catch(error){if(error.code==='ENOENT'||!strict)return null;throw error;}}
+async function readJson(file,{strict=false}={}){try{const value=JSON.parse(await readFile(file,'utf8'));if(strict&&(!value||typeof value!=='object'||Array.isArray(value)))throw Error('Existing grocery state must be an object');return value;}catch(error){if(error.code==='ENOENT'||!strict)return null;throw error;}}
 function allowedHosts(state){return new Set(['www.safeway.com',...WESTERN_GROCERY_EXPANSION_SOURCES.filter(source=>source.stateCode===state).map(source=>source.host)]);}
 function validateIncidents(value,state){
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Grocery incident journal is malformed');
@@ -53,6 +53,21 @@ function validateIncidents(value,state){
     ||!Number.isFinite(Date.parse(entry.lastAttemptAt))||!Number.isFinite(Date.parse(entry.nextAllowedAt))
     ||Date.parse(entry.nextAllowedAt)-Date.parse(entry.lastAttemptAt)<DAY)throw new Error('Grocery incident journal has an unreviewed or invalid cooldown');
   return value;
+}
+function groceryJournal(value,state){
+  const sources=[...allowedHosts(state)].map(hostname=>({state,hostname}));
+  if(value===null||value?.schemaVersion===1)return validateCityHiveIncidentJournal(value,state,sources);
+  // Preserve any older incident-only host map; a format change never grants
+  // renewed permission to a host whose captured denial is still cooling down.
+  validateIncidents(value,state);
+  return validateCityHiveIncidentJournal({schemaVersion:1,state,inFlight:null,hosts:Object.fromEntries(Object.entries(value).map(([key,entry])=>
+    [key.slice(5),{httpStatus:entry.httpStatus,lastAttemptAt:entry.lastAttemptAt,nextAllowedAt:entry.nextAllowedAt}]))},state,sources);
+}
+const groceryAttempts=journal=>Object.fromEntries(Object.entries(journal.hosts).map(([host,entry])=>['host:'+host,{...entry,status:'access_denied'}]));
+function fetchGroceryText(url,options){
+  const hosts=new Set(WESTERN_GROCERY_EXPANSION_SOURCES.map(source=>source.host));hosts.add('www.safeway.com');
+  return fetchReviewedFirstPartyText(url,{...options,maxTimeoutMs:15_000,isAllowedUrl:value=>!value.port&&hosts.has(value.hostname)
+    &&['/abs/pub/xapi/storeresolver/v2/all','/abs/pub/xapi/search/substitute'].includes(value.pathname)});
 }
 function writeIncidents(file,value){
   mkdirSync(path.dirname(file),{recursive:true});const temporary=file+'.'+randomUUID()+'.tmp';
@@ -77,58 +92,59 @@ function cacheMatches(cache,state,nowMs){
 function currentRows(rows,bible){return rows.flatMap(row=>{const tier=groceryExpansionLibraryTier(row,bible);return ['limited','allocated','unicorn'].includes(tier)?[silent({...row,tier})]:[];});}
 
 export async function collectWesternGroceryProductionSource(config,bible,{lifecycleConfig=STATE_LIFECYCLE_CONFIG,promotionManifest,env=process.env,
-  fetchText=fetchWithMeta,cacheDir=path.resolve('out/browser'),incidentDir=path.resolve('out/source-incidents/western-grocery'),signal,nowMs=Date.now(),sleep,cursorDir,
+  fetchText=fetchGroceryText,cacheDir=path.resolve('out/browser'),incidentDir=path.resolve('out/source-incidents/western-grocery'),signal,nowMs=Date.now(),sleep,cursorDir,
   onRequest=()=>{},forceLive=process.env.BOURBON_SIGNAL_FORCE_SOURCE_RUN==='1',timeoutMs,persistIncidentJournal=writeIncidents}={}){
   const state=config?.id;
   if(!WESTERN_GROCERY_PRODUCTION_STATES.includes(state))throw new Error('Unreviewed production grocery state');
   if(!westernGroceryPromotionAllowed(state,lifecycleConfig,{env,manifest:promotionManifest||manifests[state]}))return{signals:[],roadblocks:[],metadata:{complete:false,blockedByPromotion:true},accounting:{requestCount:0,bytes:0,elapsedMs:0,completeSnapshot:false}};
   const inherited=collectionSignal(signal);inherited?.throwIfAborted();
   const cacheFile=path.join(cacheDir,`${state}-grocery-production-cache.json`),incidentFile=path.join(incidentDir,`${state}-grocery-production-incidents.json`);
-  const incidents=validateIncidents(await readJson(incidentFile,{strict:true})||{},state);
-  const blocked=Object.entries(incidents).find(([,entry])=>Date.parse(entry.nextAllowedAt)>nowMs);
-  if(blocked)throw sourceErrorForHttp(blocked[1].httpStatus,'Grocery host remains in its persisted access-denial cooldown',{details:{incidentPersisted:true,requestCount:0,nextAllowedAt:blocked[1].nextAllowedAt}});
-  // Admission proves the independent incident journal is writable before HTTP.
-  // It carries no inventory and may still be saved after collection aborts.
-  await persistIncidentJournal(incidentFile,incidents);
+  let journal=groceryJournal(await readJson(incidentFile,{strict:true}),state);
+  if(journal.inFlight)throw Object.assign(Error('Unresolved prior grocery observation; review the incident journal before another request'),{code:'GROCERY_UNRESOLVED_ATTEMPT'});
+  const blocked=Object.values(journal.hosts).find(entry=>Date.parse(entry.nextAllowedAt)>nowMs);
+  if(blocked)throw sourceErrorForHttp(blocked.httpStatus,'Grocery host remains in its persisted access-denial cooldown',{details:{incidentPersisted:true,requestCount:0,nextAllowedAt:blocked.nextAllowedAt}});
+  await persistIncidentJournal(incidentFile,journal);
   const cached=await readJson(cacheFile,{strict:true});
   if(!forceLive&&cacheMatches(cached,state,nowMs)){inherited?.throwIfAborted();return{signals:currentRows(cached.signals,bible),roadblocks:[],
     metadata:{...cached.metadata,cacheReused:true,cacheGeneratedAt:cached.generatedAt,sourceObservedAt:cached.generatedAt},
     accounting:{requestCount:0,bytes:0,elapsedMs:0,completeSnapshot:true}};}
   const max=WESTERN_GROCERY_BUDGETS[state].sourceMs,budget=Number.isFinite(timeoutMs)&&timeoutMs>0?Math.min(timeoutMs,max):max;
   const deadline=AbortSignal.timeout(budget),bounded=inherited?AbortSignal.any([inherited,deadline]):deadline;
+  journal={...journal,inFlight:{attemptId:randomUUID(),startedAt:new Date(nowMs).toISOString()}};
+  await persistIncidentJournal(incidentFile,journal);
   const started=Date.now();let requestCount=0,bytes=0,lastDenied=null,denialPersisted=false;
-  const seenDenials=new Map();
   const measured=async(url,options)=>{
-    const requestSignal=collectionRequestSignal(options.signal);requestCount++;onRequest();
-    const result=await fetchText(url,{...options,signal:requestSignal});
-    bytes+=Buffer.byteLength(result.text||'');
-    if(DENIALS.has(Number(result.status))){lastDenied={status:Number(result.status),host:new URL(url).hostname,at:Math.max(nowMs,Date.now()),retry:Number.isFinite(Number(result.retryAfterSeconds))?Math.max(0,Number(result.retryAfterSeconds)):0};seenDenials.set(lastDenied.host,lastDenied);}
+    const observe=async response=>{
+      if(!DENIALS.has(Number(response.status)))return;
+      const at=Math.max(nowMs,Date.now()),host=new URL(url).hostname,retry=Math.max(0,Number(response.retryAfterSeconds)||0);
+      lastDenied={status:Number(response.status),host};
+      const next={...journal,inFlight:null,hosts:{...journal.hosts,[host]:{httpStatus:lastDenied.status,lastAttemptAt:new Date(at).toISOString(),
+        nextAllowedAt:new Date(Math.min(8_640_000_000_000_000,Math.max(at+DAY,at+retry*1000,Date.parse(journal.hosts[host]?.nextAllowedAt)||0))).toISOString()}}};
+      try{await persistIncidentJournal(incidentFile,groceryJournal(next,state));journal=next;denialPersisted=true;}
+      catch(error){throw sourceErrorForHttp(lastDenied.status,'Grocery denial journal write failed; durable unresolved attempt blocks further HTTP',{cause:error,details:{incidentWriteFailed:true,unresolvedAttempt:true,incidentErrorCode:error.code||null,retryAfterSeconds:retry,requestCount}});}
+      throw sourceErrorForHttp(lastDenied.status,'Grocery host denied the observation',{details:{incidentPersisted:true,retryAfterSeconds:retry,requestCount}});
+    };
+    const requestSignal=collectionRequestSignal(options.signal);bounded.throwIfAborted();requestCount++;onRequest();
+    const result=await fetchText(url,{...options,signal:requestSignal,onResponse:observe});bytes+=Buffer.byteLength(result.text||'');
+    await observe(result);
     if(result.ok){const requested=new URL(url),final=new URL(result.url);requested.searchParams.sort();final.searchParams.sort();if(requested.href!==final.href)throw new Error('Production grocery source changed its exact first-party URL');}
     return result;
   };
-  const persistAttempts=async value=>{
-    const journal={...incidents};for(const[key,entry]of Object.entries(value))if(key.startsWith('host:')){
-      const denied=seenDenials.get(key.slice(5)),at=denied?.at||Date.parse(entry.lastAttemptAt);
-      journal[key]={...entry,lastAttemptAt:new Date(at).toISOString(),nextAllowedAt:new Date(Math.min(8_640_000_000_000_000,Math.max(Date.parse(entry.nextAllowedAt),at+DAY,at+(denied?.retry||0)*1000))).toISOString()};
-    }
-    validateIncidents(journal,state);
-    try{await persistIncidentJournal(incidentFile,journal);denialPersisted=true;}catch(error){throw sourceErrorForHttp(lastDenied?.status||403,'Grocery incident journal could not be persisted after access denial',{cause:error,details:{incidentWriteFailed:true,incidentErrorCode:error.code||null,requestCount}});}
-  };
-  let result;
-  try{result=await collectGroceryExpansion(config,bible,{fetchText:measured,attempts:incidents,persistAttempts,
-    observedAt:new Date(nowMs).toISOString(),nowMs,signal:bounded,sleep,cursorDir});}
-  catch(error){if(lastDenied&&!error.status)throw sourceErrorForHttp(lastDenied.status,'Grocery access denial was observed before collection aborted',{cause:error,details:{incidentPersisted:denialPersisted,requestCount}});throw error;}
-  bounded.throwIfAborted();
-  if(!result.metadata.complete){
-    const denial=result.roadblocks.find(row=>DENIALS.has(Number(row.status)));
-    if(denial)throw sourceErrorForHttp(denial.status,'Grocery access denial ended the complete-cohort observation',{details:{incidentPersisted:true,requestCount}});
-    throw new Error('Production grocery collection did not verify its complete reviewed cohort');
+  try{
+    const result=await collectGroceryExpansion(config,bible,{fetchText:measured,attempts:groceryAttempts(journal),
+      observedAt:new Date(nowMs).toISOString(),nowMs,signal:bounded,sleep,cursorDir});
+    bounded.throwIfAborted();if(!result.metadata.complete)throw new Error('Production grocery collection did not verify its complete reviewed cohort');
+    const rows=result.signals.map(row=>silent({...row,sourceRuntimeId:westernGroceryRuntimeId(state)}));
+    const metadata={...result.metadata,sourceObservedAt:new Date(nowMs).toISOString(),cohortKey:westernGroceryCohortKey(state),observation:'production_onsite_only',productionAlertDeliveryAllowed:false};
+    await mkdir(cacheDir,{recursive:true});bounded.throwIfAborted();const temporary=cacheFile+'.'+randomUUID()+'.tmp';
+    try{await writeFile(temporary,JSON.stringify({schemaVersion:1,cohortKey:westernGroceryCohortKey(state),generatedAt:new Date(nowMs).toISOString(),signals:rows,metadata},null,2));bounded.throwIfAborted();renameSync(temporary,cacheFile);}finally{await rm(temporary,{force:true});}
+    bounded.throwIfAborted();journal={...journal,inFlight:null};await persistIncidentJournal(incidentFile,journal);
+    return{signals:currentRows(rows,bible),roadblocks:result.roadblocks,metadata,accounting:{requestCount,bytes,elapsedMs:Date.now()-started,completeSnapshot:true}};
+  }catch(error){
+    if(!lastDenied){journal={...journal,inFlight:null};await persistIncidentJournal(incidentFile,journal);}
+    if(lastDenied&&!error.status)throw sourceErrorForHttp(lastDenied.status,'Grocery access denial was observed before a later failure',{cause:error,details:{incidentPersisted:denialPersisted,requestCount}});
+    throw error;
   }
-  const rows=result.signals.map(row=>silent({...row,sourceRuntimeId:westernGroceryRuntimeId(state)}));
-  const metadata={...result.metadata,sourceObservedAt:new Date(nowMs).toISOString(),cohortKey:westernGroceryCohortKey(state),observation:'production_onsite_only',productionAlertDeliveryAllowed:false};
-  await mkdir(cacheDir,{recursive:true});bounded.throwIfAborted();const temporary=cacheFile+'.'+randomUUID()+'.tmp';
-  try{await writeFile(temporary,JSON.stringify({schemaVersion:1,cohortKey:westernGroceryCohortKey(state),generatedAt:new Date(nowMs).toISOString(),signals:rows,metadata},null,2));bounded.throwIfAborted();renameSync(temporary,cacheFile);}finally{await rm(temporary,{force:true});}
-  return{signals:currentRows(rows,bible),roadblocks:result.roadblocks,metadata,accounting:{requestCount,bytes,elapsedMs:Date.now()-started,completeSnapshot:true}};
 }
 
 export async function collectWesternGroceryProductionState(config,bible,options={}){

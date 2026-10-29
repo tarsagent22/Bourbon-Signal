@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,readFile,writeFile,mkdir,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,writeFile,mkdir,rename,rm} from 'node:fs/promises';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../src/core/bible.mjs';
@@ -81,7 +81,7 @@ test('denial journal survives late abort and stops forced retries before HTTP or
     await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,forceLive:true,signal:controller.signal,
       fetchText:async url=>{calls++;controller.abort(new Error('late cancellation'));return{ok:false,status:403,url,text:''};}}),error=>error.status===403);
     const journal=JSON.parse(await readFile(path.join(opts.incidentDir,'NM-grocery-production-incidents.json'),'utf8'));
-    assert.equal(journal['host:www.safeway.com'].httpStatus,403);assert.equal(calls,1);
+    assert.equal(journal.hosts['www.safeway.com'].httpStatus,403);assert.equal(journal.inFlight,null);assert.equal(calls,1);
     await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,forceLive:true,fetchText:async()=>{calls++;throw new Error('Forbidden retry');}}),error=>error.status===403&&error.details.requestCount===0);
     assert.equal(calls,1);
   }finally{await rm(directory,{recursive:true,force:true});}
@@ -93,7 +93,7 @@ test('unwritable or malformed incident storage fails before HTTP and denial stat
     const opts=options(directory),fetchText=async url=>{calls++;return{ok:false,status:429,url,text:'',retryAfterSeconds:3600};};
     await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,fetchText,persistIncidentJournal:()=>{throw new Error('No durable journal');}}));
     assert.equal(calls,0);
-    await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,fetchText,persistIncidentJournal:()=>{if(++writes>1){const error=new Error('Disk changed');error.code='EACCES';throw error;}}}),error=>error.status===429&&error.details.incidentWriteFailed);
+    await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,fetchText,persistIncidentJournal:()=>{if(++writes>2){const error=new Error('Disk changed');error.code='EACCES';throw error;}}}),error=>error.status===429&&error.details.incidentWriteFailed);
     assert.equal(calls,1);
     await mkdir(opts.incidentDir,{recursive:true});await writeFile(path.join(opts.incidentDir,'NM-grocery-production-incidents.json'),'not JSON');
     await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,fetchText}));assert.equal(calls,1);
@@ -119,7 +119,7 @@ test('source cancellation stops the first request and cannot publish a late inve
       fetchText:async(_url,{signal})=>{calls++;return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(signal.reason),{once:true}));}}),error=>error.name==='TimeoutError');
     assert.equal(calls,1);
     await assert.rejects(()=>readFile(path.join(opts.cacheDir,'NM-grocery-production-cache.json')),{code:'ENOENT'});
-    assert.deepEqual(JSON.parse(await readFile(path.join(opts.incidentDir,'NM-grocery-production-incidents.json'),'utf8')),{});
+    assert.deepEqual(JSON.parse(await readFile(path.join(opts.incidentDir,'NM-grocery-production-incidents.json'),'utf8')),{schemaVersion:1,state:'NM',hosts:{},inFlight:null});
   }finally{await rm(directory,{recursive:true,force:true});}
 });
 
@@ -141,5 +141,53 @@ test('malformed existing inventory storage blocks HTTP without replacing the fil
     const file=path.join(opts.cacheDir,'NM-grocery-production-cache.json');await writeFile(file,'invalid cached JSON');
     await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,fetchText:async()=>{calls++;throw new Error('Unexpected HTTP');}}));
     assert.equal(calls,0);assert.equal(await readFile(file,'utf8'),'invalid cached JSON');
+  }finally{await rm(directory,{recursive:true,force:true});}
+});
+
+test('native grocery response headers persist denial and long Retry-After before body/parent abort, including cold cache',async t=>{
+  const native=globalThis.fetch;t.after(()=>{globalThis.fetch=native;});
+  for(const status of [401,403,429,435]){
+    const directory=await mkdtemp(path.join(tmpdir(),'grocery-native-denial-'));assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));
+    try{
+      const opts=options(directory),cache=path.join(opts.cacheDir,'NM-grocery-production-cache.json'),file=path.join(opts.incidentDir,'NM-grocery-production-incidents.json');
+      await collectWesternGroceryProductionSource(config,bible,{...opts,fetchText:mockedCompleteGroceryFetch()});const original=await readFile(cache,'utf8');
+      const controller=new AbortController();let calls=0,beforeBody=false;
+      globalThis.fetch=async(url,request)=>{calls++;assert.equal(request.redirect,'error');assert.ok(request.headers['ocp-apim-subscription-key']);controller.abort(Error('Parent aborted after headers'));
+        return{ok:false,status,url,headers:new Headers({'retry-after':'259200'}),body:{cancel:async()=>{
+          const value=await readFile(file,'utf8').then(JSON.parse).catch(()=>null);beforeBody=value?.hosts?.['www.safeway.com']?.httpStatus===status;
+        }},text:async()=>{throw Error('Denied body must not be read');}};};
+      await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,forceLive:true,signal:controller.signal}),error=>error.status===status&&error.details.incidentPersisted);
+      assert.equal(calls,1);assert.equal(beforeBody,true);assert.equal(await readFile(cache,'utf8'),original);
+      const journal=JSON.parse(await readFile(file,'utf8')),entry=journal.hosts['www.safeway.com'];assert.equal(journal.inFlight,null);
+      assert.ok(Date.parse(entry.nextAllowedAt)-Date.parse(entry.lastAttemptAt)>=3*86_400_000);
+      await rm(cache);await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,forceLive:true}),error=>error.status===status&&error.details.requestCount===0);assert.equal(calls,1);
+    }finally{await rm(directory,{recursive:true,force:true});}
+  }
+});
+
+test('real grocery denial rename failure preserves durable unresolved latch across missing inventory cache and force',async t=>{
+  const directory=await mkdtemp(path.join(tmpdir(),'grocery-native-write-failure-'));assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));
+  const native=globalThis.fetch;t.after(()=>{globalThis.fetch=native;});
+  try{
+    const opts=options(directory),cache=path.join(opts.cacheDir,'NM-grocery-production-cache.json'),file=path.join(opts.incidentDir,'NM-grocery-production-incidents.json');
+    await collectWesternGroceryProductionSource(config,bible,{...opts,fetchText:mockedCompleteGroceryFetch()});const original=await readFile(cache,'utf8');let calls=0;
+    globalThis.fetch=async url=>{calls++;assert.ok(JSON.parse(await readFile(file,'utf8')).inFlight);await rename(file,file+'.held');await mkdir(file);
+      return{ok:false,status:429,url,headers:new Headers({'retry-after':'259200'}),body:{cancel:async()=>{}}};};
+    await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,forceLive:true}),error=>error.status===429&&error.details.incidentWriteFailed&&error.details.unresolvedAttempt);
+    assert.equal(await readFile(cache,'utf8'),original);await rm(cache);
+    await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,forceLive:true}));assert.equal(calls,1);
+    await rm(file,{recursive:true});await rename(file+'.held',file);
+    await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,forceLive:true}),error=>error.code==='GROCERY_UNRESOLVED_ATTEMPT');assert.equal(calls,1);
+  }finally{await rm(directory,{recursive:true,force:true});}
+});
+
+test('legacy grocery host denials survive migration and semantic-null journals fail before HTTP',async()=>{
+  const directory=await mkdtemp(path.join(tmpdir(),'grocery-legacy-denial-'));assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));let calls=0;
+  try{
+    const opts=options(directory),file=path.join(opts.incidentDir,'NM-grocery-production-incidents.json'),at=Date.now();await mkdir(opts.incidentDir,{recursive:true});
+    const fetchText=async()=>{calls++;throw Error('Must not fetch');};
+    await writeFile(file,JSON.stringify({'host:www.safeway.com':{status:'access_denied',httpStatus:403,lastAttemptAt:new Date(at).toISOString(),nextAllowedAt:new Date(at+3*86_400_000).toISOString()}}));
+    await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,fetchText,forceLive:true}),error=>error.status===403);assert.equal(calls,0);
+    await writeFile(file,'null');await assert.rejects(()=>collectWesternGroceryProductionSource(config,bible,{...opts,fetchText}),/must be an object/);assert.equal(calls,0);
   }finally{await rm(directory,{recursive:true,force:true});}
 });

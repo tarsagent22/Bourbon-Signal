@@ -9,15 +9,14 @@ export const CITYHIVE_DENIAL_STATUSES=new Set([401,403,429,435]);
 export const CITYHIVE_DENIAL_MINIMUM_MS=86_400_000;
 // Transport is independent of production activation. Each caller supplies its
 // authoritative closed premise registry; redirects never expand that registry.
-export async function fetchReviewedCityHiveText(value,{signal,timeoutMs=10_000,maxBytes=2*1024*1024,onResponse,
-  reviewedSources=CENTRAL_CITYHIVE_EXPANSION_SOURCES}={}){
+export async function fetchReviewedFirstPartyText(value,{signal,timeoutMs=10_000,maxTimeoutMs=10_000,maxBytes=2*1024*1024,onResponse,headers={},isAllowedUrl}={}){
   const url=requireHttpsCollectionUrl(value);
-  if(!reviewedSources.some(source=>source.baseUrl===url.origin)||url.pathname!=='/shop/')throw Error('Unreviewed CityHive URL');
-  const deadline=AbortSignal.timeout(Math.min(timeoutMs,10_000)),bounded=signal?AbortSignal.any([signal,deadline]):deadline;
+  if(typeof isAllowedUrl!=='function'||!isAllowedUrl(url))throw Error('Unreviewed first-party URL');
+  const deadline=AbortSignal.timeout(Math.min(timeoutMs,maxTimeoutMs)),bounded=signal?AbortSignal.any([signal,deadline]):deadline;
   bounded.throwIfAborted();
   const response=await fetch(url.href,{signal:bounded,redirect:'error',headers:{
     'user-agent':'BourbonSignalEngine/0.1 (+https://bourbonsignal.com; research prototype)',
-    accept:'text/html,application/json,text/plain,*/*','accept-language':'en-US,en;q=0.9'}});
+    accept:'text/html,application/json,text/plain,*/*','accept-language':'en-US,en;q=0.9',...headers}});
   const retryAfter=response.headers.get('retry-after')||'';
   const metadata={ok:response.ok,status:response.status,url:response.url||'',
     retryAfterSeconds:Math.max(0,Number(retryAfter)||(Date.parse(retryAfter)-Date.now())/1000||0)};
@@ -25,6 +24,9 @@ export async function fetchReviewedCityHiveText(value,{signal,timeoutMs=10_000,m
   if(!response.ok){await response.body?.cancel?.().catch(()=>{});return{...metadata,text:''};}
   bounded.throwIfAborted();
   return{...metadata,text:(await readBoundedCollectionBody(response,{signal:bounded,maxBytes})).toString('utf8')};
+}
+export function fetchReviewedCityHiveText(value,{reviewedSources=CENTRAL_CITYHIVE_EXPANSION_SOURCES,...options}={}){
+  return fetchReviewedFirstPartyText(value,{...options,maxTimeoutMs:10_000,isAllowedUrl:url=>reviewedSources.some(source=>source.baseUrl===url.origin)&&url.pathname==='/shop/'});
 }
 
 export function validateCityHiveIncidentJournal(value,state,reviewedSources=CENTRAL_CITYHIVE_EXPANSION_SOURCES){
