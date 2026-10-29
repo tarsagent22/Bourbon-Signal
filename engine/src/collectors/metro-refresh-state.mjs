@@ -2,6 +2,7 @@ import { sourceErrorForHttp } from '../sources/source-error.mjs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { isReviewedNewYorkNativePickupSource, NEW_YORK_NATIVE_PICKUP_REFRESH_CADENCE_MS } from './new-york-variant-pickup.mjs';
 
 export const METRO_REFRESH_CADENCE_MS = 4 * 60 * 60_000;
 export const METRO_ACCESS_DENIAL_BACKOFF_MS = 24 * 60 * 60_000;
@@ -24,7 +25,11 @@ function validAttempt(attempt) {
 
 function attemptState(source, lastAttemptMs, status, httpStatus, fallbackCadenceMs) {
   const denied = DENIAL_HTTP.has(httpStatus);
-  const cadenceMs = metroRefreshCadenceMs(source, fallbackCadenceMs);
+  // Only proven native success gets the new healthy cadence. Failed/unknown
+  // attempts retain the former unconfigured NY fallback, including force rules.
+  const healthyNative = isReviewedNewYorkNativePickupSource(source) && status === 'success' && httpStatus === null;
+  const cadenceMs = isReviewedNewYorkNativePickupSource(source) && !healthyNative
+    ? metroRefreshCadenceMs(null, fallbackCadenceMs) : metroRefreshCadenceMs(source, fallbackCadenceMs);
   const delayMs = denied
     ? Math.max(cadenceMs, httpStatus === 429 ? METRO_RATE_LIMIT_BACKOFF_MS : METRO_ACCESS_DENIAL_BACKOFF_MS)
     : cadenceMs;
@@ -70,11 +75,21 @@ export function metroSourceAttempts(cache, sources) {
     }
     const httpStatus = Number(attempt.httpStatus) || null;
     const normalized = DENIAL_HTTP.has(httpStatus) ? attemptState(source, lastAttemptMs, attempt.status, httpStatus) : null;
+    const reviewedNative = isReviewedNewYorkNativePickupSource(source);
+    const sourceRoadblock = reviewedNative && (Array.isArray(cache?.roadblocks) ? cache.roadblocks : []).some(row => row?.sourceRuntimeId === `metro:ny:${source.id}` || row?.source === source.sourceLabel);
+    const reviewedLegacySuccess = reviewedNative && attempt.status === 'success' && attempt.httpStatus === null
+      && Object.keys(attempt).length === 4 && ['lastAttemptAt','nextAllowedAt','status','httpStatus'].every(key => Object.hasOwn(attempt,key))
+      && nextAllowedMs - lastAttemptMs === METRO_REFRESH_CADENCE_MS && !sourceRoadblock;
+    const retainedNext = reviewedLegacySuccess ? lastAttemptMs + NEW_YORK_NATIVE_PICKUP_REFRESH_CADENCE_MS : nextAllowedMs;
     return [[source.id, {
+      // Preserve an unknown hold marker through ledger read/write roundtrips.
+      // A genuine later network result replaces it through attemptState.
+      ...(reviewedNative ? attempt : {}),
+      ...(sourceRoadblock ? { reviewedNativeLegacyCadenceHeld: true } : {}),
       lastAttemptAt: new Date(lastAttemptMs).toISOString(),
       status: normalized?.status || attempt.status,
       httpStatus,
-      nextAllowedAt: new Date(Math.max(nextAllowedMs, Date.parse(normalized?.nextAllowedAt || '') || nextAllowedMs)).toISOString(),
+      nextAllowedAt: new Date(Math.max(retainedNext, Date.parse(normalized?.nextAllowedAt || '') || retainedNext)).toISOString(),
     }]];
   }));
 }
