@@ -138,6 +138,12 @@ jobs:
           STATE: ${{ steps.validate.outputs.state }}
         run: npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
 
+      - name: Verify actual app projection and binary on-site isolation
+        if: steps.validate.outputs.shadow_run != ''
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+        run: node --import tsx scripts/test-grocery-public-canary.mjs --state="$STATE"
+
       - name: Deploy isolated preview with all alert channels disabled
         if: inputs.deploy_preview == true
         id: preview
@@ -167,7 +173,7 @@ jobs:
           retention-days: 30
           if-no-files-found: error
           path: |
-            engine/out/canary/${{ steps.validate.outputs.state }}/site
+            engine/out/canary/${{ steps.validate.outputs.state }}
             engine/out/grocery-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
             engine/out/canary-preparation/${{ steps.validate.outputs.state }}
             engine/data/canary-inputs/${{ steps.validate.outputs.state }}.json

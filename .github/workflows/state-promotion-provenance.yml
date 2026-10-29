@@ -110,6 +110,12 @@ jobs:
           npm --prefix engine run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site" "${config_args[@]}"
           npm --prefix engine run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
           npm --prefix engine run verify:reliability
+      - name: Verify actual app projection and binary on-site isolation
+        if: steps.validate.outputs.shadow_run != ''
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+        run: node --import tsx scripts/test-grocery-public-canary.mjs --state="$STATE"
+
       - name: Build workflow-issued provenance bundle
         env:
           STATE: ${{ steps.validate.outputs.state }}

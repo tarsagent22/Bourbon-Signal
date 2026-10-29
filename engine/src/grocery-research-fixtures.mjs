@@ -25,7 +25,7 @@ export async function executeGroceryResearchFixtures(payload,{bible}={}){
     const qualified=rows.filter(row=>isGroceryExpansionInventory(row)&&Date.now()-Date.parse(row.observedAt)<=2*60*60_000);
     const operational=qualified.map(row=>canonicalizeSignal(row,bible));
     const candidates=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>({...row,previewOnly:true,
-      canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false}));
+      canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false}));
     const actual={sourceRows:rows.length,inventoryProofRows:qualified.length,candidateCount:candidates.length,
       canonicalNames:[...new Set(rows.map(row=>row.canonicalName))].sort(),
       sourceClockPreserved:rows.every(row=>row.observedAt===observedAt)&&candidates.every(row=>row.observedAt===observedAt),

@@ -63,10 +63,14 @@ export async function prepareGroceryCanary({state,report,reportDirectory,bible,p
   }
   const operational=[...rows.values()].map(row=>canonicalizeSignal(row,bible));
   const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>({...row,previewOnly:true,
-    canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false}));
+    canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false}));
   if(!drops.length)throw new Error('No qualified preview rows survived current source and export policy');
   return {schemaVersion:1,state,generatedAt:report.finishedAt,scope:'isolated_canary_input_no_production_activation',
-    originalSourceClockPreserved:true,workflowSource:provenance,sourceReceipts:receipts,drops};
+    originalSourceClockPreserved:true,workflowSource:provenance,sourceReceipts:receipts,
+    locations:sources.map(source=>({id:source.storeId,storeId:source.storeId,name:source.name,storeName:source.name,
+      address:source.address,storeAddress:source.address,city:source.city,state,zip:source.zip,lat:source.lat,lng:source.lng,
+      type:'store',locationType:'store',source:source.sourceLabel,precision:'store_level',searchable:true,
+      collectorAttached:true,hasSignals:drops.some(row=>row.storeId===source.storeId)})),drops};
 }
 async function findReports(directory){const output=[];for(const entry of await readdir(directory,{withFileTypes:true})){const file=path.join(directory,entry.name);if(entry.isDirectory())output.push(...await findReports(file));else if(entry.name==='report.json')output.push(file);}return output;}
 const argument=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);

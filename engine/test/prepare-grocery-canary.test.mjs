@@ -7,6 +7,8 @@ import {BourbonBible} from '../src/core/bible.mjs';
 import {NEW_MEXICO_GROCERY_SOURCES} from '../src/collectors/new-mexico-grocery-premises.mjs';
 import {groceryResearchSourceForState,collectGroceryResearchReport} from '../src/research-grocery-runtime.mjs';
 import {prepareGroceryCanary} from '../src/prepare-grocery-canary.mjs';
+import {isGroceryExpansionOnSiteSignal} from '../src/grocery-xapi-policy.mjs';
+import {buildCurrentInventoryAlertsFromDrops} from '../src/export-site-contract.mjs';
 
 const fixture=JSON.parse(await readFile(new URL('./fixtures/new-mexico-grocery-expansion/identity.json',import.meta.url)));
 const bible=new BourbonBible(fixture.records);
@@ -32,6 +34,13 @@ test('raw replay preserves source clocks, ignores report rows and rejects stale/
     assert.equal(result.generatedAt,report.finishedAt);
     assert.ok(result.drops.every(row=>result.sourceReceipts.some(receipt=>receipt.observedAt===row.observedAt)));
     assert.ok(result.drops.every(row=>row.previewOnly&&!row.canAlertAsInventory&&!row.eligibleForDelivery));
+    assert.ok(result.drops.every(isGroceryExpansionOnSiteSignal));
+    assert.ok(result.drops.every(row=>row.quantity===0&&row.quantityIsExact===false
+      &&row.inventorySemantics==='binary_retailer_orderable_no_exact_count'));
+    assert.equal(buildCurrentInventoryAlertsFromDrops(result.drops).length,0);
+    for(const mutation of [{quantity:1},{storeId:'unreviewed'},{eligibleForDelivery:true},{inventorySemantics:'exact_retailer_quantity'}]){
+      assert.equal(isGroceryExpansionOnSiteSignal({...result.drops[0],...mutation}),false);
+    }
     await assert.rejects(()=>prepareGroceryCanary({...options,nowMs:Date.now()+121*60_000}),/stale/);
     await assert.rejects(()=>prepareGroceryCanary({...options,provenance:{...provenance,workflowRunId:'124'}}),/provenance/);
     const changed=structuredClone(report);changed.metadata.origin={kind:'local_shadow_not_workflow_issued'};

@@ -54,6 +54,11 @@ research lifecycle override are artifacts; neither is committed as fresh data.
 The deployment option creates an isolated preview with all delivery channels
 disabled and `ENGINE_SNAPSHOT_READ_MODE=off`, so the preview reads its bundled
 candidate snapshot rather than a project's production snapshot configuration.
+The app projection check requires real current public output, exact source-proof
+mutation rejection and separate zero-quantity binary semantics with every alert
+and delivery flag disabled. Preview Finder locations come only from exact current
+resolver-verified premises; store breadth and current bottle availability remain
+separate counts.
 Preview deployment remains an explicit operator dispatch. Do not apply promotion
 based on an undeployed canary alone. Exercise Coverage, the authenticated state
 Feed and Finder, preferences and dashboard using the real preview URL. Preserve

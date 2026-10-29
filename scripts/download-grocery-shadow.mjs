@@ -10,7 +10,7 @@ const allowedPreparationChange=file=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
   'engine/src/prepare-grocery-canary.mjs','engine/src/grocery-research-fixtures.mjs',
   'engine/src/verify-state-fixtures.mjs','engine/src/build-state-canary-preview.mjs','scripts/download-grocery-shadow.mjs',
-  'scripts/build-promotion-provenance.mjs','scripts/test-grocery-canary-preview.mjs',
+  'scripts/build-promotion-provenance.mjs','scripts/test-grocery-canary-preview.mjs','scripts/test-grocery-public-canary.mjs',
   'docs/operations/grocery-state-promotion.md',
 ].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WA|NM)\.json$/.test(file)
   ||/^engine\/test\/(?:prepare-grocery-canary|research-grocery-runtime|grocery-research-fixtures|state-canary-preview)\.test\.mjs$/.test(file)
