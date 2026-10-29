@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import{mkdtemp,readFile,rm}from'node:fs/promises';import{tmpdir}from'node:os';import path from'node:path';
 import{BourbonBible}from'../src/core/bible.mjs';import{collectNewEnglandResearchReport,newEnglandResearchSourceForState}from'../src/new-england-research-runtime.mjs';
+import{canonicalizeSignal}from'../src/operational-report.mjs';
 import{isValidShadowReport}from'../src/run-expansion-shadow.mjs';
 import{isNewEnglandResearchInventory}from'../src/new-england-policy.mjs';import{prepareNewEnglandCanary,buildNewEnglandIssuedSourceProof}from'../src/prepare-new-england-canary.mjs';import{mockedNewEnglandFetch}from'./helpers/synthetic-new-england-production.mjs';
 const bible=new BourbonBible(JSON.parse(await readFile(new URL('./fixtures/new-england/library.json',import.meta.url),'utf8')).records);
@@ -9,7 +10,8 @@ test('NE complete seven-premise raw receipt research reparses into isolated cana
  for(const state of['MA','CT','RI']){const reportDirectory=path.join(dir,state),report=await collectNewEnglandResearchReport(newEnglandResearchSourceForState(state),bible,{env,reportDirectory,incidentDir:path.join(dir,'incidents'),fetchText:mockedNewEnglandFetch()});
  assert.equal(isValidShadowReport(state,report),true);assert.equal(report.strategy,'retailer_store_inventory');assert.equal(report.sourceResults.length,state==='CT'?3:2);assert.ok(report.lastGoodAt);assert.equal(report.metadata.complete,true);assert.ok(report.signals.every(isNewEnglandResearchInventory));total+=report.signals.length;
  const provenance={status:'verified_github_shadow_artifact',state,repository:env.GITHUB_REPOSITORY,workflowRunId:env.GITHUB_RUN_ID,headSha:env.GITHUB_SHA,currentHead:env.GITHUB_SHA,artifactId:'999002',artifactDigest:'b'.repeat(64)};
- const input={state,report,reportDirectory,bible,provenance},value=await prepareNewEnglandCanary(input);assert.equal(value.locations.length,state==='CT'?3:2);assert.ok(value.drops.every(row=>row.previewOnly===true&&row.canAlertAsInventory===false&&row.eligibleForDelivery===false));
+ const input={state,report,reportDirectory,bible,provenance},value=await prepareNewEnglandCanary(input);assert.equal(value.locations.length,state==='CT'?3:2);assert.ok(value.drops.every(row=>row.inventorySemantics==='binary_retailer_orderable_no_exact_count'&&row.quantitySemantics==='binary_retailer_orderable_no_exact_count'&&row.previewOnly===true&&row.canAlertAsInventory===false&&row.eligibleForDelivery===false));
+ const unproven={...report.signals[0],inventorySemantics:'binary_retailer_orderable_no_exact_count',sourceProductBinding:{...report.signals[0].sourceProductBinding,quantitySemantics:'exact_shelf_count'}};assert.notEqual(canonicalizeSignal(unproven,bible).inventorySemantics,'binary_retailer_orderable_no_exact_count');
  await assert.rejects(()=>buildNewEnglandIssuedSourceProof({state,bible,inputs:[input,input]}),/Three distinct/);
  // These are deliberately fabricated schema-only run IDs. No fixture is qualifying workflow proof.
  const inputs=Array.from({length:3},(_,i)=>({...input,report:{...report,metadata:{...report.metadata,origin:{...report.metadata.origin,workflowRunId:String(999010+i)}}},provenance:{...provenance,workflowRunId:String(999010+i)}}));

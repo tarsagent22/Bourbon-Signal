@@ -38,6 +38,7 @@ export const centralProductionOnSiteBoundary = `    ...(isCentralCityHiveProduct
     }:{}),
 `;
 export const reviewedExpansionTierBoundary = "    tier: texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),\n";
+export const newEnglandTypedSemanticsBoundary = '    ...(isNewEnglandInventory(signal)?{inventorySemantics:signal.sourceProductBinding.quantitySemantics}:{}),\n';
 export const originalNewYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'GA' && signal.inventorySemantics\n";
 export const newYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
 export const groceryExpansionSemanticsBoundary = "    inventorySemantics: isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics\n      : signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
@@ -101,7 +102,8 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, texasShopifyPickupTierImport, '', `${name}: TX exact pickup tier import`);
     text = replaceUnique(text, "import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '', name+': NJ/MI on-site import');
     text = replaceUnique(text, "    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '', name+': NJ/MI false-alert on-site proof');
-    text = replaceUnique(text,"import {isNewEnglandProductionOnSiteSignal} from './new-england-policy.mjs';\n",'',name+': New England on-site import');
+    text = replaceUnique(text,newEnglandTypedSemanticsBoundary,'',name+': New England typed inventory semantics');
+    text = replaceUnique(text,"import {isNewEnglandProductionOnSiteSignal,isNewEnglandInventory} from './new-england-policy.mjs';\n",'',name+': New England on-site import');
     text = replaceUnique(text,"    ...(isNewEnglandProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n",'',name+': New England false-alert on-site proof');
     text = replaceUnique(text,"import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';\n",'',name+': New England tier import');
     text = replaceUnique(text,"    ...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{}),\n",'',name+': New England reviewed tier override');

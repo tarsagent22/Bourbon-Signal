@@ -39,7 +39,8 @@ for(const state of ['MA','CT','RI']){
     const operational=report.signals.map(row=>canonicalizeSignal(row,bible));
     const drops=buildDrops(operational,bibleLookup(bible.records),operational);
     assert.ok(drops.length>0);assert.ok(drops.every(row=>!Object.hasOwn(row,'previewOnly')));
-    assert.ok(drops.every(row=>row.quantity===0&&row.quantityIsExact===false&&row.canAlertAsInventory===false&&row.canAlertAsWatch===false
+    assert.ok(operational.every(row=>row.inventorySemantics==='binary_retailer_orderable_no_exact_count'));
+    assert.ok(drops.every(row=>row.inventorySemantics==='binary_retailer_orderable_no_exact_count'&&row.quantitySemantics==='binary_retailer_orderable_no_exact_count'&&row.quantity===0&&row.quantityIsExact===false&&row.canAlertAsInventory===false&&row.canAlertAsWatch===false
       &&row.alertable===false&&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForWatch===false
       &&row.eligibleForDelivery===false&&row.eligibleForEmail===false&&row.eligibleForSms===false));
     assert.equal(buildCurrentInventoryAlertsFromDrops(drops).length,0);

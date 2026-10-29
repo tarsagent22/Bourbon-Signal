@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { reverseLouisianaAlaskaHistoricalAdditions, normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, groceryExpansionProofImport, groceryExpansionSemanticsBoundary, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, centralProductionOnSiteImport, centralProductionOnSiteBoundary } from '../engine/src/verification/historical-implementation.mjs';
+import { reverseLouisianaAlaskaHistoricalAdditions, normalizeHistoricalImplementationBytes, newEnglandTypedSemanticsBoundary, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, groceryExpansionProofImport, groceryExpansionSemanticsBoundary, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, centralProductionOnSiteImport, centralProductionOnSiteBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -100,8 +100,9 @@ function signalSort(a, b) {
     .replace(westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary)
     .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '').replace(texasShopifyPickupTierImport, '')
     .replace("import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '').replace("    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '')
-    .replace("import {isNewEnglandProductionOnSiteSignal} from './new-england-policy.mjs';\n",'').replace("    ...(isNewEnglandProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n",'')
+    .replace("import {isNewEnglandProductionOnSiteSignal,isNewEnglandInventory} from './new-england-policy.mjs';\n",'').replace("    ...(isNewEnglandProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n",'')
     .replace("import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';\n",'').replace("    ...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{}),\n",'')
+    .replace(newEnglandTypedSemanticsBoundary, '')
     .replace(centralProductionOnSiteImport, '').replace(centralProductionOnSiteBoundary, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
@@ -304,6 +305,10 @@ test('New England reverses only its exact inactive source registration and sourc
   const name='engine/src/operational-report.mjs',current=await readFile(new URL('../'+name,import.meta.url),'utf8');
   for(const replacement of[
     ['...(isNewEnglandProductionOnSiteSignal(signal)?{','...(true?{'],
+    ['...(isNewEnglandInventory(signal)?{inventorySemantics:signal.sourceProductBinding.quantitySemantics}:{})','...(true?{inventorySemantics:signal.quantitySemantics}:{})'],
+    ['...(isNewEnglandInventory(signal)?{inventorySemantics:signal.sourceProductBinding.quantitySemantics}:{})','...(isNewEnglandInventory(signal)?{inventorySemantics:signal.quantitySemantics}:{})'],
+    [newEnglandTypedSemanticsBoundary,''],
+    [newEnglandTypedSemanticsBoundary,newEnglandTypedSemanticsBoundary+newEnglandTypedSemanticsBoundary],
     ['...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{})','...({tier:"allocated"})'],
   ])assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(...replacement))),/New England .*exact historical verification hook/);
 });

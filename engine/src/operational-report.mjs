@@ -1,5 +1,5 @@
 import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';
-import {isNewEnglandProductionOnSiteSignal} from './new-england-policy.mjs';
+import {isNewEnglandProductionOnSiteSignal,isNewEnglandInventory} from './new-england-policy.mjs';
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import {louisianaAlaskaGroceryLibraryTier,isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
@@ -197,6 +197,7 @@ export function canonicalizeSignal(signal, bible) {
       : signal.state === 'MS' && signal.inventorySemantics
         ? signal.inventorySemantics
         : policy.inventorySemantics,
+    ...(isNewEnglandInventory(signal)?{inventorySemantics:signal.sourceProductBinding.quantitySemantics}:{}),
     locationValue: policy.locationValue,
     canAlertAsInventory: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,
     canAlertAsWatch: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,
