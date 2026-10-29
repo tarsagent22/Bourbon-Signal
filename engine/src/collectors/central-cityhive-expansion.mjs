@@ -3,6 +3,7 @@ import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
 import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
+import minnesotaExpansion from '../../data/minnesota-cityhive-expansion-sources.json' with {type:'json'};
 
 function source(id, name, state, baseUrl, merchantId, address, city, zip) {
   return Object.freeze({id, name, state, stateCode:state, platform:'cityhive', baseUrl,
@@ -22,7 +23,8 @@ export const CENTRAL_CITYHIVE_EXPANSION_SOURCES = Object.freeze([
     '2322 N Broadway Ave, Oklahoma City, OK 73103, USA','Oklahoma City','73103'),
 ]);
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
-const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES]);
+export const MINNESOTA_CITYHIVE_EXPANSION_SOURCES=Object.freeze(minnesotaExpansion.stores.map(Object.freeze));
+const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES]);
 
 export function centralCityHiveBottleFormat(option, product) {
   const data=option.option_display_data || option.optionDisplayData || {};
@@ -60,6 +62,8 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
   }).flatMap(row=>{
     const identity=row.reviewedIdentity;
     const {record,match}=identity ? (()=>{const m=bible.match(identity);return {match:m,record:m?.record?.canonical===identity?m.record:null};})() : cityHiveSafeBottleMatch(row.title,bible);
+    const batch=row.title.match(/\bbatch\s*(\d{1,4})\b|\b(\d{1,4})\s*batch\b/i);
+    if(batch && !new RegExp(`\\b${batch[1]||batch[2]}\\b`).test(record?.canonical||''))return [];
     if(!record || !['allocated','limited','unicorn'].includes(record.tier) || !Number.isFinite(row.price) || row.price<=0)return [];
     return [{id:stableId([source.state,source.id,row.productId,row.variantId]),state:source.state,stateCode:source.state,
       sourceLabel:source.sourceLabel,sourceUrl:row.productUrl,sourceChain:source.chainId||source.id,merchantId:source.merchantId,
@@ -85,14 +89,15 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now()}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts};
-  const groups=Map.groupBy(ALL_SOURCES.filter(s=>s.state===config.id),s=>config.id==='TX'?s.id:s.chainId||s.id);
+  const perStore=['TX','MN'].includes(config.id);
+  const groups=Map.groupBy(ALL_SOURCES.filter(s=>s.state===config.id),s=>perStore?s.id:s.chainId||s.id);
   for(const [groupId,sources] of groups){
     const source=sources[0];
     if(Date.parse(attempts[groupId]?.nextAllowedAt || '')>nowMs || Date.parse(sourceAttempts[source.hostname]?.nextAllowedAt||'')>nowMs)continue;
-    const terms=await librarySourceSearchTerms(bible,{sourceKey:`${config.id}:${groupId}`,budget:config.id==='TX'?2:4,
-      priorityTerms:config.id==='TX'?['barrel proof']:config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'],broadTerms:[],cursorDir});
+    const terms=await librarySourceSearchTerms(bible,{sourceKey:`${config.id}:${groupId}`,budget:perStore?2:4,
+      priorityTerms:perStore?['barrel proof']:config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'],broadTerms:[],cursorDir});
     const queryUrls=terms.map(term=>source.baseUrl+'/shop/?ch-query='+encodeURIComponent(term)+'&merchant-id='+source.merchantId);
-    const urls=config.id==='TX'?queryUrls:[source.categoryUrl,...queryUrls];
+    const urls=perStore?queryUrls:[source.categoryUrl,...queryUrls];
     const seen=new Set();let denied=false;
     for(const url of urls){
       signal?.throwIfAborted();if(requests.some(r=>r.sourceId===groupId))await sleep(1000);
