@@ -9,7 +9,7 @@ import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {STATE_SOURCES} from '../src/state-sources.mjs';
 const root=new URL('../data/source-evidence/new-england-research-20261029/',import.meta.url);
 const evidence=JSON.parse(await readFile(new URL('receipts.json',root),'utf8'));
-const bible=await BourbonBible.load(new URL('../out/bourbon-bible.json',import.meta.url));
+const bible=new BourbonBible(JSON.parse(await readFile(new URL('./fixtures/new-england/library.json',import.meta.url),'utf8')).records);
 async function capture(source){
   const receipt=evidence.receipts.find(row=>row.url===source.discoveryUrl),compressed=await readFile(new URL(receipt.artifactPath,root));
   assert.equal(createHash('sha256').update(compressed).digest('hex'),receipt.compressedSha256);

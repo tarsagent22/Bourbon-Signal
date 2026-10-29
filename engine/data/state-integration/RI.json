@@ -36,11 +36,11 @@
     },
     "preferences": {
       "status": "verified",
-      "assertion": "The existing lifecycle-backed preferences contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+      "assertion": "scripts/test-new-england-member-path.mts executes actual preference GET/POST with offline provider boundaries, validates normalized state persistence, signed-out401 and free-tier403. Synthetic lifecycle is not a production admission or authenticated UI session."
     },
     "dashboard": {
       "status": "verified",
-      "assertion": "The existing lifecycle-backed dashboard contract consumes the isolated canary lifecycle and state partition; production eligibility remains gated by inactive authoritative lifecycle until promotion."
+      "assertion": "scripts/test-new-england-member-path.mts renders the actual Dashboard component with synthetic lifecycle/provider adapters and checks state/store choice builders. This is executable SSR fixture evidence, not authenticated browser or device acceptance."
     },
     "dropFeedApi": {
       "status": "verified",

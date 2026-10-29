@@ -14,7 +14,7 @@ import {newEnglandProductionCohortKey,NEW_ENGLAND_PRODUCTION_BUDGETS} from '../s
 import {NEW_ENGLAND_PRODUCTION_COHORTS} from '../src/collectors/new-england-premises.mjs';
 import {isNewEnglandProductionOnSiteSignal} from '../src/new-england-policy.mjs';
 import {syntheticNewEnglandPromotion,mockedNewEnglandFetch,bibleFile} from './helpers/synthetic-new-england-production.mjs';
-const bible=await BourbonBible.load(bibleFile),config=state=>ALL_STATE_SOURCES.find(source=>source.id===state);
+const bible=new BourbonBible(JSON.parse(await readFile(new URL('./fixtures/new-england/library.json',import.meta.url),'utf8')).records),config=state=>ALL_STATE_SOURCES.find(source=>source.id===state);
 async function setup(t,state='MA'){
   const directory=await mkdtemp(path.join(tmpdir(),'central-production-'));assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));
   t.after(()=>rm(directory,{recursive:true,force:true}));

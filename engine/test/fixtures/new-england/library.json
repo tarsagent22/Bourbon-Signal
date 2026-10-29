@@ -1,0 +1,387 @@
+{
+  "scope": "Captured library identities for offline schemas only; never a production eligibility override",
+  "records": [
+    {
+      "id": "bb_ee4b5c90535d24d7",
+      "canonical": "1792 Full Proof",
+      "normalizedKey": "1792 full proof",
+      "aliases": [
+        "1792 FP",
+        "1792 Full Proof",
+        "Barton 1792 Full Proof"
+      ],
+      "tier": "allocated",
+      "producer": "Barton",
+      "sources": [
+        "seed"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "1792-full-proof",
+          "canonicalName": "1792 Full Proof",
+          "aliases": [
+            "1792 FP",
+            "1792 Full Proof",
+            "1792 fp",
+            "Barton 1792 Full Proof",
+            "full proof 1792"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_9b3f8371a44671f4",
+      "canonical": "1792 Small Batch",
+      "normalizedKey": "1792",
+      "aliases": [
+        "1792 Bourbon",
+        "1792 Bourbon Small Batch",
+        "1792 Bourbon Small Batch 750ml",
+        "1792 Small Batch",
+        "1792 Small Batch Bourbon",
+        "Barton 1792 Small Batch"
+      ],
+      "tier": "core",
+      "producer": "Barton",
+      "sources": [
+        "seed",
+        "state:SC:dunes",
+        "state:SC"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "1792-small-batch",
+          "canonicalName": "1792 Small Batch",
+          "aliases": [
+            "1792",
+            "1792 Bourbon",
+            "1792 Bourbon Small Batch",
+            "1792 Bourbon Small Batch 750ml",
+            "1792 Small Batch",
+            "1792 Small Batch Bourbon",
+            "Barton 1792 Small Batch",
+            "barton 1792"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_2b5d9987117596c4",
+      "canonical": "Blanton's Gold",
+      "normalizedKey": "blanton s gold",
+      "aliases": [
+        "BLANTON'S GOLD BOURBON",
+        "Blanton Gold",
+        "Blanton's Gold",
+        "Blantons Gold"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "state-data-additions",
+        "state:AL"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "blantons-gold-bourbon",
+          "canonicalName": "Blanton's Gold Bourbon",
+          "aliases": [
+            "BLANTON'S GOLD BOURBON",
+            "Blanton Gold",
+            "Blanton's Gold",
+            "Blanton's Gold Bourbon",
+            "Blantons Gold"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_5afa9241206ab963",
+      "canonical": "Blanton's Original Single Barrel",
+      "normalizedKey": "blanton s original",
+      "aliases": [
+        "BLANTON'S BOURBON",
+        "Blanton",
+        "Blanton's",
+        "Blanton's Bourbon",
+        "Blanton's Original",
+        "Blanton's Original Single Barrel",
+        "Blanton's Single Barrel",
+        "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+        "Blantons"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "blantons-single-barrel",
+          "canonicalName": "Blanton's Single Barrel",
+          "aliases": [
+            "BLANTON'S BOURBON",
+            "Blanton",
+            "Blanton's",
+            "Blanton's Bourbon",
+            "Blanton's Original",
+            "Blanton's Original Single Barrel",
+            "Blanton's Single Barrel",
+            "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+            "Blantons",
+            "blanton",
+            "blanton's",
+            "blantons",
+            "blantons single barrel"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_cca84bbe5368acac",
+      "canonical": "Blanton's Straight From The Barrel",
+      "normalizedKey": "blanton s from",
+      "aliases": [
+        "BLANTON'S STRAIGHT FROM THE BARREL",
+        "Blanton's SFTB",
+        "Blanton's Straight From The Barrel",
+        "Blantons Straight From The Barrel"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "state-data-additions",
+        "state:AL"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "blantons-straight-from-the-barrel",
+          "canonicalName": "Blanton's Straight From The Barrel",
+          "aliases": [
+            "BLANTON'S STRAIGHT FROM THE BARREL",
+            "Blanton's SFTB",
+            "Blanton's Straight From The Barrel",
+            "Blantons Straight From The Barrel"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_be6a0afd4ba5f963",
+      "canonical": "Elijah Craig Barrel Proof",
+      "normalizedKey": "elijah craig proof",
+      "aliases": [
+        "ECBP",
+        "Elijah Craig BP",
+        "Elijah Craig Barrel Proof"
+      ],
+      "tier": "allocated",
+      "producer": "Heaven Hill",
+      "sources": [
+        "seed",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "elijah-craig-barrel-proof",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "aliases": [
+            "ECBP",
+            "Elijah Craig BP",
+            "Elijah Craig Barrel Proof",
+            "Elijah Craig Barrel Proof Small Batch",
+            "ecbp",
+            "elijah craig barrel proof",
+            "elijah craig bp"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "elijah-craig-barrel-proof-rye",
+      "canonical": "Elijah Craig Barrel Proof Rye",
+      "normalizedKey": "library:elijah-craig-barrel-proof-rye",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "elijah-craig-barrel-proof-rye",
+          "canonicalName": "Elijah Craig Barrel Proof Rye",
+          "aliases": [
+            "ECBP",
+            "Elijah Craig Barrel Proof Rye"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_babb8d7d3e6be567",
+      "canonical": "Elijah Craig Straight Rye Whiskey",
+      "normalizedKey": "elijah craig rye",
+      "aliases": [
+        "Elijah Craig Ky Strt Rye Whsky",
+        "Elijah Craig Ky Strt Rye Whsky 1.75L",
+        "Elijah Craig Ky Strt Rye Whsky 750ml",
+        "Elijah Craig Straight Rye Whiskey"
+      ],
+      "tier": "standard",
+      "producer": "Heaven Hill",
+      "sources": [
+        "state:SC:dunes",
+        "state:SC"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_babb8d7d3e6be567",
+          "canonicalName": "Elijah Craig Straight Rye Whiskey",
+          "aliases": [
+            "Elijah Craig Ky Strt Rye Whsky",
+            "Elijah Craig Ky Strt Rye Whsky 1.75L",
+            "Elijah Craig Ky Strt Rye Whsky 750ml",
+            "Elijah Craig Straight Rye Whiskey"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_b7ca7cc4ab428ba8",
+      "canonical": "Henry McKenna 10 Year",
+      "normalizedKey": "henry mckenna 10 year",
+      "aliases": [
+        "HENRY MCKENNA SINGLE BARREL",
+        "Henry McKenna 10",
+        "Henry McKenna 10 Year",
+        "Henry McKenna BIB",
+        "Henry McKenna Bottled-in-Bond",
+        "Henry McKenna Single Barrel",
+        "Henry McKenna Single Barrel 10 Year",
+        "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+        "McKenna 10"
+      ],
+      "tier": "allocated",
+      "producer": "Heaven Hill",
+      "sources": [
+        "seed",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "henry-mckenna-10-year",
+          "canonicalName": "Henry McKenna 10 Year",
+          "aliases": [
+            "HENRY MCKENNA SINGLE BARREL",
+            "Henry McKenna 10",
+            "Henry McKenna 10 Year",
+            "Henry McKenna BIB",
+            "Henry McKenna Bottled-in-Bond",
+            "Henry McKenna Single Barrel",
+            "Henry McKenna Single Barrel 10 Year",
+            "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+            "McKenna 10"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_dec2c347ba378237",
+      "canonical": "Larceny Barrel Proof",
+      "normalizedKey": "larceny proof",
+      "aliases": [
+        "Larceny Barrel Proof"
+      ],
+      "tier": "standard",
+      "producer": "Heaven Hill",
+      "sources": [
+        "state:PA:reviewed-fwgs",
+        "state:PA"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "larceny-barrel-proof",
+          "canonicalName": "Larceny Barrel Proof",
+          "aliases": [
+            "LBP",
+            "Larceny Barrel Proof",
+            "larceny barrel proof",
+            "larceny bp",
+            "lbp"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

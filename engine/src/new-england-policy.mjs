@@ -28,6 +28,12 @@ export function isNewEnglandInventory(row,{nowMs=Date.now()}={}){
 const channelsDisabled=row=>row.canAlertAsInventory===false&&row.can_alert_as_inventory!==true&&row.canAlertAsWatch===false
   &&row.can_alert_as_watch!==true&&row.alertable!==true&&row.eligibleForWatch===false&&row.eligibleForDelivery===false
   &&row.deliveryEligible!==true&&row.eligibleForEmail===false&&row.eligibleForSms===false;
+export function isNewEnglandResearchInventory(row,options={}){
+  const source=NEW_ENGLAND_RESEARCH_SOURCES.find(source=>source.state===row?.state&&source.storeId===row?.storeId);
+  return isNewEnglandInventory(row,options)&&channelsDisabled(row)&&row.eligibleForOnSite===false&&row.eligibleForDropFeed===false
+    &&row.raw?.shadowOnly===true&&row.sourceProductBinding.shadowOnly===true&&!Object.hasOwn(row,'previewOnly')
+    &&row.sourceRuntimeId===`research:${row.state.toLowerCase()}:${source.id}`;
+}
 export function isNewEnglandProductionOnSiteSignal(row,options={}){
   return isNewEnglandInventory(row,options)&&channelsDisabled(row)&&!Object.hasOwn(row,'previewOnly')&&row.quarantined!==true
     &&row.raw?.shadowOnly!==true&&row.raw?.cacheFallback!==true&&row.sourceProductBinding.shadowOnly!==true

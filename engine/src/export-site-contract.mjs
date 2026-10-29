@@ -1,4 +1,4 @@
-import {isNewEnglandRetailerEvent,isNewEnglandInventory,isNewEnglandProductionOnSiteSignal} from './new-england-policy.mjs';
+import {isNewEnglandRetailerEvent,isNewEnglandInventory,isNewEnglandProductionOnSiteSignal,isNewEnglandOnSiteSignal} from './new-england-policy.mjs';
 import {isNjMiRetailerEvent,isNjMiResearchInventory,isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import {isLouisianaAlaskaGroceryInventory,isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
@@ -743,7 +743,8 @@ function isFastMovingStoreInventory(signal) {
   const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
   if (signal.locationPrecision !== 'store_level') return false;
   if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)
-    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)) return false;
+    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)
+    && !isNewEnglandOnSiteSignal(signal)) return false;
   if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
