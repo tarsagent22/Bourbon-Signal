@@ -2,6 +2,7 @@ import { parseCityHiveProducts } from './cityhive-surfaces.mjs';
 import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
+import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
 
 function source(id, name, state, baseUrl, merchantId, address, city, zip) {
   return Object.freeze({id, name, state, stateCode:state, platform:'cityhive', baseUrl,
@@ -20,6 +21,8 @@ export const CENTRAL_CITYHIVE_EXPANSION_SOURCES = Object.freeze([
   source('byrons-liquor-okc',"Byron's Liquor Warehouse",'OK','https://byronsliquor.com','6060f5bded7ffb6a9c4c64b8',
     '2322 N Broadway Ave, Oklahoma City, OK 73103, USA','Oklahoma City','73103'),
 ]);
+export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
+const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES]);
 
 export function centralCityHiveBottleFormat(option, product) {
   const data=option.option_display_data || option.optionDisplayData || {};
@@ -49,9 +52,9 @@ export function reviewedCentralCityHiveIdentity(option, product) {
 }
 
 export function parseCentralCityHiveInventory(html, candidate, bible, {observedAt}={}) {
-  const source=CENTRAL_CITYHIVE_EXPANSION_SOURCES.find(s=>s===candidate);
+  const source=ALL_SOURCES.find(s=>s===candidate);
   if(!source || !Number.isFinite(Date.parse(observedAt)))return [];
-  return parseCityHiveProducts(html,source,{sources:CENTRAL_CITYHIVE_EXPANSION_SOURCES,
+  return parseCityHiveProducts(html,source,{sources:ALL_SOURCES,
     isAllowedOption:centralCityHiveBottleFormat,
     reviewOption:reviewedCentralCityHiveIdentity,
   }).flatMap(row=>{
@@ -59,8 +62,8 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
     const {record,match}=identity ? (()=>{const m=bible.match(identity);return {match:m,record:m?.record?.canonical===identity?m.record:null};})() : cityHiveSafeBottleMatch(row.title,bible);
     if(!record || !['allocated','limited','unicorn'].includes(record.tier) || !Number.isFinite(row.price) || row.price<=0)return [];
     return [{id:stableId([source.state,source.id,row.productId,row.variantId]),state:source.state,stateCode:source.state,
-      sourceLabel:source.sourceLabel,sourceUrl:row.productUrl,sourceChain:source.id,merchantId:source.merchantId,
-      productId:row.productId,optionId:row.variantId,rawName:row.title,canonicalBottleId:record.id,canonicalName:record.canonical,
+      sourceLabel:source.sourceLabel,sourceUrl:row.productUrl,sourceChain:source.chainId||source.id,merchantId:source.merchantId,
+      productId:row.productId,optionId:row.variantId,variantId:row.variantId,rawName:row.title,canonicalBottleId:record.id,canonicalName:record.canonical,
       tier:record.tier,confidence:Math.max(.85,match?.confidence || 0),eventType:'retailer_store_inventory_result',
       locationPrecision:'store_level',locationName:source.name,storeName:source.name,storeId:source.storeId,
       storeAddress:source.address,city:source.city,postalCode:source.zip,zip:source.zip,
@@ -73,7 +76,7 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
       sourceProductBinding:{schemaVersion:1,source:'central-cityhive',merchantId:source.merchantId,storeId:source.storeId,
         storeAddress:source.address,productId:row.productId,optionId:row.variantId,rawName:row.title,
         canonicalBottleId:record.id,price:row.price,observedAt,premisesVerified:true,pickupOfferVerified:true},
-      raw:{chain:source.id,merchantId:source.merchantId,productId:row.productId,optionId:row.variantId,
+      raw:{chain:source.chainId||source.id,merchantId:source.merchantId,productId:row.productId,optionId:row.variantId,
         reportedQuantity:row.reportedQuantity,quantitySemantics:'binary_retailer_orderable_no_exact_count'}}];
   });
 }
@@ -82,25 +85,28 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now()}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts};
-  for(const source of CENTRAL_CITYHIVE_EXPANSION_SOURCES.filter(s=>s.state===config.id)){
-    if(Date.parse(attempts[source.id]?.nextAllowedAt || '')>nowMs)continue;
-    const terms=await librarySourceSearchTerms(bible,{sourceKey:`${config.id}:${source.id}`,budget:4,
-      priorityTerms:config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'],broadTerms:[],cursorDir});
-    const urls=[source.categoryUrl,...terms.map(term=>source.baseUrl+'/shop/?ch-query='+encodeURIComponent(term)+'&merchant-id='+source.merchantId)];
+  const groups=Map.groupBy(ALL_SOURCES.filter(s=>s.state===config.id),s=>config.id==='TX'?s.id:s.chainId||s.id);
+  for(const [groupId,sources] of groups){
+    const source=sources[0];
+    if(Date.parse(attempts[groupId]?.nextAllowedAt || '')>nowMs || Date.parse(sourceAttempts[source.hostname]?.nextAllowedAt||'')>nowMs)continue;
+    const terms=await librarySourceSearchTerms(bible,{sourceKey:`${config.id}:${groupId}`,budget:config.id==='TX'?2:4,
+      priorityTerms:config.id==='TX'?['barrel proof']:config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'],broadTerms:[],cursorDir});
+    const queryUrls=terms.map(term=>source.baseUrl+'/shop/?ch-query='+encodeURIComponent(term)+'&merchant-id='+source.merchantId);
+    const urls=config.id==='TX'?queryUrls:[source.categoryUrl,...queryUrls];
     const seen=new Set();let denied=false;
     for(const url of urls){
-      signal?.throwIfAborted();if(requests.some(r=>r.sourceId===source.id))await sleep(1000);
+      signal?.throwIfAborted();if(requests.some(r=>r.sourceId===groupId))await sleep(1000);
       const response=await fetchText(url,{signal,timeoutMs:10000,maxBytes:2*1024*1024,maxRedirects:0});
-      requests.push({sourceId:source.id,url,status:response.status||0,ok:response.ok===true});
+      requests.push({sourceId:groupId,url,status:response.status||0,ok:response.ok===true});
       if(!response.ok){
         roadblocks.push({state:config.id,source:source.sourceLabel,url,status:response.status||0,error:response.error||`HTTP ${response.status}`});
         denied=[401,403,429,435].includes(Number(response.status));
-        if(denied){sourceAttempts[source.id]={lastAttemptAt:observedAt,status:'access_denied',httpStatus:response.status,nextAllowedAt:new Date(nowMs+24*60*60_000).toISOString()};break;}
+        if(denied){sourceAttempts[groupId]={lastAttemptAt:observedAt,status:'access_denied',httpStatus:response.status,nextAllowedAt:new Date(nowMs+24*60*60_000).toISOString()};sourceAttempts[source.hostname]=sourceAttempts[groupId];break;}
         continue;
       }
-      for(const row of parseCentralCityHiveInventory(response.text,source,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
+      for(const candidate of sources)for(const row of parseCentralCityHiveInventory(response.text,candidate,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
     }
-    if(!denied)sourceAttempts[source.id]={lastAttemptAt:observedAt,status:seen.size?'success':'no_qualified_inventory',httpStatus:200,nextAllowedAt:new Date(nowMs+30*60_000).toISOString()};
+    if(!denied)sourceAttempts[groupId]={lastAttemptAt:observedAt,status:seen.size?'success':'no_qualified_inventory',httpStatus:200,nextAllowedAt:new Date(nowMs+30*60_000).toISOString()};
   }
   return {signals,roadblocks,metadata:{requests,sourceAttempts}};
 }

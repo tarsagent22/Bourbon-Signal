@@ -1,0 +1,1343 @@
+{
+  "sourceId": "lol-liquors-texas",
+  "capturedAt": "2026-10-29T01:34:46.217Z",
+  "url": "https://lolliquors.com/shop/?ch-query=barrel%20proof",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "648b2c3280fafa2a9b7a1c18",
+        "name": "LOL Liquors- Schertz",
+        "address": {
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "648b2c634ad5482a835b74e0",
+        "name": "LOL Liquors - Garden Ridge",
+        "address": {
+          "full_address": "18838 FM 2252, Garden Ridge, TX 78266, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "648b2c87170dfb2a911b0095",
+        "name": "LOL Liquors - O’Connor",
+        "address": {
+          "full_address": "4330 N Loop 1604 E Suite 106, San Antonio, TX 78247, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "648b2cb0bb96612c02da7b6c",
+        "name": "LOL Liquors - Converse",
+        "address": {
+          "full_address": "8144 Farm-To-Market Rd 78 Suite 5, Converse, TX 78109, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "648b2ce12c7c742ad1b4998d",
+        "name": "Sip & Smoke Liquor - Cibolo",
+        "address": {
+          "full_address": "2451 FM1103 suite 105, Cibolo, TX 78108, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "648b2d186fed862c0fe0d0c2",
+        "name": "LOL Liquors - Thousand Oaks",
+        "address": {
+          "full_address": "2235 Thousand Oaks Dr Suite 105, San Antonio, TX 78232, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "648b2d40b79e832a86bb466d",
+        "name": "LOL Liquors - Foster",
+        "address": {
+          "full_address": "6322 Farm-To-Market Rd 78 #124, San Antonio, TX 78244, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "6060f7b3ed7ffb6a9c4c6879",
+        "name": "LOL Liquors - Live Oak",
+        "address": {
+          "full_address": "12107 Toepperwein Rd, Live Oak, TX 78233, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "689f6a4d5f28f92938aa531b",
+        "name": "Sip & Smoke Liquor - Pleasanton",
+        "address": {
+          "full_address": "2128 W Oaklawn Rd, Pleasanton, TX 78064, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "689f6ab0bdd7ad29226fafe6",
+        "name": "Sip & Smoke Liquor - Pearsall",
+        "address": {
+          "full_address": "1702 Louise Ln #101, Pearsall, TX 78061, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "689f6a89b1748f4f14703e5a",
+        "name": "Sip & Smoke Liquor - De Zavala",
+        "address": {
+          "full_address": "6362 De Zavala Rd Suite 103, San Antonio, TX 78249, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "689f6b69bdd7ad17886f5570",
+        "name": "Sip & Smoke Liquor - Eagle Pass",
+        "address": {
+          "full_address": "2847 El Indio Hwy #8, Eagle Pass, TX 78852, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "689f69a4bdd7ad291b6f9af9",
+        "name": "LOL Liquors - Eagle Pass",
+        "address": {
+          "full_address": "2135 Main St, Eagle Pass, TX 78852, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "689f6ae0b03f944d479bbdaa",
+        "name": "LOL Liquors - New Braunfels",
+        "address": {
+          "full_address": "1050 FM306 #105, New Braunfels, TX 78130, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "69fcc915f21eda03d884c5fb",
+        "name": "Sip & Smoke Liquors - Devine",
+        "address": {
+          "full_address": "1009 E Hondo Ave, Devine, TX 78016, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "69fcca5af1a527004c2f9c55",
+        "name": "LOL Liquors - Bandera",
+        "address": {
+          "full_address": "377 TX-16, Bandera, TX 78003, USA"
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "62d59727c0b2c8506b3b0ee5",
+        "name": "Sip & Smoke New Braunfels",
+        "address": {
+          "full_address": "330 Landa St., New Braunfels, TX, 78130, USA"
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "5521cefb6561310003c20300",
+      "name": "Colonel E H Taylor Jr Barrel Proof Uncut Unfiltered Bourbon 129 Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521cefb6561310003c20300",
+              "option_id": "161a04e49844058db822b083839a64a21d0a683c4c5202435150ccbad2e9ee6a",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/colonel-e-h-taylor-jr-barrel-proof-uncut-unfiltered-bourbon-129-proof/5521cefb6561310003c20300?option-id=161a04e49844058db822b083839a64a21d0a683c4c5202435150ccbad2e9ee6a",
+              "quantity": 23,
+              "price": 199.99,
+              "option_display_data": {
+                "name": "Colonel E H Taylor Jr Barrel Proof Uncut Unfiltered Bourbon 129 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "E.H. Taylor"
+                  ],
+                  "age": "25",
+                  "brand": "E H Taylor"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 29,
+              "price": 74.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6144fc9d59f9ed58fcc1ca44",
+      "name": "Elijah Craig Barrel Proof Store Pick 2023",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6144fc9d59f9ed58fcc1ca44",
+              "option_id": "d8667a8b9d912b27fed7c655eff027281c8202a889c12af4bae15f30d811b7e1",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/elijah-craig-barrel-proof-store-pick-2023/6144fc9d59f9ed58fcc1ca44?option-id=d8667a8b9d912b27fed7c655eff027281c8202a889c12af4bae15f30d811b7e1",
+              "quantity": 9,
+              "price": 79.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof Store Pick 2023",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "9"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "quantity": 6,
+              "price": 75.99,
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5b0ec9a2ef454b50af5cba71",
+      "name": "Rossville Union Master Crafted Barrel Proof Straight Rye Whiskey",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5b0ec9a2ef454b50af5cba71",
+              "option_id": "f8d0252fb778aec091ade87ed263a70a740ef27186a53b9692e26c00747dd9d7",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/rossville-union-master-crafted-barrel-proof-straight-rye-whiskey/5b0ec9a2ef454b50af5cba71?option-id=f8d0252fb778aec091ade87ed263a70a740ef27186a53b9692e26c00747dd9d7",
+              "quantity": 10,
+              "price": 59.99,
+              "option_display_data": {
+                "name": "Rossville Union Master Crafted Barrel Proof Straight Rye Whiskey",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rye",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rye",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Rossville Union"
+                  ],
+                  "country": "United States",
+                  "state": "Indiana",
+                  "region": "Lawrenceburg",
+                  "content": "56.3%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5ea3153addd8f15b04b234d6",
+      "name": "TX Straight Bourbon Whiskey Barrel Proof",
+      "size": {},
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5ea3153addd8f15b04b234d6",
+              "option_id": "cf4a138846dfbffdb28b3d797a1ee75b28e5506d87712fbd3a99809f2bdb1ddf",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/tx-straight-bourbon-whiskey-barrel-proof/5ea3153addd8f15b04b234d6?option-id=cf4a138846dfbffdb28b3d797a1ee75b28e5506d87712fbd3a99809f2bdb1ddf",
+              "quantity": 1,
+              "price": 74.99,
+              "option_display_data": {
+                "name": "TX Straight Bourbon Whiskey Barrel Proof",
+                "size": null,
+                "basic_category": [
+                  "bourbon"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Tx Whiskey"
+                  ],
+                  "country": "United States",
+                  "state": "N/A",
+                  "region": "N/A",
+                  "sub_region": "N/A",
+                  "age": "N/A",
+                  "content": "63.7%",
+                  "brand": "Tx Whiskey"
+                }
+              }
+            },
+            {
+              "product_id": "62157a456da3b035edd0b698",
+              "option_id": "e01f258ba77d49c52c8663105d00fa570b999db5470702420db3c6bbebd33f26",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/tx-straight-bourbon-whiskey-barrel-proof/62157a456da3b035edd0b698?option-id=e01f258ba77d49c52c8663105d00fa570b999db5470702420db3c6bbebd33f26",
+              "quantity": 7,
+              "price": 54.99,
+              "option_display_data": {
+                "name": "TX Straight Bourbon Whiskey Barrel Proof",
+                "size": null,
+                "basic_category": [
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "whiskey"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Tx Whiskey"
+                  ],
+                  "varietal": [
+                    "N/A"
+                  ],
+                  "country": "United States",
+                  "state": "N/A",
+                  "region": "N/A",
+                  "sub_region": "N/A",
+                  "age": "N/A",
+                  "content": "50%",
+                  "brand": "Tx Whiskey"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6a29b58db6269500015b94aa",
+      "name": "Russells Reserve 13 Years Old Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6a29b58db6269500015b94aa",
+              "option_id": "c4648224b7fdd664ddcca7151963ea385a18d0d6f368afa91a3b5bdb1334336d",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/russells-reserve-13-years-old-barrel-proof/6a29b58db6269500015b94aa?option-id=c4648224b7fdd664ddcca7151963ea385a18d0d6f368afa91a3b5bdb1334336d",
+              "quantity": 1,
+              "price": 399.99,
+              "option_display_data": {
+                "name": "Russells Reserve 13 Years Old Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon"
+                  ],
+                  "brands": [
+                    "Russells Reserve"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "13"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6580765bc06c5750aeb526a7",
+      "name": "Jack Daniels Barrel Proof Charlie's Ii Single Barrel Whiskey 750ml",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6580765bc06c5750aeb526a7",
+              "option_id": "b12df9ffe2857a33ab4676043424b5ed8fbc62d074a13ac0304e69c6470635e1",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/jack-daniels-barrel-proof-charlies-ii-single-barrel-whiskey-750ml/6580765bc06c5750aeb526a7?option-id=b12df9ffe2857a33ab4676043424b5ed8fbc62d074a13ac0304e69c6470635e1",
+              "quantity": 2,
+              "price": 71.99,
+              "option_display_data": {
+                "name": "Jack Daniels Barrel Proof Charlie's Ii Single Barrel Whiskey 750ml",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Jack Daniel's"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "65bba646642ef729c77fb80e",
+      "name": "1792 Full Proof Barrel Select",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "65bba646642ef729c77fb80e",
+              "option_id": "d52723a41ee2210b6912e3c65a93fffa772285f3c05c3c2dcbb56493d659607e",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/1792-full-proof-barrel-select/65bba646642ef729c77fb80e?option-id=d52723a41ee2210b6912e3c65a93fffa772285f3c05c3c2dcbb56493d659607e",
+              "quantity": 14,
+              "price": 54.99,
+              "option_display_data": {
+                "name": "1792 Full Proof Barrel Select",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon"
+                  ],
+                  "brands": [
+                    "1792"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "65bba55642f54931ad477777",
+      "name": "Weller Full Proof Barrel Select",
+      "size": {},
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "65bba55642f54931ad477777",
+              "option_id": "3fd12103c5e3cec0db790f4245ec0fba8efb50c5ce6ddcd7cddbd4b16be11121",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/weller-full-proof-barrel-select/65bba55642f54931ad477777?option-id=3fd12103c5e3cec0db790f4245ec0fba8efb50c5ce6ddcd7cddbd4b16be11121",
+              "quantity": 21,
+              "price": 99.99,
+              "option_display_data": {
+                "name": "Weller Full Proof Barrel Select",
+                "size": null,
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Weller Bourbon"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5f77b89c99ecae08bcd96382",
+      "name": "Parrot Bay Coconut 90 Proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5f77b89c99ecae08bcd96382",
+              "option_id": "cd5020ea0786a83f88daeeac7400d672555c0632e009b3e8fcceb70ef0a04b6e",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/parrot-bay-coconut-90-proof/5f77b89c99ecae08bcd96382?option-id=cd5020ea0786a83f88daeeac7400d672555c0632e009b3e8fcceb70ef0a04b6e",
+              "quantity": 6,
+              "price": 29.99,
+              "option_display_data": {
+                "name": "Parrot Bay Coconut 90 Proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "brands": [
+                    "Parrot Bay"
+                  ],
+                  "country": "Barbados",
+                  "region": "Caribbean"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5efb3d6e06a28849d2dc0a22",
+      "name": "Ezra Brooks Single Barrel",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5efb3d6e06a28849d2dc0a22",
+              "option_id": "1e3877d6704dd11961c1e21520428ecbf42d38f7d96a34cb8fcdbb3c38740d24",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/ezra-brooks-single-barrel/5efb3d6e06a28849d2dc0a22?option-id=1e3877d6704dd11961c1e21520428ecbf42d38f7d96a34cb8fcdbb3c38740d24",
+              "quantity": 3,
+              "price": 59.99,
+              "option_display_data": {
+                "name": "Ezra Brooks Single Barrel",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "country": "United States",
+                  "region": "Štore"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5521ceef6561310003530000",
+      "name": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521ceef6561310003530000",
+              "option_id": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+              "quantity": 7,
+              "price": 99.99,
+              "option_display_data": {
+                "name": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Blanton's "
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "46.5%",
+                  "brand": "Blanton's "
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "56c2929e756275139df80300",
+      "name": "Jameson Black Barrel Irish Whiskey",
+      "size": {
+        "measure": "L",
+        "quantity": "1"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521cef36561310003750100",
+              "option_id": "e8dff8027ffaabbb8cc9ee3387f4fb4f18180cce68248d8721a3d748dfe5879e",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/jameson-black-barrel-irish-whiskey/5521cef36561310003750100?option-id=e8dff8027ffaabbb8cc9ee3387f4fb4f18180cce68248d8721a3d748dfe5879e",
+              "quantity": 6,
+              "price": 49.99,
+              "option_display_data": {
+                "name": "Jameson Black Barrel Irish Whiskey",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "fruit",
+                  "spices",
+                  "sweets",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "fruit",
+                    "spices",
+                    "sweets",
+                    "whiskey"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Jameson"
+                  ],
+                  "country": "Ireland",
+                  "region": "N/A",
+                  "sub_region": "N/A",
+                  "age": "N/A",
+                  "content": "40%",
+                  "brand": "Jameson Irish Whiskey"
+                }
+              }
+            },
+            {
+              "product_id": "56c2929e756275139df80300",
+              "option_id": "0a706e5ebf5185e42fcfb12f456d9b67f50b55d1ceb51d06914d4a001f9cd604",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/jameson-black-barrel-irish-whiskey/56c2929e756275139df80300?option-id=0a706e5ebf5185e42fcfb12f456d9b67f50b55d1ceb51d06914d4a001f9cd604",
+              "quantity": 1,
+              "price": 59.99,
+              "option_display_data": {
+                "name": "Jameson Black Barrel Irish Whiskey",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1"
+                },
+                "basic_category": [
+                  "irish whiskey",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "irish whiskey",
+                    "whiskey"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Jameson"
+                  ],
+                  "country": "Ireland",
+                  "region": "N/A",
+                  "sub_region": "N/A",
+                  "age": "N/A",
+                  "content": "40%",
+                  "brand": "Jameson"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "58585d6e39e21c3fb6d12870",
+      "name": "New Amsterdam Vodka 100 Proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "58585d6e39e21c3fb6d12870",
+              "option_id": "95ad60f38ce6c0bca5aab746640760b7c39f225779eae2745f4ddad2034383a0",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/new-amsterdam-vodka-100-proof/58585d6e39e21c3fb6d12870?option-id=95ad60f38ce6c0bca5aab746640760b7c39f225779eae2745f4ddad2034383a0",
+              "quantity": 29,
+              "price": 9.99,
+              "option_display_data": {
+                "name": "New Amsterdam Vodka 100 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "375"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "New Amsterdam"
+                  ],
+                  "country": "United States",
+                  "state": "California",
+                  "region": "Mendocino",
+                  "brand": "New Amsterdam"
+                }
+              }
+            },
+            {
+              "product_id": "57aa3e9469702d1fad7bab01",
+              "option_id": "ad969a9fed0785d53ab3723df4b8eada08faf47a9d6ee9dd30fe5e305476e5a2",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/new-amsterdam-vodka-100-proof/57aa3e9469702d1fad7bab01?option-id=ad969a9fed0785d53ab3723df4b8eada08faf47a9d6ee9dd30fe5e305476e5a2",
+              "quantity": 23,
+              "price": 27.99,
+              "option_display_data": {
+                "name": "New Amsterdam Vodka 100 Proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "New Amsterdam"
+                  ],
+                  "country": "United States",
+                  "state": "California",
+                  "region": "Mendocino",
+                  "brand": "New Amsterdam"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5c141a8c20c8ba1b8765e8b9",
+      "name": "Handy & Schiller Barreled Old Fashioned Signature Ready to Drink Cocktail",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5c141a8c20c8ba1b8765e8b9",
+              "option_id": "a0836f1e80ff8c413945dc742be9ba26c1d49bd3e3479d686b3b0ed769eb2897",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/handy-schiller-barreled-old-fashioned-signature-ready-to-drink-cocktail/5c141a8c20c8ba1b8765e8b9?option-id=a0836f1e80ff8c413945dc742be9ba26c1d49bd3e3479d686b3b0ed769eb2897",
+              "quantity": 29,
+              "price": 39.99,
+              "option_display_data": {
+                "name": "Handy & Schiller Barreled Old Fashioned Signature Ready to Drink Cocktail",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "cocktail"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "cocktail"
+                  ],
+                  "brands": [
+                    "Handy & Schiller"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "56cb0234756275420e9d0000",
+      "name": "Kraken Rum Black Spiced Rum 94 Proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56dd1c4469702d1873800200",
+              "option_id": "04c91747a1de3eafaf230b412665d5a1487b071523f7600e5777322d7473b27e",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/kraken-rum-black-spiced-rum-94-proof/56dd1c4469702d1873800200?option-id=04c91747a1de3eafaf230b412665d5a1487b071523f7600e5777322d7473b27e",
+              "quantity": 12,
+              "price": 24.99,
+              "option_display_data": {
+                "name": "Kraken Rum Black Spiced Rum 94 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Kraken Rum"
+                  ],
+                  "country": "Blend Of Caribbean",
+                  "content": "47%"
+                }
+              }
+            },
+            {
+              "product_id": "56c2703375627570b0be0100",
+              "option_id": "533e6202ccd83c33c3d3acadd11768934214d0c3596b73dc5bad5c536a073341",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/kraken-rum-black-spiced-rum-94-proof/56c2703375627570b0be0100?option-id=533e6202ccd83c33c3d3acadd11768934214d0c3596b73dc5bad5c536a073341",
+              "quantity": 6,
+              "price": 23.99,
+              "option_display_data": {
+                "name": "Kraken Rum Black Spiced Rum 94 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Kraken Rum"
+                  ],
+                  "country": "Blend Of Caribbean",
+                  "content": "47%"
+                }
+              }
+            },
+            {
+              "product_id": "56cb0234756275420e9d0000",
+              "option_id": "40ff4d42e26c8bc83c0e8c43658e17718dddfbeac656478e810221e0cee4f7cc",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/kraken-rum-black-spiced-rum-94-proof/56cb0234756275420e9d0000?option-id=40ff4d42e26c8bc83c0e8c43658e17718dddfbeac656478e810221e0cee4f7cc",
+              "quantity": 4,
+              "price": 35.99,
+              "option_display_data": {
+                "name": "Kraken Rum Black Spiced Rum 94 Proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Kraken Rum"
+                  ],
+                  "country": "Blend Of Caribbean",
+                  "content": "47%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "56c28d78756275139d340200",
+      "name": "Maestro Dobel Diamante Tequila Cristalino",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "648b2c3280fafa2a9b7a1c18",
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c28d78756275139d340200",
+              "option_id": "320c02f80f69f92cedcdda0ea1deee4f5fc85429864994376b6d3a07694a60a6",
+              "merchant_id": "648b2c3280fafa2a9b7a1c18",
+              "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+              "product_url": "https://lolliquors.com/shop/product/maestro-dobel-diamante-tequila-cristalino/56c28d78756275139d340200?option-id=320c02f80f69f92cedcdda0ea1deee4f5fc85429864994376b6d3a07694a60a6",
+              "quantity": 21,
+              "price": 59.99,
+              "option_display_data": {
+                "name": "Maestro Dobel Diamante Tequila Cristalino",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "tequila"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "tequila"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Maestro Dobel"
+                  ],
+                  "country": "Mexico",
+                  "content": "40%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

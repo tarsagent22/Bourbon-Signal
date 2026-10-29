@@ -1,5 +1,6 @@
 import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS } from './nevada-xapi-runtime.mjs';
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
+import { collectTexasCityHiveExpansion } from './texas-cityhive-expansion.mjs';
 import { pennsylvaniaDirectFwgsRoadblock } from './pennsylvania-direct-source-policy.mjs';
 import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
 import { reviewedIndianaCityHiveBottleMatch, reviewedIndianaPaylessBottleMatch, buildIndianaPaylessAvailabilityProof, normalizeIndianaCityHiveQuantity, indianaSourceBottleMismatchReason } from './indiana-retailer-matching.mjs';
@@ -7627,10 +7628,14 @@ function specsProductNameFromText(text, fallbackUrl) {
   return title.replace(/•.*$/, '').replace(/\bSpec’s Wines.*$/i, '').trim();
 }
 
-async function collectTexas(config, bible, existingSignals = []) {
+async function collectTexas(config, bible, existingSignals = [], options = {}) {
   const observedAt = new Date().toISOString();
   const signals = [];
   const roadblocks = [];
+
+  const expansion=await collectTexasCityHiveExpansion(config,bible,{fetchText:textFetch,observedAt,signal:options.signal});
+  signals.push(...expansion.signals);
+  roadblocks.push(...expansion.roadblocks);
 
   sourceLoop: for (const source of TX_CITYHIVE_SOURCES) {
     const merchantCohort = source.id === 'twin-liquors'
@@ -9497,7 +9502,7 @@ async function collectPrecisionProbesUntraced(config, bible, existingSignals = [
   if (config.id === 'GA') return collectGeorgia(config, bible, options);
   if (config.id === 'NY' || config.id === 'CO') return collectMetroRetailers(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
-  if (config.id === 'TX') return withCollectionContext(options, () => collectTexas(config, bible, existingSignals));
+  if (config.id === 'TX') return withCollectionContext(options, () => collectTexas(config, bible, existingSignals, options));
   if (config.id === 'VA') return collectVirginia(config, bible, options);
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);
