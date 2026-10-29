@@ -2,12 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { BourbonBible } from '../src/core/bible.mjs';
-import { nevadaXapiPremiseMatches, parseBoundNevadaXapiInventory, resolveNevadaXapiPremises } from '../src/collectors/nevada-xapi-runtime.mjs';
+import { nevadaXapiPremiseMatches, parseBoundNevadaXapiInventory, resolveNevadaXapiPremises, nevadaRetailerCohortKey, nevadaRetailerCacheMatchesCohort } from '../src/collectors/nevada-xapi-runtime.mjs';
 import { NEVADA_RETAILER_SOURCES } from '../src/collectors/nevada-retailer-surfaces.mjs';
 
 const fixture = JSON.parse(await readFile(new URL('./fixtures/nevada-expansion-20261028/xapi.json', import.meta.url)));
 const bible = new BourbonBible(fixture.records);
 const parse = products => parseBoundNevadaXapiInventory({response:{docs:products}},fixture.source,bible);
+
+test('fresh cache from an older or differently bound cohort cannot hide newly reviewed stores',()=>{
+  const sources=NEVADA_RETAILER_SOURCES;
+  assert.equal(nevadaRetailerCacheMatchesCohort({signals:[]},sources),false);
+  assert.equal(nevadaRetailerCacheMatchesCohort({cohortKey:nevadaRetailerCohortKey(sources.slice(0,7))},sources),false);
+  const cache={cohortKey:nevadaRetailerCohortKey(sources)};
+  assert.equal(nevadaRetailerCacheMatchesCohort(cache,sources),true);
+  const changed=sources.map(source=>({...source,store:{...source.store}}));
+  changed[0].store.address='999 Different Address';
+  assert.equal(nevadaRetailerCacheMatchesCohort(cache,changed),false);
+});
 
 test('captured Nevada identities admit available exact expressions and reject the conflicting Blantons proof', () => {
   const rows = parse(fixture.products);
@@ -54,4 +65,10 @@ test('direct legacy matches also require exact XAPI product, UPC, strength, pack
   for(const mutation of [{pid:'wrong'},{upc:'bad'},{containsAlcohol:false},{alcoholVolumePct:NaN},
     {dispItemSizeQty:'1000'},{dispItemPackageQty:'2'},{unitOfMeasure:'L'},
     {name:product.name.replace('750 Ml','99 Proof - 750 Ml')}])assert.deepEqual(parse([{...product,...mutation}]),[]);
+});
+
+test('all36 Nevada grocery premises preserve independently matched first-party point coordinates',()=>{
+  const grocery=NEVADA_RETAILER_SOURCES.filter(s=>s.platform==='albertsons-xapi');
+  assert.equal(grocery.length,36);
+  assert.ok(grocery.every(s=>s.store.lat>35&&s.store.lat<43&&s.store.lng< -113&&s.store.lng> -121));
 });

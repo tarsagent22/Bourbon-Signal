@@ -2,6 +2,13 @@ export { parseBoundGroceryXapiInventory as parseBoundNevadaXapiInventory } from 
 
 export const NEVADA_XAPI_RESOLVER_ZIPS = Object.freeze(['89101', '89501', '89701', '89048']);
 export const NEVADA_XAPI_TERMS = Object.freeze(['bourbon', 'whiskey']);
+export function nevadaRetailerCohortKey(sources) {
+  return JSON.stringify(['strict-xapi-metadata-v2', ...sources.filter(source=>source.inventoryEligible)
+    .map(source=>[source.id,source.platform,source.merchantId,source.store.id,source.store.address,source.store.lat??null,source.store.lng??null])]);
+}
+export function nevadaRetailerCacheMatchesCohort(cache, sources) {
+  return cache?.cohortKey===nevadaRetailerCohortKey(sources);
+}
 const normalized = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 // A source configuration is a candidate, never evidence that a premise exists.

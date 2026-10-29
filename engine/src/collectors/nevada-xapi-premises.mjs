@@ -1,4 +1,5 @@
-// Exact first-party resolver premises captured 2026-10-28. Every run revalidates identity.
+// Exact first-party resolver premises and local-page coordinates captured 2026-10-28.
+// Every run revalidates exact banner/store/address against the public resolver.
 export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
   {
     "id": "albertsons-pahrump-341",
@@ -19,8 +20,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Pahrump",
       "stateCode": "NV",
       "zip": "89048",
-      "lat": null,
-      "lng": null
+      "lat": 36.2168959791764,
+      "lng": -115.995050847514
     }
   },
   {
@@ -42,8 +43,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89135",
-      "lat": null,
-      "lng": null
+      "lat": 36.16091085461868,
+      "lng": -115.35059006528166
     }
   },
   {
@@ -65,8 +66,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89135",
-      "lat": null,
-      "lng": null
+      "lat": 36.1606507,
+      "lng": -115.3195753
     }
   },
   {
@@ -88,8 +89,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89147",
-      "lat": null,
-      "lng": null
+      "lat": 36.11665237839434,
+      "lng": -115.31366347671337
     }
   },
   {
@@ -111,8 +112,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89134",
-      "lat": null,
-      "lng": null
+      "lat": 36.193743,
+      "lng": -115.305871
     }
   },
   {
@@ -134,8 +135,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89149",
-      "lat": null,
-      "lng": null
+      "lat": 36.2837993423521,
+      "lng": -115.31447690237735
     }
   },
   {
@@ -157,8 +158,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89117",
-      "lat": null,
-      "lng": null
+      "lat": 36.14336820904155,
+      "lng": -115.2959051880498
     }
   },
   {
@@ -180,8 +181,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89147",
-      "lat": null,
-      "lng": null
+      "lat": 36.115928524430515,
+      "lng": -115.2807142139136
     }
   },
   {
@@ -203,8 +204,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89129",
-      "lat": null,
-      "lng": null
+      "lat": 36.220098041799325,
+      "lng": -115.2753916535039
     }
   },
   {
@@ -226,8 +227,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89113",
-      "lat": null,
-      "lng": null
+      "lat": 36.0538471153025,
+      "lng": -115.28138081415558
     }
   },
   {
@@ -249,8 +250,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89131",
-      "lat": null,
-      "lng": null
+      "lat": 36.300711167094505,
+      "lng": -115.27938723569599
     }
   },
   {
@@ -272,8 +273,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89128",
-      "lat": null,
-      "lng": null
+      "lat": 36.18984804109666,
+      "lng": -115.25858134036753
     }
   },
   {
@@ -295,8 +296,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89131",
-      "lat": null,
-      "lng": null
+      "lat": 36.280360515449,
+      "lng": -115.26144953104443
     }
   },
   {
@@ -318,8 +319,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89129",
-      "lat": null,
-      "lng": null
+      "lat": 36.2381726904455,
+      "lng": -115.25016009807587
     }
   },
   {
@@ -341,8 +342,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89145",
-      "lat": null,
-      "lng": null
+      "lat": 36.16017786490783,
+      "lng": -115.245420187739
     }
   },
   {
@@ -364,8 +365,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89130",
-      "lat": null,
-      "lng": null
+      "lat": 36.26068591006052,
+      "lng": -115.24784106022707
     }
   },
   {
@@ -387,8 +388,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89178",
-      "lat": null,
-      "lng": null
+      "lat": 36.01820954407046,
+      "lng": -115.26484014232788
     }
   },
   {
@@ -410,8 +411,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89139",
-      "lat": null,
-      "lng": null
+      "lat": 36.05474145626407,
+      "lng": -115.24144828319555
     }
   },
   {
@@ -433,8 +434,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89103",
-      "lat": null,
-      "lng": null
+      "lat": 36.09868770954398,
+      "lng": -115.22382252453689
     }
   },
   {
@@ -456,8 +457,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89130",
-      "lat": null,
-      "lng": null
+      "lat": 36.24034769931643,
+      "lng": -115.2090051
     }
   },
   {
@@ -479,8 +480,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89104",
-      "lat": null,
-      "lng": null
+      "lat": 36.15689296566621,
+      "lng": -115.12560045732243
     }
   },
   {
@@ -502,8 +503,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89169",
-      "lat": null,
-      "lng": null
+      "lat": 36.12097823970644,
+      "lng": -115.1391267552948
     }
   },
   {
@@ -525,8 +526,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89121",
-      "lat": null,
-      "lng": null
+      "lat": 36.138433583789386,
+      "lng": -115.06724256283633
     }
   },
   {
@@ -548,8 +549,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89142",
-      "lat": null,
-      "lng": null
+      "lat": 36.1585011311662,
+      "lng": -115.04535533862305
     }
   },
   {
@@ -571,8 +572,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89119",
-      "lat": null,
-      "lng": null
+      "lat": 36.099983042941055,
+      "lng": -115.13777445767212
     }
   },
   {
@@ -594,8 +595,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89156",
-      "lat": null,
-      "lng": null
+      "lat": 36.19455110803896,
+      "lng": -115.02379077679507
     }
   },
   {
@@ -617,8 +618,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89122",
-      "lat": null,
-      "lng": null
+      "lat": 36.10164395463794,
+      "lng": -115.05461633205414
     }
   },
   {
@@ -640,8 +641,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89031",
-      "lat": null,
-      "lng": null
+      "lat": 36.26306863931099,
+      "lng": -115.18099825277862
     }
   },
   {
@@ -663,8 +664,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89119",
-      "lat": null,
-      "lng": null
+      "lat": 36.0579796014763,
+      "lng": -115.12038856750218
     }
   },
   {
@@ -686,8 +687,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Las Vegas Valley",
       "stateCode": "NV",
       "zip": "89123",
-      "lat": null,
-      "lng": null
+      "lat": 36.041235539958336,
+      "lng": -115.15258939596606
     }
   },
   {
@@ -709,8 +710,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Reno–Tahoe",
       "stateCode": "NV",
       "zip": "89434",
-      "lat": null,
-      "lng": null
+      "lat": 39.555545129650326,
+      "lng": -119.70345051619006
     }
   },
   {
@@ -732,8 +733,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Reno–Tahoe",
       "stateCode": "NV",
       "zip": "89521",
-      "lat": null,
-      "lng": null
+      "lat": 39.4251595753735,
+      "lng": -119.7385618351654
     }
   },
   {
@@ -755,8 +756,8 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "area": "Reno–Tahoe",
       "stateCode": "NV",
       "zip": "89448",
-      "lat": null,
-      "lng": null
+      "lat": 38.98638604743675,
+      "lng": -119.9436806558197
     }
   }
 ].map(source => Object.freeze({...source,store:Object.freeze(source.store)})));

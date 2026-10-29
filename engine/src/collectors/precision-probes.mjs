@@ -1,5 +1,5 @@
 import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID } from './california-grocery-runtime-source.mjs';
-import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS } from './nevada-xapi-runtime.mjs';
+import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS, nevadaRetailerCohortKey, nevadaRetailerCacheMatchesCohort } from './nevada-xapi-runtime.mjs';
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
 import { collectTexasCityHiveExpansion } from './texas-cityhive-expansion.mjs';
 import { collectMidwestCityHiveExpansion } from './midwest-cityhive-expansion.mjs';
@@ -9273,6 +9273,7 @@ export async function collectCalifornia(config,bible,options={}) {
 async function readNevadaRetailerCache() {
   try {
     const cache = JSON.parse(await readFile(NEVADA_RETAILER_ARTIFACT_PATH, 'utf8'));
+    if (!nevadaRetailerCacheMatchesCohort(cache, NEVADA_RETAILER_SOURCES)) return null;
     const signals = filterFreshNevadaSignals(cache?.signals, Date.now(), NEVADA_RETAILER_CACHE_MAX_AGE_MS)
       .filter((signal) => signal?.raw?.fulfillmentPolicyVerified === true && signal?.sourceAvailabilityVerified === true);
     if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) return null;
@@ -9284,6 +9285,7 @@ async function readNevadaRetailerCache() {
 
 async function writeNevadaRetailerCache(signals, roadblocks) {
   const payload = {
+    cohortKey: nevadaRetailerCohortKey(NEVADA_RETAILER_SOURCES),
     generatedAt: new Date().toISOString(),
     source: 'Nevada first-party retailer inventory cache',
     cacheMaxAgeMs: NEVADA_RETAILER_CACHE_MAX_AGE_MS,
@@ -9383,7 +9385,7 @@ function nevadaRetailerSignal(config, source, row, bible, observedAt, fulfillmen
 async function collectNevada(config, bible) {
   const observedAt = new Date().toISOString();
   const cache = await readNevadaRetailerCache();
-  if (process.env.BOURBON_SIGNAL_NV_FORCE_LIVE !== '1' && cache) {
+  if (process.env.BOURBON_SIGNAL_NV_FORCE_LIVE !== '1' && process.env.BOURBON_SIGNAL_FORCE_SOURCE_RUN !== '1' && cache) {
     return {
       signals: cachedNevadaSignals(cache),
       roadblocks: [{ state: config.id, source: 'Nevada first-party retailer cache reuse', url: NEVADA_RETAILER_ARTIFACT_PATH, status: 200, error: `Using ${cache.signals.length} fresh cached Nevada retailer rows from ${cache.generatedAt}; set BOURBON_SIGNAL_NV_FORCE_LIVE=1 for a bounded live refresh.`, nextRoute: 'Keep retailer requests low-cadence and force live only for source verification or scheduled refresh windows.' }],

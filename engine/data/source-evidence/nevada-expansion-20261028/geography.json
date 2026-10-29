@@ -1,0 +1,506 @@
+[
+  {
+    "merchantId": "460",
+    "lat": 36.16091085461868,
+    "lng": -115.35059006528166,
+    "url": "https://local.albertsons.com/nv/las-vegas/11720-w-charleston-blvd.html",
+    "capturedAt": "2026-10-29T01:51:37.922Z",
+    "address": {
+      "line1": "11720 W Charleston Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89135"
+    },
+    "decodedSha256": "6b0ca001fca1d6addd9533362700c57aa520babc824e3b9c9684dd26a75ad656"
+  },
+  {
+    "merchantId": "341",
+    "lat": 36.2168959791764,
+    "lng": -115.995050847514,
+    "url": "https://local.albertsons.com/nv/pahrump/200-s-hwy-160.html",
+    "capturedAt": "2026-10-29T01:51:37.931Z",
+    "address": {
+      "line1": "200 S Hwy 160",
+      "city": "Pahrump",
+      "state": "NV",
+      "zipcode": "89048"
+    },
+    "decodedSha256": "841f72a854f4f4a711d1682d10bb2ab0eadb2816a1f87ec58cfec935cec1c5e0"
+  },
+  {
+    "merchantId": "3021",
+    "lat": 36.11665237839434,
+    "lng": -115.31366347671337,
+    "url": "https://local.albertsons.com/nv/las-vegas/10140-w-flamingo-rd.html",
+    "capturedAt": "2026-10-29T01:51:38.333Z",
+    "address": {
+      "line1": "10140 W Flamingo Rd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89147"
+    },
+    "decodedSha256": "cd73260cb019953e6a1f0a8d766393281a983d98e32b06eb12d165a0ec36e6cd"
+  },
+  {
+    "merchantId": "3016",
+    "lat": 36.1606507,
+    "lng": -115.3195753,
+    "url": "https://local.albertsons.com/nv/las-vegas/10250-w-charleston-blvd.html",
+    "capturedAt": "2026-10-29T01:51:38.342Z",
+    "address": {
+      "line1": "10250 W Charleston Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89135"
+    },
+    "decodedSha256": "81a79b92c6479342e4694c0ca81a6b9cbbc77e81f5016e258bf14fa6aff1f4e9"
+  },
+  {
+    "merchantId": "3489",
+    "lat": 36.2837993423521,
+    "lng": -115.31447690237735,
+    "url": "https://local.albertsons.com/nv/las-vegas/6730-n-hualapai-way.html",
+    "capturedAt": "2026-10-29T01:51:38.750Z",
+    "address": {
+      "line1": "6730 N Hualapai Way",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89149"
+    },
+    "decodedSha256": "75a69a52ad1007ef602e04759486dbfd5e4aba1405e5158cc40d3bb969721161"
+  },
+  {
+    "merchantId": "3333",
+    "lat": 36.193743,
+    "lng": -115.305871,
+    "url": "https://local.albertsons.com/nv/las-vegas/1940-village-center-circle.html",
+    "capturedAt": "2026-10-29T01:51:38.781Z",
+    "address": {
+      "line1": "1940 Village Center Circle",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89134"
+    },
+    "decodedSha256": "9e4e8d795f1eda46440daf4bd483e907e545268baf1c25714a6942d8c3b65d44"
+  },
+  {
+    "merchantId": "4004",
+    "lat": 36.115928524430515,
+    "lng": -115.2807142139136,
+    "url": "https://local.albertsons.com/nv/las-vegas/4055-s-durango-dr.html",
+    "capturedAt": "2026-10-29T01:51:39.199Z",
+    "address": {
+      "line1": "4055 S Durango Dr",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89147"
+    },
+    "decodedSha256": "01b3f432aaf08418ecd7457f0a7e557ba07fe6512995554c2de1a3bdd0afd46f"
+  },
+  {
+    "merchantId": "13",
+    "lat": 36.14336820904155,
+    "lng": -115.2959051880498,
+    "url": "https://local.albertsons.com/nv/las-vegas/2550-s-fort-apache-rd.html",
+    "capturedAt": "2026-10-29T01:51:39.201Z",
+    "address": {
+      "line1": "2550 S Fort Apache Rd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89117"
+    },
+    "decodedSha256": "8f77bae4aac55ec0935ccdef098d83d58b5be0d2421c86492b7b9f633a0a8c62"
+  },
+  {
+    "merchantId": "212",
+    "lat": 36.220098041799325,
+    "lng": -115.2753916535039,
+    "url": "https://local.albertsons.com/nv/las-vegas/8350-w-cheyenne-ave.html",
+    "capturedAt": "2026-10-29T01:51:39.619Z",
+    "address": {
+      "line1": "8350 W Cheyenne Ave",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89129"
+    },
+    "decodedSha256": "4844f9e19d97e6e68a6b379dddd5b3424246b8852636ccdc1e2c594a5922311d"
+  },
+  {
+    "merchantId": "2614",
+    "lat": 36.0538471153025,
+    "lng": -115.28138081415558,
+    "url": "https://local.vons.com/nv/las-vegas/7405-s-durango-dr.html",
+    "capturedAt": "2026-10-29T01:51:39.670Z",
+    "address": {
+      "line1": "7405 S Durango Dr",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89113"
+    },
+    "decodedSha256": "3bc89a4aad49f1f2f012886fca13a9b2bc944fb9d5c57b8b162c09e22bc4d6ff"
+  },
+  {
+    "merchantId": "4009",
+    "lat": 36.300711167094505,
+    "lng": -115.27938723569599,
+    "url": "https://local.albertsons.com/nv/las-vegas/8410-farm-rd.html",
+    "capturedAt": "2026-10-29T01:51:40.068Z",
+    "address": {
+      "line1": "8410 Farm Rd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89131"
+    },
+    "decodedSha256": "26456bcfb85b2a39345f97f2f6746aaaf8182b9bcc065f590d3b4b35dca3edbc"
+  },
+  {
+    "merchantId": "4011",
+    "lat": 36.18984804109666,
+    "lng": -115.25858134036753,
+    "url": "https://local.albertsons.com/nv/las-vegas/1650-n-buffalo-dr.html",
+    "capturedAt": "2026-10-29T01:51:40.084Z",
+    "address": {
+      "line1": "1650 N Buffalo Dr",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89128"
+    },
+    "decodedSha256": "54e1b5cf69fb0b4e998788b60a2a2dbb1e9ffc1061fe7b04b020e26dfd3850cd"
+  },
+  {
+    "merchantId": "2613",
+    "lat": 36.280360515449,
+    "lng": -115.26144953104443,
+    "url": "https://local.vons.com/nv/las-vegas/6450-sky-pointe-dr.html",
+    "capturedAt": "2026-10-29T01:51:40.487Z",
+    "address": {
+      "line1": "6450 Sky Pointe Dr",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89131"
+    },
+    "decodedSha256": "bf2a1eab6437775256204f0ccabfb3d91ba30d65417fabf7e0015b214f3ca696"
+  },
+  {
+    "merchantId": "118",
+    "lat": 36.2381726904455,
+    "lng": -115.25016009807587,
+    "url": "https://local.albertsons.com/nv/las-vegas/7151-w-craig-rd.html",
+    "capturedAt": "2026-10-29T01:51:40.489Z",
+    "address": {
+      "line1": "7151 W Craig Rd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89129"
+    },
+    "decodedSha256": "5a74282adf9d2d6a8a8249c7c581ed94b558c66140b92bd09d5c1dcc33d3a8bb"
+  },
+  {
+    "merchantId": "90",
+    "lat": 36.26068591006052,
+    "lng": -115.24784106022707,
+    "url": "https://local.albertsons.com/nv/las-vegas/7075-w-ann-rd.html",
+    "capturedAt": "2026-10-29T01:51:40.882Z",
+    "address": {
+      "line1": "7075 W Ann Rd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89130"
+    },
+    "decodedSha256": "4859e505994f78ff33426f7278c8d6b5cfde7eec58f555e00ef4c95bb6057751"
+  },
+  {
+    "merchantId": "46",
+    "lat": 36.16017786490783,
+    "lng": -115.245420187739,
+    "url": "https://local.albertsons.com/nv/las-vegas/1001-s-rainbow-blvd.html",
+    "capturedAt": "2026-10-29T01:51:40.933Z",
+    "address": {
+      "line1": "1001 S Rainbow Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89145"
+    },
+    "decodedSha256": "e203dd4aff48791dd409b6a98ed416506dac2fe13200418cd6420ad64e452878"
+  },
+  {
+    "merchantId": "276",
+    "lat": 36.05474145626407,
+    "lng": -115.24144828319555,
+    "url": "https://local.albertsons.com/nv/las-vegas/7350-s-rainbow-blvd.html",
+    "capturedAt": "2026-10-29T01:51:41.334Z",
+    "address": {
+      "line1": "7350 S Rainbow Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89139"
+    },
+    "decodedSha256": "8f597dd30ff9229584f3065df068d41b532b0b8772e3a2dbb959efa0d1f03e0c"
+  },
+  {
+    "merchantId": "2804",
+    "lat": 36.01820954407046,
+    "lng": -115.26484014232788,
+    "url": "https://local.albertsons.com/nv/las-vegas/7975-blue-diamond-rd.html",
+    "capturedAt": "2026-10-29T01:51:41.335Z",
+    "address": {
+      "line1": "7975 Blue Diamond Rd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89178"
+    },
+    "decodedSha256": "626f7bcca407ac3442379d10849a538f4e397023ce9a412c4aa2303807fcd000"
+  },
+  {
+    "merchantId": "61",
+    "lat": 36.24034769931643,
+    "lng": -115.2090051,
+    "url": "https://local.albertsons.com/nv/las-vegas/4850-w-craig-rd.html",
+    "capturedAt": "2026-10-29T01:51:41.737Z",
+    "address": {
+      "line1": "4850 W Craig Rd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89130"
+    },
+    "decodedSha256": "321af2f5bba6b0e76a4c396dd089dd5bb34a1c698163865724326a897bc7592e"
+  },
+  {
+    "merchantId": "129",
+    "lat": 36.09868770954398,
+    "lng": -115.22382252453689,
+    "url": "https://local.albertsons.com/nv/las-vegas/5975-w-tropicana-ave.html",
+    "capturedAt": "2026-10-29T01:51:41.742Z",
+    "address": {
+      "line1": "5975 W Tropicana Ave",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89103"
+    },
+    "decodedSha256": "c73c8355d9d8a101abe07ba20745155365ffa6d782cf80b76875493a6078d001"
+  },
+  {
+    "merchantId": "662",
+    "lat": 36.128260744240414,
+    "lng": -115.11111974716187,
+    "url": "https://local.albertsons.com/nv/las-vegas/2885-e-desert-inn-rd.html",
+    "capturedAt": "2026-10-29T01:51:42.144Z",
+    "address": {
+      "line1": "2885 E Desert Inn Rd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89121"
+    },
+    "decodedSha256": "c6d4d379ff0a3663bd35904962b62e0e1bb37d1e934d714391dd5ef8d95510d2"
+  },
+  {
+    "merchantId": "45",
+    "lat": 36.15689296566621,
+    "lng": -115.12560045732243,
+    "url": "https://local.albertsons.com/nv/las-vegas/1760-e-charleston-blvd.html",
+    "capturedAt": "2026-10-29T01:51:42.163Z",
+    "address": {
+      "line1": "1760 E Charleston Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89104"
+    },
+    "decodedSha256": "f4049b45ebc5daf8131b4c326a1763e21a3c058dbd3725710b0bbba5730c3ae2"
+  },
+  {
+    "merchantId": "4024",
+    "lat": 36.138433583789386,
+    "lng": -115.06724256283633,
+    "url": "https://local.albertsons.com/nv/las-vegas/2835-s-nellis-blvd.html",
+    "capturedAt": "2026-10-29T01:51:42.555Z",
+    "address": {
+      "line1": "2835 S Nellis Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89121"
+    },
+    "decodedSha256": "7a615f529685caa8aacfbbd4e1242a664d4f6944b7afe3fa63970b5e2a3b694b"
+  },
+  {
+    "merchantId": "1963",
+    "lat": 36.12097823970644,
+    "lng": -115.1391267552948,
+    "url": "https://local.vons.com/nv/las-vegas/1155-e-twain-ave.html",
+    "capturedAt": "2026-10-29T01:51:42.562Z",
+    "address": {
+      "line1": "1155 E Twain Ave",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89169"
+    },
+    "decodedSha256": "52628ecaea39ee3c47e6ce4a5929b871fdb186e25b2d3b87e6af11469e0cde46"
+  },
+  {
+    "merchantId": "4091",
+    "lat": 36.1585011311662,
+    "lng": -115.04535533862305,
+    "url": "https://local.albertsons.com/nv/las-vegas/5881-e-charleston-blvd.html",
+    "capturedAt": "2026-10-29T01:51:42.951Z",
+    "address": {
+      "line1": "5881 E Charleston Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89142"
+    },
+    "decodedSha256": "5a701e236c29ee457156ecbdd9f407682ed63ed451166edb1dbba14189bbf6f2"
+  },
+  {
+    "merchantId": "2396",
+    "lat": 36.099983042941055,
+    "lng": -115.13777445767212,
+    "url": "https://local.vons.com/nv/las-vegas/1131-e-tropicana-ave.html",
+    "capturedAt": "2026-10-29T01:51:42.966Z",
+    "address": {
+      "line1": "1131 E Tropicana Ave",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89119"
+    },
+    "decodedSha256": "e3bad74e6e484d35d4a14166dea50bf07a8cd96d4150d1fc4094eead93a470ee"
+  },
+  {
+    "merchantId": "89",
+    "lat": 36.19455110803896,
+    "lng": -115.02379077679507,
+    "url": "https://local.albertsons.com/nv/las-vegas/6885-e-lake-mead-blvd.html",
+    "capturedAt": "2026-10-29T01:51:43.361Z",
+    "address": {
+      "line1": "6885 E Lake Mead Blvd",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89156"
+    },
+    "decodedSha256": "648f113f99338d8261bebb27150c06567e5c92ae256e8d7bf211410eba390031"
+  },
+  {
+    "merchantId": "1059",
+    "lat": 36.10164395463794,
+    "lng": -115.05461633205414,
+    "url": "https://local.albertsons.com/nv/las-vegas/5500-boulder-hwy.html",
+    "capturedAt": "2026-10-29T01:51:43.367Z",
+    "address": {
+      "line1": "5500 Boulder Hwy",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89122"
+    },
+    "decodedSha256": "34fd2ebf7d8ff66fd8afe243154fb4555ff2f00c6086198ac1ce461c62f3d31a"
+  },
+  {
+    "merchantId": "4017",
+    "lat": 36.0579796014763,
+    "lng": -115.12038856750218,
+    "url": "https://local.albertsons.com/nv/las-vegas/7271-s-eastern-ave.html",
+    "capturedAt": "2026-10-29T01:51:43.755Z",
+    "address": {
+      "line1": "7271 S Eastern Ave",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89119"
+    },
+    "decodedSha256": "259d4dee0c8e7d19940efca0e08a3658dd6abe4611d1f81dc6493b1d1f3136a0"
+  },
+  {
+    "merchantId": "4005",
+    "lat": 36.26306863931099,
+    "lng": -115.18099825277862,
+    "url": "https://local.albertsons.com/nv/north-las-vegas/3010-w-ann-rd.html",
+    "capturedAt": "2026-10-29T01:51:43.787Z",
+    "address": {
+      "line1": "3010 W Ann Rd",
+      "city": "North Las Vegas",
+      "state": "NV",
+      "zipcode": "89031"
+    },
+    "decodedSha256": "83aac443fe19c7d900206a511b33ecd808824ec1f10593b830c04077c103b927"
+  },
+  {
+    "merchantId": "2511",
+    "lat": 36.041438675247974,
+    "lng": -115.10283445899961,
+    "url": "https://local.vons.com/nv/henderson/2667-e-windmill-pkwy.html",
+    "capturedAt": "2026-10-29T01:51:44.185Z",
+    "address": {
+      "line1": "2667 E Windmill Pkwy",
+      "city": "Henderson",
+      "state": "NV",
+      "zipcode": "89074"
+    },
+    "decodedSha256": "98a22665ca23206ab38acd1f9443d874a6898ac7ce49661bd9e60672614c12ed"
+  },
+  {
+    "merchantId": "2390",
+    "lat": 36.041235539958336,
+    "lng": -115.15258939596606,
+    "url": "https://local.vons.com/nv/las-vegas/475-e-windmill-ln.html",
+    "capturedAt": "2026-10-29T01:51:44.278Z",
+    "address": {
+      "line1": "475 E Windmill Ln",
+      "city": "Las Vegas",
+      "state": "NV",
+      "zipcode": "89123"
+    },
+    "decodedSha256": "df1b473ce86ba65b3a2ec9d6d025915c7b713f9d44c6c2c9849ac71e32b0edc3"
+  },
+  {
+    "merchantId": "2656",
+    "lat": 39.555545129650326,
+    "lng": -119.70345051619006,
+    "url": "https://local.safeway.com/safeway/nv/sparks/2858-vista-blvd.html",
+    "capturedAt": "2026-10-29T01:51:44.752Z",
+    "address": {
+      "line1": "2858 Vista Blvd",
+      "city": "Sparks",
+      "state": "NV",
+      "zipcode": "89434"
+    },
+    "decodedSha256": "adbb7645828182bf0259a109abdbcdc1b248e3980b81898c615b8fda7ca2b9cf"
+  },
+  {
+    "merchantId": "1210",
+    "lat": 39.53098017783758,
+    "lng": -119.86749932172643,
+    "url": "https://local.safeway.com/safeway/nv/reno/5150-mae-anne-ave.html",
+    "capturedAt": "2026-10-29T01:51:44.785Z",
+    "address": {
+      "line1": "5150 Mae Anne Ave",
+      "city": "Reno",
+      "state": "NV",
+      "zipcode": "89523"
+    },
+    "decodedSha256": "aa1e231c08241d87a5cc800d6df23bf5ea9069cea948a4bdef61e20fa4a410ba"
+  },
+  {
+    "merchantId": "188",
+    "lat": 39.4251595753735,
+    "lng": -119.7385618351654,
+    "url": "https://local.safeway.com/safeway/nv/reno/1031-steamboat-pkwy.html",
+    "capturedAt": "2026-10-29T01:51:45.184Z",
+    "address": {
+      "line1": "1031 Steamboat Pkwy",
+      "city": "Reno",
+      "state": "NV",
+      "zipcode": "89521"
+    },
+    "decodedSha256": "aa51fb5d752cbbca6bae7f367834782e975caba3e65bc7550ac76e0c370a1dce"
+  },
+  {
+    "merchantId": "1537",
+    "lat": 38.98638604743675,
+    "lng": -119.9436806558197,
+    "url": "https://local.safeway.com/safeway/nv/zephyr-cove/212-elks-point-rd.html",
+    "capturedAt": "2026-10-29T01:51:45.197Z",
+    "address": {
+      "line1": "212 Elks Point Rd",
+      "city": "Zephyr Cove",
+      "state": "NV",
+      "zipcode": "89448"
+    },
+    "decodedSha256": "603e46deaddfda592f50a0da8eb92979d9028746385fca3609119185abf54bee"
+  }
+]
