@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "state": "WA",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "wa-0",
+      "kind": "positive_bottle_match",
+      "input": {},
+      "expected": {
+        "sourceRows": 5,
+        "inventoryProofRows": 5,
+        "candidateCount": 5
+      }
+    },
+    {
+      "id": "wa-1",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "rawName": "Maker's Mark Kentucky Straight Bourbon Whisky 750 ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wa-2",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "rawName": "Bourbon Cream Liqueur 750 ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wa-3",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wa-4",
+      "kind": "availability_semantics",
+      "input": {},
+      "expected": {
+        "quantitySemanticsPreserved": true,
+        "deliveryEligible": false
+      }
+    },
+    {
+      "id": "wa-5",
+      "kind": "store_identity",
+      "input": {
+        "wrongStore": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wa-6",
+      "kind": "timestamp_freshness",
+      "input": {
+        "ageMinutes": 180
+      },
+      "expected": {
+        "sourceRows": 5,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "sourceClockPreserved": true
+      }
+    },
+    {
+      "id": "wa-7",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wa-8",
+      "kind": "availability_semantics",
+      "input": {
+        "wrongProof": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wa-9",
+      "kind": "availability_semantics",
+      "input": {
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "wa-10",
+      "kind": "shadow_isolation",
+      "input": {},
+      "expected": {
+        "deliveryEligible": false
+      }
+    }
+  ]
+}
