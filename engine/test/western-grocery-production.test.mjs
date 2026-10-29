@@ -9,7 +9,7 @@ import {ALL_STATE_SOURCES} from '../src/state-sources.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {stateTimeoutMs} from '../src/run.mjs';
 import {WESTERN_GROCERY_BUDGETS,westernGroceryCohortKey} from '../src/western-grocery-production-config.mjs';
-import {collectWesternGroceryProductionSource,westernGroceryPromotionAllowed} from '../src/collectors/western-grocery-production.mjs';
+import {collectWesternGroceryProductionSource,westernGroceryPromotionAllowed,westernGrocerySourceConfigHash} from '../src/collectors/western-grocery-production.mjs';
 import {fixture,syntheticPromotedGroceryConfig,syntheticPromotionManifest,syntheticInactiveGroceryConfig,mockedCompleteGroceryFetch} from './helpers/synthetic-grocery-promotion.mjs';
 const bible=new BourbonBible(fixture.records),config=ALL_STATE_SOURCES.find(source=>source.id==='NM');
 const options=directory=>{const lifecycleConfig=syntheticPromotedGroceryConfig();return{cacheDir:path.join(directory,'cache'),incidentDir:path.join(directory,'incidents'),cursorDir:path.join(directory,'cursor'),sleep:async()=>{},lifecycleConfig,promotionManifest:syntheticPromotionManifest('NM',lifecycleConfig)};};
@@ -23,8 +23,16 @@ test('inactive, incomplete, changed, disabled and quarantined promotion authorit
     for(const mutate of [row=>delete row.states[state].promotionEvidence,row=>{row.states[state].promotionStage='research';},
       row=>{row.states[state].inventoryAlertable=true;},row=>{row.states[state].promotionEvidence.immutableEvidence.sourceConfigHash='0'.repeat(64);}]){
       const changed=structuredClone(active);mutate(changed);
-      const held=await collectWesternGroceryProductionSource(source,bible,{lifecycleConfig:changed,fetchText});
+      const held=await collectWesternGroceryProductionSource(source,bible,{lifecycleConfig:changed,promotionManifest:syntheticPromotionManifest(state,active),fetchText});
       assert.equal(held.metadata.blockedByPromotion,true);
+    }
+    for(const mutate of [o=>{o.promotionManifest.lifecycle.publicStatus='research_only';},o=>{o.promotionManifest.lifecycle.refinementLevel='state';},
+      o=>{const p=o.lifecycleConfig.states[state].promotionEvidence.immutableEvidence.provenance;p.repository='foreign/repository';p.workflowRunUrl='https://github.com/foreign/repository/actions/runs/1';}]){
+      const changed={lifecycleConfig:structuredClone(active),promotionManifest:syntheticPromotionManifest(state,active)};mutate(changed);
+      changed.lifecycleConfig.states[state].promotionEvidence.immutableEvidence.sourceConfigHash=westernGrocerySourceConfigHash(state,changed.promotionManifest);
+      changed.promotionManifest.evidence.immutablePromotionEvidence=structuredClone(changed.lifecycleConfig.states[state].promotionEvidence.immutableEvidence);
+      assert.equal(westernGroceryPromotionAllowed(state,changed.lifecycleConfig,{manifest:changed.promotionManifest}),false);
+      const held=await collectWesternGroceryProductionSource(source,bible,{...changed,fetchText,cacheDir:'NUL/forbidden',incidentDir:'NUL/forbidden'});assert.equal(held.metadata.blockedByPromotion,true);
     }
     for(const env of [{BOURBON_SIGNAL_DISABLED_STATES:state},{BOURBON_SIGNAL_QUARANTINED_STATES:state}]){
       assert.equal(westernGroceryPromotionAllowed(state,active,{env,manifest:syntheticPromotionManifest(state,active)}),false);

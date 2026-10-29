@@ -28,7 +28,8 @@ export function westernGroceryPromotionAllowed(state,config=STATE_LIFECYCLE_CONF
   return Boolean(WESTERN_GROCERY_PRODUCTION_STATES.includes(state)&&config.activeStates?.includes(state)
     &&entry?.publicStatus==='active'&&entry.promotionStage==='active'
     &&entry.inventoryAlertable===false&&entry.watchAlertable===false
-    &&manifest?.state===state&&manifest.sourceSemantics.inventoryAlertable===false&&manifest.sourceSemantics.watchAlertable===false
+    &&manifest?.state===state&&manifest.lifecycle?.publicStatus==='active'&&manifest.lifecycle.refinementLevel==='store'
+    &&manifest.sourceSemantics.inventoryAlertable===false&&manifest.sourceSemantics.watchAlertable===false
     &&Number(entry.promotionEvidence?.shadowRuns)>=policy.minShadowRuns&&Number(entry.promotionEvidence?.canaryRuns)>=policy.minCanaryRuns
     &&Number.isFinite(Date.parse(entry.promotionEvidence?.verifiedAt||''))
     &&entry.promotionEvidence.verticalSliceManifest===`engine/data/state-integration/${state}.json`
@@ -37,6 +38,7 @@ export function westernGroceryPromotionAllowed(state,config=STATE_LIFECYCLE_CONF
     &&manifest.collector.cohortSha256===westernGroceryCohortKey(state)
     &&JSON.stringify(manifest.collector.sourceIds)===JSON.stringify([westernGroceryRuntimeId(state)])
     &&validateImmutablePromotionEvidence(state,entry.promotionEvidence,policy)
+    &&entry.promotionEvidence.immutableEvidence.provenance.repository==='tarsagent22/Bourbon-Signal'
     &&JSON.stringify(manifest.evidence?.immutablePromotionEvidence)===JSON.stringify(entry.promotionEvidence.immutableEvidence)
     &&entry.promotionEvidence.immutableEvidence.sourceConfigHash===westernGrocerySourceConfigHash(state,manifest));
 }

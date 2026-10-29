@@ -11,8 +11,8 @@ export function syntheticPromotedGroceryConfig(state='NM'){
   const config=structuredClone(STATE_LIFECYCLE_CONFIG),url='https://synthetic-unit-preview.invalid';
   const hash='1'.repeat(64),runs=count=>Array.from({length:count},(_,i)=>({runId:`synthetic-unit-${i}`,status:'success',artifactHash:hash}));
   const immutable={schemaVersion:1,state,generatedAt:new Date().toISOString(),sourceConfigHash:westernGrocerySourceConfigHash(state),previewUrl:url,
-    shadowRuns:runs(3),canaryRuns:runs(2),provenance:{status:'success',repository:'synthetic/unit-test',workflowRunId:'1',artifactId:'1',commitSha:'a'.repeat(40),
-      artifactDigest:hash,bundleDigest:hash,workflowRunUrl:'https://github.com/synthetic/unit-test/actions/runs/1',artifactName:`state-promotion-provenance-${state}-1`}};
+    shadowRuns:runs(3),canaryRuns:runs(2),provenance:{status:'success',repository:'tarsagent22/Bourbon-Signal',workflowRunId:'1',artifactId:'1',commitSha:'a'.repeat(40),
+      artifactDigest:hash,bundleDigest:hash,workflowRunUrl:'https://github.com/tarsagent22/Bourbon-Signal/actions/runs/1',artifactName:`state-promotion-provenance-${state}-1`}};
   config.activeStates=[...new Set([...config.activeStates,state])];
   config.states[state]={...config.states[state],publicStatus:'active',promotionStage:'active',inventoryAlertable:false,watchAlertable:false,
     promotionEvidence:{verticalSliceManifest:`engine/data/state-integration/${state}.json`,fixtureContract:`engine/data/state-fixtures/${state}.json`,shadowRuns:3,canaryRuns:2,verifiedAt:new Date().toISOString(),canaryPreviewUrl:url,immutableEvidence:immutable}};
