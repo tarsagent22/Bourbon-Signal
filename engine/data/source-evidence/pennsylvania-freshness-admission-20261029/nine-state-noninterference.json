@@ -1,0 +1,65 @@
+{
+  "scope": "offline_actual_b2f_imported_nine_state_semantic_metadata_and_checked_in_issuer_path_union_not_new_source_evidence",
+  "states": {
+    "WA": {
+      "runtimeMetadataSha256": "cf563069b3456f3d03404ac4f783c2b4f427dc83a52c680ccd874efd5ae5c62c",
+      "cohortSha256": "f74c2a2f3076dab9bacce0e9ab6369280178ff9b1d46937999698bc1dcf1a381",
+      "semanticSourceConfigSha256": "0a7409f08ba72a18503ea9ddb5657a546984dfecaca1c94c1af657040c4c7f21"
+    },
+    "NM": {
+      "runtimeMetadataSha256": "7334b75d17ef73176c4a65ced6bcc60f7bdb0cd040967f5164319aa4d5a94a92",
+      "cohortSha256": "b6db60bccc43452bc5293f272755cbaf8a0c50cf37866dad43ef5f610b3db95d",
+      "semanticSourceConfigSha256": "b81d1c156549c6d9199d60f25858db7f2eff16c777b356261472942e5fafbcf0"
+    },
+    "WI": {
+      "runtimeMetadataSha256": "12fd12fb912ec356fb0d3e859ab2768612a8907f6041016ae9221f5ea4f88144",
+      "cohortSha256": "1da638a6f97c3a85778b304023bb800c88e65de06df54d7b7aef29f7a0ae5ba9",
+      "semanticSourceConfigSha256": "d6672f240e10bcfe4a0cbc3e5a607fab9218640d65678e73c713dbf3f6dddc66"
+    },
+    "OK": {
+      "runtimeMetadataSha256": "be105f3ccaf92d51033ee6ec7a3a11720adc04a6d2908521a214b31a262184c1",
+      "cohortSha256": "6dde5f60f9bca6e0450fa8509cbd5074899c1dc453f9e45b3f43fd9a46d790c1",
+      "semanticSourceConfigSha256": "42af4e2d352dfd6ddd43521edf64de30cbcbbfd55de6ef51bfd24aae7caa224d"
+    },
+    "LA": {
+      "runtimeMetadataSha256": "19c9e75cc7cf60eb50f5b02596eb94659bb9179858938f5caafbd510ab0c5988",
+      "cohortSha256": "ed22f8e04bbfd3968b864bad1e97584766d3c3272c81ac19ea5732338afc6c6b",
+      "semanticSourceConfigSha256": "7f2f02b5248073529d3e45c4d3e5c9ca6ed27b93c5185242e33cd52a10cb8df6"
+    },
+    "AK": {
+      "runtimeMetadataSha256": "725f20b52aed6b352aa5b07b427095e7ef69f4c0136936dcb2e8a1c7b2da2773",
+      "cohortSha256": "176f15c02a77737bf2e149d5916affd912cb83000d67f6788d68b1b2cbc64f61",
+      "semanticSourceConfigSha256": "b82ead4c8ff1eddaa1e5ea4aaba58173869b213999e406e08d090da5cf688fd1"
+    },
+    "MA": {
+      "runtimeMetadataSha256": "9245dcacd5b76e3eaca5283d8a26aed99ecbf0786de51474921b005df9996d22",
+      "cohortSha256": "7c91950c8d2b6f30ecd9db7b0c9b991cc4e2ea82971177d12ca031678faa5f5d",
+      "semanticSourceConfigSha256": "68a9395a3ac29ea65423268eead34eb00379296d06f683852de4fd2e963c3406"
+    },
+    "CT": {
+      "runtimeMetadataSha256": "6fd784e0a0711cfb69cf7d61d8c7a094503e788418bedfb66a6b1185fd2faeeb",
+      "cohortSha256": "b4803c1dc75da09682d90af9d070c34db22fbbb2982e66e7adb910706963fa24",
+      "semanticSourceConfigSha256": "f431d521b0c61b7368fad85b7e8878fb3927c7cc3dab18f59bddb42f91e935fd"
+    },
+    "RI": {
+      "runtimeMetadataSha256": "df00c5fb73c2b8c033ec858f870d1bfbef1731bc972038828abf4c030227c6bf",
+      "cohortSha256": "9b410f9e81990421afac6523aaaa44c79b66e4ca54601834e3e5580a7c0f2a7a",
+      "semanticSourceConfigSha256": "cead1ca037996ce09563e0b9a0c14b0e9ba6e2b86db69e35ea5225dc832b4a00"
+    }
+  },
+  "issuerSha256": "54046408ee262d8a76091dd89b6b33ae168e658b355e101e53bf41e8cd186085",
+  "checkedInClosedListCount": 175,
+  "checkedInClosedListSha256": "e73759ec03f000302cc5cd1f14473db3e6413834caf580754edccf4653fc9a3e",
+  "generatedArtifactFilesTouched": false,
+  "sourceHttpRequests": 0,
+  "sourceHead": "b2f310a9f270993bad8bcab5054e0e452f0b8c3e",
+  "comparison": "byte-identical baseline vs complete4f2 plus25/5followup overlay, actual fresh process imports",
+  "overlayFiles": [
+    "engine/src/fwgs-browser-full.mjs",
+    "engine/src/fwgs-publication-freshness.mjs",
+    "engine/src/refresh-site.mjs"
+  ],
+  "allOverlayFilesOutsideFrozenIssuerUnion": true,
+  "allNineRuntimeCohortSemanticHashesUnchanged": true,
+  "issuedEvidenceUpdated": false
+}

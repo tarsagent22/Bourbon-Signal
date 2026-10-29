@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "scope": "offline_hypothetical_duration_model_not_source_observations_or_deployed_cadence",
+  "inputsMinutes": {
+    "unchangedPublicationCeiling": 120,
+    "wholeArtifactReuseMaximum": 25,
+    "chunkReuseMaximum": 5,
+    "reservedHeadroom": 95,
+    "coldBrowserPlanningDuration": 18,
+    "stateCollectionAllowance": 25,
+    "exportAndVerificationAllowance": 5,
+    "postBrowserTotalAllowance": 30,
+    "proposedRelayWait": 15
+  },
+  "old90MinutePolicy": {
+    "firstPublicationSourceAgeMinutes": 120,
+    "nextControllerSourceAgeMinutes": 135,
+    "replacementSourceAgeMinutes": 183,
+    "continuityGapMinutes": 63
+  },
+  "new25MinutePolicy": {
+    "firstPublicationSourceAgeMinutes": 55,
+    "nextControllerSourceAgeMinutes": 70,
+    "replacementSourceAgeMinutes": 118,
+    "initialReserveMinutes": 2,
+    "steadyColdReplacementSourceAgeMinutes": 111,
+    "steadyReserveMinutes": 9,
+    "nextCycleControllerRequiresColdFwgs": true
+  },
+  "mixedChunkFixture": {
+    "reusedChunkAgeAtStartMinutes": 5,
+    "remainingColdDurationMinutes": 18,
+    "originalClockAgeAtMergeMinutes": 23,
+    "slowColdDurationMinutes": 21,
+    "slowOriginalClockAgeAtMergeMinutes": 26,
+    "slowResult": "reject_and_preserve_previous_complete_artifact"
+  },
+  "sensitivity": {
+    "additionalInitialDelayMinutes": 3,
+    "resultingSourceAgeMinutes": 121,
+    "result": "exceeds_unchanged_publication_ceiling"
+  },
+  "limitations": [
+    "Planning durations are not proven production upper bounds or p95 estimates.",
+    "Provider queueing, browser latency, retries, global fleet work and relay availability can exceed the thin reserve.",
+    "Cold collection over25minutes fails closed; no source clock is rewritten.",
+    "Source scope, product scope, store floors, concurrency, retries and hard timeouts are unchanged.",
+    "Consecutive actual unattended source and public customer acceptance remains required."
+  ],
+  "sourceHttpRequests": 0,
+  "providerMutations": 0,
+  "productionActivated": false,
+  "newCurrentCustomerStores": 0
+}

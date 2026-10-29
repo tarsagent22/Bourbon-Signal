@@ -1,7 +1,7 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
-import {fwgsPublicationFreshness,fwgsReuseAgeLimit,FWGS_REUSABLE_SOURCE_MAX_AGE_MS} from './fwgs-publication-freshness.mjs';
+import {fwgsPublicationFreshness,fwgsChunkReuseAgeLimit,FWGS_REUSABLE_CHUNK_MAX_AGE_MS} from './fwgs-publication-freshness.mjs';
 import { atomicWriteJson, validateFwgsChunk, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
 
 const OFFSETS = (process.env.FWGS_FULL_OFFSETS || '0,100,200,300,400,500,600')
@@ -13,7 +13,7 @@ const OUT_FILE = process.env.FWGS_OUT_FILE || 'out/browser/fwgs-store-inventory.
 const CHUNK_RETRIES = Number(process.env.FWGS_FULL_CHUNK_RETRIES || 2);
 const ALLOW_PARTIAL = process.env.FWGS_ALLOW_PARTIAL_FULL === '1';
 const CHUNK_FALLBACK_MAX_AGE_MS = Number(process.env.FWGS_FULL_CHUNK_FALLBACK_MAX_AGE_MS || 24 * 60 * 60_000);
-const CHUNK_REUSE_MAX_AGE_MS = fwgsReuseAgeLimit(Number(process.env.FWGS_CHUNK_REUSE_MAX_AGE_MS ?? FWGS_REUSABLE_SOURCE_MAX_AGE_MS));
+const CHUNK_REUSE_MAX_AGE_MS = fwgsChunkReuseAgeLimit(Number(process.env.FWGS_CHUNK_REUSE_MAX_AGE_MS ?? FWGS_REUSABLE_CHUNK_MAX_AGE_MS));
 
 function chunkFileFor(offset) {
   return `out/browser/fwgs-store-inventory-${offset}.json`;
