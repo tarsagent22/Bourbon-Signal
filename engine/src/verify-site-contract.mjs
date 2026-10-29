@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
 import { STATE_LIFECYCLE } from './state-lifecycle.mjs';
+import { alabamaExpiredReleaseAbsence } from './alabama-drop-presence.mjs';
 
 const root = process.cwd();
 const siteDir = path.join(root, 'out', 'site');
@@ -136,6 +137,7 @@ for (const aggregateState of ['UT', 'MD-MONTGOMERY']) {
 }
 
 const drops = readJson('drops.json');
+let alabamaPartition = null;
 if (hasStatePartitions) {
   const partitionIndex = readJson(manifest.files.stateDrops);
   const partitionDrops = [];
@@ -146,6 +148,7 @@ if (hasStatePartitions) {
       continue;
     }
     const payload = readJson(entry.file);
+    if (expected === 'AL') alabamaPartition = payload;
     if (payload.state !== expected) fail(`${entry.file} declares state ${payload.state}, expected ${expected}.`);
     if (payload.count !== (payload.drops || []).length || entry.count !== payload.count) fail(`${entry.file} count is incomplete.`);
     if ((payload.drops || []).some((drop) => drop.state !== expected)) fail(`${entry.file} contains rows from another state.`);
@@ -167,7 +170,20 @@ const requiredDropStates = (process.env.BOURBON_SIGNAL_VERIFY_SITE_REQUIRED_DROP
   .map((state) => state.trim().toUpperCase())
   .filter(Boolean);
 for (const expected of requiredDropStates) {
-  if (!dropStates.has(expected)) fail(`drops.json should still include customer-facing state ${expected}.`);
+  if (dropStates.has(expected)) continue;
+  if (expected === 'AL') {
+    let stateReport = null;
+    try { stateReport = JSON.parse(readFileSync(path.join(root, 'out', 'states', 'AL.json'), 'utf8')); } catch {}
+    const absence = alabamaExpiredReleaseAbsence({
+      stateReport, coverage: coverageStates.find(row => row.state === 'AL'), partition: alabamaPartition,
+      events: readJson('events.json').events || [], alerts: readJson('alerts.json').alerts || [],
+      historyDays: stats.historyDays,
+    });
+    if (absence.allowed) { console.log(absence.diagnostic); continue; }
+    fail(`drops.json should still include customer-facing state AL (${absence.reason}).`);
+    continue;
+  }
+  fail(`drops.json should still include customer-facing state ${expected}.`);
 }
 const vaCoverage = coverageStates.find((state) => state.state === 'VA');
 if (!vaCoverage) fail('stats.stateCoverage.states missing active state VA.');
