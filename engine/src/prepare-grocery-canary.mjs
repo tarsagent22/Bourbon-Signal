@@ -4,7 +4,7 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {BourbonBible} from './core/bible.mjs';
 import {WESTERN_GROCERY_EXPANSION_SOURCES,WESTERN_GROCERY_RESOLVER_ZIPS} from './collectors/western-grocery-premises.mjs';
-import {groceryExpansionPremiseMatches,parseGroceryExpansionInventory} from './collectors/grocery-xapi-expansion.mjs';
+import {groceryExpansionPremiseMatches,parseGroceryExpansionInventory,isGroceryExpansionEmptySearch} from './collectors/grocery-xapi-expansion.mjs';
 import {isGroceryExpansionInventory} from './grocery-xapi-policy.mjs';
 import {canonicalizeSignal} from './operational-report.mjs';
 import {buildDrops,bibleLookup} from './export-site-contract.mjs';
@@ -46,7 +46,8 @@ export async function prepareGroceryCanary({state,report,reportDirectory,bible,p
     }else{
       const source=sources.find(s=>s.host===url.hostname&&s.merchantId===url.searchParams.get('storeid')&&s.banner===url.searchParams.get('banner'));
       if(!source||url.pathname!=='/abs/pub/xapi/search/substitute'||url.searchParams.get('channel')!=='instore'
-        ||url.searchParams.get('rows')!=='100'||url.searchParams.get('start')!=='0'||!Array.isArray(payload.response?.docs))throw new Error('Unreviewed store/channel inventory capture');
+        ||url.searchParams.get('rows')!=='100'||url.searchParams.get('start')!=='0'
+        ||(!Array.isArray(payload.response?.docs)&&!isGroceryExpansionEmptySearch(payload,source,url.searchParams.get('q'))))throw new Error('Unreviewed store/channel inventory capture');
       inventories.push({source,payload,observedAt:receipt.observedAt,term:url.searchParams.get('q')});
     }
     receipts.push({url:receipt.url,observedAt:receipt.observedAt,sha256:receipt.sha256});

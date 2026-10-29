@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../src/core/bible.mjs';
@@ -41,6 +42,19 @@ test('raw replay preserves source clocks, ignores report rows and rejects stale/
     for(const mutation of [{quantity:1},{storeId:'unreviewed'},{eligibleForDelivery:true},{inventorySemantics:'exact_retailer_quantity'}]){
       assert.equal(isGroceryExpansionOnSiteSignal({...result.drops[0],...mutation}),false);
     }
+    const withEmpty=structuredClone(report),emptyReceipt=withEmpty.metadata.receipts.find(receipt=>new URL(receipt.url).searchParams.get('q')==='whiskey');
+    const emptyUrl=new URL(emptyReceipt.url),store=emptyUrl.searchParams.get('storeid');
+    const empty={appCode:'GR204',response:{numFound:0,start:0,miscInfo:{query:'whiskey',
+      filter:`(inventory(${store}, price) >0) AND (inventory(${store},attributes.custom_type_2) = 1)`}}};
+    const bytes=Buffer.from(JSON.stringify(empty));emptyReceipt.artifactPath='source-captures/synthetic-empty-test.json';
+    emptyReceipt.bytes=bytes.length;emptyReceipt.sha256=createHash('sha256').update(bytes).digest('hex');
+    await writeFile(path.join(directory,emptyReceipt.artifactPath),bytes);
+    const replayedEmpty=await prepareGroceryCanary({...options,report:withEmpty});
+    assert.equal(replayedEmpty.drops.length,result.drops.length,'A healthy duplicate broad search zero must not invent or remove separately proven bottles');
+    empty.response.numFound=1;const contradictory=Buffer.from(JSON.stringify(empty));
+    emptyReceipt.bytes=contradictory.length;emptyReceipt.sha256=createHash('sha256').update(contradictory).digest('hex');
+    await writeFile(path.join(directory,emptyReceipt.artifactPath),contradictory);
+    await assert.rejects(()=>prepareGroceryCanary({...options,report:withEmpty}),/Unreviewed store\/channel/);
     await assert.rejects(()=>prepareGroceryCanary({...options,nowMs:Date.now()+121*60_000}),/stale/);
     await assert.rejects(()=>prepareGroceryCanary({...options,provenance:{...provenance,workflowRunId:'124'}}),/provenance/);
     const changed=structuredClone(report);changed.metadata.origin={kind:'local_shadow_not_workflow_issued'};
