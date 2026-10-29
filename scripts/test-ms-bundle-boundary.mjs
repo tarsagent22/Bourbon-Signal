@@ -65,7 +65,8 @@ function signalSort(a, b) {
     .replace(centralProductionOnSiteImport, '').replace(centralProductionOnSiteBoundary, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
-    .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary));
+    .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary)
+    .replace("    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n"));
   for (const altered of [
     current.replace(addition, originalBoundary),
     current + '\n' + addition,
@@ -108,13 +109,13 @@ function signalSort(a, b) {
     current + '\n' + libraryAlertPolicyBoundary,
     current.replace(libraryAlertPolicyBoundary, libraryAlertPolicyBoundary.replace('libraryAlertEligible === false', 'libraryAlertEligible !== false')),
     current.replace(libraryAlertPolicyBoundary, libraryAlertPolicyBoundary.replace('canAlertAsInventory = false', 'canAlertAsInventory = true')),
+    current.replace(" : signal.state === 'MS' ? {", " : signal.state === 'AL' ? {"),
   ]) {
     assert.notEqual(altered, current);
     assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(altered)), /exact historical verification hook/);
   }
   for (const altered of [
     '// changed top level\n' + current,
-    current.replace("raw: signal.state === 'MS'", "raw: signal.state === 'AL'"),
     current.replace('const policy = confidenceForSignal(signal);', 'const policy = {};'),
   ]) {
     assert.notEqual(altered, current);

@@ -211,7 +211,7 @@ export function canonicalizeSignal(signal, bible) {
     staleSourceCaveat: signal.staleSourceCaveat || (virginiaInventoryExpired(signal) ? 'Virginia ABC inventory is older than the 24-hour live-inventory window; verify with the store.' : null),
     sampleOnly: Boolean(signal.raw?.sampleOnly),
     rawName: signal.rawName || null,
-    raw: signal.state === 'MS' ? {
+    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {
       chain: signal.raw?.chain || signal.sourceChain || null,
       merchantId: signal.raw?.merchantId || signal.merchantId || null,
       controlStoreId: signal.raw?.controlStoreId || null,

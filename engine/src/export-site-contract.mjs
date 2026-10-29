@@ -1820,6 +1820,7 @@ export function buildAlerts(alerts) {
     sourceLabel: c.sourceLabel,
     sourceUrl: c.sourceUrl,
     sourceChain: c.sourceChain || null,
+    leafSourceRuntimeId: c.leafSourceRuntimeId || null,
     merchantId: c.merchantId || null,
     productId: c.productId || null,
     sku: c.sku || null,

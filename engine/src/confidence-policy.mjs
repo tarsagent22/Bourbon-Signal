@@ -16,7 +16,7 @@ import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro
 import { isMississippiRetailerInventory, isMississippiRetailerSignalIdentity } from './mississippi-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
-import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaDiscountLiquorSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
+import { isSouthCarolinaLiquorLibraryInventory, isSouthCarolinaLiquorLibrarySignal, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaDiscountLiquorSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 
@@ -211,6 +211,7 @@ function policyForSignal(signal, nowMs = Date.now()) {
       || isSouthCarolinaDunesInventory(signal, nowMs)
       || isSouthCarolinaAllAmericanInventory(signal, nowMs)
       || isSouthCarolinaDiscountLiquorInventory(signal, nowMs)
+      || isSouthCarolinaLiquorLibraryInventory(signal, nowMs)
       || isTasteInventory(signal, nowMs))) return SOUTH_CAROLINA_RETAILER_POLICY;
   if (signal.state === 'AZ'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
@@ -342,6 +343,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     && /store_inventory/i.test(eventType)
     && (!Number.isFinite(virginiaObservedAt) || Date.now() - virginiaObservedAt > VIRGINIA_INVENTORY_MAX_AGE_MS);
   const runtimeAlertBlocked = signal.stale === true
+    || (signal.state === 'SC' && isSouthCarolinaLiquorLibrarySignal(signal) && !isSouthCarolinaLiquorLibraryInventory(signal, nowMs))
     || (signal.state === 'VA' && eventType === 'store_inventory_negative_balance')
     || signal.sourceStale === true
     || virginiaInventoryExpired
