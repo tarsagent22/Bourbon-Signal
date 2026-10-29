@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       shadow_run_id:
-        description: "WA/NM/WI/OK/NJ/MI/LA/AK: successful workflow-issued shadow run to replay with original clocks"
+        description: "WA/NM/WI/OK/NJ/MI/LA/AK/MA/CT/RI: successful workflow-issued shadow run to replay with original clocks"
         required: false
         type: string
       candidate_drops:
@@ -66,13 +66,13 @@ jobs:
             echo "Candidate path must be a repository-controlled engine/data/canary-inputs JSON file" >&2
             exit 1
           fi
-          if [[ "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" || "$RAW_STATE" == "NJ" || "$RAW_STATE" == "MI" || "$RAW_STATE" == "LA" || "$RAW_STATE" == "AK" ]]; then
+          if [[ "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" || "$RAW_STATE" == "NJ" || "$RAW_STATE" == "MI" || "$RAW_STATE" == "LA" || "$RAW_STATE" == "AK" || "$RAW_STATE" == "MA" || "$RAW_STATE" == "CT" || "$RAW_STATE" == "RI" ]]; then
             if [[ ! "$RAW_SHADOW_RUN" =~ ^[0-9]+$ ]] || [[ "$RAW_CANDIDATE_DROPS" != "data/canary-inputs/$RAW_STATE.json" ]]; then
-              echo "WA/NM/WI/OK/NJ/MI/LA/AK require an actual shadow run and the fixed state canary path" >&2
+              echo "WA/NM/WI/OK/NJ/MI/LA/AK/MA/CT/RI require an actual shadow run and the fixed state canary path" >&2
               exit 1
             fi
           elif [[ -n "$RAW_SHADOW_RUN" ]]; then
-            echo "Artifact replay is reviewed only for WA/NM/WI/OK/NJ/MI/LA/AK" >&2
+            echo "Artifact replay is reviewed only for WA/NM/WI/OK/NJ/MI/LA/AK/MA/CT/RI" >&2
             exit 1
           fi
           echo "shadow_run=$RAW_SHADOW_RUN" >> "$GITHUB_OUTPUT"
@@ -107,7 +107,7 @@ jobs:
           STATE: ${{ steps.validate.outputs.state }}
           SHADOW_RUN: ${{ steps.validate.outputs.shadow_run }}
         run: |
-          case "$STATE" in LA|AK) family=laak ;; NJ|MI) family=njmi ;; WI|OK) family=cityhive ;; WA|NM) family=grocery ;; *) exit 1 ;; esac
+          case "$STATE" in MA|CT|RI) family=new-england ;; LA|AK) family=laak ;; NJ|MI) family=njmi ;; WI|OK) family=cityhive ;; WA|NM) family=grocery ;; *) exit 1 ;; esac
           node "scripts/download-$family-shadow.mjs" --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/$family-shadow-input/$STATE"
 
       - name: Reparse immutable raw source captures without resetting clocks
@@ -116,7 +116,7 @@ jobs:
         env:
           STATE: ${{ steps.validate.outputs.state }}
         run: |
-          case "$STATE" in LA|AK) family=laak; preparer=prepare-louisiana-alaska-canary.mjs ;; NJ|MI) family=njmi; preparer=prepare-nj-mi-canary.mjs ;; WI|OK) family=cityhive; preparer=prepare-central-cityhive-canary.mjs ;; WA|NM) family=grocery; preparer=prepare-grocery-canary.mjs ;; *) exit 1 ;; esac
+          case "$STATE" in MA|CT|RI) family=new-england; preparer=prepare-new-england-canary.mjs ;; LA|AK) family=laak; preparer=prepare-louisiana-alaska-canary.mjs ;; NJ|MI) family=njmi; preparer=prepare-nj-mi-canary.mjs ;; WI|OK) family=cityhive; preparer=prepare-central-cityhive-canary.mjs ;; WA|NM) family=grocery; preparer=prepare-grocery-canary.mjs ;; *) exit 1 ;; esac
           node "src/$preparer" --state="$STATE" --artifact-dir="out/$family-shadow-input/$STATE/extracted" --provenance="out/$family-shadow-input/$STATE/provenance.json" --out="data/canary-inputs/$STATE.json" --config-out="out/canary-preparation/$STATE/lifecycle-research.json"
 
       - name: Build coherent nationwide canary snapshot without alerts
@@ -142,6 +142,10 @@ jobs:
           STATE: ${{ steps.validate.outputs.state }}
         run: npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
 
+      - name: Verify New England executable member path contracts without provider access
+        if: steps.validate.outputs.state == 'MA' || steps.validate.outputs.state == 'CT' || steps.validate.outputs.state == 'RI'
+        run: node --import tsx scripts/test-new-england-member-path.mts
+
       - name: Verify LA AK executable member path contracts without provider access
         if: steps.validate.outputs.state == 'LA' || steps.validate.outputs.state == 'AK'
         run: node --import tsx scripts/test-laak-member-path.mts
@@ -151,7 +155,7 @@ jobs:
         env:
           STATE: ${{ steps.validate.outputs.state }}
         run: |
-          case "$STATE" in LA|AK) verifier=test-laak-public-canary.mjs ;; NJ|MI) verifier=test-nj-mi-public-canary.mjs ;; WI|OK) verifier=test-central-cityhive-public-canary.mjs ;; WA|NM) verifier=test-grocery-public-canary.mjs ;; *) exit 1 ;; esac
+          case "$STATE" in MA|CT|RI) verifier=test-new-england-public-canary.mjs ;; LA|AK) verifier=test-laak-public-canary.mjs ;; NJ|MI) verifier=test-nj-mi-public-canary.mjs ;; WI|OK) verifier=test-central-cityhive-public-canary.mjs ;; WA|NM) verifier=test-grocery-public-canary.mjs ;; *) exit 1 ;; esac
           node --import tsx "scripts/$verifier" --state="$STATE"
 
       - name: Deploy isolated preview with all alert channels disabled

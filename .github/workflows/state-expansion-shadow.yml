@@ -74,6 +74,14 @@ jobs:
           restore-keys: |
             la-ak-research-incidents-${{ runner.os }}-
 
+      - name: Restore New England incidents independently of research branch
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/new-england-cityhive
+          key: new-england-source-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            new-england-source-incidents-${{ runner.os }}-
+
       - name: Refresh full current app catalog
         working-directory: engine
         run: npm run sync:library
@@ -129,6 +137,25 @@ jobs:
         with:
           path: engine/out/research-source-attempts/louisiana-alaska-grocery-journals
           key: la-ak-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save New England incidents even when research fails
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/new-england-cityhive
+          key: new-england-source-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Preserve exact New England family and current library inputs
+        if: always() && hashFiles('engine/out/new-england-research/**/report.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: new-england-research-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            engine/out/new-england-research
+            engine/out/bourbon-bible.json
+            engine/out/library-catalog.json
 
       - name: Preserve isolated shadow evidence
         if: always()

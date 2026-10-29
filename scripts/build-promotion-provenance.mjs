@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI','LA','AK'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI','LA','AK','MA','CT','RI'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -248,6 +248,53 @@ if (['LA','AK'].includes(state)) files.push(
   `engine/out/laak-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
+let sourceProof;
+if (['MA','CT','RI'].includes(state)) {
+  files.push(
+    'engine/data/new-england-research-sources.json',
+    'engine/src/collectors/new-england-premises.mjs',
+    'engine/src/collectors/new-england-research.mjs',
+    'engine/src/new-england-research-runtime.mjs',
+    'engine/src/new-england-policy.mjs',
+    'engine/src/new-england-production-config.mjs',
+    'engine/src/collectors/new-england-production-inventory.mjs',
+    'engine/src/collectors/new-england-production.mjs',
+    'engine/src/prepare-new-england-canary.mjs',
+    'engine/src/new-england-fixtures.mjs',
+    'engine/src/verify-state-fixtures.mjs',
+    'engine/src/research-state-registry.mjs',
+    'engine/src/operational-report.mjs',
+    'scripts/download-new-england-shadow.mjs',
+    'scripts/build-new-england-source-proof.mjs',
+    'scripts/test-new-england-production-path.mts',
+    'scripts/test-new-england-member-path.mts',
+    'scripts/test-new-england-public-canary.mjs',
+    'engine/test/fixtures/new-england/library.json',
+    'src/lib/site-engine-contract.ts',
+    'src/lib/public-drop-evidence.ts',
+    'src/lib/drop-feed-visibility.ts',
+    'src/lib/statePreferences.ts',
+    'src/lib/feed-area-options.ts',
+    'src/hooks/useAreaPreferences.ts',
+    'src/lib/geography-directory.ts',
+    'src/config/stateLifecycle.ts',
+    'src/app/api/coverage/route.ts',
+    'src/app/api/stores/route.ts',
+    'src/app/api/locations/route.ts',
+    'next.config.ts',
+    '.github/workflows/state-expansion-canary.yml',
+    '.github/workflows/state-promotion-provenance.yml',
+    `engine/out/new-england-shadow-input/${state}/provenance.json`,
+    `engine/out/new-england-source-proof/${state}.json`,
+    `engine/out/canary/${state}/public-projection.json`,
+  );
+  sourceProof=JSON.parse(await readFile(path.join(root,`engine/out/new-england-source-proof/${state}.json`),'utf8'));
+  if(sourceProof.protocol!=='bourbon-signal/new-england-first-party-cohort@1'||sourceProof.allSourceRunsComplete!==true
+    ||!Array.isArray(sourceProof.storeIds)||!sourceProof.storeIds.length||!Array.isArray(sourceProof.sourceRuns)||sourceProof.sourceRuns.length!==3
+    ||new Set(sourceProof.sourceRuns.map(run=>run.workflowRunId)).size!==3
+    ||!sourceProof.sourceRuns.every(run=>/^\d+$/.test(String(run.workflowRunId))&&run.headSha===process.env.GITHUB_SHA))throw Error('New England issuance requires three raw-reparsed distinct exact-head source observations');
+  for(const run of sourceProof.sourceRuns) files.push(`engine/out/new-england-source-inputs/${state}/${run.workflowRunId}/provenance.json`);
+}
 for (const file of files) {
   const content = await readFile(path.join(root, file));
   fileDigests[file] = createHash('sha256').update(content).digest('hex');
@@ -261,6 +308,7 @@ const payload = {
   workflowRunAttempt: process.env.GITHUB_RUN_ATTEMPT || '1',
   generatedAt: new Date().toISOString(),
   fileDigests,
+  ...(sourceProof ? {sourceProof} : {}),
 };
 payload.bundleDigest = createHash('sha256').update(JSON.stringify(payload.fileDigests)).digest('hex');
 const out = path.join(root, 'engine', 'out', 'promotion-provenance', `${state}.json`);
