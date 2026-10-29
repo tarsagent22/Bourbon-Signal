@@ -82,16 +82,19 @@ node scripts/verify-state-lifecycle-drift.mjs
 node node_modules/typescript/bin/tsc --noEmit
 ```
 
-`proof-closure.json` names the mandatory source/customer boundary. Future work
-now registers LA/AK in isolated genuine shadow/artifact-replay/canary/provenance workflows. Future proof must bind
-bind final reconciled implementation bytes and permitted semantic manifest
-normalization, collect3 fresh shadows and2 canaries per state, verify an isolated
-live preview, and retain issued provenance. Do not add optional hash skips or
-invent receipts. Customer-path manifest statuses intentionally remain pending
-for that genuine proof, even where local implementation tests already pass.
+`proof-closure.json` names the mandatory source/customer boundary. LA/AK are
+registered in isolated genuine shadow, strict raw artifact replay, canary and
+provenance workflows. Future proof must bind final reconciled implementation
+bytes and the existing permitted semantic manifest normalization. Collect three
+fresh complete-cohort shadows and two actual canaries per state, verify an
+isolated live preview, and retain issued provenance. No optional hash skips or
+invented receipts are permitted. Customer-path entries verify the executable
+local API/service/component contracts described above; genuine hosted source,
+canary, preview and production stages remain separately pending. Authenticated
+interactive UI and physical-device acceptance remain unexercised.
 
 The exact historical normalizer reverses only literal inactive LA/AK metadata,
-budgets and strict on-site canonicalization. Original Mississippi implementation
+and strict on-site canonicalization. Source/parent hardcaps are unchanged; no LA/AK planning forecast is inserted. Original Mississippi implementation
 hashes are unchanged, and mutation tests reject removal, duplication, activation,
 alert enabling and changes outside those exact additions. No current frozen
 promotion source was edited.

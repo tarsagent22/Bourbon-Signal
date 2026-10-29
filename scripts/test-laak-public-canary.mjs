@@ -36,7 +36,7 @@ assert.equal(coverage?.capabilities.currentBottleAvailability,true);
 assert.equal(coverage?.capabilities.restockAlerts,false);
 assert.ok(coverage.scope.searchableStores>0);
 assert.equal(coverage.scope.inventoryMonitoredStores,new Set(accepted.map(row=>row.storeId)).size);
-const proof={state,evaluatedAt:clock,scope:'local_customer_projection_of_workflow_canary_not_live_preview',
+const proof={state,evaluatedAt:clock,nonpreviewSourcePolicyUsed:true,authenticatedUiAcceptance:false,scope:'local_customer_projection_of_workflow_canary_not_live_preview',
   rawRows:partition.drops.length,publicCurrentRows:accepted.length,publicCurrentStores:coverage.scope.inventoryMonitoredStores,
   searchableStores:coverage.scope.searchableStores,allDeliveryDisabled:true,binaryQuantityRemainsZero:true};
 await writeFile(`engine/out/canary/${state}/public-projection.json`,JSON.stringify(proof,null,2)+'\n');
