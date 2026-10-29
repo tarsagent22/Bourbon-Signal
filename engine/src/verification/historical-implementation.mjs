@@ -8,6 +8,7 @@ const westernGroceryBaseline = JSON.parse(readFileSync(new URL('../../data/sourc
 const centralProductionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/central-cityhive-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const njMiBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nj-mi-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const measuredForecastBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json', import.meta.url), 'utf8'));
+const louisianaAlaskaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/louisiana-alaska-grocery-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -67,7 +68,16 @@ function replaceUnique(text, current, original, label) {
   return text.replace(current, () => original);
 }
 
+export function reverseLouisianaAlaskaHistoricalAdditions(name, text) {
+  assert.equal(louisianaAlaskaBaseline.contractVersion, 'bourbon-signal/louisiana-alaska-grocery-production-shared-metadata-baseline@1');
+  for (const [key, entry] of Object.entries(louisianaAlaskaBaseline.files[name] || {})) {
+    text = replaceUnique(text, entry.reviewed, entry.original, name + ': LA/AK inactive ' + key);
+  }
+  return text;
+}
+
 export function normalizeHistoricalImplementationBytes(name, bytes) {
+  if (louisianaAlaskaBaseline.files[name]) bytes = Buffer.from(reverseLouisianaAlaskaHistoricalAdditions(name, bytes.toString('utf8')));
   if (name === 'engine/src/operational-report.mjs') {
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));
     // Reverse only this exact FL proof-preservation addition at its original

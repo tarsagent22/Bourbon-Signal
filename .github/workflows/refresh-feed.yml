@@ -167,6 +167,13 @@ jobs:
           key: inventory-nj-mi-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             inventory-nj-mi-cityhive-incidents-${{ runner.os }}-
+      - name: Restore LA/AK grocery incidents independently of inventory publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/louisiana-alaska-grocery
+          key: inventory-louisiana-alaska-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-louisiana-alaska-grocery-incidents-${{ runner.os }}-
 
       - name: Restore Central CityHive incident journals independently of publication
         uses: actions/cache/restore@v4
@@ -639,6 +646,12 @@ jobs:
         with:
           path: engine/out/source-incidents/nj-mi-cityhive
           key: inventory-nj-mi-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Save LA/AK grocery incidents even when collection or publication fails
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/louisiana-alaska-grocery
+          key: inventory-louisiana-alaska-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save Central CityHive incident journals independently of publication
         if: always()

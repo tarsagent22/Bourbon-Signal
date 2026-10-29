@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, groceryExpansionProofImport, groceryExpansionSemanticsBoundary, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, centralProductionOnSiteImport, centralProductionOnSiteBoundary } from '../engine/src/verification/historical-implementation.mjs';
+import { reverseLouisianaAlaskaHistoricalAdditions, normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, groceryExpansionProofImport, groceryExpansionSemanticsBoundary, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, centralProductionOnSiteImport, centralProductionOnSiteBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -69,7 +69,7 @@ function signalSort(a, b) {
   const normalized = normalizeHistoricalImplementationBytes(name, Buffer.from(current));
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
-  assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
+  assert.equal(normalized.toString(), reverseLouisianaAlaskaHistoricalAdditions(name, current).replace(addition, originalBoundary).replace(indianaAddition, '')
     .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary)
     .replace(groceryExpansionProofImport, groceryExpansionTierImport)
     .replace(groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary)
@@ -213,14 +213,14 @@ test('WA/NM metadata reversal requires every literal inactive registration and b
           : reviewed.replace('"publicStatus": "research_only"', '"publicStatus": "active"');
       assert.notEqual(changed, reviewed);
       for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:WA\/NM reviewed|Central inactive|measured runtime forecast) .*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:WA\/NM reviewed|Central inactive|measured runtime forecast|LA\/AK inactive) .*exact historical verification hook/);
       }
       if (!name.endsWith('.mjs') && ['WA', 'NM'].includes(key)) {
         for (const mutation of [
           reviewed.replace('"inventoryAlertable": false', '"inventoryAlertable": true'),
           reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
           reviewed.replace('"refinementLevel": "store"', '"refinementLevel": "state"'),
-        ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(reviewed, mutation))), /(?:WA\/NM reviewed|Central inactive) .*exact historical verification hook/);
+        ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(reviewed, mutation))), /(?:WA\/NM reviewed|Central inactive|LA\/AK inactive) .*exact historical verification hook/);
       }
     }
     const outside = current.replace(name.endsWith('.mjs') ? "id: 'MS'" : '"MS": {', name.endsWith('.mjs') ? "id: 'MS_CHANGED'" : '"MS_CHANGED": {');
@@ -368,4 +368,25 @@ test('MS bundle boundary changes only registry loading; bundled policy and colle
   }
   const config = await readFile(new URL('../next.config.ts',import.meta.url),'utf8');
   assert.match(config,/ms-registry-boundary\.cjs/);
+});
+
+
+test('LA/AK inactive preparation permits only exact closed hooks and leaves all original Mississippi anchors pinned',async()=>{
+  const baseline=JSON.parse(await readFile(new URL('../engine/data/source-evidence/louisiana-alaska-grocery-production-20261029/shared-metadata-baseline.json',import.meta.url),'utf8'));
+  for(const[name,entries]of Object.entries(baseline.files)){
+    const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+    for(const[key,{reviewed,original}]of Object.entries(entries)){
+      assert.equal(current.split(reviewed).length-1,1,name+': '+key);
+      const changed=reviewed.replace(/louisianaAlaska|LOUISIANA_ALASKA|Louisiana|Alaska|360000/g,'UNREVIEWED');
+      assert.notEqual(changed,reviewed);
+      for(const mutation of [current.replace(reviewed,original),current+'\n'+reviewed,current.replace(reviewed,changed)])
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/LA\/AK inactive .*exact historical verification hook/);
+      if(['LA','AK'].includes(key))for(const pair of [['"publicStatus": "research_only"','"publicStatus": "active"'],['"inventoryAlertable": false','"inventoryAlertable": true'],['"watchAlertable": false','"watchAlertable": true']])
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(reviewed,reviewed.replace(...pair)))) ,/LA\/AK inactive .*exact historical verification hook/);
+    }
+    const outside=current.replace(name.endsWith('.mjs')?(name.endsWith('operational-report.mjs')?"const policy = confidenceForSignal(signal);":"id: 'MS'"):'"MS": {',name.endsWith('.mjs')?'UNREVIEWED_MS':'"MS_UNREVIEWED": {');
+    assert.notEqual(outside,current);
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(outside))),evidence.implementationFilesSha256[name]);
+  }
 });

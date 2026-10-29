@@ -55,6 +55,8 @@ const STATE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_STATE_TIMEOUT_MS || 1
 const STATE_TIMEOUT_OVERRIDES_MS = {
   NJ: Number(process.env.BOURBON_SIGNAL_NJ_STATE_TIMEOUT_MS || 120_000),
   MI: Number(process.env.BOURBON_SIGNAL_MI_STATE_TIMEOUT_MS || 60_000),
+  LA: Number(process.env.BOURBON_SIGNAL_LA_STATE_TIMEOUT_MS || 360_000),
+  AK: Number(process.env.BOURBON_SIGNAL_AK_STATE_TIMEOUT_MS || 420_000),
   // VA and IN can legitimately do broad store-level inventory work. Give them
   // enough room in the full scheduled run so they do not regress to stale
   // fallback while still keeping hard failure bounds.

@@ -1,4 +1,5 @@
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
+import {isLouisianaAlaskaGroceryInventory} from './louisiana-alaska-grocery-policy.mjs';
 import {isGroceryExpansionInventory} from './grocery-xapi-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { ncShipmentWatchEligible } from './nc-shipment-policy.mjs';
@@ -194,6 +195,7 @@ function policyForSignal(signal, nowMs = Date.now()) {
     inventorySemantics:'Exact-premises first-party retailer pickup availability; binary availability is not an exact shelf count. Verify before driving.',
     defaultCadence:'30-60m',
   };
+  if (['LA', 'AK'].includes(signal.state) && isLouisianaAlaskaGroceryInventory(signal)) return {maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:signal.sourceProductBinding.inventorySemantics,defaultCadence:'30m'};
   if (['WA', 'NM'].includes(signal.state) && isGroceryExpansionInventory(signal)) return {maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:signal.sourceProductBinding.inventorySemantics,defaultCadence:'30m'};
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');

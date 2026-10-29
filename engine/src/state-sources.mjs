@@ -1,4 +1,5 @@
 import {NJ_MI_PRODUCTION_CONFIGS,NJ_MI_PRODUCTION_STATES} from './nj-mi-production-config.mjs';
+import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES} from './louisiana-alaska-grocery-production-config.mjs';
 import {WESTERN_GROCERY_PRODUCTION_CONFIGS,WESTERN_GROCERY_PRODUCTION_STATES} from './western-grocery-production-config.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { costcoSourceForState } from './costco-eligibility.mjs';
@@ -470,6 +471,7 @@ const BASE_STATE_SOURCES = [
     ],
     apiCandidates: []
   },
+  ...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,
   ...WESTERN_GROCERY_PRODUCTION_CONFIGS,
   ...CENTRAL_CITYHIVE_STATE_CONFIGS,
   {
@@ -505,6 +507,7 @@ const BASE_STATE_SOURCES = [
 
 export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS].map((source) => {
   if(NJ_MI_PRODUCTION_STATES.includes(source.id))return source;
+  if (LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)) return source;
   const costcoSource = WESTERN_GROCERY_PRODUCTION_STATES.includes(source.id) ? null : costcoSourceForState(source.id);
   return costcoSource ? { ...source, sources: [...source.sources, costcoSource] } : source;
 });

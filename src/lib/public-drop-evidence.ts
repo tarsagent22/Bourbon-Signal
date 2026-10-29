@@ -1,3 +1,4 @@
+import {isLouisianaAlaskaGroceryOnSiteSignal} from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 import { isGroceryExpansionInventory } from '../../engine/src/grocery-xapi-policy.mjs';
 import { dropFreshnessTime } from "./drop-feed-policy.ts";
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
@@ -376,6 +377,8 @@ export function isPublicDropFeedEligible(
   const sourceRuntimeRaw = drop.raw && typeof drop.raw === 'object' ? drop.raw as Record<string, unknown> : null;
   if (!retailer && ['WA', 'NM'].includes(state) && String(drop.type) === 'retailer_store_inventory_result'
     && (!isGroceryExpansionInventory(drop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
+  if (!retailer && ['LA', 'AK'].includes(state) && String(drop.type) === 'retailer_store_inventory_result'
+    && (!isLouisianaAlaskaGroceryOnSiteSignal(drop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
   // Arizona's live coverage uses the same reviewed premises/source identity as
   // engine alerts. Positive quantities on policy-only rows are not evidence of
   // current customer availability. Verified retailer submissions use their own
