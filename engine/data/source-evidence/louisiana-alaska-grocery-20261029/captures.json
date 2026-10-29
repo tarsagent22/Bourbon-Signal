@@ -1,0 +1,909 @@
+{
+  "baseCommit": "99df5d2c04bd2289f8708c7677377fe2e5294076",
+  "localCaptureRoot": ".operator/grocery-next-states",
+  "retailerRequests": [
+    {
+      "at": "2026-10-29T15:44:46.763Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=70503&radius=50&size=100",
+      "status": 206,
+      "file": "LA-70503-resolver.json",
+      "bytes": 37082,
+      "sha256": "0d9489de7fa6e927e633fcbb28346f668e97cbec23548eaad4bb114da365fb06"
+    },
+    {
+      "at": "2026-10-29T15:44:47.668Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=70605&radius=50&size=100",
+      "status": 206,
+      "file": "LA-70605-resolver.json",
+      "bytes": 20428,
+      "sha256": "77ef37198f076eb99322362171c50acb8a7ce7a232243a673a2e60236e265f68"
+    },
+    {
+      "at": "2026-10-29T15:44:48.310Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=71106&radius=50&size=100",
+      "status": 206,
+      "file": "LA-71106-resolver.json",
+      "bytes": 12222,
+      "sha256": "4a8f250387ade8c7bb158b134375b9e0f89d3de15d95687a96fbdd35ad45c296"
+    },
+    {
+      "at": "2026-10-29T15:44:48.965Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=71301&radius=50&size=100",
+      "status": 206,
+      "file": "LA-71301-resolver.json",
+      "bytes": 12269,
+      "sha256": "63750087de876e7b1cf983df74e649a0ca6b9b4d7364530b1d828be3ce585eae"
+    },
+    {
+      "at": "2026-10-29T15:44:49.637Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=99801&radius=50&size=100",
+      "status": 206,
+      "file": "AK-99801-resolver.json",
+      "bytes": 12227,
+      "sha256": "0d4d4c005150cb0d890251eabd1c15a547e5cf5dd9cfe84f8ad952830273421c"
+    },
+    {
+      "at": "2026-10-29T15:44:50.295Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=99701&radius=50&size=100",
+      "status": 206,
+      "file": "AK-99701-resolver.json",
+      "bytes": 28541,
+      "sha256": "aa2df3e32e8d95fe27e91e913864e5506d2bb2c115f680e5d44944061b313efe"
+    },
+    {
+      "at": "2026-10-29T15:44:51.089Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=99611&radius=50&size=100",
+      "status": 206,
+      "file": "AK-99611-resolver.json",
+      "bytes": 20361,
+      "sha256": "7c0719a148bd0803b0365b61eb1294dcf54e290e6bbfdd9fe2a3467525cb6210"
+    },
+    {
+      "at": "2026-10-29T15:44:51.858Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=99615&radius=50&size=100",
+      "status": 206,
+      "file": "AK-99615-resolver.json",
+      "bytes": 8652,
+      "sha256": "cd501405ec5b113cf62a0b05f6a7985b661451f1c6ccb3f615be7e473014df42"
+    },
+    {
+      "at": "2026-10-29T15:44:52.653Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=99686&radius=50&size=100",
+      "status": 206,
+      "file": "AK-99686-resolver.json",
+      "bytes": 8642,
+      "sha256": "3e9b318f7b3d6c053e9b4b14fcf99fdc391f7d28453820e85aa03ac9fa4bb855"
+    },
+    {
+      "at": "2026-10-29T15:44:53.497Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=99901&radius=50&size=100",
+      "status": 206,
+      "file": "AK-99901-resolver.json",
+      "bytes": 8656,
+      "sha256": "b94a90557630ed99368dac5fe997051065cba0ca0736871630c4d2e6a635704a"
+    },
+    {
+      "at": "2026-10-29T15:44:54.154Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288693695&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1311&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-1311-bourbon.json",
+      "bytes": 241706,
+      "sha256": "b0abea1df208f2843b09635ca580463982afdf6a0b09d468b4b8bea2e0c4e446"
+    },
+    {
+      "at": "2026-10-29T15:44:55.668Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288695216&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1311&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-1311-whiskey.json",
+      "bytes": 241733,
+      "sha256": "45a85a13ac4ef0b2dab101d91967d63ca11127727bb60e2e7c4611a93ebd195c"
+    },
+    {
+      "at": "2026-10-29T15:44:57.168Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288696704&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3713&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3713-bourbon.json",
+      "bytes": 244970,
+      "sha256": "7f33cfae879a9465c26a5773c04c919dd21ab62cc6f6c20bb6e049318bd203d6"
+    },
+    {
+      "at": "2026-10-29T15:44:58.856Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288698391&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3713&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3713-whiskey.json",
+      "bytes": 244191,
+      "sha256": "2c7bba8dad4ca7c6d19be6487b25a3b933c7c4061fd3b32d8391b68c9f133aad"
+    },
+    {
+      "at": "2026-10-29T15:45:00.387Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288699932&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=712&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-712-bourbon.json",
+      "bytes": 243373,
+      "sha256": "b82443892155028d91abaa48d9acfa0fd99e91c48547fef12097b8a9a565c8d1"
+    },
+    {
+      "at": "2026-10-29T15:45:01.777Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288701306&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=712&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-712-whiskey.json",
+      "bytes": 243686,
+      "sha256": "65fb541ffab28f79193ea7beb47d00907796e7218b62b3db5c780eed3cb823b5"
+    },
+    {
+      "at": "2026-10-29T15:45:03.388Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288702933&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3792&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3792-bourbon.json",
+      "bytes": 245670,
+      "sha256": "b559e33d93eaff7929377f815388535f5a0593549f68921f8de305b05b1caa42"
+    },
+    {
+      "at": "2026-10-29T15:45:04.840Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288704385&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3792&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3792-whiskey.json",
+      "bytes": 244431,
+      "sha256": "caa254e350d07c4920345e1a4ef2c4cee634263e5850e2c356f22545b2996cf8"
+    },
+    {
+      "at": "2026-10-29T15:45:06.308Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288705849&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3747&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3747-bourbon.json",
+      "bytes": 243205,
+      "sha256": "feec7727406529af6b2117166bd62261ea60b5d5cd39a430bce8e94d7e4a603c"
+    },
+    {
+      "at": "2026-10-29T15:45:07.637Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288707185&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3747&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3747-whiskey.json",
+      "bytes": 242631,
+      "sha256": "8aea12951a16e5c6b6a7126f0e8aeca86ba7b7bc55e5e4993435afe676c127c9"
+    },
+    {
+      "at": "2026-10-29T15:45:08.981Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288708525&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3750&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3750-bourbon.json",
+      "bytes": 241382,
+      "sha256": "64683a5fdf89d5bf6155933a18f23e5481516860ba81c821d7ce2b0313a855a8"
+    },
+    {
+      "at": "2026-10-29T15:45:10.590Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288710135&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3750&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3750-whiskey.json",
+      "bytes": 241946,
+      "sha256": "aee2ea1e5265724aafdf708a498556cd2b6515b0a505fe74b329f819cb890126"
+    },
+    {
+      "at": "2026-10-29T15:45:12.169Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288711713&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=714&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-714-bourbon.json",
+      "bytes": 243052,
+      "sha256": "d1a62e47d1a47d37e5c005f6a64b7d37ee68fc23d50933a60681e4c9a8a94ff3"
+    },
+    {
+      "at": "2026-10-29T15:45:13.716Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288713253&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=714&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-714-whiskey.json",
+      "bytes": 244048,
+      "sha256": "f0443f273a78bdfd22d2f248593b386c0569ef489bb76e6bec22a1963ee48ec2"
+    },
+    {
+      "at": "2026-10-29T15:45:15.184Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288714723&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=720&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-720-bourbon.json",
+      "bytes": 298612,
+      "sha256": "4cdd44e05cbe5f72942ccc72f743a416128b2a2590272da60aad7f271a9cfb6a"
+    },
+    {
+      "at": "2026-10-29T15:45:16.981Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288716513&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=720&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-720-whiskey.json",
+      "bytes": 289927,
+      "sha256": "6947b8194c58b4466bf87d2347affcd1f80353d85fb19f2caa5d7812ff491501"
+    },
+    {
+      "at": "2026-10-29T15:45:18.449Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288717998&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1805&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1805-bourbon.json",
+      "bytes": 287070,
+      "sha256": "1a60dbcacfee066f495914b061877aa95eca2c21b07f398cad95886ac2d3ed52"
+    },
+    {
+      "at": "2026-10-29T15:45:19.825Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288719369&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1805&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1805-whiskey.json",
+      "bytes": 288273,
+      "sha256": "342060512c9370d415bdc45d219e677f85efd5196521105e0b719ae518c1763a"
+    },
+    {
+      "at": "2026-10-29T15:45:21.263Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288720810&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2628&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-2628-bourbon.json",
+      "bytes": 24491,
+      "sha256": "cafeed0f43d504096454627808155f4655047cfc37fed641fdb80d8f2ddb7a80"
+    },
+    {
+      "at": "2026-10-29T15:45:22.794Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288722329&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2628&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-2628-whiskey.json",
+      "bytes": 286637,
+      "sha256": "b50366c31579d346ea7667d90922da56ae5582a4a905488146c3ed09b8e0c649"
+    },
+    {
+      "at": "2026-10-29T15:45:24.153Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288723690&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1809&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1809-bourbon.json",
+      "bytes": 296582,
+      "sha256": "57c4b1092d3f128070e70b92a8aa162a7d587981c412d7294bc11211c84c3bc7"
+    },
+    {
+      "at": "2026-10-29T15:45:25.670Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288725212&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1809&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1809-whiskey.json",
+      "bytes": 289352,
+      "sha256": "d83064d95f122f332591c55cb166e224a59eb6139493ff4bd97ecdd1ab8e3bce"
+    },
+    {
+      "at": "2026-10-29T15:45:27.106Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288726651&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1812&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1812-bourbon.json",
+      "bytes": 286058,
+      "sha256": "008ee9f42888ec73169ed29e1cf779bfce6a157f4cab57197adde2b1bcbf35c5"
+    },
+    {
+      "at": "2026-10-29T15:45:28.607Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288728141&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1812&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1812-whiskey.json",
+      "bytes": 287366,
+      "sha256": "c4e7464b728b99bd317337edc507046dc26e810f6010530da46f99c0c1d31177"
+    },
+    {
+      "at": "2026-10-29T15:45:29.965Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288729506&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1817&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1817-bourbon.json",
+      "bytes": 288996,
+      "sha256": "3614077dee091e99769c0dd6ce70ed8707f4657d272548d6a033537a1f31f309"
+    },
+    {
+      "at": "2026-10-29T15:45:31.200Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288730735&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1817&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1817-whiskey.json",
+      "bytes": 287572,
+      "sha256": "85e683dcc5036a39a1ad23a4e82e37a359f6f813e587492455a861bf22db982d"
+    },
+    {
+      "at": "2026-10-29T15:45:32.605Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288732144&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1813&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1813-bourbon.json",
+      "bytes": 286850,
+      "sha256": "fdb6831d848881889e6f5a26f1b2b48ea1bf76068a8656f7e28e073a27ce056d"
+    },
+    {
+      "at": "2026-10-29T15:45:33.950Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288733489&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1813&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1813-whiskey.json",
+      "bytes": 179290,
+      "sha256": "1b541e1ce360865908b51fbc312d6b044cce95b45c793bd2862c771bcd0c697f"
+    },
+    {
+      "at": "2026-10-29T15:45:35.654Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288735203&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1807&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1807-bourbon.json",
+      "bytes": 289223,
+      "sha256": "9d6006f847c0aa092f761477d693f41b4c91dd0561070fa593280ac7734595b8"
+    },
+    {
+      "at": "2026-10-29T15:45:37.121Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288736664&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1807&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1807-whiskey.json",
+      "bytes": 289264,
+      "sha256": "31ade7b2bb3ce1af099783755b4548e5cb4811aa3da8a8ce9280e34c46bbc09f"
+    },
+    {
+      "at": "2026-10-29T15:45:38.544Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288738093&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1839&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1839-bourbon.json",
+      "bytes": 248031,
+      "sha256": "57222898595b7809c3dafe91ad8948fed0b9b3855920ecc24cc8f044d2427211"
+    },
+    {
+      "at": "2026-10-29T15:45:39.903Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288739446&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1839&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1839-whiskey.json",
+      "bytes": 250910,
+      "sha256": "0695afa9722c9f4ceecb88049ec2536d58225def57a305fe677da5206092bea7"
+    },
+    {
+      "at": "2026-10-29T15:45:41.326Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288740871&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1811&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1811-bourbon.json",
+      "bytes": 290824,
+      "sha256": "8f23bef76443c9d6769962fd5b4fdc5807ec2734056c77a061df85432a56e938"
+    },
+    {
+      "at": "2026-10-29T15:45:42.748Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288742286&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1811&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1811-whiskey.json",
+      "bytes": 287251,
+      "sha256": "5a45c1117d97a062a441e21903c512d2b3ba7e6a78b3457565fa74afed0afd5b"
+    },
+    {
+      "at": "2026-10-29T15:45:44.027Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288743572&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1739&featured=true&search-uid=&q=bourbon&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1739-bourbon.json",
+      "bytes": 288007,
+      "sha256": "182afa5712408cfad97bcfefbd1fde86b4599dd50d70a7e060c91834470a1f82"
+    },
+    {
+      "at": "2026-10-29T15:45:45.277Z",
+      "url": "https://www.carrsqc.com/abs/pub/xapi/search/substitute?request-id=1793288744820&url=https%3A%2F%2Fwww.carrsqc.com&pageurl=https%3A%2F%2Fwww.carrsqc.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1739&featured=true&search-uid=&q=whiskey&channel=instore&banner=carrsqc",
+      "status": 200,
+      "file": "AK-1739-whiskey.json",
+      "bytes": 287900,
+      "sha256": "fdd436b37d0b7e61676d35f56794fbbf5c770a64bf143d60d690b25def6a9a9f"
+    },
+    {
+      "at": "2026-10-29T15:45:46.715Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288746251&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=719&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-719-bourbon.json",
+      "bytes": 244952,
+      "sha256": "7b7881c2fd731e45d55b9cccb9256d71c0c019a490642af919676527ef364fb4"
+    },
+    {
+      "at": "2026-10-29T15:45:48.198Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288747744&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=719&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-719-whiskey.json",
+      "bytes": 244674,
+      "sha256": "de1198637850bfc227e50711f697211414da0e6c81af80681374b15cdb522f71"
+    },
+    {
+      "at": "2026-10-29T15:45:49.517Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288749056&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=775&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-775-bourbon.json",
+      "bytes": 243218,
+      "sha256": "6216b72d5dadc7ba4e188c05d7ad54c50eddac2ac1c2cf63513fd5fef867d64b"
+    },
+    {
+      "at": "2026-10-29T15:45:51.137Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288750683&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=775&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-775-whiskey.json",
+      "bytes": 242008,
+      "sha256": "3a8c8d37ed89fce09b0270f4d26e64d342c5fa77db658f8a7107e16dcd76cf79"
+    },
+    {
+      "at": "2026-10-29T15:45:52.559Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288752102&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=120&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-120-bourbon.json",
+      "bytes": 244074,
+      "sha256": "63413e8b3e72efd3bd65d069366793cbe666c4d0c50781eab5c561a37f35c573"
+    },
+    {
+      "at": "2026-10-29T15:45:54.060Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288753598&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=120&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-120-whiskey.json",
+      "bytes": 242203,
+      "sha256": "d56a4b33ac6cdfebcb64054aa404a00ed09f14804d61a5289fa90c6ddf3cf2bb"
+    },
+    {
+      "at": "2026-10-29T15:45:55.573Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288755110&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2756&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-2756-bourbon.json",
+      "bytes": 244353,
+      "sha256": "20e3ef9e7ca229073a6c482464fcfbb256c42fadecc9532b7d8835d927890dbf"
+    },
+    {
+      "at": "2026-10-29T15:45:56.994Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288756534&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2756&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-2756-whiskey.json",
+      "bytes": 243835,
+      "sha256": "b01d3e8afec27735547c6a43564d9bc42b370e5076d52844443b63e478dc0aa0"
+    },
+    {
+      "at": "2026-10-29T15:45:58.433Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288757974&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2798&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-2798-bourbon.json",
+      "bytes": 242359,
+      "sha256": "c44afb52f80644b91a565914f61afbc27f05d74e6b0506462d82989cec8ca818"
+    },
+    {
+      "at": "2026-10-29T15:45:59.762Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288759306&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2798&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-2798-whiskey.json",
+      "bytes": 242211,
+      "sha256": "504615b87b87bc8a95fc5b8cf94c6dae678b2d0489dcc12c27af85f65d2587df"
+    },
+    {
+      "at": "2026-10-29T15:46:01.058Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288760605&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=717&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-717-bourbon.json",
+      "bytes": 241884,
+      "sha256": "ca30aad0e6daf546e92c498e3beac9c945fb873bf3db5beae1e4a778563074ea"
+    },
+    {
+      "at": "2026-10-29T15:46:02.434Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288761978&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=717&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-717-whiskey.json",
+      "bytes": 242461,
+      "sha256": "cc3ffcb0a8cc0b38e99cb67393ff4c431e6cf3e4da3653cc5975023373e29c15"
+    },
+    {
+      "at": "2026-10-29T15:46:03.716Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288763256&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=218&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-218-bourbon.json",
+      "bytes": 245691,
+      "sha256": "9b8d085206348a724c12080c28d8fc66e5466dc306d3893d59e5b25c562957f5"
+    },
+    {
+      "at": "2026-10-29T15:46:05.261Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288764799&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=218&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-218-whiskey.json",
+      "bytes": 244745,
+      "sha256": "c344fc0ea2c93a297f165b434e9ef546afe0cf36436adcbf5e980d397ac032d9"
+    },
+    {
+      "at": "2026-10-29T15:46:06.730Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288766278&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3215&featured=true&search-uid=&q=bourbon&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3215-bourbon.json",
+      "bytes": 243210,
+      "sha256": "8725e5ea32f519c77c03bdb3aff23b5590ec866f5fbc3971ea8bd69706ed7601"
+    },
+    {
+      "at": "2026-10-29T15:46:08.261Z",
+      "url": "https://www.albertsons.com/abs/pub/xapi/search/substitute?request-id=1793288767807&url=https%3A%2F%2Fwww.albertsons.com&pageurl=https%3A%2F%2Fwww.albertsons.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3215&featured=true&search-uid=&q=whiskey&channel=instore&banner=albertsons",
+      "status": 200,
+      "file": "LA-3215-whiskey.json",
+      "bytes": 240855,
+      "sha256": "1b83dab7aa0634c5665cc1c2b109e6847dca090752cab4a526053b95453d6cb2"
+    },
+    {
+      "at": "2026-10-29T15:46:09.690Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288769231&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1820&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1820-bourbon.json",
+      "bytes": 283693,
+      "sha256": "a9699ca03e6e751bd2469d75ae2e310c6d9176b1700eb3c823b12e44928c9241"
+    },
+    {
+      "at": "2026-10-29T15:46:11.339Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288770881&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1820&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1820-whiskey.json",
+      "bytes": 278207,
+      "sha256": "6e3d6ced6f182b792003090aada1863e68b4abefe05db743b2c4cda96cdb7c45"
+    },
+    {
+      "at": "2026-10-29T15:46:12.746Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288772294&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3410&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-3410-bourbon.json",
+      "bytes": 298255,
+      "sha256": "79a3f99cb1f109edcf3f66367170845a1876f267ca51d729639219a526dee767"
+    },
+    {
+      "at": "2026-10-29T15:46:14.199Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288773735&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=3410&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-3410-whiskey.json",
+      "bytes": 289677,
+      "sha256": "d1beefe4d87ca608c866bbbcbe6b86843e27143e6d9e1a10981f84eebae254ed"
+    },
+    {
+      "at": "2026-10-29T15:46:15.839Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288775388&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2754&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-2754-bourbon.json",
+      "bytes": 297562,
+      "sha256": "182d14c6ef0dfb527da25a8602f7636345b0a9f14fc1a16ee26ca48b5835fc1b"
+    },
+    {
+      "at": "2026-10-29T15:46:17.247Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288776779&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=2754&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-2754-whiskey.json",
+      "bytes": 285573,
+      "sha256": "031dc113c94fe83b7ad8cedca9f6ea5f64760c49a63537b6bdfec10699d32128"
+    },
+    {
+      "at": "2026-10-29T15:46:18.762Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288778308&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1821&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1821-bourbon.json",
+      "bytes": 285855,
+      "sha256": "3087fbfdb6865e5edeb0278e6452b5323d80ada888bc7f0f272ca7479c94da2a"
+    },
+    {
+      "at": "2026-10-29T15:46:20.605Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288780152&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1821&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1821-whiskey.json",
+      "bytes": 287131,
+      "sha256": "eeca94fff5bfcbdf15d9ef7f5affa2df4bea02e8e15e3182ec79cb414692e5a8"
+    },
+    {
+      "at": "2026-10-29T15:46:22.151Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288781695&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1808&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1808-bourbon.json",
+      "bytes": 287356,
+      "sha256": "92993d7a3cfa80d84b9712618c430504ea25d10adaa7e83d351ce448bda0eb99"
+    },
+    {
+      "at": "2026-10-29T15:46:23.480Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288783018&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1808&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1808-whiskey.json",
+      "bytes": 284864,
+      "sha256": "d137f131474076e83b6c91724888fae74d64d5a9da4458071b21e27a4f2bf176"
+    },
+    {
+      "at": "2026-10-29T15:46:24.996Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288784541&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=548&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-548-bourbon.json",
+      "bytes": 288476,
+      "sha256": "6ad3b3bef9583e8758c3364b44ba019ad53cf016cc652a466cc5af499dd3f963"
+    },
+    {
+      "at": "2026-10-29T15:46:26.356Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288785906&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=548&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-548-whiskey.json",
+      "bytes": 284654,
+      "sha256": "e1b4503bd6cd445e95601f78c22cec24c1b9839558d6e98da1f6da494a523f8c"
+    },
+    {
+      "at": "2026-10-29T15:46:28.058Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288787604&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1090&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1090-bourbon.json",
+      "bytes": 297006,
+      "sha256": "8ad9c2f35be27236cc553b69d52f612ea088f2321ba2045766c8b902af4c43bc"
+    },
+    {
+      "at": "2026-10-29T15:46:29.542Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288789082&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1090&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1090-whiskey.json",
+      "bytes": 287638,
+      "sha256": "726b261929d807d580e6389d2d1d8356894ae8a250aeac0c279fb7717868470f"
+    },
+    {
+      "at": "2026-10-29T15:46:30.965Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288790503&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1833&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1833-bourbon.json",
+      "bytes": 301707,
+      "sha256": "e415d9b1c2cab0f5288650ad8e0f50a5fe8f9b52bd5c3e2630dce2c1634e4b5c"
+    },
+    {
+      "at": "2026-10-29T15:46:32.418Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288791955&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1833&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1833-whiskey.json",
+      "bytes": 289277,
+      "sha256": "d49f13dd3ce306d96d6f12a9bd203507d0dee3304b3384d09b67255803885446"
+    },
+    {
+      "at": "2026-10-29T15:46:33.777Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288793320&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1818&featured=true&search-uid=&q=bourbon&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1818-bourbon.json",
+      "bytes": 282666,
+      "sha256": "dcdb3fcb3d7b79b7829da7f61b4b0a738519df999ef17460e8e002b55367baa4"
+    },
+    {
+      "at": "2026-10-29T15:46:35.854Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/search/substitute?request-id=1793288795395&url=https%3A%2F%2Fwww.safeway.com&pageurl=https%3A%2F%2Fwww.safeway.com&pagename=search&rows=100&start=0&search-type=keyword&storeid=1818&featured=true&search-uid=&q=whiskey&channel=instore&banner=safeway",
+      "status": 200,
+      "file": "AK-1818-whiskey.json",
+      "bytes": 278900,
+      "sha256": "0f99f800869e70b2c4f9e088baa213e7cae870b08ce5d8f111eeb666204fa562"
+    }
+  ],
+  "originalResolverReceipts": [
+    {
+      "at": "2026-10-29T15:41:16.047Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=70809&radius=50&size=100",
+      "status": 206,
+      "sha256": "ae0ef349b89d903fcd3a08a58f6225f576def50219ac4525c39338199171bf28",
+      "bytes": 61581
+    },
+    {
+      "at": "2026-10-29T15:41:17.000Z",
+      "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=99503&radius=50&size=100",
+      "status": 206,
+      "sha256": "7d55c58d3622b88ebe8560b1c0ab9c273ed214d637d254d0da5b6f415fb4a7ff",
+      "bytes": 88907
+    }
+  ],
+  "localPageReceipts": [
+    {
+      "at": "2026-10-29T15:47:57.920Z",
+      "url": "https://local.albertsons.com/la/baton-rouge/7515-perkins-rd.html",
+      "status": 200,
+      "sha256": "c7f66b88c3e03cdf82697eba984a9bd8b2f928cabf2e18fed0c8969d2efd1b01",
+      "file": "LA-local-1311.html"
+    },
+    {
+      "at": "2026-10-29T15:47:58.652Z",
+      "url": "https://local.albertsons.com/la/baton-rouge/15232-george-o-neal-rd.html",
+      "status": 200,
+      "sha256": "3dd06cd8cb19802395dce72cf8f0b875c33994da54ae9feed8f88f15976442cf",
+      "file": "LA-local-3713.html"
+    },
+    {
+      "at": "2026-10-29T15:47:59.138Z",
+      "url": "https://local.albertsons.com/la/baton-rouge/9650-airline-hwy.html",
+      "status": 200,
+      "sha256": "cd628050ef83ac86dcf3affba04a9b58be2bc9f3934cd041352100f557ef4ae5",
+      "file": "LA-local-712.html"
+    },
+    {
+      "at": "2026-10-29T15:47:59.639Z",
+      "url": "https://local.albertsons.com/la/baton-rouge/9960-bluebonnet-blvd.html",
+      "status": 200,
+      "sha256": "4d5088df2c189f89426d64ed494dae818d9221c9c508a81ed4424c73d8f2574a",
+      "file": "LA-local-3792.html"
+    },
+    {
+      "at": "2026-10-29T15:48:00.231Z",
+      "url": "https://local.albertsons.com/la/baton-rouge/15128-airline-hwy.html",
+      "status": 200,
+      "sha256": "519b5792ab2957e0f614c6638cf0d1f33ac30f7f9aa3e3d60375e708bc851248",
+      "file": "LA-local-3747.html"
+    },
+    {
+      "at": "2026-10-29T15:48:00.809Z",
+      "url": "https://local.albertsons.com/la/baton-rouge/4857-government-st.html",
+      "status": 200,
+      "sha256": "73cd4e936bdadf73743f24369288e97247572ede4c04b3c5ec40afacf25a6f19",
+      "file": "LA-local-3750.html"
+    },
+    {
+      "at": "2026-10-29T15:48:01.310Z",
+      "url": "https://local.albertsons.com/la/hammond/1801-w-thomas-st.html",
+      "status": 200,
+      "sha256": "d4c23418740edfc0d90bd74960ad98856370e190547677b30ef17f89fd135fa4",
+      "file": "LA-local-714.html"
+    },
+    {
+      "at": "2026-10-29T15:48:01.857Z",
+      "url": "https://local.carrsqc.com/ak/anchorage/2920-seward-hwy.html",
+      "status": 200,
+      "sha256": "82348e5294200f4d7942d3fd40c1651f0f8bbb12bbd1910cb1f67431768b5fd4",
+      "file": "AK-local-720.html"
+    },
+    {
+      "at": "2026-10-29T15:48:02.497Z",
+      "url": "https://local.carrsqc.com/ak/anchorage/1650-w-northern-lights-blvd.html",
+      "status": 200,
+      "sha256": "4a9abad97f431a036465b2fa8406fe976a364b47d41caab2ddc8f8d983b0bc7e",
+      "file": "AK-local-1805.html"
+    },
+    {
+      "at": "2026-10-29T15:48:02.966Z",
+      "url": "https://local.carrsqc.com/ak/anchorage/1725-abbott-rd.html",
+      "status": 200,
+      "sha256": "bef8892bc304553fa59a14b487dbcf3b7a56678776a1c7d19b24bcadb8f5c14f",
+      "file": "AK-local-2628.html"
+    },
+    {
+      "at": "2026-10-29T15:48:03.434Z",
+      "url": "https://local.carrsqc.com/ak/anchorage/5600-debarr-rd.html",
+      "status": 200,
+      "sha256": "281fac2acf229a382593098c595472525d8e3bea178b0901ecd3e33c68ae0d32",
+      "file": "AK-local-1809.html"
+    },
+    {
+      "at": "2026-10-29T15:48:03.904Z",
+      "url": "https://local.carrsqc.com/ak/anchorage/4000-w-dimond-blvd.html",
+      "status": 200,
+      "sha256": "555a598709184117f3114a16fe401aea4490644d287f2660c802ccc590da19fc",
+      "file": "AK-local-1812.html"
+    },
+    {
+      "at": "2026-10-29T15:48:04.388Z",
+      "url": "https://local.carrsqc.com/ak/anchorage/7731-e-northern-lights-blvd.html",
+      "status": 200,
+      "sha256": "ceaa347a34a6c818361ff417e6997597c5012fdb2da8b77e82850b9c9068b2b2",
+      "file": "AK-local-1817.html"
+    },
+    {
+      "at": "2026-10-29T15:48:04.872Z",
+      "url": "https://local.carrsqc.com/ak/anchorage/1501-huffman-rd.html",
+      "status": 200,
+      "sha256": "8e53f6244f55610875ed36d2939fb7820aa1c3dbbcddd26d1f1e2546be3c5e3e",
+      "file": "AK-local-1813.html"
+    },
+    {
+      "at": "2026-10-29T15:48:05.355Z",
+      "url": "https://local.carrsqc.com/ak/eagle-river/11409-business-park-blvd.html",
+      "status": 200,
+      "sha256": "d7e31238fa0ab8410b077fb70197d85f8e5d3a20081ecbf5a54c222d5093e673",
+      "file": "AK-local-1807.html"
+    },
+    {
+      "at": "2026-10-29T15:48:05.809Z",
+      "url": "https://local.safeway.com/safeway/ak/girdwood/147-hightower-rd.html",
+      "status": 404,
+      "sha256": "306b1df0a4ec2ea84ff2124aa007cf00f6c99235f396cf167681bda5c45cc6db",
+      "file": "AK-local-1839.html"
+    },
+    {
+      "at": "2026-10-29T15:48:06.449Z",
+      "url": "https://local.carrsqc.com/ak/wasilla/595-e-parks-hwy.html",
+      "status": 200,
+      "sha256": "15f95cb28f2a71fb4a513795b8e66dffdf23cf75f9cf37431ee7f7d3cbb7a604",
+      "file": "AK-local-1811.html"
+    },
+    {
+      "at": "2026-10-29T15:48:07.029Z",
+      "url": "https://local.carrsqc.com/ak/palmer/664-e-palmer-wasilla-hwy.html",
+      "status": 200,
+      "sha256": "082888c525f297e11d24303e0b7bcc977fed06d14b31671fc10fb58922e36f4d",
+      "file": "AK-local-1739.html"
+    },
+    {
+      "at": "2026-10-29T15:48:07.513Z",
+      "url": "https://local.albertsons.com/la/lafayette/4400-ambassador-caffery.html",
+      "status": 200,
+      "sha256": "2cd35558518e773106dd50ae641250d9ee679755ac017ce39f444d26adb41fa1",
+      "file": "LA-local-719.html"
+    },
+    {
+      "at": "2026-10-29T15:48:08.121Z",
+      "url": "https://local.albertsons.com/la/lafayette/2863-ambassador-caffery.html",
+      "status": 200,
+      "sha256": "a37a6cc48905c156eb4e40a2689074a491fd50862b14d61027f1b9a0c4c2d51e",
+      "file": "LA-local-775.html"
+    },
+    {
+      "at": "2026-10-29T15:48:08.608Z",
+      "url": "https://local.albertsons.com/la/lafayette/2678-johnston-st.html",
+      "status": 200,
+      "sha256": "ae8c4cb2a8d0b73f55d1efda85837b3e9307f959e5d05234d16629b9b65f39f6",
+      "file": "LA-local-120.html"
+    },
+    {
+      "at": "2026-10-29T15:48:09.074Z",
+      "url": "https://local.albertsons.com/la/broussard/1210-albertson-pkwy.html",
+      "status": 200,
+      "sha256": "4dc08b04788cc6b4d9e97365195597adeb33bc9e3f61a5cf7e47cad6d3854a34",
+      "file": "LA-local-2756.html"
+    },
+    {
+      "at": "2026-10-29T15:48:09.727Z",
+      "url": "https://local.albertsons.com/la/lake-charles/2750-country-club-rd.html",
+      "status": 200,
+      "sha256": "b2b6d050517d2096b96f1b4e5b41d2f97618edb2d511334e9860ca0fe2261127",
+      "file": "LA-local-2798.html"
+    },
+    {
+      "at": "2026-10-29T15:48:10.184Z",
+      "url": "https://local.albertsons.com/la/lake-charles/4060-ryan-st-s.html",
+      "status": 200,
+      "sha256": "7306e9b0ad857883ff6cdb32806b53387d71e55f5c7deddbe643944efbfc1dac",
+      "file": "LA-local-717.html"
+    },
+    {
+      "at": "2026-10-29T15:48:10.654Z",
+      "url": "https://local.albertsons.com/la/shreveport/105-e-southfield-rd.html",
+      "status": 200,
+      "sha256": "581296d7b37b726304f387b59aeb601bf3e7f13c8d928ae444373d32f5b77caa",
+      "file": "LA-local-218.html"
+    },
+    {
+      "at": "2026-10-29T15:48:11.155Z",
+      "url": "https://local.albertsons.com/la/alexandria/2265-s-macarthur-dr.html",
+      "status": 200,
+      "sha256": "e7836e56b7546f83b3a017812db009376564ed68489fc08ffabc6d8658b45ec3",
+      "file": "LA-local-3215.html"
+    },
+    {
+      "at": "2026-10-29T15:48:11.652Z",
+      "url": "https://local.safeway.com/safeway/ak/juneau/3033-vintage-blvd.html",
+      "status": 200,
+      "sha256": "4bf86fcfd1265478cacdab15d128ea68d2c6ae5243c129f89b7eef64bec7326c",
+      "file": "AK-local-1820.html"
+    },
+    {
+      "at": "2026-10-29T15:48:12.262Z",
+      "url": "https://local.safeway.com/safeway/ak/fairbanks/30-college-rd.html",
+      "status": 200,
+      "sha256": "6f76edd992d2d8e0509fa2334d648f75163c82fc6c9d4d6105da3efe8da89a7c",
+      "file": "AK-local-3410.html"
+    },
+    {
+      "at": "2026-10-29T15:48:12.746Z",
+      "url": "https://local.safeway.com/safeway/ak/fairbanks/3627-airport-way.html",
+      "status": 200,
+      "sha256": "042839dba819c9bc627f937d5919d8d2926de7d67cc9056269b71e444a21b8f1",
+      "file": "AK-local-2754.html"
+    },
+    {
+      "at": "2026-10-29T15:48:13.293Z",
+      "url": "https://local.safeway.com/safeway/ak/north-pole/301-n-santa-claus-ln.html",
+      "status": 200,
+      "sha256": "dcc05d08d4cb0f33a610dd4d896bd5850180e65469c4fe077a5e35b2da9ff890",
+      "file": "AK-local-1821.html"
+    },
+    {
+      "at": "2026-10-29T15:48:13.794Z",
+      "url": "https://local.safeway.com/safeway/ak/kenai/10576-kenai-spur-hwy.html",
+      "status": 200,
+      "sha256": "66cb778178233ef609e23c18085948fa75e821d86b69c686a3ae0403c33088ef",
+      "file": "AK-local-1808.html"
+    },
+    {
+      "at": "2026-10-29T15:48:14.387Z",
+      "url": "https://local.safeway.com/safeway/ak/soldotna/44428-sterling-hwy.html",
+      "status": 200,
+      "sha256": "96b5192d818a10ac622e50ef0f89878010ce0fc0aa42d942ad0f8818d94442d3",
+      "file": "AK-local-548.html"
+    },
+    {
+      "at": "2026-10-29T15:48:15.060Z",
+      "url": "https://local.safeway.com/safeway/ak/kodiak/2685-mill-bay-rd.html",
+      "status": 200,
+      "sha256": "f65ad62594d1072a1f873f62d36a88006c8019161a41f46e9a061e008555f7b2",
+      "file": "AK-local-1090.html"
+    },
+    {
+      "at": "2026-10-29T15:48:15.574Z",
+      "url": "https://local.safeway.com/safeway/ak/valdez/1313-meals-st.html",
+      "status": 200,
+      "sha256": "ee4b87f8fd0ba6e177c911233dcde1779457356cd7c5349d6148c901f61bf1bd",
+      "file": "AK-local-1833.html"
+    },
+    {
+      "at": "2026-10-29T15:48:16.091Z",
+      "url": "https://local.safeway.com/safeway/ak/ketchikan/2417-tongass-ave.html",
+      "status": 200,
+      "sha256": "bc18d47bfb9cfee618ed322901bb898dbb61ac7ddc3ce2675932b54bde302169",
+      "file": "AK-local-1818.html"
+    }
+  ]
+}

@@ -1,0 +1,4514 @@
+[
+  {
+    "sourceId": "albertsons-la-1311",
+    "state": "LA",
+    "merchantId": "1311",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "1311",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "1311",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "1311",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960137024",
+        "title": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+        "canonical": "Blade and Bow Bourbon",
+        "canonicalBottleId": "bb_8924180d0cc2d853",
+        "tier": "limited",
+        "price": 52.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "1311",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 52.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "1311",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1311",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": [
+      {
+        "productId": "960447819",
+        "title": "Wild Turkey Kentucky - 750 Ml",
+        "canonical": "Wild Turkey Master",
+        "canonicalBottleId": "bb_2a3a72be37e1c233",
+        "tier": "limited",
+        "price": 69.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960447819",
+          "pid": "960447819",
+          "storeId": "1311",
+          "name": "Wild Turkey Kentucky - 750 Ml",
+          "upc": "0072105994750",
+          "price": 69.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": "generic_title_does_not_establish_master_expression"
+      }
+    ]
+  },
+  {
+    "sourceId": "albertsons-la-3713",
+    "state": "LA",
+    "merchantId": "3713",
+    "products": [
+      {
+        "productId": "960488502",
+        "title": "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Jr. Barrel Proof Bourbon",
+        "canonicalBottleId": "e-h-taylor-jr-barrel-proof-bourbon",
+        "tier": "allocated",
+        "price": 79.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960488502",
+          "pid": "960488502",
+          "storeId": "3713",
+          "name": "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400552",
+          "price": 79.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 63,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960540802",
+        "title": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Weller Full Proof",
+        "canonicalBottleId": "bb_a3c16eb6f814785b",
+        "tier": "unicorn",
+        "price": 70.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960540802",
+          "pid": "960540802",
+          "storeId": "3713",
+          "name": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800403149",
+          "price": 70.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 57,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "3713",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "3713",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "3713",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "189031062",
+        "title": "Bookers Kentucky Straight Bourbon - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Booker's Bourbon",
+        "canonicalBottleId": "bb_8b9546b93a7fbe72",
+        "tier": "limited",
+        "price": 119.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031062",
+          "pid": "189031062",
+          "storeId": "3713",
+          "name": "Bookers Kentucky Straight Bourbon - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008068601140",
+          "price": 119.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 61,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "3713",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960488502",
+      "960540802",
+      "189031042",
+      "960293806",
+      "189031062"
+    ],
+    "excluded": [
+      {
+        "productId": "960447819",
+        "title": "Wild Turkey Kentucky - 750 Ml",
+        "canonical": "Wild Turkey Master",
+        "canonicalBottleId": "bb_2a3a72be37e1c233",
+        "tier": "limited",
+        "price": 69.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960447819",
+          "pid": "960447819",
+          "storeId": "3713",
+          "name": "Wild Turkey Kentucky - 750 Ml",
+          "upc": "0072105994750",
+          "price": 69.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": "generic_title_does_not_establish_master_expression"
+      }
+    ]
+  },
+  {
+    "sourceId": "albertsons-la-712",
+    "state": "LA",
+    "merchantId": "712",
+    "products": [
+      {
+        "productId": "960307027",
+        "title": "W.L. Weller 12 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "W.L. Weller 12 Year",
+        "canonicalBottleId": "weller-12-year",
+        "tier": "unicorn",
+        "price": 53.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960307027",
+          "pid": "960307027",
+          "storeId": "712",
+          "name": "W.L. Weller 12 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402774",
+          "price": 53.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "712",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "712",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "712",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "712",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "712",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960307027",
+      "189031042",
+      "960293806"
+    ],
+    "excluded": [
+      {
+        "productId": "960447819",
+        "title": "Wild Turkey Kentucky - 750 Ml",
+        "canonical": "Wild Turkey Master",
+        "canonicalBottleId": "bb_2a3a72be37e1c233",
+        "tier": "limited",
+        "price": 69.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960447819",
+          "pid": "960447819",
+          "storeId": "712",
+          "name": "Wild Turkey Kentucky - 750 Ml",
+          "upc": "0072105994750",
+          "price": 69.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": "generic_title_does_not_establish_master_expression"
+      }
+    ]
+  },
+  {
+    "sourceId": "albertsons-la-3792",
+    "state": "LA",
+    "merchantId": "3792",
+    "products": [
+      {
+        "productId": "960488502",
+        "title": "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Jr. Barrel Proof Bourbon",
+        "canonicalBottleId": "e-h-taylor-jr-barrel-proof-bourbon",
+        "tier": "allocated",
+        "price": 79.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960488502",
+          "pid": "960488502",
+          "storeId": "3792",
+          "name": "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400552",
+          "price": 79.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 63,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960307027",
+        "title": "W.L. Weller 12 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "W.L. Weller 12 Year",
+        "canonicalBottleId": "weller-12-year",
+        "tier": "unicorn",
+        "price": 53.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960307027",
+          "pid": "960307027",
+          "storeId": "3792",
+          "name": "W.L. Weller 12 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402774",
+          "price": 53.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960540802",
+        "title": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Weller Full Proof",
+        "canonicalBottleId": "bb_a3c16eb6f814785b",
+        "tier": "unicorn",
+        "price": 70.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960540802",
+          "pid": "960540802",
+          "storeId": "3792",
+          "name": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800403149",
+          "price": 70.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 57,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "3792",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "3792",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "3792",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "3792",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970302007",
+        "title": "Blue Note Juke Joint Bbn - 750 ML",
+        "canonical": "Blue Note Juke Joint Bourbon",
+        "canonicalBottleId": "bb_30452cb85b45d0f9",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970302007",
+          "pid": "970302007",
+          "storeId": "3792",
+          "name": "Blue Note Juke Joint Bbn - 750 ML",
+          "upc": "0068609199991",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960488502",
+      "960307027",
+      "960540802",
+      "189031042",
+      "960293806"
+    ],
+    "excluded": [
+      {
+        "productId": "960447819",
+        "title": "Wild Turkey Kentucky - 750 Ml",
+        "canonical": "Wild Turkey Master",
+        "canonicalBottleId": "bb_2a3a72be37e1c233",
+        "tier": "limited",
+        "price": 69.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960447819",
+          "pid": "960447819",
+          "storeId": "3792",
+          "name": "Wild Turkey Kentucky - 750 Ml",
+          "upc": "0072105994750",
+          "price": 69.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": "generic_title_does_not_establish_master_expression"
+      }
+    ]
+  },
+  {
+    "sourceId": "albertsons-la-3747",
+    "state": "LA",
+    "merchantId": "3747",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "3747",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "3747",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "3747",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970302007",
+        "title": "Blue Note Juke Joint Bbn - 750 ML",
+        "canonical": "Blue Note Juke Joint Bourbon",
+        "canonicalBottleId": "bb_30452cb85b45d0f9",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970302007",
+          "pid": "970302007",
+          "storeId": "3747",
+          "name": "Blue Note Juke Joint Bbn - 750 ML",
+          "upc": "0068609199991",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "3747",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "albertsons-la-3750",
+    "state": "LA",
+    "merchantId": "3750",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "3750",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "3750",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "3750",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960137024",
+        "title": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+        "canonical": "Blade and Bow Bourbon",
+        "canonicalBottleId": "bb_8924180d0cc2d853",
+        "tier": "limited",
+        "price": 52.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "3750",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 52.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "3750",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "3750",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "albertsons-la-714",
+    "state": "LA",
+    "merchantId": "714",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "714",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "714",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "714",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960137024",
+        "title": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+        "canonical": "Blade and Bow Bourbon",
+        "canonicalBottleId": "bb_8924180d0cc2d853",
+        "tier": "limited",
+        "price": 52.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "714",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 52.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "714",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-720",
+    "state": "AK",
+    "merchantId": "720",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "720",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "720",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "720",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "720",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-1805",
+    "state": "AK",
+    "merchantId": "1805",
+    "products": [
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "1805",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1805",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-2628",
+    "state": "AK",
+    "merchantId": "2628",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "2628",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "2628",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "2628",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-1809",
+    "state": "AK",
+    "merchantId": "1809",
+    "products": [
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1809",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-1812",
+    "state": "AK",
+    "merchantId": "1812",
+    "products": [
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "1812",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-1817",
+    "state": "AK",
+    "merchantId": "1817",
+    "products": [
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1817",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1817",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-1813",
+    "state": "AK",
+    "merchantId": "1813",
+    "products": [
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1813",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1813",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-1807",
+    "state": "AK",
+    "merchantId": "1807",
+    "products": [
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "1807",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1807",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1807",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-1811",
+    "state": "AK",
+    "merchantId": "1811",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "1811",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "1811",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1811",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1811",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "carrsqc-ak-1739",
+    "state": "AK",
+    "merchantId": "1739",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "1739",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "1739",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1739",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1739",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "albertsons-la-719",
+    "state": "LA",
+    "merchantId": "719",
+    "products": [
+      {
+        "productId": "960540802",
+        "title": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Weller Full Proof",
+        "canonicalBottleId": "bb_a3c16eb6f814785b",
+        "tier": "unicorn",
+        "price": 70.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960540802",
+          "pid": "960540802",
+          "storeId": "719",
+          "name": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800403149",
+          "price": 70.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 57,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "719",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "719",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "719",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "719",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "719",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960540802",
+      "189031042",
+      "960293806"
+    ],
+    "excluded": [
+      {
+        "productId": "960447819",
+        "title": "Wild Turkey Kentucky - 750 Ml",
+        "canonical": "Wild Turkey Master",
+        "canonicalBottleId": "bb_2a3a72be37e1c233",
+        "tier": "limited",
+        "price": 69.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960447819",
+          "pid": "960447819",
+          "storeId": "719",
+          "name": "Wild Turkey Kentucky - 750 Ml",
+          "upc": "0072105994750",
+          "price": 69.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": "generic_title_does_not_establish_master_expression"
+      }
+    ]
+  },
+  {
+    "sourceId": "albertsons-la-775",
+    "state": "LA",
+    "merchantId": "775",
+    "products": [
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "775",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "775",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "775",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "albertsons-la-120",
+    "state": "LA",
+    "merchantId": "120",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "120",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "120",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971288938",
+        "title": "Old Fitzgerald Bourbon Bib 7 Year Whiskey - 700 Ml (limited quantities may be available in store)",
+        "canonical": "Old Fitzgerald 7Y Bottled in Bond",
+        "canonicalBottleId": "old-fitzgerald-7y-bottled-in-bond",
+        "tier": "unicorn",
+        "price": 60.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971288938",
+          "pid": "971288938",
+          "storeId": "120",
+          "name": "Old Fitzgerald Bourbon Bib 7 Year Whiskey - 700 Ml (limited quantities may be available in store)",
+          "upc": "0009674900579",
+          "price": 60.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "700",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "120",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806",
+      "971288938"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "albertsons-la-2756",
+    "state": "LA",
+    "merchantId": "2756",
+    "products": [
+      {
+        "productId": "960307027",
+        "title": "W.L. Weller 12 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "W.L. Weller 12 Year",
+        "canonicalBottleId": "weller-12-year",
+        "tier": "unicorn",
+        "price": 53.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960307027",
+          "pid": "960307027",
+          "storeId": "2756",
+          "name": "W.L. Weller 12 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402774",
+          "price": 53.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "2756",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "2756",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "2756",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960137024",
+        "title": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+        "canonical": "Blade and Bow Bourbon",
+        "canonicalBottleId": "bb_8924180d0cc2d853",
+        "tier": "limited",
+        "price": 52.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "2756",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 52.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "2756",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970302007",
+        "title": "Blue Note Juke Joint Bbn - 750 ML",
+        "canonical": "Blue Note Juke Joint Bourbon",
+        "canonicalBottleId": "bb_30452cb85b45d0f9",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970302007",
+          "pid": "970302007",
+          "storeId": "2756",
+          "name": "Blue Note Juke Joint Bbn - 750 ML",
+          "upc": "0068609199991",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "2756",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960307027",
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "albertsons-la-2798",
+    "state": "LA",
+    "merchantId": "2798",
+    "products": [
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "2798",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "2798",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970302007",
+        "title": "Blue Note Juke Joint Bbn - 750 ML",
+        "canonical": "Blue Note Juke Joint Bourbon",
+        "canonicalBottleId": "bb_30452cb85b45d0f9",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970302007",
+          "pid": "970302007",
+          "storeId": "2798",
+          "name": "Blue Note Juke Joint Bbn - 750 ML",
+          "upc": "0068609199991",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "2798",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "albertsons-la-717",
+    "state": "LA",
+    "merchantId": "717",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "717",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "717",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "717",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960137024",
+        "title": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+        "canonical": "Blade and Bow Bourbon",
+        "canonicalBottleId": "bb_8924180d0cc2d853",
+        "tier": "limited",
+        "price": 52.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "717",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 52.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "717",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "717",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": [
+      {
+        "productId": "960447819",
+        "title": "Wild Turkey Kentucky - 750 Ml",
+        "canonical": "Wild Turkey Master",
+        "canonicalBottleId": "bb_2a3a72be37e1c233",
+        "tier": "limited",
+        "price": 69.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960447819",
+          "pid": "960447819",
+          "storeId": "717",
+          "name": "Wild Turkey Kentucky - 750 Ml",
+          "upc": "0072105994750",
+          "price": 69.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": "generic_title_does_not_establish_master_expression"
+      }
+    ]
+  },
+  {
+    "sourceId": "albertsons-la-218",
+    "state": "LA",
+    "merchantId": "218",
+    "products": [
+      {
+        "productId": "960540802",
+        "title": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Weller Full Proof",
+        "canonicalBottleId": "bb_a3c16eb6f814785b",
+        "tier": "unicorn",
+        "price": 70.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960540802",
+          "pid": "960540802",
+          "storeId": "218",
+          "name": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800403149",
+          "price": 70.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 57,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "218",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "218",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "289031989",
+        "title": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+        "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+        "canonicalBottleId": "bb_22604f9ddde2b6ba",
+        "tier": "limited",
+        "price": 61.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "289031989",
+          "pid": "289031989",
+          "storeId": "218",
+          "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+          "upc": "0072105900022",
+          "price": 61.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 58,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960137024",
+        "title": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+        "canonical": "Blade and Bow Bourbon",
+        "canonicalBottleId": "bb_8924180d0cc2d853",
+        "tier": "limited",
+        "price": 52.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960137024",
+          "pid": "960137024",
+          "storeId": "218",
+          "name": "Blade and Bow Kentucky Straight Bourbon Whiskey - 750 Ml",
+          "upc": "0008200000498",
+          "price": 52.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970889019",
+        "title": "Penelope Four Grain Bourbon - 750 Ml",
+        "canonical": "Penelope Four Grain Bourbon",
+        "canonicalBottleId": "bb_473aba10a697b5fc",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970889019",
+          "pid": "970889019",
+          "storeId": "218",
+          "name": "Penelope Four Grain Bourbon - 750 Ml",
+          "upc": "0086000034820",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960540802",
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "albertsons-la-3215",
+    "state": "LA",
+    "merchantId": "3215",
+    "products": [
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "3215",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970302007",
+        "title": "Blue Note Juke Joint Bbn - 750 ML",
+        "canonical": "Blue Note Juke Joint Bourbon",
+        "canonicalBottleId": "bb_30452cb85b45d0f9",
+        "tier": "limited",
+        "price": 34.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970302007",
+          "pid": "970302007",
+          "storeId": "3215",
+          "name": "Blue Note Juke Joint Bbn - 750 ML",
+          "upc": "0068609199991",
+          "price": 34.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 40,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 44.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "3215",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 44.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 26.66,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "3215",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 26.66,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-1820",
+    "state": "AK",
+    "merchantId": "1820",
+    "products": [
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1820",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-3410",
+    "state": "AK",
+    "merchantId": "3410",
+    "products": [
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "3410",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-2754",
+    "state": "AK",
+    "merchantId": "2754",
+    "products": [
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "2754",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "2754",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "2754",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-1821",
+    "state": "AK",
+    "merchantId": "1821",
+    "products": [
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "1821",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1821",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "960293806"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-1808",
+    "state": "AK",
+    "merchantId": "1808",
+    "products": [
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1808",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1808",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-548",
+    "state": "AK",
+    "merchantId": "548",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "548",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "548",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "548",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042"
+    ],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-1090",
+    "state": "AK",
+    "merchantId": "1090",
+    "products": [],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-1833",
+    "state": "AK",
+    "merchantId": "1833",
+    "products": [
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1833",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [],
+    "excluded": []
+  },
+  {
+    "sourceId": "safeway-ak-1818",
+    "state": "AK",
+    "merchantId": "1818",
+    "products": [
+      {
+        "productId": "189031042",
+        "title": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "Eagle Rare 10 Year",
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "tier": "allocated",
+        "price": 54.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "189031042",
+          "pid": "189031042",
+          "storeId": "1818",
+          "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800402134",
+          "price": 54.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 45,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "960293806",
+        "title": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+        "canonical": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "tier": "allocated",
+        "price": 59.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "960293806",
+          "pid": "960293806",
+          "storeId": "1818",
+          "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+          "upc": "0008800400549",
+          "price": 59.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "970022436",
+        "title": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+        "canonical": "Heaven Hill Bottled-in-Bond 7 Year",
+        "canonicalBottleId": "bb_ef203a18f5f98f23",
+        "tier": "limited",
+        "price": 64.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "970022436",
+          "pid": "970022436",
+          "storeId": "1818",
+          "name": "Heaven Hill Kentucky Straight 7 Year 100 Proof - 750 Ml (Limited quantities may be avaliable in store)",
+          "upc": "0009674900242",
+          "price": 64.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 50,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      },
+      {
+        "productId": "971302614",
+        "title": "Crown Royal Chocolate 750 Ml - 750 ML",
+        "canonical": "Crown Royal Chocolate",
+        "canonicalBottleId": "bb_bb21b6ea0533babb",
+        "tier": "limited",
+        "price": 29.99,
+        "quantity": 0,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "product": {
+          "id": "971302614",
+          "pid": "971302614",
+          "storeId": "1818",
+          "name": "Crown Royal Chocolate 750 Ml - 750 ML",
+          "upc": "0008200081105",
+          "price": 29.99,
+          "containsAlcohol": true,
+          "alcoholVolumePct": 35,
+          "dispItemSizeQty": "750",
+          "dispItemPackageQty": "1",
+          "dispUnitOfMeasure": "ML",
+          "unitOfMeasure": "ML",
+          "channelEligibility": {
+            "inStore": true
+          },
+          "channelInventory": {
+            "instore": "1"
+          }
+        },
+        "excludedReason": null
+      }
+    ],
+    "meaningfulProductIds": [
+      "189031042",
+      "960293806"
+    ],
+    "excluded": []
+  }
+]
