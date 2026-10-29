@@ -77,7 +77,12 @@
     "src/lib/statePreferences.ts",
     "src/lib/feed-area-options.ts",
     "src/hooks/useAreaPreferences.ts",
-    "src/lib/geography-directory.ts"
+    "src/lib/geography-directory.ts",
+    "engine/data/source-evidence/five-state-calibration-20261029/planning.json",
+    "engine/data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json",
+    "engine/data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json",
+    "scripts/plan-five-state-calibration.mjs",
+    "package.json"
   ],
   "requirements": [
     "Final integrated main must preserve prior source/customer policies and all original historical verification hashes.",
@@ -86,7 +91,11 @@
     "Three genuine current workflow source observations and two actual workflow canaries per state, plus isolated live preview and issued provenance are pending.",
     "Retain original source clocks, raw receipt hashes, exact closed store/product/channel bindings and current app-library semantics.",
     "Authenticated dashboard/preferences/session acceptance has not been exercised and must be recorded separately.",
-    "Only after promotion admission, guarded release and canonical customer verification may new/restored customer coverage be counted."
+    "Only after promotion admission, guarded release and canonical customer verification may new/restored customer coverage be counted.",
+    "CI-only reviewed snapshot mappings are admitted after genuine proof, while the unchanged pure production verifier continues to require real out/site. This nonproduction path map is not a production runtime file."
   ],
-  "canaryProjection": "Same strict nonpreview customer rows inside isolated canary artifact envelope; previewOnly does not unlock admission."
+  "canaryProjection": "Same strict nonpreview customer rows inside isolated canary artifact envelope; previewOnly does not unlock admission.",
+  "calibrationRun": "40929279772",
+  "finalQualifyingShadowRuns": 0,
+  "futureCanaryRuns": 0
 }

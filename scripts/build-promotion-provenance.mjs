@@ -248,6 +248,14 @@ if (['LA','AK'].includes(state)) files.push(
   `engine/out/laak-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
+if (['LA','AK','MA','CT','RI'].includes(state)) files.push(
+  'engine/data/source-evidence/five-state-calibration-20261029/planning.json',
+  'engine/data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json',
+  'engine/data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json',
+  'engine/src/verification/historical-implementation.mjs',
+  'scripts/plan-five-state-calibration.mjs',
+  'package.json',
+);
 let sourceProof;
 if (['MA','CT','RI'].includes(state)) {
   files.push(

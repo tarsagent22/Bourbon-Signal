@@ -18,7 +18,7 @@ for(const state of ['WA','NM','WI','OK','NJ','MI','LA','AK','MA','CT','RI'])test
   // Synthetic replay bytes validate the issuer, never source or promotion truth.
   // Repository/run labels explicitly cannot pass immutable promotion validation.
   const candidates=[...source.matchAll(/['`]([^'`\n]+)['`]/g)].map(match=>match[1])
-    .filter(file=>/^(?:engine\/|src\/|scripts\/|\.github\/|next\.config\.ts$)/.test(file)&&!file.includes(' '))
+    .filter(file=>/^(?:engine\/|src\/|scripts\/|\.github\/|next\.config\.ts$|package\.json$)/.test(file)&&!file.includes(' '))
     .map(file=>file.replaceAll('${candidateDrops}',`data/canary-inputs/${state}.json`).replaceAll('${state}',state));
   for(const file of new Set(candidates)){
     const destination=path.join(directory,file);await mkdir(path.dirname(destination),{recursive:true});

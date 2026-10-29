@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "scope": "single_sample_calibration_planning_only_not_promotion",
+  "sampleCountPerState": 1,
+  "statistic": "single_sample_not_p95",
+  "formula": "ceil(2 * measuredStateRuntimeMs / 30000) * 30000",
+  "calibrationQualifiesForFinalShadowCounters": false,
+  "sourceAndParentHardcapsChanged": false,
+  "sourceCommit": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+  "workflowRunId": "40929279772",
+  "existingActiveStateCount": 28,
+  "proposedStateCount": 5,
+  "fullStateCount": 33,
+  "observations": {
+    "LA": {
+      "runtimeMs": 46510,
+      "requestCount": 43,
+      "startedAt": "2026-10-29T18:18:20.595Z",
+      "finishedAt": "2026-10-29T18:19:07.105Z",
+      "sourceCommit": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "workflowRunId": "40929279772",
+      "canonicalReportSha256": "f1f15cd3ae468374c94b3247467aeeb1cc79581b42f1417ed3c511d670322856"
+    },
+    "AK": {
+      "runtimeMs": 56918,
+      "requestCount": 53,
+      "startedAt": "2026-10-29T18:17:19.298Z",
+      "finishedAt": "2026-10-29T18:18:16.216Z",
+      "sourceCommit": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "workflowRunId": "40929279772",
+      "canonicalReportSha256": "61e8a51924384a0b58e0b810c05d8a9074f44ace90177f740f4c79c58f56da48"
+    },
+    "MA": {
+      "runtimeMs": 1850,
+      "requestCount": 2,
+      "startedAt": "2026-10-29T18:19:07.318Z",
+      "finishedAt": "2026-10-29T18:19:09.168Z",
+      "sourceCommit": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "workflowRunId": "40929279772",
+      "canonicalReportSha256": "f33403535d4f0504726f7037b368e02b052e2767092ae761cb4811dd702744b9"
+    },
+    "CT": {
+      "runtimeMs": 3959,
+      "requestCount": 3,
+      "startedAt": "2026-10-29T18:18:16.430Z",
+      "finishedAt": "2026-10-29T18:18:20.389Z",
+      "sourceCommit": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "workflowRunId": "40929279772",
+      "canonicalReportSha256": "adb507d4a3fc5ce02e4da94b648208800f2b31396d1b32da8e0ed7aa4f04fef1"
+    },
+    "RI": {
+      "runtimeMs": 1875,
+      "requestCount": 2,
+      "startedAt": "2026-10-29T18:19:09.373Z",
+      "finishedAt": "2026-10-29T18:19:11.248Z",
+      "sourceCommit": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "workflowRunId": "40929279772",
+      "canonicalReportSha256": "e563d01e9dac55eb5a0972aa7b733c6bd8f57b27204dcbbc0c0bd084ee06f99f"
+    }
+  },
+  "forecasts": {
+    "LA": 120000,
+    "AK": 120000,
+    "MA": 30000,
+    "CT": 30000,
+    "RI": 30000
+  },
+  "durations": [
+    {
+      "state": "NC",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "VA",
+      "expectedRunMs": 1140000
+    },
+    {
+      "state": "PA",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "OH",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "IA",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "ID",
+      "expectedRunMs": 180000
+    },
+    {
+      "state": "AL",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "IL",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "IN",
+      "expectedRunMs": 240000
+    },
+    {
+      "state": "TN",
+      "expectedRunMs": 180000
+    },
+    {
+      "state": "SC",
+      "expectedRunMs": 180000
+    },
+    {
+      "state": "MD-MONTGOMERY",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "KY",
+      "expectedRunMs": 180000
+    },
+    {
+      "state": "AZ",
+      "expectedRunMs": 900000
+    },
+    {
+      "state": "CA",
+      "expectedRunMs": 300000
+    },
+    {
+      "state": "FL",
+      "expectedRunMs": 180000
+    },
+    {
+      "state": "TX",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "GA",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "NV",
+      "expectedRunMs": 240000
+    },
+    {
+      "state": "UT",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "NY",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "CO",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "MS",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "WV",
+      "expectedRunMs": 90000
+    },
+    {
+      "state": "WA",
+      "expectedRunMs": 360000
+    },
+    {
+      "state": "NM",
+      "expectedRunMs": 120000
+    },
+    {
+      "state": "WI",
+      "expectedRunMs": 30000
+    },
+    {
+      "state": "OK",
+      "expectedRunMs": 30000
+    },
+    {
+      "state": "LA",
+      "expectedRunMs": 120000
+    },
+    {
+      "state": "AK",
+      "expectedRunMs": 120000
+    },
+    {
+      "state": "MA",
+      "expectedRunMs": 30000
+    },
+    {
+      "state": "CT",
+      "expectedRunMs": 30000
+    },
+    {
+      "state": "RI",
+      "expectedRunMs": 30000
+    }
+  ],
+  "capacity": {
+    "ok": true,
+    "projectedRunMs": 1470000,
+    "availableRunMs": 1500000,
+    "utilization": 0.98,
+    "workerLoadsMs": [
+      1470000,
+      1470000,
+      1470000,
+      1440000
+    ],
+    "reason": null
+  },
+  "sourceArtifacts": [
+    {
+      "status": "verified_github_shadow_artifact",
+      "state": "LA",
+      "repository": "tarsagent22/Bourbon-Signal",
+      "workflowRunId": "40929279772",
+      "headSha": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "currentHead": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "artifactId": "12922735770",
+      "artifactName": "state-expansion-shadow-40929279772",
+      "artifactDigest": "4c8adf1d07ff3666ee588fa76a1d28799b523b4b7e7a1e2999277ef6e2b8ee69",
+      "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40929279772",
+      "verifiedAt": "2026-10-29T18:20:14.262Z"
+    },
+    {
+      "status": "verified_github_shadow_artifact",
+      "state": "MA",
+      "repository": "tarsagent22/Bourbon-Signal",
+      "workflowRunId": "40929279772",
+      "headSha": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "currentHead": "f4cfef6279d06016442bb71314e29ba053e18ae6",
+      "artifactId": "12920799932",
+      "artifactName": "new-england-research-40929279772",
+      "artifactDigest": "ab14e88d6cb269794f3754e17fe0dc51cb316e988bb77475b0262062c52b5dd0",
+      "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40929279772",
+      "verifiedAt": "2026-10-29T18:20:14.290Z"
+    }
+  ],
+  "futureFinalSourceProofRuns": 0,
+  "futureCanaryRuns": 0,
+  "productionCoverageAdded": 0
+}

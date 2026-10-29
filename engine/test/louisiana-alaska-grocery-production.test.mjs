@@ -145,17 +145,19 @@ test('malformed existing inventory storage blocks HTTP without replacing the fil
 });
 
 
-test('bounded requests fit unchanged source deadlines; forecast remains pending an actual hosted calibration before final freeze',async()=>{
+test('bounded requests fit unchanged source deadlines; forecast is bound to actual hosted calibration while final source proof remains pending',async()=>{
   for(const budget of Object.values(LOUISIANA_ALASKA_GROCERY_BUDGETS)){
     assert.ok(budget.maxRequests*budget.requestTimeoutMs+(budget.maxRequests-1)*budget.interRequestDelayMs<budget.sourceMs);
     assert.ok(budget.sourceMs<budget.stateMs);
   }
   const policy=STATE_LIFECYCLE_CONFIG.reliabilityPolicy;
-  assert.equal(policy.stateExpectedRunMs.LA,undefined);
-  assert.equal(policy.stateExpectedRunMs.AK,undefined);
+  const calibration=JSON.parse(await readFile(new URL('../data/source-evidence/five-state-calibration-20261029/planning.json',import.meta.url),'utf8'));
+  assert.equal(policy.stateExpectedRunMs.LA,calibration.forecasts.LA);
+  assert.equal(policy.stateExpectedRunMs.AK,calibration.forecasts.AK);
+  assert.equal(calibration.calibrationQualifiesForFinalShadowCounters,false);
   const preparation=JSON.parse(await readFile(new URL('../data/source-evidence/louisiana-alaska-grocery-production-20261029/preparation.json',import.meta.url),'utf8'));
-  assert.equal(preparation.prospectiveCapacity.status,'pending_one_complete_hosted_calibration_before_final_source_freeze');
-  assert.equal(preparation.prospectiveCapacity.capacityAdmissionClaimed,false);
+  assert.equal(preparation.prospectiveCapacity.status,'single_actual_calibration_capacity_pass_final_source_proof_pending');
+  assert.equal(preparation.prospectiveCapacity.capacityAdmissionClaimed,true);
   assert.equal(preparation.prospectiveCapacity.forecastFormula,'ceil((2 * single complete hosted per-state runtimeMs) / 30000) * 30000');
   const workflow=await readFile(new URL('../../.github/workflows/refresh-feed.yml',import.meta.url),'utf8'),steps=workflow.split(/\r?\n {6}- name:/),journal='engine/out/source-incidents/louisiana-alaska-grocery';
   const restore=steps.find(step=>step.includes('actions/cache/restore@v4')&&step.includes(journal)),save=steps.find(step=>step.includes('actions/cache/save@v4')&&step.includes(journal));

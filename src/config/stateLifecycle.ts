@@ -83,7 +83,12 @@ export const STATE_LIFECYCLE_CONFIG = {
       "NV": 240000,
       "ID": 180000,
       "AZ": 900000,
-      "FL": 180000
+      "FL": 180000,
+      "LA": 120000,
+      "AK": 120000,
+      "MA": 30000,
+      "CT": 30000,
+      "RI": 30000
     }
   },
   "states": {

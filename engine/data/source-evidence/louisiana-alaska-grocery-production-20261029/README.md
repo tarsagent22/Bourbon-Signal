@@ -1,9 +1,7 @@
 # Louisiana and Alaska inactive production preparation
 
 This is next-release implementation preparation. Louisiana and Alaska remain
-`research_only`, absent from `activeStates`, with no genuine shadow/canary runs,
-no deployment, no source HTTP in this implementation pass, and no added customer
-coverage. This reconciliation uses frozen3f975f896bd7c5c7f887570335c48e89cd158569 in a new isolated worktree. All historical refs remain intact. Fresh complete-cohort proof must bind this future integrated source head; old access preflight does not qualify.
+`research_only`, absent from `activeStates`, with zero final qualifying shadow/canary runs, no deployment and no added customer coverage. The later genuine five-state calibration40929279772 supplies one measured sample per state and is explicitly excluded from final shadow counters after metadata changes. This reconciliation uses frozen3f975f896bd7c5c7f887570335c48e89cd158569 in a new isolated worktree. All historical refs remain intact. Fresh complete-cohort proof must bind this future integrated source head; old access preflight does not qualify.
 
 The separate local source preflight ran on 2026-10-29 at 15:44:46–15:46:35 UTC.
 It used the current 1,177-entry app library, frozen 34 exact physical premises,
@@ -53,7 +51,7 @@ Requests are sequential with 400ms spacing, exact registered HTTPS URLs and
 native headers, no redirects, and decoded bodies capped at4MiB. Request timeout
 plus spacing fits each child deadline; an incomplete cohort cannot write a
 usable inventory cache. The original80-request preflight finished in about109
-seconds. No capacity admission is claimed. LA/AK planning forecasts remain absent until one genuine full-cohort hosted calibration runtime exists per state. Set each expected runtime to twice that single measured observation, rounded up to30seconds (one sample, not a p95 claim), then evaluate the actual complete future active cohort against the four-worker/30minute interval and five-minute reserve. The source/parent hardcaps above remain unchanged.
+seconds. The later actual calibration derives LA/AK120second planning forecasts, each twice its single measured runtime rounded up to30seconds (one sample, not p95). With MA/CT/RI30seconds and every existing state estimate unchanged, the full28+5 model projects1470seconds inside1500seconds after the existing five-minute reserve (98%). See five-state-calibration-20261029/planning.json. Source/parent hardcaps above remain unchanged.
 
 Complete cohort caches last30minutes and preserve original observation clocks.
 Current library eligibility is applied again on reuse. Failure cannot refresh a
