@@ -1,3 +1,4 @@
+import {xapiExpressionTitleSupported} from './collectors/grocery-xapi-expression-title.mjs';
 import { NEVADA_RETAILER_SOURCES } from './collectors/nevada-retailer-surfaces.mjs';
 
 const TRUSTED_SOURCES = new Map(NEVADA_RETAILER_SOURCES.map((source) => [source.id, source]));
@@ -40,6 +41,8 @@ export function isNevadaRetailerInventory(signal) {
     return semantics === 'binary_retailer_orderable_no_exact_count' && quantity === 0;
   }
   if (source.platform === 'albertsons-xapi') {
+    const rawTitle=signal.raw?.product?.name??signal.sourceProductBinding?.productSnapshot?.name??signal.rawName;
+    if(!xapiExpressionTitleSupported(rawTitle,signal.canonicalName))return false;
     if (!String(signal?.variantId || '').trim()) return false;
     if (semantics === 'exact_retailer_quantity') return Number.isFinite(quantity) && quantity > 0 && quantity < 100;
     return semantics === 'binary_retailer_orderable_no_exact_count' && quantity === 0;

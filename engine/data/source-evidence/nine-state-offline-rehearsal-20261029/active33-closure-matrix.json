@@ -175,12 +175,12 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "64eeae309bd0531e8db2b551468ab03422f1de1ff112a5e64ab5c6ece10cc143",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "src/config/state-lifecycle.json",
         "expected": "c88ce67de82c863fb4a41d797ca9af3a2e15a1ad265ad3695d4300fe81653222",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b"
       }
     ],
     "capturedRuntimeInputs": [
@@ -222,7 +222,7 @@
     "workflowRunId": "40925309053",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "2d4f9d27e58f6e8c7c26938e32d55074b65719cfedda228e26d4dd1741061158",
-    "staticMatches": 62,
+    "staticMatches": 60,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/WA.json",
@@ -242,12 +242,12 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "src/config/state-lifecycle.json",
         "expected": "0206ee58ab7dac584bb30f4cfc0e8fc385a76b0a7e62d668284790cf5dd9b2f2",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b"
       },
       {
         "file": "engine/src/collectors/generic-state.mjs",
@@ -283,6 +283,16 @@
         "file": "engine/src/research-state-registry.mjs",
         "expected": "d3444d099ac8c128a9debc0a7b9caba735e83ac99f17d60dcf7b578cc4fb6030",
         "actual": "168667307cfa8ad259304f6746a539b7cf056d0f587dbf5e90e2adb47b27d0ba"
+      },
+      {
+        "file": "engine/src/collectors/arizona-xapi-matching.mjs",
+        "expected": "b03b3612d5baf0b38b78dbc2c9b18c36c5272559647b1eaeb4b378a0d3f28932",
+        "actual": "2389ceec40d13a5e8e4d4c1e8fe08718a205f9fd521cb2495e6b5d32829ae792"
+      },
+      {
+        "file": "engine/src/grocery-xapi-policy.mjs",
+        "expected": "f966650d3985077bdaa2a033d04513b3b75c059d9649eb3f4001432c6276dc45",
+        "actual": "c80b3b9cc3285a0b4629a2ae3355b7e79983ae52417c71084ad9454b15b046c9"
       },
       {
         "file": "engine/src/operational-report.mjs",
@@ -339,7 +349,7 @@
     "workflowRunId": "40925312923",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "675357ee920b2b8bf293a161802af29f9fb08d9af6643fa04c4bf741ffd6cbb3",
-    "staticMatches": 62,
+    "staticMatches": 60,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/NM.json",
@@ -359,12 +369,12 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "src/config/state-lifecycle.json",
         "expected": "0206ee58ab7dac584bb30f4cfc0e8fc385a76b0a7e62d668284790cf5dd9b2f2",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b"
       },
       {
         "file": "engine/src/collectors/generic-state.mjs",
@@ -400,6 +410,16 @@
         "file": "engine/src/research-state-registry.mjs",
         "expected": "d3444d099ac8c128a9debc0a7b9caba735e83ac99f17d60dcf7b578cc4fb6030",
         "actual": "168667307cfa8ad259304f6746a539b7cf056d0f587dbf5e90e2adb47b27d0ba"
+      },
+      {
+        "file": "engine/src/collectors/arizona-xapi-matching.mjs",
+        "expected": "b03b3612d5baf0b38b78dbc2c9b18c36c5272559647b1eaeb4b378a0d3f28932",
+        "actual": "2389ceec40d13a5e8e4d4c1e8fe08718a205f9fd521cb2495e6b5d32829ae792"
+      },
+      {
+        "file": "engine/src/grocery-xapi-policy.mjs",
+        "expected": "f966650d3985077bdaa2a033d04513b3b75c059d9649eb3f4001432c6276dc45",
+        "actual": "c80b3b9cc3285a0b4629a2ae3355b7e79983ae52417c71084ad9454b15b046c9"
       },
       {
         "file": "engine/src/operational-report.mjs",
@@ -476,12 +496,12 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "src/config/state-lifecycle.json",
         "expected": "0206ee58ab7dac584bb30f4cfc0e8fc385a76b0a7e62d668284790cf5dd9b2f2",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b"
       },
       {
         "file": "engine/src/collectors/generic-state.mjs",
@@ -593,12 +613,12 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "src/config/state-lifecycle.json",
         "expected": "0206ee58ab7dac584bb30f4cfc0e8fc385a76b0a7e62d668284790cf5dd9b2f2",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b"
       },
       {
         "file": "engine/src/collectors/generic-state.mjs",
@@ -690,22 +710,12 @@
     "workflowRunId": "40936165833",
     "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
     "archiveDigest": "bb6e5cfbcbc1f203197254b9595f739d0518c2a783750f058ff20b5c9ebd4eff",
-    "staticMatches": 96,
+    "staticMatches": 99,
     "staticMismatches": [
-      {
-        "file": "engine/data/state-integration/LA.json",
-        "expected": "f9e5404f0c91b51b302ec9bf014e511990ed9bc4e9560d77c553330a27cb52c1",
-        "actual": "996628cf50657ef6856ad2360ab03404a427d8b85c68270461e08e4b38a73b38"
-      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
-      },
-      {
-        "file": "src/config/state-lifecycle.json",
-        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -718,14 +728,9 @@
         "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
       },
       {
-        "file": "src/config/stateLifecycle.ts",
-        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
-        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
-      },
-      {
-        "file": "engine/data/state-integration/AK.json",
-        "expected": "0f94ff3b8fe076527f59eeb61946f8a5bdc5b2c59ac99d01f7897248cca5e60a",
-        "actual": "c15ec7363f8923acc9f61c206fd90f4f7be794400c786cd92473a8a4e0c38d0d"
+        "file": "engine/src/collectors/arizona-xapi-matching.mjs",
+        "expected": "b03b3612d5baf0b38b78dbc2c9b18c36c5272559647b1eaeb4b378a0d3f28932",
+        "actual": "2389ceec40d13a5e8e4d4c1e8fe08718a205f9fd521cb2495e6b5d32829ae792"
       },
       {
         "file": "engine/src/verification/historical-implementation.mjs",
@@ -752,22 +757,12 @@
     "workflowRunId": "40936171485",
     "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
     "archiveDigest": "6504b008fabd6fc80738c47e3e18af86aedad36f043d675fd8c268d5659e9408",
-    "staticMatches": 96,
+    "staticMatches": 99,
     "staticMismatches": [
-      {
-        "file": "engine/data/state-integration/AK.json",
-        "expected": "0f94ff3b8fe076527f59eeb61946f8a5bdc5b2c59ac99d01f7897248cca5e60a",
-        "actual": "c15ec7363f8923acc9f61c206fd90f4f7be794400c786cd92473a8a4e0c38d0d"
-      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
-      },
-      {
-        "file": "src/config/state-lifecycle.json",
-        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -780,14 +775,9 @@
         "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
       },
       {
-        "file": "src/config/stateLifecycle.ts",
-        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
-        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
-      },
-      {
-        "file": "engine/data/state-integration/LA.json",
-        "expected": "f9e5404f0c91b51b302ec9bf014e511990ed9bc4e9560d77c553330a27cb52c1",
-        "actual": "996628cf50657ef6856ad2360ab03404a427d8b85c68270461e08e4b38a73b38"
+        "file": "engine/src/collectors/arizona-xapi-matching.mjs",
+        "expected": "b03b3612d5baf0b38b78dbc2c9b18c36c5272559647b1eaeb4b378a0d3f28932",
+        "actual": "2389ceec40d13a5e8e4d4c1e8fe08718a205f9fd521cb2495e6b5d32829ae792"
       },
       {
         "file": "engine/src/verification/historical-implementation.mjs",
@@ -814,22 +804,12 @@
     "workflowRunId": "40938266573",
     "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
     "archiveDigest": "cd87d5cd14952ad36a5cb14c90f92e81f748afd0697cda30b9c3773adddcdfe0",
-    "staticMatches": 90,
+    "staticMatches": 93,
     "staticMismatches": [
-      {
-        "file": "engine/data/state-integration/MA.json",
-        "expected": "1a3b2125d4c93701cd4a9add3be2209a14103922002629c523e17cce939f0dd1",
-        "actual": "1a01e43d836167d12a761818cac4cdfa57ff76f5ee1d7a50ceed4f41df586043"
-      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
-      },
-      {
-        "file": "src/config/state-lifecycle.json",
-        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -845,11 +825,6 @@
         "file": "engine/src/verification/historical-implementation.mjs",
         "expected": "65678e87bf6310789622bb490dc57340348a8f717753cfb3b2ac0ceac67480fb",
         "actual": "0a2785454dd415abdec8700557b1ae4223000bf4c8c7823e614329b6509e3b0d"
-      },
-      {
-        "file": "src/config/stateLifecycle.ts",
-        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
-        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
       }
     ],
     "capturedRuntimeInputs": [
@@ -875,22 +850,12 @@
     "workflowRunId": "40938271167",
     "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
     "archiveDigest": "9b6efac33d43eef825e65f965bdc7ed7226353de0a583a526d5e2c8c41783e5b",
-    "staticMatches": 90,
+    "staticMatches": 93,
     "staticMismatches": [
-      {
-        "file": "engine/data/state-integration/CT.json",
-        "expected": "1011a84230cec0dfe01c8c07348b19c4966ea3bbfa197dca0293c7aea61aa5a5",
-        "actual": "a22e490cace905dfa1d271669c7de59b20bc8be5781a7b1deeef4dc4c89eccc1"
-      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
-      },
-      {
-        "file": "src/config/state-lifecycle.json",
-        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -906,11 +871,6 @@
         "file": "engine/src/verification/historical-implementation.mjs",
         "expected": "65678e87bf6310789622bb490dc57340348a8f717753cfb3b2ac0ceac67480fb",
         "actual": "0a2785454dd415abdec8700557b1ae4223000bf4c8c7823e614329b6509e3b0d"
-      },
-      {
-        "file": "src/config/stateLifecycle.ts",
-        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
-        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
       }
     ],
     "capturedRuntimeInputs": [
@@ -936,22 +896,12 @@
     "workflowRunId": "40938275725",
     "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
     "archiveDigest": "a263ce42b9f60eccfb364dbbef5f262d7a3755ae6c217f26a7daf045fe9e489d",
-    "staticMatches": 90,
+    "staticMatches": 93,
     "staticMismatches": [
-      {
-        "file": "engine/data/state-integration/RI.json",
-        "expected": "898e428763e4045874aed5d0f77d55844e06af66bf5c9ddd88e5f6d321719397",
-        "actual": "2e8b1b43bb3f7089c7219653ac3687421f3e7abe156d13cd3830ee42529b05d0"
-      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
-      },
-      {
-        "file": "src/config/state-lifecycle.json",
-        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
-        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -967,11 +917,6 @@
         "file": "engine/src/verification/historical-implementation.mjs",
         "expected": "65678e87bf6310789622bb490dc57340348a8f717753cfb3b2ac0ceac67480fb",
         "actual": "0a2785454dd415abdec8700557b1ae4223000bf4c8c7823e614329b6509e3b0d"
-      },
-      {
-        "file": "src/config/stateLifecycle.ts",
-        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
-        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
       }
     ],
     "capturedRuntimeInputs": [

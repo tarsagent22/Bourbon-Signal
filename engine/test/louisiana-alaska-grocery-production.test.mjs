@@ -181,7 +181,7 @@ test('explicit native store quantities retain exactness without enabling any ale
 test('production parsing and independent policy both reject generic Wild Turkey Kentucky as a Master expression',()=>{
   const excluded=fixture.excludedCase,source=LOUISIANA_ALASKA_GROCERY_SOURCES.find(row=>row.id===excluded.source.id),product=excluded.product,observedAt=new Date().toISOString();
   const inherited=parseBoundGroceryXapiInventory({response:{docs:[product]}},source,bible);
-  assert.equal(inherited[0].record.canonical,'Wild Turkey Master','Captured inherited alias regression must remain exercised');
+  assert.deepEqual(inherited,[],'Shared parser must reject the captured generic Master alias before any state wrapper');
   assert.deepEqual(parseLouisianaAlaskaGroceryInventory({response:{docs:[product]}},source,bible,{observedAt}),[]);
   const legitimate=fixture.cases[0].products.map(row=>({...row,storeId:source.merchantId}));
   const row=parseLouisianaAlaskaGroceryInventory({response:{docs:legitimate}},source,bible,{observedAt})[0];assert.ok(row);

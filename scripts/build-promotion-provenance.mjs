@@ -251,6 +251,7 @@ if (['LA','AK'].includes(state)) files.push(
 if (['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state)) files.push(
   'engine/src/verification/nine-state-admission-metadata.mjs',
   'engine/src/active-research-renewal.mjs',
+  'engine/src/collectors/grocery-xapi-expression-title.mjs',
   'engine/data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json',
   'engine/data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json',
   'engine/data/source-evidence/nationwide-expansion-20261029/shared-metadata-baseline.json',

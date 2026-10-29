@@ -38,9 +38,13 @@ for(const state of ['WA','NM','WI','OK','NJ','MI','LA','AK','MA','CT','RI'])test
   const central=['WI','OK'].includes(state),njmi=['NJ','MI'].includes(state),laak=['LA','AK'].includes(state);
   const module=ne?'engine/src/collectors/new-england-production.mjs':laak?'engine/src/collectors/louisiana-alaska-grocery-production.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
   const config=ne?'engine/src/new-england-production-config.mjs':laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
-  for(const file of [...common,module,config])assert.equal(payload.fileDigests[file],sha(await readFile(path.join(directory,file))),file);
+  const nine= ['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state);
+  const newDependencies=nine?['engine/src/active-research-renewal.mjs','engine/src/verification/nine-state-admission-metadata.mjs','engine/data/source-evidence/nine-state-activation-boundary-20261029/metadata.json','engine/src/collectors/grocery-xapi-expression-title.mjs']:[];
+  for(const file of [...common,module,config,...newDependencies])assert.equal(payload.fileDigests[file],sha(await readFile(path.join(directory,file))),file);
   await appendFile(path.join(directory,module),'\n// synthetic mutation\n');assert.equal(run().status,0);
   const changed=JSON.parse(await readFile(out,'utf8'));assert.notEqual(changed.bundleDigest,payload.bundleDigest);assert.notEqual(changed.fileDigests[module],payload.fileDigests[module]);
   await rm(out);await rm(path.join(directory,config));const missing=run();assert.notEqual(missing.status,0);
   assert.match(missing.stderr,/ENOENT/);await assert.rejects(()=>readFile(out),{code:'ENOENT'});
+  await copyFile(path.join(root,config),path.join(directory,config));
+  for(const file of newDependencies){const body=await readFile(path.join(directory,file));await rm(path.join(directory,file));const absent=run();assert.notEqual(absent.status,0,file+' cannot be skipped');assert.match(absent.stderr,/ENOENT/);await assert.rejects(()=>readFile(out),{code:'ENOENT'});await writeFile(path.join(directory,file),body);}
 });
