@@ -155,7 +155,8 @@ jobs:
           node scripts/generate-state-lifecycle-types.mjs
           rm -rf engine/out/site
           cp -R "engine/out/canary/$STATE/site" engine/out/site
-          preview_url="$(npx vercel deploy --yes --token "$VERCEL_TOKEN" --build-env ENGINE_SNAPSHOT_READ_MODE=off --build-env ALERT_DELIVERY_ENABLED=0 --build-env ALERT_ONSITE_DELIVERY_ENABLED=0 --build-env ALERT_EMAIL_DELIVERY_ENABLED=0 --build-env ALERT_SMS_DELIVERY_ENABLED=0 --build-env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow --env ENGINE_SNAPSHOT_READ_MODE=off --env ALERT_DELIVERY_ENABLED=0 --env ALERT_ONSITE_DELIVERY_ENABLED=0 --env ALERT_EMAIL_DELIVERY_ENABLED=0 --env ALERT_SMS_DELIVERY_ENABLED=0 --env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow)"
+          cp -R "engine/out/canary/$STATE/site" canary-site-export
+          preview_url="$(npx vercel deploy --yes --token "$VERCEL_TOKEN" --build-env BOURBON_SIGNAL_CANARY_PREVIEW=1 --build-env ENGINE_SNAPSHOT_READ_MODE=off --build-env ALERT_DELIVERY_ENABLED=0 --build-env ALERT_ONSITE_DELIVERY_ENABLED=0 --build-env ALERT_EMAIL_DELIVERY_ENABLED=0 --build-env ALERT_SMS_DELIVERY_ENABLED=0 --build-env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow --env BOURBON_SIGNAL_CANARY_PREVIEW=1 --env ENGINE_SNAPSHOT_READ_MODE=off --env ALERT_DELIVERY_ENABLED=0 --env ALERT_ONSITE_DELIVERY_ENABLED=0 --env ALERT_EMAIL_DELIVERY_ENABLED=0 --env ALERT_SMS_DELIVERY_ENABLED=0 --env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow)"
           echo "url=$preview_url" >> "$GITHUB_OUTPUT"
           echo "Isolated preview deployed: $preview_url"
 

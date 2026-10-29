@@ -54,6 +54,10 @@ research lifecycle override are artifacts; neither is committed as fresh data.
 The deployment option creates an isolated preview with all delivery channels
 disabled and `ENGINE_SNAPSHOT_READ_MODE=off`, so the preview reads its bundled
 candidate snapshot rather than a project's production snapshot configuration.
+`BOURBON_SIGNAL_CANARY_PREVIEW=1` selects a visible `canary-site-export/`
+staging directory and a narrow per-route tracing closure. Generated engine output
+is ignored by the uploader and must not be assumed present in a serverless
+function. The staged files must match the actual canary artifact digests.
 The app projection check requires real current public output, exact source-proof
 mutation rejection and separate zero-quantity binary semantics with every alert
 and delivery flag disabled. Preview Finder locations come only from exact current
