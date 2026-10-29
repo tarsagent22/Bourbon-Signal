@@ -1,0 +1,428 @@
+{
+  "schemaVersion": 1,
+  "status": "research_only_pending_canary_and_promotion",
+  "sourceCommit": "1667b5cb5eafa20f4e02be18e7fcad58b9f5707b",
+  "sourceRef": "codex/nj-mi-research-20261029",
+  "implementationFilesSha256": {
+    "engine/src/nj-mi-research-runtime.mjs": "21f5685b53a7402b1857fc0d2d32e8645e677dbf869c440c4309e4d35733b321",
+    "engine/src/nj-mi-research-journal.mjs": "59ad18a39f2e973245945e8b1938737a7c883809c732816e5a4a858452e2f35d",
+    "engine/src/nj-mi-research-policy.mjs": "345c83d6f65a735748342803e1bb88164e6d05beb7eed218c11e5d6a46ce9390",
+    "engine/src/collectors/nj-mi-research-premises.mjs": "7749e6463f860dee845ca6d3592b92c2e84696a63f7159fe59ea8dbe164023a5",
+    "engine/src/research-state-registry.mjs": "cd9d3b806c82c08345afd1b9343c0bb9b58a7af0659952de7f47036035660d6b",
+    "engine/src/collectors/central-cityhive-expansion.mjs": "c3d09bf488f43c2c6e74040f39d4791320fecf37e21da9663caf172d01ff98a2",
+    "engine/src/collectors/central-cityhive-market-policy.mjs": "c9203bb06d0eb4878a35b45a365dba02f15255e2761088e3c3cc055e578dbf8c",
+    "engine/src/collectors/cityhive-surfaces.mjs": "b9206969e2abad97d82d562c6abe087957c62df6fe8f98456deea3474aa02db9",
+    "engine/src/collectors/safe-bottle-match.mjs": "f415b32f402b7c02ae404afc4646037982ea74e5a502aa24bf4adebd5de97aa7",
+    "engine/data/additional-cityhive-expansion-sources.json": "3482b73819e3a1e1237f0efb53645a6408daa76fdd6a74ef4995e159e1331b79",
+    "engine/src/collectors/shopify-variant-pickup.mjs": "25a7ea79251b0a582abdee2c7f3e4e79eb8224a98dad4bc378c2c943c6aa05ba",
+    "engine/data/independent-shopify-pickup-sources.json": "2641afec14e8f78e13f71af68332ccc93db49354903047697e1102d8a3caca5b",
+    ".github/workflows/state-expansion-shadow.yml": "ebf93d3cdf4a8f620e640acb66a2c989bb6ba88d47eaec56874bad628fa83132",
+    ".github/workflows/nj-mi-research-preflight.yml": "83fdfb281ee940901e67184480fd8824f61177480eb94d953d29f565ed83380e",
+    "scripts/run-nj-mi-research-pass.mjs": "63bbbc0732ed5c3d9b951f9858f51cd291c1b8680e8db1a5d28ec4b2d3274f42",
+    "scripts/verify-nj-mi-research-captures.mjs": "afde1ae6ac8028835ebf48efbed46a8a170891a9435a8cc2cc25320a40c90a80"
+  },
+  "qualifiedPremises": [
+    "garys-wine:5a77cf07f4a66176eb13a6d6",
+    "garys-wine:546ba8a93932330002a60000",
+    "buy-rite:546baa333932330002bc0100",
+    "buy-rite:6671d4d62e48272941d55a75",
+    "wine-garden:61425fe1c3063702b3ce0d4e"
+  ],
+  "hostedSourceObservationPasses": [
+    {
+      "runId": "40896848483",
+      "runAttempt": 1,
+      "commitSha": "1667b5cb5eafa20f4e02be18e7fcad58b9f5707b",
+      "workflow": ".github/workflows/state-expansion-shadow.yml",
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40896848483",
+      "conclusion": "success",
+      "artifact": {
+        "id": 12907048334,
+        "name": "nj-mi-research-40896848483",
+        "digest": "sha256:1f1006f394de12f72cf5a4aa88c45beac64b5e1ea88163d0c688e76ae1f3e49b",
+        "bytes": 490712
+      },
+      "states": [
+        {
+          "state": "NJ",
+          "reportSha256": "6fd07ca83a84ece0fd6115f95529dab9ceda4a1dca10736cd4344173973ed4c4",
+          "qualifiedRows": 7,
+          "qualifiedPremises": [
+            "garys-wine:5a77cf07f4a66176eb13a6d6",
+            "garys-wine:546ba8a93932330002a60000",
+            "buy-rite:546baa333932330002bc0100",
+            "buy-rite:6671d4d62e48272941d55a75"
+          ],
+          "canonicalNames": [
+            "Elijah Craig Barrel Proof Rye",
+            "Heaven Hill Bottled-in-Bond 7 Year",
+            "Elijah Craig Barrel Proof",
+            "Larceny Barrel Proof"
+          ],
+          "startedAt": "2026-10-29T14:59:20.660Z",
+          "finishedAt": "2026-10-29T14:59:25.380Z",
+          "sourceObservations": [
+            "2026-10-29T14:59:22.221Z",
+            "2026-10-29T14:59:23.612Z",
+            "2026-10-29T14:59:24.614Z",
+            "2026-10-29T14:59:25.363Z"
+          ],
+          "sourceRequests": 4,
+          "readinessComplete": true,
+          "fullResearchSurveyComplete": false,
+          "bibleRecordsSha256": "4e427651368b59d6589d083ab324e7a56ff487a106d3c41dd477358d6260a42d",
+          "receipts": [
+            {
+              "url": "https://garyswine.com/shop/?merchant-id=5a77cf07f4a66176eb13a6d6&ch-query=barrel+proof",
+              "finalUrl": "https://garyswine.com/shop/?merchant-id=5a77cf07f4a66176eb13a6d6&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T14:59:20.661Z",
+              "observedAt": "2026-10-29T14:59:22.221Z",
+              "sha256": "dbe8e58316d94eb96fbcc2c372801516f59fc14ab7a678b19aae75a7cdd21a58",
+              "bytes": 857757,
+              "artifactPath": "source-captures/001-dbe8e58316d9.txt"
+            },
+            {
+              "url": "https://garyswine.com/shop/?merchant-id=546ba8a93932330002a60000&ch-query=barrel+proof",
+              "finalUrl": "https://garyswine.com/shop/?merchant-id=546ba8a93932330002a60000&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T14:59:22.272Z",
+              "observedAt": "2026-10-29T14:59:23.612Z",
+              "sha256": "7559a577e41ea3bcd45dceb7d5d9665ac3da011584be4c8fc75bc763e6caed25",
+              "bytes": 881416,
+              "artifactPath": "source-captures/002-7559a577e41e.txt"
+            },
+            {
+              "url": "https://buyritewines.com/shop/?merchant-id=546baa333932330002bc0100&ch-query=barrel+proof",
+              "finalUrl": "https://buyritewines.com/shop/?merchant-id=546baa333932330002bc0100&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T14:59:23.648Z",
+              "observedAt": "2026-10-29T14:59:24.614Z",
+              "sha256": "8a279f8de9019140dd114c8ddbc1ae762f9d8606b5be84c039201eb27153f7cf",
+              "bytes": 633939,
+              "artifactPath": "source-captures/003-8a279f8de901.txt"
+            },
+            {
+              "url": "https://waynebuyrite.com/shop/?merchant-id=6671d4d62e48272941d55a75&ch-query=barrel+proof",
+              "finalUrl": "https://waynebuyrite.com/shop/?merchant-id=6671d4d62e48272941d55a75&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T14:59:24.640Z",
+              "observedAt": "2026-10-29T14:59:25.363Z",
+              "sha256": "95db61440d96008e6b0e649c2e8ea59d516a80399606aeb3485c62d72d9b45a9",
+              "bytes": 461900,
+              "artifactPath": "source-captures/004-95db61440d96.txt"
+            }
+          ]
+        },
+        {
+          "state": "MI",
+          "reportSha256": "568dffc7c03f7b5ddf408a1c8c54ff60819de4cc44981684c4081492211cd92c",
+          "qualifiedRows": 2,
+          "qualifiedPremises": [
+            "wine-garden:61425fe1c3063702b3ce0d4e"
+          ],
+          "canonicalNames": [
+            "Elijah Craig Barrel Proof",
+            "Larceny Barrel Proof"
+          ],
+          "startedAt": "2026-10-29T14:59:25.383Z",
+          "finishedAt": "2026-10-29T14:59:26.471Z",
+          "sourceObservations": [
+            "2026-10-29T14:59:26.452Z"
+          ],
+          "sourceRequests": 1,
+          "readinessComplete": true,
+          "fullResearchSurveyComplete": false,
+          "bibleRecordsSha256": "4e427651368b59d6589d083ab324e7a56ff487a106d3c41dd477358d6260a42d",
+          "receipts": [
+            {
+              "url": "https://thewinegardenco.com/shop/?merchant-id=61425fe1c3063702b3ce0d4e&ch-query=barrel+proof",
+              "finalUrl": "https://thewinegardenco.com/shop/?merchant-id=61425fe1c3063702b3ce0d4e&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T14:59:25.384Z",
+              "observedAt": "2026-10-29T14:59:26.452Z",
+              "sha256": "64df38efc7e8389b5964959d682fd1808c7aeb9ebbb8d4fc0c94501b6daa635e",
+              "bytes": 457544,
+              "artifactPath": "source-captures/001-64df38efc7e8.txt"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": "40897382456",
+      "runAttempt": 1,
+      "commitSha": "1667b5cb5eafa20f4e02be18e7fcad58b9f5707b",
+      "workflow": ".github/workflows/state-expansion-shadow.yml",
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40897382456",
+      "conclusion": "success",
+      "artifact": {
+        "id": 12907841182,
+        "name": "nj-mi-research-40897382456",
+        "digest": "sha256:ff3ee27cc46af891e5bc41a14ec3d2771c5932c9990bda589b80cdf93de754d1",
+        "bytes": 490711
+      },
+      "states": [
+        {
+          "state": "NJ",
+          "reportSha256": "4db8425989fc7842f57d86295701a2f997e0e3b54ee9a3f399204fe49496f3da",
+          "qualifiedRows": 7,
+          "qualifiedPremises": [
+            "garys-wine:5a77cf07f4a66176eb13a6d6",
+            "garys-wine:546ba8a93932330002a60000",
+            "buy-rite:546baa333932330002bc0100",
+            "buy-rite:6671d4d62e48272941d55a75"
+          ],
+          "canonicalNames": [
+            "Elijah Craig Barrel Proof Rye",
+            "Heaven Hill Bottled-in-Bond 7 Year",
+            "Elijah Craig Barrel Proof",
+            "Larceny Barrel Proof"
+          ],
+          "startedAt": "2026-10-29T15:02:22.944Z",
+          "finishedAt": "2026-10-29T15:02:29.206Z",
+          "sourceObservations": [
+            "2026-10-29T15:02:25.061Z",
+            "2026-10-29T15:02:26.436Z",
+            "2026-10-29T15:02:27.964Z",
+            "2026-10-29T15:02:29.196Z"
+          ],
+          "sourceRequests": 4,
+          "readinessComplete": true,
+          "fullResearchSurveyComplete": false,
+          "bibleRecordsSha256": "4e427651368b59d6589d083ab324e7a56ff487a106d3c41dd477358d6260a42d",
+          "receipts": [
+            {
+              "url": "https://garyswine.com/shop/?merchant-id=5a77cf07f4a66176eb13a6d6&ch-query=barrel+proof",
+              "finalUrl": "https://garyswine.com/shop/?merchant-id=5a77cf07f4a66176eb13a6d6&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:02:22.945Z",
+              "observedAt": "2026-10-29T15:02:25.061Z",
+              "sha256": "1756969c7fc11c91948857c0aa222770dc1fde1f7043109c9f9344d5127aa1ec",
+              "bytes": 857651,
+              "artifactPath": "source-captures/001-1756969c7fc1.txt"
+            },
+            {
+              "url": "https://garyswine.com/shop/?merchant-id=546ba8a93932330002a60000&ch-query=barrel+proof",
+              "finalUrl": "https://garyswine.com/shop/?merchant-id=546ba8a93932330002a60000&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:02:25.090Z",
+              "observedAt": "2026-10-29T15:02:26.436Z",
+              "sha256": "f723ab131cbe441dd7c3f66a47bab8072e3920e01ab918260544f1d273e22bb5",
+              "bytes": 881409,
+              "artifactPath": "source-captures/002-f723ab131cbe.txt"
+            },
+            {
+              "url": "https://buyritewines.com/shop/?merchant-id=546baa333932330002bc0100&ch-query=barrel+proof",
+              "finalUrl": "https://buyritewines.com/shop/?merchant-id=546baa333932330002bc0100&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:02:26.457Z",
+              "observedAt": "2026-10-29T15:02:27.964Z",
+              "sha256": "e3e61d08ee7f2e864b43333fbcfe53fe551a94d258b504b6f18a629850bc686c",
+              "bytes": 633958,
+              "artifactPath": "source-captures/003-e3e61d08ee7f.txt"
+            },
+            {
+              "url": "https://waynebuyrite.com/shop/?merchant-id=6671d4d62e48272941d55a75&ch-query=barrel+proof",
+              "finalUrl": "https://waynebuyrite.com/shop/?merchant-id=6671d4d62e48272941d55a75&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:02:27.978Z",
+              "observedAt": "2026-10-29T15:02:29.196Z",
+              "sha256": "7af0dfd271967a39818e10567b9fbbf125eee7f1d4d509278e21312e3a47eab0",
+              "bytes": 461865,
+              "artifactPath": "source-captures/004-7af0dfd27196.txt"
+            }
+          ]
+        },
+        {
+          "state": "MI",
+          "reportSha256": "f8eaed64817499f9d6545098b96a7b325ddc544f1525d88c63c850af5ee18f43",
+          "qualifiedRows": 2,
+          "qualifiedPremises": [
+            "wine-garden:61425fe1c3063702b3ce0d4e"
+          ],
+          "canonicalNames": [
+            "Elijah Craig Barrel Proof",
+            "Larceny Barrel Proof"
+          ],
+          "startedAt": "2026-10-29T15:02:29.208Z",
+          "finishedAt": "2026-10-29T15:02:30.552Z",
+          "sourceObservations": [
+            "2026-10-29T15:02:30.541Z"
+          ],
+          "sourceRequests": 1,
+          "readinessComplete": true,
+          "fullResearchSurveyComplete": false,
+          "bibleRecordsSha256": "4e427651368b59d6589d083ab324e7a56ff487a106d3c41dd477358d6260a42d",
+          "receipts": [
+            {
+              "url": "https://thewinegardenco.com/shop/?merchant-id=61425fe1c3063702b3ce0d4e&ch-query=barrel+proof",
+              "finalUrl": "https://thewinegardenco.com/shop/?merchant-id=61425fe1c3063702b3ce0d4e&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:02:29.208Z",
+              "observedAt": "2026-10-29T15:02:30.541Z",
+              "sha256": "5ee9c947960b88559c1bcc104f33e120eb8d3a0dfa7a52204194d22dc57c0944",
+              "bytes": 457618,
+              "artifactPath": "source-captures/001-5ee9c947960b.txt"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": "40897769504",
+      "runAttempt": 1,
+      "commitSha": "1667b5cb5eafa20f4e02be18e7fcad58b9f5707b",
+      "workflow": ".github/workflows/state-expansion-shadow.yml",
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40897769504",
+      "conclusion": "success",
+      "artifact": {
+        "id": 12907896822,
+        "name": "nj-mi-research-40897769504",
+        "digest": "sha256:bfe4c5a0476ae1c06d1aabdfdafdedb0533420210df06255e9880dd9630782d9",
+        "bytes": 490716
+      },
+      "states": [
+        {
+          "state": "NJ",
+          "reportSha256": "f9218c2cd69693affd1f53a56cd6a78edbf877942879fd4375b5996d2fdfd598",
+          "qualifiedRows": 7,
+          "qualifiedPremises": [
+            "garys-wine:5a77cf07f4a66176eb13a6d6",
+            "garys-wine:546ba8a93932330002a60000",
+            "buy-rite:546baa333932330002bc0100",
+            "buy-rite:6671d4d62e48272941d55a75"
+          ],
+          "canonicalNames": [
+            "Elijah Craig Barrel Proof Rye",
+            "Heaven Hill Bottled-in-Bond 7 Year",
+            "Elijah Craig Barrel Proof",
+            "Larceny Barrel Proof"
+          ],
+          "startedAt": "2026-10-29T15:04:47.811Z",
+          "finishedAt": "2026-10-29T15:04:53.817Z",
+          "sourceObservations": [
+            "2026-10-29T15:04:49.118Z",
+            "2026-10-29T15:04:50.632Z",
+            "2026-10-29T15:04:52.747Z",
+            "2026-10-29T15:04:53.805Z"
+          ],
+          "sourceRequests": 4,
+          "readinessComplete": true,
+          "fullResearchSurveyComplete": false,
+          "bibleRecordsSha256": "4e427651368b59d6589d083ab324e7a56ff487a106d3c41dd477358d6260a42d",
+          "receipts": [
+            {
+              "url": "https://garyswine.com/shop/?merchant-id=5a77cf07f4a66176eb13a6d6&ch-query=barrel+proof",
+              "finalUrl": "https://garyswine.com/shop/?merchant-id=5a77cf07f4a66176eb13a6d6&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:04:47.812Z",
+              "observedAt": "2026-10-29T15:04:49.118Z",
+              "sha256": "2fabaa072711e2fa34e8a3335a172454cd3664d87f7b41d20b4a76d105a44553",
+              "bytes": 857651,
+              "artifactPath": "source-captures/001-2fabaa072711.txt"
+            },
+            {
+              "url": "https://garyswine.com/shop/?merchant-id=546ba8a93932330002a60000&ch-query=barrel+proof",
+              "finalUrl": "https://garyswine.com/shop/?merchant-id=546ba8a93932330002a60000&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:04:49.151Z",
+              "observedAt": "2026-10-29T15:04:50.632Z",
+              "sha256": "66bcea42901ca746ef6cf8d33561c60f3874ba237fe0629936c6dd7338cb8733",
+              "bytes": 881435,
+              "artifactPath": "source-captures/002-66bcea42901c.txt"
+            },
+            {
+              "url": "https://buyritewines.com/shop/?merchant-id=546baa333932330002bc0100&ch-query=barrel+proof",
+              "finalUrl": "https://buyritewines.com/shop/?merchant-id=546baa333932330002bc0100&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:04:50.656Z",
+              "observedAt": "2026-10-29T15:04:52.747Z",
+              "sha256": "fdd2fbc417d09aa37fc2dbbc3d6aa260314a91af8ef35d473034aea77b92d82c",
+              "bytes": 633904,
+              "artifactPath": "source-captures/003-fdd2fbc417d0.txt"
+            },
+            {
+              "url": "https://waynebuyrite.com/shop/?merchant-id=6671d4d62e48272941d55a75&ch-query=barrel+proof",
+              "finalUrl": "https://waynebuyrite.com/shop/?merchant-id=6671d4d62e48272941d55a75&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:04:52.764Z",
+              "observedAt": "2026-10-29T15:04:53.805Z",
+              "sha256": "b829794d8dedc6524d492759e73879b0cb972de53b14e30da9d970ea4906842e",
+              "bytes": 461919,
+              "artifactPath": "source-captures/004-b829794d8ded.txt"
+            }
+          ]
+        },
+        {
+          "state": "MI",
+          "reportSha256": "e92e7e69cc60f083d5799983adb788e56fb7c5183547def82e435765e60c8c80",
+          "qualifiedRows": 2,
+          "qualifiedPremises": [
+            "wine-garden:61425fe1c3063702b3ce0d4e"
+          ],
+          "canonicalNames": [
+            "Elijah Craig Barrel Proof",
+            "Larceny Barrel Proof"
+          ],
+          "startedAt": "2026-10-29T15:04:53.820Z",
+          "finishedAt": "2026-10-29T15:04:54.901Z",
+          "sourceObservations": [
+            "2026-10-29T15:04:54.887Z"
+          ],
+          "sourceRequests": 1,
+          "readinessComplete": true,
+          "fullResearchSurveyComplete": false,
+          "bibleRecordsSha256": "4e427651368b59d6589d083ab324e7a56ff487a106d3c41dd477358d6260a42d",
+          "receipts": [
+            {
+              "url": "https://thewinegardenco.com/shop/?merchant-id=61425fe1c3063702b3ce0d4e&ch-query=barrel+proof",
+              "finalUrl": "https://thewinegardenco.com/shop/?merchant-id=61425fe1c3063702b3ce0d4e&ch-query=barrel+proof",
+              "status": 200,
+              "requestedAt": "2026-10-29T15:04:53.820Z",
+              "observedAt": "2026-10-29T15:04:54.887Z",
+              "sha256": "9837f3bec98a882fe8f701b66396313b1d2171b31b3b2f2b4658ca326380d884",
+              "bytes": 457534,
+              "artifactPath": "source-captures/001-9837f3bec98a.txt"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bounds": {
+    "uniquePremises": 5,
+    "uniqueStoreBottlePairs": 9,
+    "newCustomerStoresDelivered": 0,
+    "wholeStateOrPopulationCoverageClaim": false,
+    "totalHttpRequestsAcrossTheseThreePasses": 15,
+    "productionLifecycleChanged": false,
+    "customerFeedOrCoverageDelivered": false
+  },
+  "parkedDiscoveryHosts": [
+    {
+      "hostname": "liquorcave.sites.cityhive.app",
+      "reason": "one_reviewed_query_zero_qualified_inventory",
+      "observedAt": "2026-10-29T14:53:47.857Z"
+    },
+    {
+      "hostname": "megabev.com",
+      "reason": "first_premise_reviewed_query_zero_qualified_inventory_other8_premises_not_inspected",
+      "observedAt": "2026-10-29T14:53:50.203Z"
+    }
+  ],
+  "remainingGates": {
+    "fixtureAdmissionAndSealedShadowArchive": "pending_current_promotion_contract_admission",
+    "requiredIndependentCanariesPerState": 2,
+    "completedCanaries": 0,
+    "workflowIssuedPromotionProvenance": "pending",
+    "isolatedPositiveCustomerPreview": "pending",
+    "mainActivation": "not_authorized_in_this_child_task"
+  },
+  "nativeFallback": {
+    "sourceId": "wine-palace-livonia",
+    "localExactBlantonVariantFixturePassed": true,
+    "hostedRequestsMade": 0,
+    "countedAsFreshPremise": false
+  }
+}
