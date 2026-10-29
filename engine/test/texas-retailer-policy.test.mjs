@@ -14,7 +14,8 @@ test('Texas CityHive defaults keep Twin Liquors below the rate-limited request m
     Object.fromEntries(Object.entries(legacyPrecisionRuntimeOptions('TX', {}, {})).filter(([key]) => key.endsWith('CadenceMs'))),
     { baseCadenceMs: 1_800_000, minCadenceMs: 1_800_000, maxCadenceMs: 1_800_000 },
   );
-  assert.equal(legacyPrecisionRuntimeOptions('TX', {}, {}).timeoutMs, 300_000);
+  assert.equal(legacyPrecisionRuntimeOptions('TX', {}, {}).timeoutMs, 600_000);
+  assert.equal(legacyPrecisionRuntimeOptions('TX', {}, {}).maxAttempts, 1);
 });
 
 test('Texas rotates a bounded Twin Liquors cohort across every configured merchant', () => {
