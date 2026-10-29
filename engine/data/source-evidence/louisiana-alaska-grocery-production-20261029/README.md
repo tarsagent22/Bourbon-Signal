@@ -3,8 +3,7 @@
 This is next-release implementation preparation. Louisiana and Alaska remain
 `research_only`, absent from `activeStates`, with no genuine shadow/canary runs,
 no deployment, no source HTTP in this implementation pass, and no added customer
-coverage. Reconcile this branch onto the final six-state release before any new
-proof run. Current hosted proof cannot be reused against these changed files.
+coverage. This reconciliation uses frozen3f975f896bd7c5c7f887570335c48e89cd158569 in a new isolated worktree. All historical refs remain intact. Fresh complete-cohort proof must bind this future integrated source head; old access preflight does not qualify.
 
 The separate local source preflight ran on 2026-10-29 at 15:44:46–15:46:35 UTC.
 It used the current 1,177-entry app library, frozen 34 exact physical premises,
@@ -54,9 +53,7 @@ Requests are sequential with 400ms spacing, exact registered HTTPS URLs and
 native headers, no redirects, and decoded bodies capped at4MiB. Request timeout
 plus spacing fits each child deadline; an incomplete cohort cannot write a
 usable inventory cache. The original80-request preflight finished in about109
-seconds. Current active budgets plus prospective WA/NM/WI/OK/LA/AK parents fit
-the configured four-worker,30-minute interval with its five-minute margin. The
-final release must repeat capacity checks after its actual state budgets merge.
+seconds. No capacity admission is claimed. LA/AK planning forecasts remain absent until three genuine full-cohort hosted runtimes exist per state. Set each expected runtime to twice the maximum of those three observations, rounded up to30seconds, then evaluate the actual complete future active cohort against the four-worker/30minute interval and five-minute reserve. The source/parent hardcaps above remain unchanged.
 
 Complete cohort caches last30minutes and preserve original observation clocks.
 Current library eligibility is applied again on reuse. Failure cannot refresh a
@@ -74,8 +71,7 @@ canonicalization, public export, classification, the real Feed/drops route,
 state/store filters, selectable stores and locations, public Coverage GET/POST,
 Finder search/exact-store services and monitoring-scope matching. All34 mocked
 premises in that executable fixture are implementation assertions; they are not
-34 current positive source stores. Authenticated dashboard/preferences/session
-acceptance, hosted unattended collection and provider delivery are unexercised.
+34 current positive source stores. The real preferences GET/POST and actual Dashboard component render additionally pass state-specific offline provider-adapter contracts, including normalization, paid/free/signed-out boundaries and state/store choices. Authenticated interactive dashboard/preferences/session acceptance, hosted unattended collection, physical-device acceptance and provider delivery are unexercised.
 
 Relevant commands from repository root:
 
@@ -87,7 +83,7 @@ node node_modules/typescript/bin/tsc --noEmit
 ```
 
 `proof-closure.json` names the mandatory source/customer boundary. Future work
-must register LA/AK in genuine shadow/artifact-replay/canary/provenance workflows,
+now registers LA/AK in isolated genuine shadow/artifact-replay/canary/provenance workflows. Future proof must bind
 bind final reconciled implementation bytes and permitted semantic manifest
 normalization, collect3 fresh shadows and2 canaries per state, verify an isolated
 live preview, and retain issued provenance. Do not add optional hash skips or
@@ -99,3 +95,5 @@ budgets and strict on-site canonicalization. Original Mississippi implementation
 hashes are unchanged, and mutation tests reject removal, duplication, activation,
 alert enabling and changes outside those exact additions. No current frozen
 promotion source was edited.
+
+Complete-cohort command, only after the future five-state source head is final and the shared lane is idle: `gh workflow run state-expansion-shadow.yml --ref <reviewed-research-ref> -f states=LA,AK,MA,CT,RI -f limit=5`. Run sequentially three times; each must genuinely qualify. Do not reuse the earlier six-request access preflight. Canary replay requires exact source SHA equality and retains original clocks. No lifecycle activation or publication is performed here.

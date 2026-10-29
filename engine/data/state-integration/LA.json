@@ -39,40 +39,40 @@
   },
   "customerPaths": {
     "stateFilter": {
-      "status": "pending",
-      "assertion": "Actual Feed route fixture passes state/store filtering; future workflow/live preview proof pending."
+      "status": "verified",
+      "assertion": "Verified executable contract: actual Feed/drops route fixture applies state/store filters, and actual Dashboard component renders this lifecycle state choice. Authenticated UI acceptance is separate and unexercised."
     },
     "areaFilter": {
-      "status": "pending",
-      "assertion": "Exact store Finder service and selectable store/locations route fixtures pass; live preview and final area contract pending."
+      "status": "verified",
+      "assertion": "Verified executable contract: actual store Finder/directory/locations and Coverage POST fixtures bind the closed cohort; actual area request builder uses the store query for this state."
     },
     "preferences": {
-      "status": "pending",
-      "assertion": "Monitoring-scope matching fixture passes. Authenticated preference UI/session is unexercised."
+      "status": "verified",
+      "assertion": "Verified executable contract: real preferences GET/POST normalizes and deduplicates state choices, drops invalid states, preserves unrelated metadata, rejects free-tier writes with403 and signed-out requests with401. Clerk is an explicit offline provider adapter; no authenticated session claimed."
     },
     "dashboard": {
-      "status": "pending",
-      "assertion": "Authenticated dashboard UI/session is unexercised; no pass claimed."
+      "status": "verified",
+      "assertion": "Verified executable contract: actual Dashboard component renders with the real preferences route response and isolated active lifecycle fixture, including the state choice. Provider/data-hook/presentation boundaries are offline fixtures; interactive authenticated UI/device acceptance is unexercised."
     },
     "dropFeedApi": {
-      "status": "pending",
-      "assertion": "Nonpreview operational/export data passes the actual unified Feed and drops route fixture; no live source or authenticated session claimed."
+      "status": "verified",
+      "assertion": "Verified executable contract: actual unified Feed/drops route accepts strict nonpreview operational/export rows and applies exact state/store filters; no live source, provider delivery or authenticated session claimed."
     },
     "finder": {
-      "status": "pending",
-      "assertion": "Actual Finder search/exact-store services and Coverage POST fixture pass; live preview proof pending."
+      "status": "verified",
+      "assertion": "Verified executable contract: actual Finder search/exact-store services, selectable stores/locations routes and public Coverage GET/POST bind exact premises and current classified rows."
     },
     "alerts": {
-      "status": "pending",
-      "assertion": "Source, canonical, public, Feed and Coverage fixture paths preserve all alerts/watch/delivery/email/SMS false; no provider delivery attempted."
+      "status": "verified",
+      "assertion": "Verified executable contract: source, canonical, public, Feed and Coverage fixture paths preserve all inventory/watch/delivery/email/SMS flagsfalse. Free-tier preference mutations remain403; no provider delivery attempted."
     },
     "monitoring": {
-      "status": "pending",
-      "assertion": "Inactive0HTTP, complete-cohort30min cache/original clocks, source deadlines and durable denial/in-flight suspension tests pass. Hosted unattended monitoring is not exercised."
+      "status": "verified",
+      "assertion": "Verified executable runtime contract: inactive/force-live0HTTP, complete-cohort30min cache/original clocks, bounded deadlines, native durable denial/in-flight holds and abort behavior pass. Genuine unattended hosted observations remain separately pending."
     },
     "export": {
-      "status": "pending",
-      "assertion": "Nonpreview canonical/public/normalized/classified export fixture passes with binary0 unknown and explicit count exactness preserved. Real immutable snapshot publication is pending."
+      "status": "verified",
+      "assertion": "Verified executable contract: actual canonical/public/normalized/classified export preserves nonpreview binary0 unknown and exact positive integer quantities, rejects identity/flag/quarantine mutations and expires original source clocks."
     }
   },
   "evidence": {
@@ -97,5 +97,15 @@
   },
   "rollback": {
     "disableSource": "Leave authoritative lifecycle inactive or disable/quarantine the state. Promotion admission runs before cache access and before HTTP; no fallback stock or outbound delivery is allowed."
+  },
+  "acceptanceGaps": {
+    "authenticatedBrowserSession": "not_exercised",
+    "interactiveDashboardAndPreferences": "not_exercised",
+    "physicalDevice": "not_exercised",
+    "sourceWorkflow": "pending_three_complete_current_observations",
+    "canaryWorkflow": "pending_two_actual_canaries",
+    "liveIsolatedPreview": "not_deployed",
+    "productionPublication": "not_deployed",
+    "outboundProviderDelivery": "not_attempted"
   }
 }

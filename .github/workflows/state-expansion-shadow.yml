@@ -66,6 +66,14 @@ jobs:
           restore-keys: |
             nj-mi-research-incidents-${{ runner.os }}-
 
+      - name: Restore LA AK host incidents independently of research branch
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/research-source-attempts/louisiana-alaska-grocery-journals
+          key: la-ak-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            la-ak-research-incidents-${{ runner.os }}-
+
       - name: Refresh full current app catalog
         working-directory: engine
         run: npm run sync:library
@@ -114,6 +122,13 @@ jobs:
         with:
           path: engine/out/research-source-attempts/nj-mi-incidents.json
           key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save LA AK host incidents even on incomplete source proof
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/research-source-attempts/louisiana-alaska-grocery-journals
+          key: la-ak-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Preserve isolated shadow evidence
         if: always()

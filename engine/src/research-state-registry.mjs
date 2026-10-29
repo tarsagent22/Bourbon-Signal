@@ -1,3 +1,4 @@
+import {louisianaAlaskaResearchSourceForState,louisianaAlaskaResearchLifecycleEntries,collectLouisianaAlaskaResearchReport} from './research-louisiana-alaska-grocery-runtime.mjs';
 import { groceryResearchSourceForState, groceryResearchLifecycleEntries, collectGroceryResearchReport } from './research-grocery-runtime.mjs';
 import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
 import { collectMassachusettsJulios } from './collectors/massachusetts-retailer-collector.mjs';
@@ -16,13 +17,13 @@ const MASSACHUSETTS = Object.freeze({
 });
 
 export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
-  return shadowMode ? state === 'MA' ? MASSACHUSETTS : (njMiResearchSourceForState(state)||groceryResearchSourceForState(state)||cityHiveResearchSourceForState(state)) : null;
+  return shadowMode ? state === 'MA' ? MASSACHUSETTS : (louisianaAlaskaResearchSourceForState(state)||njMiResearchSourceForState(state)||groceryResearchSourceForState(state)||cityHiveResearchSourceForState(state)) : null;
 }
 
 export function withResearchLifecycle(production) {
   if (!Array.isArray(production?.activeStates) || !production?.states) throw new Error('A production lifecycle is required.');
   if (production.activeStates.includes('MA') || production.states.MA) throw new Error('MA production/research registration requires reconciliation.');
-  const additions={...cityHiveResearchLifecycleEntries(),...groceryResearchLifecycleEntries(),...njMiResearchLifecycleEntries()};
+  const additions={...louisianaAlaskaResearchLifecycleEntries(),...cityHiveResearchLifecycleEntries(),...groceryResearchLifecycleEntries(),...njMiResearchLifecycleEntries()};
   for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
     delete additions[state];
   }
@@ -38,6 +39,7 @@ export function withResearchLifecycle(production) {
 }
 
 export async function collectResearchStateReport(config, bible, options = {}) {
+  if(config&&config===louisianaAlaskaResearchSourceForState(config.id))return collectLouisianaAlaskaResearchReport(config,bible,options);
   if(config&&config===groceryResearchSourceForState(config.id))return collectGroceryResearchReport(config,bible,options);
   if(config&&config===njMiResearchSourceForState(config.id))return collectNjMiResearchReport(config,bible,options);
   if (config && config === cityHiveResearchSourceForState(config.id)) return collectCityHiveResearchReport(config,bible,options);

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {isLouisianaAlaskaGroceryShadowInventory} from './research-louisiana-alaska-grocery-runtime.mjs';
 import { execFile, spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -52,7 +53,7 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
   const nowMs = Date.parse(String(now || ''));
   return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
     || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
-      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})))
+      &&report.metadata.customerDeliveryAllowed===false&&(isLouisianaAlaskaGroceryShadowInventory(row)||isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
     && String(row?.storeId ?? '').trim()
