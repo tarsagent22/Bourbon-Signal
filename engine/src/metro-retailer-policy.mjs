@@ -166,6 +166,15 @@ export function isMetroRetailerInventory(signal) {
   if (!Number.isFinite(observedMs) || ageMs < 0 || ageMs > 4 * 60 * 60_000) return false;
   if (typeof signal.quantity !== 'number' || !Number.isFinite(signal.quantity)) return false;
 
+  if (source.platform === 'shopify-variant-pickup') {
+    const seed = source.pickupDefinition?.products.find(product => product.productId === signal.productId && product.variantId === signal.variantId);
+    return Boolean(seed && libraryIdentity && signal.rawName === seed.title && canonicalName === seed.canonicalName
+      && proof.productIdentityMode === 'shopify_variant_pickup' && proof.pickupUrl === seed.evidence.pickup.url
+      && signal.pickupOfferVerified === true && signal.premisesVerified === true
+      && signal.raw?.variant?.available === true && signal.variantAvailable === true
+      && signal.quantity === 0 && signal.quantityIsExact === false
+      && signal.inventorySemantics === 'binary_retailer_orderable_no_exact_count');
+  }
   if (source.platform === 'shopify') {
     const fulfillmentVerified = signal.fulfillmentPolicyVerified === true || signal.raw?.fulfillmentPolicyVerified === true;
     const premisesVerified = signal.premisesVerified === true || signal.raw?.premisesVerified === true;

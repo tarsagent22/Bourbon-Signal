@@ -129,6 +129,7 @@ import {
 } from './metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
 import { collectMetroCityHiveRows, selectMetroSourcesForRefresh } from './buffalo-cityhive-discovery.mjs';
+import { collectNewYorkVariantPickup } from './new-york-variant-pickup.mjs';
 import { metroHttpSourceError, metroSourceAttempts, readMetroSourceAttempts, updateMetroSourceAttempts, writeMetroSourceAttempts } from './metro-refresh-state.mjs';
 import { runArizonaSourcesWithDenialBackoff } from './arizona-source-attempts.mjs';
 import { ARIZONA_SMART_FINAL_SOURCE, collectArizonaSmartFinal } from './arizona-smart-final.mjs';
@@ -8760,6 +8761,7 @@ export async function fetchMetroRetailerRows(source, signal, bible) {
 }
 
 export async function collectMetroRetailerSource(config, bible, source, observedAt, signal) {
+  if (source.platform === 'shopify-variant-pickup') return collectNewYorkVariantPickup(config, bible, source, observedAt, { signal });
   const fetched = await fetchMetroRetailerRows(source, signal, bible);
   const discoveryMetadata = fetched.metadata || null;
   const signals = [];

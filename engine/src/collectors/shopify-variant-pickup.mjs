@@ -33,6 +33,9 @@ export function validateShopifyVariantSource(input) {
     || base.pathname !== '/' || source.baseUrl !== base.origin || !base.hostname.includes('.')
     || /^(?:\d+\.){3}\d+$/u.test(base.hostname) || base.hostname.endsWith('.local')) throw malformed('base must be an exact public HTTPS origin');
   if (!['pickup-availability', 'store-availability'].includes(source.sectionId)) throw malformed('unreviewed section ID');
+  source.pickupLayout ??= 'standard';
+  if (!['standard', 'halo-store-modal'].includes(source.pickupLayout)
+    || (source.pickupLayout === 'halo-store-modal' && (source.sectionId !== 'store-availability' || source.headingIdentity !== 'variant_title'))) throw malformed('unreviewed pickup layout');
   source.headingIdentity ??= 'product_title';
   if (!['product_title', 'variant_title'].includes(source.headingIdentity)) throw malformed('unsupported heading identity');
   if (!Array.isArray(source.stores) || !source.stores.length || source.stores.length > SHOPIFY_VARIANT_PICKUP_BUDGETS.maxStores) throw malformed('premises budget');
@@ -129,7 +132,10 @@ function pickupRows(rawHtml, source, seed, variant) {
   }
   if (!new RegExp(`id=["']shopify-section-${source.sectionId}["']`, 'iu').test(html)) throw malformed('section identity missing');
   let blocks, heading;
-  if (source.sectionId === 'pickup-availability') {
+  if (source.pickupLayout === 'halo-store-modal') {
+    heading = html.match(/<p\b[^>]*\bdata-store-availability-modal-variant-title(?:=["'][^"']*["'])?[^>]*>([\s\S]*?)<\/p>/iu)?.[1];
+    blocks = [...html.matchAll(/<li\b[^>]*class=["'][^"']*\bstore-availability-list__item\b[^"']*["'][^>]*>([\s\S]*?)<\/li>/giu)].map(match => match[1]);
+  } else if (source.sectionId === 'pickup-availability') {
     heading = html.match(/<h2\b[^>]*id=["']PickupAvailabilityHeading["'][^>]*>([\s\S]*?)<\/h2>/iu)?.[1];
     blocks = [...html.matchAll(/<li\b[^>]*class=["'][^"']*\bpickup-availability-list__item\b[^"']*["'][^>]*>([\s\S]*?)<\/li>/giu)].map(match => match[1]);
   } else {
@@ -146,8 +152,9 @@ function pickupRows(rawHtml, source, seed, variant) {
   if (!blocks.length) throw malformed('pickup premises rows missing');
   const found = new Set(), rows = [];
   for (const block of blocks) {
-    const name = block.match(source.sectionId === 'pickup-availability' ? /<h[34]\b[^>]*>([\s\S]*?)<\/h[34]>/iu : /<strong\b[^>]*>([\s\S]*?)<\/strong>/iu)?.[1];
-    const addressContainer = source.sectionId === 'pickup-availability' ? block.match(/<address\b[^>]*>([\s\S]*?)<\/address>/iu)?.[1] : block;
+    const drawer = source.sectionId === 'pickup-availability' || source.pickupLayout === 'halo-store-modal';
+    const name = block.match(drawer ? /<h[34]\b[^>]*>([\s\S]*?)<\/h[34]>/iu : /<strong\b[^>]*>([\s\S]*?)<\/strong>/iu)?.[1];
+    const addressContainer = drawer ? block.match(/<address\b[^>]*>([\s\S]*?)<\/address>/iu)?.[1] : block;
     const paragraphs = [...String(addressContainer || '').matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/giu)].map(match => match[1]);
     const addresses = paragraphs.filter(value => /\b[A-Z]{2}\s+\d{5}\b/iu.test(plain(value)));
     if (addresses.length !== 1) throw malformed('exact address missing or ambiguous');
@@ -155,8 +162,10 @@ function pickupRows(rawHtml, source, seed, variant) {
       && sameShopifyPremiseAddress(item.address, addresses[0], { city: item.city, state: source.state, zip: item.zip }));
     if (!store || found.has(store.id)) throw malformed('unknown or duplicate pickup premises');
     found.add(store.id);
-    const statusMarkup = source.sectionId === 'pickup-availability' ? block.replace(/<address\b[\s\S]*?<\/address>/giu, ' ') : block.replace(addresses[0], ' ');
-    const statusParagraphs = [...statusMarkup.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/giu)].map(match => plain(match[1])).filter(text => /\bpickup\b/iu.test(text));
+    const statusMarkup = drawer ? block.replace(/<address\b[\s\S]*?<\/address>/giu, ' ') : block.replace(addresses[0], ' ');
+    const statusParagraphs = source.pickupLayout === 'halo-store-modal'
+      ? [...statusMarkup.matchAll(/<div\b[^>]*class=["'][^"']*\bstore-availability-list__stock\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/giu)].map(match => plain(match[1]))
+      : [...statusMarkup.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/giu)].map(match => plain(match[1])).filter(text => /\bpickup\b/iu.test(text));
     if (statusParagraphs.length !== 1) throw malformed('missing or ambiguous pickup status paragraph');
     const statusText = statusParagraphs[0];
     const positive = /\bpickup\s+available\b/iu.test(statusText), negative = /\bpickup\s+(?:currently\s+)?(?:unavailable|not available)\b/iu.test(statusText);
