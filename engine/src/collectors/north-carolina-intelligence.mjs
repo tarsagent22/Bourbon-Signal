@@ -612,7 +612,15 @@ export function ncProductParserHealth(html, parsedCount, expectedPattern = /NC C
     unparsedCardCount: Math.max(0, expectedCardCount - parsedCount) };
 }
 
-export function newHanoverFailureOutcome({ page = {}, fallback = null, fallbackParseError = null } = {}) {
+export function newHanoverFailureOutcome({ page = {}, fallback = null, fallbackParseError = null, fallbackEmpty = false } = {}) {
+  const capturedSkip = page.ok === false && page.status === 'source_policy_disabled' && page.requestCount === 0 && Boolean(page.policyId)
+    && optionalSuspendedFetch('NC', page.url)?.policyId === page.policyId;
+  if (capturedSkip && fallback?.ok === true && fallback.status === 200 && fallback.url === NEW_HANOVER_WORDPRESS_POSTS_URL
+    && fallbackEmpty === true && !fallbackParseError) return {
+    status: 'source_policy_disabled', primaryStatus: null, fallbackStatus: 200, fallbackEmpty: true,
+    sourcePolicyId: page.policyId, primaryRequestCount: 0, historicalPrimaryHttpStatus: page.historicalHttpStatus,
+    error: 'The primary barrel page was skipped under its captured denial policy; no HTTP request was made. The independent first-party WordPress REST search returned a valid empty array. No product cards or stock are confirmed.',
+  };
   const primaryStatus = Number(page?.status || 0);
   const fallbackStatus = fallback ? Number(fallback.status || 0) : null;
   const primaryDetail = page?.ok
@@ -1231,6 +1239,7 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
   let fallbackStatus = null;
   let fallback = null;
   let fallbackParseError = null;
+  let fallbackEmpty = false;
 
   if (!rows.length) {
     fallback = await safeTextFetch(NEW_HANOVER_WORDPRESS_POSTS_URL, {
@@ -1241,7 +1250,10 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
     fallbackStatus = fallback.status;
     if (fallback.ok) {
       try {
-        rows = parseNewHanoverWordPressPosts(JSON.parse(fallback.text));
+        const posts = JSON.parse(fallback.text);
+        if (!Array.isArray(posts)) throw new Error('WordPress posts response must be an array');
+        fallbackEmpty = posts.length === 0;
+        rows = parseNewHanoverWordPressPosts(posts);
       } catch (error) {
         fallbackParseError = error?.message || String(error);
       }
@@ -1255,7 +1267,7 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
   }
 
   if (!rows.length) {
-    const failure = newHanoverFailureOutcome({ page, fallback, fallbackParseError });
+    const failure = newHanoverFailureOutcome({ page, fallback, fallbackParseError, fallbackEmpty });
     board.parserWarnings = [{ url: NEW_HANOVER_BARREL_URL, status: failure.status, parserStatus: page.ok && fallback?.ok ? 'parser_drift' : 'unreachable', reason: failure.error }];
     board.officialPageReports.push({ url: NEW_HANOVER_BARREL_URL, ok: false, checkedAt: new Date().toISOString(), status: page.status, error: failure.error, capabilities: [] });
     if (fallback) board.officialPageReports.push({ url: NEW_HANOVER_WORDPRESS_POSTS_URL, ok: false, checkedAt: new Date().toISOString(), status: fallback.status, error: failure.error, capabilities: [] });
@@ -1276,6 +1288,10 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
       primaryStatus: failure.primaryStatus,
       fallbackStatus: failure.fallbackStatus,
       fallbackParseError,
+      fallbackEmpty: failure.fallbackEmpty === true,
+      sourcePolicyId: failure.sourcePolicyId || null,
+      primaryRequestCount: failure.primaryRequestCount ?? null,
+      historicalPrimaryHttpStatus: failure.historicalPrimaryHttpStatus ?? null,
       itemCount: 0,
       observedAt: new Date().toISOString(),
     };
