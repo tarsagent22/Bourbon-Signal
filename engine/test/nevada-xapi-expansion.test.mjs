@@ -55,3 +55,9 @@ test('direct legacy matches also require exact XAPI product, UPC, strength, pack
     {dispItemSizeQty:'1000'},{dispItemPackageQty:'2'},{unitOfMeasure:'L'},
     {name:product.name.replace('750 Ml','99 Proof - 750 Ml')}])assert.deepEqual(parse([{...product,...mutation}]),[]);
 });
+
+test('all36 Nevada grocery premises preserve independently matched first-party point coordinates',()=>{
+  const grocery=NEVADA_RETAILER_SOURCES.filter(s=>s.platform==='albertsons-xapi');
+  assert.equal(grocery.length,36);
+  assert.ok(grocery.every(s=>s.store.lat>35&&s.store.lat<43&&s.store.lng< -113&&s.store.lng> -121));
+});

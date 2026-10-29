@@ -59,19 +59,19 @@ export const NEVADA_RETAILER_SOURCES = Object.freeze([
     id: 'albertsons-las-vegas-662', chainName: 'Albertsons', sourceLabel: 'Albertsons Nevada XAPI store inventory', platform: 'albertsons-xapi', banner: 'albertsons',
     host: 'www.albertsons.com', productsUrl: 'https://www.albertsons.com/abs/pub/xapi/search/substitute', fulfillmentPolicyUrl: 'https://local.albertsons.com/nv/las-vegas/2885-e-desert-inn-rd/Beer-Wine-Liquor.html',
     merchantId: '662', inventoryEligible: true,
-    store: Object.freeze({ id: 'albertsons:662', name: 'Albertsons #662', address: '2885 E Desert Inn Rd, Las Vegas, NV 89121', city: 'Las Vegas', area: 'Las Vegas Valley', stateCode: 'NV', zip: '89121' }),
+    store: Object.freeze({ id: 'albertsons:662', name: 'Albertsons #662', address: '2885 E Desert Inn Rd, Las Vegas, NV 89121', city: 'Las Vegas', area: 'Las Vegas Valley', stateCode: 'NV', zip: '89121', lat: 36.128260744240414, lng: -115.11111974716187 }),
   }),
   Object.freeze({
     id: 'vons-henderson-2511', chainName: 'Vons', sourceLabel: 'Vons Nevada XAPI store inventory', platform: 'albertsons-xapi', banner: 'vons',
     host: 'www.vons.com', productsUrl: 'https://www.vons.com/abs/pub/xapi/search/substitute', fulfillmentPolicyUrl: 'https://local.vons.com/nv/henderson/2667-e-windmill-pkwy/Beer-Wine-Liquor.html',
     merchantId: '2511', inventoryEligible: true,
-    store: Object.freeze({ id: 'vons:2511', name: 'Vons #2511 Anthem Village', address: '2667 E Windmill Pkwy, Henderson, NV 89074', city: 'Henderson', area: 'Las Vegas Valley', stateCode: 'NV', zip: '89074' }),
+    store: Object.freeze({ id: 'vons:2511', name: 'Vons #2511 Anthem Village', address: '2667 E Windmill Pkwy, Henderson, NV 89074', city: 'Henderson', area: 'Las Vegas Valley', stateCode: 'NV', zip: '89074', lat: 36.041438675247974, lng: -115.10283445899961 }),
   }),
   Object.freeze({
     id: 'safeway-reno-1210', chainName: 'Safeway', sourceLabel: 'Safeway Nevada XAPI store inventory', platform: 'albertsons-xapi', banner: 'safeway',
     host: 'www.safeway.com', productsUrl: 'https://www.safeway.com/abs/pub/xapi/search/substitute', fulfillmentPolicyUrl: 'https://local.safeway.com/safeway/nv/reno/5150-mae-anne-ave/Beer-Wine-Liquor.html',
     merchantId: '1210', inventoryEligible: true,
-    store: Object.freeze({ id: 'safeway:1210', name: 'Safeway #1210', address: '5150 Mae Anne Ave, Reno, NV 89523', city: 'Reno', area: 'Reno–Sparks', stateCode: 'NV', zip: '89523' }),
+    store: Object.freeze({ id: 'safeway:1210', name: 'Safeway #1210', address: '5150 Mae Anne Ave, Reno, NV 89523', city: 'Reno', area: 'Reno–Sparks', stateCode: 'NV', zip: '89523', lat: 39.53098017783758, lng: -119.86749932172643 }),
   }),
   ...NEVADA_XAPI_ADDITIONAL_SOURCES,
 ]);
