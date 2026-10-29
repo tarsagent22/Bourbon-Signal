@@ -63,9 +63,9 @@ export async function collectPromotedCentralCityHiveState(config,bible,options={
 async function collectCityHiveStateReport(config,bible,inputOptions={},shadowOnly) {
   const {
   fetchText=fetchWithMeta,readAttempts=readResearchAttempts,writeAttempts=writeResearchAttempts,
-  captureRoot=shadowOnly&&process.env.BOURBON_SIGNAL_STATE_OUT_FILE
-    ? path.join(path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE),'source-captures')
-    : shadowOnly?path.resolve('out','research-source-captures'):null,...options
+  env=process.env,
+  reportDirectory=env.BOURBON_SIGNAL_STATE_OUT_FILE?path.dirname(env.BOURBON_SIGNAL_STATE_OUT_FILE):path.resolve('out','research-cityhive',config.id),
+  captureRoot=shadowOnly?path.join(reportDirectory,'source-captures'):null,...options
   }=inputOptions;
   const startedAt=new Date().toISOString(),sources=CENTRAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state===config.id);
   // Successful research validation runs make new observations. Persisted
@@ -86,9 +86,11 @@ async function collectCityHiveStateReport(config,bible,inputOptions={},shadowOnl
     const text=String(response.text||''),hash=createHash('sha256').update(text).digest('hex');
     const capture={url,finalUrl:response.url||null,status:response.status||0,observedAt:clock,sha256:hash,bytes:Buffer.byteLength(text)};
     if(captureRoot){
-      const directory=path.join(captureRoot,config.id,startedAt.replace(/[:.]/g,'-'));
+      const directory=captureRoot;
       await mkdir(directory,{recursive:true});
-      capture.file=path.join(directory,`${String(receipts.length+1).padStart(2,'0')}-${hash.slice(0,12)}.html`);
+      capture.file=path.join(directory,`${String(receipts.length+1).padStart(3,'0')}-${hash.slice(0,12)}.html`);
+      capture.artifactPath=path.relative(reportDirectory,capture.file).split(path.sep).join('/');
+      if(!/^source-captures\/[A-Za-z0-9._-]+\.html$/.test(capture.artifactPath))throw new Error('CityHive source capture is outside its portable report directory');
       await writeFile(capture.file,text);
     }
     receipts.push(capture);return response;
@@ -112,5 +114,10 @@ async function collectCityHiveStateReport(config,bible,inputOptions={},shadowOnl
     stale:false,signals,sources:sourceReports,sourceResults:sourceReports.map(row=>({sourceId:row.sourceRuntimeId,sourceLabel:row.label,
       sourceUrl:row.url,ok:row.ok,status:row.ok?'success':'failed',checkedAt:finishedAt,lastGoodAt:row.ok?finishedAt:null,
       alertable:false,inventoryAlertable:false,watchAlertable:false})),roadblocks:result.roadblocks,
-    metadata:{...result.metadata,receipts,shadowOnly,productionActivationAllowed:!shadowOnly,customerDeliveryAllowed:!shadowOnly}};
+    metadata:{...result.metadata,receipts,complete:healthy,
+      origin:env.GITHUB_ACTIONS==='true'&&/^\d+$/.test(env.GITHUB_RUN_ID||'')&&/^[a-f0-9]{40}$/.test(env.GITHUB_SHA||'')
+        ?{kind:'github_actions',repository:env.GITHUB_REPOSITORY,workflowRunId:env.GITHUB_RUN_ID,commitSha:env.GITHUB_SHA,runAttempt:env.GITHUB_RUN_ATTEMPT||'1'}
+        :{kind:'local_shadow_not_workflow_issued'},
+      bibleRecordsSha256:createHash('sha256').update(JSON.stringify(bible.records)).digest('hex'),
+      shadowOnly,productionActivationAllowed:!shadowOnly,customerDeliveryAllowed:!shadowOnly}};
 }
