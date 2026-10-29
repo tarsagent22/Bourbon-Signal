@@ -1,0 +1,164 @@
+{
+  "scope": "actual_github_runner_first_party_body_reparse_full_inactive_customer_policy_not_promotion_or_delivery",
+  "verifiedAt": "2026-10-29T16:19:53.601Z",
+  "workflowRunId": "40909637916",
+  "headSha": "607339eab09fb550eb7833b465b2fbf5fb63cb15",
+  "artifactId": "12914085186",
+  "artifactDigest": "sha256:641dbc70851db8ed1a2014f18ad47abee15830ad8f4c09096f2ef9c72262f2a0",
+  "requests": 6,
+  "premises": 6,
+  "rows": 12,
+  "complete": false,
+  "promotionEligible": false,
+  "uninspectedPremises": [
+    "stews-wines:626c46756ea63026559b84f1"
+  ],
+  "receipts": [
+    {
+      "state": "MA",
+      "storeId": "table-and-vine:5f52a8713df8c66117da02b2",
+      "storeName": "Table & Vine",
+      "status": 200,
+      "rows": 2,
+      "observedAt": "2026-10-29T16:17:12.158Z",
+      "sha256": "f4fa93c0466caf59902f17ecf40d5e74c6366c4bf2cd77c3735eee6fc5c7f39a",
+      "expressions": [
+        {
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "price": 84.99,
+          "tier": "limited"
+        },
+        {
+          "canonicalName": "Larceny Barrel Proof",
+          "price": 54.99,
+          "tier": "limited"
+        }
+      ]
+    },
+    {
+      "state": "MA",
+      "storeId": "redstone-liquors:5d5d87598a9270243a2d2714",
+      "storeName": "Redstone Liquors",
+      "status": 200,
+      "rows": 3,
+      "observedAt": "2026-10-29T16:17:13.206Z",
+      "sha256": "c0b329a66cbb3bb0a464a848cc75b5642015f64fe5bfe1f71f8b37312d5b9f60",
+      "expressions": [
+        {
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "price": 74.99,
+          "tier": "limited"
+        },
+        {
+          "canonicalName": "Larceny Barrel Proof",
+          "price": 64.99,
+          "tier": "limited"
+        },
+        {
+          "canonicalName": "Henry McKenna 10 Year",
+          "price": 64.99,
+          "tier": "allocated"
+        }
+      ]
+    },
+    {
+      "state": "CT",
+      "storeId": "branford-wine:5bbb62e2b7e6390c64b02365",
+      "storeName": "Branford Wine & Spirits",
+      "status": 200,
+      "rows": 3,
+      "observedAt": "2026-10-29T16:17:14.274Z",
+      "sha256": "7797ac74e0a54fed135cce19215752e8274d8fbeb7057575bab5cd153f8cf428",
+      "expressions": [
+        {
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "price": 89.99,
+          "tier": "limited"
+        },
+        {
+          "canonicalName": "Larceny Barrel Proof",
+          "price": 59.99,
+          "tier": "limited"
+        },
+        {
+          "canonicalName": "1792 Full Proof",
+          "price": 49.99,
+          "tier": "limited"
+        }
+      ]
+    },
+    {
+      "state": "RI",
+      "storeId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+      "storeName": "Gold's Wine and Spirits",
+      "status": 200,
+      "rows": 2,
+      "observedAt": "2026-10-29T16:17:15.236Z",
+      "sha256": "8ee5120469522ad3a80c3cd20c5da6389cd9186b5b5bda41707e49c2417d681e",
+      "expressions": [
+        {
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "price": 74.99,
+          "tier": "limited"
+        },
+        {
+          "canonicalName": "Blanton's Original Single Barrel",
+          "price": 94.99,
+          "tier": "allocated"
+        }
+      ]
+    },
+    {
+      "state": "RI",
+      "storeId": "ri-liquor-delivery:64f6226b7537422b95e04824",
+      "storeName": "Rhode Island Liquor Delivery",
+      "status": 200,
+      "rows": 1,
+      "observedAt": "2026-10-29T16:17:16.594Z",
+      "sha256": "be98881ab51fa78631a5f0d52eb22dee7996c6836aaf2e4296c1a1d262effbc8",
+      "expressions": [
+        {
+          "canonicalName": "Larceny Barrel Proof",
+          "price": 79.99,
+          "tier": "limited"
+        }
+      ]
+    },
+    {
+      "state": "CT",
+      "storeId": "stews-wines:621fe692b9f3c27b2a5dfe76",
+      "storeName": "Stew Leonard's Wines of Norwalk",
+      "status": 200,
+      "rows": 1,
+      "observedAt": "2026-10-29T16:17:17.629Z",
+      "sha256": "3a13c047ceb7a8fb13c5b0424ac2cdf56131a2ec59789de0ef35e2e2e5a5e04a",
+      "expressions": [
+        {
+          "canonicalName": "Elijah Craig Barrel Proof Rye",
+          "price": 79.99,
+          "tier": "allocated"
+        }
+      ]
+    }
+  ],
+  "states": [
+    {
+      "state": "MA",
+      "sourceRows": 5,
+      "publicCurrentRows": 0,
+      "publicCurrentStores": 0
+    },
+    {
+      "state": "CT",
+      "sourceRows": 4,
+      "publicCurrentRows": 0,
+      "publicCurrentStores": 0
+    },
+    {
+      "state": "RI",
+      "sourceRows": 3,
+      "publicCurrentRows": 0,
+      "publicCurrentStores": 0
+    }
+  ]
+}

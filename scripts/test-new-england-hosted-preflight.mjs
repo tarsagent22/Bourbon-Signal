@@ -5,6 +5,7 @@ import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../engine/src/core/bible.mjs';
 import {runNewEnglandHostedPreflight} from './run-new-england-hosted-preflight.mjs';
+import {persistCityHiveIncidentJournal} from '../engine/src/collectors/central-cityhive-transport.mjs';
 const bible=await BourbonBible.load('engine/out/bourbon-bible.json');
 const setup=async t=>{const dir=await mkdtemp(path.join(tmpdir(),'ne-hosted-preflight-'));assert.ok(path.resolve(dir).startsWith(path.resolve(tmpdir())+path.sep));t.after(()=>rm(dir,{recursive:true,force:true}));return{env:{BOURBON_SIGNAL_SHADOW_MODE:'1'},incidentDir:path.join(dir,'incidents'),output:path.join(dir,'source')};};
 test('once-per-host actual native403 is durable and cannot be retried by another invocation',async t=>{
@@ -24,7 +25,21 @@ test('native denied headers persist before parent abort/body cancellation; no st
   const result=await runNewEnglandHostedPreflight(bible,{...opts,signal:controller.signal});assert.equal(requests,1);assert.equal(result.reports[0].status,429);assert.equal(result.signals.length,0);
   await assert.rejects(()=>readFile(path.join(opts.output,'source-captures')),{code:'ENOENT'});
 });
-test('unreadable or corrupt existing journal and failed denial writes fail closed with durable unresolved latches',async t=>{
+test('a corrupt existing journal fails closed before HTTP and stays unchanged',async t=>{
   const opts=await setup(t);await mkdir(opts.incidentDir,{recursive:true});const file=path.join(opts.incidentDir,'MA.json');await writeFile(file,'corrupt');let requests=0;
   await assert.rejects(()=>runNewEnglandHostedPreflight(bible,{...opts,fetchText:()=>{requests++;}}));assert.equal(requests,0);assert.equal(await readFile(file,'utf8'),'corrupt');
+});
+test('failed denial persistence preserves HTTP403 and a durable unresolved latch without stock writes',async t=>{
+  const opts=await setup(t);let requests=0;
+  const result=await runNewEnglandHostedPreflight(bible,{...opts,persistJournal:(file,value)=>{
+    if(Object.keys(value.hosts).length)throw Object.assign(Error('fixture disk full'),{code:'ENOSPC'});
+    return persistCityHiveIncidentJournal(file,value);
+  },fetchText:async url=>{requests++;return{ok:false,status:403,url,text:''};}});
+  assert.equal(requests,3,'unresolved per-state latch blocks other hosts in that state');
+  assert.ok(result.reports.filter(row=>row.attemptCount).every(row=>row.status===403&&/journal write failed/.test(row.error)));
+  assert.equal(result.signals.length,0);assert.equal(result.successfulInventoryPremises.length,0);
+  const before=await readFile(path.join(opts.incidentDir,'MA.json'),'utf8');assert.ok(JSON.parse(before).inFlight);
+  const held=await runNewEnglandHostedPreflight(bible,{...opts,fetchText:async()=>{requests++;throw Error('Forbidden retry');}});
+  assert.equal(held.requestCount,0);assert.equal(requests,3);assert.equal(await readFile(path.join(opts.incidentDir,'MA.json'),'utf8'),before);
+  await assert.rejects(()=>readFile(path.join(opts.output,'source-captures')),{code:'ENOENT'});
 });
