@@ -1,4 +1,4 @@
-import { CENTRAL_CITYHIVE_EXPANSION_SOURCES } from './collectors/central-cityhive-expansion.mjs';
+import { CENTRAL_CITYHIVE_EXPANSION_SOURCES } from './collectors/central-cityhive-premises.mjs';
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));
 export function isCentralCityHiveRetailerEvent(row){
@@ -41,4 +41,15 @@ export function isCentralCityHiveInventory(row,{nowMs=Date.now()}={}){
     &&Number.isFinite(Number(proof.reportedQuantity))&&Number(proof.reportedQuantity)>0
     &&(row.raw?.reportedQuantity==null||Number(row.raw.reportedQuantity)===Number(proof.reportedQuantity))
     &&typeof row.price==='number'&&Number.isFinite(row.price)&&row.price>0;
+}
+
+// Isolated canary visibility never grants alert or delivery eligibility.
+export function isCentralCityHiveCanaryOnSiteSignal(row,{nowMs=Date.now()}={}){
+  const age=nowMs-Date.parse(row?.observedAt||'');
+  return isCentralCityHiveInventory(row,{nowMs})&&age<=2*60*60_000&&row.previewOnly===true
+    &&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForWatch===false
+    &&row.canAlertAsInventory===false&&row.can_alert_as_inventory!==true
+    &&row.canAlertAsWatch===false&&row.can_alert_as_watch!==true&&row.alertable!==true
+    &&row.eligibleForDelivery===false&&row.deliveryEligible!==true
+    &&row.eligibleForEmail===false&&row.eligibleForSms===false;
 }

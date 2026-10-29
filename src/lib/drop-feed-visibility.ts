@@ -1,4 +1,5 @@
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
+import { isCentralCityHiveCanaryOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
   ["retailer:ms:cityhive:68ba2980113a7a29c2076fc3", "029254"],
   ["retailer:ms:moonshine:323", "044411"],
@@ -56,6 +57,7 @@ export type UserFacingDropSignal = {
   eligibleForDelivery?: boolean;
   eligibleForEmail?: boolean;
   eligibleForSms?: boolean;
+  previewOnly?: boolean;
   inventorySemantics?: string;
 };
 
@@ -149,6 +151,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && drop.inventorySemantics === "WVABCA reports that this retailer purchased the bottle within the last three months; this is a call-first purchase lead, not live shelf inventory."
     && !canAlert;
 
+  if (['WI','OK'].includes(state) && drop.previewOnly === true) return isCentralCityHiveCanaryOnSiteSignal(drop);
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (!type) return false;
   if (type === "wv_abca_retailer_recent_purchase_window") return isWestVirginiaRecentPurchase;

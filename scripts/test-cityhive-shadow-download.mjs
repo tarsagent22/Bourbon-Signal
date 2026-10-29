@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {zipSync,strToU8} from 'fflate';
 import {createHash} from 'node:crypto';
+import {build} from 'esbuild';
+import {fileURLToPath} from 'node:url';
 import {validateCityHiveShadowWorkflowOrigin,decodeBoundedShadowArchive} from './download-cityhive-shadow.mjs';
 const base={state:'WI',repository:'tarsagent22/Bourbon-Signal',currentHead:'a'.repeat(40),
   run:{id:123,status:'completed',conclusion:'success',head_sha:'a'.repeat(40),repository:{full_name:'tarsagent22/Bourbon-Signal'},path:'.github/workflows/state-expansion-shadow.yml'},
@@ -25,4 +27,10 @@ test('WI/OK archive uses issued ZIP digest and existing bounded portable path de
   assert.throws(()=>decodeBoundedShadowArchive(bytes,'0'.repeat(64)),/digest/);
   const unsafe=zipSync({'../outside.json':strToU8('{}')});
   assert.throws(()=>decodeBoundedShadowArchive(unsafe,createHash('sha256').update(unsafe).digest('hex')),/Unsafe/);
+});
+test('the shared exact CityHive customer policy bundles for a browser without collector or filesystem imports',async()=>{
+  const bundle=await build({entryPoints:[fileURLToPath(new URL('../engine/src/central-cityhive-policy.mjs',import.meta.url))],
+    bundle:true,platform:'browser',format:'esm',write:false,metafile:true});
+  assert.ok(bundle.outputFiles[0].text.includes('isCentralCityHiveCanaryOnSiteSignal'));
+  assert.ok(Object.keys(bundle.metafile.inputs).every(file=>!file.endsWith('/central-cityhive-expansion.mjs')&&!file.includes('library-search')));
 });
