@@ -50,6 +50,9 @@ jobs:
       - name: Verify engine reliability and expansion capacity
         run: npm --prefix engine run verify:reliability
 
+      - name: Verify default-off refresh continuation and harmless smoke guards
+        run: node --test scripts/test-refresh-continuation.mjs
+
       - name: Verify NC source resilience and evidence safety
         working-directory: engine
         run: |
