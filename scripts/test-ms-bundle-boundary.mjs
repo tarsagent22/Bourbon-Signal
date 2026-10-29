@@ -11,6 +11,7 @@ const collector = new URL('../engine/src/collectors/mississippi-retailer-surface
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
 const sharedBaseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json',import.meta.url),'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
+const actualAdmission = JSON.parse(await readFile(new URL('../engine/data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 
 test('MS historical implementation bytes remain pinned, including policy', async () => {
@@ -35,6 +36,29 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
     ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /measured runtime forecast .*exact historical verification hook/);
     const outside = current.replace('"refreshSafetyMarginMs": 300000', '"refreshSafetyMarginMs": 0');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name], 'the map exception cannot hide a reduced refresh reserve');
+  }
+});
+
+test('actual four-state admission reverses only the exact active list and issued-proof false-alert entries', async () => {
+  assert.equal(actualAdmission.contractVersion, 'bourbon-signal/four-state-actual-admission-ms-boundary@1');
+  for (const [name, entries] of Object.entries(actualAdmission.files)) {
+    const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
+    for (const [key, { reviewed, original }] of Object.entries(entries)) {
+      const changed = key === 'activeStates' ? reviewed.replace('"WA"', '"NJ"')
+        : reviewed.replace('"inventoryAlertable": false', '"inventoryAlertable": true');
+      for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /four-state admission .*exact historical verification hook/);
+      }
+      if (key !== 'activeStates') for (const changed of [
+        reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
+        reviewed.replace('"canaryRuns": 2', '"canaryRuns": 0'),
+        reviewed.replace('"publicStatus": "active"', '"publicStatus": "research_only"'),
+        reviewed.replace('"artifactDigest": "', '"artifactDigest": "changed'),
+      ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(reviewed, changed))), /four-state admission .*exact historical verification hook/);
+    }
+    const outside = current.replace('"customerLabel": "Mississippi"', '"customerLabel": "Unreviewed Mississippi"');
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name], 'other-state bytes remain pinned');
   }
 });
 
@@ -205,22 +229,22 @@ test('WA/NM metadata reversal requires every literal inactive registration and b
     const originalHash = evidence.implementationFilesSha256[name];
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), originalHash);
     for (const [key, { reviewed: priorReviewed, original }] of Object.entries(baseline.files[name])) {
-      const reviewed = key === 'budgets' ? priorReviewed.replace('"WA": 720000', '"WA": 360000').replace('"NM": 300000\n', '"NM": 120000,\n') : priorReviewed;
+      const reviewed = actualAdmission.files[name]?.[key]?.reviewed || (key === 'budgets' ? priorReviewed.replace('"WA": 720000', '"WA": 360000').replace('"NM": 300000\n', '"NM": 120000,\n') : priorReviewed);
       assert.equal(current.split(reviewed).length - 1, 1, `${name}: ${key}`);
       const changed = name.endsWith('.mjs')
         ? reviewed.replace('WESTERN_GROCERY_PRODUCTION_', 'UNREVIEWED_GROCERY_')
         : key === 'budgets' ? reviewed.replace('360000', '600000')
-          : reviewed.replace('"publicStatus": "research_only"', '"publicStatus": "active"');
+          : reviewed.replace('"publicStatus": "active"', '"publicStatus": "research_only"');
       assert.notEqual(changed, reviewed);
       for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:WA\/NM reviewed|Central inactive|measured runtime forecast) .*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|WA\/NM reviewed|Central inactive|measured runtime forecast) .*exact historical verification hook/);
       }
       if (!name.endsWith('.mjs') && ['WA', 'NM'].includes(key)) {
         for (const mutation of [
           reviewed.replace('"inventoryAlertable": false', '"inventoryAlertable": true'),
           reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
           reviewed.replace('"refinementLevel": "store"', '"refinementLevel": "state"'),
-        ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(reviewed, mutation))), /(?:WA\/NM reviewed|Central inactive) .*exact historical verification hook/);
+        ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(reviewed, mutation))), /(?:four-state admission|WA\/NM reviewed|Central inactive) .*exact historical verification hook/);
       }
     }
     const outside = current.replace(name.endsWith('.mjs') ? "id: 'MS'" : '"MS": {', name.endsWith('.mjs') ? "id: 'MS_CHANGED'" : '"MS_CHANGED": {');
@@ -234,13 +258,13 @@ test('WI/OK inactive metadata permits only exact store-level false-alert entries
     const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
     assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
     for(const[key,{reviewed:priorReviewed,original}]of Object.entries(entries)){
-      const reviewed=key==='budgets'?priorReviewed.replace('"WI": 150000','"WI": 30000').replace('"OK": 240000','"OK": 30000'):priorReviewed;
+      const reviewed=actualAdmission.files[name]?.[key]?.reviewed || (key==='budgets'?priorReviewed.replace('"WI": 150000','"WI": 30000').replace('"OK": 240000','"OK": 30000'):priorReviewed);
       assert.equal(current.split(reviewed).length-1,1);
-      const altered=key==='budgets'?reviewed.replace('30000','90000'):reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
+      const altered=key==='budgets'?reviewed.replace('30000','90000'):reviewed.replace('"publicStatus": "active"','"publicStatus": "research_only"');
       for(const mutation of [current.replace(reviewed,original),current+'\n'+reviewed,current.replace(reviewed,altered)])
-        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/(?:Central inactive|measured runtime forecast) .*exact historical verification hook/);
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/(?:four-state admission|Central inactive|measured runtime forecast) .*exact historical verification hook/);
       if(key!=='budgets')for(const replacement of [['"inventoryAlertable": false','"inventoryAlertable": true'],['"watchAlertable": false','"watchAlertable": true'],['"refinementLevel": "store"','"refinementLevel": "state"']])
-        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(reviewed,reviewed.replace(...replacement)))) ,/Central inactive .*exact historical verification hook/);
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(reviewed,reviewed.replace(...replacement)))) ,/(?:four-state admission|Central inactive) .*exact historical verification hook/);
     }
   }
 });

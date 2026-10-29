@@ -1,0 +1,74 @@
+{
+  "generatedAt": "2026-10-29T17:52:27.473Z",
+  "stateCount": 4,
+  "dropCount": 220,
+  "stateCoverage": {
+    "counts": {
+      "live_store_inventory": 16,
+      "store_delivery_leads": 1,
+      "store_availability_status": 1,
+      "shipment_drop_intelligence": 2,
+      "aggregate_inventory_watch": 2,
+      "distillery_release_watch": 1,
+      "sparse_live_store_inventory": 1
+    },
+    "states": [
+      {
+        "state": "WA",
+        "status": "canary_preview",
+        "signalCount": 177,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Washington",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Washington exact-store grocery research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      },
+      {
+        "state": "NM",
+        "status": "canary_preview",
+        "signalCount": 35,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "New Mexico",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "New Mexico exact-store grocery research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      },
+      {
+        "state": "WI",
+        "status": "canary_preview",
+        "signalCount": 1,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Wisconsin",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Wisconsin first-party retailer research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      },
+      {
+        "state": "OK",
+        "status": "canary_preview",
+        "signalCount": 7,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Oklahoma",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Oklahoma first-party retailer research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      }
+    ]
+  }
+}

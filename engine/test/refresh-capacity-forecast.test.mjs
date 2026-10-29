@@ -21,13 +21,14 @@ test('four planning forecasts follow one observed-sample formula without changin
     const expected=Math.ceil(2*Math.max(...samples)/30000)*30000;
     assert.equal(derived.forecastMs,expected);
     assert.equal(config.reliabilityPolicy.stateExpectedRunMs[state],expected);
-    assert.equal(config.activeStates.includes(state),false);
-    assert.equal(config.states[state].publicStatus,'research_only');
+    assert.equal(config.activeStates.includes(state),true);
+    assert.equal(config.states[state].publicStatus,'active');
+    assert.equal(config.states[state].promotionStage,'active');
     assert.equal(config.states[state].inventoryAlertable,false);assert.equal(config.states[state].watchAlertable,false);
   }
   assert.deepEqual(WESTERN_GROCERY_BUDGETS,{WA:{sourceMs:600000,stateMs:720000},NM:{sourceMs:180000,stateMs:300000}});
   assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,{WI:{sourceMs:90000,stateMs:150000,maxRequests:5},OK:{sourceMs:180000,stateMs:240000,maxRequests:10}});
-  const p=config.reliabilityPolicy,states=[...config.activeStates,'WA','NM','WI','OK'];
+  const p=config.reliabilityPolicy,states=[...new Set([...config.activeStates,'WA','NM','WI','OK'])];
   assert.deepEqual(evaluateCapacityBudget({stateExpectedRunMs:states.map(state=>p.stateExpectedRunMs[state]||p.defaultExpectedStateRunMs),concurrency:p.workerConcurrency,intervalMs:p.refreshIntervalMs,safetyMarginMs:p.refreshSafetyMarginMs}),forecast.prospectiveCollectionModel);
   assert.equal(forecast.sourceAndParentHardcapsChanged,false);assert.equal(forecast.promotionManifestSemanticsChanged,false);
 });

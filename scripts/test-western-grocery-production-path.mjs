@@ -4,6 +4,7 @@ import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../engine/src/core/bible.mjs';
 import {ALL_STATE_SOURCES} from '../engine/src/state-sources.mjs';
+import {STATE_LIFECYCLE_CONFIG} from '../engine/src/state-lifecycle.mjs';
 import {collectState} from '../engine/src/collectors/generic-state.mjs';
 import {canonicalizeSignal} from '../engine/src/operational-report.mjs';
 import {buildDrops,bibleLookup,buildStores,buildCurrentInventoryAlertsFromDrops} from '../engine/src/export-site-contract.mjs';
@@ -21,10 +22,12 @@ const index=getDropClassificationIndex(catalog.records),output=[];
 for(const state of ['WA','NM']){
   const directory=await mkdtemp(path.join(tmpdir(),`production-grocery-path-${state}-`));
   try{
-    // Synthetic promotion schemas and mocked captures validate implementation;
-    // this script never issues source HTTP or supplies promotion evidence.
-    const lifecycle=syntheticPromotedGroceryConfig(state),config=ALL_STATE_SOURCES.find(row=>row.id===state);
-    const report=await collectState(config,bible,{lifecycleConfig:lifecycle,promotionManifest:syntheticPromotionManifest(state,lifecycle),sourceRunnerOptions:{checkpointDir:null},
+    // Committed active states use their actual issued authority. Inactive
+    // preparation uses explicit synthetic schemas; stock transport is always a fixture.
+    const actualAuthority=STATE_LIFECYCLE_CONFIG.activeStates.includes(state);
+    const lifecycle=actualAuthority?STATE_LIFECYCLE_CONFIG:syntheticPromotedGroceryConfig(state),config=ALL_STATE_SOURCES.find(row=>row.id===state);
+    const promotionManifest=actualAuthority?JSON.parse(await readFile(`engine/data/state-integration/${state}.json`,'utf8')):syntheticPromotionManifest(state,lifecycle);
+    const report=await collectState(config,bible,{lifecycleConfig:lifecycle,promotionManifest,sourceRunnerOptions:{checkpointDir:null},
       grocerySourceOptions:{cacheDir:path.join(directory,'cache'),incidentDir:path.join(directory,'incidents'),cursorDir:path.join(directory,'cursor'),sleep:async()=>{},fetchText:mockedCompleteGroceryFetch(state)}});
     assert.equal(report.status,'useful');assert.ok(report.signals.length>0);
     const operational=report.signals.map(row=>canonicalizeSignal(row,bible));

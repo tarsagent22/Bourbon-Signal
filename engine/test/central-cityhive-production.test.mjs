@@ -24,7 +24,8 @@ async function setup(t,state='WI'){
 test('inactive, quarantined and altered semantic/cohort/provenance authority blocks before HTTP or cache I/O',async t=>{
   let requests=0;const fetchText=async()=>{requests++;throw Error('Unauthorized HTTP');};
   for(const state of ['WI','OK']){
-    const opts=await setup(t,state),held=await collectState(config(state),bible,{cityHiveSourceOptions:{fetchText,cacheDir:'NUL/forbidden',incidentDir:'NUL/forbidden'}});
+    const inactive=structuredClone(STATE_LIFECYCLE_CONFIG);inactive.activeStates=inactive.activeStates.filter(id=>id!==state);inactive.states[state].publicStatus='research_only';
+    const opts=await setup(t,state),held=await collectState(config(state),bible,{lifecycleConfig:inactive,cityHiveSourceOptions:{fetchText,cacheDir:'NUL/forbidden',incidentDir:'NUL/forbidden'}});
     assert.equal(held.status,'not_promoted');assert.equal(held.metadata.requestCount,0);
     assert.equal(centralCityHiveProductionCohortKey(state),CENTRAL_CITYHIVE_PRODUCTION_COHORTS[state]);
     assert.ok(centralCityHiveProductionAllowed(state,opts.lifecycleConfig,{manifest:opts.promotionManifest}));
@@ -39,7 +40,7 @@ test('inactive, quarantined and altered semantic/cohort/provenance authority blo
     }
     for(const env of [{BOURBON_SIGNAL_DISABLED_STATES:state},{BOURBON_SIGNAL_QUARANTINED_STATES:state}])assert.equal(centralCityHiveProductionAllowed(state,opts.lifecycleConfig,{manifest:opts.promotionManifest,env}),false);
   }
-  assert.equal(requests,0);assert.ok(!STATE_LIFECYCLE_CONFIG.activeStates.includes('WI')&&!STATE_LIFECYCLE_CONFIG.activeStates.includes('OK'));
+  assert.equal(requests,0);
 });
 
 for(const state of ['WI','OK'])test(`${state} nonpreview production rows/cache preserve original clocks/current library and never enable delivery`,async t=>{
@@ -114,10 +115,10 @@ test('source deadlines fit parent watchdogs and denial cache saves independently
   const save=steps.find(step=>step.includes('actions/cache/save@v4')&&step.includes(file));
   assert.ok(restore&&save);assert.match(save,/if: always\(\)/);assert.equal(save.match(/\bkey: (.+)/)[1],restore.match(/\bkey: (.+)/)[1]);
   const policy=STATE_LIFECYCLE_CONFIG.reliabilityPolicy;
-  const expected=STATE_LIFECYCLE_CONFIG.activeStates.map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
-  const capacity=evaluateCapacityBudget({stateExpectedRunMs:[...expected,...Object.values(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS).map(b=>b.stateMs)],
+  const expected=[...new Set([...STATE_LIFECYCLE_CONFIG.activeStates,'WI','OK'])].map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
+  const capacity=evaluateCapacityBudget({stateExpectedRunMs:expected,
     concurrency:policy.workerConcurrency,intervalMs:policy.refreshIntervalMs,safetyMarginMs:policy.refreshSafetyMarginMs});
-  assert.equal(capacity.ok,true,'Prospective WI/OK parent budgets must fit the current refresh capacity before promotion');
+  assert.equal(capacity.ok,true,'Distinct active/planned state runtime forecasts must fit the existing collection-only capacity');
 });
 
 test('a late successful HTTP response after parent cancellation cannot publish inventory or start another request',async t=>{

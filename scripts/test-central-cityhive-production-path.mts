@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {BourbonBible} from '../engine/src/core/bible.mjs';
 import {collectState} from '../engine/src/collectors/generic-state.mjs';
 import {ALL_STATE_SOURCES} from '../engine/src/state-sources.mjs';
+import {STATE_LIFECYCLE_CONFIG} from '../engine/src/state-lifecycle.mjs';
 import {canonicalizeSignal} from '../engine/src/operational-report.mjs';
 import {buildDrops,bibleLookup,buildStores,buildCurrentInventoryAlertsFromDrops} from '../engine/src/export-site-contract.mjs';
 import {syntheticCentralPromotion,mockedCentralFetch,bibleFile} from '../engine/test/helpers/synthetic-central-production.mjs';
@@ -30,9 +31,10 @@ const bible=await BourbonBible.load(bibleFile),index=getDropClassificationIndex(
 for(const state of ['WI','OK']){
   const dir=await mkdtemp(path.join(tmpdir(),'central-production-path-'));assert.ok(path.resolve(dir).startsWith(path.resolve(tmpdir())+path.sep));
   try{
-    // Explicitly synthetic promotion schemas + frozen HTTP fixtures. These
-    // calls exercise the real runtime and services; they are not live evidence.
-    const promotion=syntheticCentralPromotion(state),lifecycle=promotion.lifecycleConfig,config=ALL_STATE_SOURCES.find(row=>row.id===state),at=new Date().toISOString();
+    // Actual committed authority for admitted states, explicit synthetic
+    // schemas for inactive preparation. HTTP stock bodies are always fixtures.
+    const actualAuthority=STATE_LIFECYCLE_CONFIG.activeStates.includes(state);
+    const promotion=actualAuthority?{lifecycleConfig:STATE_LIFECYCLE_CONFIG,promotionManifest:JSON.parse(await readFile(`engine/data/state-integration/${state}.json`,'utf8'))}:syntheticCentralPromotion(state),lifecycle=promotion.lifecycleConfig,config=ALL_STATE_SOURCES.find(row=>row.id===state),at=new Date().toISOString();
     const report=await collectState(config,bible,{...promotion,sourceRunnerOptions:{checkpointDir:null},cityHiveSourceOptions:{...promotion,
       cacheDir:path.join(dir,'cache'),incidentDir:path.join(dir,'incidents'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},fetchText:mockedCentralFetch()}});
     assert.equal(report.status,'useful');assert.ok(report.signals.length>0);

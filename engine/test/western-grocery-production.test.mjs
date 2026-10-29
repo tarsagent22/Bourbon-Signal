@@ -19,7 +19,7 @@ test('inactive, incomplete, changed, disabled and quarantined promotion authorit
   for(const state of ['WA','NM']){
     const source=ALL_STATE_SOURCES.find(row=>row.id===state),report=await collectState(source,bible,{lifecycleConfig:syntheticInactiveGroceryConfig(state),fetcher:fetchText,grocerySourceOptions:{fetchText}});
     assert.equal(report.status,'not_promoted');assert.equal(report.signals.length,0);assert.equal(report.sourceResults.length,0);
-    const active=syntheticPromotedGroceryConfig(state);assert.equal(westernGroceryPromotionAllowed(state,active),false,'Unreconciled manifest must block even a schema-valid active config');assert.equal(westernGroceryPromotionAllowed(state,active,{manifest:syntheticPromotionManifest(state,active)}),true);
+    const active=syntheticPromotedGroceryConfig(state);assert.equal(westernGroceryPromotionAllowed(state,active),false,'A synthetic authority must not match the actual immutable manifest');assert.equal(westernGroceryPromotionAllowed(state,active,{manifest:syntheticPromotionManifest(state,active)}),true);
     for(const mutate of [row=>delete row.states[state].promotionEvidence,row=>{row.states[state].promotionStage='research';},
       row=>{row.states[state].inventoryAlertable=true;},row=>{row.states[state].promotionEvidence.immutableEvidence.sourceConfigHash='0'.repeat(64);}]){
       const changed=structuredClone(active);mutate(changed);

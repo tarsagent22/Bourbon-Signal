@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2026-10-29T17:52:27.473Z",
+  "states": [
+    {
+      "state": "WA",
+      "file": "states/WA/drops.json",
+      "count": 177
+    },
+    {
+      "state": "NM",
+      "file": "states/NM/drops.json",
+      "count": 35
+    },
+    {
+      "state": "WI",
+      "file": "states/WI/drops.json",
+      "count": 1
+    },
+    {
+      "state": "OK",
+      "file": "states/OK/drops.json",
+      "count": 7
+    }
+  ],
+  "stateCount": 4,
+  "totalCount": 220
+}

@@ -4,7 +4,7 @@ Prepared from `bb9373784e94d07dfab45ce8287e58619647b7b1`. No source collection, 
 
 ## Findings and proof limits
 
-Accepted workflow `40907316461` generated its snapshot at `2026-10-29T16:27:58.626Z`, using 61,485 current signals and 1,045,896 retained historical signals. Its current raw pool contains useful California grocery, Idaho availability and Iowa delivery evidence. A replay of the complete current pool through canonicalization, export, normalization and generated classification retains California's 76 grocery premises, Idaho's 74 premises and Iowa's delivery leads even under the original first 10,000-row cap. Therefore the current-only cap does **not** by itself explain the observed canonical California/Idaho loss.
+Accepted workflow `40907316461` generated its snapshot at `2026-10-29T16:27:58.626Z`, using 61,485 current signals. Its stats report `historicalSignalCount: 1045896` as a high-water metric, not the exact restored historical pool size; the later exact-cache diagnostic found 457,870 restored historical candidates. The diagnostic stopped on that count mismatch, so it does not establish the precise historical cause or an export speedup. The current raw pool contains useful California grocery, Idaho availability and Iowa delivery evidence. A replay of the complete current pool through canonicalization, export, normalization and generated classification retains California's 76 grocery premises, Idaho's 74 premises and Iowa's delivery leads even under the original first 10,000-row cap. Therefore the current-only cap does **not** by itself explain the observed canonical California/Idaho loss.
 
 California's accepted health metadata separately marks the entire state degraded because nine legacy retailer rows were overdue, despite 329 fresh reviewed grocery rows. The public degraded-state gate hides those fresh sibling rows. That independent consumer repair is owned by the Central agent.
 
@@ -15,7 +15,7 @@ The scheduled-verification ledger records a significant output collapse for Iowa
 - Keep every already-admitted current observation, complete protected fallback partition and untouched prior partition. Existing identity, freshness, lifecycle, quality and collapse gates still decide admission.
 - Prefer an exact current observation before stable source deduplication, preserving its original source clock and the existing historical first-seen/episode index.
 - Cap only optional historical context. Budget its serialized UTF-8 bytes together with required rows. Required evidence exceeding 60 MiB fails explicitly; no current premise or complete fallback partition is silently clipped. The unchanged reader limit remains 64 MiB, leaving room for the export envelope.
-- Write compact global drops JSON. The current 11,647-row replay is about 48.8 MB compact versus 57.5 MB formatted. State partitions remain a verified lossless copy of the same selected rows.
+- Write compact global drops JSON. The current 11,647-row replay is about 48.8 MB compact versus 57.5 MB formatted. Against the 60 MiB budget, that leaves roughly 14.1 MB of decimal-byte room; this profile does not guarantee future payload size. State partitions remain a verified lossless copy of the same selected rows.
 - Replace quadratic findIndex/string-key deduplication with a Set using the identical key and first-duplicate behavior.
 - Export the exact existing anomalyCodes array as degraded-state reasons, alongside the unchanged human-readable staleReason. Bind the new budget and existing merge implementation in promotion provenance.
 
