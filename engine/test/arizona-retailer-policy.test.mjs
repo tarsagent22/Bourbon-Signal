@@ -9,7 +9,7 @@ import { selectScheduledStates } from '../src/optimization/state-run-plan.mjs';
 test('Arizona precision collection gets one bounded long attempt instead of two guaranteed timeouts', () => {
   const cadence = { baseCadenceMs: 1_800_000, minCadenceMs: 1_800_000, maxCadenceMs: 1_800_000 };
   assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', {}, {}), { timeoutMs: 900_000, maxAttempts: 1, ...cadence });
-  assert.deepEqual(legacyPrecisionRuntimeOptions('NC', {}, {}), { timeoutMs: 120_000, maxAttempts: 2 });
+  assert.deepEqual(legacyPrecisionRuntimeOptions('NC', {}, {}), { timeoutMs: 120_000, maxAttempts: 2, ...cadence });
   assert.deepEqual(legacyPrecisionRuntimeOptions('AZ', { timeoutMs: 42, maxAttempts: 3 }, {}), { timeoutMs: 42, maxAttempts: 3, ...cadence });
 });
 
@@ -20,7 +20,7 @@ test('Arizona state scheduling remains due at 30 minutes despite unchanged-resul
   const schedule = selectScheduledStates([{ id: 'AZ' }, { id: 'GA' }], { AZ: metric, GA: metric }, options);
   assert.equal(schedule[0].run, true);
   assert.equal(schedule[0].cadenceMs, 30 * 60_000);
-  assert.equal(schedule[1].run, false);
+  assert.equal(schedule[1].run, true);
   assert.equal(selectScheduledStates([{ id: 'AZ' }], { AZ: metric }, { ...options, now: '2026-10-25T00:29:00.000Z' })[0].run, false);
   const cooled = { ...metric, cooldownUntil: '2026-10-25T04:00:00.000Z' };
   assert.equal(selectScheduledStates([{ id: 'AZ' }], { AZ: cooled }, options)[0].nextProbeAt, cooled.cooldownUntil);

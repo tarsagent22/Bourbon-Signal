@@ -10,6 +10,7 @@ import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT, arizonaXapiBanner, arizonaXapiRequestPlan, selectArizonaXapiStores, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
 import { libraryDetectionQueries, isExactLibraryTarget } from '../library-query-plan.mjs';
+import { inventoryStateCadenceMs } from '../optimization/state-run-plan.mjs';
 import { librarySourceSearchTerms, librarySourceSearchPlan, withLibrarySearchAudit, recordLibrarySearchResponse, rotateLibraryProductCandidates } from '../library-search-runtime.mjs';
 export { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { renameSync } from 'node:fs';
@@ -9498,7 +9499,7 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .includes(stateKey);
   const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 900_000 : ['IN', 'TN', 'FL'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
   const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
-  const inventoryCadence = ['TX', 'AZ'].includes(stateKey) ? 30 * 60_000 : null;
+  const inventoryCadence = inventoryStateCadenceMs(stateKey);
   return {
     ...sourceRunnerOptions,
     ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),

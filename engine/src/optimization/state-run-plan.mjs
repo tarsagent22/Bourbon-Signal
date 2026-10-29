@@ -1,4 +1,11 @@
 import { decideSourceSchedule } from './source-scheduler.mjs';
+import { getStateLifecycle } from '../state-lifecycle.mjs';
+
+export function inventoryStateCadenceMs(stateId) {
+  const tier = getStateLifecycle(stateId)?.coverageTier || '';
+  return ['live_store_inventory', 'sparse_live_store_inventory', 'store_availability_status'].includes(tier)
+    ? 30 * 60_000 : null;
+}
 
 export function selectScheduledStates(configs, metrics = {}, options = {}) {
   const requestedIds = options.requestedIds || new Set();
@@ -12,10 +19,11 @@ export function selectScheduledStates(configs, metrics = {}, options = {}) {
     }));
   }
   return configs.map((config) => {
-    // Arizona's exact-store rows expire while unchanged/failure backoff can
-    // otherwise stretch to a day. Per-source denial cooldowns still apply.
-    const stateOptions = config.id === 'AZ'
-      ? { ...options, maxCadenceMs: Math.min(options.maxCadenceMs ?? 30 * 60_000, 30 * 60_000) }
+    // Inventory confirmation expires even when a retailer's stock is unchanged.
+    // Keep inventory lanes due each refresh; source denial cooldowns still win.
+    const inventoryCadence = inventoryStateCadenceMs(config.id);
+    const stateOptions = inventoryCadence
+      ? { ...options, maxCadenceMs: Math.min(options.maxCadenceMs ?? inventoryCadence, inventoryCadence) }
       : options;
     const schedule = decideSourceSchedule({ sourceId: config.id, ...(metrics[config.id] || {}) }, stateOptions);
     return { id: config.id, config, run: schedule.decision === 'probe_now', ...schedule };
