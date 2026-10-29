@@ -175,7 +175,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "64eeae309bd0531e8db2b551468ab03422f1de1ff112a5e64ab5c6ece10cc143",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -222,7 +222,7 @@
     "workflowRunId": "40925309053",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "2d4f9d27e58f6e8c7c26938e32d55074b65719cfedda228e26d4dd1741061158",
-    "staticMatches": 59,
+    "staticMatches": 57,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/WA.json",
@@ -247,7 +247,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -272,17 +272,22 @@
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "415d25cb8d971fc1249bdb87c20d505971a662f465f4a07dfb5453d09825b1ea",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "64da634ddda4cb8458806ad48aa017d9f36b276202eecd34039685f15954654f",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": ".github/workflows/refresh-feed.yml",
         "expected": "007cdfca45a105c1cfb1a1bc3f4e54b4dc2f262898535dc4e9e24ca0b792ee43",
         "actual": "82478c4f7abef7a6567eb94325a87eaeb60846c47e3703e5df5b5ca54ef17c70"
+      },
+      {
+        "file": "engine/src/prepare-grocery-canary.mjs",
+        "expected": "9bc715d93887314e42791bb63dc504574f925c9d52cfae8a68330157a0206eef",
+        "actual": "971014137063621d9e593ccd412288d09d78f88f62f56f1217466574b40248f3"
       },
       {
         "file": "engine/src/research-state-registry.mjs",
@@ -318,6 +323,11 @@
         "file": "src/lib/site-engine-contract.ts",
         "expected": "1ca9104d843d23c85bac4e29dea740928fab4e32281e75c109655117dc87f2a6",
         "actual": "bf0c01309ad7dad3781728976357a4019b534ae5c80f8eb5ea4b4aee52ada566"
+      },
+      {
+        "file": "scripts/test-grocery-public-canary.mjs",
+        "expected": "d17c65e6c0e395a24ae85cf06924e16a25b31b01ba3fd5d61d90e519e3fa0c85",
+        "actual": "6881ac043c4806d376aeffbb9e5755e1d73b9a805ee4ae515a0852607d902443"
       },
       {
         "file": "engine/src/verify-state-fixtures.mjs",
@@ -354,7 +364,7 @@
     "workflowRunId": "40925312923",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "675357ee920b2b8bf293a161802af29f9fb08d9af6643fa04c4bf741ffd6cbb3",
-    "staticMatches": 59,
+    "staticMatches": 57,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/NM.json",
@@ -379,7 +389,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -404,17 +414,22 @@
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "415d25cb8d971fc1249bdb87c20d505971a662f465f4a07dfb5453d09825b1ea",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "64da634ddda4cb8458806ad48aa017d9f36b276202eecd34039685f15954654f",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": ".github/workflows/refresh-feed.yml",
         "expected": "007cdfca45a105c1cfb1a1bc3f4e54b4dc2f262898535dc4e9e24ca0b792ee43",
         "actual": "82478c4f7abef7a6567eb94325a87eaeb60846c47e3703e5df5b5ca54ef17c70"
+      },
+      {
+        "file": "engine/src/prepare-grocery-canary.mjs",
+        "expected": "9bc715d93887314e42791bb63dc504574f925c9d52cfae8a68330157a0206eef",
+        "actual": "971014137063621d9e593ccd412288d09d78f88f62f56f1217466574b40248f3"
       },
       {
         "file": "engine/src/research-state-registry.mjs",
@@ -452,6 +467,11 @@
         "actual": "bf0c01309ad7dad3781728976357a4019b534ae5c80f8eb5ea4b4aee52ada566"
       },
       {
+        "file": "scripts/test-grocery-public-canary.mjs",
+        "expected": "d17c65e6c0e395a24ae85cf06924e16a25b31b01ba3fd5d61d90e519e3fa0c85",
+        "actual": "6881ac043c4806d376aeffbb9e5755e1d73b9a805ee4ae515a0852607d902443"
+      },
+      {
         "file": "engine/src/verify-state-fixtures.mjs",
         "expected": "2d507edd1532ff4dffe079a83075c8342b914e97ab330cc186b620f5cfda7080",
         "actual": "3b0a0461f211d7c0b3a0b601099bec04554eb5229a99a52dee7152a0badd8ae4"
@@ -486,7 +506,7 @@
     "workflowRunId": "40925317245",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "3194afb7592efeb816f391fb07b821bb9c3afea584759ef09ec6ef67b515f77b",
-    "staticMatches": 65,
+    "staticMatches": 62,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/WI.json",
@@ -511,7 +531,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -536,12 +556,12 @@
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "415d25cb8d971fc1249bdb87c20d505971a662f465f4a07dfb5453d09825b1ea",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "64da634ddda4cb8458806ad48aa017d9f36b276202eecd34039685f15954654f",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": ".github/workflows/refresh-feed.yml",
@@ -549,9 +569,19 @@
         "actual": "82478c4f7abef7a6567eb94325a87eaeb60846c47e3703e5df5b5ca54ef17c70"
       },
       {
+        "file": "engine/src/prepare-central-cityhive-canary.mjs",
+        "expected": "4913e5df2d2d91a870736591ade073b6a40fe4bb25b89772d65723b160dd247f",
+        "actual": "5cfed627336b3191cbe9b12c664521372d50664213201528cdb415cd5cc58ea8"
+      },
+      {
         "file": "engine/src/research-state-registry.mjs",
         "expected": "d3444d099ac8c128a9debc0a7b9caba735e83ac99f17d60dcf7b578cc4fb6030",
         "actual": "168667307cfa8ad259304f6746a539b7cf056d0f587dbf5e90e2adb47b27d0ba"
+      },
+      {
+        "file": "engine/src/collectors/cityhive-surfaces.mjs",
+        "expected": "b9206969e2abad97d82d562c6abe087957c62df6fe8f98456deea3474aa02db9",
+        "actual": "161a135d81ead4a6c169d2cb71ebe3c5e5bc017bd02e3d6a6d26b289035cbb92"
       },
       {
         "file": "engine/src/operational-report.mjs",
@@ -577,6 +607,11 @@
         "file": "src/lib/site-engine-contract.ts",
         "expected": "1ca9104d843d23c85bac4e29dea740928fab4e32281e75c109655117dc87f2a6",
         "actual": "bf0c01309ad7dad3781728976357a4019b534ae5c80f8eb5ea4b4aee52ada566"
+      },
+      {
+        "file": "scripts/test-central-cityhive-public-canary.mjs",
+        "expected": "8f4793f8fd036f18bcffb965589934153fda2d3baca2234a921ba581ba08b687",
+        "actual": "13b444c17fb42f20f0e7423ddbded401ede389124c2789243a66a21dd0d4ee77"
       },
       {
         "file": ".github/workflows/state-expansion-canary.yml",
@@ -608,7 +643,7 @@
     "workflowRunId": "40925321358",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "105dadd393d38a4520e76547a9399fd2bb97590c1da0b3f7cbf6bf9473be6b1e",
-    "staticMatches": 65,
+    "staticMatches": 62,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/OK.json",
@@ -633,7 +668,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -658,12 +693,12 @@
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "415d25cb8d971fc1249bdb87c20d505971a662f465f4a07dfb5453d09825b1ea",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "64da634ddda4cb8458806ad48aa017d9f36b276202eecd34039685f15954654f",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": ".github/workflows/refresh-feed.yml",
@@ -671,9 +706,19 @@
         "actual": "82478c4f7abef7a6567eb94325a87eaeb60846c47e3703e5df5b5ca54ef17c70"
       },
       {
+        "file": "engine/src/prepare-central-cityhive-canary.mjs",
+        "expected": "4913e5df2d2d91a870736591ade073b6a40fe4bb25b89772d65723b160dd247f",
+        "actual": "5cfed627336b3191cbe9b12c664521372d50664213201528cdb415cd5cc58ea8"
+      },
+      {
         "file": "engine/src/research-state-registry.mjs",
         "expected": "d3444d099ac8c128a9debc0a7b9caba735e83ac99f17d60dcf7b578cc4fb6030",
         "actual": "168667307cfa8ad259304f6746a539b7cf056d0f587dbf5e90e2adb47b27d0ba"
+      },
+      {
+        "file": "engine/src/collectors/cityhive-surfaces.mjs",
+        "expected": "b9206969e2abad97d82d562c6abe087957c62df6fe8f98456deea3474aa02db9",
+        "actual": "161a135d81ead4a6c169d2cb71ebe3c5e5bc017bd02e3d6a6d26b289035cbb92"
       },
       {
         "file": "engine/src/operational-report.mjs",
@@ -699,6 +744,11 @@
         "file": "src/lib/site-engine-contract.ts",
         "expected": "1ca9104d843d23c85bac4e29dea740928fab4e32281e75c109655117dc87f2a6",
         "actual": "bf0c01309ad7dad3781728976357a4019b534ae5c80f8eb5ea4b4aee52ada566"
+      },
+      {
+        "file": "scripts/test-central-cityhive-public-canary.mjs",
+        "expected": "8f4793f8fd036f18bcffb965589934153fda2d3baca2234a921ba581ba08b687",
+        "actual": "13b444c17fb42f20f0e7423ddbded401ede389124c2789243a66a21dd0d4ee77"
       },
       {
         "file": ".github/workflows/state-expansion-canary.yml",
@@ -740,17 +790,17 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": "engine/src/collectors/arizona-xapi-matching.mjs",
@@ -792,17 +842,17 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": "engine/src/collectors/arizona-xapi-matching.mjs",
@@ -844,17 +894,17 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": "engine/src/verification/historical-implementation.mjs",
@@ -895,17 +945,17 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": "engine/src/verification/historical-implementation.mjs",
@@ -946,17 +996,17 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
+        "actual": "4a3ff92411332c76923d0980f0354cb4391817c04c2d5cb06ef82f243b079a7a"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
         "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
-        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+        "actual": "74cd0e8d9d3fdcf7e8775df5060504a732705197f0f0eec5a5381b9f79e567dc"
       },
       {
         "file": ".github/workflows/state-expansion-shadow.yml",
         "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
-        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+        "actual": "164753d5158797573b0d865c87fa97d473f6b525249a9d0097c929a8b3300e43"
       },
       {
         "file": "engine/src/verification/historical-implementation.mjs",

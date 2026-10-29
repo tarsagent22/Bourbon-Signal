@@ -19,6 +19,7 @@ import {BourbonBible} from './core/bible.mjs';
 import {randomUUID} from 'node:crypto';
 import {readBoundedCollectionBody} from './core/collection-http.mjs';
 import {isCentralCityHiveResearchInventory} from './central-cityhive-policy.mjs';
+import {verifyActiveRenewalRawCaptures,isVerifiedActiveRenewalNegativeReport} from './active-renewal-capture-proof.mjs';
 import {isNjMiResearchSourceInventory} from './nj-mi-research-policy.mjs';
 import { promisify } from 'node:util';
 
@@ -89,6 +90,7 @@ export function classifyShadowReadiness(report = {}, options = {}) {
   const monitoredNoCurrentInventory = sources.some((source) => source?.ok === true
     && source?.zeroOutputExpected === true
     && source?.signalType === 'costco_warehouse_no_current_inventory');
+  const verifiedRenewalNegative=isVerifiedActiveRenewalNegativeReport(report);
   const requiresInventory = inventoryRequired(report);
   const deeperParser = /needs_deeper_parser/i.test(String(report.status || ''));
   const prerequisite = roadblocks.find((roadblock) => /not_configured|missing|ENOENT|stale|invalid_(?:timestamp|observation)|dependency_unavailable/i.test(
@@ -103,7 +105,7 @@ export function classifyShadowReadiness(report = {}, options = {}) {
   let inventory;
   if (!requiresInventory) inventory = { required: false, ready: true, status: 'not_required', reason: null, trustedSignalCount: 0 };
   else if (trustedInventory.length) inventory = { required: true, ready: true, status: 'ready', reason: null, trustedSignalCount: trustedInventory.length };
-  else if (monitoredNoCurrentInventory) inventory = { required: true, ready: true, status: 'ready_no_current_inventory', reason: 'A fresh monitored source completed and reported no current inventory.', trustedSignalCount: 0 };
+  else if (monitoredNoCurrentInventory||verifiedRenewalNegative) inventory = { required: true, ready: true, status: 'ready_no_current_inventory', reason: 'A fresh monitored source completed and reported no current inventory.', trustedSignalCount: 0 };
   else if (deeperParser) inventory = { required: true, ready: false, status: 'needs_deeper_parser', reason: 'Reachable discovery evidence has not produced trusted current store inventory.', trustedSignalCount: 0 };
   else if (prerequisite) inventory = {
     required: true,
@@ -383,6 +385,10 @@ export async function runExpansionShadow({ lifecycle, states = [], renewActiveSt
     if (renewals.includes(state) && isValidShadowReport(state, report)) report = suppressActiveRenewalReport(state, report);
     if (renewals.includes(state) && report.metadata?.manualActiveRenewal) report.metadata.manualActiveRenewal.batchMaintenance = maintenance;
     await writeFile(reportFile, JSON.stringify(report, null, 2));
+    if(renewals.includes(state)&&report.metadata?.manualActiveRenewal?.maintenance){
+      await verifyActiveRenewalRawCaptures({state,report,reportDirectory:stateDir,lifecycle,
+        bible:await BourbonBible.load(path.join(cwd,'out/bourbon-bible.json'))});
+    }
     const evidence = buildShadowEvidence(state, report);
     evidence.prerequisite = {
       ok: prerequisite.ok,
