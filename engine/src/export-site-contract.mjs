@@ -397,7 +397,8 @@ function virginiaPremisesProofState(signal) {
 }
 
 const isReviewedResearchGrocery = row => ['WA', 'NM'].includes(row?.state) && isGroceryExpansionInventory(row)
-  && row.raw?.shadowOnly !== true && row.sourceProductBinding?.shadowOnly !== true;
+  && row.raw?.shadowOnly !== true && row.sourceProductBinding?.shadowOnly !== true
+  && row.quarantined !== true && row.raw?.sourceRuntimeNonAlertable !== true && row.raw?.staleFallback !== true;
 
 const genericShopifyPickupRow = row => !isTexasShopifyPickupInventory(row) && [row?.sourceCollectorVersion, row?.raw?.collectorVersion]
   .some(version => typeof version === 'string' && version.startsWith('shopify-variant-pickup-'));

@@ -53,6 +53,9 @@ for(const state of ['WA','NM']){
     assert.ok(selected,'Actual Finder exact-store lookup service must accept the source identity');
     const invalid={...rows[0],storeId:'unreviewed'};assert.equal(isPublicDropFeedEligible(invalid),false);
     assert.equal(isPublicDropFeedEligible({...rows[0],sourceStale:true}),false);
+    assert.equal(isPublicDropFeedEligible({...rows[0],quarantined:true}),false);
+    assert.equal(isPublicDropFeedEligible({...rows[0],raw:{sourceRuntimeNonAlertable:true}}),false);
+    assert.equal(isPublicDropFeedEligible({...rows[0],raw:{staleFallback:true}}),false);
     const later=new Date(Date.now()+121*60_000).toISOString();
     assert.ok(rows.every(row=>!isCurrentInventoryEvidence(row,later)));
     assert.equal(buildCoverageContract({...args,asOf:later}).states.find(row=>row.code===state).capabilities.currentBottleAvailability,false);

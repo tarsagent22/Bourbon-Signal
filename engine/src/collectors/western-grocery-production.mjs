@@ -68,7 +68,7 @@ function cacheMatches(cache,state,nowMs){
   return cache?.schemaVersion===1&&cache.cohortKey===westernGroceryCohortKey(state)&&completeCohortMetadata(cache.metadata,state)
     &&Array.isArray(cache.signals)&&Number.isFinite(age)&&age>=0&&age<=WESTERN_GROCERY_CACHE_MAX_AGE_MS
     &&cache.signals.every(row=>row.state===state&&row.sourceRuntimeId===westernGroceryRuntimeId(state)
-      &&isGroceryExpansionInventory(row)&&row.raw?.shadowOnly!==true&&row.sourceProductBinding?.shadowOnly!==true
+      &&isGroceryExpansionInventory(row)&&row.quarantined!==true&&row.raw?.sourceRuntimeNonAlertable!==true&&row.raw?.staleFallback!==true&&row.raw?.shadowOnly!==true&&row.sourceProductBinding?.shadowOnly!==true
       &&Number.isFinite(Date.parse(row.observedAt))&&nowMs-Date.parse(row.observedAt)>=0
       &&nowMs-Date.parse(row.observedAt)<=WESTERN_GROCERY_CACHE_MAX_AGE_MS);
 }

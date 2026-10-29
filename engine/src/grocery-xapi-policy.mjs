@@ -73,6 +73,7 @@ export function groceryExpansionLibraryTier(row, bible) {
 export function isGroceryExpansionOnSiteSignal(row) {
   return ['WA', 'NM'].includes(row?.state) && isGroceryExpansionInventory(row)
     && row.raw?.shadowOnly !== true && row.sourceProductBinding?.shadowOnly !== true
+    && row.quarantined !== true && row.raw?.sourceRuntimeNonAlertable !== true && row.raw?.staleFallback !== true
     && row.inventorySemantics === row.sourceProductBinding.inventorySemantics
     && row.eligibleForOnSite === true && row.eligibleForDropFeed === true
     && row.canAlertAsInventory === false && row.canAlertAsWatch === false
