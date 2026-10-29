@@ -10,13 +10,14 @@
         "sourceId": "yucatan-liquor-okc"
       },
       "expected": {
-        "sourceRows": 5,
-        "inventoryProofRows": 5,
-        "candidateCount": 5,
+        "sourceRows": 6,
+        "inventoryProofRows": 6,
+        "candidateCount": 6,
         "canonicalNames": [
           "1792 Full Proof",
           "Eagle Rare 10 Year",
           "Elijah Craig Barrel Proof",
+          "Larceny Barrel Proof",
           "Weller Special Reserve"
         ]
       }
@@ -89,7 +90,7 @@
         "ageMinutes": 300
       },
       "expected": {
-        "sourceRows": 5,
+        "sourceRows": 6,
         "inventoryProofRows": 0,
         "candidateCount": 0,
         "preservesOriginalTimestamp": true
@@ -115,8 +116,8 @@
         "shadowOnly": true
       },
       "expected": {
-        "sourceRows": 5,
-        "inventoryProofRows": 5,
+        "sourceRows": 6,
+        "inventoryProofRows": 6,
         "candidateCount": 0,
         "deliveryEligible": false,
         "confidenceInventoryAllowed": false

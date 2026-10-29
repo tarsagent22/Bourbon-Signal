@@ -1,6 +1,7 @@
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory } from './central-cityhive-policy.mjs';
+import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -693,6 +694,10 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
         ? 'Stale OHLQ store-status signal. OHLQ collection is currently blocked/stale, so this is the latest cached status; verify on OHLQ or call the store before driving.'
         : isShopifyPickup && canAlertAsInventory
           ? 'Retailer-published pickup availability for this exact product variant and store address. Exact shelf quantity is not published; confirm before driving.'
+        : isGroceryExpansionInventory(signal) && canAlertAsInventory
+          ? signal.quantityIsExact === true
+            ? 'First-party in-store inventory at this exact store. Retailer-reported quantities can change; verify before driving.'
+            : 'First-party in-store availability at this exact store. Exact shelf count is not published; verify before driving.'
         : signal.state === 'CA' && canAlertAsInventory
           ? 'First-party product orderability plus a separately fetched first-party pickup/collection policy for this single-location San Diego retailer. Exact shelf quantity is not published; verify pickup before driving.'
         : ['NY', 'CO'].includes(signal.state) && canAlertAsInventory
@@ -1949,6 +1954,8 @@ function ohioFeedStaleCaveat(signal) {
 export function dropHasPositiveAlertInventory(drop, shopifyPolicy) {
   if(isCentralCityHiveRetailerEvent(drop))return isCentralCityHiveInventory(drop)&&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding?.shadowOnly!==true;
   if (drop?.stale || drop?.sourceStale || drop?.raw?.staleFallback) return false;
+  if(drop?.sourceProductBinding?.source==='grocery-xapi')return isGroceryExpansionInventory(drop)
+    &&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding.shadowOnly!==true;
   if (genericShopifyPickupRow(drop) || shopifyPolicy?.owns(drop)) return shopifyPolicy?.eligible(drop) === true;
   if (drop?.state === 'AZ') return isArizonaRetailerInventory(drop);
   if (drop?.state === 'IN') return isIndianaRetailerInventory(drop);
