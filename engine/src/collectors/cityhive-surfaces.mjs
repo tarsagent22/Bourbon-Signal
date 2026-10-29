@@ -126,6 +126,7 @@ export function parseCityHiveProducts(html, candidateSource, {
   sources = [],
   isAllowedBottleFormat = () => true,
   isAllowedOption = () => true,
+  reviewOption = () => null,
 } = {}) {
   const source = canonicalSource(candidateSource, sources);
   if (!source || source.platform !== 'cityhive') return [];
@@ -172,7 +173,9 @@ export function parseCityHiveProducts(html, candidateSource, {
           if (seen.has(key)) continue;
           seen.add(key);
           const parsedPrice = Number(option.price);
+          const reviewedIdentity = reviewOption(option, product);
           rows.push({
+            ...(reviewedIdentity ? { reviewedIdentity } : {}),
             merchantId: source.merchantId,
             productId,
             variantId,

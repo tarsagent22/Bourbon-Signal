@@ -51,15 +51,11 @@ export function reviewedCentralCityHiveIdentity(option, product) {
 export function parseCentralCityHiveInventory(html, candidate, bible, {observedAt}={}) {
   const source=CENTRAL_CITYHIVE_EXPANSION_SOURCES.find(s=>s===candidate);
   if(!source || !Number.isFinite(Date.parse(observedAt)))return [];
-  const reviewed=new Map();
   return parseCityHiveProducts(html,source,{sources:CENTRAL_CITYHIVE_EXPANSION_SOURCES,
-    isAllowedOption:(option,product)=>{
-      const identity=reviewedCentralCityHiveIdentity(option,product);
-      if(identity)reviewed.set(String(option.option_id),identity);
-      return centralCityHiveBottleFormat(option,product);
-    },
+    isAllowedOption:centralCityHiveBottleFormat,
+    reviewOption:reviewedCentralCityHiveIdentity,
   }).flatMap(row=>{
-    const identity=reviewed.get(row.variantId);
+    const identity=row.reviewedIdentity;
     const {record,match}=identity ? (()=>{const m=bible.match(identity);return {match:m,record:m?.record?.canonical===identity?m.record:null};})() : cityHiveSafeBottleMatch(row.title,bible);
     if(!record || !['allocated','limited','unicorn'].includes(record.tier) || !Number.isFinite(row.price) || row.price<=0)return [];
     return [{id:stableId([source.state,source.id,row.productId,row.variantId]),state:source.state,stateCode:source.state,

@@ -43,6 +43,27 @@ test('Wisconsin reviewed identity rejects changed age, expression, brand, size a
   assert.deepEqual(parseCentralCityHiveInventory(html(fixtures[0]),{...CENTRAL_CITYHIVE_EXPANSION_SOURCES[0]},bible,{observedAt:at}),[]);
 });
 
+test('reviewed identity stays bound to the accepted option when variant IDs are reused',()=>{
+  const f=structuredClone(fixtures[0]);
+  const poison=f.products[0];
+  const unrelated=structuredClone(poison);
+  const id='6594472cd20b667b856eb420';
+  unrelated.id=id;unrelated.name='Unidentified Whiskey 750ml';
+  const option=unrelated.merchants[0].product_options[0];
+  option.product_id=id;
+  option.product_url=option.product_url.replace(poison.id,id);
+  option.option_display_data.name=unrelated.name;
+  poison.merchants[0].product_options[0].merchant_id='6060f5bded7ffb6a9c4c64b8';
+  f.products=[poison,unrelated];
+  assert.deepEqual(parse(0,f),[]);
+  const mixed=structuredClone(fixtures[0]);
+  const wrongAge=structuredClone(mixed.products[0]);
+  mixed.products[0].merchants[0].product_options[0].quantity=0;
+  wrongAge.merchants[0].product_options[0].option_display_data.properties.age='20';
+  mixed.products.push(wrongAge);
+  assert.deepEqual(parse(0,mixed),[]);
+});
+
 test('collector rotates library discovery with a five-request per-store ceiling and deduplicates replay',async()=>{
   const cursorDir=await mkdtemp(path.join(tmpdir(),'central-discovery-'));
   try{
