@@ -8,7 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "runtimeVersion": "1.1.0-ios-live-labels-1",
+      "runtimeVersion": "1.1.0-ios-iap-1",
       "supportsTablet": false,
       "bundleIdentifier": "com.bourbonsignal.app",
       "config": {
@@ -35,7 +35,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "runtimeVersion": "1.1.0-android-live-labels-1",
+      "runtimeVersion": "1.1.0-android-play-1",
       "googleServicesFile": "./google-services.json"
     },
     "web": {
