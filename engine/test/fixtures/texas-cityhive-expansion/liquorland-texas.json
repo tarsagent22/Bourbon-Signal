@@ -8,7 +8,14 @@
         "id": "5d41148494a4df3b7c75f456",
         "name": "LiquorLand- Fort Worth",
         "address": {
-          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA"
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2755554,
+              32.8929842
+            ]
+          }
         }
       }
     },
@@ -17,7 +24,14 @@
         "id": "660c7ebae6de312acd1d5200",
         "name": "LiquorLand - Watauga/Denton Hwy",
         "address": {
-          "full_address": "5932 Denton Hwy Suite 100, Watauga, TX 76148, USA"
+          "full_address": "5932 Denton Hwy Suite 100, Watauga, TX 76148, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2633893,
+              32.8553783
+            ]
+          }
         }
       }
     },
@@ -26,7 +40,14 @@
         "id": "660c7f194f10412ad2230175",
         "name": "LiquorLand - Hurst",
         "address": {
-          "full_address": "1842 Precinct Line Rd suite 200, Hurst, TX 76054, USA"
+          "full_address": "1842 Precinct Line Rd suite 200, Hurst, TX 76054, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.185497,
+              32.8494008
+            ]
+          }
         }
       }
     },
@@ -35,7 +56,14 @@
         "id": "660c7f4472381d2ab3bce777",
         "name": "LiquorLand- Corral City",
         "address": {
-          "full_address": "1217 FM 407, Argyle, TX 76226, USA"
+          "full_address": "1217 FM 407, Argyle, TX 76226, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2264805,
+              33.0998228
+            ]
+          }
         }
       }
     },
@@ -44,7 +72,14 @@
         "id": "660c7f7a81ae872abcca6944",
         "name": "LiquorLand- Highland Village",
         "address": {
-          "full_address": "2630 Justin Rd #101, Highland Village, TX 75077, USA"
+          "full_address": "2630 Justin Rd #101, Highland Village, TX 75077, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.0702154,
+              33.0743851
+            ]
+          }
         }
       }
     },
@@ -53,7 +88,14 @@
         "id": "660c7fb148e78f2b1c672487",
         "name": "LiquorLand- Lewisville",
         "address": {
-          "full_address": "1288 W Main St suite 233, Lewisville, TX 75067, USA"
+          "full_address": "1288 W Main St suite 233, Lewisville, TX 75067, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.0243449,
+              33.04142890000001
+            ]
+          }
         }
       }
     },
@@ -62,7 +104,14 @@
         "id": "660c7ff172381d2ababcfdb1",
         "name": "BevLand",
         "address": {
-          "full_address": "5932 Denton Hwy Suite 200, Watauga, TX 76148, USA"
+          "full_address": "5932 Denton Hwy Suite 200, Watauga, TX 76148, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2633893,
+              32.8553783
+            ]
+          }
         }
       }
     },
@@ -71,7 +120,14 @@
         "id": "66845f88578b563d4b7633ad",
         "name": "The Liquor Outpost",
         "address": {
-          "full_address": "4300 Western Center Blvd, Fort Worth, TX 76137, USA"
+          "full_address": "4300 Western Center Blvd, Fort Worth, TX 76137, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2930657,
+              32.8605742
+            ]
+          }
         }
       }
     },
@@ -80,7 +136,14 @@
         "id": "66845fc4de6b221e8a7a902e",
         "name": "LiquorLand- Lewisville/Castle Hills",
         "address": {
-          "full_address": "2425 FM 544 suite 400, Lewisville, TX 75056, USA"
+          "full_address": "2425 FM 544 suite 400, Lewisville, TX 75056, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -96.9135764,
+              33.046802
+            ]
+          }
         }
       }
     },
@@ -89,7 +152,14 @@
         "id": "66bcb807db1386447f4794c7",
         "name": "LiquorLand- Watauga/Rufe Snow",
         "address": {
-          "full_address": "8239 Rufe Snow Dr, Watauga, TX 76148, USA"
+          "full_address": "8239 Rufe Snow Dr, Watauga, TX 76148, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.239289,
+              32.890661
+            ]
+          }
         }
       }
     },
@@ -98,7 +168,14 @@
         "id": "6880efb95d834f34deaa95b5",
         "name": "LiquorLand - Saginaw",
         "address": {
-          "full_address": "1005 N Saginaw Blvd #175, Saginaw, TX 76179, USA"
+          "full_address": "1005 N Saginaw Blvd #175, Saginaw, TX 76179, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.3764315,
+              32.8740833
+            ]
+          }
         }
       }
     },
@@ -107,7 +184,14 @@
         "id": "6931f31876c5c254b134a66f",
         "name": "LiquorLand - Irving",
         "address": {
-          "full_address": "2660 N Belt Line Rd, Irving, TX 75062, USA"
+          "full_address": "2660 N Belt Line Rd, Irving, TX 75062, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -96.991748,
+              32.8428704
+            ]
+          }
         }
       }
     }

@@ -8,7 +8,14 @@
         "id": "546ba9d939323300027e0100",
         "name": "Liquor Cabinet",
         "address": {
-          "full_address": "2615 Mills Branch Dr, Kingwood, TX 77345, USA"
+          "full_address": "2615 Mills Branch Dr, Kingwood, TX 77345, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -95.16988630000002,
+              30.0706741
+            ]
+          }
         }
       }
     }

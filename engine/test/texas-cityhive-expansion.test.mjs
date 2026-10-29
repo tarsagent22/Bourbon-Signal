@@ -27,6 +27,7 @@ test('captured new Texas premises survive operational, public drop and current a
   const current=buildCurrentInventoryAlertsFromDrops(drops);
   assert.equal(new Set(current.map(r=>r.storeId)).size,4);
   assert.ok(current.every(r=>r.quantity===0&&r.quantityIsExact===false));
+  assert.ok(current.every(r=>Number.isFinite(r.lat)&&Number.isFinite(r.lng)));
   assert.ok(current.every(isTexasRetailerInventory));
 });
 
@@ -36,7 +37,14 @@ test('Texas expansion proof rejects changed address, variant, source and product
     {storeAddress:'Other Address'}, {sourceUrl:'https://attacker.invalid/shop/product/x/y'},
     {optionId:'wrong'}, {productId:'wrong'}, {merchantId:'wrong'},
     {quantity:100}, {quantityIsExact:true}, {sourceProductBinding:{...row.sourceProductBinding,price:1}},
+    {lat:0},{lng:0},
   ])assert.equal(isTexasExpansionSignalIdentity({...row,...change}),false);
+});
+
+test('changed runtime merchant coordinates cannot reuse a reviewed premise geocode',()=>{
+  const source=TEXAS_CITYHIVE_EXPANSION_SOURCES[0],capture=structuredClone(captures[source.chainId]);
+  capture.merchant_configs.find(c=>c.merchant.id===source.merchantId).merchant.address.location.coordinates[0]=0;
+  assert.deepEqual(parseCentralCityHiveInventory(html(capture),source,bible,{observedAt:at}),[]);
 });
 
 test('bounded Texas refresh checks two terms per reviewed store and reuses only original fresh evidence',async()=>{

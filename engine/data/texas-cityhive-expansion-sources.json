@@ -18,7 +18,9 @@
       "zip": "77345",
       "storeId": "liquor-cabinet-kingwood:546ba9d939323300027e0100",
       "sourceLabel": "Liquor Cabinet Texas first-party pickup inventory",
-      "categoryUrl": "https://shopliquorcabinet.com/shop/?subtype=Bourbon&merchant-id=546ba9d939323300027e0100"
+      "categoryUrl": "https://shopliquorcabinet.com/shop/?subtype=Bourbon&merchant-id=546ba9d939323300027e0100",
+      "lat": 30.0706741,
+      "lng": -95.16988630000002
     },
     {
       "id": "liquorland-texas:5d41148494a4df3b7c75f456",
@@ -36,7 +38,9 @@
       "zip": "76137",
       "storeId": "liquorland-texas:5d41148494a4df3b7c75f456",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=5d41148494a4df3b7c75f456"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=5d41148494a4df3b7c75f456",
+      "lat": 32.8929842,
+      "lng": -97.2755554
     },
     {
       "id": "liquorland-texas:660c7ebae6de312acd1d5200",
@@ -54,7 +58,9 @@
       "zip": "76148",
       "storeId": "liquorland-texas:660c7ebae6de312acd1d5200",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7ebae6de312acd1d5200"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7ebae6de312acd1d5200",
+      "lat": 32.8553783,
+      "lng": -97.2633893
     },
     {
       "id": "liquorland-texas:660c7f194f10412ad2230175",
@@ -72,7 +78,9 @@
       "zip": "76054",
       "storeId": "liquorland-texas:660c7f194f10412ad2230175",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7f194f10412ad2230175"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7f194f10412ad2230175",
+      "lat": 32.8494008,
+      "lng": -97.185497
     },
     {
       "id": "liquorland-texas:660c7f4472381d2ab3bce777",
@@ -90,7 +98,9 @@
       "zip": "76226",
       "storeId": "liquorland-texas:660c7f4472381d2ab3bce777",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7f4472381d2ab3bce777"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7f4472381d2ab3bce777",
+      "lat": 33.0998228,
+      "lng": -97.2264805
     },
     {
       "id": "liquorland-texas:660c7f7a81ae872abcca6944",
@@ -108,7 +118,9 @@
       "zip": "75077",
       "storeId": "liquorland-texas:660c7f7a81ae872abcca6944",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7f7a81ae872abcca6944"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7f7a81ae872abcca6944",
+      "lat": 33.0743851,
+      "lng": -97.0702154
     },
     {
       "id": "liquorland-texas:660c7fb148e78f2b1c672487",
@@ -126,7 +138,9 @@
       "zip": "75067",
       "storeId": "liquorland-texas:660c7fb148e78f2b1c672487",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7fb148e78f2b1c672487"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7fb148e78f2b1c672487",
+      "lat": 33.04142890000001,
+      "lng": -97.0243449
     },
     {
       "id": "liquorland-texas:660c7ff172381d2ababcfdb1",
@@ -144,7 +158,9 @@
       "zip": "76148",
       "storeId": "liquorland-texas:660c7ff172381d2ababcfdb1",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7ff172381d2ababcfdb1"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=660c7ff172381d2ababcfdb1",
+      "lat": 32.8553783,
+      "lng": -97.2633893
     },
     {
       "id": "liquorland-texas:66845f88578b563d4b7633ad",
@@ -162,7 +178,9 @@
       "zip": "76137",
       "storeId": "liquorland-texas:66845f88578b563d4b7633ad",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=66845f88578b563d4b7633ad"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=66845f88578b563d4b7633ad",
+      "lat": 32.8605742,
+      "lng": -97.2930657
     },
     {
       "id": "liquorland-texas:66845fc4de6b221e8a7a902e",
@@ -180,7 +198,9 @@
       "zip": "75056",
       "storeId": "liquorland-texas:66845fc4de6b221e8a7a902e",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=66845fc4de6b221e8a7a902e"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=66845fc4de6b221e8a7a902e",
+      "lat": 33.046802,
+      "lng": -96.9135764
     },
     {
       "id": "liquorland-texas:66bcb807db1386447f4794c7",
@@ -198,7 +218,9 @@
       "zip": "76148",
       "storeId": "liquorland-texas:66bcb807db1386447f4794c7",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=66bcb807db1386447f4794c7"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=66bcb807db1386447f4794c7",
+      "lat": 32.890661,
+      "lng": -97.239289
     },
     {
       "id": "liquorland-texas:6880efb95d834f34deaa95b5",
@@ -216,7 +238,9 @@
       "zip": "76179",
       "storeId": "liquorland-texas:6880efb95d834f34deaa95b5",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=6880efb95d834f34deaa95b5"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=6880efb95d834f34deaa95b5",
+      "lat": 32.8740833,
+      "lng": -97.3764315
     },
     {
       "id": "liquorland-texas:6931f31876c5c254b134a66f",
@@ -234,7 +258,9 @@
       "zip": "75062",
       "storeId": "liquorland-texas:6931f31876c5c254b134a66f",
       "sourceLabel": "LiquorLand Texas first-party pickup inventory",
-      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=6931f31876c5c254b134a66f"
+      "categoryUrl": "https://liquorland.us/shop/?subtype=Bourbon&merchant-id=6931f31876c5c254b134a66f",
+      "lat": 32.8428704,
+      "lng": -96.991748
     },
     {
       "id": "lol-liquors-texas:648b2c3280fafa2a9b7a1c18",
@@ -252,7 +278,9 @@
       "zip": "78154",
       "storeId": "lol-liquors-texas:648b2c3280fafa2a9b7a1c18",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2c3280fafa2a9b7a1c18"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2c3280fafa2a9b7a1c18",
+      "lat": 29.55854859999999,
+      "lng": -98.2544788
     },
     {
       "id": "lol-liquors-texas:648b2c634ad5482a835b74e0",
@@ -270,7 +298,9 @@
       "zip": "78266",
       "storeId": "lol-liquors-texas:648b2c634ad5482a835b74e0",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2c634ad5482a835b74e0"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2c634ad5482a835b74e0",
+      "lat": 29.6139656,
+      "lng": -98.31260700000001
     },
     {
       "id": "lol-liquors-texas:648b2c87170dfb2a911b0095",
@@ -288,7 +318,9 @@
       "zip": "78247",
       "storeId": "lol-liquors-texas:648b2c87170dfb2a911b0095",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2c87170dfb2a911b0095"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2c87170dfb2a911b0095",
+      "lat": 29.6003066,
+      "lng": -98.4053193
     },
     {
       "id": "lol-liquors-texas:648b2cb0bb96612c02da7b6c",
@@ -306,7 +338,9 @@
       "zip": "78109",
       "storeId": "lol-liquors-texas:648b2cb0bb96612c02da7b6c",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2cb0bb96612c02da7b6c"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2cb0bb96612c02da7b6c",
+      "lat": 29.4941407,
+      "lng": -98.32805139999999
     },
     {
       "id": "lol-liquors-texas:648b2ce12c7c742ad1b4998d",
@@ -324,7 +358,9 @@
       "zip": "78108",
       "storeId": "lol-liquors-texas:648b2ce12c7c742ad1b4998d",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2ce12c7c742ad1b4998d"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2ce12c7c742ad1b4998d",
+      "lat": 29.6037973,
+      "lng": -98.2254634
     },
     {
       "id": "lol-liquors-texas:648b2d186fed862c0fe0d0c2",
@@ -342,7 +378,9 @@
       "zip": "78232",
       "storeId": "lol-liquors-texas:648b2d186fed862c0fe0d0c2",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2d186fed862c0fe0d0c2"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2d186fed862c0fe0d0c2",
+      "lat": 29.587125,
+      "lng": -98.4514129
     },
     {
       "id": "lol-liquors-texas:648b2d40b79e832a86bb466d",
@@ -360,7 +398,9 @@
       "zip": "78244",
       "storeId": "lol-liquors-texas:648b2d40b79e832a86bb466d",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2d40b79e832a86bb466d"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=648b2d40b79e832a86bb466d",
+      "lat": 29.4786396,
+      "lng": -98.3621847
     },
     {
       "id": "lol-liquors-texas:6060f7b3ed7ffb6a9c4c6879",
@@ -378,7 +418,9 @@
       "zip": "78233",
       "storeId": "lol-liquors-texas:6060f7b3ed7ffb6a9c4c6879",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=6060f7b3ed7ffb6a9c4c6879"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=6060f7b3ed7ffb6a9c4c6879",
+      "lat": 29.5487152,
+      "lng": -98.3443965
     },
     {
       "id": "lol-liquors-texas:689f6a4d5f28f92938aa531b",
@@ -396,7 +438,9 @@
       "zip": "78064",
       "storeId": "lol-liquors-texas:689f6a4d5f28f92938aa531b",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6a4d5f28f92938aa531b"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6a4d5f28f92938aa531b",
+      "lat": 28.9401956,
+      "lng": -98.51430649999999
     },
     {
       "id": "lol-liquors-texas:689f6ab0bdd7ad29226fafe6",
@@ -414,7 +458,9 @@
       "zip": "78061",
       "storeId": "lol-liquors-texas:689f6ab0bdd7ad29226fafe6",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6ab0bdd7ad29226fafe6"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6ab0bdd7ad29226fafe6",
+      "lat": 28.8957183,
+      "lng": -99.11236609999999
     },
     {
       "id": "lol-liquors-texas:689f6a89b1748f4f14703e5a",
@@ -432,7 +478,9 @@
       "zip": "78249",
       "storeId": "lol-liquors-texas:689f6a89b1748f4f14703e5a",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6a89b1748f4f14703e5a"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6a89b1748f4f14703e5a",
+      "lat": 29.5626159,
+      "lng": -98.6116083
     },
     {
       "id": "lol-liquors-texas:689f6b69bdd7ad17886f5570",
@@ -450,7 +498,9 @@
       "zip": "78852",
       "storeId": "lol-liquors-texas:689f6b69bdd7ad17886f5570",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6b69bdd7ad17886f5570"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6b69bdd7ad17886f5570",
+      "lat": 28.6874046,
+      "lng": -100.474706
     },
     {
       "id": "lol-liquors-texas:689f69a4bdd7ad291b6f9af9",
@@ -468,7 +518,9 @@
       "zip": "78852",
       "storeId": "lol-liquors-texas:689f69a4bdd7ad291b6f9af9",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f69a4bdd7ad291b6f9af9"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f69a4bdd7ad291b6f9af9",
+      "lat": 28.7091716,
+      "lng": -100.4843191
     },
     {
       "id": "lol-liquors-texas:689f6ae0b03f944d479bbdaa",
@@ -486,7 +538,9 @@
       "zip": "78130",
       "storeId": "lol-liquors-texas:689f6ae0b03f944d479bbdaa",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6ae0b03f944d479bbdaa"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=689f6ae0b03f944d479bbdaa",
+      "lat": 29.7427617,
+      "lng": -98.093734
     },
     {
       "id": "lol-liquors-texas:69fcc915f21eda03d884c5fb",
@@ -504,7 +558,9 @@
       "zip": "78016",
       "storeId": "lol-liquors-texas:69fcc915f21eda03d884c5fb",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=69fcc915f21eda03d884c5fb"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=69fcc915f21eda03d884c5fb",
+      "lat": 29.13178659999999,
+      "lng": -98.89539099999999
     },
     {
       "id": "lol-liquors-texas:69fcca5af1a527004c2f9c55",
@@ -522,7 +578,9 @@
       "zip": "78003",
       "storeId": "lol-liquors-texas:69fcca5af1a527004c2f9c55",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=69fcca5af1a527004c2f9c55"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=69fcca5af1a527004c2f9c55",
+      "lat": 29.7275546,
+      "lng": -99.0678708
     },
     {
       "id": "lol-liquors-texas:62d59727c0b2c8506b3b0ee5",
@@ -540,7 +598,9 @@
       "zip": "78130",
       "storeId": "lol-liquors-texas:62d59727c0b2c8506b3b0ee5",
       "sourceLabel": "LOL Liquors Texas first-party pickup inventory",
-      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=62d59727c0b2c8506b3b0ee5"
+      "categoryUrl": "https://lolliquors.com/shop/?subtype=Bourbon&merchant-id=62d59727c0b2c8506b3b0ee5",
+      "lat": 29.69772,
+      "lng": -98.07021
     },
     {
       "id": "kindred-spirits-texas:64480c90c649312ac1c99921",
@@ -558,7 +618,9 @@
       "zip": "75209",
       "storeId": "kindred-spirits-texas:64480c90c649312ac1c99921",
       "sourceLabel": "Kindred Spirits & Wine Texas first-party pickup inventory",
-      "categoryUrl": "https://houseofkindredspiritsandwine.com/shop/?subtype=Bourbon&merchant-id=64480c90c649312ac1c99921"
+      "categoryUrl": "https://houseofkindredspiritsandwine.com/shop/?subtype=Bourbon&merchant-id=64480c90c649312ac1c99921",
+      "lat": 32.8314475,
+      "lng": -96.82493869999999
     },
     {
       "id": "kindred-spirits-texas:658c751d1b114d703bdf69c4",
@@ -576,7 +638,9 @@
       "zip": "75062",
       "storeId": "kindred-spirits-texas:658c751d1b114d703bdf69c4",
       "sourceLabel": "Kindred Spirits & Wine Texas first-party pickup inventory",
-      "categoryUrl": "https://houseofkindredspiritsandwine.com/shop/?subtype=Bourbon&merchant-id=658c751d1b114d703bdf69c4"
+      "categoryUrl": "https://houseofkindredspiritsandwine.com/shop/?subtype=Bourbon&merchant-id=658c751d1b114d703bdf69c4",
+      "lat": 32.8358709,
+      "lng": -96.99735179999999
     }
   ]
 }

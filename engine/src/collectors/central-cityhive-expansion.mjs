@@ -59,6 +59,12 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
   return parseCityHiveProducts(html,source,{sources:ALL_SOURCES,
     isAllowedOption:centralCityHiveBottleFormat,
     reviewOption:reviewedCentralCityHiveIdentity,
+    isAllowedMerchantConfiguration:merchant=>{
+      if(source.lat==null&&source.lng==null)return true;
+      const point=merchant.address?.location,coordinates=point?.coordinates;
+      return point?.type==='Point'&&Array.isArray(coordinates)&&coordinates.length===2
+        &&coordinates.every(Number.isFinite)&&coordinates[1]===source.lat&&coordinates[0]===source.lng;
+    },
   }).flatMap(row=>{
     const identity=row.reviewedIdentity;
     const {record,match}=identity ? (()=>{const m=bible.match(identity);return {match:m,record:m?.record?.canonical===identity?m.record:null};})() : cityHiveSafeBottleMatch(row.title,bible);
@@ -71,6 +77,7 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
       tier:record.tier,confidence:Math.max(.85,match?.confidence || 0),eventType:'retailer_store_inventory_result',
       locationPrecision:'store_level',locationName:source.name,storeName:source.name,storeId:source.storeId,
       storeAddress:source.address,city:source.city,postalCode:source.zip,zip:source.zip,
+      lat:source.lat??null,lng:source.lng??null,
       quantity:0,storeQty:0,quantityIsExact:false,quantitySemantics:'binary_retailer_orderable_no_exact_count',
       price:row.price,observedAt,fetchedAt:observedAt,availabilityStatus:'in_stock',
       availabilityLabel:'Retailer reports pickup available',sourceAvailabilityVerified:true,
@@ -80,7 +87,8 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
       sourceProductBinding:{schemaVersion:1,source:'central-cityhive',merchantId:source.merchantId,storeId:source.storeId,
         storeAddress:source.address,productId:row.productId,optionId:row.variantId,rawName:row.title,
         canonicalBottleId:record.id,canonicalName:record.canonical,price:row.price,observedAt,premisesVerified:true,pickupOfferVerified:true,
-        reportedQuantity:row.reportedQuantity,quantitySemantics:'binary_retailer_orderable_no_exact_count'},
+        reportedQuantity:row.reportedQuantity,quantitySemantics:'binary_retailer_orderable_no_exact_count',
+        ...(source.lat!=null&&source.lng!=null?{latitude:source.lat,longitude:source.lng,coordinatesVerified:true}:{})},
       raw:{chain:source.chainId||source.id,merchantId:source.merchantId,productId:row.productId,optionId:row.variantId,
         reportedQuantity:row.reportedQuantity,quantitySemantics:'binary_retailer_orderable_no_exact_count'}}];
   });
