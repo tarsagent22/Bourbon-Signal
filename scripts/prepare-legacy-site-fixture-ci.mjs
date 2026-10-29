@@ -24,7 +24,8 @@ export async function prepareLegacySiteFixtureForCi({root=ROOT,ci=false,workflow
   const site=path.join(root,'engine/out/site'),config=await readJson(path.join(root,'src/config/state-lifecycle.json'));
   const [manifest,stats,quality,drops,index]=await Promise.all(['manifest.json','stats.json','state-quality.json','drops.json','states/index.json'].map(file=>readJson(path.join(site,file))));
   if(manifest.runId!==LEGACY_RUN||stats.runId!==LEGACY_RUN||index.runId!==LEGACY_RUN
-    ||manifest.generatedAt!==stats.generatedAt||manifest.generatedAt!==index.generatedAt)
+    ||manifest.generatedAt!==stats.generatedAt||manifest.generatedAt!==index.generatedAt
+    ||manifest.generatedAt!==quality.generatedAt||manifest.generatedAt!==drops.generatedAt)
     throw Error('CI preparation only accepts the reviewed historical site fixture and its original clocks');
   const legacyStates=config.activeStates.filter(state=>!ADDITIONS.includes(state));
   if(legacyStates.length!==24||config.activeStates.length!==28||ADDITIONS.some(state=>!config.activeStates.includes(state)))throw Error('Unexpected lifecycle scope for this exact CI fixture migration');
@@ -44,6 +45,10 @@ export async function prepareLegacySiteFixtureForCi({root=ROOT,ci=false,workflow
   const payloads=new Map([...previousPayloads].filter(([state])=>legacyStates.includes(state)));
   const writes=[];
   for(const state of ADDITIONS){
+    try{
+      const prior=await readJson(path.join(site,`states/${state}/drops.json`));
+      if(prior.ciFixtureOnly!==true||prior.count!==0||!Array.isArray(prior.drops)||prior.drops.length)throw Error('Refusing to overwrite a real or unindexed new-state partition');
+    }catch(error){if(error.code!=='ENOENT')throw error;}
     const payload={...built.payloads.get(state),runId:manifest.runId,engineGeneratedAt:manifest.engineGeneratedAt,ciFixtureOnly:true,collectionStatus:'ci_not_collected'};
     const text=serialize(payload),file=`states/${state}/drops.json`;
     entries.push({state,file,count:0,sha256:hash(text),ciFixtureOnly:true});payloads.set(state,payload);writes.push([file,text]);
