@@ -122,6 +122,11 @@ function signalFor(source, row, overrides = {}) {
 
 test('New York and Colorado registries are bounded to exact first-party retailer identities', () => {
   assert.deepEqual(NEW_YORK_RETAILER_SOURCES.map((source) => source.id).sort(), [
+    'eastside-cellars',
+    'winecity-east-northport',
+    'columbus-circle-wine',
+    'vino-fine-wine',
+    'grand-wine-cellar',
     'cellar-53',
     'broadway-spirits',
     'flatiron-wines',
@@ -159,18 +164,18 @@ test('New York and Colorado registries are bounded to exact first-party retailer
     'peak-wine-spirits',
     'south-park-liquor',
   ].sort());
-  assert.ok(NEW_YORK_RETAILER_SOURCES.every((source) => source.stateCode === 'NY' && ['New York City', 'Nassau County', 'Buffalo', 'Rochester Metro', 'Hudson Valley', 'Lake George'].includes(source.area)));
-  assert.equal(NEW_YORK_RETAILER_SOURCES.filter((source) => source.area === 'Nassau County').length, 4);
+  assert.ok(NEW_YORK_RETAILER_SOURCES.every((source) => source.stateCode === 'NY' && ['New York City', 'Nassau County', 'Suffolk County', 'Buffalo', 'Rochester Metro', 'Hudson Valley', 'Lake George'].includes(source.area)));
+  assert.equal(NEW_YORK_RETAILER_SOURCES.filter((source) => source.area === 'Nassau County').length, 5);
   assert.equal(nyBuffaloSources.length, 2);
   assert.ok(NEW_YORK_RETAILER_SOURCES.filter((source) => source.platform === 'shopify').every((source) => source.inventoryMode === 'catalog_only' && source.inventoryEligible === false));
   assert.ok(COLORADO_RETAILER_SOURCES.every((source) => source.stateCode === 'CO' && ['Denver Metro', 'Boulder County', 'Colorado Springs'].includes(source.area)));
   assert.equal(nyItemListSources.length, 10);
   assert.equal(coItemListSources.length, 3);
-  assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 24);
+  assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 29);
   assert.equal(new Set(COLORADO_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 11);
   for (const source of [...NEW_YORK_RETAILER_SOURCES, ...COLORADO_RETAILER_SOURCES]) {
     assert.match(source.baseUrl, /^https:\/\//);
-    assert.equal(source.inventoryEligible, source.platform === 'cityhive');
+    assert.equal(source.inventoryEligible, ['cityhive', 'shopify-variant-pickup'].includes(source.platform));
     assert.ok(source.stores.every((store) => store.id && store.name && store.address && store.city && store.zip && store.merchantId));
   }
 });

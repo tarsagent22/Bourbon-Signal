@@ -1,3 +1,5 @@
+import { isTexasExpansionSignalIdentity } from './collectors/texas-cityhive-expansion.mjs';
+
 const TEXAS_RETAILER_IDENTITIES = new Map([
   ['Twin Liquors CityHive store inventory', { chain: 'twin-liquors', hostname: 'twinliquors.com', merchantPattern: /^[0-9a-f]{24}$/i }],
   ['Zipps Liquor CityHive store inventory', { chain: 'zipps-liquor', hostname: 'shop.zippsliquor.com', merchantPattern: /^[0-9a-f]{24}$/i }],
@@ -21,6 +23,7 @@ function sourceHostname(signal) {
 }
 
 export function isTexasRetailerSignalIdentity(signal) {
+  if(isTexasExpansionSignalIdentity(signal))return true;
   const source = String(signal.sourceLabel || signal.source || '');
   const identity = TEXAS_RETAILER_IDENTITIES.get(source);
   if (!identity) return false;
@@ -31,7 +34,7 @@ export function isTexasRetailerSignalIdentity(signal) {
     && identity.merchantPattern.test(merchantId)
     && String(signal.storeId || '') === `${chain}:${merchantId}`
     && Boolean(signal.productId || signal.raw?.productId || signal.raw?.product?.id)
-    && Boolean(signal.optionId || signal.raw?.optionId || signal.raw?.option?.option_id);
+    && Boolean(signal.optionId || signal.variantId || signal.raw?.optionId || signal.raw?.option?.option_id);
 }
 
 export function isTexasRetailerInventory(signal) {

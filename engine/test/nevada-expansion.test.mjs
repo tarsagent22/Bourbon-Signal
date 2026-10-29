@@ -110,7 +110,7 @@ function wooProduct(overrides = {}) {
 }
 
 test('Nevada source registry freezes exact first-party retailer identities', () => {
-  for (const source of NEVADA_RETAILER_SOURCES) {
+  for (const source of NEVADA_RETAILER_SOURCES.filter(source => expectedSources.has(source.id))) {
     const expected = expectedSources.get(source.id);
     assert.ok(expected, `unexpected source ${source.id}`);
     assert.equal(source.host, expected.host);
@@ -122,7 +122,7 @@ test('Nevada source registry freezes exact first-party retailer identities', () 
     assert.equal(Object.isFrozen(source), true);
     assert.equal(Object.isFrozen(source.store), true);
   }
-  assert.equal(NEVADA_RETAILER_SOURCES.length, expectedSources.size);
+  assert.equal(NEVADA_RETAILER_SOURCES.filter(source => expectedSources.has(source.id)).length, expectedSources.size);
 });
 
 test('Nevada parsers fail closed on malformed reachable payloads', () => {

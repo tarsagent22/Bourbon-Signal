@@ -125,6 +125,9 @@ function canonicalSource(candidate, sources) {
 export function parseCityHiveProducts(html, candidateSource, {
   sources = [],
   isAllowedBottleFormat = () => true,
+  isAllowedOption = () => true,
+  reviewOption = () => null,
+  isAllowedMerchantConfiguration = () => true,
 } = {}) {
   const source = canonicalSource(candidateSource, sources);
   if (!source || source.platform !== 'cityhive') return [];
@@ -133,7 +136,8 @@ export function parseCityHiveProducts(html, candidateSource, {
     .flatMap((value) => value.merchant_configs || value.merchantConfigs);
   const exactConfig = merchantConfigurations.some((entry) => {
     const merchant = entry?.merchant || entry;
-    return merchantId(merchant) === source.merchantId && exactPremises(entityAddress(merchant), source);
+    return merchantId(merchant) === source.merchantId && exactPremises(entityAddress(merchant), source)
+      && isAllowedMerchantConfiguration(merchant,source);
   });
   if (!exactConfig) return [];
   const payloads = nested(values, (value) => Array.isArray(value.products));
@@ -154,6 +158,7 @@ export function parseCityHiveProducts(html, candidateSource, {
           ...(Array.isArray(merchant.options) ? merchant.options : []),
         ];
         for (const option of options) {
+          if (!isAllowedOption(option, product)) continue;
           const optionMerchantId = String(option.merchant_id || option.merchantId || parentId);
           if (optionMerchantId !== source.merchantId || !exactPremises(entityAddress(option), source)) continue;
           if (!pickup(merchant.offer_types, merchant.offerTypes, merchant.fulfillment, option.offer_types, option.offerTypes, option.fulfillment)) continue;
@@ -170,7 +175,9 @@ export function parseCityHiveProducts(html, candidateSource, {
           if (seen.has(key)) continue;
           seen.add(key);
           const parsedPrice = Number(option.price);
+          const reviewedIdentity = reviewOption(option, product);
           rows.push({
+            ...(reviewedIdentity ? { reviewedIdentity } : {}),
             merchantId: source.merchantId,
             productId,
             variantId,

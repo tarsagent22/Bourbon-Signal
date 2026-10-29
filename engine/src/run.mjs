@@ -61,6 +61,9 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // Arizona's sequential exact-store sweep has a bounded ten-minute source
   // attempt. Its parent must outlive that budget, including generic probes.
   AZ: Number(process.env.BOURBON_SIGNAL_AZ_STATE_TIMEOUT_MS || 1_020_000),
+  // Nevada's bounded grocery and independent retailer pass must finish before
+  // its parent expires, including a slow storefront sibling.
+  NV: Number(process.env.BOURBON_SIGNAL_NV_STATE_TIMEOUT_MS || 720_000),
   // NC board intelligence + county inventory probes can cross the generic
   // timeout during normal successful runs. Give it the same scheduled-run
   // budget as other broad inventory states so stale fallback only indicates a

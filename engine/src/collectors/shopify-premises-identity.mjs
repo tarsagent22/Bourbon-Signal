@@ -2,9 +2,9 @@
 const STATES = new Set('AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC'.split(' '));
 const WORDS = Object.freeze({ north:'n', south:'s', east:'e', west:'w', northeast:'ne', northwest:'nw', southeast:'se', southwest:'sw',
   avenue:'ave', street:'st', boulevard:'blvd', road:'rd', drive:'dr', court:'ct', lane:'ln', place:'pl', parkway:'pkwy',
-  circle:'cir', terrace:'ter', trail:'trl', highway:'hwy', route:'rte' });
+  circle:'cir', terrace:'ter', trail:'trl', highway:'hwy', route:'rte', turnpike:'tpke' });
 const DIRECTIONS = new Set(['n','s','e','w','ne','nw','se','sw']);
-const SUFFIXES = new Set(['ave','st','blvd','rd','dr','ct','ln','pl','pkwy','cir','ter','trl','way','pike']);
+const SUFFIXES = new Set(['ave','st','blvd','rd','dr','ct','ln','pl','pkwy','cir','ter','trl','way','pike','tpke']);
 const UNIT_TOKEN = /^[a-z0-9]+(?:[-/][a-z0-9]+)*$/u;
 
 function clean(value, max = 1000) {
@@ -65,14 +65,14 @@ export function shopifyPremiseAddressSignature(value, context = {}) {
   if (!houseMatch) return null;
   const house = houseMatch[1], rawStreet = houseMatch[2];
   let street = rawStreet, unit = null, unitKind = null;
-  const explicit = /(?:\s+|^)(?:(unit|suite|ste\.?|apt\.?|apartment)\s*#?\s*|(#)\s*)([a-z0-9]+(?:[-/][a-z0-9]+)*)$/u.exec(street);
+  const explicit = /(?:\s+|^)(?:(unit|suite|ste\.?|apt\.?|apartment|retail)\s*#?\s*|(#)\s*)([a-z0-9]+(?:[-/][a-z0-9]+)*)$/u.exec(street);
   if (explicit) {
     unit = explicit[3];
     const marker = explicit[1]?.replace(/\./gu, '');
-    unitKind = marker === 'ste' || marker === 'suite' ? 'suite' : marker === 'apt' || marker === 'apartment' ? 'apartment' : marker === 'unit' ? 'unit' : 'hash';
+    unitKind = marker === 'ste' || marker === 'suite' ? 'suite' : marker === 'apt' || marker === 'apartment' ? 'apartment' : marker === 'unit' ? 'unit' : marker === 'retail' ? 'retail' : 'hash';
     street = street.slice(0, explicit.index).trim();
   }
-  if (/\b(?:unit|suite|ste|apt|apartment|box)\b|#/u.test(street)) return null;
+  if (/\b(?:unit|suite|ste|apt|apartment|retail|box)\b|#/u.test(street)) return null;
   let parts = street.split(' ').map(word);
   if (parts.some(part => !/^[a-z0-9][a-z0-9'&.-]*$/u.test(part))) return null;
   if (!unit && parts.length >= 3 && UNIT_TOKEN.test(parts.at(-1)) && /^\d/u.test(parts.at(-1))) {
@@ -84,8 +84,8 @@ export function shopifyPremiseAddressSignature(value, context = {}) {
   const road = parts.join(' ');
   const route = /^(?:(?:us|state|county)\s+)?(?:hwy|rte)\s+\d+[a-z]?(?:\s+(?:n|s|e|w|ne|nw|se|sw))?$/u.test(road);
   const suffixAt = DIRECTIONS.has(parts.at(-1)) ? parts.length - 2 : parts.length - 1;
-  const named = SUFFIXES.has(parts[suffixAt]) && suffixAt > 0
-    && parts.slice(0, suffixAt).some(part => !DIRECTIONS.has(part) && /[a-z0-9]/u.test(part));
+  const named = road === 'broadway' || (SUFFIXES.has(parts[suffixAt]) && suffixAt > 0
+    && parts.slice(0, suffixAt).some(part => !DIRECTIONS.has(part) && /[a-z0-9]/u.test(part)));
   if (!route && !named) return null;
   const signature = { state, zip, city, house, street: road, unitKind, unit };
   return Object.freeze({ ...signature, key: JSON.stringify(Object.values(signature)) });

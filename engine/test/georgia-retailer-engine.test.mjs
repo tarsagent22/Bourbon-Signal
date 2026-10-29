@@ -679,7 +679,7 @@ test('Georgia lifecycle and registry expose retailer inventory within the author
 });
 
 test('Georgia precision, exporter, verifier, and publication workflow are guarded end to end', () => {
-  assert.deepEqual(legacyPrecisionRuntimeOptions('GA', {}, {}), { timeoutMs: 300_000, maxAttempts: 1 });
+  assert.deepEqual(legacyPrecisionRuntimeOptions('GA', {}, {}), { timeoutMs: 300_000, maxAttempts: 1, baseCadenceMs: 1_800_000, minCadenceMs: 1_800_000, maxCadenceMs: 1_800_000 });
   const precision = readFileSync(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
   assert.match(precision, /LEGACY_PRECISION_RUNTIME_STATES[\s\S]*?'GA'/);
   assert.match(precision, /if \(config\.id === 'GA'\) return collectGeorgia\(config, bible/);

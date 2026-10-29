@@ -1,0 +1,914 @@
+{
+  "scope": "Frozen matching fixtures for reviewed NY sources and same-family expression competitors; not a production library snapshot",
+  "records": [
+    {
+      "id": "bb_2b5d9987117596c4",
+      "canonical": "Blanton's Gold",
+      "normalizedKey": "blanton s gold",
+      "aliases": [
+        "BLANTON'S GOLD BOURBON",
+        "Blanton Gold",
+        "Blanton's Gold",
+        "Blantons Gold"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "state-data-additions",
+        "state:AL"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "blantons-gold-bourbon",
+          "canonicalName": "Blanton's Gold Bourbon",
+          "aliases": [
+            "BLANTON'S GOLD BOURBON",
+            "Blanton Gold",
+            "Blanton's Gold",
+            "Blanton's Gold Bourbon",
+            "Blantons Gold"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blantons-gold-single-barrel-select",
+      "canonical": "Blanton's Gold Single Barrel Select",
+      "normalizedKey": "library:blantons-gold-single-barrel-select",
+      "aliases": [],
+      "tier": "unicorn",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "blantons-gold-single-barrel-select",
+          "canonicalName": "Blanton's Gold Single Barrel Select",
+          "aliases": [
+            "Blanton's Gold Single Barrel Select"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "bb_5afa9241206ab963",
+      "canonical": "Blanton's Original Single Barrel",
+      "normalizedKey": "blanton s original",
+      "aliases": [
+        "BLANTON'S BOURBON",
+        "Blanton",
+        "Blanton's",
+        "Blanton's Bourbon",
+        "Blanton's Original",
+        "Blanton's Original Single Barrel",
+        "Blanton's Single Barrel",
+        "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+        "Blantons"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "blantons-single-barrel",
+          "canonicalName": "Blanton's Single Barrel",
+          "aliases": [
+            "BLANTON'S BOURBON",
+            "Blanton",
+            "Blanton's",
+            "Blanton's Bourbon",
+            "Blanton's Original",
+            "Blanton's Original Single Barrel",
+            "Blanton's Single Barrel",
+            "Blantons",
+            "blanton",
+            "blanton's",
+            "blantons",
+            "blantons single barrel"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blantons-single-barrel-select",
+      "canonical": "Blanton's Single Barrel Select",
+      "normalizedKey": "library:blantons-single-barrel-select",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "blantons-single-barrel-select",
+          "canonicalName": "Blanton's Single Barrel Select",
+          "aliases": [
+            "Blanton's Single Barrel Select"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "bb_cca84bbe5368acac",
+      "canonical": "Blanton's Straight From The Barrel",
+      "normalizedKey": "blanton s from",
+      "aliases": [
+        "BLANTON'S STRAIGHT FROM THE BARREL",
+        "Blanton's SFTB",
+        "Blanton's Straight From The Barrel",
+        "Blantons Straight From The Barrel"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "state-data-additions",
+        "state:AL"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "blantons-straight-from-the-barrel",
+          "canonicalName": "Blanton's Straight From The Barrel",
+          "aliases": [
+            "BLANTON'S STRAIGHT FROM THE BARREL",
+            "Blanton's SFTB",
+            "Blanton's Straight From The Barrel",
+            "Blantons Straight From The Barrel"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_d0fe561ac45db2d5",
+      "canonical": "Eagle Rare 10 Year",
+      "normalizedKey": "eagle rare 10 year",
+      "aliases": [
+        "EAGLE RARE 10Y",
+        "Eagle Rare",
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10 Year Kentucky Straight Bourbon",
+        "Eagle Rare 10 Yr",
+        "Eagle Rare 10Y"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-10",
+          "canonicalName": "Eagle Rare 10 Year",
+          "aliases": [
+            "EAGLE RARE 10Y",
+            "Eagle Rare",
+            "Eagle Rare 10 Year",
+            "Eagle Rare 10 Yr",
+            "Eagle Rare 10Y",
+            "eagle rare",
+            "eagle rare 10",
+            "er10"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_7a6ce8ac9bebbdec",
+      "canonical": "Eagle Rare 12 Year",
+      "normalizedKey": "eagle rare 12 year",
+      "aliases": [
+        "ER12",
+        "Eagle Rare 12",
+        "Eagle Rare 12 Year",
+        "Eagle Rare Twelve"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "state-data-additions",
+        "state:review",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-12",
+          "canonicalName": "Eagle Rare 12 Year",
+          "aliases": [
+            "ER12",
+            "Eagle Rare 12",
+            "Eagle Rare 12 Year",
+            "Eagle Rare Twelve",
+            "eagle rare 12",
+            "eagle rare twelve",
+            "er12"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "bb_d2b7ab7e2ebc1404",
+      "canonical": "Eagle Rare 17 Year",
+      "normalizedKey": "eagle rare 17 year",
+      "aliases": [
+        "BTAC Eagle Rare 17",
+        "Eagle Rare 17",
+        "Eagle Rare 17 Year"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-17-year",
+          "canonicalName": "Eagle Rare 17 Year",
+          "aliases": [
+            "BTAC Eagle Rare 17",
+            "Eagle Rare 17",
+            "Eagle Rare 17 Year"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eagle-rare-25y",
+      "canonical": "Eagle Rare 25Y",
+      "normalizedKey": "library:eagle-rare-25y",
+      "aliases": [],
+      "tier": "unicorn",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-25y",
+          "canonicalName": "Eagle Rare 25Y",
+          "aliases": [
+            "Eagle Rare 25 Year",
+            "Eagle Rare 25Y",
+            "Eagle Rare Aged 25 Years"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "eagle-rare-single-barrel-select",
+      "canonical": "Eagle Rare Single Barrel Select",
+      "normalizedKey": "library:eagle-rare-single-barrel-select",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-single-barrel-select",
+          "canonicalName": "Eagle Rare Single Barrel Select",
+          "aliases": [
+            "Eagle Rare Single Barrel Select"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "bb_845fea76319ddc88",
+      "canonical": "Jack Daniel's 10 Year",
+      "normalizedKey": "jack daniel s 10 year",
+      "aliases": [
+        "JD 10",
+        "Jack Daniel's 10 Year",
+        "Jack Daniels 10"
+      ],
+      "tier": "allocated",
+      "producer": "Jack Daniel's",
+      "sources": [
+        "seed"
+      ]
+    },
+    {
+      "id": "jack-daniels-10-year",
+      "canonical": "Jack Daniel's 10 Year Tennessee Whiskey",
+      "normalizedKey": "library:jack-daniels-10-year",
+      "aliases": [],
+      "tier": "limited",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "jack-daniels-10-year",
+          "canonicalName": "Jack Daniel's 10 Year Tennessee Whiskey",
+          "aliases": [
+            "JD 10",
+            "Jack Daniel's 10 Year",
+            "Jack Daniel's 10 Year Tennessee Whiskey",
+            "Jack Daniel's 10Y",
+            "Jack Daniels 10",
+            "jack 10",
+            "jack daniels 10",
+            "jd10"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_7a177344b1290314",
+      "canonical": "Jack Daniel's 12 Year",
+      "normalizedKey": "jack daniel s 12 year",
+      "aliases": [
+        "JD 12",
+        "Jack Daniel's 12 Year",
+        "Jack Daniels 12"
+      ],
+      "tier": "allocated",
+      "producer": "Jack Daniel's",
+      "sources": [
+        "seed"
+      ]
+    },
+    {
+      "id": "jack-daniels-12-year",
+      "canonical": "Jack Daniel's 12 Year Tennessee Whiskey",
+      "normalizedKey": "library:jack-daniels-12-year",
+      "aliases": [],
+      "tier": "limited",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "jack-daniels-12-year",
+          "canonicalName": "Jack Daniel's 12 Year Tennessee Whiskey",
+          "aliases": [
+            "JD 12",
+            "Jack Daniel's 12 Year",
+            "Jack Daniel's 12 Year Tennessee Whiskey",
+            "Jack Daniel's 12Y",
+            "Jack Daniels 12",
+            "jack 12",
+            "jack daniels 12",
+            "jd12"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_0276bacbf4621773",
+      "canonical": "Jack Daniel's Barrel Heritage Barrel Toasted",
+      "normalizedKey": "jack daniel s heritage toasted",
+      "aliases": [
+        "JACK DANIELS BARREL HERITAGE BARREL (TOASTED)",
+        "Jack Daniel's Barrel Heritage Barrel Toasted",
+        "Jack Daniel's Barrel Heritage Toasted",
+        "Jack Daniels Barrel Heritage Barrel Toasted"
+      ],
+      "tier": "limited",
+      "producer": "Jack Daniel's",
+      "sources": [
+        "state-data-additions",
+        "state:SC"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_0276bacbf4621773",
+          "canonicalName": "Jack Daniel's Barrel Heritage Barrel Toasted",
+          "aliases": [
+            "JACK DANIELS BARREL HERITAGE BARREL (TOASTED)",
+            "Jack Daniel's Barrel Heritage Barrel Toasted",
+            "Jack Daniel's Barrel Heritage Toasted",
+            "Jack Daniels Barrel Heritage Barrel Toasted"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "bb_6b0ec0350b624363",
+      "canonical": "Jack Daniel's Coy Hill",
+      "normalizedKey": "jack daniel s coy hill",
+      "aliases": [
+        "Coy Hill",
+        "JD Coy Hill",
+        "Jack Daniel's Coy Hill",
+        "Jack Daniels Coy Hill"
+      ],
+      "tier": "unicorn",
+      "producer": "Jack Daniel's",
+      "sources": [
+        "state-data-additions",
+        "state:watchlist"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_6b0ec0350b624363",
+          "canonicalName": "Jack Daniel's Coy Hill",
+          "aliases": [
+            "Coy Hill",
+            "JD Coy Hill",
+            "Jack Daniel's Coy Hill",
+            "Jack Daniels Coy Hill"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "bb_85305a6b410701da",
+      "canonical": "Jack Daniel's Twice Barreled Heritage Barrel Rye",
+      "normalizedKey": "jack daniel s twice barreled heritage rye",
+      "aliases": [
+        "JD Twice Barreled Rye",
+        "Jack Daniel's Heritage Barrel Rye",
+        "Jack Daniel's Twice Barreled Heritage Barrel Rye",
+        "Jack Daniels Twice Barreled Rye"
+      ],
+      "tier": "allocated",
+      "producer": "Jack Daniel's",
+      "sources": [
+        "state-data-additions",
+        "state:watchlist"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_85305a6b410701da",
+          "canonicalName": "Jack Daniel's Twice Barreled Heritage Barrel Rye",
+          "aliases": [
+            "JD Twice Barreled Rye",
+            "Jack Daniel's Heritage Barrel Rye",
+            "Jack Daniel's Twice Barreled Heritage Barrel Rye",
+            "Jack Daniels Twice Barreled Rye"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "weller-12-year",
+      "canonical": "W.L. Weller 12 Year",
+      "normalizedKey": "library:weller-12-year",
+      "aliases": [],
+      "tier": "unicorn",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "weller-12-year",
+          "canonicalName": "W.L. Weller 12 Year",
+          "aliases": [
+            "W.L. Weller 12",
+            "W.L. Weller 12 Year",
+            "W12",
+            "Weller 12",
+            "Weller 12 Year",
+            "Weller 12Y",
+            "Weller Twelve",
+            "w12",
+            "weller 12",
+            "weller twelve"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            },
+            {
+              "jurisdiction": "VA",
+              "tier": "unicorn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_2f0353b913a15f02",
+      "canonical": "Weller 12 Year",
+      "normalizedKey": "weller 12 year",
+      "aliases": [
+        "W.L. Weller 12",
+        "Weller 12",
+        "Weller 12 Year",
+        "Weller 12Y",
+        "Weller Twelve"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ]
+    },
+    {
+      "id": "bb_7991fa37cd881dba",
+      "canonical": "Weller Antique 107",
+      "normalizedKey": "weller antique 107",
+      "aliases": [
+        "OWA",
+        "Old Weller Antique",
+        "W.L. Weller Antique 107",
+        "Weller 107",
+        "Weller Antique 107"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "weller-antique-107",
+          "canonicalName": "W.L. Weller Antique 107",
+          "aliases": [
+            "OWA",
+            "Old Weller Antique",
+            "W.L. Weller Antique 107",
+            "Weller 107",
+            "Weller Antique 107",
+            "Weller Red",
+            "oWA",
+            "old weller antique",
+            "weller 107",
+            "weller antique",
+            "weller red"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_7f15783e8c144664",
+      "canonical": "Weller C.Y.P.B.",
+      "normalizedKey": "weller c y p b",
+      "aliases": [
+        "Craft Your Perfect Bourbon",
+        "W.L. Weller CYPB",
+        "Weller C.Y.P.B.",
+        "Weller CYPB"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "weller-cypb",
+          "canonicalName": "Weller CYPB",
+          "aliases": [
+            "Craft Your Perfect Bourbon",
+            "W.L. Weller CYPB",
+            "Weller C.Y.P.B.",
+            "Weller CYPB"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_a3c16eb6f814785b",
+      "canonical": "Weller Full Proof",
+      "normalizedKey": "weller full proof",
+      "aliases": [
+        "W.L. Weller Full Proof",
+        "Weller FP",
+        "Weller Full Proof"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "weller-full-proof",
+          "canonicalName": "W.L. Weller Full Proof",
+          "aliases": [
+            "W.L. Weller Full Proof",
+            "Weller FP",
+            "Weller Full Proof",
+            "weller fp",
+            "weller full proof"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weller-full-proof-single-barrel-select",
+      "canonical": "Weller Full Proof Single Barrel Select",
+      "normalizedKey": "library:weller-full-proof-single-barrel-select",
+      "aliases": [],
+      "tier": "unicorn",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "weller-full-proof-single-barrel-select",
+          "canonicalName": "Weller Full Proof Single Barrel Select",
+          "aliases": [
+            "Weller Full Proof Single Barrel Select"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "weller-millennium",
+      "canonical": "Weller Millennium",
+      "normalizedKey": "library:weller-millennium",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "weller-millennium",
+          "canonicalName": "Weller Millennium",
+          "aliases": [
+            "Weller Millennium"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_1fd1f694742e0a1e",
+      "canonical": "Weller Single Barrel",
+      "normalizedKey": "weller",
+      "aliases": [
+        "W.L. Weller Single Barrel",
+        "Weller Single Barrel"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "weller-single-barrel",
+          "canonicalName": "Weller Single Barrel",
+          "aliases": [
+            "W.L. Weller Single Barrel",
+            "Weller Single Barrel"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bb_54f5df2f8ee5d7c9",
+      "canonical": "Weller Special Reserve",
+      "normalizedKey": "weller special",
+      "aliases": [
+        "W.L. Weller Special Reserve",
+        "WL Weller SR",
+        "Weller SR",
+        "Weller Special Reserve"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "weller-special-reserve",
+          "canonicalName": "W.L. Weller Special Reserve",
+          "aliases": [
+            "W.L. Weller Special Reserve",
+            "WL Weller SR",
+            "Weller Green",
+            "Weller SR",
+            "Weller Special Reserve",
+            "special reserve",
+            "weller green",
+            "weller special reserve",
+            "weller sr"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weller-special-reserve-single-barrel-select",
+      "canonical": "Weller Special Reserve Single Barrel Select",
+      "normalizedKey": "library:weller-special-reserve-single-barrel-select",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryIdentities": [
+        {
+          "id": "weller-special-reserve-single-barrel-select",
+          "canonicalName": "Weller Special Reserve Single Barrel Select",
+          "aliases": [
+            "Weller Green",
+            "Weller SR",
+            "Weller Special Reserve Single Barrel Select"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": []
+        }
+      ]
+    },
+    {
+      "id": "bb_064157246d06e7cd",
+      "canonical": "William Larue Weller",
+      "normalizedKey": "william larue weller",
+      "aliases": [
+        "W.L. Weller William Larue",
+        "WLW",
+        "William Larue Weller",
+        "William Larue Weller Bourbon"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "state-data-additions",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "william-larue-weller",
+          "canonicalName": "William Larue Weller",
+          "aliases": [
+            "W.L. Weller William Larue",
+            "WLW",
+            "William Larue Weller",
+            "William Larue Weller Bourbon",
+            "william larue",
+            "william larue weller",
+            "wlw"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

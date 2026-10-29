@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-29T01:34:31.636Z",
+  "scope": "exact_variant_and_premise_first_party_pickup",
+  "sources": [
+    {
+      "id": "eastside-cellars",
+      "runtimeId": "metro:ny:eastside-cellars",
+      "state": "NY",
+      "chain": "eastside-cellars",
+      "merchantId": "eastside-cellars-shopify",
+      "sourceLabel": "Eastside Cellars first-party variant pickup inventory",
+      "baseUrl": "https://eastsidecellars.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "eastside-cellars:10128",
+          "name": "Eastside Cellars",
+          "pickupName": "1743 1st Ave.",
+          "address": "1743 1st Avenue Retail A, New York NY 10128",
+          "city": "New York",
+          "zip": "10128"
+        }
+      ],
+      "products": [
+        {
+          "productId": "357813277",
+          "variantId": "903035245",
+          "handle": "blanton-bourbon-single-barrel-750ml",
+          "title": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey 750ml",
+          "variantTitle": "Default Title",
+          "canonicalName": "Blanton's Original Single Barrel",
+          "evidence": {
+            "product": {
+              "url": "https://eastsidecellars.com/products/blanton-bourbon-single-barrel-750ml.json",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:29:44.368Z",
+              "sha256": "35dd625c5d1ea134b73843b343478d8f9e166aeb6ec4df435e6e0dcf72ee0cc4"
+            },
+            "pickup": {
+              "url": "https://eastsidecellars.com/variants/903035245/?section_id=pickup-availability",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:29:44.539Z",
+              "sha256": "aa8fae6ab3f80e2f29d1f5e9595f65b9a33b7fb5e4cf3d2d22940d159e58f9e2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "winecity-east-northport",
+      "runtimeId": "metro:ny:winecity-east-northport",
+      "state": "NY",
+      "chain": "winecity-east-northport",
+      "merchantId": "winecity-east-northport-shopify",
+      "sourceLabel": "Winecity East Northport first-party variant pickup inventory",
+      "baseUrl": "https://winecitys.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "winecity-east-northport:11731",
+          "name": "Winecity East Northport",
+          "pickupName": "Winecitys",
+          "address": "4000 Jericho Tpke, East Northport NY 11731",
+          "city": "East Northport",
+          "zip": "11731"
+        }
+      ],
+      "products": [
+        {
+          "productId": "10658137571620",
+          "variantId": "55776367706404",
+          "handle": "weller-full-proof-750ml-wheated-bbn",
+          "title": "Weller Full Proof   750ml. Wheated BBN",
+          "variantTitle": "Default Title",
+          "canonicalName": "Weller Full Proof",
+          "evidence": {
+            "product": {
+              "url": "https://winecitys.com/products/weller-full-proof-750ml-wheated-bbn.json",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:29:45.626Z",
+              "sha256": "769f6446fa5d308753c90b14caabb48dd6d59ea488019f607c0cdb8427722f80"
+            },
+            "pickup": {
+              "url": "https://winecitys.com/variants/55776367706404/?section_id=pickup-availability",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:29:45.803Z",
+              "sha256": "976319b85440fa8f61625e89f0254425a7ae9a9beae5a8a040dc09eee3ef2d53"
+            }
+          },
+          "titleMapping": {
+            "rawTitle": "Weller Full Proof   750ml. Wheated BBN",
+            "canonicalName": "Weller Full Proof",
+            "reason": "Reviewed Weller Full Proof source explicitly says Wheated BBN; Full Proof is the wheated Weller expression. No different finish, age or barrel is inferred.",
+            "allowedUnsafeReasons": [
+              "wheated_matched_non_wheated"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "columbus-circle-wine",
+      "runtimeId": "metro:ny:columbus-circle-wine",
+      "state": "NY",
+      "chain": "columbus-circle-wine",
+      "merchantId": "columbus-circle-wine-shopify",
+      "sourceLabel": "Columbus Circle Wine and Spirits first-party variant pickup inventory",
+      "baseUrl": "https://columbuscirclewine.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "columbus-circle-wine:10019",
+          "name": "Columbus Circle Wine and Spirits",
+          "pickupName": "1802 Broadway",
+          "address": "1802 Broadway, New York NY 10019",
+          "city": "New York",
+          "zip": "10019"
+        }
+      ],
+      "products": [
+        {
+          "productId": "8805991842017",
+          "variantId": "46002551816417",
+          "handle": "jack-daniels-10-year-batch-3-700ml",
+          "title": "Jack Daniels 10 Year Batch 3 700ml",
+          "variantTitle": "Default Title",
+          "canonicalName": "Jack Daniel's 10 Year",
+          "evidence": {
+            "product": {
+              "url": "https://columbuscirclewine.com/products/jack-daniels-10-year-batch-3-700ml.json",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:31:06.224Z",
+              "sha256": "05172e2095232f7b24f8b1aeffdfa824fd1f03ae223d993382df100adb5584d8"
+            },
+            "pickup": {
+              "url": "https://columbuscirclewine.com/variants/46002551816417/?section_id=pickup-availability",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:31:06.483Z",
+              "sha256": "6d5dbd19cfb47873e23fe295a50e330c417a02e8a844096afeee0739120b0da0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "vino-fine-wine",
+      "runtimeId": "metro:ny:vino-fine-wine",
+      "state": "NY",
+      "chain": "vino-fine-wine",
+      "merchantId": "vino-fine-wine-shopify",
+      "sourceLabel": "Vino Fine Wine & Spirits first-party variant pickup inventory",
+      "baseUrl": "https://vinosite.com",
+      "sectionId": "pickup-availability",
+      "stores": [
+        {
+          "id": "vino-fine-wine:10016",
+          "name": "Vino Fine Wine & Spirits",
+          "pickupName": "Vino Fine Wine & Spirits",
+          "address": "184 Lexington Ave, New York NY 10016",
+          "city": "New York",
+          "zip": "10016"
+        }
+      ],
+      "products": [
+        {
+          "productId": "8204167708804",
+          "variantId": "44700041707652",
+          "handle": "blantons-straight-from-the-barrel-bourbon-whiskey-123-proof-750ml",
+          "title": "Blanton's Straight From the Barrel Bourbon Whiskey 123 Proof 750mL",
+          "variantTitle": "Default Title",
+          "canonicalName": "Blanton's Straight From The Barrel",
+          "evidence": {
+            "product": {
+              "url": "https://vinosite.com/products/blantons-straight-from-the-barrel-bourbon-whiskey-123-proof-750ml.json",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:29:46.670Z",
+              "sha256": "0b7712336755d470ef3b05479f74aadd079f14e8d7227167aa1abf22e3600965"
+            },
+            "pickup": {
+              "url": "https://vinosite.com/variants/44700041707652/?section_id=pickup-availability",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:29:46.895Z",
+              "sha256": "71f8caf70149af75ce14c86a0c3481d676252f0476cbdd4baf8b2c6eaf5777bd"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "grand-wine-cellar",
+      "runtimeId": "metro:ny:grand-wine-cellar",
+      "state": "NY",
+      "chain": "grand-wine-cellar",
+      "merchantId": "grand-wine-cellar-shopify",
+      "sourceLabel": "Grand Wine Cellar first-party variant pickup inventory",
+      "baseUrl": "https://www.grandwinecellar.com",
+      "sectionId": "store-availability",
+      "stores": [
+        {
+          "id": "grand-wine-cellar:11791",
+          "name": "Grand Wine Cellar",
+          "pickupName": "Wine Cellar",
+          "address": "40 Cold Spring Rd, Syosset NY 11791",
+          "city": "Syosset",
+          "zip": "11791"
+        }
+      ],
+      "products": [
+        {
+          "productId": "7092678688964",
+          "variantId": "41868026839236",
+          "handle": "eagle-rare-bourbon-10-years",
+          "title": "Eagle Rare Bourbon 10 Years",
+          "variantTitle": "750ml",
+          "canonicalName": "Eagle Rare 10 Year",
+          "evidence": {
+            "product": {
+              "url": "https://www.grandwinecellar.com/products/eagle-rare-bourbon-10-years.json",
+              "sha256": "04eb3867918bd0649598917b9ce0a9528f89ab76c9a737e2c1d6a5aea7daedda",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:33:13.181Z"
+            },
+            "pickup": {
+              "url": "https://www.grandwinecellar.com/variants/41868026839236/?section_id=store-availability",
+              "sha256": "b83c220d7e5ddb95a5585ccdc86e6411a1719018599f3fd3625d9ed3c7e695ad",
+              "status": 200,
+              "capturedAt": "2026-10-29T01:33:13.181Z"
+            }
+          },
+          "headingException": "Reviewed Halo theme identifies the addressed variant using its explicit 750ml heading and variant-specific section URL; exact product and variant are independently checked in current product JSON."
+        }
+      ],
+      "headingIdentity": "variant_title",
+      "pickupLayout": "halo-store-modal"
+    }
+  ]
+}

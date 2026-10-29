@@ -59,9 +59,9 @@ test('old readiness and matcher-generation pins are stale; reviewed runtime hash
   const code = await readFile(new URL('../src/collectors/shopify-variant-pickup.mjs', import.meta.url));
   assert.equal(readiness.collectorSha256, '82ec1ede939d793f40d7a945430f49c0867fdfadf18d4004c5775c8878e39206');
   assert.notEqual(readiness.collectorSha256, createHash('sha256').update(code).digest('hex'), 'Historical readiness cannot authorize the new runtime');
-  assert.equal(createHash('sha256').update(code).digest('hex'), 'ec8c71f52bf700d20ed98ff304c62057a990473f952fc428ad4df13abd439983');
+  assert.equal(createHash('sha256').update(code).digest('hex'), '25a7ea79251b0a582abdee2c7f3e4e79eb8224a98dad4bc378c2c943c6aa05ba');
   const identity = await readFile(new URL('../src/collectors/shopify-premises-identity.mjs', import.meta.url));
-  assert.equal(createHash('sha256').update(identity).digest('hex'), '95620888325f9ad59a60b304f56df3bac1527b923a845da23a38995976a08ed3');
+  assert.equal(createHash('sha256').update(identity).digest('hex'), '57469116cff2c1a036dbf2585a6f94d376494f03e3af26eadaa5d9b68ee2d1fb');
   assert.equal(readiness.catalogSha256, catalogProvenance.catalogSha256);
   const expected = { 'Buffalo Trace Bourbon': ['bb_317836b9e64a7620', 'allocated'], 'Weller Single Barrel': ['bb_1fd1f694742e0a1e', 'unicorn'], "Booker's Bourbon": ['bb_8b9546b93a7fbe72', 'limited'] };
   for (const result of readiness.results) {

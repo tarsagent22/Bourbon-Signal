@@ -1,0 +1,203 @@
+{
+  "sourceId": "byrons-liquor-okc",
+  "captures": [
+    {
+      "url": "https://byronsliquor.com/shop/?ch-query=barrel%20proof",
+      "capturedAt": "2026-10-29T01:29:23.405Z"
+    },
+    {
+      "url": "https://byronsliquor.com/shop/?ch-query=eagle%20rare",
+      "capturedAt": "2026-10-29T01:29:19.926Z"
+    },
+    {
+      "url": "https://byronsliquor.com/shop/?ch-query=weller",
+      "capturedAt": "2026-10-29T01:29:21.728Z"
+    }
+  ],
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "6060f5bded7ffb6a9c4c64b8",
+        "name": "Byron's Liquor Warehouse",
+        "address": {
+          "full_address": "2322 N Broadway Ave, Oklahoma City, OK 73103, USA"
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "6060f5bded7ffb6a9c4c64b8",
+          "full_address": "2322 N Broadway Ave, Oklahoma City, OK 73103, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "6060f5bded7ffb6a9c4c64b8",
+              "full_address": "2322 N Broadway Ave, Oklahoma City, OK 73103, USA",
+              "product_url": "https://byronsliquor.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 32,
+              "price": 66.95,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "6060f5bded7ffb6a9c4c64b8",
+          "full_address": "2322 N Broadway Ave, Oklahoma City, OK 73103, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "merchant_id": "6060f5bded7ffb6a9c4c64b8",
+              "full_address": "2322 N Broadway Ave, Oklahoma City, OK 73103, USA",
+              "product_url": "https://byronsliquor.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "quantity": 17,
+              "price": 55.79,
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5f0341cd4b2ef011dcbda2af",
+      "name": "Elijah Craig Toasted Barrel Bourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "6060f5bded7ffb6a9c4c64b8",
+          "full_address": "2322 N Broadway Ave, Oklahoma City, OK 73103, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5f0341cd4b2ef011dcbda2af",
+              "option_id": "a92784fc91500753882c3e66a29bb2422ce7becd1ca55db5b182d2685fded91b",
+              "merchant_id": "6060f5bded7ffb6a9c4c64b8",
+              "full_address": "2322 N Broadway Ave, Oklahoma City, OK 73103, USA",
+              "product_url": "https://byronsliquor.com/shop/product/elijah-craig-toasted-barrel-bourbon/5f0341cd4b2ef011dcbda2af?option-id=a92784fc91500753882c3e66a29bb2422ce7becd1ca55db5b182d2685fded91b",
+              "quantity": 7,
+              "price": 37.19,
+              "option_display_data": {
+                "name": "Elijah Craig Toasted Barrel Bourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "47%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

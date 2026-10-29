@@ -1,0 +1,415 @@
+{
+  "sourceId": "yucatan-liquor-okc",
+  "captures": [
+    {
+      "url": "https://yucatanliquor.com/shop/?ch-query=barrel%20proof",
+      "capturedAt": "2026-10-29T01:29:18.020Z"
+    },
+    {
+      "url": "https://yucatanliquor.com/shop/?ch-query=eagle%20rare",
+      "capturedAt": "2026-10-29T01:29:14.665Z"
+    },
+    {
+      "url": "https://yucatanliquor.com/shop/?ch-query=weller",
+      "capturedAt": "2026-10-29T01:29:16.344Z"
+    }
+  ],
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "67fe7b7c8a5eea0bf6837355",
+        "name": "Yucatan Liquor",
+        "address": {
+          "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA"
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "67fe7b7c8a5eea0bf6837355",
+          "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "67fe7b7c8a5eea0bf6837355",
+              "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+              "product_url": "https://yucatanliquor.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 8,
+              "price": 83.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "67fe7b7c8a5eea0bf6837355",
+          "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "merchant_id": "67fe7b7c8a5eea0bf6837355",
+              "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+              "product_url": "https://yucatanliquor.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "quantity": 4,
+              "price": 62.99,
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "59653a92355d0935c14d7491",
+      "name": "1792 Bourbon Full Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "67fe7b7c8a5eea0bf6837355",
+          "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "59653a92355d0935c14d7491",
+              "option_id": "dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+              "merchant_id": "67fe7b7c8a5eea0bf6837355",
+              "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+              "product_url": "https://yucatanliquor.com/shop/product/1792-bourbon-full-proof/59653a92355d0935c14d7491?option-id=dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+              "quantity": 3,
+              "price": 48.99,
+              "option_display_data": {
+                "name": "1792 Bourbon Full Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "1792"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "brand": "1792"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5521cef16561310003020100",
+      "name": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "67fe7b7c8a5eea0bf6837355",
+          "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521cef16561310003020100",
+              "option_id": "2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+              "merchant_id": "67fe7b7c8a5eea0bf6837355",
+              "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+              "product_url": "https://yucatanliquor.com/shop/product/eagle-rare-10-year-kentucky-straight-bourbon/5521cef16561310003020100?option-id=2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+              "quantity": 12,
+              "price": 79.99,
+              "option_display_data": {
+                "name": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Eagle Rare"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "10",
+                  "content": "45%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "56dd1c6869702d1873250400",
+      "name": "Weller Special Reserve Kentucky Straight Wheated Bourbon Whiskey",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "67fe7b7c8a5eea0bf6837355",
+          "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56dd1c6869702d1873250400",
+              "option_id": "2b569c1b9af9ba78894424ffb4d48094576da01368fa36e14ea85d80eea92c31",
+              "merchant_id": "67fe7b7c8a5eea0bf6837355",
+              "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+              "product_url": "https://yucatanliquor.com/shop/product/weller-special-reserve-kentucky-straight-wheated-bourbon-whiskey/56dd1c6869702d1873250400?option-id=2b569c1b9af9ba78894424ffb4d48094576da01368fa36e14ea85d80eea92c31",
+              "quantity": 10,
+              "price": 50.49,
+              "option_display_data": {
+                "name": "Weller Special Reserve Kentucky Straight Wheated Bourbon Whiskey",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "region": "Scotland"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6827d4f109995472ef21658e",
+      "name": "Weller Special Reserve 750ml",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "67fe7b7c8a5eea0bf6837355",
+          "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6827d4f109995472ef21658e",
+              "option_id": "2e1d5ebc5fa5f87dcbb6241928a4843a9950a1ef6d6aa4fd0e13be3a246934b5",
+              "merchant_id": "67fe7b7c8a5eea0bf6837355",
+              "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+              "product_url": "https://yucatanliquor.com/shop/product/weller-special-reserve-750ml/6827d4f109995472ef21658e?option-id=2e1d5ebc5fa5f87dcbb6241928a4843a9950a1ef6d6aa4fd0e13be3a246934b5",
+              "quantity": 86,
+              "price": 26.99,
+              "option_display_data": {
+                "name": "Weller Special Reserve 750ml",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon"
+                  ],
+                  "brands": [
+                    "Weller Bourbon"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5521cefb6561310003880300",
+      "name": "W.L Weller Special Reserve Bourbon",
+      "size": {
+        "measure": "L",
+        "quantity": "1"
+      },
+      "merchants": [
+        {
+          "merchant_id": "67fe7b7c8a5eea0bf6837355",
+          "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5521cefb6561310003880300",
+              "option_id": "3fd1588e587820d456b0ea09d7f872e736ab715381bcdd7dacd06e84f5487527",
+              "merchant_id": "67fe7b7c8a5eea0bf6837355",
+              "full_address": "9109 S May Ave, Oklahoma City, OK 73159, USA",
+              "product_url": "https://yucatanliquor.com/shop/product/w-l-weller-special-reserve-bourbon/5521cefb6561310003880300?option-id=3fd1588e587820d456b0ea09d7f872e736ab715381bcdd7dacd06e84f5487527",
+              "quantity": 29,
+              "price": 30.49,
+              "option_display_data": {
+                "name": "W.L Weller Special Reserve Bourbon",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -110,7 +110,7 @@ async function coverage(rows: Row[]) { coverageInput = rows; return customer.rea
 test('historical v2 fixtures retain their seed-only comparison and replay against the reviewed stricter collector', () => {
   // Preserve the historical manifest's original code pin. Current premise and
   // product grammar hardening is a new reviewed runtime, not historical reuse.
-  assert.equal(collectorSha256, 'ec8c71f52bf700d20ed98ff304c62057a990473f952fc428ad4df13abd439983');
+  assert.equal(collectorSha256, '25a7ea79251b0a582abdee2c7f3e4e79eb8224a98dad4bc378c2c943c6aa05ba');
   assert.equal(configs.length, 5); assert.deepEqual(states.sort(), ['CA', 'NY', 'TX']);
   for (const config of configs) {
     const previous = v1Configs.find((source: Row) => source.id === config.id);

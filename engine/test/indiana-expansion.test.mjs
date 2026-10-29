@@ -350,7 +350,7 @@ test('Indiana incomplete source retains missing cached identities without demoti
 });
 
 test('Indiana precision collector has one bounded deadline below the parent state watchdog', () => {
-  assert.deepEqual(legacyPrecisionRuntimeOptions('IN', {}, {}), { timeoutMs: 600_000, maxAttempts: 1 });
+  assert.deepEqual(legacyPrecisionRuntimeOptions('IN', {}, {}), { timeoutMs: 600_000, maxAttempts: 1, baseCadenceMs: 1_800_000, minCadenceMs: 1_800_000, maxCadenceMs: 1_800_000 });
 });
 
 test('Indiana precision collector propagates runtime cancellation before network or cache work', async () => {

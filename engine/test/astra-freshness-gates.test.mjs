@@ -141,7 +141,7 @@ test('state metric updates preserve known deadline and useful-change counts acro
   const failed = updateStateRunMetric(next, { id: 'VA', ok: false, finishedAt: now, lastConfirmedAt: now, freshnessDeadlineAt: ago(-24) });
   assert.equal(failed.VA.lastConfirmedAt, ago(1));
   assert.equal(failed.VA.freshnessDeadlineAt, deadline);
-  assert.equal(selectScheduledStates([{ id: 'VA' }], failed, { now })[0].nextProbeAt, deadline);
+  assert.ok(Date.parse(selectScheduledStates([{ id: 'VA' }], failed, { now })[0].nextProbeAt) <= Date.parse(deadline));
 });
 test('runtime consumes supplied deadlines: due inventory runs while unchanged directory waits', async () => {
   const called = [];

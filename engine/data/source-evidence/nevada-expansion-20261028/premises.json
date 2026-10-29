@@ -1,0 +1,407 @@
+{
+  "observedAt": "2026-10-29T01:29:36.299Z",
+  "resolverZips": [
+    "89101",
+    "89501",
+    "89701",
+    "89048"
+  ],
+  "sources": [
+    {
+      "locationId": "341",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "200 S Hwy 160",
+        "city": "Pahrump",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89048"
+      }
+    },
+    {
+      "locationId": "460",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "11720 W Charleston Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89135"
+      }
+    },
+    {
+      "locationId": "3016",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "10250 W Charleston Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89135"
+      }
+    },
+    {
+      "locationId": "3021",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "10140 W Flamingo Rd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89147"
+      }
+    },
+    {
+      "locationId": "3333",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "1940 Village Center Circle",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89134"
+      }
+    },
+    {
+      "locationId": "3489",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "6730 N Hualapai Way",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89149"
+      }
+    },
+    {
+      "locationId": "13",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "2550 S Fort Apache Rd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89117"
+      }
+    },
+    {
+      "locationId": "4004",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "4055 S Durango Dr",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89147"
+      }
+    },
+    {
+      "locationId": "212",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "8350 W Cheyenne Ave",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89129"
+      }
+    },
+    {
+      "locationId": "2614",
+      "banner": "vons",
+      "domain": "Vons",
+      "address": {
+        "line1": "7405 S Durango Dr",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89113"
+      }
+    },
+    {
+      "locationId": "4009",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "8410 Farm Rd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89131"
+      }
+    },
+    {
+      "locationId": "4011",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "1650 N Buffalo Dr",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89128"
+      }
+    },
+    {
+      "locationId": "2613",
+      "banner": "vons",
+      "domain": "Vons",
+      "address": {
+        "line1": "6450 Sky Pointe Dr",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89131"
+      }
+    },
+    {
+      "locationId": "118",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "7151 W Craig Rd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89129"
+      }
+    },
+    {
+      "locationId": "46",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "1001 S Rainbow Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89145"
+      }
+    },
+    {
+      "locationId": "90",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "7075 W Ann Rd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89130"
+      }
+    },
+    {
+      "locationId": "2804",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "7975 Blue Diamond Rd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89178"
+      }
+    },
+    {
+      "locationId": "276",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "7350 S Rainbow Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89139"
+      }
+    },
+    {
+      "locationId": "129",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "5975 W Tropicana Ave",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89103"
+      }
+    },
+    {
+      "locationId": "61",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "4850 W Craig Rd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89130"
+      }
+    },
+    {
+      "locationId": "45",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "1760 E Charleston Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89104"
+      }
+    },
+    {
+      "locationId": "1963",
+      "banner": "vons",
+      "domain": "Vons",
+      "address": {
+        "line1": "1155 E Twain Ave",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89169"
+      }
+    },
+    {
+      "locationId": "4024",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "2835 S Nellis Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89121"
+      }
+    },
+    {
+      "locationId": "4091",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "5881 E Charleston Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89142"
+      }
+    },
+    {
+      "locationId": "2396",
+      "banner": "vons",
+      "domain": "Vons",
+      "address": {
+        "line1": "1131 E Tropicana Ave",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89119"
+      }
+    },
+    {
+      "locationId": "89",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "6885 E Lake Mead Blvd",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89156"
+      }
+    },
+    {
+      "locationId": "1059",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "5500 Boulder Hwy",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89122"
+      }
+    },
+    {
+      "locationId": "4005",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "3010 W Ann Rd",
+        "city": "North Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89031"
+      }
+    },
+    {
+      "locationId": "4017",
+      "banner": "albertsons",
+      "domain": "Albertsons",
+      "address": {
+        "line1": "7271 S Eastern Ave",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89119"
+      }
+    },
+    {
+      "locationId": "2390",
+      "banner": "vons",
+      "domain": "Vons",
+      "address": {
+        "line1": "475 E Windmill Ln",
+        "city": "Las Vegas",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89123"
+      }
+    },
+    {
+      "locationId": "2656",
+      "banner": "safeway",
+      "domain": "Safeway",
+      "address": {
+        "line1": "2858 Vista Blvd",
+        "city": "Sparks",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89434"
+      }
+    },
+    {
+      "locationId": "188",
+      "banner": "safeway",
+      "domain": "Safeway",
+      "address": {
+        "line1": "1031 Steamboat Pkwy",
+        "city": "Reno",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89521"
+      }
+    },
+    {
+      "locationId": "1537",
+      "banner": "safeway",
+      "domain": "Safeway",
+      "address": {
+        "line1": "212 Elks Point Rd",
+        "city": "Zephyr Cove",
+        "state": "NV",
+        "country": "US",
+        "zipcode": "89448"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1242 @@
+{
+  "sourceId": "liquorland-texas",
+  "capturedAt": "2026-10-29T01:34:43.405Z",
+  "url": "https://liquorland.us/shop/?ch-query=barrel%20proof",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "5d41148494a4df3b7c75f456",
+        "name": "LiquorLand- Fort Worth",
+        "address": {
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2755554,
+              32.8929842
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "660c7ebae6de312acd1d5200",
+        "name": "LiquorLand - Watauga/Denton Hwy",
+        "address": {
+          "full_address": "5932 Denton Hwy Suite 100, Watauga, TX 76148, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2633893,
+              32.8553783
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "660c7f194f10412ad2230175",
+        "name": "LiquorLand - Hurst",
+        "address": {
+          "full_address": "1842 Precinct Line Rd suite 200, Hurst, TX 76054, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.185497,
+              32.8494008
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "660c7f4472381d2ab3bce777",
+        "name": "LiquorLand- Corral City",
+        "address": {
+          "full_address": "1217 FM 407, Argyle, TX 76226, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2264805,
+              33.0998228
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "660c7f7a81ae872abcca6944",
+        "name": "LiquorLand- Highland Village",
+        "address": {
+          "full_address": "2630 Justin Rd #101, Highland Village, TX 75077, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.0702154,
+              33.0743851
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "660c7fb148e78f2b1c672487",
+        "name": "LiquorLand- Lewisville",
+        "address": {
+          "full_address": "1288 W Main St suite 233, Lewisville, TX 75067, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.0243449,
+              33.04142890000001
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "660c7ff172381d2ababcfdb1",
+        "name": "BevLand",
+        "address": {
+          "full_address": "5932 Denton Hwy Suite 200, Watauga, TX 76148, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2633893,
+              32.8553783
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "66845f88578b563d4b7633ad",
+        "name": "The Liquor Outpost",
+        "address": {
+          "full_address": "4300 Western Center Blvd, Fort Worth, TX 76137, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.2930657,
+              32.8605742
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "66845fc4de6b221e8a7a902e",
+        "name": "LiquorLand- Lewisville/Castle Hills",
+        "address": {
+          "full_address": "2425 FM 544 suite 400, Lewisville, TX 75056, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -96.9135764,
+              33.046802
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "66bcb807db1386447f4794c7",
+        "name": "LiquorLand- Watauga/Rufe Snow",
+        "address": {
+          "full_address": "8239 Rufe Snow Dr, Watauga, TX 76148, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.239289,
+              32.890661
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "6880efb95d834f34deaa95b5",
+        "name": "LiquorLand - Saginaw",
+        "address": {
+          "full_address": "1005 N Saginaw Blvd #175, Saginaw, TX 76179, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -97.3764315,
+              32.8740833
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "6931f31876c5c254b134a66f",
+        "name": "LiquorLand - Irving",
+        "address": {
+          "full_address": "2660 N Belt Line Rd, Irving, TX 75062, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -96.991748,
+              32.8428704
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "6437269221766324364d477b",
+      "name": "Jack Daniel's Single Barrel Barrel Proof Rye",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6437269221766324364d477b",
+              "option_id": "d09eb2f36f3cc0015de51cde7867f1cb1d172b5bb03161dab59134fd1847fd25",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/jack-daniels-single-barrel-barrel-proof-rye/6437269221766324364d477b?option-id=d09eb2f36f3cc0015de51cde7867f1cb1d172b5bb03161dab59134fd1847fd25",
+              "quantity": 6,
+              "price": 67.99,
+              "option_display_data": {
+                "name": "Jack Daniel's Single Barrel Barrel Proof Rye",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rye"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rye"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Jack Daniel's"
+                  ],
+                  "country": "United States",
+                  "state": "Tennessee",
+                  "region": "Lynchburg",
+                  "age": "N/A",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5753760f69702d365e28b301",
+      "name": "Jack Daniel's Single Barrel Barrel Proof Tennessee Whiskey",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5753760f69702d365e28b301",
+              "option_id": "7fcf59d62b8bba89121b9ba8ed3be05ab73fd53b3e7c3a606e1ccd8164ce88a3",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/jack-daniels-single-barrel-barrel-proof-tennessee-whiskey/5753760f69702d365e28b301?option-id=7fcf59d62b8bba89121b9ba8ed3be05ab73fd53b3e7c3a606e1ccd8164ce88a3",
+              "quantity": 24,
+              "price": 67.99,
+              "option_display_data": {
+                "name": "Jack Daniel's Single Barrel Barrel Proof Tennessee Whiskey",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "whiskey"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Jack Daniel's"
+                  ],
+                  "country": "United States",
+                  "state": "Tennessee",
+                  "region": "Lynchburg",
+                  "age": "N/A",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "quantity": 7,
+              "price": 64.99,
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6a29b58db6269500015b94aa",
+      "name": "Russells Reserve 13 Years Old Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6a29b58db6269500015b94aa",
+              "option_id": "c4648224b7fdd664ddcca7151963ea385a18d0d6f368afa91a3b5bdb1334336d",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/russells-reserve-13-years-old-barrel-proof/6a29b58db6269500015b94aa?option-id=c4648224b7fdd664ddcca7151963ea385a18d0d6f368afa91a3b5bdb1334336d",
+              "quantity": 6,
+              "price": 999.99,
+              "option_display_data": {
+                "name": "Russells Reserve 13 Years Old Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon"
+                  ],
+                  "brands": [
+                    "Russells Reserve"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "13"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "65bba646642ef729c77fb80e",
+      "name": "1792 Full Proof Barrel Select",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "65bba646642ef729c77fb80e",
+              "option_id": "d52723a41ee2210b6912e3c65a93fffa772285f3c05c3c2dcbb56493d659607e",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/1792-full-proof-barrel-select/65bba646642ef729c77fb80e?option-id=d52723a41ee2210b6912e3c65a93fffa772285f3c05c3c2dcbb56493d659607e",
+              "quantity": 31,
+              "price": 44.99,
+              "option_display_data": {
+                "name": "1792 Full Proof Barrel Select",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon"
+                  ],
+                  "brands": [
+                    "1792"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "59b0545b2df3c76399d5a59a",
+      "name": "19 Crimes The Uprising Red Wine Blend, Australia",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "59b0545b2df3c76399d5a59a",
+              "option_id": "b2808fbb9fb379ed45575ac7a19c251871b1993de2c690a90e7292738257f93f",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/19-crimes-the-uprising-red-wine-blend-australia/59b0545b2df3c76399d5a59a?option-id=b2808fbb9fb379ed45575ac7a19c251871b1993de2c690a90e7292738257f93f",
+              "quantity": 4,
+              "price": 11.99,
+              "option_display_data": {
+                "name": "19 Crimes The Uprising Red Wine Blend, Australia",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "blend",
+                  "red"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "wine"
+                  ],
+                  "product_basic_categories": [
+                    "blend",
+                    "red"
+                  ],
+                  "basic_category": "Wine",
+                  "brands": [
+                    "19 Crimes"
+                  ],
+                  "varietal": [
+                    "Red Wine Blend"
+                  ],
+                  "country": "Australia",
+                  "region": "Australia",
+                  "sub_region": "N/A",
+                  "age": "N/A",
+                  "content": "15%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5d3f475ac9bb181011a9938d",
+      "name": "1924 Bourbon Barrel Aged Cabernet Sauvignon Red Wine, California, 750mL, 15% ABV",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5d3f475ac9bb181011a9938d",
+              "option_id": "1b7a9c2744db9b53504d08c5e3f2929d467574634c37a82e3b753da829ea45b6",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/1924-bourbon-barrel-aged-cabernet-sauvignon-red-wine-california-750ml-15-abv/5d3f475ac9bb181011a9938d?option-id=1b7a9c2744db9b53504d08c5e3f2929d467574634c37a82e3b753da829ea45b6",
+              "quantity": 1,
+              "price": 16.99,
+              "option_display_data": {
+                "name": "1924 Bourbon Barrel Aged Cabernet Sauvignon Red Wine, California, 750mL, 15% ABV",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "red"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "wine"
+                  ],
+                  "product_basic_categories": [
+                    "red"
+                  ],
+                  "basic_category": "Wine",
+                  "brands": [
+                    "1924"
+                  ],
+                  "country": "United States",
+                  "content": "15%",
+                  "brand": "1924"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "60134d91b373cc7568154021",
+      "name": "Angel's Envy Private Selection Finished in Port Wine Barrels Kentucky Straight Bourbon Whiskey 110 pf",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "60134d91b373cc7568154021",
+              "option_id": "9b69d3521de25f3a9ce12eccef5d66bed4357fb95dfbffcf8884a41d51400b10",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/angels-envy-private-selection-finished-in-port-wine-barrels-kentucky-straight-bourbon-whiskey-110-pf/60134d91b373cc7568154021?option-id=9b69d3521de25f3a9ce12eccef5d66bed4357fb95dfbffcf8884a41d51400b10",
+              "quantity": 13,
+              "price": 89.99,
+              "option_display_data": {
+                "name": "Angel's Envy Private Selection Finished in Port Wine Barrels Kentucky Straight Bourbon Whiskey 110 pf",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits",
+                    "alcohol"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "country": "Slovenia",
+                  "region": "Štore"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "60db4445a13253475e8d52fe",
+      "name": "Bearface 7YR Triple Barrel Canadian Whisky",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "60db4445a13253475e8d52fe",
+              "option_id": "cd0d8381fe9e5e093f6642affcaeac8619b092b8bd664f0bf78fa2729704c640",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/bearface-7yr-triple-barrel-canadian-whisky/60db4445a13253475e8d52fe?option-id=cd0d8381fe9e5e093f6642affcaeac8619b092b8bd664f0bf78fa2729704c640",
+              "quantity": 1,
+              "price": 24.99,
+              "option_display_data": {
+                "name": "Bearface 7YR Triple Barrel Canadian Whisky",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "whiskey"
+                  ],
+                  "country": "Canada",
+                  "age": "7",
+                  "content": "42.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "65386e519d8cf205927868c0",
+      "name": "Ben Holladay Rickhouse Proof Bourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "65386e519d8cf205927868c0",
+              "option_id": "0500b524a4ed06e568a1ffec74d166e6c653c3397b8a0bdcd3704d6ec0cf0082",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/ben-holladay-rickhouse-proof-bourbon/65386e519d8cf205927868c0?option-id=0500b524a4ed06e568a1ffec74d166e6c653c3397b8a0bdcd3704d6ec0cf0082",
+              "quantity": 6,
+              "price": 74.99,
+              "option_display_data": {
+                "name": "Ben Holladay Rickhouse Proof Bourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Ben Holladay"
+                  ],
+                  "country": "United States",
+                  "state": "Missouri",
+                  "age": "6"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5f29826cbca4b61329a39822",
+      "name": "Benchmark Full Proof Bourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5f29826cbca4b61329a39822",
+              "option_id": "82e2d122c56fbbe5b1484975cb8201ece1cb0b8967e694e2e185ea20f6389b14",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/benchmark-full-proof-bourbon/5f29826cbca4b61329a39822?option-id=82e2d122c56fbbe5b1484975cb8201ece1cb0b8967e694e2e185ea20f6389b14",
+              "quantity": 17,
+              "price": 21.99,
+              "option_display_data": {
+                "name": "Benchmark Full Proof Bourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "country": "United States"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5a74cb820abe0a4f827e9999",
+      "name": "Beringer Bros. Bourbon Barrel Aged California Cabernet Sauvignon Red Wine",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5a74cb820abe0a4f827e9999",
+              "option_id": "10b0c44b60db9c6f3973f56edf1995a80d3c8874e3ccbcedb0e12312f2623928",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/beringer-bros-bourbon-barrel-aged-california-cabernet-sauvignon-red-wine/5a74cb820abe0a4f827e9999?option-id=10b0c44b60db9c6f3973f56edf1995a80d3c8874e3ccbcedb0e12312f2623928",
+              "quantity": 32,
+              "price": 18.99,
+              "option_display_data": {
+                "name": "Beringer Bros. Bourbon Barrel Aged California Cabernet Sauvignon Red Wine",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "red"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "wine"
+                  ],
+                  "product_basic_categories": [
+                    "red"
+                  ],
+                  "basic_category": "Wine",
+                  "brands": [
+                    "Beringer Bros."
+                  ],
+                  "varietal": [
+                    "Cabernet Sauvignon"
+                  ],
+                  "country": "United States",
+                  "state": "California",
+                  "region": "California",
+                  "sub_region": "N/A",
+                  "age": "N/A",
+                  "content": "14.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5887860439e21c1a7a521fbf",
+      "name": "Boodles® British London Dry Gin 90.4 Proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5887860439e21c1a7a521fbf",
+              "option_id": "eb60b82136034d8d83558ffa9026cfb7c853e9ad798f0d9cc819a7ade25e2dce",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/boodles-british-london-dry-gin-90-4-proof/5887860439e21c1a7a521fbf?option-id=eb60b82136034d8d83558ffa9026cfb7c853e9ad798f0d9cc819a7ade25e2dce",
+              "quantity": 7,
+              "price": 33.99,
+              "option_display_data": {
+                "name": "Boodles® British London Dry Gin 90.4 Proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "gin"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "gin"
+                  ],
+                  "brands": [
+                    "Boodles Gin"
+                  ],
+                  "country": "England"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "57aa368369702d1fad576001",
+      "name": "Burnett's Vodka 80 Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "57aa368369702d1fad576001",
+              "option_id": "36c7d9978dad548fa15b02072b35ceecd27bda992127b338b38d334d7a966b35",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/burnetts-vodka-80-proof/57aa368369702d1fad576001?option-id=36c7d9978dad548fa15b02072b35ceecd27bda992127b338b38d334d7a966b35",
+              "quantity": 39,
+              "price": 9.99,
+              "option_display_data": {
+                "name": "Burnett's Vodka 80 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "basic_category": "Vodka",
+                  "brands": [
+                    "Burnett's"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "40%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "56ebb64069702d5654df3b00",
+      "name": "Burnett's Vodka 80 proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56ebb64069702d5654df3b00",
+              "option_id": "5a40f0e22f85bf80f56e42fb9fbbef9bf60b78fe45cb6ac56b04131d3a9fd360",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/burnetts-vodka-80-proof/56ebb64069702d5654df3b00?option-id=5a40f0e22f85bf80f56e42fb9fbbef9bf60b78fe45cb6ac56b04131d3a9fd360",
+              "quantity": 33,
+              "price": 13.99,
+              "option_display_data": {
+                "name": "Burnett's Vodka 80 proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "basic_category": "Vodka",
+                  "brands": [
+                    "Burnett's"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "40%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5b69fe5f5d767301b475a340",
+      "name": "Calypso Gold Rum 151 Proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5b69fe5f5d767301b475a340",
+              "option_id": "c66d3aa909f042b519fb97ce0834a3464190bfde6e06ae6978748781c7946aad",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/calypso-gold-rum-151-proof/5b69fe5f5d767301b475a340?option-id=c66d3aa909f042b519fb97ce0834a3464190bfde6e06ae6978748781c7946aad",
+              "quantity": 7,
+              "price": 10.99,
+              "option_display_data": {
+                "name": "Calypso Gold Rum 151 Proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "brands": [
+                    "Calypso"
+                  ],
+                  "country": "Barbados",
+                  "region": "Caribbean"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "56caa5927562752ed5d01400",
+      "name": "Captain Morgan Black 100 Proof Cask Spiced Rum",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56caa5927562752ed5d01400",
+              "option_id": "a20421139f97c98d307ac37b33e528317150d3c4dced1b8823573873b35b8fe6",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/captain-morgan-black-100-proof-cask-spiced-rum/56caa5927562752ed5d01400?option-id=a20421139f97c98d307ac37b33e528317150d3c4dced1b8823573873b35b8fe6",
+              "quantity": 13,
+              "price": 21.99,
+              "option_display_data": {
+                "name": "Captain Morgan Black 100 Proof Cask Spiced Rum",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "brands": [
+                    "Captain Morgan"
+                  ],
+                  "country": "United States",
+                  "region": "Virgin Islands",
+                  "brand": "Captain Morgan"
+                }
+              }
+            },
+            {
+              "product_id": "56caa5877562752ed5ce1400",
+              "option_id": "db2bacbed6d87ff974abecfdb0bc5b546bc31e099a973ed02d700faaab15dcce",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/captain-morgan-black-100-proof-cask-spiced-rum/56caa5877562752ed5ce1400?option-id=db2bacbed6d87ff974abecfdb0bc5b546bc31e099a973ed02d700faaab15dcce",
+              "quantity": 1,
+              "price": 29.99,
+              "option_display_data": {
+                "name": "Captain Morgan Black 100 Proof Cask Spiced Rum",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "brands": [
+                    "Captain Morgan"
+                  ],
+                  "country": "United States",
+                  "state": "Puerto Rico",
+                  "brand": "Captain Morgan"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5f2b34d6a704127da4a6855d",
+      "name": "Carnivor Bourbon Barrel Aged Cabernet Sauvignon Red Wine",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5d41148494a4df3b7c75f456",
+          "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5f2b34d6a704127da4a6855d",
+              "option_id": "ee89b2bdc9e2c8af50bbce15c91067dd7e0dc56de8c4bdefd47fea591dcbbfe9",
+              "merchant_id": "5d41148494a4df3b7c75f456",
+              "full_address": "4940 N Tarrant Pkwy, Fort Worth, TX 76137, USA",
+              "product_url": "https://liquorland.us/shop/product/carnivor-bourbon-barrel-aged-cabernet-sauvignon-red-wine/5f2b34d6a704127da4a6855d?option-id=ee89b2bdc9e2c8af50bbce15c91067dd7e0dc56de8c4bdefd47fea591dcbbfe9",
+              "quantity": 1,
+              "price": 12.99,
+              "option_display_data": {
+                "name": "Carnivor Bourbon Barrel Aged Cabernet Sauvignon Red Wine",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "red"
+                ],
+                "properties": {
+                  "product_views": [
+                    "wine"
+                  ],
+                  "product_basic_categories": [
+                    "red"
+                  ],
+                  "basic_category": "Bourbon",
+                  "brands": [
+                    "Carnivor"
+                  ],
+                  "varietal": [
+                    "Cabernet Sauvignon"
+                  ],
+                  "country": "United States"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

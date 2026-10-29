@@ -1,0 +1,1432 @@
+{
+  "sourceId": "kindred-spirits-texas",
+  "capturedAt": "2026-10-29T01:34:57.545Z",
+  "url": "https://houseofkindredspiritsandwine.com/shop/?ch-query=barrel%20proof",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "64480c90c649312ac1c99921",
+        "name": "Kindred Spirits & Wine- Inwood",
+        "address": {
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -96.82493869999999,
+              32.8314475
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "658c751d1b114d703bdf69c4",
+        "name": "Kindred Spirits & Wine- Irving",
+        "address": {
+          "full_address": "3578 W Airport Fwy, Irving, TX 75062, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -96.99735179999999,
+              32.8358709
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 7,
+              "price": 74.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6437269221766324364d477b",
+      "name": "Jack Daniel's Single Barrel Barrel Proof Rye",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6437269221766324364d477b",
+              "option_id": "d09eb2f36f3cc0015de51cde7867f1cb1d172b5bb03161dab59134fd1847fd25",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/jack-daniels-single-barrel-barrel-proof-rye/6437269221766324364d477b?option-id=d09eb2f36f3cc0015de51cde7867f1cb1d172b5bb03161dab59134fd1847fd25",
+              "quantity": 5,
+              "price": 69.99,
+              "option_display_data": {
+                "name": "Jack Daniel's Single Barrel Barrel Proof Rye",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rye"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rye"
+                  ],
+                  "basic_category": "Spirits",
+                  "brands": [
+                    "Jack Daniel's"
+                  ],
+                  "country": "United States",
+                  "state": "Tennessee",
+                  "region": "Lynchburg",
+                  "age": "N/A",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6526033577e1de1a40aed3b1",
+      "name": "James E Pepper Barrel Proof Bourbon Decanter",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6526033577e1de1a40aed3b1",
+              "option_id": "54b8f9b8ce5c59dce318729064e24bb4f87c8a2983e92584b6190703b23ebf2e",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/james-e-pepper-barrel-proof-bourbon-decanter/6526033577e1de1a40aed3b1?option-id=54b8f9b8ce5c59dce318729064e24bb4f87c8a2983e92584b6190703b23ebf2e",
+              "quantity": 3,
+              "price": 62.99,
+              "option_display_data": {
+                "name": "James E Pepper Barrel Proof Bourbon Decanter",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "James"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "quantity": 7,
+              "price": 71.99,
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5fb6081ce127250c4ee80791",
+      "name": "Penelope Bourbon Barrel Strength Private Select",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5fb6081ce127250c4ee80791",
+              "option_id": "165d431f20be6fb16b2e7f9f3fa1b52dca8ba3b61cda1072c86b882a6208aa5d",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/penelope-bourbon-barrel-strength-private-select/5fb6081ce127250c4ee80791?option-id=165d431f20be6fb16b2e7f9f3fa1b52dca8ba3b61cda1072c86b882a6208aa5d",
+              "quantity": 2,
+              "price": 69.99,
+              "option_display_data": {
+                "name": "Penelope Bourbon Barrel Strength Private Select",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Penelope Bourbon"
+                  ],
+                  "country": "United States",
+                  "content": "115.8 Proof%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5f77b89c99ecae08bcd96382",
+      "name": "Parrot Bay Coconut 90 Proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5f77b89c99ecae08bcd96382",
+              "option_id": "cd5020ea0786a83f88daeeac7400d672555c0632e009b3e8fcceb70ef0a04b6e",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/parrot-bay-coconut-90-proof/5f77b89c99ecae08bcd96382?option-id=cd5020ea0786a83f88daeeac7400d672555c0632e009b3e8fcceb70ef0a04b6e",
+              "quantity": 2,
+              "price": 29.99,
+              "option_display_data": {
+                "name": "Parrot Bay Coconut 90 Proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "brands": [
+                    "Parrot Bay"
+                  ],
+                  "country": "Barbados",
+                  "region": "Caribbean"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5c141a8c20c8ba1b8765e8b9",
+      "name": "Handy & Schiller Barreled Old Fashioned Signature Ready to Drink Cocktail",
+      "size": {
+        "measure": "oz",
+        "quantity": "25.4"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5c141a8c20c8ba1b8765e8b9",
+              "option_id": "7ace51a63b7846cb1ec960f55f62bc5c31f48d423be99715f1eed5877a679891",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/handy-schiller-barreled-old-fashioned-signature-ready-to-drink-cocktail/5c141a8c20c8ba1b8765e8b9?option-id=7ace51a63b7846cb1ec960f55f62bc5c31f48d423be99715f1eed5877a679891",
+              "quantity": 3,
+              "price": 29.99,
+              "option_display_data": {
+                "name": "Handy & Schiller Barreled Old Fashioned Signature Ready to Drink Cocktail",
+                "size": {
+                  "measure": "oz",
+                  "quantity": "25.4"
+                },
+                "basic_category": [
+                  "cocktail"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "cocktail"
+                  ],
+                  "brands": [
+                    "Handy & Schiller"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "564bd7e669702d5e6e710000",
+      "name": "Svedka Vodka 80 Proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56eb98f069702d56548a1800",
+              "option_id": "7cca3616e20f2621caf22922a30e8f9945f44cd54a77e2ed4d719e6c06456a74",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-80-proof/56eb98f069702d56548a1800?option-id=7cca3616e20f2621caf22922a30e8f9945f44cd54a77e2ed4d719e6c06456a74",
+              "quantity": 10,
+              "price": 0.99,
+              "option_display_data": {
+                "name": "Svedka Vodka 80 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "50"
+                },
+                "basic_category": [
+                  "gluten free",
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "gluten free",
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden",
+                  "brand": "Svedka"
+                }
+              }
+            },
+            {
+              "product_id": "56c26f3775627570b0750100",
+              "option_id": "34d9687364f464f9bd3cf3c0ce80126bd02cbb5ae5c3ec39a365bbe1328a1524",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-80-proof/56c26f3775627570b0750100?option-id=34d9687364f464f9bd3cf3c0ce80126bd02cbb5ae5c3ec39a365bbe1328a1524",
+              "quantity": 11,
+              "price": 3.49,
+              "option_display_data": {
+                "name": "Svedka Vodka 80 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "200"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden",
+                  "brand": "Svedka"
+                }
+              }
+            },
+            {
+              "product_id": "56c26f2075627570b06f0100",
+              "option_id": "c270572d11318c1b7a8d62207281dc3cb7daa1cb093851960c6f64f0ad125436",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-80-proof/56c26f2075627570b06f0100?option-id=c270572d11318c1b7a8d62207281dc3cb7daa1cb093851960c6f64f0ad125436",
+              "quantity": 18,
+              "price": 5.99,
+              "option_display_data": {
+                "name": "Svedka Vodka 80 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "375"
+                },
+                "basic_category": [
+                  "gluten free",
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "gluten free",
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden",
+                  "content": "40%",
+                  "brand": "Svedka"
+                }
+              }
+            },
+            {
+              "product_id": "564bd7e669702d5e6e710000",
+              "option_id": "1ec8e8c0ec2f3326b9bcdb5474a1e2607044cd66e4a565e29b0479864228257a",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-80-proof/564bd7e669702d5e6e710000?option-id=1ec8e8c0ec2f3326b9bcdb5474a1e2607044cd66e4a565e29b0479864228257a",
+              "quantity": 10,
+              "price": 12.99,
+              "option_display_data": {
+                "name": "Svedka Vodka 80 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden",
+                  "brand": "Svedka"
+                }
+              }
+            },
+            {
+              "product_id": "56c3375f69702d27ed790700",
+              "option_id": "f7fe4f7389b1b0f623b51dcf0246adb33cba833fbb4d7d698791dddc37cb3b5e",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-80-proof/56c3375f69702d27ed790700?option-id=f7fe4f7389b1b0f623b51dcf0246adb33cba833fbb4d7d698791dddc37cb3b5e",
+              "quantity": 14,
+              "price": 12.99,
+              "option_display_data": {
+                "name": "Svedka Vodka 80 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "gluten free",
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "gluten free",
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden",
+                  "brand": "Svedka"
+                }
+              }
+            },
+            {
+              "product_id": "564bd7e469702d5e6e6e0000",
+              "option_id": "adac7df93b8c8000ac5c3f9de0c3fcf7996ebc97e55df750655b03878dbae90d",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-80-proof/564bd7e469702d5e6e6e0000?option-id=adac7df93b8c8000ac5c3f9de0c3fcf7996ebc97e55df750655b03878dbae90d",
+              "quantity": 5,
+              "price": 19.99,
+              "option_display_data": {
+                "name": "Svedka Vodka 80 Proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "gluten free",
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "gluten free",
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden",
+                  "content": "40%",
+                  "brand": "Svedka"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "573a3a7f69702d1966ad6e00",
+      "name": "Smirnoff 80 Proof Vodka",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "573a3a7f69702d1966ad6e00",
+              "option_id": "75a519823ba80302f9e7875a9b0645485ff25a6cd07b50c3a83fab0cf0324af2",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/smirnoff-80-proof-vodka/573a3a7f69702d1966ad6e00?option-id=75a519823ba80302f9e7875a9b0645485ff25a6cd07b50c3a83fab0cf0324af2",
+              "quantity": 48,
+              "price": 1.29,
+              "option_display_data": {
+                "name": "Smirnoff 80 Proof Vodka",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "50"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Smirnoff"
+                  ],
+                  "country": "United States",
+                  "state": "Connecticut",
+                  "content": "40%",
+                  "brand": "Smirnoff"
+                }
+              }
+            },
+            {
+              "product_id": "577344d869702d2a347f4500",
+              "option_id": "c94d3c86e759d8eecc6b70835361bec2fcdd97cfd35b6cc77ff02fafa72aabf5",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/smirnoff-80-proof-vodka/577344d869702d2a347f4500?option-id=c94d3c86e759d8eecc6b70835361bec2fcdd97cfd35b6cc77ff02fafa72aabf5",
+              "quantity": 51,
+              "price": 5.29,
+              "option_display_data": {
+                "name": "Smirnoff 80 Proof Vodka",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "200"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Smirnoff"
+                  ],
+                  "country": "United States",
+                  "state": "Connecticut",
+                  "brand": "Smirnoff"
+                }
+              }
+            },
+            {
+              "product_id": "577344da69702d2a34804500",
+              "option_id": "32745d123a049002aa011b4fdd2d81a545b7087bc37bae73fce776a1fd49aba7",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/smirnoff-80-proof-vodka/577344da69702d2a34804500?option-id=32745d123a049002aa011b4fdd2d81a545b7087bc37bae73fce776a1fd49aba7",
+              "quantity": 22,
+              "price": 8.99,
+              "option_display_data": {
+                "name": "Smirnoff 80 Proof Vodka",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "375"
+                },
+                "basic_category": [
+                  "gluten free",
+                  "kosher",
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "gluten free",
+                    "kosher",
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Smirnoff"
+                  ],
+                  "country": "United States",
+                  "state": "Connecticut",
+                  "content": "40%",
+                  "brand": "Smirnoff"
+                }
+              }
+            },
+            {
+              "product_id": "58aa2e22ce54844ae4df983c",
+              "option_id": "936102e959f5219dda00182f89d08775ea8e3a1f445c65db47ddcf3b1f265aaf",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/smirnoff-80-proof-vodka/58aa2e22ce54844ae4df983c?option-id=936102e959f5219dda00182f89d08775ea8e3a1f445c65db47ddcf3b1f265aaf",
+              "quantity": 8,
+              "price": 16.99,
+              "option_display_data": {
+                "name": "Smirnoff 80 Proof Vodka",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Smirnoff"
+                  ],
+                  "country": "United States",
+                  "content": "40%"
+                }
+              }
+            },
+            {
+              "product_id": "5521cef66561310003380200",
+              "option_id": "17adee1044ab79984bf3513bbe1077f899ff2e0e7c5c26f29632f8b024fe4250",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/smirnoff-80-proof-vodka/5521cef66561310003380200?option-id=17adee1044ab79984bf3513bbe1077f899ff2e0e7c5c26f29632f8b024fe4250",
+              "quantity": 4,
+              "price": 26.99,
+              "option_display_data": {
+                "name": "Smirnoff 80 Proof Vodka",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Smirnoff"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5b131996b2308460b5c3d12d",
+      "name": "G4 Blanco Tequila",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5b131996b2308460b5c3d12d",
+              "option_id": "7443d4491b4040faa2a8e1cfe399f2ff042e7f6fe8bf06e940ae968e8057c506",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/g4-blanco-tequila/5b131996b2308460b5c3d12d?option-id=7443d4491b4040faa2a8e1cfe399f2ff042e7f6fe8bf06e940ae968e8057c506",
+              "quantity": 6,
+              "price": 44.99,
+              "option_display_data": {
+                "name": "G4 Blanco Tequila",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "tequila"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "tequila"
+                  ],
+                  "country": "Mexico",
+                  "region": "Jalisco"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "67ef02a7f8385227b651337d",
+      "name": "Svedka Vodka 100 Proof",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "67eefbad41cdf525d4f17319",
+              "option_id": "7e1fe53308f8dd25c77892db08de5921322dcc04cb1fed49746a159b931b1632",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-100-proof/67eefbad41cdf525d4f17319?option-id=7e1fe53308f8dd25c77892db08de5921322dcc04cb1fed49746a159b931b1632",
+              "quantity": 49,
+              "price": 1.29,
+              "option_display_data": {
+                "name": "Svedka Vodka 100 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "50"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden"
+                }
+              }
+            },
+            {
+              "product_id": "67ef02a7f8385227b651337d",
+              "option_id": "02f101ab297ca6b9bf5cee2735c5e0152ac08b53a39e68d819686b824f2d3f2e",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-100-proof/67ef02a7f8385227b651337d?option-id=02f101ab297ca6b9bf5cee2735c5e0152ac08b53a39e68d819686b824f2d3f2e",
+              "quantity": 16,
+              "price": 12.99,
+              "option_display_data": {
+                "name": "Svedka Vodka 100 Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden"
+                }
+              }
+            },
+            {
+              "product_id": "67ef009b80f85a39ecd7bc79",
+              "option_id": "910db0de9711c5203f2fd24a0aa56e0c5cb8119151b3d91b1ffeddb00ef97198",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/svedka-vodka-100-proof/67ef009b80f85a39ecd7bc79?option-id=910db0de9711c5203f2fd24a0aa56e0c5cb8119151b3d91b1ffeddb00ef97198",
+              "quantity": 5,
+              "price": 19.99,
+              "option_display_data": {
+                "name": "Svedka Vodka 100 Proof",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "Svedka"
+                  ],
+                  "country": "Sweden"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "56caa5927562752ed5d01400",
+      "name": "Captain Morgan Black 100 Proof Cask Spiced Rum",
+      "size": {
+        "measure": "L",
+        "quantity": "1.75"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56caa5927562752ed5d01400",
+              "option_id": "a20421139f97c98d307ac37b33e528317150d3c4dced1b8823573873b35b8fe6",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/captain-morgan-black-100-proof-cask-spiced-rum/56caa5927562752ed5d01400?option-id=a20421139f97c98d307ac37b33e528317150d3c4dced1b8823573873b35b8fe6",
+              "quantity": 4,
+              "price": 22.99,
+              "option_display_data": {
+                "name": "Captain Morgan Black 100 Proof Cask Spiced Rum",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "brands": [
+                    "Captain Morgan"
+                  ],
+                  "country": "United States",
+                  "region": "Virgin Islands",
+                  "brand": "Captain Morgan"
+                }
+              }
+            },
+            {
+              "product_id": "56caa5877562752ed5ce1400",
+              "option_id": "db2bacbed6d87ff974abecfdb0bc5b546bc31e099a973ed02d700faaab15dcce",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/captain-morgan-black-100-proof-cask-spiced-rum/56caa5877562752ed5ce1400?option-id=db2bacbed6d87ff974abecfdb0bc5b546bc31e099a973ed02d700faaab15dcce",
+              "quantity": 6,
+              "price": 36.99,
+              "option_display_data": {
+                "name": "Captain Morgan Black 100 Proof Cask Spiced Rum",
+                "size": {
+                  "measure": "L",
+                  "quantity": "1.75"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "brands": [
+                    "Captain Morgan"
+                  ],
+                  "country": "United States",
+                  "state": "Puerto Rico",
+                  "brand": "Captain Morgan"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "574fa6fb69702d365e263100",
+      "name": "New Amsterdam 100 Proof Vodka",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "574fa6fb69702d365e263100",
+              "option_id": "e55c46355496dcad198bb0c0cb7af4396409ac948a0a447b71916e6dc7cc4578",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/new-amsterdam-100-proof-vodka/574fa6fb69702d365e263100?option-id=e55c46355496dcad198bb0c0cb7af4396409ac948a0a447b71916e6dc7cc4578",
+              "quantity": 7,
+              "price": 19.99,
+              "option_display_data": {
+                "name": "New Amsterdam 100 Proof Vodka",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "vodka"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "vodka"
+                  ],
+                  "brands": [
+                    "New Amsterdam"
+                  ],
+                  "country": "United States",
+                  "state": "California",
+                  "region": "Mendocino",
+                  "content": "50%",
+                  "brand": "New Amsterdam"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5ef65c63e4a65f2e5240b179",
+      "name": "Ritual Zero Proof Gin Alternative",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5ef65c63e4a65f2e5240b179",
+              "option_id": "5e08f231bc6ecadce33c43eda295101aed2fadab65680a021983a11a036b7d8c",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/ritual-zero-proof-gin-alternative/5ef65c63e4a65f2e5240b179?option-id=5e08f231bc6ecadce33c43eda295101aed2fadab65680a021983a11a036b7d8c",
+              "quantity": 5,
+              "price": 34.99,
+              "option_display_data": {
+                "name": "Ritual Zero Proof Gin Alternative",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "non alcoholic"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "non alcoholic"
+                  ],
+                  "country": "United States"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "645c218c3693b13b4aada2f2",
+      "name": "Tierra De Ensueno Barrel Rested Blanco",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "645c218c3693b13b4aada2f2",
+              "option_id": "8f46e88e4d490786dd9ac96411b7295f2461db86910fe32ec2af617ca10d2726",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/tierra-de-ensueno-barrel-rested-blanco/645c218c3693b13b4aada2f2?option-id=8f46e88e4d490786dd9ac96411b7295f2461db86910fe32ec2af617ca10d2726",
+              "quantity": 2,
+              "price": 64.99,
+              "option_display_data": {
+                "name": "Tierra De Ensueno Barrel Rested Blanco",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "tequila"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "tequila"
+                  ],
+                  "brands": [
+                    "Tierra De Ensueño"
+                  ],
+                  "country": "Mexico"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "616743fc38c2034ecad6aaf2",
+      "name": "Cruzan Hurricane Proof Aged Rum",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "616743fc38c2034ecad6aaf2",
+              "option_id": "0ae56729a33418fa04ebd3f3583888baaaeb375d5d17b871ab487405d84299a8",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/cruzan-hurricane-proof-aged-rum/616743fc38c2034ecad6aaf2?option-id=0ae56729a33418fa04ebd3f3583888baaaeb375d5d17b871ab487405d84299a8",
+              "quantity": 10,
+              "price": 23.99,
+              "option_display_data": {
+                "name": "Cruzan Hurricane Proof Aged Rum",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rum"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rum"
+                  ],
+                  "brands": [
+                    "Cruzan"
+                  ],
+                  "country": "United States",
+                  "state": "Tennessee"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "69161e1873b87b4fd74e866b",
+      "name": "Sazerac Rye Full Proof 125",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "69161e1873b87b4fd74e866b",
+              "option_id": "dc892e4944c3a5389048e5f9119f87ea3c3f12e91ead0c86352036dd9228f8d6",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/sazerac-rye-full-proof-125/69161e1873b87b4fd74e866b?option-id=dc892e4944c3a5389048e5f9119f87ea3c3f12e91ead0c86352036dd9228f8d6",
+              "quantity": 4,
+              "price": 39.99,
+              "option_display_data": {
+                "name": "Sazerac Rye Full Proof 125",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rye"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rye"
+                  ],
+                  "brands": [
+                    "Sazerac"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "6"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5d6ee338e548d71ac6cb7b48",
+      "name": "Weller Full Proof 114 Proof Wheated Bourbon",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "64480c90c649312ac1c99921",
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5d6ee338e548d71ac6cb7b48",
+              "option_id": "05a19f8358222f07d2bdbce737498b0b6888a9f251260dec090fbb689f6a4fc3",
+              "merchant_id": "64480c90c649312ac1c99921",
+              "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+              "product_url": "https://houseofkindredspiritsandwine.com/shop/product/weller-full-proof-114-proof-wheated-bourbon/5d6ee338e548d71ac6cb7b48?option-id=05a19f8358222f07d2bdbce737498b0b6888a9f251260dec090fbb689f6a4fc3",
+              "quantity": 5,
+              "price": 149.99,
+              "option_display_data": {
+                "name": "Weller Full Proof 114 Proof Wheated Bourbon",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "57%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
