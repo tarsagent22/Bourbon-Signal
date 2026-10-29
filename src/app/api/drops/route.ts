@@ -14,7 +14,7 @@ import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { compareDropFeedNewestFirst, dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { sortDropsByCanonicalSignalOrder } from "@/lib/signals/signal-contract";
-import { isFreshPublicDrop, publicDropFreshnessWindow, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode, projectInventoryEvidenceFreshness } from "@/lib/public-drop-evidence";
+import { isFreshPublicDrop, publicDropFreshnessWindow, isPublicDropFeedEligible, publicDropDegradedStateReasons, publicDropRarityTier, publicEvidenceStateCode, projectInventoryEvidenceFreshness } from "@/lib/public-drop-evidence";
 import { ACTIVE_ENGINE_STATE_NAMES } from "@/lib/activeStates";
 import { buildWeeklyMarketSummaries } from "@/lib/signals/signal-market-summary";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
@@ -216,8 +216,11 @@ async function preparePublicFeedSnapshot(base: PublicFeedBase) {
   const normalizedDrops = sortDropsByCanonicalSignalOrder([...runtimeDrops, ...retailerDrops]);
   const independentlyVerifiedIds = new Set(sourceOverlay.drops.filter((drop: Record<string, unknown>) => (drop.sourcePollId || drop.sourceLaneId)
     && drop.stale !== true && (drop.canAlertAsInventory === true || drop.canAlertAsWatch === true)).map((drop: Record<string, unknown>) => String(drop.id)));
+  const health = base.statsPayload?.refreshHealth as Record<string, unknown> | undefined;
+  const degradedStateReasons = publicDropDegradedStateReasons(Array.isArray(health?.degradedStates) ? health.degradedStates as Record<string, unknown>[] : []);
   const eligible = normalizedDrops.filter(drop => isPublicDropFeedEligible(drop, {
     degradedStateCodes: independentlyVerifiedIds.has(String((drop as Record<string, unknown>).id)) ? undefined : base.degradedStates,
+    degradedStateReasons,
   }));
   const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
   return { ...base, sourceOverlay, classificationIndex, normalizedDrops, eligible, freshness,

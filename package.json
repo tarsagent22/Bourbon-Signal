@@ -180,7 +180,7 @@
     "acquisition:import": "node --no-warnings --experimental-strip-types scripts/retailer-acquisition/import.mts",
     "migrate:retailer-acquisition": "node scripts/migrate-retailer-acquisition.mjs --check",
     "migrate:retailer-acquisition:apply": "node scripts/migrate-retailer-acquisition.mjs --apply",
-    "test:california-area": "node --experimental-strip-types scripts/test-california-area.mts && tsx scripts/test-california-customer-path.mts",
+    "test:california-area": "node --experimental-strip-types scripts/test-california-area.mts && tsx scripts/test-california-customer-path.mts && tsx scripts/test-california-degraded-grocery-path.mts",
     "test:mississippi-area": "node --no-warnings --experimental-strip-types scripts/test-mississippi-area.mts",
     "test:faq-content": "node --no-warnings --experimental-strip-types scripts/test-faq-content.mts",
     "test:home-release-radar": "node --no-warnings --experimental-strip-types scripts/test-release-radar.mts",

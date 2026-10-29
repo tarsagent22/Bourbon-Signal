@@ -8,7 +8,7 @@ import {
 } from "@/lib/drop-classification";
 import { dropFreshnessTime } from "@/lib/drop-feed-policy";
 import { selectDropFeedHistory } from "@/lib/drop-feed-history";
-import { isFreshPublicDrop, isPublicDropFeedEligible, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
+import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropDegradedStateReasons, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
 import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
 import { isVerifiedRetailerDrop, retailerSubmissionToFeedCard } from "@/lib/retailer-signal-feed";
 import { normalizeDropForSite, readSiteExportResults } from "@/lib/site-engine-contract";
@@ -56,6 +56,8 @@ export async function readWelcomeLocalPreviewInputs(now = new Date()) {
   const classificationIndex = getDropClassificationIndex(
     dropFeedClassification.records as unknown as DropClassificationBottle[],
   );
+  const health = statsPayload?.refreshHealth as Record<string, unknown> | undefined;
+  const degradedStateReasons = publicDropDegradedStateReasons(Array.isArray(health?.degradedStates) ? health.degradedStates as Record<string, unknown>[] : []);
   const normalized = [...rawDrops, ...publicRetailerDrops]
     .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))
     .map((drop) => {
@@ -72,6 +74,8 @@ export async function readWelcomeLocalPreviewInputs(now = new Date()) {
     })
     .filter((drop) => isPublicDropFeedEligible(drop, {
       degradedStateCodes: degradedEngineStates(statsPayload),
+      degradedStateReasons,
+      asOf: now,
     }));
 
   return {
