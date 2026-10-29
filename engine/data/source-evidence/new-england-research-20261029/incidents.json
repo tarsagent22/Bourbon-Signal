@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "hosts": {
+    "haxtons.com": {
+      "httpStatus": 403,
+      "observedAt": "2026-10-29T15:51:42.592Z",
+      "nextAllowedAt": "2026-10-30T15:51:42.592Z",
+      "reviewRequired": true
+    }
+  },
+  "inFlight": {}
+}
