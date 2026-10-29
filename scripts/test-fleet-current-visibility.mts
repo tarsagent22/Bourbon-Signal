@@ -38,6 +38,8 @@ try {
  assert.ok(wa.signals.length>0&&wi.signals.length>0);
  const targets=[...fixture.signals,wa.signals[0],wi.signals[0]].map(s=>canonicalizeSignal(s,bible));
  assert.deepEqual(targets.map(s=>s.state),['CA','ID','IA','WA','WI']);
+ const noLongerCurrent=targets.filter(s=>['WA','WI'].includes(s.state));
+ assert.equal(buildDrops(noLongerCurrent,lookup,targets.filter(s=>!['WA','WI'].includes(s.state))).length,0,'complete current source with no positive row must not reuse prior onsite stock');
  const template={state:'PA',rawName:'1792 Full Proof',canonicalName:'1792 Full Proof',canonicalBottleId:targets[0].canonicalBottleId,
   sourceLabel:'Synthetic fleet depth fixture',sourceUrl:'https://fixture.invalid/fleet',eventType:'store_inventory_aggregate',locationPrecision:'store_aggregate',
   quantity:1,warehouseQty:1,price:47.99,canAlertAsInventory:false,canAlertAsWatch:false,observedAt:new Date(now-86400000).toISOString(),confidence:.9};
