@@ -1,0 +1,53 @@
+name: Refresh continuation harmless smoke
+run-name: Continuation smoke|${{ inputs.pacing }}|cycle=${{ inputs.cycle }}|chain=${{ inputs.chain_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      chain_id:
+        type: string
+        description: New 32-character lowercase hex smoke identifier; never a credential
+        required: true
+      cycle:
+        type: string
+        default: '1'
+        required: true
+      pacing:
+        type: choice
+        options: [immediate, paced]
+        default: immediate
+        required: true
+      relay_run_id:
+        type: string
+        default: ''
+      confirm_smoke_only:
+        type: boolean
+        default: false
+        required: true
+permissions:
+  contents: read
+  actions: read
+env:
+  CONTINUATION_SMOKE_ENABLED: ${{ vars.BOURBON_SIGNAL_CONTINUATION_SMOKE_ENABLED || '0' }}
+  CONTINUATION_MAINTENANCE: ${{ vars.BOURBON_SIGNAL_CONTINUATION_MAINTENANCE || '1' }}
+jobs:
+  no-retailer-producer:
+    if: ${{ github.repository == 'tarsagent22/Bourbon-Signal' && vars.BOURBON_SIGNAL_CONTINUATION_SMOKE_ENABLED == '1' && vars.BOURBON_SIGNAL_CONTINUATION_MAINTENANCE == '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/refresh-continuation.mjs --mode=producer --phase=produce
+      - uses: actions/upload-artifact@v4
+        with:
+          name: refresh-continuation-smoke-${{ github.run_id }}
+          path: .operator/refresh-continuation/smoke-marker.json
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: error

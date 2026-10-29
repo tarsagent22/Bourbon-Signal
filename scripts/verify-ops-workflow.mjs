@@ -473,6 +473,13 @@ for (const phrase of ['ALERT_DELIVERY_ENABLED: "0"', 'npm run canary:state', 'np
 }
 if (canaryWorkflow && /vercel deploy[^\n]*--prod/.test(canaryWorkflow)) fail('Canary workflow must deploy only an isolated preview, never --prod.');
 const refreshFeedWorkflow = expectFile('.github/workflows/refresh-feed.yml');
+for(const continuation of ['refresh-continuation.yml','refresh-continuation-smoke.yml','refresh-continuation-smoke-relay.yml']){
+  const source=expectFile('.github/workflows/'+continuation);
+  if(!source.includes("ENABLED || '0'")||!source.includes("CONTINUATION_MAINTENANCE || '1'")
+    ||/BLOB_READ_WRITE_TOKEN|ENGINE_SNAPSHOT_ENCRYPTION_KEY|secrets\.|npm ci|publish-site-snapshot/.test(source))
+    fail('Continuation must remain default-off, GitHub-token-only, and separate from collection/publication: '+continuation);
+}
+if(!workflow.includes('node --test scripts/test-refresh-continuation.mjs'))fail('CI must exercise default-off continuation, failure, scope and smoke guards.');
 if (!refreshFeedWorkflow.includes('run: npm run verify:state-integration -- --all-active')
   || /verify-active-state-integration-ci|prepare-legacy-site-fixture-ci/.test(refreshFeedWorkflow)) {
   fail('Production refresh must use the unchanged real-output state-integration CLI and never a CI fixture selector/preparer.');
