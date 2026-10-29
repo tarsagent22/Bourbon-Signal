@@ -20,7 +20,9 @@
       "zip": "55304",
       "storeId": "top-ten-liquors:64640aa531cdfc289042efc4",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640aa531cdfc289042efc4"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640aa531cdfc289042efc4",
+      "lat": 45.2181056,
+      "lng": -93.3206922
     },
     {
       "id": "top-ten-liquors:64640ae4a9a1022c2d6eba51",
@@ -38,7 +40,9 @@
       "zip": "55449",
       "storeId": "top-ten-liquors:64640ae4a9a1022c2d6eba51",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640ae4a9a1022c2d6eba51"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640ae4a9a1022c2d6eba51",
+      "lat": 45.19845189999999,
+      "lng": -93.2320845
     },
     {
       "id": "top-ten-liquors:64640b1fa9a1022c2d6ebed5",
@@ -56,7 +60,9 @@
       "zip": "55346",
       "storeId": "top-ten-liquors:64640b1fa9a1022c2d6ebed5",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640b1fa9a1022c2d6ebed5"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640b1fa9a1022c2d6ebed5",
+      "lat": 44.862939,
+      "lng": -93.5205246
     },
     {
       "id": "top-ten-liquors:64640bb3ab707428bfb7d172",
@@ -74,7 +80,9 @@
       "zip": "55305",
       "storeId": "top-ten-liquors:64640bb3ab707428bfb7d172",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640bb3ab707428bfb7d172"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640bb3ab707428bfb7d172",
+      "lat": 44.9687154,
+      "lng": -93.44236939999999
     },
     {
       "id": "top-ten-liquors:64640c112da7432b03e46d19",
@@ -92,7 +100,9 @@
       "zip": "55016",
       "storeId": "top-ten-liquors:64640c112da7432b03e46d19",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640c112da7432b03e46d19"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640c112da7432b03e46d19",
+      "lat": 44.8165921,
+      "lng": -92.9307371
     },
     {
       "id": "top-ten-liquors:64640c442da7432b03e475bc",
@@ -110,7 +120,9 @@
       "zip": "55369",
       "storeId": "top-ten-liquors:64640c442da7432b03e475bc",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640c442da7432b03e475bc"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640c442da7432b03e475bc",
+      "lat": 45.1131125,
+      "lng": -93.39768529999999
     },
     {
       "id": "top-ten-liquors:64640c75583d9b272406359d",
@@ -128,7 +140,9 @@
       "zip": "55303",
       "storeId": "top-ten-liquors:64640c75583d9b272406359d",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640c75583d9b272406359d"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640c75583d9b272406359d",
+      "lat": 45.2271215,
+      "lng": -93.3974236
     },
     {
       "id": "top-ten-liquors:64640cb1a9a1022cdf6ed2ed",
@@ -146,7 +160,9 @@
       "zip": "55113",
       "storeId": "top-ten-liquors:64640cb1a9a1022cdf6ed2ed",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640cb1a9a1022cdf6ed2ed"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640cb1a9a1022cdf6ed2ed",
+      "lat": 45.02303819999999,
+      "lng": -93.1707509
     },
     {
       "id": "top-ten-liquors:64640cf05ba3db28c7066ead",
@@ -164,7 +180,9 @@
       "zip": "55442",
       "storeId": "top-ten-liquors:64640cf05ba3db28c7066ead",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640cf05ba3db28c7066ead"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640cf05ba3db28c7066ead",
+      "lat": 45.0306633,
+      "lng": -93.4466524
     },
     {
       "id": "top-ten-liquors:64640d22d8fe86271ddb7202",
@@ -182,7 +200,9 @@
       "zip": "55416",
       "storeId": "top-ten-liquors:64640d22d8fe86271ddb7202",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640d22d8fe86271ddb7202"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640d22d8fe86271ddb7202",
+      "lat": 44.9307671,
+      "lng": -93.3462198
     },
     {
       "id": "top-ten-liquors:64640d575c383246e20571d1",
@@ -200,7 +220,9 @@
       "zip": "55125",
       "storeId": "top-ten-liquors:64640d575c383246e20571d1",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640d575c383246e20571d1"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640d575c383246e20571d1",
+      "lat": 44.9462611,
+      "lng": -92.90551029999999
     },
     {
       "id": "top-ten-liquors:64640d883bbb48246c34a096",
@@ -218,7 +240,9 @@
       "zip": "55068",
       "storeId": "top-ten-liquors:64640d883bbb48246c34a096",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640d883bbb48246c34a096"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640d883bbb48246c34a096",
+      "lat": 44.7307141,
+      "lng": -93.1448884
     },
     {
       "id": "top-ten-liquors:64640df95c383247e10587bd",
@@ -236,7 +260,9 @@
       "zip": "55127",
       "storeId": "top-ten-liquors:64640df95c383247e10587bd",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640df95c383247e10587bd"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=64640df95c383247e10587bd",
+      "lat": 45.0507457,
+      "lng": -93.0632052
     },
     {
       "id": "top-ten-liquors:654960df2da85b2c5f548cd2",
@@ -254,7 +280,9 @@
       "zip": "55414",
       "storeId": "top-ten-liquors:654960df2da85b2c5f548cd2",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=654960df2da85b2c5f548cd2"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=654960df2da85b2c5f548cd2",
+      "lat": 44.9806017,
+      "lng": -93.23411399999999
     },
     {
       "id": "top-ten-liquors:6658a8b57ac5f329289858e4",
@@ -272,7 +300,9 @@
       "zip": "55082",
       "storeId": "top-ten-liquors:6658a8b57ac5f329289858e4",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=6658a8b57ac5f329289858e4"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=6658a8b57ac5f329289858e4",
+      "lat": 45.0385074,
+      "lng": -92.84178
     },
     {
       "id": "top-ten-liquors:69f0ec5ea531740066e01e31",
@@ -290,7 +320,9 @@
       "zip": "55431",
       "storeId": "top-ten-liquors:69f0ec5ea531740066e01e31",
       "sourceLabel": "Top Ten Liquors Minnesota first-party pickup inventory",
-      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=69f0ec5ea531740066e01e31"
+      "categoryUrl": "https://toptenliquors.com/shop/?subtype=Bourbon&merchant-id=69f0ec5ea531740066e01e31",
+      "lat": 44.8593415,
+      "lng": -93.3077429
     }
   ]
 }

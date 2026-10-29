@@ -7,7 +7,14 @@
         "id": "6226405682c4ff6dfe6d578a",
         "name": "Barrel Blends Bridgeton",
         "address": {
-          "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA"
+          "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.425222,
+              38.750733
+            ]
+          }
         }
       }
     },
@@ -16,7 +23,14 @@
         "id": "65e3a2aa392dc12bf9e2969a",
         "name": "Barrel Blends Affton",
         "address": {
-          "full_address": "9325 Gravois Rd, Affton, MO 63123, USA"
+          "full_address": "9325 Gravois Rd, Affton, MO 63123, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.319521,
+              38.554212
+            ]
+          }
         }
       }
     },
@@ -25,7 +39,14 @@
         "id": "65e3a3add98c982bad17d305",
         "name": "Barrel Blends Valley Park",
         "address": {
-          "full_address": "13645 Big Bend Rd Suite 103, Kirkwood, MO 63122, USA"
+          "full_address": "13645 Big Bend Rd Suite 103, Kirkwood, MO 63122, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.47808429999999,
+              38.5682604
+            ]
+          }
         }
       }
     },
@@ -34,7 +55,14 @@
         "id": "66e1fb4f01034f2962f28403",
         "name": "Barrel Blends - South Side",
         "address": {
-          "full_address": "4911 Hampton Ave, St. Louis, MO 63109, USA"
+          "full_address": "4911 Hampton Ave, St. Louis, MO 63109, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.2927137,
+              38.5865157
+            ]
+          }
         }
       }
     }

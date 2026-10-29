@@ -20,6 +20,7 @@ test('Andover first-party fixture admits McKenna10 without mutating authoritativ
   const rows=parse(fixture);assert.equal(rows.length,1);
   assert.equal(rows[0].canonicalName,'Henry McKenna 10 Year');assert.equal(rows[0].price,54.96);
   assert.ok(isMinnesotaCityHiveInventory(rows[0]));assert.equal(rows[0].quantity,0);assert.equal(rows[0].quantityIsExact,false);
+  assert.ok(Number.isFinite(rows[0].lat)&&Number.isFinite(rows[0].lng));
   assert.deepEqual(getStateLifecycle('MN'),lifecycleBefore);
 });
 
@@ -31,6 +32,7 @@ test('Minnesota does not borrow another branch stock or infer shipping availabil
     f=>f.products[0].merchants[0].offer_types=['shipping'],
     f=>f.products[0].merchants[0].product_options[0].quantity=0,
     f=>f.products[0].merchants[0].product_options[0].option_display_data.size.quantity='50',
+    f=>f.merchant_configs[0].merchant.address.location.coordinates[0]=0,
     f=>{f.products[0].name='Barrell Bourbon 034 Batch';f.products[0].merchants[0].product_options[0].option_display_data.name='Barrell Bourbon 034 Batch';},
   ]){const f=structuredClone(fixture);mutate(f);assert.deepEqual(parse(f),[]);}
   const row=parse(fixture)[0];assert.equal(isMinnesotaCityHiveInventory({...row,storeId:MINNESOTA_CITYHIVE_EXPANSION_SOURCES[1].storeId}),false);

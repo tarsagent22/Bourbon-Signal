@@ -10,6 +10,8 @@ export function isMinnesotaCityHiveInventory(row) {
   const proof=row.sourceProductBinding,variant=row.optionId||row.variantId;
   if(!source || row.state!=='MN' || row.stateCode!=='MN' || row.sourceChain!==source.chainId
     || row.sourceLabel!==source.sourceLabel || row.storeId!==source.storeId || row.storeAddress!==source.address
+    || row.lat!==source.lat || row.lng!==source.lng || proof?.coordinatesVerified!==true
+    || proof.latitude!==source.lat || proof.longitude!==source.lng
     || row.eventType!=='retailer_store_inventory_result' || row.locationPrecision!=='store_level'
     || row.sourceAvailabilityVerified!==true || row.availabilityStatus!=='in_stock'
     || !row.productId || !variant || !Number.isFinite(row.price) || row.price<=0

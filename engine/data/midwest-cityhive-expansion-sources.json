@@ -18,7 +18,9 @@
       "zip": "63044",
       "storeId": "barrel-blends:6226405682c4ff6dfe6d578a",
       "sourceLabel": "barrel-blends MO first-party pickup inventory",
-      "categoryUrl": "https://barrelblends.com/shop/?subtype=Bourbon&merchant-id=6226405682c4ff6dfe6d578a"
+      "categoryUrl": "https://barrelblends.com/shop/?subtype=Bourbon&merchant-id=6226405682c4ff6dfe6d578a",
+      "lat": 38.750733,
+      "lng": -90.425222
     },
     {
       "id": "barrel-blends:65e3a2aa392dc12bf9e2969a",
@@ -36,7 +38,9 @@
       "zip": "63123",
       "storeId": "barrel-blends:65e3a2aa392dc12bf9e2969a",
       "sourceLabel": "barrel-blends MO first-party pickup inventory",
-      "categoryUrl": "https://barrelblends.com/shop/?subtype=Bourbon&merchant-id=65e3a2aa392dc12bf9e2969a"
+      "categoryUrl": "https://barrelblends.com/shop/?subtype=Bourbon&merchant-id=65e3a2aa392dc12bf9e2969a",
+      "lat": 38.554212,
+      "lng": -90.319521
     },
     {
       "id": "barrel-blends:65e3a3add98c982bad17d305",
@@ -54,7 +58,9 @@
       "zip": "63122",
       "storeId": "barrel-blends:65e3a3add98c982bad17d305",
       "sourceLabel": "barrel-blends MO first-party pickup inventory",
-      "categoryUrl": "https://barrelblends.com/shop/?subtype=Bourbon&merchant-id=65e3a3add98c982bad17d305"
+      "categoryUrl": "https://barrelblends.com/shop/?subtype=Bourbon&merchant-id=65e3a3add98c982bad17d305",
+      "lat": 38.5682604,
+      "lng": -90.47808429999999
     },
     {
       "id": "barrel-blends:66e1fb4f01034f2962f28403",
@@ -72,7 +78,9 @@
       "zip": "63109",
       "storeId": "barrel-blends:66e1fb4f01034f2962f28403",
       "sourceLabel": "barrel-blends MO first-party pickup inventory",
-      "categoryUrl": "https://barrelblends.com/shop/?subtype=Bourbon&merchant-id=66e1fb4f01034f2962f28403"
+      "categoryUrl": "https://barrelblends.com/shop/?subtype=Bourbon&merchant-id=66e1fb4f01034f2962f28403",
+      "lat": 38.5865157,
+      "lng": -90.2927137
     },
     {
       "id": "randalls:5e7abd775c462e6bb92453ec",
@@ -90,7 +98,9 @@
       "zip": "63011",
       "storeId": "randalls:5e7abd775c462e6bb92453ec",
       "sourceLabel": "randalls MO first-party pickup inventory",
-      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=5e7abd775c462e6bb92453ec"
+      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=5e7abd775c462e6bb92453ec",
+      "lat": 38.5939065,
+      "lng": -90.50178
     },
     {
       "id": "randalls:5e7abcdaf6e97c7f51638b96",
@@ -108,7 +118,9 @@
       "zip": "63136",
       "storeId": "randalls:5e7abcdaf6e97c7f51638b96",
       "sourceLabel": "randalls MO first-party pickup inventory",
-      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=5e7abcdaf6e97c7f51638b96"
+      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=5e7abcdaf6e97c7f51638b96",
+      "lat": 38.7717846,
+      "lng": -90.26029799999999
     },
     {
       "id": "randalls:5e7abc5f5c462e6bc1248e6e",
@@ -126,7 +138,9 @@
       "zip": "62208",
       "storeId": "randalls:5e7abc5f5c462e6bc1248e6e",
       "sourceLabel": "randalls IL first-party pickup inventory",
-      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=5e7abc5f5c462e6bc1248e6e"
+      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=5e7abc5f5c462e6bc1248e6e",
+      "lat": 38.5924162,
+      "lng": -89.99190569999999
     },
     {
       "id": "randalls:5e6d8e2a90ed122417f9338a",
@@ -144,7 +158,9 @@
       "zip": "63104",
       "storeId": "randalls:5e6d8e2a90ed122417f9338a",
       "sourceLabel": "randalls MO first-party pickup inventory",
-      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=5e6d8e2a90ed122417f9338a"
+      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=5e6d8e2a90ed122417f9338a",
+      "lat": 38.6123531,
+      "lng": -90.2203512
     },
     {
       "id": "randalls:615fa307ff6375479c112c44",
@@ -162,7 +178,9 @@
       "zip": "63110",
       "storeId": "randalls:615fa307ff6375479c112c44",
       "sourceLabel": "randalls MO first-party pickup inventory",
-      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=615fa307ff6375479c112c44"
+      "categoryUrl": "https://shoprandalls.com/shop/?subtype=Bourbon&merchant-id=615fa307ff6375479c112c44",
+      "lat": 38.6129325,
+      "lng": -90.2686798
     },
     {
       "id": "brown-derby:5d8cd7bfdaea8420a917658d",
@@ -180,7 +198,9 @@
       "zip": "65802",
       "storeId": "brown-derby:5d8cd7bfdaea8420a917658d",
       "sourceLabel": "brown-derby MO first-party pickup inventory",
-      "categoryUrl": "https://brownderby.com/shop/?subtype=Bourbon&merchant-id=5d8cd7bfdaea8420a917658d"
+      "categoryUrl": "https://brownderby.com/shop/?subtype=Bourbon&merchant-id=5d8cd7bfdaea8420a917658d",
+      "lat": 37.2101735,
+      "lng": -93.22814179999999
     },
     {
       "id": "brown-derby:5e7b0ae35c462e765a9bd2b0",
@@ -198,7 +218,9 @@
       "zip": "65714",
       "storeId": "brown-derby:5e7b0ae35c462e765a9bd2b0",
       "sourceLabel": "brown-derby MO first-party pickup inventory",
-      "categoryUrl": "https://brownderby.com/shop/?subtype=Bourbon&merchant-id=5e7b0ae35c462e765a9bd2b0"
+      "categoryUrl": "https://brownderby.com/shop/?subtype=Bourbon&merchant-id=5e7b0ae35c462e765a9bd2b0",
+      "lat": 37.04298350000001,
+      "lng": -93.31154889999999
     }
   ]
 }

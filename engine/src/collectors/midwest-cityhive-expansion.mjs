@@ -8,6 +8,8 @@ export function isMidwestCityHiveInventory(row) {
   const p=row.sourceProductBinding,variant=row.optionId||row.variantId;
   if(!source || row.stateCode!==source.state || row.sourceChain!==source.chainId || row.sourceLabel!==source.sourceLabel
     || row.storeId!==source.storeId || row.storeAddress!==source.address || row.eventType!=='retailer_store_inventory_result'
+    || row.lat!==source.lat || row.lng!==source.lng || p?.coordinatesVerified!==true
+    || p.latitude!==source.lat || p.longitude!==source.lng
     || row.locationPrecision!=='store_level' || row.availabilityStatus!=='in_stock' || row.sourceAvailabilityVerified!==true
     || !row.productId || !variant || !Number.isFinite(row.price) || row.price<=0 || Number(row.quantity)!==0 || row.quantityIsExact!==false
     || !Number.isFinite(Date.parse(row.observedAt)) || p?.schemaVersion!==1 || p.source!=='central-cityhive'

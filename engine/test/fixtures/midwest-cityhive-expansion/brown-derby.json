@@ -7,7 +7,14 @@
         "id": "5d8cd7bfdaea8420a917658d",
         "name": "Brown Derby Wine Center & Marketplace",
         "address": {
-          "full_address": "3253 E Chestnut Expressway #103, Springfield, MO 65802, USA"
+          "full_address": "3253 E Chestnut Expressway #103, Springfield, MO 65802, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.22814179999999,
+              37.2101735
+            ]
+          }
         }
       }
     },
@@ -16,7 +23,14 @@
         "id": "5e7b0ae35c462e765a9bd2b0",
         "name": "Brown Derby - Nixa",
         "address": {
-          "full_address": "830 W Mt Vernon St, Nixa, MO 65714, USA"
+          "full_address": "830 W Mt Vernon St, Nixa, MO 65714, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.31154889999999,
+              37.04298350000001
+            ]
+          }
         }
       }
     }

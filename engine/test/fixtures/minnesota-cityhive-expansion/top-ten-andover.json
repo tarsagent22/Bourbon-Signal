@@ -7,7 +7,14 @@
         "id": "64640aa531cdfc289042efc4",
         "name": "Top Ten Liquors- Andover",
         "address": {
-          "full_address": "13627 Quinn St NW, Andover, MN 55304, USA"
+          "full_address": "13627 Quinn St NW, Andover, MN 55304, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.3206922,
+              45.2181056
+            ]
+          }
         }
       }
     },
@@ -16,7 +23,14 @@
         "id": "64640ae4a9a1022c2d6eba51",
         "name": "Top Ten Liquors- Blaine",
         "address": {
-          "full_address": "12513 Central Ave NE, Blaine, MN 55449, USA"
+          "full_address": "12513 Central Ave NE, Blaine, MN 55449, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.2320845,
+              45.19845189999999
+            ]
+          }
         }
       }
     },
@@ -25,7 +39,14 @@
         "id": "64640b1fa9a1022c2d6ebed5",
         "name": "Top Ten Liquors- Chanhassen",
         "address": {
-          "full_address": "19900 W 78th St, Eden Prairie, MN 55346, USA"
+          "full_address": "19900 W 78th St, Eden Prairie, MN 55346, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.5205246,
+              44.862939
+            ]
+          }
         }
       }
     },
@@ -34,7 +55,14 @@
         "id": "64640bb3ab707428bfb7d172",
         "name": "Top Ten Liquors- Minnetonka",
         "address": {
-          "full_address": "1641 Plymouth Rd, Minnetonka, MN 55305, USA"
+          "full_address": "1641 Plymouth Rd, Minnetonka, MN 55305, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.44236939999999,
+              44.9687154
+            ]
+          }
         }
       }
     },
@@ -43,7 +71,14 @@
         "id": "64640c112da7432b03e46d19",
         "name": "Top Ten Liquors- Cottage Grove",
         "address": {
-          "full_address": "8617 E Point Douglas Rd S, Cottage Grove, MN 55016, USA"
+          "full_address": "8617 E Point Douglas Rd S, Cottage Grove, MN 55016, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -92.9307371,
+              44.8165921
+            ]
+          }
         }
       }
     },
@@ -52,7 +87,14 @@
         "id": "64640c442da7432b03e475bc",
         "name": "Top Ten Liquors- Osseo",
         "address": {
-          "full_address": "316 County Rd 81, Osseo, MN 55369, USA"
+          "full_address": "316 County Rd 81, Osseo, MN 55369, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.39768529999999,
+              45.1131125
+            ]
+          }
         }
       }
     },
@@ -61,7 +103,14 @@
         "id": "64640c75583d9b272406359d",
         "name": "Top Ten Liquors- Ramsey",
         "address": {
-          "full_address": "14107 St Francis Blvd NW, Ramsey, MN 55303, USA"
+          "full_address": "14107 St Francis Blvd NW, Ramsey, MN 55303, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.3974236,
+              45.2271215
+            ]
+          }
         }
       }
     },
@@ -70,7 +119,14 @@
         "id": "64640cb1a9a1022cdf6ed2ed",
         "name": "Top Ten Liquors- Roseville",
         "address": {
-          "full_address": "1611 County Rd C West, Roseville, MN 55113, USA"
+          "full_address": "1611 County Rd C West, Roseville, MN 55113, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.1707509,
+              45.02303819999999
+            ]
+          }
         }
       }
     },
@@ -79,7 +135,14 @@
         "id": "64640cf05ba3db28c7066ead",
         "name": "Top Ten Liquors- Plymouth",
         "address": {
-          "full_address": "4190 Vinewood Ln N #124, Plymouth, MN 55442, USA"
+          "full_address": "4190 Vinewood Ln N #124, Plymouth, MN 55442, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.4466524,
+              45.0306633
+            ]
+          }
         }
       }
     },
@@ -88,7 +151,14 @@
         "id": "64640d22d8fe86271ddb7202",
         "name": "Top Ten Liquors- St. Louis Park",
         "address": {
-          "full_address": "5111 Excelsior Blvd, St Louis Park, MN 55416, USA"
+          "full_address": "5111 Excelsior Blvd, St Louis Park, MN 55416, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.3462198,
+              44.9307671
+            ]
+          }
         }
       }
     },
@@ -97,7 +167,14 @@
         "id": "64640d575c383246e20571d1",
         "name": "Top Ten Liquors- Woodbury",
         "address": {
-          "full_address": "9887 Norma Ln, Woodbury, MN 55125, USA"
+          "full_address": "9887 Norma Ln, Woodbury, MN 55125, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -92.90551029999999,
+              44.9462611
+            ]
+          }
         }
       }
     },
@@ -106,7 +183,14 @@
         "id": "64640d883bbb48246c34a096",
         "name": "Top Ten Liquors- Rosemount",
         "address": {
-          "full_address": "15047 Crestone Ave, Rosemount, MN 55068, USA"
+          "full_address": "15047 Crestone Ave, Rosemount, MN 55068, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.1448884,
+              44.7307141
+            ]
+          }
         }
       }
     },
@@ -115,7 +199,14 @@
         "id": "64640df95c383247e10587bd",
         "name": "Top Ten Liquors- Vadnais Heights",
         "address": {
-          "full_address": "935 Co Rd E East, Vadnais Heights, MN 55127, USA"
+          "full_address": "935 Co Rd E East, Vadnais Heights, MN 55127, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.0632052,
+              45.0507457
+            ]
+          }
         }
       }
     },
@@ -124,7 +215,14 @@
         "id": "654960df2da85b2c5f548cd2",
         "name": "Top Ten Liquors- Minneapolis (Dinkytown)",
         "address": {
-          "full_address": "1440 5th St SE, Minneapolis, MN 55414, USA"
+          "full_address": "1440 5th St SE, Minneapolis, MN 55414, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.23411399999999,
+              44.9806017
+            ]
+          }
         }
       }
     },
@@ -133,7 +231,14 @@
         "id": "6658a8b57ac5f329289858e4",
         "name": "Top Ten Liquors- Stillwater",
         "address": {
-          "full_address": "1920 Market Dr, Stillwater, MN 55082, USA"
+          "full_address": "1920 Market Dr, Stillwater, MN 55082, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -92.84178,
+              45.0385074
+            ]
+          }
         }
       }
     },
@@ -142,7 +247,14 @@
         "id": "69f0ec5ea531740066e01e31",
         "name": "Top Ten Liquors - Bloomington",
         "address": {
-          "full_address": "7995 Southtown Dr, Minneapolis, MN 55431, USA"
+          "full_address": "7995 Southtown Dr, Minneapolis, MN 55431, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.3077429,
+              44.8593415
+            ]
+          }
         }
       }
     }

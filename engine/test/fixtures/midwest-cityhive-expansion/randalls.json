@@ -7,7 +7,14 @@
         "id": "5e7abd775c462e6bb92453ec",
         "name": "Randall's - Ballwin/Manchester",
         "address": {
-          "full_address": "14201 Manchester Rd, Ballwin, MO 63011, USA"
+          "full_address": "14201 Manchester Rd, Ballwin, MO 63011, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.50178,
+              38.5939065
+            ]
+          }
         }
       }
     },
@@ -16,7 +23,14 @@
         "id": "5e7abcdaf6e97c7f51638b96",
         "name": "Randall's - Old Halls Ferry Rd, St. Louis",
         "address": {
-          "full_address": "11000 Old Halls Ferry Rd, St. Louis, MO 63136, USA"
+          "full_address": "11000 Old Halls Ferry Rd, St. Louis, MO 63136, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.26029799999999,
+              38.7717846
+            ]
+          }
         }
       }
     },
@@ -25,7 +39,14 @@
         "id": "5e7abc5f5c462e6bc1248e6e",
         "name": "Randall's - Fairview Heights",
         "address": {
-          "full_address": "10800 Lincoln Trail, Fairview Heights, IL 62208, USA"
+          "full_address": "10800 Lincoln Trail, Fairview Heights, IL 62208, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -89.99190569999999,
+              38.5924162
+            ]
+          }
         }
       }
     },
@@ -34,7 +55,14 @@
         "id": "5e6d8e2a90ed122417f9338a",
         "name": "Randall's - Jefferson Ave, St. Louis",
         "address": {
-          "full_address": "1910 S Jefferson Ave, St. Louis, MO 63104, USA"
+          "full_address": "1910 S Jefferson Ave, St. Louis, MO 63104, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.2203512,
+              38.6123531
+            ]
+          }
         }
       }
     },
@@ -43,7 +71,14 @@
         "id": "615fa307ff6375479c112c44",
         "name": "Randall's - Southwest Ave, St. Louis",
         "address": {
-          "full_address": "4925 Southwest Ave, St. Louis, MO 63110, USA"
+          "full_address": "4925 Southwest Ave, St. Louis, MO 63110, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.2686798,
+              38.6129325
+            ]
+          }
         }
       }
     }

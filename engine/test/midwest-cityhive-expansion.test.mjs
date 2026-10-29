@@ -18,6 +18,7 @@ test('reviewed Missouri/Illinois exact premises never borrow another state or br
   const s=MIDWEST_CITYHIVE_EXPANSION_SOURCES[0],f=fixtures[s.chainId];
   const rows=parseCentralCityHiveInventory(html(f),s,bible,{observedAt:at});
   assert.equal(rows.length,2);assert.ok(rows.every(isMidwestCityHiveInventory));
+  assert.ok(rows.every(r=>Number.isFinite(r.lat)&&Number.isFinite(r.lng)));
   assert.ok(rows.some(r=>r.canonicalName==='Elijah Craig Barrel Proof'&&r.price===59.99));
   const il=MIDWEST_CITYHIVE_EXPANSION_SOURCES.find(s=>s.state==='IL');
   assert.deepEqual(parseCentralCityHiveInventory(html(fixtures.randalls),il,bible,{observedAt:at}),[]);
