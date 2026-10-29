@@ -586,7 +586,11 @@ export function isCurrentInventoryEvidence(input: PublicDropEvidenceInput, asOf?
     ?? drop.observedAt ?? drop.observed_at;
   const timestamp = typeof confirmed === "string" ? Date.parse(confirmed) : Number.NaN;
   const age = asTimestamp(asOf) - timestamp;
-  return Number.isFinite(age) && age >= -FUTURE_CLOCK_SKEW_MS && age <= CURRENT_INVENTORY_AGE_MS;
+  const binding = drop.sourceProductBinding;
+  const exactTexasPickup = stateCode(drop) === "TX" && binding && typeof binding === "object"
+    && (binding as Record<string, unknown>).source === "texas-shopify-pickup";
+  const maxAge = exactTexasPickup ? HOUR_MS : CURRENT_INVENTORY_AGE_MS;
+  return Number.isFinite(age) && age >= -FUTURE_CLOCK_SKEW_MS && age <= maxAge;
 }
 
 /** Project at response time so a cached card cannot keep claiming availability. */

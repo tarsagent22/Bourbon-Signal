@@ -143,7 +143,7 @@ assert.ok(contract.states.every((state) => (
   state.coverageDepth === "not-available" || state.coverageStatus === "available"
 )), "current coverage depth requires an available source lane, but an available lane may be temporarily quiet");
 for (const [code, areas] of [
-  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro"]],
+  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro", "Suffolk County"]],
   ["CO", ["Boulder County", "Colorado Springs", "Denver Metro"]],
 ] as const) {
   const metro = contract.states.find((state) => state.code === code);

@@ -3,7 +3,7 @@ import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "./califor
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "./colorado-area.ts";
 import { demandMetroAreaMatchesFields, demandMetroBoardGroupMatchesFields, normalizeDemandMetroAreas } from "./demand-metro-areas.ts";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "./nevada-area.ts";
-import { newYorkAreaMatchesFields, normalizeNewYorkAreas } from "./new-york-area.ts";
+import { newYorkAreaMatchesFields, normalizeNewYorkAreas, reviewedNewYorkStoreCounty } from "./new-york-area.ts";
 import { ncAbcBoardPreferencesMatch } from "./nc-abc-boards.ts";
 import { geographyState } from "./geography-directory.ts";
 import { cityIsInMontgomeryCountyMaryland } from "./maryland-montgomery.ts";
@@ -32,6 +32,8 @@ export function candidateMatchesMonitoringScopes(candidate: Candidate, scopes: M
   const countyFips = values(candidate, ["countyFips", "county_fips", "countyGeoid", "county_geoid"]);
   const placeFips = values(candidate, ["placeFips", "place_fips", "placeGeoid", "place_geoid"]);
   const countyLabels = values(candidate, ["storeCounty", "store_county", "county", "countyName", "county_name"]);
+  const reviewedNewYorkCounty = reviewedNewYorkStoreCounty(candidate);
+  if (reviewedNewYorkCounty) countyLabels.push(reviewedNewYorkCounty);
   const cityLabels = values(candidate, ["storeCity", "store_city", "city", "placeName", "place_name"]);
   const boardLabels = values(candidate, ["boardName", "board_name", "locationName", "location_name", "displayLocation", "display_location", "county"]);
   const storeIds = values(candidate, ["storeId", "store_id", "locationId", "location_id"]);

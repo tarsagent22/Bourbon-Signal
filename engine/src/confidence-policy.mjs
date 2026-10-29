@@ -112,7 +112,7 @@ const TENNESSEE_CITYHIVE_POLICY = {
 
 const TEXAS_CITYHIVE_POLICY = {
   maxAlertMode: 'alert_retailer_store_inventory_caveat',
-  inventorySemantics: 'Texas is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.',
+  inventorySemantics: 'Texas is a private retail market. Reviewed first-party merchant inventory and exact Shopify variant pickup offers can establish availability at the named premises. Preserve source quantity semantics and verify before driving.',
   defaultCadence: 'daily-60m'
 };
 

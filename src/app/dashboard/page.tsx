@@ -1490,7 +1490,7 @@ function PaidMemberDashboard() {
       stateCode: "CA",
       label: "California",
       detailLabel: "areas",
-      summary: "California alerts currently focus on verified San Diego store pickup availability.",
+      summary: "Choose California retailer cities. Alerts depend on current reports at the named stores.",
       selectedCount: localPrefs.caAreas.length,
       totalCount: citiesByState.CA?.length ?? 0,
     },

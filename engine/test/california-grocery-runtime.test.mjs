@@ -4,7 +4,8 @@ import {readFile,mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {BourbonBible} from '../src/core/bible.mjs';
-import {collectCaliforniaGrocerySource} from '../src/collectors/california-grocery-runtime-source.mjs';
+import {collectCaliforniaGrocerySource,californiaGroceryCohortKey} from '../src/collectors/california-grocery-runtime-source.mjs';
+import {CALIFORNIA_GROCERY_SOURCES} from '../src/collectors/california-grocery-premises.mjs';
 import {collectCalifornia} from '../src/collectors/precision-probes.mjs';
 import {ALL_STATE_SOURCES} from '../src/state-sources.mjs';
 const fixture=JSON.parse(await readFile(new URL('./fixtures/california-grocery-expansion/identity.json',import.meta.url)));
@@ -27,13 +28,24 @@ test('fresh grocery cache retains original observations and expires independentl
   const cacheDir=await mkdtemp(path.join(tmpdir(),'ca-grocery-cache-'));const now=Date.now(),observedAt=new Date(now-60_000).toISOString();
   try{
     const row={id:'captured',observedAt,raw:{source:'first-party'}};
-    await writeFile(path.join(cacheDir,'CA-grocery-xapi-cache.json'),JSON.stringify({schemaVersion:1,generatedAt:observedAt,signals:[row],metadata:{complete:true}}));
+    await writeFile(path.join(cacheDir,'CA-grocery-xapi-cache.json'),JSON.stringify({schemaVersion:1,cohortKey:californiaGroceryCohortKey(),generatedAt:observedAt,signals:[row],metadata:{complete:true}}));
     const reused=await collectCaliforniaGrocerySource(config,bible,{cacheDir,nowMs:now,fetchText:async()=>{throw new Error('unexpectednetwork')}});
     assert.equal(reused.accounting.requestCount,0);assert.equal(reused.signals[0].observedAt,observedAt);
     assert.equal(reused.signals[0].raw.cacheFallback,true);
     let calls=0;
     const expired=await collectCaliforniaGrocerySource(config,bible,{cacheDir,nowMs:now+31*60_000,sleep:async()=>{},fetchText:async()=>{calls++;return{ok:false,status:403,text:''}}});
     assert.equal(calls,1);assert.equal(expired.signals.length,0);
+  }finally{await rm(cacheDir,{recursive:true,force:true});}
+});
+
+test('a previous California cohort cache cannot hide newly reviewed stores',async()=>{
+  const cacheDir=await mkdtemp(path.join(tmpdir(),'ca-grocery-cohort-'));const observedAt=new Date().toISOString();let calls=0;
+  try{
+    const oldKey=californiaGroceryCohortKey(CALIFORNIA_GROCERY_SOURCES.slice(0,2));
+    assert.notEqual(oldKey,californiaGroceryCohortKey());
+    await writeFile(path.join(cacheDir,'CA-grocery-xapi-cache.json'),JSON.stringify({schemaVersion:1,cohortKey:oldKey,generatedAt:observedAt,signals:[{observedAt}],metadata:{complete:true}}));
+    const result=await collectCaliforniaGrocerySource(config,bible,{cacheDir,sleep:async()=>{},fetchText:async()=>{calls++;return{ok:false,status:403,text:''}}});
+    assert.equal(calls,1);assert.equal(result.signals.length,0);assert.equal(result.metadata.cacheReused,undefined);
   }finally{await rm(cacheDir,{recursive:true,force:true});}
 });
 

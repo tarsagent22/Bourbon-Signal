@@ -19,7 +19,7 @@ const precision = read("engine/src/collectors/precision-probes.mjs");
 const confidence = read("engine/src/confidence-policy.mjs");
 const exporter = read("engine/src/export-site-contract.mjs");
 
-for (const [state, label, areas] of [["NY", "New York", ["New York City", "Nassau County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]], ["CO", "Colorado", ["Denver Metro", "Boulder County", "Colorado Springs"]]]) {
+for (const [state, label, areas] of [["NY", "New York", ["New York City", "Nassau County", "Suffolk County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]], ["CO", "Colorado", ["Denver Metro", "Boulder County", "Colorado Springs"]]]) {
   const entry = lifecycle.states[state];
   assert.ok(["shadow", "active"].includes(entry.publicStatus), `${state} must be staged or customer-active`);
   if (entry.publicStatus === "active") assert.ok(lifecycle.activeStates.includes(state), `${state} active lifecycle must be listed customer-active`);
@@ -36,11 +36,11 @@ for (const [state, label, areas] of [["NY", "New York", ["New York City", "Nassa
   assert.ok(existsSync(path.join(root, `engine/data/state-fixtures/${state}.json`)), `${state} fixture manifest must exist`);
 }
 
-assert.deepEqual(lifecycle.states.NY.areaOptions, ["New York City", "Nassau County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]);
+assert.deepEqual(lifecycle.states.NY.areaOptions, ["New York City", "Nassau County", "Suffolk County", "Buffalo", "Rochester Metro", "Hudson Valley", "Lake George"]);
 assert.ok(lifecycle.states.NY.customerSummary.includes("Nassau County"));
 assert.ok(lifecycle.states.NY.customerSummary.includes("Buffalo"));
 assert.ok(engineSources.includes("Selected New York first-party retailer inventory"), "NY operational source metadata must retain its retailer scope");
-assert.ok(engineSources.includes("Exact-premises New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, and Lake George retailer inventory"), "NY operational source value must name every supported area");
+assert.ok(engineSources.includes("Exact-premises New York City, Nassau County, Suffolk County, Buffalo, Rochester Metro, Hudson Valley, and Lake George retailer inventory"), "NY operational source value must name every supported area");
 assert.ok(confidence.includes("selected New York and Colorado retailer rows"), "central confidence metadata must describe both retailer states");
 assert.ok(exporter.includes("selected New York or Colorado retailer availability"), "exported candidate metadata must describe both retailer states");
 assert.ok(metroRetailerSources.includes("wine-gallery") && metroRetailerSources.includes("cherrywood-wine") && metroRetailerSources.includes("westbury-liquors"));

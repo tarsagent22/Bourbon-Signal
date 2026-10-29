@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "scope": "reviewed_existing_state_exact_variant_pickup",
+  "source": {
+    "id": "hot-spot-austin",
+    "runtimeId": "tx:hot-spot-austin",
+    "state": "TX",
+    "chain": "hot-spot-austin",
+    "merchantId": "hot-spot-austin-shopify",
+    "sourceLabel": "Hot Spot Austin Shopify pickup inventory",
+    "baseUrl": "https://hotspot.fun",
+    "sectionId": "store-availability",
+    "stores": [
+      {
+        "id": "tx-tabc-104949013",
+        "name": "Hot Spot Austin",
+        "pickupName": "Hot Spot Austin",
+        "address": "411 Brazos Street Suite 100 Austin TX 78701",
+        "city": "Austin",
+        "zip": "78701",
+        "county": "Travis",
+        "aliases": ["hot-spot-austin:78701"],
+        "officialDirectoryProof": {
+          "id": "tx-tabc-104949013",
+          "name": "HOT SPOT AUSTIN",
+          "address": "411 BRAZOS ST APT 100",
+          "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f"
+        }
+      }
+    ],
+    "products": [
+      {
+        "productId": "15264836976800",
+        "variantId": "53124475551904",
+        "handle": "bookers-small-batch-bourbon",
+        "title": "Bookers Small Batch Bourbon",
+        "canonicalName": "Booker's Bourbon",
+        "evidence": {
+          "product": {
+            "url": "https://hotspot.fun/products/bookers-small-batch-bourbon.json",
+            "sha256": "cdb4ac9221a4dc1b53f36956a818cc15993ed1da28be8de0d38d4ae4965309b5",
+            "capturedAt": "2026-10-29T12:48:25.200Z",
+            "status": 200
+          },
+          "pickup": {
+            "url": "https://hotspot.fun/variants/53124475551904/?section_id=store-availability",
+            "sha256": "5787c9bd2f560daaaf78a66c779dee26beedeb9feed250e27c86fd502f091611",
+            "capturedAt": "2026-10-29T12:48:25.467Z",
+            "status": 200
+          }
+        },
+        "variantTitle": "750mL",
+        "headingException": "Published theme omits product heading; exact numeric product/variant JSON binding and endpoint plus explicit 750mL variant heading and independently named addressed Austin premises required.",
+        "titleMapping": {
+          "rawTitle": "Bookers Small Batch Bourbon",
+          "canonicalName": "Booker's Bourbon",
+          "reason": "Exact reviewed Bookers Small Batch Bourbon title maps to existing Booker's Bourbon family; current strict raw matcher returns no match because of small-batch modifier. No new canonical expression.",
+          "allowedUnsafeReasons": []
+        },
+        "canonicalBottleId": "bb_8b9546b93a7fbe72",
+        "sizeMl": 750
+      },
+      {
+        "productId": "7238504841376",
+        "variantId": "41693171187872",
+        "handle": "z-eagle-rare-bourbon",
+        "title": "Eagle Rare Bourbon 10 Year",
+        "canonicalName": "Eagle Rare 10 Year",
+        "variantTitle": "750 mL",
+        "headingException": "Published theme omits product heading; exact numeric product/variant JSON binding and endpoint plus explicit 750mL variant heading and independently named addressed Austin premises required.",
+        "evidence": {
+          "product": {
+            "url": "https://hotspot.fun/products/z-eagle-rare-bourbon.json",
+            "sha256": "b1891938133ae77daac3b5558d99f3442d6a1600f5325c20e1668918201c286b",
+            "capturedAt": "2026-10-29T12:52:23.166Z",
+            "status": 200
+          },
+          "pickup": {
+            "url": "https://hotspot.fun/variants/41693171187872/?section_id=store-availability",
+            "sha256": "9698a1f7538eb6738c7d56aafdca9b311f1b463d142fa0e324a14f6fec8d0af1",
+            "capturedAt": "2026-10-29T12:52:23.628Z",
+            "status": 200
+          }
+        },
+        "canonicalBottleId": "bb_d0fe561ac45db2d5",
+        "sizeMl": 750
+      }
+    ],
+    "headingIdentity": "variant_title",
+    "budgets": {
+      "maxProducts": 2,
+      "maxStores": 1,
+      "maxRequests": 4
+    }
+  }
+}

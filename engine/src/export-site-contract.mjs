@@ -26,6 +26,7 @@ import { isGeorgiaRetailerInventory, isGeorgiaRetailerSignalIdentity } from './g
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity, isIndianaSourceBottleIdentity } from './indiana-retailer-policy.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import { isTexasRetailerInventory } from './texas-retailer-policy.mjs';
+import { isTexasShopifyPickupInventory } from './collectors/texas-shopify-pickup.mjs';
 import { isMidwestCityHiveInventory } from './collectors/midwest-cityhive-expansion.mjs';
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity, metroRetailerArea } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
@@ -395,7 +396,7 @@ function virginiaPremisesProofState(signal) {
   return { productCode, codeConflict, proofRequired, proofAllowed };
 }
 
-const genericShopifyPickupRow = row => [row?.sourceCollectorVersion, row?.raw?.collectorVersion]
+const genericShopifyPickupRow = row => !isTexasShopifyPickupInventory(row) && [row?.sourceCollectorVersion, row?.raw?.collectorVersion]
   .some(version => typeof version === 'string' && version.startsWith('shopify-variant-pickup-'));
 
 export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } = {}) {
@@ -1314,6 +1315,8 @@ function isSafePublicSignal(signal, shopifyPolicy) {
   if (genericShopifyPickupRow(signal) || shopifyPolicy?.owns(signal)) return shopifyPolicy?.eligible(signal) === true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
   const type = String(signal.eventType || '');
+  if (signal.state === 'TX' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(type)
+    && !isTexasRetailerInventory(signal)) return false;
   // Old snapshots must meet today's Arizona retailer proof before becoming candidates.
   if (signal.state === 'AZ' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(type)
     && !isArizonaRetailerInventory(signal)) return false;

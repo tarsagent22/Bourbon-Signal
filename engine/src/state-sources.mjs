@@ -421,7 +421,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'NY', label: 'Selected New York first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
-    value: 'Exact-premises New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, and Lake George retailer inventory from configured CityHive and Shopify storefronts. Coverage is intentionally limited to the named premises; binary availability is never projected as an exact count.',
+    value: 'Exact-premises New York City, Nassau County, Suffolk County, Buffalo, Rochester Metro, Hudson Valley, and Lake George retailer inventory from configured CityHive and Shopify storefronts. Coverage is intentionally limited to the named premises; binary availability is never projected as an exact count.',
     rareSignalTarget: true,
     sources: NEW_YORK_RETAILER_SOURCES.map(metroSourceRecord),
     apiCandidates: []
