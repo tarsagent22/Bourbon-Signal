@@ -33,6 +33,16 @@ export function groceryProductSnapshot(product) {
     ]));
 }
 
+export function isGroceryExpansionEmptySearch(payload,source,term){
+  if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source)||payload?.appCode!=='GR204'
+    ||payload.response?.numFound!==0||payload.response?.start!==0
+    ||Object.hasOwn(payload.response,'docs')||payload.response.miscInfo?.query!==term)return false;
+  const filter=payload.response.miscInfo.filter;
+  return typeof filter==='string'
+    &&filter.includes(`(inventory(${source.merchantId}, price) >0)`)
+    &&filter.includes(`(inventory(${source.merchantId},attributes.custom_type_2) = 1)`);
+}
+
 export function parseGroceryExpansionInventory(payload, source, bible, {observedAt}={}) {
   if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source) || !Number.isFinite(Date.parse(observedAt)))return [];
   return parseBoundGroceryXapiInventory(payload,source,bible).filter(row=>currentDropTarget(row.record,source.stateCode) && Number.isFinite(row.price) && row.price>0).map(row=>({
@@ -110,7 +120,12 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
       const response=await request(`${host}/abs/pub/xapi/search/substitute?${params}`,'inventory',source,term);
       if(!response?.ok){sourceComplete=false;break;}
       let payload;try{payload=JSON.parse(response.text);}catch{sourceComplete=false;break;}
-      if(!Array.isArray(payload?.response?.docs)){sourceComplete=false;break;}
+      if(!Array.isArray(payload?.response?.docs)){
+        // The first-party API omits docs for its explicit, store-bound GR204
+        // empty-search response. This is healthy zero, never stock evidence.
+        if(isGroceryExpansionEmptySearch(payload,source,term))continue;
+        sourceComplete=false;break;
+      }
       for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
     }
     if(!sourceComplete)complete=false;
