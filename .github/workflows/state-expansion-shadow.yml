@@ -50,7 +50,15 @@ jobs:
 
       - name: Generate deterministic Bourbon Bible
         working-directory: engine
-        run: npm run bible
+        run: node src/sync-library-catalog.mjs && npm run bible
+
+      - name: Restore NJ MI host incidents for every shadow selection path
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/research-source-attempts/nj-mi-incidents.json
+          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            nj-mi-research-incidents-${{ runner.os }}-
 
       - name: Validate manual shadow inputs
         id: validate
@@ -77,6 +85,13 @@ jobs:
           STATES: ${{ steps.validate.outputs.states }}
           LIMIT: ${{ steps.validate.outputs.limit }}
         run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
+
+      - name: Save NJ MI host incidents for every shadow selection path
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/research-source-attempts/nj-mi-incidents.json
+          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Preserve isolated shadow evidence
         if: always()

@@ -16,7 +16,8 @@ const {normalizeDropForSite}=contractModule.default||contractModule;
 const {buildCoverageContract}=coverageModule.default||coverageModule;
 
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
-const bible=await BourbonBible.load(path.resolve('engine/out/bourbon-bible.json'));
+const capturedRoot=process.env.NJ_MI_CAPTURE_ROOT?path.resolve(process.env.NJ_MI_CAPTURE_ROOT):null;
+const bible=await BourbonBible.load(capturedRoot?path.join(capturedRoot,'bourbon-bible.json'):path.resolve('engine/out/bourbon-bible.json'));
 const index=getDropClassificationIndex((await read('src/data/drop-feed-classification.generated.json')).records);
 const lifecycle=await read('src/config/state-lifecycle.json');
 const directory=await mkdtemp(path.join(tmpdir(),'bs-nj-mi-public-'));
@@ -25,7 +26,7 @@ try{
   for(const state of ['NJ','MI']){
     const fixture=await read(`engine/test/fixtures/additional-cityhive-expansion/${state}.json`);
     const hostname=new URL(fixture.sourceUrl).hostname;
-    const report=await collectNjMiResearchReport(njMiResearchSourceForState(state),bible,{
+    const report=capturedRoot?await read(path.join(capturedRoot,'nj-mi-research',state,'report.json')):await collectNjMiResearchReport(njMiResearchSourceForState(state),bible,{
       env:{BOURBON_SIGNAL_SHADOW_MODE:'1'},reportDirectory:path.join(directory,state),journalFile:path.join(directory,state,'incidents.json'),
       fetchText:async url=>({url,ok:new URL(url).hostname===hostname,status:new URL(url).hostname===hostname?200:403,
         text:new URL(url).hostname===hostname?`<script type="application/json">${JSON.stringify(fixture)}</script>`:''}),
@@ -43,7 +44,7 @@ try{
     assert.equal(entry?.capabilities.currentBottleAvailability,false);
     assert.equal(entry?.freshness.currentInventoryStores,0);
     assert.equal(entry?.capabilities.restockAlerts,false);
-    console.log(JSON.stringify({state,scope:'local_fixture_full_normalize_classify_public_coverage_not_delivery',
+    console.log(JSON.stringify({state,scope:capturedRoot?'hosted_source_artifact_full_normalize_classify_public_coverage_not_delivery':'local_fixture_full_normalize_classify_public_coverage_not_delivery',
       qualifiedSourceRows:report.signals.length,publicCurrentRows:0,publicCurrentStores:0,productionInactive:true}));
   }
 }finally{await rm(directory,{recursive:true,force:true});}

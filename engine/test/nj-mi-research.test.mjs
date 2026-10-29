@@ -109,4 +109,9 @@ test('hosted workflow always persists its incident-only file and synchronizes th
   assert.ok(steps.some(step=>step.includes('actions/cache/save@v4')&&step.includes(file)&&step.includes('if: always()')));
   assert.ok(workflow.indexOf('src/sync-library-catalog.mjs')<workflow.indexOf('node scripts/run-nj-mi-research-pass.mjs'));
   assert.ok(workflow.includes('contents: read'));assert.ok(!workflow.includes('pull_request'));
+  const common=await readFile(new URL('../../.github/workflows/state-expansion-shadow.yml',import.meta.url),'utf8');
+  const commonSteps=common.split(/\r?\n {6}- /);
+  assert.ok(commonSteps.some(step=>step.includes('actions/cache/restore@v4')&&step.includes(file)));
+  assert.ok(commonSteps.some(step=>step.includes('actions/cache/save@v4')&&step.includes(file)&&step.includes('if: always()')));
+  assert.ok(common.includes('src/sync-library-catalog.mjs && npm run bible'));
 });
