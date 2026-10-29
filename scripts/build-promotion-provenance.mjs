@@ -47,6 +47,7 @@ if (['WA', 'NM'].includes(state)) files.push(
   'src/lib/drop-feed-visibility.ts',
   'src/lib/public-drop-evidence.ts',
   'src/lib/site-engine-contract.ts',
+  'next.config.ts',
   'scripts/test-grocery-public-canary.mjs',
   `engine/out/canary/${state}/public-projection.json`,
   'engine/src/grocery-research-fixtures.mjs',
