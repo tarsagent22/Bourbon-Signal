@@ -1,0 +1,67 @@
+name: Bounded New Jersey and Michigan research source pass
+on:
+  workflow_dispatch:
+    inputs:
+      states:
+        description: Reviewed inactive states NJ, MI or NJ,MI
+        required: false
+        default: NJ,MI
+permissions:
+  contents: read
+concurrency:
+  group: nj-mi-research-source-pass
+  cancel-in-progress: false
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      BOURBON_SIGNAL_SHADOW_MODE: "1"
+      BOURBON_SIGNAL_AUTO_DEPLOY: "0"
+      BOURBON_SIGNAL_ALERT_QUEUE_MODE: shadow
+      ALERT_DELIVERY_ENABLED: "0"
+      ALERT_ONSITE_DELIVERY_ENABLED: "0"
+      ALERT_EMAIL_DELIVERY_ENABLED: "0"
+      ALERT_SMS_DELIVERY_ENABLED: "0"
+      NJ_MI_RESEARCH_STATES: ${{ inputs.states || 'NJ,MI' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts && npm ci --prefix engine
+      - name: Restore host incidents independently of stock and source configuration
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/research-source-attempts/nj-mi-incidents.json
+          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            nj-mi-research-incidents-${{ runner.os }}-
+      - name: Synchronize current customer bottle identities before any retailer request
+        working-directory: engine
+        run: node src/sync-library-catalog.mjs && npm run bible
+      - name: Run local strict research regressions before HTTP
+        run: node --test engine/test/nj-mi-research.test.mjs && npx tsx scripts/test-nj-mi-public-research.mts
+      - name: Capture bounded first-party source receipts without customer activation
+        run: node scripts/run-nj-mi-research-pass.mjs
+      - name: Save host incidents even after cancellation or failed collection
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/research-source-attempts/nj-mi-incidents.json
+          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Preserve portable raw source receipts and current catalog
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nj-mi-research-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            engine/out/nj-mi-research
+            engine/out/research-source-attempts/nj-mi-incidents.json
+            engine/out/library-catalog.json
+            engine/out/bourbon-bible.json
