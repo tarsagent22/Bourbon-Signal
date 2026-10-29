@@ -1,6 +1,8 @@
+import {isNjMiRetailerEvent,isNjMiResearchInventory,isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
+import { selectFleetDropBudget } from './fleet-drop-budget.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
-import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory } from './central-cityhive-policy.mjs';
+import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
@@ -396,6 +398,10 @@ function virginiaPremisesProofState(signal) {
   return { productCode, codeConflict, proofRequired, proofAllowed };
 }
 
+const isReviewedResearchGrocery = row => ['WA', 'NM'].includes(row?.state) && isGroceryExpansionInventory(row)
+  && row.raw?.shadowOnly !== true && row.sourceProductBinding?.shadowOnly !== true
+  && row.quarantined !== true && row.raw?.sourceRuntimeNonAlertable !== true && row.raw?.staleFallback !== true;
+
 const genericShopifyPickupRow = row => !isTexasShopifyPickupInventory(row) && [row?.sourceCollectorVersion, row?.raw?.collectorVersion]
   .some(version => typeof version === 'string' && version.startsWith('shopify-variant-pickup-'));
 
@@ -424,6 +430,9 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isGaRetailerInventory = isGeorgiaRetailerInventory(signal);
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
+  const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal);
+  const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal);
+  const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory;
   const isMetroInventory = isMetroRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
@@ -435,7 +444,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const isMetroRetailerEvent = ['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
-  const inventorySemantics = isNcBoardShipment
+  const inventorySemantics = isGroceryOnSiteInventory ? signal.sourceProductBinding.inventorySemantics : isNcBoardShipment
     ? (signal.inventorySemantics || 'Official NC ABC board-level shipment units; this is a shipment to the local board, not exact store shelf inventory or current availability.')
     : isCostcoWarehouseInventory
     ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
@@ -504,11 +513,11 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
             : signal.state === 'SC'
               ? Boolean(signal.canAlertAsWatch) && (!isScRetailerEvent || isScRetailerInventory)
               : Boolean(signal.canAlertAsWatch));
-  const canAlertAsInventory = bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
-  const canAlertAsWatch = bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
+  const canAlertAsInventory = !isGroceryOnSiteInventory && bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
+  const canAlertAsWatch = !isGroceryOnSiteInventory && bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
-    : isMsSparseOnSiteInventory
+    : nonAlertingOnSiteInventory
       ? 'onsite_inventory'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
       ? 'actionable_inventory'
@@ -641,16 +650,16 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isMsSparseOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: nonAlertingOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
-    alertable: staleFallback ? false : undefined,
-    eligibleForOnSite: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
-    eligibleForDropFeed: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
-    eligibleForWatch: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
-    eligibleForDelivery: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
-    eligibleForEmail: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
-    eligibleForSms: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    alertable: staleFallback || nonAlertingOnSiteInventory ? false : undefined,
+    eligibleForOnSite: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
+    eligibleForDropFeed: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
+    eligibleForWatch: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
+    eligibleForDelivery: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
+    eligibleForEmail: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForSms: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
     raw: staleFallback ? {
       lastKnownAvailabilityStatus: signal.raw?.lastKnownAvailabilityStatus || null,
       lastKnownAvailabilityLabel: signal.raw?.lastKnownAvailabilityLabel || null,
@@ -679,7 +688,11 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     dataLane,
     informationalOnly: dataLane === 'informational',
     availabilityScope: isNcBoardShipment ? 'board' : undefined,
-    inventoryCaveat: isCostcoWarehouseInventory
+    inventoryCaveat: isGroceryOnSiteInventory
+      ? (signal.quantityIsExact === true
+        ? 'The retailer reports this in-store quantity. Availability can change; confirm before driving.'
+        : 'The retailer reports in-store availability. An exact shelf count is not published; confirm before driving.')
+      : isCostcoWarehouseInventory
       ? 'Costco warehouse signal. Fast-moving bottles can disappear quickly; verify with the warehouse/app before driving.'
       : isNcBoardShipment
         ? 'Official NC ABC board shipment. Units were shipped to the named local board; this does not prove an exact store, shelf quantity, or current availability.'
@@ -703,6 +716,8 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
           ? 'First-party product orderability plus a separately fetched first-party pickup/collection policy for this single-location San Diego retailer. Exact shelf quantity is not published; verify pickup before driving.'
         : ['NY', 'CO'].includes(signal.state) && canAlertAsInventory
           ? 'Identity-bound first-party retailer availability at the exact configured premises. Binary orderability is not an exact count; verify pickup before driving.'
+        : isCentralOnSiteInventory
+          ? 'Reviewed first-party pickup availability at the named store. Exact shelf count is not published; verify before driving.'
         : isMsSparseOnSiteInventory
           ? 'Sparse Mississippi first-party store orderability. No exact bottle count or hold is claimed; verify directly with the store before driving.'
         : canAlertAsInventory && signal.locationPrecision === 'store_level'
@@ -725,7 +740,8 @@ function isFastMovingStoreInventory(signal) {
   const type = String(signal.eventType || signal.type || '').toLowerCase();
   const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
   if (signal.locationPrecision !== 'store_level') return false;
-  if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)) return false;
+  if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)
+    && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)) return false;
   if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
@@ -1069,7 +1085,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
-  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal)));
+  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)||isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal)));
   const sameStore = (left, right) => {
     if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);
     return left.state === right.state
@@ -1201,6 +1217,8 @@ function hasPositiveAvailabilityStatus(signal) {
 }
 
 function isUserFacingDropSignal(signal) {
+  if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
+  if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
   const type = String(signal.eventType || '').toLowerCase();
@@ -1311,6 +1329,8 @@ function aggregateLeadIdentity(signal) {
 }
 
 function isSafePublicSignal(signal, shopifyPolicy) {
+  if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
+  if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if (genericShopifyPickupRow(signal) || shopifyPolicy?.owns(signal)) return shopifyPolicy?.eligible(signal) === true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
@@ -1373,6 +1393,14 @@ function publicDisplaySortTimestamp(signal, freshnessIndex) {
 
 export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy } = {}) {
   const seenSourceIds = new Set();
+  const seenProjectedIds = new Set();
+  const currentObservationKeys = new Set(currentSignals.map(signal => `${signalFreshnessKey(signal)}|${signal.observedAt || signal.fetchedAt || ''}`));
+  const currentObservations = new WeakSet();
+  for (const signal of signals) {
+    if (currentObservationKeys.has(`${signalFreshnessKey(signal)}|${signal.observedAt || signal.fetchedAt || ''}`)) currentObservations.add(signal);
+  }
+  const isCurrentObservation = signal => currentObservations.has(signal);
+  const currentProjectedDrops = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals, previousDrops, availabilityHistory);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
   const arizonaInventory = s => s.state === 'AZ' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(s.eventType || s.type || ''));
@@ -1389,7 +1417,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
     .map(aggregateLeadIdentity)
     .filter(Boolean));
   const seenAggregateLeadIds = new Set();
-  return signals
+  const projected = signals
     .filter((s) => isSafePublicSignal(s, shopifyPolicy))
     .filter((s) => !arizonaInventory(s) || currentArizonaKeys.has(currentProjectionKey(s)))
     .filter((s) => !isGeorgiaRetailerProjectionSignal(s) || currentGeorgiaRetailerKeys.has(currentProjectionKey(s)))
@@ -1405,7 +1433,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
     })
     .filter((s) => findBibleRecord(s, bible) || isCostcoWarehouseInventorySignal(s) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
-    .sort((a, b) => dropPriority(b) - dropPriority(a) || String(publicDisplaySortTimestamp(b, freshnessIndex)).localeCompare(String(publicDisplaySortTimestamp(a, freshnessIndex))) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
+    .sort((a, b) => Number(isCurrentObservation(b)) - Number(isCurrentObservation(a)) || dropPriority(b) - dropPriority(a) || String(publicDisplaySortTimestamp(b, freshnessIndex)).localeCompare(String(publicDisplaySortTimestamp(a, freshnessIndex))) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
       const sourceId = s.key || s.id || s.sourceSignalId;
       if (!sourceId) return true;
@@ -1420,10 +1448,19 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
       seenAggregateLeadIds.add(aggregateId);
       return true;
     })
-    .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal)), { shopifyPolicy }))
+    .map((signal) => {
+      const drop = publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal)), { shopifyPolicy });
+      if (isCurrentObservation(signal)) currentProjectedDrops.add(drop);
+      return drop;
+    })
     .filter((drop) => isCustomerDropTier(drop))
-    .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.ncCode, x.sourceUrl, x.storeId, x.locationName, x.storeAddress, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.ncCode, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
-    .slice(0, 10000);
+    .filter((drop) => {
+      const key = [drop.state, drop.type, drop.canonicalId, drop.ncCode, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|');
+      if (seenProjectedIds.has(key)) return false;
+      seenProjectedIds.add(key);
+      return true;
+    });
+  return selectFleetDropBudget(projected, { isRequired: drop => currentProjectedDrops.has(drop) });
 }
 
 function eventCategory(signal) {
@@ -1802,6 +1839,7 @@ export function buildAlerts(alerts) {
     sourceLabel: c.sourceLabel,
     sourceUrl: c.sourceUrl,
     sourceChain: c.sourceChain || null,
+    leafSourceRuntimeId: c.leafSourceRuntimeId || null,
     merchantId: c.merchantId || null,
     productId: c.productId || null,
     sku: c.sku || null,
@@ -1955,6 +1993,7 @@ function ohioFeedStaleCaveat(signal) {
 }
 
 export function dropHasPositiveAlertInventory(drop, shopifyPolicy) {
+  if(isNjMiRetailerEvent(drop))return isNjMiResearchInventory(drop)&&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(drop))return isCentralCityHiveInventory(drop)&&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding?.shadowOnly!==true;
   if (drop?.stale || drop?.sourceStale || drop?.raw?.staleFallback) return false;
   if(drop?.sourceProductBinding?.source==='grocery-xapi')return isGroceryExpansionInventory(drop)
@@ -2485,6 +2524,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
   const refreshedDrops = mergePartialRefreshDrops({
     previousDrops,
     currentDrops: candidateDrops,
+    currentSourceDrops: currentDrops,
     partialRefresh: summary.partialRefresh === true,
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds,
@@ -2705,6 +2745,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
         status: state.health,
         stale: state.health === 'stale_useful',
         staleReason: state.fallback.reason || state.anomalyCodes.join(', ') || null,
+        reasons: [...state.anomalyCodes],
         previousFinishedAt: state.collection.lastSuccessAt,
         staleFallbackAt: state.lastPublicationAt,
       }))
@@ -2794,7 +2835,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
   await writeFile(path.join(SITE_OUT, 'bottles.json'), JSON.stringify(artifactPayloads.bottles, null, 2));
   await writeFile(path.join(SITE_OUT, 'stores.json'), JSON.stringify(artifactPayloads.stores, null, 2));
   await writeFile(path.join(SITE_OUT, 'locations.json'), JSON.stringify(artifactPayloads.locations, null, 2));
-  await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify(artifactPayloads.drops, null, 2));
+  await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify(artifactPayloads.drops));
   await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify(artifactPayloads.events, null, 2));
   await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify(artifactPayloads.alerts, null, 2));
   await writeFile(path.join(SITE_OUT, 'state-health.json'), JSON.stringify(artifactPayloads.stateHealth, null, 2));

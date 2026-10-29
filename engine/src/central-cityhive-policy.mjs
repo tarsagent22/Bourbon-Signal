@@ -1,4 +1,4 @@
-import { CENTRAL_CITYHIVE_EXPANSION_SOURCES } from './collectors/central-cityhive-expansion.mjs';
+import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS } from './collectors/central-cityhive-premises.mjs';
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));
 export function isCentralCityHiveRetailerEvent(row){
@@ -41,4 +41,40 @@ export function isCentralCityHiveInventory(row,{nowMs=Date.now()}={}){
     &&Number.isFinite(Number(proof.reportedQuantity))&&Number(proof.reportedQuantity)>0
     &&(row.raw?.reportedQuantity==null||Number(row.raw.reportedQuantity)===Number(proof.reportedQuantity))
     &&typeof row.price==='number'&&Number.isFinite(row.price)&&row.price>0;
+}
+
+// Isolated canary visibility never grants alert or delivery eligibility.
+export function isCentralCityHiveCanaryOnSiteSignal(row,{nowMs=Date.now()}={}){
+  const age=nowMs-Date.parse(row?.observedAt||'');
+  return isCentralCityHiveInventory(row,{nowMs})&&age<=2*60*60_000&&row.previewOnly===true
+    &&row.sourceProductBinding?.productionOnSiteOnly!==true&&!row.sourceProductBinding?.productionCohortSha256
+    &&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForWatch===false
+    &&row.canAlertAsInventory===false&&row.can_alert_as_inventory!==true
+    &&row.canAlertAsWatch===false&&row.can_alert_as_watch!==true&&row.alertable!==true
+    &&row.eligibleForDelivery===false&&row.deliveryEligible!==true
+    &&row.eligibleForEmail===false&&row.eligibleForSms===false;
+}
+
+export function isCentralCityHiveProductionOnSiteSignal(row,{nowMs=Date.now()}={}){
+  const source=centralCityHiveSourceForSignal(row),proof=row?.sourceProductBinding;
+  return Boolean(source)&&isCentralCityHiveInventory(row,{nowMs})&&nowMs-Date.parse(row.observedAt)<=2*60*60_000
+    &&!Object.hasOwn(row,'previewOnly')&&row.quarantined!==true&&row.raw?.cacheFallback!==true
+    &&row.raw?.shadowOnly!==true&&proof?.shadowOnly!==true
+    &&row.sourceRuntimeId===`${source.state.toLowerCase()}:central-cityhive`
+    &&proof.productionOnSiteOnly===true&&proof.productionCohortSha256===CENTRAL_CITYHIVE_PRODUCTION_COHORTS[source.state]
+    &&row.canAlertAsInventory===false&&row.can_alert_as_inventory!==true&&row.canAlertAsWatch===false&&row.can_alert_as_watch!==true
+    &&row.alertable!==true&&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForWatch===false
+    &&row.eligibleForDelivery===false&&row.deliveryEligible!==true&&row.eligibleForEmail===false&&row.eligibleForSms===false;
+}
+export const isCentralCityHiveOnSiteSignal=(row,options)=>isCentralCityHiveCanaryOnSiteSignal(row,options)||isCentralCityHiveProductionOnSiteSignal(row,options);
+
+// Source readiness is independent of notification eligibility. This proof may
+// count only in isolated shadow evidence and never grants public visibility.
+export function isCentralCityHiveResearchInventory(row,options){
+  const source=centralCityHiveSourceForSignal(row);
+  return Boolean(source)&&isCentralCityHiveInventory(row,options)&&row.sourceRuntimeId===`research:${source.state.toLowerCase()}:${source.id}`
+    &&row.raw?.shadowOnly===true&&row.sourceProductBinding?.shadowOnly===true
+    &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.alertable===false
+    &&row.eligibleForOnSite===false&&row.eligibleForDropFeed===false&&row.eligibleForWatch===false
+    &&row.eligibleForDelivery===false&&row.eligibleForEmail===false&&row.eligibleForSms===false;
 }

@@ -1,4 +1,5 @@
 import { markSignalStaleNonAlertable } from './stale-signal-policy.mjs';
+import { selectFleetDropBudget } from './fleet-drop-budget.mjs';
 
 function retainedDrop(drop, reason) {
   return {
@@ -121,7 +122,8 @@ export function mergeHistoricalBoardShipmentDrops({
       return true;
     })
     .map(historicalBoardShipmentDrop);
-  return [...normalizedCurrent, ...retained].slice(0, 10000);
+  const required = new Set(normalizedCurrent);
+  return selectFleetDropBudget([...normalizedCurrent, ...retained], { isRequired: row => required.has(row) });
 }
 
 // Retain observed bottle events across refreshes; archived rows never become alerts.
@@ -138,12 +140,13 @@ export function mergeHistoricalTimelineDrops({ currentDrops = [], previousDrops 
     if (drop.eligibleForDropFeed !== true || /catalog|policy|warehouse|out.of.stock/i.test(String(drop.type || drop.event_type || ''))) return false;
     currentIds.add(id);
     return true;
-  }).sort((a,b) => dropEventTime(b) - dropEventTime(a)).slice(0, Math.max(0, 10000 - current.length));
-  return [...current, ...retained.map(drop => ({
+  }).sort((a,b) => dropEventTime(b) - dropEventTime(a));
+  const required = new Set(current);
+  return selectFleetDropBudget([...current, ...retained.map(drop => ({
     ...retainedDrop(drop, 'historical_timeline'), historical: true,
     eligibleForDropFeed: true, can_alert_as_inventory: false, can_alert_as_watch: false,
     inventoryCaveat: 'Historical report. Current availability is unconfirmed; check with the store.',
-  }))];
+  }))], { isRequired: row => required.has(row) });
 }
 
 function locationIdentity(location) {
@@ -292,27 +295,21 @@ export function mergeScheduledFallbackEvents({
   return merged;
 }
 
-const MAX_CUSTOMER_DROPS = 10_000;
-
-function capDropsPreservingFullFallbacks(rows, fallbackStates) {
+function capDropsPreservingFullFallbacks(rows, fallbackStates, requiredIds) {
   const stateOf = (drop) => String(drop?.state || drop?.state_code || '').toUpperCase();
-  const fallbackRows = rows.filter((drop) => fallbackStates.has(stateOf(drop)));
-  if (fallbackRows.length > MAX_CUSTOMER_DROPS) {
-    throw new Error(`Full fallback partitions contain ${fallbackRows.length} rows, exceeding the ${MAX_CUSTOMER_DROPS}-row customer drop cap.`);
-  }
-  const selectedCurrentRows = new Set(rows
-    .filter((drop) => !fallbackStates.has(stateOf(drop)))
-    .slice(0, MAX_CUSTOMER_DROPS - fallbackRows.length));
-  return rows.filter((drop) => fallbackStates.has(stateOf(drop)) || selectedCurrentRows.has(drop));
+  return selectFleetDropBudget(rows, { isRequired: drop => fallbackStates.has(stateOf(drop)) || requiredIds.has(dropIdentity(drop)) });
 }
 
-export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {
+export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], currentSourceDrops = currentDrops, partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {
   const previousRows = Array.isArray(previousDrops) ? previousDrops : Array.isArray(previousDrops?.drops) ? previousDrops.drops : [];
   const currentRows = Array.isArray(currentDrops) ? currentDrops : Array.isArray(currentDrops?.drops) ? currentDrops.drops : [];
   const stateOf = (drop) => String(drop?.state || drop?.state_code || '').toUpperCase();
   const preserved = new Set(fallbackStateIds.map((state) => String(state).toUpperCase()));
   const partialPreserved = new Set(partialFallbackStateIds.map((state) => String(state).toUpperCase()));
-  if (!partialRefresh && !preserved.size && !partialPreserved.size) return currentRows;
+  if (!partialRefresh && !preserved.size && !partialPreserved.size) {
+    const requiredIds = new Set(rowsOf(currentSourceDrops).map(dropIdentity));
+    return selectFleetDropBudget(currentRows, { isRequired: row => requiredIds.has(dropIdentity(row)) });
+  }
   const previousStates = new Set(previousRows.map(stateOf));
   const safeStaleRows = (rows) => rows.length > 0 && rows.every((drop) => drop?.sourceStale === true
     && drop?.alertable !== true
@@ -329,6 +326,10 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
   }));
   const effectivePreserved = new Set([...preserved].filter((state) => !staleBootstrapStates.has(state)));
   const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()).filter((state) => !effectivePreserved.has(state)));
+  const requiredIds = new Set([
+    ...rowsOf(currentSourceDrops),
+    ...previousRows.filter(drop => !attempted.has(stateOf(drop))),
+  ].map(dropIdentity));
   const partialRows = previousRows
     .filter((drop) => partialPreserved.has(stateOf(drop)) && isSafePartialRetainedRow(drop))
     .map((drop) => retainedDrop(drop, 'partial_evidence_fallback'));
@@ -346,5 +347,5 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
   }).map((drop) => preserved.has(stateOf(drop))
     ? retainedDrop(drop, drop.staleReason || 'preserved_state_fallback')
     : drop);
-  return capDropsPreservingFullFallbacks(sanitized, preserved);
+  return capDropsPreservingFullFallbacks(sanitized, preserved, requiredIds);
 }

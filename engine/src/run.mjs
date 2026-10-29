@@ -53,6 +53,8 @@ function isIndexedCustomerDropSignal(signal, index) {
 
 const STATE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_STATE_TIMEOUT_MS || 180_000);
 const STATE_TIMEOUT_OVERRIDES_MS = {
+  NJ: Number(process.env.BOURBON_SIGNAL_NJ_STATE_TIMEOUT_MS || 120_000),
+  MI: Number(process.env.BOURBON_SIGNAL_MI_STATE_TIMEOUT_MS || 60_000),
   // VA and IN can legitimately do broad store-level inventory work. Give them
   // enough room in the full scheduled run so they do not regress to stale
   // fallback while still keeping hard failure bounds.
@@ -65,6 +67,9 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // its parent expires, including a slow storefront sibling.
   NV: Number(process.env.BOURBON_SIGNAL_NV_STATE_TIMEOUT_MS || 720_000),
   CA: Number(process.env.BOURBON_SIGNAL_CA_STATE_TIMEOUT_MS || 720_000),
+  // Closed grocery children are bounded at600s/180s; keep parent cleanup room.
+  WA: Number(process.env.BOURBON_SIGNAL_WA_STATE_TIMEOUT_MS || 720_000),
+  NM: Number(process.env.BOURBON_SIGNAL_NM_STATE_TIMEOUT_MS || 300_000),
   // NC board intelligence + county inventory probes can cross the generic
   // timeout during normal successful runs. Give it the same scheduled-run
   // budget as other broad inventory states so stale fallback only indicates a
@@ -137,6 +142,8 @@ const MIN_FWGS_POSITIVE_ROWS = Number(process.env.BOURBON_SIGNAL_MIN_FWGS_POSITI
 const MIN_OHLQ_OK_PRODUCTS = Number(process.env.BOURBON_SIGNAL_MIN_OHLQ_OK_PRODUCTS || 1);
 
 export function stateTimeoutMs(config) {
+  if(config.id==='WI')return 150_000;
+  if(config.id==='OK')return 240_000;
   return STATE_TIMEOUT_OVERRIDES_MS[config.id] || STATE_TIMEOUT_MS;
 }
 

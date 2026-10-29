@@ -1,3 +1,6 @@
+import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
+import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
+import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -12,7 +15,11 @@ import { isUserFacingDropSignal } from "@/lib/drop-feed-visibility";
 import { canonicalNcAbcBoardEvidence } from "@/lib/nc-abc-boards";
 export { isUserFacingDropSignal } from "@/lib/drop-feed-visibility";
 
-const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
+// Isolated previews stage their immutable canary outside generated-output ignore
+// rules. Production continues to use its existing snapshot/local-export contract.
+const SITE_EXPORT_DIR = process.env.BOURBON_SIGNAL_CANARY_PREVIEW === "1"
+  ? join(process.cwd(), "canary-site-export")
+  : join(process.cwd(), "engine", "out", "site");
 const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
 
 export type SiteExportName = "alerts" | "bottles" | "drops" | "events" | "locations" | "nc-intelligence" | "state-health" | "stats" | "stores";
@@ -365,7 +372,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     store_id: firstNonEmptyString(drop.storeId, drop.store_id) || undefined,
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
     quantity_shipped: shipmentQuantity || undefined,
-    quantity: quantity || undefined,
+    quantity: quantity || (isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveOnSiteSignal(drop) || isNjMiOnSiteSignal(drop) ? 0 : undefined),
     rarity_tier: asString(drop.tier, "unknown"),
     retail_price: asNumber(drop.price) || null,
     state,

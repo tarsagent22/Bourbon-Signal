@@ -55,7 +55,7 @@ test('only due Buffalo sources bypass the four-hour state cache on a bounded thi
     [...buffalo, nyPeer].map((source) => source.id),
   );
   const precisionSource = readFileSync(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
-  assert.match(precisionSource, /selectMetroSourcesForRefresh\(sources, eligibleCachedSignals, \{ forceLive, fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS, sourceAttempts \}\)/u);
+  assert.match(precisionSource, /selectMetroSourcesForRefresh\(sources\.filter\(source=>!suspendedIds\.has\(source\.id\)\), eligibleCachedSignals, \{ forceLive, fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS, sourceAttempts \}\)/u);
   assert.match(precisionSource, /const adapters = refreshSources\.map/u);
 });
 

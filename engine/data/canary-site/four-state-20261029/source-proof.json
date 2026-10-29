@@ -1,0 +1,75 @@
+{
+  "scope": "derived_four_state_only_CI_integration_snapshot_not_a_runtime_inventory_source_or_production_snapshot",
+  "sourceCommit": "3f975f896bd7c5c7f887570335c48e89cd158569",
+  "ownedPreviewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+  "derivedFromCombinedSnapshotDigest": "362d2cbd33b6bbcc3ec80217b6af3cee3c046cd7f5544929786e60994077d38e",
+  "statePartitions": {
+    "WA": {
+      "file": "states/WA/drops.json",
+      "sha256": "6e6e931fafbd6bbb8e293a33ea3ed6df7f47b0f60c7d30a5ed9a81915e8e80a2",
+      "workflow": {
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "40925045213",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925045213",
+        "workflowPath": ".github/workflows/state-expansion-canary.yml",
+        "headSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+        "artifactId": 12920466435,
+        "artifactName": "state-expansion-canary-WA-40925045213",
+        "artifactDigest": "b8e0c1d167f91c3ad289fc25391a9240486a1e58c9b57eda146b8e66db2d2ac4",
+        "downloadedAt": "2026-10-29T17:51:17.652Z",
+        "fileCount": 47
+      }
+    },
+    "NM": {
+      "file": "states/NM/drops.json",
+      "sha256": "df15237c98d22a18891863fc009a2d5d14bab2b6ee83e490094a39fdd3358f25",
+      "workflow": {
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "40925049456",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925049456",
+        "workflowPath": ".github/workflows/state-expansion-canary.yml",
+        "headSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+        "artifactId": 12920476292,
+        "artifactName": "state-expansion-canary-NM-40925049456",
+        "artifactDigest": "64c754935a8a48d9b83afcba4da2ec15f5e796dfbaba01ab0ba3ee649a1c2ffa",
+        "downloadedAt": "2026-10-29T17:51:20.315Z",
+        "fileCount": 47
+      }
+    },
+    "WI": {
+      "file": "states/WI/drops.json",
+      "sha256": "87f9cdb9b4211397d23294e5ba0475477bcecf607e477bb71f6532a818b54269",
+      "workflow": {
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "40925053511",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925053511",
+        "workflowPath": ".github/workflows/state-expansion-canary.yml",
+        "headSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+        "artifactId": 12919263535,
+        "artifactName": "state-expansion-canary-WI-40925053511",
+        "artifactDigest": "23f2b25113f4d3b67fd60030382d8989393696aba5d6727347ce370c75c5a83d",
+        "downloadedAt": "2026-10-29T17:51:22.960Z",
+        "fileCount": 47
+      }
+    },
+    "OK": {
+      "file": "states/OK/drops.json",
+      "sha256": "4f35e968e3bc0614a52033d151bc2b1917e4e1638170da0e4a8a103138162acd",
+      "workflow": {
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "40925057412",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925057412",
+        "workflowPath": ".github/workflows/state-expansion-canary.yml",
+        "headSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+        "artifactId": 12918604476,
+        "artifactName": "state-expansion-canary-OK-40925057412",
+        "artifactDigest": "89841650cb62955739f7e4ee6348a258b0f3c5b958a8c48d81bf79c202642528",
+        "downloadedAt": "2026-10-29T17:51:25.669Z",
+        "fileCount": 47
+      }
+    }
+  },
+  "originalSourceClocksPreserved": true,
+  "globalCount": 220,
+  "reviewedLocations": 77
+}

@@ -6,6 +6,7 @@ import { join } from 'node:path';
 
 import { stableId } from '../core/text.mjs';
 import { parseGoToLiquorStoreProducts } from './gotoliquorstore-surfaces.mjs';
+import { optionalDeniedSourceSkip } from './optional-source-denial-policy.mjs';
 
 function exactStore({ platform, sourceLabel, sourceChain, merchantId, storeId, name, address, city, zip, baseUrl, ...rest }) {
   return Object.freeze({
@@ -869,6 +870,8 @@ function productsPageUrl(source, page) {
 export async function collectFloridaShipmentShopifySource({ source: candidateSource, observedAt, matchBottle, fetchText, sleep = async () => {}, signal } = {}) {
   const source = canonicalShopifySource(candidateSource);
   if (!source || typeof matchBottle !== 'function' || typeof fetchText !== 'function') return { signals: [], roadblocks: [], requestCount: 0 };
+  const parked=optionalDeniedSourceSkip('FL',source.id,source.productsUrl);
+  if(parked)return parked;
   const signals = [];
   const roadblocks = [];
   let requestCount = 0;

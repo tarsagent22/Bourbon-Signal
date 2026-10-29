@@ -1,0 +1,424 @@
+{
+  "schemaVersion": 1,
+  "id": "co-nc-ga-tn-denied-optional-sources-suspended-20261029",
+  "decision": "disabled",
+  "directRequestsAllowed": false,
+  "resumption": "separate reviewed change with new access evidence",
+  "workflows": [
+    {
+      "runId": "40846038572",
+      "headSha": "fe8c942d009a1136b0a63a703237ecf3facbe466",
+      "createdAt": "2026-10-29T08:58:38Z",
+      "updatedAt": "2026-10-29T09:48:34Z",
+      "conclusion": "failure",
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40846038572",
+      "artifactId": "12887253807",
+      "artifactSha256": "8e136c46b5aa78564fab8aadd6a5300fc7034a349383c0fb04ebf6fd47c29af0"
+    },
+    {
+      "runId": "40608817441",
+      "headSha": "16a509c73a5ad1a476706c74b8f7f2a5513b7a65",
+      "createdAt": "2026-10-28T00:26:55Z",
+      "updatedAt": "2026-10-28T00:58:44Z",
+      "conclusion": "success",
+      "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40608817441",
+      "artifactId": "12783258143",
+      "artifactSha256": "00556204e943e5ef39b850ccc4863c0db0948b8c5cdb0a069e715f41fc0f9274"
+    }
+  ],
+  "reports": [
+    {
+      "id": "CO-ledger",
+      "workflowRunId": "40846038572",
+      "path": "optimization/metro-source-attempts/CO.json",
+      "sha256": "12cf1bdf7023ea55f5b2c647d5becce83841a6f3a4fa81229186e586b9cd0a61",
+      "startedAt": null,
+      "finishedAt": null
+    },
+    {
+      "id": "NC-report",
+      "workflowRunId": "40608817441",
+      "path": "states/NC.json",
+      "sha256": "7b9bf0a4d8b6bc95634c96e9268d1c79165046f9568bc53e93f24377f25ae0dc",
+      "startedAt": "2026-10-28T00:29:44.807Z",
+      "finishedAt": "2026-10-28T00:31:44.200Z"
+    },
+    {
+      "id": "TN-report",
+      "workflowRunId": "40608817441",
+      "path": "states/TN.json",
+      "sha256": "082f21249f515c004a9456f0a27d82b55fd707aa963be9ae80dc2fba8d95049f",
+      "startedAt": "2026-10-28T00:31:35.077Z",
+      "finishedAt": "2026-10-28T00:31:36.063Z"
+    },
+    {
+      "id": "GA-report",
+      "workflowRunId": "40608817441",
+      "path": "states/GA.json",
+      "sha256": "1c6a4ed6feb40a2803505088e538c44959304221d03f984678519a3fff03ae64",
+      "startedAt": "2026-10-28T00:33:17.800Z",
+      "finishedAt": "2026-10-28T00:34:48.936Z"
+    }
+  ],
+  "routes": [
+    {
+      "state": "CO",
+      "sourceKey": "springs-liquor-outlet",
+      "sourceRuntimeId": "metro:co:springs-liquor-outlet",
+      "kind": "retailer",
+      "url": "https://www.springsliquor.com/shop/?subtype=Bourbon",
+      "hostname": "www.springsliquor.com",
+      "requestPath": "/shop/",
+      "label": "Springs Liquor Outlet CityHive Colorado Springs store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:23.866Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "springs-liquor-outlet"
+      ],
+      "rowHosts": [
+        "www.springsliquor.com"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "wallabys-liquor-warehouse",
+      "sourceRuntimeId": "metro:co:wallabys-liquor-warehouse",
+      "kind": "retailer",
+      "url": "https://wallabysliquorwarehouse.com/shop/?subtype=Bourbon",
+      "hostname": "wallabysliquorwarehouse.com",
+      "requestPath": "/shop/",
+      "label": "WALLABYS LIQUOR WAREHOUSE CityHive Denver Metro store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:23.922Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "wallabys-liquor-warehouse"
+      ],
+      "rowHosts": [
+        "wallabysliquorwarehouse.com"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "peak-wine-spirits",
+      "sourceRuntimeId": "metro:co:peak-wine-spirits",
+      "kind": "retailer",
+      "url": "https://peakwineandspirits.com/shop/?subtype=Bourbon",
+      "hostname": "peakwineandspirits.com",
+      "requestPath": "/shop/",
+      "label": "Peak Wine and Spirits CityHive Boulder County store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:23.876Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "peak-wine-spirits"
+      ],
+      "rowHosts": [
+        "peakwineandspirits.com"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "south-park-liquor",
+      "sourceRuntimeId": "metro:co:south-park-liquor",
+      "kind": "retailer",
+      "url": "https://southparkliquor.shop/shop/?subtype=Bourbon",
+      "hostname": "southparkliquor.shop",
+      "requestPath": "/shop/",
+      "label": "South Park Liquor CityHive Denver Metro store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:24.011Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "south-park-liquor"
+      ],
+      "rowHosts": [
+        "southparkliquor.shop"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "bonnie-brae-liquor",
+      "sourceRuntimeId": "metro:co:bonnie-brae-liquor",
+      "kind": "retailer",
+      "url": "https://bonniebraeliquor.com/shop/?subtype=Bourbon",
+      "hostname": "bonniebraeliquor.com",
+      "requestPath": "/shop/",
+      "label": "Bonnie Brae Liquor CityHive Denver Metro store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:23.997Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "bonnie-brae-liquor"
+      ],
+      "rowHosts": [
+        "bonniebraeliquor.com"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "mollys-spirits",
+      "sourceRuntimeId": "metro:co:mollys-spirits",
+      "kind": "retailer",
+      "url": "https://mollysspirits.com/shop/?subtype=Bourbon",
+      "hostname": "mollysspirits.com",
+      "requestPath": "/shop/",
+      "label": "Molly's Spirits CityHive Denver Metro store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:24.078Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "mollys-spirits"
+      ],
+      "rowHosts": [
+        "mollysspirits.com"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "total-beverage",
+      "sourceRuntimeId": "metro:co:total-beverage",
+      "kind": "retailer",
+      "url": "https://totalbev.com/shop/?subtype=Bourbon",
+      "hostname": "totalbev.com",
+      "requestPath": "/shop/",
+      "label": "Total Beverage CityHive Denver Metro store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:24.112Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "total-beverage"
+      ],
+      "rowHosts": [
+        "totalbev.com"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "off-broadway-wine-spirits",
+      "sourceRuntimeId": "metro:co:off-broadway-wine-spirits",
+      "kind": "retailer",
+      "url": "https://www.offbroadwaydenver.com/shop/?subtype=Bourbon",
+      "hostname": "www.offbroadwaydenver.com",
+      "requestPath": "/shop/",
+      "label": "Off Broadway Wine & Spirits CityHive Denver Metro store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:24.232Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "off-broadway-wine-spirits"
+      ],
+      "rowHosts": [
+        "www.offbroadwaydenver.com"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "mayfair-liquors",
+      "sourceRuntimeId": "metro:co:mayfair-liquors",
+      "kind": "retailer",
+      "url": "https://mayfairliquors.com/shop/?subtype=Bourbon",
+      "hostname": "mayfairliquors.com",
+      "requestPath": "/shop/",
+      "label": "Mayfair Liquors CityHive Denver Metro store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:24.202Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "mayfair-liquors"
+      ],
+      "rowHosts": [
+        "mayfairliquors.com"
+      ]
+    },
+    {
+      "state": "CO",
+      "sourceKey": "heritage-wine-liquor",
+      "sourceRuntimeId": "metro:co:heritage-wine-liquor",
+      "kind": "retailer",
+      "url": "https://heritagewineandliquor.com/shop/?subtype=Bourbon",
+      "hostname": "heritagewineandliquor.com",
+      "requestPath": "/shop/",
+      "label": "Heritage Wine and Liquor CityHive Denver Metro store inventory",
+      "httpStatus": 429,
+      "reportId": "CO-ledger",
+      "attemptWindowStartedAt": null,
+      "attemptWindowFinishedAt": "2026-10-29T09:23:24.290Z",
+      "clockSemantics": "source_attempt_result_finished_at_upper_bound_not_individual_response_time",
+      "rowSourceChains": [
+        "heritage-wine-liquor"
+      ],
+      "rowHosts": [
+        "heritagewineandliquor.com"
+      ]
+    },
+    {
+      "state": "NC",
+      "sourceKey": "nc:configured:f524dab971391ed9",
+      "sourceRuntimeId": "nc:configured:f524dab971391ed9",
+      "kind": "configured",
+      "url": "https://www.newhanovercountyabc.com/bourbon-blast/",
+      "hostname": "www.newhanovercountyabc.com",
+      "requestPath": "/bourbon-blast/",
+      "label": "New Hanover Bourbon Blast / allocated notifications",
+      "httpStatus": 403,
+      "reportId": "NC-report",
+      "attemptWindowStartedAt": "2026-10-28T00:29:45.261Z",
+      "attemptWindowFinishedAt": "2026-10-28T00:29:45.769Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChains": [],
+      "rowHosts": [
+        "www.newhanovercountyabc.com"
+      ]
+    },
+    {
+      "state": "NC",
+      "sourceKey": "nc:configured:dab817fb9806329d",
+      "sourceRuntimeId": "nc:configured:dab817fb9806329d",
+      "kind": "configured",
+      "url": "https://www.newhanovercountyabc.com/barrels/",
+      "hostname": "www.newhanovercountyabc.com",
+      "requestPath": "/barrels/",
+      "label": "New Hanover barrel picks",
+      "httpStatus": 403,
+      "reportId": "NC-report",
+      "attemptWindowStartedAt": "2026-10-28T00:29:45.769Z",
+      "attemptWindowFinishedAt": "2026-10-28T00:29:46.103Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChains": [],
+      "rowHosts": [
+        "www.newhanovercountyabc.com"
+      ]
+    },
+    {
+      "state": "NC",
+      "sourceKey": "nc:configured:7012fc89423fd1a1",
+      "sourceRuntimeId": "nc:configured:7012fc89423fd1a1",
+      "kind": "configured",
+      "url": "https://www.newhanovercountyabc.com/sales/",
+      "hostname": "www.newhanovercountyabc.com",
+      "requestPath": "/sales/",
+      "label": "New Hanover monthly sale items",
+      "httpStatus": 403,
+      "reportId": "NC-report",
+      "attemptWindowStartedAt": "2026-10-28T00:29:46.103Z",
+      "attemptWindowFinishedAt": "2026-10-28T00:29:46.436Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChains": [],
+      "rowHosts": [
+        "www.newhanovercountyabc.com"
+      ]
+    },
+    {
+      "state": "TN",
+      "sourceKey": "tn:configured:6c7172c3da2b14ad",
+      "sourceRuntimeId": "tn:configured:6c7172c3da2b14ad",
+      "kind": "configured",
+      "url": "https://www.tn.gov/abc.html",
+      "hostname": "www.tn.gov",
+      "requestPath": "/abc.html",
+      "label": "Tennessee ABC homepage",
+      "httpStatus": 403,
+      "reportId": "TN-report",
+      "attemptWindowStartedAt": "2026-10-28T00:31:35.079Z",
+      "attemptWindowFinishedAt": "2026-10-28T00:31:35.680Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChains": [],
+      "rowHosts": [
+        "www.tn.gov"
+      ]
+    },
+    {
+      "state": "TN",
+      "sourceKey": "tn:configured:1f41bcf8c7687a04",
+      "sourceRuntimeId": "tn:configured:1f41bcf8c7687a04",
+      "kind": "configured",
+      "url": "https://www.tn.gov/abc/public-information-and-forms.html",
+      "hostname": "www.tn.gov",
+      "requestPath": "/abc/public-information-and-forms.html",
+      "label": "Tennessee ABC public information and forms",
+      "httpStatus": 403,
+      "reportId": "TN-report",
+      "attemptWindowStartedAt": "2026-10-28T00:31:35.681Z",
+      "attemptWindowFinishedAt": "2026-10-28T00:31:36.019Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChains": [],
+      "rowHosts": [
+        "www.tn.gov"
+      ]
+    },
+    {
+      "state": "GA",
+      "sourceKey": "1071",
+      "sourceRuntimeId": "precision:ga",
+      "kind": "retailer",
+      "url": "https://www.bwcumming.com/c/spirits/whiskey/19",
+      "hostname": "www.bwcumming.com",
+      "requestPath": "/c/spirits/whiskey/19",
+      "label": "Beverage World of Cumming GoToLiquorStore store inventory",
+      "httpStatus": 403,
+      "reportId": "GA-report",
+      "attemptWindowStartedAt": "2026-10-28T00:33:17.800Z",
+      "attemptWindowFinishedAt": "2026-10-28T00:34:48.936Z",
+      "clockSemantics": "state_collection_window_upper_bound_not_individual_response_time",
+      "evidenceScope": "only_this_observed_exact_host_binding_suspended",
+      "representativeFailureContext": {
+        "actualDeniedProbeCount": 2,
+        "skippedUnobservedProbeCount": 12,
+        "configuredProbeCount": 14
+      },
+      "rowSourceChains": [
+        "beverage-world-cumming"
+      ],
+      "rowHosts": [
+        "www.bwcumming.com"
+      ]
+    },
+    {
+      "state": "GA",
+      "sourceKey": "1279",
+      "sourceRuntimeId": "precision:ga",
+      "kind": "retailer",
+      "url": "https://www.thewinestoreinc.com/c/spirits/whiskey/19",
+      "hostname": "www.thewinestoreinc.com",
+      "requestPath": "/c/spirits/whiskey/19",
+      "label": "The Wine Store GoToLiquorStore store inventory",
+      "httpStatus": 403,
+      "reportId": "GA-report",
+      "attemptWindowStartedAt": "2026-10-28T00:33:17.800Z",
+      "attemptWindowFinishedAt": "2026-10-28T00:34:48.936Z",
+      "clockSemantics": "state_collection_window_upper_bound_not_individual_response_time",
+      "evidenceScope": "only_this_observed_exact_host_binding_suspended",
+      "representativeFailureContext": {
+        "actualDeniedProbeCount": 2,
+        "skippedUnobservedProbeCount": 12,
+        "configuredProbeCount": 14
+      },
+      "rowSourceChains": [
+        "the-wine-store-alpharetta"
+      ],
+      "rowHosts": [
+        "www.thewinestoreinc.com"
+      ]
+    }
+  ]
+}

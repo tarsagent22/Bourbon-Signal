@@ -5,6 +5,8 @@ import { collectTexasCityHiveExpansion } from './texas-cityhive-expansion.mjs';
 import { collectMidwestCityHiveExpansion } from './midwest-cityhive-expansion.mjs';
 import { pennsylvaniaDirectFwgsRoadblock } from './pennsylvania-direct-source-policy.mjs';
 import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
+import { optionalDeniedSourceSkip, retainParkedOptionalSourceRows } from './optional-source-denial-policy.mjs';
+import { optionalSuspensionSkip, retainSuspendedOptionalRows } from './optional-source-suspensions.mjs';
 import { reviewedIndianaCityHiveBottleMatch, reviewedIndianaPaylessBottleMatch, buildIndianaPaylessAvailabilityProof, normalizeIndianaCityHiveQuantity, indianaSourceBottleMismatchReason } from './indiana-retailer-matching.mjs';
 import { validateFwgsFullArtifact } from '../fwgs-artifact-policy.mjs';
 import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
@@ -4693,6 +4695,8 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
 }
 
 async function collectArizonaTarget(config, bible, observedAt, options = {}) {
+  const parked=optionalDeniedSourceSkip(config.id,'target-redsky','https://redsky.target.com');
+  if(parked)return parked;
   const signals = [];
   const roadblocks = [];
   const visitorId = crypto.randomUUID();
@@ -4804,6 +4808,8 @@ async function collectFloridaMdp(config, bible, observedAt, options = {}) {
 }
 
 async function collectFloridaTarget(config, bible, observedAt, existingSignals = [], options = {}) {
+  const parked=optionalDeniedSourceSkip(config.id,'target-redsky','https://redsky.target.com');
+  if(parked)return parked;
   const signals = [];
   const roadblocks = [];
   const visitorId = crypto.randomUUID();
@@ -5020,6 +5026,8 @@ async function collectFloridaCityHive(config, bible, observedAt, options = {}) {
   const roadblocks = [];
   const seenProductOptions = new Set();
   for (const source of FL_CITYHIVE_SOURCES) {
+    const parked=optionalDeniedSourceSkip(config.id,source.id,source.categoryUrl);
+    if(parked){roadblocks.push(...parked.roadblocks);continue;}
     let sourceInventoryCount = 0;
     let reachableStores = 0;
     let blocked = false;
@@ -5792,6 +5800,8 @@ async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options 
   const platformFailures = [];
   for (const store of GEORGIA_GOTOLIQUOR_STORES) {
     options.signal?.throwIfAborted();
+    const suspended=optionalSuspensionSkip(config.id,store.id,store.categoryUrl);
+    if(suspended){roadblocks.push(...suspended.roadblocks);continue;}
     const res = await curlTextFetch(store.categoryUrl, { timeoutMs: 30_000, signal: options.signal });
     if (!res.ok) {
       const failure = {
@@ -5885,14 +5895,14 @@ async function collectGeorgia(config, bible, options = {}) {
   const cityHive = lanes.get('cityhive');
   const lightspeed = lanes.get('lightspeed');
   const goToLiquorStore = lanes.get('gotoliquorstore');
-  return {
+  return retainSuspendedOptionalRows({
     signals: [...configuredLocations, ...cityHive.signals, ...lightspeed.signals, ...goToLiquorStore.signals],
     roadblocks: [...cityHive.roadblocks, ...lightspeed.roadblocks, ...goToLiquorStore.roadblocks],
     metadata: {
       sourceConcurrency: laneRun.concurrency,
       sourceTimings: laneRun.timings,
     },
-  };
+  },options.existingSignals||[]);
 }
 
 function arizonaAttemptSources() {
@@ -8936,18 +8946,23 @@ async function collectMetroRetailers(config, bible, options = {}) {
 
   const observedAt = new Date().toISOString();
   const cache = await readMetroRetailerCache(config.id);
+  const suspendedHistory=retainSuspendedOptionalRows({signals:[],roadblocks:[]},cache?.signals||[]).signals;
   const eligibleSourceIds = new Set(sources.map((source) => source.id));
   const eligibleCachedSignals = cachedMetroRetailerSignals(cache).filter((cachedSignal) => eligibleSourceIds.has(cachedSignal.sourceChain));
   const forceLive = process.env[`BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE`] === '1';
   let sourceAttempts = await readMetroSourceAttempts(config.id, registeredSources, cache);
-  const refreshSources = selectMetroSourcesForRefresh(sources, eligibleCachedSignals, { forceLive, fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS, sourceAttempts });
+  const suspendedSources=sources.map(source=>({source,skip:optionalSuspensionSkip(config.id,source.id,source.productsUrl)})).filter(row=>row.skip);
+  const suspendedIds=new Set(suspendedSources.map(row=>row.source.id));
+  const suspensionRoadblocks=suspendedSources.flatMap(row=>row.skip.roadblocks);
+  const refreshSources = selectMetroSourcesForRefresh(sources.filter(source=>!suspendedIds.has(source.id)), eligibleCachedSignals, { forceLive, fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS, sourceAttempts });
   const attemptLedgerErrors = [];
   if (!refreshSources.length) {
     try { await writeMetroSourceAttempts(config.id, sourceAttempts, registeredSources); }
     catch (error) { attemptLedgerErrors.push({ code: error.code || 'metro_attempt_ledger_write_failed' }); }
-    return {
-      signals: eligibleCachedSignals,
+    return retainSuspendedOptionalRows({
+      signals: [...eligibleCachedSignals,...suspendedHistory],
       roadblocks: [
+        ...suspensionRoadblocks,
         ...(cache?.roadblocks || []),
         {
           state: config.id,
@@ -8966,7 +8981,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
         attemptLedgerErrors,
         sourceIds: sources.map((source) => `metro:${source.stateCode.toLowerCase()}:${source.id}`),
       },
-    };
+    });
   }
 
   let attemptWriteQueue = Promise.resolve();
@@ -9017,7 +9032,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
   });
 
   const liveSignals = [];
-  const roadblocks = [];
+  const roadblocks = [...suspensionRoadblocks];
   const completedSourceIds = new Set();
   const successfulSourceIds = new Set();
   const partialSourceMetadata = new Map();
@@ -9074,8 +9089,8 @@ async function collectMetroRetailers(config, bible, options = {}) {
       nextRoute: 'Keep the state fail-closed; do not substitute catalog, shipping, marketplace, stale, or unregistered retailer evidence.',
     });
   }
-  return {
-    signals,
+  return retainSuspendedOptionalRows({
+    signals: [...signals,...suspendedHistory],
     roadblocks,
     metadata: {
       lane: 'metro_retailer',
@@ -9086,7 +9101,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
       attemptLedgerErrors,
       sourceResults: isolated.results.map(summarizeSourceResult),
     },
-  };
+  });
 }
 
 async function readCaliforniaSanDiegoShopifyCache() {
@@ -9534,11 +9549,11 @@ async function collectPrecisionProbesUntraced(config, bible, existingSignals = [
   if (config.id === 'IL') return collectIllinois(config, bible, options);
   if (config.id === 'IN') return collectIndiana(config, bible, existingSignals, options);
   if (config.id === 'TN') return collectTennessee(config, bible, options);
-  if (config.id === 'AZ') return collectArizona(config, bible, options);
+  if (config.id === 'AZ') return retainParkedOptionalSourceRows(await collectArizona(config, bible, options), existingSignals);
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (config.id === 'NV') return withCollectionContext(options, () => collectNevada(config, bible));
-  if (config.id === 'FL') return collectFlorida(config, bible, existingSignals, options);
-  if (config.id === 'GA') return collectGeorgia(config, bible, options);
+  if (config.id === 'FL') return retainParkedOptionalSourceRows(await collectFlorida(config, bible, existingSignals, options), existingSignals);
+  if (config.id === 'GA') return collectGeorgia(config, bible, {...options,existingSignals});
   if (config.id === 'NY' || config.id === 'CO') return collectMetroRetailers(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
   if (config.id === 'TX') return withCollectionContext(options, () => collectTexas(config, bible, existingSignals, options));
@@ -11528,9 +11543,13 @@ export function virginiaStoreSignals(product, json, config, bible, url, supporte
     const storeId = store.storeId ?? store.storeNumber ?? store.id;
     if (!storeId || (supportedStoreIds && !supportedStoreIds.has(String(storeId)))
       || (requiresPremisesProof && !targetStoreIds.has(String(storeId)))) continue;
-    const quantity = Number(store.quantity);
-    if (!Number.isSafeInteger(quantity) || quantity < 0
+    const reportedQuantity = Number(store.quantity);
+    if (store.quantity == null || String(store.quantity).trim() === '' || !Number.isSafeInteger(reportedQuantity)
       || (requiresPremisesProof && (!origin || !virginiaInventoryPremisesMatch(store, origin)))) continue;
+    // A negative retailer accounting balance is a response from this origin,
+    // never a positive stock reading or an exact zero. Preserve it separately.
+    const negativeInventoryBalance = reportedQuantity < 0;
+    const quantity = negativeInventoryBalance ? 0 : reportedQuantity;
     const productUrl = `https://www.abc.virginia.gov/products/bourbon/${product.slug}`;
     const storeUrl = `https://www.abc.virginia.gov/stores/${storeId}`;
     const apiPhone = store.PhoneNumber?.FormattedPhoneNumber || null;
@@ -11547,7 +11566,7 @@ export function virginiaStoreSignals(product, json, config, bible, url, supporte
     signals.push({
       id: stableId([config.id, 'va-store-nearby', product.code, storeId]),
       ...base,
-      eventType: quantity > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock',
+      eventType: negativeInventoryBalance ? 'store_inventory_negative_balance' : quantity > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock',
       locationPrecision: 'store_level',
       locationName: `Virginia ABC Store ${storeId}`,
       storeName: `Virginia ABC Store ${storeId}`,
@@ -11568,20 +11587,27 @@ export function virginiaStoreSignals(product, json, config, bible, url, supporte
       longitude: Number.isFinite(verifiedLng) ? verifiedLng : null,
       distance: Number(store.distance ?? 0) || null,
       quantity,
-      reportedQuantity: quantity,
-      quantityIsExact: true,
-      availabilityStatus: quantity > 0 ? 'in_stock' : 'out_of_stock',
-      availabilityLabel: quantity > 0 ? `${quantity} reported available` : 'Out of stock',
-      sourceAvailabilityVerified: true,
+      reportedQuantity,
+      quantityIsExact: !negativeInventoryBalance,
+      negativeInventoryBalance,
+      quantitySemantics: negativeInventoryBalance ? 'unknown_count_negative_source_balance' : 'exact_retailer_reported_quantity',
+      availabilityStatus: negativeInventoryBalance ? 'unknown' : quantity > 0 ? 'in_stock' : 'out_of_stock',
+      availabilityLabel: negativeInventoryBalance ? 'Availability unconfirmed: negative retailer inventory balance' : quantity > 0 ? `${quantity} reported available` : 'Out of stock',
+      sourceAvailabilityVerified: !negativeInventoryBalance,
       premisesVerified: true,
       sourcePremisesProofVersion: requiresPremisesProof ? 1 : null,
       virginiaCacheSchemaVersion: requiresPremisesProof ? 3 : 2,
       targetStoreIds: requiresPremisesProof ? [...targetStoreIds] : null,
       observedAt: base.fetchedAt,
       canAlertAsInventory: quantity > 0,
-      canAlertAsWatch: true,
-      inventorySemantics: 'Virginia ABC public storeNearby API reports an exact source quantity for the selected official store at collection time. Inventory can move quickly and is not a reservation; verify before driving.',
-      evidence: `Virginia ABC reports ${quantity} bottle(s) of ${product.name} at Store ${storeId}${verifiedCity ? ` in ${verifiedCity}` : ''}. ${product.limitedCaveat ? 'Limited-availability products may be intentionally hidden or randomized outside authorized release windows.' : 'This is a normal-product inventory reading.'} Verify before driving.`,
+      canAlertAsWatch: !negativeInventoryBalance,
+      ...(negativeInventoryBalance ? {alertable:false} : {}),
+      inventorySemantics: negativeInventoryBalance
+        ? 'Virginia ABC returned a negative accounting balance for this exact product and selected origin. Availability and bottle count are unconfirmed. This observation accounts for the origin response only and cannot produce inventory or watch alerts.'
+        : 'Virginia ABC public storeNearby API reports an exact source quantity for the selected official store at collection time. Inventory can move quickly and is not a reservation; verify before driving.',
+      evidence: negativeInventoryBalance
+        ? `Virginia ABC returned inventory balance ${reportedQuantity} for ${product.name} at Store ${storeId}; this is not a bottle count or confirmed availability.`
+        : `Virginia ABC reports ${quantity} bottle(s) of ${product.name} at Store ${storeId}${verifiedCity ? ` in ${verifiedCity}` : ''}. ${product.limitedCaveat ? 'Limited-availability products may be intentionally hidden or randomized outside authorized release windows.' : 'This is a normal-product inventory reading.'} Verify before driving.`,
       raw: {
         product: { ...product, url: productUrl },
         store,
@@ -11590,7 +11616,8 @@ export function virginiaStoreSignals(product, json, config, bible, url, supporte
         storeUrl,
         productUrl,
         sourceQuantityReported: true,
-        sourceAvailabilityVerified: true,
+        sourceAvailabilityVerified: !negativeInventoryBalance,
+        negativeInventoryBalance,
         premisesVerified: true,
         sourcePremisesProofVersion: requiresPremisesProof ? 1 : null,
         premisesAuthority: requiresPremisesProof ? {
@@ -11625,7 +11652,7 @@ function enrichVirginiaCachedSignal(signal, cacheGeneratedAt) {
   return {
     ...signal,
     quantity,
-    reportedQuantity: quantity,
+    reportedQuantity: signal.negativeInventoryBalance === true ? signal.reportedQuantity : quantity,
     eventType,
     availabilityStatus: quantityValid ? signal.availabilityStatus || (quantity > 0 ? 'in_stock' : 'out_of_stock') : 'out_of_stock',
     availabilityLabel: quantityValid ? signal.availabilityLabel || (quantity > 0 ? `${quantity} reported available` : 'Out of stock') : 'Out of stock',

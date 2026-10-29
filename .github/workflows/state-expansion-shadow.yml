@@ -24,6 +24,7 @@ permissions:
 
 jobs:
   collect-shadow-evidence:
+    if: ${{ inputs.states != 'NJ,MI' && inputs.states != 'NJ' && inputs.states != 'MI' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -35,6 +36,7 @@ jobs:
       ALERT_SMS_DELIVERY_ENABLED: "0"
       BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS: "0"
       BROWSER_HEADLESS: "1"
+      BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
       BOURBON_SIGNAL_OR_BROWSER_PREREQUISITE_TIMEOUT_MS: "180000"
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +48,27 @@ jobs:
 
       - name: Install engine dependencies
         run: npm ci --prefix engine
+
+      - uses: actions/cache/restore@v4
+        id: research-cache
+        with:
+          path: |
+            engine/out/research-source-attempts
+            engine/out/cache/library-search
+          key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: research-shadow-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Restore NJ MI host incidents for every shadow selection path
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/research-source-attempts/nj-mi-incidents.json
+          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            nj-mi-research-incidents-${{ runner.os }}-
+
+      - name: Refresh full current app catalog
+        working-directory: engine
+        run: npm run sync:library
 
       - name: Generate deterministic Bourbon Bible
         working-directory: engine
@@ -77,6 +100,21 @@ jobs:
           LIMIT: ${{ steps.validate.outputs.limit }}
         run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
 
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            engine/out/research-source-attempts
+            engine/out/cache/library-search
+          key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save NJ MI host incidents for every shadow selection path
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/research-source-attempts/nj-mi-incidents.json
+          key: nj-mi-research-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Preserve isolated shadow evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,3 +123,9 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
           path: engine/out/shadow
+
+  collect-nj-mi-research:
+    if: ${{ inputs.states == 'NJ,MI' || inputs.states == 'NJ' || inputs.states == 'MI' }}
+    uses: ./.github/workflows/nj-mi-research-preflight.yml
+    with:
+      states: ${{ inputs.states }}

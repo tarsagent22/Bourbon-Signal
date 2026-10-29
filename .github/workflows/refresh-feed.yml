@@ -152,6 +152,30 @@ jobs:
           restore-keys: |
             inventory-tx-shopify-incidents-${{ runner.os }}-
 
+      - name: Restore WA/NM grocery incidents independently of inventory publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/western-grocery
+          key: inventory-western-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-western-grocery-incidents-${{ runner.os }}-
+
+      - name: Restore NJ/MI CityHive incident journals independently of publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/nj-mi-cityhive
+          key: inventory-nj-mi-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-nj-mi-cityhive-incidents-${{ runner.os }}-
+
+      - name: Restore Central CityHive incident journals independently of publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/central-cityhive
+          key: inventory-central-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-central-cityhive-incidents-${{ runner.os }}-
+
       - name: Restore metro attempt cooldowns independently of published inventory
         uses: actions/cache/restore@v4
         with:
@@ -602,6 +626,27 @@ jobs:
           path: engine/out/cache/texas-shopify-pickup-incidents.json
           key: inventory-tx-shopify-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
+      - name: Save WA/NM grocery incidents even when collection or publication fails
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/western-grocery
+          key: inventory-western-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save NJ/MI CityHive incident journals independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/nj-mi-cityhive
+          key: inventory-nj-mi-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save Central CityHive incident journals independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/central-cityhive
+          key: inventory-central-cityhive-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Save metro attempt cooldowns independently of publication
         if: always()
         uses: actions/cache/save@v4
@@ -664,6 +709,7 @@ jobs:
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
             engine/out/optimization/metro-source-attempts
+            engine/out/source-incidents/western-grocery
             engine/out/cache/texas-cityhive-expansion.json
             engine/out/states/*.json
             engine/out/source-refresh-verification.json

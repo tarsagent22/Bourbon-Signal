@@ -452,7 +452,7 @@ for (const phrase of ['npm run build', 'npm run test:ops', 'npm --prefix engine 
     fail(`verify:ci script should include: ${phrase}`);
   }
 }
-for (const phrase of ['npm run verify:state-lifecycle-drift', 'npm run test:state-user-path', 'npm --prefix engine run verify:state-integration -- --all-active']) {
+for (const phrase of ['npm run verify:state-lifecycle-drift', 'npm run test:state-user-path', 'node --test scripts/test-ci-state-integration-isolation.mjs', 'node scripts/verify-active-state-integration-ci.mjs']) {
   if (!verifyCi.includes(phrase)) fail(`verify:ci script should include ${phrase} for lifecycle/customer-path gates.`);
 }
 
@@ -472,6 +472,15 @@ for (const phrase of ['ALERT_DELIVERY_ENABLED: "0"', 'npm run canary:state', 'np
 }
 if (canaryWorkflow && /vercel deploy[^\n]*--prod/.test(canaryWorkflow)) fail('Canary workflow must deploy only an isolated preview, never --prod.');
 const refreshFeedWorkflow = expectFile('.github/workflows/refresh-feed.yml');
+if (!refreshFeedWorkflow.includes('run: npm run verify:state-integration -- --all-active')
+  || /verify-active-state-integration-ci|prepare-legacy-site-fixture-ci/.test(refreshFeedWorkflow)) {
+  fail('Production refresh must use the unchanged real-output state-integration CLI and never a CI fixture selector/preparer.');
+}
+const fixturePrep='node scripts/prepare-legacy-site-fixture-ci.mjs --ci-fixture-only';
+if (!workflow.includes('node --test scripts/test-legacy-site-fixture-ci.mjs') || !workflow.includes(fixturePrep)
+  || workflow.indexOf(fixturePrep) > workflow.indexOf('npm run verify:ci') || /prepare-legacy-site-fixture-ci/.test(verifyCi)) {
+  fail('Only required CI should prepare labeled empty new-state legacy fixtures before the unchanged site verifier.');
+}
 if (refreshFeedWorkflow && !refreshFeedWorkflow.includes('Verify no unproven state promotion entered the customer path')) {
   fail('Production refresh must verify the state integration gate before snapshot publication.');
 }

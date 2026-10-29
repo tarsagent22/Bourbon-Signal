@@ -1,12 +1,14 @@
+import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { stableId } from './core/text.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { metroLibraryTier } from './collectors/arizona-metro-retailer-proof.mjs';
-import { groceryExpansionLibraryTier } from './grocery-xapi-policy.mjs';
+import { groceryExpansionLibraryTier, isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';
 import { texasShopifyPickupLibraryTier } from './collectors/texas-shopify-pickup.mjs';
+import {isCentralCityHiveProductionOnSiteSignal} from './central-cityhive-policy.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
 import { hasVerifiedGeorgiaRetailerInventory, suppressGeorgiaActivationBaseline } from './georgia-activation-policy.mjs';
 import {
@@ -183,7 +185,8 @@ export function canonicalizeSignal(signal, bible) {
     baseConfidence: Number(signal.confidence || 0.35) || 0.35,
     confidence: policy.confidence,
     policyMode: policy.policyMode,
-    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'
+    inventorySemantics: isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics
+      : signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'
       ? signal.inventorySemantics
       : signal.state === 'GA' && signal.inventorySemantics
       ? signal.inventorySemantics
@@ -191,14 +194,24 @@ export function canonicalizeSignal(signal, bible) {
         ? signal.inventorySemantics
         : policy.inventorySemantics,
     locationValue: policy.locationValue,
-    canAlertAsInventory: sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,
-    canAlertAsWatch: sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,
+    canAlertAsInventory: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,
+    canAlertAsWatch: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,
+    ...(isCentralCityHiveProductionOnSiteSignal(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    ...(isNjMiProductionOnSiteSignal(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
     archivedSourceAlertBlocked: sourceAlertPolicy.raw?.archivedSourceAlertBlocked === true,
     sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal),
     staleSourceCaveat: signal.staleSourceCaveat || (virginiaInventoryExpired(signal) ? 'Virginia ABC inventory is older than the 24-hour live-inventory window; verify with the store.' : null),
     sampleOnly: Boolean(signal.raw?.sampleOnly),
     rawName: signal.rawName || null,
-    raw: signal.state === 'MS' ? {
+    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {
       chain: signal.raw?.chain || signal.sourceChain || null,
       merchantId: signal.raw?.merchantId || signal.merchantId || null,
       controlStoreId: signal.raw?.controlStoreId || null,

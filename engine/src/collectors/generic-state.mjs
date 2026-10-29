@@ -1,9 +1,15 @@
+import {collectNjMiCityHiveProductionState} from './nj-mi-cityhive-production.mjs';
+import {NJ_MI_PRODUCTION_STATES} from '../nj-mi-production-config.mjs';
+import {collectWesternGroceryProductionState} from './western-grocery-production.mjs';
+import {WESTERN_GROCERY_PRODUCTION_STATES} from '../western-grocery-production-config.mjs';
 import { findDocumentLinks, stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { fetchWithMeta, tryParseJson } from '../core/fetcher.mjs';
 import { FALLBACK_HINTS } from '../fallback-hints.mjs';
 import { collectPrecisionProbes } from './precision-probes.mjs';
 import { collectTexasShopifyPickup, isTexasShopifyPickupInventory } from './texas-shopify-pickup.mjs';
 import { texasLegacyPrecisionPolicyReport } from './texas-legacy-source-policy.mjs';
+import {collectCentralCityHiveProductionState} from './central-cityhive-production.mjs';
+import {CENTRAL_CITYHIVE_PRODUCTION_STATES} from '../central-cityhive-production-config.mjs';
 import { LOCATION_PROFILES } from '../location-precision.mjs';
 import { readFile } from 'node:fs/promises';
 import { collectCostco } from './costco.mjs';
@@ -18,6 +24,7 @@ import {
 } from '../sources/source-report-semantics.mjs';
 import { applyNcBoardShipmentPolicy } from './north-carolina-intelligence.mjs';
 import { pennsylvaniaConfiguredSourceSkip } from './pennsylvania-direct-source-policy.mjs';
+import { optionalSuspendedConfiguredSourceSkip } from './optional-source-suspensions.mjs';
 import {
   collectWestVirginiaRecentPurchases,
   enrichWestVirginiaBarrelSelections,
@@ -472,6 +479,9 @@ function skippedConfiguredSource(source, sourceId, result) {
 }
 
 export async function collectState(config, bible, options = {}) {
+  if (WESTERN_GROCERY_PRODUCTION_STATES.includes(config.id)) return collectWesternGroceryProductionState(config,bible,options);
+  if(NJ_MI_PRODUCTION_STATES.includes(config.id))return collectNjMiCityHiveProductionState(config,bible,options);
+  if(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(config.id))return collectCentralCityHiveProductionState(config,bible,options);
   const startedAt = new Date().toISOString();
   const sourceReports = [];
   const sourceResults = [];
@@ -511,8 +521,10 @@ export async function collectState(config, bible, options = {}) {
   for (const source of [...(config.sources || []), ...apiCandidates]) {
     if (source.precisionOnly) continue;
     const sourceId = configuredSourceId(config, source);
-    const policySkip = pennsylvaniaConfiguredSourceSkip(config, source, sourceId, { nowAt: startedAt });
+    const policySkip = pennsylvaniaConfiguredSourceSkip(config, source, sourceId, { nowAt: startedAt })
+      || optionalSuspendedConfiguredSourceSkip(config,source,sourceId,{nowAt:startedAt,previous:options.previousSourceResults?.[sourceId]});
     if (policySkip) {
+      signals.push(...(policySkip.signals||[]));
       sourceReports.push(policySkip.sourceReport);
       sourceResults.push(policySkip.sourceResult);
       roadblocks.push(...policySkip.roadblocks);

@@ -327,7 +327,7 @@ test('curl transport reports the effective URL and enforces redirect, size, meth
 });
 
 test('single-premises Shopify signals keep stable IDs and shipment/orderable non-shelf-count wording', async () => {
-  const source = FLORIDA_SHIPMENT_SHOPIFY_SOURCES[1];
+  const source = FLORIDA_SHIPMENT_SHOPIFY_SOURCES[0];
   const collectAtPrice = (price) => collectFloridaShipmentShopifySource({
     source,
     observedAt,

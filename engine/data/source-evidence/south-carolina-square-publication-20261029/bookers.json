@@ -1,0 +1,129 @@
+{
+  "workflow": 40903791628,
+  "source": "Parsed exact-store signal and corresponding Bible record from immutable workflow artifact; fixture is not a production publication.",
+  "reportStartedAt": "2026-10-29T15:41:26.000Z",
+  "reportFinishedAt": "2026-10-29T15:41:33.377Z",
+  "row": {
+    "id": "2a173ceacd2f9683",
+    "key": "2a173ceacd2f9683",
+    "state": "SC",
+    "displayState": "SC",
+    "stateCode": "SC",
+    "sourceUrl": "https://www.yourliquorlibrary.com/product/bookers-bbn/2168",
+    "sourceLabel": "Liquor Library North Myrtle Beach Square exact-store inventory",
+    "sourceChain": "liquor-library",
+    "eventType": "retailer_store_inventory_result",
+    "rawName": "BOOKERS BBN",
+    "canonicalBottleId": "bb_8b9546b93a7fbe72",
+    "bottleId": "bb_8b9546b93a7fbe72",
+    "canonicalName": "Booker's Bourbon",
+    "tier": "limited",
+    "confidence": 0.84,
+    "sourceMatchStatus": "bottle_bible_match",
+    "ownerId": "137158697",
+    "siteId": "561680787436279681",
+    "merchantId": "X9C89EYCA4KCD",
+    "locationId": "45SNB155S1XMP",
+    "categoryId": "MGSXQOL6DSLH2PEGGDELCZO2",
+    "productId": "UX7NONHAQSJCYIBDH453XTTS",
+    "siteProductId": "2168",
+    "variationId": "SHDI4Y2QG7SWOANPFTWNIRUT",
+    "sku": "994238",
+    "sourceProductProofId": "UX7NONHAQSJCYIBDH453XTTS",
+    "quantity": 4,
+    "storeQty": 4,
+    "quantityIsExact": true,
+    "quantitySemantics": "exact_square_single_location_inventory",
+    "price": 107.99,
+    "lowStock": true,
+    "availabilityStatus": "in_stock",
+    "availabilityLabel": "Square reports 4 in stock for pickup",
+    "sourceAvailabilityVerified": true,
+    "orderabilityOfferVerified": true,
+    "locationPrecision": "store_level",
+    "locationName": "Liquor Library",
+    "storeName": "Liquor Library",
+    "storeId": "liquor-library:45SNB155S1XMP",
+    "storeAddress": "270 Hwy 17 N, North Myrtle Beach, SC 29582",
+    "city": "North Myrtle Beach",
+    "postalCode": "29582",
+    "zip": "29582",
+    "lat": 33.831432,
+    "lng": -78.675438,
+    "observedAt": "2026-10-29T15:41:26.006Z",
+    "fetchedAt": "2026-10-29T15:41:26.006Z",
+    "canAlertAsInventory": true,
+    "canAlertAsWatch": true,
+    "dataLane": "inventory",
+    "inventorySemantics": "Liquor Library Square Online reports a positive exact aggregate count for its single reviewed pickup location. This is current pickup orderability and exact online stock, not a shipment or guaranteed shelf reservation.",
+    "evidence": "Liquor Library Square Online reports BOOKERS BBN with 4 in stock for pickup at 270 Hwy 17 N, North Myrtle Beach and marks it low stock.",
+    "raw": {
+      "chain": "liquor-library",
+      "square": {
+        "ownerId": "137158697",
+        "siteId": "561680787436279681",
+        "merchantId": "X9C89EYCA4KCD",
+        "locationId": "45SNB155S1XMP",
+        "categoryId": "MGSXQOL6DSLH2PEGGDELCZO2",
+        "product": {
+          "id": "UX7NONHAQSJCYIBDH453XTTS",
+          "siteProductId": "2168",
+          "quantity": 4,
+          "price": 107.99,
+          "sourceUrl": "https://www.yourliquorlibrary.com/product/bookers-bbn/2168"
+        },
+        "variation": {
+          "id": "SHDI4Y2QG7SWOANPFTWNIRUT",
+          "sku": "994238",
+          "productId": "UX7NONHAQSJCYIBDH453XTTS",
+          "siteProductId": "2168",
+          "quantity": 4,
+          "price": 107.99,
+          "inventoryTrackingEnabled": true,
+          "pickupEnabled": true
+        }
+      }
+    },
+    "leafSourceRuntimeId": "sc:liquor-library",
+    "sourceRuntimeId": "precision:sc"
+  },
+  "record": {
+    "id": "bb_8b9546b93a7fbe72",
+    "canonical": "Booker's Bourbon",
+    "normalizedKey": "booker s",
+    "aliases": [
+      "Booker's Batch",
+      "Booker's Bourbon",
+      "Bookers",
+      "Bookers Bbn Jimmy's Batch",
+      "Bookers Bbn Jimmy's Batch 750ml"
+    ],
+    "tier": "limited",
+    "producer": "Jim Beam",
+    "sources": [
+      "seed",
+      "state:SC:dunes",
+      "state:SC"
+    ],
+    "libraryIdentities": [
+      {
+        "id": "bookers",
+        "canonicalName": "Booker's Bourbon",
+        "aliases": [
+          "Booker's",
+          "Booker's Batch",
+          "Booker's Bourbon",
+          "Bookers",
+          "Bookers Bbn Jimmy's Batch",
+          "Bookers Bbn Jimmy's Batch 750ml",
+          "booker bourbon",
+          "booker's",
+          "bookers"
+        ],
+        "nationalTier": "limited",
+        "stateOverrides": [],
+        "isAlertEligible": true
+      }
+    ]
+  }
+}

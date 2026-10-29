@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "mode": "canary_preview",
+  "states": [
+    "WA",
+    "NM",
+    "WI",
+    "OK"
+  ],
+  "generatedAt": "2026-10-29T17:52:27.473Z",
+  "alertDeliveryEnabled": false,
+  "productionSnapshotPublicationEnabled": false,
+  "productionDeploymentEnabled": false
+}

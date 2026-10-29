@@ -100,7 +100,7 @@ test('fresh exact Costco zero-stock evidence is monitored negative inventory, no
   await writeFile(observationsPath, JSON.stringify({ observations: [{
     itemNumber: '12345',
     productName: 'Fixture Bourbon',
-    state: 'MI',
+    state: 'MN',
     storeNumber: '1001',
     storeName: 'Costco Fixture Warehouse',
     sourceSystem: 'costco_sameday',
@@ -113,7 +113,7 @@ test('fresh exact Costco zero-stock evidence is monitored negative inventory, no
 
   try {
     const report = await collectState({
-      id: 'MI',
+      id: 'MN',
       label: 'Fixture Costco state',
       tier: 'test',
       strategy: 'costco_warehouse_inventory_watch',

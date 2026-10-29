@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "state": "WA",
+  "lifecycle": {
+    "customerLabel": "Washington",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "wa:grocery-xapi"
+    ],
+    "cohortSha256": "f74c2a2f3076dab9bacce0e9ab6369280178ff9b1d46937999698bc1dcf1a381",
+    "registration": "Closed production grocery adapter is registered but makes zero requests until the authoritative lifecycle and immutable promotion evidence both admit this exact cohort. Initial output is on-site only; all alerts stay disabled."
+  },
+  "storeIdentity": {
+    "mode": "exact_resolver_banner_domain_store_and_premises",
+    "addressRequired": true,
+    "proof": "Current exact resolver banner/domain/host/store/address, source product/variant, UPC, format, strength, price and positive in-store channel must agree."
+  },
+  "sourceSemantics": {
+    "availability": "Retailer-reported in-store availability. Exact reported integer quantities and binary availability with no exact count remain distinct. Verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Executable stateFilter contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Executable areaFilter contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Executable preferences contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Executable dashboard contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Executable dropFeedApi contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Executable finder contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Executable alerts contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Executable monitoring contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Executable export contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193",
+      "observations": [
+        {
+          "runId": "40922494321",
+          "status": "success",
+          "artifactHash": "7316d55213caf6eb19ce106b5d50f881323631ccac748b13d0d03aece0dd589c",
+          "artifactId": "12919611589",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40922494321"
+        },
+        {
+          "runId": "40923481819",
+          "status": "success",
+          "artifactHash": "aa5daac315dac0efd6247e95a80cd435c000beee1f63aa605351099ca48050c8",
+          "artifactId": "12920086473",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40923481819"
+        },
+        {
+          "runId": "40924211193",
+          "status": "success",
+          "artifactHash": "18372633aca1df1fc9a87e32562e418c191c704c04dc53fa10e38d24d4b81e14",
+          "artifactId": "12919851883",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193"
+        }
+      ],
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+      "observations": [
+        {
+          "runId": "40925045213",
+          "status": "success",
+          "artifactHash": "b8e0c1d167f91c3ad289fc25391a9240486a1e58c9b57eda146b8e66db2d2ac4",
+          "artifactId": "12920466435",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925045213"
+        },
+        {
+          "runId": "40925194979",
+          "status": "success",
+          "artifactHash": "35a55306ed7516896b71417b7029fe962e9997a37e9f45a226765903cfe1852b",
+          "artifactId": "12918783959",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925194979"
+        }
+      ],
+      "ownedPreviewDeploymentId": "dpl_AQyx7odW9hjNvEQEwh2BXR9AKNU8",
+      "siteArtifact": "engine/data/canary-site/four-state-20261029"
+    },
+    "production": {
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/drops?state=WA",
+      "assertion": "Prepared admission only. Production requires guarded merge, fresh closed-cohort collection, immutable publication and canonical exact-premise checks; all alerts remain disabled."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "WA",
+      "generatedAt": "2026-10-29T17:52:21.058Z",
+      "sourceConfigHash": "0a7409f08ba72a18503ea9ddb5657a546984dfecaca1c94c1af657040c4c7f21",
+      "previewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "40922494321",
+          "status": "success",
+          "artifactHash": "7316d55213caf6eb19ce106b5d50f881323631ccac748b13d0d03aece0dd589c",
+          "artifactId": "12919611589",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40922494321"
+        },
+        {
+          "runId": "40923481819",
+          "status": "success",
+          "artifactHash": "aa5daac315dac0efd6247e95a80cd435c000beee1f63aa605351099ca48050c8",
+          "artifactId": "12920086473",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40923481819"
+        },
+        {
+          "runId": "40924211193",
+          "status": "success",
+          "artifactHash": "18372633aca1df1fc9a87e32562e418c191c704c04dc53fa10e38d24d4b81e14",
+          "artifactId": "12919851883",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "40925045213",
+          "status": "success",
+          "artifactHash": "b8e0c1d167f91c3ad289fc25391a9240486a1e58c9b57eda146b8e66db2d2ac4",
+          "artifactId": "12920466435",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925045213"
+        },
+        {
+          "runId": "40925194979",
+          "status": "success",
+          "artifactHash": "35a55306ed7516896b71417b7029fe962e9997a37e9f45a226765903cfe1852b",
+          "artifactId": "12918783959",
+          "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925194979"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "40925309053",
+        "artifactId": "12920635540",
+        "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+        "artifactDigest": "2d4f9d27e58f6e8c7c26938e32d55074b65719cfedda228e26d4dd1741061158",
+        "bundleDigest": "00820577e64126fe48f5595c59844dbdfc829e9bf5ce66fd1b14c8d660a656c8",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925309053",
+        "artifactName": "state-promotion-provenance-WA-40925309053"
+      }
+    },
+    "actualPreviewVerification": {
+      "verifiedAt": "2026-10-29T17:56:00.906Z",
+      "currentPublicRows": 177,
+      "currentPublicStores": 56,
+      "statsHttpStatus": 200,
+      "coverageHttpStatus": 200,
+      "signedFeedCountVerified": true,
+      "finderHttpStatus": 401,
+      "normalPaidFilterStatus": 403,
+      "authenticatedPaidUiSessionVerified": false,
+      "physicalDeviceExercised": false,
+      "allDeliveryChannelsDisabled": true,
+      "combinedSnapshotDigest": "362d2cbd33b6bbcc3ec80217b6af3cee3c046cd7f5544929786e60994077d38e",
+      "partitionSha256": "6e6e931fafbd6bbb8e293a33ea3ed6df7f47b0f60c7d30a5ed9a81915e8e80a2"
+    }
+  },
+  "rollback": {
+    "disableSource": "Leave authoritative lifecycle inactive. The research adapter cannot publish snapshots or deliver alerts."
+  }
+}

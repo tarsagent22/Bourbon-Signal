@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {optionalSuspendedFetch} from '../src/collectors/optional-source-suspensions.mjs';
 
 import {
   newHanoverFailureOutcome,
@@ -84,4 +85,25 @@ test('New Hanover failure reporting distinguishes invalid fallback JSON', () => 
   });
   assert.equal(outcome.status, 200);
   assert.match(outcome.error, /invalid JSON.*Unexpected token/i);
+});
+
+test('captured primary denial and explicit empty REST array remain unavailable without fabricating a current HTTP denial', () => {
+  const page = optionalSuspendedFetch('NC', 'https://www.newhanovercountyabc.com/barrels/');
+  const fallback = {ok:true,status:200,url:'https://www.newhanovercountyabc.com/wp-json/wp/v2/posts?search=barrel&per_page=100',text:'[]'};
+  const result = newHanoverFailureOutcome({page,fallback,fallbackEmpty:true});
+  assert.equal(result.status,'source_policy_disabled');
+  assert.equal(result.primaryStatus,null);
+  assert.equal(result.fallbackStatus,200);
+  assert.equal(result.primaryRequestCount,0);
+  assert.equal(result.historicalPrimaryHttpStatus,403);
+  assert.equal(result.fallbackEmpty,true);
+  for (const altered of [
+    {page:{...page,url:'https://example.com/barrels/'}},
+    {page:{...page,policyId:'unreviewed'}},
+    {page:{...page,url:'https://example.com/barrels/',policyId:undefined}},
+    {page:{...page,requestCount:1}},
+    {fallbackEmpty:false},
+    {fallbackParseError:'Invalid JSON'},
+    {fallback:{...fallback,url:'https://example.com/wp-json/wp/v2/posts'}},
+  ]) assert.equal(newHanoverFailureOutcome({page,fallback,fallbackEmpty:true,...altered}).status,200);
 });

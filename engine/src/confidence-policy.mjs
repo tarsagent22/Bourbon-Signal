@@ -1,3 +1,5 @@
+import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
+import {isGroceryExpansionInventory} from './grocery-xapi-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { ncShipmentWatchEligible } from './nc-shipment-policy.mjs';
 import { locationValue, precisionRank } from './location-precision.mjs';
@@ -14,9 +16,9 @@ import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro
 import { isMississippiRetailerInventory, isMississippiRetailerSignalIdentity } from './mississippi-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
-import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaDiscountLiquorSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
+import { isSouthCarolinaLiquorLibraryInventory, isSouthCarolinaLiquorLibrarySignal, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaDiscountLiquorSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
-import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory } from './central-cityhive-policy.mjs';
+import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
   OH: { maxAlertMode: 'browser_store_inventory_status', inventorySemantics: 'OHLQ store-level product availability is collected through browser/CDP via /api/product-availability/{sku} with RequestVerificationToken from the rendered page. The frontend bundle decodes hashed availability buckets as Not Available, Sold Out, Limited Supply, and In Stock. Direct server fetch is Cloudflare-gated and OHLQ does not expose explicit bottle counts, so alerts should describe status, not quantity.', defaultCadence: '15-60m' },
@@ -67,6 +69,7 @@ const EVENT_WEIGHTS = [
 const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
 
 const MODE_CAPS = {
+  onsite_retailer_store_inventory_caveat: 0.86,
   policy_only: 0.35,
   watch_until_store_api: 0.62,
   browser_store_watch_caveated: 0.72,
@@ -184,11 +187,14 @@ const COSTCO_WAREHOUSE_POLICY = {
 };
 
 function policyForSignal(signal, nowMs = Date.now()) {
+  if(isCentralCityHiveProductionOnSiteSignal(signal,{nowMs})||isNjMiProductionOnSiteSignal(signal,{nowMs}))return{
+    maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:'Reviewed exact-store pickup availability; binary availability is not an exact shelf count. Verify before driving.',defaultCadence:'30m'};
   if(isCentralCityHiveRetailerEvent(signal)&&isCentralCityHiveInventory(signal,{nowMs})) return {
     maxAlertMode:'alert_retailer_store_inventory_caveat',
     inventorySemantics:'Exact-premises first-party retailer pickup availability; binary availability is not an exact shelf count. Verify before driving.',
     defaultCadence:'30-60m',
   };
+  if (['WA', 'NM'].includes(signal.state) && isGroceryExpansionInventory(signal)) return {maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:signal.sourceProductBinding.inventorySemantics,defaultCadence:'30m'};
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');
   const source = String(signal.sourceLabel || signal.source || '');
@@ -205,6 +211,7 @@ function policyForSignal(signal, nowMs = Date.now()) {
       || isSouthCarolinaDunesInventory(signal, nowMs)
       || isSouthCarolinaAllAmericanInventory(signal, nowMs)
       || isSouthCarolinaDiscountLiquorInventory(signal, nowMs)
+      || isSouthCarolinaLiquorLibraryInventory(signal, nowMs)
       || isTasteInventory(signal, nowMs))) return SOUTH_CAROLINA_RETAILER_POLICY;
   if (signal.state === 'AZ'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
@@ -336,6 +343,8 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     && /store_inventory/i.test(eventType)
     && (!Number.isFinite(virginiaObservedAt) || Date.now() - virginiaObservedAt > VIRGINIA_INVENTORY_MAX_AGE_MS);
   const runtimeAlertBlocked = signal.stale === true
+    || (signal.state === 'SC' && isSouthCarolinaLiquorLibrarySignal(signal) && !isSouthCarolinaLiquorLibraryInventory(signal, nowMs))
+    || (signal.state === 'VA' && eventType === 'store_inventory_negative_balance')
     || signal.sourceStale === true
     || virginiaInventoryExpired
     || signal.quarantined === true
@@ -346,7 +355,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && centralInventoryAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && centralWatchAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !['WA', 'NM'].includes(signal.state) && !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && centralInventoryAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !['WA', 'NM'].includes(signal.state) && !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && centralWatchAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

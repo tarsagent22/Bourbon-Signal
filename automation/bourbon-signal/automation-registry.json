@@ -67,16 +67,25 @@
       "ownerLayer": "sensor",
       "executionClass": "script_only",
       "frequency": "manual main-branch dispatch with exact live production commit",
-      "agent": { "provider": null, "model": null, "reasoning": null },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
       "externalApi": {
-        "classes": ["vercel_blob", "customer_domain_http"],
+        "classes": [
+          "vercel_blob",
+          "customer_domain_http"
+        ],
         "maxRequestsPerRun": 150
       },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "github_workflow_disable",
-      "artifacts": ["out/coverage-premises-baseline.json"],
+      "artifacts": [
+        "out/coverage-premises-baseline.json"
+      ],
       "delivery": "github_only"
     },
     {
@@ -861,6 +870,38 @@
         "codex_nightly_coverage_ledger",
         "source_refresh_verification"
       ]
+    },
+    {
+      "id": "github-nj-mi-research-preflight",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/nj-mi-research-preflight.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "manual or bounded shadow workflow call; inactive exact-premise research only",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "public_source_http",
+          "github_actions"
+        ],
+        "maxRequestsPerRun": 20
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "workflow_dispatch_only",
+      "artifacts": [
+        "engine/out/nj-mi-research",
+        "engine/out/research-source-attempts/nj-mi-incidents.json",
+        "engine/out/library-catalog.json",
+        "engine/out/bourbon-bible.json"
+      ],
+      "delivery": "github_only"
     }
   ],
   "timezone": "America/New_York"

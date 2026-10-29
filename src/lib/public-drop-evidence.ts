@@ -1,3 +1,4 @@
+import { isGroceryExpansionInventory } from '../../engine/src/grocery-xapi-policy.mjs';
 import { dropFreshnessTime } from "./drop-feed-policy.ts";
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
 import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
@@ -24,6 +25,22 @@ export type PublicDropEvidenceInput = Record<string, unknown>;
  */
 export interface PublicDropEligibilityOptions {
   degradedStateCodes?: ReadonlySet<string>;
+  degradedStateReasons?: ReadonlyMap<string, readonly string[]>;
+  asOf?: string | number | Date;
+}
+
+/** Missing, conflicting, or non-degraded health remains a state-wide veto. */
+export function publicDropDegradedStateReasons(entries: readonly Record<string, unknown>[]) {
+  const reasons = new Map<string, string[]>();
+  for (const entry of entries) {
+    const state = publicEvidenceStateCode(entry.state);
+    if (!state) continue;
+    const values = Array.isArray(entry.reasons) ? entry.reasons.map(value => String(value)) : [];
+    if (typeof entry.staleReason === "string" && entry.staleReason) values.push(entry.staleReason);
+    if (entry.status !== "degraded" || !values.length) values.push("unreviewed_state_health");
+    reasons.set(state, [...new Set([...(reasons.get(state) || []), ...values])]);
+  }
+  return reasons;
 }
 
 /** A canonical store identity component derived from public exact-store evidence. */
@@ -290,6 +307,25 @@ function independentlyAcceptedSource(drop: PublicDropEvidenceInput) {
       || drop.canAlertAsWatch === true || drop.can_alert_as_watch === true);
 }
 
+function reviewedCaliforniaOverdueSiblingEvidence(drop: PublicDropEvidenceInput, options: PublicDropEligibilityOptions) {
+  const reasons = options.degradedStateReasons?.get("CA");
+  const raw = drop.raw && typeof drop.raw === "object" ? drop.raw as Record<string, unknown> : null;
+  const binding = drop.sourceProductBinding as Record<string, unknown> | undefined;
+  // The existing CA public export omits the internal zero for binary stock.
+  // Restore it only for strict proof evaluation; no displayed count is added.
+  const proofInput = drop.quantity == null && drop.quantityIsExact === false
+    && binding?.inventorySemantics === "binary_retailer_orderable_no_exact_count" ? { ...drop, quantity: 0 } : drop;
+  // A healthy closed grocery leaf may survive only an overdue sibling warning.
+  // This neither changes state health nor grants source-poll/notification authority.
+  return stateCode(drop) === "CA" && reasons?.length === 1 && reasons[0] === "inventory_confirmation_overdue"
+    && isGroceryExpansionInventory(proofInput) && !sourceStale(drop) && drop.quarantined !== true
+    && raw?.sourceRuntimeNonAlertable !== true && raw?.staleFallback !== true
+    && raw?.shadowOnly !== true && binding?.shadowOnly !== true
+    && drop.previewOnly !== true && drop.eligibleForOnSite === true && drop.eligibleForDropFeed !== false
+    && isCurrentInventoryEvidence(drop, options.asOf)
+    && isCurrentInventoryEvidence({ ...drop, lastConfirmedAt: drop.observedAt, last_confirmed_at: drop.observedAt }, options.asOf);
+}
+
 function isVerifiedRetailerDrop(drop: PublicDropEvidenceInput) {
   return drop.source === "verified-retailer" && drop.retailerReported === true;
 }
@@ -334,8 +370,12 @@ export function isPublicDropFeedEligible(
 ) {
   const drop = normalizePublicDropEvidenceInput(input);
   const state = stateCode(drop);
-  if (!state || options.degradedStateCodes?.has(state) && !independentlyAcceptedSource(drop)) return false;
+  if (!state || options.degradedStateCodes?.has(state)
+    && !independentlyAcceptedSource(drop) && !reviewedCaliforniaOverdueSiblingEvidence(drop, options)) return false;
   const retailer = isVerifiedRetailerDrop(drop);
+  const sourceRuntimeRaw = drop.raw && typeof drop.raw === 'object' ? drop.raw as Record<string, unknown> : null;
+  if (!retailer && ['WA', 'NM'].includes(state) && String(drop.type) === 'retailer_store_inventory_result'
+    && (!isGroceryExpansionInventory(drop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
   // Arizona's live coverage uses the same reviewed premises/source identity as
   // engine alerts. Positive quantities on policy-only rows are not evidence of
   // current customer availability. Verified retailer submissions use their own
@@ -656,11 +696,12 @@ export function derivePublicDropEvidence(
   options: PublicDropEligibilityOptions = {},
 ) {
   const byState = new Map<string, StateEvidenceBucket>();
+  const eligibilityOptions = { ...options, asOf: asOf ?? options.asOf };
 
   for (const input of drops) {
     const drop = normalizePublicDropEvidenceInput(input);
     const state = stateCode(drop);
-    if (!state || !isPublicDropFeedEligible(drop, options)) continue;
+    if (!state || !isPublicDropFeedEligible(drop, eligibilityOptions)) continue;
     const bucket = byState.get(state) || {
       nodes: [],
       freshPublicSignalCount: 0,
@@ -680,7 +721,7 @@ export function derivePublicDropEvidence(
     const current = exactInventory ? isCurrentInventoryEvidence(drop, asOf) : fresh && !sourceStale(drop);
     if (current) bucket.freshPublicSignalCount += 1;
     else bucket.stalePublicSignalCount += 1;
-    if (current && independentlyAcceptedSource(drop)) bucket.independentFreshPublicSignalCount += 1;
+    if (current && (independentlyAcceptedSource(drop) || reviewedCaliforniaOverdueSiblingEvidence(drop, eligibilityOptions))) bucket.independentFreshPublicSignalCount += 1;
 
     if (current && !exactInventory) addFreshPublicUpdateScope(bucket, drop);
     if (!exactInventory) continue;

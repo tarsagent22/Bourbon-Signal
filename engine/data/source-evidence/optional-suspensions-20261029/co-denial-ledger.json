@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "state": "CO",
+  "sourceAttempts": {
+    "springs-liquor-outlet": {
+      "lastAttemptAt": "2026-10-29T09:23:23.866Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:23.866Z"
+    },
+    "wallabys-liquor-warehouse": {
+      "lastAttemptAt": "2026-10-29T09:23:23.922Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:23.922Z"
+    },
+    "peak-wine-spirits": {
+      "lastAttemptAt": "2026-10-29T09:23:23.876Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:23.876Z"
+    },
+    "south-park-liquor": {
+      "lastAttemptAt": "2026-10-29T09:23:24.011Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:24.011Z"
+    },
+    "bonnie-brae-liquor": {
+      "lastAttemptAt": "2026-10-29T09:23:23.997Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:23.997Z"
+    },
+    "mollys-spirits": {
+      "lastAttemptAt": "2026-10-29T09:23:24.078Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:24.078Z"
+    },
+    "total-beverage": {
+      "lastAttemptAt": "2026-10-29T09:23:24.112Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:24.112Z"
+    },
+    "off-broadway-wine-spirits": {
+      "lastAttemptAt": "2026-10-29T09:23:24.232Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:24.232Z"
+    },
+    "mayfair-liquors": {
+      "lastAttemptAt": "2026-10-29T09:23:24.202Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:24.202Z"
+    },
+    "heritage-wine-liquor": {
+      "lastAttemptAt": "2026-10-29T09:23:24.290Z",
+      "status": "rate_limited",
+      "httpStatus": 429,
+      "nextAllowedAt": "2026-10-29T13:23:24.290Z"
+    }
+  }
+}

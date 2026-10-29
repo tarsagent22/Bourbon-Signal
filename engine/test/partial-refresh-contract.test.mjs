@@ -79,7 +79,7 @@ test('attempted fallback states retain their last published drops', () => {
   assert.equal(fallback.canAlertAsWatch, false);
 });
 
-test('the global drop cap preserves the complete last-published partition for fallback states', () => {
+test('history budget preserves all current rows and the complete last-published fallback partition', () => {
   const currentDrops = Array.from({ length: 9_999 }, (_, index) => ({ id: `ia-current-${index}`, state: 'IA' }));
   const merged = mergePartialRefreshDrops({
     previousDrops: {
@@ -93,25 +93,35 @@ test('the global drop cap preserves the complete last-published partition for fa
     fallbackStateIds: ['IL'],
   });
 
-  assert.equal(merged.length, 10_000);
+  assert.equal(merged.length, 10_001);
   assert.deepEqual(
-    merged.slice(0, 9_998).map((drop) => drop.id),
-    currentDrops.slice(0, 9_998).map((drop) => drop.id),
+    merged.slice(0, 9_999).map((drop) => drop.id),
+    currentDrops.map((drop) => drop.id),
   );
   assert.deepEqual(merged.slice(-2).map((drop) => drop.id), ['il-old-1', 'il-old-2']);
   assert.deepEqual(merged.filter((drop) => drop.state === 'IL').map((drop) => drop.id), ['il-old-1', 'il-old-2']);
-  assert.equal(merged.filter((drop) => drop.state === 'IA').length, 9_998);
+  assert.equal(merged.filter((drop) => drop.state === 'IA').length, 9_999);
   assert.equal(merged.filter((drop) => drop.state === 'IL').every((drop) => drop.stale === true && drop.alertable === false), true);
 });
 
-test('fallback rows exceeding the customer drop cap fail closed instead of publishing a partial partition', () => {
-  const previousDrops = Array.from({ length: 10_001 }, (_, index) => ({ id: `il-old-${index}`, state: 'IL' }));
+test('fallback rows exceeding the byte budget fail closed instead of publishing a partial partition', () => {
+  const previousDrops = Array.from({ length: 5_000 }, (_, index) => ({ id: `il-old-${index}`, state: 'IL', evidence: 'x'.repeat(14_000) }));
   assert.throws(() => mergePartialRefreshDrops({
     previousDrops,
     currentDrops: [],
     attemptedStateIds: ['IL'],
     fallbackStateIds: ['IL'],
-  }), /fallback partitions contain 10001 rows.*10000-row customer drop cap/i);
+  }), /Required current\/fallback customer evidence exceeds.*byte drop budget.*no partition was truncated/i);
+});
+
+test('a complete 10000-row fallback cannot starve fresh CA ID WA or WI evidence', () => {
+  const previousDrops = Array.from({ length: 10_000 }, (_, index) => ({ id: `va-retained-${index}`, state: 'VA' }));
+  const currentDrops = ['CA', 'ID', 'WA', 'WI'].map(state => ({ id: `${state}-current`, state, observedAt: '2026-10-29T16:00:00.000Z' }));
+  const result = mergePartialRefreshDrops({ previousDrops, currentDrops, attemptedStateIds: ['VA', 'CA', 'ID', 'WA', 'WI'], fallbackStateIds: ['VA'] });
+  assert.equal(result.length, 10_004);
+  for (const row of currentDrops) assert.deepEqual(result.find(value => value.id === row.id), row);
+  assert.equal(result.filter(row => row.state === 'VA').length, 10_000);
+  assert.ok(result.filter(row => row.state === 'VA').every(row => row.stale === true && row.canAlertAsInventory === false));
 });
 
 test('retained Georgia customer rows preserve explicit last-known evidence while becoming non-alerting', () => {

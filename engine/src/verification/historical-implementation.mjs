@@ -4,6 +4,11 @@ import { readFileSync } from 'node:fs';
 const sharedBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const nationwideBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nationwide-expansion-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const westernGroceryBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/western-grocery-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const centralProductionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/central-cityhive-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const njMiBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nj-mi-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const measuredForecastBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json', import.meta.url), 'utf8'));
+const fourStateAdmissionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -20,11 +25,22 @@ export const arizonaMetroTierImport = "import { metroLibraryTier } from './colle
 export const arizonaMetroTierBoundary = "    tier: (signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null,\n";
 export const originalArizonaMetroTierBoundary = '    tier: record?.tier || null,\n';
 export const groceryExpansionTierImport = "import { groceryExpansionLibraryTier } from './grocery-xapi-policy.mjs';\n";
+export const groceryExpansionProofImport = "import { groceryExpansionLibraryTier, isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';\n";
 export const centralCityHiveTierImport = "import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';\n";
 export const texasShopifyPickupTierImport = "import { texasShopifyPickupLibraryTier } from './collectors/texas-shopify-pickup.mjs';\n";
+export const centralProductionOnSiteImport = "import {isCentralCityHiveProductionOnSiteSignal} from './central-cityhive-policy.mjs';\n";
+export const centralProductionOnSiteBoundary = `    ...(isCentralCityHiveProductionOnSiteSignal(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`;
 export const reviewedExpansionTierBoundary = "    tier: texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),\n";
 export const originalNewYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'GA' && signal.inventorySemantics\n";
 export const newYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
+export const groceryExpansionSemanticsBoundary = "    inventorySemantics: isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics\n      : signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
+export const westernGroceryAlertBoundary = "    canAlertAsInventory: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,\n    canAlertAsWatch: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,\n";
+export const originalWesternGroceryAlertBoundary = "    canAlertAsInventory: sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,\n    canAlertAsWatch: sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,\n";
 const originalFloridaProofBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
 const floridaProofBoundary = `    } : undefined,
     ...(signal.state === 'FL' ? {
@@ -54,6 +70,7 @@ function replaceUnique(text, current, original, label) {
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (name === 'engine/src/operational-report.mjs') {
+    bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));
     // Reverse only this exact FL proof-preservation addition at its original
     // canonicalization boundary. The original MS full-file digest stays pinned.
     let text = replaceUnique(bytes.toString('utf8'), floridaProofBoundary, originalFloridaProofBoundary, `${name}: FL proof`);
@@ -61,11 +78,20 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     // Permit only the exact shared library suppression. It cannot enable an
     // alert or change the pinned Mississippi source and inventory policies.
     text = replaceUnique(text, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, `${name}: library alert suppression`);
+    // Undo only these literal proof-preserving and alert-suppressing additions.
+    // Restore the already reviewed NY boundary before its existing reversal.
+    text = replaceUnique(text, groceryExpansionProofImport, groceryExpansionTierImport, `${name}: grocery inventory proof import`);
+    text = replaceUnique(text, groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary, `${name}: grocery inventory semantics`);
+    text = replaceUnique(text, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, `${name}: WA/NM alert suppression`);
     // Reverse only the reviewed source-proof tier hooks before applying the
     // existing AZ reversal. This does not normalize either hook's implementation.
     text = replaceUnique(text, groceryExpansionTierImport, '', `${name}: grocery tier import`);
     text = replaceUnique(text, centralCityHiveTierImport, '', `${name}: CityHive tier import`);
     text = replaceUnique(text, texasShopifyPickupTierImport, '', `${name}: TX exact pickup tier import`);
+    text = replaceUnique(text, "import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '', name+': NJ/MI on-site import');
+    text = replaceUnique(text, "    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '', name+': NJ/MI false-alert on-site proof');
+    text = replaceUnique(text, centralProductionOnSiteImport, '', `${name}: Central on-site import`);
+    text = replaceUnique(text, centralProductionOnSiteBoundary, '', `${name}: Central false-alert on-site proof`);
     text = replaceUnique(text, reviewedExpansionTierBoundary, arizonaMetroTierBoundary, `${name}: reviewed source tier proof`);
     text = replaceUnique(text, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, `${name}: NY variant semantics`);
     // Only this exact AZ-gated, proof-checked catalog tier may differ. All MS
@@ -92,8 +118,37 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     return Buffer.from(text);
   }
   if (!sharedFiles.has(name)) return bytes;
-  assert.equal(sharedBaseline.contractVersion, 'bourbon-signal/ny-co-shared-metadata-baseline@1');
+  assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
+  const admission = fourStateAdmissionBaseline.files[name];
+  if (admission) {
+    assert.equal(fourStateAdmissionBaseline.contractVersion, 'bourbon-signal/four-state-actual-admission-ms-boundary@1');
+    for (const [key, entry] of Object.entries(admission)) {
+      text = replaceUnique(text, entry.reviewed, entry.original, `${name}: four-state admission ${key}`);
+    }
+  }
+  const forecast = measuredForecastBaseline.files[name];
+  if (forecast) {
+    assert.equal(measuredForecastBaseline.contractVersion, 'bourbon-signal/measured-runtime-forecast-ms-boundary@1');
+    // Reverse only the complete reviewed planning map, before the older exact
+    // inactive-state metadata reversals. Source/parent hardcaps are not here.
+    for (const line of forecast.reviewed.split('\n').slice(1, -1)) {
+      assert.equal(text.split(line + '\n').length - 1, 1, `${name}: measured runtime forecast must have one exact historical verification hook`);
+    }
+    text = replaceUnique(text, forecast.reviewed, forecast.original, `${name}: measured runtime forecast`);
+  }
+  assert.equal(centralProductionBaseline.contractVersion, 'bourbon-signal/central-cityhive-production-shared-metadata-baseline@1');
+  for (const [key, entry] of Object.entries(centralProductionBaseline.files[name] || {})) {
+    text = replaceUnique(text, entry.reviewed, entry.original, `${name}: Central inactive ${key}`);
+  }
+  assert.equal(njMiBaseline.contractVersion,'bourbon-signal/nj-mi-production-shared-metadata-baseline@1');
+  for(const [key,entry] of Object.entries(njMiBaseline.files[name]||{}))text=replaceUnique(text,entry.reviewed,entry.original,name+': NJ/MI reviewed '+key);
+  // Literal, single-occurrence reversals only. This is not a state-block
+  // wildcard: activation, changed budgets or changed registration must fail.
+  for (const [key, entry] of Object.entries(westernGroceryBaseline.files[name])) {
+    text = replaceUnique(text, entry.reviewed, entry.original, `${name}: WA/NM reviewed ${key}`);
+  }
+  assert.equal(sharedBaseline.contractVersion, 'bourbon-signal/ny-co-shared-metadata-baseline@1');
   for (const state of ['NY', 'CO']) {
     const pattern = name.endsWith('.mjs')
       ? new RegExp(`^  \\{\\n    id: '${state}',[\\s\\S]*?^  \\},\\n`, 'gmu')

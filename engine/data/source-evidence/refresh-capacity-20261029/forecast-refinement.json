@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-29T17:27:17.096Z",
+  "scope": "three_observation_planning_forecast_not_p95_not_cadence_guarantee_no_activation",
+  "sourceObservations": [
+    {
+      "runId": "40909152248",
+      "sourceCommit": "e08c698e44c710297c9c9c84987200a4148485e8",
+      "artifactId": 12912753429,
+      "artifactDigest": "c8ce9eca988ea530a4f9c7179ec935c9fa6569fe473e6300ae25adb9c9888b2a",
+      "status": "success",
+      "qualifying": true,
+      "summarySha256": "706629968fd9a603e2e6c0ad20abc5e4ebbe6f4b0df19ec4a20b5ede645ff3af",
+      "samples": [
+        {
+          "state": "WA",
+          "elapsedMs": 166026,
+          "collectorStartedAt": "2026-10-29T16:13:33.471Z",
+          "collectorFinishedAt": "2026-10-29T16:16:19.497Z",
+          "reportSha256": "918e93a3d0db7a873c8ba4330eed2dbf3c0f37abbba00cc4afcbd12cb240460f",
+          "artifactPath": "WA/2026-10-29T16-12-23-935Z/report.json",
+          "requests": 127
+        },
+        {
+          "state": "NM",
+          "elapsedMs": 53426,
+          "collectorStartedAt": "2026-10-29T16:12:24.662Z",
+          "collectorFinishedAt": "2026-10-29T16:13:18.088Z",
+          "reportSha256": "ec54f9407a30121e13d39e839d219372a7c5d9d34a6d60edae8cd3fe9fd98b57",
+          "artifactPath": "NM/2026-10-29T16-12-23-935Z/report.json",
+          "requests": 43
+        },
+        {
+          "state": "WI",
+          "elapsedMs": 7780,
+          "collectorStartedAt": "2026-10-29T16:16:19.733Z",
+          "collectorFinishedAt": "2026-10-29T16:16:27.513Z",
+          "reportSha256": "b1dde51427f074f2ab1433c055f1102014fa8d6b90591aa2e2d3aaf3518818b9",
+          "artifactPath": "WI/2026-10-29T16-12-23-935Z/report.json",
+          "requests": 5
+        },
+        {
+          "state": "OK",
+          "elapsedMs": 14918,
+          "collectorStartedAt": "2026-10-29T16:13:18.332Z",
+          "collectorFinishedAt": "2026-10-29T16:13:33.250Z",
+          "reportSha256": "a550cbd6005367b3751a3d4dcd2e5f09cfe71caa833412360fde6afe609ee8a5",
+          "artifactPath": "OK/2026-10-29T16-12-23-935Z/report.json",
+          "requests": 10
+        }
+      ]
+    },
+    {
+      "runId": "40910295232",
+      "sourceCommit": "e08c698e44c710297c9c9c84987200a4148485e8",
+      "artifactId": 12913877163,
+      "artifactDigest": "fc96755912a0025a9e2488707a9550a0fb41aae60fc2d85c3c076322e653a45f",
+      "status": "success",
+      "qualifying": true,
+      "summarySha256": "8bd59c5ebd3bb34404d8f20e873187bbb469086a196d47d61666e80e7a60a541",
+      "samples": [
+        {
+          "state": "WA",
+          "elapsedMs": 155657,
+          "collectorStartedAt": "2026-10-29T16:20:18.204Z",
+          "collectorFinishedAt": "2026-10-29T16:22:53.861Z",
+          "reportSha256": "4fba52f898494dc8e09148bbd36c7593463817d3198562ed12c66af7333c525b",
+          "artifactPath": "WA/2026-10-29T16-19-09-579Z/report.json",
+          "requests": 127
+        },
+        {
+          "state": "NM",
+          "elapsedMs": 53139,
+          "collectorStartedAt": "2026-10-29T16:19:09.831Z",
+          "collectorFinishedAt": "2026-10-29T16:20:02.970Z",
+          "reportSha256": "e10412dda41930419235d3d9e7458aad8cda0ebdb3fc022429be962c608641c3",
+          "artifactPath": "NM/2026-10-29T16-19-09-579Z/report.json",
+          "requests": 43
+        },
+        {
+          "state": "WI",
+          "elapsedMs": 7624,
+          "collectorStartedAt": "2026-10-29T16:22:54.074Z",
+          "collectorFinishedAt": "2026-10-29T16:23:01.698Z",
+          "reportSha256": "7e954f36e194dbac76a9c54c61d1ac7eefebae7c9f86e3b0068c95ec5bdcd050",
+          "artifactPath": "WI/2026-10-29T16-19-09-579Z/report.json",
+          "requests": 5
+        },
+        {
+          "state": "OK",
+          "elapsedMs": 14824,
+          "collectorStartedAt": "2026-10-29T16:20:03.181Z",
+          "collectorFinishedAt": "2026-10-29T16:20:18.005Z",
+          "reportSha256": "85c5e0208bcb0eba78d33833e9e9eff421c96356a159dc51ef5f488bbdc4e6ec",
+          "artifactPath": "OK/2026-10-29T16-19-09-579Z/report.json",
+          "requests": 10
+        }
+      ]
+    },
+    {
+      "runId": "40911087234",
+      "sourceCommit": "e08c698e44c710297c9c9c84987200a4148485e8",
+      "artifactId": 12913313226,
+      "artifactDigest": "7a739ad291438eacc92a9517a6f8b4d3165f0febc8b9c17d57d17fa5b8544971",
+      "status": "success",
+      "qualifying": true,
+      "summarySha256": "df0c154ca7ad54150d666e7d41a99d7dd77eb82066d126928a3acd90ceb88a93",
+      "samples": [
+        {
+          "state": "WA",
+          "elapsedMs": 167607,
+          "collectorStartedAt": "2026-10-29T16:25:25.502Z",
+          "collectorFinishedAt": "2026-10-29T16:28:13.109Z",
+          "reportSha256": "f99218d88a1a397b43b6beed1a9dbb03946b35a9d6a1ab8e2cde7e795710148d",
+          "artifactPath": "WA/2026-10-29T16-24-11-122Z/report.json",
+          "requests": 127
+        },
+        {
+          "state": "NM",
+          "elapsedMs": 56119,
+          "collectorStartedAt": "2026-10-29T16:24:13.961Z",
+          "collectorFinishedAt": "2026-10-29T16:25:10.080Z",
+          "reportSha256": "d4f27752887264d6d376e528d0e9335c5e8dcf3afbef440e113e487eb4e59d48",
+          "artifactPath": "NM/2026-10-29T16-24-11-122Z/report.json",
+          "requests": 43
+        },
+        {
+          "state": "WI",
+          "elapsedMs": 7284,
+          "collectorStartedAt": "2026-10-29T16:28:13.349Z",
+          "collectorFinishedAt": "2026-10-29T16:28:20.633Z",
+          "reportSha256": "be671387d6c5ba97215488375b8e7071717c264dc1a0a8aff84e3774ef3c02c8",
+          "artifactPath": "WI/2026-10-29T16-24-11-122Z/report.json",
+          "requests": 5
+        },
+        {
+          "state": "OK",
+          "elapsedMs": 14971,
+          "collectorStartedAt": "2026-10-29T16:25:10.307Z",
+          "collectorFinishedAt": "2026-10-29T16:25:25.278Z",
+          "reportSha256": "d504df231c1d23665143f852515c1773e8ac540311c23c84b831999ace4f130d",
+          "artifactPath": "OK/2026-10-29T16-24-11-122Z/report.json",
+          "requests": 10
+        }
+      ]
+    }
+  ],
+  "formula": "ceil(2 * max(three observed collector elapsed milliseconds) / 30000) * 30000",
+  "derivedForecasts": {
+    "WA": {
+      "samplesMs": [
+        166026,
+        155657,
+        167607
+      ],
+      "maximumMs": 167607,
+      "multiplier": 2,
+      "roundUpToMs": 30000,
+      "forecastMs": 360000
+    },
+    "NM": {
+      "samplesMs": [
+        53426,
+        53139,
+        56119
+      ],
+      "maximumMs": 56119,
+      "multiplier": 2,
+      "roundUpToMs": 30000,
+      "forecastMs": 120000
+    },
+    "WI": {
+      "samplesMs": [
+        7780,
+        7624,
+        7284
+      ],
+      "maximumMs": 7780,
+      "multiplier": 2,
+      "roundUpToMs": 30000,
+      "forecastMs": 30000
+    },
+    "OK": {
+      "samplesMs": [
+        14918,
+        14824,
+        14971
+      ],
+      "maximumMs": 14971,
+      "multiplier": 2,
+      "roundUpToMs": 30000,
+      "forecastMs": 30000
+    }
+  },
+  "existingMeasuredForecastMs": {
+    "VA": 1140000,
+    "CA": 300000,
+    "NV": 240000,
+    "ID": 180000,
+    "TX": 90000,
+    "AZ": 900000,
+    "FL": 180000
+  },
+  "previousExpectedRunMs": {
+    "TX": 420000,
+    "VA": 240000,
+    "IN": 240000,
+    "TN": 180000,
+    "SC": 180000,
+    "NJ": 120000,
+    "MI": 60000,
+    "WI": 150000,
+    "OK": 240000,
+    "KY": 180000,
+    "WA": 720000,
+    "NM": 300000
+  },
+  "reviewedExpectedRunMs": {
+    "TX": 90000,
+    "VA": 1140000,
+    "IN": 240000,
+    "TN": 180000,
+    "SC": 180000,
+    "NJ": 120000,
+    "MI": 60000,
+    "WI": 30000,
+    "OK": 30000,
+    "KY": 180000,
+    "WA": 360000,
+    "NM": 120000,
+    "CA": 300000,
+    "NV": 240000,
+    "ID": 180000,
+    "AZ": 900000,
+    "FL": 180000
+  },
+  "prospectiveStates": [
+    "NC",
+    "VA",
+    "PA",
+    "OH",
+    "IA",
+    "ID",
+    "AL",
+    "IL",
+    "IN",
+    "TN",
+    "SC",
+    "MD-MONTGOMERY",
+    "KY",
+    "AZ",
+    "CA",
+    "FL",
+    "TX",
+    "GA",
+    "NV",
+    "UT",
+    "NY",
+    "CO",
+    "MS",
+    "WV",
+    "WA",
+    "NM",
+    "WI",
+    "OK"
+  ],
+  "prospectiveCollectionModel": {
+    "ok": true,
+    "projectedRunMs": 1410000,
+    "availableRunMs": 1500000,
+    "utilization": 0.94,
+    "workerLoadsMs": [
+      1410000,
+      1380000,
+      1350000,
+      1380000
+    ],
+    "reason": null
+  },
+  "sourceAndParentHardcapsChanged": false,
+  "promotionManifestSemanticsChanged": false,
+  "lifecyclesChanged": false,
+  "sourceRequests": 0,
+  "priorFleetAudit": "observed-capacity.json",
+  "limitations": [
+    "Only three warm qualifying shadow samples per candidate state; no p95 or tail-performance claim.",
+    "Timing samples are research collectors, not an accepted full28state production job.",
+    "Browser cold peak, exports/re-exports, verification/publication, cache/setup and queue overhead remain separate.",
+    "Measured PA bootstrap1175096ms remains its full cold-cycle peak; conditional240minute allocation146887ms per30minutes is not a measured average.",
+    "Actual accepted24state warmjob32m10s already exceeded30minutes before the pending export repair.",
+    "Source-group overlap and wallclock benefit from adding four states have not been demonstrated.",
+    "All four candidate states stay research_only with all alert/watch/delivery flags false; no original source clock or proof artifact changed."
+  ]
+}

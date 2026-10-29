@@ -1,0 +1,47 @@
+{
+  "contractVersion": "bourbon-signal/nj-mi-production-shared-metadata-baseline@1",
+  "files": {
+    "engine/src/state-sources.mjs": {
+      "import": {
+        "original": "",
+        "reviewed": "import {NJ_MI_PRODUCTION_CONFIGS,NJ_MI_PRODUCTION_STATES} from './nj-mi-production-config.mjs';\n"
+      },
+      "registration": {
+        "original": "export const ALL_STATE_SOURCES = BASE_STATE_SOURCES.map((source) => {\n",
+        "reviewed": "export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS].map((source) => {\n"
+      },
+      "costco": {
+        "original": "",
+        "reviewed": "  if(NJ_MI_PRODUCTION_STATES.includes(source.id))return source;\n"
+      }
+    },
+    "src/config/state-lifecycle.json": {
+      "MI": {
+        "reviewed": "    \"MI\": {\n      \"customerLabel\": \"Michigan\",\n      \"sourceLabel\": \"Michigan exact-premises research\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive research at 1 reviewed Michigan stores; production coverage and all alerts remain blocked pending promotion.\"\n    },",
+        "original": "    \"MI\": {\n      \"customerLabel\": \"Michigan\",\n      \"sourceLabel\": \"Michigan Costco warehouse bourbon watch\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"blocked_costco_inventory_research\",\n      \"coverageTier\": \"blocked\",\n      \"refinementLevel\": \"warehouse\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research-only: Michigan has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.\"\n    },"
+      },
+      "NJ": {
+        "reviewed": ",\n    \"NJ\": {\n      \"customerLabel\": \"New Jersey\",\n      \"sourceLabel\": \"New Jersey exact-premises research\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive research at 4 reviewed New Jersey stores; production coverage and all alerts remain blocked pending promotion.\"\n    }",
+        "original": ""
+      },
+      "budgets": {
+        "original": "",
+        "reviewed": "      \"NJ\": 120000,\n      \"MI\": 60000,\n"
+      }
+    },
+    "src/config/stateLifecycle.ts": {
+      "MI": {
+        "reviewed": "    \"MI\": {\n      \"customerLabel\": \"Michigan\",\n      \"sourceLabel\": \"Michigan exact-premises research\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive research at 1 reviewed Michigan stores; production coverage and all alerts remain blocked pending promotion.\"\n    },",
+        "original": "    \"MI\": {\n      \"customerLabel\": \"Michigan\",\n      \"sourceLabel\": \"Michigan Costco warehouse bourbon watch\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"blocked_costco_inventory_research\",\n      \"coverageTier\": \"blocked\",\n      \"refinementLevel\": \"warehouse\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research-only: Michigan has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.\"\n    },"
+      },
+      "NJ": {
+        "reviewed": ",\n    \"NJ\": {\n      \"customerLabel\": \"New Jersey\",\n      \"sourceLabel\": \"New Jersey exact-premises research\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive research at 4 reviewed New Jersey stores; production coverage and all alerts remain blocked pending promotion.\"\n    }",
+        "original": ""
+      },
+      "budgets": {
+        "original": "",
+        "reviewed": "      \"NJ\": 120000,\n      \"MI\": 60000,\n"
+      }
+    }
+  }
+}

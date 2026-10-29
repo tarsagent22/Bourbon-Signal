@@ -868,25 +868,32 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "retailer_storefront",
         "public_platform_surface",
         "allocated_release"
       ],
-      "currentBlockers": [],
+      "currentBlockers": [
+        "On-site-only reviewed cohort; alerts and outbound delivery remain disabled.",
+        "Production release and fresh canonical customer verification remain pending; full-fleet cadence is not guaranteed."
+      ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []
       },
       "lastDiscoveryAt": null,
-      "lastProbeAt": null,
+      "lastProbeAt": "2026-10-29T17:46:09.719Z",
       "nextEligibleAt": null,
       "requestBudget": {
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/NM.json",
+        "engine/data/promotion-provenance/NM.zip",
+        "docs/operations/four-state-admission-20261029.md"
+      ]
     },
     {
       "state": "NY",
@@ -1010,25 +1017,32 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "retailer_storefront",
         "public_platform_surface",
         "allocated_release"
       ],
-      "currentBlockers": [],
+      "currentBlockers": [
+        "On-site-only reviewed cohort; alerts and outbound delivery remain disabled.",
+        "Production release and fresh canonical customer verification remain pending; full-fleet cadence is not guaranteed."
+      ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []
       },
       "lastDiscoveryAt": null,
-      "lastProbeAt": null,
+      "lastProbeAt": "2026-10-29T17:46:24.002Z",
       "nextEligibleAt": null,
       "requestBudget": {
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/OK.json",
+        "engine/data/promotion-provenance/OK.zip",
+        "docs/operations/four-state-admission-20261029.md"
+      ]
     },
     {
       "state": "OR",
@@ -1334,20 +1348,26 @@
         "public_platform_surface",
         "allocated_release"
       ],
-      "currentBlockers": [],
+      "currentBlockers": [
+        "On-site-only reviewed cohort; alerts and outbound delivery remain disabled.",
+        "Production release and fresh canonical customer verification remain pending; full-fleet cadence is not guaranteed."
+      ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []
       },
       "lastDiscoveryAt": null,
-      "lastProbeAt": null,
+      "lastProbeAt": "2026-10-29T17:49:00.378Z",
       "nextEligibleAt": null,
       "requestBudget": {
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
       "promotionEvidenceRefs": [
-        "src/config/state-lifecycle.json"
+        "src/config/state-lifecycle.json",
+        "engine/data/state-integration/WA.json",
+        "engine/data/promotion-provenance/WA.zip",
+        "docs/operations/four-state-admission-20261029.md"
       ]
     },
     {
@@ -1390,20 +1410,26 @@
         "public_platform_surface",
         "allocated_release"
       ],
-      "currentBlockers": [],
+      "currentBlockers": [
+        "On-site-only reviewed cohort; alerts and outbound delivery remain disabled.",
+        "Production release and fresh canonical customer verification remain pending; full-fleet cadence is not guaranteed."
+      ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []
       },
       "lastDiscoveryAt": null,
-      "lastProbeAt": null,
+      "lastProbeAt": "2026-10-29T17:49:08.074Z",
       "nextEligibleAt": null,
       "requestBudget": {
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
       "promotionEvidenceRefs": [
-        "src/config/state-lifecycle.json"
+        "src/config/state-lifecycle.json",
+        "engine/data/state-integration/WI.json",
+        "engine/data/promotion-provenance/WI.zip",
+        "docs/operations/four-state-admission-20261029.md"
       ]
     },
     {

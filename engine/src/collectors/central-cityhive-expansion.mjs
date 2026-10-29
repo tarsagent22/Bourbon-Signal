@@ -8,24 +8,8 @@ import midwestExpansion from '../../data/midwest-cityhive-expansion-sources.json
 import additionalExpansion from '../../data/additional-cityhive-expansion-sources.json' with {type:'json'};
 import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 export {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
-
-function source(id, name, state, baseUrl, merchantId, address, city, zip) {
-  return Object.freeze({id, name, state, stateCode:state, platform:'cityhive', baseUrl,
-    hostname:new URL(baseUrl).hostname, merchantId, address, city, zip,
-    storeId:`${id}:${merchantId}`, sourceLabel:`${name} first-party pickup inventory`,
-    categoryUrl:`${baseUrl}/shop/?subtype=Bourbon&merchant-id=${merchantId}`});
-}
-
-// Exact first-party merchant configurations captured on 2026-10-29 UTC.
-// These sources remain research until the separate state promotion contract passes.
-export const CENTRAL_CITYHIVE_EXPANSION_SOURCES = Object.freeze([
-  source('liquorguys-wauwatosa','Liquorguys','WI','https://liquorguys.com','634464e2ec82c44b45abf3ef',
-    '11728 W North Ave, Wauwatosa, WI 53226, USA','Wauwatosa','53226'),
-  source('yucatan-liquor-okc','Yucatan Liquor','OK','https://yucatanliquor.com','67fe7b7c8a5eea0bf6837355',
-    '9109 S May Ave, Oklahoma City, OK 73159, USA','Oklahoma City','73159'),
-  source('byrons-liquor-okc',"Byron's Liquor Warehouse",'OK','https://byronsliquor.com','6060f5bded7ffb6a9c4c64b8',
-    '2322 N Broadway Ave, Oklahoma City, OK 73103, USA','Oklahoma City','73103'),
-]);
+import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
+export {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
 export const MINNESOTA_CITYHIVE_EXPANSION_SOURCES=Object.freeze(minnesotaExpansion.stores.map(Object.freeze));
 export const MIDWEST_CITYHIVE_EXPANSION_SOURCES=Object.freeze(midwestExpansion.stores.map(Object.freeze));
@@ -88,17 +72,18 @@ export function reviewedCentralCityHiveIdentity(option, product) {
   return null;
 }
 
-export function parseCentralCityHiveInventory(html, candidate, bible, {observedAt}={}) {
+export function parseCentralCityHiveInventory(html, candidate, bible, {observedAt,onVerifiedPremise}={}) {
   const source=ALL_SOURCES.find(s=>s===candidate);
   if(!source || !Number.isFinite(Date.parse(observedAt)))return [];
   return parseCityHiveProducts(html,source,{sources:ALL_SOURCES,
     isAllowedOption:centralCityHiveBottleFormat,
     reviewOption:reviewedCentralCityHiveIdentity,
     isAllowedMerchantConfiguration:merchant=>{
-      if(source.lat==null&&source.lng==null)return true;
+      if(source.lat==null&&source.lng==null){onVerifiedPremise?.(source);return true;}
       const point=merchant.address?.location,coordinates=point?.coordinates;
-      return point?.type==='Point'&&Array.isArray(coordinates)&&coordinates.length===2
+      const allowed=point?.type==='Point'&&Array.isArray(coordinates)&&coordinates.length===2
         &&coordinates.every(Number.isFinite)&&coordinates[1]===source.lat&&coordinates[0]===source.lng;
+      if(allowed)onVerifiedPremise?.(source);return allowed;
     },
   }).flatMap(row=>{
     const identity=row.reviewedIdentity;
@@ -133,7 +118,7 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
 export async function collectCentralCityHiveExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal,
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now()}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
-  const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts};
+  const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
   const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA'].includes(config.id);
   const groups=Map.groupBy(ALL_SOURCES.filter(s=>s.state===config.id),s=>perStore?s.id:s.chainId||s.id);
   for(const [groupId,sources] of groups){
@@ -154,9 +139,11 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
         if(denied){sourceAttempts[groupId]={lastAttemptAt:observedAt,status:'access_denied',httpStatus:response.status,nextAllowedAt:new Date(nowMs+24*60*60_000).toISOString()};sourceAttempts[source.hostname]=sourceAttempts[groupId];break;}
         continue;
       }
-      for(const candidate of sources)for(const row of parseCentralCityHiveInventory(response.text,candidate,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
+      for(const candidate of sources)for(const row of parseCentralCityHiveInventory(response.text,candidate,bible,{observedAt,onVerifiedPremise:source=>verifiedPremises.add(source.storeId)}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
     }
     if(!denied)sourceAttempts[groupId]={lastAttemptAt:observedAt,status:seen.size?'success':'no_qualified_inventory',httpStatus:200,nextAllowedAt:new Date(nowMs+30*60_000).toISOString()};
   }
-  return {signals,roadblocks,metadata:{requests,sourceAttempts}};
+  const selectedStores=ALL_SOURCES.filter(source=>source.state===config.id).map(source=>source.storeId);
+  return {signals,roadblocks,metadata:{requests,sourceAttempts,selectedStores,verifiedPremises:[...verifiedPremises],
+    complete:requests.length>0&&requests.every(request=>request.ok)&&selectedStores.every(id=>verifiedPremises.has(id)),exhaustiveCatalogVerified:false}};
 }

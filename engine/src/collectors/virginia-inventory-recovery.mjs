@@ -272,7 +272,8 @@ export function sanitizeVirginiaInventoryCacheSignals(signals = []) {
     const migrated = {
       ...signal,
       quantity: quantityVerified ? quantity : 0,
-      reportedQuantity: quantityVerified ? quantity : 0,
+      reportedQuantity: signal.negativeInventoryBalance === true && Number.isSafeInteger(Number(raw.store?.quantity)) && Number(raw.store.quantity) < 0
+        ? Number(raw.store.quantity) : quantityVerified ? quantity : 0,
       eventType: 'store_inventory_out_of_stock',
       availabilityStatus: 'out_of_stock',
       availabilityLabel: 'Refresh required before live availability',

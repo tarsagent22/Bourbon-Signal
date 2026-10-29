@@ -1,5 +1,6 @@
 import {
   derivePublicDropEvidence,
+  publicDropDegradedStateReasons,
   publicEvidenceAddressKey,
   publicEvidenceSourceStoreIdKey,
   publicEvidenceStateCode,
@@ -1311,6 +1312,7 @@ export function buildCoverageContract(args: {
   const evaluatedAt = cleanText(args.asOf, 80) || generatedAt || new Date().toISOString();
   const evidenceByState = derivePublicDropEvidence(drops, evaluatedAt, {
     degradedStateCodes: feedDegradedStateCodes(degradedStates),
+    degradedStateReasons: publicDropDegradedStateReasons(degradedStates),
   });
   return {
     contractVersion: "bourbon-signal/coverage@3",
@@ -1369,6 +1371,7 @@ export function searchCoverageTargets(args: {
   const evaluatedAt = cleanText(args.asOf, 80) || new Date().toISOString();
   const currentEvidence = derivePublicDropEvidence(args.drops || [], evaluatedAt, {
     degradedStateCodes: feedDegradedStateCodes(args.degradedStates || []),
+    degradedStateReasons: publicDropDegradedStateReasons(args.degradedStates || []),
   }).get(stateCode) || EMPTY_DROP_EVIDENCE;
   const coverageState = buildCoverageContract({
     lifecycle: args.lifecycle,
@@ -1544,6 +1547,7 @@ export function findCoverageStoreTarget(args: {
     if (!coverageState?.capabilities.currentBottleAvailability) return null;
     const evidence = (derivePublicDropEvidence(args.drops || [], evaluatedAt, {
       degradedStateCodes: feedDegradedStateCodes(args.degradedStates || []),
+      degradedStateReasons: publicDropDegradedStateReasons(args.degradedStates || []),
     }).get(stateCode) || EMPTY_DROP_EVIDENCE)
       .currentInventoryStores.find((entry) => evidenceTargetId(entry) === evidenceIdentity);
     if (!evidence) return null;
