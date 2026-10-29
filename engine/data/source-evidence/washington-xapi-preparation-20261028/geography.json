@@ -1,0 +1,408 @@
+[
+  {
+    "merchantId": "1551",
+    "lat": 47.62042310040712,
+    "lng": -122.31316208839417,
+    "url": "https://local.safeway.com/safeway/wa/seattle/1410-e-john-st.html",
+    "capturedAt": "2026-10-29T01:38:48.553Z"
+  },
+  {
+    "merchantId": "1885",
+    "lat": 47.623623913818946,
+    "lng": -122.35778599977493,
+    "url": "https://local.safeway.com/safeway/wa/seattle/516-1st-ave-w.html",
+    "capturedAt": "2026-10-29T01:38:48.621Z"
+  },
+  {
+    "merchantId": "1993",
+    "lat": 47.618171063850255,
+    "lng": -122.30379285648347,
+    "url": "https://local.safeway.com/safeway/wa/seattle/2201-e-madison-st.html",
+    "capturedAt": "2026-10-29T01:38:49.033Z"
+  },
+  {
+    "merchantId": "3275",
+    "lat": 47.63822985405351,
+    "lng": -122.35728848404408,
+    "url": "https://local.safeway.com/safeway/wa/seattle/2100-queen-anne-ave-n.html",
+    "capturedAt": "2026-10-29T01:38:49.056Z"
+  },
+  {
+    "merchantId": "2932",
+    "lat": 47.57996947228789,
+    "lng": -122.38622631415559,
+    "url": "https://local.safeway.com/safeway/wa/seattle/2622-california-ave-sw.html",
+    "capturedAt": "2026-10-29T01:38:49.463Z"
+  },
+  {
+    "merchantId": "1508",
+    "lat": 47.56922957853299,
+    "lng": -122.28791177272797,
+    "url": "https://local.safeway.com/safeway/wa/seattle/3820-rainier-ave-s.html",
+    "capturedAt": "2026-10-29T01:38:49.487Z"
+  },
+  {
+    "merchantId": "2980",
+    "lat": 47.66431352373435,
+    "lng": -122.31386377266755,
+    "url": "https://local.safeway.com/safeway/wa/seattle/4732-brooklyn-ave-ne.html",
+    "capturedAt": "2026-10-29T01:38:49.900Z"
+  },
+  {
+    "merchantId": "3408",
+    "lat": 47.64248348993537,
+    "lng": -122.39791908863481,
+    "url": "https://local.albertsons.com/wa/seattle/2550-32nd-ave-w.html",
+    "capturedAt": "2026-10-29T01:38:50.043Z"
+  },
+  {
+    "merchantId": "1477",
+    "lat": 47.66831804692875,
+    "lng": -122.37442083298407,
+    "url": "https://local.safeway.com/safeway/wa/seattle/1423-nw-market-st.html",
+    "capturedAt": "2026-10-29T01:38:50.471Z"
+  },
+  {
+    "merchantId": "1062",
+    "lat": 47.55965742209878,
+    "lng": -122.38520488904214,
+    "url": "https://local.safeway.com/safeway/wa/seattle/4754-42nd-ave-sw.html",
+    "capturedAt": "2026-10-29T01:38:50.490Z"
+  },
+  {
+    "merchantId": "219",
+    "lat": 47.537433594230414,
+    "lng": -122.28305295870996,
+    "url": "https://local.safeway.com/safeway/wa/seattle/3900-s-othello-st.html",
+    "capturedAt": "2026-10-29T01:38:50.953Z"
+  },
+  {
+    "merchantId": "1550",
+    "lat": 47.68197097039437,
+    "lng": -122.31700034471942,
+    "url": "https://local.safeway.com/safeway/wa/seattle/7300-roosevelt-way-ne.html",
+    "capturedAt": "2026-10-29T01:38:50.993Z"
+  },
+  {
+    "merchantId": "423",
+    "lat": 47.682597307094184,
+    "lng": -122.28944599628448,
+    "url": "https://local.safeway.com/safeway/wa/seattle/7340-35th-ave-ne.html",
+    "capturedAt": "2026-10-29T01:38:51.457Z"
+  },
+  {
+    "merchantId": "1143",
+    "lat": 47.690075616821204,
+    "lng": -122.37624031904907,
+    "url": "https://local.safeway.com/safeway/wa/seattle/8340-15th-ave-nw.html",
+    "capturedAt": "2026-10-29T01:38:51.459Z"
+  },
+  {
+    "merchantId": "1600",
+    "lat": 47.613067219175896,
+    "lng": -122.20096395180917,
+    "url": "https://local.safeway.com/safeway/wa/bellevue/300-bellevue-way-ne.html",
+    "capturedAt": "2026-10-29T01:38:51.863Z"
+  },
+  {
+    "merchantId": "1923",
+    "lat": 47.51661753169522,
+    "lng": -122.36682151610239,
+    "url": "https://local.safeway.com/safeway/wa/seattle/9620-28th-ave-sw.html",
+    "capturedAt": "2026-10-29T01:38:51.903Z"
+  },
+  {
+    "merchantId": "1586",
+    "lat": 47.718022810464774,
+    "lng": -122.31192722513124,
+    "url": "https://local.safeway.com/safeway/wa/seattle/12318-15th-ave-ne.html",
+    "capturedAt": "2026-10-29T01:38:52.331Z"
+  },
+  {
+    "merchantId": "1965",
+    "lat": 47.520927347134254,
+    "lng": -122.268073983992,
+    "url": "https://local.safeway.com/safeway/wa/seattle/9262-rainier-ave-s.html",
+    "capturedAt": "2026-10-29T01:38:52.384Z"
+  },
+  {
+    "merchantId": "3120",
+    "lat": 47.48917349958429,
+    "lng": -122.33576230919266,
+    "url": "https://local.safeway.com/safeway/wa/burien/12725-1st-ave-s.html",
+    "capturedAt": "2026-10-29T01:38:52.803Z"
+  },
+  {
+    "merchantId": "490",
+    "lat": 47.62570826926007,
+    "lng": -122.15491712093353,
+    "url": "https://local.safeway.com/safeway/wa/bellevue/1645-140th-ave-ne.html",
+    "capturedAt": "2026-10-29T01:38:52.839Z"
+  },
+  {
+    "merchantId": "3255",
+    "lat": 47.672293356618596,
+    "lng": -117.39479408429361,
+    "url": "https://local.safeway.com/safeway/wa/spokane/933-e-mission-ave.html",
+    "capturedAt": "2026-10-29T01:38:53.233Z"
+  },
+  {
+    "merchantId": "342",
+    "lat": 47.6806221,
+    "lng": -117.4361099,
+    "url": "https://local.safeway.com/safeway/wa/spokane/1616-w-northwest-blvd.html",
+    "capturedAt": "2026-10-29T01:38:53.238Z"
+  },
+  {
+    "merchantId": "1242",
+    "lat": 47.629507103699034,
+    "lng": -117.37470772513123,
+    "url": "https://local.safeway.com/safeway/wa/spokane/2509-e-29th-ave.html",
+    "capturedAt": "2026-10-29T01:38:53.643Z"
+  },
+  {
+    "merchantId": "1494",
+    "lat": 47.69896785491462,
+    "lng": -117.448361829247,
+    "url": "https://local.safeway.com/safeway/wa/spokane/2507-w-wellesley-ave.html",
+    "capturedAt": "2026-10-29T01:38:53.684Z"
+  },
+  {
+    "merchantId": "1799",
+    "lat": 47.69415070726751,
+    "lng": -117.36733333809815,
+    "url": "https://local.safeway.com/safeway/wa/spokane/3919-n-market-st.html",
+    "capturedAt": "2026-10-29T01:38:54.101Z"
+  },
+  {
+    "merchantId": "3248",
+    "lat": 47.71614661248905,
+    "lng": -117.42445796728134,
+    "url": "https://local.safeway.com/safeway/wa/spokane/902-w-francis-ave.html",
+    "capturedAt": "2026-10-29T01:38:54.108Z"
+  },
+  {
+    "merchantId": "1268",
+    "lat": 47.60085329179939,
+    "lng": -117.36723303794861,
+    "url": "https://local.safeway.com/safeway/wa/spokane/3010-e-57th-ave.html",
+    "capturedAt": "2026-10-29T01:38:54.506Z"
+  },
+  {
+    "merchantId": "265",
+    "lat": 47.71793313693894,
+    "lng": -117.39356696605682,
+    "url": "https://local.safeway.com/safeway/wa/spokane/6520-n-nevada.html",
+    "capturedAt": "2026-10-29T01:38:54.514Z"
+  },
+  {
+    "merchantId": "1299",
+    "lat": 47.75037586363773,
+    "lng": -117.39740252494812,
+    "url": "https://local.safeway.com/safeway/wa/spokane/10100-n-newport-hwy.html",
+    "capturedAt": "2026-10-29T01:38:54.913Z"
+  },
+  {
+    "merchantId": "206",
+    "lat": 47.73966397062781,
+    "lng": -117.48853059145404,
+    "url": "https://local.safeway.com/safeway/wa/spokane/9001-n-indian-trail-rd.html",
+    "capturedAt": "2026-10-29T01:38:54.919Z"
+  },
+  {
+    "merchantId": "258",
+    "lat": 47.62596679611382,
+    "lng": -117.22264421534422,
+    "url": "https://local.safeway.com/safeway/wa/spokane/13606-e-32nd-ave.html",
+    "capturedAt": "2026-10-29T01:38:55.347Z"
+  },
+  {
+    "merchantId": "246",
+    "lat": 47.681806289271655,
+    "lng": -117.28571995177845,
+    "url": "https://local.safeway.com/safeway/wa/spokane/8851-e-trent-ave.html",
+    "capturedAt": "2026-10-29T01:38:55.388Z"
+  },
+  {
+    "merchantId": "1740",
+    "lat": 47.50593026814812,
+    "lng": -117.56740093231201,
+    "url": "https://local.safeway.com/safeway/wa/cheney/2710-1st-st.html",
+    "capturedAt": "2026-10-29T01:38:55.805Z"
+  },
+  {
+    "merchantId": "1473",
+    "lat": 47.65576369046822,
+    "lng": -117.21613080831958,
+    "url": "https://local.safeway.com/safeway/wa/spokane/14020-e-sprague-ave.html",
+    "capturedAt": "2026-10-29T01:38:55.813Z"
+  },
+  {
+    "merchantId": "251",
+    "lat": 47.654658425076924,
+    "lng": -118.15814077258892,
+    "url": "https://local.safeway.com/safeway/wa/davenport/1220-morgan-st.html",
+    "capturedAt": "2026-10-29T01:38:56.290Z"
+  },
+  {
+    "merchantId": "2248",
+    "lat": 47.66950569089224,
+    "lng": -117.10353273159853,
+    "url": "https://local.safeway.com/safeway/wa/liberty-lake/1304-n-liberty-lake-rd.html",
+    "capturedAt": "2026-10-29T01:38:56.299Z"
+  },
+  {
+    "merchantId": "1159",
+    "lat": 48.183339210818666,
+    "lng": -117.04057024232787,
+    "url": "https://local.safeway.com/safeway/wa/newport/121-w-walnut-st.html",
+    "capturedAt": "2026-10-29T01:38:56.702Z"
+  },
+  {
+    "merchantId": "337",
+    "lat": 48.27973038576137,
+    "lng": -117.7160692095913,
+    "url": "https://local.safeway.com/safeway/wa/chewelah/10-w-colville-ave.html",
+    "capturedAt": "2026-10-29T01:38:56.737Z"
+  },
+  {
+    "merchantId": "1437",
+    "lat": 47.22223885557227,
+    "lng": -122.45146402883606,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/1302-s-38th-st.html",
+    "capturedAt": "2026-10-29T01:38:57.129Z"
+  },
+  {
+    "merchantId": "329",
+    "lat": 47.25108575655323,
+    "lng": -122.45527759955615,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/1112-s-m-st.html",
+    "capturedAt": "2026-10-29T01:38:57.206Z"
+  },
+  {
+    "merchantId": "3424",
+    "lat": 47.269498410905236,
+    "lng": -122.48805760742016,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/2411-n-proctor-st.html",
+    "capturedAt": "2026-10-29T01:38:57.634Z"
+  },
+  {
+    "merchantId": "1594",
+    "lat": 47.206909022671894,
+    "lng": -122.44072480608216,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/707-s-56th-st.html",
+    "capturedAt": "2026-10-29T01:38:57.676Z"
+  },
+  {
+    "merchantId": "1978",
+    "lat": 47.27279937067019,
+    "lng": -122.51373501154376,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/2637-n-pearl-st.html",
+    "capturedAt": "2026-10-29T01:38:58.101Z"
+  },
+  {
+    "merchantId": "1436",
+    "lat": 47.19005821583907,
+    "lng": -122.40710704232787,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/1624-72nd-st-e.html",
+    "capturedAt": "2026-10-29T01:38:58.174Z"
+  },
+  {
+    "merchantId": "3545",
+    "lat": 47.248900643087254,
+    "lng": -122.29589278538896,
+    "url": "https://local.safeway.com/safeway/wa/milton/900-e-meridian-ave-suite-12.html",
+    "capturedAt": "2026-10-29T01:38:58.580Z"
+  },
+  {
+    "merchantId": "486",
+    "lat": 47.22141469211438,
+    "lng": -122.53948690110963,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/3842-bridgeport-way.html",
+    "capturedAt": "2026-10-29T01:38:58.586Z"
+  },
+  {
+    "merchantId": "3321",
+    "lat": 47.30222294540048,
+    "lng": -122.57584422826767,
+    "url": "https://local.safeway.com/safeway/wa/gig-harbor/4831-point-fosdick-dr-nw.html",
+    "capturedAt": "2026-10-29T01:38:58.980Z"
+  },
+  {
+    "merchantId": "1645",
+    "lat": 47.16414058772763,
+    "lng": -122.51842985265739,
+    "url": "https://local.safeway.com/safeway/wa/lakewood/10223-gravelly-lake-dr-sw.html",
+    "capturedAt": "2026-10-29T01:38:58.998Z"
+  },
+  {
+    "merchantId": "1555",
+    "lat": 47.31363675348303,
+    "lng": -122.31793911771092,
+    "url": "https://local.safeway.com/safeway/wa/federal-way/1207-s-320th-st.html",
+    "capturedAt": "2026-10-29T01:38:59.392Z"
+  },
+  {
+    "merchantId": "3411",
+    "lat": 47.18038089272093,
+    "lng": -122.5521064669342,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/8611-steilacoom-blvd-sw.html",
+    "capturedAt": "2026-10-29T01:38:59.414Z"
+  },
+  {
+    "merchantId": "1798",
+    "lat": 47.15185120377339,
+    "lng": -122.35525135819702,
+    "url": "https://local.safeway.com/safeway/wa/puyallup/11501-canyon-rd-e.html",
+    "capturedAt": "2026-10-29T01:38:59.910Z"
+  },
+  {
+    "merchantId": "3106",
+    "lat": 47.15584969632265,
+    "lng": -122.35922367903186,
+    "url": "https://local.albertsons.com/wa/puyallup/11012-canyon-rd-e.html",
+    "capturedAt": "2026-10-29T01:38:59.940Z"
+  },
+  {
+    "merchantId": "477",
+    "lat": 47.342532710641194,
+    "lng": -122.30006244778224,
+    "url": "https://local.safeway.com/safeway/wa/federal-way/28810-military-rd-s.html",
+    "capturedAt": "2026-10-29T01:39:00.404Z"
+  },
+  {
+    "merchantId": "422",
+    "lat": 47.18700377858306,
+    "lng": -122.29292213916779,
+    "url": "https://local.safeway.com/safeway/wa/puyallup/611-s-meridian.html",
+    "capturedAt": "2026-10-29T01:39:00.448Z"
+  },
+  {
+    "merchantId": "1186",
+    "lat": 47.35939425641917,
+    "lng": -122.31054961681366,
+    "url": "https://local.safeway.com/safeway/wa/des-moines/27035-pacific-hwy-s.html",
+    "capturedAt": "2026-10-29T01:39:00.885Z"
+  },
+  {
+    "merchantId": "493",
+    "lat": 47.117418970020545,
+    "lng": -122.43277594047547,
+    "url": "https://local.albertsons.com/wa/tacoma/104-military-rd.html",
+    "capturedAt": "2026-10-29T01:39:00.919Z"
+  },
+  {
+    "merchantId": "3305",
+    "lat": 47.112875980135954,
+    "lng": -122.43230179713464,
+    "url": "https://local.safeway.com/safeway/wa/tacoma/15805-pacific-ave-s.html",
+    "capturedAt": "2026-10-29T01:39:01.344Z"
+  },
+  {
+    "merchantId": "2729",
+    "lat": 47.18499081663024,
+    "lng": -122.25922416693419,
+    "url": "https://local.safeway.com/safeway/wa/puyallup/708-shaw-rd-e.html",
+    "capturedAt": "2026-10-29T01:39:01.428Z"
+  }
+]
