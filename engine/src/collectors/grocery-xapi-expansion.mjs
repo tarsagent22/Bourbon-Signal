@@ -16,13 +16,21 @@ export function groceryExpansionPremiseMatches(source, store) {
   const address=store?.address;
   return String(store?.locationId || '')===source.merchantId && address?.state===source.stateCode
     && address?.country==='US' && normalize(store.polarisBannerName)===source.banner
-    && normalize(store.domainName)===source.banner
+    && normalize(store.domainName)===normalize(source.resolverDomainName || source.banner)
     && normalize(`${address.line1}, ${address.city}, ${address.state} ${address.zipcode}`)===normalize(source.address);
 }
 
 function currentDropTarget(record,state) {
   return record?.libraryAlertEligible!==false && record?.libraryIdentities?.some(bottle=>
     bottle.isAlertEligible!==false && DROP_TIERS.has(bottle.stateOverrides.find(o=>o.jurisdiction===state)?.tier || bottle.nationalTier));
+}
+
+export function groceryProductSnapshot(product) {
+  return Object.fromEntries(['id','pid','storeId','name','upc','price','containsAlcohol','alcoholVolumePct',
+    'dispItemSizeQty','dispItemPackageQty','dispUnitOfMeasure','unitOfMeasure'].map(key=>[key,product[key]]).concat([
+      ['channelEligibility',{inStore:product.channelEligibility?.inStore}],
+      ['channelInventory',Object.fromEntries(['instore','inStore','instoreItemQty','inStoreItemQty'].filter(key=>product.channelInventory?.[key]!==undefined).map(key=>[key,product.channelInventory[key]]))]
+    ]));
 }
 
 export function parseGroceryExpansionInventory(payload, source, bible, {observedAt}={}) {
@@ -44,8 +52,9 @@ export function parseGroceryExpansionInventory(payload, source, bible, {observed
     evidence:`${source.name} reports ${row.title} available at ${source.address}${row.quantity>0?` with quantity ${row.quantity}`:''}.`,
     sourceProductBinding:{schemaVersion:1,source:'grocery-xapi',merchantId:source.merchantId,storeId:source.storeId,
       storeAddress:source.address,productId:row.productId,variantId:row.variantId,rawName:row.title,
-      canonicalBottleId:row.record.id,price:row.price,observedAt,premisesVerified:true,inStoreChannelVerified:true},
-    raw:{chain:source.id,merchantId:source.merchantId,product:row.rawProduct,
+      canonicalBottleId:row.record.id,price:row.price,observedAt,premisesVerified:true,inStoreChannelVerified:true,
+      inventorySemantics:row.inventorySemantics,productSnapshot:groceryProductSnapshot(row.rawProduct)},
+    raw:{chain:source.id,merchantId:source.merchantId,product:groceryProductSnapshot(row.rawProduct),
       inventorySemantics:row.inventorySemantics,reportedQuantity:row.reportedQuantity,fulfillmentPolicyVerified:true}
   }));
 }

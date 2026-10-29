@@ -41,3 +41,24 @@ test('California uses four resolvers and separately bounded168request plan while
   }finally{await rm(cursorDir,{recursive:true,force:true});}
   await assert.rejects(()=>collectGroceryExpansion({id:'XX'},bible,{fetchText:async()=>{throw new Error('unexpectednetwork')}}),/reviewed state/);
 });
+
+
+test('Pak N Save remains bound to its separately frozen resolver domain and exact Safeway parent premise',()=>{
+  const source=CALIFORNIA_GROCERY_SOURCES.find(s=>s.merchantId==='3125');
+  assert.equal(source.resolverDomainName,"Pak 'N Save Foods");
+  assert.ok(groceryExpansionPremiseMatches(source,fixture.reviewedPakNSaveStore));
+  assert.equal(groceryExpansionPremiseMatches(source,{...fixture.reviewedPakNSaveStore,domainName:'Safeway'}),false);
+});
+
+test('operational proof preserves compact product snapshot and typed inventory semantics',()=>{
+  for(const row of parse(fixture.products)){
+    const proof=JSON.parse(JSON.stringify(row.sourceProductBinding));
+    assert.equal(proof.productSnapshot.storeId,row.merchantId);
+    assert.equal(proof.productSnapshot.name.replace(/\s+/g,' ').trim(),row.rawName);
+    assert.equal(proof.productSnapshot.id,row.productId);
+    assert.equal(proof.productSnapshot.price,row.price);
+    assert.equal(proof.productSnapshot.channelInventory.instore,'1');
+    assert.equal(proof.inventorySemantics,row.inventorySemantics);
+    assert.equal(proof.productSnapshot.promoText,undefined);
+  }
+});

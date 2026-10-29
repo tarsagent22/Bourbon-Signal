@@ -14,7 +14,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.766027964220555,
     "lng": -122.40795897868566,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/2300-16th-st-unit-203.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/2300-16th-st-unit-203.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-2606",
@@ -30,7 +31,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.776778641486,
     "lng": -122.39407171779096,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/298-king-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/298-king-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1507",
@@ -46,7 +48,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.76917545663558,
     "lng": -122.42787480354309,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/2020-market-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/2020-market-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-4601",
@@ -62,7 +65,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.79689897826482,
     "lng": -122.3986159341166,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/145-jackson-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/145-jackson-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-739",
@@ -78,7 +82,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.743194531962324,
     "lng": -122.42245004342294,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/3350-mission-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/3350-mission-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1711",
@@ -94,7 +99,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.80446714603007,
     "lng": -122.43286506094591,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/15-marina-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/15-marina-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-667",
@@ -110,7 +116,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.74357069982952,
     "lng": -122.43900636387798,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/5290-diamond-heights-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/5290-diamond-heights-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-2646",
@@ -126,7 +133,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.774507955961255,
     "lng": -122.46526206197129,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/735-7th-ave.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/735-7th-ave.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-759",
@@ -142,7 +150,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.73129574823335,
     "lng": -122.44996834788512,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/625-monterey-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/625-monterey-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-964",
@@ -158,7 +167,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.719878244696424,
     "lng": -122.43886005033188,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/4950-mission-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/4950-mission-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-909",
@@ -174,7 +184,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.74344692929394,
     "lng": -122.47412011780398,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/730-taraval-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/730-taraval-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-985",
@@ -190,7 +201,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.75416487563079,
     "lng": -122.48889421278818,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/2350-noriega-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/2350-noriega-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-785",
@@ -206,7 +218,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.77251376157095,
     "lng": -122.50947650426447,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/850-la-playa-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/san-francisco/850-la-playa-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-3031",
@@ -222,7 +235,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.69961233917686,
     "lng": -122.48155788348413,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/daly-city/601-westlake-ctr.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/daly-city/601-westlake-ctr.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-3281",
@@ -238,7 +252,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.78549742120383,
     "lng": -122.28056788444519,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/alameda/2600-5th-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/alameda/2600-5th-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-3125",
@@ -254,7 +269,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.82939809579177,
     "lng": -122.27996358278688,
     "sourceLabel": "Pak 'N Save Foods California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/pak-n-save/ca/emeryville/3889-san-pablo-ave.html"
+    "premiseUrl": "https://local.safeway.com/pak-n-save/ca/emeryville/3889-san-pablo-ave.html",
+    "resolverDomainName": "Pak 'N Save Foods"
   },
   {
     "id": "safeway-ca-2843",
@@ -270,7 +286,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.66111712029035,
     "lng": -122.47768612254731,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/pacifica/709-hickey-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/pacifica/709-hickey-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-2708",
@@ -286,7 +303,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 37.757255517747666,
     "lng": -122.25083360859833,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/alameda/2227-s-shore-ctr.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/alameda/2227-s-shore-ctr.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "vons-ca-2502",
@@ -302,7 +320,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.96032342497343,
     "lng": -118.34913153439331,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/inglewood/500-e-manchester-blvd.html"
+    "premiseUrl": "https://local.vons.com/ca/inglewood/500-e-manchester-blvd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "albertsons-ca-4131",
@@ -318,7 +337,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.014059097540354,
     "lng": -118.3357510865062,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/los-angeles/3901-crenshaw-blvd.html"
+    "premiseUrl": "https://local.albertsons.com/ca/los-angeles/3901-crenshaw-blvd.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "albertsons-ca-140",
@@ -334,7 +354,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.94562081669569,
     "lng": -118.1444480955679,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/downey/7676-firestone-blvd.html"
+    "premiseUrl": "https://local.albertsons.com/ca/downey/7676-firestone-blvd.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "vons-ca-1625",
@@ -350,7 +371,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.890935136103096,
     "lng": -118.29784884133915,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/gardena/1260-w-redondo-beach-blvd.html"
+    "premiseUrl": "https://local.vons.com/ca/gardena/1260-w-redondo-beach-blvd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2261",
@@ -366,7 +388,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.069960270057045,
     "lng": -118.29088389873505,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/los-angeles/3461-w-3rd-st.html"
+    "premiseUrl": "https://local.vons.com/ca/los-angeles/3461-w-3rd-st.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "albertsons-ca-108",
@@ -382,7 +405,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.87424151748243,
     "lng": -118.30826380852159,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/gardena/1735-w-artesia-blvd.html"
+    "premiseUrl": "https://local.albertsons.com/ca/gardena/1735-w-artesia-blvd.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "vons-ca-3263",
@@ -398,7 +422,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.079517557209606,
     "lng": -118.26126073068849,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/los-angeles/1342-n-alvarado-st.html"
+    "premiseUrl": "https://local.vons.com/ca/los-angeles/1342-n-alvarado-st.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "albertsons-ca-1181",
@@ -414,7 +439,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.03112763919393,
     "lng": -118.12239022585345,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/montebello/2469-via-campo-st.html"
+    "premiseUrl": "https://local.albertsons.com/ca/montebello/2469-via-campo-st.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "vons-ca-1623",
@@ -430,7 +456,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.89295753260357,
     "lng": -118.36245596408844,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/redondo-beach/4001-inglewood-ave.html"
+    "premiseUrl": "https://local.vons.com/ca/redondo-beach/4001-inglewood-ave.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "pavilions-ca-2212",
@@ -446,7 +473,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.99685758615477,
     "lng": -118.39378952980042,
     "sourceLabel": "Pavilions California XAPI store inventory",
-    "premiseUrl": "https://local.pavilions.com/ca/culver-city/11030-jefferson-blvd.html"
+    "premiseUrl": "https://local.pavilions.com/ca/culver-city/11030-jefferson-blvd.html",
+    "resolverDomainName": "Pavilions"
   },
   {
     "id": "vons-ca-3258",
@@ -462,7 +490,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.0202594563323,
     "lng": -118.10601892498426,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/montebello/804-beverly-blvd.html"
+    "premiseUrl": "https://local.vons.com/ca/montebello/804-beverly-blvd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2268",
@@ -478,7 +507,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.05051526037608,
     "lng": -118.36625526745911,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/los-angeles/1430-s-fairfax-ave.html"
+    "premiseUrl": "https://local.vons.com/ca/los-angeles/1430-s-fairfax-ave.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-4021",
@@ -494,7 +524,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.96929441140654,
     "lng": -118.40543681289748,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/los-angeles/6571-w-80th-st.html"
+    "premiseUrl": "https://local.vons.com/ca/los-angeles/6571-w-80th-st.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2665",
@@ -510,7 +541,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.0970657,
     "lng": -118.287983,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/los-angeles/4520-sunset-blvd.html"
+    "premiseUrl": "https://local.vons.com/ca/los-angeles/4520-sunset-blvd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "pavilions-ca-2229",
@@ -526,7 +558,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.08453397009193,
     "lng": -118.32715364721707,
     "sourceLabel": "Pavilions California XAPI store inventory",
-    "premiseUrl": "https://local.pavilions.com/ca/los-angeles/727-n-vine-st.html"
+    "premiseUrl": "https://local.pavilions.com/ca/los-angeles/727-n-vine-st.html",
+    "resolverDomainName": "Pavilions"
   },
   {
     "id": "albertsons-ca-2543",
@@ -542,7 +575,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.086480105051244,
     "lng": -118.14988553524017,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/alhambra/2400-w-commonwealth-ave.html"
+    "premiseUrl": "https://local.albertsons.com/ca/alhambra/2400-w-commonwealth-ave.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "vons-ca-2100",
@@ -558,7 +592,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.03021944279835,
     "lng": -118.40143452513122,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/cheviot-hills/9860-national-blvd.html"
+    "premiseUrl": "https://local.vons.com/ca/cheviot-hills/9860-national-blvd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "albertsons-ca-387",
@@ -574,7 +609,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 34.108811621297356,
     "lng": -118.28794921349183,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/los-angeles/2035-hillhurst-ave.html"
+    "premiseUrl": "https://local.albertsons.com/ca/los-angeles/2035-hillhurst-ave.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "albertsons-ca-191",
@@ -590,7 +626,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.847741733326885,
     "lng": -118.13431718946731,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/lakewood/5015-del-amo-blvd.html"
+    "premiseUrl": "https://local.albertsons.com/ca/lakewood/5015-del-amo-blvd.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "vons-ca-2270",
@@ -606,7 +643,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 33.9991537,
     "lng": -118.4289707,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/los-angeles/4030-centinela-ave.html"
+    "premiseUrl": "https://local.vons.com/ca/los-angeles/4030-centinela-ave.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "albertsons-ca-745",
@@ -622,7 +660,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.712098774794775,
     "lng": -117.15144851807054,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/san-diego/655-14th-st.html"
+    "premiseUrl": "https://local.albertsons.com/ca/san-diego/655-14th-st.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "pavilions-ca-2784",
@@ -638,7 +677,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.74937798470182,
     "lng": -117.16821363491822,
     "sourceLabel": "Pavilions California XAPI store inventory",
-    "premiseUrl": "https://local.pavilions.com/ca/san-diego/515-w-washington-st.html"
+    "premiseUrl": "https://local.pavilions.com/ca/san-diego/515-w-washington-st.html",
+    "resolverDomainName": "Pavilions"
   },
   {
     "id": "vons-ca-2355",
@@ -654,7 +694,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.75307813859527,
     "lng": -117.12956023785182,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/4145-30th-st.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/4145-30th-st.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2364",
@@ -670,7 +711,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.6878233,
     "lng": -117.1792469,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/coronado/868-orange-ave.html"
+    "premiseUrl": "https://local.vons.com/ca/coronado/868-orange-ave.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2735",
@@ -686,7 +728,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.736937,
     "lng": -117.216228,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/2495-truxtun-rd-bldg-28.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/2495-truxtun-rd-bldg-28.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2053",
@@ -702,7 +745,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.75119938168064,
     "lng": -117.21751975767212,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/3645-midway-dr.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/3645-midway-dr.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2358",
@@ -718,7 +762,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.76414847834068,
     "lng": -117.11460248397088,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/3610-adams-ave.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/3610-adams-ave.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2359",
@@ -734,7 +779,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.792379469464514,
     "lng": -117.09645330905914,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/6555-mission-gorge-rd.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/6555-mission-gorge-rd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2118",
@@ -750,7 +796,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.80716160546506,
     "lng": -117.11651924973755,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/3550-murphy-canyon-dr.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/3550-murphy-canyon-dr.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2352",
@@ -766,7 +813,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.760954532745004,
     "lng": -117.06496381349181,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/6155-el-cajon-blvd.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/6155-el-cajon-blvd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2040",
@@ -782,7 +830,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.8183100353296,
     "lng": -117.1791324019432,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/5555-balboa-ave.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/5555-balboa-ave.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2116",
@@ -798,7 +847,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.80199119482244,
     "lng": -117.2389845626185,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/1702-garnet-ave.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/1702-garnet-ave.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "albertsons-ca-707",
@@ -814,7 +864,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.74381203225121,
     "lng": -117.04535186290735,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/lemon-grove/7090-broadway.html"
+    "premiseUrl": "https://local.albertsons.com/ca/lemon-grove/7090-broadway.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "vons-ca-2120",
@@ -830,7 +881,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.83014096585483,
     "lng": -117.20503374002874,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/4725-clairemont-dr.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/4725-clairemont-dr.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2134",
@@ -846,7 +898,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.8305243056322,
     "lng": -117.10416935764897,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/10460-clairemont-mesa-blvd.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/10460-clairemont-mesa-blvd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-3327",
@@ -862,7 +915,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.78242861921922,
     "lng": -117.0323933065265,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/la-mesa/5630-lake-murray-blvd.html"
+    "premiseUrl": "https://local.vons.com/ca/la-mesa/5630-lake-murray-blvd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2093",
@@ -878,7 +932,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.76542204879565,
     "lng": -117.0238338486979,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/la-mesa/8011-university-ave.html"
+    "premiseUrl": "https://local.vons.com/ca/la-mesa/8011-university-ave.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "albertsons-ca-757",
@@ -894,7 +949,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.62645452119966,
     "lng": -117.07584160572878,
     "sourceLabel": "Albertsons California XAPI store inventory",
-    "premiseUrl": "https://local.albertsons.com/ca/chula-vista/720-3rd-ave.html"
+    "premiseUrl": "https://local.albertsons.com/ca/chula-vista/720-3rd-ave.html",
+    "resolverDomainName": "Albertsons"
   },
   {
     "id": "vons-ca-2130",
@@ -910,7 +966,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.65998936146216,
     "lng": -117.03232169151306,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/bonita/4404-bonita-rd.html"
+    "premiseUrl": "https://local.vons.com/ca/bonita/4404-bonita-rd.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "vons-ca-2370",
@@ -926,7 +983,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 32.8535302948702,
     "lng": -117.20311939716339,
     "sourceLabel": "Vons California XAPI store inventory",
-    "premiseUrl": "https://local.vons.com/ca/san-diego/3993-governor-dr.html"
+    "premiseUrl": "https://local.vons.com/ca/san-diego/3993-governor-dr.html",
+    "resolverDomainName": "Vons"
   },
   {
     "id": "safeway-ca-2684",
@@ -942,7 +1000,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.56795253612675,
     "lng": -121.48611903190613,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/1814-19th-st.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/1814-19th-st.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-2242",
@@ -958,7 +1017,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.57163581292695,
     "lng": -121.46461501719666,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/1025-alhambra-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/1025-alhambra-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-3013",
@@ -974,7 +1034,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.540703893499,
     "lng": -121.48376364973755,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/3680-crocker-dr.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/3680-crocker-dr.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-190",
@@ -990,7 +1051,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.57329599713887,
     "lng": -121.41322110945566,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/424-howe-ave.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/424-howe-ave.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-2697",
@@ -1006,7 +1068,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.65757433094581,
     "lng": -121.52465164661407,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/2851-del-paso-rd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/2851-del-paso-rd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1530",
@@ -1022,7 +1085,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.59443263677919,
     "lng": -121.38662920555726,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/3320-arden-way.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/3320-arden-way.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1560",
@@ -1038,7 +1102,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.63810941926473,
     "lng": -121.32616581489066,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/carmichael/4040-manzanita-ave.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/carmichael/4040-manzanita-ave.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1746",
@@ -1054,7 +1119,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.59547092795852,
     "lng": -121.29334169632784,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/rancho-cordova/10635-folsom-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/rancho-cordova/10635-folsom-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-2263",
@@ -1070,7 +1136,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.68650216765622,
     "lng": -121.3394129276275,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/5345-elkhorn-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/5345-elkhorn-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1289",
@@ -1086,7 +1153,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.453387218618744,
     "lng": -121.36994854368822,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/8377-elk-grove-florin-rd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/sacramento/8377-elk-grove-florin-rd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1647",
@@ -1102,7 +1170,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.42428555407852,
     "lng": -121.44653146321161,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/elk-grove/5021-laguna-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/elk-grove/5021-laguna-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1895",
@@ -1118,7 +1187,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.6651672,
     "lng": -121.3071786,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/fair-oaks/5450-dewey-dr.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/fair-oaks/5450-dewey-dr.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1531",
@@ -1134,7 +1204,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.679994737659726,
     "lng": -121.29408895969391,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/citrus-heights/7301-greenback-ln.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/citrus-heights/7301-greenback-ln.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1561",
@@ -1150,7 +1221,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.5413699,
     "lng": -121.725185,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/davis/2121-cowell-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/davis/2121-cowell-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-94",
@@ -1166,7 +1238,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.3921761431065,
     "lng": -121.41884361396463,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/elk-grove/10050-bruceville-rd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/elk-grove/10050-bruceville-rd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-2695",
@@ -1182,7 +1255,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.767603136181776,
     "lng": -121.35737224346445,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/roseville/1770-pleasant-grove-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/roseville/1770-pleasant-grove-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1205",
@@ -1198,7 +1272,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.562022458074374,
     "lng": -121.76647827798661,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/davis/1451-w-covell-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/davis/1451-w-covell-blvd.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1846",
@@ -1214,7 +1289,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.665356183796696,
     "lng": -121.22407938095093,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/fair-oaks/8925-madison-ave.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/fair-oaks/8925-madison-ave.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-1899",
@@ -1230,7 +1306,8 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.731030559204754,
     "lng": -121.27134326137697,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/roseville/989-sunrise-ave.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/roseville/989-sunrise-ave.html",
+    "resolverDomainName": "Safeway"
   },
   {
     "id": "safeway-ca-2620",
@@ -1246,6 +1323,7 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "lat": 38.79406974092022,
     "lng": -121.33065016600085,
     "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/roseville/9045-woodcreek-oaks-blvd.html"
+    "premiseUrl": "https://local.safeway.com/safeway/ca/roseville/9045-woodcreek-oaks-blvd.html",
+    "resolverDomainName": "Safeway"
   }
 ].map(source=>Object.freeze(source)));
