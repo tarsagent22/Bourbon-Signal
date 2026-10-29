@@ -46,3 +46,12 @@ test('33 added premises require current exact first-party address, banner, state
   const conflict=async()=>({ok:true,text:JSON.stringify({instore:{stores:[calls++?{...fixture.store,address:{...fixture.store.address,line1:'Other'}}:fixture.store]}})});
   assert.equal((await resolveNevadaXapiPremises([fixture.source],{request:conflict})).size,0);
 });
+
+
+test('direct legacy matches also require exact XAPI product, UPC, strength, package and volume metadata', () => {
+  const product=fixture.products.find(p=>p.name.startsWith('Penelope Four Grain'));
+  assert.equal(parse([product]).length,1);
+  for(const mutation of [{pid:'wrong'},{upc:'bad'},{containsAlcohol:false},{alcoholVolumePct:NaN},
+    {dispItemSizeQty:'1000'},{dispItemPackageQty:'2'},{unitOfMeasure:'L'},
+    {name:product.name.replace('750 Ml','99 Proof - 750 Ml')}])assert.deepEqual(parse([{...product,...mutation}]),[]);
+});

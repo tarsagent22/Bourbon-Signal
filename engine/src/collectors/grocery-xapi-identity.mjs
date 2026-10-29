@@ -6,6 +6,16 @@ export function parseBoundGroceryXapiInventory(payload, source, bible) {
   for (const product of Array.isArray(payload?.response?.docs) ? payload.response.docs : []) {
     const productId = String(product?.id || '');
     if (!/^\d+$/.test(productId) || seen.has(productId) || String(product?.storeId || '') !== source.merchantId) continue;
+    const strength=Number(product.alcoholVolumePct), volume=Number(product.dispItemSizeQty);
+    const unit=String(product.dispUnitOfMeasure || '').toLowerCase();
+    const sizeMl=unit==='ml'?volume:unit==='l'?volume*1000:NaN;
+    if(String(product.pid)!==productId || !/^\d{12,14}$/.test(String(product.upc || ''))
+      || product.containsAlcohol!==true || !Number.isFinite(strength) || strength<20 || strength>80
+      || !Number.isFinite(sizeMl) || sizeMl<=375 || sizeMl>1750
+      || String(product.unitOfMeasure || '').toLowerCase()!==unit || Number(product.dispItemPackageQty)!==1)continue;
+    const declaredSizes=[...String(product.name || '').matchAll(/\b(\d+(?:\.\d+)?)\s*(ml|liters?|lt|l)\b/gi)].map(m=>Number(m[1])*(m[2].toLowerCase()==='ml'?1:1000));
+    const proofs=[...String(product.name || '').matchAll(/\b(\d+(?:\.\d+)?)\s*(?:proof|pf)\b/gi)].map(m=>Number(m[1]));
+    if(!declaredSizes.length || declaredSizes.some(size=>size!==sizeMl) || proofs.some(proof=>Math.abs(proof-strength*2)>=.05))continue;
     if (String(product?.channelInventory?.instore ?? product?.channelInventory?.inStore ?? '') !== '1'
       || product?.channelEligibility?.inStore !== true) continue;
     const quantity = product.channelInventory.instoreItemQty ?? product.channelInventory.inStoreItemQty;
