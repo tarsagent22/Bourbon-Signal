@@ -1,5 +1,6 @@
 import {isNjMiRetailerEvent,isNjMiResearchInventory,isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
+import { selectFleetDropBudget } from './fleet-drop-budget.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
@@ -1391,6 +1392,14 @@ function publicDisplaySortTimestamp(signal, freshnessIndex) {
 
 export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy } = {}) {
   const seenSourceIds = new Set();
+  const seenProjectedIds = new Set();
+  const currentObservationKeys = new Set(currentSignals.map(signal => `${signalFreshnessKey(signal)}|${signal.observedAt || signal.fetchedAt || ''}`));
+  const currentObservations = new WeakSet();
+  for (const signal of signals) {
+    if (currentObservationKeys.has(`${signalFreshnessKey(signal)}|${signal.observedAt || signal.fetchedAt || ''}`)) currentObservations.add(signal);
+  }
+  const isCurrentObservation = signal => currentObservations.has(signal);
+  const currentProjectedDrops = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals, previousDrops, availabilityHistory);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
   const arizonaInventory = s => s.state === 'AZ' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(s.eventType || s.type || ''));
@@ -1407,7 +1416,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
     .map(aggregateLeadIdentity)
     .filter(Boolean));
   const seenAggregateLeadIds = new Set();
-  return signals
+  const projected = signals
     .filter((s) => isSafePublicSignal(s, shopifyPolicy))
     .filter((s) => !arizonaInventory(s) || currentArizonaKeys.has(currentProjectionKey(s)))
     .filter((s) => !isGeorgiaRetailerProjectionSignal(s) || currentGeorgiaRetailerKeys.has(currentProjectionKey(s)))
@@ -1423,7 +1432,7 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
     })
     .filter((s) => findBibleRecord(s, bible) || isCostcoWarehouseInventorySignal(s) || isIowaSourceNamedDeliveryLead(s) || isMarylandAggregateLead(s) || isUtahAggregateLead(s) || (s.state === 'NC' && signalCanAlertAsInventory(s) && s.locationPrecision === 'store_level' && /High Point ABC public Power BI/i.test(String(s.sourceLabel || s.source || ''))))
     .filter((s) => isUserFacingDropSignal(s))
-    .sort((a, b) => dropPriority(b) - dropPriority(a) || String(publicDisplaySortTimestamp(b, freshnessIndex)).localeCompare(String(publicDisplaySortTimestamp(a, freshnessIndex))) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
+    .sort((a, b) => Number(isCurrentObservation(b)) - Number(isCurrentObservation(a)) || dropPriority(b) - dropPriority(a) || String(publicDisplaySortTimestamp(b, freshnessIndex)).localeCompare(String(publicDisplaySortTimestamp(a, freshnessIndex))) || Boolean(b.storeId) - Boolean(a.storeId) || (b.confidence || 0) - (a.confidence || 0) || precisionRank(b.locationPrecision) - precisionRank(a.locationPrecision))
     .filter((s) => {
       const sourceId = s.key || s.id || s.sourceSignalId;
       if (!sourceId) return true;
@@ -1438,10 +1447,19 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
       seenAggregateLeadIds.add(aggregateId);
       return true;
     })
-    .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal)), { shopifyPolicy }))
+    .map((signal) => {
+      const drop = publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal)), { shopifyPolicy });
+      if (isCurrentObservation(signal)) currentProjectedDrops.add(drop);
+      return drop;
+    })
     .filter((drop) => isCustomerDropTier(drop))
-    .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.ncCode, x.sourceUrl, x.storeId, x.locationName, x.storeAddress, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.ncCode, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
-    .slice(0, 10000);
+    .filter((drop) => {
+      const key = [drop.state, drop.type, drop.canonicalId, drop.ncCode, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|');
+      if (seenProjectedIds.has(key)) return false;
+      seenProjectedIds.add(key);
+      return true;
+    });
+  return selectFleetDropBudget(projected, { isRequired: drop => currentProjectedDrops.has(drop) });
 }
 
 function eventCategory(signal) {
@@ -2505,6 +2523,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
   const refreshedDrops = mergePartialRefreshDrops({
     previousDrops,
     currentDrops: candidateDrops,
+    currentSourceDrops: currentDrops,
     partialRefresh: summary.partialRefresh === true,
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds,
@@ -2725,6 +2744,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
         status: state.health,
         stale: state.health === 'stale_useful',
         staleReason: state.fallback.reason || state.anomalyCodes.join(', ') || null,
+        reasons: [...state.anomalyCodes],
         previousFinishedAt: state.collection.lastSuccessAt,
         staleFallbackAt: state.lastPublicationAt,
       }))
@@ -2814,7 +2834,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
   await writeFile(path.join(SITE_OUT, 'bottles.json'), JSON.stringify(artifactPayloads.bottles, null, 2));
   await writeFile(path.join(SITE_OUT, 'stores.json'), JSON.stringify(artifactPayloads.stores, null, 2));
   await writeFile(path.join(SITE_OUT, 'locations.json'), JSON.stringify(artifactPayloads.locations, null, 2));
-  await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify(artifactPayloads.drops, null, 2));
+  await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify(artifactPayloads.drops));
   await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify(artifactPayloads.events, null, 2));
   await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify(artifactPayloads.alerts, null, 2));
   await writeFile(path.join(SITE_OUT, 'state-health.json'), JSON.stringify(artifactPayloads.stateHealth, null, 2));
