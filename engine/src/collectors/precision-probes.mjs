@@ -9518,8 +9518,8 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 900_000 : ['IN', 'TN', 'FL', 'NV'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
-  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL', 'NV'].includes(stateKey) ? 1 : 2;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 900_000 : ['IN', 'TN', 'FL', 'NV', 'TX'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : stateKey === 'GA' ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL', 'NV', 'TX'].includes(stateKey) ? 1 : 2;
   const inventoryCadence = inventoryStateCadenceMs(stateKey);
   return {
     ...sourceRunnerOptions,
