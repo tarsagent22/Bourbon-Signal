@@ -9,7 +9,8 @@ import {buildStateDropPartitions,verifyStateDropPartitions} from '../engine/src/
 import {buildStateQualityInputs,buildStateQualityScorecard} from '../engine/src/state-quality-scorecard.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const ADDITIONS=['WA','NM','WI','OK'];
+const REVIEWED_FOUR=['WA','NM','WI','OK'];
+const REVIEWED_NINE=[...REVIEWED_FOUR,'LA','AK','MA','CT','RI'];
 const LEGACY_RUN='a7401de0a51cca45';
 const readJson=async file=>JSON.parse(await readFile(file,'utf8'));
 const serialize=value=>JSON.stringify(value,null,2)+'\n';
@@ -27,8 +28,11 @@ export async function prepareLegacySiteFixtureForCi({root=ROOT,ci=false,workflow
     ||manifest.generatedAt!==stats.generatedAt||manifest.generatedAt!==index.generatedAt
     ||manifest.generatedAt!==quality.generatedAt||manifest.generatedAt!==drops.generatedAt)
     throw Error('CI preparation only accepts the reviewed historical site fixture and its original clocks');
+  const expectedStateCount=config.activeStates.length;
+  const ADDITIONS=expectedStateCount===28?REVIEWED_FOUR:expectedStateCount===expectedStateCount?REVIEWED_NINE:null;
+  if(!ADDITIONS)throw Error('Unexpected lifecycle scope for this exact CI fixture migration');
   const legacyStates=config.activeStates.filter(state=>!ADDITIONS.includes(state));
-  if(legacyStates.length!==24||config.activeStates.length!==28||ADDITIONS.some(state=>!config.activeStates.includes(state)))throw Error('Unexpected lifecycle scope for this exact CI fixture migration');
+  if(legacyStates.length!==24||![28,33].includes(config.activeStates.length)||ADDITIONS.some(state=>!config.activeStates.includes(state)))throw Error('Unexpected lifecycle scope for this exact CI fixture migration');
   for(const state of legacyStates)if(!index.states.some(row=>row.state===state)||!stats.stateCoverage.states.some(row=>row.state===state)||!quality.states.some(row=>row.state===state))throw Error('Missing legacy state '+state);
   if(drops.drops.some(row=>ADDITIONS.includes(row.state)))throw Error('CI preparation cannot accept or replace actual new-state stock');
   const previousPayloads=new Map();
@@ -53,14 +57,14 @@ export async function prepareLegacySiteFixtureForCi({root=ROOT,ci=false,workflow
     const text=serialize(payload),file=`states/${state}/drops.json`;
     entries.push({state,file,count:0,sha256:hash(text),ciFixtureOnly:true});payloads.set(state,payload);writes.push([file,text]);
   }
-  index.states=entries.sort((a,b)=>a.state.localeCompare(b.state));index.stateCount=28;
+  index.states=entries.sort((a,b)=>a.state.localeCompare(b.state));index.stateCount=expectedStateCount;
   const verified=verifyStateDropPartitions(drops.drops,{index,payloads});if(!verified.ok)throw Error(verified.errors.join('; '));
   const emptyCoverage=ADDITIONS.map(state=>({state,label:config.states[state].customerLabel||state,
     status:'ci_not_collected',publicStatus:'active',coverageTier:'ci_not_collected',signalCount:0,dropCount:0,storeCount:0,sourceCount:0,roadblockCount:0,
     freshestObservedAt:null,inventoryAlertable:false,watchAlertable:false,ciFixtureOnly:true,
     customerSummary:'CI fixture only; source not collected. No inventory, freshness or customer coverage is claimed.'}));
-  stats.stateCount=28;stats.stateCoverage.states=[...stats.stateCoverage.states.filter(row=>legacyStates.includes(row.state)),...emptyCoverage];
-  stats.stateCoverage.stateCount=28;stats.stateCoverage.counts={};
+  stats.stateCount=expectedStateCount;stats.stateCoverage.states=[...stats.stateCoverage.states.filter(row=>legacyStates.includes(row.state)),...emptyCoverage];
+  stats.stateCoverage.stateCount=expectedStateCount;stats.stateCoverage.counts={};
   for(const row of stats.stateCoverage.states)stats.stateCoverage.counts[row.coverageTier]=(stats.stateCoverage.counts[row.coverageTier]||0)+1;
   const emptyQuality=buildStateQualityScorecard(buildStateQualityInputs({stateCoverage:{states:emptyCoverage},drops:[],alerts:[]}),{generatedAt:quality.generatedAt});
   quality.states=[...quality.states.filter(row=>legacyStates.includes(row.state)),...emptyQuality.states.map(row=>({...row,ciFixtureOnly:true,collectionStatus:'ci_not_collected'}))];

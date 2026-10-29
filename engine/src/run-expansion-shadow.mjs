@@ -341,6 +341,16 @@ async function collectActiveResearchRenewalChild(state, lifecycle) {
   await writeFile(output, JSON.stringify(suppressed, null, 2));
 }
 
+function reportHasAccessDenial(report){
+  const metadata=report?.metadata||{};
+  const nested=Object.values(metadata).filter(value=>value&&typeof value==='object'&&!Array.isArray(value));
+  const rows=[...asArray(report?.roadblocks),...asArray(report?.sources),...asArray(report?.sourceResults),
+    ...asArray(metadata.receipts),...asArray(metadata.requests),
+    ...nested.flatMap(value=>[...asArray(value.receipts),...asArray(value.requests)])];
+  return rows.some(row=>[row?.status,row?.httpStatus,row?.error?.status,row?.details?.status]
+    .some(status=>CITYHIVE_DENIAL_STATUSES.has(Number(status))));
+}
+
 export async function runExpansionShadow({ lifecycle, states = [], renewActiveStates = [], env = process.env,
   limit = 5, outDir = path.resolve('out', 'shadow'), cwd = process.cwd(), maintenanceRequestJson,
   runCollector = runStateChild, prepareCandidate = runCandidatePrerequisite } = {}) {
@@ -397,6 +407,11 @@ export async function runExpansionShadow({ lifecycle, states = [], renewActiveSt
     // A denied/unresolved renewal halts the batch before a sibling can reuse
     // a shared host. Preserve the actual report and incident before stopping.
     for (const renewed of renewals) await assertActiveRenewalIncidentSafety(renewed, {out: path.join(cwd, 'out')});
+    // Any family may share a first-party host with an active sibling. A new
+    // denial or unknown child failure must stop this maintenance batch before
+    // another source can run, even when its incident file uses another family.
+    if(renewals.length&&(!execution.ok||reportHasAccessDenial(report)))
+      throw Error('Manual active-renewal batch stopped after '+state+': '+(!execution.ok?'source execution failed':'source access denial')+'; report and incident evidence were preserved');
   }
   const summaryResults = results.map((result) => ({ state: result.state, directory: result.directory, executionOk: result.evidence.execution?.ok === true, collectorStatus: result.evidence.collector?.status || 'unknown', prerequisite: result.evidence.prerequisite, complete: result.evidence.complete, outcome: result.evidence.outcome, readiness: result.evidence.readiness, publication: result.evidence.publication, alerts: result.evidence.alerts, metrics: result.evidence.metrics }));
   const summary = {

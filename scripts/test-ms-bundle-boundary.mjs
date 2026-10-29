@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFile } from 'node:fs/promises';
+import { readFile as readRawFile } from 'node:fs/promises';
+import {normalizeNineStateAdmissionMetadata} from '../engine/src/verification/nine-state-admission-metadata.mjs';
+// These existing mutation cases exercise their original historical stage.
+// The separate nine-state suite covers actual admitted/renewed metadata first.
+async function readFile(file,encoding){const name=String(file).replaceAll('\\','/');for(const target of ['src/config/state-lifecycle.json','src/config/stateLifecycle.ts'])if(name.endsWith(target)){const bytes=normalizeNineStateAdmissionMetadata(target,await readRawFile(file));return encoding?bytes.toString(encoding):bytes;}return readRawFile(file,encoding);}
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';

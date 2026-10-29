@@ -115,9 +115,9 @@ test('source deadlines fit parent watchdogs and denial cache saves independently
   assert.ok(restore&&save);assert.match(save,/if: always\(\)/);assert.equal(save.match(/\bkey: (.+)/)[1],restore.match(/\bkey: (.+)/)[1]);
   const policy=STATE_LIFECYCLE_CONFIG.reliabilityPolicy;
   const expected=STATE_LIFECYCLE_CONFIG.activeStates.map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
-  const capacity=evaluateCapacityBudget({stateExpectedRunMs:[...expected,...Object.values(NJ_MI_PRODUCTION_BUDGETS).map(b=>b.stateMs)],
+  const capacity=evaluateCapacityBudget({stateExpectedRunMs:expected,
     concurrency:policy.workerConcurrency,intervalMs:policy.refreshIntervalMs,safetyMarginMs:policy.refreshSafetyMarginMs});
-  assert.equal(capacity.ok,true,'Prospective WI/OK parent budgets must fit the current refresh capacity before promotion');
+  assert.equal(capacity.ok,true,'The actual selected active fleet must retain its reviewed planning budget; inactive NJ/MI cannot consume phantom workers');
 });
 
 test('a late successful HTTP response after parent cancellation cannot publish inventory or start another request',async t=>{

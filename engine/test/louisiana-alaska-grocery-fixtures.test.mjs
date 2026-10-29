@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {fixture} from './helpers/synthetic-louisiana-alaska-promotion.mjs';
+import {fixture,syntheticInactiveGroceryConfig} from './helpers/synthetic-louisiana-alaska-promotion.mjs';
 import {validateStateFixtures,executeStateFixtures} from '../src/verify-state-fixtures.mjs';
 import {BourbonBible} from '../src/core/bible.mjs';
 import {ALL_STATE_SOURCES} from '../src/state-sources.mjs';
@@ -26,7 +26,7 @@ test('authoritative inactive lifecycle defeats forced-live collection without to
  const bible=new BourbonBible(fixture.records);
  for(const state of ['LA','AK']){
   const config=ALL_STATE_SOURCES.find(row=>row.id===state);
-  const report=await collectState(config,bible,{grocerySourceOptions:{forceLive:true}});
+  const report=await collectState(config,bible,{lifecycleConfig:syntheticInactiveGroceryConfig(state),grocerySourceOptions:{lifecycleConfig:syntheticInactiveGroceryConfig(state),forceLive:true}});
   assert.equal(report.status,'not_promoted');assert.equal(report.metadata.requestCount,0);assert.deepEqual(report.signals,[]);
  }
  assert.equal(requests,0);

@@ -1,0 +1,1799 @@
+{
+  "activeStates": [
+    "NC",
+    "VA",
+    "PA",
+    "OH",
+    "IA",
+    "ID",
+    "AL",
+    "IL",
+    "IN",
+    "TN",
+    "SC",
+    "MD-MONTGOMERY",
+    "KY",
+    "AZ",
+    "CA",
+    "FL",
+    "TX",
+    "GA",
+    "NV",
+    "UT",
+    "NY",
+    "CO",
+    "MS",
+    "WV",
+    "WA",
+    "NM",
+    "WI",
+    "OK",
+    "LA",
+    "AK",
+    "MA",
+    "CT",
+    "RI"
+  ],
+  "reliabilityPolicy": {
+    "schemaVersion": 1,
+    "refreshIntervalMs": 1800000,
+    "refreshSafetyMarginMs": 300000,
+    "defaultExpectedStateRunMs": 90000,
+    "workerConcurrency": 4,
+    "promotionPolicy": {
+      "minShadowRuns": 3,
+      "minCanaryRuns": 2,
+      "requireVerticalSliceManifest": true,
+      "requireFixtureContract": true,
+      "requireCanaryPreviewUrl": true
+    },
+    "grandfatheredActiveStates": [
+      "NC",
+      "VA",
+      "PA",
+      "OH",
+      "IA",
+      "ID",
+      "AL",
+      "IL",
+      "IN",
+      "TN",
+      "SC",
+      "MD-MONTGOMERY",
+      "KY",
+      "AZ",
+      "CA",
+      "FL",
+      "TX",
+      "GA",
+      "NV",
+      "MS"
+    ],
+    "stateExpectedRunMs": {
+      "TX": 90000,
+      "VA": 1140000,
+      "IN": 240000,
+      "TN": 180000,
+      "SC": 180000,
+      "NJ": 120000,
+      "MI": 60000,
+      "WI": 30000,
+      "OK": 30000,
+      "KY": 180000,
+      "WA": 360000,
+      "NM": 120000,
+      "CA": 300000,
+      "NV": 240000,
+      "ID": 180000,
+      "AZ": 900000,
+      "FL": 180000,
+      "LA": 120000,
+      "AK": 120000,
+      "MA": 30000,
+      "CT": 30000,
+      "RI": 30000
+    }
+  },
+  "states": {
+    "NC": {
+      "customerLabel": "North Carolina",
+      "sourceLabel": "North Carolina ABC + county boards",
+      "publicStatus": "active",
+      "lifecycle": "store_inventory_and_board_leads",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
+      "peakVerifiedSourceTargets": 47,
+      "peakVerifiedSourceAreas": 14,
+      "refinementLevel": "board",
+      "customerSummary": "ABC board, warehouse, and selected county-board store signals where public sources support them. The Charlotte metro option expands deterministically to eight reviewed official boards; board-level rows remain leads, not exact shelf inventory.",
+      "customerAreaLabel": "North Carolina ABC boards",
+      "areaOptions": [
+        "Charlotte Metro ABC Boards"
+      ]
+    },
+    "VA": {
+      "customerLabel": "Virginia",
+      "sourceLabel": "Virginia ABC",
+      "publicStatus": "active",
+      "lifecycle": "store_inventory",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
+      "peakVerifiedSourceTargets": 242,
+      "peakVerifiedSourceAreas": 154,
+      "refinementLevel": "city",
+      "customerSummary": "Virginia ABC store availability for normal products, with limited-availability caveats."
+    },
+    "PA": {
+      "customerLabel": "Pennsylvania",
+      "sourceLabel": "Pennsylvania FWGS / PLCB",
+      "publicStatus": "active",
+      "lifecycle": "store_inventory",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
+      "peakVerifiedSourceTargets": 563,
+      "peakVerifiedSourceAreas": 391,
+      "refinementLevel": "city_store",
+      "customerSummary": "FWGS pickup/store inventory where public browser extraction confirms current store rows."
+    },
+    "OH": {
+      "customerLabel": "Ohio",
+      "sourceLabel": "Ohio OHLQ",
+      "publicStatus": "active",
+      "lifecycle": "store_inventory",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
+      "peakVerifiedSourceTargets": 242,
+      "peakVerifiedSourceAreas": 154,
+      "refinementLevel": "city",
+      "customerSummary": "OHLQ browser-assisted store availability where the public source is reachable."
+    },
+    "IA": {
+      "customerLabel": "Iowa",
+      "sourceLabel": "Iowa ABD + Costco warehouse watch",
+      "publicStatus": "active",
+      "lifecycle": "store_delivery_leads",
+      "coverageTier": "store_delivery_leads",
+      "refinementLevel": "city",
+      "inventoryAlertable": false,
+      "watchAlertable": true,
+      "customerSummary": "Official Iowa ABD delivery and allocation rows. These are strong store-level leads, not live shelf inventory. Costco warehouse bourbon signals are included where verified for Iowa warehouses."
+    },
+    "ID": {
+      "customerLabel": "Idaho",
+      "sourceLabel": "Idaho State Liquor Division",
+      "publicStatus": "active",
+      "lifecycle": "store_availability_status",
+      "coverageTier": "store_availability_status",
+      "refinementLevel": "city",
+      "customerSummary": "Official Idaho Liquor store availability status and as-of-date rows by store/city. No bottle-count or reservation guarantee; verify before driving."
+    },
+    "AL": {
+      "customerLabel": "Alabama",
+      "sourceLabel": "Alabama ABC + Costco warehouse watch",
+      "publicStatus": "active",
+      "lifecycle": "scheduled_release_leads",
+      "coverageTier": "shipment_drop_intelligence",
+      "refinementLevel": "statewide",
+      "customerSummary": "Official limited-release schedule and store/drop intelligence. Scheduled release leads, not live shelf inventory. Costco warehouse bourbon signals are included where verified for Alabama warehouses."
+    },
+    "IL": {
+      "customerLabel": "Illinois",
+      "sourceLabel": "Illinois Binny's + Costco + retailer inventory watch",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
+      "peakVerifiedSourceTargets": 46,
+      "peakVerifiedSourceAreas": 39,
+      "refinementLevel": "statewide",
+      "customerSummary": "Whitelisted public retailer inventory rows with strict bourbon matching and verify-before-driving caveats. Costco warehouse bourbon signals are included alongside Illinois retailer inventory where verified."
+    },
+    "IN": {
+      "customerLabel": "Indiana",
+      "sourceLabel": "Indiana ATC + Costco + retailer inventory watch",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
+      "peakVerifiedSourceTargets": 39,
+      "peakVerifiedSourceAreas": 16,
+      "refinementLevel": "statewide",
+      "customerSummary": "Verified retailer store inventory and pickup/orderability across Indiana, with exact-store identity and verify-before-driving caveats. ATC rows provide store-spine context only and are never bottle availability. Costco warehouse bourbon signals are included where verified."
+    },
+    "TN": {
+      "customerLabel": "Tennessee",
+      "sourceLabel": "Tennessee ABC + retailer inventory watch",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city_store",
+      "customerSummary": "Whitelisted Tennessee retailer e-commerce inventory with exact host, merchant, address, product, safe-format, and current orderability binding. Binary availability never becomes an exact quantity; stable Nashville metro store identities remain discoverable even when no current row qualifies.",
+      "customerAreaLabel": "Nashville Metro",
+      "areaOptions": [
+        "Nashville Metro"
+      ]
+    },
+    "UT": {
+      "customerLabel": "Utah",
+      "sourceLabel": "Utah DABS",
+      "publicStatus": "active",
+      "lifecycle": "aggregate_inventory_watch",
+      "coverageTier": "aggregate_inventory_watch",
+      "refinementLevel": "statewide",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "shadowEligible": true,
+      "customerSummary": "DABS product locator, warehouse/store aggregate, allocated, and barrel-selection watch data. Not exact per-store shelf inventory yet.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-07-17T00:14:48.000Z",
+        "shadowArtifact": "engine/out/shadow/UT (three successful bounded runs on 2026-07-16; alerts disabled and production untouched)",
+        "canaryArtifact": "engine/out/canary/UT/site-run1 and site-run2 (two coherent canary builds with a Utah partition and zero Utah delivery alerts)",
+        "canaryPreviewUrl": "https://great-socks-sell.loca.lt",
+        "verticalSliceManifest": "engine/data/state-integration/UT.json",
+        "fixtureContract": "engine/data/state-fixtures/UT.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "UT",
+          "generatedAt": "2026-07-17T00:14:48.000Z",
+          "sourceConfigHash": "3c27a45ba71304c88a4989338aa33b90c7159be1d46829cb36560dd595869203",
+          "previewUrl": "https://great-socks-sell.loca.lt",
+          "shadowRuns": [
+            {
+              "runId": "2026-07-16T22-48-16-026Z",
+              "status": "success",
+              "artifactHash": "2f5c30af05508458ef7415bb7ae3579121aae774cb41a1b85339636c565bd1ca"
+            },
+            {
+              "runId": "2026-07-16T22-48-44-478Z",
+              "status": "success",
+              "artifactHash": "b15b9a88aa70b669442c9c6afa04de7677d6668aafa8ee128e5ba0db929a7438"
+            },
+            {
+              "runId": "2026-07-16T22-49-07-044Z",
+              "status": "success",
+              "artifactHash": "4c1b9702ea0c41badccdd1dc8d80cfcdac53c5a184e097d25b64d10278451694"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "site-run1",
+              "status": "success",
+              "artifactHash": "85c6e184962728faf44f2205916a0f63283b72e1a9833fe50c8f6cf07bac9fec"
+            },
+            {
+              "runId": "site-run2",
+              "status": "success",
+              "artifactHash": "85c6e184962728faf44f2205916a0f63283b72e1a9833fe50c8f6cf07bac9fec"
+            }
+          ],
+          "provenance": {
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "29545745479",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/29545745479",
+            "commitSha": "58801890ca7436711b9b21953d76caf0a242a440",
+            "artifactId": "8393888338",
+            "artifactName": "state-promotion-provenance-UT-29545745479",
+            "artifactDigest": "4a90ad38c6fad757cff1d146c7f5284da6df5d2f0783a739065dbf3c60e2932d",
+            "bundleDigest": "80faac8b215184f71a0c18ab57d1a93fa20dfcdc53767f4efc56e698ab452d2f",
+            "status": "success"
+          }
+        }
+      }
+    },
+    "MD-MONTGOMERY": {
+      "customerLabel": "Maryland",
+      "sourceLabel": "Montgomery County ABS",
+      "customerAreaLabel": "Montgomery County",
+      "areaOptions": [
+        "Montgomery County"
+      ],
+      "publicStatus": "active",
+      "lifecycle": "county_aggregate_inventory_watch",
+      "coverageTier": "aggregate_inventory_watch",
+      "refinementLevel": "area",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Maryland coverage currently starts with Montgomery County ABS aggregate inventory and HAL program data. Exact per-store drilldown is a hardening target."
+    },
+    "OR": {
+      "customerLabel": "Oregon",
+      "sourceLabel": "Oregon OLCC / Oregon Liquor Search",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_store_inventory_research",
+      "coverageTier": "blocked",
+      "refinementLevel": "store",
+      "customerSummary": "Research-only until Oregon Liquor Search browser/session collection reliably produces current store rows."
+    },
+    "NH": {
+      "customerLabel": "New Hampshire",
+      "sourceLabel": "New Hampshire Liquor & Wine Outlets",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_catalog_research",
+      "coverageTier": "blocked",
+      "refinementLevel": "store",
+      "customerSummary": "Research-only until NHLC outlet/product data can be accessed reliably without Cloudflare/Turnstile failures."
+    },
+    "FL": {
+      "customerLabel": "Florida",
+      "sourceLabel": "Florida retailer inventory watch",
+      "customerAreaLabel": "Florida retailer areas",
+      "areaOptions": [
+        "Tampa",
+        "Clearwater",
+        "Largo",
+        "Saint Petersburg",
+        "Pinellas Park",
+        "Brandon",
+        "Riverview",
+        "Wesley Chapel",
+        "Lutz",
+        "Dunedin",
+        "Oldsmar",
+        "Palm Harbor",
+        "Seminole",
+        "Tarpon Springs",
+        "Orlando",
+        "Kissimmee",
+        "Davenport",
+        "Groveland",
+        "Clermont",
+        "Miami",
+        "North Miami",
+        "Hialeah",
+        "Surfside",
+        "Fort Lauderdale",
+        "Hollywood",
+        "Hallandale Beach",
+        "Pembroke Pines",
+        "Miramar",
+        "Pompano Beach",
+        "Sunrise",
+        "West Palm Beach",
+        "Jacksonville",
+        "Sarasota",
+        "Gainesville",
+        "Pensacola",
+        "Gulf Breeze",
+        "Fort Walton Beach",
+        "Destin",
+        "Crestview",
+        "Panama City Beach"
+      ],
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
+      "peakVerifiedSourceTargets": 37,
+      "peakVerifiedSourceAreas": 27,
+      "refinementLevel": "city_store",
+      "customerSummary": "Guarded first-party Florida retailer inventory across Tampa Bay, Central Florida, South Florida, Jacksonville, Sarasota, Gainesville, and the Panhandle, with exact merchant/store identity, current retailer-reported quantity or binary orderability when observed, and verify-before-driving caveats."
+    },
+    "TX": {
+      "customerLabel": "Texas",
+      "sourceLabel": "Texas retailer inventory watch",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city_store",
+      "customerSummary": "Guarded first-party Texas retailer inventory across multiple regions, with exact-store identity and verify-before-driving caveats. TABC and retailer catalog/event pages remain non-inventory context."
+    },
+    "GA": {
+      "customerLabel": "Georgia",
+      "sourceLabel": "Georgia retailer inventory + Costco warehouse watch",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "moderate",
+      "peakVerifiedSourceTargets": 13,
+      "peakVerifiedSourceAreas": 7,
+      "refinementLevel": "city_store",
+      "customerSummary": "Guarded first-party retailer signals from exact Georgia storefront identities, including a stable Atlanta metro store universe, plus Costco warehouse bourbon watch where verified. Binary orderability is kept distinct from retailer-reported quantity, and every store signal includes a verify before driving caveat.",
+      "customerAreaLabel": "Atlanta Metro",
+      "areaOptions": [
+        "Atlanta Metro"
+      ]
+    },
+    "KY": {
+      "customerLabel": "Kentucky",
+      "sourceLabel": "Kentucky distillery drops + Costco warehouse watch",
+      "publicStatus": "active",
+      "lifecycle": "distillery_drop_release_watch",
+      "coverageTier": "distillery_release_watch",
+      "refinementLevel": "distillery",
+      "customerSummary": "Official Kentucky distillery gift-shop/drop and release-watch signals from Buffalo Trace, Old Forester, Four Roses, Heaven Hill, Maker's Mark, and Wild Turkey. Distillery pickup/release leads are clearly separated from retailer store shipment or inventory alerts. Costco warehouse bourbon signals are included where verified for Kentucky warehouses."
+    },
+    "SC": {
+      "customerLabel": "South Carolina",
+      "sourceLabel": "South Carolina Costco + retailer inventory mesh",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "sparse",
+      "peakVerifiedSourceTargets": 3,
+      "peakVerifiedSourceAreas": 3,
+      "refinementLevel": "area",
+      "customerAreaLabel": "South Carolina retailer areas",
+      "areaOptions": [
+        "Myrtle Beach",
+        "North Myrtle Beach",
+        "Conway",
+        "Carolina Forest",
+        "Surfside Beach",
+        "Murrells Inlet",
+        "Columbia",
+        "Greenville",
+        "Mauldin",
+        "Simpsonville",
+        "Taylors",
+        "Landrum",
+        "Spartanburg",
+        "Charleston",
+        "Mount Pleasant",
+        "North Charleston",
+        "Summerville",
+        "Hilton Head Island",
+        "Bluffton",
+        "Indian Land",
+        "Fort Mill",
+        "Rock Hill"
+      ],
+      "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."
+    },
+    "AZ": {
+      "customerLabel": "Arizona",
+      "sourceLabel": "Selected Arizona retailer inventory + Costco warehouse watch",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city",
+      "customerSummary": "Public inventory reports from selected Arizona Safeway, Albertsons and independent liquor stores. Availability covers the named premises; verify before driving. Costco warehouse observations remain a separate source."
+    },
+    "CA": {
+      "customerLabel": "California",
+      "sourceLabel": "California first-party retailer availability + Costco warehouse watch",
+      "customerAreaLabel": "California retailer areas",
+      "areaOptions": [
+        "Alameda",
+        "Alhambra",
+        "Bonita",
+        "Carmichael",
+        "Cheviot Hills",
+        "Chula Vista",
+        "Citrus Heights",
+        "Coronado",
+        "Culver City",
+        "Daly City",
+        "Davis",
+        "Downey",
+        "Elk Grove",
+        "Emeryville",
+        "Fair Oaks",
+        "Gardena",
+        "Inglewood",
+        "La Mesa",
+        "Lakewood",
+        "Lemon Grove",
+        "Los Angeles",
+        "Montebello",
+        "Pacifica",
+        "Rancho Cordova",
+        "Redondo Beach",
+        "Roseville",
+        "Sacramento",
+        "San Diego",
+        "San Francisco"
+      ],
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "area",
+      "customerSummary": "Public inventory reports from selected California grocery and independent liquor stores. Availability covers the named premises; verify before driving. Costco warehouse observations remain a separate source."
+    },
+    "CO": {
+      "customerLabel": "Colorado",
+      "sourceLabel": "Selected Colorado retailer inventory",
+      "customerAreaLabel": "Denver Metro, Boulder County, Colorado Springs",
+      "areaOptions": [
+        "Denver Metro",
+        "Boulder County",
+        "Colorado Springs"
+      ],
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city",
+      "customerSummary": "Verified first-party retailer inventory at selected premises in Denver Metro, Boulder County, and Colorado Springs. Availability covers the named stores; verify before driving.",
+      "promotionStage": "active",
+      "shadowEligible": true,
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-07-24T04:26:32.371Z",
+        "shadowArtifact": "engine/data/state-evidence/CO/shadow-runs.json",
+        "canaryArtifact": "engine/data/state-evidence/CO/canary-runs.json",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067755884",
+        "verticalSliceManifest": "engine/data/state-integration/CO.json",
+        "fixtureContract": "engine/data/state-fixtures/CO.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "CO",
+          "generatedAt": "2026-07-24T04:50:06.702Z",
+          "sourceConfigHash": "8da37e44f93fbec7c3cf86cbfa33e78f4b092134d7416dd0cd6bd6ad6c84456b",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067755884",
+          "shadowRuns": [
+            {
+              "runId": "local-shadow-co-1",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:27.082751Z",
+              "artifactPath": "out/shadow/CO/local-evidence/report-1.json",
+              "artifactHash": "787571f238aaee104ae0160b0b1071119c23b9cb14d3e73e37f10b84c15fc77f",
+              "signalCount": 18,
+              "sourceChains": [
+                "bonnie-brae-liquor",
+                "mollys-spirits",
+                "total-beverage"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            },
+            {
+              "runId": "local-shadow-co-2",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:30.680259Z",
+              "artifactPath": "out/shadow/CO/local-evidence/report-2.json",
+              "artifactHash": "ba363c4766de7880c84bcbd386b2bfc50c8138222c539635fa353b81a9044e59",
+              "signalCount": 18,
+              "sourceChains": [
+                "bonnie-brae-liquor",
+                "mollys-spirits",
+                "total-beverage"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            },
+            {
+              "runId": "local-shadow-co-3",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:34.055961Z",
+              "artifactPath": "out/shadow/CO/local-evidence/report-3.json",
+              "artifactHash": "410b0b8e3de41cde19219a4581033553606b2ccace1178fc9200791b576081bf",
+              "signalCount": 18,
+              "sourceChains": [
+                "bonnie-brae-liquor",
+                "mollys-spirits",
+                "total-beverage"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "local-canary-v2-co-1",
+              "status": "success",
+              "generatedAt": "2026-07-24T04:23:19.632762Z",
+              "artifactHash": "f0cdbe330d2d77869e0c3fd761d6eeb2c44306fba7efd7a7869524bbf6584922"
+            },
+            {
+              "runId": "local-canary-v2-co-2",
+              "status": "success",
+              "generatedAt": "2026-07-24T04:23:20.159223Z",
+              "artifactHash": "214088eb8f52f02f13bbdcca5fa0f2159921592b63ff93b01b7a1aea8de43869"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+            "workflowName": "Verify state promotion provenance",
+            "workflowRunId": "30067755884",
+            "workflowRunAttempt": "1",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067755884",
+            "commitSha": "8ff436d7e6066bd5b9ee86085c17c9e57d947619",
+            "artifactId": "8586850690",
+            "artifactName": "state-promotion-provenance-CO-30067755884",
+            "artifactDigest": "ec6ad0295ee15416895e8c9d6baf23754fcd6e5d4c0294d17a35ae2416ba8dfb",
+            "bundleDigest": "cb8a6e9d48fb3450ebb178dfbecc9716980fdfa05d4d8b464bbc3e42e2c44f6e",
+            "generatedAt": "2026-07-24T04:49:16.814Z"
+          }
+        }
+      }
+    },
+    "MI": {
+      "customerLabel": "Michigan",
+      "sourceLabel": "Michigan exact-premises research",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Inactive research at 1 reviewed Michigan stores; production coverage and all alerts remain blocked pending promotion."
+    },
+    "MN": {
+      "customerLabel": "Minnesota",
+      "sourceLabel": "Minnesota Costco warehouse bourbon watch",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
+      "refinementLevel": "warehouse",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Minnesota has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+    },
+    "MO": {
+      "customerLabel": "Missouri",
+      "sourceLabel": "Missouri Costco warehouse bourbon watch",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
+      "refinementLevel": "warehouse",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Missouri has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+    },
+    "MS": {
+      "customerLabel": "Mississippi",
+      "sourceLabel": "Mississippi exact-store retailer inventory",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "region_city_store",
+      "areaOptions": [
+        "Northwest / DeSoto\u2013Memphis fringe",
+        "North Central / Oxford",
+        "Northeast / Tupelo\u2013Golden Triangle",
+        "Delta / Greenville\u2013Clarksdale\u2013Greenwood",
+        "Central / Jackson\u2013Madison\u2013Rankin",
+        "East Central / Meridian",
+        "Pine Belt / Hattiesburg\u2013Laurel",
+        "Gulf Coast / Gulfport\u2013Biloxi\u2013Pascagoula",
+        "Southwest / Natchez\u2013Brookhaven\u2013McComb\u2013Vicksburg"
+      ],
+      "promotionStage": "active",
+      "shadowEligible": false,
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "coverageLayerCounts": {
+        "known": 690,
+        "probeable": 11,
+        "catalogWatch": 1,
+        "live": 4,
+        "alertGrade": 0
+      },
+      "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-07-30T12:04:37.478Z",
+        "shadowArtifact": "engine/data/shadow-evidence/MS.json",
+        "canaryArtifact": "engine/data/canary-evidence/MS.json",
+        "canaryPreviewUrl": "https://bourbonsignal-2oozjq6y8-tarsagent22s-projects.vercel.app",
+        "verticalSliceManifest": "engine/data/state-integration/MS.json",
+        "fixtureContract": "engine/data/state-fixtures/MS.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "MS",
+          "generatedAt": "2026-07-30T12:02:44.739Z",
+          "sourceConfigHash": "c25ce153f4f4e2d4f17f797c3b5a4ef5baa6ae5f1ed219584facce3f2c47f521",
+          "previewUrl": "https://bourbonsignal-2oozjq6y8-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "github-30326676032",
+              "status": "success",
+              "artifactHash": "6e67094230c23e720f0f83045eac03175773fa06243d7412c00cdb269a2a1942"
+            },
+            {
+              "runId": "github-30433662576",
+              "status": "success",
+              "artifactHash": "93e42030f5a0a46657098b207a7676a72c3f80b865dff933c09f9eed48243772"
+            },
+            {
+              "runId": "github-30448010990",
+              "status": "success",
+              "artifactHash": "a68d83b5272bae93fa284448b769570878bff217a6b2c964bbdd0204cce7d162"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "ms-canary-input",
+              "status": "success",
+              "artifactHash": "ca312fe8f1716ae4bafe2ee91917d9b51ccd2be1bda8d4b6b1f5b75af3dfc728"
+            },
+            {
+              "runId": "ms-canary-policy",
+              "status": "success",
+              "artifactHash": "8196f71010619f99a92ef9854d27b84dbbd7b62165eb17e6c76766b248b1fd40"
+            }
+          ],
+          "provenance": {
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "30540884485",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30540884485",
+            "commitSha": "ec11e34d00c6b3d1944b436e6bb8d6cf3b593c96",
+            "artifactId": "8758636527",
+            "artifactName": "state-promotion-provenance-MS-30540884485",
+            "artifactDigest": "84c4f13636bc2edd992a29b4367271dee9dc1247fa2e5b8a08249514b08610fa",
+            "bundleDigest": "ff22a511e2b21776ffab59894de3241096d1a8aa4a0d6084aefe89b58d9eb16a",
+            "status": "success"
+          }
+        }
+      }
+    },
+    "NV": {
+      "customerLabel": "Nevada",
+      "sourceLabel": "Nevada first-party retailer inventory + Costco watch",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "area",
+      "areaOptions": [
+        "Las Vegas Valley",
+        "Reno\u2013Sparks"
+      ],
+      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
+    },
+    "NY": {
+      "customerLabel": "New York",
+      "sourceLabel": "Selected New York retailer inventory",
+      "customerAreaLabel": "New York City, Nassau County, Suffolk County, Buffalo, Rochester Metro, Hudson Valley, Lake George",
+      "areaOptions": [
+        "New York City",
+        "Nassau County",
+        "Suffolk County",
+        "Buffalo",
+        "Rochester Metro",
+        "Hudson Valley",
+        "Lake George"
+      ],
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city",
+      "customerSummary": "Verified first-party retailer inventory at selected premises in New York City, Nassau County, Suffolk County (Winecity East Northport), Buffalo, Rochester Metro, Hudson Valley, and Lake George. Availability covers the named stores; verify before driving.",
+      "promotionStage": "active",
+      "shadowEligible": true,
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-07-24T04:26:31.660Z",
+        "shadowArtifact": "engine/data/state-evidence/NY/shadow-runs.json",
+        "canaryArtifact": "engine/data/state-evidence/NY/canary-runs.json",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30657094429",
+        "verticalSliceManifest": "engine/data/state-integration/NY.json",
+        "fixtureContract": "engine/data/state-fixtures/NY.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "NY",
+          "generatedAt": "2026-07-31T18:56:07.028Z",
+          "sourceConfigHash": "6ba73fd702ea71835154fac8f02dc7963017aadacce12a874a002ef4f9435f17",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30657094429",
+          "shadowRuns": [
+            {
+              "runId": "nassau-shadow-2026-07-31-1",
+              "status": "success",
+              "generatedAt": "2026-07-31T18:26:30.900Z",
+              "artifactPath": "out/shadow/NY/nassau-evidence/report-1.json",
+              "artifactHash": "907c7189f1eed82bf120244297d691ce295ddc2fd9463a5bafe8cea39eef2c9b",
+              "signalCount": 13,
+              "sourceChains": [
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            },
+            {
+              "runId": "nassau-shadow-2026-07-31-2",
+              "status": "success",
+              "generatedAt": "2026-07-31T18:26:36.986Z",
+              "artifactPath": "out/shadow/NY/nassau-evidence/report-2.json",
+              "artifactHash": "4cbf84689cdc50f4b53bd75d94a8b78d88ddce5f0fffc4ace7109c0b9278eb71",
+              "signalCount": 13,
+              "sourceChains": [
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            },
+            {
+              "runId": "nassau-shadow-2026-07-31-3",
+              "status": "success",
+              "generatedAt": "2026-07-31T18:26:43.199Z",
+              "artifactPath": "out/shadow/NY/nassau-evidence/report-3.json",
+              "artifactHash": "ff1da6721e5425e1a72172884dad0ff3985e4884c7effa643297b8ccc4ead5b9",
+              "signalCount": 13,
+              "sourceChains": [
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "nassau-canary-2026-07-31-1",
+              "status": "success",
+              "generatedAt": "2026-07-31T18:26:30.900Z",
+              "artifactHash": "64bcec88315f060397fcc20d53fae49390505d0d83588b068a1790a71d937b46"
+            },
+            {
+              "runId": "nassau-canary-2026-07-31-2",
+              "status": "success",
+              "generatedAt": "2026-07-31T18:26:36.986Z",
+              "artifactHash": "94615f2b4e641d93bfd89e8ffc90db9f854d4c6b7b79b248e50aafb717ce7765"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+            "workflowName": "Verify state promotion provenance",
+            "workflowRunId": "30657094429",
+            "workflowRunAttempt": "1",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30657094429",
+            "commitSha": "04af5e08f06d60159e38a2dd0bd435230d9669a7",
+            "artifactId": "8803668444",
+            "artifactName": "state-promotion-provenance-NY-30657094429",
+            "artifactDigest": "4eeb4da8552ae4a62c8b34f3835995a9a5cf7643e3c1b838ddec53864af624c3",
+            "bundleDigest": "c3542a5edf44d6a66a1b32aae8f9643429821058041665783e8bfb743ea79ede",
+            "generatedAt": "2026-07-31T18:56:07.028Z"
+          }
+        }
+      }
+    },
+    "WV": {
+      "customerLabel": "West Virginia",
+      "sourceLabel": "West Virginia ABCA exact-store recent purchases, barrel-selection updates, and licensed-store directory",
+      "publicStatus": "active",
+      "lifecycle": "exact_store_recent_purchase_and_barrel_updates",
+      "coverageTier": "shipment_drop_intelligence",
+      "refinementLevel": "exact_store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "shadowEligible": false,
+      "customerSummary": "Exact-store West Virginia retailer purchase leads from WVABCA's trailing three-month window, plus official barrel-selection updates and searchable licensed stores. Purchase leads are call-first shipment intelligence, not live shelf inventory or quantity, and do not enable restock alerts.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-08-09T23:04:01.524Z",
+        "shadowArtifact": "engine/data/state-evidence/WV/shadow-runs.json",
+        "canaryArtifact": "engine/data/state-evidence/WV/canary-runs.json",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
+        "verticalSliceManifest": "engine/data/state-integration/WV.json",
+        "fixtureContract": "engine/data/state-fixtures/WV.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "WV",
+          "generatedAt": "2026-08-10T17:12:18.600Z",
+          "sourceConfigHash": "4dc171003c4a0a197cafc5931a4a384e1eb1cdebf39cb102e439c994965e1c39",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
+          "shadowRuns": [
+            {
+              "runId": "31340713953",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:58:22.362Z",
+              "artifactHash": "9361ae9aebe18195d805d615bdc6ea298a52f3331a64370152d5096b5ec86738"
+            },
+            {
+              "runId": "31340715521",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:58:37.763Z",
+              "artifactHash": "096129a4dfd8dc553a952336ee811b0ea4ea7bf41e78afb696b70656d7a48102"
+            },
+            {
+              "runId": "31340761817",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:59:31.649Z",
+              "artifactHash": "dac0cf23696885930f7ad4f0b7edcf484fb636a15a88b6c5482f9d042782a722"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "31340716341",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:58:35Z",
+              "artifactHash": "071ac5a79fc40f901e7732b8d8b1be5f2c8c1f9c4ad2b4328e89eedcd55db578"
+            },
+            {
+              "runId": "31340717144",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:59:07Z",
+              "artifactHash": "98cdf4230d8346d73ee47e80e2f4c770acfdd3b320febf7d3976d7559791b871"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+            "workflowName": "Verify state promotion provenance",
+            "workflowRunId": "31412815445",
+            "workflowRunAttempt": "1",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
+            "commitSha": "8c3ca57cdd920ce49afbeedbee2f94b923498344",
+            "artifactId": "9072244209",
+            "artifactName": "state-promotion-provenance-WV-31412815445",
+            "artifactDigest": "fbeef1072df5e9c44570e926af5384cd68368ca1328de87e722d1a242f71276b",
+            "bundleDigest": "64b2e1c16d47f2a8c279ba2f3339f31f398cfe013fdbe15d70f57adf45b5ae22",
+            "generatedAt": "2026-08-10T17:12:18.600Z"
+          }
+        }
+      }
+    },
+    "OK": {
+      "customerLabel": "Oklahoma",
+      "sourceLabel": "Selected Oklahoma first-party retailer inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party pickup availability at two reviewed Oklahoma City retailers. Exact shelf counts are not published. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T17:56:56.347Z",
+        "shadowArtifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193",
+        "canaryArtifact": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+        "canaryPreviewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+        "verticalSliceManifest": "engine/data/state-integration/OK.json",
+        "fixtureContract": "engine/data/state-fixtures/OK.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "OK",
+          "generatedAt": "2026-10-29T17:52:42.000Z",
+          "sourceConfigHash": "42af4e2d352dfd6ddd43521edf64de30cbcbbfd55de6ef51bfd24aae7caa224d",
+          "previewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40922494321",
+              "status": "success",
+              "artifactHash": "7316d55213caf6eb19ce106b5d50f881323631ccac748b13d0d03aece0dd589c",
+              "artifactId": "12919611589",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40922494321"
+            },
+            {
+              "runId": "40923481819",
+              "status": "success",
+              "artifactHash": "aa5daac315dac0efd6247e95a80cd435c000beee1f63aa605351099ca48050c8",
+              "artifactId": "12920086473",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40923481819"
+            },
+            {
+              "runId": "40924211193",
+              "status": "success",
+              "artifactHash": "18372633aca1df1fc9a87e32562e418c191c704c04dc53fa10e38d24d4b81e14",
+              "artifactId": "12919851883",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40925057412",
+              "status": "success",
+              "artifactHash": "89841650cb62955739f7e4ee6348a258b0f3c5b958a8c48d81bf79c202642528",
+              "artifactId": "12918604476",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925057412"
+            },
+            {
+              "runId": "40925213213",
+              "status": "success",
+              "artifactHash": "654938d7124c1414cb2ac4baa2a6f6d99493376da3ac8862f06a105f07c056e9",
+              "artifactId": "12919753511",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925213213"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40925321358",
+            "artifactId": "12919592823",
+            "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+            "artifactDigest": "105dadd393d38a4520e76547a9399fd2bb97590c1da0b3f7cbf6bf9473be6b1e",
+            "bundleDigest": "2699fe4181305c5ed6a3b07d1932813ffec81be4d6d19cfa210e2d97697629cf",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925321358",
+            "artifactName": "state-promotion-provenance-OK-40925321358"
+          }
+        }
+      }
+    },
+    "WA": {
+      "customerLabel": "Washington",
+      "sourceLabel": "Washington reviewed exact-store grocery inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party in-store availability at selected reviewed Washington grocery stores. Exact shelf counts are not published. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T17:56:56.347Z",
+        "shadowArtifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193",
+        "canaryArtifact": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+        "canaryPreviewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+        "verticalSliceManifest": "engine/data/state-integration/WA.json",
+        "fixtureContract": "engine/data/state-fixtures/WA.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "WA",
+          "generatedAt": "2026-10-29T17:52:21.058Z",
+          "sourceConfigHash": "0a7409f08ba72a18503ea9ddb5657a546984dfecaca1c94c1af657040c4c7f21",
+          "previewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40922494321",
+              "status": "success",
+              "artifactHash": "7316d55213caf6eb19ce106b5d50f881323631ccac748b13d0d03aece0dd589c",
+              "artifactId": "12919611589",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40922494321"
+            },
+            {
+              "runId": "40923481819",
+              "status": "success",
+              "artifactHash": "aa5daac315dac0efd6247e95a80cd435c000beee1f63aa605351099ca48050c8",
+              "artifactId": "12920086473",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40923481819"
+            },
+            {
+              "runId": "40924211193",
+              "status": "success",
+              "artifactHash": "18372633aca1df1fc9a87e32562e418c191c704c04dc53fa10e38d24d4b81e14",
+              "artifactId": "12919851883",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40925045213",
+              "status": "success",
+              "artifactHash": "b8e0c1d167f91c3ad289fc25391a9240486a1e58c9b57eda146b8e66db2d2ac4",
+              "artifactId": "12920466435",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925045213"
+            },
+            {
+              "runId": "40925194979",
+              "status": "success",
+              "artifactHash": "35a55306ed7516896b71417b7029fe962e9997a37e9f45a226765903cfe1852b",
+              "artifactId": "12918783959",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925194979"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40925309053",
+            "artifactId": "12920635540",
+            "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+            "artifactDigest": "2d4f9d27e58f6e8c7c26938e32d55074b65719cfedda228e26d4dd1741061158",
+            "bundleDigest": "00820577e64126fe48f5595c59844dbdfc829e9bf5ce66fd1b14c8d660a656c8",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925309053",
+            "artifactName": "state-promotion-provenance-WA-40925309053"
+          }
+        }
+      }
+    },
+    "WI": {
+      "customerLabel": "Wisconsin",
+      "sourceLabel": "Selected Wisconsin first-party retailer inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party pickup availability at one reviewed Wauwatosa retailer. Exact shelf counts are not published. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T17:56:56.347Z",
+        "shadowArtifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193",
+        "canaryArtifact": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+        "canaryPreviewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+        "verticalSliceManifest": "engine/data/state-integration/WI.json",
+        "fixtureContract": "engine/data/state-fixtures/WI.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "WI",
+          "generatedAt": "2026-10-29T17:52:38.997Z",
+          "sourceConfigHash": "d6672f240e10bcfe4a0cbc3e5a607fab9218640d65678e73c713dbf3f6dddc66",
+          "previewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40922494321",
+              "status": "success",
+              "artifactHash": "7316d55213caf6eb19ce106b5d50f881323631ccac748b13d0d03aece0dd589c",
+              "artifactId": "12919611589",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40922494321"
+            },
+            {
+              "runId": "40923481819",
+              "status": "success",
+              "artifactHash": "aa5daac315dac0efd6247e95a80cd435c000beee1f63aa605351099ca48050c8",
+              "artifactId": "12920086473",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40923481819"
+            },
+            {
+              "runId": "40924211193",
+              "status": "success",
+              "artifactHash": "18372633aca1df1fc9a87e32562e418c191c704c04dc53fa10e38d24d4b81e14",
+              "artifactId": "12919851883",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40925053511",
+              "status": "success",
+              "artifactHash": "23f2b25113f4d3b67fd60030382d8989393696aba5d6727347ce370c75c5a83d",
+              "artifactId": "12919263535",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925053511"
+            },
+            {
+              "runId": "40925207727",
+              "status": "success",
+              "artifactHash": "329cbcf576ee967781bf605f2e8b0997f2bab47d4c3bb03d658fb822beed4dfd",
+              "artifactId": "12919877165",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925207727"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40925317245",
+            "artifactId": "12920835288",
+            "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+            "artifactDigest": "3194afb7592efeb816f391fb07b821bb9c3afea584759ef09ec6ef67b515f77b",
+            "bundleDigest": "e892504b1e76564505d7d7d0b6c7412610582f8c42abb850c9a36fffc58ff2d1",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925317245",
+            "artifactName": "state-promotion-provenance-WI-40925317245"
+          }
+        }
+      }
+    },
+    "LA": {
+      "customerLabel": "Louisiana",
+      "sourceLabel": "Louisiana reviewed exact-store grocery inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party availability at selected reviewed Louisiana stores. Some entries report availability without an exact shelf count. Verify before driving. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T19:20:22.105Z",
+        "verticalSliceManifest": "engine/data/state-integration/LA.json",
+        "fixtureContract": "engine/data/state-fixtures/LA.json",
+        "canaryPreviewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "LA",
+          "generatedAt": "2026-10-29T19:01:55.460Z",
+          "sourceConfigHash": "7f2f02b5248073529d3e45c4d3e5c9ca6ed27b93c5185242e33cd52a10cb8df6",
+          "previewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40931101541",
+              "status": "success",
+              "artifactHash": "ea7841c0a9830f4e75f1085c40d2d0a6bca76f04c917a948b9ded1a22b7e3559",
+              "artifactId": "12922677049",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40931101541"
+            },
+            {
+              "runId": "40931880838",
+              "status": "success",
+              "artifactHash": "372a4b1e4f7b60e8d8f044da5fca4b049b8158b177e33cfc450842f7ad0a7c4c",
+              "artifactId": "12923286876",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40931880838"
+            },
+            {
+              "runId": "40934749420",
+              "status": "success",
+              "artifactHash": "53daad3caa618e1d9471ee65d5689e07c31b711b5c8b470c3432e8785acda276",
+              "artifactId": "12925155712",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40934749420"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40932227852",
+              "status": "success",
+              "artifactHash": "c7e16b792903a479817c931a4e6e1a3636a8afa57f31b1f446c6da0894b5bfb2",
+              "artifactId": "12923536688",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40932227852"
+            },
+            {
+              "runId": "40935499425",
+              "status": "success",
+              "artifactHash": "94ee04008c42e0efec743a3c877075a01a4e6de606f3acd979e8e03b6fc4a1b0",
+              "artifactId": "12923484985",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40935499425"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40936165833",
+            "artifactId": "12925905219",
+            "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+            "artifactDigest": "bb6e5cfbcbc1f203197254b9595f739d0518c2a783750f058ff20b5c9ebd4eff",
+            "bundleDigest": "303116a1ff12cae9e0e0fbe2f4ce598877199dc6297e1a335020c4460653b754",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40936165833",
+            "artifactName": "state-promotion-provenance-LA-40936165833"
+          }
+        }
+      }
+    },
+    "AK": {
+      "customerLabel": "Alaska",
+      "sourceLabel": "Alaska reviewed exact-store grocery inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party availability at selected reviewed Alaska stores. Some entries report availability without an exact shelf count. Verify before driving. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T19:20:22.148Z",
+        "verticalSliceManifest": "engine/data/state-integration/AK.json",
+        "fixtureContract": "engine/data/state-fixtures/AK.json",
+        "canaryPreviewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "AK",
+          "generatedAt": "2026-10-29T19:04:28.953Z",
+          "sourceConfigHash": "b82ead4c8ff1eddaa1e5ea4aaba58173869b213999e406e08d090da5cf688fd1",
+          "previewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40931101541",
+              "status": "success",
+              "artifactHash": "ea7841c0a9830f4e75f1085c40d2d0a6bca76f04c917a948b9ded1a22b7e3559",
+              "artifactId": "12922677049",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40931101541"
+            },
+            {
+              "runId": "40931880838",
+              "status": "success",
+              "artifactHash": "372a4b1e4f7b60e8d8f044da5fca4b049b8158b177e33cfc450842f7ad0a7c4c",
+              "artifactId": "12923286876",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40931880838"
+            },
+            {
+              "runId": "40934749420",
+              "status": "success",
+              "artifactHash": "53daad3caa618e1d9471ee65d5689e07c31b711b5c8b470c3432e8785acda276",
+              "artifactId": "12925155712",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40934749420"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40932232462",
+              "status": "success",
+              "artifactHash": "56dbe3aaa83b5a3c944cc9a7b54d854fec13badda2fa6a7ed96de56731601c4a",
+              "artifactId": "12921359960",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40932232462"
+            },
+            {
+              "runId": "40935503450",
+              "status": "success",
+              "artifactHash": "e65257e51fe17b2dc5c45808760ed3a1592c8c48354bc4506dcc340beb6ada5f",
+              "artifactId": "12923898194",
+              "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40935503450"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40936171485",
+            "artifactId": "12925780585",
+            "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+            "artifactDigest": "6504b008fabd6fc80738c47e3e18af86aedad36f043d675fd8c268d5659e9408",
+            "bundleDigest": "b21d739b5078c5d9f8be5494930d880da450be9e596e0fe247e4a41ee1b20760",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40936171485",
+            "artifactName": "state-promotion-provenance-AK-40936171485"
+          }
+        }
+      }
+    },
+    "NM": {
+      "customerLabel": "New Mexico",
+      "sourceLabel": "New Mexico reviewed exact-store grocery inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party in-store availability at selected reviewed New Mexico grocery stores. Exact shelf counts are not published. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T17:56:56.347Z",
+        "shadowArtifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193",
+        "canaryArtifact": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+        "canaryPreviewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+        "verticalSliceManifest": "engine/data/state-integration/NM.json",
+        "fixtureContract": "engine/data/state-fixtures/NM.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "NM",
+          "generatedAt": "2026-10-29T17:52:24.338Z",
+          "sourceConfigHash": "b81d1c156549c6d9199d60f25858db7f2eff16c777b356261472942e5fafbcf0",
+          "previewUrl": "https://bourbonsignal-dk3wtqhrh-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40922494321",
+              "status": "success",
+              "artifactHash": "7316d55213caf6eb19ce106b5d50f881323631ccac748b13d0d03aece0dd589c",
+              "artifactId": "12919611589",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40922494321"
+            },
+            {
+              "runId": "40923481819",
+              "status": "success",
+              "artifactHash": "aa5daac315dac0efd6247e95a80cd435c000beee1f63aa605351099ca48050c8",
+              "artifactId": "12920086473",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40923481819"
+            },
+            {
+              "runId": "40924211193",
+              "status": "success",
+              "artifactHash": "18372633aca1df1fc9a87e32562e418c191c704c04dc53fa10e38d24d4b81e14",
+              "artifactId": "12919851883",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40924211193"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40925049456",
+              "status": "success",
+              "artifactHash": "64c754935a8a48d9b83afcba4da2ec15f5e796dfbaba01ab0ba3ee649a1c2ffa",
+              "artifactId": "12920476292",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925049456"
+            },
+            {
+              "runId": "40925202262",
+              "status": "success",
+              "artifactHash": "a7127b5e7e399d63dcd30166b0e552fc30d8c25a03dd3e713c4a41358b8a6a51",
+              "artifactId": "12919628558",
+              "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925202262"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40925312923",
+            "artifactId": "12920610558",
+            "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+            "artifactDigest": "675357ee920b2b8bf293a161802af29f9fb08d9af6643fa04c4bf741ffd6cbb3",
+            "bundleDigest": "140cb2722fce9f8595317f755954b7b935c25464447e082b1cb0836a72616c11",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40925312923",
+            "artifactName": "state-promotion-provenance-NM-40925312923"
+          }
+        }
+      }
+    },
+    "NJ": {
+      "customerLabel": "New Jersey",
+      "sourceLabel": "New Jersey exact-premises research",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Inactive research at 4 reviewed New Jersey stores; production coverage and all alerts remain blocked pending promotion."
+    },
+    "MA": {
+      "customerLabel": "Massachusetts",
+      "sourceLabel": "Selected Massachusetts first-party retailer inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party availability at selected reviewed Massachusetts stores. Some entries report availability without an exact shelf count. Verify before driving. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T19:20:21.988Z",
+        "verticalSliceManifest": "engine/data/state-integration/MA.json",
+        "fixtureContract": "engine/data/state-fixtures/MA.json",
+        "canaryPreviewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "MA",
+          "generatedAt": "2026-10-29T19:15:18.007Z",
+          "sourceConfigHash": "68a9395a3ac29ea65423268eead34eb00379296d06f683852de4fd2e963c3406",
+          "previewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40937702146",
+              "status": "success",
+              "artifactHash": "dbf8e231a77a8d81c24d33f0de19f9fb365f874194c8a4e5413ba12703081079",
+              "artifactId": "12926270249",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937702146"
+            },
+            {
+              "runId": "40937900259",
+              "status": "success",
+              "artifactHash": "921c181156e1ee636bd1245f171fba1e0c78ae6c6a1fddad51b29b2f6d2b5caf",
+              "artifactId": "12925227784",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937900259"
+            },
+            {
+              "runId": "40938101454",
+              "status": "success",
+              "artifactHash": "083bc89a6834cde20f9d94185da36ffb8da543698b03335d42ac788df18536ab",
+              "artifactId": "12924214962",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938101454"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40937904907",
+              "status": "success",
+              "artifactHash": "c22321acc3afd0111f9463996f681363f4af302af92c69bfb5899806ea7394d8",
+              "artifactId": "12925991046",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937904907"
+            },
+            {
+              "runId": "40938253935",
+              "status": "success",
+              "artifactHash": "dcfa45328e70fb511ed5ebdf2b3049493fc6dc1ddc548057abde282adc97f9c8",
+              "artifactId": "12926430519",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938253935"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40938266573",
+            "artifactId": "12925378416",
+            "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+            "artifactDigest": "cd87d5cd14952ad36a5cb14c90f92e81f748afd0697cda30b9c3773adddcdfe0",
+            "bundleDigest": "840fcf0dd02a88f071d11677aba4b42eb2f715c8c68478666bb3f32c8c961f12",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938266573",
+            "artifactName": "state-promotion-provenance-MA-40938266573"
+          },
+          "sourceProof": {
+            "protocol": "bourbon-signal/new-england-first-party-cohort@1",
+            "cohortSha256": "7c91950c8d2b6f30ecd9db7b0c9b991cc4e2ea82971177d12ca031678faa5f5d",
+            "allSourceRunsComplete": true,
+            "storeIds": [
+              "table-and-vine:5f52a8713df8c66117da02b2",
+              "redstone-liquors:5d5d87598a9270243a2d2714"
+            ],
+            "sourceRuns": [
+              {
+                "workflowRunId": "40937702146",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12926270249",
+                "artifactDigest": "dbf8e231a77a8d81c24d33f0de19f9fb365f874194c8a4e5413ba12703081079"
+              },
+              {
+                "workflowRunId": "40937900259",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12925227784",
+                "artifactDigest": "921c181156e1ee636bd1245f171fba1e0c78ae6c6a1fddad51b29b2f6d2b5caf"
+              },
+              {
+                "workflowRunId": "40938101454",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12924214962",
+                "artifactDigest": "083bc89a6834cde20f9d94185da36ffb8da543698b03335d42ac788df18536ab"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "CT": {
+      "customerLabel": "Connecticut",
+      "sourceLabel": "Selected Connecticut first-party retailer inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party availability at selected reviewed Connecticut stores. Some entries report availability without an exact shelf count. Verify before driving. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T19:20:22.058Z",
+        "verticalSliceManifest": "engine/data/state-integration/CT.json",
+        "fixtureContract": "engine/data/state-fixtures/CT.json",
+        "canaryPreviewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "CT",
+          "generatedAt": "2026-10-29T19:15:27.331Z",
+          "sourceConfigHash": "f431d521b0c61b7368fad85b7e8878fb3927c7cc3dab18f59bddb42f91e935fd",
+          "previewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40937702146",
+              "status": "success",
+              "artifactHash": "dbf8e231a77a8d81c24d33f0de19f9fb365f874194c8a4e5413ba12703081079",
+              "artifactId": "12926270249",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937702146"
+            },
+            {
+              "runId": "40937900259",
+              "status": "success",
+              "artifactHash": "921c181156e1ee636bd1245f171fba1e0c78ae6c6a1fddad51b29b2f6d2b5caf",
+              "artifactId": "12925227784",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937900259"
+            },
+            {
+              "runId": "40938101454",
+              "status": "success",
+              "artifactHash": "083bc89a6834cde20f9d94185da36ffb8da543698b03335d42ac788df18536ab",
+              "artifactId": "12924214962",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938101454"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40937909200",
+              "status": "success",
+              "artifactHash": "11789181530a79395490427af1c123894e5e5990bbf4beec1254da2979ea3adf",
+              "artifactId": "12926195828",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937909200"
+            },
+            {
+              "runId": "40938258672",
+              "status": "success",
+              "artifactHash": "1f538376d3d1446dd86d878ce4ac5cdeeaf448f5e5cf9c9424dc54b3f4b205e3",
+              "artifactId": "12925477663",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938258672"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40938271167",
+            "artifactId": "12926485702",
+            "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+            "artifactDigest": "9b6efac33d43eef825e65f965bdc7ed7226353de0a583a526d5e2c8c41783e5b",
+            "bundleDigest": "ba1119aa6e53fcb54bfb6d24a05f898f0842855e543614f407ec496c353dd6e2",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938271167",
+            "artifactName": "state-promotion-provenance-CT-40938271167"
+          },
+          "sourceProof": {
+            "protocol": "bourbon-signal/new-england-first-party-cohort@1",
+            "cohortSha256": "b4803c1dc75da09682d90af9d070c34db22fbbb2982e66e7adb910706963fa24",
+            "allSourceRunsComplete": true,
+            "storeIds": [
+              "branford-wine:5bbb62e2b7e6390c64b02365",
+              "stews-wines:621fe692b9f3c27b2a5dfe76",
+              "stews-wines:626c46756ea63026559b84f1"
+            ],
+            "sourceRuns": [
+              {
+                "workflowRunId": "40937702146",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12926270249",
+                "artifactDigest": "dbf8e231a77a8d81c24d33f0de19f9fb365f874194c8a4e5413ba12703081079"
+              },
+              {
+                "workflowRunId": "40937900259",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12925227784",
+                "artifactDigest": "921c181156e1ee636bd1245f171fba1e0c78ae6c6a1fddad51b29b2f6d2b5caf"
+              },
+              {
+                "workflowRunId": "40938101454",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12924214962",
+                "artifactDigest": "083bc89a6834cde20f9d94185da36ffb8da543698b03335d42ac788df18536ab"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "RI": {
+      "customerLabel": "Rhode Island",
+      "sourceLabel": "Selected Rhode Island first-party retailer inventory",
+      "publicStatus": "active",
+      "shadowEligible": false,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "First-party availability at selected reviewed Rhode Island stores. Some entries report availability without an exact shelf count. Verify before driving. On-site inventory only; alerts and delivery are disabled.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-10-29T19:20:23.749Z",
+        "verticalSliceManifest": "engine/data/state-integration/RI.json",
+        "fixtureContract": "engine/data/state-fixtures/RI.json",
+        "canaryPreviewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "RI",
+          "generatedAt": "2026-10-29T19:15:19.119Z",
+          "sourceConfigHash": "cead1ca037996ce09563e0b9a0c14b0e9ba6e2b86db69e35ea5225dc832b4a00",
+          "previewUrl": "https://bourbonsignal-fh5h9ix7z-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "40937702146",
+              "status": "success",
+              "artifactHash": "dbf8e231a77a8d81c24d33f0de19f9fb365f874194c8a4e5413ba12703081079",
+              "artifactId": "12926270249",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937702146"
+            },
+            {
+              "runId": "40937900259",
+              "status": "success",
+              "artifactHash": "921c181156e1ee636bd1245f171fba1e0c78ae6c6a1fddad51b29b2f6d2b5caf",
+              "artifactId": "12925227784",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937900259"
+            },
+            {
+              "runId": "40938101454",
+              "status": "success",
+              "artifactHash": "083bc89a6834cde20f9d94185da36ffb8da543698b03335d42ac788df18536ab",
+              "artifactId": "12924214962",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938101454"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "40937913280",
+              "status": "success",
+              "artifactHash": "6a0c0e58dfc636d9f08bae162ac3b772995dfbbfc7d7d2db013ffcf17e4facf8",
+              "artifactId": "12925222481",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40937913280"
+            },
+            {
+              "runId": "40938262718",
+              "status": "success",
+              "artifactHash": "19c960939a61eed46b3788947535df24c040493c13a213b11e9aa1ddb6338309",
+              "artifactId": "12925133308",
+              "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938262718"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "40938275725",
+            "artifactId": "12925338788",
+            "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+            "artifactDigest": "a263ce42b9f60eccfb364dbbef5f262d7a3755ae6c217f26a7daf045fe9e489d",
+            "bundleDigest": "9c82a54005e042ce004cb50bff3cb750a650ce3cc8dbde241322809cb95d104d",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40938275725",
+            "artifactName": "state-promotion-provenance-RI-40938275725"
+          },
+          "sourceProof": {
+            "protocol": "bourbon-signal/new-england-first-party-cohort@1",
+            "cohortSha256": "9b410f9e81990421afac6523aaaa44c79b66e4ca54601834e3e5580a7c0f2a7a",
+            "allSourceRunsComplete": true,
+            "storeIds": [
+              "golds-wine:60e4de26cedf7461ed8e3c8e",
+              "ri-liquor-delivery:64f6226b7537422b95e04824"
+            ],
+            "sourceRuns": [
+              {
+                "workflowRunId": "40937702146",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12926270249",
+                "artifactDigest": "dbf8e231a77a8d81c24d33f0de19f9fb365f874194c8a4e5413ba12703081079"
+              },
+              {
+                "workflowRunId": "40937900259",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12925227784",
+                "artifactDigest": "921c181156e1ee636bd1245f171fba1e0c78ae6c6a1fddad51b29b2f6d2b5caf"
+              },
+              {
+                "workflowRunId": "40938101454",
+                "headSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+                "artifactId": "12924214962",
+                "artifactDigest": "083bc89a6834cde20f9d94185da36ffb8da543698b03335d42ac788df18536ab"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

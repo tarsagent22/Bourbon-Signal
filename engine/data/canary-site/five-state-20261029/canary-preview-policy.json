@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "mode": "canary_preview",
+  "states": [
+    "LA",
+    "AK",
+    "MA",
+    "CT",
+    "RI"
+  ],
+  "generatedAt": "2026-10-29T18:14:54.269Z",
+  "alertDeliveryEnabled": false,
+  "productionSnapshotPublicationEnabled": false,
+  "productionDeploymentEnabled": false
+}

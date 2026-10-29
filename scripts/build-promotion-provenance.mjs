@@ -248,6 +248,22 @@ if (['LA','AK'].includes(state)) files.push(
   `engine/out/laak-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
+if (['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state)) files.push(
+  'engine/src/verification/nine-state-admission-metadata.mjs',
+  'engine/src/active-research-renewal.mjs',
+  'engine/data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json',
+  'engine/data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json',
+  'engine/data/source-evidence/nationwide-expansion-20261029/shared-metadata-baseline.json',
+  'engine/data/source-evidence/western-grocery-production-20261029/shared-metadata-baseline.json',
+  'engine/data/source-evidence/central-cityhive-production-20261029/shared-metadata-baseline.json',
+  'engine/data/source-evidence/nj-mi-production-20261029/shared-metadata-baseline.json',
+  'engine/data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json',
+  'engine/data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json',
+  'engine/data/source-evidence/louisiana-alaska-grocery-production-20261029/shared-metadata-baseline.json',
+  'engine/data/source-evidence/new-england-production-20261029/shared-metadata-baseline.json',
+  'engine/data/source-evidence/nine-state-activation-boundary-20261029/metadata.json',
+  'engine/src/verification/historical-implementation.mjs',
+);
 if (['LA','AK','MA','CT','RI'].includes(state)) files.push(
   'engine/data/source-evidence/five-state-calibration-20261029/planning.json',
   'engine/data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json',

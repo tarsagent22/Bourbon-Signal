@@ -28,7 +28,7 @@ test('four planning forecasts follow one observed-sample formula without changin
   }
   assert.deepEqual(WESTERN_GROCERY_BUDGETS,{WA:{sourceMs:600000,stateMs:720000},NM:{sourceMs:180000,stateMs:300000}});
   assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,{WI:{sourceMs:90000,stateMs:150000,maxRequests:5},OK:{sourceMs:180000,stateMs:240000,maxRequests:10}});
-  const p=config.reliabilityPolicy,states=[...new Set([...config.activeStates,'WA','NM','WI','OK'])];
+  const p=config.reliabilityPolicy,states=forecast.prospectiveStates;
   assert.deepEqual(evaluateCapacityBudget({stateExpectedRunMs:states.map(state=>p.stateExpectedRunMs[state]||p.defaultExpectedStateRunMs),concurrency:p.workerConcurrency,intervalMs:p.refreshIntervalMs,safetyMarginMs:p.refreshSafetyMarginMs}),forecast.prospectiveCollectionModel);
   assert.equal(forecast.sourceAndParentHardcapsChanged,false);assert.equal(forecast.promotionManifestSemanticsChanged,false);
 });

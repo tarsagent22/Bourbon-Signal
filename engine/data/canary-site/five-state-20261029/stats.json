@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-10-29T18:14:54.269Z",
+  "stateCount": 5,
+  "dropCount": 142,
+  "stateCoverage": {
+    "counts": {
+      "sparse_live_store_inventory": 5
+    },
+    "states": [
+      {
+        "state": "LA",
+        "status": "canary_preview",
+        "signalCount": 85,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Louisiana",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Louisiana exact-store grocery research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      },
+      {
+        "state": "AK",
+        "status": "canary_preview",
+        "signalCount": 44,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Alaska",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Alaska exact-store grocery research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      },
+      {
+        "state": "MA",
+        "status": "canary_preview",
+        "signalCount": 5,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Massachusetts",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Massachusetts named pickup research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      },
+      {
+        "state": "CT",
+        "status": "canary_preview",
+        "signalCount": 5,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Connecticut",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Connecticut named pickup research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      },
+      {
+        "state": "RI",
+        "status": "canary_preview",
+        "signalCount": 3,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Rhode Island",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Rhode Island named pickup research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      }
+    ]
+  }
+}

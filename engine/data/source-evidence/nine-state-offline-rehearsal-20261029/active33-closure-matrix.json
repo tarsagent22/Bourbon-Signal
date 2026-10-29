@@ -1,0 +1,994 @@
+[
+  {
+    "state": "NC",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "VA",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "PA",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "OH",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "IA",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "ID",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "AL",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "IL",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "IN",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "TN",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "SC",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "MD-MONTGOMERY",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "KY",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "AZ",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "CA",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "FL",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "TX",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "GA",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "NV",
+    "mode": "grandfathered_or_no_generic_immutable_provenance",
+    "grandfathered": true
+  },
+  {
+    "state": "UT",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "38842007335",
+    "commitSha": "0d9defa3084b6cd95e09800897f36a3681e30810",
+    "archiveDigest": "e7d24bf5775a56567414a2724d9f50cb1809b64637a601e0888a5d54b8c2663f",
+    "staticMatches": 4,
+    "staticMismatches": [
+      {
+        "file": "engine/src/state-sources.mjs",
+        "expected": "924b470414f8f6dd8c65603ba90c154bf09a8cf64171818f5c0aecef3429a8cc",
+        "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
+      },
+      {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "92c530518dd3cf4cb67798c26d6cee40b15e79575ae774c483d89f4336b0e799",
+        "actual": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f"
+      },
+      {
+        "file": "engine/src/collectors/metro-retailer-surfaces.mjs",
+        "expected": "f6dc6d0da5f171344c3bcaea0095c397a8617ed2e790bb86681df7817018794d",
+        "actual": "9be9b9941c9fe39b61f697a735b333f0e6a9f77bcc5ada03c9af7e434d1fbd82"
+      },
+      {
+        "file": "engine/src/metro-retailer-policy.mjs",
+        "expected": "6cdb822b73a60e5c4ae3d08f601a261a91e5d99b5c9a680a9d8ea2c1c66b6af6",
+        "actual": "19fa892eaee51281c3e3c8e2f891589a08087b9ea19651dcd485662a41a4f181"
+      },
+      {
+        "file": "engine/src/build-state-canary-preview.mjs",
+        "expected": "c8f879d6a32f3d6dbf8bdf940ada845e95e552e6855a3dcd9ef40a9f5a01be51",
+        "actual": "91bce2987d58e7d18d07f41ad2043c6b36156ec34d663536301f5b64938b9c18"
+      },
+      {
+        "file": "engine/src/export-site-contract.mjs",
+        "expected": "6f1a9b1d87c781aa5964ba235fd5cd6783ca919799b73589643a59bc7fa5d1f3",
+        "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
+      },
+      {
+        "file": "src/lib/new-york-area.ts",
+        "expected": "3a547d194d7f3eee086f4de6b0d6851cd71953753d90806f3c2b5dac8ef8a908",
+        "actual": "082e0fcceaf81de9bfa6870bd0b133839995f93d5554df8dad8458fb04a17c1a"
+      },
+      {
+        "file": "src/lib/colorado-area.ts",
+        "expected": "bcde25c89ec758d06bf49e8bc3ce6530bd79546cab86495431704e83f6e9c49d",
+        "actual": "dda5962163ce12669833d1b78fcaf20f0bd61339b99021c17ea663cfab4b407d"
+      },
+      {
+        "file": "src/lib/coverage-model.ts",
+        "expected": "a03f2aa6da4d98be395d2e79de3b601016351482c76f07319ccc7445ca97790d",
+        "actual": "821e37cf98db8960ee79160f630e411bf0232d0e267db24c61c21dd6a5d2c384"
+      },
+      {
+        "file": "src/lib/alert-delivery.ts",
+        "expected": "59b06948aa82f312e7492083eabd38d96dbd567c2d2ff3e5881d152b1bdac6ae",
+        "actual": "a4aa37b2acd9496c3eb52fe47178f1182415b207734cd8c75b1647011c61d588"
+      },
+      {
+        "file": "src/app/api/drops/route.ts",
+        "expected": "ab9f4ce14869a1b912fe7658ef2e2428f60fef3134bb69b35487c29570265743",
+        "actual": "2fefb027e1ec8fbf42ddbe43cf5a54f8056c1882a2d69a582aaf5a803ffafa64"
+      },
+      {
+        "file": "src/app/api/user/preferences/route.ts",
+        "expected": "cab93cdfb09197859aadd0b627c08e7c5ecee66eaeb33cff000570c3b2a2b2bc",
+        "actual": "c31144405aed0eae4ad544b8a20db9d243fec8c49a505975e970eeba4c8771cc"
+      },
+      {
+        "file": "src/app/dashboard/page.tsx",
+        "expected": "dad1b35257b23a37e638e90667e522c60b8c945c44c51d0974291e62dc5faf2e",
+        "actual": "8d67e0df02449ae3bcd7560a3d0e9fe98ebc49a0be8b2a9f0e969dcfc94ea340"
+      },
+      {
+        "file": "src/components/sections/DropFeed.tsx",
+        "expected": "a8d8af8d3296c98d7210fb5593cf39be453e8c8717b75986f48e191a9030e2fa",
+        "actual": "5bde08e30d1e00a7e2518f7c313604fa781b144ec60f27e250be7492f0318ad2"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "64eeae309bd0531e8db2b551468ab03422f1de1ff112a5e64ab5c6ece10cc143",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "c88ce67de82c863fb4a41d797ca9af3a2e15a1ad265ad3695d4300fe81653222",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/UT.json",
+      "engine/out/canary/UT/site/canary-preview-policy.json",
+      "engine/out/canary/UT/site/lifecycle-preview.json",
+      "engine/out/canary/UT/site/states/UT/drops.json"
+    ],
+    "helperBound": false,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "NY",
+    "mode": "archive_unavailable",
+    "workflowRunId": "30657094429",
+    "commitSha": "04af5e08f06d60159e38a2dd0bd435230d9669a7"
+  },
+  {
+    "state": "CO",
+    "mode": "archive_unavailable",
+    "workflowRunId": "30067755884",
+    "commitSha": "8ff436d7e6066bd5b9ee86085c17c9e57d947619"
+  },
+  {
+    "state": "MS",
+    "mode": "archive_unavailable",
+    "workflowRunId": "30540884485",
+    "commitSha": "ec11e34d00c6b3d1944b436e6bb8d6cf3b593c96"
+  },
+  {
+    "state": "WV",
+    "mode": "archive_unavailable",
+    "workflowRunId": "31412815445",
+    "commitSha": "8c3ca57cdd920ce49afbeedbee2f94b923498344"
+  },
+  {
+    "state": "WA",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40925309053",
+    "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+    "archiveDigest": "2d4f9d27e58f6e8c7c26938e32d55074b65719cfedda228e26d4dd1741061158",
+    "staticMatches": 62,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/WA.json",
+        "expected": "c875ab72f5b9106c5d10fd1a248e8a7070337644831331eb8c686a59366528a1",
+        "actual": "7cfa3ceb6e0e71827a2f4a3825fe625cd908a48b8f71ecaf8508ea8e11d2428a"
+      },
+      {
+        "file": "engine/src/state-sources.mjs",
+        "expected": "b9d764a65014ec5dca99aa933e9540cbd97710c0df6b2f211ba29ca48ff87eaa",
+        "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
+      },
+      {
+        "file": "engine/src/export-site-contract.mjs",
+        "expected": "632ca3fe335974b56e8acebddaf4629ab8a74382aaa1a6451126ab1337ed09bf",
+        "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "0206ee58ab7dac584bb30f4cfc0e8fc385a76b0a7e62d668284790cf5dd9b2f2",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/collectors/generic-state.mjs",
+        "expected": "540918d5d673ee87ae09550a4f5a43aceb9c245185eeab1d29e5f676173ee96b",
+        "actual": "a2247db0b9521e4f9aa922722c22dc3bfb285690d1eb73cdc57b644c73e2e61e"
+      },
+      {
+        "file": "engine/src/confidence-policy.mjs",
+        "expected": "b15ae4897306b52786ec8c9aed76c14ebce58103712c09b5e7636331801a4ded",
+        "actual": "0225165bc3a0153e924de95dddcefd538a341f8607e79a1cd0d20073a0424787"
+      },
+      {
+        "file": "engine/src/run.mjs",
+        "expected": "8e9350f36b94989412cf71ce985993b02f18233b67d43c2c9e113d751f24b896",
+        "actual": "84911872de43c86f80ceec8a0a3676f4e2e117f1fdf6bd2f739c537b083820d3"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "415d25cb8d971fc1249bdb87c20d505971a662f465f4a07dfb5453d09825b1ea",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "64da634ddda4cb8458806ad48aa017d9f36b276202eecd34039685f15954654f",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": ".github/workflows/refresh-feed.yml",
+        "expected": "007cdfca45a105c1cfb1a1bc3f4e54b4dc2f262898535dc4e9e24ca0b792ee43",
+        "actual": "82478c4f7abef7a6567eb94325a87eaeb60846c47e3703e5df5b5ca54ef17c70"
+      },
+      {
+        "file": "engine/src/research-state-registry.mjs",
+        "expected": "d3444d099ac8c128a9debc0a7b9caba735e83ac99f17d60dcf7b578cc4fb6030",
+        "actual": "168667307cfa8ad259304f6746a539b7cf056d0f587dbf5e90e2adb47b27d0ba"
+      },
+      {
+        "file": "engine/src/operational-report.mjs",
+        "expected": "77020f6c127f0e432b18e525c837e66a8165d5a388e1007cad40621b4867e2c0",
+        "actual": "a088c7874f3aac9411e267b4e877b2d97b2d8c24242f17d63fc3e7ab6fb27be6"
+      },
+      {
+        "file": "src/lib/drop-feed-visibility.ts",
+        "expected": "032c87eb985a93796d8f15ead7e6ae29cc84628f253d958015b662d6712ab15a",
+        "actual": "da3e42bb439be8439e631bbcd5a80804718cff218f4284ab24c04a0ddc264930"
+      },
+      {
+        "file": "src/lib/public-drop-evidence.ts",
+        "expected": "a5cfdec030bb13885d3eef4a6374305f29492ad0cc127ac78660994d7910aa6e",
+        "actual": "454ba0ed0d7ea04ced4cffb02e6457992f242d62ead99d367bc0b160ce6c88f4"
+      },
+      {
+        "file": "src/lib/site-engine-contract.ts",
+        "expected": "1ca9104d843d23c85bac4e29dea740928fab4e32281e75c109655117dc87f2a6",
+        "actual": "bf0c01309ad7dad3781728976357a4019b534ae5c80f8eb5ea4b4aee52ada566"
+      },
+      {
+        "file": "engine/src/verify-state-fixtures.mjs",
+        "expected": "2d507edd1532ff4dffe079a83075c8342b914e97ab330cc186b620f5cfda7080",
+        "actual": "3b0a0461f211d7c0b3a0b601099bec04554eb5229a99a52dee7152a0badd8ae4"
+      },
+      {
+        "file": ".github/workflows/state-expansion-canary.yml",
+        "expected": "c3d18cf467d171471236980e8f2223846957f9103b2493bf2a9e20220930f9dd",
+        "actual": "dcbadc583233f69fcc3fa3964797a0be23cf3cdd7fc3f87b5f7474f2381bf0e9"
+      },
+      {
+        "file": ".github/workflows/state-promotion-provenance.yml",
+        "expected": "4c22ad53e813cfc74fd4e3a53b3169ed88c91d1b901d29726fa4c7494c52ade4",
+        "actual": "e0dea616866d6c8b0b5cad50ec4f4a9f1f17a15571f0d6adf35a84b353be0a70"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/WA.json",
+      "engine/out/canary/WA/site/canary-preview-policy.json",
+      "engine/out/canary/WA/site/lifecycle-preview.json",
+      "engine/out/canary/WA/site/states/WA/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/canary/WA/public-projection.json",
+      "engine/out/grocery-shadow-input/WA/provenance.json"
+    ],
+    "helperBound": false,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "NM",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40925312923",
+    "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+    "archiveDigest": "675357ee920b2b8bf293a161802af29f9fb08d9af6643fa04c4bf741ffd6cbb3",
+    "staticMatches": 62,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/NM.json",
+        "expected": "1ee851fbc74b0d2e4dfc06c3d2ec8d35e6e6e28d3aefe870d533a2020795ec41",
+        "actual": "403136c25852fb68865d6764fc46abfb9bc4bfc6f97f8891e0f45c6350036d83"
+      },
+      {
+        "file": "engine/src/state-sources.mjs",
+        "expected": "b9d764a65014ec5dca99aa933e9540cbd97710c0df6b2f211ba29ca48ff87eaa",
+        "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
+      },
+      {
+        "file": "engine/src/export-site-contract.mjs",
+        "expected": "632ca3fe335974b56e8acebddaf4629ab8a74382aaa1a6451126ab1337ed09bf",
+        "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "0206ee58ab7dac584bb30f4cfc0e8fc385a76b0a7e62d668284790cf5dd9b2f2",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/collectors/generic-state.mjs",
+        "expected": "540918d5d673ee87ae09550a4f5a43aceb9c245185eeab1d29e5f676173ee96b",
+        "actual": "a2247db0b9521e4f9aa922722c22dc3bfb285690d1eb73cdc57b644c73e2e61e"
+      },
+      {
+        "file": "engine/src/confidence-policy.mjs",
+        "expected": "b15ae4897306b52786ec8c9aed76c14ebce58103712c09b5e7636331801a4ded",
+        "actual": "0225165bc3a0153e924de95dddcefd538a341f8607e79a1cd0d20073a0424787"
+      },
+      {
+        "file": "engine/src/run.mjs",
+        "expected": "8e9350f36b94989412cf71ce985993b02f18233b67d43c2c9e113d751f24b896",
+        "actual": "84911872de43c86f80ceec8a0a3676f4e2e117f1fdf6bd2f739c537b083820d3"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "415d25cb8d971fc1249bdb87c20d505971a662f465f4a07dfb5453d09825b1ea",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "64da634ddda4cb8458806ad48aa017d9f36b276202eecd34039685f15954654f",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": ".github/workflows/refresh-feed.yml",
+        "expected": "007cdfca45a105c1cfb1a1bc3f4e54b4dc2f262898535dc4e9e24ca0b792ee43",
+        "actual": "82478c4f7abef7a6567eb94325a87eaeb60846c47e3703e5df5b5ca54ef17c70"
+      },
+      {
+        "file": "engine/src/research-state-registry.mjs",
+        "expected": "d3444d099ac8c128a9debc0a7b9caba735e83ac99f17d60dcf7b578cc4fb6030",
+        "actual": "168667307cfa8ad259304f6746a539b7cf056d0f587dbf5e90e2adb47b27d0ba"
+      },
+      {
+        "file": "engine/src/operational-report.mjs",
+        "expected": "77020f6c127f0e432b18e525c837e66a8165d5a388e1007cad40621b4867e2c0",
+        "actual": "a088c7874f3aac9411e267b4e877b2d97b2d8c24242f17d63fc3e7ab6fb27be6"
+      },
+      {
+        "file": "src/lib/drop-feed-visibility.ts",
+        "expected": "032c87eb985a93796d8f15ead7e6ae29cc84628f253d958015b662d6712ab15a",
+        "actual": "da3e42bb439be8439e631bbcd5a80804718cff218f4284ab24c04a0ddc264930"
+      },
+      {
+        "file": "src/lib/public-drop-evidence.ts",
+        "expected": "a5cfdec030bb13885d3eef4a6374305f29492ad0cc127ac78660994d7910aa6e",
+        "actual": "454ba0ed0d7ea04ced4cffb02e6457992f242d62ead99d367bc0b160ce6c88f4"
+      },
+      {
+        "file": "src/lib/site-engine-contract.ts",
+        "expected": "1ca9104d843d23c85bac4e29dea740928fab4e32281e75c109655117dc87f2a6",
+        "actual": "bf0c01309ad7dad3781728976357a4019b534ae5c80f8eb5ea4b4aee52ada566"
+      },
+      {
+        "file": "engine/src/verify-state-fixtures.mjs",
+        "expected": "2d507edd1532ff4dffe079a83075c8342b914e97ab330cc186b620f5cfda7080",
+        "actual": "3b0a0461f211d7c0b3a0b601099bec04554eb5229a99a52dee7152a0badd8ae4"
+      },
+      {
+        "file": ".github/workflows/state-expansion-canary.yml",
+        "expected": "c3d18cf467d171471236980e8f2223846957f9103b2493bf2a9e20220930f9dd",
+        "actual": "dcbadc583233f69fcc3fa3964797a0be23cf3cdd7fc3f87b5f7474f2381bf0e9"
+      },
+      {
+        "file": ".github/workflows/state-promotion-provenance.yml",
+        "expected": "4c22ad53e813cfc74fd4e3a53b3169ed88c91d1b901d29726fa4c7494c52ade4",
+        "actual": "e0dea616866d6c8b0b5cad50ec4f4a9f1f17a15571f0d6adf35a84b353be0a70"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/NM.json",
+      "engine/out/canary/NM/site/canary-preview-policy.json",
+      "engine/out/canary/NM/site/lifecycle-preview.json",
+      "engine/out/canary/NM/site/states/NM/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/canary/NM/public-projection.json",
+      "engine/out/grocery-shadow-input/NM/provenance.json"
+    ],
+    "helperBound": false,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "WI",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40925317245",
+    "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+    "archiveDigest": "3194afb7592efeb816f391fb07b821bb9c3afea584759ef09ec6ef67b515f77b",
+    "staticMatches": 66,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/WI.json",
+        "expected": "a9be86f98422b1ceba5f61fe52439cfb31a433263b18e6a3645c782471475342",
+        "actual": "0cdaec1d9a2add242a320d6443c1009cc3307aa54362cc761dbb5b8ce5e98af8"
+      },
+      {
+        "file": "engine/src/state-sources.mjs",
+        "expected": "b9d764a65014ec5dca99aa933e9540cbd97710c0df6b2f211ba29ca48ff87eaa",
+        "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
+      },
+      {
+        "file": "engine/src/export-site-contract.mjs",
+        "expected": "632ca3fe335974b56e8acebddaf4629ab8a74382aaa1a6451126ab1337ed09bf",
+        "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "0206ee58ab7dac584bb30f4cfc0e8fc385a76b0a7e62d668284790cf5dd9b2f2",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/collectors/generic-state.mjs",
+        "expected": "540918d5d673ee87ae09550a4f5a43aceb9c245185eeab1d29e5f676173ee96b",
+        "actual": "a2247db0b9521e4f9aa922722c22dc3bfb285690d1eb73cdc57b644c73e2e61e"
+      },
+      {
+        "file": "engine/src/confidence-policy.mjs",
+        "expected": "b15ae4897306b52786ec8c9aed76c14ebce58103712c09b5e7636331801a4ded",
+        "actual": "0225165bc3a0153e924de95dddcefd538a341f8607e79a1cd0d20073a0424787"
+      },
+      {
+        "file": "engine/src/run.mjs",
+        "expected": "8e9350f36b94989412cf71ce985993b02f18233b67d43c2c9e113d751f24b896",
+        "actual": "84911872de43c86f80ceec8a0a3676f4e2e117f1fdf6bd2f739c537b083820d3"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "415d25cb8d971fc1249bdb87c20d505971a662f465f4a07dfb5453d09825b1ea",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "64da634ddda4cb8458806ad48aa017d9f36b276202eecd34039685f15954654f",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": ".github/workflows/refresh-feed.yml",
+        "expected": "007cdfca45a105c1cfb1a1bc3f4e54b4dc2f262898535dc4e9e24ca0b792ee43",
+        "actual": "82478c4f7abef7a6567eb94325a87eaeb60846c47e3703e5df5b5ca54ef17c70"
+      },
+      {
+        "file": "engine/src/research-state-registry.mjs",
+        "expected": "d3444d099ac8c128a9debc0a7b9caba735e83ac99f17d60dcf7b578cc4fb6030",
+        "actual": "168667307cfa8ad259304f6746a539b7cf056d0f587dbf5e90e2adb47b27d0ba"
+      },
+      {
+        "file": "engine/src/operational-report.mjs",
+        "expected": "77020f6c127f0e432b18e525c837e66a8165d5a388e1007cad40621b4867e2c0",
+        "actual": "a088c7874f3aac9411e267b4e877b2d97b2d8c24242f17d63fc3e7ab6fb27be6"
+      },
+      {
+        "file": "engine/src/verify-state-fixtures.mjs",
+        "expected": "2d507edd1532ff4dffe079a83075c8342b914e97ab330cc186b620f5cfda7080",
+        "actual": "3b0a0461f211d7c0b3a0b601099bec04554eb5229a99a52dee7152a0badd8ae4"
+      },
+      {
+        "file": "src/lib/drop-feed-visibility.ts",
+        "expected": "032c87eb985a93796d8f15ead7e6ae29cc84628f253d958015b662d6712ab15a",
+        "actual": "da3e42bb439be8439e631bbcd5a80804718cff218f4284ab24c04a0ddc264930"
+      },
+      {
+        "file": "src/lib/public-drop-evidence.ts",
+        "expected": "a5cfdec030bb13885d3eef4a6374305f29492ad0cc127ac78660994d7910aa6e",
+        "actual": "454ba0ed0d7ea04ced4cffb02e6457992f242d62ead99d367bc0b160ce6c88f4"
+      },
+      {
+        "file": "src/lib/site-engine-contract.ts",
+        "expected": "1ca9104d843d23c85bac4e29dea740928fab4e32281e75c109655117dc87f2a6",
+        "actual": "bf0c01309ad7dad3781728976357a4019b534ae5c80f8eb5ea4b4aee52ada566"
+      },
+      {
+        "file": ".github/workflows/state-expansion-canary.yml",
+        "expected": "c3d18cf467d171471236980e8f2223846957f9103b2493bf2a9e20220930f9dd",
+        "actual": "dcbadc583233f69fcc3fa3964797a0be23cf3cdd7fc3f87b5f7474f2381bf0e9"
+      },
+      {
+        "file": ".github/workflows/state-promotion-provenance.yml",
+        "expected": "4c22ad53e813cfc74fd4e3a53b3169ed88c91d1b901d29726fa4c7494c52ade4",
+        "actual": "e0dea616866d6c8b0b5cad50ec4f4a9f1f17a15571f0d6adf35a84b353be0a70"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/WI.json",
+      "engine/out/canary/WI/site/canary-preview-policy.json",
+      "engine/out/canary/WI/site/lifecycle-preview.json",
+      "engine/out/canary/WI/site/states/WI/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/cityhive-shadow-input/WI/provenance.json",
+      "engine/out/canary/WI/public-projection.json"
+    ],
+    "helperBound": false,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "OK",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40925321358",
+    "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
+    "archiveDigest": "105dadd393d38a4520e76547a9399fd2bb97590c1da0b3f7cbf6bf9473be6b1e",
+    "staticMatches": 66,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/OK.json",
+        "expected": "556957d9461dbabf81a01ca9e9b4055f1de16e411b28cab71dc11e95c92598ae",
+        "actual": "6e61848ac501b2f688c2f78a448be2335ad5c0e85577b6ffee08e109efa08e32"
+      },
+      {
+        "file": "engine/src/state-sources.mjs",
+        "expected": "b9d764a65014ec5dca99aa933e9540cbd97710c0df6b2f211ba29ca48ff87eaa",
+        "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
+      },
+      {
+        "file": "engine/src/export-site-contract.mjs",
+        "expected": "632ca3fe335974b56e8acebddaf4629ab8a74382aaa1a6451126ab1337ed09bf",
+        "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "0206ee58ab7dac584bb30f4cfc0e8fc385a76b0a7e62d668284790cf5dd9b2f2",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/collectors/generic-state.mjs",
+        "expected": "540918d5d673ee87ae09550a4f5a43aceb9c245185eeab1d29e5f676173ee96b",
+        "actual": "a2247db0b9521e4f9aa922722c22dc3bfb285690d1eb73cdc57b644c73e2e61e"
+      },
+      {
+        "file": "engine/src/confidence-policy.mjs",
+        "expected": "b15ae4897306b52786ec8c9aed76c14ebce58103712c09b5e7636331801a4ded",
+        "actual": "0225165bc3a0153e924de95dddcefd538a341f8607e79a1cd0d20073a0424787"
+      },
+      {
+        "file": "engine/src/run.mjs",
+        "expected": "8e9350f36b94989412cf71ce985993b02f18233b67d43c2c9e113d751f24b896",
+        "actual": "84911872de43c86f80ceec8a0a3676f4e2e117f1fdf6bd2f739c537b083820d3"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "415d25cb8d971fc1249bdb87c20d505971a662f465f4a07dfb5453d09825b1ea",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "64da634ddda4cb8458806ad48aa017d9f36b276202eecd34039685f15954654f",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": ".github/workflows/refresh-feed.yml",
+        "expected": "007cdfca45a105c1cfb1a1bc3f4e54b4dc2f262898535dc4e9e24ca0b792ee43",
+        "actual": "82478c4f7abef7a6567eb94325a87eaeb60846c47e3703e5df5b5ca54ef17c70"
+      },
+      {
+        "file": "engine/src/research-state-registry.mjs",
+        "expected": "d3444d099ac8c128a9debc0a7b9caba735e83ac99f17d60dcf7b578cc4fb6030",
+        "actual": "168667307cfa8ad259304f6746a539b7cf056d0f587dbf5e90e2adb47b27d0ba"
+      },
+      {
+        "file": "engine/src/operational-report.mjs",
+        "expected": "77020f6c127f0e432b18e525c837e66a8165d5a388e1007cad40621b4867e2c0",
+        "actual": "a088c7874f3aac9411e267b4e877b2d97b2d8c24242f17d63fc3e7ab6fb27be6"
+      },
+      {
+        "file": "engine/src/verify-state-fixtures.mjs",
+        "expected": "2d507edd1532ff4dffe079a83075c8342b914e97ab330cc186b620f5cfda7080",
+        "actual": "3b0a0461f211d7c0b3a0b601099bec04554eb5229a99a52dee7152a0badd8ae4"
+      },
+      {
+        "file": "src/lib/drop-feed-visibility.ts",
+        "expected": "032c87eb985a93796d8f15ead7e6ae29cc84628f253d958015b662d6712ab15a",
+        "actual": "da3e42bb439be8439e631bbcd5a80804718cff218f4284ab24c04a0ddc264930"
+      },
+      {
+        "file": "src/lib/public-drop-evidence.ts",
+        "expected": "a5cfdec030bb13885d3eef4a6374305f29492ad0cc127ac78660994d7910aa6e",
+        "actual": "454ba0ed0d7ea04ced4cffb02e6457992f242d62ead99d367bc0b160ce6c88f4"
+      },
+      {
+        "file": "src/lib/site-engine-contract.ts",
+        "expected": "1ca9104d843d23c85bac4e29dea740928fab4e32281e75c109655117dc87f2a6",
+        "actual": "bf0c01309ad7dad3781728976357a4019b534ae5c80f8eb5ea4b4aee52ada566"
+      },
+      {
+        "file": ".github/workflows/state-expansion-canary.yml",
+        "expected": "c3d18cf467d171471236980e8f2223846957f9103b2493bf2a9e20220930f9dd",
+        "actual": "dcbadc583233f69fcc3fa3964797a0be23cf3cdd7fc3f87b5f7474f2381bf0e9"
+      },
+      {
+        "file": ".github/workflows/state-promotion-provenance.yml",
+        "expected": "4c22ad53e813cfc74fd4e3a53b3169ed88c91d1b901d29726fa4c7494c52ade4",
+        "actual": "e0dea616866d6c8b0b5cad50ec4f4a9f1f17a15571f0d6adf35a84b353be0a70"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/OK.json",
+      "engine/out/canary/OK/site/canary-preview-policy.json",
+      "engine/out/canary/OK/site/lifecycle-preview.json",
+      "engine/out/canary/OK/site/states/OK/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/cityhive-shadow-input/OK/provenance.json",
+      "engine/out/canary/OK/public-projection.json"
+    ],
+    "helperBound": false,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "LA",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40936165833",
+    "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+    "archiveDigest": "bb6e5cfbcbc1f203197254b9595f739d0518c2a783750f058ff20b5c9ebd4eff",
+    "staticMatches": 96,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/LA.json",
+        "expected": "f9e5404f0c91b51b302ec9bf014e511990ed9bc4e9560d77c553330a27cb52c1",
+        "actual": "996628cf50657ef6856ad2360ab03404a427d8b85c68270461e08e4b38a73b38"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": "src/config/stateLifecycle.ts",
+        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
+        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
+      },
+      {
+        "file": "engine/data/state-integration/AK.json",
+        "expected": "0f94ff3b8fe076527f59eeb61946f8a5bdc5b2c59ac99d01f7897248cca5e60a",
+        "actual": "c15ec7363f8923acc9f61c206fd90f4f7be794400c786cd92473a8a4e0c38d0d"
+      },
+      {
+        "file": "engine/src/verification/historical-implementation.mjs",
+        "expected": "65678e87bf6310789622bb490dc57340348a8f717753cfb3b2ac0ceac67480fb",
+        "actual": "0a2785454dd415abdec8700557b1ae4223000bf4c8c7823e614329b6509e3b0d"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/LA.json",
+      "engine/out/canary/LA/site/canary-preview-policy.json",
+      "engine/out/canary/LA/site/lifecycle-preview.json",
+      "engine/out/canary/LA/site/states/LA/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/laak-shadow-input/LA/provenance.json",
+      "engine/out/canary/LA/public-projection.json"
+    ],
+    "helperBound": true,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "AK",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40936171485",
+    "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+    "archiveDigest": "6504b008fabd6fc80738c47e3e18af86aedad36f043d675fd8c268d5659e9408",
+    "staticMatches": 96,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/AK.json",
+        "expected": "0f94ff3b8fe076527f59eeb61946f8a5bdc5b2c59ac99d01f7897248cca5e60a",
+        "actual": "c15ec7363f8923acc9f61c206fd90f4f7be794400c786cd92473a8a4e0c38d0d"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": "src/config/stateLifecycle.ts",
+        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
+        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
+      },
+      {
+        "file": "engine/data/state-integration/LA.json",
+        "expected": "f9e5404f0c91b51b302ec9bf014e511990ed9bc4e9560d77c553330a27cb52c1",
+        "actual": "996628cf50657ef6856ad2360ab03404a427d8b85c68270461e08e4b38a73b38"
+      },
+      {
+        "file": "engine/src/verification/historical-implementation.mjs",
+        "expected": "65678e87bf6310789622bb490dc57340348a8f717753cfb3b2ac0ceac67480fb",
+        "actual": "0a2785454dd415abdec8700557b1ae4223000bf4c8c7823e614329b6509e3b0d"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/AK.json",
+      "engine/out/canary/AK/site/canary-preview-policy.json",
+      "engine/out/canary/AK/site/lifecycle-preview.json",
+      "engine/out/canary/AK/site/states/AK/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/laak-shadow-input/AK/provenance.json",
+      "engine/out/canary/AK/public-projection.json"
+    ],
+    "helperBound": true,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "MA",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40938266573",
+    "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+    "archiveDigest": "cd87d5cd14952ad36a5cb14c90f92e81f748afd0697cda30b9c3773adddcdfe0",
+    "staticMatches": 90,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/MA.json",
+        "expected": "1a3b2125d4c93701cd4a9add3be2209a14103922002629c523e17cce939f0dd1",
+        "actual": "1a01e43d836167d12a761818cac4cdfa57ff76f5ee1d7a50ceed4f41df586043"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": "engine/src/verification/historical-implementation.mjs",
+        "expected": "65678e87bf6310789622bb490dc57340348a8f717753cfb3b2ac0ceac67480fb",
+        "actual": "0a2785454dd415abdec8700557b1ae4223000bf4c8c7823e614329b6509e3b0d"
+      },
+      {
+        "file": "src/config/stateLifecycle.ts",
+        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
+        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/MA.json",
+      "engine/out/canary/MA/site/canary-preview-policy.json",
+      "engine/out/canary/MA/site/lifecycle-preview.json",
+      "engine/out/canary/MA/site/states/MA/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/new-england-shadow-input/MA/provenance.json",
+      "engine/out/new-england-source-proof/MA.json",
+      "engine/out/canary/MA/public-projection.json",
+      "engine/out/new-england-source-inputs/MA/40937702146/provenance.json",
+      "engine/out/new-england-source-inputs/MA/40937900259/provenance.json",
+      "engine/out/new-england-source-inputs/MA/40938101454/provenance.json"
+    ],
+    "helperBound": true,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "CT",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40938271167",
+    "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+    "archiveDigest": "9b6efac33d43eef825e65f965bdc7ed7226353de0a583a526d5e2c8c41783e5b",
+    "staticMatches": 90,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/CT.json",
+        "expected": "1011a84230cec0dfe01c8c07348b19c4966ea3bbfa197dca0293c7aea61aa5a5",
+        "actual": "a22e490cace905dfa1d271669c7de59b20bc8be5781a7b1deeef4dc4c89eccc1"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": "engine/src/verification/historical-implementation.mjs",
+        "expected": "65678e87bf6310789622bb490dc57340348a8f717753cfb3b2ac0ceac67480fb",
+        "actual": "0a2785454dd415abdec8700557b1ae4223000bf4c8c7823e614329b6509e3b0d"
+      },
+      {
+        "file": "src/config/stateLifecycle.ts",
+        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
+        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/CT.json",
+      "engine/out/canary/CT/site/canary-preview-policy.json",
+      "engine/out/canary/CT/site/lifecycle-preview.json",
+      "engine/out/canary/CT/site/states/CT/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/new-england-shadow-input/CT/provenance.json",
+      "engine/out/new-england-source-proof/CT.json",
+      "engine/out/canary/CT/public-projection.json",
+      "engine/out/new-england-source-inputs/CT/40937702146/provenance.json",
+      "engine/out/new-england-source-inputs/CT/40937900259/provenance.json",
+      "engine/out/new-england-source-inputs/CT/40938101454/provenance.json"
+    ],
+    "helperBound": true,
+    "newFiveActivationHelperBound": false
+  },
+  {
+    "state": "RI",
+    "mode": "actual_archived_workflow_provenance_raw_byte_comparison_no_waiver",
+    "workflowRunId": "40938275725",
+    "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
+    "archiveDigest": "a263ce42b9f60eccfb364dbbef5f262d7a3755ae6c217f26a7daf045fe9e489d",
+    "staticMatches": 90,
+    "staticMismatches": [
+      {
+        "file": "engine/data/state-integration/RI.json",
+        "expected": "898e428763e4045874aed5d0f77d55844e06af66bf5c9ddd88e5f6d321719397",
+        "actual": "2e8b1b43bb3f7089c7219653ac3687421f3e7abe156d13cd3830ee42529b05d0"
+      },
+      {
+        "file": "scripts/build-promotion-provenance.mjs",
+        "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
+        "actual": "37b4bda6b937cba257826ea1067475bded56fcf954285017702053496c3a4b2f"
+      },
+      {
+        "file": "src/config/state-lifecycle.json",
+        "expected": "5dfe65cd8b5ef378d2605c59a333157069795c745b0ed1b481274cf77043a45b",
+        "actual": "98dae4581c7a73310dc8f41f308f44ea20c6e0b76600fdb5ef093e7da957f8a6"
+      },
+      {
+        "file": "engine/src/run-expansion-shadow.mjs",
+        "expected": "d1e3cf13a75177d0a3e8caa0c3f5bc7518a25242bd4c22a85983c66a26afe708",
+        "actual": "7331f3b93a3b8255cad0c9dfd78949ceb0c4a3d0f9856b0e54b0ebd293e09f93"
+      },
+      {
+        "file": ".github/workflows/state-expansion-shadow.yml",
+        "expected": "ccf8ae2f1c1aa91fd0cb7292c796f1d81e292964c2a07647c085a966d66cab9a",
+        "actual": "e3255628dc90e31f77954c7cdf793e1171a67ca31c30a4f505c2eaade6f6d622"
+      },
+      {
+        "file": "engine/src/verification/historical-implementation.mjs",
+        "expected": "65678e87bf6310789622bb490dc57340348a8f717753cfb3b2ac0ceac67480fb",
+        "actual": "0a2785454dd415abdec8700557b1ae4223000bf4c8c7823e614329b6509e3b0d"
+      },
+      {
+        "file": "src/config/stateLifecycle.ts",
+        "expected": "dcc1cc61d2fe2b57a5fc17a3270bd00b0116e5607431c0296cd21b2382095b5e",
+        "actual": "a770abd39d271ec524183891d30c1c1412a0fa1773f199e82bcb0d8003eb5860"
+      }
+    ],
+    "capturedRuntimeInputs": [
+      "engine/data/canary-inputs/RI.json",
+      "engine/out/canary/RI/site/canary-preview-policy.json",
+      "engine/out/canary/RI/site/lifecycle-preview.json",
+      "engine/out/canary/RI/site/states/RI/drops.json",
+      "engine/out/library-catalog.json",
+      "engine/out/bourbon-bible.json",
+      "engine/out/new-england-shadow-input/RI/provenance.json",
+      "engine/out/new-england-source-proof/RI.json",
+      "engine/out/canary/RI/public-projection.json",
+      "engine/out/new-england-source-inputs/RI/40937702146/provenance.json",
+      "engine/out/new-england-source-inputs/RI/40937900259/provenance.json",
+      "engine/out/new-england-source-inputs/RI/40938101454/provenance.json"
+    ],
+    "helperBound": true,
+    "newFiveActivationHelperBound": false
+  }
+]

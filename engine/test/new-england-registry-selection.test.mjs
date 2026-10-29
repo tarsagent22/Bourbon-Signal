@@ -13,6 +13,7 @@ if(mode){
  const {syntheticNewEnglandPromotion}=await import('./helpers/synthetic-new-england-production.mjs');
  const {newEnglandProductionAllowed,collectNewEnglandProductionSource}=await import('../src/collectors/new-england-production.mjs');
  const lifecycle=structuredClone(original.STATE_LIFECYCLE_CONFIG),options=Object.fromEntries(states.map(state=>[state,syntheticNewEnglandPromotion(state)]));
+ lifecycle.activeStates=lifecycle.activeStates.filter(state=>!states.includes(state));
  if(mode!=='inactive')for(const state of states){lifecycle.activeStates.push(state);lifecycle.states[state]=options[state].lifecycleConfig.states[state];}
  lifecycle.activeStates=[...new Set(lifecycle.activeStates)];
  // Source module is not modified or reimplemented. Only the lifecycle provider

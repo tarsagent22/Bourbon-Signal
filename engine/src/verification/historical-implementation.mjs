@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import {normalizeNineStateAdmissionMetadata} from './nine-state-admission-metadata.mjs';
 
 const sharedBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
@@ -80,6 +81,7 @@ export function reverseLouisianaAlaskaHistoricalAdditions(name, text) {
 }
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
+  bytes=normalizeNineStateAdmissionMetadata(name,bytes);
   if (louisianaAlaskaBaseline.files[name]) bytes = Buffer.from(reverseLouisianaAlaskaHistoricalAdditions(name, bytes.toString('utf8')));
   if (name === 'engine/src/operational-report.mjs') {
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));

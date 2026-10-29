@@ -24,7 +24,8 @@ async function setup(t,state='MA'){
 test('inactive, quarantined and altered semantic/cohort/provenance authority blocks before HTTP or cache I/O',async t=>{
   let requests=0;const fetchText=async()=>{requests++;throw Error('Unauthorized HTTP');};
   for(const state of ['MA','CT','RI']){
-    const opts=await setup(t,state),held=await collectState(config(state),bible,{newEnglandSourceOptions:{forceLive:true,fetchText,cacheDir:'NUL/forbidden',incidentDir:'NUL/forbidden'}});
+    const opts=await setup(t,state),inactive=structuredClone(STATE_LIFECYCLE_CONFIG);inactive.activeStates=inactive.activeStates.filter(id=>id!==state);
+    const held=await collectState(config(state),bible,{lifecycleConfig:inactive,newEnglandSourceOptions:{lifecycleConfig:inactive,forceLive:true,fetchText,cacheDir:'NUL/forbidden',incidentDir:'NUL/forbidden'}});
     assert.equal(held.status,'not_promoted');assert.equal(held.metadata.requestCount,0);
     assert.equal(newEnglandProductionCohortKey(state),NEW_ENGLAND_PRODUCTION_COHORTS[state]);
     assert.ok(newEnglandProductionAllowed(state,opts.lifecycleConfig,{manifest:opts.promotionManifest}));
@@ -46,7 +47,7 @@ test('inactive, quarantined and altered semantic/cohort/provenance authority blo
     }
     for(const env of [{BOURBON_SIGNAL_DISABLED_STATES:state},{BOURBON_SIGNAL_QUARANTINED_STATES:state}])assert.equal(newEnglandProductionAllowed(state,opts.lifecycleConfig,{manifest:opts.promotionManifest,env}),false);
   }
-  assert.equal(requests,0);assert.ok(!STATE_LIFECYCLE_CONFIG.activeStates.includes('MA')&&!STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'));
+  assert.equal(requests,0);
 });
 
 for(const state of ['MA','CT','RI'])test(`${state} nonpreview production rows/cache preserve original clocks/current library and never enable delivery`,async t=>{
@@ -121,10 +122,11 @@ test('source deadlines fit parent watchdogs and denial cache saves independently
   const save=steps.find(step=>step.includes('actions/cache/save@v4')&&step.includes(file));
   assert.ok(restore&&save);assert.match(save,/if: always\(\)/);assert.equal(save.match(/\bkey: (.+)/)[1],restore.match(/\bkey: (.+)/)[1]);
   const policy=STATE_LIFECYCLE_CONFIG.reliabilityPolicy;
-  const expected=STATE_LIFECYCLE_CONFIG.activeStates.map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
-  const capacity=evaluateCapacityBudget({stateExpectedRunMs:[...expected,...Object.values(NEW_ENGLAND_PRODUCTION_BUDGETS).map(b=>b.stateMs)],
+  const prospective=[...new Set([...STATE_LIFECYCLE_CONFIG.activeStates,'MA','CT','RI'])];
+  const expected=prospective.map(state=>policy.stateExpectedRunMs[state]||policy.defaultExpectedStateRunMs);
+  const capacity=evaluateCapacityBudget({stateExpectedRunMs:expected,
     concurrency:policy.workerConcurrency,intervalMs:policy.refreshIntervalMs,safetyMarginMs:policy.refreshSafetyMarginMs});
-  assert.equal(capacity.ok,true,'Prospective WI/OK parent budgets must fit the current refresh capacity before promotion');
+  assert.equal(capacity.ok,true,'Unique prospective NE states must use unchanged reviewed planning forecasts; source/parent hardcaps are checked separately');
 });
 
 test('a late successful HTTP response after parent cancellation cannot publish inventory or start another request',async t=>{

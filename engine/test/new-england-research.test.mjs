@@ -35,7 +35,7 @@ test('seven exact observed premises survive current library matching with origin
   }
   assert.equal(all.length,13);assert.equal(new Set(all.map(row=>row.storeId)).size,7);
   assert.equal(all.filter(row=>row.state==='CT').length,5);assert.equal(all.filter(row=>row.state==='RI').length,3);assert.equal(all.filter(row=>row.state==='MA').length,5);
-  for(const state of['MA','CT','RI']){assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes(state),false);assert.ok(!STATE_SOURCES.some(source=>source.id===state));}
+  for(const state of['MA','CT','RI']){assert.equal(STATE_SOURCES.some(source=>source.id===state),STATE_LIFECYCLE_CONFIG.activeStates.includes(state));}
 });
 test('foreign premises, shipping-only options, preorder, stale clocks and changed coordinates fail closed',async()=>{
   const source=NEW_ENGLAND_RESEARCH_SOURCES.find(row=>row.chainId==='golds-wine'),{receipt,html}=await capture(source);

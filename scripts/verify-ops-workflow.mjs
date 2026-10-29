@@ -415,7 +415,8 @@ if (!/readdir\(siteDir\)/.test(refreshSite) || !/siteExportFileCount/.test(refre
 if (!/pidAlive\) \{[\s\S]*?return false;/.test(refreshSite)) {
   fail('engine/src/refresh-site.mjs should never ignore a live refresh lock just because the run is older than the stale-lock threshold.');
 }
-if (!/lastSuccessMs/.test(refreshSite) || /candidates\s*=\s*\[[^\]]*lastBrowserAttemptAt/s.test(refreshSite)) {
+const fwgsFreshnessPolicy = read('engine/src/fwgs-publication-freshness.mjs');
+if (!/browserCollectorRefreshDecision/.test(refreshSite) || !/lastBrowserRefreshAt/.test(fwgsFreshnessPolicy) || /lastBrowserAttemptAt/.test(fwgsFreshnessPolicy) || !/FWGS_PUBLICATION_HEADROOM_MS = 30 \* 60_000/.test(fwgsFreshnessPolicy)) {
   fail('engine/src/refresh-site.mjs should throttle successful FWGS refreshes while allowing a failed latest attempt to retry on the next scheduled run.');
 }
 const fwgsFull = read('engine/src/fwgs-browser-full.mjs');

@@ -8,7 +8,7 @@ const fixture=JSON.parse(readFileSync(new URL('./fixtures/louisiana-alaska-groce
 const bible=new BourbonBible(fixture.records);
 const replay=(entry,products=entry.products,recordBible=bible)=>parseLouisianaAlaskaGroceryResearch({response:{docs:products}},sources.find(source=>source.id===entry.source.id),recordBible,{resolverStore:entry.resolverStore,observedAt:entry.observedAt});
 
-test('34 exact first-party premises remain inactive research with bounded geography and literal resolver identities',()=>{
+test('34 exact first-party premises preserve separate research records with bounded geography and literal resolver identities',()=>{
   assert.equal(sources.length,34);assert.equal(sources.filter(s=>s.stateCode==='LA').length,15);assert.equal(sources.filter(s=>s.stateCode==='AK').length,19);
   assert.equal(new Set(sources.map(s=>s.storeId)).size,34);assert.ok(Object.isFrozen(sources));
   for(const source of sources){assert.ok(Object.isFrozen(source));assert.match(source.merchantId,/^\d+$/);assert.equal(source.storeId,source.banner+':'+source.merchantId);
@@ -18,7 +18,7 @@ test('34 exact first-party premises remain inactive research with bounded geogra
     assert.ok(source.stateCode==='LA'?source.lat>28&&source.lat<34&&source.lng> -95&&source.lng< -88:source.lat>51&&source.lat<72&&source.lng> -170&&source.lng< -129);}
   assert.ok(!sources.some(source=>source.merchantId==='1839'),'404 local-page premise is excluded');
   const lifecycle=JSON.parse(readFileSync(new URL('../../src/config/state-lifecycle.json',import.meta.url)));
-  assert.ok(!lifecycle.activeStates.includes('LA')&&!lifecycle.activeStates.includes('AK'));
+  for(const state of ['LA','AK']){assert.equal(lifecycle.states[state].inventoryAlertable,false);assert.equal(lifecycle.states[state].watchAlertable,false);assert.equal(lifecycle.states[state].publicStatus,lifecycle.activeStates.includes(state)?'active':'research_only');}
 });
 
 test('captured LA and AK rows reparse exact allocated expressions as binary source research, never stock counts or delivery',()=>{

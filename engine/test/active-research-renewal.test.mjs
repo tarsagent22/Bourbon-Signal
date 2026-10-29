@@ -265,3 +265,15 @@ test('direct renewal transport cannot replace a verified API maintenance observa
   }
   assert.equal(calls, 0);
 });
+
+test('a new-family denial or unknown child failure stops a maintenance batch before any later shared-host sibling',async()=>{
+ for(const failure of ['receipt403','nested435','source429','child_failure']){
+  const root=await directory(),calls=[],clock=new Date().toISOString();let preserved;
+  try{
+   await assert.rejects(()=>runExpansionShadow({lifecycle:lifecycle(),states:all,renewActiveStates:four,limit:9,env:manualEnv,maintenanceRequestJson:maintenanceFixture,cwd:root,outDir:path.join(root,'shadow'),
+    runCollector:async(state,file)=>{calls.push(state);preserved=file;const report={state,strategy:'retailer_store_inventory',status:'blocked',startedAt:clock,finishedAt:clock,signals:[],sources:[],sourceResults:[],roadblocks:[],metadata:{complete:false,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false}};
+     if(failure==='receipt403')report.metadata.receipts=[{status:403}];if(failure==='nested435')report.metadata.grocery={requests:[{httpStatus:435}]};if(failure==='source429')report.sourceResults=[{error:{status:429}}];await writeFile(file,JSON.stringify(report));return{ok:failure!=='child_failure',error:failure==='child_failure'?'source process failed':null};}}),/Manual active-renewal batch stopped after AK: (?:source access denial|source execution failed)/);
+   assert.deepEqual(calls,['AK']);const report=JSON.parse(await readFile(preserved,'utf8'));assert.equal(report.finishedAt,clock);assert.equal(report.state,'AK');assert.equal(JSON.parse(await readFile(path.join(path.dirname(preserved),'evidence.json'),'utf8')).complete,false);
+  }finally{await rm(root,{recursive:true,force:true});}
+ }
+});
