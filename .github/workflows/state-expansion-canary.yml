@@ -7,6 +7,10 @@ on:
         description: "Non-active state ID with manifest, fixtures, and shadow evidence"
         required: true
         type: string
+      shadow_run_id:
+        description: "WA/NM/WI/OK: successful workflow-issued shadow run to replay with original clocks"
+        required: false
+        type: string
       candidate_drops:
         description: "Engine-relative JSON file containing normalized candidate site drops"
         required: true
@@ -23,6 +27,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   build-canary:
@@ -51,6 +56,7 @@ jobs:
         env:
           RAW_STATE: ${{ inputs.state }}
           RAW_CANDIDATE_DROPS: ${{ inputs.candidate_drops }}
+          RAW_SHADOW_RUN: ${{ inputs.shadow_run_id }}
         run: |
           if [[ ! "$RAW_STATE" =~ ^([A-Z]{2}|MD-MONTGOMERY)$ ]]; then
             echo "Invalid state input" >&2
@@ -60,19 +66,69 @@ jobs:
             echo "Candidate path must be a repository-controlled engine/data/canary-inputs JSON file" >&2
             exit 1
           fi
+          if [[ "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" ]]; then
+            if [[ ! "$RAW_SHADOW_RUN" =~ ^[0-9]+$ ]] || [[ "$RAW_CANDIDATE_DROPS" != "data/canary-inputs/$RAW_STATE.json" ]]; then
+              echo "WA/NM/WI/OK require an actual shadow run and the fixed state canary path" >&2
+              exit 1
+            fi
+          elif [[ -n "$RAW_SHADOW_RUN" ]]; then
+            echo "Artifact replay is reviewed only for WA/NM/WI/OK" >&2
+            exit 1
+          fi
+          echo "shadow_run=$RAW_SHADOW_RUN" >> "$GITHUB_OUTPUT"
           echo "state=$RAW_STATE" >> "$GITHUB_OUTPUT"
           echo "candidate_drops=$RAW_CANDIDATE_DROPS" >> "$GITHUB_OUTPUT"
+
+      - name: Restore last accepted published baseline for isolated preview
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/site
+          key: inventory-published-site-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            inventory-published-site-${{ runner.os }}-
+
+      - name: Require a coherent published baseline
+        run: |
+          test -s engine/out/site/manifest.json
+          test -s engine/out/site/stats.json
+          test -s engine/out/site/drops.json
+          test -s engine/out/site/states/index.json
+
+      - name: Refresh current app library and build Bible
+        working-directory: engine
+        env:
+          BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
+        run: npm run sync:library && npm run bible
+
+      - name: Verify and download workflow-issued first-party shadow artifact
+        if: steps.validate.outputs.shadow_run != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATE: ${{ steps.validate.outputs.state }}
+          SHADOW_RUN: ${{ steps.validate.outputs.shadow_run }}
+        run: |
+          case "$STATE" in WI|OK) family=cityhive ;; WA|NM) family=grocery ;; *) exit 1 ;; esac
+          node "scripts/download-$family-shadow.mjs" --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/$family-shadow-input/$STATE"
+
+      - name: Reparse immutable raw source captures without resetting clocks
+        if: steps.validate.outputs.shadow_run != ''
+        working-directory: engine
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+        run: |
+          case "$STATE" in WI|OK) family=cityhive; preparer=prepare-central-cityhive-canary.mjs ;; WA|NM) family=grocery; preparer=prepare-grocery-canary.mjs ;; *) exit 1 ;; esac
+          node "src/$preparer" --state="$STATE" --artifact-dir="out/$family-shadow-input/$STATE/extracted" --provenance="out/$family-shadow-input/$STATE/provenance.json" --out="data/canary-inputs/$STATE.json" --config-out="out/canary-preparation/$STATE/lifecycle-research.json"
 
       - name: Build coherent nationwide canary snapshot without alerts
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
           CANDIDATE_DROPS: ${{ steps.validate.outputs.candidate_drops }}
-        run: npm run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site"
-
-      - name: Build bourbon bible for executable fixtures
-        working-directory: engine
-        run: npm run bible
+          SHADOW_RUN: ${{ steps.validate.outputs.shadow_run }}
+        run: |
+          config_args=()
+          if [[ -n "$SHADOW_RUN" ]]; then config_args+=("--config=out/canary-preparation/$STATE/lifecycle-research.json"); fi
+          npm run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site" "${config_args[@]}"
 
       - name: Verify candidate golden fixture contract
         working-directory: engine
@@ -86,6 +142,14 @@ jobs:
           STATE: ${{ steps.validate.outputs.state }}
         run: npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
 
+      - name: Verify actual app projection and binary on-site isolation
+        if: steps.validate.outputs.shadow_run != ''
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+        run: |
+          case "$STATE" in WI|OK) verifier=test-central-cityhive-public-canary.mjs ;; WA|NM) verifier=test-grocery-public-canary.mjs ;; *) exit 1 ;; esac
+          node --import tsx "scripts/$verifier" --state="$STATE"
+
       - name: Deploy isolated preview with all alert channels disabled
         if: inputs.deploy_preview == true
         id: preview
@@ -97,7 +161,8 @@ jobs:
           node scripts/generate-state-lifecycle-types.mjs
           rm -rf engine/out/site
           cp -R "engine/out/canary/$STATE/site" engine/out/site
-          preview_url="$(npx vercel deploy --yes --token "$VERCEL_TOKEN" --build-env ALERT_DELIVERY_ENABLED=0 --build-env ALERT_ONSITE_DELIVERY_ENABLED=0 --build-env ALERT_EMAIL_DELIVERY_ENABLED=0 --build-env ALERT_SMS_DELIVERY_ENABLED=0 --build-env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow --env ALERT_DELIVERY_ENABLED=0 --env ALERT_ONSITE_DELIVERY_ENABLED=0 --env ALERT_EMAIL_DELIVERY_ENABLED=0 --env ALERT_SMS_DELIVERY_ENABLED=0 --env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow)"
+          cp -R "engine/out/canary/$STATE/site" canary-site-export
+          preview_url="$(npx vercel deploy --yes --token "$VERCEL_TOKEN" --build-env BOURBON_SIGNAL_CANARY_PREVIEW=1 --build-env ENGINE_SNAPSHOT_READ_MODE=off --build-env ALERT_DELIVERY_ENABLED=0 --build-env ALERT_ONSITE_DELIVERY_ENABLED=0 --build-env ALERT_EMAIL_DELIVERY_ENABLED=0 --build-env ALERT_SMS_DELIVERY_ENABLED=0 --build-env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow --env BOURBON_SIGNAL_CANARY_PREVIEW=1 --env ENGINE_SNAPSHOT_READ_MODE=off --env ALERT_DELIVERY_ENABLED=0 --env ALERT_ONSITE_DELIVERY_ENABLED=0 --env ALERT_EMAIL_DELIVERY_ENABLED=0 --env ALERT_SMS_DELIVERY_ENABLED=0 --env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow)"
           echo "url=$preview_url" >> "$GITHUB_OUTPUT"
           echo "Isolated preview deployed: $preview_url"
 
@@ -114,4 +179,11 @@ jobs:
           name: state-expansion-canary-${{ steps.validate.outputs.state }}-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
-          path: engine/out/canary/${{ steps.validate.outputs.state }}/site
+          path: |
+            engine/out/canary/${{ steps.validate.outputs.state }}
+            engine/out/grocery-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
+            engine/out/cityhive-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
+            engine/out/canary-preparation/${{ steps.validate.outputs.state }}
+            engine/data/canary-inputs/${{ steps.validate.outputs.state }}.json
+            engine/out/library-catalog.json
+            engine/out/bourbon-bible.json
