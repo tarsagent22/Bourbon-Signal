@@ -1,0 +1,1120 @@
+{
+  "capturedAt": "2026-10-29T01:53:40.555Z",
+  "store": {
+    "distance": 1.56,
+    "locationId": "2784",
+    "timezone": "America/Los_Angeles",
+    "polarisBannerName": "pavilions",
+    "domainName": "Pavilions",
+    "address": {
+      "line1": "515 W Washington St",
+      "city": "San Diego",
+      "state": "CA",
+      "country": "US",
+      "zipcode": "92103"
+    },
+    "justForU": true,
+    "localPage": "https://local.pavilions.com/ca/san-diego/515-w-washington-st.html",
+    "storeRewards": {
+      "storeId": "2784",
+      "hasGroceryDelivery": true,
+      "hasDUG": true,
+      "hasRushDelivery": false,
+      "hasGroceryRewards": true,
+      "gasRewardsId": "292",
+      "rewardsProgramId": "5-292",
+      "storeLogoName": "pavilions_logo",
+      "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/pavilions_logo"
+    },
+    "isDUGStore": true,
+    "isPickupStore": true,
+    "isWFC": false,
+    "wfcStoreId": 5799,
+    "isNonMigratedStore": false,
+    "division": {
+      "name": "SoCal",
+      "number": "29"
+    },
+    "storeFeatures": {
+      "isErumStore": true,
+      "isGuestCartEnabled": false,
+      "isMFC": false,
+      "isAutoReplenishmentEnabled": true,
+      "isSNAP2Eligible": true,
+      "isSubstitutions2Enabled": true,
+      "isExpressStore": true,
+      "isWGDEnabled": true,
+      "isStoreTippingEnabled": true,
+      "isDarkStore": false,
+      "isWineD2CEnabled": true,
+      "isScanAndPayEnabled": false,
+      "isPaymentV2": true,
+      "isSNAPEligible": false,
+      "isFullAuthEnabled": true,
+      "isEditOrderEnabled": true,
+      "isWYSIWYGEnabled": true,
+      "isEnterpriseTaxation": true,
+      "isSubscriptionUDC": true,
+      "isRolloutWYSIWYGEnabled": true,
+      "isPromisePlatformStore": true,
+      "isHourlyStore": false,
+      "isSequentialTenderingMLModel": false,
+      "isOttValveEnabled": false,
+      "isFlashDugEnabled": true,
+      "isFlashDeliveryEnabled": true,
+      "isFlash2Enabled": false,
+      "isApprovedSubsEnabled": true,
+      "is3PLBatching": false,
+      "is3PLShopAndDriveEnabled": false,
+      "isAltPickUpEnabled": true,
+      "isMerchPickingEnabled": false,
+      "isDirectedSpendEnabled": true,
+      "isFoodIsMedicineNBEnabled": true,
+      "isCustomerCentricTillingEnabled": true,
+      "isSNSCNCEnabled": true,
+      "isBagFeeWaivedforEBT": false,
+      "isB2BStore": true,
+      "isDeliveryPreference": true,
+      "isPrePickingEnabled": true,
+      "isIntradayFastPickingEnabled": false,
+      "isISMLocationServiceEnabled": false,
+      "is2WayCommunication": false,
+      "isFoodIsMedicineBentoEnabled": true,
+      "isSNSB2BEnabled": true,
+      "isCustBagPreference": true,
+      "is3PPEnabled": true,
+      "isOrderAmends": true,
+      "isDynamicSlotEnabled": true,
+      "isGiftEnabled": true,
+      "showDUGEndTime": true,
+      "isFlashCapacityEnabled": true,
+      "isSlowPickingEnabled": false,
+      "isBNCEnabled": true,
+      "isDCMEnabled": false,
+      "isSOAEnabled": true,
+      "isSOAUXEnabled": false,
+      "isDeptUpdateNotification": false,
+      "isInHomeServiceEnabled": false,
+      "isSCEEnabled": false,
+      "isAisleGeoLocation": false,
+      "isLaborHealthEnabled": false,
+      "isLaborHealthUXEnabled": false,
+      "isCrossStreetsEnabled": false,
+      "legalNotAllowed": false
+    },
+    "tplPartners": [
+      "BENTO",
+      "MERCATO",
+      "NATIONSBENEFITS",
+      "INSTACART",
+      "SEASONHEALTH"
+    ],
+    "departmentsDetail": [
+      {
+        "departmentName": "Floral",
+        "departmentId": "26",
+        "serviceDepartmentType": "eComFloral",
+        "serviceDepartEnabled": false,
+        "acuview1POrderprep": true,
+        "pickUpAtCounter": false,
+        "bufferEstTime": "0",
+        "serviceDeptStatus": false,
+        "digitalTicketingEnabled": false,
+        "isECOM1PEnabled": false,
+        "isAcuViewEnabled": false,
+        "acuviewInstoreOrder": false,
+        "pickerBufferTime": "0",
+        "isCateringEnabled": false,
+        "dayOfWeek": [
+          {
+            "day": "Monday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Tuesday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Wednesday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Thursday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Friday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Saturday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Sunday",
+            "startHour": "0800",
+            "endHour": "2000"
+          }
+        ]
+      },
+      {
+        "departmentName": "Deli",
+        "departmentId": "27",
+        "serviceDepartmentType": "Deli",
+        "serviceDepartEnabled": true,
+        "acuview1POrderprep": true,
+        "pickUpAtCounter": false,
+        "bufferEstTime": "15",
+        "serviceDeptStatus": true,
+        "digitalTicketingEnabled": false,
+        "isECOM1PEnabled": true,
+        "isAcuViewEnabled": true,
+        "acuviewInstoreOrder": true,
+        "pickerBufferTime": "15",
+        "isCateringEnabled": true,
+        "dayOfWeek": [
+          {
+            "day": "Monday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Tuesday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Wednesday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Thursday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Friday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Saturday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Sunday",
+            "startHour": "0700",
+            "endHour": "2100"
+          }
+        ]
+      }
+    ],
+    "ecomStore": true
+  },
+  "source": {
+    "id": "pavilions-ca-2784",
+    "name": "Pavilions #2784",
+    "stateCode": "CA",
+    "banner": "pavilions",
+    "host": "www.pavilions.com",
+    "merchantId": "2784",
+    "storeId": "pavilions:2784",
+    "address": "515 W Washington St, San Diego, CA 92103",
+    "city": "San Diego",
+    "zip": "92103",
+    "lat": 32.74937798470182,
+    "lng": -117.16821363491822,
+    "sourceLabel": "Pavilions California XAPI store inventory",
+    "premiseUrl": "https://local.pavilions.com/ca/san-diego/515-w-washington-st.html"
+  },
+  "products": [
+    {
+      "status": "active",
+      "name": "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)",
+      "pid": "960488502",
+      "upc": "0008800400552",
+      "id": "960488502",
+      "storeId": "2784",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/960488502",
+      "rogCd": "PSOC",
+      "price": 126.66,
+      "promoDescription": " Club Price: $126.66 Save Up To: $26.33",
+      "promoText": " $126.66 Save Up To: $26.33",
+      "promoType": "P",
+      "promoEndDate": "2027-01-04T23:59:00",
+      "basePrice": 152.99,
+      "basePricePer": 6.03,
+      "pricePer": 4.99,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "C",
+      "prop65WarningText": "Warning: Drinking Distilled Spirits, Beer, Coolers, Wine and Other Alcoholic Beverages May Increase Cancer Risk, and, During Pregnancy, Can Cause Birth Defects.",
+      "prop65WarningIconRequired": true,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 63
+    },
+    {
+      "status": "active",
+      "name": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+      "pid": "960540802",
+      "upc": "0008800403149",
+      "id": "960540802",
+      "storeId": "2784",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/960540802",
+      "rogCd": "PSOC",
+      "price": 88.88,
+      "promoDescription": " Club Price: $88.88 Save Up To: $23.11",
+      "promoText": " $88.88 Save Up To: $23.11",
+      "promoType": "P",
+      "promoEndDate": "2027-01-04T23:59:00",
+      "basePrice": 111.99,
+      "basePricePer": 4.42,
+      "pricePer": 3.5,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Aisle 15",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "C",
+      "prop65WarningText": "Warning: Drinking Distilled Spirits, Beer, Coolers, Wine and Other Alcoholic Beverages May Increase Cancer Risk, and, During Pregnancy, Can Cause Birth Defects.",
+      "prop65WarningIconRequired": true,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "Y",
+          "warnMsgTxt": "WARNING: Drinking distilled spirits, beer, coolers, wine and other alcoholic beverages may cause increase cancer risk, and, during pregnancy, can cause birth defects. For more information go to www.P65Warnings.ca.gov/alcohol.",
+          "warningSourceNm": "PROP65"
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 57
+    },
+    {
+      "status": "active",
+      "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+      "pid": "189031042",
+      "upc": "0008800402134",
+      "id": "189031042",
+      "storeId": "2784",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/189031042",
+      "rogCd": "PSOC",
+      "price": 46.66,
+      "promoDescription": " Club Price: $46.66 Save Up To: $11.33",
+      "promoText": " $46.66 Save Up To: $11.33",
+      "promoType": "P",
+      "promoEndDate": "2026-11-10T23:59:00",
+      "basePrice": 57.99,
+      "basePricePer": 2.29,
+      "pricePer": 1.84,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Aisle 13",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "C",
+      "prop65WarningText": "Warning: Drinking Distilled Spirits, Beer, Coolers, Wine and Other Alcoholic Beverages May Increase Cancer Risk, and, During Pregnancy, Can Cause Birth Defects.",
+      "prop65WarningIconRequired": true,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "Y",
+          "warnMsgTxt": "WARNING: Drinking distilled spirits, beer, coolers, wine and other alcoholic beverages may cause increase cancer risk, and, during pregnancy, can cause birth defects. For more information go to www.P65Warnings.ca.gov/alcohol.",
+          "warningSourceNm": "PROP65"
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "bestSellerRank": 1,
+      "itemRetailSect": "303",
+      "badges": [
+        {
+          "badgeName": "Bestseller",
+          "color": "PRIMARY",
+          "isStrikethrough": false,
+          "isBoldText": false,
+          "icon": ""
+        }
+      ],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 45
+    },
+    {
+      "status": "active",
+      "name": "Eagle Rare 12yr Bourbon - 750 ML (limited quantities may be available in store)",
+      "pid": "971300456",
+      "upc": "0008800407245",
+      "id": "971300456",
+      "storeId": "2784",
+      "featured": false,
+      "inventoryAvailable": "0",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/971300456",
+      "rogCd": "PSOC",
+      "price": 69.99,
+      "promoDescription": " Club Price: $69.99 Save Up To: $18.0",
+      "promoText": " $69.99 Save Up To: $18.0",
+      "promoType": "P",
+      "promoEndDate": "2027-01-04T23:59:00",
+      "basePrice": 87.99,
+      "basePricePer": 3.47,
+      "pricePer": 2.76,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Aisle 15",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "",
+      "prop65WarningText": "",
+      "prop65WarningIconRequired": false,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "0",
+        "pickup": "0",
+        "instore": "0",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 45
+    },
+    {
+      "status": "active",
+      "name": "Eagle Rare Barrel - 1.75 LT (Limited quantities may be available in store)",
+      "pid": "970470387",
+      "upc": "0008800402136",
+      "id": "970470387",
+      "storeId": "2784",
+      "featured": false,
+      "inventoryAvailable": "0",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/970470387",
+      "rogCd": "PSOC",
+      "price": 84.99,
+      "promoDescription": " Club Price: $84.99 Save Up To: $5.0",
+      "promoText": " $84.99 Save Up To: $5.0",
+      "promoType": "P",
+      "promoEndDate": "2027-01-04T23:59:00",
+      "basePrice": 89.99,
+      "basePricePer": 1.54,
+      "pricePer": 1.46,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Aisle 15",
+      "snapEligible": false,
+      "unitOfMeasure": "LT",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "C",
+      "prop65WarningText": "Warning: Drinking Distilled Spirits, Beer, Coolers, Wine and Other Alcoholic Beverages May Increase Cancer Risk, and, During Pregnancy, Can Cause Birth Defects.",
+      "prop65WarningIconRequired": true,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "0",
+        "pickup": "0",
+        "instore": "0",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "1.75",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "LT",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "1.75 lt",
+          "accessibilityText": "1.75 Liter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 48
+    },
+    {
+      "status": "active",
+      "name": "Old Fitzgerald Bourbon Bib 7 Year Whiskey - 700 Ml (limited quantities may be available in store)",
+      "pid": "971288938",
+      "upc": "0009674900579",
+      "id": "971288938",
+      "storeId": "2784",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/971288938",
+      "rogCd": "PSOC",
+      "price": 54.43,
+      "promoDescription": " Club Price: $54.43 Save Up To: $10.56",
+      "promoText": " $54.43 Save Up To: $10.56",
+      "promoType": "P",
+      "promoEndDate": "2027-01-04T23:59:00",
+      "basePrice": 64.99,
+      "basePricePer": 2.75,
+      "pricePer": 2.3,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Aisle 13",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "",
+      "prop65WarningText": "",
+      "prop65WarningIconRequired": false,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "700",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "700 ml",
+          "accessibilityText": "700 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 50
+    },
+    {
+      "status": "active",
+      "name": "Larceny Barrel Proof Whiskey  - 750 Ml (limited quantities may be available in store)",
+      "pid": "960560465",
+      "upc": "0009674900265",
+      "id": "960560465",
+      "storeId": "2784",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/960560465",
+      "rogCd": "PSOC",
+      "price": 69.99,
+      "promoDescription": " Club Price: $69.99 Save Up To: $20.0",
+      "promoText": " $69.99 Save Up To: $20.0",
+      "promoType": "P",
+      "promoEndDate": "2027-01-04T23:59:00",
+      "basePrice": 89.99,
+      "basePricePer": 3.55,
+      "pricePer": 2.76,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Aisle 15",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "C",
+      "prop65WarningText": "Warning: Drinking Distilled Spirits, Beer, Coolers, Wine and Other Alcoholic Beverages May Increase Cancer Risk, and, During Pregnancy, Can Cause Birth Defects.",
+      "prop65WarningIconRequired": true,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 62
+    }
+  ],
+  "records": [
+    {
+      "id": "e-h-taylor-jr-barrel-proof-bourbon",
+      "canonical": "E.H. Taylor Jr. Barrel Proof Bourbon",
+      "normalizedKey": "library:e-h-taylor-jr-barrel-proof-bourbon",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "e-h-taylor-jr-barrel-proof-bourbon",
+          "canonicalName": "E.H. Taylor Jr. Barrel Proof Bourbon",
+          "aliases": [
+            "E H Taylor Barrel Proof",
+            "E.H. TAYLOR JR. BARREL PROOF",
+            "E.H. Taylor Barrel Proof",
+            "E.H. Taylor Jr. Barrel Proof",
+            "E.H. Taylor Jr. Barrel Proof Bourbon",
+            "EH Taylor Barrel Proof",
+            "EHT"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_d0fe561ac45db2d5",
+      "canonical": "Eagle Rare 10 Year",
+      "normalizedKey": "eagle rare 10 year",
+      "aliases": [
+        "EAGLE RARE 10Y",
+        "Eagle Rare",
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10 Year Kentucky Straight Bourbon",
+        "Eagle Rare 10 Yr",
+        "Eagle Rare 10Y"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-10",
+          "canonicalName": "Eagle Rare 10 Year",
+          "aliases": [
+            "EAGLE RARE 10Y",
+            "Eagle Rare",
+            "Eagle Rare 10 Year",
+            "Eagle Rare 10 Year Kentucky Straight Bourbon",
+            "Eagle Rare 10 Yr",
+            "Eagle Rare 10Y",
+            "eagle rare",
+            "eagle rare 10",
+            "er10"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_dec2c347ba378237",
+      "canonical": "Larceny Barrel Proof",
+      "normalizedKey": "larceny proof",
+      "aliases": [
+        "Larceny Barrel Proof"
+      ],
+      "tier": "standard",
+      "producer": "Heaven Hill",
+      "sources": [
+        "state:PA:reviewed-fwgs",
+        "state:PA"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "larceny-barrel-proof",
+          "canonicalName": "Larceny Barrel Proof",
+          "aliases": [
+            "LBP",
+            "Larceny Barrel Proof",
+            "larceny barrel proof",
+            "larceny bp",
+            "lbp"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "old-fitzgerald-7y-bottled-in-bond",
+      "canonical": "Old Fitzgerald 7Y Bottled in Bond",
+      "normalizedKey": "library:old-fitzgerald-7y-bottled-in-bond",
+      "aliases": [],
+      "tier": "unicorn",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "old-fitzgerald-7y-bottled-in-bond",
+          "canonicalName": "Old Fitzgerald 7Y Bottled in Bond",
+          "aliases": [
+            "Old Fitzgerald 7Y Bottled in Bond"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_a3c16eb6f814785b",
+      "canonical": "Weller Full Proof",
+      "normalizedKey": "weller full proof",
+      "aliases": [
+        "W.L. Weller Full Proof",
+        "Weller FP",
+        "Weller Full Proof"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "weller-full-proof",
+          "canonicalName": "W.L. Weller Full Proof",
+          "aliases": [
+            "W.L. Weller Full Proof",
+            "Weller FP",
+            "Weller Full Proof",
+            "weller fp",
+            "weller full proof"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

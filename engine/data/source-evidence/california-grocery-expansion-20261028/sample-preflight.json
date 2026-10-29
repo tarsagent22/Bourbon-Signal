@@ -1,0 +1,3032 @@
+{
+  "observedAt": "2026-10-29T01:47:07.264Z",
+  "results": [
+    {
+      "store": {
+        "distance": 0.47,
+        "locationId": "1490",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "2300 16th St Unit 203",
+          "city": "San Francisco",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "94103"
+        },
+        "justForU": true,
+        "localPage": "https://local.safeway.com/safeway/ca/san-francisco/2300-16th-st-unit-203.html",
+        "storeRewards": {
+          "storeId": "1490",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "251",
+          "rewardsProgramId": "5-251",
+          "storeLogoName": "safeway_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/safeway_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "Norcal",
+          "number": "25"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": false,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": true,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "1900"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "Eagle Rare 10 Year",
+          "quantity": 10,
+          "price": 44.99
+        },
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 5,
+          "price": 55.99
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "quantity": 3,
+          "price": 26.88
+        },
+        {
+          "canonicalName": "Jack Daniel's Barrel Heritage Barrel Toasted",
+          "quantity": 3,
+          "price": 69.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 33,
+          "price": 27.99
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 0.91,
+        "locationId": "2606",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "298 King St",
+          "city": "San Francisco",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "94107"
+        },
+        "justForU": true,
+        "localPage": "https://local.safeway.com/safeway/ca/san-francisco/298-king-st.html",
+        "storeRewards": {
+          "storeId": "2606",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "251",
+          "rewardsProgramId": "5-251",
+          "storeLogoName": "safeway_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/safeway_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "Norcal",
+          "number": "25"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": false,
+          "isStoreTippingEnabled": false,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": false,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": false,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": false,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "1900"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "Eagle Rare 10 Year",
+          "quantity": 20,
+          "price": 44.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 18,
+          "price": 27.99
+        },
+        {
+          "canonicalName": "Elijah Craig Straight Rye Whiskey",
+          "quantity": 3,
+          "price": 25.99
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 1.01,
+        "locationId": "1507",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "2020 Market St",
+          "city": "San Francisco",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "94114"
+        },
+        "justForU": true,
+        "localPage": "https://local.safeway.com/safeway/ca/san-francisco/2020-market-st.html",
+        "storeRewards": {
+          "storeId": "1507",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "251",
+          "rewardsProgramId": "5-251",
+          "storeLogoName": "safeway_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/safeway_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "Norcal",
+          "number": "25"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": false,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": true,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "1900"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "W.L. Weller 12 Year",
+          "quantity": 0,
+          "price": 56.99
+        },
+        {
+          "canonicalName": "Eagle Rare 10 Year",
+          "quantity": 47,
+          "price": 44.99
+        },
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 51,
+          "price": 55.99
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "quantity": 3,
+          "price": 26.88
+        },
+        {
+          "canonicalName": "Jack Daniel's Barrel Heritage Barrel Toasted",
+          "quantity": 3,
+          "price": 69.99
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "quantity": 3,
+          "price": 42.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 12,
+          "price": 27.99
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 5.91,
+        "locationId": "2502",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "vons",
+        "domainName": "Vons",
+        "address": {
+          "line1": "500 E Manchester Blvd",
+          "city": "Inglewood",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "90301"
+        },
+        "justForU": true,
+        "localPage": "https://local.vons.com/ca/inglewood/500-e-manchester-blvd.html",
+        "storeRewards": {
+          "storeId": "2502",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "291",
+          "rewardsProgramId": "5-291",
+          "storeLogoName": "vons_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/vons_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "SoCal",
+          "number": "29"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": true,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "2100"
+              }
+            ]
+          },
+          {
+            "departmentName": "Bakery",
+            "departmentId": "22",
+            "serviceDepartmentType": "Bakery",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": false,
+            "pickerBufferTime": "0",
+            "isApplyBakeryHoursRestrictionEnabled": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "2000"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 4,
+          "price": 49.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 3,
+          "price": 22.21
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 5.95,
+        "locationId": "4131",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "albertsons",
+        "domainName": "Albertsons",
+        "address": {
+          "line1": "3901 Crenshaw Blvd",
+          "city": "Los Angeles",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "90008"
+        },
+        "justForU": true,
+        "localPage": "https://local.albertsons.com/ca/los-angeles/3901-crenshaw-blvd.html",
+        "storeRewards": {
+          "storeId": "4131",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "293",
+          "rewardsProgramId": "5-293",
+          "storeLogoName": "albertsons_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/albertsons_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "SoCal",
+          "number": "29"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "2100"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 6,
+          "price": 49.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 3,
+          "price": 22.21
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 6.11,
+        "locationId": "140",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "albertsons",
+        "domainName": "Albertsons",
+        "address": {
+          "line1": "7676 Firestone Blvd",
+          "city": "Downey",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "90241"
+        },
+        "justForU": true,
+        "localPage": "https://local.albertsons.com/ca/downey/7676-firestone-blvd.html",
+        "storeRewards": {
+          "storeId": "140",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "293",
+          "rewardsProgramId": "5-293",
+          "storeLogoName": "albertsons_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/albertsons_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "SoCal",
+          "number": "29"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "2100"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 7,
+          "price": 49.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 4,
+          "price": 22.21
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 1.29,
+        "locationId": "745",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "albertsons",
+        "domainName": "Albertsons",
+        "address": {
+          "line1": "655 14th St",
+          "city": "San Diego",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "92101"
+        },
+        "justForU": true,
+        "localPage": "https://local.albertsons.com/ca/san-diego/655-14th-st.html",
+        "storeRewards": {
+          "storeId": "745",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "293",
+          "rewardsProgramId": "5-293",
+          "storeLogoName": "albertsons_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/albertsons_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "SoCal",
+          "number": "29"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "2100"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "Eagle Rare 10 Year",
+          "quantity": 8,
+          "price": 46.66
+        },
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 4,
+          "price": 49.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 4,
+          "price": 22.21
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 1.56,
+        "locationId": "2784",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "pavilions",
+        "domainName": "Pavilions",
+        "address": {
+          "line1": "515 W Washington St",
+          "city": "San Diego",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "92103"
+        },
+        "justForU": true,
+        "localPage": "https://local.pavilions.com/ca/san-diego/515-w-washington-st.html",
+        "storeRewards": {
+          "storeId": "2784",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "292",
+          "rewardsProgramId": "5-292",
+          "storeLogoName": "pavilions_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/pavilions_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "SoCal",
+          "number": "29"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "pickerBufferTime": "0",
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "2100"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "E.H. Taylor Jr. Barrel Proof Bourbon",
+          "quantity": 0,
+          "price": 126.66
+        },
+        {
+          "canonicalName": "Weller Full Proof",
+          "quantity": 0,
+          "price": 88.88
+        },
+        {
+          "canonicalName": "Eagle Rare 10 Year",
+          "quantity": 0,
+          "price": 46.66
+        },
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 0,
+          "price": 49.99
+        },
+        {
+          "canonicalName": "Booker's Bourbon",
+          "quantity": 0,
+          "price": 102.21
+        },
+        {
+          "canonicalName": "Old Fitzgerald 7Y Bottled in Bond",
+          "quantity": 0,
+          "price": 54.43
+        },
+        {
+          "canonicalName": "Larceny Barrel Proof",
+          "quantity": 0,
+          "price": 69.99
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "quantity": 0,
+          "price": 44.43
+        },
+        {
+          "canonicalName": "Basil Hayden 10 Year",
+          "quantity": 0,
+          "price": 84.43
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 0,
+          "price": 22.21
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 2.73,
+        "locationId": "2355",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "vons",
+        "domainName": "Vons",
+        "address": {
+          "line1": "4145 30th St",
+          "city": "San Diego",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "92104"
+        },
+        "justForU": true,
+        "localPage": "https://local.vons.com/ca/san-diego/4145-30th-st.html",
+        "storeRewards": {
+          "storeId": "2355",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "291",
+          "rewardsProgramId": "5-291",
+          "storeLogoName": "vons_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/vons_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "SoCal",
+          "number": "29"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "2100"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "2100"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "Eagle Rare 10 Year",
+          "quantity": 4,
+          "price": 46.66
+        },
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 3,
+          "price": 49.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 4,
+          "price": 22.21
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 1.1,
+        "locationId": "2684",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "1814 19th St",
+          "city": "Sacramento",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "95811"
+        },
+        "justForU": true,
+        "localPage": "https://local.safeway.com/safeway/ca/sacramento/1814-19th-st.html",
+        "storeRewards": {
+          "storeId": "2684",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "251",
+          "rewardsProgramId": "5-251",
+          "storeLogoName": "safeway_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/safeway_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "Norcal",
+          "number": "25"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "1900"
+              }
+            ]
+          },
+          {
+            "departmentName": "Bakery",
+            "departmentId": "22",
+            "serviceDepartmentType": "Bakery",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": false,
+            "pickerBufferTime": "0",
+            "isApplyBakeryHoursRestrictionEnabled": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "2000"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "Eagle Rare 10 Year",
+          "quantity": 57,
+          "price": 44.99
+        },
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 28,
+          "price": 55.99
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "quantity": 2,
+          "price": 26.88
+        },
+        {
+          "canonicalName": "Jack Daniel's Barrel Heritage Barrel Toasted",
+          "quantity": 3,
+          "price": 69.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 11,
+          "price": 27.99
+        },
+        {
+          "canonicalName": "Elijah Craig Straight Rye Whiskey",
+          "quantity": 3,
+          "price": 25.99
+        }
+      ]
+    },
+    {
+      "store": {
+        "distance": 1.77,
+        "locationId": "2242",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "1025 Alhambra Blvd",
+          "city": "Sacramento",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "95816"
+        },
+        "justForU": true,
+        "localPage": "https://local.safeway.com/safeway/ca/sacramento/1025-alhambra-blvd.html",
+        "storeRewards": {
+          "storeId": "2242",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "251",
+          "rewardsProgramId": "5-251",
+          "storeLogoName": "safeway_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/safeway_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "Norcal",
+          "number": "25"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "1900"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": []
+    },
+    {
+      "store": {
+        "distance": 2.94,
+        "locationId": "3013",
+        "timezone": "America/Los_Angeles",
+        "polarisBannerName": "safeway",
+        "domainName": "Safeway",
+        "address": {
+          "line1": "3680 Crocker Dr",
+          "city": "Sacramento",
+          "state": "CA",
+          "country": "US",
+          "zipcode": "95818"
+        },
+        "justForU": true,
+        "localPage": "https://local.safeway.com/safeway/ca/sacramento/3680-crocker-dr.html",
+        "storeRewards": {
+          "storeId": "3013",
+          "hasGroceryDelivery": true,
+          "hasDUG": true,
+          "hasRushDelivery": false,
+          "hasGroceryRewards": true,
+          "gasRewardsId": "251",
+          "rewardsProgramId": "5-251",
+          "storeLogoName": "safeway_logo",
+          "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/safeway_logo"
+        },
+        "isDUGStore": true,
+        "isPickupStore": true,
+        "isWFC": false,
+        "wfcStoreId": 5799,
+        "isNonMigratedStore": false,
+        "division": {
+          "name": "Norcal",
+          "number": "25"
+        },
+        "storeFeatures": {
+          "isErumStore": true,
+          "isGuestCartEnabled": false,
+          "isMFC": false,
+          "isAutoReplenishmentEnabled": true,
+          "isSNAP2Eligible": true,
+          "isSubstitutions2Enabled": true,
+          "isExpressStore": true,
+          "isWGDEnabled": true,
+          "isStoreTippingEnabled": true,
+          "isDarkStore": false,
+          "isWineD2CEnabled": true,
+          "isScanAndPayEnabled": false,
+          "isPaymentV2": true,
+          "isSNAPEligible": false,
+          "isFullAuthEnabled": true,
+          "isEditOrderEnabled": true,
+          "isWYSIWYGEnabled": true,
+          "isEnterpriseTaxation": true,
+          "isSubscriptionUDC": true,
+          "isRolloutWYSIWYGEnabled": true,
+          "isPromisePlatformStore": true,
+          "isHourlyStore": false,
+          "isSequentialTenderingMLModel": false,
+          "isOttValveEnabled": false,
+          "isFlashDugEnabled": true,
+          "isFlashDeliveryEnabled": true,
+          "isFlash2Enabled": false,
+          "isApprovedSubsEnabled": true,
+          "is3PLBatching": false,
+          "is3PLShopAndDriveEnabled": false,
+          "isAltPickUpEnabled": true,
+          "isMerchPickingEnabled": false,
+          "isDirectedSpendEnabled": true,
+          "isFoodIsMedicineNBEnabled": true,
+          "isCustomerCentricTillingEnabled": true,
+          "isSNSCNCEnabled": true,
+          "isBagFeeWaivedforEBT": false,
+          "isB2BStore": true,
+          "isDeliveryPreference": true,
+          "isPrePickingEnabled": true,
+          "isIntradayFastPickingEnabled": false,
+          "isISMLocationServiceEnabled": false,
+          "is2WayCommunication": false,
+          "isFoodIsMedicineBentoEnabled": true,
+          "isSNSB2BEnabled": true,
+          "isCustBagPreference": true,
+          "is3PPEnabled": true,
+          "isOrderAmends": true,
+          "isDynamicSlotEnabled": true,
+          "isGiftEnabled": true,
+          "showDUGEndTime": true,
+          "isFlashCapacityEnabled": true,
+          "isSlowPickingEnabled": false,
+          "isBNCEnabled": true,
+          "isDCMEnabled": false,
+          "isSOAEnabled": true,
+          "isSOAUXEnabled": false,
+          "isDeptUpdateNotification": false,
+          "isInHomeServiceEnabled": false,
+          "isSCEEnabled": false,
+          "isAisleGeoLocation": false,
+          "isLaborHealthEnabled": false,
+          "isLaborHealthUXEnabled": false,
+          "isCrossStreetsEnabled": false,
+          "legalNotAllowed": false
+        },
+        "tplPartners": [
+          "BENTO",
+          "MERCATO",
+          "NATIONSBENEFITS",
+          "INSTACART",
+          "SEASONHEALTH"
+        ],
+        "departmentsDetail": [
+          {
+            "departmentName": "Floral",
+            "departmentId": "26",
+            "serviceDepartmentType": "eComFloral",
+            "serviceDepartEnabled": false,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "0",
+            "serviceDeptStatus": false,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": false,
+            "isAcuViewEnabled": false,
+            "acuviewInstoreOrder": false,
+            "isCateringEnabled": false,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0800",
+                "endHour": "2000"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0800",
+                "endHour": "2000"
+              }
+            ]
+          },
+          {
+            "departmentName": "Deli",
+            "departmentId": "27",
+            "serviceDepartmentType": "Deli",
+            "serviceDepartEnabled": true,
+            "acuview1POrderprep": true,
+            "pickUpAtCounter": false,
+            "bufferEstTime": "15",
+            "serviceDeptStatus": true,
+            "digitalTicketingEnabled": false,
+            "isECOM1PEnabled": true,
+            "isAcuViewEnabled": true,
+            "acuviewInstoreOrder": true,
+            "pickerBufferTime": "15",
+            "isCateringEnabled": true,
+            "dayOfWeek": [
+              {
+                "day": "Monday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Tuesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Wednesday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Thursday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Friday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Saturday",
+                "startHour": "0700",
+                "endHour": "1900"
+              },
+              {
+                "day": "Sunday",
+                "startHour": "0700",
+                "endHour": "1900"
+              }
+            ]
+          }
+        ],
+        "ecomStore": true
+      },
+      "status": 200,
+      "rows": [
+        {
+          "canonicalName": "Eagle Rare 10 Year",
+          "quantity": 0,
+          "price": 44.99
+        },
+        {
+          "canonicalName": "E.H. Taylor Small Batch",
+          "quantity": 20,
+          "price": 55.99
+        },
+        {
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "quantity": 4,
+          "price": 26.88
+        },
+        {
+          "canonicalName": "Jack Daniel's Barrel Heritage Barrel Toasted",
+          "quantity": 3,
+          "price": 69.99
+        },
+        {
+          "canonicalName": "Heaven Hill Bottled-in-Bond 7 Year",
+          "quantity": 3,
+          "price": 42.99
+        },
+        {
+          "canonicalName": "Crown Royal Chocolate",
+          "quantity": 18,
+          "price": 27.99
+        }
+      ]
+    }
+  ]
+}

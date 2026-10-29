@@ -12,8 +12,8 @@ const source=WESTERN_GROCERY_EXPANSION_SOURCES.find(s=>s.merchantId==='1600');
 const parse=products=>parseGroceryExpansionInventory({response:{docs:products}},source,bible,{observedAt:fixture.capturedAt});
 
 test('Washington captured current allocated expressions retain exact premises, metadata and first-party coordinates',()=>{
-  assert.equal(WESTERN_GROCERY_EXPANSION_SOURCES.length,58);
-  assert.ok(WESTERN_GROCERY_EXPANSION_SOURCES.every(s=>s.lat>45&&s.lat<50&&s.lng< -116&&s.lng> -125));
+  assert.equal(WESTERN_GROCERY_EXPANSION_SOURCES.filter(s=>s.stateCode==='WA').length,58);
+  assert.ok(WESTERN_GROCERY_EXPANSION_SOURCES.filter(s=>s.stateCode==='WA').every(s=>s.lat>45&&s.lat<50&&s.lng< -116&&s.lng> -125));
   const rows=parse(fixture.products);
   assert.deepEqual(rows.map(r=>r.canonicalName).sort(),['E.H. Taylor Jr. Barrel Proof Bourbon','E.H. Taylor Small Batch','Eagle Rare 10 Year','Elijah Craig Barrel Proof','Heaven Hill Bottled-in-Bond 7 Year'].sort());
   for(const row of rows){
@@ -56,4 +56,13 @@ test('persisted host denial stops both resolver and inventory requests without r
   assert.equal(calls,1);assert.equal(first.signals.length,0);
   const second=await collectGroceryExpansion({id:'WA'},bible,{...options,attempts:first.metadata.sourceAttempts});
   assert.equal(calls,1);assert.equal(second.metadata.requests.length,0);
+});
+
+
+test('denial persistence completes before later work and survives downstream source failure',async()=>{
+  let calls=0,persisted;
+  await assert.rejects(()=>collectGroceryExpansion({id:'WA'},bible,{sleep:async()=>{},observedAt:fixture.capturedAt,
+    fetchText:async()=>{calls++;return{ok:false,status:403,text:''}},
+    persistAttempts:async attempts=>{persisted=attempts;throw new Error('downstreamfailure');}}),/downstreamfailure/);
+  assert.equal(calls,1);assert.equal(persisted['host:www.safeway.com'].httpStatus,403);
 });

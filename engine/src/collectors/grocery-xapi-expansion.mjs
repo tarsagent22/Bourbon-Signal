@@ -7,6 +7,8 @@ import { WESTERN_GROCERY_EXPANSION_SOURCES, WESTERN_GROCERY_RESOLVER_ZIPS } from
 const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn']);
 export const GROCERY_EXPANSION_REQUEST_LIMIT = 127;
+export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:168});
+const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({WA:58,CA:78});
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
 
@@ -49,22 +51,25 @@ export function parseGroceryExpansionInventory(payload, source, bible, {observed
 }
 
 export async function collectGroceryExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal,
-  sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),attempts={},nowMs=Date.now(),cursorDir}={}) {
+  sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),attempts={},nowMs=Date.now(),cursorDir,persistAttempts=async()=>{}}={}) {
   if(typeof fetchText!=='function')throw new Error('Bounded first-party fetchText is required');
   const sources=WESTERN_GROCERY_EXPANSION_SOURCES.filter(source=>source.stateCode===config.id);
-  if(sources.length>58)throw new Error('Grocery expansion exceeds reviewed store budget');
+  const requestLimit=GROCERY_EXPANSION_REQUEST_LIMITS[config.id];
+  if(!sources.length || !requestLimit || sources.length>GROCERY_EXPANSION_STORE_LIMITS[config.id])throw new Error('Grocery expansion exceeds reviewed state/store budget');
   const requests=[],signals=[],roadblocks=[],sourceAttempts={...attempts},blockedHosts=new Set();
   for(const[key,value]of Object.entries(attempts))if(key.startsWith('host:')&&Date.parse(value.nextAllowedAt)>nowMs)blockedHosts.add(key.slice(5));
   const request=async(url,kind,source=null,term=null)=>{
     signal?.throwIfAborted();const host=new URL(url).hostname;
     if(blockedHosts.has(host))return null;
-    if(requests.length>=GROCERY_EXPANSION_REQUEST_LIMIT)throw new Error('Grocery expansion request ceiling reached');
+    if(requests.length>=requestLimit)throw new Error('Grocery expansion request ceiling reached');
     if(requests.length)await sleep(400);
     const response=await fetchText(url,{signal,timeoutMs:15000,maxBytes:4*1024*1024,maxRedirects:0,
       headers:{accept:'application/json','ocp-apim-subscription-key':kind==='resolver'?publicStoreKey:publicSearchKey}});
     requests.push({kind,sourceId:source?.id || null,merchantId:source?.merchantId || null,term,url,status:response.status||0,ok:response.ok===true,observedAt:new Date().toISOString()});
     if([401,403,429,435].includes(Number(response.status))){
       blockedHosts.add(host);sourceAttempts[`host:${host}`]={lastAttemptAt:observedAt,status:'access_denied',httpStatus:response.status,nextAllowedAt:new Date(nowMs+86_400_000).toISOString()};
+      // Persist denial immediately; a later timeout/publication failure must not erase it.
+      await persistAttempts(structuredClone(sourceAttempts));
     }
     if(!response.ok && response.status!==206)roadblocks.push({state:config.id,source:source?.sourceLabel || 'Grocery store resolver',url,status:response.status||0,error:response.error || `HTTP ${response.status}`});
     return response;
@@ -104,5 +109,5 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
   }
   return {signals,roadblocks,metadata:{complete,sourceAttempts,requests,selectedStores:sources.map(source=>source.storeId),
     verifiedPremises:eligible.map(source=>source.storeId),positiveStores:[...new Set(signals.map(row=>row.storeId))],
-    maxRequestCount:GROCERY_EXPANSION_REQUEST_LIMIT,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
+    maxRequestCount:requestLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
 }
