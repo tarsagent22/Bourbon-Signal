@@ -7,6 +7,7 @@ import { isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
 import { isGeorgiaRetailerInventory, isGeorgiaRetailerSignalIdentity } from './georgia-retailer-policy.mjs';
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 import { isTexasRetailerInventory, isTexasRetailerSignalIdentity } from './texas-retailer-policy.mjs';
+import { isMidwestCityHiveInventory } from './collectors/midwest-cityhive-expansion.mjs';
 import { isCaliforniaRetailerInventory, isCaliforniaRetailerSignalIdentity } from './california-retailer-policy.mjs';
 import { isNevadaRetailerInventory, isNevadaRetailerSignalIdentity } from './nevada-retailer-policy.mjs';
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
@@ -288,6 +289,9 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
   const isDistilleryLane = signal.state === 'KY' && /^distillery_/i.test(eventType);
   const watchBlockedBySemantics = watchAlertsBlockedByStateSemantics(signal, eventType);
   const texasInventoryAllowed = signal.state !== 'TX' || isTexasRetailerInventory(signal);
+  const illinoisExpansionEvent=signal.state==='IL'&&(signal.sourceChain==='randalls'
+    ||signal.sourceLabel==='randalls IL first-party pickup inventory'||signal.sourceProductBinding?.source==='central-cityhive');
+  const illinoisExpansionAllowed=!illinoisExpansionEvent||isMidwestCityHiveInventory(signal);
   const indianaRetailerEvent = signal.state === 'IN' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
   const indianaInventoryAllowed = !indianaRetailerEvent || isIndianaRetailerInventory(signal);
   const indianaWatchAllowed = !indianaRetailerEvent || isIndianaRetailerSignalIdentity(signal);
@@ -342,7 +346,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && virginiaPremisesAllowed && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && centralInventoryAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && virginiaPremisesAllowed && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && centralWatchAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && centralInventoryAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && centralWatchAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

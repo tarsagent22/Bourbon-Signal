@@ -2,6 +2,7 @@ import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID } from '.
 import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS } from './nevada-xapi-runtime.mjs';
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
 import { collectTexasCityHiveExpansion } from './texas-cityhive-expansion.mjs';
+import { collectMidwestCityHiveExpansion } from './midwest-cityhive-expansion.mjs';
 import { pennsylvaniaDirectFwgsRoadblock } from './pennsylvania-direct-source-policy.mjs';
 import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
 import { reviewedIndianaCityHiveBottleMatch, reviewedIndianaPaylessBottleMatch, buildIndianaPaylessAvailabilityProof, normalizeIndianaCityHiveQuantity, indianaSourceBottleMismatchReason } from './indiana-retailer-matching.mjs';
@@ -9528,7 +9529,7 @@ async function collectPrecisionProbesUntraced(config, bible, existingSignals = [
   if (config.id === 'ID') return collectIdaho(config, bible);
   if (config.id === 'AL') return collectAlabama(config, bible);
   if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory, options);
-  if (config.id === 'IL') return collectIllinois(config, bible);
+  if (config.id === 'IL') return collectIllinois(config, bible, options);
   if (config.id === 'IN') return collectIndiana(config, bible, existingSignals, options);
   if (config.id === 'TN') return collectTennessee(config, bible, options);
   if (config.id === 'AZ') return collectArizona(config, bible, options);
@@ -9697,6 +9698,12 @@ export async function collectIllinois(config, bible, options = {}) {
   const observedAt = options.observedAt || new Date().toISOString();
   const query = options.query || binnysAlgoliaQuery;
   const pause = options.sleep || sleep;
+
+  if(!options.query||options.expansionFetchText){
+    const expansion=await collectMidwestCityHiveExpansion(config,bible,{observedAt,signal:options.signal,
+      fetchText:options.expansionFetchText||textFetch,sleep:pause,cacheFile:options.expansionCacheFile,cursorDir:options.cursorDir});
+    signals.push(...expansion.signals);roadblocks.push(...expansion.roadblocks);
+  }
 
   let stores = [];
   const storesByCode = new Map();
