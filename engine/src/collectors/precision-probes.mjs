@@ -5,6 +5,7 @@ import { collectTexasCityHiveExpansion } from './texas-cityhive-expansion.mjs';
 import { collectMidwestCityHiveExpansion } from './midwest-cityhive-expansion.mjs';
 import { pennsylvaniaDirectFwgsRoadblock } from './pennsylvania-direct-source-policy.mjs';
 import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
+import { optionalDeniedSourceSkip, retainParkedOptionalSourceRows } from './optional-source-denial-policy.mjs';
 import { reviewedIndianaCityHiveBottleMatch, reviewedIndianaPaylessBottleMatch, buildIndianaPaylessAvailabilityProof, normalizeIndianaCityHiveQuantity, indianaSourceBottleMismatchReason } from './indiana-retailer-matching.mjs';
 import { validateFwgsFullArtifact } from '../fwgs-artifact-policy.mjs';
 import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
@@ -4693,6 +4694,8 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
 }
 
 async function collectArizonaTarget(config, bible, observedAt, options = {}) {
+  const parked=optionalDeniedSourceSkip(config.id,'target-redsky','https://redsky.target.com');
+  if(parked)return parked;
   const signals = [];
   const roadblocks = [];
   const visitorId = crypto.randomUUID();
@@ -4804,6 +4807,8 @@ async function collectFloridaMdp(config, bible, observedAt, options = {}) {
 }
 
 async function collectFloridaTarget(config, bible, observedAt, existingSignals = [], options = {}) {
+  const parked=optionalDeniedSourceSkip(config.id,'target-redsky','https://redsky.target.com');
+  if(parked)return parked;
   const signals = [];
   const roadblocks = [];
   const visitorId = crypto.randomUUID();
@@ -5020,6 +5025,8 @@ async function collectFloridaCityHive(config, bible, observedAt, options = {}) {
   const roadblocks = [];
   const seenProductOptions = new Set();
   for (const source of FL_CITYHIVE_SOURCES) {
+    const parked=optionalDeniedSourceSkip(config.id,source.id,source.categoryUrl);
+    if(parked){roadblocks.push(...parked.roadblocks);continue;}
     let sourceInventoryCount = 0;
     let reachableStores = 0;
     let blocked = false;
@@ -9534,10 +9541,10 @@ async function collectPrecisionProbesUntraced(config, bible, existingSignals = [
   if (config.id === 'IL') return collectIllinois(config, bible, options);
   if (config.id === 'IN') return collectIndiana(config, bible, existingSignals, options);
   if (config.id === 'TN') return collectTennessee(config, bible, options);
-  if (config.id === 'AZ') return collectArizona(config, bible, options);
+  if (config.id === 'AZ') return retainParkedOptionalSourceRows(await collectArizona(config, bible, options), existingSignals);
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (config.id === 'NV') return withCollectionContext(options, () => collectNevada(config, bible));
-  if (config.id === 'FL') return collectFlorida(config, bible, existingSignals, options);
+  if (config.id === 'FL') return retainParkedOptionalSourceRows(await collectFlorida(config, bible, existingSignals, options), existingSignals);
   if (config.id === 'GA') return collectGeorgia(config, bible, options);
   if (config.id === 'NY' || config.id === 'CO') return collectMetroRetailers(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);

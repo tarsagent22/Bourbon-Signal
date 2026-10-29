@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "id": "az-fl-denied-optional-sources-parked-20261029",
+  "decision": "disabled",
+  "directRequestsAllowed": false,
+  "resumption": "separate reviewed change with new access evidence",
+  "workflow": {
+    "runId": "40852615120",
+    "headSha": "fe8c942d009a1136b0a63a703237ecf3facbe466",
+    "artifactId": "12889766678",
+    "artifactName": "inventory-refresh-40852615120",
+    "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40852615120"
+  },
+  "reports": [
+    {
+      "state": "AZ",
+      "path": "states/AZ.json",
+      "sha256": "46572417c441332d3a30b9c64b500e62055a5e5ae6a2f93c9c4009aa6ce63512",
+      "startedAt": "2026-10-29T09:54:34.812Z",
+      "finishedAt": "2026-10-29T10:07:16.987Z"
+    },
+    {
+      "state": "FL",
+      "path": "states/FL.json",
+      "sha256": "1003684552abd4caa11c31cd47175007b04c5d084d35a0a362bde29aeb94a798",
+      "startedAt": "2026-10-29T09:54:48.768Z",
+      "finishedAt": "2026-10-29T09:55:28.084Z"
+    }
+  ],
+  "routes": [
+    {
+      "state": "AZ",
+      "sourceKey": "target-redsky",
+      "sourceRuntimeId": "precision:az",
+      "hostname": "redsky.target.com",
+      "requestPath": "/redsky_aggregations/v1/web/plp_search_v2",
+      "label": "Target Arizona RedSky fulfillment",
+      "httpStatus": 435,
+      "attemptWindowStartedAt": "2026-10-29T09:54:34.812Z",
+      "attemptWindowFinishedAt": "2026-10-29T10:07:16.987Z",
+      "clockSemantics": "state_collection_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "target",
+      "rowHosts": [
+        "redsky.target.com",
+        "www.target.com",
+        "target.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "target-redsky",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "redsky.target.com",
+      "requestPath": "/redsky_aggregations/v1/web/plp_search_v2",
+      "label": "Target Florida RedSky store fulfillment",
+      "httpStatus": 435,
+      "attemptWindowStartedAt": "2026-10-29T09:54:48.813Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:54:48.988Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "target",
+      "rowHosts": [
+        "redsky.target.com",
+        "www.target.com",
+        "target.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "my-florida-liquors",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "myfloridaliquors.com",
+      "requestPath": "/shop/",
+      "label": "1001 Liquors / My Florida Liquors CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "my-florida-liquors",
+      "rowHosts": [
+        "myfloridaliquors.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "paradise-fubar-liquors",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "shopparadiseliquor.com",
+      "requestPath": "/shop/",
+      "label": "Paradise Liquors & Wine Florida CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "paradise-fubar-liquors",
+      "rowHosts": [
+        "shopparadiseliquor.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "balm-liquor",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "balmliquor.com",
+      "requestPath": "/shop/",
+      "label": "Balm Liquor Riverview CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "balm-liquor",
+      "rowHosts": [
+        "balmliquor.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "sunshine-food-spirits",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "sunshineliquorsclearwater.com",
+      "requestPath": "/shop/",
+      "label": "Sunshine Food & Spirits Clearwater CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "sunshine-food-spirits",
+      "rowHosts": [
+        "sunshineliquorsclearwater.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "big-daddys-liquors",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "bigdaddysliquors.com",
+      "requestPath": "/shop/",
+      "label": "Big Daddy's South Florida CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "big-daddys-liquors",
+      "rowHosts": [
+        "bigdaddysliquors.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "golden-ox-liquors",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "goldenoxliquors.com",
+      "requestPath": "/shop/",
+      "label": "Golden Ox Liquors Florida CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "golden-ox-liquors",
+      "rowHosts": [
+        "goldenoxliquors.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "ocean-wine-spirits",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "oceansliquor.com",
+      "requestPath": "/shop/",
+      "label": "Ocean Wine & Spirits Fort Lauderdale CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "ocean-wine-spirits",
+      "rowHosts": [
+        "oceansliquor.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "beach-liquors",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "beachliquors.net",
+      "requestPath": "/shop/",
+      "label": "Beach Liquors Florida Panhandle CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "beach-liquors",
+      "rowHosts": [
+        "beachliquors.net"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "sarasota-wine-liquors",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "sarasotawineliquors.com",
+      "requestPath": "/shop/",
+      "label": "Sarasota Wine & Liquors CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "sarasota-wine-liquors",
+      "rowHosts": [
+        "sarasotawineliquors.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "bourbon-barn-gainesville",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "bourbonbarnfl.com",
+      "requestPath": "/shop/",
+      "label": "The Bourbon Barn Gainesville CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "bourbon-barn-gainesville",
+      "rowHosts": [
+        "bourbonbarnfl.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "star-liquors",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "starlq.com",
+      "requestPath": "/shop/",
+      "label": "Star Liquors Florida CityHive store inventory",
+      "httpStatus": 429,
+      "attemptWindowStartedAt": "2026-10-29T09:54:52.788Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:22.085Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "star-liquors",
+      "rowHosts": [
+        "starlq.com"
+      ]
+    },
+    {
+      "state": "FL",
+      "sourceKey": "a1a-liquor-naples",
+      "sourceRuntimeId": "precision:fl",
+      "hostname": "a1aliquor.com",
+      "requestPath": "/products.json",
+      "label": "A1A Liquor Shopify shipment orderability",
+      "httpStatus": 401,
+      "attemptWindowStartedAt": "2026-10-29T09:55:04.348Z",
+      "attemptWindowFinishedAt": "2026-10-29T09:55:12.404Z",
+      "clockSemantics": "source_lane_window_upper_bound_not_individual_response_time",
+      "rowSourceChain": "a1a-liquor-naples",
+      "rowHosts": [
+        "a1aliquor.com"
+      ]
+    }
+  ]
+}
