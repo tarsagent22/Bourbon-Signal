@@ -1,12 +1,14 @@
 import {readFile,mkdir} from 'node:fs/promises';
+import {mkdirSync,writeFileSync,renameSync,rmSync} from 'node:fs';
 import path from 'node:path';
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import reviewed from '../../data/texas-shopify-pickup-retailers.json' with {type:'json'};
 import {collectShopifyVariantPickup,validateShopifyVariantSource,SHOPIFY_VARIANT_PICKUP_VERSION} from './shopify-variant-pickup.mjs';
 import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 import {runLegacyPrecisionSource} from '../sources/legacy-precision-runtime.mjs';
 import {createSourceSkippedResult,summarizeSourceResult} from '../sources/source-result.mjs';
 import {writeCollectionFile,collectionRequestSignal} from '../core/collection-context.mjs';
+import {fetchWithMeta} from '../core/fetcher.mjs';
 
 export const TEXAS_SHOPIFY_PICKUP_SOURCE=validateShopifyVariantSource(reviewed.source);
 export const TEXAS_SHOPIFY_PICKUP_TTL_MS=60*60_000;
@@ -15,6 +17,44 @@ const CONFIG_DIGEST=createHash('sha256').update(JSON.stringify(SOURCE)).digest('
 const adapter={id:SOURCE.runtimeId,label:SOURCE.sourceLabel,url:SOURCE.baseUrl,
   metadata:{stateId:'TX',lane:'exact_variant_pickup'}};
 const targets=new Set(['limited','allocated','unicorn']);
+const DENIAL_STATUSES=new Set([401,403,429]);
+const DENIAL_MINIMUM_MS=24*60*60_000;
+
+export async function readTexasPickupState(file,label,reader=readFile) {
+  let text;
+  try{text=await reader(file,'utf8');}catch(error){
+    if(error.code==='ENOENT')return null;
+    throw new Error(`Texas pickup ${label} could not be read safely`,{cause:error});
+  }
+  try{
+    const value=JSON.parse(text);
+    if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Expected state object');
+    return value;
+  }catch(error){throw new Error(`Texas pickup ${label} is malformed`,{cause:error});}
+}
+
+function readIncidentLedger(value) {
+  if(value===null)return{schemaVersion:1,hosts:{}};
+  if(value.schemaVersion!==1||!value.hosts||typeof value.hosts!=='object'||Array.isArray(value.hosts)
+    ||Object.keys(value).some(key=>!['schemaVersion','hosts'].includes(key)))throw new Error('Texas pickup incident ledger is malformed');
+  for(const[host,entry]of Object.entries(value.hosts)){
+    if(!/^[a-z0-9.-]+$/i.test(host)||!entry||typeof entry!=='object'||Array.isArray(entry)
+      ||Object.keys(entry).some(key=>!['httpStatus','lastAttemptAt','nextAllowedAt'].includes(key))
+      ||!DENIAL_STATUSES.has(entry.httpStatus)||!Number.isFinite(Date.parse(entry.lastAttemptAt))
+      ||!Number.isFinite(Date.parse(entry.nextAllowedAt))
+      ||Date.parse(entry.nextAllowedAt)-Date.parse(entry.lastAttemptAt)<DENIAL_MINIMUM_MS)throw new Error('Texas pickup incident ledger is malformed');
+  }
+  return value;
+}
+
+// Only host-denial metadata may cross cancellation. Inventory remains on the
+// abort-aware writeCollectionFile path below and never enters this journal.
+function persistIncidentLedger(file,value) {
+  const temporary=`${file}.${process.pid}.${randomUUID()}.tmp`;
+  mkdirSync(path.dirname(file),{recursive:true});
+  try{writeFileSync(temporary,JSON.stringify(value,null,2));renameSync(temporary,file);}
+  finally{rmSync(temporary,{force:true});}
+}
 
 export function isTexasShopifyPickupIdentity(row) {
   const seed=SOURCE.products.find(seed=>seed.productId===row?.productId&&seed.variantId===row?.variantId);
@@ -78,8 +118,17 @@ export async function collectTexasShopifyPickup(config,bible,options={}) {
   if(config?.id!=='TX')throw new Error('Texas Shopify pickup cannot collect another state');
   const nowMs=options.nowMs??Date.now(),observedAt=options.observedAt||new Date(nowMs).toISOString();
   const cacheFile=options.cacheFile||path.resolve('out/cache/texas-shopify-pickup.json');
-  const cache=await readFile(cacheFile,'utf8').then(JSON.parse).catch(()=>null);
+  const incidentFile=options.incidentFile||path.join(path.dirname(cacheFile),'texas-shopify-pickup-incidents.json');
+  let incidents=readIncidentLedger(await readTexasPickupState(incidentFile,'incident ledger'));
+  const host=new URL(SOURCE.baseUrl).hostname;
+  const incident=incidents.hosts[host];
+  if(incident&&Date.parse(incident.nextAllowedAt)>nowMs)return envelope(createSourceSkippedResult({
+    adapter,status:'circuit_open',now:observedAt,
+    schedule:{sourceId:SOURCE.runtimeId,decision:'host_denial_cooldown',nextAllowedAt:incident.nextAllowedAt},
+  }));
+  const cache=await readTexasPickupState(cacheFile,'inventory cache');
   const validCache=cache?.schemaVersion===1&&cache.sourceId===SOURCE.runtimeId;
+  if(cache&&(!validCache||!Number.isFinite(Date.parse(cache.nextAllowedAt))))throw new Error('Texas pickup inventory cache is malformed');
   const compatible=validCache&&cache.configSha256===CONFIG_DIGEST;
   const lastGood=compatible?cache.lastGood:options.previousSourceResults?.[SOURCE.runtimeId];
   const denied=validCache&&[401,403,429].includes(cache.httpStatus);
@@ -93,7 +142,20 @@ export async function collectTexasShopifyPickup(config,bible,options={}) {
     previousResults:lastGood?{[SOURCE.runtimeId]:lastGood}:null,circuitBreaker:options.sourceCircuitBreaker,
     sourceRunnerOptions:{...options.sourceRunnerOptions,schedule:false,maxAttempts:1,timeoutMs:55_000},
     collect:async({signal})=>{
-      const result=await collectShopifyVariantPickup(bible,SOURCE,{observedAt,signal,fetchText:options.fetchText});
+      const fetchText=async(url,requestOptions)=>{
+        const response=await(options.fetchText||fetchWithMeta)(url,requestOptions);
+        if(DENIAL_STATUSES.has(Number(response.status))){
+          const attemptedAt=Math.max(nowMs,Date.now()),retryAfterSeconds=Number(response.retryAfterSeconds);
+          const cooldown=Math.max(DENIAL_MINIMUM_MS,Number.isFinite(retryAfterSeconds)&&retryAfterSeconds>0?retryAfterSeconds*1000:0);
+          const nextAllowedAt=Math.max(Date.parse(incidents.hosts[host]?.nextAllowedAt)||0,
+            Math.min(8_640_000_000_000_000,attemptedAt+cooldown));
+          incidents={schemaVersion:1,hosts:{...incidents.hosts,[host]:{httpStatus:Number(response.status),
+            lastAttemptAt:new Date(attemptedAt).toISOString(),nextAllowedAt:new Date(nextAllowedAt).toISOString()}}};
+          persistIncidentLedger(incidentFile,incidents);
+        }
+        return response;
+      };
+      const result=await collectShopifyVariantPickup(bible,SOURCE,{observedAt,signal,fetchText});
       result.signals=result.signals.flatMap(row=>{
         const seed=SOURCE.products.find(seed=>seed.variantId===row.variantId);
         const signal={...row,county:STORE.county,variantAvailable:true,sourceProductBinding:{schemaVersion:1,source:'texas-shopify-pickup',

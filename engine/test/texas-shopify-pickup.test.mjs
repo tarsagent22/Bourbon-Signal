@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../src/core/bible.mjs';
-import {collectTexasShopifyPickup,TEXAS_SHOPIFY_PICKUP_SOURCE as source,isTexasShopifyPickupIdentity,isTexasShopifyPickupInventory} from '../src/collectors/texas-shopify-pickup.mjs';
+import {collectTexasShopifyPickup,readTexasPickupState,TEXAS_SHOPIFY_PICKUP_SOURCE as source,isTexasShopifyPickupIdentity,isTexasShopifyPickupInventory} from '../src/collectors/texas-shopify-pickup.mjs';
+import {withCollectionContext} from '../src/core/collection-context.mjs';
 import {canonicalizeSignal} from '../src/operational-report.mjs';
 import {bibleLookup,buildDrops,buildCurrentInventoryAlertsFromDrops} from '../src/export-site-contract.mjs';
 import {isTexasRetailerInventory} from '../src/texas-retailer-policy.mjs';
@@ -67,7 +68,7 @@ test('unreviewed identity, edition, premise, quantity, clock and generic rows re
   assert.equal(buildDrops([canonicalizeSignal(generic,bible)],bibleLookup(bible.records),[generic]).length,0);
 });
 
-for(const status of [403,429])test(`HTTP ${status} denials persist for 24 hours and stop before another product request`,async t=>{
+for(const status of [401,403,429])test(`HTTP ${status} denials persist for 24 hours and stop before another product request`,async t=>{
   const options=await setup(t);let requests=0;
   const first=await collectTexasShopifyPickup({id:'TX'},bible,{...options,fetchText:async url=>{requests++;return{ok:false,status,url,text:''};}});
   assert.equal(requests,1);assert.equal(first.sourceResults[0].error.status,status);
@@ -77,16 +78,77 @@ for(const status of [403,429])test(`HTTP ${status} denials persist for 24 hours 
   assert.equal(requests,1);assert.equal(second.sourceResults[0].status,'circuit_open');
 });
 
-test('production persists the pickup denial ledger even when publication fails',async()=>{
+for(const status of [401,403,429])test(`parent cancellation after HTTP ${status} preserves only denial metadata and never changes stock`,async t=>{
+  const options=await setup(t),incidentFile=path.join(path.dirname(options.cacheFile),'texas-shopify-pickup-incidents.json');
+  await collectTexasShopifyPickup({id:'TX'},bible,{...options,fetchText:transport});
+  const stockBefore=await readFile(options.cacheFile,'utf8'),controller=new AbortController();let requests=0;
+  const nowMs=Date.now()+31*60_000,retryAfterSeconds=status===429?3*24*60*60:0;
+  await assert.rejects(withCollectionContext({signal:controller.signal},()=>collectTexasShopifyPickup({id:'TX'},bible,{
+    ...options,nowMs,fetchText:async url=>{
+      requests++;controller.abort(new Error('parent cancelled after denial'));
+      return {ok:false,status,url,text:'',retryAfterSeconds};
+    },
+  })),/parent cancelled after denial/);
+  assert.equal(requests,1);
+  assert.equal(await readFile(options.cacheFile,'utf8'),stockBefore,'cancellation cannot publish or mutate inventory');
+  const ledger=JSON.parse(await readFile(incidentFile,'utf8')),host=new URL(source.baseUrl).hostname;
+  assert.deepEqual(Object.keys(ledger).sort(),['hosts','schemaVersion']);
+  assert.deepEqual(Object.keys(ledger.hosts),[host]);
+  assert.deepEqual(Object.keys(ledger.hosts[host]).sort(),['httpStatus','lastAttemptAt','nextAllowedAt']);
+  assert.equal(ledger.hosts[host].httpStatus,status);
+  assert.equal(Date.parse(ledger.hosts[host].nextAllowedAt)-Date.parse(ledger.hosts[host].lastAttemptAt),Math.max(24*60*60_000,retryAfterSeconds*1000));
+  // A source-config replacement or missing stock cache cannot reset host denial.
+  const old=JSON.parse(stockBefore);old.configSha256='different reviewed cohort';
+  await writeFile(options.cacheFile,JSON.stringify(old));
+  for(const removeCache of [false,true]){
+    if(removeCache)await rm(options.cacheFile);
+    const result=await collectTexasShopifyPickup({id:'TX'},bible,{...options,nowMs:nowMs+8*60*60_000,
+      fetchText:()=>{requests++;throw Error('denied host retried');}});
+    assert.equal(result.sourceResults[0].status,'circuit_open');assert.equal(result.signals.length,0);
+  }
+  assert.equal(requests,1);
+});
+
+for(const state of ['inventory cache','incident ledger'])test(`malformed existing ${state} blocks HTTP and preserves the file`,async t=>{
+  const options=await setup(t),file=state==='inventory cache'?options.cacheFile:path.join(path.dirname(options.cacheFile),'texas-shopify-pickup-incidents.json');
+  for(const corrupt of ['{broken',state==='inventory cache'?'{}':'{"schemaVersion":1,"hosts":{},"signals":[]}']){
+    await writeFile(file,corrupt);let requests=0;
+    await assert.rejects(collectTexasShopifyPickup({id:'TX'},bible,{...options,fetchText:()=>{requests++;throw Error('unsafe state requested');}}),/malformed/);
+    assert.equal(requests,0);assert.equal(await readFile(file,'utf8'),corrupt);
+  }
+});
+
+test('only ENOENT permits a cold state read; EACCES and other failures remain closed',async()=>{
+  for(const label of ['inventory cache','incident ledger']){
+    assert.equal(await readTexasPickupState('unreadable',label,async()=>{throw Object.assign(new Error('missing'),{code:'ENOENT'});}),null);
+    for(const code of ['EACCES','EIO'])await assert.rejects(readTexasPickupState('unreadable',label,async()=>{
+      throw Object.assign(new Error('access refused'),{code});
+    }),error=>error.message.includes('could not be read safely')&&error.cause.code===code);
+  }
+});
+
+test('production independently restores and always saves inventory and incident files, including path negatives',async()=>{
   const workflow=await readFile(new URL('../../.github/workflows/refresh-feed.yml',import.meta.url),'utf8');
-  const steps=workflow.split(/\r?\n {6}- name:/),cachePath='engine/out/cache/texas-shopify-pickup.json';
-  const restore=steps.find(step=>step.includes('actions/cache/restore@v4')&&step.includes(cachePath));
-  const save=steps.find(step=>step.includes('actions/cache/save@v4')&&step.includes(cachePath));
-  assert.ok(restore);assert.ok(save);assert.match(save,/\bif: always\(\)/);
-  assert.equal(save.match(/\bkey: (.+)/)[1],restore.match(/\bkey: (.+)/)[1]);
-  assert.match(restore,/restore-keys: \|\s*inventory-tx-shopify-attempts-/);
-  const general=steps.find(step=>step.startsWith(' Restore collector artifacts and adaptive scheduler state'));
-  assert.ok(steps.indexOf(restore)>steps.indexOf(general),'independent attempt ledger wins over older verified collector state');
+  const files=[['engine/out/cache/texas-shopify-pickup.json','attempts'],['engine/out/cache/texas-shopify-pickup-incidents.json','incidents']];
+  function check(text){
+    const steps=text.split(/\r?\n {6}- name:/),keys=[];
+    for(const [cachePath,kind]of files){
+      const exactPath=step=>step.match(/\bpath: ([^\r\n]+)/)?.[1]===cachePath;
+      const restore=steps.find(step=>step.includes('actions/cache/restore@v4')&&exactPath(step));
+      const save=steps.find(step=>step.includes('actions/cache/save@v4')&&exactPath(step));
+      assert.ok(restore,`${kind} restore requires its own exact file`);assert.ok(save,`${kind} save requires its own exact file`);
+      assert.match(save,/\bif: always\(\)/);
+      const key=save.match(/\bkey: (.+)/)[1];keys.push(key);
+      assert.equal(key,restore.match(/\bkey: (.+)/)[1]);
+      assert.ok(restore.includes(`inventory-tx-shopify-${kind}-`));assert.match(key,/github\.run_attempt/);
+      const general=steps.find(step=>step.startsWith(' Restore collector artifacts and adaptive scheduler state'));
+      assert.ok(steps.indexOf(restore)>steps.indexOf(general),'independent state wins over older verified collector state');
+    }
+    assert.notEqual(keys[0],keys[1],'incident metadata must have independent durable storage');
+  }
+  check(workflow);
+  assert.throws(()=>check(workflow.replaceAll(files[1][0],files[0][0])),/incidents restore requires its own exact file/);
+  assert.throws(()=>check(workflow.replace(/(Save Texas Shopify pickup denial journal[^]*?)if: always\(\)/,'$1if: success()')),/always/);
 });
 
 test('complete negative pickup observations replace positives without a false collapse',async t=>{

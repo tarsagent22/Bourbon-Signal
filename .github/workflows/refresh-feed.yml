@@ -144,6 +144,14 @@ jobs:
           restore-keys: |
             inventory-tx-shopify-attempts-${{ runner.os }}-
 
+      - name: Restore Texas Shopify pickup denial journal independently of publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/cache/texas-shopify-pickup-incidents.json
+          key: inventory-tx-shopify-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-tx-shopify-incidents-${{ runner.os }}-
+
       - name: Restore metro attempt cooldowns independently of published inventory
         uses: actions/cache/restore@v4
         with:
@@ -586,6 +594,13 @@ jobs:
         with:
           path: engine/out/cache/texas-shopify-pickup.json
           key: inventory-tx-shopify-attempts-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save Texas Shopify pickup denial journal independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/cache/texas-shopify-pickup-incidents.json
+          key: inventory-tx-shopify-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save metro attempt cooldowns independently of publication
         if: always()
