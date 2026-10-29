@@ -222,8 +222,7 @@ test('shared CityHive matcher baseline rejects SC-only abbreviations and dangero
   assert.equal(southCarolinaCityHiveBottleMatch('Four Roses Sngl Brl Obsk', bible).record, null, 'recipe code and single barrel do not prove barrel strength');
 });
 
-test('CityHive API transport sends the planned family query and returns merchant-bound evidence', async () => {
-  const capture = allocatedCityHiveCapture.expandedResponses.find((row) => row.searchText === 'elijah craig');
+test('CityHive API transport holds the denied requested route before sending a planned query or credentials', async () => {
   const envName = 'SC_CITYHIVE_TEST_PUBLIC_API_KEY';
   const priorKey = process.env[envName];
   const priorFetch = globalThis.fetch;
@@ -231,7 +230,7 @@ test('CityHive API transport sends the planned family query and returns merchant
   process.env[envName] = 'fixture-public-key';
   globalThis.fetch = async (url) => {
     requestedUrl = new URL(String(url));
-    return new Response(JSON.stringify(capture.response), { status: 200, headers: { 'content-type': 'application/json' } });
+    throw Error('Held API route must not request a response');
   };
   try {
     const result = await fetchSouthCarolinaCityHivePublicApi({
@@ -239,11 +238,12 @@ test('CityHive API transport sends the planned family query and returns merchant
       apiClientOrigin: 'app://sites.fixture',
       apiClientOriginUrl: 'https://retailer.example/shop/',
     }, allocatedCityHiveCapture.merchant.merchantId, { searchText: 'elijah craig' });
-    assert.equal(result.ok, true);
-    assert.equal(requestedUrl.origin, 'https://api.cityhive.net');
-    assert.equal(requestedUrl.searchParams.get('text'), 'elijah craig');
-    assert.equal(requestedUrl.searchParams.get('merchant_id'), allocatedCityHiveCapture.merchant.merchantId);
-    assert.ok(result.blobs.length >= 2);
+    assert.equal(result.ok, false);
+    assert.equal(result.status,'source_policy_disabled');
+    assert.equal(result.reviewRequired,true);
+    assert.equal(result.requestCount,0);
+    assert.equal(result.historicalHttpStatus,429);
+    assert.equal(requestedUrl,null);
   } finally {
     globalThis.fetch = priorFetch;
     if (priorKey == null) delete process.env[envName];

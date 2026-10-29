@@ -110,7 +110,7 @@
       {
         "file": "engine/src/collectors/precision-probes.mjs",
         "expected": "92c530518dd3cf4cb67798c26d6cee40b15e79575ae774c483d89f4336b0e799",
-        "actual": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f"
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
       },
       {
         "file": "engine/src/collectors/metro-retailer-surfaces.mjs",
@@ -175,7 +175,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "64eeae309bd0531e8db2b551468ab03422f1de1ff112a5e64ab5c6ece10cc143",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -222,7 +222,7 @@
     "workflowRunId": "40925309053",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "2d4f9d27e58f6e8c7c26938e32d55074b65719cfedda228e26d4dd1741061158",
-    "staticMatches": 60,
+    "staticMatches": 59,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/WA.json",
@@ -235,6 +235,11 @@
         "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
       },
       {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
+      {
         "file": "engine/src/export-site-contract.mjs",
         "expected": "632ca3fe335974b56e8acebddaf4629ab8a74382aaa1a6451126ab1337ed09bf",
         "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
@@ -242,7 +247,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -349,7 +354,7 @@
     "workflowRunId": "40925312923",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "675357ee920b2b8bf293a161802af29f9fb08d9af6643fa04c4bf741ffd6cbb3",
-    "staticMatches": 60,
+    "staticMatches": 59,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/NM.json",
@@ -362,6 +367,11 @@
         "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
       },
       {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
+      {
         "file": "engine/src/export-site-contract.mjs",
         "expected": "632ca3fe335974b56e8acebddaf4629ab8a74382aaa1a6451126ab1337ed09bf",
         "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
@@ -369,7 +379,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -476,7 +486,7 @@
     "workflowRunId": "40925317245",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "3194afb7592efeb816f391fb07b821bb9c3afea584759ef09ec6ef67b515f77b",
-    "staticMatches": 66,
+    "staticMatches": 65,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/WI.json",
@@ -489,6 +499,11 @@
         "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
       },
       {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
+      {
         "file": "engine/src/export-site-contract.mjs",
         "expected": "632ca3fe335974b56e8acebddaf4629ab8a74382aaa1a6451126ab1337ed09bf",
         "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
@@ -496,7 +511,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -593,7 +608,7 @@
     "workflowRunId": "40925321358",
     "commitSha": "3f975f896bd7c5c7f887570335c48e89cd158569",
     "archiveDigest": "105dadd393d38a4520e76547a9399fd2bb97590c1da0b3f7cbf6bf9473be6b1e",
-    "staticMatches": 66,
+    "staticMatches": 65,
     "staticMismatches": [
       {
         "file": "engine/data/state-integration/OK.json",
@@ -606,6 +621,11 @@
         "actual": "022858dd788cefce28d1bc2bd7672e0f0e286299ecdc0960266046205f24e3de"
       },
       {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
+      {
         "file": "engine/src/export-site-contract.mjs",
         "expected": "632ca3fe335974b56e8acebddaf4629ab8a74382aaa1a6451126ab1337ed09bf",
         "actual": "3f960a754f814db2fd932bc34d571a61af58b0acbb0e4d34ff944614205957f7"
@@ -613,7 +633,7 @@
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "0872f23b89e9e821514a47a2e0f36146dba02658fc6344457058e2af07b64394",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "src/config/state-lifecycle.json",
@@ -710,12 +730,17 @@
     "workflowRunId": "40936165833",
     "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
     "archiveDigest": "bb6e5cfbcbc1f203197254b9595f739d0518c2a783750f058ff20b5c9ebd4eff",
-    "staticMatches": 99,
+    "staticMatches": 98,
     "staticMismatches": [
+      {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -757,12 +782,17 @@
     "workflowRunId": "40936171485",
     "commitSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
     "archiveDigest": "6504b008fabd6fc80738c47e3e18af86aedad36f043d675fd8c268d5659e9408",
-    "staticMatches": 99,
+    "staticMatches": 98,
     "staticMismatches": [
+      {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -804,12 +834,17 @@
     "workflowRunId": "40938266573",
     "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
     "archiveDigest": "cd87d5cd14952ad36a5cb14c90f92e81f748afd0697cda30b9c3773adddcdfe0",
-    "staticMatches": 93,
+    "staticMatches": 92,
     "staticMismatches": [
+      {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -850,12 +885,17 @@
     "workflowRunId": "40938271167",
     "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
     "archiveDigest": "9b6efac33d43eef825e65f965bdc7ed7226353de0a583a526d5e2c8c41783e5b",
-    "staticMatches": 93,
+    "staticMatches": 92,
     "staticMismatches": [
+      {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",
@@ -896,12 +936,17 @@
     "workflowRunId": "40938275725",
     "commitSha": "a99271eea6196c0e2e16fcc75aa0c3e0b9ed2222",
     "archiveDigest": "a263ce42b9f60eccfb364dbbef5f262d7a3755ae6c217f26a7daf045fe9e489d",
-    "staticMatches": 93,
+    "staticMatches": 92,
     "staticMismatches": [
+      {
+        "file": "engine/src/collectors/precision-probes.mjs",
+        "expected": "560b05394a6b0cc6e90dade96b38eefc9db8dc02391e753d31f9f012ccd93b5f",
+        "actual": "a907f29d17f162043aa0b3d7c9a7126f9c0ef0e73cd651217b020e74d56cdd81"
+      },
       {
         "file": "scripts/build-promotion-provenance.mjs",
         "expected": "8ce9e935184665e2fcf0240cf63a6b5b30f99fc68e3d26b41db4479f600de2ac",
-        "actual": "7c32f2f0c9ca80d3cfd4fcb61ede9db0bec1b913e32e84287a0635ab8f5318ad"
+        "actual": "6d1cba9366ba8a2cf00543de7b66cfc6804b44a0b95c623290695fd590939baa"
       },
       {
         "file": "engine/src/run-expansion-shadow.mjs",

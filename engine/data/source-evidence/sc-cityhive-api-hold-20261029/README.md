@@ -1,0 +1,5 @@
+# South Carolina requested CityHive API review hold
+
+The unmodified SC.json is from failed production workflow40944514001, artifact12928963745. Policy metadata binds its exact SHA256 and source-result window. The aggregate report records two HTTP429 failures for O'Darby's Liquor Barn and Palmetto Liquor at the requested API URL. It does not retain individual merchant requests, response bodies/headers, final redirect origin, Retry-After or individual response clocks.
+
+The exact requested HTTPS API host/path is held across merchant/query values. The two observed registered SC source bindings are held before cache or network selection, with no alternate storefront fallback. Other already-configured SC storefront sources remain permitted. The earliest review is24hours after the source-window upper bound; passing that time does not clear the sticky reviewed hold. Historical retained rows keep their original source clocks and become stale with all customer/delivery channels disabled. This is a policy skip, not a fresh HTTP429 observation or fabricated stock.

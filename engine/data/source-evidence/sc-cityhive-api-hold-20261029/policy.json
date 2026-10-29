@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "sc_cityhive_requested_api_429_review_hold_20261029",
+  "state": "SC",
+  "workflow": {
+    "repository": "tarsagent22/Bourbon-Signal",
+    "runId": "40944514001",
+    "conclusion": "failure",
+    "headSha": "9a6e0ec0bbf74ede2d69cf9cc37e02d7ae4d5cd2",
+    "url": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40944514001",
+    "artifactId": "12928963745",
+    "artifactName": "inventory-refresh-40944514001",
+    "artifactDigest": "189b1fbfd33106503f181721bbc3bf5413a2980ddb20e3ec95c59e0f52d9ddc6",
+    "artifactBytes": 17834455
+  },
+  "report": {
+    "path": "engine/data/source-evidence/sc-cityhive-api-hold-20261029/SC.json",
+    "artifactPath": "states/SC.json",
+    "sha256": "94d847cdbbbd2fbe672914785f5ad778b990673749c0da8322e213547228c971",
+    "bytes": 436572,
+    "sourceRuntimeId": "precision:sc",
+    "attemptWindowStartedAt": "2026-10-29T19:57:59.043Z",
+    "attemptWindowFinishedAt": "2026-10-29T19:58:45.767Z",
+    "clockSemantics": "source_result_window_not_individual_response_time"
+  },
+  "requestedRoute": {
+    "protocol": "https:",
+    "hostname": "api.cityhive.net",
+    "pathname": "/api/v1/products/search.json",
+    "url": "https://api.cityhive.net/api/v1/products/search.json",
+    "scope": "all_query_values_and_merchants_for_this_exact_requested_host_path"
+  },
+  "historicalHttpStatus": 429,
+  "attemptedProbeCount": 2,
+  "skippedProbeCount": 17,
+  "configuredProbeCount": 19,
+  "minimumReviewAt": "2026-10-30T19:58:45.767Z",
+  "reviewRequired": true,
+  "automaticExpiryAllowed": false,
+  "affectedSources": [
+    {
+      "id": "odarbys-liquor-barn",
+      "hostname": "odarbysliquorbarn.com",
+      "label": "O'Darby's Liquor Barn South Carolina CityHive store inventory",
+      "scope": "all_configured_merchants_of_the_observed_registered_source_binding"
+    },
+    {
+      "id": "palmetto-liquor",
+      "hostname": "palmettoliquor.com",
+      "label": "Palmetto Liquor South Carolina CityHive store inventory",
+      "scope": "all_configured_merchants_of_the_observed_registered_source_binding"
+    }
+  ],
+  "evidenceLimits": {
+    "individualResponseTimestampRetained": false,
+    "perRequestMerchantIdRetained": false,
+    "responseHeadersRetained": false,
+    "responseBodyRetained": false,
+    "finalResponseOriginRetained": false,
+    "retryAfterRetained": false,
+    "observedStatusScope": "two_aggregated_source_failures_for_the_recorded_requested_url"
+  }
+}
