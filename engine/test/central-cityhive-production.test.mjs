@@ -132,16 +132,16 @@ test('a late successful HTTP response after parent cancellation cannot publish i
 test('the native HTTP boundary journals denied headers and Retry-After before body reads despite parent abort',async t=>{
   const nativeFetch=globalThis.fetch;t.after(()=>{globalThis.fetch=nativeFetch;});
   for(const status of [401,403,429,435]){
-    const opts=await setup(t),controller=new AbortController();let requests=0,cancelled=0;
+    const opts=await setup(t),controller=new AbortController();let requests=0,cancelled=0,beforeCancel=false;
     globalThis.fetch=async(url,request)=>{
       requests++;assert.equal(request.redirect,'error');controller.abort(Error('Parent aborted after response headers'));
       return{ok:false,status,url,headers:new Headers({'retry-after':'259200'}),body:{cancel:async()=>{
-        cancelled++;const journal=JSON.parse(await readFile(path.join(opts.incidentDir,'WI.json'),'utf8'));
-        assert.equal(journal.hosts['liquorguys.com'].httpStatus,status,'denial must persist before cancellation touches the body');
+        cancelled++;const journal=await readFile(path.join(opts.incidentDir,'WI.json'),'utf8').then(JSON.parse).catch(()=>null);
+        beforeCancel=journal?.hosts?.['liquorguys.com']?.httpStatus===status;
       }},text:async()=>{throw Error('Denied response body must not be read');}};
     };
     await assert.rejects(()=>collectCentralCityHiveProductionSource(config('WI'),bible,{...opts,signal:controller.signal}),error=>error.status===status);
-    assert.equal(requests,1);assert.equal(cancelled,1);
+    assert.equal(requests,1);assert.equal(cancelled,1);assert.equal(beforeCancel,true,'denial must persist before cancellation touches the body');
     const journal=JSON.parse(await readFile(path.join(opts.incidentDir,'WI.json'),'utf8')),incident=journal.hosts['liquorguys.com'];
     assert.ok(Date.parse(incident.nextAllowedAt)-Date.parse(incident.lastAttemptAt)>=3*86_400_000);
     assert.equal(journal.inFlight,null);

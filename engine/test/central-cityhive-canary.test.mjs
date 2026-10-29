@@ -21,7 +21,7 @@ for(const state of ['WI','OK'])test(`${state} portable replay reparses raw merch
     process.env.BOURBON_SIGNAL_SHADOW_MODE='1';
     // Synthetic workflow variables test validation only, never actual receipts.
     const env={BOURBON_SIGNAL_SHADOW_MODE:'1',GITHUB_ACTIONS:'true',GITHUB_RUN_ID:'123',GITHUB_REPOSITORY:'tarsagent22/Bourbon-Signal',GITHUB_SHA:'a'.repeat(40)};
-    const report=await collectCityHiveResearchReport(cityHiveResearchSourceForState(state),bible,{env,reportDirectory:directory,
+    const report=await collectCityHiveResearchReport(cityHiveResearchSourceForState(state),bible,{env,reportDirectory:directory,incidentFile:path.join(directory,'incidents.json'),
       cursorDir:path.join(directory,'cursor'),sleep:async()=>{},readAttempts:async()=>({}),writeAttempts:async()=>{},
       fetchText:async url=>({ok:true,status:200,url,text:bodies.get(new URL(url).hostname)})});
     assert.ok(report.metadata.receipts.every(receipt=>/^source-captures\/[A-Za-z0-9._-]+\.html$/.test(receipt.artifactPath)));

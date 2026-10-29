@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       shadow_run_id:
-        description: "WA/NM: successful workflow-issued shadow run to replay with original clocks"
+        description: "WA/NM/WI/OK: successful workflow-issued shadow run to replay with original clocks"
         required: false
         type: string
       candidate_drops:
@@ -66,13 +66,13 @@ jobs:
             echo "Candidate path must be a repository-controlled engine/data/canary-inputs JSON file" >&2
             exit 1
           fi
-          if [[ "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" ]]; then
+          if [[ "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" || "$RAW_STATE" == "WI" || "$RAW_STATE" == "OK" ]]; then
             if [[ ! "$RAW_SHADOW_RUN" =~ ^[0-9]+$ ]] || [[ "$RAW_CANDIDATE_DROPS" != "data/canary-inputs/$RAW_STATE.json" ]]; then
-              echo "WA/NM require an actual shadow run and the fixed state canary path" >&2
+              echo "WA/NM/WI/OK require an actual shadow run and the fixed state canary path" >&2
               exit 1
             fi
           elif [[ -n "$RAW_SHADOW_RUN" ]]; then
-            echo "Artifact replay is reviewed only for WA/NM" >&2
+            echo "Artifact replay is reviewed only for WA/NM/WI/OK" >&2
             exit 1
           fi
           echo "shadow_run=$RAW_SHADOW_RUN" >> "$GITHUB_OUTPUT"
@@ -100,20 +100,24 @@ jobs:
           BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
         run: npm run sync:library && npm run bible
 
-      - name: Verify and download workflow-issued grocery shadow artifact
+      - name: Verify and download workflow-issued first-party shadow artifact
         if: steps.validate.outputs.shadow_run != ''
         env:
           GH_TOKEN: ${{ github.token }}
           STATE: ${{ steps.validate.outputs.state }}
           SHADOW_RUN: ${{ steps.validate.outputs.shadow_run }}
-        run: node scripts/download-grocery-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/grocery-shadow-input/$STATE"
+        run: |
+          case "$STATE" in WI|OK) family=cityhive ;; WA|NM) family=grocery ;; *) exit 1 ;; esac
+          node "scripts/download-$family-shadow.mjs" --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/$family-shadow-input/$STATE"
 
       - name: Reparse immutable raw source captures without resetting clocks
         if: steps.validate.outputs.shadow_run != ''
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
-        run: node src/prepare-grocery-canary.mjs --state="$STATE" --artifact-dir="out/grocery-shadow-input/$STATE/extracted" --provenance="out/grocery-shadow-input/$STATE/provenance.json" --out="data/canary-inputs/$STATE.json" --config-out="out/canary-preparation/$STATE/lifecycle-research.json"
+        run: |
+          case "$STATE" in WI|OK) family=cityhive; preparer=prepare-central-cityhive-canary.mjs ;; WA|NM) family=grocery; preparer=prepare-grocery-canary.mjs ;; *) exit 1 ;; esac
+          node "src/$preparer" --state="$STATE" --artifact-dir="out/$family-shadow-input/$STATE/extracted" --provenance="out/$family-shadow-input/$STATE/provenance.json" --out="data/canary-inputs/$STATE.json" --config-out="out/canary-preparation/$STATE/lifecycle-research.json"
 
       - name: Build coherent nationwide canary snapshot without alerts
         working-directory: engine
@@ -142,7 +146,9 @@ jobs:
         if: steps.validate.outputs.shadow_run != ''
         env:
           STATE: ${{ steps.validate.outputs.state }}
-        run: node --import tsx scripts/test-grocery-public-canary.mjs --state="$STATE"
+        run: |
+          case "$STATE" in WI|OK) verifier=test-central-cityhive-public-canary.mjs ;; WA|NM) verifier=test-grocery-public-canary.mjs ;; *) exit 1 ;; esac
+          node --import tsx "scripts/$verifier" --state="$STATE"
 
       - name: Deploy isolated preview with all alert channels disabled
         if: inputs.deploy_preview == true
@@ -176,5 +182,8 @@ jobs:
           path: |
             engine/out/canary/${{ steps.validate.outputs.state }}
             engine/out/grocery-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
+            engine/out/cityhive-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
             engine/out/canary-preparation/${{ steps.validate.outputs.state }}
             engine/data/canary-inputs/${{ steps.validate.outputs.state }}.json
+            engine/out/library-catalog.json
+            engine/out/bourbon-bible.json

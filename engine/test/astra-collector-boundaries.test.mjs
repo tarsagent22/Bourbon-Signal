@@ -44,7 +44,7 @@ for(const state of ['NC','TX']) test(`F01 ${state} actual dispatch aborts inheri
   let requestSignal;
   globalThis.fetch=async(_url,options)=>{requestSignal=options.signal; return new Promise((_,reject)=>options.signal.addEventListener('abort',()=>reject(options.signal.reason),{once:true}));};
   try {
-    const result=await collectPrecisionProbes({id:state,label:state,sources:[]},{match:()=>null},[],{sourceRunnerOptions:{schedule:false,maxAttempts:1,timeoutMs:30}});
+    const result=await collectPrecisionProbes({id:state,label:state,sources:[]},{match:()=>null},[],{sourceRunnerOptions:{schedule:false,maxAttempts:1,timeoutMs:1000}});
     assert.equal(result.sourceResults[0].status,'timeout');
     assert.ok(requestSignal,'fixture transport must be reached');
     assert.equal(requestSignal.aborted,true);

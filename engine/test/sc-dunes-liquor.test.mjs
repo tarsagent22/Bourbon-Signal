@@ -163,8 +163,8 @@ test('Dunes signal carries exact-store identity and alert-grade stock evidence w
   assert.equal(productionPolicy.policyMode, 'alert_retailer_store_inventory_caveat');
   assert.equal(productionPolicy.canAlertAsInventory, true);
   assert.equal(productionPolicy.canAlertAsWatch, true);
-  assert.match(operationalReportSource, /canAlertAsInventory:\s*sourceAlertPolicy\.canAlertAsInventory === false \? false : policy\.canAlertAsInventory/);
-  assert.match(operationalReportSource, /canAlertAsWatch:\s*sourceAlertPolicy\.canAlertAsWatch === false \? false : policy\.canAlertAsWatch/);
+  assert.match(operationalReportSource, /canAlertAsInventory:\s*(?:\['WA', 'NM'\]\.includes\(signal\.state\) \? false : )?sourceAlertPolicy\.canAlertAsInventory === false \? false : policy\.canAlertAsInventory/);
+  assert.match(operationalReportSource, /canAlertAsWatch:\s*(?:\['WA', 'NM'\]\.includes\(signal\.state\) \? false : )?sourceAlertPolicy\.canAlertAsWatch === false \? false : policy\.canAlertAsWatch/);
   assert.equal(confidenceForSignal(productionWrapped, { nowMs: signalObservedMs }).canAlertAsInventory, true);
   assert.equal(confidenceForSignal(productionWrapped, { nowMs: signalObservedMs + 6 * 60 * 60_000 + 1 }).canAlertAsInventory, false);
 

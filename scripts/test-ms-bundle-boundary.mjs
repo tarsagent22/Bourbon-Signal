@@ -196,18 +196,34 @@ test('WA/NM metadata reversal requires every literal inactive registration and b
           : reviewed.replace('"publicStatus": "research_only"', '"publicStatus": "active"');
       assert.notEqual(changed, reviewed);
       for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /WA\/NM reviewed .*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:WA\/NM reviewed|Central inactive) .*exact historical verification hook/);
       }
       if (!name.endsWith('.mjs') && ['WA', 'NM'].includes(key)) {
         for (const mutation of [
           reviewed.replace('"inventoryAlertable": false', '"inventoryAlertable": true'),
           reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
           reviewed.replace('"refinementLevel": "store"', '"refinementLevel": "state"'),
-        ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(reviewed, mutation))), /WA\/NM reviewed .*exact historical verification hook/);
+        ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(reviewed, mutation))), /(?:WA\/NM reviewed|Central inactive) .*exact historical verification hook/);
       }
     }
     const outside = current.replace(name.endsWith('.mjs') ? "id: 'MS'" : '"MS": {', name.endsWith('.mjs') ? "id: 'MS_CHANGED'" : '"MS_CHANGED": {');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), originalHash, 'MS bytes retain the original anchor');
+  }
+});
+
+test('WI/OK inactive metadata permits only exact store-level false-alert entries and watchdog budgets',async()=>{
+  const baseline=JSON.parse(await readFile(new URL('../engine/data/source-evidence/central-cityhive-production-20261029/shared-metadata-baseline.json',import.meta.url),'utf8'));
+  for(const[name,entries]of Object.entries(baseline.files)){
+    const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+    for(const[key,{reviewed,original}]of Object.entries(entries)){
+      assert.equal(current.split(reviewed).length-1,1);
+      const altered=key==='budgets'?reviewed.replace('150000','90000'):reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
+      for(const mutation of [current.replace(reviewed,original),current+'\n'+reviewed,current.replace(reviewed,altered)])
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/Central inactive .*exact historical verification hook/);
+      if(key!=='budgets')for(const replacement of [['"inventoryAlertable": false','"inventoryAlertable": true'],['"watchAlertable": false','"watchAlertable": true'],['"refinementLevel": "store"','"refinementLevel": "state"']])
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(reviewed,reviewed.replace(...replacement)))) ,/Central inactive .*exact historical verification hook/);
+    }
   }
 });
 

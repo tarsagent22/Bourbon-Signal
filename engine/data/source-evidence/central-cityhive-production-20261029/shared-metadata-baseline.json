@@ -1,0 +1,35 @@
+{
+  "contractVersion": "bourbon-signal/central-cityhive-production-shared-metadata-baseline@1",
+  "baseCommit": "4e3726bb",
+  "scope": "Exact inactive WI/OK metadata and conservative watchdog budgets; no promotion",
+  "files": {
+    "src/config/state-lifecycle.json": {
+      "WI": {
+        "original": "    \"WI\": {\n      \"customerLabel\": \"Wisconsin\",\n      \"sourceLabel\": \"Wisconsin Costco warehouse bourbon watch\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"blocked_costco_inventory_research\",\n      \"coverageTier\": \"blocked\",\n      \"refinementLevel\": \"warehouse\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research-only: Wisconsin has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.\"\n    },",
+        "reviewed": "    \"WI\": {\n      \"customerLabel\": \"Wisconsin\",\n      \"sourceLabel\": \"Selected Wisconsin first-party retailer inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research preparation at one reviewed Wauwatosa retailer. First-party pickup observations remain inactive until verified promotion; all alerts and delivery remain disabled.\"\n    },"
+      },
+      "OK": {
+        "original": "",
+        "reviewed": "    \"OK\": {\n      \"customerLabel\": \"Oklahoma\",\n      \"sourceLabel\": \"Selected Oklahoma first-party retailer inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research preparation at two reviewed Oklahoma City retailers. First-party pickup observations remain inactive until verified promotion; all alerts and delivery remain disabled.\"\n    },\n"
+      },
+      "budgets": {
+        "original": "",
+        "reviewed": "      \"WI\": 150000,\n      \"OK\": 240000,\n"
+      }
+    },
+    "src/config/stateLifecycle.ts": {
+      "WI": {
+        "original": "    \"WI\": {\n      \"customerLabel\": \"Wisconsin\",\n      \"sourceLabel\": \"Wisconsin Costco warehouse bourbon watch\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"blocked_costco_inventory_research\",\n      \"coverageTier\": \"blocked\",\n      \"refinementLevel\": \"warehouse\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research-only: Wisconsin has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.\"\n    },",
+        "reviewed": "    \"WI\": {\n      \"customerLabel\": \"Wisconsin\",\n      \"sourceLabel\": \"Selected Wisconsin first-party retailer inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research preparation at one reviewed Wauwatosa retailer. First-party pickup observations remain inactive until verified promotion; all alerts and delivery remain disabled.\"\n    },"
+      },
+      "OK": {
+        "original": "",
+        "reviewed": "    \"OK\": {\n      \"customerLabel\": \"Oklahoma\",\n      \"sourceLabel\": \"Selected Oklahoma first-party retailer inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research preparation at two reviewed Oklahoma City retailers. First-party pickup observations remain inactive until verified promotion; all alerts and delivery remain disabled.\"\n    },\n"
+      },
+      "budgets": {
+        "original": "",
+        "reviewed": "      \"WI\": 150000,\n      \"OK\": 240000,\n"
+      }
+    }
+  }
+}

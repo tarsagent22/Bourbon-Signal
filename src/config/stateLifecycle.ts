@@ -68,6 +68,8 @@ export const STATE_LIFECYCLE_CONFIG = {
       "IN": 240000,
       "TN": 180000,
       "SC": 180000,
+      "WI": 150000,
+      "OK": 240000,
       "KY": 180000,
       "WA": 720000,
       "NM": 300000
@@ -919,6 +921,18 @@ export const STATE_LIFECYCLE_CONFIG = {
         }
       }
     },
+    "OK": {
+      "customerLabel": "Oklahoma",
+      "sourceLabel": "Selected Oklahoma first-party retailer inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research preparation at two reviewed Oklahoma City retailers. First-party pickup observations remain inactive until verified promotion; all alerts and delivery remain disabled."
+    },
     "WA": {
       "customerLabel": "Washington",
       "sourceLabel": "Washington reviewed exact-store grocery inventory",
@@ -933,15 +947,15 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "WI": {
       "customerLabel": "Wisconsin",
-      "sourceLabel": "Wisconsin Costco warehouse bourbon watch",
+      "sourceLabel": "Selected Wisconsin first-party retailer inventory",
       "publicStatus": "research_only",
       "shadowEligible": true,
-      "lifecycle": "blocked_costco_inventory_research",
-      "coverageTier": "blocked",
-      "refinementLevel": "warehouse",
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
       "inventoryAlertable": false,
       "watchAlertable": false,
-      "customerSummary": "Research-only: Wisconsin has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+      "customerSummary": "Research preparation at one reviewed Wauwatosa retailer. First-party pickup observations remain inactive until verified promotion; all alerts and delivery remain disabled."
     },
     "NM": {
       "customerLabel": "New Mexico",

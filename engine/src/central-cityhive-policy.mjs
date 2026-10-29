@@ -67,3 +67,14 @@ export function isCentralCityHiveProductionOnSiteSignal(row,{nowMs=Date.now()}={
     &&row.eligibleForDelivery===false&&row.deliveryEligible!==true&&row.eligibleForEmail===false&&row.eligibleForSms===false;
 }
 export const isCentralCityHiveOnSiteSignal=(row,options)=>isCentralCityHiveCanaryOnSiteSignal(row,options)||isCentralCityHiveProductionOnSiteSignal(row,options);
+
+// Source readiness is independent of notification eligibility. This proof may
+// count only in isolated shadow evidence and never grants public visibility.
+export function isCentralCityHiveResearchInventory(row,options){
+  const source=centralCityHiveSourceForSignal(row);
+  return Boolean(source)&&isCentralCityHiveInventory(row,options)&&row.sourceRuntimeId===`research:${source.state.toLowerCase()}:${source.id}`
+    &&row.raw?.shadowOnly===true&&row.sourceProductBinding?.shadowOnly===true
+    &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.alertable===false
+    &&row.eligibleForOnSite===false&&row.eligibleForDropFeed===false&&row.eligibleForWatch===false
+    &&row.eligibleForDelivery===false&&row.eligibleForEmail===false&&row.eligibleForSms===false;
+}

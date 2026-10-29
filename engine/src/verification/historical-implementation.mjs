@@ -5,6 +5,7 @@ const sharedBaseline = JSON.parse(readFileSync(new URL('../../data/source-eviden
 const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const nationwideBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nationwide-expansion-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const westernGroceryBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/western-grocery-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const centralProductionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/central-cityhive-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -113,6 +114,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (!sharedFiles.has(name)) return bytes;
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
+  assert.equal(centralProductionBaseline.contractVersion, 'bourbon-signal/central-cityhive-production-shared-metadata-baseline@1');
+  for (const [key, entry] of Object.entries(centralProductionBaseline.files[name] || {})) {
+    text = replaceUnique(text, entry.reviewed, entry.original, `${name}: Central inactive ${key}`);
+  }
   // Literal, single-occurrence reversals only. This is not a state-block
   // wildcard: activation, changed budgets or changed registration must fail.
   for (const [key, entry] of Object.entries(westernGroceryBaseline.files[name])) {
