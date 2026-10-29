@@ -1,0 +1,1233 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-29T17:18:13.340Z",
+  "reviewBaseCommit": "8be5a6140797e66543172c5d3f9be1c7baa33f62",
+  "scope": "read_only_measured_capacity_audit_no_runtime_or_lifecycle_changes",
+  "decision": {
+    "prospectiveFourStateCollectionCapacityPass": false,
+    "admissionReady": false,
+    "configuredThirtyMinuteCadenceGuaranteed": false,
+    "reason": "Even observed Arizona/Florida floors invalidate the five-field green forecast; end-to-end warm workflow also exceeded thirty minutes."
+  },
+  "policy": {
+    "refreshIntervalMs": 1800000,
+    "refreshSafetyMarginMs": 300000,
+    "workerConcurrency": 4,
+    "defaultExpectedStateRunMs": 90000,
+    "candidateExpectedMs": {
+      "WA": 720000,
+      "NM": 300000,
+      "WI": 150000,
+      "OK": 240000
+    }
+  },
+  "recommendedForecastsNotApplied": {
+    "proposedFive": {
+      "VA": 1140000,
+      "CA": 300000,
+      "NV": 240000,
+      "ID": 180000,
+      "TX": 90000
+    },
+    "additionalEvidenceRequiredArizonaFlorida": {
+      "AZ": 900000,
+      "FL": 180000
+    }
+  },
+  "models": {
+    "configured24": {
+      "ok": true,
+      "projectedRunMs": 780000,
+      "availableRunMs": 1500000,
+      "utilization": 0.52,
+      "workerLoadsMs": [
+        780000,
+        780000,
+        780000,
+        720000
+      ],
+      "reason": null
+    },
+    "configured24Plus4": {
+      "ok": true,
+      "projectedRunMs": 1170000,
+      "availableRunMs": 1500000,
+      "utilization": 0.78,
+      "workerLoadsMs": [
+        1170000,
+        1110000,
+        1080000,
+        1110000
+      ],
+      "reason": null
+    },
+    "proposedFiveOnly24Plus4": {
+      "ok": true,
+      "projectedRunMs": 1410000,
+      "availableRunMs": 1500000,
+      "utilization": 0.94,
+      "workerLoadsMs": [
+        1410000,
+        1410000,
+        1320000,
+        1350000
+      ],
+      "reason": null
+    },
+    "proposedFivePlusObservedArizonaFloridaFloor": {
+      "ok": false,
+      "projectedRunMs": 1560000,
+      "availableRunMs": 1500000,
+      "utilization": 1.04,
+      "workerLoadsMs": [
+        1560000,
+        1513370,
+        1531699,
+        1560000
+      ],
+      "reason": "Expansion exceeds refresh capacity: projected 1560000ms > available 1500000ms."
+    },
+    "conservative24": {
+      "ok": true,
+      "projectedRunMs": 1290000,
+      "availableRunMs": 1500000,
+      "utilization": 0.86,
+      "workerLoadsMs": [
+        1230000,
+        1260000,
+        1290000,
+        1200000
+      ],
+      "reason": null
+    },
+    "conservative24Plus4": {
+      "ok": false,
+      "projectedRunMs": 1620000,
+      "availableRunMs": 1500000,
+      "utilization": 1.08,
+      "workerLoadsMs": [
+        1590000,
+        1620000,
+        1560000,
+        1620000
+      ],
+      "reason": "Expansion exceeds refresh capacity: projected 1620000ms > available 1500000ms."
+    }
+  },
+  "automatic": {
+    "runId": "40907316461",
+    "headSha": "6deae85aaa1b78900cb5eafab03570613c95a8d7",
+    "conclusion": "success",
+    "jobStartedAt": "2026-10-29T16:00:52Z",
+    "jobFinishedAt": "2026-10-29T16:33:02Z",
+    "jobElapsedMs": 1930000,
+    "steps": [
+      {
+        "name": "Set up job",
+        "startedAt": "2026-10-29T16:00:52Z",
+        "finishedAt": "2026-10-29T16:00:53Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Reject superseded queued refresh before collection",
+        "startedAt": "2026-10-29T16:00:53Z",
+        "finishedAt": "2026-10-29T16:00:54Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Checkout current production engine",
+        "startedAt": "2026-10-29T16:00:54Z",
+        "finishedAt": "2026-10-29T16:01:12Z",
+        "elapsedMs": 18000
+      },
+      {
+        "name": "Setup Node",
+        "startedAt": "2026-10-29T16:01:12Z",
+        "finishedAt": "2026-10-29T16:01:14Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Install dependencies",
+        "startedAt": "2026-10-29T16:01:14Z",
+        "finishedAt": "2026-10-29T16:01:27Z",
+        "elapsedMs": 13000
+      },
+      {
+        "name": "Synchronize the full customer bottle library before collection",
+        "startedAt": "2026-10-29T16:01:27Z",
+        "finishedAt": "2026-10-29T16:01:28Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Verify deterministic customer-surface regressions before collection",
+        "startedAt": "2026-10-29T16:01:28Z",
+        "finishedAt": "2026-10-29T16:01:29Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Preserve checked-in board shipment history bootstrap",
+        "startedAt": "2026-10-29T16:01:29Z",
+        "finishedAt": "2026-10-29T16:01:29Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore collector artifacts and adaptive scheduler state",
+        "startedAt": "2026-10-29T16:01:29Z",
+        "finishedAt": "2026-10-29T16:02:28Z",
+        "elapsedMs": 59000
+      },
+      {
+        "name": "Restore Texas Shopify pickup cooldown independently of publication",
+        "startedAt": "2026-10-29T16:02:28Z",
+        "finishedAt": "2026-10-29T16:02:29Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Restore Texas Shopify pickup denial journal independently of publication",
+        "startedAt": "2026-10-29T16:02:29Z",
+        "finishedAt": "2026-10-29T16:02:29Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore metro attempt cooldowns independently of published inventory",
+        "startedAt": "2026-10-29T16:02:29Z",
+        "finishedAt": "2026-10-29T16:02:29Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore library search progress independently of publication",
+        "startedAt": "2026-10-29T16:02:29Z",
+        "finishedAt": "2026-10-29T16:02:29Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore North Carolina board intelligence",
+        "startedAt": "2026-10-29T16:02:29Z",
+        "finishedAt": "2026-10-29T16:02:30Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Restore NC learned public source routes",
+        "startedAt": "2026-10-29T16:02:30Z",
+        "finishedAt": "2026-10-29T16:02:30Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore browser source artifacts",
+        "startedAt": "2026-10-29T16:02:30Z",
+        "finishedAt": "2026-10-29T16:02:31Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Restore last published site contract",
+        "startedAt": "2026-10-29T16:02:31Z",
+        "finishedAt": "2026-10-29T16:02:31Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore checked-in board shipment history bootstrap",
+        "startedAt": "2026-10-29T16:02:31Z",
+        "finishedAt": "2026-10-29T16:02:31Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Hydrate complete state reports for recovery",
+        "startedAt": "2026-10-29T16:02:31Z",
+        "finishedAt": "2026-10-29T16:02:33Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Preserve last-published state partitions for scheduled verifier isolation",
+        "startedAt": "2026-10-29T16:02:33Z",
+        "finishedAt": "2026-10-29T16:02:33Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify expansion capacity and reliability policy",
+        "startedAt": "2026-10-29T16:02:33Z",
+        "finishedAt": "2026-10-29T16:02:33Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Hydrate authenticated persistent OHLQ artifact",
+        "startedAt": "2026-10-29T16:02:33Z",
+        "finishedAt": "2026-10-29T16:02:34Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Refresh North Carolina official board and store directory",
+        "startedAt": "2026-10-29T16:02:34Z",
+        "finishedAt": "2026-10-29T16:02:38Z",
+        "elapsedMs": 4000
+      },
+      {
+        "name": "Refresh all due customer-active states",
+        "startedAt": "2026-10-29T16:02:38Z",
+        "finishedAt": "2026-10-29T16:23:00Z",
+        "elapsedMs": 1222000
+      },
+      {
+        "name": "Verify North Carolina scheduled continuity or isolate a safe partial fallback",
+        "startedAt": "2026-10-29T16:23:00Z",
+        "finishedAt": "2026-10-29T16:23:02Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Verify North Carolina scheduled official directory or isolate its partition",
+        "startedAt": "2026-10-29T16:23:02Z",
+        "finishedAt": "2026-10-29T16:23:02Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify Ohio scheduled lane or isolate a safe stale fallback",
+        "startedAt": "2026-10-29T16:23:02Z",
+        "finishedAt": "2026-10-29T16:23:02Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify Georgia scheduled lane or isolate an explicit last-known fallback",
+        "startedAt": "2026-10-29T16:23:02Z",
+        "finishedAt": "2026-10-29T16:23:03Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Verify Virginia scheduled lane or isolate a safe stale fallback",
+        "startedAt": "2026-10-29T16:23:03Z",
+        "finishedAt": "2026-10-29T16:23:05Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Verify Pennsylvania scheduled lane or isolate a safe stale fallback",
+        "startedAt": "2026-10-29T16:23:05Z",
+        "finishedAt": "2026-10-29T16:23:07Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Verify Florida scheduled lane with guarded current inventory and safe fallback",
+        "startedAt": "2026-10-29T16:23:07Z",
+        "finishedAt": "2026-10-29T16:23:07Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify Florida scheduled immutable full-store expansion or isolate its partition",
+        "startedAt": "2026-10-29T16:23:07Z",
+        "finishedAt": "2026-10-29T16:23:07Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify Florida scheduled Star Liquors expansion or isolate its partition",
+        "startedAt": "2026-10-29T16:23:07Z",
+        "finishedAt": "2026-10-29T16:23:08Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Verify California scheduled lane or isolate a safe retained partition",
+        "startedAt": "2026-10-29T16:23:08Z",
+        "finishedAt": "2026-10-29T16:23:08Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify demand metro structure independently of state freshness",
+        "startedAt": "2026-10-29T16:23:08Z",
+        "finishedAt": "2026-10-29T16:23:09Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Verify Tennessee generated contract with fresh retained fallback",
+        "startedAt": "2026-10-29T16:23:09Z",
+        "finishedAt": "2026-10-29T16:23:09Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Reconcile generic state operating anomalies before publication",
+        "startedAt": "2026-10-29T16:23:09Z",
+        "finishedAt": "2026-10-29T16:23:09Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Replace failed scheduled states with last-published stale partitions",
+        "startedAt": "2026-10-29T16:23:09Z",
+        "finishedAt": "2026-10-29T16:28:05Z",
+        "elapsedMs": 296000
+      },
+      {
+        "name": "Plan one targeted recovery for transient failed states",
+        "startedAt": "2026-10-29T16:28:05Z",
+        "finishedAt": "2026-10-29T16:28:05Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify coherent site contract unconditionally",
+        "startedAt": "2026-10-29T16:28:05Z",
+        "finishedAt": "2026-10-29T16:28:40Z",
+        "elapsedMs": 35000
+      },
+      {
+        "name": "Verify no unproven state promotion entered the customer path",
+        "startedAt": "2026-10-29T16:28:40Z",
+        "finishedAt": "2026-10-29T16:28:42Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Verify degraded state isolation before publication",
+        "startedAt": "2026-10-29T16:28:42Z",
+        "finishedAt": "2026-10-29T16:28:42Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Audit every scarce library bottle across all states",
+        "startedAt": "2026-10-29T16:28:42Z",
+        "finishedAt": "2026-10-29T16:29:38Z",
+        "elapsedMs": 56000
+      },
+      {
+        "name": "Refuse publication from a stale main checkout",
+        "startedAt": "2026-10-29T16:29:38Z",
+        "finishedAt": "2026-10-29T16:29:38Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Publish and atomically activate encrypted snapshot",
+        "startedAt": "2026-10-29T16:29:38Z",
+        "finishedAt": "2026-10-29T16:29:51Z",
+        "elapsedMs": 13000
+      },
+      {
+        "name": "Verify publication authority after activation",
+        "startedAt": "2026-10-29T16:29:51Z",
+        "finishedAt": "2026-10-29T16:29:51Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify production observes the refreshed engine or roll back",
+        "startedAt": "2026-10-29T16:29:51Z",
+        "finishedAt": "2026-10-29T16:31:54Z",
+        "elapsedMs": 123000
+      },
+      {
+        "name": "Dispatch isolated recovery from current main",
+        "startedAt": "2026-10-29T16:31:54Z",
+        "finishedAt": "2026-10-29T16:31:55Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Save verified collector state",
+        "startedAt": "2026-10-29T16:31:55Z",
+        "finishedAt": "2026-10-29T16:32:53Z",
+        "elapsedMs": 58000
+      },
+      {
+        "name": "Save verified North Carolina board intelligence",
+        "startedAt": "2026-10-29T16:32:53Z",
+        "finishedAt": "2026-10-29T16:32:53Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save NC learned public source routes independently of publication",
+        "startedAt": "2026-10-29T16:32:53Z",
+        "finishedAt": "2026-10-29T16:32:53Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save Texas Shopify pickup cooldown independently of publication",
+        "startedAt": "2026-10-29T16:32:53Z",
+        "finishedAt": "2026-10-29T16:32:54Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Save Texas Shopify pickup denial journal independently of publication",
+        "startedAt": "2026-10-29T16:32:54Z",
+        "finishedAt": "2026-10-29T16:32:54Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save metro attempt cooldowns independently of publication",
+        "startedAt": "2026-10-29T16:32:54Z",
+        "finishedAt": "2026-10-29T16:32:54Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save library search progress independently of publication",
+        "startedAt": "2026-10-29T16:32:54Z",
+        "finishedAt": "2026-10-29T16:32:55Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Save browser source artifacts",
+        "startedAt": "2026-10-29T16:32:55Z",
+        "finishedAt": "2026-10-29T16:32:55Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save verified published site contract",
+        "startedAt": "2026-10-29T16:32:55Z",
+        "finishedAt": "2026-10-29T16:32:56Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Preserve refresh diagnostics",
+        "startedAt": "2026-10-29T16:32:56Z",
+        "finishedAt": "2026-10-29T16:33:00Z",
+        "elapsedMs": 4000
+      },
+      {
+        "name": "Post Setup Node",
+        "startedAt": "2026-10-29T16:33:00Z",
+        "finishedAt": "2026-10-29T16:33:00Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Post Checkout current production engine",
+        "startedAt": "2026-10-29T16:33:00Z",
+        "finishedAt": "2026-10-29T16:33:00Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Complete job",
+        "startedAt": "2026-10-29T16:33:00Z",
+        "finishedAt": "2026-10-29T16:33:00Z",
+        "elapsedMs": 0
+      }
+    ],
+    "artifactMetadata": [
+      {
+        "digest": "sha256:1f8537e1d7b0a63c8ddc945ff86dc10745e1e01ebd2e32539ceacf73c63484b2",
+        "id": 12913409523,
+        "name": "inventory-refresh-40907316461",
+        "size_in_bytes": 18113583
+      }
+    ],
+    "artifactZipDigestLocallyReverified": false,
+    "refresh": {
+      "startedAt": "2026-10-29T16:02:38.228Z",
+      "finishedAt": "2026-10-29T16:23:00.316Z",
+      "elapsedMs": 1222088,
+      "sourceGroupMs": 898283,
+      "postSourceRefreshMs": 323805,
+      "browserRefreshMinutes": 240,
+      "lastBrowserRefreshAt": "2026-10-29T14:55:51.257Z",
+      "browserStepPresent": false,
+      "steps": [
+        {
+          "script": "src/build-bible.mjs",
+          "startedAt": "2026-10-29T16:02:38.238Z",
+          "finishedAt": "2026-10-29T16:02:38.334Z",
+          "elapsedMs": 96,
+          "code": 0
+        },
+        {
+          "script": "src/run.mjs",
+          "startedAt": "2026-10-29T16:02:38.337Z",
+          "finishedAt": "2026-10-29T16:17:36.620Z",
+          "elapsedMs": 898283,
+          "code": 0
+        },
+        {
+          "script": "src/rare-report.mjs",
+          "startedAt": "2026-10-29T16:17:36.626Z",
+          "finishedAt": "2026-10-29T16:17:39.925Z",
+          "elapsedMs": 3299,
+          "code": 0
+        },
+        {
+          "script": "src/location-report.mjs",
+          "startedAt": "2026-10-29T16:17:39.929Z",
+          "finishedAt": "2026-10-29T16:17:41.632Z",
+          "elapsedMs": 1703,
+          "code": 0
+        },
+        {
+          "script": "src/operational-report.mjs",
+          "startedAt": "2026-10-29T16:17:41.636Z",
+          "finishedAt": "2026-10-29T16:17:57.013Z",
+          "elapsedMs": 15377,
+          "code": 0
+        },
+        {
+          "script": "src/export-site-contract.mjs",
+          "startedAt": "2026-10-29T16:17:57.016Z",
+          "finishedAt": "2026-10-29T16:22:56.828Z",
+          "elapsedMs": 299812,
+          "code": 0
+        },
+        {
+          "script": "src/source-usefulness-report.mjs",
+          "startedAt": "2026-10-29T16:22:56.831Z",
+          "finishedAt": "2026-10-29T16:22:59.255Z",
+          "elapsedMs": 2424,
+          "code": 0
+        },
+        {
+          "script": "src/build-store-identity.mjs",
+          "startedAt": "2026-10-29T16:22:59.258Z",
+          "finishedAt": "2026-10-29T16:22:59.870Z",
+          "elapsedMs": 612,
+          "code": 0
+        }
+      ]
+    },
+    "states": [
+      {
+        "state": "NC",
+        "startedAt": "2026-10-29T16:02:49.046Z",
+        "finishedAt": "2026-10-29T16:04:19.247Z",
+        "elapsedMs": 90201,
+        "status": "partial_useful_quality_fallback",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/NC.json",
+        "sha256": "27043ae74c2de9857502fec5ef3393283a70549a09af705fefdf2d89fab568c9"
+      },
+      {
+        "state": "VA",
+        "startedAt": "2026-10-29T16:02:40.878Z",
+        "finishedAt": "2026-10-29T16:15:38.030Z",
+        "elapsedMs": 777152,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 240000,
+        "sourceFile": "states/VA.json",
+        "sha256": "c9a00d3da9639834b7c6faaa8c5141a316b5eeac652401cb5883c8d05b177612"
+      },
+      {
+        "state": "PA",
+        "startedAt": "2026-10-29T16:02:43.926Z",
+        "finishedAt": "2026-10-29T16:02:45.799Z",
+        "elapsedMs": 1873,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/PA.json",
+        "sha256": "58c5103d5ce60131d6052d765c2fed216df77a51306ebf893d00da033fe58e25"
+      },
+      {
+        "state": "OH",
+        "startedAt": "2026-10-29T16:02:39.573Z",
+        "finishedAt": "2026-10-29T16:02:39.896Z",
+        "elapsedMs": 323,
+        "status": "stale_useful",
+        "stale": true,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/OH.json",
+        "sha256": "93ee9a180d82c1d97a55ce026241a9f27a2781d9218a824f6de5bb77c4dd1c8b"
+      },
+      {
+        "state": "IA",
+        "startedAt": "2026-10-29T16:02:39.559Z",
+        "finishedAt": "2026-10-29T16:02:53.873Z",
+        "elapsedMs": 14314,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/IA.json",
+        "sha256": "307f08ccca8d0273e7f252391c33f5c5d615492616eb2972ad0d796ff570bca1"
+      },
+      {
+        "state": "ID",
+        "startedAt": "2026-10-29T16:02:47.595Z",
+        "finishedAt": "2026-10-29T16:04:40.106Z",
+        "elapsedMs": 112511,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/ID.json",
+        "sha256": "cfa7c65ccade9d7754bdcf41b65c7941b3a3572cd8be46f1a28d603230988407"
+      },
+      {
+        "state": "AL",
+        "startedAt": "2026-10-29T16:02:39.561Z",
+        "finishedAt": "2026-10-29T16:02:42.944Z",
+        "elapsedMs": 3383,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/AL.json",
+        "sha256": "d2384fd898cfd3fd412344826ec29804c4079d36816707381b19cd62f862dc91"
+      },
+      {
+        "state": "IL",
+        "startedAt": "2026-10-29T16:04:20.688Z",
+        "finishedAt": "2026-10-29T16:04:27.309Z",
+        "elapsedMs": 6621,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/IL.json",
+        "sha256": "4149c3c48852b003030cc50f3f011ed40d644bcdac99d9467df6b70f944d5718"
+      },
+      {
+        "state": "IN",
+        "startedAt": "2026-10-29T16:02:54.405Z",
+        "finishedAt": "2026-10-29T16:05:16.475Z",
+        "elapsedMs": 142070,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 240000,
+        "sourceFile": "states/IN.json",
+        "sha256": "964ec67a07061f64d138a115239a2117e6f1e445c113dab945b7e0180a69607d"
+      },
+      {
+        "state": "TN",
+        "startedAt": "2026-10-29T16:05:14.377Z",
+        "finishedAt": "2026-10-29T16:06:21.399Z",
+        "elapsedMs": 67022,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 180000,
+        "sourceFile": "states/TN.json",
+        "sha256": "c395eec6d59a7da0a04300f8c90a3eaf4a707fc987e853496fc8a955a41a71a1"
+      },
+      {
+        "state": "SC",
+        "startedAt": "2026-10-29T16:05:17.061Z",
+        "finishedAt": "2026-10-29T16:05:57.646Z",
+        "elapsedMs": 40585,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 180000,
+        "sourceFile": "states/SC.json",
+        "sha256": "2fb55a00373f9a9e87131333219e747a7ced2fdd3c6656e4d0cba875d17067dd"
+      },
+      {
+        "state": "MD-MONTGOMERY",
+        "startedAt": "2026-10-29T16:04:29.932Z",
+        "finishedAt": "2026-10-29T16:05:14.087Z",
+        "elapsedMs": 44155,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/MD-MONTGOMERY.json",
+        "sha256": "e3ee2fbdf4a158f710dc3ef6e1d61678b88f0dccaca6b13871547ddcda834706"
+      },
+      {
+        "state": "KY",
+        "startedAt": "2026-10-29T16:05:09.857Z",
+        "finishedAt": "2026-10-29T16:05:14.744Z",
+        "elapsedMs": 4887,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 180000,
+        "sourceFile": "states/KY.json",
+        "sha256": "b9e2c1cf63ee3744fec4781552e7d51782aaa72e1f15771eeaa06a8c1b0455a3"
+      },
+      {
+        "state": "AZ",
+        "startedAt": "2026-10-29T16:05:17.790Z",
+        "finishedAt": "2026-10-29T16:17:31.160Z",
+        "elapsedMs": 733370,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/AZ.json",
+        "sha256": "808d41e9db3a64deaacd8444809d30fe21104cad454880bfc1fcddbb9cca7835"
+      },
+      {
+        "state": "CA",
+        "startedAt": "2026-10-29T16:05:57.927Z",
+        "finishedAt": "2026-10-29T16:09:37.108Z",
+        "elapsedMs": 219181,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/CA.json",
+        "sha256": "f6555e154f492fcdd8de5f8343d5a1e3c80adab942affcc049068b1e2a639491"
+      },
+      {
+        "state": "FL",
+        "startedAt": "2026-10-29T16:09:37.571Z",
+        "finishedAt": "2026-10-29T16:11:39.270Z",
+        "elapsedMs": 121699,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/FL.json",
+        "sha256": "922f9c707c50970058f52668670db4a222ffd71f96e212638cc9ad6b61486b5b"
+      },
+      {
+        "state": "TX",
+        "startedAt": "2026-10-29T16:05:15.376Z",
+        "finishedAt": "2026-10-29T16:05:16.741Z",
+        "elapsedMs": 1365,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 420000,
+        "sourceFile": "states/TX.json",
+        "sha256": "d2ededa1ca57fe378bbfd0a8a21015aad00e9bdf156d958c26acaccecc8f56be"
+      },
+      {
+        "state": "GA",
+        "startedAt": "2026-10-29T16:09:36.820Z",
+        "finishedAt": "2026-10-29T16:11:01.847Z",
+        "elapsedMs": 85027,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/GA.json",
+        "sha256": "6d047f60a834eab1c27cdd98a6377aa5d52f294266c8cc557d80ccda75c42df2"
+      },
+      {
+        "state": "NV",
+        "startedAt": "2026-10-29T16:06:40.337Z",
+        "finishedAt": "2026-10-29T16:09:36.527Z",
+        "elapsedMs": 176190,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/NV.json",
+        "sha256": "2e7017955cde18f4753f770fbf2b0d18e08b10bd30a2e8e41cf8daec8ca88a5c"
+      },
+      {
+        "state": "UT",
+        "startedAt": "2026-10-29T16:02:39.512Z",
+        "finishedAt": "2026-10-29T16:02:48.621Z",
+        "elapsedMs": 9109,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/UT.json",
+        "sha256": "b483198901d03e582f9cbaf788adb584531b79d5298256b097556be61275390b"
+      },
+      {
+        "state": "NY",
+        "startedAt": "2026-10-29T16:06:21.691Z",
+        "finishedAt": "2026-10-29T16:06:28.412Z",
+        "elapsedMs": 6721,
+        "status": "partial_useful_quality_fallback",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/NY.json",
+        "sha256": "a2302eea70bb55e48ef2666e29296b624f1e6573fca8d03b69d8026aacaac9c0"
+      },
+      {
+        "state": "CO",
+        "startedAt": "2026-10-29T16:06:28.676Z",
+        "finishedAt": "2026-10-29T16:06:40.064Z",
+        "elapsedMs": 11388,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/CO.json",
+        "sha256": "83ee322c8860c16465fcb764aa7f4d667352d600a0376788c0f4a95924ea6c82"
+      },
+      {
+        "state": "MS",
+        "startedAt": "2026-10-29T16:04:41.503Z",
+        "finishedAt": "2026-10-29T16:05:09.608Z",
+        "elapsedMs": 28105,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/MS.json",
+        "sha256": "2a4f74ba7f95ef6d4fdf7042393e3b353b774ceb7e950275a8304391b185557a"
+      },
+      {
+        "state": "WV",
+        "startedAt": "2026-10-29T16:04:40.388Z",
+        "finishedAt": "2026-10-29T16:04:41.235Z",
+        "elapsedMs": 847,
+        "status": "useful",
+        "stale": false,
+        "configuredExpectedMs": 90000,
+        "sourceFile": "states/WV.json",
+        "sha256": "b6ecc452d9308b83e42f87674e625ba1ed6b4227dc999c891b4a3b35346529d0"
+      }
+    ],
+    "sourceFiles": [
+      {
+        "file": "site-refresh-status.json",
+        "sha256": "3f0b56b84df2aea608505e15093a5a60bf1fd2d0ae0f165e214907805c35f818"
+      },
+      {
+        "file": "reliability-status.json",
+        "sha256": "8aaf336e2522aab4f3e97cbf433634b2f04152c437c4f4188fed40ea37cb0254"
+      }
+    ]
+  },
+  "manual": {
+    "runId": "40891992716",
+    "headSha": "6deae85aaa1b78900cb5eafab03570613c95a8d7",
+    "conclusion": "success",
+    "jobStartedAt": "2026-10-29T14:33:52Z",
+    "jobFinishedAt": "2026-10-29T15:05:32Z",
+    "jobElapsedMs": 1900000,
+    "steps": [
+      {
+        "name": "Set up job",
+        "startedAt": "2026-10-29T14:33:53Z",
+        "finishedAt": "2026-10-29T14:33:54Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Reject superseded queued refresh before collection",
+        "startedAt": "2026-10-29T14:33:54Z",
+        "finishedAt": "2026-10-29T14:33:54Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Checkout current production engine",
+        "startedAt": "2026-10-29T14:33:54Z",
+        "finishedAt": "2026-10-29T14:34:17Z",
+        "elapsedMs": 23000
+      },
+      {
+        "name": "Setup Node",
+        "startedAt": "2026-10-29T14:34:17Z",
+        "finishedAt": "2026-10-29T14:34:19Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Install dependencies",
+        "startedAt": "2026-10-29T14:34:19Z",
+        "finishedAt": "2026-10-29T14:34:29Z",
+        "elapsedMs": 10000
+      },
+      {
+        "name": "Synchronize the full customer bottle library before collection",
+        "startedAt": "2026-10-29T14:34:29Z",
+        "finishedAt": "2026-10-29T14:34:30Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Verify deterministic customer-surface regressions before collection",
+        "startedAt": "2026-10-29T14:34:30Z",
+        "finishedAt": "2026-10-29T14:34:31Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Preserve checked-in board shipment history bootstrap",
+        "startedAt": "2026-10-29T14:34:31Z",
+        "finishedAt": "2026-10-29T14:34:31Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore collector artifacts and adaptive scheduler state",
+        "startedAt": "2026-10-29T14:34:31Z",
+        "finishedAt": "2026-10-29T14:36:07Z",
+        "elapsedMs": 96000
+      },
+      {
+        "name": "Restore Texas Shopify pickup cooldown independently of publication",
+        "startedAt": "2026-10-29T14:36:07Z",
+        "finishedAt": "2026-10-29T14:36:07Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore Texas Shopify pickup denial journal independently of publication",
+        "startedAt": "2026-10-29T14:36:07Z",
+        "finishedAt": "2026-10-29T14:36:07Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore metro attempt cooldowns independently of published inventory",
+        "startedAt": "2026-10-29T14:36:07Z",
+        "finishedAt": "2026-10-29T14:36:08Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Restore library search progress independently of publication",
+        "startedAt": "2026-10-29T14:36:08Z",
+        "finishedAt": "2026-10-29T14:36:08Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore North Carolina board intelligence",
+        "startedAt": "2026-10-29T14:36:08Z",
+        "finishedAt": "2026-10-29T14:36:08Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore NC learned public source routes",
+        "startedAt": "2026-10-29T14:36:08Z",
+        "finishedAt": "2026-10-29T14:36:09Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Restore browser source artifacts",
+        "startedAt": "2026-10-29T14:36:09Z",
+        "finishedAt": "2026-10-29T14:36:09Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Restore last published site contract",
+        "startedAt": "2026-10-29T14:36:09Z",
+        "finishedAt": "2026-10-29T14:36:10Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Restore checked-in board shipment history bootstrap",
+        "startedAt": "2026-10-29T14:36:10Z",
+        "finishedAt": "2026-10-29T14:36:10Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Hydrate complete state reports for recovery",
+        "startedAt": "2026-10-29T14:36:10Z",
+        "finishedAt": "2026-10-29T14:36:14Z",
+        "elapsedMs": 4000
+      },
+      {
+        "name": "Verify expansion capacity and reliability policy",
+        "startedAt": "2026-10-29T14:36:14Z",
+        "finishedAt": "2026-10-29T14:36:14Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Hydrate authenticated persistent OHLQ artifact",
+        "startedAt": "2026-10-29T14:36:14Z",
+        "finishedAt": "2026-10-29T14:36:14Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Refresh all due customer-active states",
+        "startedAt": "2026-10-29T14:36:14Z",
+        "finishedAt": "2026-10-29T15:02:25Z",
+        "elapsedMs": 1571000
+      },
+      {
+        "name": "Verify Pennsylvania targeted exact-store recovery",
+        "startedAt": "2026-10-29T15:02:25Z",
+        "finishedAt": "2026-10-29T15:02:27Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Verify Pennsylvania reviewed product expansion through public inventory and alerts",
+        "startedAt": "2026-10-29T15:02:27Z",
+        "finishedAt": "2026-10-29T15:02:28Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Verify coherent site contract unconditionally",
+        "startedAt": "2026-10-29T15:02:28Z",
+        "finishedAt": "2026-10-29T15:02:57Z",
+        "elapsedMs": 29000
+      },
+      {
+        "name": "Verify no unproven state promotion entered the customer path",
+        "startedAt": "2026-10-29T15:02:57Z",
+        "finishedAt": "2026-10-29T15:02:59Z",
+        "elapsedMs": 2000
+      },
+      {
+        "name": "Verify degraded state isolation before publication",
+        "startedAt": "2026-10-29T15:02:59Z",
+        "finishedAt": "2026-10-29T15:02:59Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Audit every scarce library bottle across all states",
+        "startedAt": "2026-10-29T15:02:59Z",
+        "finishedAt": "2026-10-29T15:03:44Z",
+        "elapsedMs": 45000
+      },
+      {
+        "name": "Refuse publication from a stale main checkout",
+        "startedAt": "2026-10-29T15:03:44Z",
+        "finishedAt": "2026-10-29T15:03:45Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Publish and atomically activate encrypted snapshot",
+        "startedAt": "2026-10-29T15:03:45Z",
+        "finishedAt": "2026-10-29T15:03:57Z",
+        "elapsedMs": 12000
+      },
+      {
+        "name": "Verify publication authority after activation",
+        "startedAt": "2026-10-29T15:03:57Z",
+        "finishedAt": "2026-10-29T15:03:57Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Verify production observes the refreshed engine or roll back",
+        "startedAt": "2026-10-29T15:03:57Z",
+        "finishedAt": "2026-10-29T15:04:29Z",
+        "elapsedMs": 32000
+      },
+      {
+        "name": "Save verified collector state",
+        "startedAt": "2026-10-29T15:04:29Z",
+        "finishedAt": "2026-10-29T15:05:24Z",
+        "elapsedMs": 55000
+      },
+      {
+        "name": "Save verified North Carolina board intelligence",
+        "startedAt": "2026-10-29T15:05:24Z",
+        "finishedAt": "2026-10-29T15:05:24Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save NC learned public source routes independently of publication",
+        "startedAt": "2026-10-29T15:05:24Z",
+        "finishedAt": "2026-10-29T15:05:25Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Save Texas Shopify pickup cooldown independently of publication",
+        "startedAt": "2026-10-29T15:05:25Z",
+        "finishedAt": "2026-10-29T15:05:25Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save Texas Shopify pickup denial journal independently of publication",
+        "startedAt": "2026-10-29T15:05:25Z",
+        "finishedAt": "2026-10-29T15:05:25Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save metro attempt cooldowns independently of publication",
+        "startedAt": "2026-10-29T15:05:25Z",
+        "finishedAt": "2026-10-29T15:05:26Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Save library search progress independently of publication",
+        "startedAt": "2026-10-29T15:05:26Z",
+        "finishedAt": "2026-10-29T15:05:26Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save browser source artifacts",
+        "startedAt": "2026-10-29T15:05:26Z",
+        "finishedAt": "2026-10-29T15:05:26Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Save verified published site contract",
+        "startedAt": "2026-10-29T15:05:26Z",
+        "finishedAt": "2026-10-29T15:05:27Z",
+        "elapsedMs": 1000
+      },
+      {
+        "name": "Preserve refresh diagnostics",
+        "startedAt": "2026-10-29T15:05:27Z",
+        "finishedAt": "2026-10-29T15:05:31Z",
+        "elapsedMs": 4000
+      },
+      {
+        "name": "Post Setup Node",
+        "startedAt": "2026-10-29T15:05:31Z",
+        "finishedAt": "2026-10-29T15:05:31Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Post Checkout current production engine",
+        "startedAt": "2026-10-29T15:05:31Z",
+        "finishedAt": "2026-10-29T15:05:31Z",
+        "elapsedMs": 0
+      },
+      {
+        "name": "Complete job",
+        "startedAt": "2026-10-29T15:05:31Z",
+        "finishedAt": "2026-10-29T15:05:31Z",
+        "elapsedMs": 0
+      }
+    ],
+    "artifactMetadata": {
+      "id": 12907144035,
+      "name": "inventory-refresh-40891992716",
+      "githubReportedDigest": "sha256:145fe61c17f8a26e62065a76ff6f408afab4d8bc87a854cf7aa96bcfe2c34402",
+      "sizeBytes": 18189760
+    },
+    "artifactZipDigestLocallyReverified": false,
+    "refresh": {
+      "elapsedMs": 1570005,
+      "browserRefreshMinutes": 0,
+      "lastBrowserRefreshAt": "2026-10-29T14:55:51.257Z",
+      "steps": [
+        {
+          "script": "src/fwgs-browser-full.mjs",
+          "startedAt": "2026-10-29T14:36:16.161Z",
+          "finishedAt": "2026-10-29T14:55:51.257Z",
+          "elapsedMs": 1175096,
+          "code": 0
+        },
+        {
+          "script": "src/build-bible.mjs",
+          "startedAt": "2026-10-29T14:55:51.283Z",
+          "finishedAt": "2026-10-29T14:55:51.384Z",
+          "elapsedMs": 101,
+          "code": 0
+        },
+        {
+          "script": "src/run.mjs",
+          "startedAt": "2026-10-29T14:55:51.386Z",
+          "finishedAt": "2026-10-29T14:57:45.694Z",
+          "elapsedMs": 114308,
+          "code": 0
+        },
+        {
+          "script": "src/rare-report.mjs",
+          "startedAt": "2026-10-29T14:57:45.697Z",
+          "finishedAt": "2026-10-29T14:57:48.371Z",
+          "elapsedMs": 2674,
+          "code": 0
+        },
+        {
+          "script": "src/location-report.mjs",
+          "startedAt": "2026-10-29T14:57:48.374Z",
+          "finishedAt": "2026-10-29T14:57:49.886Z",
+          "elapsedMs": 1512,
+          "code": 0
+        },
+        {
+          "script": "src/operational-report.mjs",
+          "startedAt": "2026-10-29T14:57:49.889Z",
+          "finishedAt": "2026-10-29T14:58:02.429Z",
+          "elapsedMs": 12540,
+          "code": 0
+        },
+        {
+          "script": "src/export-site-contract.mjs",
+          "startedAt": "2026-10-29T14:58:02.432Z",
+          "finishedAt": "2026-10-29T15:02:21.757Z",
+          "elapsedMs": 259325,
+          "code": 0
+        },
+        {
+          "script": "src/source-usefulness-report.mjs",
+          "startedAt": "2026-10-29T15:02:21.760Z",
+          "finishedAt": "2026-10-29T15:02:24.021Z",
+          "elapsedMs": 2261,
+          "code": 0
+        },
+        {
+          "script": "src/build-store-identity.mjs",
+          "startedAt": "2026-10-29T15:02:24.024Z",
+          "finishedAt": "2026-10-29T15:02:24.603Z",
+          "elapsedMs": 579,
+          "code": 0
+        }
+      ]
+    },
+    "sourceFiles": [
+      {
+        "file": "site-refresh-status.json",
+        "sha256": "09d58a86225823e7f383b78a685f06177f27ea026811018b435d9ebee881bf4e"
+      }
+    ]
+  },
+  "browser": {
+    "measuredPennsylvaniaBootstrapMs": 1175096,
+    "attribution": "Only src/fwgs-browser-full.mjs, not the full IL/ID/PA refresh group",
+    "manualForcedRefreshMinutes": 0,
+    "currentScheduledRefreshMinutes": 240,
+    "conditionalAmortizedMsPerThirtyMinuteCycle": 146887,
+    "conditionalAmortizationCaveat": "A mathematical allocation assuming one identical successful bootstrap every four hours; not a measured fleet average or guaranteed schedule. Cold/bootstrap or failure/retry cycles retain their full peak cost."
+  },
+  "invariants": {
+    "sourceAndParentHardcapsChanged": false,
+    "sourceCollectorsChanged": false,
+    "fourCandidateManifestSemanticsChanged": false,
+    "authoritativeLifecyclesChanged": false,
+    "originalMississippiDigestsChanged": false,
+    "frozenProofRefChanged": false,
+    "productionActivationPerformed": false
+  },
+  "limitations": [
+    "Both measured jobs ran source commit6deae85a before the pending fleet-cap/dedup repair. Future export improvement is unmeasured.",
+    "Expected-state model covers parallel collection only; browser/bootstrap, exports, fallback re-exports, verifier, deployment verification, cache, setup and queue time are separate.",
+    "Ohio was stale_useful; NewYork and NorthCarolina had partial fallback. Accepted publication is not proof every source was fresh.",
+    "A proposed forecast is not a source/parent hardcap. The existing hardcaps and all four promotion semantics remain unchanged.",
+    "The four-state addition is prospective and remains inactive. No measured full28state production cycle exists."
+  ]
+}
