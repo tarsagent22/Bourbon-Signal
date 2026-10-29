@@ -19,6 +19,8 @@ const files = [
   'engine/src/build-state-canary-preview.mjs',
   'engine/src/verify-state-integration.mjs',
   'engine/src/export-site-contract.mjs',
+  'engine/src/fleet-drop-budget.mjs',
+  'engine/src/partial-refresh-contract.mjs',
   'src/lib/new-york-area.ts',
   'src/lib/colorado-area.ts',
   'src/lib/coverage-model.ts',
