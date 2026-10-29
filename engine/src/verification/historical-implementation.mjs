@@ -7,6 +7,7 @@ const nationwideBaseline = JSON.parse(readFileSync(new URL('../../data/source-ev
 const westernGroceryBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/western-grocery-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const centralProductionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/central-cityhive-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const njMiBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nj-mi-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const measuredForecastBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -118,6 +119,16 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (!sharedFiles.has(name)) return bytes;
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
+  const forecast = measuredForecastBaseline.files[name];
+  if (forecast) {
+    assert.equal(measuredForecastBaseline.contractVersion, 'bourbon-signal/measured-runtime-forecast-ms-boundary@1');
+    // Reverse only the complete reviewed planning map, before the older exact
+    // inactive-state metadata reversals. Source/parent hardcaps are not here.
+    for (const line of forecast.reviewed.split('\n').slice(1, -1)) {
+      assert.equal(text.split(line + '\n').length - 1, 1, `${name}: measured runtime forecast must have one exact historical verification hook`);
+    }
+    text = replaceUnique(text, forecast.reviewed, forecast.original, `${name}: measured runtime forecast`);
+  }
   assert.equal(centralProductionBaseline.contractVersion, 'bourbon-signal/central-cityhive-production-shared-metadata-baseline@1');
   for (const [key, entry] of Object.entries(centralProductionBaseline.files[name] || {})) {
     text = replaceUnique(text, entry.reviewed, entry.original, `${name}: Central inactive ${key}`);

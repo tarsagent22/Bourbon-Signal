@@ -24,6 +24,20 @@ test('MS historical implementation bytes remain pinned, including policy', async
   }
 });
 
+test('measured forecast reversal accepts only the complete reviewed map and preserves original MS hashes', async () => {
+  const baseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json', import.meta.url), 'utf8'));
+  assert.equal(baseline.contractVersion, 'bourbon-signal/measured-runtime-forecast-ms-boundary@1');
+  for (const [name, { reviewed, original }] of Object.entries(baseline.files)) {
+    const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
+    for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, ''), current + '\n' + reviewed,
+      ...reviewed.split('\n').slice(1, -1).map(line => current.replace(line, line.replace(/\d+/, value => String(Number(value) + 1)))),
+    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /measured runtime forecast .*exact historical verification hook/);
+    const outside = current.replace('"refreshSafetyMarginMs": 300000', '"refreshSafetyMarginMs": 0');
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name], 'the map exception cannot hide a reduced refresh reserve');
+  }
+});
+
 test('FL and IN proof normalization reverse exact additions while preserving the original MS anchor', async () => {
   const name = 'engine/src/operational-report.mjs';
   const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
@@ -190,15 +204,16 @@ test('WA/NM metadata reversal requires every literal inactive registration and b
     const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
     const originalHash = evidence.implementationFilesSha256[name];
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), originalHash);
-    for (const [key, { reviewed, original }] of Object.entries(baseline.files[name])) {
+    for (const [key, { reviewed: priorReviewed, original }] of Object.entries(baseline.files[name])) {
+      const reviewed = key === 'budgets' ? priorReviewed.replace('"WA": 720000', '"WA": 360000').replace('"NM": 300000\n', '"NM": 120000,\n') : priorReviewed;
       assert.equal(current.split(reviewed).length - 1, 1, `${name}: ${key}`);
       const changed = name.endsWith('.mjs')
         ? reviewed.replace('WESTERN_GROCERY_PRODUCTION_', 'UNREVIEWED_GROCERY_')
-        : key === 'budgets' ? reviewed.replace('720000', '600000')
+        : key === 'budgets' ? reviewed.replace('360000', '600000')
           : reviewed.replace('"publicStatus": "research_only"', '"publicStatus": "active"');
       assert.notEqual(changed, reviewed);
       for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:WA\/NM reviewed|Central inactive) .*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:WA\/NM reviewed|Central inactive|measured runtime forecast) .*exact historical verification hook/);
       }
       if (!name.endsWith('.mjs') && ['WA', 'NM'].includes(key)) {
         for (const mutation of [
@@ -218,11 +233,12 @@ test('WI/OK inactive metadata permits only exact store-level false-alert entries
   for(const[name,entries]of Object.entries(baseline.files)){
     const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
     assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
-    for(const[key,{reviewed,original}]of Object.entries(entries)){
+    for(const[key,{reviewed:priorReviewed,original}]of Object.entries(entries)){
+      const reviewed=key==='budgets'?priorReviewed.replace('"WI": 150000','"WI": 30000').replace('"OK": 240000','"OK": 30000'):priorReviewed;
       assert.equal(current.split(reviewed).length-1,1);
-      const altered=key==='budgets'?reviewed.replace('150000','90000'):reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
+      const altered=key==='budgets'?reviewed.replace('30000','90000'):reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
       for(const mutation of [current.replace(reviewed,original),current+'\n'+reviewed,current.replace(reviewed,altered)])
-        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/Central inactive .*exact historical verification hook/);
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/(?:Central inactive|measured runtime forecast) .*exact historical verification hook/);
       if(key!=='budgets')for(const replacement of [['"inventoryAlertable": false','"inventoryAlertable": true'],['"watchAlertable": false','"watchAlertable": true'],['"refinementLevel": "store"','"refinementLevel": "state"']])
         assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(reviewed,reviewed.replace(...replacement)))) ,/Central inactive .*exact historical verification hook/);
     }
@@ -240,7 +256,7 @@ test('NJ/MI historical reversal rejects activation, altered registration and not
         :key==='budgets'?reviewed.replace('120000','90000'):reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
       assert.notEqual(changed,reviewed);
       for(const mutation of[current.replace(reviewed,original),current.replace(reviewed,changed),current+'\n'+reviewed]){
-        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/NJ\/MI reviewed .*exact historical verification hook/,key);
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/(?:NJ\/MI reviewed|measured runtime forecast) .*exact historical verification hook/,key);
       }
     }
   }

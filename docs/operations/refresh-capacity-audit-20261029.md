@@ -1,5 +1,7 @@
 # Measured refresh capacity audit, October 29
 
+Follow-up: the [three-observation forecast refinement](refresh-capacity-forecast-refinement-20261029.md) replaces only the four new states' hard-cap-based planning assumptions below. Its collection-only model passes at 23 min 30 sec. The actual end-to-end measurements, browser peak, and absence of a cadence guarantee remain unchanged.
+
 The four-state addition is **not ready for capacity admission under an honest conservative forecast**. The current configured model omits substantial Arizona and Florida runtime and excludes the browser, exports, fallback exports, and workflow overhead. No runtime metadata, hard timeout, lifecycle, promotion manifest, or historical Mississippi digest was changed by this audit.
 
 The machine-readable [observations and model outputs](../../engine/data/source-evidence/refresh-capacity-20261029/observed-capacity.json) bind the extracted source files by SHA-256 and identify their GitHub run/artifact metadata. GitHub-reported ZIP digests are recorded separately; these ZIP bytes were not independently rehashed for this timing audit.
