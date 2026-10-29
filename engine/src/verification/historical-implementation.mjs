@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 
 const sharedBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const nationwideBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nationwide-expansion-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -18,6 +19,9 @@ export const originalLibraryAlertPolicyBoundary = '  const sourceAlertPolicy = e
 export const arizonaMetroTierImport = "import { metroLibraryTier } from './collectors/arizona-metro-retailer-proof.mjs';\n";
 export const arizonaMetroTierBoundary = "    tier: (signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null,\n";
 export const originalArizonaMetroTierBoundary = '    tier: record?.tier || null,\n';
+export const groceryExpansionTierImport = "import { groceryExpansionLibraryTier } from './grocery-xapi-policy.mjs';\n";
+export const centralCityHiveTierImport = "import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';\n";
+export const reviewedExpansionTierBoundary = "    tier: groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),\n";
 const originalFloridaProofBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
 const floridaProofBoundary = `    } : undefined,
     ...(signal.state === 'FL' ? {
@@ -54,6 +58,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     // Permit only the exact shared library suppression. It cannot enable an
     // alert or change the pinned Mississippi source and inventory policies.
     text = replaceUnique(text, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, `${name}: library alert suppression`);
+    // Reverse only the reviewed source-proof tier hooks before applying the
+    // existing AZ reversal. This does not normalize either hook's implementation.
+    text = replaceUnique(text, groceryExpansionTierImport, '', `${name}: grocery tier import`);
+    text = replaceUnique(text, centralCityHiveTierImport, '', `${name}: CityHive tier import`);
+    text = replaceUnique(text, reviewedExpansionTierBoundary, arizonaMetroTierBoundary, `${name}: reviewed source tier proof`);
     // Only this exact AZ-gated, proof-checked catalog tier may differ. All MS
     // implementation bytes and the original full-file digest remain pinned.
     text = replaceUnique(text, arizonaMetroTierImport, '', `${name}: AZ tier import`);
@@ -96,5 +105,13 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   // Only the exact reviewed AZ source description and customer metadata differ.
   // Every other byte and all original MS implementation digests remain pinned.
   text = replaceUnique(text, arizona.reviewed, arizona.original, `${name}: AZ reviewed metadata`);
+  assert.equal(nationwideBaseline.contractVersion, 'bourbon-signal/nationwide-shared-metadata-baseline@1');
+  const nationwide = nationwideBaseline.files[name];
+  if (name === 'engine/src/state-sources.mjs') {
+    text = replaceUnique(text, nationwide.import.reviewed, nationwide.import.original, `${name}: reviewed central source import`);
+    text = replaceUnique(text, nationwide.registration.reviewed, nationwide.registration.original, `${name}: reviewed central source registration`);
+  } else {
+    text = replaceUnique(text, nationwide.reviewed, nationwide.original, `${name}: CA reviewed metadata`);
+  }
   return Buffer.from(text);
 }

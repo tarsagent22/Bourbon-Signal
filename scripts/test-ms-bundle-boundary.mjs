@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary } from '../engine/src/verification/historical-implementation.mjs';
+import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, centralCityHiveTierImport, reviewedExpansionTierBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -57,6 +57,8 @@ function signalSort(a, b) {
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
     .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary)
+    .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '')
+    .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary));
   for (const altered of [
     current.replace(addition, originalBoundary),
@@ -67,8 +69,16 @@ function signalSort(a, b) {
     current.replace(addition, addition.replace('function signalSort(a, b)', 'function signalSort(a, ignored)')),
     current.replace(indianaAddition, ''),
     current.replace(arizonaMetroTierImport, ''),
-    current.replace(arizonaMetroTierBoundary, arizonaMetroTierBoundary.replace("signal.state === 'AZ'", "signal.state === 'MS'")),
-    current.replace(arizonaMetroTierBoundary, arizonaMetroTierBoundary.replace("signal.state === 'AZ'", 'true')),
+    current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace("signal.state === 'AZ'", "signal.state === 'MS'")),
+    current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace("signal.state === 'AZ'", 'true')),
+    current.replace(groceryExpansionTierImport, ''),
+    current.replace(centralCityHiveTierImport, ''),
+    current + '\n' + groceryExpansionTierImport,
+    current + '\n' + centralCityHiveTierImport,
+    current.replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary),
+    current + '\n' + reviewedExpansionTierBoundary,
+    current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('?? centralCityHiveLibraryTier(signal,bible)', '?? true')),
+    current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('groceryExpansionLibraryTier(signal,bible)', "groceryExpansionLibraryTier({...signal,state:'MS'},bible)")),
     current + '\n' + indianaAddition,
     current.replace(indianaAddition, indianaAddition.replace("sig.state === 'IN'", "sig.state === 'MS'")),
     current.replace(indianaAddition, indianaAddition.replace('sig.sourceProductBinding || null', 'sig.raw || null')),
@@ -121,6 +131,31 @@ test('AZ metadata reversal accepts only its exact reviewed block and keeps origi
       current + '\n' + reviewed,
     ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(changed)), /AZ reviewed metadata/);
     const outside = current.replace(name.endsWith('.mjs') ? "id: 'VA'" : '"VA": {', name.endsWith('.mjs') ? "id: 'VA_UNREVIEWED'" : '"VA_UNREVIEWED": {');
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name]);
+  }
+});
+
+test('nationwide reversal accepts only exact reviewed CA metadata and inactive central source wiring', async () => {
+  const baseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/nationwide-expansion-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+  for (const name of sharedFiles) {
+    const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+    const entry = baseline.files[name];
+    const reversals = name.endsWith('.mjs') ? [entry.import, entry.registration] : [entry];
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
+    for (const { reviewed, original } of reversals) {
+      assert.notEqual(reviewed, original);
+      const changed = reviewed.replace(name.endsWith('.mjs') ? 'CENTRAL_CITYHIVE_STATE_CONFIGS' : 'California', 'UNREVIEWED_METADATA');
+      assert.notEqual(changed, reviewed);
+      for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /exact historical verification hook/);
+      }
+    }
+    if (!name.endsWith('.mjs')) {
+      const activeMutation = current.replace(entry.reviewed, entry.reviewed.replace('"publicStatus": "active"', '"publicStatus": "research_only"'));
+      assert.notEqual(activeMutation, current);
+      assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(activeMutation)), /CA reviewed metadata/);
+    }
+    const outside = current.replace(name.endsWith('.mjs') ? "id: 'MS'" : '"MS": {', name.endsWith('.mjs') ? "id: 'MS_UNREVIEWED'" : '"MS_UNREVIEWED": {');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name]);
   }
 });
