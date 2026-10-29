@@ -112,7 +112,7 @@ export async function collectTexasShopifyPickup(config,bible,options={}) {
     }});
   collectionRequestSignal(options.signal)?.throwIfAborted();
   const summary=collected.sourceResults[0],httpStatus=summary.ok?200:summary.error?.status||0;
-  const defaultCooldown=[401,403].includes(httpStatus)?24*60*60_000:httpStatus===429?4*60*60_000:30*60_000;
+  const defaultCooldown=[401,403,429].includes(httpStatus)?24*60*60_000:30*60_000;
   const cooldown=Math.max(defaultCooldown,Math.max(0,Number(summary.error?.details?.retryAfterSeconds)||0)*1000);
   const next={schemaVersion:1,sourceId:SOURCE.runtimeId,configSha256:CONFIG_DIGEST,lastAttemptAt:observedAt,httpStatus,
     nextAllowedAt:new Date(nowMs+cooldown).toISOString(),lastAttemptResult:summary,

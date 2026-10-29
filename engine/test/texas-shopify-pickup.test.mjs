@@ -67,13 +67,13 @@ test('unreviewed identity, edition, premise, quantity, clock and generic rows re
   assert.equal(buildDrops([canonicalizeSignal(generic,bible)],bibleLookup(bible.records),[generic]).length,0);
 });
 
-test('denials persist across processes/calls and stop before another product request',async t=>{
+for(const status of [403,429])test(`HTTP ${status} denials persist for 24 hours and stop before another product request`,async t=>{
   const options=await setup(t);let requests=0;
-  const first=await collectTexasShopifyPickup({id:'TX'},bible,{...options,fetchText:async url=>{requests++;return{ok:false,status:403,url,text:''};}});
-  assert.equal(requests,1);assert.equal(first.sourceResults[0].error.status,403);
+  const first=await collectTexasShopifyPickup({id:'TX'},bible,{...options,fetchText:async url=>{requests++;return{ok:false,status,url,text:''};}});
+  assert.equal(requests,1);assert.equal(first.sourceResults[0].error.status,status);
   const cache=JSON.parse(await readFile(options.cacheFile,'utf8'));
   assert.equal(Date.parse(cache.nextAllowedAt)-Date.parse(cache.lastAttemptAt),24*60*60_000);
-  const second=await collectTexasShopifyPickup({id:'TX'},bible,{...options,nowMs:Date.now()+60_000,fetchText:()=>{requests++;throw Error('denied source retried');}});
+  const second=await collectTexasShopifyPickup({id:'TX'},bible,{...options,nowMs:Date.now()+8*60*60_000,fetchText:()=>{requests++;throw Error('denied source retried');}});
   assert.equal(requests,1);assert.equal(second.sourceResults[0].status,'circuit_open');
 });
 
