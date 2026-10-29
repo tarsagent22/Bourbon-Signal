@@ -53,6 +53,9 @@ function isIndexedCustomerDropSignal(signal, index) {
 
 const STATE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_STATE_TIMEOUT_MS || 180_000);
 const STATE_TIMEOUT_OVERRIDES_MS = {
+  MA: Number(process.env.BOURBON_SIGNAL_MA_STATE_TIMEOUT_MS || 90_000),
+  CT: Number(process.env.BOURBON_SIGNAL_CT_STATE_TIMEOUT_MS || 90_000),
+  RI: Number(process.env.BOURBON_SIGNAL_RI_STATE_TIMEOUT_MS || 90_000),
   NJ: Number(process.env.BOURBON_SIGNAL_NJ_STATE_TIMEOUT_MS || 120_000),
   MI: Number(process.env.BOURBON_SIGNAL_MI_STATE_TIMEOUT_MS || 60_000),
   LA: Number(process.env.BOURBON_SIGNAL_LA_STATE_TIMEOUT_MS || 360_000),

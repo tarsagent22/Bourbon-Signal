@@ -160,6 +160,14 @@ jobs:
           restore-keys: |
             inventory-western-grocery-incidents-${{ runner.os }}-
 
+      - name: Restore New England CityHive incident journals independently of publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/new-england-cityhive
+          key: new-england-source-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            new-england-source-incidents-${{ runner.os }}-
+
       - name: Restore NJ/MI CityHive incident journals independently of publication
         uses: actions/cache/restore@v4
         with:
@@ -639,6 +647,13 @@ jobs:
         with:
           path: engine/out/source-incidents/western-grocery
           key: inventory-western-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save New England CityHive incident journals independently of publication
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/new-england-cityhive
+          key: new-england-source-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save NJ/MI CityHive incident journals independently of publication
         if: always()

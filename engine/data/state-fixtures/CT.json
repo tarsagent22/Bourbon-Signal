@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "state": "CT",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "ct-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365"
+      },
+      "expected": {
+        "sourceRows": 3,
+        "inventoryProofRows": 3
+      }
+    },
+    {
+      "id": "ct-standard-negative",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-rtd",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "rawName": "Elijah Craig Barrel Proof Cocktail"
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-mini",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-binary",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "allNotificationsDisabled": true
+      }
+    },
+    {
+      "id": "ct-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-preserve-clock",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "ageMinutes": 5
+      },
+      "expected": {
+        "sourceRows": 3,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "ct-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "ageMinutes": 121
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-foreign-host",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-shipping-option",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-preorder",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "preorder": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-zero-stock",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365",
+        "stock": 0
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ct-research-isolation",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "branford-wine:5bbb62e2b7e6390c64b02365"
+      },
+      "expected": {
+        "sourceRows": 3,
+        "researchExportRows": 0,
+        "allNotificationsDisabled": true
+      }
+    }
+  ]
+}

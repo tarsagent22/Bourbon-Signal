@@ -1,3 +1,5 @@
+import {collectNewEnglandProductionState} from './new-england-production.mjs';
+import {NEW_ENGLAND_PRODUCTION_STATES} from '../new-england-production-config.mjs';
 import {collectNjMiCityHiveProductionState} from './nj-mi-cityhive-production.mjs';
 import {NJ_MI_PRODUCTION_STATES} from '../nj-mi-production-config.mjs';
 import {collectLouisianaAlaskaGroceryProductionState} from './louisiana-alaska-grocery-production.mjs';
@@ -483,6 +485,7 @@ function skippedConfiguredSource(source, sourceId, result) {
 export async function collectState(config, bible, options = {}) {
   if(LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(config.id))return collectLouisianaAlaskaGroceryProductionState(config,bible,options);
   if (WESTERN_GROCERY_PRODUCTION_STATES.includes(config.id)) return collectWesternGroceryProductionState(config,bible,options);
+  if(NEW_ENGLAND_PRODUCTION_STATES.includes(config.id))return collectNewEnglandProductionState(config,bible,options);
   if(NJ_MI_PRODUCTION_STATES.includes(config.id))return collectNjMiCityHiveProductionState(config,bible,options);
   if(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(config.id))return collectCentralCityHiveProductionState(config,bible,options);
   const startedAt = new Date().toISOString();

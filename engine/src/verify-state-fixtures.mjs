@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {executeNewEnglandFixtures} from './new-england-fixtures.mjs';
 import {executeNjMiResearchFixtures} from './nj-mi-research-fixtures.mjs';
 import {executeLouisianaAlaskaGroceryFixtures} from './louisiana-alaska-grocery-fixtures.mjs';
 import { executeGroceryResearchFixtures } from './grocery-research-fixtures.mjs';
@@ -483,6 +484,7 @@ function sameValue(left, right) { return JSON.stringify(left) === JSON.stringify
 export async function executeStateFixtures(payload, { bibleFile = path.resolve('out/bourbon-bible.json'), candidateActive = false } = {}) {
   const failures = [];
   const bible = await BourbonBible.load(bibleFile);
+  if(['MA','CT','RI'].includes(payload.state))return executeNewEnglandFixtures(payload,{bible});
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
   if(['LA','AK'].includes(payload.state))return executeLouisianaAlaskaGroceryFixtures(payload,{bible});

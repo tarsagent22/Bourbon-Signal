@@ -76,6 +76,8 @@ function signalSort(a, b) {
     .replace(westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary)
     .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '').replace(texasShopifyPickupTierImport, '')
     .replace("import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '').replace("    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '')
+    .replace("import {isNewEnglandProductionOnSiteSignal} from './new-england-policy.mjs';\n",'').replace("    ...(isNewEnglandProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n",'')
+    .replace("import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';\n",'').replace("    ...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{}),\n",'')
     .replace(centralProductionOnSiteImport, '').replace(centralProductionOnSiteBoundary, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
@@ -265,6 +267,21 @@ test('NJ/MI historical reversal rejects activation, altered registration and not
     const altered=current.replace('...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false','...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:'+replacement);
     assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(altered)),/NJ\/MI false-alert on-site proof/);
   }
+});
+
+test('New England reverses only its exact inactive source registration and source-checked tier/false-alert hooks',async()=>{
+  const baseline=JSON.parse(await readFile(new URL('../engine/data/source-evidence/new-england-production-20261029/shared-metadata-baseline.json',import.meta.url),'utf8'));
+  for(const[name,entries]of Object.entries(baseline.files)){
+    const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+    for(const {reviewed,original}of Object.values(entries))for(const mutation of[current.replace(reviewed,original),current+'\n'+reviewed,current.replace(reviewed,reviewed.replace('NEW_ENGLAND','UNREVIEWED'))])
+      assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/New England reviewed .*exact historical verification hook/);
+  }
+  const name='engine/src/operational-report.mjs',current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+  for(const replacement of[
+    ['...(isNewEnglandProductionOnSiteSignal(signal)?{','...(true?{'],
+    ['...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{})','...({tier:"allocated"})'],
+  ])assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(...replacement))),/New England .*exact historical verification hook/);
 });
 
 test('grocery proof and on-site suppression reverse into the existing NY then AZ hooks only', async () => {

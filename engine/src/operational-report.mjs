@@ -1,3 +1,5 @@
+import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';
+import {isNewEnglandProductionOnSiteSignal} from './new-england-policy.mjs';
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import {louisianaAlaskaGroceryLibraryTier,isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
@@ -103,6 +105,7 @@ export function canonicalizeSignal(signal, bible) {
     canonicalBottleId: bottleId,
     canonicalName,
     tier: texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),
+    ...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{}),
     producer: record?.producer || null,
     eventType: signal.eventType,
     sourceLabel: signal.sourceLabel,
@@ -203,6 +206,11 @@ export function canonicalizeSignal(signal, bible) {
       eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
     ...(isNjMiProductionOnSiteSignal(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    ...(isNewEnglandProductionOnSiteSignal(signal)?{
       canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
       eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
       eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,

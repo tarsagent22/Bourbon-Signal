@@ -1,15 +1,14 @@
-import registry from '../../data/new-england-research-sources.json' with {type:'json'};
+import {NEW_ENGLAND_RESEARCH_SOURCES} from './new-england-premises.mjs';
+export {NEW_ENGLAND_RESEARCH_SOURCES} from './new-england-premises.mjs';
 import {parseCityHiveProducts} from './cityhive-surfaces.mjs';
 import {centralCityHiveBottleFormat,reviewedCentralCityHiveIdentity} from './central-cityhive-expansion.mjs';
 import {cityHiveSafeBottleMatch} from './safe-bottle-match.mjs';
 import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 import {stableId} from '../core/text.mjs';
 
-const freeze=value=>{if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
-export const NEW_ENGLAND_RESEARCH_SOURCES=freeze(registry.sources);
 // This module has no transport or production registration. Its only inputs are
 // reviewed first-party captures, the current library and their original clocks.
-export function parseNewEnglandResearchInventory(html,candidate,bible,{observedAt,nowMs=Date.now()}={}){
+export function parseNewEnglandResearchInventory(html,candidate,bible,{observedAt,nowMs=Date.now(),onVerifiedPremise}={}){
   const source=NEW_ENGLAND_RESEARCH_SOURCES.find(row=>row===candidate),age=nowMs-Date.parse(observedAt||'');
   if(!source||!Number.isFinite(age)||age<0||age>2*60*60_000||Buffer.byteLength(String(html))>2*1024*1024)return[];
   return parseCityHiveProducts(html,source,{sources:NEW_ENGLAND_RESEARCH_SOURCES,
@@ -21,8 +20,9 @@ export function parseNewEnglandResearchInventory(html,candidate,bible,{observedA
     reviewOption:reviewedCentralCityHiveIdentity,
     isAllowedMerchantConfiguration:merchant=>{
       const point=merchant.address?.location;
-      return merchant.name===source.name&&point?.type==='Point'&&point.coordinates?.length===2
+      const valid=merchant.name===source.name&&point?.type==='Point'&&point.coordinates?.length===2
         &&point.coordinates[1]===source.lat&&point.coordinates[0]===source.lng;
+      if(valid)onVerifiedPremise?.(source);return valid;
     },
   }).flatMap(row=>{
     const match=row.reviewedIdentity?bible.match(row.reviewedIdentity):cityHiveSafeBottleMatch(row.title,bible).match;
@@ -42,9 +42,9 @@ export function parseNewEnglandResearchInventory(html,candidate,bible,{observedA
       eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
       sourceProductBinding:{schemaVersion:1,source:'new-england-research-cityhive',storeId:source.storeId,storeAddress:source.address,
         merchantId:source.merchantId,productId:row.productId,optionId:row.variantId,canonicalBottleId:record.id,canonicalName:record.canonical,
-        rawName:row.title,price:row.price,observedAt,premisesVerified:true,pickupOfferVerified:true,coordinatesVerified:true,
+        rawName:row.title,identityName:row.reviewedIdentity||row.title,price:row.price,observedAt,premisesVerified:true,pickupOfferVerified:true,coordinatesVerified:true,
         latitude:source.lat,longitude:source.lng,reportedQuantity:row.reportedQuantity,quantitySemantics:'binary_retailer_orderable_no_exact_count',
-        optionPickupRestrictionVerified:true,preorderExcluded:true,shadowOnly:true},
+        collectorVersion:'new-england-cityhive-v1-strict-options',optionPickupRestrictionVerified:true,preorderExcluded:true,shadowOnly:true},
       raw:{shadowOnly:true,reportedQuantity:row.reportedQuantity}}];
   });
 }
