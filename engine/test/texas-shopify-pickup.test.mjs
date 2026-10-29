@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../src/core/bible.mjs';
@@ -118,6 +118,28 @@ for(const state of ['inventory cache','incident ledger'])test(`malformed existin
   }
 });
 
+for(const status of [403,429])test(`incident rename failure preserves HTTP ${status} and its denial cooldown in the stock cache`,async t=>{
+  const options=await setup(t),incidentFile=path.join(path.dirname(options.cacheFile),'texas-shopify-pickup-incidents.json');
+  const retryAfterSeconds=status===429?3*24*60*60:0;let requests=0;
+  const result=await collectTexasShopifyPickup({id:'TX'},bible,{...options,fetchText:async url=>{
+    requests++;
+    // Make the journal rename fail after the successful cold read. The stock
+    // cache path remains writable, so this exercises the real fallback path.
+    await mkdir(incidentFile);
+    return {ok:false,status,url,text:'',retryAfterSeconds};
+  }});
+  assert.equal(result.sourceResults[0].error.status,status);
+  assert.equal(result.sourceResults[0].error.details.incidentWriteFailed,true);
+  assert.match(result.sourceResults[0].error.message,/denial journal could not be persisted/);
+  const cache=JSON.parse(await readFile(options.cacheFile,'utf8'));
+  assert.equal(cache.httpStatus,status);
+  assert.equal(Date.parse(cache.nextAllowedAt)-Date.parse(cache.lastAttemptAt),Math.max(24*60*60_000,retryAfterSeconds*1000));
+  await rm(incidentFile,{recursive:true});
+  const next=await collectTexasShopifyPickup({id:'TX'},bible,{...options,nowMs:Date.now()+8*60*60_000,
+    fetchText:()=>{requests++;throw Error('failed journal allowed a retry');}});
+  assert.equal(requests,1);assert.equal(next.sourceResults[0].status,'circuit_open');
+});
+
 test('only ENOENT permits a cold state read; EACCES and other failures remain closed',async()=>{
   for(const label of ['inventory cache','incident ledger']){
     assert.equal(await readTexasPickupState('unreadable',label,async()=>{throw Object.assign(new Error('missing'),{code:'ENOENT'});}),null);
@@ -125,6 +147,19 @@ test('only ENOENT permits a cold state read; EACCES and other failures remain cl
       throw Object.assign(new Error('access refused'),{code});
     }),error=>error.message.includes('could not be read safely')&&error.cause.code===code);
   }
+});
+
+test('incident write failure never permits a stock write after parent cancellation',async t=>{
+  const options=await setup(t),incidentFile=path.join(path.dirname(options.cacheFile),'texas-shopify-pickup-incidents.json');
+  await collectTexasShopifyPickup({id:'TX'},bible,{...options,fetchText:transport});
+  const before=await readFile(options.cacheFile,'utf8'),controller=new AbortController();
+  await assert.rejects(withCollectionContext({signal:controller.signal},()=>collectTexasShopifyPickup({id:'TX'},bible,{
+    ...options,nowMs:Date.now()+31*60_000,fetchText:async url=>{
+      await mkdir(incidentFile);controller.abort(new Error('parent cancelled with journal failure'));
+      return {ok:false,status:403,url,text:''};
+    },
+  })),/parent cancelled with journal failure/);
+  assert.equal(await readFile(options.cacheFile,'utf8'),before);
 });
 
 test('production independently restores and always saves inventory and incident files, including path negatives',async()=>{

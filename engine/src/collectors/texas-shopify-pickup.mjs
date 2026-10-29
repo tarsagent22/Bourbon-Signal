@@ -9,6 +9,7 @@ import {runLegacyPrecisionSource} from '../sources/legacy-precision-runtime.mjs'
 import {createSourceSkippedResult,summarizeSourceResult} from '../sources/source-result.mjs';
 import {writeCollectionFile,collectionRequestSignal} from '../core/collection-context.mjs';
 import {fetchWithMeta} from '../core/fetcher.mjs';
+import {sourceErrorForHttp} from '../sources/source-error.mjs';
 
 export const TEXAS_SHOPIFY_PICKUP_SOURCE=validateShopifyVariantSource(reviewed.source);
 export const TEXAS_SHOPIFY_PICKUP_TTL_MS=60*60_000;
@@ -151,7 +152,12 @@ export async function collectTexasShopifyPickup(config,bible,options={}) {
             Math.min(8_640_000_000_000_000,attemptedAt+cooldown));
           incidents={schemaVersion:1,hosts:{...incidents.hosts,[host]:{httpStatus:Number(response.status),
             lastAttemptAt:new Date(attemptedAt).toISOString(),nextAllowedAt:new Date(nextAllowedAt).toISOString()}}};
-          persistIncidentLedger(incidentFile,incidents);
+          try{persistIncidentLedger(incidentFile,incidents);}catch(error){
+            throw sourceErrorForHttp(response.status,`Texas pickup denial journal could not be persisted after HTTP ${response.status}`,{
+              cause:error,details:{incidentWriteFailed:true,incidentErrorCode:error.code||null,
+                retryAfterSeconds:Number.isFinite(retryAfterSeconds)&&retryAfterSeconds>0?retryAfterSeconds:0},
+            });
+          }
         }
         return response;
       };
