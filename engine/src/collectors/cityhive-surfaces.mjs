@@ -125,6 +125,7 @@ function canonicalSource(candidate, sources) {
 export function parseCityHiveProducts(html, candidateSource, {
   sources = [],
   isAllowedBottleFormat = () => true,
+  isAllowedOption = () => true,
 } = {}) {
   const source = canonicalSource(candidateSource, sources);
   if (!source || source.platform !== 'cityhive') return [];
@@ -154,6 +155,7 @@ export function parseCityHiveProducts(html, candidateSource, {
           ...(Array.isArray(merchant.options) ? merchant.options : []),
         ];
         for (const option of options) {
+          if (!isAllowedOption(option, product)) continue;
           const optionMerchantId = String(option.merchant_id || option.merchantId || parentId);
           if (optionMerchantId !== source.merchantId || !exactPremises(entityAddress(option), source)) continue;
           if (!pickup(merchant.offer_types, merchant.offerTypes, merchant.fulfillment, option.offer_types, option.offerTypes, option.fulfillment)) continue;

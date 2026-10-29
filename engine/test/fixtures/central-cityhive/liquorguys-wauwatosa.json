@@ -1,0 +1,77 @@
+{
+  "sourceId": "liquorguys-wauwatosa",
+  "captures": [
+    {
+      "url": "https://liquorguys.com/shop/?ch-query=michter",
+      "capturedAt": "2026-10-29T01:30:52.459Z"
+    }
+  ],
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "634464e2ec82c44b45abf3ef",
+        "name": "Liquorguys",
+        "address": {
+          "full_address": "11728 W North Ave, Wauwatosa, WI 53226, USA"
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "6594472cd20b667b856eb419",
+      "name": "R Michters Single Barrel Rye 10yr 750ml",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "634464e2ec82c44b45abf3ef",
+          "full_address": "11728 W North Ave, Wauwatosa, WI 53226, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "6594472cd20b667b856eb419",
+              "option_id": "678137eff45b2a44e894272b88b02eed15dab8c85ac8977d29bdfa2df4ebc9ea",
+              "merchant_id": "634464e2ec82c44b45abf3ef",
+              "full_address": "11728 W North Ave, Wauwatosa, WI 53226, USA",
+              "product_url": "https://liquorguys.com/shop/product/r-michters-single-barrel-rye-10yr-750ml/6594472cd20b667b856eb419?option-id=678137eff45b2a44e894272b88b02eed15dab8c85ac8977d29bdfa2df4ebc9ea",
+              "quantity": 1,
+              "price": 249.99,
+              "option_display_data": {
+                "name": "R Michters Single Barrel Rye 10yr 750ml",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "rye",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "rye",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "Michter's"
+                  ],
+                  "age": "10"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
