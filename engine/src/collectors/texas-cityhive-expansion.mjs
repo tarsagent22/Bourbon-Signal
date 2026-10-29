@@ -9,6 +9,8 @@ export function isTexasExpansionSignalIdentity(row) {
   const optionId=row.optionId||row.variantId;
   if(!source || row.state!=='TX' || row.stateCode!=='TX' || row.sourceLabel!==source.sourceLabel
     || row.storeId!==source.storeId || row.storeAddress!==source.address
+    || row.lat!==source.lat || row.lng!==source.lng || proof?.coordinatesVerified!==true
+    || proof.latitude!==source.lat || proof.longitude!==source.lng
     || !row.productId || !optionId || proof?.source!=='central-cityhive' || proof.schemaVersion!==1
     || proof.storeId!==row.storeId || proof.storeAddress!==row.storeAddress || proof.merchantId!==row.merchantId
     || proof.productId!==row.productId || proof.optionId!==optionId || proof.rawName!==row.rawName

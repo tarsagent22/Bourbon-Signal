@@ -8,7 +8,14 @@
         "id": "648b2c3280fafa2a9b7a1c18",
         "name": "LOL Liquors- Schertz",
         "address": {
-          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA"
+          "full_address": "1204 Farm-To-Market Rd 78 a, Schertz, TX 78154, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.2544788,
+              29.55854859999999
+            ]
+          }
         }
       }
     },
@@ -17,7 +24,14 @@
         "id": "648b2c634ad5482a835b74e0",
         "name": "LOL Liquors - Garden Ridge",
         "address": {
-          "full_address": "18838 FM 2252, Garden Ridge, TX 78266, USA"
+          "full_address": "18838 FM 2252, Garden Ridge, TX 78266, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.31260700000001,
+              29.6139656
+            ]
+          }
         }
       }
     },
@@ -26,7 +40,14 @@
         "id": "648b2c87170dfb2a911b0095",
         "name": "LOL Liquors - O’Connor",
         "address": {
-          "full_address": "4330 N Loop 1604 E Suite 106, San Antonio, TX 78247, USA"
+          "full_address": "4330 N Loop 1604 E Suite 106, San Antonio, TX 78247, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.4053193,
+              29.6003066
+            ]
+          }
         }
       }
     },
@@ -35,7 +56,14 @@
         "id": "648b2cb0bb96612c02da7b6c",
         "name": "LOL Liquors - Converse",
         "address": {
-          "full_address": "8144 Farm-To-Market Rd 78 Suite 5, Converse, TX 78109, USA"
+          "full_address": "8144 Farm-To-Market Rd 78 Suite 5, Converse, TX 78109, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.32805139999999,
+              29.4941407
+            ]
+          }
         }
       }
     },
@@ -44,7 +72,14 @@
         "id": "648b2ce12c7c742ad1b4998d",
         "name": "Sip & Smoke Liquor - Cibolo",
         "address": {
-          "full_address": "2451 FM1103 suite 105, Cibolo, TX 78108, USA"
+          "full_address": "2451 FM1103 suite 105, Cibolo, TX 78108, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.2254634,
+              29.6037973
+            ]
+          }
         }
       }
     },
@@ -53,7 +88,14 @@
         "id": "648b2d186fed862c0fe0d0c2",
         "name": "LOL Liquors - Thousand Oaks",
         "address": {
-          "full_address": "2235 Thousand Oaks Dr Suite 105, San Antonio, TX 78232, USA"
+          "full_address": "2235 Thousand Oaks Dr Suite 105, San Antonio, TX 78232, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.4514129,
+              29.587125
+            ]
+          }
         }
       }
     },
@@ -62,7 +104,14 @@
         "id": "648b2d40b79e832a86bb466d",
         "name": "LOL Liquors - Foster",
         "address": {
-          "full_address": "6322 Farm-To-Market Rd 78 #124, San Antonio, TX 78244, USA"
+          "full_address": "6322 Farm-To-Market Rd 78 #124, San Antonio, TX 78244, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.3621847,
+              29.4786396
+            ]
+          }
         }
       }
     },
@@ -71,7 +120,14 @@
         "id": "6060f7b3ed7ffb6a9c4c6879",
         "name": "LOL Liquors - Live Oak",
         "address": {
-          "full_address": "12107 Toepperwein Rd, Live Oak, TX 78233, USA"
+          "full_address": "12107 Toepperwein Rd, Live Oak, TX 78233, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.3443965,
+              29.5487152
+            ]
+          }
         }
       }
     },
@@ -80,7 +136,14 @@
         "id": "689f6a4d5f28f92938aa531b",
         "name": "Sip & Smoke Liquor - Pleasanton",
         "address": {
-          "full_address": "2128 W Oaklawn Rd, Pleasanton, TX 78064, USA"
+          "full_address": "2128 W Oaklawn Rd, Pleasanton, TX 78064, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.51430649999999,
+              28.9401956
+            ]
+          }
         }
       }
     },
@@ -89,7 +152,14 @@
         "id": "689f6ab0bdd7ad29226fafe6",
         "name": "Sip & Smoke Liquor - Pearsall",
         "address": {
-          "full_address": "1702 Louise Ln #101, Pearsall, TX 78061, USA"
+          "full_address": "1702 Louise Ln #101, Pearsall, TX 78061, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -99.11236609999999,
+              28.8957183
+            ]
+          }
         }
       }
     },
@@ -98,7 +168,14 @@
         "id": "689f6a89b1748f4f14703e5a",
         "name": "Sip & Smoke Liquor - De Zavala",
         "address": {
-          "full_address": "6362 De Zavala Rd Suite 103, San Antonio, TX 78249, USA"
+          "full_address": "6362 De Zavala Rd Suite 103, San Antonio, TX 78249, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.6116083,
+              29.5626159
+            ]
+          }
         }
       }
     },
@@ -107,7 +184,14 @@
         "id": "689f6b69bdd7ad17886f5570",
         "name": "Sip & Smoke Liquor - Eagle Pass",
         "address": {
-          "full_address": "2847 El Indio Hwy #8, Eagle Pass, TX 78852, USA"
+          "full_address": "2847 El Indio Hwy #8, Eagle Pass, TX 78852, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -100.474706,
+              28.6874046
+            ]
+          }
         }
       }
     },
@@ -116,7 +200,14 @@
         "id": "689f69a4bdd7ad291b6f9af9",
         "name": "LOL Liquors - Eagle Pass",
         "address": {
-          "full_address": "2135 Main St, Eagle Pass, TX 78852, USA"
+          "full_address": "2135 Main St, Eagle Pass, TX 78852, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -100.4843191,
+              28.7091716
+            ]
+          }
         }
       }
     },
@@ -125,7 +216,14 @@
         "id": "689f6ae0b03f944d479bbdaa",
         "name": "LOL Liquors - New Braunfels",
         "address": {
-          "full_address": "1050 FM306 #105, New Braunfels, TX 78130, USA"
+          "full_address": "1050 FM306 #105, New Braunfels, TX 78130, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.093734,
+              29.7427617
+            ]
+          }
         }
       }
     },
@@ -134,7 +232,14 @@
         "id": "69fcc915f21eda03d884c5fb",
         "name": "Sip & Smoke Liquors - Devine",
         "address": {
-          "full_address": "1009 E Hondo Ave, Devine, TX 78016, USA"
+          "full_address": "1009 E Hondo Ave, Devine, TX 78016, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.89539099999999,
+              29.13178659999999
+            ]
+          }
         }
       }
     },
@@ -143,7 +248,14 @@
         "id": "69fcca5af1a527004c2f9c55",
         "name": "LOL Liquors - Bandera",
         "address": {
-          "full_address": "377 TX-16, Bandera, TX 78003, USA"
+          "full_address": "377 TX-16, Bandera, TX 78003, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -99.0678708,
+              29.7275546
+            ]
+          }
         }
       }
     },
@@ -152,7 +264,14 @@
         "id": "62d59727c0b2c8506b3b0ee5",
         "name": "Sip & Smoke New Braunfels",
         "address": {
-          "full_address": "330 Landa St., New Braunfels, TX, 78130, USA"
+          "full_address": "330 Landa St., New Braunfels, TX, 78130, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -98.07021,
+              29.69772
+            ]
+          }
         }
       }
     }

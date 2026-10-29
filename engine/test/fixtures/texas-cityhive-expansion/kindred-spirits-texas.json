@@ -8,7 +8,14 @@
         "id": "64480c90c649312ac1c99921",
         "name": "Kindred Spirits & Wine- Inwood",
         "address": {
-          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA"
+          "full_address": "3610 Inwood Rd, Dallas, TX 75209, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -96.82493869999999,
+              32.8314475
+            ]
+          }
         }
       }
     },
@@ -17,7 +24,14 @@
         "id": "658c751d1b114d703bdf69c4",
         "name": "Kindred Spirits & Wine- Irving",
         "address": {
-          "full_address": "3578 W Airport Fwy, Irving, TX 75062, USA"
+          "full_address": "3578 W Airport Fwy, Irving, TX 75062, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -96.99735179999999,
+              32.8358709
+            ]
+          }
         }
       }
     }

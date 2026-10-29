@@ -127,6 +127,7 @@ export function parseCityHiveProducts(html, candidateSource, {
   isAllowedBottleFormat = () => true,
   isAllowedOption = () => true,
   reviewOption = () => null,
+  isAllowedMerchantConfiguration = () => true,
 } = {}) {
   const source = canonicalSource(candidateSource, sources);
   if (!source || source.platform !== 'cityhive') return [];
@@ -135,7 +136,8 @@ export function parseCityHiveProducts(html, candidateSource, {
     .flatMap((value) => value.merchant_configs || value.merchantConfigs);
   const exactConfig = merchantConfigurations.some((entry) => {
     const merchant = entry?.merchant || entry;
-    return merchantId(merchant) === source.merchantId && exactPremises(entityAddress(merchant), source);
+    return merchantId(merchant) === source.merchantId && exactPremises(entityAddress(merchant), source)
+      && isAllowedMerchantConfiguration(merchant,source);
   });
   if (!exactConfig) return [];
   const payloads = nested(values, (value) => Array.isArray(value.products));
