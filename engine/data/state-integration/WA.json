@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "state": "WA",
+  "lifecycle": {
+    "customerLabel": "Washington",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "research:wa:grocery-xapi"
+    ],
+    "registration": "Closed first-party grocery registry is reachable only through isolated research. Authoritative production lifecycle and collection remain unchanged."
+  },
+  "storeIdentity": {
+    "mode": "exact_resolver_banner_domain_store_and_premises",
+    "addressRequired": true,
+    "proof": "Current exact resolver banner/domain/host/store/address, source product/variant, UPC, format, strength, price and positive in-store channel must agree."
+  },
+  "sourceSemantics": {
+    "availability": "Retailer-reported in-store availability. Exact reported integer quantities and binary availability with no exact count remain distinct. Verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Executable stateFilter contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Executable areaFilter contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Executable preferences contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Executable dashboard contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Executable dropFeedApi contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Executable finder contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Executable alerts contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Executable monitoring contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Executable export contract: verify-state-integration checks the isolated canary lifecycle and partition; golden fixtures exercise source identity, semantics and delivery suppression. Live preview and production acceptance are separate pending steps."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Attach three successful workflow-issued runs and actual artifact hashes. Historical local shadows do not qualify."
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Two actual workflow canaries, an isolated verified live preview and immutable promotion provenance remain pending."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "This preparation does not activate a state, publish a snapshot or authorize customer delivery.",
+      "reason": "A separate reviewed promotion and guarded release are required."
+    }
+  },
+  "rollback": {
+    "disableSource": "Leave authoritative lifecycle inactive. The research adapter cannot publish snapshots or deliver alerts."
+  }
+}

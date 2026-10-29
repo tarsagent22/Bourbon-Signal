@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { executeGroceryResearchFixtures } from './grocery-research-fixtures.mjs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -481,6 +482,7 @@ export async function executeStateFixtures(payload, { bibleFile = path.resolve('
   const failures = [];
   const bible = await BourbonBible.load(bibleFile);
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
+  if(['WA','NM'].includes(payload.state))return executeGroceryResearchFixtures(payload,{bible});
   if(CENTRAL_CITYHIVE_STATE_IDS.has(payload.state))return executeCentralCityHiveFixtures(payload,{bible});
   const registeredHosts = registeredHostsForState(payload.state);
   for (const item of payload.cases || []) {

@@ -1,7 +1,30 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildCanaryPreviewPayload } from '../src/build-state-canary-preview.mjs';
+import { buildCanaryPreviewPayload, buildStateCanaryPreview } from '../src/build-state-canary-preview.mjs';
+import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
+test('isolated lifecycle and coverage rows agree without modifying the source lifecycle', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'canary-coverage-contract-'));
+  try {
+    const siteDir = path.join(directory, 'baseline');
+    await mkdir(siteDir);
+    await writeFile(path.join(siteDir, 'manifest.json'), '{}');
+    const lifecycle = { activeStates: ['AA'], states: { ZZ: { publicStatus: 'research_only', customerLabel: 'Test State', coverageTier: 'sparse_live_store_inventory', refinementLevel: 'store', inventoryAlertable: false, watchAlertable: false } } };
+    const before = JSON.stringify(lifecycle);
+    const outDir = path.join(directory, 'canary');
+    await buildStateCanaryPreview({ state: 'ZZ', candidateDrops: [], lifecycleConfig: lifecycle, siteDir, outDir });
+    const stats = JSON.parse(await readFile(path.join(outDir, 'stats.json')));
+    const preview = JSON.parse(await readFile(path.join(outDir, 'lifecycle-preview.json')));
+    assert.equal(stats.stateCoverage.states[0].publicStatus, 'active');
+    assert.equal(stats.stateCoverage.states[0].coverageTier, 'sparse_live_store_inventory');
+    assert.equal(preview.states.ZZ.publicStatus, 'active');
+    assert.equal(preview.states.ZZ.inventoryAlertable, false);
+    assert.equal(JSON.stringify(lifecycle), before);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
 
 test('canary preview adds only the candidate partition and prevents candidate alert delivery', () => {
   const base = {

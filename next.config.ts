@@ -29,6 +29,15 @@ const SECURITY_HEADERS = [
   },
 ] as const;
 
+const canaryTraceFiles = (names: string[]) => names.map(name => `./canary-site-export/${name}.json`);
+const canaryTracing: Record<string, string[]> = process.env.BOURBON_SIGNAL_CANARY_PREVIEW === "1" ? {
+  "/api/coverage": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
+  "/coverage": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
+  "/api/locations": canaryTraceFiles(["stats", "locations", "stores", "drops"]),
+  "/api/stats": canaryTraceFiles(["stats", "bottles", "stores", "drops"]),
+  "/api/drops": [...canaryTraceFiles(["manifest", "stats", "drops", "state-health"]), "./canary-site-export/states/**/*.json"],
+} : {};
+
 const nextConfig: NextConfig = {
   // Keep Next.js output tracing rooted at this repo. Chandler's Windows home has
   // an unrelated parent package-lock.json, which otherwise triggers noisy local
@@ -44,6 +53,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   outputFileTracingIncludes: {
+    ...canaryTracing,
     "/api/source/wvabca": ["./engine/data/certificates/wvabca-rapidssl-chain.pem"],
   },
   images: {

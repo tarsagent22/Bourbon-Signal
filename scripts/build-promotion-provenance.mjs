@@ -34,6 +34,29 @@ const files = [
   `engine/out/canary/${state}/site/lifecycle-preview.json`,
   `engine/out/canary/${state}/site/states/${state}/drops.json`,
 ];
+// Bind grocery promotions to the actual replay parser, frozen premise registry,
+// source policy, portable artifact verifier, executable fixtures and raw ZIP digest.
+if (['WA', 'NM'].includes(state)) files.push(
+  'engine/src/prepare-grocery-canary.mjs',
+  'engine/src/research-grocery-runtime.mjs',
+  'engine/src/research-state-registry.mjs',
+  'engine/src/collectors/grocery-xapi-expansion.mjs',
+  'engine/src/collectors/western-grocery-premises.mjs',
+  'engine/src/grocery-xapi-policy.mjs',
+  'engine/src/operational-report.mjs',
+  'src/lib/drop-feed-visibility.ts',
+  'src/lib/public-drop-evidence.ts',
+  'src/lib/site-engine-contract.ts',
+  'next.config.ts',
+  'scripts/test-grocery-public-canary.mjs',
+  `engine/out/canary/${state}/public-projection.json`,
+  'engine/src/grocery-research-fixtures.mjs',
+  'engine/src/verify-state-fixtures.mjs',
+  'scripts/download-grocery-shadow.mjs',
+  '.github/workflows/state-expansion-canary.yml',
+  '.github/workflows/state-promotion-provenance.yml',
+  `engine/out/grocery-shadow-input/${state}/provenance.json`,
+);
 const fileDigests = {};
 for (const file of files) {
   const content = await readFile(path.join(root, file));

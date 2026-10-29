@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { stableId } from './core/text.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { metroLibraryTier } from './collectors/arizona-metro-retailer-proof.mjs';
-import { groceryExpansionLibraryTier } from './grocery-xapi-policy.mjs';
+import { groceryExpansionLibraryTier, isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';
 import { texasShopifyPickupLibraryTier } from './collectors/texas-shopify-pickup.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
@@ -183,7 +183,8 @@ export function canonicalizeSignal(signal, bible) {
     baseConfidence: Number(signal.confidence || 0.35) || 0.35,
     confidence: policy.confidence,
     policyMode: policy.policyMode,
-    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'
+    inventorySemantics: isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics
+      : signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'
       ? signal.inventorySemantics
       : signal.state === 'GA' && signal.inventorySemantics
       ? signal.inventorySemantics
