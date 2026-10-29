@@ -9,7 +9,7 @@ import {centralCityHiveProductionAllowed} from './collectors/central-cityhive-pr
 import {westernGroceryCohortKey} from './western-grocery-production-config.mjs';
 import {centralCityHiveProductionCohortKey} from './central-cityhive-production-config.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES,parseCentralCityHiveInventory} from './collectors/central-cityhive-expansion.mjs';
-import {parseCityHiveProducts,cityHiveNativeProductArrays} from './collectors/cityhive-surfaces.mjs';
+import {parseCityHiveProducts,cityHiveNativeProductArrays,normalizeCityHivePremises} from './collectors/cityhive-surfaces.mjs';
 import {WESTERN_GROCERY_EXPANSION_SOURCES,WESTERN_GROCERY_RESOLVER_ZIPS} from './collectors/western-grocery-premises.mjs';
 import {groceryExpansionPremiseMatches,isGroceryExpansionEmptySearch,parseGroceryExpansionInventory} from './collectors/grocery-xapi-expansion.mjs';
 import {arizonaXapiLibraryQueryAssignments} from './collectors/arizona-xapi.mjs';
@@ -35,14 +35,21 @@ function maintenanceValid(value,origin,startedAt){
 function nativeCityHiveShape(html,source){
  assert.ok(!/<title[^>]*>[^<]*(?:access denied|just a moment)|cf-chl-|\/cdn-cgi\/challenge-platform|verify you are human/i.test(html),'Challenge is not negative inventory');
  const arrays=cityHiveNativeProductArrays(html);assert.ok(arrays.length&&arrays.length<=8,'Native product array is required');
+ let merchantCount=0,selectedNativeMerchant=false;
  for(const products of arrays){assert.ok(products.length<=1000);for(const product of products){
   assert.ok(product&&typeof product.id==='string'&&product.id&&typeof product.name==='string'&&product.name&&Array.isArray(product.merchants),'Malformed native product');
-  for(const merchant of product.merchants){assert.ok(merchant&&typeof merchant.merchant_id==='string'&&Array.isArray(merchant.product_options),'Malformed native merchant offers');
-   for(const option of merchant.product_options){assert.ok(option&&String(option.product_id)===product.id&&typeof option.option_id==='string'&&option.option_id&&option.merchant_id===merchant.merchant_id,'Ambiguous product option');
+  for(const merchant of product.merchants){assert.ok(merchant&&typeof merchant.merchant_id==='string'&&Array.isArray(merchant.product_options),'Malformed native merchant offers');merchantCount++;
+   if(merchant.merchant_id===source.merchantId){assert.equal(normalizeCityHivePremises(merchant.full_address),normalizeCityHivePremises(source.address),'Native merchant offers must retain the exact premise');selectedNativeMerchant=true;}
+   for(const option of merchant.product_options){assert.ok(option&&typeof option.product_id==='string'&&option.product_id&&typeof option.option_id==='string'&&option.option_id&&option.merchant_id===merchant.merchant_id,'Ambiguous product option');
+    if(merchant.merchant_id===source.merchantId){const url=new URL(option.product_url),parts=url.pathname.split('/').filter(Boolean),query=[...url.searchParams];
+     assert.ok(url.origin===new URL(source.baseUrl).origin&&!url.username&&!url.password&&!url.hash&&parts.length===4&&parts[0]==='shop'&&parts[1]==='product'&&parts[3]===option.product_id&&query.length===1&&query[0][0]==='option-id'&&query[0][1]===option.option_id,'Option URL must prove its exact child product and option identity');
+     assert.equal(normalizeCityHivePremises(option.full_address),normalizeCityHivePremises(source.address),'A selected option must retain the exact registered premise even at zero quantity');
+     if(Number(option.quantity)>0)assert.ok(Number.isFinite(Number(option.price))&&Number(option.price)>0&&typeof option.option_display_data?.name==='string'&&option.option_display_data.name,'A positive native offer with missing price/title is ambiguous, not a negative');}
     assert.ok((typeof option.quantity==='number'||typeof option.quantity==='string'&&/^\d+(?:\.\d+)?$/.test(option.quantity))&&Number.isFinite(Number(option.quantity))&&Number(option.quantity)>=0,'Unknown native availability');
    }
   }
  }}
+ assert.ok(merchantCount===0||selectedNativeMerchant,'A foreign-merchant product payload is not a selected-store negative');
  let exact=false;parseCityHiveProducts(html,source,{sources:CENTRAL_CITYHIVE_EXPANSION_SOURCES,isAllowedMerchantConfiguration:()=>{exact=true;return true;}});assert.ok(exact,'Exact registered premise is required, including for zero stock');
 }
 
@@ -78,7 +85,7 @@ export async function verifyActiveRenewalRawCaptures({state,report,reportDirecto
   if(grocery(state)){
    const payload=JSON.parse(body);if(url.pathname==='/abs/pub/xapi/storeresolver/v2/all'){
     const zip=url.searchParams.get('zipcode');assert.ok(url.hostname==='www.safeway.com'&&WESTERN_GROCERY_RESOLVER_ZIPS[state].includes(zip)&&url.searchParams.get('radius')==='50'&&url.searchParams.get('size')==='100'&&!resolverZips.has(zip)&&Array.isArray(payload.instore?.stores));resolverZips.add(zip);
-    for(const store of payload.instore.stores){const id=String(store.locationId);if(resolver.has(id))assert.deepEqual(resolver.get(id),store,'Conflicting resolver premise');else resolver.set(id,store);}
+    for(const store of payload.instore.stores){const id=String(store.locationId),identity=value=>[value.polarisBannerName,value.domainName,value.address];if(resolver.has(id))assert.deepEqual(identity(resolver.get(id)),identity(store),'Conflicting resolver premise');else resolver.set(id,store);}
    }else{
     const source=sources.find(source=>source.host===url.hostname&&source.merchantId===url.searchParams.get('storeid')&&source.banner===url.searchParams.get('banner'));
     assert.ok(source&&url.pathname==='/abs/pub/xapi/search/substitute'&&url.searchParams.get('channel')==='instore'&&url.searchParams.get('rows')==='100'&&url.searchParams.get('start')==='0');
@@ -105,9 +112,9 @@ export async function verifyActiveRenewalRawCaptures({state,report,reportDirecto
  }
  const audit={state,rows:[...rows.values()],receipts,maintenance:marker.maintenance,origin,observedFrom:receipts.map(row=>row.observedAt).sort()[0],observedThrough:receipts.map(row=>row.observedAt).sort().at(-1)};
  if(!audit.rows.length)assert.equal(report.signals.length,0,'A negative capture must not carry a fabricated or backfilled positive report row');
- verifiedAudits.add(audit);if(!audit.rows.length)verifiedZeroReports.set(report,audit);return audit;
+ verifiedAudits.add(audit);if(!audit.rows.length)verifiedZeroReports.set(report,{audit,reportDigest:sha(report)});return audit;
 }
-export function isVerifiedActiveRenewalNegativeReport(report){return verifiedZeroReports.has(report);}
+export function isVerifiedActiveRenewalNegativeReport(report){const prior=verifiedZeroReports.get(report);return Boolean(prior&&prior.reportDigest===sha(report));}
 const payloadDigest=candidate=>sha({state:candidate.state,generatedAt:candidate.generatedAt,drops:candidate.drops,locations:candidate.locations,sourceReceipts:candidate.sourceReceipts,workflowSource:candidate.workflowSource});
 export function attachActiveRenewalCanaryProof(candidate,audit){
  assert.ok(verifiedAudits.has(audit)&&candidate.state===audit.state);const source=candidate.workflowSource;

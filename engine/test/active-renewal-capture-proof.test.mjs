@@ -20,6 +20,7 @@ test('actual complete zero WI captures pass renewal readiness and two canary bui
   const preview=buildCanaryPreviewPayload({base:{drops:{drops:[{state:'WI',id:'old-positive'}]},alerts:{alerts:[{state:'WI',eligibleForDelivery:true}]}},state:'WI',candidateDrops:candidate.drops,candidateLocations:candidate.locations,candidateGeneratedAt:candidate.generatedAt});
   assert.equal(preview.stateDrops.count,0);assert.equal(preview.drops.drops.length,0);assert.equal(preview.alerts.alerts.length,0);assert.equal(preview.locations.locations.length,1);
  }
+ input.report.metadata.manualActiveRenewal.maintenance.workflowState='active';assert.equal(buildShadowEvidence('WI',input.report).complete,false,'A mutated report cannot reuse its prior in-process replay authority');
 });
 
 test('partial OK replay keeps only the genuinely positive premise while retaining both known locations',async t=>{
@@ -65,8 +66,32 @@ test('forged candidate proof or altered zero/partial payload fails the closed co
 
 test('merchant-only, malformed product, challenge and unknown availability bodies are never healthy zero even with rehashed local receipts',async t=>{
  const input=await fixture(t,'WI',['liquorguys-wauwatosa']);const original=await readFile(path.join(input.reportDirectory,input.report.metadata.receipts[0].artifactPath),'utf8');
- for(const change of [text=>text.replaceAll('"products":','"missing_products":'),text=>text.replace('"quantity":0','"quantity":"unknown"'),text=>'<title>Just a moment</title><div class="cf-chl-test"></div>'+text,text=>text.replace('11728 W North Ave','999 Other Street')]){
+ for(const change of [text=>text.replaceAll('"products":','"missing_products":'),text=>text.replace('"quantity":0','"quantity":"unknown"'),text=>'<title>Just a moment</title><div class="cf-chl-test"></div>'+text,text=>text.replace('11728 W North Ave','999 Other Street'),text=>text.replaceAll('"merchant_id":"634464e2ec82c44b45abf3ef"','"merchant_id":"foreign-merchant"')]){
   const report=structuredClone(input.report);for(const receipt of report.metadata.receipts){const body=Buffer.from(change(original));receipt.sha256=hash(body);receipt.bytes=body.length;await writeFile(path.join(input.reportDirectory,receipt.artifactPath),body);}
+  await assert.rejects(()=>verifyActiveRenewalRawCaptures({...input,report,lifecycle:input.lifecycleConfig}));
+ }
+});
+
+test('native option URLs bind child products independently of parent containers without granting mismatched option stock',async t=>{
+ const input=await fixture(t,'WI',['liquorguys-wauwatosa']);
+ for(const receipt of input.report.metadata.receipts){const file=path.join(input.reportDirectory,receipt.artifactPath),html=await readFile(file,'utf8'),match=html.match(/<script type="application\/json">([\s\S]*)<\/script>/),payload=JSON.parse(match[1]);
+  const change=value=>{if(!value||typeof value!=='object')return;if(Array.isArray(value.products))for(const product of value.products)product.id+='-parent-container';Object.values(value).forEach(change);};change(payload);
+  const body=Buffer.from('<script type="application/json">'+JSON.stringify(payload)+'</script>');receipt.sha256=hash(body);receipt.bytes=body.length;await writeFile(file,body);}
+ const candidate=await prepareCentralCityHiveCanary(input);assert.deepEqual(candidate.drops,[]);assert.equal(isVerifiedActiveRenewalCanary(candidate,{lifecycle:input.lifecycleConfig}),true);
+ const receipt=input.report.metadata.receipts[0],file=path.join(input.reportDirectory,receipt.artifactPath),html=await readFile(file,'utf8'),body=Buffer.from(html.replace(/option-id=[^"&]+/,'option-id=wrong-option'));
+ receipt.sha256=hash(body);receipt.bytes=body.length;await writeFile(file,body);await assert.rejects(()=>prepareCentralCityHiveCanary(input),/Option URL/);
+});
+
+test('selected offers with contradictory or missing option premises or ambiguous positive fields cannot masquerade as zero',async t=>{
+ const input=await fixture(t,'WI',[]),bodies=await Promise.all(input.report.metadata.receipts.map(receipt=>readFile(path.join(input.reportDirectory,receipt.artifactPath),'utf8')));
+ assert.ok(input.report.signals.length>0);
+ for(const mutate of [option=>option.full_address='999 Other Street',option=>delete option.full_address,option=>delete option.price,option=>delete option.option_display_data.name]){
+  const report=structuredClone(input.report);report.signals=[];
+  for(const[index,receipt]of report.metadata.receipts.entries()){
+   const payload=JSON.parse(bodies[index].match(/<script type="application\/json">([\s\S]*)<\/script>/)[1]);
+   const walk=value=>{if(!value||typeof value!=='object')return;if(value.merchant_id&&value.product_id&&value.option_id)mutate(value);Object.values(value).forEach(walk);};walk(payload);
+   const body=Buffer.from('<script type="application/json">'+JSON.stringify(payload)+'</script>');receipt.sha256=hash(body);receipt.bytes=body.length;await writeFile(path.join(input.reportDirectory,receipt.artifactPath),body);
+  }
   await assert.rejects(()=>verifyActiveRenewalRawCaptures({...input,report,lifecycle:input.lifecycleConfig}));
  }
 });
