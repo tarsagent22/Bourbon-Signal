@@ -1,3 +1,4 @@
+import {isLouisianaAlaskaGroceryInventory,isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
@@ -396,7 +397,7 @@ function virginiaPremisesProofState(signal) {
   return { productCode, codeConflict, proofRequired, proofAllowed };
 }
 
-const isReviewedResearchGrocery = row => ['WA', 'NM'].includes(row?.state) && isGroceryExpansionInventory(row)
+const isReviewedResearchGrocery = row => (['WA', 'NM'].includes(row?.state) && isGroceryExpansionInventory(row) || ['LA', 'AK'].includes(row?.state) && isLouisianaAlaskaGroceryOnSiteSignal(row))
   && row.raw?.shadowOnly !== true && row.sourceProductBinding?.shadowOnly !== true
   && row.quarantined !== true && row.raw?.sourceRuntimeNonAlertable !== true && row.raw?.staleFallback !== true;
 
@@ -706,7 +707,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
         ? 'Stale OHLQ store-status signal. OHLQ collection is currently blocked/stale, so this is the latest cached status; verify on OHLQ or call the store before driving.'
         : isShopifyPickup && canAlertAsInventory
           ? 'Retailer-published pickup availability for this exact product variant and store address. Exact shelf quantity is not published; confirm before driving.'
-        : isGroceryExpansionInventory(signal) && canAlertAsInventory
+        : (isGroceryExpansionInventory(signal)||isLouisianaAlaskaGroceryInventory(signal)) && canAlertAsInventory
           ? signal.quantityIsExact === true
             ? 'First-party in-store inventory at this exact store. Retailer-reported quantities can change; verify before driving.'
             : 'First-party in-store availability at this exact store. Exact shelf count is not published; verify before driving.'
@@ -1214,7 +1215,7 @@ function hasPositiveAvailabilityStatus(signal) {
 }
 
 function isUserFacingDropSignal(signal) {
-  if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
+  if (['WA', 'NM', 'LA', 'AK'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
   const type = String(signal.eventType || '').toLowerCase();
@@ -1325,7 +1326,7 @@ function aggregateLeadIdentity(signal) {
 }
 
 function isSafePublicSignal(signal, shopifyPolicy) {
-  if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
+  if (['WA', 'NM', 'LA', 'AK'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if (genericShopifyPickupRow(signal) || shopifyPolicy?.owns(signal)) return shopifyPolicy?.eligible(signal) === true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
@@ -1972,7 +1973,7 @@ function ohioFeedStaleCaveat(signal) {
 export function dropHasPositiveAlertInventory(drop, shopifyPolicy) {
   if(isCentralCityHiveRetailerEvent(drop))return isCentralCityHiveInventory(drop)&&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding?.shadowOnly!==true;
   if (drop?.stale || drop?.sourceStale || drop?.raw?.staleFallback) return false;
-  if(drop?.sourceProductBinding?.source==='grocery-xapi')return isGroceryExpansionInventory(drop)
+  if(drop?.sourceProductBinding?.source==='grocery-xapi')return (isGroceryExpansionInventory(drop)||isLouisianaAlaskaGroceryInventory(drop))
     &&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding.shadowOnly!==true;
   if (genericShopifyPickupRow(drop) || shopifyPolicy?.owns(drop)) return shopifyPolicy?.eligible(drop) === true;
   if (drop?.state === 'AZ') return isArizonaRetailerInventory(drop);

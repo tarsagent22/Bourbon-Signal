@@ -1,3 +1,4 @@
+import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
@@ -151,6 +152,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && drop.inventorySemantics === "WVABCA reports that this retailer purchased the bottle within the last three months; this is a call-first purchase lead, not live shelf inventory."
     && !canAlert;
 
+  if (isLouisianaAlaskaGroceryOnSiteSignal(drop)) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (['WI','OK'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);
   if (!type) return false;

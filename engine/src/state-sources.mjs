@@ -1,3 +1,4 @@
+import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES} from './louisiana-alaska-grocery-production-config.mjs';
 import {WESTERN_GROCERY_PRODUCTION_CONFIGS,WESTERN_GROCERY_PRODUCTION_STATES} from './western-grocery-production-config.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { costcoSourceForState } from './costco-eligibility.mjs';
@@ -469,6 +470,7 @@ const BASE_STATE_SOURCES = [
     ],
     apiCandidates: []
   },
+  ...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,
   ...WESTERN_GROCERY_PRODUCTION_CONFIGS,
   ...CENTRAL_CITYHIVE_STATE_CONFIGS,
   {
@@ -503,6 +505,7 @@ const BASE_STATE_SOURCES = [
 ];
 
 export const ALL_STATE_SOURCES = BASE_STATE_SOURCES.map((source) => {
+  if (LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)) return source;
   const costcoSource = WESTERN_GROCERY_PRODUCTION_STATES.includes(source.id) ? null : costcoSourceForState(source.id);
   return costcoSource ? { ...source, sources: [...source.sources, costcoSource] } : source;
 });

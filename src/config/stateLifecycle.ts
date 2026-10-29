@@ -70,6 +70,8 @@ export const STATE_LIFECYCLE_CONFIG = {
       "SC": 180000,
       "WI": 150000,
       "OK": 240000,
+      "LA": 360000,
+      "AK": 420000,
       "KY": 180000,
       "WA": 720000,
       "NM": 300000
@@ -956,6 +958,30 @@ export const STATE_LIFECYCLE_CONFIG = {
       "inventoryAlertable": false,
       "watchAlertable": false,
       "customerSummary": "Research preparation at one reviewed Wauwatosa retailer. First-party pickup observations remain inactive until verified promotion; all alerts and delivery remain disabled."
+    },
+    "LA": {
+      "customerLabel": "Louisiana",
+      "sourceLabel": "Louisiana reviewed exact-store grocery inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Inactive source preparation. Customer availability requires separate verified promotion of the closed first-party premises and product proof."
+    },
+    "AK": {
+      "customerLabel": "Alaska",
+      "sourceLabel": "Alaska reviewed exact-store grocery inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Inactive source preparation. Customer availability requires separate verified promotion of the closed first-party premises and product proof."
     },
     "NM": {
       "customerLabel": "New Mexico",

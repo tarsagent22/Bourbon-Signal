@@ -1,0 +1,59 @@
+{
+  "contractVersion": "bourbon-signal/louisiana-alaska-grocery-production-shared-metadata-baseline@1",
+  "baseCommit": "87b1086b28149ac50b85389c3fa15aa4eff446fe",
+  "scope": "Literal inactive LA/AK registration, budgets and strict nonpreview on-site canonicalization only; original Mississippi anchors unchanged",
+  "files": {
+    "engine/src/operational-report.mjs": {
+      "import": {
+        "original": "",
+        "reviewed": "import {louisianaAlaskaGroceryLibraryTier,isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';\n"
+      },
+      "onsite": {
+        "original": "",
+        "reviewed": "    ...(isLouisianaAlaskaGroceryOnSiteSignal(signal)?{\n      tier:louisianaAlaskaGroceryLibraryTier(signal,bible),\n      inventorySemantics:signal.sourceProductBinding.inventorySemantics,\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n"
+      }
+    },
+    "engine/src/state-sources.mjs": {
+      "import": {
+        "original": "",
+        "reviewed": "import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES} from './louisiana-alaska-grocery-production-config.mjs';\n"
+      },
+      "registration": {
+        "original": "",
+        "reviewed": "  ...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,\n"
+      },
+      "costco": {
+        "original": "",
+        "reviewed": "  if (LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)) return source;\n"
+      }
+    },
+    "src/config/state-lifecycle.json": {
+      "budgets": {
+        "original": "",
+        "reviewed": "      \"LA\": 360000,\n      \"AK\": 420000,\n"
+      },
+      "LA": {
+        "original": "",
+        "reviewed": "    \"LA\": {\n      \"customerLabel\": \"Louisiana\",\n      \"sourceLabel\": \"Louisiana reviewed exact-store grocery inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive source preparation. Customer availability requires separate verified promotion of the closed first-party premises and product proof.\"\n    },\n"
+      },
+      "AK": {
+        "original": "",
+        "reviewed": "    \"AK\": {\n      \"customerLabel\": \"Alaska\",\n      \"sourceLabel\": \"Alaska reviewed exact-store grocery inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive source preparation. Customer availability requires separate verified promotion of the closed first-party premises and product proof.\"\n    },\n"
+      }
+    },
+    "src/config/stateLifecycle.ts": {
+      "budgets": {
+        "original": "",
+        "reviewed": "      \"LA\": 360000,\n      \"AK\": 420000,\n"
+      },
+      "LA": {
+        "original": "",
+        "reviewed": "    \"LA\": {\n      \"customerLabel\": \"Louisiana\",\n      \"sourceLabel\": \"Louisiana reviewed exact-store grocery inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive source preparation. Customer availability requires separate verified promotion of the closed first-party premises and product proof.\"\n    },\n"
+      },
+      "AK": {
+        "original": "",
+        "reviewed": "    \"AK\": {\n      \"customerLabel\": \"Alaska\",\n      \"sourceLabel\": \"Alaska reviewed exact-store grocery inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive source preparation. Customer availability requires separate verified promotion of the closed first-party premises and product proof.\"\n    },\n"
+      }
+    }
+  }
+}

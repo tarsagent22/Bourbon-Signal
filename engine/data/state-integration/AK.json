@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "state": "AK",
+  "lifecycle": {
+    "customerLabel": "Alaska",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "ak:grocery-xapi"
+    ],
+    "cohortSha256": "176f15c02a77737bf2e149d5916affd912cb83000d67f6788d68b1b2cbc64f61",
+    "registration": "Closed LA/AK production adapter; authoritative lifecycle and exact immutable promotion evidence must both admit this cohort before any HTTP. Initial admitted output is on-site only, with all alert/watch/delivery flags false.",
+    "runtimeBudget": {
+      "sourceMs": 300000,
+      "stateMs": 420000,
+      "maxRequests": 53,
+      "requestTimeoutMs": 5000,
+      "interRequestDelayMs": 400
+    }
+  },
+  "storeIdentity": {
+    "mode": "exact_resolver_banner_domain_store_and_premises",
+    "addressRequired": true,
+    "proof": "Current exact resolver banner/domain/host/store/address, source product/variant, UPC, format, strength, price and positive in-store channel must agree."
+  },
+  "sourceSemantics": {
+    "availability": "Retailer-reported in-store availability. Exact reported integer quantities and binary availability with no exact count remain distinct. Verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false,
+    "channel": "instore",
+    "quantity": "Exact positive integer retailer count when explicitly supplied; otherwise binary availability with quantity0 and quantityIsExact false.",
+    "sourceFreshnessMinutes": 120,
+    "cacheMaxAgeMinutes": 30,
+    "initialCustomerMode": "onsite_only",
+    "outboundDeliveryAllowed": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "pending",
+      "assertion": "Actual Feed route fixture passes state/store filtering; future workflow/live preview proof pending."
+    },
+    "areaFilter": {
+      "status": "pending",
+      "assertion": "Exact store Finder service and selectable store/locations route fixtures pass; live preview and final area contract pending."
+    },
+    "preferences": {
+      "status": "pending",
+      "assertion": "Monitoring-scope matching fixture passes. Authenticated preference UI/session is unexercised."
+    },
+    "dashboard": {
+      "status": "pending",
+      "assertion": "Authenticated dashboard UI/session is unexercised; no pass claimed."
+    },
+    "dropFeedApi": {
+      "status": "pending",
+      "assertion": "Nonpreview operational/export data passes the actual unified Feed and drops route fixture; no live source or authenticated session claimed."
+    },
+    "finder": {
+      "status": "pending",
+      "assertion": "Actual Finder search/exact-store services and Coverage POST fixture pass; live preview proof pending."
+    },
+    "alerts": {
+      "status": "pending",
+      "assertion": "Source, canonical, public, Feed and Coverage fixture paths preserve all alerts/watch/delivery/email/SMS false; no provider delivery attempted."
+    },
+    "monitoring": {
+      "status": "pending",
+      "assertion": "Inactive0HTTP, complete-cohort30min cache/original clocks, source deadlines and durable denial/in-flight suspension tests pass. Hosted unattended monitoring is not exercised."
+    },
+    "export": {
+      "status": "pending",
+      "assertion": "Nonpreview canonical/public/normalized/classified export fixture passes with binary0 unknown and explicit count exactness preserved. Real immutable snapshot publication is pending."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Three future genuine workflow source observations are required; local preflight does not qualify."
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Two future actual workflow canaries, live preview and exact implementation provenance are required."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "This preparation does not activate a state, publish a snapshot or authorize customer delivery.",
+      "reason": "A separate reviewed promotion and guarded release are required."
+    }
+  },
+  "rollback": {
+    "disableSource": "Leave authoritative lifecycle inactive or disable/quarantine the state. Promotion admission runs before cache access and before HTTP; no fallback stock or outbound delivery is allowed."
+  }
+}
