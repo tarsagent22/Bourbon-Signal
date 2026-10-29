@@ -6,9 +6,10 @@ import {listApprovedLocations} from "./approved-catalog-service";
 import {mergeSightingStoreRows,normalizeSightingStore,sightingStoreAddressKey,type SightingStoreDirectoryEntry} from "./sighting-store-directory-core";
 import {createAsyncPreparedDropCache} from "./prepared-drop-cache";
 import {CALIFORNIA_REVIEWED_PREMISES} from "./california-reviewed-premises";
+import {reconcileReviewedTexasPremises} from "./texas-reviewed-premises";
 
 export const SIGHTING_STORE_DIRECTORY_VERSION = reviewed.generatedAt;
-const reviewedRows = [...reviewed.stores, ...CALIFORNIA_REVIEWED_PREMISES] as Array<Record<string, unknown>>;
+const reviewedRows = [...reconcileReviewedTexasPremises(reviewed.stores), ...CALIFORNIA_REVIEWED_PREMISES] as Array<Record<string, unknown>>;
 const completeOfficialStates = new Set(["NC", "VA", "UT", "ID", "NY", "CO", "CA", "TX", "KY", "FL", "SC", "TN"]);
 const officialAddresses = new Set(reviewedRows.filter(row => completeOfficialStates.has(String(row.state))).flatMap(row => {
   const store = normalizeSightingStore(row);

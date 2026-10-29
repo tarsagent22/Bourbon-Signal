@@ -12,12 +12,20 @@
     "sectionId": "store-availability",
     "stores": [
       {
-        "id": "hot-spot-austin:78701",
+        "id": "tx-tabc-104949013",
         "name": "Hot Spot Austin",
         "pickupName": "Hot Spot Austin",
         "address": "411 Brazos Street Suite 100 Austin TX 78701",
         "city": "Austin",
-        "zip": "78701"
+        "zip": "78701",
+        "county": "Travis",
+        "aliases": ["hot-spot-austin:78701"],
+        "officialDirectoryProof": {
+          "id": "tx-tabc-104949013",
+          "name": "HOT SPOT AUSTIN",
+          "address": "411 BRAZOS ST APT 100",
+          "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f"
+        }
       }
     ],
     "products": [

@@ -22,7 +22,7 @@ export function isTexasShopifyPickupIdentity(row) {
   if(!seed||row.state!=='TX'||row.stateCode!=='TX'||row.sourceChain!==SOURCE.chain
     || row.sourceRuntimeId!==SOURCE.runtimeId||row.sourceLabel!==SOURCE.sourceLabel
     || row.merchantId!==SOURCE.merchantId||row.storeId!==STORE.id||row.storeAddress!==STORE.address
-    || row.storeName!==STORE.name||row.city!==STORE.city||row.zip!==STORE.zip
+    || row.storeName!==STORE.name||row.city!==STORE.city||row.zip!==STORE.zip||row.county!==STORE.county
     || row.canonicalBottleId!==seed.canonicalBottleId||row.canonicalName!==seed.canonicalName||row.rawName!==seed.title
     || row.sourceUrl!==SOURCE.baseUrl+'/products/'+seed.handle
     || p?.schemaVersion!==1||p.source!=='texas-shopify-pickup'||p.configSha256!==CONFIG_DIGEST
@@ -96,7 +96,7 @@ export async function collectTexasShopifyPickup(config,bible,options={}) {
       const result=await collectShopifyVariantPickup(bible,SOURCE,{observedAt,signal,fetchText:options.fetchText});
       result.signals=result.signals.flatMap(row=>{
         const seed=SOURCE.products.find(seed=>seed.variantId===row.variantId);
-        const signal={...row,variantAvailable:true,sourceProductBinding:{schemaVersion:1,source:'texas-shopify-pickup',
+        const signal={...row,county:STORE.county,variantAvailable:true,sourceProductBinding:{schemaVersion:1,source:'texas-shopify-pickup',
           configSha256:CONFIG_DIGEST,collectorVersion:SHOPIFY_VARIANT_PICKUP_VERSION,merchantId:SOURCE.merchantId,
           storeId:row.storeId,storeAddress:row.storeAddress,productId:row.productId,variantId:row.variantId,
           canonicalBottleId:row.canonicalBottleId,canonicalName:row.canonicalName,rawName:row.rawName,
