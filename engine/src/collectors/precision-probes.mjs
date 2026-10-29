@@ -1,3 +1,4 @@
+import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID } from './california-grocery-runtime-source.mjs';
 import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS } from './nevada-xapi-runtime.mjs';
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
 import { collectTexasCityHiveExpansion } from './texas-cityhive-expansion.mjs';
@@ -9164,7 +9165,7 @@ function cachedCaliforniaSourceResults(cache) {
   }));
 }
 
-async function collectCalifornia(config, bible, options = {}) {
+async function collectCaliforniaShopify(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const cache = await readCaliforniaSanDiegoShopifyCache();
   if (process.env.BOURBON_SIGNAL_CA_FORCE_SHOPIFY_LIVE !== '1' && cache) {
@@ -9233,6 +9234,37 @@ async function collectCalifornia(config, bible, options = {}) {
     });
   }
   return { signals, roadblocks, sourceResults: isolated.results.map(summarizeSourceResult) };
+}
+
+
+export async function collectCalifornia(config,bible,options={}) {
+  // Each retailer lane owns its observation cache and source result. A Shopify
+  // cache hit or failure cannot skip or discard current grocery observations.
+  const [shopify,groceryRun]=await Promise.all([
+    collectCaliforniaShopify(config,bible,options),
+    runSourceAdapters([createSourceAdapter({
+      id:CALIFORNIA_GROCERY_RUNTIME_ID,label:'California reviewed exact-store grocery inventory',
+      url:'https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all',
+      metadata:{stateId:'CA',lane:'california_grocery'},
+      execute:(_context,{signal})=>collectCaliforniaGrocerySource(config,bible,{...options.grocerySourceOptions,
+        signal:options.signal?AbortSignal.any([options.signal,signal]):signal}),
+      validate:value=>Array.isArray(value?.signals)&&Array.isArray(value?.roadblocks)
+        &&(value?.metadata?.complete===true||value.signals.length>0)?true:'California grocery has no current verified observations',
+      recordCount:(value,{candidate}={})=>candidate?.metadata?.complete===false?NaN:value.signals.length,
+    })],{}, {...options.sourceRunnerOptions,previousResults:options.previousSourceResults,
+      circuitBreaker:options.sourceCircuitBreaker,concurrency:1,perDomain:1,schedule:false,
+      timeoutMs:Number(process.env.BOURBON_SIGNAL_CA_GROCERY_SOURCE_TIMEOUT_MS||600_000),maxAttempts:1}),
+  ]);
+  const grocery=groceryRun.results[0];
+  const roadblocks=[...(shopify.roadblocks||[]),...(grocery.value?.roadblocks||[])];
+  if(!grocery.ok)roadblocks.push({state:'CA',source:'California reviewed exact-store grocery inventory',
+    sourceRuntimeId:CALIFORNIA_GROCERY_RUNTIME_ID,url:'https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all',
+    status:grocery.status,error:grocery.error?.message||'Independent grocery source failed',
+    nextRoute:'Retain the independent denial ledger and only non-alertable failed-source fallback; preserve healthy Shopify siblings.'});
+  return {signals:[...(shopify.signals||[]),...(grocery.value?.signals||[])],roadblocks,
+    sourceResults:[...(shopify.sourceResults||[]),...groceryRun.results.map(summarizeSourceResult)],
+    metadata:{grocery:grocery.value?.metadata||null,grocerySourceStatus:grocery.status,
+      shopifySourceStatuses:(shopify.sourceResults||[]).map(result=>({sourceId:result.sourceId,status:result.status}))}};
 }
 
 async function readNevadaRetailerCache() {
