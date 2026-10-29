@@ -669,7 +669,7 @@ test('Virginia permanently retires only explicit no-store origin responses', () 
 });
 
 test('Virginia precision runtime gives one bounded shard enough time and never duplicates it after timeout', () => {
-  assert.deepEqual(legacyPrecisionRuntimeOptions('VA', {}, {}), { schedule: false, timeoutMs: 1_140_000, maxAttempts: 1 });
+  assert.deepEqual(legacyPrecisionRuntimeOptions('VA', {}, {}), { schedule: false, timeoutMs: 1_140_000, maxAttempts: 1, baseCadenceMs: 1_800_000, minCadenceMs: 1_800_000, maxCadenceMs: 1_800_000 });
   assert.equal(legacyPrecisionRuntimeOptions('VA', { schedule: true }, {}).schedule, false);
 });
 
