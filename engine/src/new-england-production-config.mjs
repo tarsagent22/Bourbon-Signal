@@ -9,8 +9,7 @@ export function newEnglandProductionCohortKey(state){
 }
 export const NEW_ENGLAND_PRODUCTION_CONFIGS=Object.freeze(NEW_ENGLAND_PRODUCTION_STATES.map(id=>{
   const sources=NEW_ENGLAND_RESEARCH_SOURCES.filter(source=>source.state===id),name=NEW_ENGLAND_NAMES[id];
-  return Object.freeze({id,label:`Selected ${name} first-party retailer inventory`,tier:'B',active:false,
-    disabledReason:'Inactive until three source shadows, two canaries, owned preview and immutable workflow provenance are admitted.',
+  return Object.freeze({id,label:`Selected ${name} first-party retailer inventory`,tier:'B',
     strategy:'retailer_store_inventory',cadence:'30m',rareSignalTarget:true,
     value:`Pickup availability at ${sources.length} named ${name} stores only; binary availability is not a shelf count.`,
     precisionSource:{name:`${name} reviewed retailer precision collector`,url:sources[0].categoryUrl},
