@@ -67,3 +67,16 @@ export function groceryExpansionLibraryTier(row, bible) {
   const tier=identity.stateOverrides?.find(override=>override.jurisdiction===row.state)?.tier || identity.nationalTier;
   return ({regular:'standard',common:'standard',highly_allocated:'unicorn',unicorn:'unicorn',allocated:'allocated',limited:'limited'})[tier] || null;
 }
+
+// Closed first-party on-site evidence may show binary availability without
+// granting watch/notification authority or inventing an exact quantity.
+export function isGroceryExpansionOnSiteSignal(row) {
+  return ['WA', 'NM'].includes(row?.state) && isGroceryExpansionInventory(row)
+    && row.raw?.shadowOnly !== true && row.sourceProductBinding?.shadowOnly !== true
+    && row.quarantined !== true && row.raw?.sourceRuntimeNonAlertable !== true && row.raw?.staleFallback !== true
+    && row.inventorySemantics === row.sourceProductBinding.inventorySemantics
+    && row.eligibleForOnSite === true && row.eligibleForDropFeed === true
+    && row.canAlertAsInventory === false && row.canAlertAsWatch === false
+    && row.eligibleForWatch === false && row.eligibleForDelivery === false
+    && row.eligibleForEmail === false && row.eligibleForSms === false;
+}

@@ -1,3 +1,4 @@
+import { isGroceryExpansionInventory } from '../../engine/src/grocery-xapi-policy.mjs';
 import { dropFreshnessTime } from "./drop-feed-policy.ts";
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
 import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
@@ -336,6 +337,9 @@ export function isPublicDropFeedEligible(
   const state = stateCode(drop);
   if (!state || options.degradedStateCodes?.has(state) && !independentlyAcceptedSource(drop)) return false;
   const retailer = isVerifiedRetailerDrop(drop);
+  const sourceRuntimeRaw = drop.raw && typeof drop.raw === 'object' ? drop.raw as Record<string, unknown> : null;
+  if (!retailer && ['WA', 'NM'].includes(state) && String(drop.type) === 'retailer_store_inventory_result'
+    && (!isGroceryExpansionInventory(drop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
   // Arizona's live coverage uses the same reviewed premises/source identity as
   // engine alerts. Positive quantities on policy-only rows are not evidence of
   // current customer availability. Verified retailer submissions use their own

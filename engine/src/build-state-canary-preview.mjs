@@ -125,6 +125,16 @@ export async function buildStateCanaryPreview({ state, candidateDrops, candidate
       publicStatus: 'active',
       promotionStage: 'canary',
     };
+    // The isolated app reads the same lifecycle/public-status pair as production.
+    // Without this row, a valid candidate partition appears unavailable in Coverage.
+    const entry = lifecyclePreview.states[preview.stateDrops.state];
+    const coverageRow = preview.stats.stateCoverage.states.find(row => row.state === preview.stateDrops.state);
+    Object.assign(coverageRow, {
+      publicStatus: 'active', customerLabel: entry.customerLabel,
+      coverageTier: entry.coverageTier, refinementLevel: entry.refinementLevel,
+      sourceLabel: entry.sourceLabel, lifecycle: entry.lifecycle,
+      inventoryAlertable: false, watchAlertable: false,
+    });
   }
   await cp(siteDir, outDir, { recursive: true });
   await mkdir(path.join(outDir, 'states', preview.stateDrops.state), { recursive: true });

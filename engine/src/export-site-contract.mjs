@@ -396,6 +396,10 @@ function virginiaPremisesProofState(signal) {
   return { productCode, codeConflict, proofRequired, proofAllowed };
 }
 
+const isReviewedResearchGrocery = row => ['WA', 'NM'].includes(row?.state) && isGroceryExpansionInventory(row)
+  && row.raw?.shadowOnly !== true && row.sourceProductBinding?.shadowOnly !== true
+  && row.quarantined !== true && row.raw?.sourceRuntimeNonAlertable !== true && row.raw?.staleFallback !== true;
+
 const genericShopifyPickupRow = row => !isTexasShopifyPickupInventory(row) && [row?.sourceCollectorVersion, row?.raw?.collectorVersion]
   .some(version => typeof version === 'string' && version.startsWith('shopify-variant-pickup-'));
 
@@ -424,6 +428,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isGaRetailerInventory = isGeorgiaRetailerInventory(signal);
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
+  const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal);
   const isMetroInventory = isMetroRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
@@ -435,7 +440,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const isMetroRetailerEvent = ['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
-  const inventorySemantics = isNcBoardShipment
+  const inventorySemantics = isGroceryOnSiteInventory ? signal.sourceProductBinding.inventorySemantics : isNcBoardShipment
     ? (signal.inventorySemantics || 'Official NC ABC board-level shipment units; this is a shipment to the local board, not exact store shelf inventory or current availability.')
     : isCostcoWarehouseInventory
     ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
@@ -504,11 +509,11 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
             : signal.state === 'SC'
               ? Boolean(signal.canAlertAsWatch) && (!isScRetailerEvent || isScRetailerInventory)
               : Boolean(signal.canAlertAsWatch));
-  const canAlertAsInventory = bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
-  const canAlertAsWatch = bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
+  const canAlertAsInventory = !isGroceryOnSiteInventory && bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
+  const canAlertAsWatch = !isGroceryOnSiteInventory && bibleRecord?.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
-    : isMsSparseOnSiteInventory
+    : isMsSparseOnSiteInventory || isGroceryOnSiteInventory
       ? 'onsite_inventory'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
       ? 'actionable_inventory'
@@ -641,16 +646,16 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isMsSparseOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: isGroceryOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isMsSparseOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
-    alertable: staleFallback ? false : undefined,
-    eligibleForOnSite: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
-    eligibleForDropFeed: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
-    eligibleForWatch: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
-    eligibleForDelivery: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
-    eligibleForEmail: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
-    eligibleForSms: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    alertable: isGroceryOnSiteInventory || staleFallback ? false : undefined,
+    eligibleForOnSite: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
+    eligibleForDropFeed: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
+    eligibleForWatch: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
+    eligibleForDelivery: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
+    eligibleForEmail: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForSms: isGroceryOnSiteInventory || isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
     raw: staleFallback ? {
       lastKnownAvailabilityStatus: signal.raw?.lastKnownAvailabilityStatus || null,
       lastKnownAvailabilityLabel: signal.raw?.lastKnownAvailabilityLabel || null,
@@ -679,7 +684,11 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     dataLane,
     informationalOnly: dataLane === 'informational',
     availabilityScope: isNcBoardShipment ? 'board' : undefined,
-    inventoryCaveat: isCostcoWarehouseInventory
+    inventoryCaveat: isGroceryOnSiteInventory
+      ? (signal.quantityIsExact === true
+        ? 'The retailer reports this in-store quantity. Availability can change; confirm before driving.'
+        : 'The retailer reports in-store availability. An exact shelf count is not published; confirm before driving.')
+      : isCostcoWarehouseInventory
       ? 'Costco warehouse signal. Fast-moving bottles can disappear quickly; verify with the warehouse/app before driving.'
       : isNcBoardShipment
         ? 'Official NC ABC board shipment. Units were shipped to the named local board; this does not prove an exact store, shelf quantity, or current availability.'
@@ -1069,7 +1078,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
-  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal)));
+  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)));
   const sameStore = (left, right) => {
     if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);
     return left.state === right.state
@@ -1201,6 +1210,7 @@ function hasPositiveAvailabilityStatus(signal) {
 }
 
 function isUserFacingDropSignal(signal) {
+  if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);
   const type = String(signal.eventType || '').toLowerCase();
@@ -1311,6 +1321,7 @@ function aggregateLeadIdentity(signal) {
 }
 
 function isSafePublicSignal(signal, shopifyPolicy) {
+  if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if (genericShopifyPickupRow(signal) || shopifyPolicy?.owns(signal)) return shopifyPolicy?.eligible(signal) === true;
   if (signal.state === 'MA') return isMassachusettsResearchInventory(signal);

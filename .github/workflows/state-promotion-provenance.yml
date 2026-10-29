@@ -7,6 +7,10 @@ on:
         description: "Promoted state ID"
         required: true
         type: string
+      shadow_run_id:
+        description: "WA/NM: successful workflow-issued shadow run to replay with original clocks"
+        required: false
+        type: string
       candidate_drops:
         description: "Engine-relative canary input under data/canary-inputs"
         required: true
@@ -14,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   ALERT_DELIVERY_ENABLED: "0"
@@ -38,24 +43,79 @@ jobs:
         env:
           RAW_STATE: ${{ inputs.state }}
           RAW_CANDIDATE_DROPS: ${{ inputs.candidate_drops }}
+          RAW_SHADOW_RUN: ${{ inputs.shadow_run_id }}
         run: |
           set -euo pipefail
           if [[ ! "$RAW_STATE" =~ ^[A-Z]{2}(-[A-Z0-9]+)?$ ]]; then exit 1; fi
           if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^data/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then exit 1; fi
+          if [[ "$RAW_STATE" == "WA" || "$RAW_STATE" == "NM" ]]; then
+            if [[ ! "$RAW_SHADOW_RUN" =~ ^[0-9]+$ ]] || [[ "$RAW_CANDIDATE_DROPS" != "data/canary-inputs/$RAW_STATE.json" ]]; then
+              echo "WA/NM require an actual shadow run and the fixed state canary path" >&2
+              exit 1
+            fi
+          elif [[ -n "$RAW_SHADOW_RUN" ]]; then
+            echo "Artifact replay is reviewed only for WA/NM" >&2
+            exit 1
+          fi
+          echo "shadow_run=$RAW_SHADOW_RUN" >> "$GITHUB_OUTPUT"
           echo "state=$RAW_STATE" >> "$GITHUB_OUTPUT"
           echo "candidate_drops=$RAW_CANDIDATE_DROPS" >> "$GITHUB_OUTPUT"
       - name: Install dependencies
         run: npm ci && npm ci --prefix engine
+      - name: Restore last accepted published baseline for isolated preview
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/site
+          key: inventory-published-site-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            inventory-published-site-${{ runner.os }}-
+
+      - name: Require a coherent published baseline
+        run: |
+          test -s engine/out/site/manifest.json
+          test -s engine/out/site/stats.json
+          test -s engine/out/site/drops.json
+          test -s engine/out/site/states/index.json
+
+      - name: Refresh current app library and build Bible
+        working-directory: engine
+        env:
+          BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
+        run: npm run sync:library && npm run bible
+
+      - name: Verify and download workflow-issued grocery shadow artifact
+        if: steps.validate.outputs.shadow_run != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATE: ${{ steps.validate.outputs.state }}
+          SHADOW_RUN: ${{ steps.validate.outputs.shadow_run }}
+        run: node scripts/download-grocery-shadow.mjs --state="$STATE" --run="$SHADOW_RUN" --out-dir="engine/out/grocery-shadow-input/$STATE"
+
+      - name: Reparse immutable raw source captures without resetting clocks
+        if: steps.validate.outputs.shadow_run != ''
+        working-directory: engine
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+        run: node src/prepare-grocery-canary.mjs --state="$STATE" --artifact-dir="out/grocery-shadow-input/$STATE/extracted" --provenance="out/grocery-shadow-input/$STATE/provenance.json" --out="data/canary-inputs/$STATE.json" --config-out="out/canary-preparation/$STATE/lifecycle-research.json"
+
       - name: Verify promoted state and source truth contracts
         env:
           STATE: ${{ steps.validate.outputs.state }}
           CANDIDATE_DROPS: ${{ steps.validate.outputs.candidate_drops }}
+          SHADOW_RUN: ${{ steps.validate.outputs.shadow_run }}
         run: |
-          npm --prefix engine run bible
           npm --prefix engine run verify:state-fixtures -- --state="$STATE" --canary
-          npm --prefix engine run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site"
+          config_args=()
+          if [[ -n "$SHADOW_RUN" ]]; then config_args+=("--config=out/canary-preparation/$STATE/lifecycle-research.json"); fi
+          npm --prefix engine run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site" "${config_args[@]}"
           npm --prefix engine run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
           npm --prefix engine run verify:reliability
+      - name: Verify actual app projection and binary on-site isolation
+        if: steps.validate.outputs.shadow_run != ''
+        env:
+          STATE: ${{ steps.validate.outputs.state }}
+        run: node --import tsx scripts/test-grocery-public-canary.mjs --state="$STATE"
+
       - name: Build workflow-issued provenance bundle
         env:
           STATE: ${{ steps.validate.outputs.state }}
@@ -68,3 +128,18 @@ jobs:
           path: engine/out/promotion-provenance/${{ steps.validate.outputs.state }}.json
           retention-days: 90
           if-no-files-found: error
+
+      - name: Preserve exact replay inputs bound by the provenance file digests
+        if: steps.validate.outputs.shadow_run != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: grocery-promotion-replay-${{ steps.validate.outputs.state }}-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            engine/data/canary-inputs/${{ steps.validate.outputs.state }}.json
+            engine/out/grocery-shadow-input/${{ steps.validate.outputs.state }}/provenance.json
+            engine/out/canary/${{ steps.validate.outputs.state }}/public-projection.json
+            engine/out/canary/${{ steps.validate.outputs.state }}/site/states/${{ steps.validate.outputs.state }}/drops.json
+            engine/out/canary/${{ steps.validate.outputs.state }}/site/lifecycle-preview.json
+            engine/out/canary/${{ steps.validate.outputs.state }}/site/canary-preview-policy.json

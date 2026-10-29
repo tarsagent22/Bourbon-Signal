@@ -1,3 +1,4 @@
+import {isGroceryExpansionInventory} from './grocery-xapi-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { ncShipmentWatchEligible } from './nc-shipment-policy.mjs';
 import { locationValue, precisionRank } from './location-precision.mjs';
@@ -67,6 +68,7 @@ const EVENT_WEIGHTS = [
 const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
 
 const MODE_CAPS = {
+  onsite_retailer_store_inventory_caveat: 0.86,
   policy_only: 0.35,
   watch_until_store_api: 0.62,
   browser_store_watch_caveated: 0.72,
@@ -189,6 +191,7 @@ function policyForSignal(signal, nowMs = Date.now()) {
     inventorySemantics:'Exact-premises first-party retailer pickup availability; binary availability is not an exact shelf count. Verify before driving.',
     defaultCadence:'30-60m',
   };
+  if (['WA', 'NM'].includes(signal.state) && isGroceryExpansionInventory(signal)) return {maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:signal.sourceProductBinding.inventorySemantics,defaultCadence:'30m'};
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');
   const source = String(signal.sourceLabel || signal.source || '');
@@ -346,7 +349,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && centralInventoryAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && centralWatchAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !['WA', 'NM'].includes(signal.state) && !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && centralInventoryAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !['WA', 'NM'].includes(signal.state) && !runtimeAlertBlocked && illinoisExpansionAllowed && virginiaPremisesAllowed && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && centralWatchAllowed && southCarolinaTasteAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }
