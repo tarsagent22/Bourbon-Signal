@@ -54,7 +54,7 @@ jobs:
           echo "FLEET_LEGACY_ROOT=$RUNNER_TEMP/fleet-legacy" >> "$GITHUB_ENV"
           echo "FLEET_LEGACY_SHA=$legacy_sha" >> "$GITHUB_ENV"
       - name: Replay cached source rows only; no collector or publisher
-        run: node --max-old-space-size=6144 scripts/replay-fleet-cache.mjs
+        run: node --expose-gc --max-old-space-size=12288 scripts/replay-fleet-cache.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -11,6 +11,7 @@ const artifact=path.resolve('engine/out/offline-capture'),legacyRoot=process.env
 if(!legacyRoot)throw Error('Missing immutable legacy checkout');
 const stats=JSON.parse(await readFile(path.join(artifact,'site/stats.json'),'utf8'));
 mock.timers.enable({apis:['Date'],now:Date.parse(stats.generatedAt)});
+globalThis.fetch=async()=>{throw Error('Offline fleet replay prohibits source HTTP');};
 const original=await readFile(path.join(legacyRoot,'engine/src/export-site-contract.mjs'),'utf8');
 const line=original.split(/\r?\n/).find(line=>line.includes('.filter((drop, index, drops) => drops.findIndex'));
 if(!line)throw Error('Unknown legacy dedup semantics');
@@ -22,12 +23,16 @@ const legacy=await import(pathToFileURL(oldFile).href);
 const active=JSON.parse(await readFile(path.join(legacyRoot,'src/config/state-lifecycle.json'),'utf8')).activeStates;
 const activeSet=new Set(active),historyDir='engine/out/history/snapshots';
 const files=(await readdir(historyDir)).filter(file=>file.endsWith('.json')).sort().reverse().slice(0,40);
-const snapshots=[];for(const file of files)snapshots.push(JSON.parse(await readFile(path.join(historyDir,file),'utf8')));
-const snapshot=snapshots.find(row=>row.generatedAt===stats.engineGeneratedAt)||snapshots[0];
-if(snapshot.generatedAt!==stats.engineGeneratedAt)throw Error('Current snapshot clock does not match captured artifact');
+let snapshot;const historicalByKey=new Map();const timings={};const tick=()=>Number(process.hrtime.bigint())/1e9;let started=tick();
+for(const file of files){const item=JSON.parse(await readFile(path.join(historyDir,file),'utf8'));if(item.generatedAt===stats.engineGeneratedAt)snapshot=item;
+ for(const signal of item.signals||[]){if(!activeSet.has(signal.state))continue;const key=[signal.key||signal.id||signal.sourceSignalId,signal.observedAt||item.generatedAt,signal.quantity||0,signal.availabilityStatus||'',signal.price||0].join('|');historicalByKey.set(key,signal);}
+ global.gc?.();}
+timings.readDeduplicatedSnapshotsSeconds=tick()-started;
+if(!snapshot||snapshot.generatedAt!==stats.engineGeneratedAt)throw Error('Current snapshot clock does not match captured artifact');
 const official=JSON.parse(await readFile('engine/out/location-bible-official.json','utf8'));
 const signals=legacy.enrichNcSingleStoreShipmentSignals(snapshot.signals.filter(row=>activeSet.has(row.state)).map(legacy.enforceArchivedSourceAlertPolicy),official.locations.filter(row=>activeSet.has(row.state)));
-const historical=legacy.uniqueHistoricalSignals(snapshots,signals).filter(row=>activeSet.has(row.state)).map(legacy.enforceArchivedSourceAlertPolicy);
+for(const signal of signals){const key=[signal.key||signal.id||signal.sourceSignalId,signal.observedAt||'',signal.quantity||0,signal.availabilityStatus||'',signal.price||0].join('|');historicalByKey.set(key,signal);}
+const historical=[...historicalByKey.values()].map(legacy.enforceArchivedSourceAlertPolicy);historicalByKey.clear();global.gc?.();
 const bible=await BourbonBible.load(path.join(artifact,'bourbon-bible.json')),lookup=bibleLookup(bible.records);
 const previous=JSON.parse(await readFile('engine/out/site/drops.json','utf8')),previousDrops=previous.drops||previous;
 const previousQuality=JSON.parse(await readFile('engine/out/site/state-quality.json','utf8'));
@@ -38,11 +43,12 @@ const result={sourceRunId:'40907316461',collectorCacheKey:'inventory-collector-s
  historicalCountMatches:historical.length===stats.historicalSignalCount,legacyHead:process.env.FLEET_LEGACY_SHA,legacyExportSha256:createHash('sha256').update(original).digest('hex'),
  equivalentDedupOnly:true,sourceHTTPRequests:0,cacheWrites:0,publicationWrites:0,proofBoundary:'Immutable-cache offline replay at original captured clock; not new source collection or publication.'};
 console.log(JSON.stringify({...result,phase:'inputs'}));
-const oldCurrent=legacy.buildDrops(signals,lookup,signals,previousDrops,historical);
-const oldCandidates=legacy.buildDrops(historical,lookup,signals,previousDrops);
+started=tick();const oldCurrent=legacy.buildDrops(signals,lookup,signals,previousDrops,historical);timings.legacyCurrentSeconds=tick()-started;
+started=tick();const oldCandidates=legacy.buildDrops(historical,lookup,signals,previousDrops);timings.legacyHistoricalSeconds=tick()-started;global.gc?.();
 Object.assign(result,{legacyCurrent:counts(oldCurrent),legacyHistoricalCandidates:counts(oldCandidates),legacyCandidateTotal:oldCandidates.length});
 console.log(JSON.stringify({phase:'legacy',current:result.legacyCurrent,historical:result.legacyHistoricalCandidates}));
-const newCurrent=buildDrops(signals,lookup,signals,previousDrops,historical),newCandidates=buildDrops(historical,lookup,signals,previousDrops);
+started=tick();const newCurrent=buildDrops(signals,lookup,signals,previousDrops,historical);timings.repairedCurrentSeconds=tick()-started;
+started=tick();const newCandidates=buildDrops(historical,lookup,signals,previousDrops);timings.repairedHistoricalSeconds=tick()-started;global.gc?.();result.timings=timings;result.peakRssBytes=process.resourceUsage().maxRSS*1024;
 Object.assign(result,{repairedCurrent:counts(newCurrent),repairedHistoricalCandidates:counts(newCandidates),repairedCandidateTotal:newCandidates.length,repairedCandidateBytes:Buffer.byteLength(JSON.stringify(newCandidates))});
 const detected=legacy.detectDropCollapseFallbacks(previousQuality,oldCurrent,active);
 const partial=['NC','NY']; // Exactly the initial export's immutable workflow log; not promotion authority.
