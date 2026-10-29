@@ -1,0 +1,49 @@
+{
+  "contractVersion": "bourbon-signal/western-grocery-production-shared-metadata-baseline@1",
+  "baseCommit": "6deae85aaa1b78900cb5eafab03570613c95a8d7",
+  "reviewedCommit": "7ce294dbfeefbe137b97812e56b476e8d9d52d77",
+  "files": {
+    "engine/src/state-sources.mjs": {
+      "import": {
+        "original": "",
+        "reviewed": "import {WESTERN_GROCERY_PRODUCTION_CONFIGS,WESTERN_GROCERY_PRODUCTION_STATES} from './western-grocery-production-config.mjs';\n"
+      },
+      "registration": {
+        "original": "  {\n    id: 'WA', label: 'Washington Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',\n    value: 'Costco-only expansion state. Washington is a high-signal Costco spirits market and should be monitored through warehouse/app observations.',\n    rareSignalTarget: false,\n    sources: [],\n    apiCandidates: []\n  },\n",
+        "reviewed": "  ...WESTERN_GROCERY_PRODUCTION_CONFIGS,\n"
+      },
+      "costco": {
+        "original": "  const costcoSource = costcoSourceForState(source.id);\n",
+        "reviewed": "  const costcoSource = WESTERN_GROCERY_PRODUCTION_STATES.includes(source.id) ? null : costcoSourceForState(source.id);\n"
+      }
+    },
+    "src/config/state-lifecycle.json": {
+      "budgets": {
+        "original": "      \"KY\": 180000\n",
+        "reviewed": "      \"KY\": 180000,\n      \"WA\": 720000,\n      \"NM\": 300000\n"
+      },
+      "WA": {
+        "original": "    \"WA\": {\n      \"customerLabel\": \"Washington\",\n      \"sourceLabel\": \"Washington Costco warehouse bourbon watch\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"blocked_costco_inventory_research\",\n      \"coverageTier\": \"blocked\",\n      \"refinementLevel\": \"warehouse\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research-only: Washington has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.\"\n    },",
+        "reviewed": "    \"WA\": {\n      \"customerLabel\": \"Washington\",\n      \"sourceLabel\": \"Washington reviewed exact-store grocery inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research preparation only. Current first-party store observations require a separate verified promotion before customer coverage can activate.\"\n    },"
+      },
+      "NM": {
+        "original": "    }",
+        "reviewed": "    },\n    \"NM\": {\n      \"customerLabel\": \"New Mexico\",\n      \"sourceLabel\": \"New Mexico reviewed exact-store grocery inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research preparation only. Current first-party store observations require a separate verified promotion before customer coverage can activate.\"\n    }"
+      }
+    },
+    "src/config/stateLifecycle.ts": {
+      "budgets": {
+        "original": "      \"KY\": 180000\n",
+        "reviewed": "      \"KY\": 180000,\n      \"WA\": 720000,\n      \"NM\": 300000\n"
+      },
+      "WA": {
+        "original": "    \"WA\": {\n      \"customerLabel\": \"Washington\",\n      \"sourceLabel\": \"Washington Costco warehouse bourbon watch\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"blocked_costco_inventory_research\",\n      \"coverageTier\": \"blocked\",\n      \"refinementLevel\": \"warehouse\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research-only: Washington has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.\"\n    },",
+        "reviewed": "    \"WA\": {\n      \"customerLabel\": \"Washington\",\n      \"sourceLabel\": \"Washington reviewed exact-store grocery inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research preparation only. Current first-party store observations require a separate verified promotion before customer coverage can activate.\"\n    },"
+      },
+      "NM": {
+        "original": "    }",
+        "reviewed": "    },\n    \"NM\": {\n      \"customerLabel\": \"New Mexico\",\n      \"sourceLabel\": \"New Mexico reviewed exact-store grocery inventory\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Research preparation only. Current first-party store observations require a separate verified promotion before customer coverage can activate.\"\n    }"
+      }
+    }
+  }
+}

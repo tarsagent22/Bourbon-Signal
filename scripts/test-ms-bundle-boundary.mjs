@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary } from '../engine/src/verification/historical-implementation.mjs';
+import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, groceryExpansionProofImport, groceryExpansionSemanticsBoundary, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -57,6 +57,9 @@ function signalSort(a, b) {
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
     .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary)
+    .replace(groceryExpansionProofImport, groceryExpansionTierImport)
+    .replace(groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary)
+    .replace(westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary)
     .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '').replace(texasShopifyPickupTierImport, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
@@ -72,7 +75,7 @@ function signalSort(a, b) {
     current.replace(arizonaMetroTierImport, ''),
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace("signal.state === 'AZ'", "signal.state === 'MS'")),
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace("signal.state === 'AZ'", 'true')),
-    current.replace(groceryExpansionTierImport, ''),
+    current.replace(groceryExpansionProofImport, ''),
     current.replace(centralCityHiveTierImport, ''),
     current.replace(texasShopifyPickupTierImport, ''),
     current.replace(texasShopifyPickupTierImport, texasShopifyPickupTierImport.replace('./collectors/texas-shopify-pickup.mjs', './collectors/unreviewed-pickup.mjs')),
@@ -86,10 +89,10 @@ function signalSort(a, b) {
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('texasShopifyPickupLibraryTier(signal,bible) ?? ', '')),
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('texasShopifyPickupLibraryTier(signal,bible)', "texasShopifyPickupLibraryTier({...signal,state:'MS'},bible)")),
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('texasShopifyPickupLibraryTier(signal,bible)', 'true')),
-    current.replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary),
+    current.replace(groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary),
     current + '\n' + newYorkVariantSemanticsBoundary,
-    current.replace(newYorkVariantSemanticsBoundary, newYorkVariantSemanticsBoundary.replace("signal.state === 'NY'", "signal.state === 'MS'")),
-    current.replace(newYorkVariantSemanticsBoundary, newYorkVariantSemanticsBoundary.replace("signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'", 'true')),
+    current.replace(groceryExpansionSemanticsBoundary, groceryExpansionSemanticsBoundary.replace("signal.state === 'NY'", "signal.state === 'MS'")),
+    current.replace(groceryExpansionSemanticsBoundary, groceryExpansionSemanticsBoundary.replace("signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'", 'true')),
     current + '\n' + indianaAddition,
     current.replace(indianaAddition, indianaAddition.replace("sig.state === 'IN'", "sig.state === 'MS'")),
     current.replace(indianaAddition, indianaAddition.replace('sig.sourceProductBinding || null', 'sig.raw || null')),
@@ -168,6 +171,61 @@ test('nationwide reversal accepts only exact reviewed CA metadata and inactive c
     }
     const outside = current.replace(name.endsWith('.mjs') ? "id: 'MS'" : '"MS": {', name.endsWith('.mjs') ? "id: 'MS_UNREVIEWED'" : '"MS_UNREVIEWED": {');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name]);
+  }
+});
+
+test('WA/NM metadata reversal requires every literal inactive registration and budget boundary', async () => {
+  const baseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/western-grocery-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+  assert.equal(baseline.baseCommit, '6deae85aaa1b78900cb5eafab03570613c95a8d7');
+  for (const name of sharedFiles) {
+    const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+    const originalHash = evidence.implementationFilesSha256[name];
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), originalHash);
+    for (const [key, { reviewed, original }] of Object.entries(baseline.files[name])) {
+      assert.equal(current.split(reviewed).length - 1, 1, `${name}: ${key}`);
+      const changed = name.endsWith('.mjs')
+        ? reviewed.replace('WESTERN_GROCERY_PRODUCTION_', 'UNREVIEWED_GROCERY_')
+        : key === 'budgets' ? reviewed.replace('720000', '600000')
+          : reviewed.replace('"publicStatus": "research_only"', '"publicStatus": "active"');
+      assert.notEqual(changed, reviewed);
+      for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /WA\/NM reviewed .*exact historical verification hook/);
+      }
+      if (!name.endsWith('.mjs') && ['WA', 'NM'].includes(key)) {
+        for (const mutation of [
+          reviewed.replace('"inventoryAlertable": false', '"inventoryAlertable": true'),
+          reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
+          reviewed.replace('"refinementLevel": "store"', '"refinementLevel": "state"'),
+        ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(reviewed, mutation))), /WA\/NM reviewed .*exact historical verification hook/);
+      }
+    }
+    const outside = current.replace(name.endsWith('.mjs') ? "id: 'MS'" : '"MS": {', name.endsWith('.mjs') ? "id: 'MS_CHANGED'" : '"MS_CHANGED": {');
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), originalHash, 'MS bytes retain the original anchor');
+  }
+});
+
+test('grocery proof and on-site suppression reverse into the existing NY then AZ hooks only', async () => {
+  const name = 'engine/src/operational-report.mjs';
+  const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+  assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
+  for (const [hook, original, mutations] of [
+    [groceryExpansionProofImport, groceryExpansionTierImport, [groceryExpansionProofImport.replace('isGroceryExpansionInventory', 'unreviewedInventory'), groceryExpansionProofImport.replace('grocery-xapi-policy.mjs', 'unreviewed-policy.mjs')]],
+    [groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary, [
+      groceryExpansionSemanticsBoundary.replace('isGroceryExpansionInventory(signal)', 'true'),
+      groceryExpansionSemanticsBoundary.replace('isGroceryExpansionInventory(signal)', "signal.state === 'MS'"),
+      groceryExpansionSemanticsBoundary.replace('signal.sourceProductBinding.inventorySemantics', 'signal.inventorySemantics'),
+      groceryExpansionSemanticsBoundary.replace("signal.state === 'NY'", "signal.state === 'MS'"),
+    ]],
+    [westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, [
+      westernGroceryAlertBoundary.replace("['WA', 'NM']", "['WA', 'NM', 'MS']"),
+      westernGroceryAlertBoundary.replace('? false :', '? true :'),
+      westernGroceryAlertBoundary.replace('policy.canAlertAsWatch', 'true'),
+    ]],
+  ]) {
+    for (const changed of [current.replace(hook, original), current + '\n' + hook, ...mutations.map(mutation => current.replace(hook, mutation))]) {
+      assert.notEqual(changed, current);
+      assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(changed)), /exact historical verification hook/);
+    }
   }
 });
 
