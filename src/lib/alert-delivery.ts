@@ -40,7 +40,7 @@ import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repos
 import { ensureAlertDeliveryIdentityV2 } from "@/lib/alert-queue/clerk-migration";
 import { compactClerkAlertDelivery } from "@/lib/alert-queue/clerk-alert-metadata";
 import { alertDeliveryWindowStatus, isWithinMemberAlertDeliveryWindow, normalizeAlertDeliveryTimeZone } from "@/lib/alert-delivery-window";
-import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
+import { californiaAreaMatchesFields, matchedCaliforniaArea, normalizeCaliforniaAreas } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area";
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
 import { matchedColoradoArea, coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
@@ -807,7 +807,7 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   if (state === "IA" && areaPrefs.iaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.iaCities) || locationName || stateLabel(state);
   if (state === "ID" && areaPrefs.idCities.length) return matchedLocationFromOptions(candidate, areaPrefs.idCities) || locationName || stateLabel(state);
   if (state === "SC" && areaPrefs.scAreas.length) return matchedLocationFromOptions(candidate, areaPrefs.scAreas) || locationName || stateLabel(state);
-  if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], areaPrefs.caAreas) ? "San Diego" : locationName || stateLabel(state);
+  if (state === "CA" && areaPrefs.caAreas.length) return matchedCaliforniaArea(locationFields, areaPrefs.caAreas) || locationName || stateLabel(state);
   if (state === "NV" && areaPrefs.nvAreas.length) return areaPrefs.nvAreas.find((area) => nevadaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], [area])) || locationName || stateLabel(state);
   if (state === "NY" && areaPrefs.nyAreas.length) return matchedNewYorkArea(locationFields, areaPrefs.nyAreas) || locationName || stateLabel(state);
   if (state === "CO" && areaPrefs.coAreas.length) return matchedColoradoArea(locationFields, areaPrefs.coAreas) || locationName || stateLabel(state);
