@@ -8,6 +8,7 @@ import * as knownStoresModule from '../src/lib/coverage-known-stores.ts';
 import * as receiptModule from '../src/lib/nationwide-pilot-receipt.ts';
 import * as harness from '../apps/mobile/src/astra-test-harness.ts';
 import {isCentralCityHiveInventory} from '../engine/src/central-cityhive-policy.mjs';
+import {assertVerifiedCanaryProjection,assertCanaryCoverageProjection,assertCanaryStoreSearch} from './lib/verified-active-renewal-projection.mjs';
 const {classifyPublicDrop,getDropClassificationIndex}=classificationModule.default||classificationModule;
 const {normalizePublicDropEvidenceInput,isPublicDropFeedEligible,isCurrentInventoryEvidence}=evidenceModule.default||evidenceModule;
 const {buildCoverageContract}=coverageModule.default||coverageModule;
@@ -19,14 +20,16 @@ const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
 const lifecycle=await read(root+'/lifecycle-preview.json'),locations=(await read(root+'/locations.json')).locations;
+const candidate=await read(`engine/data/canary-inputs/${state}.json`),authority=await read('src/config/state-lifecycle.json');
 const index=getDropClassificationIndex((await read('src/data/drop-feed-classification.generated.json')).records);
 const classified=partition.drops.map(row=>normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite(row),index)));
 const accepted=classified.filter(row=>isPublicDropFeedEligible(row)&&isCurrentInventoryEvidence(row,clock));
-assert.ok(accepted.length>0,'Actual current app-eligible rows must survive the canary customer policy');
+const projection=assertVerifiedCanaryProjection({state,candidate,partition,accepted,locations,lifecycle:authority,nowMs:Date.parse(clock)});
 assert.ok(accepted.every(row=>isCentralCityHiveInventory(row)&&row.previewOnly&&row.eligibleForOnSite
   &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.eligibleForDelivery===false
   &&row.eligibleForEmail===false&&row.eligibleForSms===false&&row.quantity===0&&row.quantityIsExact===false));
 const binary=accepted[0];
+if(binary){
 for(const mutation of [{storeId:'unreviewed'},{productId:'unreviewed'},{quantity:1},{quantityIsExact:true},
   {storeAddress:'999 Other Street'},{sourceStale:true}])assert.equal(isCentralCityHiveInventory({...binary,...mutation}),false);
 for(const mutation of [{canAlertAsInventory:true},{can_alert_as_inventory:true},{canAlertAsWatch:true},{alertable:true},
@@ -34,11 +37,11 @@ for(const mutation of [{canAlertAsInventory:true},{can_alert_as_inventory:true},
   const changed=normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite({...partition.drops[0],...mutation}),index));
   assert.equal(isPublicDropFeedEligible(changed),false,`Canary customer policy accepted ${JSON.stringify(mutation)}`);
 }
+}
 const coverage=buildCoverageContract({lifecycle,stateRows:stats.stateCoverage.states,locations,
   stores:(await read(root+'/stores.json')).stores,drops:classified,degradedStates:[],generatedAt:stats.generatedAt,asOf:clock,healthLimited:false})
   .states.find(row=>row.code===state);
-assert.equal(coverage?.capabilities.currentBottleAvailability,true);assert.equal(coverage?.capabilities.restockAlerts,false);
-assert.ok(coverage.scope.searchableStores>0);assert.equal(coverage.scope.inventoryMonitoredStores,new Set(accepted.map(row=>row.storeId)).size);
+assertCanaryCoverageProjection(coverage,projection);
 // Authored public Coverage and Finder services execute with only snapshot/cache
 // infrastructure replaced. This is local fixture evidence, not a live UI claim.
 const payloads=Object.fromEntries(await Promise.all(['stats','locations','stores','drops'].map(async name=>[name,await read(root+'/'+name+'.json')])));
@@ -75,7 +78,7 @@ const locationRoute=loadWithMocks('src/app/api/locations/route.ts',{
 for(const location of candidateLocations){
   const searched=await coverageRoute.POST(new Request('https://fixture.test/api/coverage',{method:'POST',body:JSON.stringify({state,query:location.name})}));
   assert.equal(searched.status,200);const search=await searched.json();
-  assert.ok(search.results.some(row=>row.kind==='store'&&row.storeId===location.id&&row.status==='actively-monitored'));
+  assertCanaryStoreSearch(search.results,location,projection);
   assert.ok(directory.some(row=>row.state===state&&row.id===location.id));
   for(const route of [storeRoute,locationRoute]){
     const response=await route.GET(new Request('https://fixture.test/api/stores?state='+state+'&limit=1000'));
@@ -85,6 +88,8 @@ for(const location of candidateLocations){
 }
 const proof={state,evaluatedAt:clock,scope:'local_customer_projection_of_workflow_canary_not_live_preview',
   rawRows:partition.drops.length,publicCurrentRows:accepted.length,publicCurrentStores:coverage.scope.inventoryMonitoredStores,
-  searchableStores:coverage.scope.searchableStores,allDeliveryDisabled:true,binaryQuantityRemainsZero:true,
+  searchableStores:coverage.scope.searchableStores,allDeliveryDisabled:true,binaryQuantityRemainsZero:binary?true:null,
+  verifiedActiveRenewal:projection.verifiedActiveRenewal,verifiedNegativeRenewal:projection.verifiedNegativeRenewal,
+  knownWithoutCurrentStoreIds:projection.knownWithoutCurrentStoreIds,
   actualCoverageAndFinderServicesUnderFixture:true,liveAuthenticatedUiExercised:false};
 await writeFile(`engine/out/canary/${state}/public-projection.json`,JSON.stringify(proof,null,2)+'\n');console.log(JSON.stringify(proof));
