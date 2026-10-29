@@ -38,6 +38,7 @@ for(const state of ['LA','AK']){
     assert.equal(report.status,'useful');assert.ok(report.signals.length>0);
     const operational=report.signals.map(row=>canonicalizeSignal(row,bible));
     const drops=buildDrops(operational,bibleLookup(bible.records),operational);
+    assert.equal(buildDrops(operational,bibleLookup(bible.records),[]).length,0,'A complete current negative observation cannot resurrect historical LA/AK availability');
     assert.ok(drops.length>0);assert.ok(drops.every(row=>!Object.hasOwn(row,'previewOnly')));
     assert.ok(drops.every(row=>row.quantity===0&&row.quantityIsExact===false&&row.canAlertAsInventory===false&&row.canAlertAsWatch===false
       &&row.alertable===false&&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForWatch===false

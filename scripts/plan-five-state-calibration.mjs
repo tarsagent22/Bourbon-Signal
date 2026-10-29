@@ -18,7 +18,7 @@ export function planFiveStateCalibration({config,reports,sourceCommit,workflowRu
     ||!Number.isFinite(elapsed)||elapsed<=0||!report.metadata.receipts?.length||!report.metadata.receipts.every(row=>[200,206].includes(row.status)))throw Error(state+': incomplete or unbound actual calibration report');
   forecasts[state]=Math.ceil(2*elapsed/30000)*30000;
   observations[state]={runtimeMs:elapsed,requestCount:report.metadata.receipts.length,startedAt:report.startedAt,finishedAt:report.finishedAt,
-    sourceCommit,workflowRunId:String(workflowRunId),reportSha256:createHash('sha256').update(JSON.stringify(report)).digest('hex')};
+    sourceCommit,workflowRunId:String(workflowRunId),canonicalReportSha256:createHash('sha256').update(JSON.stringify(report)).digest('hex')};
  }
  const states=[...new Set([...config.activeStates,...FIVE_STATE_CALIBRATION_STATES])],durations=states.map(state=>({state,expectedRunMs:forecasts[state]??policy.stateExpectedRunMs?.[state]??policy.defaultExpectedStateRunMs}));
  if(durations.some(row=>!Number.isFinite(row.expectedRunMs)||row.expectedRunMs<=0))throw Error('Capacity model contains an invalid or missing expected runtime');

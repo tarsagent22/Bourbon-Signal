@@ -189,4 +189,10 @@ test('production parsing and independent policy both reject generic Wild Turkey 
     sourceProductBinding:{...row.sourceProductBinding,productId:product.id,variantId:product.pid,rawName:product.name,canonicalBottleId:master.id,price:product.price,productSnapshot:product},
     raw:{...row.raw,product}};
   assert.equal(isLouisianaAlaskaGroceryInventory(wrong),false);
+  for(const title of ['Wild Turkey Kentucky 750 Ml','Wild Turkey Kentucky Straight Bourbon - 750 Ml','Wild Turkey Kentucky Spirit - 750 Ml']){
+    const productSnapshot={...product,name:title};
+    const mutation={...wrong,rawName:title,sourceProductBinding:{...wrong.sourceProductBinding,rawName:title,productSnapshot},raw:{...wrong.raw,product:productSnapshot}};
+    assert.equal(isLouisianaAlaskaGroceryInventory(mutation),false,'Generic Wild Turkey title cannot prove a Master expression: '+title);
+    assert.deepEqual(parseLouisianaAlaskaGroceryInventory({response:{docs:[productSnapshot]}},source,bible,{observedAt}),[]);
+  }
 });

@@ -25,7 +25,7 @@ export function parseLouisianaAlaskaGroceryResearch(payload,source,bible,{resolv
     // The current library has a broad alias that cannot establish this named
     // expression. Preserve the excluded raw row in research evidence only.
     if(!tiers.has(tier)||!Number.isFinite(row.price)||row.price<=0
-      ||row.record.canonical==='Wild Turkey Master'&&/^wild turkey kentucky\s*-/i.test(row.title))return[];
+      ||row.record.canonical==='Wild Turkey Master'&&!/\bmaster\b/i.test(row.title))return[];
     return[{...row,tier,sourceId:source.id,storeId:source.storeId,state:source.stateCode,observedAt,
       researchOnly:true,customerVisible:false,productionActivated:false,canAlertAsInventory:false,canAlertAsWatch:false,
       eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false}];

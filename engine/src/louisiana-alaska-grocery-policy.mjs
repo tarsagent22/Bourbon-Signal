@@ -31,7 +31,7 @@ export function isLouisianaAlaskaGroceryInventory(row) {
     || row.locationPrecision !== 'store_level' || !Number.isFinite(Date.parse(row.observedAt))
     || typeof row.price !== 'number' || !Number.isFinite(row.price) || row.price <= 0) return false;
   const product = row.raw?.product || row.sourceProductBinding.productSnapshot;
-  if(row.canonicalName==='Wild Turkey Master'&&/^wild turkey kentucky\s*-/i.test(row.rawName||''))return false;
+  if(row.canonicalName==='Wild Turkey Master'&&!/\bmaster\b/i.test(row.rawName||''))return false;
   if (!product || String(product.id) !== row.productId || String(product.pid) !== row.variantId
     || String(product.storeId) !== row.merchantId || product.containsAlcohol !== true
     || !/^\d{12,14}$/.test(String(product.upc || ''))
