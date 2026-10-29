@@ -10,6 +10,11 @@ on:
         description: "Optional comma-separated shadowEligible non-active state IDs"
         required: false
         default: ""
+      grocery_preflight:
+        description: "Research-only six-request LA/AK exact-store access preflight (does not count as shadow promotion evidence)"
+        required: false
+        type: boolean
+        default: false
       limit:
         description: "Maximum eligible states to collect"
         required: false
@@ -57,6 +62,14 @@ jobs:
           key: research-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: research-shadow-${{ runner.os }}-${{ github.ref_name }}-
 
+      - name: Restore independent LA/AK preflight incident journal
+        if: inputs.grocery_preflight == true
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/louisiana-alaska-grocery-preflight
+          key: grocery-preflight-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: grocery-preflight-incidents-${{ runner.os }}-
+
       - name: Refresh full current app catalog
         working-directory: engine
         run: npm run sync:library
@@ -85,11 +98,24 @@ jobs:
           echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
 
       - name: Collect bounded shadow evidence only
+        if: inputs.grocery_preflight != true
         working-directory: engine
         env:
           STATES: ${{ steps.validate.outputs.states }}
           LIMIT: ${{ steps.validate.outputs.limit }}
         run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT"
+
+      - name: Collect bounded LA/AK hosted source preflight only
+        if: inputs.grocery_preflight == true
+        working-directory: engine
+        run: node src/run-louisiana-alaska-grocery-preflight.mjs
+
+      - name: Save LA/AK preflight incidents even when collection fails
+        if: always() && inputs.grocery_preflight == true
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/louisiana-alaska-grocery-preflight
+          key: grocery-preflight-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - uses: actions/cache/save@v4
         if: always()
@@ -106,4 +132,6 @@ jobs:
           name: state-expansion-shadow-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: warn
-          path: engine/out/shadow
+          path: |
+            engine/out/shadow
+            engine/out/source-incidents/louisiana-alaska-grocery-preflight
