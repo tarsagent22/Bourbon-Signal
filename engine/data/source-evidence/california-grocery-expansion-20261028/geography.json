@@ -1,0 +1,1094 @@
+[
+  {
+    "merchantId": "2606",
+    "lat": 37.776778641486,
+    "lng": -122.39407171779096,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/298-king-st.html",
+    "capturedAt": "2026-10-29T01:48:30.198Z",
+    "address": {
+      "line1": "298 King St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94107"
+    },
+    "decodedSha256": "c0d6f147122b0ad2d2c51264078c4e44c334fa5c081dd3f3056f561f0ea5c7c4"
+  },
+  {
+    "merchantId": "1490",
+    "lat": 37.766027964220555,
+    "lng": -122.40795897868566,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/2300-16th-st-unit-203.html",
+    "capturedAt": "2026-10-29T01:48:30.207Z",
+    "address": {
+      "line1": "2300 16th St Unit 203",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94103"
+    },
+    "decodedSha256": "e5d678562fccc5bd1296b95111e102f01a342c5941b936401b4a31ea48730e00"
+  },
+  {
+    "merchantId": "1507",
+    "lat": 37.76917545663558,
+    "lng": -122.42787480354309,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/2020-market-st.html",
+    "capturedAt": "2026-10-29T01:48:30.610Z",
+    "address": {
+      "line1": "2020 Market St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94114"
+    },
+    "decodedSha256": "d993c1732592941492e5ef56ebea4d96cbc71ceca77dcfce0a4df46d5e81f58a"
+  },
+  {
+    "merchantId": "4601",
+    "lat": 37.79689897826482,
+    "lng": -122.3986159341166,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/145-jackson-st.html",
+    "capturedAt": "2026-10-29T01:48:30.641Z",
+    "address": {
+      "line1": "145 Jackson St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94111"
+    },
+    "decodedSha256": "baa15c4858311309a86d1ec70181d2b39799a0d9a1261ce5302183c466b82792"
+  },
+  {
+    "merchantId": "739",
+    "lat": 37.743194531962324,
+    "lng": -122.42245004342294,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/3350-mission-st.html",
+    "capturedAt": "2026-10-29T01:48:31.064Z",
+    "address": {
+      "line1": "3350 Mission St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94110"
+    },
+    "decodedSha256": "2c0d0e1ef1826e2976df9b04045c6ad208547ccfa2ee0abfa21e11d4d4695f00"
+  },
+  {
+    "merchantId": "1711",
+    "lat": 37.80446714603007,
+    "lng": -122.43286506094591,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/15-marina-blvd.html",
+    "capturedAt": "2026-10-29T01:48:31.069Z",
+    "address": {
+      "line1": "15 Marina Blvd",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94123"
+    },
+    "decodedSha256": "81640984d427a69cb102e24b60e60a962cfa746906d052bd80bc0731df30686b"
+  },
+  {
+    "merchantId": "2646",
+    "lat": 37.774507955961255,
+    "lng": -122.46526206197129,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/735-7th-ave.html",
+    "capturedAt": "2026-10-29T01:48:31.487Z",
+    "address": {
+      "line1": "735 7th Ave",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94118"
+    },
+    "decodedSha256": "0ff9f9e02690fea7a20b86ecb54d5814a047152ec49ae4f12cbd1bd157e2689a"
+  },
+  {
+    "merchantId": "667",
+    "lat": 37.74357069982952,
+    "lng": -122.43900636387798,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/5290-diamond-heights-blvd.html",
+    "capturedAt": "2026-10-29T01:48:31.493Z",
+    "address": {
+      "line1": "5290 Diamond Heights Blvd",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94131"
+    },
+    "decodedSha256": "94d9b30963fa0358133bafa316f9c65c6aa8c39993ea8010b51acd621a3e5994"
+  },
+  {
+    "merchantId": "759",
+    "lat": 37.73129574823335,
+    "lng": -122.44996834788512,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/625-monterey-blvd.html",
+    "capturedAt": "2026-10-29T01:48:31.914Z",
+    "address": {
+      "line1": "625 Monterey Blvd",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94127"
+    },
+    "decodedSha256": "660addbb83c77edbed29f0bba6f638210e6410d6ca33fe2c4cf97cf70f04fb1b"
+  },
+  {
+    "merchantId": "964",
+    "lat": 37.719878244696424,
+    "lng": -122.43886005033188,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/4950-mission-st.html",
+    "capturedAt": "2026-10-29T01:48:31.992Z",
+    "address": {
+      "line1": "4950 Mission St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94112"
+    },
+    "decodedSha256": "22e44ce06f4ecbe6804c23aa3d77c581bfecbccb162e6942ea16dd5101cae2d4"
+  },
+  {
+    "merchantId": "985",
+    "lat": 37.75416487563079,
+    "lng": -122.48889421278818,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/2350-noriega-st.html",
+    "capturedAt": "2026-10-29T01:48:32.398Z",
+    "address": {
+      "line1": "2350 Noriega St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94122"
+    },
+    "decodedSha256": "6ef70189a1938af56ecbc80dee97ca839be853303eceafd05fb49f12d1792c54"
+  },
+  {
+    "merchantId": "909",
+    "lat": 37.74344692929394,
+    "lng": -122.47412011780398,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/730-taraval-st.html",
+    "capturedAt": "2026-10-29T01:48:32.440Z",
+    "address": {
+      "line1": "730 Taraval St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94116"
+    },
+    "decodedSha256": "62827104035bd8fefd8c5d014dacc4513776e0de4a620adfb036d74d503be4bb"
+  },
+  {
+    "merchantId": "785",
+    "lat": 37.77251376157095,
+    "lng": -122.50947650426447,
+    "url": "https://local.safeway.com/safeway/ca/san-francisco/850-la-playa-st.html",
+    "capturedAt": "2026-10-29T01:48:32.865Z",
+    "address": {
+      "line1": "850 La Playa St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipcode": "94121"
+    },
+    "decodedSha256": "5fc542b9368acd6843e24d78e987ef22efb862a7355d734cfadea2ea21624ff7"
+  },
+  {
+    "merchantId": "3031",
+    "lat": 37.69961233917686,
+    "lng": -122.48155788348413,
+    "url": "https://local.safeway.com/safeway/ca/daly-city/601-westlake-ctr.html",
+    "capturedAt": "2026-10-29T01:48:32.889Z",
+    "address": {
+      "line1": "601 Westlake Ctr",
+      "city": "Daly City",
+      "state": "CA",
+      "zipcode": "94015"
+    },
+    "decodedSha256": "9403caeca4212597ecd8a1101fcf481da6582640d12f18cee6e19ba80d8a1610"
+  },
+  {
+    "merchantId": "3125",
+    "lat": 37.82939809579177,
+    "lng": -122.27996358278688,
+    "url": "https://local.safeway.com/pak-n-save/ca/emeryville/3889-san-pablo-ave.html",
+    "capturedAt": "2026-10-29T01:48:33.301Z",
+    "address": {
+      "line1": "3889 San Pablo Ave",
+      "city": "Emeryville",
+      "state": "CA",
+      "zipcode": "94608"
+    },
+    "decodedSha256": "c9d93a85698eeae230860b4a852ae25d8f44f04f0a69ca05f749180438e96e71"
+  },
+  {
+    "merchantId": "3281",
+    "lat": 37.78549742120383,
+    "lng": -122.28056788444519,
+    "url": "https://local.safeway.com/safeway/ca/alameda/2600-5th-st.html",
+    "capturedAt": "2026-10-29T01:48:33.378Z",
+    "address": {
+      "line1": "2600 5th St",
+      "city": "Alameda",
+      "state": "CA",
+      "zipcode": "94501"
+    },
+    "decodedSha256": "130b866092f1913cc7ca3aa382bbf1a292a8be61d374ac358dadd7a992b8f448"
+  },
+  {
+    "merchantId": "2843",
+    "lat": 37.66111712029035,
+    "lng": -122.47768612254731,
+    "url": "https://local.safeway.com/safeway/ca/pacifica/709-hickey-blvd.html",
+    "capturedAt": "2026-10-29T01:48:33.796Z",
+    "address": {
+      "line1": "709 Hickey Blvd",
+      "city": "Pacifica",
+      "state": "CA",
+      "zipcode": "94044"
+    },
+    "decodedSha256": "e73d0e6d018552c13e3308cf5c48d734224f43fb89f2422569e53603519a4ea8"
+  },
+  {
+    "merchantId": "2708",
+    "lat": 37.757255517747666,
+    "lng": -122.25083360859833,
+    "url": "https://local.safeway.com/safeway/ca/alameda/2227-s-shore-ctr.html",
+    "capturedAt": "2026-10-29T01:48:33.810Z",
+    "address": {
+      "line1": "2227 S Shore Ctr",
+      "city": "Alameda",
+      "state": "CA",
+      "zipcode": "94501"
+    },
+    "decodedSha256": "b552eafbb12df474afe628190ae088a10a40b7d0a694a8139365f268a612a84e"
+  },
+  {
+    "merchantId": "4131",
+    "lat": 34.014059097540354,
+    "lng": -118.3357510865062,
+    "url": "https://local.albertsons.com/ca/los-angeles/3901-crenshaw-blvd.html",
+    "capturedAt": "2026-10-29T01:48:34.436Z",
+    "address": {
+      "line1": "3901 Crenshaw Blvd",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90008"
+    },
+    "decodedSha256": "186b78d85ec7df479113202c191210b2c0ed9ffa270369f6c036c09c729d12de"
+  },
+  {
+    "merchantId": "2502",
+    "lat": 33.96032342497343,
+    "lng": -118.34913153439331,
+    "url": "https://local.vons.com/ca/inglewood/500-e-manchester-blvd.html",
+    "capturedAt": "2026-10-29T01:48:34.440Z",
+    "address": {
+      "line1": "500 E Manchester Blvd",
+      "city": "Inglewood",
+      "state": "CA",
+      "zipcode": "90301"
+    },
+    "decodedSha256": "d9819b09c30dac57e133992bd560345b0c73c026ba28d0b1f23b5f55083241fc"
+  },
+  {
+    "merchantId": "1625",
+    "lat": 33.890935136103096,
+    "lng": -118.29784884133915,
+    "url": "https://local.vons.com/ca/gardena/1260-w-redondo-beach-blvd.html",
+    "capturedAt": "2026-10-29T01:48:34.884Z",
+    "address": {
+      "line1": "1260 W Redondo Beach Blvd",
+      "city": "Gardena",
+      "state": "CA",
+      "zipcode": "90247"
+    },
+    "decodedSha256": "15133425ac808ae31fde17c699beff2860617834d366a9deb8a35616cdca938d"
+  },
+  {
+    "merchantId": "140",
+    "lat": 33.94562081669569,
+    "lng": -118.1444480955679,
+    "url": "https://local.albertsons.com/ca/downey/7676-firestone-blvd.html",
+    "capturedAt": "2026-10-29T01:48:34.896Z",
+    "address": {
+      "line1": "7676 Firestone Blvd",
+      "city": "Downey",
+      "state": "CA",
+      "zipcode": "90241"
+    },
+    "decodedSha256": "fa4064ae851a6759e9603c01a73db2fe093c36e6663c1fcca213508947096cb5"
+  },
+  {
+    "merchantId": "108",
+    "lat": 33.87424151748243,
+    "lng": -118.30826380852159,
+    "url": "https://local.albertsons.com/ca/gardena/1735-w-artesia-blvd.html",
+    "capturedAt": "2026-10-29T01:48:35.340Z",
+    "address": {
+      "line1": "1735 W Artesia Blvd",
+      "city": "Gardena",
+      "state": "CA",
+      "zipcode": "90248"
+    },
+    "decodedSha256": "f780363602346687c8f79ae79c1e3d414d28f9521e9c01e4f84036383f8ca818"
+  },
+  {
+    "merchantId": "2261",
+    "lat": 34.069960270057045,
+    "lng": -118.29088389873505,
+    "url": "https://local.vons.com/ca/los-angeles/3461-w-3rd-st.html",
+    "capturedAt": "2026-10-29T01:48:35.349Z",
+    "address": {
+      "line1": "3461 W 3rd St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90020"
+    },
+    "decodedSha256": "03676d939f9d8645cd8197857625aa647c06e3a29a6a8d85f155dd88d2badca4"
+  },
+  {
+    "merchantId": "1181",
+    "lat": 34.03112763919393,
+    "lng": -118.12239022585345,
+    "url": "https://local.albertsons.com/ca/montebello/2469-via-campo-st.html",
+    "capturedAt": "2026-10-29T01:48:35.763Z",
+    "address": {
+      "line1": "2469 Via Campo St",
+      "city": "Montebello",
+      "state": "CA",
+      "zipcode": "90640"
+    },
+    "decodedSha256": "702bed7579e623f9cb169181180fccd0d32b284905d0b96d45d073f3d8c0b4b7"
+  },
+  {
+    "merchantId": "3263",
+    "lat": 34.079517557209606,
+    "lng": -118.26126073068849,
+    "url": "https://local.vons.com/ca/los-angeles/1342-n-alvarado-st.html",
+    "capturedAt": "2026-10-29T01:48:35.800Z",
+    "address": {
+      "line1": "1342 N Alvarado St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90026"
+    },
+    "decodedSha256": "95d650b08e9ab6d48d818f7418b4c014cbb10d8db70d025e6aa34d033417d388"
+  },
+  {
+    "merchantId": "1623",
+    "lat": 33.89295753260357,
+    "lng": -118.36245596408844,
+    "url": "https://local.vons.com/ca/redondo-beach/4001-inglewood-ave.html",
+    "capturedAt": "2026-10-29T01:48:36.209Z",
+    "address": {
+      "line1": "4001 Inglewood Ave",
+      "city": "Redondo Beach",
+      "state": "CA",
+      "zipcode": "90278"
+    },
+    "decodedSha256": "178a8138f7a160a254693fbd8cbafac3c2d160e7d2edd29bb5bca5ced718718c"
+  },
+  {
+    "merchantId": "2212",
+    "lat": 33.99685758615477,
+    "lng": -118.39378952980042,
+    "url": "https://local.pavilions.com/ca/culver-city/11030-jefferson-blvd.html",
+    "capturedAt": "2026-10-29T01:48:36.328Z",
+    "address": {
+      "line1": "11030 Jefferson Blvd",
+      "city": "Culver City",
+      "state": "CA",
+      "zipcode": "90230"
+    },
+    "decodedSha256": "c5d26882c7ba031f16677a68f44cab822a64f81c95553a2c5ae7c7e791427102"
+  },
+  {
+    "merchantId": "3258",
+    "lat": 34.0202594563323,
+    "lng": -118.10601892498426,
+    "url": "https://local.vons.com/ca/montebello/804-beverly-blvd.html",
+    "capturedAt": "2026-10-29T01:48:36.804Z",
+    "address": {
+      "line1": "804 Beverly Blvd",
+      "city": "Montebello",
+      "state": "CA",
+      "zipcode": "90640"
+    },
+    "decodedSha256": "b8f9de32ed405d8de1c5e304f732bc2022e1c78af62fdcfab94880b54e4c6996"
+  },
+  {
+    "merchantId": "2268",
+    "lat": 34.05051526037608,
+    "lng": -118.36625526745911,
+    "url": "https://local.vons.com/ca/los-angeles/1430-s-fairfax-ave.html",
+    "capturedAt": "2026-10-29T01:48:36.835Z",
+    "address": {
+      "line1": "1430 S Fairfax Ave",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90019"
+    },
+    "decodedSha256": "83c9aa2675d73177b8b298e6582777434e5c3a9e0b5586b4f8129d067b1e344d"
+  },
+  {
+    "merchantId": "2665",
+    "lat": 34.0970657,
+    "lng": -118.287983,
+    "url": "https://local.vons.com/ca/los-angeles/4520-sunset-blvd.html",
+    "capturedAt": "2026-10-29T01:48:37.269Z",
+    "address": {
+      "line1": "4520 Sunset Blvd",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90027"
+    },
+    "decodedSha256": "c81e135c94eca8b10ee16f8b19f6fdae47cce2339de9896d6923cd6dab8a8fe6"
+  },
+  {
+    "merchantId": "4021",
+    "lat": 33.96929441140654,
+    "lng": -118.40543681289748,
+    "url": "https://local.vons.com/ca/los-angeles/6571-w-80th-st.html",
+    "capturedAt": "2026-10-29T01:48:37.358Z",
+    "address": {
+      "line1": "6571 W 80th St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90045"
+    },
+    "decodedSha256": "21446a66eb8911bb54326f03dda156071b87e27fbb3709a3d1f7f5e4459bd30a"
+  },
+  {
+    "merchantId": "2543",
+    "lat": 34.086480105051244,
+    "lng": -118.14988553524017,
+    "url": "https://local.albertsons.com/ca/alhambra/2400-w-commonwealth-ave.html",
+    "capturedAt": "2026-10-29T01:48:37.776Z",
+    "address": {
+      "line1": "2400 W Commonwealth Ave",
+      "city": "Alhambra",
+      "state": "CA",
+      "zipcode": "91803"
+    },
+    "decodedSha256": "86ec215a4f611d74ac852ebebdad507263428436e7f94f9b56fb1ce30e837c55"
+  },
+  {
+    "merchantId": "2229",
+    "lat": 34.08453397009193,
+    "lng": -118.32715364721707,
+    "url": "https://local.pavilions.com/ca/los-angeles/727-n-vine-st.html",
+    "capturedAt": "2026-10-29T01:48:37.795Z",
+    "address": {
+      "line1": "727 N Vine St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90038"
+    },
+    "decodedSha256": "00c202c19aad4194fb936bca6f8a01d7a6656a1115edd75e0b22c62ec0340487"
+  },
+  {
+    "merchantId": "2100",
+    "lat": 34.03021944279835,
+    "lng": -118.40143452513122,
+    "url": "https://local.vons.com/ca/cheviot-hills/9860-national-blvd.html",
+    "capturedAt": "2026-10-29T01:48:38.224Z",
+    "address": {
+      "line1": "9860 National Blvd",
+      "city": "Cheviot Hills",
+      "state": "CA",
+      "zipcode": "90034"
+    },
+    "decodedSha256": "ce3b7679661390f9a8fea0bbae09b2d7d01822705974c481b94193b6cdf3eeba"
+  },
+  {
+    "merchantId": "387",
+    "lat": 34.108811621297356,
+    "lng": -118.28794921349183,
+    "url": "https://local.albertsons.com/ca/los-angeles/2035-hillhurst-ave.html",
+    "capturedAt": "2026-10-29T01:48:38.266Z",
+    "address": {
+      "line1": "2035 Hillhurst Ave",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90027"
+    },
+    "decodedSha256": "4d694d856cf14284d1c6a3346d2446f9d439ab55f51519ffb4d0eab042e3a70d"
+  },
+  {
+    "merchantId": "191",
+    "lat": 33.847741733326885,
+    "lng": -118.13431718946731,
+    "url": "https://local.albertsons.com/ca/lakewood/5015-del-amo-blvd.html",
+    "capturedAt": "2026-10-29T01:48:38.740Z",
+    "address": {
+      "line1": "5015 Del Amo Blvd",
+      "city": "Lakewood",
+      "state": "CA",
+      "zipcode": "90712"
+    },
+    "decodedSha256": "a841aecb249658b589db28fb22cf283ffa117bb8ba7c9e35c5b753ebba605f60"
+  },
+  {
+    "merchantId": "2270",
+    "lat": 33.9991537,
+    "lng": -118.4289707,
+    "url": "https://local.vons.com/ca/los-angeles/4030-centinela-ave.html",
+    "capturedAt": "2026-10-29T01:48:38.828Z",
+    "address": {
+      "line1": "4030 Centinela Ave",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipcode": "90066"
+    },
+    "decodedSha256": "5422058530f3b96dcdf17061cce0adbe01539dae3026d498bbfb9d8c711a6fd6"
+  },
+  {
+    "merchantId": "2784",
+    "lat": 32.74937798470182,
+    "lng": -117.16821363491822,
+    "url": "https://local.pavilions.com/ca/san-diego/515-w-washington-st.html",
+    "capturedAt": "2026-10-29T01:48:39.247Z",
+    "address": {
+      "line1": "515 W Washington St",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92103"
+    },
+    "decodedSha256": "70d5e73e59c5118390b93b312ae9ae0a3cb6a0a66e450edb56abd1d295374b3a"
+  },
+  {
+    "merchantId": "745",
+    "lat": 32.712098774794775,
+    "lng": -117.15144851807054,
+    "url": "https://local.albertsons.com/ca/san-diego/655-14th-st.html",
+    "capturedAt": "2026-10-29T01:48:39.278Z",
+    "address": {
+      "line1": "655 14th St",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92101"
+    },
+    "decodedSha256": "8b8cfe682bda084de2491c38b23a2c908a5f7e8811035f78a708cc1b3c63bd32"
+  },
+  {
+    "merchantId": "2355",
+    "lat": 32.75307813859527,
+    "lng": -117.12956023785182,
+    "url": "https://local.vons.com/ca/san-diego/4145-30th-st.html",
+    "capturedAt": "2026-10-29T01:48:39.689Z",
+    "address": {
+      "line1": "4145 30th St",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92104"
+    },
+    "decodedSha256": "d664715223ab9d750134d72e20ad5b1379bec00d66f76baab63eefcbd2c22cb0"
+  },
+  {
+    "merchantId": "2364",
+    "lat": 32.6878233,
+    "lng": -117.1792469,
+    "url": "https://local.vons.com/ca/coronado/868-orange-ave.html",
+    "capturedAt": "2026-10-29T01:48:39.737Z",
+    "address": {
+      "line1": "868 Orange Ave",
+      "city": "Coronado",
+      "state": "CA",
+      "zipcode": "92118"
+    },
+    "decodedSha256": "6bd9f86146ef325a7981b20b83b65a0db7a101be0a0d052be410e22891117a2e"
+  },
+  {
+    "merchantId": "2735",
+    "lat": 32.736937,
+    "lng": -117.216228,
+    "url": "https://local.vons.com/ca/san-diego/2495-truxtun-rd-bldg-28.html",
+    "capturedAt": "2026-10-29T01:48:40.149Z",
+    "address": {
+      "line1": "2495 Truxtun Rd Bldg 28",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92106"
+    },
+    "decodedSha256": "3b11cffc4934ccb51fff9ddba149cd8305d62f17cbbb8c835f093d46d35ba2d9"
+  },
+  {
+    "merchantId": "2053",
+    "lat": 32.75119938168064,
+    "lng": -117.21751975767212,
+    "url": "https://local.vons.com/ca/san-diego/3645-midway-dr.html",
+    "capturedAt": "2026-10-29T01:48:40.198Z",
+    "address": {
+      "line1": "3645 Midway Dr",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92110"
+    },
+    "decodedSha256": "f7d99b3bb7af07d94543d125c5906e075f349dc239d62c0d6e1fa6fb2d4d2a41"
+  },
+  {
+    "merchantId": "2359",
+    "lat": 32.792379469464514,
+    "lng": -117.09645330905914,
+    "url": "https://local.vons.com/ca/san-diego/6555-mission-gorge-rd.html",
+    "capturedAt": "2026-10-29T01:48:40.610Z",
+    "address": {
+      "line1": "6555 Mission Gorge Rd",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92120"
+    },
+    "decodedSha256": "9b567695a3f3f033cbd23d558d129be06009df2af000023df2dc4870c931f3fb"
+  },
+  {
+    "merchantId": "2358",
+    "lat": 32.76414847834068,
+    "lng": -117.11460248397088,
+    "url": "https://local.vons.com/ca/san-diego/3610-adams-ave.html",
+    "capturedAt": "2026-10-29T01:48:40.624Z",
+    "address": {
+      "line1": "3610 Adams Ave",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92116"
+    },
+    "decodedSha256": "577a9fa4d00e035f3168e680f2a9d263f96c84e02d7cccf7115cd0fcd2843c25"
+  },
+  {
+    "merchantId": "2118",
+    "lat": 32.80716160546506,
+    "lng": -117.11651924973755,
+    "url": "https://local.vons.com/ca/san-diego/3550-murphy-canyon-dr.html",
+    "capturedAt": "2026-10-29T01:48:41.040Z",
+    "address": {
+      "line1": "3550 Murphy Canyon Dr",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92123"
+    },
+    "decodedSha256": "0bdb5c0d66bc1fce80c20964d431247ae063cfa9a10b5096ae946050c654b7af"
+  },
+  {
+    "merchantId": "2352",
+    "lat": 32.760954532745004,
+    "lng": -117.06496381349181,
+    "url": "https://local.vons.com/ca/san-diego/6155-el-cajon-blvd.html",
+    "capturedAt": "2026-10-29T01:48:41.049Z",
+    "address": {
+      "line1": "6155 El Cajon Blvd",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92115"
+    },
+    "decodedSha256": "d701f71bc2292edc7e7ccc0388025ea12dc691c08e3f6c59777d03306d68e2d0"
+  },
+  {
+    "merchantId": "2116",
+    "lat": 32.80199119482244,
+    "lng": -117.2389845626185,
+    "url": "https://local.vons.com/ca/san-diego/1702-garnet-ave.html",
+    "capturedAt": "2026-10-29T01:48:41.483Z",
+    "address": {
+      "line1": "1702 Garnet Ave",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92109"
+    },
+    "decodedSha256": "9bdb8387628a7823bb2f1bf5d4a90f6858bb46874d295567d0baa41b9ad4bb24"
+  },
+  {
+    "merchantId": "2040",
+    "lat": 32.8183100353296,
+    "lng": -117.1791324019432,
+    "url": "https://local.vons.com/ca/san-diego/5555-balboa-ave.html",
+    "capturedAt": "2026-10-29T01:48:41.584Z",
+    "address": {
+      "line1": "5555 Balboa Ave",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92111"
+    },
+    "decodedSha256": "e247070e65b9c6541fdc61bfe5718fccab6882dbe9374fe4205d0ee63f39d56c"
+  },
+  {
+    "merchantId": "2120",
+    "lat": 32.83014096585483,
+    "lng": -117.20503374002874,
+    "url": "https://local.vons.com/ca/san-diego/4725-clairemont-dr.html",
+    "capturedAt": "2026-10-29T01:48:41.989Z",
+    "address": {
+      "line1": "4725 Clairemont Dr",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92117"
+    },
+    "decodedSha256": "49a20435bca34f96e19a563aee5e2661d5d894bf44350c23bee01ac5e3c9c13f"
+  },
+  {
+    "merchantId": "707",
+    "lat": 32.74381203225121,
+    "lng": -117.04535186290735,
+    "url": "https://local.albertsons.com/ca/lemon-grove/7090-broadway.html",
+    "capturedAt": "2026-10-29T01:48:41.991Z",
+    "address": {
+      "line1": "7090 Broadway",
+      "city": "Lemon Grove",
+      "state": "CA",
+      "zipcode": "91945"
+    },
+    "decodedSha256": "8dc4905041854f4210691983b5fa3c17f50b96215e7acfad83e7018e26424acc"
+  },
+  {
+    "merchantId": "3327",
+    "lat": 32.78242861921922,
+    "lng": -117.0323933065265,
+    "url": "https://local.vons.com/ca/la-mesa/5630-lake-murray-blvd.html",
+    "capturedAt": "2026-10-29T01:48:42.397Z",
+    "address": {
+      "line1": "5630 Lake Murray Blvd",
+      "city": "La Mesa",
+      "state": "CA",
+      "zipcode": "91942"
+    },
+    "decodedSha256": "cdcfa254f1924e3b5a9be7039568d55c82088f48a5cd2548a42da9c500a26465"
+  },
+  {
+    "merchantId": "2134",
+    "lat": 32.8305243056322,
+    "lng": -117.10416935764897,
+    "url": "https://local.vons.com/ca/san-diego/10460-clairemont-mesa-blvd.html",
+    "capturedAt": "2026-10-29T01:48:42.405Z",
+    "address": {
+      "line1": "10460 Clairemont Mesa Blvd",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92124"
+    },
+    "decodedSha256": "512a415ec5996361686fc856d1336997e011fab9e0b8c843cb9814c574adb90c"
+  },
+  {
+    "merchantId": "2093",
+    "lat": 32.76542204879565,
+    "lng": -117.0238338486979,
+    "url": "https://local.vons.com/ca/la-mesa/8011-university-ave.html",
+    "capturedAt": "2026-10-29T01:48:42.808Z",
+    "address": {
+      "line1": "8011 University Ave",
+      "city": "La Mesa",
+      "state": "CA",
+      "zipcode": "91942"
+    },
+    "decodedSha256": "b6417558d5bcc4095948b22923c6c61d4bbf9d19e0a69c1b7abf55aa5b92eb79"
+  },
+  {
+    "merchantId": "757",
+    "lat": 32.62645452119966,
+    "lng": -117.07584160572878,
+    "url": "https://local.albertsons.com/ca/chula-vista/720-3rd-ave.html",
+    "capturedAt": "2026-10-29T01:48:42.825Z",
+    "address": {
+      "line1": "720 3rd Ave",
+      "city": "Chula Vista",
+      "state": "CA",
+      "zipcode": "91910"
+    },
+    "decodedSha256": "7c72a6e00ae64662b4a81ae4d7f54f0b4c24388b6c61dacd7665bdeee1a2ee86"
+  },
+  {
+    "merchantId": "2130",
+    "lat": 32.65998936146216,
+    "lng": -117.03232169151306,
+    "url": "https://local.vons.com/ca/bonita/4404-bonita-rd.html",
+    "capturedAt": "2026-10-29T01:48:43.281Z",
+    "address": {
+      "line1": "4404 Bonita Rd",
+      "city": "Bonita",
+      "state": "CA",
+      "zipcode": "91902"
+    },
+    "decodedSha256": "d75b102c9fe82f96af0fcab2e95e6529be47f69397e6e001faa8c43a6ba46776"
+  },
+  {
+    "merchantId": "2370",
+    "lat": 32.8535302948702,
+    "lng": -117.20311939716339,
+    "url": "https://local.vons.com/ca/san-diego/3993-governor-dr.html",
+    "capturedAt": "2026-10-29T01:48:43.318Z",
+    "address": {
+      "line1": "3993 Governor Dr",
+      "city": "San Diego",
+      "state": "CA",
+      "zipcode": "92122"
+    },
+    "decodedSha256": "bab0167907a38114502849e191a110d7e4a402d618d13816fe7f6e4c5de26c56"
+  },
+  {
+    "merchantId": "2242",
+    "lat": 38.57163581292695,
+    "lng": -121.46461501719666,
+    "url": "https://local.safeway.com/safeway/ca/sacramento/1025-alhambra-blvd.html",
+    "capturedAt": "2026-10-29T01:48:43.807Z",
+    "address": {
+      "line1": "1025 Alhambra Blvd",
+      "city": "Sacramento",
+      "state": "CA",
+      "zipcode": "95816"
+    },
+    "decodedSha256": "3274230653efba5aa2403a931c7432c26dc1112e960b5329bd44bd51d8e48be2"
+  },
+  {
+    "merchantId": "2684",
+    "lat": 38.56795253612675,
+    "lng": -121.48611903190613,
+    "url": "https://local.safeway.com/safeway/ca/sacramento/1814-19th-st.html",
+    "capturedAt": "2026-10-29T01:48:43.828Z",
+    "address": {
+      "line1": "1814 19th St",
+      "city": "Sacramento",
+      "state": "CA",
+      "zipcode": "95811"
+    },
+    "decodedSha256": "56aa78a293a8a5e79117df1ea9905d496c9013c84aba3c5d232a7f74ce0dd56c"
+  },
+  {
+    "merchantId": "3013",
+    "lat": 38.540703893499,
+    "lng": -121.48376364973755,
+    "url": "https://local.safeway.com/safeway/ca/sacramento/3680-crocker-dr.html",
+    "capturedAt": "2026-10-29T01:48:44.256Z",
+    "address": {
+      "line1": "3680 Crocker Dr",
+      "city": "Sacramento",
+      "state": "CA",
+      "zipcode": "95818"
+    },
+    "decodedSha256": "407eee2d0bb6173d522d3bba17b5601be24230b712733fa2436e76eac90fff65"
+  },
+  {
+    "merchantId": "190",
+    "lat": 38.57329599713887,
+    "lng": -121.41322110945566,
+    "url": "https://local.safeway.com/safeway/ca/sacramento/424-howe-ave.html",
+    "capturedAt": "2026-10-29T01:48:44.516Z",
+    "address": {
+      "line1": "424 Howe Ave",
+      "city": "Sacramento",
+      "state": "CA",
+      "zipcode": "95825"
+    },
+    "decodedSha256": "3b55c3803afc6ffdbc1f535a56971410cdb70e91e4c85e10132b55876d37d50d"
+  },
+  {
+    "merchantId": "2697",
+    "lat": 38.65757433094581,
+    "lng": -121.52465164661407,
+    "url": "https://local.safeway.com/safeway/ca/sacramento/2851-del-paso-rd.html",
+    "capturedAt": "2026-10-29T01:48:44.933Z",
+    "address": {
+      "line1": "2851 Del Paso Rd",
+      "city": "Sacramento",
+      "state": "CA",
+      "zipcode": "95835"
+    },
+    "decodedSha256": "6208c022c85e4573d53d11bfd69245de36be84a5963c04d7302fbf021d3e57ef"
+  },
+  {
+    "merchantId": "1530",
+    "lat": 38.59443263677919,
+    "lng": -121.38662920555726,
+    "url": "https://local.safeway.com/safeway/ca/sacramento/3320-arden-way.html",
+    "capturedAt": "2026-10-29T01:48:44.949Z",
+    "address": {
+      "line1": "3320 Arden Way",
+      "city": "Sacramento",
+      "state": "CA",
+      "zipcode": "95825"
+    },
+    "decodedSha256": "91bfed386a6fb82529d7283b65aaa8be6abf0ee83da29b13b076b99f689d435d"
+  },
+  {
+    "merchantId": "1560",
+    "lat": 38.63810941926473,
+    "lng": -121.32616581489066,
+    "url": "https://local.safeway.com/safeway/ca/carmichael/4040-manzanita-ave.html",
+    "capturedAt": "2026-10-29T01:48:45.375Z",
+    "address": {
+      "line1": "4040 Manzanita Ave",
+      "city": "Carmichael",
+      "state": "CA",
+      "zipcode": "95608"
+    },
+    "decodedSha256": "9bab8acb4044a0a9181d601f2dd53fd933d325f8ef477a55e1e256515fd1e8af"
+  },
+  {
+    "merchantId": "1746",
+    "lat": 38.59547092795852,
+    "lng": -121.29334169632784,
+    "url": "https://local.safeway.com/safeway/ca/rancho-cordova/10635-folsom-blvd.html",
+    "capturedAt": "2026-10-29T01:48:45.424Z",
+    "address": {
+      "line1": "10635 Folsom Blvd",
+      "city": "Rancho Cordova",
+      "state": "CA",
+      "zipcode": "95670"
+    },
+    "decodedSha256": "1f34b37f865ef407bc91b4a4d126d322d76457452a0ec1616921d8e2e3e1c0ec"
+  },
+  {
+    "merchantId": "1289",
+    "lat": 38.453387218618744,
+    "lng": -121.36994854368822,
+    "url": "https://local.safeway.com/safeway/ca/sacramento/8377-elk-grove-florin-rd.html",
+    "capturedAt": "2026-10-29T01:48:45.849Z",
+    "address": {
+      "line1": "8377 Elk Grove Florin Rd",
+      "city": "Sacramento",
+      "state": "CA",
+      "zipcode": "95829"
+    },
+    "decodedSha256": "9f09acbd4c0e6a6621f79563618e5bb0921028a4a9f29fa3a67a63b5b661b6dc"
+  },
+  {
+    "merchantId": "2263",
+    "lat": 38.68650216765622,
+    "lng": -121.3394129276275,
+    "url": "https://local.safeway.com/safeway/ca/sacramento/5345-elkhorn-blvd.html",
+    "capturedAt": "2026-10-29T01:48:45.884Z",
+    "address": {
+      "line1": "5345 Elkhorn Blvd",
+      "city": "Sacramento",
+      "state": "CA",
+      "zipcode": "95842"
+    },
+    "decodedSha256": "1e249640ffb896ea1b3076107e16aaf378d213c8d29a43985be44d2c8cc4451e"
+  },
+  {
+    "merchantId": "1647",
+    "lat": 38.42428555407852,
+    "lng": -121.44653146321161,
+    "url": "https://local.safeway.com/safeway/ca/elk-grove/5021-laguna-blvd.html",
+    "capturedAt": "2026-10-29T01:48:46.299Z",
+    "address": {
+      "line1": "5021 Laguna Blvd",
+      "city": "Elk Grove",
+      "state": "CA",
+      "zipcode": "95758"
+    },
+    "decodedSha256": "87fc00c8858dc16aae5167a155e5f67f4559ae07294e7a440b07b814a6fa5349"
+  },
+  {
+    "merchantId": "1895",
+    "lat": 38.6651672,
+    "lng": -121.3071786,
+    "url": "https://local.safeway.com/safeway/ca/fair-oaks/5450-dewey-dr.html",
+    "capturedAt": "2026-10-29T01:48:46.314Z",
+    "address": {
+      "line1": "5450 Dewey Dr",
+      "city": "Fair Oaks",
+      "state": "CA",
+      "zipcode": "95628"
+    },
+    "decodedSha256": "7a6e278d2e4b8ffbca88978addb404eaedc5617c17ba6659168357686daaefec"
+  },
+  {
+    "merchantId": "1561",
+    "lat": 38.5413699,
+    "lng": -121.725185,
+    "url": "https://local.safeway.com/safeway/ca/davis/2121-cowell-blvd.html",
+    "capturedAt": "2026-10-29T01:48:46.714Z",
+    "address": {
+      "line1": "2121 Cowell Blvd",
+      "city": "Davis",
+      "state": "CA",
+      "zipcode": "95618"
+    },
+    "decodedSha256": "1d7035783eec9d0dde8211ecbae9d2652d3974a39120244f2509dbf12cbbb23f"
+  },
+  {
+    "merchantId": "1531",
+    "lat": 38.679994737659726,
+    "lng": -121.29408895969391,
+    "url": "https://local.safeway.com/safeway/ca/citrus-heights/7301-greenback-ln.html",
+    "capturedAt": "2026-10-29T01:48:46.723Z",
+    "address": {
+      "line1": "7301 Greenback Ln",
+      "city": "Citrus Heights",
+      "state": "CA",
+      "zipcode": "95621"
+    },
+    "decodedSha256": "10270d4e2ea65af1d3d8d370ed22d24c53bfa087c9ec2cd777efcc79f17be090"
+  },
+  {
+    "merchantId": "94",
+    "lat": 38.3921761431065,
+    "lng": -121.41884361396463,
+    "url": "https://local.safeway.com/safeway/ca/elk-grove/10050-bruceville-rd.html",
+    "capturedAt": "2026-10-29T01:48:47.135Z",
+    "address": {
+      "line1": "10050 Bruceville Rd",
+      "city": "Elk Grove",
+      "state": "CA",
+      "zipcode": "95757"
+    },
+    "decodedSha256": "cf6bf9b8f96d039aa4bd7569d738f3dc7f3022c82a1a22020195acb1e61376b5"
+  },
+  {
+    "merchantId": "2695",
+    "lat": 38.767603136181776,
+    "lng": -121.35737224346445,
+    "url": "https://local.safeway.com/safeway/ca/roseville/1770-pleasant-grove-blvd.html",
+    "capturedAt": "2026-10-29T01:48:47.153Z",
+    "address": {
+      "line1": "1770 Pleasant Grove Blvd",
+      "city": "Roseville",
+      "state": "CA",
+      "zipcode": "95747"
+    },
+    "decodedSha256": "2183116158cbb2242ee4c51666c987338abf3cc16329cda990e277d094751672"
+  },
+  {
+    "merchantId": "1846",
+    "lat": 38.665356183796696,
+    "lng": -121.22407938095093,
+    "url": "https://local.safeway.com/safeway/ca/fair-oaks/8925-madison-ave.html",
+    "capturedAt": "2026-10-29T01:48:47.566Z",
+    "address": {
+      "line1": "8925 Madison Ave",
+      "city": "Fair Oaks",
+      "state": "CA",
+      "zipcode": "95628"
+    },
+    "decodedSha256": "9cb23ade9bd5c6aabd7a10c02176b8b7b1190223228b96e1a53edde30bbff2f4"
+  },
+  {
+    "merchantId": "1205",
+    "lat": 38.562022458074374,
+    "lng": -121.76647827798661,
+    "url": "https://local.safeway.com/safeway/ca/davis/1451-w-covell-blvd.html",
+    "capturedAt": "2026-10-29T01:48:47.581Z",
+    "address": {
+      "line1": "1451 W Covell Blvd",
+      "city": "Davis",
+      "state": "CA",
+      "zipcode": "95616"
+    },
+    "decodedSha256": "1a59c053f31d70bc81c7d5ff3ae63463f469cd610fcf00a16fc5ac5de0ea96d7"
+  },
+  {
+    "merchantId": "2620",
+    "lat": 38.79406974092022,
+    "lng": -121.33065016600085,
+    "url": "https://local.safeway.com/safeway/ca/roseville/9045-woodcreek-oaks-blvd.html",
+    "capturedAt": "2026-10-29T01:48:47.981Z",
+    "address": {
+      "line1": "9045 Woodcreek Oaks Blvd",
+      "city": "Roseville",
+      "state": "CA",
+      "zipcode": "95747"
+    },
+    "decodedSha256": "aa296598dd866674c03137ecbd0fe112f3f844dad1aac3615ffa148b67e6bf94"
+  },
+  {
+    "merchantId": "1899",
+    "lat": 38.731030559204754,
+    "lng": -121.27134326137697,
+    "url": "https://local.safeway.com/safeway/ca/roseville/989-sunrise-ave.html",
+    "capturedAt": "2026-10-29T01:48:47.995Z",
+    "address": {
+      "line1": "989 Sunrise Ave",
+      "city": "Roseville",
+      "state": "CA",
+      "zipcode": "95661"
+    },
+    "decodedSha256": "5b96a485485d5307477e647b382141d13c021f3a1d4c50ec5b03013178b1e690"
+  }
+]

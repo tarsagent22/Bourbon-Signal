@@ -7,7 +7,8 @@ import test from 'node:test';
 import { collectCostco } from '../src/collectors/costco.mjs';
 import { isActiveCustomerStateRow } from '../src/export-site-contract.mjs';
 import { ALL_STATE_SOURCES, CUSTOMER_ACTIVE_STATE_IDS, STATE_SOURCES } from '../src/state-sources.mjs';
-import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
+import { STATE_LIFECYCLE_CONFIG,lifecycleAllowsInventoryAlert,lifecycleAllowsWatchAlert } from '../src/state-lifecycle.mjs';
+import { validateExpansionLifecycle } from '../src/reliability-policy.mjs';
 
 const COSTCO_RESEARCH_STATES = ['MI', 'MN', 'MO', 'WA', 'WI'];
 
@@ -19,29 +20,40 @@ const bible = {
   },
 };
 
-test('five Costco-only states are honest research-only blocked lifecycle entries with retained research configuration', () => {
+test('Costco research stays blocked unless a distinct retailer integration passes the complete promotion contract', () => {
   const active = new Set(STATE_LIFECYCLE_CONFIG.activeStates);
   const grandfathered = new Set(STATE_LIFECYCLE_CONFIG.reliabilityPolicy.grandfatheredActiveStates);
   const runtimeStates = new Set(STATE_SOURCES.map((source) => source.id));
 
   for (const state of COSTCO_RESEARCH_STATES) {
     const lifecycle = STATE_LIFECYCLE_CONFIG.states[state];
+    const research = ALL_STATE_SOURCES.find((source) => source.id === state);
+    assert.ok(research, `${state} source configuration must be retained`);
+    assert.ok(research.sources.some((source) => source.kind === 'costco'));
+    assert.equal(grandfathered.has(state), false, `${state} must not bypass the promotion contract`);
+    if(active.has(state)){
+      assert.notEqual(research.strategy,'costco_warehouse_inventory_watch',`${state} needs separately reviewed retailer inventory`);
+      assert.ok(research.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
+      assert.equal(lifecycle.publicStatus,'active');assert.equal(runtimeStates.has(state),true);
+      assert.deepEqual(validateExpansionLifecycle(STATE_LIFECYCLE_CONFIG),{ok:true,failures:[]});
+      continue;
+    }
     assert.equal(active.has(state), false, `${state} must not be customer-active without recurring observations`);
     assert.equal(CUSTOMER_ACTIVE_STATE_IDS.has(state), false);
     assert.equal(grandfathered.has(state), false, `${state} must not retain grandfathered-active status`);
     assert.equal(lifecycle.publicStatus, 'research_only');
-    assert.equal(lifecycle.lifecycle, 'blocked_costco_inventory_research');
-    assert.equal(lifecycle.coverageTier, 'blocked');
-    assert.equal(lifecycle.inventoryAlertable, false);
-    assert.equal(lifecycle.watchAlertable, false);
+    if(research.strategy==='costco_warehouse_inventory_watch'){
+      assert.equal(lifecycle.lifecycle,'blocked_costco_inventory_research');assert.equal(lifecycle.coverageTier,'blocked');
+      assert.equal(lifecycle.inventoryAlertable,false);assert.equal(lifecycle.watchAlertable,false);
+    }else{
+      assert.match(research.strategy,/inventory/);
+      assert.ok(research.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
+    }
+    assert.equal(lifecycleAllowsInventoryAlert(state),false);assert.equal(lifecycleAllowsWatchAlert(state),false);
     assert.equal(lifecycle.shadowEligible, true);
     assert.match(lifecycle.customerSummary, /no recurring|research-only/i);
     assert.equal(runtimeStates.has(state), false, `${state} must not run in the customer-active state set`);
 
-    const research = ALL_STATE_SOURCES.find((source) => source.id === state);
-    assert.ok(research, `${state} research source configuration must be retained`);
-    assert.equal(research.strategy, 'costco_warehouse_inventory_watch');
-    assert.ok(research.sources.some((source) => source.kind === 'costco'));
   }
 });
 

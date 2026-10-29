@@ -1,0 +1,185 @@
+{
+  "capturedAt": "2026-10-29T01:46:49.212Z",
+  "sourceUrl": "https://barrelblends.com/shop/?ch-query=barrel%20proof",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "6226405682c4ff6dfe6d578a",
+        "name": "Barrel Blends Bridgeton",
+        "address": {
+          "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.425222,
+              38.750733
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "65e3a2aa392dc12bf9e2969a",
+        "name": "Barrel Blends Affton",
+        "address": {
+          "full_address": "9325 Gravois Rd, Affton, MO 63123, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.319521,
+              38.554212
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "65e3a3add98c982bad17d305",
+        "name": "Barrel Blends Valley Park",
+        "address": {
+          "full_address": "13645 Big Bend Rd Suite 103, Kirkwood, MO 63122, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.47808429999999,
+              38.5682604
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "66e1fb4f01034f2962f28403",
+        "name": "Barrel Blends - South Side",
+        "address": {
+          "full_address": "4911 Hampton Ave, St. Louis, MO 63109, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.2927137,
+              38.5865157
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "6226405682c4ff6dfe6d578a",
+          "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "6226405682c4ff6dfe6d578a",
+              "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+              "product_url": "https://barrelblends.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 5,
+              "price": 59.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "59653a92355d0935c14d7491",
+      "name": "1792 Bourbon Full Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "6226405682c4ff6dfe6d578a",
+          "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "59653a92355d0935c14d7491",
+              "option_id": "dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+              "merchant_id": "6226405682c4ff6dfe6d578a",
+              "full_address": "12133 St Charles Rock Rd, Bridgeton, MO 63044, USA",
+              "product_url": "https://barrelblends.com/shop/product/1792-bourbon-full-proof/59653a92355d0935c14d7491?option-id=dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+              "quantity": 9,
+              "price": 49.99,
+              "option_display_data": {
+                "name": "1792 Bourbon Full Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "1792"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "brand": "1792"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

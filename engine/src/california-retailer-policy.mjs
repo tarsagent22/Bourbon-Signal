@@ -1,4 +1,5 @@
 import { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES } from './collectors/california-san-diego-surfaces.mjs';
+import { isGroceryExpansionSignalIdentity, isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
 
 const TRUSTED_SOURCES = new Map(CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.map((source) => [source.id, source]));
 
@@ -25,6 +26,7 @@ function sourceForSignal(signal) {
 }
 
 export function isCaliforniaRetailerSignalIdentity(signal) {
+  if (signal?.state === 'CA' && isGroceryExpansionSignalIdentity(signal)) return true;
   const source = sourceForSignal(signal);
   if (!source || stateCode(signal) !== 'CA') return false;
   if (hostname(signal?.sourceUrl) !== source.host) return false;
@@ -37,6 +39,7 @@ export function isCaliforniaRetailerSignalIdentity(signal) {
 }
 
 export function isCaliforniaRetailerInventory(signal) {
+  if (signal?.state === 'CA' && isGroceryExpansionInventory(signal)) return true;
   const source = sourceForSignal(signal);
   if (!source?.inventoryEligible || !isCaliforniaRetailerSignalIdentity(signal)) return false;
   if (eventType(signal) !== 'retailer_store_inventory_result') return false;

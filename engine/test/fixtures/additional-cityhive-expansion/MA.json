@@ -1,0 +1,83 @@
+{
+  "state": "MA",
+  "merchantId": "5f52a8713df8c66117da02b2",
+  "capturedAt": "2026-10-29T02:04:44.499Z",
+  "sourceUrl": "https://tableandvine.com/shop/?ch-query=barrel%20proof&merchant-id=5f52a8713df8c66117da02b2",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "5f52a8713df8c66117da02b2",
+        "name": "Table & Vine",
+        "address": {
+          "full_address": "1119 Riverdale St, West Springfield, MA 01089, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -72.6242642,
+              42.1340182
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5f52a8713df8c66117da02b2",
+          "full_address": "1119 Riverdale St, West Springfield, MA 01089, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "5f52a8713df8c66117da02b2",
+              "full_address": "1119 Riverdale St, West Springfield, MA 01089, USA",
+              "product_url": "https://tableandvine.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 42,
+              "price": 84.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

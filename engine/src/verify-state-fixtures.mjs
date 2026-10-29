@@ -4,6 +4,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { BourbonBible } from './core/bible.mjs';
 import { executeMassachusettsResearchFixtures } from './massachusetts-research-fixtures.mjs';
+import { executeCentralCityHiveFixtures } from './central-cityhive-fixtures.mjs';
+import { CENTRAL_CITYHIVE_STATE_IDS } from './central-cityhive-policy.mjs';
 import { ALL_STATE_SOURCES } from './state-sources.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { transformUtahAggregateRow } from './collectors/precision-probes.mjs';
@@ -479,6 +481,7 @@ export async function executeStateFixtures(payload, { bibleFile = path.resolve('
   const failures = [];
   const bible = await BourbonBible.load(bibleFile);
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
+  if(CENTRAL_CITYHIVE_STATE_IDS.has(payload.state))return executeCentralCityHiveFixtures(payload,{bible});
   const registeredHosts = registeredHostsForState(payload.state);
   for (const item of payload.cases || []) {
     const actual = evaluateCase(item, { state: payload.state, bible, registeredHosts, candidateActive });

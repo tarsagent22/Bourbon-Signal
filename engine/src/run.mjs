@@ -64,6 +64,7 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // Nevada's bounded grocery and independent retailer pass must finish before
   // its parent expires, including a slow storefront sibling.
   NV: Number(process.env.BOURBON_SIGNAL_NV_STATE_TIMEOUT_MS || 720_000),
+  CA: Number(process.env.BOURBON_SIGNAL_CA_STATE_TIMEOUT_MS || 720_000),
   // NC board intelligence + county inventory probes can cross the generic
   // timeout during normal successful runs. Give it the same scheduled-run
   // budget as other broad inventory states so stale fallback only indicates a

@@ -1,0 +1,195 @@
+{
+  "capturedAt": "2026-10-29T01:46:50.149Z",
+  "sourceUrl": "https://shoprandalls.com/shop/?ch-query=barrel%20proof",
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "5e7abd775c462e6bb92453ec",
+        "name": "Randall's - Ballwin/Manchester",
+        "address": {
+          "full_address": "14201 Manchester Rd, Ballwin, MO 63011, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.50178,
+              38.5939065
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "5e7abcdaf6e97c7f51638b96",
+        "name": "Randall's - Old Halls Ferry Rd, St. Louis",
+        "address": {
+          "full_address": "11000 Old Halls Ferry Rd, St. Louis, MO 63136, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.26029799999999,
+              38.7717846
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "5e7abc5f5c462e6bc1248e6e",
+        "name": "Randall's - Fairview Heights",
+        "address": {
+          "full_address": "10800 Lincoln Trail, Fairview Heights, IL 62208, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -89.99190569999999,
+              38.5924162
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "5e6d8e2a90ed122417f9338a",
+        "name": "Randall's - Jefferson Ave, St. Louis",
+        "address": {
+          "full_address": "1910 S Jefferson Ave, St. Louis, MO 63104, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.2203512,
+              38.6123531
+            ]
+          }
+        }
+      }
+    },
+    {
+      "merchant": {
+        "id": "615fa307ff6375479c112c44",
+        "name": "Randall's - Southwest Ave, St. Louis",
+        "address": {
+          "full_address": "4925 Southwest Ave, St. Louis, MO 63110, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -90.2686798,
+              38.6129325
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "merchant_id": "5e7abd775c462e6bb92453ec",
+          "full_address": "14201 Manchester Rd, Ballwin, MO 63011, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "merchant_id": "5e7abd775c462e6bb92453ec",
+              "full_address": "14201 Manchester Rd, Ballwin, MO 63011, USA",
+              "product_url": "https://shoprandalls.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 5,
+              "price": 49.99,
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "59653a92355d0935c14d7491",
+      "name": "1792 Bourbon Full Proof",
+      "size": {},
+      "merchants": [
+        {
+          "merchant_id": "5e7abd775c462e6bb92453ec",
+          "full_address": "14201 Manchester Rd, Ballwin, MO 63011, USA",
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "59653a92355d0935c14d7491",
+              "option_id": "6487dd395b842be9d4c3f438683ab07c63fad645079a3820d050a27975697532",
+              "merchant_id": "5e7abd775c462e6bb92453ec",
+              "full_address": "14201 Manchester Rd, Ballwin, MO 63011, USA",
+              "product_url": "https://shoprandalls.com/shop/product/1792-bourbon-full-proof/59653a92355d0935c14d7491?option-id=6487dd395b842be9d4c3f438683ab07c63fad645079a3820d050a27975697532",
+              "quantity": 5,
+              "price": 49.99,
+              "option_display_data": {
+                "name": "1792 Bourbon Full Proof",
+                "size": null,
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "brands": [
+                    "1792"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "brand": "1792"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

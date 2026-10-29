@@ -1,5 +1,6 @@
 import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
 import { collectMassachusettsJulios } from './collectors/massachusetts-retailer-collector.mjs';
+import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, collectCityHiveResearchReport } from './research-cityhive-runtime.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -12,15 +13,20 @@ const MASSACHUSETTS = Object.freeze({
 });
 
 export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
-  return shadowMode && state === 'MA' ? MASSACHUSETTS : null;
+  return shadowMode ? state === 'MA' ? MASSACHUSETTS : cityHiveResearchSourceForState(state) : null;
 }
 
 export function withResearchLifecycle(production) {
   if (!Array.isArray(production?.activeStates) || !production?.states) throw new Error('A production lifecycle is required.');
   if (production.activeStates.includes('MA') || production.states.MA) throw new Error('MA production/research registration requires reconciliation.');
+  const additions=cityHiveResearchLifecycleEntries();
+  for(const state of Object.keys(additions))if(production.activeStates.includes(state)||production.states[state]?.publicStatus==='active') {
+    delete additions[state];
+  }
   return {
     ...production, activeStates: [...production.activeStates], states: {
       ...production.states,
+      ...additions,
       MA: { customerLabel: 'Massachusetts', sourceLabel: 'Massachusetts retailer research',
         publicStatus: 'research_only', shadowEligible: true, lifecycle: 'retailer_inventory_research',
         coverageTier: 'blocked', refinementLevel: 'store', inventoryAlertable: false, watchAlertable: false },
@@ -29,6 +35,7 @@ export function withResearchLifecycle(production) {
 }
 
 export async function collectResearchStateReport(config, bible, options = {}) {
+  if (config && config === cityHiveResearchSourceForState(config.id)) return collectCityHiveResearchReport(config,bible,options);
   if (process.env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || config !== MASSACHUSETTS) {
     throw new Error('Research reports require the registered isolated shadow source.');
   }
