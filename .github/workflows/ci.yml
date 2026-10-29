@@ -64,6 +64,11 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/verify-promotion-provenance.mjs --state=UT --online
 
+      - name: Prepare historical CI fixture structure without collecting new states
+        run: |
+          node --test scripts/test-legacy-site-fixture-ci.mjs
+          node scripts/prepare-legacy-site-fixture-ci.mjs --ci-fixture-only
+
       - name: Build and verify
         run: npm run verify:ci
 
