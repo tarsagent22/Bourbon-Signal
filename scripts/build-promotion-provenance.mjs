@@ -38,6 +38,10 @@ const files = [
 // and public projection. Missing inputs must fail issuance, never be skipped.
 if (['WA','NM','WI','OK'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
+  'engine/src/collectors/north-carolina-intelligence.mjs',
+  'engine/src/collectors/optional-source-suspensions.mjs',
+  'engine/data/source-evidence/optional-suspensions-20261029/policy.json',
+  'engine/src/stale-signal-policy.mjs',
   'engine/src/confidence-policy.mjs',
   'engine/src/run.mjs',
   'engine/src/run-expansion-shadow.mjs',
