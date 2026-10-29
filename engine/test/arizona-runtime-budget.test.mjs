@@ -13,9 +13,9 @@ function budgets(overrides = {}) {
     globalThis.fetch = () => { throw new Error('Importing the runtime policy must not start collection'); };
     const { stateTimeoutMs } = await import(${JSON.stringify(runner)});
     const { legacyPrecisionRuntimeOptions } = await import(${JSON.stringify(precision)});
-    console.log(JSON.stringify({ parent: stateTimeoutMs({ id: 'AZ' }), child: legacyPrecisionRuntimeOptions('AZ', {}, {}).timeoutMs, ordinaryState: stateTimeoutMs({ id: 'AL' }) }));
+    console.log(JSON.stringify({ parent: stateTimeoutMs({ id: 'AZ' }), child: legacyPrecisionRuntimeOptions('AZ', {}, {}).timeoutMs, ordinaryState: stateTimeoutMs({ id: 'AL' }), nevadaParent: stateTimeoutMs({ id: 'NV' }), nevadaChild: legacyPrecisionRuntimeOptions('NV', {}, {}).timeoutMs }));
   `;
-  const env = { ...process.env, BOURBON_SIGNAL_STATE_TIMEOUT_MS: '', BOURBON_SIGNAL_AZ_STATE_TIMEOUT_MS: '', BOURBON_SIGNAL_AZ_PRECISION_TIMEOUT_MS: '', BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS: '', ...overrides };
+  const env = { ...process.env, BOURBON_SIGNAL_STATE_TIMEOUT_MS: '', BOURBON_SIGNAL_AZ_STATE_TIMEOUT_MS: '', BOURBON_SIGNAL_AZ_PRECISION_TIMEOUT_MS: '', BOURBON_SIGNAL_NV_STATE_TIMEOUT_MS: '', BOURBON_SIGNAL_NV_PRECISION_TIMEOUT_MS: '', BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS: '', ...overrides };
   const result = spawnSync(process.execPath, ['--input-type=module', '-e', program], { env, encoding: 'utf8', windowsHide: true, timeout: 10_000 });
   assert.equal(result.status, 0, result.stderr || result.error?.message);
   return JSON.parse(result.stdout);
@@ -32,6 +32,16 @@ test('an explicit Arizona parent budget is honored independently of the generic 
   const result = budgets({ BOURBON_SIGNAL_AZ_STATE_TIMEOUT_MS: '650000', BOURBON_SIGNAL_STATE_TIMEOUT_MS: '200000' });
   assert.equal(result.parent, 650_000);
   assert.equal(result.ordinaryState, 200_000);
+});
+
+test('Nevada grocery and storefront budget fits within its bounded parent watchdog', () => {
+  const result = budgets();
+  assert.equal(result.nevadaChild, 600_000);
+  assert.equal(result.nevadaParent, 720_000);
+  assert.ok(result.nevadaParent >= result.nevadaChild + 120_000);
+  const override = budgets({ BOURBON_SIGNAL_NV_STATE_TIMEOUT_MS: '650000' });
+  assert.equal(override.nevadaParent, 650_000);
+  assert.equal(override.nevadaChild, 600_000);
 });
 
 test('the import-safe runner still executes its CLI and rejects an unknown state before collection', t => {
