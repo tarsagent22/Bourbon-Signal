@@ -2,12 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { BourbonBible } from '../src/core/bible.mjs';
-import { nevadaXapiPremiseMatches, parseBoundNevadaXapiInventory, resolveNevadaXapiPremises } from '../src/collectors/nevada-xapi-runtime.mjs';
+import { nevadaXapiPremiseMatches, parseBoundNevadaXapiInventory, resolveNevadaXapiPremises, nevadaRetailerCohortKey, nevadaRetailerCacheMatchesCohort } from '../src/collectors/nevada-xapi-runtime.mjs';
 import { NEVADA_RETAILER_SOURCES } from '../src/collectors/nevada-retailer-surfaces.mjs';
 
 const fixture = JSON.parse(await readFile(new URL('./fixtures/nevada-expansion-20261028/xapi.json', import.meta.url)));
 const bible = new BourbonBible(fixture.records);
 const parse = products => parseBoundNevadaXapiInventory({response:{docs:products}},fixture.source,bible);
+
+test('fresh cache from an older or differently bound cohort cannot hide newly reviewed stores',()=>{
+  const sources=NEVADA_RETAILER_SOURCES;
+  assert.equal(nevadaRetailerCacheMatchesCohort({signals:[]},sources),false);
+  assert.equal(nevadaRetailerCacheMatchesCohort({cohortKey:nevadaRetailerCohortKey(sources.slice(0,7))},sources),false);
+  const cache={cohortKey:nevadaRetailerCohortKey(sources)};
+  assert.equal(nevadaRetailerCacheMatchesCohort(cache,sources),true);
+  const changed=sources.map(source=>({...source,store:{...source.store}}));
+  changed[0].store.address='999 Different Address';
+  assert.equal(nevadaRetailerCacheMatchesCohort(cache,changed),false);
+});
 
 test('captured Nevada identities admit available exact expressions and reject the conflicting Blantons proof', () => {
   const rows = parse(fixture.products);
