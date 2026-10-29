@@ -6,6 +6,7 @@ const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evide
 const nationwideBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nationwide-expansion-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const westernGroceryBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/western-grocery-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const centralProductionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/central-cityhive-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const njMiBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nj-mi-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -84,6 +85,8 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, groceryExpansionTierImport, '', `${name}: grocery tier import`);
     text = replaceUnique(text, centralCityHiveTierImport, '', `${name}: CityHive tier import`);
     text = replaceUnique(text, texasShopifyPickupTierImport, '', `${name}: TX exact pickup tier import`);
+    text = replaceUnique(text, "import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '', name+': NJ/MI on-site import');
+    text = replaceUnique(text, "    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '', name+': NJ/MI false-alert on-site proof');
     text = replaceUnique(text, centralProductionOnSiteImport, '', `${name}: Central on-site import`);
     text = replaceUnique(text, centralProductionOnSiteBoundary, '', `${name}: Central false-alert on-site proof`);
     text = replaceUnique(text, reviewedExpansionTierBoundary, arizonaMetroTierBoundary, `${name}: reviewed source tier proof`);
@@ -118,6 +121,8 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   for (const [key, entry] of Object.entries(centralProductionBaseline.files[name] || {})) {
     text = replaceUnique(text, entry.reviewed, entry.original, `${name}: Central inactive ${key}`);
   }
+  assert.equal(njMiBaseline.contractVersion,'bourbon-signal/nj-mi-production-shared-metadata-baseline@1');
+  for(const [key,entry] of Object.entries(njMiBaseline.files[name]||{}))text=replaceUnique(text,entry.reviewed,entry.original,name+': NJ/MI reviewed '+key);
   // Literal, single-occurrence reversals only. This is not a state-block
   // wildcard: activation, changed budgets or changed registration must fail.
   for (const [key, entry] of Object.entries(westernGroceryBaseline.files[name])) {

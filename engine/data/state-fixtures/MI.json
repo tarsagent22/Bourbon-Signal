@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "state": "MI",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "mi-reviewed-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 1
+      }
+    },
+    {
+      "id": "mi-unidentified",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mi-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mi-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mi-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "semantics": "binary_retailer_orderable_no_exact_count"
+      }
+    },
+    {
+      "id": "mi-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mi-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e",
+        "ageMinutes": 300
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "mi-foreign-source",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "mi-shadow-never-public",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e",
+        "shadowOnly": true
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 0,
+        "deliveryEligible": false,
+        "confidenceInventoryAllowed": false
+      }
+    },
+    {
+      "id": "mi-shipping-only",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "wine-garden:61425fe1c3063702b3ce0d4e",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    }
+  ]
+}

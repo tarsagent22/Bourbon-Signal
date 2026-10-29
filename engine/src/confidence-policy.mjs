@@ -1,3 +1,4 @@
+import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import {isGroceryExpansionInventory} from './grocery-xapi-policy.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { ncShipmentWatchEligible } from './nc-shipment-policy.mjs';
@@ -186,7 +187,7 @@ const COSTCO_WAREHOUSE_POLICY = {
 };
 
 function policyForSignal(signal, nowMs = Date.now()) {
-  if(isCentralCityHiveProductionOnSiteSignal(signal,{nowMs}))return{
+  if(isCentralCityHiveProductionOnSiteSignal(signal,{nowMs})||isNjMiProductionOnSiteSignal(signal,{nowMs}))return{
     maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:'Reviewed exact-store pickup availability; binary availability is not an exact shelf count. Verify before driving.',defaultCadence:'30m'};
   if(isCentralCityHiveRetailerEvent(signal)&&isCentralCityHiveInventory(signal,{nowMs})) return {
     maxAlertMode:'alert_retailer_store_inventory_caveat',

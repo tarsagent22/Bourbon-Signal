@@ -61,6 +61,7 @@ function signalSort(a, b) {
     .replace(groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary)
     .replace(westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary)
     .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '').replace(texasShopifyPickupTierImport, '')
+    .replace("import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '').replace("    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '')
     .replace(centralProductionOnSiteImport, '').replace(centralProductionOnSiteBoundary, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
@@ -224,6 +225,28 @@ test('WI/OK inactive metadata permits only exact store-level false-alert entries
       if(key!=='budgets')for(const replacement of [['"inventoryAlertable": false','"inventoryAlertable": true'],['"watchAlertable": false','"watchAlertable": true'],['"refinementLevel": "store"','"refinementLevel": "state"']])
         assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(reviewed,reviewed.replace(...replacement)))) ,/Central inactive .*exact historical verification hook/);
     }
+  }
+});
+
+test('NJ/MI historical reversal rejects activation, altered registration and notification-enabling mutations',async()=>{
+  const baseline=JSON.parse(await readFile(new URL('../engine/data/source-evidence/nj-mi-production-20261029/shared-metadata-baseline.json',import.meta.url),'utf8'));
+  for(const[name,entries]of Object.entries(baseline.files)){
+    const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+    for(const[key,{reviewed,original}]of Object.entries(entries)){
+      assert.equal(current.split(reviewed).length-1,1);
+      const changed=name.endsWith('.mjs')?reviewed.replace('NJ_MI','UNREVIEWED')
+        :reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
+      assert.notEqual(changed,reviewed);
+      for(const mutation of[current.replace(reviewed,original),current.replace(reviewed,changed),current+'\n'+reviewed]){
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/NJ\/MI reviewed .*exact historical verification hook/,key);
+      }
+    }
+  }
+  const name='engine/src/operational-report.mjs',current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+  for(const replacement of ['true','signal.canAlertAsInventory']){
+    const altered=current.replace('...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false','...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:'+replacement);
+    assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(altered)),/NJ\/MI false-alert on-site proof/);
   }
 });
 

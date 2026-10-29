@@ -29,7 +29,11 @@ test('Costco research stays blocked unless a distinct retailer integration passe
     const lifecycle = STATE_LIFECYCLE_CONFIG.states[state];
     const research = ALL_STATE_SOURCES.find((source) => source.id === state);
     assert.ok(research, `${state} source configuration must be retained`);
-    if(state==='WA'){
+    if(state==='MI'){
+      assert.equal(research.strategy,'retailer_store_inventory');assert.equal(research.sources.length,1);
+      assert.ok(research.sources.every(source=>source.kind==='html'&&source.precisionOnly===true));
+      assert.equal(research.sources.some(source=>source.kind==='costco'),false,'Michigan admission is only the reviewed Wine Garden premise');
+    }else if(state==='WA'){
       assert.equal(research.strategy,'retailer_store_inventory');assert.equal(lifecycle.refinementLevel,'store');
       assert.ok(research.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
     }else assert.ok(research.sources.some(source=>source.kind==='costco'));
@@ -54,7 +58,8 @@ test('Costco research stays blocked unless a distinct retailer integration passe
     }
     assert.equal(lifecycleAllowsInventoryAlert(state),false);assert.equal(lifecycleAllowsWatchAlert(state),false);
     assert.equal(lifecycle.shadowEligible, true);
-    assert.match(lifecycle.customerSummary, /no recurring|research-only|research preparation/i);
+    if(state==='MI')assert.match(lifecycle.customerSummary,/Inactive research at 1 reviewed Michigan stores/);
+    else assert.match(lifecycle.customerSummary, /no recurring|research-only|research preparation/i);
     assert.equal(runtimeStates.has(state), false, `${state} must not run in the customer-active state set`);
 
   }
