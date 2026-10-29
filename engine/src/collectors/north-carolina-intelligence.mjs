@@ -1,4 +1,5 @@
 import { parseNcDatedAnnouncements } from './nc-dated-announcements.mjs';
+import { optionalSuspendedFetch } from './optional-source-suspensions.mjs';
 import { ncShipmentWatchEligible } from '../nc-shipment-policy.mjs';
 import { mkdir, readFile, readdir } from 'node:fs/promises';
 import { collectionRequestSignal, throwIfCollectionAborted, withCollectionContext, writeCollectionFile as writeFile } from '../core/collection-context.mjs';
@@ -290,6 +291,8 @@ function withTimeout(ms = 18000) {
 }
 
 async function textFetch(url, options = {}) {
+  const suspended=optionalSuspendedFetch('NC',url);
+  if(suspended)return suspended;
   const timeout = withTimeout(options.timeoutMs || 18000);
   try {
     const signal = collectionRequestSignal(AbortSignal.any([timeout.signal, options.signal].filter(Boolean)));

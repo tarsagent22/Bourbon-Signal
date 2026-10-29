@@ -22,6 +22,7 @@ import {
 } from '../sources/source-report-semantics.mjs';
 import { applyNcBoardShipmentPolicy } from './north-carolina-intelligence.mjs';
 import { pennsylvaniaConfiguredSourceSkip } from './pennsylvania-direct-source-policy.mjs';
+import { optionalSuspendedConfiguredSourceSkip } from './optional-source-suspensions.mjs';
 import {
   collectWestVirginiaRecentPurchases,
   enrichWestVirginiaBarrelSelections,
@@ -517,8 +518,10 @@ export async function collectState(config, bible, options = {}) {
   for (const source of [...(config.sources || []), ...apiCandidates]) {
     if (source.precisionOnly) continue;
     const sourceId = configuredSourceId(config, source);
-    const policySkip = pennsylvaniaConfiguredSourceSkip(config, source, sourceId, { nowAt: startedAt });
+    const policySkip = pennsylvaniaConfiguredSourceSkip(config, source, sourceId, { nowAt: startedAt })
+      || optionalSuspendedConfiguredSourceSkip(config,source,sourceId,{nowAt:startedAt,previous:options.previousSourceResults?.[sourceId]});
     if (policySkip) {
+      signals.push(...(policySkip.signals||[]));
       sourceReports.push(policySkip.sourceReport);
       sourceResults.push(policySkip.sourceResult);
       roadblocks.push(...policySkip.roadblocks);
