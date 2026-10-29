@@ -25,7 +25,14 @@ const {isPublicDropFeedEligible,isFreshPublicDrop}=interop(evidenceModule),{buil
 const {loadWithMocks}=interop(harnessModule),{createSignalFeedHandler}=interop(feedModule);
 const fixture=JSON.parse(readFileSync('engine/test/fixtures/fleet-visibility/current-ca-id-ia.json','utf8'));
 const now=Date.parse(fixture.sourceGeneratedAt);mock.timers.enable({apis:['Date'],now});
-const bible=await BourbonBible.load('engine/out/bourbon-bible.json'),lookup=bibleLookup(bible.records);
+// Offline schemas combine existing source identity fixtures with exact records
+// captured with the CA/ID/IA rows; a seed-only or missing live out/ is valid.
+const records=new Map();
+for(const file of ['california-grocery-expansion/identity.json','washington-xapi-expansion/identity.json','new-mexico-grocery-expansion/identity.json']){
+ for(const record of JSON.parse(readFileSync('engine/test/fixtures/'+file,'utf8')).records)records.set(record.id,record);
+}
+for(const record of fixture.records)records.set(record.id,record);
+const bible=new BourbonBible([...records.values()]),lookup=bibleLookup(bible.records);
 const index=getDropClassificationIndex(JSON.parse(readFileSync('src/data/drop-feed-classification.generated.json','utf8')).records);
 const directory=await mkdtemp(path.join(tmpdir(),'fleet-visibility-'));
 try {
@@ -38,6 +45,7 @@ try {
  assert.ok(wa.signals.length>0&&wi.signals.length>0);
  const targets=[...fixture.signals,wa.signals[0],wi.signals[0]].map(s=>canonicalizeSignal(s,bible));
  assert.deepEqual(targets.map(s=>s.state),['CA','ID','IA','WA','WI']);
+ for(let i=0;i<fixture.signals.length;i++){assert.equal(targets[i].canonicalBottleId,fixture.signals[i].canonicalBottleId);assert.equal(targets[i].observedAt,fixture.signals[i].observedAt);}
  const noLongerCurrent=targets.filter(s=>['WA','WI'].includes(s.state));
  assert.equal(buildDrops(noLongerCurrent,lookup,targets.filter(s=>!['WA','WI'].includes(s.state))).length,0,'complete current source with no positive row must not reuse prior onsite stock');
  const template={state:'PA',rawName:'1792 Full Proof',canonicalName:'1792 Full Proof',canonicalBottleId:targets[0].canonicalBottleId,

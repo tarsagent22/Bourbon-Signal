@@ -240,5 +240,199 @@
       },
       "sourceRuntimeId": "precision:ia"
     }
-  ]
+  ],
+  "records": [
+    {
+      "id": "bb_ee4b5c90535d24d7",
+      "canonical": "1792 Full Proof",
+      "normalizedKey": "1792 full proof",
+      "aliases": [
+        "1792 FP",
+        "1792 Full Proof",
+        "Barton 1792 Full Proof"
+      ],
+      "tier": "allocated",
+      "producer": "Barton",
+      "sources": [
+        "seed"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "1792-full-proof",
+          "canonicalName": "1792 Full Proof",
+          "aliases": [
+            "1792 FP",
+            "1792 Full Proof",
+            "1792 fp",
+            "Barton 1792 Full Proof",
+            "full proof 1792"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_d0fe561ac45db2d5",
+      "canonical": "Eagle Rare 10 Year",
+      "normalizedKey": "eagle rare 10 year",
+      "aliases": [
+        "EAGLE RARE 10Y",
+        "Eagle Rare",
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10 Year Kentucky Straight Bourbon",
+        "Eagle Rare 10 Yr",
+        "Eagle Rare 10Y"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-10",
+          "canonicalName": "Eagle Rare 10 Year",
+          "aliases": [
+            "EAGLE RARE 10Y",
+            "Eagle Rare",
+            "Eagle Rare 10 Year",
+            "Eagle Rare 10 Year Kentucky Straight Bourbon",
+            "Eagle Rare 10 Yr",
+            "Eagle Rare 10Y",
+            "eagle rare",
+            "eagle rare 10",
+            "er10"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "old-fitzgerald-7y-bottled-in-bond",
+      "canonical": "Old Fitzgerald 7Y Bottled in Bond",
+      "normalizedKey": "library:old-fitzgerald-7y-bottled-in-bond",
+      "aliases": [],
+      "tier": "unicorn",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "old-fitzgerald-7y-bottled-in-bond",
+          "canonicalName": "Old Fitzgerald 7Y Bottled in Bond",
+          "aliases": [
+            "Old Fitzgerald 7Y Bottled in Bond"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_fd202575957d3cea",
+      "canonical": "Michter's 10 Year Bourbon",
+      "normalizedKey": "michter s 10 year",
+      "aliases": [
+        "MICHTER'S 10Y SINGLE BARREL",
+        "Michter's 10 Year Bourbon",
+        "Michter's 10 Year Single Barrel Bourbon",
+        "Michter's 10Y Single Barrel",
+        "Michters 10 Bourbon"
+      ],
+      "tier": "allocated",
+      "producer": "Michter's",
+      "sources": [
+        "seed",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "michters-10-year-bourbon",
+          "canonicalName": "Michter's 10 Year Bourbon",
+          "aliases": [
+            "MICHTER'S 10Y SINGLE BARREL",
+            "Michter's 10 Year Bourbon",
+            "Michter's 10 Year Single Barrel Bourbon",
+            "Michter's 10Y Single Barrel",
+            "Michters 10 Bourbon",
+            "m10 bourbon",
+            "michter's 10 bourbon",
+            "michters 10"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_ab29607e7117c93f",
+      "canonical": "Michter's 10 Year Rye",
+      "normalizedKey": "michter s 10 year rye",
+      "aliases": [
+        "Michter's 10 Year Rye",
+        "Michter's 10 Year Rye Whiskey",
+        "Michter's 10Y KS Rye",
+        "Michter's 10Y KS Rye Whiskey",
+        "Michter's 10Y Rye",
+        "Michters 10 Rye"
+      ],
+      "tier": "allocated",
+      "producer": "Michter's",
+      "sources": [
+        "seed"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "michters-10y-ks-rye-whiskey",
+          "canonicalName": "Michter's 10Y KS Rye Whiskey",
+          "aliases": [
+            "Michter's 10 Year Rye",
+            "Michter's 10 Year Rye Whiskey",
+            "Michter's 10Y KS Rye",
+            "Michter's 10Y KS Rye Whiskey",
+            "Michter's 10Y Rye",
+            "Michters 10 Rye"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ],
+  "bibleSha256": "c402ff33b59665d78cf5854f617d7dbd26269b8bb9878bc06dd2a202af0b0782"
 }
