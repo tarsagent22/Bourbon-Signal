@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { cp, mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, realpath, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto';
 // createRequire(import.meta.url) whose relative JSON file is absent in hosting.
 const root = path.resolve(process.argv.find(arg => arg.startsWith('--build-root='))?.slice('--build-root='.length) || process.cwd());
 const server = path.join(root, '.next', 'server');
-const routes = ['api/coverage', 'api/alerts', 'api/ops/source-scheduler'];
+const routes = ['api/coverage', 'api/alerts', 'api/alerts/deliver', 'api/ops/source-scheduler'];
 const staging = path.join(root, '.operator', `production-route-bundle-${randomUUID()}`);
 const relocated = path.join(staging, 'server');
 const sourceData = path.join(root, 'engine', 'data');
@@ -17,6 +17,11 @@ assert.equal(path.relative(root, sourceData), path.join('engine', 'data'));
 assert.ok(!path.relative(root, hiddenData).startsWith('..'));
 assert.equal((await stat(sourceData)).isDirectory(), true);
 await mkdir(relocated, { recursive: true });
+const realRoot = await realpath(root);
+for (const directory of [await realpath(sourceData), await realpath(staging)]) {
+  const relative = path.relative(realRoot, directory);
+  assert.ok(relative && !relative.startsWith('..') && !path.isAbsolute(relative), 'Bundle smoke paths must remain inside the build checkout');
+}
 await cp(path.join(server, 'chunks'), path.join(relocated, 'chunks'), { recursive: true });
 await cp(path.join(server, 'webpack-runtime.js'), path.join(relocated, 'webpack-runtime.js'));
 for (const route of routes) {
