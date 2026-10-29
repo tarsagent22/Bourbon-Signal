@@ -1,0 +1,784 @@
+{
+  "capturedAt": "2026-10-29T01:31:09.116Z",
+  "source": {
+    "id": "albertsons-las-vegas-3333",
+    "chainName": "Albertsons",
+    "sourceLabel": "Albertsons Nevada XAPI store inventory",
+    "platform": "albertsons-xapi",
+    "banner": "albertsons",
+    "host": "www.albertsons.com",
+    "productsUrl": "https://www.albertsons.com/abs/pub/xapi/search/substitute",
+    "fulfillmentPolicyUrl": "https://www.albertsons.com",
+    "merchantId": "3333",
+    "inventoryEligible": true,
+    "store": {
+      "id": "albertsons:3333",
+      "name": "Albertsons #3333",
+      "address": "1940 Village Center Circle, Las Vegas, NV 89134",
+      "city": "Las Vegas",
+      "area": "Las Vegas Valley",
+      "stateCode": "NV",
+      "zip": "89134",
+      "lat": null,
+      "lng": null
+    }
+  },
+  "store": {
+    "distance": 39.77,
+    "locationId": "3333",
+    "timezone": "America/Los_Angeles",
+    "polarisBannerName": "albertsons",
+    "domainName": "Albertsons",
+    "address": {
+      "line1": "1940 Village Center Circle",
+      "city": "Las Vegas",
+      "state": "NV",
+      "country": "US",
+      "zipcode": "89134"
+    },
+    "justForU": true,
+    "localPage": "https://local.albertsons.com/nv/las-vegas/1940-village-center-circle.html",
+    "storeRewards": {
+      "storeId": "3333",
+      "hasGroceryDelivery": true,
+      "hasDUG": true,
+      "hasRushDelivery": false,
+      "hasGroceryRewards": true,
+      "gasRewardsId": "174",
+      "rewardsProgramId": "5-174",
+      "storeLogoName": "albertsons_logo",
+      "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/albertsons_logo"
+    },
+    "isDUGStore": true,
+    "isPickupStore": true,
+    "isWFC": false,
+    "isNonMigratedStore": false,
+    "division": {
+      "name": "Southwest",
+      "number": "17"
+    },
+    "storeFeatures": {
+      "isErumStore": true,
+      "isGuestCartEnabled": false,
+      "isMFC": false,
+      "isAutoReplenishmentEnabled": true,
+      "isSNAP2Eligible": true,
+      "isSubstitutions2Enabled": true,
+      "isExpressStore": true,
+      "isWGDEnabled": false,
+      "isStoreTippingEnabled": true,
+      "isDarkStore": false,
+      "isWineD2CEnabled": false,
+      "isScanAndPayEnabled": false,
+      "isPaymentV2": true,
+      "isSNAPEligible": false,
+      "isFullAuthEnabled": true,
+      "isEditOrderEnabled": true,
+      "isWYSIWYGEnabled": true,
+      "isEnterpriseTaxation": true,
+      "isSubscriptionUDC": true,
+      "isRolloutWYSIWYGEnabled": true,
+      "isPromisePlatformStore": true,
+      "isHourlyStore": false,
+      "isSequentialTenderingMLModel": false,
+      "isOttValveEnabled": false,
+      "isFlashDugEnabled": true,
+      "isFlashDeliveryEnabled": true,
+      "isFlash2Enabled": false,
+      "isApprovedSubsEnabled": true,
+      "is3PLBatching": false,
+      "is3PLShopAndDriveEnabled": false,
+      "isAltPickUpEnabled": true,
+      "isMerchPickingEnabled": false,
+      "isDirectedSpendEnabled": true,
+      "isFoodIsMedicineNBEnabled": true,
+      "isCustomerCentricTillingEnabled": true,
+      "isSNSCNCEnabled": true,
+      "isBagFeeWaivedforEBT": false,
+      "isB2BStore": true,
+      "isDeliveryPreference": true,
+      "isPrePickingEnabled": true,
+      "isIntradayFastPickingEnabled": false,
+      "isISMLocationServiceEnabled": false,
+      "is2WayCommunication": false,
+      "isFoodIsMedicineBentoEnabled": false,
+      "isSNSB2BEnabled": true,
+      "isCustBagPreference": true,
+      "is3PPEnabled": true,
+      "isOrderAmends": true,
+      "isDynamicSlotEnabled": false,
+      "isGiftEnabled": true,
+      "showDUGEndTime": true,
+      "isFlashCapacityEnabled": true,
+      "isSlowPickingEnabled": false,
+      "isBNCEnabled": true,
+      "isDCMEnabled": false,
+      "isSOAEnabled": true,
+      "isSOAUXEnabled": false,
+      "isDeptUpdateNotification": false,
+      "isInHomeServiceEnabled": false,
+      "isSCEEnabled": false,
+      "isAisleGeoLocation": false,
+      "isLaborHealthEnabled": false,
+      "isLaborHealthUXEnabled": false,
+      "isCrossStreetsEnabled": false,
+      "legalNotAllowed": false
+    },
+    "tplPartners": [
+      "MERCATO",
+      "NATIONSBENEFITS",
+      "INSTACART"
+    ],
+    "departmentsDetail": [
+      {
+        "departmentName": "Floral",
+        "departmentId": "26",
+        "serviceDepartmentType": "eComFloral",
+        "serviceDepartEnabled": false,
+        "acuview1POrderprep": true,
+        "pickUpAtCounter": false,
+        "bufferEstTime": "0",
+        "serviceDeptStatus": true,
+        "digitalTicketingEnabled": false,
+        "isECOM1PEnabled": false,
+        "isAcuViewEnabled": false,
+        "acuviewInstoreOrder": false,
+        "isCateringEnabled": false,
+        "dayOfWeek": [
+          {
+            "day": "Monday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Tuesday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Wednesday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Thursday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Friday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Saturday",
+            "startHour": "0800",
+            "endHour": "2000"
+          },
+          {
+            "day": "Sunday",
+            "startHour": "0800",
+            "endHour": "2000"
+          }
+        ]
+      },
+      {
+        "departmentName": "Deli",
+        "departmentId": "27",
+        "serviceDepartmentType": "Deli",
+        "serviceDepartEnabled": true,
+        "acuview1POrderprep": true,
+        "pickUpAtCounter": false,
+        "bufferEstTime": "15",
+        "serviceDeptStatus": true,
+        "digitalTicketingEnabled": false,
+        "isECOM1PEnabled": true,
+        "isAcuViewEnabled": true,
+        "acuviewInstoreOrder": true,
+        "pickerBufferTime": "15",
+        "isCateringEnabled": true,
+        "dayOfWeek": [
+          {
+            "day": "Monday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Tuesday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Wednesday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Thursday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Friday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Saturday",
+            "startHour": "0700",
+            "endHour": "2100"
+          },
+          {
+            "day": "Sunday",
+            "startHour": "0700",
+            "endHour": "2100"
+          }
+        ]
+      }
+    ],
+    "ecomStore": true
+  },
+  "products": [
+    {
+      "status": "active",
+      "name": "Blantons Single Barrel Bourbon Whiskey 93 Proof - 750 Ml (limited quantities may be available in store)",
+      "pid": "189031085",
+      "upc": "0008024400203",
+      "id": "189031085",
+      "storeId": "3333",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/189031085",
+      "rogCd": "VLAS",
+      "price": 86.99,
+      "promoDescription": "On Sale Now: Club Wine 20% Off $86.99 Save Up To: $33.0",
+      "promoText": " Club Wine 20% Off $86.99 Save Up To: $33.0",
+      "promoType": "P",
+      "promoEndDate": "2027-01-05T23:59:00",
+      "basePrice": 119.99,
+      "basePricePer": 4.73,
+      "pricePer": 3.43,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Wine/Beer/Spirits",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "",
+      "prop65WarningText": "",
+      "prop65WarningIconRequired": false,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "deliveryItemQty": 7,
+        "pickupItemQty": 7,
+        "instoreItemQty": 7,
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 46
+    },
+    {
+      "status": "active",
+      "name": "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+      "pid": "960051942",
+      "upc": "0008024400923",
+      "id": "960051942",
+      "storeId": "3333",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 21453,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/960051942",
+      "rogCd": "VLAS",
+      "price": 25.99,
+      "promoDescription": "On Sale Now: Club Wine 20% Off $25.99 Save Up To: $10.0",
+      "promoText": " Club Wine 20% Off $25.99 Save Up To: $10.0",
+      "promoType": "P",
+      "promoEndDate": "2027-01-05T23:59:00",
+      "basePrice": 35.99,
+      "basePricePer": 1.42,
+      "pricePer": 1.02,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Wine/Beer/Spirits",
+      "shelfXcoordinateNbr": "242.5",
+      "shelfYcoordinateNbr": "36",
+      "slotXcoordinateNbr": "11.74",
+      "slotYcoordinateNbr": "0",
+      "fixtureXcoordinateNbr": "2594.24",
+      "fixtureYcoordinateNbr": "5217.46",
+      "aislePositionTxt": "RIGHT",
+      "shelfDimensionDpth": "22",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "",
+      "prop65WarningText": "",
+      "prop65WarningIconRequired": false,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": false,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "deliveryItemQty": 8,
+        "pickupItemQty": 8,
+        "instoreItemQty": 8,
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 45
+    },
+    {
+      "status": "active",
+      "name": "Penelope Four Grain Bourbon - 750 Ml",
+      "pid": "970889019",
+      "upc": "0086000034820",
+      "id": "970889019",
+      "storeId": "3333",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/970889019",
+      "rogCd": "VLAS",
+      "price": 36.99,
+      "promoDescription": "On Sale Now: Club Wine 20% Off $36.99 Save Up To: $5.0",
+      "promoText": " Club Wine 20% Off $36.99 Save Up To: $5.0",
+      "promoType": "P",
+      "promoEndDate": "2027-01-05T23:59:00",
+      "basePrice": 41.99,
+      "basePricePer": 1.66,
+      "pricePer": 1.46,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Wine/Beer/Spirits",
+      "shelfXcoordinateNbr": "290.5",
+      "shelfYcoordinateNbr": "36",
+      "slotXcoordinateNbr": "29.75",
+      "slotYcoordinateNbr": "0",
+      "fixtureXcoordinateNbr": "2594.24",
+      "fixtureYcoordinateNbr": "5217.46",
+      "aislePositionTxt": "RIGHT",
+      "shelfDimensionDpth": "22",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "",
+      "prop65WarningText": "",
+      "prop65WarningIconRequired": false,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": true,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "deliveryItemQty": 3,
+        "pickupItemQty": 3,
+        "instoreItemQty": 3,
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 40
+    },
+    {
+      "status": "active",
+      "name": "Whistlepig Piggyback 6 Yr Bourbon - 750 ML",
+      "pid": "970468334",
+      "upc": "0081008055003",
+      "id": "970468334",
+      "storeId": "3333",
+      "featured": false,
+      "inventoryAvailable": "1",
+      "pastPurchased": false,
+      "isDYOCake": false,
+      "restrictedValue": "2",
+      "salesRank": 99999,
+      "agreementId": 0,
+      "featuredProductId": 0,
+      "imageUrl": "https://images.albertsons-media.com/is/image/ABS/970468334",
+      "rogCd": "VLAS",
+      "price": 57.99,
+      "promoDescription": "On Sale Now: Club Wine 20% Off $57.99 Save Up To: $3.0",
+      "promoText": " Club Wine 20% Off $57.99 Save Up To: $3.0",
+      "promoType": "P",
+      "promoEndDate": "2027-01-05T23:59:00",
+      "basePrice": 60.99,
+      "basePricePer": 2.4,
+      "pricePer": 2.29,
+      "displayType": "-1",
+      "aisleId": "1_29_2_11",
+      "aisleName": "Spirits & Mixers|1_29_2",
+      "departmentName": "Wine, Beer & Spirits",
+      "shelfName": "Whiskey & Bourbon",
+      "shelfNameWithId": "Whiskey & Bourbon|1_29_2_11",
+      "aisleLocation": "Wine/Beer/Spirits",
+      "snapEligible": false,
+      "unitOfMeasure": "ML",
+      "sellByWeight": "I",
+      "averageWeight": [
+        "0.000"
+      ],
+      "unitQuantity": "FL.OZ",
+      "displayUnitQuantityText": "ea",
+      "displayEstimateText": null,
+      "previousPurchaseQty": 0,
+      "maxPurchaseQty": 20,
+      "minWeight": "0.000",
+      "maxWeight": "0.000",
+      "isHhcProduct": false,
+      "prop65WarningTypeCD": "",
+      "prop65WarningText": "",
+      "prop65WarningIconRequired": false,
+      "isArProduct": false,
+      "isMtoProduct": false,
+      "isCustomizable": false,
+      "inStoreShoppingElig": false,
+      "preparationTime": "0",
+      "isMarketplaceItem": "N",
+      "algoType": "",
+      "triggerQuantity": 0,
+      "idOfAisle": "1_29_2",
+      "idOfShelf": "1_29_2_11",
+      "idOfDepartment": "1_29",
+      "warnings": [
+        {
+          "foodIndicator": "",
+          "warnMsgTxt": "",
+          "warningSourceNm": ""
+        }
+      ],
+      "requiresReturn": false,
+      "channelEligibility": {
+        "pickUp": true,
+        "delivery": false,
+        "inStore": true,
+        "shipping": false
+      },
+      "channelInventory": {
+        "delivery": "1",
+        "pickup": "1",
+        "instore": "1",
+        "shipping": "0"
+      },
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "itemRetailSect": "303",
+      "badges": [],
+      "labels": [
+        {
+          "labelName": "750 ml",
+          "accessibilityText": "750 Milliliter",
+          "replacePlaceholder": false,
+          "isBoldText": true,
+          "labelTypeAsLink": false,
+          "isLabelAppOnly": false
+        }
+      ],
+      "containsAlcohol": true,
+      "alcoholVolumePct": 50
+    }
+  ],
+  "records": [
+    {
+      "id": "bb_317836b9e64a7620",
+      "canonical": "Buffalo Trace Bourbon",
+      "normalizedKey": "buffalo trace",
+      "aliases": [
+        "BUFFALO TRACE LITER",
+        "BUFFALO TRACE bourbon",
+        "Buffalo Trace",
+        "Buffalo Trace Bourbon",
+        "Buffalo Trace KY Straight Bourbon",
+        "Buffalo Trace KY Straight Bourbon .75L",
+        "Buffalo Trace KY Straight Bourbon 1.00L",
+        "Buffalo Trace Kentucky Straight Bourbon",
+        "Buffalo Trace Liter"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "buffalo-trace-bourbon",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "aliases": [
+            "BT",
+            "BUFFALO TRACE LITER",
+            "BUFFALO TRACE bourbon",
+            "Buffalo Trace",
+            "Buffalo Trace Bourbon",
+            "Buffalo Trace KY",
+            "Buffalo Trace KY Straight Bourbon",
+            "Buffalo Trace KY Straight Bourbon .75L",
+            "Buffalo Trace KY Straight Bourbon 1.00L",
+            "Buffalo Trace Kentucky Straight Bourbon",
+            "Buffalo Trace Liter",
+            "bt",
+            "buffalo trace",
+            "buffalo trace kentucky straight bourbon"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_473aba10a697b5fc",
+      "canonical": "Penelope Four Grain Bourbon",
+      "normalizedKey": "penelope four grain",
+      "aliases": [
+        "PENELOPE FOUR GRAIN STRAIT BBN",
+        "Penelope Four Grain",
+        "Penelope Four Grain Bourbon",
+        "Penelope Four Grain Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Penelope Bourbon",
+      "sources": [
+        "state-data-additions",
+        "state:MI"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_473aba10a697b5fc",
+          "canonicalName": "Penelope Four Grain Bourbon",
+          "aliases": [
+            "PENELOPE FOUR GRAIN STRAIT BBN",
+            "Penelope Four Grain",
+            "Penelope Four Grain Bourbon",
+            "Penelope Four Grain Straight Bourbon"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_8480bae3e0e97a02",
+      "canonical": "WhistlePig PiggyBack 6 Year Bourbon",
+      "normalizedKey": "whistlepig piggyback 6 year",
+      "aliases": [
+        "PiggyBack Bourbon",
+        "WHISTLEPIG 6YR PIGGYBACK BOURBON MINI",
+        "WhistlePig 6 Year PiggyBack Bourbon",
+        "WhistlePig 6YR PiggyBack Bourbon",
+        "WhistlePig PiggyBack 6 Year Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "WhistlePig",
+      "sources": [
+        "state-data-additions",
+        "state:IA",
+        "state:MS"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "whistlepig-piggyback-6y-bourbon",
+          "canonicalName": "WhistlePig PiggyBack 6Y Bourbon",
+          "aliases": [
+            "PiggyBack Bourbon",
+            "WHISTLEPIG 6YR PIGGYBACK BOURBON MINI",
+            "WhistlePig 6 Year PiggyBack Bourbon",
+            "WhistlePig 6YR PiggyBack Bourbon",
+            "WhistlePig PiggyBack 6 Year Bourbon",
+            "WhistlePig PiggyBack 6Y",
+            "WhistlePig PiggyBack 6Y Bourbon"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

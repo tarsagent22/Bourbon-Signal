@@ -1,3 +1,4 @@
+import { NEVADA_XAPI_ADDITIONAL_SOURCES } from './nevada-xapi-premises.mjs';
 const BOURBON_NAME_RE = /\b(?:bourbon|kentucky straight|american whiskey|blanton(?:'s|s)?|buffalo trace|eagle rare|e\.?\s*h\.?\s*taylor|weller|stagg|booker(?:'s|s)?|baker(?:'s|s)?|1792|maker(?:'s|s)? mark|old forester|woodford reserve|four roses|knob creek|elijah craig|michter(?:'s|s)?|willett|wild turkey|rare breed|larceny|heaven hill|henry mckenna|old fitzgerald|smoke wagon|casey jones|new riff|bardstown bourbon|green river|yellowstone)\b/i;
 const UNSAFE_FORMAT_RE = /\b(?:gift\s*(?:set|box)|bundle|sampler|miniatures?|variety\s*pack|multi\s*-?\s*pack|cocktail|liqueur|ready\s*to\s*drink|rtd|\d+\s*-?\s*(?:pk|pack)|pack\s+of\s+\d+|\d+\s*[- ]?bottles?)\b/i;
 const SIZE_RE = /(?:^|\b)(\d+(?:\.\d+)?)\s*(ml|millilit(?:er|re)s?|l|lit(?:er|re)s?)\b/ig;
@@ -64,7 +65,7 @@ export const NEVADA_RETAILER_SOURCES = Object.freeze([
     id: 'vons-henderson-2511', chainName: 'Vons', sourceLabel: 'Vons Nevada XAPI store inventory', platform: 'albertsons-xapi', banner: 'vons',
     host: 'www.vons.com', productsUrl: 'https://www.vons.com/abs/pub/xapi/search/substitute', fulfillmentPolicyUrl: 'https://local.vons.com/nv/henderson/2667-e-windmill-pkwy/Beer-Wine-Liquor.html',
     merchantId: '2511', inventoryEligible: true,
-    store: Object.freeze({ id: 'vons:2511', name: 'Vons #2511 Anthem Village', address: '2667 E Windmill Pkwy, Henderson, NV 89052', city: 'Henderson', area: 'Las Vegas Valley', stateCode: 'NV', zip: '89052' }),
+    store: Object.freeze({ id: 'vons:2511', name: 'Vons #2511 Anthem Village', address: '2667 E Windmill Pkwy, Henderson, NV 89074', city: 'Henderson', area: 'Las Vegas Valley', stateCode: 'NV', zip: '89074' }),
   }),
   Object.freeze({
     id: 'safeway-reno-1210', chainName: 'Safeway', sourceLabel: 'Safeway Nevada XAPI store inventory', platform: 'albertsons-xapi', banner: 'safeway',
@@ -72,6 +73,7 @@ export const NEVADA_RETAILER_SOURCES = Object.freeze([
     merchantId: '1210', inventoryEligible: true,
     store: Object.freeze({ id: 'safeway:1210', name: 'Safeway #1210', address: '5150 Mae Anne Ave, Reno, NV 89523', city: 'Reno', area: 'Reno–Sparks', stateCode: 'NV', zip: '89523' }),
   }),
+  ...NEVADA_XAPI_ADDITIONAL_SOURCES,
 ]);
 
 function parsePayload(payload) {

@@ -1,3 +1,4 @@
+import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS } from './nevada-xapi-runtime.mjs';
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
 import { pennsylvaniaDirectFwgsRoadblock } from './pennsylvania-direct-source-policy.mjs';
 import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
@@ -114,7 +115,6 @@ import {
   mergeNevadaSourceCacheSignals,
   parseNevadaCityHiveHtml,
   parseNevadaPos360Html,
-  parseNevadaAlbertsonsXapi,
   verifyNevadaCityHiveStorePage,
   verifyNevadaFulfillmentPolicy,
 } from './nevada-retailer-surfaces.mjs';
@@ -9272,7 +9272,7 @@ function exactHttpsHost(value, expectedHost) {
 }
 
 function nevadaRetailerSignal(config, source, row, bible, observedAt, fulfillmentPolicyVerified) {
-  const { record, unsafeReason } = cityHiveSafeBottleMatch(row.title, bible);
+  const { record, unsafeReason } = row.record ? { record: row.record, unsafeReason: null } : cityHiveSafeBottleMatch(row.title, bible);
   if (!record) return null;
   const sourceUrl = source.platform === 'cityhive'
     ? row.handle
@@ -9296,6 +9296,10 @@ function nevadaRetailerSignal(config, source, row, bible, observedAt, fulfillmen
     rawName: row.title,
     canonicalBottleId: record.id,
     canonicalName: record.canonical,
+    tier: record.tier,
+    sourceBottleMatchMethod: row.matchMethod || null,
+    lat: source.store.lat || null, lng: source.store.lng || null,
+    quantityIsExact: row.inventorySemantics === 'exact_retailer_quantity',
     confidence: source.platform === 'cityhive' ? 0.84 : 0.82,
     eventType: 'retailer_store_inventory_result',
     locationPrecision: 'store_level',
@@ -9329,6 +9333,7 @@ function nevadaRetailerSignal(config, source, row, bible, observedAt, fulfillmen
       fulfillmentPolicyUrl: source.fulfillmentPolicyUrl,
       fulfillmentPolicyVerified,
       matchGuard: unsafeReason,
+      xapiProduct: row.rawProduct || null,
     },
   };
 }
@@ -9346,6 +9351,22 @@ async function collectNevada(config, bible) {
   const liveSignals = [];
   const roadblocks = [];
   const completedSourceIds = new Set();
+  const blockedHosts = new Set();
+  const attemptsPath = path.resolve('out/browser/NV-xapi-attempts.json');
+  let attempts = {}; try { attempts = JSON.parse(await readFile(attemptsPath, 'utf8')); } catch {}
+  for (const [host, attempt] of Object.entries(attempts)) if (Date.parse(attempt.nextAllowedAt) > Date.now()) blockedHosts.add(host);
+  const requestXapi = async (url, kind) => {
+    const host = new URL(url).hostname;
+    if (blockedHosts.has(host)) return null;
+    const result = await textFetch(url, {headers: {accept:'application/json', 'ocp-apim-subscription-key':kind === 'resolver' ? AZ_ALBERTSONS_STORE_KEY : AZ_ALBERTSONS_SEARCH_KEY}, timeoutMs:20_000});
+    if ([401,403,429].includes(result.status)) {
+      blockedHosts.add(host); attempts[host] = {status:result.status,lastAttemptAt:new Date().toISOString(),nextAllowedAt:new Date(Date.now()+86_400_000).toISOString()};
+      await mkdir(path.dirname(attemptsPath),{recursive:true}); await writeFile(attemptsPath,JSON.stringify(attempts,null,2));
+    }
+    if (!result.ok && result.status !== 206) roadblocks.push({state:config.id,source:'Nevada XAPI '+kind,url,status:result.status || 0,error:result.error || `HTTP ${result.status}`,nextRoute:'Retain denial cooldown; inspect new first-party evidence before retry.'});
+    return result;
+  };
+  const xapiPremises = await resolveNevadaXapiPremises(NEVADA_RETAILER_SOURCES, {request:requestXapi, pause:()=>sleep(400)});
   for (const source of NEVADA_RETAILER_SOURCES.filter((candidate) => candidate.inventoryEligible)) {
     let fulfillmentPolicyVerified = false;
     let rows = [];
@@ -9384,32 +9405,25 @@ async function collectNevada(config, bible) {
       }
       if (rows.length > 0) completedSourceIds.add(source.id);
     } else if (source.platform === 'albertsons-xapi') {
-      const host = `https://${source.host}`;
-      const params = new URLSearchParams({
-        'request-id': String(Date.now()), url: host, pageurl: host, pagename: 'search', rows: '100', start: '0',
-        'search-type': 'keyword', storeid: source.merchantId, featured: 'true', 'search-uid': '', q: 'bourbon', channel: 'instore', banner: source.banner,
-      });
-      const url = `${source.productsUrl}?${params}`;
-      const res = await textFetch(url, { headers: { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_SEARCH_KEY }, timeoutMs: 30_000 });
-      if (!res.ok) {
-        roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Refresh the public storefront search key and retry the exact frozen Nevada store at low cadence.' });
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
+      if (!xapiPremises.has(source.id)) {
+        roadblocks.push({state:config.id,source:source.sourceLabel,url:source.fulfillmentPolicyUrl,status:'premise_not_currently_verified',error:'Current public resolver did not corroborate the frozen exact banner/store/address.',nextRoute:'Inspect current first-party premise identity; do not substitute a nearby store.'});
         continue;
       }
-      let payload;
-      try { payload = JSON.parse(res.text); } catch (error) {
-        roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the reachable XAPI response shape; malformed data fails closed.' });
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
-        continue;
+      const seen = new Set(); let complete = true;
+      for (const term of NEVADA_XAPI_TERMS) {
+        const host = `https://${source.host}`;
+        const params = new URLSearchParams({'request-id':String(Date.now()),url:host,pageurl:host,pagename:'search',rows:'100',start:'0','search-type':'keyword',storeid:source.merchantId,featured:'true','search-uid':'',q:term,channel:'instore',banner:source.banner});
+        const res = await requestXapi(`${source.productsUrl}?${params}`, 'inventory');
+        if (!res?.ok) { complete = false; break; }
+        let payload; try {payload = JSON.parse(res.text);} catch {complete = false; break;}
+        if (!Array.isArray(payload?.response?.docs)) {complete = false; break;}
+        for (const row of parseBoundNevadaXapiInventory(payload,source,bible)) {
+          if (!seen.has(row.productId)) {seen.add(row.productId); rows.push(row);}
+        }
+        await sleep(400);
       }
-      if (!Array.isArray(payload?.response?.docs)) {
-        roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: 'malformed_reachable_payload', error: 'XAPI response did not contain response.docs.', nextRoute: 'Inspect the public response without weakening store or in-store channel guards.' });
-        await sleep(NEVADA_RETAILER_SOURCE_DELAY_MS);
-        continue;
-      }
-      rows = parseNevadaAlbertsonsXapi(payload);
       fulfillmentPolicyVerified = true;
-      completedSourceIds.add(source.id);
+      if (complete) completedSourceIds.add(source.id);
     }
 
     for (const row of rows) {
@@ -9476,7 +9490,7 @@ async function collectPrecisionProbesUntraced(config, bible, existingSignals = [
   if (config.id === 'TN') return collectTennessee(config, bible, options);
   if (config.id === 'AZ') return collectArizona(config, bible, options);
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
-  if (config.id === 'NV') return collectNevada(config, bible);
+  if (config.id === 'NV') return withCollectionContext(options, () => collectNevada(config, bible));
   if (config.id === 'FL') return collectFlorida(config, bible, existingSignals, options);
   if (config.id === 'GA') return collectGeorgia(config, bible, options);
   if (config.id === 'NY' || config.id === 'CO') return collectMetroRetailers(config, bible, options);
@@ -9497,8 +9511,8 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 900_000 : ['IN', 'TN', 'FL'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
-  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 900_000 : ['IN', 'TN', 'FL', 'NV'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL', 'NV'].includes(stateKey) ? 1 : 2;
   const inventoryCadence = inventoryStateCadenceMs(stateKey);
   return {
     ...sourceRunnerOptions,
