@@ -8,6 +8,7 @@ import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
 import { optionalDeniedSourceSkip, retainParkedOptionalSourceRows } from './optional-source-denial-policy.mjs';
 import { optionalSuspensionSkip, retainSuspendedOptionalRows } from './optional-source-suspensions.mjs';
 import {southCarolinaCityHiveApiRouteHold,southCarolinaCityHiveSourceHold,isHeldSouthCarolinaCityHiveRow,retainHeldSouthCarolinaCityHiveRow,isHeldSouthCarolinaCityHiveRoadblock} from './south-carolina-cityhive-api-policy.mjs';
+import {georgiaGoToGroupHold,retainGeorgiaGoToHoldRows} from './georgia-goto-group-policy.mjs';
 import { reviewedIndianaCityHiveBottleMatch, reviewedIndianaPaylessBottleMatch, buildIndianaPaylessAvailabilityProof, normalizeIndianaCityHiveQuantity, indianaSourceBottleMismatchReason } from './indiana-retailer-matching.mjs';
 import { validateFwgsFullArtifact } from '../fwgs-artifact-policy.mjs';
 import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
@@ -5795,7 +5796,9 @@ function georgiaBinaryRetailerSignal(config, store, product, bible, observedAt, 
   };
 }
 
-async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options = {}) {
+export async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options = {}) {
+  if(config?.id!=='GA')throw Error('The reviewed Georgia GoTo lane cannot be reclassified as another state');
+  const policyHold=georgiaGoToGroupHold(config.id);if(policyHold)return policyHold;
   const signals = [];
   const roadblocks = [];
   const platformFailures = [];
@@ -5896,14 +5899,14 @@ async function collectGeorgia(config, bible, options = {}) {
   const cityHive = lanes.get('cityhive');
   const lightspeed = lanes.get('lightspeed');
   const goToLiquorStore = lanes.get('gotoliquorstore');
-  return retainSuspendedOptionalRows({
+  return retainGeorgiaGoToHoldRows(retainSuspendedOptionalRows({
     signals: [...configuredLocations, ...cityHive.signals, ...lightspeed.signals, ...goToLiquorStore.signals],
     roadblocks: [...cityHive.roadblocks, ...lightspeed.roadblocks, ...goToLiquorStore.roadblocks],
     metadata: {
       sourceConcurrency: laneRun.concurrency,
       sourceTimings: laneRun.timings,
     },
-  },options.existingSignals||[]);
+  },options.existingSignals||[]),options.existingSignals||[]);
 }
 
 function arizonaAttemptSources() {

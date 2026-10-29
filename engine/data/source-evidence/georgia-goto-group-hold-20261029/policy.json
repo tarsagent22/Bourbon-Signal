@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "id": "georgia_gotoliquor_group_review_hold_20261029",
+  "state": "GA",
+  "lane": "georgia-gotoliquorstore-group",
+  "scope": "operator_group_review_hold_after_two_observed_representatives_not_denial_of_unobserved_sources",
+  "workflow": {
+    "repository": "tarsagent22/Bourbon-Signal",
+    "runId": "40949342705",
+    "conclusion": "success",
+    "headSha": "9a6e0ec0bbf74ede2d69cf9cc37e02d7ae4d5cd2",
+    "artifactId": "12932458692",
+    "artifactName": "inventory-refresh-40949342705",
+    "artifactDigest": "f9018c5758491a02966b7a2e9cdbe4fdecd157747ece727de89b9e6d9e706694"
+  },
+  "report": {
+    "path": "engine/data/source-evidence/georgia-goto-group-hold-20261029/GA.json",
+    "sha256": "2a88cb78d6fb608b565cabd527ad209b3e476b82c7e8cc5d93d258ac0d6cb78b",
+    "bytes": 678556,
+    "stateWindowStartedAt": "2026-10-29T20:43:41.092Z",
+    "stateWindowFinishedAt": "2026-10-29T20:45:00.985Z",
+    "sourceWindowStartedAt": "2026-10-29T20:43:41.107Z",
+    "sourceWindowFinishedAt": "2026-10-29T20:45:00.985Z",
+    "clockSemantics": "aggregate_precision_source_window_not_individual_http_time"
+  },
+  "earlierObservation": {
+    "runId": "40944514001",
+    "artifactDigest": "189b1fbfd33106503f181721bbc3bf5413a2980ddb20e3ec95c59e0f52d9ddc6",
+    "reportSha256": "923574933a723ea4644bdf28e3a28a0934c3aa9b9428ad695cc409ff3001a692",
+    "sourceWindowStartedAt": "2026-10-29T20:01:30.400Z",
+    "sourceWindowFinishedAt": "2026-10-29T20:02:51.276Z"
+  },
+  "historicalHttpStatus": 403,
+  "observedSources": [
+    "ABC Augusta GoToLiquorStore store inventory",
+    "AL G's Liquor Store GoToLiquorStore store inventory"
+  ],
+  "observedUrls": [
+    "https://www.abcaugusta.com/c/spirits/whiskey/19",
+    "https://www.algsliquorstore.com/c/spirits/whiskey/19"
+  ],
+  "attemptedProbeCount": 2,
+  "skippedProbeCount": 12,
+  "configuredProbeCount": 14,
+  "closedGroup": [
+    {
+      "id": "1071",
+      "chain": "beverage-world-cumming",
+      "hostname": "www.bwcumming.com",
+      "url": "https://www.bwcumming.com/c/spirits/whiskey/19",
+      "label": "Beverage World of Cumming GoToLiquorStore store inventory"
+    },
+    {
+      "id": "1279",
+      "chain": "the-wine-store-alpharetta",
+      "hostname": "www.thewinestoreinc.com",
+      "url": "https://www.thewinestoreinc.com/c/spirits/whiskey/19",
+      "label": "The Wine Store GoToLiquorStore store inventory"
+    },
+    {
+      "id": "575",
+      "chain": "abc-augusta",
+      "hostname": "www.abcaugusta.com",
+      "url": "https://www.abcaugusta.com/c/spirits/whiskey/19",
+      "label": "ABC Augusta GoToLiquorStore store inventory"
+    },
+    {
+      "id": "108",
+      "chain": "al-gs-liquor-store",
+      "hostname": "www.algsliquorstore.com",
+      "url": "https://www.algsliquorstore.com/c/spirits/whiskey/19",
+      "label": "AL G's Liquor Store GoToLiquorStore store inventory"
+    },
+    {
+      "id": "712",
+      "chain": "uptown-package-store",
+      "hostname": "www.uptownpackagestore.com",
+      "url": "https://www.uptownpackagestore.com/c/spirits/whiskey/19",
+      "label": "Uptown Package Store GoToLiquorStore store inventory"
+    },
+    {
+      "id": "546",
+      "chain": "d-and-m-package-store",
+      "hostname": "www.dandmpackagestore.com",
+      "url": "https://www.dandmpackagestore.com/c/spirits/whiskey/19",
+      "label": "D & M Package Store GoToLiquorStore store inventory"
+    },
+    {
+      "id": "1208",
+      "chain": "peachtree-package-store",
+      "hostname": "www.peachtreepackage.com",
+      "url": "https://www.peachtreepackage.com/c/spirits/whiskey/19",
+      "label": "Peachtree Package Store GoToLiquorStore store inventory"
+    },
+    {
+      "id": "441",
+      "chain": "georgia-world-of-beverage",
+      "hostname": "www.georgiaworldofbeverage.com",
+      "url": "https://www.georgiaworldofbeverage.com/c/spirits/whiskey/19",
+      "label": "Georgia World of Beverage GoToLiquorStore store inventory"
+    },
+    {
+      "id": "944",
+      "chain": "global-beverage-superstore",
+      "hostname": "www.globalbeveragestore.com",
+      "url": "https://www.globalbeveragestore.com/c/spirits/whiskey/19",
+      "label": "Global Beverage Superstore GoToLiquorStore store inventory"
+    },
+    {
+      "id": "699",
+      "chain": "harrys-liquor",
+      "hostname": "www.harryscordele.com",
+      "url": "https://www.harryscordele.com/c/spirits/whiskey/19",
+      "label": "Harry's Liquor GoToLiquorStore store inventory"
+    },
+    {
+      "id": "180",
+      "chain": "country-club-package",
+      "hostname": "www.countryclubpackage.com",
+      "url": "https://www.countryclubpackage.com/c/spirits/whiskey/19",
+      "label": "Country Club Package GoToLiquorStore store inventory"
+    },
+    {
+      "id": "1065",
+      "chain": "p-and-p-liquor-store",
+      "hostname": "www.ppliquorstore.com",
+      "url": "https://www.ppliquorstore.com/c/spirits/whiskey/19",
+      "label": "P & P Liquor Store GoToLiquorStore store inventory"
+    },
+    {
+      "id": "1309",
+      "chain": "forsyth-world-of-beverage",
+      "hostname": "www.forsythwob.com",
+      "url": "https://www.forsythwob.com/c/spirits/whiskey/19",
+      "label": "Forsyth World of Beverage GoToLiquorStore store inventory"
+    },
+    {
+      "id": "1052",
+      "chain": "warehouse-package-store",
+      "hostname": "www.warehousepackagestore.com",
+      "url": "https://www.warehousepackagestore.com/c/spirits/whiskey/19",
+      "label": "Warehouse Package Store GoToLiquorStore store inventory"
+    }
+  ],
+  "cohortSha256": "f57e1a4fcc6c046d904b7ca1a9b8156a78ef41d1c1ab2a1905c85e6daacbb6a4",
+  "reviewRequired": true,
+  "automaticExpiryAllowed": false,
+  "minimumReviewAt": "2026-10-30T20:45:00.985Z",
+  "evidenceLimits": {
+    "individualResponseClocksRetained": false,
+    "headersRetained": false,
+    "responseBodiesRetained": false,
+    "finalResponseOriginsRetained": false,
+    "retryAfterRetained": false,
+    "skippedSourcesProvenDenied": false
+  }
+}

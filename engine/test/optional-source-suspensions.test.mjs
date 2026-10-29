@@ -78,8 +78,11 @@ for(const state of ['CO','NC','TN','GA'])test(`actual forced cold-cache ${state}
     env:{...process.env,PATH:'',Path:'',BOURBON_SIGNAL_FORCE_SOURCE_RUN:'1',BOURBON_SIGNAL_CO_FORCE_METRO_LIVE:'1',BOURBON_SIGNAL_REFRESH_SOURCES:''}});
   assert.equal(child.status,0,child.stderr||child.error?.message);const output=JSON.parse(child.stdout.trim().split(/\r?\n/).at(-1));
   for(const route of policy.routes.filter(row=>row.state===state))assert.ok(!output.calls.includes(route.url),`suspended ${route.sourceKey} was requested`);
-  assert.equal(output.parked.length,policy.routes.filter(row=>row.state===state).length);
-  if(state==='GA')assert.ok(output.calls.some(value=>String(value).startsWith('https://www.abcaugusta.com/')),'unobserved independent host remains eligible');
+  assert.equal(output.parked.length,state==='GA'?0:policy.routes.filter(row=>row.state===state).length);
+  if(state==='GA'){
+    assert.ok(output.calls.some(value=>String(value).startsWith('https://www.towerwinespirits.com/')),'independent CityHive sibling remains eligible');
+    for(const store of GEORGIA_GOTOLIQUOR_STORES)assert.ok(!output.calls.includes(store.categoryUrl),'the reviewed group hold also prevents trying skipped GoTo siblings');
+  }
   if(state==='NC')assert.ok(output.calls.some(value=>String(value).startsWith('https://abc2.nc.gov/')),'healthy statewide source continues');
   if(state==='TN')assert.ok(output.calls.some(value=>String(value).includes('frugalmacdoogal.com')),'healthy retailer sibling continues');
 });
