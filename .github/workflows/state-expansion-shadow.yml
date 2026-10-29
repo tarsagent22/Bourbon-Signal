@@ -24,6 +24,7 @@ permissions:
 
 jobs:
   collect-shadow-evidence:
+    if: ${{ inputs.states != 'MA,CT,RI' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -107,3 +108,7 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
           path: engine/out/shadow
+
+  collect-new-england-host-preflight:
+    if: ${{ inputs.states == 'MA,CT,RI' }}
+    uses: ./.github/workflows/new-england-source-preflight.yml

@@ -1,0 +1,63 @@
+name: Bounded inactive New England hosted source preflight
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: new-england-source-preflight
+  cancel-in-progress: false
+jobs:
+  source-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      BOURBON_SIGNAL_SHADOW_MODE: "1"
+      BOURBON_SIGNAL_AUTO_DEPLOY: "0"
+      BOURBON_SIGNAL_ALERT_QUEUE_MODE: shadow
+      ALERT_DELIVERY_ENABLED: "0"
+      ALERT_ONSITE_DELIVERY_ENABLED: "0"
+      ALERT_EMAIL_DELIVERY_ENABLED: "0"
+      ALERT_SMS_DELIVERY_ENABLED: "0"
+      BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: out/library-catalog.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts && npm ci --prefix engine
+      - name: Restore global host denials before any source request
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/new-england-cityhive
+          key: new-england-source-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            new-england-source-incidents-${{ runner.os }}-
+      - name: Refresh current full app library before matching
+        working-directory: engine
+        run: node src/sync-library-catalog.mjs && npm run bible
+      - name: Verify native denial persistence and once-per-host isolation before HTTP
+        run: node --test scripts/test-new-england-hosted-preflight.mjs
+      - name: Observe one reviewed URL per independent host with no retries
+        run: node scripts/run-new-england-hosted-preflight.mjs
+      - name: Always preserve source denials independently of stock or workflow success
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/new-england-cityhive
+          key: new-england-source-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Preserve actual runner source receipts and failed-source metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: new-england-hosted-preflight-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            engine/out/new-england-source-preflight
+            engine/out/source-incidents/new-england-cityhive
+            engine/out/library-catalog.json
+            engine/out/bourbon-bible.json
