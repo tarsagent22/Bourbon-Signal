@@ -8,6 +8,8 @@ import { relativeSignalTime } from "../api/presentation";
 import { signalRouteForRequestedAlert } from "../push/push-navigation";
 import { alertIsStale, memberAlertBottleNames } from "./radar-preferences";
 import { colors, fonts, typeScale } from "../theme";
+import { RadarAlertDetails } from "./RadarAlertDetails";
+import { radarBottleLabel } from "./alert-detail-presentation";
 import { radarAlertLocation } from "./alert-location";
 import { radarSwipeDestination, radarSwipeShouldStart } from "./radar-row-gesture";
 
@@ -26,6 +28,7 @@ export function RadarAlertRow({ alert, saving, watchedNames, onMutate, onMute, i
   const offset = useRef(0);
   const x = useRef(new Animated.Value(0)).current;
   const bottles = memberAlertBottleNames(alert, watchedNames);
+  const firstBottle = radarBottleLabel(bottles[0]).name;
   const stale = alertIsStale(alert);
   const unread = !alert.readAt && !stale;
   const route = signalRouteForRequestedAlert([alert], alert.id);
@@ -47,20 +50,14 @@ export function RadarAlertRow({ alert, saving, watchedNames, onMutate, onMute, i
     <Animated.View style={[s.foreground, { transform: [{ translateX: x }] }]}>
       <View style={s.row} {...responder.panHandlers}>
         <View style={[s.dot, unread && s.unread]} />
-        <Pressable accessibilityRole="button" accessibilityLabel={`${bottles.join(", ")}, ${alert.storeLabel}, ${unread ? "unread, " : ""}View details`} accessibilityState={{ expanded }} accessibilityHint="Expands this alert. Swipe left for read and archive actions." onPress={() => { closeSwipe(); setExpanded(v => !v); }} style={s.copy}>
-          <Text style={s.bottle}>{bottles.length > 1 ? `${bottles[0]} +${bottles.length - 1}` : bottles[0]}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel={`${bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}, ${radarAlertLocation(alert)}, ${unread ? "unread, " : ""}View details`} accessibilityState={{ expanded }} accessibilityHint="Expands this alert. Swipe left for read and archive actions." onPress={() => { closeSwipe(); setExpanded(v => !v); }} style={s.copy}>
+          <Text style={s.bottle}>{bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}</Text>
           <Text style={s.location}>{radarAlertLocation(alert)}</Text>
-          <Text style={s.meta}>{stale ? "Past report" : alert.sourceType === "community" ? "Community sighting" : "Bottle report"} · {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text>
+          <View style={s.summaryFooter}><Text style={s.meta}>{stale ? "Past report" : alert.sourceType === "community" ? "Community sighting" : "Bottle report"} · {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text><MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} color={colors.muted} size={18} /></View>
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Actions for ${bottles[0]}`} disabled={saving} onPress={() => { closeSwipe(); setMuteError(""); setChooseBottles(false); setMenu(true); }} style={s.menuButton}><MaterialCommunityIcons name="dots-horizontal" color={colors.muted} size={22} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Actions for ${firstBottle}`} disabled={saving} onPress={() => { closeSwipe(); setMuteError(""); setChooseBottles(false); setMenu(true); }} style={s.menuButton}><MaterialCommunityIcons name="dots-horizontal" color={colors.muted} size={22} /></Pressable>
       </View>
-      {expanded ? <View style={s.details}>
-        <Text style={s.detailText}>{alert.storeLabel}</Text>
-        {bottles.length > 1 ? <Text style={s.detailText}>{bottles.join("\n")}</Text> : null}
-        <Text style={s.detailText}>{alert.sourceLabel || (alert.sourceType === "community" ? "Community" : "Bourbon Signal")} · {new Date(alert.signalAt || alert.createdAt).toLocaleString()}</Text>
-        <Text style={s.detailText}>{alert.quantity !== null ? `Reported quantity: ${alert.quantity} · ` : ""}availability unconfirmed</Text>
-        {route ? <Pressable accessibilityRole="button" onPress={() => router.push(route)} style={s.menuItem}><Text style={s.action}>Open report</Text><MaterialCommunityIcons name="arrow-top-right" color={colors.accent} size={18} /></Pressable> : null}
-      </View> : null}
+      {expanded ? <RadarAlertDetails alert={alert} bottles={bottles} stale={stale} onOpenReport={route ? () => router.push(route) : undefined} /> : null}
     </Animated.View>
     <Modal visible={menu} transparent animationType="slide" onRequestClose={() => setMenu(false)}>
       <View style={s.backdrop}>
@@ -88,7 +85,7 @@ const s = StyleSheet.create({
   location: { color: colors.text, fontSize: typeScale.small, lineHeight: 18 }, meta: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
   dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "transparent" }, unread: { backgroundColor: colors.accent },
   menuButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
-  details: { marginLeft: 15, paddingBottom: 12, gap: 8 }, detailText: { color: colors.muted, fontSize: typeScale.small, lineHeight: 19 },
+  summaryFooter: { flexDirection: "row", alignItems: "center", gap: 8 },
   swipeActions: { position: "absolute", right: 0, top: 0, bottom: 0, flexDirection: "row", width: 144 }, swipeAction: { width: 72, backgroundColor: colors.surfaceRaised, alignItems: "center", justifyContent: "center", gap: 5 }, archive: { backgroundColor: "#35281C" }, actionCaption: { color: colors.text, fontSize: typeScale.caption },
   backdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.6)" }, sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 18 },
   sheetTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.section, marginBottom: 10 }, menuItem: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }, itemLabel: { flex: 1, color: colors.text, fontSize: typeScale.body, lineHeight: 20 }, action: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700" },

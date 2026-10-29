@@ -84,7 +84,8 @@ test("current and history stay separate with useful empty states", () => {
   assert.doesNotMatch(radar, /freshness-qualified|Updated \{lastUpdated\}/);
   const row = readFileSync(resolve(mobileRoot, "src/radar/RadarAlertRow.tsx"), "utf8");
   assert.match(row, /View details/);
-  assert.match(row, /availability unconfirmed/);
+  const details = readFileSync(resolve(mobileRoot, "src/radar/RadarAlertDetails.tsx"), "utf8");
+  assert.match(details, /availability unconfirmed/);
 });
 
 test("Post asks for the bottle and sighting location", () => {
