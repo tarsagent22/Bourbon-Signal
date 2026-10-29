@@ -21,6 +21,7 @@ export async function prepareCentralCityHiveCanary({state,report,bible,captureRo
     if(!source||url.protocol!=='https:'||url.pathname!=='/shop/'||url.searchParams.get('merchant-id')!==source.merchantId)throw new Error('Foreign source capture');
     const file=path.resolve(receipt.file||'');
     if(!roots.some(root=>file.startsWith(root+path.sep)))throw new Error('Source capture escaped the supplied evidence roots');
+    if(!Number.isSafeInteger(receipt.bytes)||receipt.bytes<1||receipt.bytes>2*1024*1024)throw new Error('Captured body exceeds the bounded source contract');
     const body=await readFile(file);
     if(body.length!==receipt.bytes||createHash('sha256').update(body).digest('hex')!==receipt.sha256)throw new Error('Captured body does not match HTTP receipt');
     const observedAt=receipt.observedAt;
