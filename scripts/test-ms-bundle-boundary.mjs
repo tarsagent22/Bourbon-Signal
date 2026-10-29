@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, centralCityHiveTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary } from '../engine/src/verification/historical-implementation.mjs';
+import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -57,7 +57,7 @@ function signalSort(a, b) {
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), current.replace(addition, originalBoundary).replace(indianaAddition, '')
     .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary)
-    .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '')
+    .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '').replace(texasShopifyPickupTierImport, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
     .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary));
@@ -74,12 +74,18 @@ function signalSort(a, b) {
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace("signal.state === 'AZ'", 'true')),
     current.replace(groceryExpansionTierImport, ''),
     current.replace(centralCityHiveTierImport, ''),
+    current.replace(texasShopifyPickupTierImport, ''),
+    current.replace(texasShopifyPickupTierImport, texasShopifyPickupTierImport.replace('./collectors/texas-shopify-pickup.mjs', './collectors/unreviewed-pickup.mjs')),
     current + '\n' + groceryExpansionTierImport,
     current + '\n' + centralCityHiveTierImport,
+    current + '\n' + texasShopifyPickupTierImport,
     current.replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary),
     current + '\n' + reviewedExpansionTierBoundary,
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('?? centralCityHiveLibraryTier(signal,bible)', '?? true')),
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('groceryExpansionLibraryTier(signal,bible)', "groceryExpansionLibraryTier({...signal,state:'MS'},bible)")),
+    current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('texasShopifyPickupLibraryTier(signal,bible) ?? ', '')),
+    current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('texasShopifyPickupLibraryTier(signal,bible)', "texasShopifyPickupLibraryTier({...signal,state:'MS'},bible)")),
+    current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('texasShopifyPickupLibraryTier(signal,bible)', 'true')),
     current.replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary),
     current + '\n' + newYorkVariantSemanticsBoundary,
     current.replace(newYorkVariantSemanticsBoundary, newYorkVariantSemanticsBoundary.replace("signal.state === 'NY'", "signal.state === 'MS'")),
