@@ -9,7 +9,7 @@ import {
   finishRefreshControlPlane,
   renewRefreshControlLease,
 } from './refresh-control-plane.mjs';
-import { targetedRunNeedsBrowserCollectors } from './targeted-browser-policy.mjs';
+import {browserCollectorRefreshDecision,browserCollectorScripts,targetedPaPublicationAdmission} from './fwgs-publication-freshness.mjs';
 
 const ROOT = process.cwd();
 const PROJECT_ROOT = path.dirname(ROOT);
@@ -296,16 +296,21 @@ async function maybeDeploySite({ assertLease = async () => {} } = {}) {
   return deployed;
 }
 
-async function shouldRunBrowserCollectors() {
-  if (process.env.BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS === '1') return false;
-  if (!targetedRunNeedsBrowserCollectors(process.env.BOURBON_SIGNAL_RUN_STATES)) return false;
-  const last = await readJson(STATUS);
-  const lastSuccessMs = last?.lastBrowserRefreshAt ? new Date(last.lastBrowserRefreshAt).getTime() : NaN;
-  if (!Number.isFinite(lastSuccessMs)) {
-    return BROWSER_REFRESH_MINUTES < 999_000;
+async function browserCollectorAdmission() {
+  if (process.env.BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS === '1') return {due:false, reason:'explicit_browser_skip'};
+  const [last, fwgsArtifact] = await Promise.all([
+    readJson(STATUS), readJson(path.join(OUT, 'browser', 'fwgs-store-inventory.json')),
+  ]);
+  const decision = browserCollectorRefreshDecision({
+    rawStates: process.env.BOURBON_SIGNAL_RUN_STATES,
+    browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
+    lastBrowserRefreshAt: last?.lastBrowserRefreshAt,
+    fwgsArtifact,
+  });
+  if (decision.reason === 'fwgs_source_publication_headroom') {
+    console.log('FWGS original pickup observation needs refresh before publication: ' + decision.freshness.reason);
   }
-  const ageMs = Date.now() - lastSuccessMs;
-  return ageMs >= BROWSER_REFRESH_MINUTES * 60_000;
+  return decision;
 }
 
 function refreshScope() {
@@ -477,7 +482,8 @@ async function main() {
 
   try {
     const browserDetail = await runStage('browser_collectors', async () => {
-      if (!(await shouldRunBrowserCollectors())) {
+      const browserAdmission = await browserCollectorAdmission();
+      if (!browserAdmission.due) {
         return {
           skipped: true,
           reason: 'browser_refresh_not_due',
@@ -494,9 +500,9 @@ async function main() {
       lastBrowserAttemptAt = new Date().toISOString();
       try {
         browserOwner = await ensureBrowserCdp(CDP_URL);
-        const browserScripts = browserOwner.started
-          ? ['src/fwgs-browser-full.mjs']
-          : ['src/ohlq-browser-collector.mjs', 'src/fwgs-browser-full.mjs'];
+        const browserScripts = browserCollectorScripts({
+          rawStates:process.env.BOURBON_SIGNAL_RUN_STATES, browserStarted:browserOwner.started, fwgsOnly:browserAdmission.fwgsOnly,
+        });
         if (browserOwner.started) {
           browserWarnings.push('OHLQ browser collector skipped on scheduled headless Chrome because OHLQ Cloudflare requires an already-warmed interactive browser session; last known OHLQ artifact/snapshot remains in use.');
         }
@@ -530,6 +536,12 @@ async function main() {
     mergeWarnings(warnings, stageWarnings(browserDetail));
     lastBrowserRefreshAt = browserDetail?.lastBrowserRefreshAt || lastBrowserRefreshAt;
     lastBrowserAttemptAt = browserDetail?.lastBrowserAttemptAt || lastBrowserAttemptAt;
+
+    const paAdmission = targetedPaPublicationAdmission(process.env.BOURBON_SIGNAL_RUN_STATES,
+      await readJson(path.join(OUT, 'browser', 'fwgs-store-inventory.json')));
+    if (!paAdmission.ok) {
+      throw new Error('Targeted Pennsylvania refresh requires original pickup evidence with publication headroom: ' + paAdmission.reason);
+    }
 
     const buildBible = await runStage('build_bible', async () => ({ step: summarizeStep(await runNode('src/build-bible.mjs')) }));
     appendSteps(steps, [buildBible?.step]);

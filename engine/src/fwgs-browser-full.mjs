@@ -1,6 +1,7 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import {fwgsPublicationFreshness,fwgsReuseAgeLimit,FWGS_REUSABLE_SOURCE_MAX_AGE_MS} from './fwgs-publication-freshness.mjs';
 import { atomicWriteJson, validateFwgsChunk, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
 
 const OFFSETS = (process.env.FWGS_FULL_OFFSETS || '0,100,200,300,400,500,600')
@@ -12,7 +13,7 @@ const OUT_FILE = process.env.FWGS_OUT_FILE || 'out/browser/fwgs-store-inventory.
 const CHUNK_RETRIES = Number(process.env.FWGS_FULL_CHUNK_RETRIES || 2);
 const ALLOW_PARTIAL = process.env.FWGS_ALLOW_PARTIAL_FULL === '1';
 const CHUNK_FALLBACK_MAX_AGE_MS = Number(process.env.FWGS_FULL_CHUNK_FALLBACK_MAX_AGE_MS || 24 * 60 * 60_000);
-const CHUNK_REUSE_MAX_AGE_MS = Number(process.env.FWGS_CHUNK_REUSE_MAX_AGE_MS || 2 * 60 * 60_000);
+const CHUNK_REUSE_MAX_AGE_MS = fwgsReuseAgeLimit(Number(process.env.FWGS_CHUNK_REUSE_MAX_AGE_MS ?? FWGS_REUSABLE_SOURCE_MAX_AGE_MS));
 
 function chunkFileFor(offset) {
   return `out/browser/fwgs-store-inventory-${offset}.json`;
@@ -67,7 +68,7 @@ async function main() {
   for (const offset of OFFSETS) {
     let collected = null;
     const reusable = await readUsableChunk(chunkFileFor(offset));
-    if (reusable && reusable.ageMs <= CHUNK_REUSE_MAX_AGE_MS) {
+    if (reusable && fwgsPublicationFreshness(reusable.payload, {maxAgeMs:CHUNK_REUSE_MAX_AGE_MS}).ok) {
       collected = reusable.file;
       console.log(`Reusing validated fresh FWGS chunk offset ${offset} (${Math.round(reusable.ageMs / 1000)}s old).`);
     }
@@ -135,7 +136,7 @@ async function main() {
 
   const merged = {
     ...first,
-    generatedAt: generatedTimes.length ? new Date(Math.min(...generatedTimes)).toISOString() : new Date().toISOString(),
+    generatedAt: generatedTimes.length === chunks.length ? new Date(Math.min(...generatedTimes)).toISOString() : null,
     sourceUrl: 'https://www.finewineandgoodspirits.com/store-locator',
     chunks: chunks.map(({ file, payload }) => ({ file, generatedAt: payload.generatedAt, summary: payload.summary })),
     failedChunks,
@@ -162,7 +163,9 @@ async function main() {
     minPositiveRows: Number(process.env.BOURBON_SIGNAL_MIN_FWGS_POSITIVE_ROWS || 1000),
     minLocations: Number(process.env.BOURBON_SIGNAL_MIN_FWGS_LOCATIONS || 550)
   });
-  if (!validation.ok) {
+  const freshness = fwgsPublicationFreshness(merged);
+  if (!freshness.ok) validation.failures.push(freshness.reason);
+  if (!validation.ok || !freshness.ok) {
     if (ALLOW_PARTIAL) await atomicWriteJson(`${OUT_FILE}.partial`, merged);
     throw new Error(`FWGS full artifact rejected${ALLOW_PARTIAL ? `; diagnostic written to ${OUT_FILE}.partial` : ''}: ${validation.failures.join('; ')}`);
   }

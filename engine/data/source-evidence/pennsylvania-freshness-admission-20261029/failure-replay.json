@@ -1,0 +1,22 @@
+{
+  "scope": "historical_workflow_failure_witness_not_new_stock_or_promotion",
+  "workflowRunId": "40909963708",
+  "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/40909963708",
+  "headSha": "6deae85aaa1b78900cb5eafab03570613c95a8d7",
+  "artifactId": "12914872906",
+  "artifactSha256": "a7349c3a6ae6c16c3fd193d3010679b79c12c60d081b71c1a662be8e72266960",
+  "sourceObservedAt": "2026-10-29T14:45:09.517Z",
+  "cacheReuseAt": "2026-10-29T16:36:11.189Z",
+  "sourceAgeSecondsAtReuse": 6661.672,
+  "paFinishedAt": "2026-10-29T16:36:15.821Z",
+  "checkedAt": "2026-10-29T16:45:52.988Z",
+  "expiredByMs": 43471,
+  "reviewedSourceRows": 1353,
+  "reviewedPublicRows": 903,
+  "reviewedPublicStores": 383,
+  "publicationMaximumAgeMs": 7200000,
+  "publicationReserveMs": 1800000,
+  "reuseMaximumAgeMs": 5400000,
+  "diagnosticSourceRequests": 0,
+  "productionActivated": false
+}
