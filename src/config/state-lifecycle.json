@@ -722,10 +722,11 @@
     "NY": {
       "customerLabel": "New York",
       "sourceLabel": "Selected New York retailer inventory",
-      "customerAreaLabel": "New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, Lake George",
+      "customerAreaLabel": "New York City, Nassau County, Suffolk County, Buffalo, Rochester Metro, Hudson Valley, Lake George",
       "areaOptions": [
         "New York City",
         "Nassau County",
+        "Suffolk County",
         "Buffalo",
         "Rochester Metro",
         "Hudson Valley",
@@ -735,7 +736,7 @@
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
-      "customerSummary": "Verified first-party retailer inventory at selected premises in New York City, Nassau County, Buffalo, Rochester Metro, Hudson Valley, and Lake George. Availability covers the named stores; verify before driving.",
+      "customerSummary": "Verified first-party retailer inventory at selected premises in New York City, Nassau County, Suffolk County (Winecity East Northport), Buffalo, Rochester Metro, Hudson Valley, and Lake George. Availability covers the named stores; verify before driving.",
       "promotionStage": "active",
       "shadowEligible": true,
       "promotionEvidence": {

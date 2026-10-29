@@ -30,6 +30,7 @@ export async function collectNewYorkVariantPickup(config, bible, candidate, obse
       canonicalName: signal.canonicalName, canonicalBottleId: signal.canonicalBottleId,
       merchantId: signal.merchantId, storeId: signal.storeId,
       productId: signal.productId, variantId: signal.variantId,
+      variantAvailable: signal.raw?.variant?.available === true,
       pickupUrl: signal.sourceProductBinding, observedAt },
     raw: { ...signal.raw, platform: source.platform } }));
   return { ...result, metadata: { ...result.metadata, completeSnapshot: true,

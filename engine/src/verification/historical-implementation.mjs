@@ -22,6 +22,8 @@ export const originalArizonaMetroTierBoundary = '    tier: record?.tier || null,
 export const groceryExpansionTierImport = "import { groceryExpansionLibraryTier } from './grocery-xapi-policy.mjs';\n";
 export const centralCityHiveTierImport = "import { centralCityHiveLibraryTier } from './collectors/central-cityhive-expansion.mjs';\n";
 export const reviewedExpansionTierBoundary = "    tier: groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),\n";
+export const originalNewYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'GA' && signal.inventorySemantics\n";
+export const newYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
 const originalFloridaProofBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
 const floridaProofBoundary = `    } : undefined,
     ...(signal.state === 'FL' ? {
@@ -63,6 +65,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, groceryExpansionTierImport, '', `${name}: grocery tier import`);
     text = replaceUnique(text, centralCityHiveTierImport, '', `${name}: CityHive tier import`);
     text = replaceUnique(text, reviewedExpansionTierBoundary, arizonaMetroTierBoundary, `${name}: reviewed source tier proof`);
+    text = replaceUnique(text, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, `${name}: NY variant semantics`);
     // Only this exact AZ-gated, proof-checked catalog tier may differ. All MS
     // implementation bytes and the original full-file digest remain pinned.
     text = replaceUnique(text, arizonaMetroTierImport, '', `${name}: AZ tier import`);
@@ -72,7 +75,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (name === 'scripts/test-coverage-contract.mts') {
     // Only the two expanded-area expectations differ from this pinned test.
     let text = replaceUnique(bytes.toString('utf8'),
-      '  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro"]],\n',
+      '  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro", "Suffolk County"]],\n',
       '  ["NY", ["Buffalo", "Nassau County", "New York City"]],\n', `${name}: NY areas`);
     text = replaceUnique(text,
       '  ["CO", ["Boulder County", "Colorado Springs", "Denver Metro"]],\n',

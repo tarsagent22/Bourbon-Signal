@@ -38,7 +38,7 @@
     "verify:state-lifecycle-drift": "node scripts/verify-state-lifecycle-drift.mjs",
     "verify:promotion-provenance": "node scripts/verify-promotion-provenance.mjs --state=UT",
     "test:state-user-path": "node --experimental-strip-types scripts/test-state-user-path.mts",
-    "test:ny-co-user-path": "node --experimental-strip-types scripts/test-ny-co-user-path.mts",
+    "test:ny-co-user-path": "node --experimental-strip-types scripts/test-ny-co-user-path.mts && tsx scripts/test-suffolk-customer-path.mts",
     "test:state-area-contracts": "node --no-warnings --experimental-strip-types scripts/test-new-york-colorado-area.mts && tsx scripts/test-colorado-expansion-paths.ts",
     "test:demand-metro-user-path": "node --no-warnings --experimental-strip-types scripts/test-demand-metro-user-path.mts",
     "test:utah-user-path": "node --experimental-strip-types scripts/test-utah-generated-user-path.mjs",

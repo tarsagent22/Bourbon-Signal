@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, centralCityHiveTierImport, reviewedExpansionTierBoundary } from '../engine/src/verification/historical-implementation.mjs';
+import { normalizeHistoricalImplementationBytes, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, centralCityHiveTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
 const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json',import.meta.url),'utf8'));
@@ -59,6 +59,7 @@ function signalSort(a, b) {
     .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary)
     .replace(groceryExpansionTierImport, '').replace(centralCityHiveTierImport, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
+    .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
     .replace(arizonaMetroTierImport, '').replace(arizonaMetroTierBoundary, originalArizonaMetroTierBoundary));
   for (const altered of [
     current.replace(addition, originalBoundary),
@@ -79,6 +80,10 @@ function signalSort(a, b) {
     current + '\n' + reviewedExpansionTierBoundary,
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('?? centralCityHiveLibraryTier(signal,bible)', '?? true')),
     current.replace(reviewedExpansionTierBoundary, reviewedExpansionTierBoundary.replace('groceryExpansionLibraryTier(signal,bible)', "groceryExpansionLibraryTier({...signal,state:'MS'},bible)")),
+    current.replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary),
+    current + '\n' + newYorkVariantSemanticsBoundary,
+    current.replace(newYorkVariantSemanticsBoundary, newYorkVariantSemanticsBoundary.replace("signal.state === 'NY'", "signal.state === 'MS'")),
+    current.replace(newYorkVariantSemanticsBoundary, newYorkVariantSemanticsBoundary.replace("signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'", 'true')),
     current + '\n' + indianaAddition,
     current.replace(indianaAddition, indianaAddition.replace("sig.state === 'IN'", "sig.state === 'MS'")),
     current.replace(indianaAddition, indianaAddition.replace('sig.sourceProductBinding || null', 'sig.raw || null')),
@@ -191,7 +196,7 @@ test('coverage test allowance preserves MS assertions and every other test byte'
   const originalHash = evidence.implementationFilesSha256[name];
   assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), originalHash);
   for (const line of [
-    '  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro"]],\n',
+    '  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro", "Suffolk County"]],\n',
     '  ["CO", ["Boulder County", "Colorado Springs", "Denver Metro"]],\n',
   ]) {
     assert.ok(current.includes(line));

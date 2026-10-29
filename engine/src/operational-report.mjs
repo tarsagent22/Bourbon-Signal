@@ -182,7 +182,9 @@ export function canonicalizeSignal(signal, bible) {
     baseConfidence: Number(signal.confidence || 0.35) || 0.35,
     confidence: policy.confidence,
     policyMode: policy.policyMode,
-    inventorySemantics: signal.state === 'GA' && signal.inventorySemantics
+    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'
+      ? signal.inventorySemantics
+      : signal.state === 'GA' && signal.inventorySemantics
       ? signal.inventorySemantics
       : signal.state === 'MS' && signal.inventorySemantics
         ? signal.inventorySemantics

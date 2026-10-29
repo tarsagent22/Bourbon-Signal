@@ -168,10 +168,17 @@ export function isMetroRetailerInventory(signal) {
 
   if (source.platform === 'shopify-variant-pickup') {
     const seed = source.pickupDefinition?.products.find(product => product.productId === signal.productId && product.variantId === signal.variantId);
-    return Boolean(seed && libraryIdentity && signal.rawName === seed.title && canonicalName === seed.canonicalName
+    const rawVariant = signal.raw?.variant;
+    const variantAvailabilityVerified = rawVariant != null
+      ? rawVariant.available === true && String(rawVariant.id) === signal.variantId
+        && (proof?.variantAvailable == null || proof.variantAvailable === true)
+      : proof?.variantAvailable === true && proof.observedAt === signal.observedAt;
+    return Boolean(seed && libraryIdentity && signal.rawName === seed.title && proof.canonicalName === seed.canonicalName
+      && (canonicalName === seed.canonicalName || canonicalName === seed.title)
       && proof.productIdentityMode === 'shopify_variant_pickup' && proof.pickupUrl === seed.evidence.pickup.url
+      && proof.observedAt === signal.observedAt
       && signal.pickupOfferVerified === true && signal.premisesVerified === true
-      && signal.raw?.variant?.available === true && signal.variantAvailable === true
+      && variantAvailabilityVerified && signal.variantAvailable === true
       && signal.quantity === 0 && signal.quantityIsExact === false
       && signal.inventorySemantics === 'binary_retailer_orderable_no_exact_count');
   }
