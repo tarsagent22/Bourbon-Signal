@@ -146,7 +146,7 @@ const GEORGIA_RETAILER_POLICY = {
 
 const CALIFORNIA_RETAILER_POLICY = {
   maxAlertMode: 'alert_retailer_store_inventory_caveat',
-  inventorySemantics: 'California San Diego retailer rows use first-party binary pickup/order availability bound to an exact physical retailer. Exact shelf count is not published; verify pickup directly before driving.',
+  inventorySemantics: 'California retailer rows use first-party availability bound to an exact physical store. Binary availability is distinct from a retailer-published quantity; verify directly before driving.',
   defaultCadence: '30-60m'
 };
 

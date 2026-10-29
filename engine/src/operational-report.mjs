@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { stableId } from './core/text.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { metroLibraryTier } from './collectors/arizona-metro-retailer-proof.mjs';
+import { groceryExpansionLibraryTier } from './grocery-xapi-policy.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
 import { hasVerifiedGeorgiaRetailerInventory, suppressGeorgiaActivationBaseline } from './georgia-activation-policy.mjs';
 import {
@@ -96,7 +97,7 @@ export function canonicalizeSignal(signal, bible) {
     bottleId,
     canonicalBottleId: bottleId,
     canonicalName,
-    tier: (signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null,
+    tier: groceryExpansionLibraryTier(signal,bible) || (signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null,
     producer: record?.producer || null,
     eventType: signal.eventType,
     sourceLabel: signal.sourceLabel,
