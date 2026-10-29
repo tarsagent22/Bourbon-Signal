@@ -2,13 +2,20 @@ import {targetedRunNeedsBrowserCollectors} from './targeted-browser-policy.mjs';
 
 // Match the strict PA expansion publication deadline. Reuse never extends it.
 export const FWGS_PUBLICATION_MAX_AGE_MS = 2 * 60 * 60_000;
-export const FWGS_PUBLICATION_HEADROOM_MS = 30 * 60_000;
+export const FWGS_PUBLICATION_HEADROOM_MS = 95 * 60_000;
 export const FWGS_REUSABLE_SOURCE_MAX_AGE_MS = FWGS_PUBLICATION_MAX_AGE_MS - FWGS_PUBLICATION_HEADROOM_MS;
+// Five minutes +18min cold collection fits the 25min whole-artifact admission.
+// A slower mixed refresh still fails closed at the unchanged final age check.
+export const FWGS_REUSABLE_CHUNK_MAX_AGE_MS = 5 * 60_000;
 const INVENTORY_ENDPOINT = '/ccstorex/custom/v1/b2b/get-inventory';
 
 export function fwgsReuseAgeLimit(requested = FWGS_REUSABLE_SOURCE_MAX_AGE_MS) {
   if (!Number.isSafeInteger(requested) || requested < 0) throw new Error('FWGS cache reuse age must be a nonnegative integer');
   return Math.min(requested, FWGS_REUSABLE_SOURCE_MAX_AGE_MS);
+}
+
+export function fwgsChunkReuseAgeLimit(requested = FWGS_REUSABLE_CHUNK_MAX_AGE_MS) {
+  return Math.min(fwgsReuseAgeLimit(requested), FWGS_REUSABLE_CHUNK_MAX_AGE_MS);
 }
 
 /** Pure source-clock admission, separate from product/premises validation. */
@@ -22,7 +29,7 @@ export function fwgsPublicationFreshness(payload, {nowMs = Date.now(), maxAgeMs 
   const ageMs = nowMs - at, remainingMs = FWGS_PUBLICATION_MAX_AGE_MS - ageMs;
   return {ok:ageMs <= limit, generatedAt:payload.generatedAt, ageMs, remainingMs, maximumReuseAgeMs:limit,
     requiredHeadroomMs:FWGS_PUBLICATION_HEADROOM_MS,
-    reason:ageMs <= limit ? null : 'FWGS original pickup observation lacks the reserved 30-minute publication headroom'};
+    reason:ageMs <= limit ? null : 'FWGS original pickup observation lacks the reserved 95-minute continuity/publication headroom'};
 }
 
 /** The administrative browser refresh timer cannot renew old pickup evidence. */

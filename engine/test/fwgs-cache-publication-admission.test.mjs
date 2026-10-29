@@ -1,12 +1,12 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,mkdir,writeFile,readFile,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import path from 'node:path';import {fileURLToPath} from 'node:url';import {spawnSync} from 'node:child_process';
+import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,mkdir,writeFile,readFile,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import path from 'node:path';import {fileURLToPath,pathToFileURL} from 'node:url';import {spawnSync} from 'node:child_process';
 const runner=fileURLToPath(new URL('../src/fwgs-browser-full.mjs',import.meta.url));
 const productList=Array.from({length:12},(_,index)=>({sku:'synthetic-'+index}));
-function chunk(offset,ageMinutes){const locations=Array.from({length:300},(_,index)=>({locationId:String(offset+index),latitude:40,longitude:-77}));const inventoryRows=locations.flatMap((location,index)=>[0,1].map(delta=>({product:productList[(index+delta)%12],location,quantity:1})));
- return{generatedAt:new Date(Date.now()-ageMinutes*60000).toISOString(),inventoryEndpoint:'/ccstorex/custom/v1/b2b/get-inventory',locationTotal:600,products:productList,locations,inventoryRows,
+function chunk(offset,ageMinutes,nowMs=Date.now()){const locations=Array.from({length:300},(_,index)=>({locationId:String(offset+index),latitude:40,longitude:-77}));const inventoryRows=locations.flatMap((location,index)=>[0,1].map(delta=>({product:productList[(index+delta)%12],location,quantity:1})));
+ return{generatedAt:new Date(nowMs-ageMinutes*60000).toISOString(),inventoryEndpoint:'/ccstorex/custom/v1/b2b/get-inventory',locationTotal:600,products:productList,locations,inventoryRows,
  productSearches:Array.from({length:37},()=>({ok:true,status:200})),summary:{sourceLocationCount:300,locationCount:300,excludedLocationCount:0,invalidCoordinateCount:0,positiveInventoryProductCount:12,searchTermCount:37}};}
-async function setup(t,ages=[111,111]){const directory=await mkdtemp(path.join(tmpdir(),'fwgs-publication-admission-'));assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));t.after(()=>rm(directory,{recursive:true,force:true}));
+async function setup(t,ages=[111,111],nowMs=Date.now()){const directory=await mkdtemp(path.join(tmpdir(),'fwgs-publication-admission-'));assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));t.after(()=>rm(directory,{recursive:true,force:true}));
  await mkdir(path.join(directory,'out/browser'),{recursive:true});await mkdir(path.join(directory,'src'));
- const originals=[];for(const[offset,index]of [[0,0],[300,1]]){const payload=chunk(offset,ages[index]),file=path.join(directory,'out/browser/fwgs-store-inventory-'+offset+'.json');const text=JSON.stringify(payload);await writeFile(file,text);originals.push({offset,file,text,payload});}
+ const originals=[];for(const[offset,index]of [[0,0],[300,1]]){const payload=chunk(offset,ages[index],nowMs),file=path.join(directory,'out/browser/fwgs-store-inventory-'+offset+'.json');const text=JSON.stringify(payload);await writeFile(file,text);originals.push({offset,file,text,payload});}
  // Deliberately synthetic child collector: filesystem only, never a browser,
  // source request, inventory observation, or production evidence.
  await writeFile(path.join(directory,'src/fwgs-browser-collector.mjs'),`import fs from 'node:fs';
@@ -16,6 +16,7 @@ const mode=process.env.SYNTHETIC_FWGS_CLOCK_MODE;
 payload.generatedAt=mode==='expired'?new Date(Date.now()-111*60000).toISOString():mode==='future'?new Date(Date.now()+60000).toISOString():new Date().toISOString();
 if(mode==='missing')delete payload.generatedAt;
 fs.writeFileSync(file,JSON.stringify(payload));fs.appendFileSync('out/child-calls.txt',offset+'\\n');
+if(process.env.SYNTHETIC_FWGS_ADVANCE_MS)fs.writeFileSync(process.env.SYNTHETIC_FWGS_CLOCK_FILE,String(Date.now()+Number(process.env.SYNTHETIC_FWGS_ADVANCE_MS)));
 `);
  return{directory,originals,out:path.join(directory,'out/full.json')};}
 function run(options,extra={}){return spawnSync(process.execPath,[runner],{cwd:options.directory,encoding:'utf8',timeout:15000,windowsHide:true,env:{...process.env,FWGS_FULL_OFFSETS:'0,300',FWGS_FULL_CHUNK_LIMIT:'300',FWGS_OUT_FILE:'out/full.json',FWGS_FULL_CHUNK_RETRIES:'0',FWGS_ALLOW_PARTIAL_FULL:'0',FWGS_CHUNK_REUSE_MAX_AGE_MS:'7200000',BOURBON_SIGNAL_MIN_FWGS_POSITIVE_ROWS:'1000',BOURBON_SIGNAL_MIN_FWGS_LOCATIONS:'550',...extra}});}
@@ -26,10 +27,24 @@ test('real full-wrapper refuses the failed111-minute cache even when old two-hou
 });
 
 test('real full-wrapper reuses sufficiently fresh chunks without replacing any original source clock',async t=>{
- const options=await setup(t,[20,30]),result=run(options);assert.equal(result.status,0,result.stderr);
+ const options=await setup(t,[2,4]),result=run(options);assert.equal(result.status,0,result.stderr);
  await assert.rejects(()=>readFile(path.join(options.directory,'out/child-calls.txt')),{code:'ENOENT'});
  for(const original of options.originals)assert.equal(await readFile(original.file,'utf8'),original.text);
  const merged=JSON.parse(await readFile(options.out,'utf8'));assert.equal(merged.generatedAt,options.originals[1].payload.generatedAt);assert.deepEqual(merged.chunks.map(row=>row.generatedAt),options.originals.map(row=>row.payload.generatedAt));
+});
+
+test('real full-wrapper models mixed five-minute reuse and cold elapsed time, retaining original clocks and refusing overruns',async t=>{
+ const clockStart=Date.parse('2026-10-29T12:00:00Z');
+ for(const coldMinutes of [18,21]){
+  const options=await setup(t,[5,111],clockStart),clockFile=path.join(options.directory,'synthetic-clock.txt'),preload=path.join(options.directory,'synthetic-clock-preload.mjs'),previous='{"saved":"previous complete artifact"}\n';
+  await writeFile(clockFile,String(clockStart));await writeFile(options.out,previous);
+  await writeFile(preload,`import fs from 'node:fs';const NativeDate=Date;const now=()=>Number(fs.readFileSync(process.env.SYNTHETIC_FWGS_CLOCK_FILE,'utf8'));globalThis.Date=class extends NativeDate{constructor(...args){super(...(args.length?args:[now()]));}static now(){return now();}};globalThis.fetch=()=>{throw Error('Offline timing model cannot request source HTTP');};`);
+  const result=run(options,{NODE_OPTIONS:'--import='+pathToFileURL(preload).href,SYNTHETIC_FWGS_CLOCK_FILE:clockFile,SYNTHETIC_FWGS_ADVANCE_MS:String(coldMinutes*60000)});
+  assert.equal(await readFile(path.join(options.directory,'out/child-calls.txt'),'utf8'),'300\n','only the old chunk collects');
+  assert.equal(await readFile(options.originals[0].file,'utf8'),options.originals[0].text,'reused source clock/bytes cannot change');
+  if(coldMinutes===18){assert.equal(result.status,0,result.stderr);const merged=JSON.parse(await readFile(options.out,'utf8'));assert.equal(merged.generatedAt,options.originals[0].payload.generatedAt);assert.equal(Number(await readFile(clockFile,'utf8'))-Date.parse(merged.generatedAt),23*60000);assert.equal(merged.summary.locationCount,600);assert.equal(merged.summary.positiveInventoryRowCount,1200);}
+  else{assert.equal(result.status,1);assert.match(result.stderr,/publication headroom/);assert.equal(await readFile(options.out,'utf8'),previous,'slow mixed refresh preserves prior complete output');}
+ }
 });
 
 test('aged or future child artifacts cannot replace the last full artifact after structural validation',async t=>{
