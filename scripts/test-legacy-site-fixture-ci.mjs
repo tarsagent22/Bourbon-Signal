@@ -53,6 +53,8 @@ test('CI preparation preserves every legacy inventory byte/clock and passes the 
     const partitionFile=path.join(site,'states/WA/drops.json');await rm(partitionFile);
     const production=run('engine/src/verify-state-integration.mjs',['--state=WA',`--site-dir=${site}`],path.join(ROOT,'engine'));
     assert.notEqual(production.status,0,'missing actual output cannot fall back to the CI canary');assert.match(production.stderr,/WA: state partition payload is missing/);
+    await writeFile(partitionFile,JSON.stringify({state:'WA',count:1,drops:[{state:'WA',id:'real'}]}));
+    await assert.rejects(()=>prepareLegacySiteFixtureForCi({root,ci:true,workflow:'CI'}),/Refusing to overwrite/);
     manifest.runId='real-production-run';await writeFile(path.join(site,'manifest.json'),JSON.stringify(manifest));
     await assert.rejects(()=>prepareLegacySiteFixtureForCi({root,ci:true,workflow:'CI'}),/reviewed historical/);
   }finally{await rm(root,{recursive:true,force:true});}
