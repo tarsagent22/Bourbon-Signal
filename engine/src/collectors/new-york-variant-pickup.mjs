@@ -1,8 +1,6 @@
-import { createRequire } from 'node:module';
+import reviewed from '../../data/new-york-variant-pickup-retailers.json' with { type: 'json' };
 import { collectShopifyVariantPickup, validateShopifyVariantSource } from './shopify-variant-pickup.mjs';
 
-const require = createRequire(import.meta.url);
-const reviewed = require('../../data/new-york-variant-pickup-retailers.json');
 // These are exact reviewed product/variant probes, not catalog availability.
 // The ordinary metro runner owns refresh, durable denial cooldown and expiry.
 export const NEW_YORK_VARIANT_PICKUP_SOURCES = Object.freeze(reviewed.sources.map(input => {
