@@ -46,6 +46,7 @@ if (['WA','NM','WI','OK','NJ','MI'].includes(state)) files.push(
   'engine/data/source-evidence/optional-suspensions-20261029/policy.json',
   'engine/src/stale-signal-policy.mjs',
   'engine/src/confidence-policy.mjs',
+  'engine/src/south-carolina-retailer-policy.mjs',
   'engine/src/run.mjs',
   'engine/src/run-expansion-shadow.mjs',
   'engine/src/reliability-policy.mjs',

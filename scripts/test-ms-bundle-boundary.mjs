@@ -237,7 +237,7 @@ test('NJ/MI historical reversal rejects activation, altered registration and not
     for(const[key,{reviewed,original}]of Object.entries(entries)){
       assert.equal(current.split(reviewed).length-1,1);
       const changed=name.endsWith('.mjs')?reviewed.replace('NJ_MI','UNREVIEWED')
-        :reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
+        :key==='budgets'?reviewed.replace('120000','90000'):reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
       assert.notEqual(changed,reviewed);
       for(const mutation of[current.replace(reviewed,original),current.replace(reviewed,changed),current+'\n'+reviewed]){
         assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/NJ\/MI reviewed .*exact historical verification hook/,key);

@@ -68,6 +68,8 @@ export const STATE_LIFECYCLE_CONFIG = {
       "IN": 240000,
       "TN": 180000,
       "SC": 180000,
+      "NJ": 120000,
+      "MI": 60000,
       "WI": 150000,
       "OK": 240000,
       "KY": 180000,

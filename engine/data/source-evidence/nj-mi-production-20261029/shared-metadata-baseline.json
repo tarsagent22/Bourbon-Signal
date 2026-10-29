@@ -23,6 +23,10 @@
       "NJ": {
         "reviewed": ",\n    \"NJ\": {\n      \"customerLabel\": \"New Jersey\",\n      \"sourceLabel\": \"New Jersey exact-premises research\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive research at 4 reviewed New Jersey stores; production coverage and all alerts remain blocked pending promotion.\"\n    }",
         "original": ""
+      },
+      "budgets": {
+        "original": "",
+        "reviewed": "      \"NJ\": 120000,\n      \"MI\": 60000,\n"
       }
     },
     "src/config/stateLifecycle.ts": {
@@ -33,6 +37,10 @@
       "NJ": {
         "reviewed": ",\n    \"NJ\": {\n      \"customerLabel\": \"New Jersey\",\n      \"sourceLabel\": \"New Jersey exact-premises research\",\n      \"publicStatus\": \"research_only\",\n      \"shadowEligible\": true,\n      \"lifecycle\": \"retailer_inventory_research\",\n      \"coverageTier\": \"sparse_live_store_inventory\",\n      \"refinementLevel\": \"store\",\n      \"inventoryAlertable\": false,\n      \"watchAlertable\": false,\n      \"customerSummary\": \"Inactive research at 4 reviewed New Jersey stores; production coverage and all alerts remain blocked pending promotion.\"\n    }",
         "original": ""
+      },
+      "budgets": {
+        "original": "",
+        "reviewed": "      \"NJ\": 120000,\n      \"MI\": 60000,\n"
       }
     }
   }
