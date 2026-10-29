@@ -29,6 +29,13 @@ test('inventory scheduling preserves explicit cooldown, disabled and requested-s
   assert.equal(inventoryStateCadenceMs('MA'), null);
 });
 
+test('expanded Texas collector has one bounded attempt within its parent state envelope', () => {
+  const options = legacyPrecisionRuntimeOptions('TX', {}, {});
+  assert.equal(options.timeoutMs, 600_000);
+  assert.equal(options.maxAttempts, 1);
+  assert.equal(options.maxCadenceMs, 1_800_000);
+});
+
 test('state runtime metrics prefer the current worker attempt envelope over retained report timestamps', () => {
   const metrics = updateStateRunMetric({}, {
     id: 'PA',
