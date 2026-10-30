@@ -12,6 +12,7 @@ const evidence = JSON.parse(await readFile(new URL('../engine/data/state-expansi
 const sharedBaseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json',import.meta.url),'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const actualAdmission = JSON.parse(await readFile(new URL('../engine/data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const californiaCityMenuBaseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/two-state-expansion-20261030/california-city-menu-ms-boundary.json', import.meta.url), 'utf8'));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 
 test('MS historical implementation bytes remain pinned, including policy', async () => {
@@ -201,7 +202,7 @@ test('nationwide reversal accepts only exact reviewed CA metadata and inactive c
   for (const name of sharedFiles) {
     const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
     const entry = baseline.files[name];
-    const reversals = name.endsWith('.mjs') ? [entry.import, entry.registration] : [entry];
+    const reversals = name.endsWith('.mjs') ? [entry.import, entry.registration] : [{...entry,reviewed:californiaCityMenuBaseline.files[name].reviewed}];
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const { reviewed, original } of reversals) {
       assert.notEqual(reviewed, original);
@@ -212,12 +213,34 @@ test('nationwide reversal accepts only exact reviewed CA metadata and inactive c
       }
     }
     if (!name.endsWith('.mjs')) {
-      const activeMutation = current.replace(entry.reviewed, entry.reviewed.replace('"publicStatus": "active"', '"publicStatus": "research_only"'));
+      const reviewed=californiaCityMenuBaseline.files[name].reviewed;
+      const activeMutation = current.replace(reviewed, reviewed.replace('"publicStatus": "active"', '"publicStatus": "research_only"'));
       assert.notEqual(activeMutation, current);
       assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(activeMutation)), /CA reviewed metadata/);
     }
     const outside = current.replace(name.endsWith('.mjs') ? "id: 'MS'" : '"MS": {', name.endsWith('.mjs') ? "id: 'MS_UNREVIEWED'" : '"MS_UNREVIEWED": {');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name]);
+  }
+});
+
+test('California city-menu allowance changes only the literal reviewed cities and cannot hide policy changes',async()=>{
+  const prior=JSON.parse(await readFile(new URL('../engine/data/source-evidence/nationwide-expansion-20261029/shared-metadata-baseline.json',import.meta.url),'utf8'));
+  assert.equal(californiaCityMenuBaseline.contractVersion,'bourbon-signal/california-city-menu-ms-boundary@1');
+  for(const[name,{reviewed,original}]of Object.entries(californiaCityMenuBaseline.files)){
+    assert.equal(original,prior.files[name].reviewed);
+    const parse=text=>JSON.parse(text.slice(text.indexOf('{')).replace(/,$/,'')),before=parse(original),after=parse(reviewed);
+    assert.equal(before.areaOptions.length,29);assert.equal(after.areaOptions.length,238);
+    assert.deepEqual({...before,areaOptions:[]},{...after,areaOptions:[]},'The reviewed exception changes no status, source, alert or refinement policy');
+    const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+    for(const changed of [original,reviewed.replace('"Fresno"','"Unreviewed Place"'),
+      reviewed.replace('"publicStatus": "active"','"publicStatus": "research_only"'),
+      reviewed.replace('"publicStatus": "active"','"publicStatus": "active",\n      "inventoryAlertable": true'),
+      reviewed.replace('"publicStatus": "active"','"publicStatus": "active",\n      "watchAlertable": true'),
+      reviewed.replace('"refinementLevel": "area"','"refinementLevel": "state"')]){
+      assert.notEqual(changed,reviewed);assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(reviewed,changed))),/CA reviewed metadata city expansion/);
+    }
+    assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current+'\n'+reviewed)),/CA reviewed metadata city expansion/);
   }
 });
 

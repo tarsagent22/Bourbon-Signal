@@ -9,6 +9,7 @@ const centralProductionBaseline = JSON.parse(readFileSync(new URL('../../data/so
 const njMiBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nj-mi-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const measuredForecastBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json', import.meta.url), 'utf8'));
 const fourStateAdmissionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const californiaCityMenuBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/two-state-expansion-20261030/california-city-menu-ms-boundary.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -171,6 +172,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, nationwide.import.reviewed, nationwide.import.original, `${name}: reviewed central source import`);
     text = replaceUnique(text, nationwide.registration.reviewed, nationwide.registration.original, `${name}: reviewed central source registration`);
   } else {
+    assert.equal(californiaCityMenuBaseline.contractVersion, 'bourbon-signal/california-city-menu-ms-boundary@1');
+    const menu = californiaCityMenuBaseline.files[name];
+    assert.equal(menu.original,nationwide.reviewed,'The city-menu exception must restore the exact prior reviewed CA block');
+    text = replaceUnique(text, menu.reviewed, menu.original, `${name}: CA reviewed metadata city expansion`);
     text = replaceUnique(text, nationwide.reviewed, nationwide.original, `${name}: CA reviewed metadata`);
   }
   return Buffer.from(text);

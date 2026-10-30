@@ -25,6 +25,8 @@ The actual customer Feed, Coverage, pagination, and store-search paths retain Ca
 
 The server-provided California city menu expands from 29 to all 238 reviewed cities. Existing mobile clients consume that directory. Source projection, saved filters, actual mobile Feed/store/location routes, Radar scope matching, welcome previews and nearby-store ranking are checked in Los Angeles, San Francisco, Sacramento, Fresno, Eureka and Redding.
 
+Historical Mississippi implementation hashes remain unchanged. A literal two-file city-menu reversal restores the previously reviewed California metadata before the older verifier runs. Tests reject altered cities, state status, alert flags, refinement policy and duplicate boundaries; all original metadata evidence remains intact.
+
 ## Runtime and publication gates
 
 Both states use a twenty-six-minute source budget and twenty-eight-minute parent. Arizona's measured eighteen-minute grocery pass leaves room for its bounded independent-retailer siblings; California's larger sweep also fits. The workflow's run and refresh deadlines are thirty-two and thirty-five minutes; no freshness threshold or identity rule is weakened.
