@@ -13,6 +13,8 @@ const sha=value=>createHash('sha256').update(value).digest('hex');
 const id=value=>/^[1-9][0-9]{0,15}$/.test(String(value||''))&&Number.isSafeInteger(Number(value));
 const fail=reason=>{throw Object.assign(Error(reason),{code:reason});};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const sameInputFields=(value,expected)=>value&&typeof value==='object'&&!Array.isArray(value)
+ &&same(Object.keys(value).sort(),Object.keys(expected).sort())&&Object.keys(expected).every(key=>value[key]===expected[key]);
 const pathOf=run=>String(run?.path||'').split('@')[0];
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
@@ -186,7 +188,7 @@ export async function signalProducer({api,event,env,mode,persist}){
   }else if(source.event==='workflow_dispatch'){
    if(!await verifiedLineage(api,source,relay,main))return{status:'stopped',reason:'manual_or_targeted_producer_needs_owner_bootstrap'};
    const match=/^Inventory recovery continuation-v1-([1-9][0-9]*)-([1-9][0-9]*)$/.exec(source.display_title||'');
-   if(!same(event.inputs,{...DEFAULT_INPUTS,incident_key:`continuation-v1-${match[1]}-${match[2]}`}))fail('nondefault_signal_scope');
+   if(!sameInputFields(event.inputs,{...DEFAULT_INPUTS,incident_key:`continuation-v1-${match[1]}-${match[2]}`}))fail('nondefault_signal_scope');
   }else fail('untrusted_signal_event');
  }else marker=await produceSmoke({api,event,env});
  const receipt={schemaVersion:1,kind:'producer_finish_signal_v1',status:'dispatch_intent',mode,mainSha:main,sourceRunId:source.id,

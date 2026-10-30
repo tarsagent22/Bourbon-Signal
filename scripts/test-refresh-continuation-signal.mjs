@@ -22,7 +22,8 @@ test('bot production child signals only through exact immutable own lineage and 
  const child=source({status:'in_progress',event:'workflow_dispatch',display_title:'Inventory recovery continuation-v1-90-41',actor:{login:'github-actions[bot]'},triggering_actor:{login:'github-actions[bot]'}}),issuer=source({id:90,workflow_id:99,path:PATHS.production,event:'workflow_dispatch'});
  const inputs={...DEFAULT_INPUTS,incident_key:'continuation-v1-90-41'},receipt={schemaVersion:1,status:'dispatched',mode:'production',relayRunId:90,sourceRunId:41,targetRunId:42,mainSha:SHA,targetId:REFRESH.id,environment:ENVIRONMENTS.production,waitMinutes:15,elapsedWaitMs:900001,inputs},bytes=zip(receipt,'continuation-receipt.json'),artifact={id:9,name:'refresh-continuation-receipt-90',expired:false,size_in_bytes:bytes.length,digest:'sha256:'+createHash('sha256').update(bytes).digest('hex'),workflow_run:{id:90,head_sha:SHA}};
  for(const badScope of [false,true]){const f=apiFor({run:child}),get=f.api.get;f.api.get=async p=>p.endsWith('actions/runs/90')?issuer:p.includes('/90/artifacts?')?{total_count:1,artifacts:[artifact]}:get(p);f.api.download=async()=>bytes;
-  const operation=()=>signalProducer({api:f.api,event:{inputs:badScope?{...inputs,sources:'precision:pa'}:inputs},env:{...env,GITHUB_EVENT_NAME:'workflow_dispatch'},mode:'production',persist:f.persist});
+  const reordered=Object.fromEntries(Object.entries(inputs).reverse());
+  const operation=()=>signalProducer({api:f.api,event:{inputs:badScope?{...reordered,sources:'precision:pa'}:reordered},env:{...env,GITHUB_EVENT_NAME:'workflow_dispatch'},mode:'production',persist:f.persist});
   if(badScope){await assert.rejects(operation,/nondefault_signal_scope/);assert.equal(f.posts,0);}else{assert.equal((await operation()).status,'dispatched');assert.equal(f.posts,1);}}
 });
 test('relay waits for actual sourceSUCCESS, never success step/inprogress; exactly120second bound',async()=>{
