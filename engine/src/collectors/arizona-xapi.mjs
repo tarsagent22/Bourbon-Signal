@@ -1,5 +1,6 @@
 import { stableId, stripHtml } from '../core/text.mjs';
 import { reviewedArizonaXapiBottleMatch } from './arizona-xapi-matching.mjs';
+import premiseEvidence from '../../data/source-evidence/two-state-expansion-20261030/arizona-premises.json' with {type:'json'};
 
 // Production premises from the October 22 baseline. Discovery must still prove
 // their current Arizona address; this list never manufactures a resolver row.
@@ -29,15 +30,36 @@ export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
   ...ARIZONA_XAPI_PASS1_STORE_IDS,
   '1536', '2076', '1733', '3187', '249', '2017', '2069', '2648', '3189', '272', '1291', '1543', '1771', '1887', '1654', '1948', '1566', '197', '72', '1591', '958', '1221', '1750', '2799', '2952', '1002', '1549', '2042', '2644', '1849', '1515', '1874', '3989', '1663', '1201', '963', '2922', '1253', '240', '250', '1988', '1979', '1255', '2097', '960', '1980', '413', '1984',
 ]);
-export const ARIZONA_XAPI_DEFAULT_STORES = 134;
-export const ARIZONA_XAPI_SEARCH_LIMIT = 316;
+// Complete released139-store public-state snapshot's134-premise grocery cohort
+// (production workflow41131627756). Directory-only stores never count as gains.
+export const ARIZONA_XAPI_RELEASED_STORE_IDS = Object.freeze([
+  ...ARIZONA_XAPI_PREVIOUS_STORE_IDS, '1989', '2985', '3322', '3334', '1986', '1749',
+]);
+export const ARIZONA_XAPI_DEFAULT_STORES = 138;
+export const ARIZONA_XAPI_SEARCH_LIMIT = 600;
 export const ARIZONA_XAPI_SEARCH_ROWS = 120;
 export const ARIZONA_XAPI_RARE_QUERY_LIMIT = 48;
 // Both premises passed resolver and store-specific bourbon proofs. Prefer them
 // among equally unrepresented cities; they still require fresh resolver rows.
 const REVIEWED_ADDITIONAL_STORE_IDS = new Set(['1604', '1225']);
+export const ARIZONA_XAPI_PRIORITY_TERMS = Object.freeze(['weller', 'eagle rare', 'e.h. taylor', 'elijah craig', "booker's", 'old fitzgerald', 'larceny', "michter's"]);
+
+// Each exact premise gets two high-value searches per pass; all eight terms
+// visit every premise in four passes. Full-library rotation stays independent.
+export function addArizonaPriorityQueries(plan, invocation = 0) {
+  if (!Number.isSafeInteger(invocation) || invocation < 0) throw new Error('Invalid Arizona priority rotation');
+  const offset = (invocation % 4) * 2;
+  const priorityTerms = ARIZONA_XAPI_PRIORITY_TERMS.slice(offset, offset + 2);
+  return plan.map(entry => ({...entry, priorityTerms, terms: [...new Set([...entry.terms.slice(0, 2), ...priorityTerms, ...entry.terms.slice(2)])]}));
+}
 
 const identityText = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+function reviewedCoordinates(store) {
+  const proof=premiseEvidence.proofs.find(p=>p.verified && p.storeId===`${arizonaXapiBanner(store)}:${store.locationId}`);
+  return proof && identityText(proof.address.streetAddress)===identityText(store.address.line1)
+    && identityText(proof.address.addressLocality)===identityText(store.address.city)
+    && proof.address.addressRegion===store.address.state && proof.address.postalCode===store.address.zipcode ? proof.geo : null;
+}
 const distanceOf = (store) => store.distance !== '' && store.distance != null && Number.isFinite(Number(store.distance)) && Number(store.distance) >= 0 ? Number(store.distance) : Infinity;
 const storeOrder = (a, b) => distanceOf(a) - distanceOf(b) || String(a.locationId).localeCompare(String(b.locationId), 'en', { numeric: true });
 
@@ -49,7 +71,7 @@ export function arizonaXapiBanner(store) {
 
 export function isArizonaXapiStore(store) {
   const address = store?.address;
-  return Boolean(store && /^\d{2,6}$/.test(String(store.locationId || ''))
+  return Boolean(store && /^\d{1,6}$/.test(String(store.locationId || ''))
     && arizonaXapiBanner(store)
     && String(address?.state || '').toUpperCase() === 'AZ'
     && (!address?.country || String(address.country).toUpperCase() === 'US')
@@ -91,7 +113,7 @@ export function selectArizonaXapiStores(input, { maxStores = ARIZONA_XAPI_DEFAUL
   const protectedIds = new Set(ARIZONA_XAPI_BASELINE_STORE_IDS);
   const selected = candidates.filter((store) => protectedIds.has(store.locationId)).slice(0, limit);
   const selectedIds = new Set(selected.map((store) => store.locationId));
-  for (const store of candidates.filter((row) => ARIZONA_XAPI_PREVIOUS_STORE_IDS.includes(row.locationId))) {
+  for (const store of candidates.filter((row) => ARIZONA_XAPI_RELEASED_STORE_IDS.includes(row.locationId))) {
     if (selected.length >= limit) break;
     if (selectedIds.has(store.locationId)) continue;
     selected.push(store);
@@ -126,8 +148,9 @@ export function selectArizonaXapiStores(input, { maxStores = ARIZONA_XAPI_DEFAUL
 // Shift the store assignment after each complete query-pool cycle. Advancing
 // store and query positions in lockstep strands pairs whenever their sizes share
 // a factor (134 stores and 350 terms previously visited only half the pairs).
-export function arizonaXapiLibraryQueryAssignments(storeCount, { terms = [], poolSize, invocation } = {}) {
-  if (!Number.isInteger(storeCount) || storeCount < 1 || storeCount > ARIZONA_XAPI_DEFAULT_STORES
+export function arizonaXapiLibraryQueryAssignments(storeCount, { terms = [], poolSize, invocation, maximumStores = ARIZONA_XAPI_DEFAULT_STORES } = {}) {
+  if (!Number.isInteger(maximumStores) || maximumStores < 1 || maximumStores > 500
+    || !Number.isInteger(storeCount) || storeCount < 1 || storeCount > maximumStores
     || !Number.isSafeInteger(poolSize) || poolSize < terms.length || poolSize > Number.MAX_SAFE_INTEGER / storeCount
     || !Number.isSafeInteger(invocation) || invocation < 0
     || !terms.length || terms.length > Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, storeCount)
@@ -212,7 +235,8 @@ export function parseArizonaXapiInventory(payload, store, bible, { observedAt, q
       confidence: quantity > 0 ? 0.86 : Math.max(0.8, match?.confidence || 0.5), eventType: 'retailer_store_inventory_result', locationPrecision: 'store_level',
       locationName: `${store.domainName || banner} #${store.locationId}`, storeName: `${store.domainName || banner} #${store.locationId}`, storeId: `${banner}:${store.locationId}`,
       storeAddress: `${address.line1}, ${address.city}, AZ ${address.zipcode}`, city: address.city, stateCode: 'AZ', postalCode: address.zipcode, zip: address.zipcode,
-      lat: Number(store.latitude ?? store.lat) || null, lng: Number(store.longitude ?? store.lng) || null,
+      lat: Number(store.latitude ?? store.lat) || reviewedCoordinates(store)?.latitude || null,
+      lng: Number(store.longitude ?? store.lng) || reviewedCoordinates(store)?.longitude || null,
       quantity, price: Number(product.price) || null, availabilityStatus: 'in_stock', availabilityLabel: quantity > 0 ? `Retailer reports ${quantity} available` : 'Retailer reports in-store inventory', sourceAvailabilityVerified: true, observedAt,
       canAlertAsInventory: true, canAlertAsWatch: true,
       inventorySemantics: quantity > 0 ? 'Albertsons Companies XAPI reports positive store/channel inventory and an item quantity.' : 'Albertsons Companies XAPI reports positive in-store inventory but no exact item quantity; verify before driving.',

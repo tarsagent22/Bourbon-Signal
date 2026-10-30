@@ -4,6 +4,7 @@ import { isCaliforniaRetailerInventory } from './california-retailer-policy.mjs'
 import { unexpectedCaliforniaRoadblocks } from './california-release-policy.mjs';
 import { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES } from './collectors/california-san-diego-surfaces.mjs';
 import { CALIFORNIA_GROCERY_SOURCES } from './collectors/california-grocery-premises.mjs';
+import {verifyCaliforniaExpansion} from './verify-california-expansion.mjs';
 
 const reviewedPremises = new Map([
   ...CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES.map(source => [source.store.id, source.store]),
@@ -51,6 +52,7 @@ assert.ok(inventory.every((signal) => signal.productId && signal.variantId && (s
 assert.ok((storeUniverse.stores ?? []).filter((store) => store.city === 'San Diego').length >= 3, 'store universe must include the audited San Diego retailer set');
 
 const stateDrops = JSON.parse(await readFile('out/site/states/CA/drops.json', 'utf8')).drops ?? [];
+if(process.argv.includes('--require-expansion')) console.log(JSON.stringify(verifyCaliforniaExpansion({state,drops:stateDrops})));
 if (!scheduledNonStale) assert.ok(stateDrops.length >= 12, 'California state partition should include customer-facing rows');
 assert.ok(stateDrops.every((row) => row.state === 'CA' && exactReviewedPremise(row)), 'California drops must remain bound to reviewed physical premises');
 assert.ok(stateDrops.filter(row => groceryPremiseIds.has(row.storeId)).every(isCaliforniaRetailerInventory), 'California grocery drops must retain closed-registry source, product, quantity and availability proof');

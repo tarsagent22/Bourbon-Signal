@@ -114,7 +114,7 @@ test('scheduled workflow contains California retained-not-due exceptions but kee
   assert.match(workflow, /Verify California scheduled lane or isolate a safe retained partition/);
   assert.match(workflow, /scheduled-state-verification\.mjs verify --state=CA -- npm run verify:ca -- --allow-safe-retained-not-due/);
   assert.match(workflow, /Verify California targeted exact-store recovery/);
-  assert.match(workflow, /npm run verify:ca\s*$/m);
+  assert.match(workflow, /npm run verify:ca -- --require-expansion\s*$/m);
   assert.match(workflow, /Verify degraded state isolation before publication/);
   assert.match(workflow, /verify:state-isolation/);
 });

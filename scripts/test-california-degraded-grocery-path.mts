@@ -54,9 +54,15 @@ const feed=loadWithMocks('src/app/api/drops/route.ts',{
   '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier:'barrel',feedPreviewLimit:null,canUseStateFilter:true,canUseAdvancedFilters:true,canUseBottleSearch:true,canUseDropFeedFilters:true})},
   '@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},
 });
-const feedResponse=await feed.GET(new Request('https://example.test/api/drops?state=CA&limit=500'));
-assert.equal(feedResponse.status,200);const feedBody=await feedResponse.json();
-assert.equal(feedBody.drops.filter((row:any)=>row.sourceProductBinding?.source==='grocery-xapi').length,grocery.length);
+const feedRows:any[]=[];let cursor:string|null=null,pages=0;
+do{
+  const url=new URL('https://example.test/api/drops?state=CA&limit=500');if(cursor)url.searchParams.set('cursor',cursor);
+  const response=await feed.GET(new Request(url));assert.equal(response.status,200);
+  const body=await response.json();feedRows.push(...body.drops);cursor=body.nextCursor;pages++;
+  assert.ok(pages<=30,'California customer pagination must terminate');
+}while(cursor);
+assert.equal(new Set(feedRows.map(row=>row.id)).size,feedRows.length,'No duplicated rows across actual customer Feed pages');
+assert.equal(feedRows.filter((row:any)=>row.sourceProductBinding?.source==='grocery-xapi').length,grocery.length);
 const server=loadWithMocks('src/lib/coverage-server.ts',{
   ...next,'@/config/stateLifecycle':{STATE_LIFECYCLE_CONFIG:lifecycle},'@/lib/site-engine-contract':site,'@/lib/source-lane-runtime':sourceOverlay,
   '@/lib/coverage-model':coverage,'@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},

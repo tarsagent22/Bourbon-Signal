@@ -35,11 +35,11 @@ const {searchSightingStores}=interop(nearbyModule);
 const {sightingStoreAddressKey}=interop(directoryCore);
 const {normalizeDropForSite,normalizeStoreForSite}=interop(contractModule);
 
-// Synthetic stock observations exercise real reviewed LA/SF/Sac premises through
+// Synthetic stock observations exercise reviewed prior and expanded premises through
 // the public projection and authored routes. They do not establish live coverage.
 const fixture=JSON.parse(readFileSync('engine/test/fixtures/california-grocery-expansion/identity.json','utf8'));
 const bible=new BourbonBible(fixture.records),observedAt=new Date().toISOString();
-const sources=['Los Angeles','San Francisco','Sacramento'].map(city=>CALIFORNIA_GROCERY_SOURCES.find(source=>source.city===city)!);
+const sources=['Los Angeles','San Francisco','Sacramento','Fresno','Eureka','Redding'].map(city=>CALIFORNIA_GROCERY_SOURCES.find(source=>source.city===city)!);
 const raw=sources.flatMap(source=>{
   const products=structuredClone(fixture.products);
   for(const product of products)product.storeId=source.merchantId;
@@ -47,7 +47,7 @@ const raw=sources.flatMap(source=>{
 });
 const operational=raw.map(row=>canonicalizeSignal(row,bible));
 const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(normalizeDropForSite);
-assert.equal(drops.length,15);
+assert.equal(drops.length,sources.length*5);
 const storeRows=CALIFORNIA_GROCERY_SOURCES.map(source=>({id:source.storeId,state:'CA',name:source.name,address:source.address,
   city:source.city,zip:source.zip,lat:source.lat,lng:source.lng,locationType:'store',precision:'store',searchable:true}));
 
@@ -84,7 +84,7 @@ const locationsRoute=loadWithMocks('src/app/api/locations/route.ts',{
     siteExportHeaders:()=>({}),listStates:()=>['CA'],normalizeStoreForSite,normalizeDropForSite},
 });
 const areaDirectory=buildSignalFeedAreaDirectory();
-assert.equal(areaOptionsForState(areaDirectory,'CA').length,29);
+assert.equal(areaOptionsForState(areaDirectory,'CA').length,238);
 assert.equal(prepareMobileOnboarding({displayName:'California Hunter',age21Affirmed:true,homeState:'CA'}).publicMetadata.memberProfile.homeState,'CA');
 
 for(const source of sources){
@@ -123,5 +123,5 @@ for(const source of sources){
     }
   }
 }
-assert.equal((await storesRoute.GET(new Request('https://example.test/api/stores?state=CA&area=Fresno'))).status,400);
-console.log('LA, SF and Sacramento source projection, onboarding, mobile Feed, real API routes, Radar scopes, alert labels, welcome preview and nearby ranking passed; all 78 reviewed premises selectable, unknown/closed rows rejected.');
+assert.equal((await storesRoute.GET(new Request('https://example.test/api/stores?state=CA&area=ImaginaryBay'))).status,400);
+console.log('Six prior and expanded California cities pass source projection, onboarding, mobile Feed, real API routes, Radar scopes, alert labels, welcome preview and nearby ranking; all433 reviewed premises selectable, unknown/closed rows rejected.');

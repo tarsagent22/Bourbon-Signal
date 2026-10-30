@@ -50,8 +50,8 @@ jobs:
       BOURBON_SIGNAL_BROWSER_PREFLIGHT: "0"
       BOURBON_SIGNAL_AUTO_DEPLOY: "0"
       BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES: "30"
-      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1320000"
-      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "1500000"
+      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1920000"
+      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "2100000"
       BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS: "1800000"
       FWGS_INVENTORY_CONCURRENCY: "16"
       FWGS_INVENTORY_SKU_BATCH_SIZE: "24"
@@ -452,7 +452,7 @@ jobs:
       - name: Verify California targeted exact-store recovery
         if: ${{ inputs.states && contains(inputs.states, 'CA') }}
         working-directory: engine
-        run: npm run verify:ca
+        run: npm run verify:ca -- --require-expansion
 
       - name: Verify demand metro structure independently of state freshness
         if: ${{ !inputs.states }}
@@ -567,10 +567,13 @@ jobs:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           BOURBON_SIGNAL_VERIFY_STATES: ${{ inputs.states || '' }}
         run: |
-          if ! npm run verify:production-engine; then
+          mkdir -p engine/out/verification
+          if ! npm run verify:production-engine -- --json > engine/out/verification/production-engine-verification.log; then
+            cat engine/out/verification/production-engine-verification.log
             node engine/src/data-plane/publish-site-snapshot.mjs --rollback-if-active "${{ steps.publish.outputs.snapshot_id }}"
             exit 1
           fi
+          cat engine/out/verification/production-engine-verification.log
 
       - name: Dispatch isolated recovery from current main
         if: ${{ success() && steps.recovery-plan.outputs.has_recovery == 'true' }}
@@ -698,11 +701,14 @@ jobs:
             engine/out/control-plane/**
             engine/out/site/stats.json
             engine/out/site/state-health.json
+            engine/out/site/states/AZ/drops.json
+            engine/out/site/states/CA/drops.json
             engine/out/az-expansion-verification.json
             engine/out/pa-expansion-verification.json
             engine/out/verification/in-improvements.json
             engine/out/verification/library-coverage.json
             engine/out/verification/library-coverage.md
+            engine/out/verification/production-engine-verification.log
             engine/out/library-catalog.json
             engine/out/bourbon-bible.json
             engine/out/optimization/source-run-history.json

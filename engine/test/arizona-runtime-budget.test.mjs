@@ -13,7 +13,8 @@ function budgets(overrides = {}) {
     globalThis.fetch = () => { throw new Error('Importing the runtime policy must not start collection'); };
     const { stateTimeoutMs } = await import(${JSON.stringify(runner)});
     const { legacyPrecisionRuntimeOptions } = await import(${JSON.stringify(precision)});
-    console.log(JSON.stringify({ parent: stateTimeoutMs({ id: 'AZ' }), child: legacyPrecisionRuntimeOptions('AZ', {}, {}).timeoutMs, ordinaryState: stateTimeoutMs({ id: 'AL' }), nevadaParent: stateTimeoutMs({ id: 'NV' }), nevadaChild: legacyPrecisionRuntimeOptions('NV', {}, {}).timeoutMs }));
+    const {CALIFORNIA_GROCERY_SOURCE_TIMEOUT_MS} = await import(new URL('../src/collectors/california-grocery-runtime-source.mjs', ${JSON.stringify(import.meta.url)}).href);
+    console.log(JSON.stringify({ parent: stateTimeoutMs({ id: 'AZ' }), child: legacyPrecisionRuntimeOptions('AZ', {}, {}).timeoutMs, californiaParent: stateTimeoutMs({id:'CA'}), californiaChild: CALIFORNIA_GROCERY_SOURCE_TIMEOUT_MS, ordinaryState: stateTimeoutMs({ id: 'AL' }), nevadaParent: stateTimeoutMs({ id: 'NV' }), nevadaChild: legacyPrecisionRuntimeOptions('NV', {}, {}).timeoutMs }));
   `;
   const env = { ...process.env, BOURBON_SIGNAL_STATE_TIMEOUT_MS: '', BOURBON_SIGNAL_AZ_STATE_TIMEOUT_MS: '', BOURBON_SIGNAL_AZ_PRECISION_TIMEOUT_MS: '', BOURBON_SIGNAL_NV_STATE_TIMEOUT_MS: '', BOURBON_SIGNAL_NV_PRECISION_TIMEOUT_MS: '', BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS: '', ...overrides };
   const result = spawnSync(process.execPath, ['--input-type=module', '-e', program], { env, encoding: 'utf8', windowsHide: true, timeout: 10_000 });
@@ -24,7 +25,8 @@ function budgets(overrides = {}) {
 test('the actual Arizona state watchdog outlives its precision-source budget and remains bounded', () => {
   const result = budgets();
   assert.ok(result.parent >= result.child + 120_000, 'The state watchdog must allow the source attempt plus parent work');
-  assert.ok(result.parent <= 17 * 60_000, 'Keep a hard seventeen-minute state ceiling');
+  assert.equal(result.child,26*60_000,'The eighteen-minute measured grocery sweep must leave room for bounded independent retailer siblings');
+  assert.ok(result.parent <= 28 * 60_000, 'Keep a hard twenty-eight-minute state ceiling');
   assert.equal(result.ordinaryState, 180_000, 'Other states retain their generic budget');
 });
 
@@ -32,6 +34,13 @@ test('an explicit Arizona parent budget is honored independently of the generic 
   const result = budgets({ BOURBON_SIGNAL_AZ_STATE_TIMEOUT_MS: '650000', BOURBON_SIGNAL_STATE_TIMEOUT_MS: '200000' });
   assert.equal(result.parent, 650_000);
   assert.equal(result.ordinaryState, 200_000);
+});
+
+test('the larger California pass fits inside its parent and the workflow deadlines',()=>{
+  const result=budgets();
+  assert.equal(result.californiaChild,26*60_000);
+  assert.equal(result.californiaParent,28*60_000);
+  assert.ok(result.californiaParent>=result.californiaChild+120_000);
 });
 
 test('Nevada grocery and storefront budget fits within its bounded parent watchdog', () => {

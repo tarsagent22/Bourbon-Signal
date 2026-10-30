@@ -42,7 +42,7 @@ export function reviewedArizonaXapiBottleMatch(product, bible, { storeId } = {})
     || exactText(product?.dispUnitOfMeasure) !== 'ml'
     || exactText(product?.unitOfMeasure) !== 'ml'
     || Number(product?.dispItemPackageQty) !== 1
-    || !/^\d{2,6}$/.test(String(storeId || ''))
+    || !/^\d{1,6}$/.test(String(storeId || ''))
     || String(product?.storeId || '') !== String(storeId)) return rejected;
 
   const match = bible.match(reviewed.canonical);

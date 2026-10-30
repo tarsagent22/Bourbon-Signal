@@ -308,7 +308,7 @@ test('California retains San Diego sources and exposes reviewed California retai
   assert.equal(lifecycle.coverageTier, 'live_store_inventory');
   assert.equal(lifecycle.refinementLevel, 'area');
   for(const city of ['San Diego','Los Angeles','San Francisco','Sacramento'])assert.ok(lifecycle.areaOptions.includes(city));
-  assert.equal(lifecycle.areaOptions.length,29);
+  assert.equal(lifecycle.areaOptions.length,238);
   assert.equal(lifecycle.areaOptions.includes('California'),false);
   assert.equal(lifecycle.areaOptions.includes('San Diego County'),false);
   assert.match(lifecycle.customerSummary,/selected California grocery and independent liquor stores/);

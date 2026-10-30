@@ -28,7 +28,7 @@ export function isArizonaRetailerSignalIdentity(signal) {
     const expectedChain = source.startsWith('Albertsons') ? 'albertsons' : 'safeway';
     return chain === expectedChain
       && sourceHostname === `${expectedChain}.com`
-      && /^\d{2,6}$/.test(merchantId)
+      && /^\d{1,6}$/.test(merchantId)
       && String(signal.storeId || '') === `${expectedChain}:${merchantId}`;
   }
   if (source === 'Target Arizona RedSky store fulfillment') {
