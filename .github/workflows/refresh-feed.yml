@@ -701,6 +701,8 @@ jobs:
             engine/out/control-plane/**
             engine/out/site/stats.json
             engine/out/site/state-health.json
+            engine/out/site/states/AZ/drops.json
+            engine/out/site/states/CA/drops.json
             engine/out/az-expansion-verification.json
             engine/out/pa-expansion-verification.json
             engine/out/verification/in-improvements.json
