@@ -18,6 +18,12 @@ export function pushDisplayText(input: unknown, limit: number) {
   return characters.length > limit ? `${characters.slice(0, limit - 1).join("")}…` : text;
 }
 
+function pushLocalityText(input: unknown, limit: number) {
+  // Census labels append lowercase "city"; retain proper names such as Kansas City.
+  const locality = pushDisplayText(input, Number.MAX_SAFE_INTEGER).replace(/ city(?=,|$)/g, "");
+  return pushDisplayText(locality, limit);
+}
+
 export function notificationBottleNames(input: unknown): string[] {
   const seen = new Set<string>();
   return (Array.isArray(input) ? input : []).flatMap(raw => {
@@ -51,9 +57,9 @@ export function buildPushPreview(alertId: string, inputNames: unknown, details: 
   const names = notificationBottleNames(inputNames);
   if (!names.length) return { title: "Bourbon Signal", body: "Open Radar to check your latest reports." };
   const store = pushDisplayText(details.storeLabel, 85);
-  const city = pushDisplayText(details.storeCity, 55);
+  const city = pushLocalityText(details.storeCity, 55);
   const state = pushDisplayText(details.state, 2);
-  const area = pushDisplayText(details.matchedArea, 65);
+  const area = pushLocalityText(details.matchedArea, 65);
   const location = [store, [city, state].filter(Boolean).join(", ")].filter(Boolean).join(" · ") || area;
   const quantity = quantityText(details);
 
