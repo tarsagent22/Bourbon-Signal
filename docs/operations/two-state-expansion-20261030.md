@@ -25,7 +25,7 @@ The actual customer Feed, Coverage, pagination, and store-search paths retain Ca
 
 ## Runtime and publication gates
 
-Arizona's source is bounded at twenty minutes, with a twenty-two-minute parent. California's measured larger sweep is bounded at twenty-six minutes with a twenty-eight-minute parent. The workflow's run and refresh deadlines are thirty-two and thirty-five minutes; no freshness threshold or identity rule is weakened.
+Both states use a twenty-six-minute source budget and twenty-eight-minute parent. Arizona's measured eighteen-minute grocery pass leaves room for its bounded independent-retailer siblings; California's larger sweep also fits. The workflow's run and refresh deadlines are thirty-two and thirty-five minutes; no freshness threshold or identity rule is weakened.
 
 Targeted California publication requires the complete 433-premise resolver/query cohort, at least 330 fresh public stores, 250 genuinely new inventory premises beyond the released 78, and 1,000 public listings. Current Arizona publication preserves all 134 released premises, requires both broad and both priority searches at every selected premise, and at least three public premises beyond that cohort. Historical capture tests explicitly retain their historical query plan.
 

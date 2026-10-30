@@ -25,7 +25,8 @@ function budgets(overrides = {}) {
 test('the actual Arizona state watchdog outlives its precision-source budget and remains bounded', () => {
   const result = budgets();
   assert.ok(result.parent >= result.child + 120_000, 'The state watchdog must allow the source attempt plus parent work');
-  assert.ok(result.parent <= 22 * 60_000, 'Keep a hard twenty-two-minute state ceiling');
+  assert.equal(result.child,26*60_000,'The eighteen-minute measured grocery sweep must leave room for bounded independent retailer siblings');
+  assert.ok(result.parent <= 28 * 60_000, 'Keep a hard twenty-eight-minute state ceiling');
   assert.equal(result.ordinaryState, 180_000, 'Other states retain their generic budget');
 });
 
