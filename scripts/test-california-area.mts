@@ -5,7 +5,7 @@ import { buildDropFeedAreaRequest } from '../src/lib/feed-area-options.ts';
 import { CALIFORNIA_GROCERY_SOURCES } from '../engine/src/collectors/california-grocery-premises.mjs';
 
 assert.deepEqual(SUPPORTED_CALIFORNIA_AREAS, [...new Set(CALIFORNIA_GROCERY_SOURCES.map(source=>source.city))].sort());
-assert.equal(SUPPORTED_CALIFORNIA_AREAS.length, 29);
+assert.equal(SUPPORTED_CALIFORNIA_AREAS.length, 238);
 assert.deepEqual(normalizeCaliforniaAreas(['San Diego', 'Los Angeles', 'san diego']), ['Los Angeles', 'San Diego']);
 assert.equal(californiaAreaMatchesFields(['San Diego'], ['San Diego']), true);
 assert.equal(californiaAreaMatchesFields(['6090 Friars Road, San Diego, CA 92108'], ['San Diego']), true);
@@ -19,7 +19,8 @@ assert.equal(californiaAreaMatchesFields(['San Diego'], []), true);
 assert.deepEqual(parseCaliforniaAreaQuery(null), { requested: false, valid: true, areas: [] });
 assert.deepEqual(parseCaliforniaAreaQuery('San Diego'), { requested: true, valid: true, areas: ['San Diego'] });
 assert.deepEqual(parseCaliforniaAreaQuery('Los Angeles'), { requested: true, valid: true, areas: ['Los Angeles'] });
-assert.deepEqual(parseCaliforniaAreaQuery('Fresno'), { requested: true, valid: false, areas: [] });
+assert.deepEqual(parseCaliforniaAreaQuery('Fresno'), { requested: true, valid: true, areas: ['Fresno'] });
+assert.deepEqual(parseCaliforniaAreaQuery('Imaginary Bay'), { requested: true, valid: false, areas: [] });
 assert.equal(californiaAreaMatchesFields(['South San Francisco, CA 94080'], ['San Francisco']), false);
 assert.equal(californiaAreaMatchesFields(['West Sacramento, CA 95691'], ['Sacramento']), false);
 assert.equal(californiaAreaMatchesFields(['Los Angeles County'], ['Los Angeles']), false);

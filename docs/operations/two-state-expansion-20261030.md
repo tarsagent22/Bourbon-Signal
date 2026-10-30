@@ -23,6 +23,8 @@ These are preflight results, not production delivery. Arizona also adds one stor
 
 The actual customer Feed, Coverage, pagination, and store-search paths retain California's 2,014 observations at 423 stores. Wrong store/product/host proof, stale original clocks, unavailable stock, disabled output, and blocked/degraded health remain rejected. Reduced original fixtures cover all four Arizona additions and all four California banners.
 
+The server-provided California city menu expands from 29 to all 238 reviewed cities. Existing mobile clients consume that directory. Source projection, saved filters, actual mobile Feed/store/location routes, Radar scope matching, welcome previews and nearby-store ranking are checked in Los Angeles, San Francisco, Sacramento, Fresno, Eureka and Redding.
+
 ## Runtime and publication gates
 
 Both states use a twenty-six-minute source budget and twenty-eight-minute parent. Arizona's measured eighteen-minute grocery pass leaves room for its bounded independent-retailer siblings; California's larger sweep also fits. The workflow's run and refresh deadlines are thirty-two and thirty-five minutes; no freshness threshold or identity rule is weakened.
@@ -30,3 +32,5 @@ Both states use a twenty-six-minute source budget and twenty-eight-minute parent
 Targeted California publication requires the complete 433-premise resolver/query cohort, at least 330 fresh public stores, 250 genuinely new inventory premises beyond the released 78, and 1,000 public listings. Current Arizona publication preserves all 134 released premises, requires both broad and both priority searches at every selected premise, and at least three public premises beyond that cohort. Historical capture tests explicitly retain their historical query plan.
 
 Acceptance still requires current-main CI, the sole guarded exact-head merge, an AZ/CA production refresh, immutable workflow artifact checks, canonical Feed counts, current Coverage counts and exact-premise search. No paused local job or recurring automation is resumed.
+
+Production artifacts preserve the exact Arizona and California public partitions and the signed canonical Feed count verification log. Their plaintext hashes can be checked against the active immutable manifest without exporting the snapshot encryption key.
