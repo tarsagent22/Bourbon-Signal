@@ -1,0 +1,25 @@
+# Minnesota and Missouri native preparation
+
+This isolated work starts at frozen58bc2da65a48422ced00c12146cc7bc0ff3a1117. It does not change the current nine-state proof, release860, authoritative source/lifecycle registries, consumer gates, workflows, forecasts or33-state boundary. Production/customer stores added:0. No retailer HTTP was performed during preparation.
+
+`mn-mo-cityhive-premises.json` contains16 exact previously captured positive premises: MN9, MO7. The default `core5` is Top Ten Andover/Minnetonka/Cottage Grove and Barrel Blends Bridgeton/Valley Park. The separately selected `positive16` profile preserves all16 historical allocated-positive premises. Broad discovery MN16/MO10 is not silently included. Both profiles are unregistered and inactive; the collector returns0requests unless passed its exact frozen config object and both explicit research environment flags. Even then every output channel, on-site and Drop Feed eligibility staysfalse.
+
+The saved2026-10-29T01:44/01:48Z bodies support one observed `barrel proof` query per selected premise. Core profile therefore needs at most3MN+2MO requests; larger profile9MN+7MO. These are request ceilings and historical format evidence, not future throughput, price or availability forecasts. Shared native transport keeps its identified client, exact first-party origin, `/shop/` path, no redirects and10-second request/2MiB body bounds. Fixed source deadlines are60seconds/core and120seconds/larger profile; no production capacity metadata is claimed.
+
+Historical source replay with the captured1177-catalog-bound detection Bible yields MN11 named allocated rows/9premises and MO10/7, including McKenna10/LarcenyBP and ECBP/1792FullProof/LarcenyBP/Maker's Private Selection. Every saved capture keeps its original URL, merchant, price, product/option, body hash and observedAt. Compressed raw fixtures and receipts are portable; they are explicitly expired local research, not qualifying hosted observations. Unknown exact quantities remain0/nonexact.
+
+The pure premise/policy modules import no Node/collector library. Parsing reuses the existing strict native option/pickup parser only after exact registry identity equality. Shipping, foreign/missing option premises, zero native quantities, bad bottle format and ambiguous product identity never become positive rows. Runtime persists an incident-only pre-request latch; native denied headers persist at least24hours or longer Retry-After before cancellation/body handling. Existing corrupt/unreadable journals fail closed. Failed incident persistence leaves the durable latch, and subsequent runs stop beforeHTTP. Profile changes never erase a hold. No stock cache or branch-cache propagation is invented.
+
+Core TopTen/BarrelBlends are not attached to current active production state collectors. The larger profile adds shoprandalls.com, which IS used by active IL production, plus brownderby.com. Branch-scoped GitHub caches do not make a research denial visible to main. Before any hosted larger-profile request, Root must use reviewed production maintenance/main-scope hold propagation and review current authoritative incident files. Historical200 success, including later accepted IL native200s, never permits retrying a held host. This code does not implement that future workflow/maintenance authority.
+
+`prepareMnMoCityHiveCandidate` verifies a future exact-head downloaded GitHub provenance envelope, receipt count/scope/URL/hash/length, original2-hour clocks, then independently reparses every body. Caller-supplied row/count claims are ignored. It emits a source-only packet with all eligibility flagsfalse, never canary or production authority. Local/historical origin and expired captures are rejected. Tests using explicit synthetic workflow envelopes exercise the protocol only and do not represent actual workflow evidence.
+
+## Remaining future work
+
+- Run one reviewed bounded hosted preflight after release860, stopping on denial or zero qualified value. Freeze the smallest actual useful cohort only after seeing runner access; any source/cohort change requires fresh proof.
+- Register the isolated source and durable artifact/journal restore/save paths on a separate future head. The16-profile shared Randall's host requires the maintenance/hold boundary above.
+- Wire a strict future on-site preview predicate and actual normalize→classify→normal Feed/Coverage/Finder customer tests. Current modules deliberately do not expose these research rows to customer paths.
+- Build genuine3same-head raw-reparsed shadow observations,2canaries/state, owned preview and immutable issuer closure. No counters or old fixture bodies substitute for those observations.
+- Plan and measure33→35 scheduling/capacity from actual samples; do not add two states to a near-capacity full-fleet clock without a valid cycle plan. Activation/lifecycle/production client admission remains a separate reviewed change.
+
+Focused offline test: `node --test engine/test/mn-mo-cityhive-research.test.mjs`. Real provider/source requests made by these tests:0.

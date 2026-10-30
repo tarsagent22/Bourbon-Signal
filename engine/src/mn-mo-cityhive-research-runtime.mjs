@@ -1,0 +1,39 @@
+import {mkdir} from 'node:fs/promises';
+import {createHash,randomUUID} from 'node:crypto';
+import path from 'node:path';
+import {MN_MO_PROFILES,MN_MO_NATIVE_SOURCES,MN_MO_COHORTS,mnMoSourcesForState,mnMoResearchRuntimeId} from './collectors/mn-mo-cityhive-premises.mjs';
+import {parseMnMoCityHiveResearch} from './collectors/mn-mo-cityhive-research.mjs';
+import {fetchReviewedCityHiveText,readCityHiveIncidentJournal,validateCityHiveIncidentJournal,persistCityHiveIncidentJournal,CITYHIVE_DENIAL_STATUSES} from './collectors/central-cityhive-transport.mjs';
+import {writeCollectionFile,collectionSignal} from './core/collection-context.mjs';
+import {sourceErrorForHttp} from './sources/source-error.mjs';
+const configs=new Map(MN_MO_PROFILES.flatMap(profile=>['MN','MO'].map(state=>[state+':'+profile,Object.freeze({id:state,profile,active:false,tier:'B',strategy:'retailer_store_inventory',cadence:'research-only',label:`${state} ${profile} inactive native pickup preparation`,sources:mnMoSourcesForState(state,profile).map(s=>({kind:'html',url:s.queryUrl,label:s.sourceLabel,precisionOnly:true})),apiCandidates:[]})])));
+export const mnMoResearchSourceForState=(state,{profile='core5'}={})=>configs.get(state+':'+profile)||null;
+export const MN_MO_RESEARCH_HARD_BUDGET_MS=Object.freeze({core5:60_000,positive16:120_000});
+export async function collectMnMoCityHiveResearch(config,bible,{env=process.env,signal,fetchText=fetchReviewedCityHiveText,persistJournal=persistCityHiveIncidentJournal,
+ incidentDirectory=path.resolve('out/source-incidents/mn-mo-cityhive'),reportDirectory=env.BOURBON_SIGNAL_STATE_OUT_FILE?path.dirname(path.resolve(env.BOURBON_SIGNAL_STATE_OUT_FILE)):path.resolve('out/mn-mo-cityhive-research',config?.id||'unselected')}={}){
+ const state=config?.id,profile=config?.profile,startedAt=new Date().toISOString();
+ if(configs.get(state+':'+profile)!==config||env.BOURBON_SIGNAL_SHADOW_MODE!=='1'||env.MN_MO_NATIVE_RESEARCH_ENABLED!=='1')return{state,status:'research_disabled',signals:[],sources:[],sourceResults:[],roadblocks:[],metadata:{complete:false,requestCount:0,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false}};
+ const sources=mnMoSourcesForState(state,profile),file=path.join(incidentDirectory,state+'.json'),inherited=collectionSignal(signal),deadline=AbortSignal.timeout(MN_MO_RESEARCH_HARD_BUDGET_MS[profile]),bounded=inherited?AbortSignal.any([inherited,deadline]):deadline;
+ let journal=await readCityHiveIncidentJournal(file,state,MN_MO_NATIVE_SOURCES),requestCount=0;
+ if(journal.inFlight)throw Error('Unresolved MN/MO native observation requires journal review');
+ // A hold is not reset by a new cohort/profile or an expired cache. Review is
+ // explicit; this file does not pretend research-branch caches bridge to main.
+ const held=sources.find(s=>journal.hosts[s.hostname]);if(held)throw sourceErrorForHttp(journal.hosts[held.hostname].httpStatus,'Reviewed cohort contains a held native host; zero requests',{details:{requestCount:0,host:held.hostname}});
+ const receipts=[],signals=[],sourceReports=[],roadblocks=[],verified=new Set();
+ for(const source of sources){bounded.throwIfAborted();let denied=false,status=0,observedAt=null;
+  journal={...journal,inFlight:{attemptId:randomUUID(),startedAt:new Date().toISOString()}};await persistJournal(file,journal);
+  const onResponse=async response=>{status=Number(response.status)||0;observedAt||=new Date().toISOString();if(!denied&&CITYHIVE_DENIAL_STATUSES.has(status)){denied=true;const at=Date.parse(observedAt),retry=Math.max(0,Number(response.retryAfterSeconds)||0),next={...journal,inFlight:null,hosts:{...journal.hosts,[source.hostname]:{httpStatus:status,lastAttemptAt:observedAt,nextAllowedAt:new Date(Math.min(8640000000000000,Math.max(at+86400000,at+retry*1000))).toISOString()}}};
+   try{await persistJournal(file,validateCityHiveIncidentJournal(next,state,MN_MO_NATIVE_SOURCES));journal=next;}catch(error){throw sourceErrorForHttp(status,'Native denial persistence failed; durable pre-request latch remains',{cause:error,details:{incidentWriteFailed:true,retryAfterSeconds:retry}});}throw sourceErrorForHttp(status,'Native source denied; stop without alternate host or route',{details:{incidentPersisted:true,retryAfterSeconds:retry}});}};
+  try{requestCount++;const response=await fetchText(source.queryUrl,{reviewedSources:MN_MO_NATIVE_SOURCES,signal:bounded,timeoutMs:10_000,maxBytes:2*1024*1024,onResponse});await onResponse(response);bounded.throwIfAborted();
+   if(response.ok!==true||status!==200||response.url!==source.queryUrl)throw Error('Exact unredirected native HTTP200 required');const body=Buffer.from(response.text||'');if(body.length<1||body.length>2*1024*1024)throw Error('Native capture outside body bound');
+   const rows=parseMnMoCityHiveResearch(body.toString(),source,bible,{observedAt,profile,onVerifiedPremise:s=>verified.add(s.storeId)});if(!rows.length)throw Error('Zero qualified candidate value; freeze a smaller independently reviewed cohort before further requests');if(rows.length>500)throw Error('Unexpected native candidate size');
+   const sha256=createHash('sha256').update(body).digest('hex'),artifactPath=`source-captures/${source.storeId.replace(/[^a-zA-Z0-9_-]/g,'_')}-${sha256.slice(0,12)}.txt`;
+   await mkdir(path.dirname(path.join(reportDirectory,artifactPath)),{recursive:true});await writeCollectionFile(path.join(reportDirectory,artifactPath),body,{signal:bounded});bounded.throwIfAborted();
+   receipts.push({storeId:source.storeId,url:source.queryUrl,finalUrl:response.url,status,observedAt,bytes:body.length,sha256,artifactPath});signals.push(...rows);sourceReports.push({sourceRuntimeId:mnMoResearchRuntimeId(source,profile),label:source.sourceLabel,url:source.queryUrl,ok:true,status,checkedAt:observedAt,matchedBottleCount:rows.length,signalType:'retailer_store_inventory_result'});
+   journal={...journal,inFlight:null};await persistJournal(file,journal);
+  }catch(error){if(!denied){journal={...journal,inFlight:null};await persistJournal(file,journal);}sourceReports.push({sourceRuntimeId:mnMoResearchRuntimeId(source,profile),label:source.sourceLabel,url:source.queryUrl,ok:false,status:Number(error.status)||status,checkedAt:observedAt,matchedBottleCount:0,error:error.message});roadblocks.push({state,url:source.queryUrl,status:Number(error.status)||status,error:error.message});if(bounded.aborted)throw error;break;}
+ }
+ const complete=receipts.length===sources.length&&sources.every(s=>verified.has(s.storeId))&&sourceReports.every(s=>s.ok),finishedAt=new Date().toISOString(),report={state,profile,label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,startedAt,finishedAt,lastGoodAt:complete?finishedAt:null,status:complete?'useful':'blocked',stale:false,signals,sources:sourceReports,sourceResults:sourceReports.map(r=>({sourceId:r.sourceRuntimeId,sourceLabel:r.label,sourceUrl:r.url,ok:r.ok,status:r.ok?'success':'failed',httpStatus:r.status,checkedAt:r.checkedAt,error:r.error||null,alertable:false,inventoryAlertable:false,watchAlertable:false})),roadblocks,
+  metadata:{scope:'inactive_closed_mn_mo_native_candidate_preparation',profile,complete,cohortSha256:MN_MO_COHORTS[profile][state],selectedStores:sources.map(s=>s.storeId),verifiedPremises:[...verified],receipts,requestCount,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false,origin:env.GITHUB_ACTIONS==='true'?{kind:'github_actions',repository:env.GITHUB_REPOSITORY,workflowRunId:env.GITHUB_RUN_ID,commitSha:env.GITHUB_SHA,runAttempt:env.GITHUB_RUN_ATTEMPT||'1'}:{kind:'local_fixture_not_workflow_proof'}}};
+ await mkdir(reportDirectory,{recursive:true});await writeCollectionFile(path.join(reportDirectory,'report.json'),JSON.stringify(report,null,2)+'\n',{signal:bounded});return report;
+}
