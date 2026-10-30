@@ -1,4 +1,4 @@
-import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID } from './california-grocery-runtime-source.mjs';
+import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID, CALIFORNIA_GROCERY_SOURCE_TIMEOUT_MS } from './california-grocery-runtime-source.mjs';
 import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS, nevadaRetailerCohortKey, nevadaRetailerCacheMatchesCohort } from './nevada-xapi-runtime.mjs';
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
 import { collectTexasCityHiveExpansion } from './texas-cityhive-expansion.mjs';
@@ -14,7 +14,7 @@ import { sourceRefreshScope } from '../source-scoped-refresh.mjs';
 import { collectCaliforniaSource } from './california-runtime-source.mjs';
 import { cityHiveSafeBottleMatch, cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 import { reviewedBinnysBottleMatch, unsafeBinnysIdentity } from './illinois-binnys-matching.mjs';
-import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT, arizonaXapiBanner, arizonaXapiRequestPlan, selectArizonaXapiStores, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
+import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_DEFAULT_STORES, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT, addArizonaPriorityQueries, arizonaXapiBanner, arizonaXapiRequestPlan, selectArizonaXapiStores, mergeArizonaXapiStores, parseArizonaXapiInventory } from './arizona-xapi.mjs';
 import { libraryDetectionQueries, isExactLibraryTarget } from '../library-query-plan.mjs';
 import { inventoryStateCadenceMs } from '../optimization/state-run-plan.mjs';
 import { librarySourceSearchTerms, librarySourceSearchPlan, withLibrarySearchAudit, recordLibrarySearchResponse, rotateLibraryProductCandidates } from '../library-search-runtime.mjs';
@@ -971,7 +971,7 @@ const AZ_FLAGSTAFF_LIQUOR_SOURCE_LABEL = 'Flagstaff Liquor Shopify store invento
 const AZ_FLAGSTAFF_LIQUOR_STORE = { id: 'flagstaff-liquor:1700-e-route-66', name: 'Flagstaff Liquor', address: '1700 E Route 66, Flagstaff, AZ 86004', city: 'Flagstaff', zip: '86004' };
 const AZ_ALBERTSONS_STORE_KEY = process.env.BOURBON_SIGNAL_ALBERTSONS_STORE_KEY || '7bad9afbb87043b28519c4443106db06';
 const AZ_ALBERTSONS_SEARCH_KEY = process.env.BOURBON_SIGNAL_ALBERTSONS_SEARCH_KEY || 'e914eec9448c4d5eb672debf5011cf8f';
-const AZ_ALBERTSONS_ZIPS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_ZIPS || '85001,85251,85301,85201,85224,85234,85142,85323,85338,85345,85374,85396,85701,85635,85364,86403,86001,86301,85501,85541,85901,85938,85607,85621,86326,86336,86401,85390,85546,85614,86040,86503').split(',').map((x) => x.trim()).filter(Boolean);
+const AZ_ALBERTSONS_ZIPS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_ZIPS || '85001,85251,85301,85201,85224,85234,85142,85323,85338,85345,85374,85396,85701,85635,85364,86403,86001,86301,85501,85541,85901,85938,85607,85621,86326,86336,86401,85390,85546,85614,86040,86503,85122,85131,85326,85344,86442,85602,85629,85539,85929,86047,86025,86305,85032').split(',').map((x) => x.trim()).filter(Boolean);
 const AZ_ALBERTSONS_TERMS = String(process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || "bourbon,blanton's,weller,buffalo trace,e.h. taylor").split(',').map((x) => x.trim()).filter(Boolean);
 const AZ_ALBERTSONS_MAX_STORES = Math.max(1, Math.min(ARIZONA_XAPI_DEFAULT_STORES, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_MAX_STORES) || ARIZONA_XAPI_DEFAULT_STORES));
 const AZ_ALBERTSONS_DELAY_MS = Math.max(500, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_ALBERTSONS_DELAY_MS) || 900));
@@ -4631,7 +4631,7 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
   const blockedHosts = new Set();
   const fetchText = options.fetchText || textFetch;
   const pause = options.sleep || sleep;
-  const metadata = { discoveredStores: [], selectedStores: [], baselineStores: [], addedStores: [], bourbonSearchCount: 0, whiskeySearchCount: 0, rareSearchCount: 0, totalSearchCount: 0, maxSearchCount: ARIZONA_XAPI_SEARCH_LIMIT, requests: [] };
+  const metadata = { discoveredStores: [], selectedStores: [], baselineStores: [], addedStores: [], bourbonSearchCount: 0, whiskeySearchCount: 0, prioritySearchCount: 0, rareSearchCount: 0, totalSearchCount: 0, maxSearchCount: ARIZONA_XAPI_SEARCH_LIMIT, requests: [] };
   async function request(url, headers, kind, storeId = null, term = null) {
     const host = new URL(url).host;
     if (blockedHosts.has(host)) return null;
@@ -4653,9 +4653,13 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
   }
   const selectedStores = selectArizonaXapiStores(stores.values(), { maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES });
   const queryBudget = Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, selectedStores.length);
-  const libraryPlan = !queryBudget || process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || !libraryDetectionQueries(bible).length ? null : await librarySourceSearchPlan(bible, {sourceKey:'AZ:grocery-xapi', budget:queryBudget});
+  const libraryPlan = !queryBudget || process.env.BOURBON_SIGNAL_ALBERTSONS_TERMS || !libraryDetectionQueries(bible).length ? null : await librarySourceSearchPlan(bible, {sourceKey:'AZ:grocery-xapi', budget:queryBudget, cursorDir:options.cursorDir});
   const terms = libraryPlan?.terms || AZ_ALBERTSONS_TERMS;
-  const plan = arizonaXapiRequestPlan(selectedStores, {rotationIndex:libraryPlan?.invocation, queryPoolSize:libraryPlan?.poolSize ?? null, maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms, nowMs: options.nowMs ?? Date.now() });
+  const basePlan = arizonaXapiRequestPlan(selectedStores, {rotationIndex:libraryPlan?.invocation, queryPoolSize:libraryPlan?.poolSize ?? null, maxStores: options.maxStores ?? AZ_ALBERTSONS_MAX_STORES, terms, nowMs: options.nowMs ?? Date.now() });
+  const priorityInvocation = libraryPlan?.invocation ?? Math.floor((options.nowMs ?? Date.now()) / (30 * 60_000));
+  const plan = options.priorityQueries === false ? basePlan : addArizonaPriorityQueries(basePlan, priorityInvocation);
+  metadata.priorityTerms = plan[0]?.priorityTerms || [];
+  metadata.priorityInvocation = priorityInvocation;
   metadata.targetedQueryPool = [...new Set(terms.filter(term => term !== 'bourbon'))];
   metadata.targetedQueryCoverage = 'rotating_subset_not_exhaustive';
   const describeStore = (store) => ({ storeId: `${arizonaXapiBanner(store)}:${store.locationId}`, city: store.address.city, address: `${store.address.line1}, ${store.address.city}, AZ ${store.address.zipcode}` });
@@ -4678,7 +4682,7 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
       const res = await request(url, { accept: 'application/json', 'ocp-apim-subscription-key': AZ_ALBERTSONS_SEARCH_KEY }, 'inventory', String(store.locationId), term);
       if (!res) continue;
       metadata.totalSearchCount += 1;
-      if (term === 'bourbon') metadata.bourbonSearchCount += 1; else if (term === 'whiskey') metadata.whiskeySearchCount += 1; else metadata.rareSearchCount += 1;
+      if (term === 'bourbon') metadata.bourbonSearchCount += 1; else if (term === 'whiskey') metadata.whiskeySearchCount += 1; else if (metadata.priorityTerms.includes(term)) metadata.prioritySearchCount += 1; else metadata.rareSearchCount += 1;
       if (!res.ok) { roadblocks.push({ state: config.id, source: `${store.domainName || banner} Arizona XAPI inventory`, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public XAPI source at low cadence without bypassing retailer protection.' }); await pause(AZ_ALBERTSONS_DELAY_MS); continue; }
       try {
         for (const signal of parseArizonaXapiInventory(JSON.parse(res.text), store, bible, { observedAt, queryTerm: term, matchProduct: options.matchProduct })) {
@@ -9271,7 +9275,7 @@ export async function collectCalifornia(config,bible,options={}) {
       recordCount:(value,{candidate}={})=>candidate?.metadata?.complete===false?NaN:value.signals.length,
     })],{}, {...options.sourceRunnerOptions,previousResults:options.previousSourceResults,
       circuitBreaker:options.sourceCircuitBreaker,concurrency:1,perDomain:1,schedule:false,
-      timeoutMs:Number(process.env.BOURBON_SIGNAL_CA_GROCERY_SOURCE_TIMEOUT_MS||600_000),maxAttempts:1}),
+      timeoutMs:Number(process.env.BOURBON_SIGNAL_CA_GROCERY_SOURCE_TIMEOUT_MS||CALIFORNIA_GROCERY_SOURCE_TIMEOUT_MS),maxAttempts:1}),
   ]);
   const grocery=groceryRun.results[0];
   const roadblocks=[...(shopify.roadblocks||[]),...(grocery.value?.roadblocks||[])];
@@ -9572,7 +9576,7 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 900_000 : ['IN', 'TN', 'FL', 'NV', 'TX'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : stateKey === 'GA' ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 1_200_000 : ['IN', 'TN', 'FL', 'NV', 'TX'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : stateKey === 'GA' ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
   const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL', 'NV', 'TX'].includes(stateKey) ? 1 : 2;
   const inventoryCadence = inventoryStateCadenceMs(stateKey);
   return {

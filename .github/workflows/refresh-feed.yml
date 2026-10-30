@@ -50,8 +50,8 @@ jobs:
       BOURBON_SIGNAL_BROWSER_PREFLIGHT: "0"
       BOURBON_SIGNAL_AUTO_DEPLOY: "0"
       BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES: "30"
-      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1320000"
-      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "1500000"
+      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1920000"
+      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "2100000"
       BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS: "1800000"
       FWGS_INVENTORY_CONCURRENCY: "16"
       FWGS_INVENTORY_SKU_BATCH_SIZE: "24"
@@ -452,7 +452,7 @@ jobs:
       - name: Verify California targeted exact-store recovery
         if: ${{ inputs.states && contains(inputs.states, 'CA') }}
         working-directory: engine
-        run: npm run verify:ca
+        run: npm run verify:ca -- --require-expansion
 
       - name: Verify demand metro structure independently of state freshness
         if: ${{ !inputs.states }}

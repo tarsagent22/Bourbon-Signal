@@ -1,0 +1,77 @@
+{
+  "note": "First-party premise proof, not inventory.",
+  "proofs": [
+    {
+      "storeId": "albertsons:4",
+      "url": "https://local.albertsons.com/az/phoenix/3130-w-carefree-hwy.html",
+      "status": 200,
+      "observedAt": "2026-10-30T22:32:25.454Z",
+      "sha256": "b1b306a5b0e9c2a6311b85682891e202775a02527bcf8690596bbae3a9ce09eb",
+      "address": {
+        "streetAddress": "3130 W Carefree Hwy",
+        "addressLocality": "Phoenix",
+        "addressRegion": "AZ",
+        "postalCode": "85086"
+      },
+      "geo": {
+        "latitude": 33.799958638682426,
+        "longitude": -112.12699967629305
+      },
+      "verified": true
+    },
+    {
+      "storeId": "safeway:1706",
+      "url": "https://local.safeway.com/safeway/az/casa-grande/1637-n-trekell-rd.html",
+      "status": 200,
+      "observedAt": "2026-10-30T22:32:26.225Z",
+      "sha256": "673ada98852779415056e6de5a21f6544088b4e0437a428dc5c067d77128e54c",
+      "address": {
+        "streetAddress": "1637 N Trekell Rd",
+        "addressLocality": "Casa Grande",
+        "addressRegion": "AZ",
+        "postalCode": "85122"
+      },
+      "geo": {
+        "latitude": 32.895400949811226,
+        "longitude": -111.74157589674002
+      },
+      "verified": true
+    },
+    {
+      "storeId": "safeway:239",
+      "url": "https://local.safeway.com/safeway/az/winslow/1601-n-park-dr.html",
+      "status": 200,
+      "observedAt": "2026-10-30T22:32:26.910Z",
+      "sha256": "e75a00c3a56fb5254b7d768067446f1d710662b3d1c93813f51a89f05832bd2e",
+      "address": {
+        "streetAddress": "1601 N Park Dr",
+        "addressLocality": "Winslow",
+        "addressRegion": "AZ",
+        "postalCode": "86047"
+      },
+      "geo": {
+        "latitude": 35.03682091581218,
+        "longitude": -110.69967100370482
+      },
+      "verified": true
+    },
+    {
+      "storeId": "albertsons:25",
+      "url": "https://local.albertsons.com/az/phoenix/21001-n-tatum-blvd-suite-76.html",
+      "status": 200,
+      "observedAt": "2026-10-30T22:32:27.580Z",
+      "sha256": "7fc2efa35dc86b23c15e183059a90b6f9a052a7f1f0c98d7a38345964cc94718",
+      "address": {
+        "streetAddress": "21001 N Tatum Blvd Suite 76",
+        "addressLocality": "Phoenix",
+        "addressRegion": "AZ",
+        "postalCode": "85050"
+      },
+      "geo": {
+        "latitude": 33.67862831103052,
+        "longitude": -111.97470279086701
+      },
+      "verified": true
+    }
+  ]
+}

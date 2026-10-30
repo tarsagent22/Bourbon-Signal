@@ -50,7 +50,7 @@ export function arizonaXapiLibraryIdentity(product, bible, { storeId } = {}) {
     .map(m => Number(m[1]) * (m[2].toLowerCase() === 'ml' ? 1 : 1000));
   if (!/^\d+$/.test(String(product?.id || '')) || String(product?.id) !== String(product?.pid)
     || !/^\d{12,14}$/.test(String(product?.upc || ''))
-    || !/^\d{2,6}$/.test(String(storeId || '')) || String(product?.storeId) !== String(storeId)
+    || !/^\d{1,6}$/.test(String(storeId || '')) || String(product?.storeId) !== String(storeId)
     || product?.containsAlcohol !== true || !Number.isFinite(strength) || strength < 20 || strength > 80
     || !Number.isFinite(sizeMl) || sizeMl < 375 || sizeMl > 1750
     || String(product?.unitOfMeasure || '').toLowerCase() !== unit || Number(product?.dispItemPackageQty) !== 1

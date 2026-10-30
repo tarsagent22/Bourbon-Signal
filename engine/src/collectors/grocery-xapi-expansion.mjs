@@ -7,8 +7,8 @@ import { WESTERN_GROCERY_EXPANSION_SOURCES, WESTERN_GROCERY_RESOLVER_ZIPS } from
 const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn']);
 export const GROCERY_EXPANSION_REQUEST_LIMIT = 127;
-export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:168,NM:43});
-const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({WA:58,CA:78,NM:16});
+export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:914,NM:43});
+const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({WA:58,CA:433,NM:16});
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
 
@@ -108,7 +108,7 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
   const eligible=sources.filter(source=>groceryExpansionPremiseMatches(source,resolver.get(source.merchantId)?.store));
   const plan=eligible.length?await librarySourceSearchPlan(bible,{sourceKey:`${config.id}:grocery-xapi-expansion`,budget:Math.min(8,eligible.length),broadTerms:[],cursorDir}):null;
   const extraTerms=new Map();
-  if(plan?.terms.length)for(const{storeIndex,term}of arizonaXapiLibraryQueryAssignments(eligible.length,{terms:plan.terms,poolSize:plan.poolSize,invocation:plan.invocation})){
+  if(plan?.terms.length)for(const{storeIndex,term}of arizonaXapiLibraryQueryAssignments(eligible.length,{terms:plan.terms,poolSize:plan.poolSize,invocation:plan.invocation,maximumStores:GROCERY_EXPANSION_STORE_LIMITS[config.id]})){
     extraTerms.set(storeIndex,[...(extraTerms.get(storeIndex)||[]),term]);
   }
   let complete=resolverComplete && eligible.length===sources.length;
