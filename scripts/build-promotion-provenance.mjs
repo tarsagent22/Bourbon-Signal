@@ -107,6 +107,16 @@ if (['WA', 'NM'].includes(state)) files.push(
   '.github/workflows/state-promotion-provenance.yml',
   `engine/out/grocery-shadow-input/${state}/provenance.json`,
 );
+// The production workflow can signal these exact relays after accepted output.
+// Bind its completion/empty-scope authority together with the source proof.
+if (['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state)) files.push(
+  'scripts/refresh-continuation.mjs',
+  'scripts/test-refresh-continuation.mjs',
+  'scripts/test-refresh-continuation-signal.mjs',
+  '.github/workflows/refresh-continuation.yml',
+  '.github/workflows/refresh-continuation-smoke.yml',
+  '.github/workflows/refresh-continuation-smoke-relay.yml',
+);
 const fileDigests = {};
 if (['NJ','MI'].includes(state)) files.push(
   'engine/src/prepare-nj-mi-canary.mjs',

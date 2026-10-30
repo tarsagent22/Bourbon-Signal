@@ -1,5 +1,5 @@
 name: Production refresh continuation
-run-name: Production refresh continuation after ${{ github.event.workflow_run.id || inputs.accepted_run_id }}
+run-name: Production refresh continuation after ${{ github.event.workflow_run.id || inputs.producer_run_id || inputs.accepted_run_id }}
 on:
   workflow_run:
     workflows: [Refresh production inventory feed]
@@ -7,15 +7,19 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      producer_run_id:
+        description: Internal producer signal; requires the exact successful source run and its receiver-bound artifact
+        type: string
+        default: ''
       accepted_run_id:
         description: Successful current-main full-fleet snapshot already accepted through the public customer path
         type: string
-        required: true
+        required: false
       accepted_full_fleet_snapshot:
         description: Current-main full-fleet snapshot/public acceptance accounts for all currently admitted customer-active states; legitimate zero/degraded/quarantined/disabled states add no current-store claims
         type: boolean
         default: false
-        required: true
+        required: false
 permissions:
   contents: read
   actions: read

@@ -52,6 +52,8 @@ jobs:
 
       - name: Verify default-off refresh continuation and harmless smoke guards
         run: node --test scripts/test-refresh-continuation.mjs
+      - name: Verify explicit producer completion signals and immutable receiver binding
+        run: node --test scripts/test-refresh-continuation-signal.mjs
 
       - name: Verify NC source resilience and evidence safety
         working-directory: engine

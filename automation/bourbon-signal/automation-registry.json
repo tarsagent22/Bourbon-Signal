@@ -29,7 +29,8 @@
       "artifacts": [
         ".operator/refresh-continuation/continuation-plan.json",
         ".operator/refresh-continuation/continuation-receipt.json",
-        ".operator/refresh-continuation/smoke-marker.json"
+        ".operator/refresh-continuation/smoke-marker.json",
+        ".operator/refresh-continuation/producer-signal.json"
       ]
     },
     {
@@ -60,7 +61,8 @@
       "artifacts": [
         ".operator/refresh-continuation/continuation-plan.json",
         ".operator/refresh-continuation/continuation-receipt.json",
-        ".operator/refresh-continuation/smoke-marker.json"
+        ".operator/refresh-continuation/smoke-marker.json",
+        ".operator/refresh-continuation/producer-signal.json"
       ]
     },
     {
@@ -91,7 +93,8 @@
       "artifacts": [
         ".operator/refresh-continuation/continuation-plan.json",
         ".operator/refresh-continuation/continuation-receipt.json",
-        ".operator/refresh-continuation/smoke-marker.json"
+        ".operator/refresh-continuation/smoke-marker.json",
+        ".operator/refresh-continuation/producer-signal.json"
       ]
     },
     {

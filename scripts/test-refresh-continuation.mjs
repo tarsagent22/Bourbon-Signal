@@ -6,7 +6,7 @@ import {REPOSITORY,REFRESH,PATHS,ENVIRONMENTS,DEFAULT_INPUTS,productionDecision,
 const digest=value=>createHash('sha256').update(value).digest('hex'),SHA='a'.repeat(40),now=Date.parse('2026-10-29T20:00:00Z');
 const run=(overrides={})=>({id:42,workflow_id:REFRESH.id,path:REFRESH.path,head_branch:'main',head_sha:SHA,
  repository:{full_name:REPOSITORY},head_repository:{full_name:REPOSITORY},run_attempt:1,status:'completed',conclusion:'success',
- event:'schedule',created_at:'2026-10-29T19:30:00Z',updated_at:'2026-10-29T19:40:00Z',...overrides});
+ event:'schedule',actor:{login:'tarsagent22'},triggering_actor:{login:'tarsagent22'},created_at:'2026-10-29T19:30:00Z',updated_at:'2026-10-29T19:40:00Z',...overrides});
 const state=(overrides={})=>({repository:REPOSITORY,branch:'main',attempt:1,enabled:'1',maintenance:'0',mode:'production',currentSha:SHA,relaySha:SHA,
  relay:{id:99,path:PATHS.production,state:'active'},target:{...REFRESH,state:'active'},source:run(),eventName:'workflow_run',inputs:{},
  environmentName:ENVIRONMENTS.production,environment:{name:ENVIRONMENTS.production,protection_rules:[{type:'wait_timer',wait_timer:15}]},
@@ -144,6 +144,7 @@ test('a refresh arriving during the wait is rechecked by actual dispatch handler
   if(path.endsWith('actions/workflows/refresh-continuation.yml'))return{id:98,path:PATHS.production,state:'active'};
   if(path.endsWith('actions/workflows/311991230'))return{...REFRESH,state:'active'};
   if(path.endsWith('actions/runs/42'))return run({created_at:new Date(Date.now()-1200000).toISOString(),updated_at:new Date(Date.now()-1000000).toISOString()});
+  if(path.includes('/artifacts?'))return{total_count:0,artifacts:[]};
   if(path.includes('/environments/'))return{name:ENVIRONMENTS.production,protection_rules:[{type:'wait_timer',wait_timer:15}]};
   if(path.includes('&status='))return{total_count:queued?1:0,workflow_runs:queued?[run({id:43,status:'queued'})]:[]};
   if(path.includes('/runs?'))return{workflow_runs:[run()]};throw Error('Unexpected synthetic API path');

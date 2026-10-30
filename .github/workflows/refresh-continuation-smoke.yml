@@ -25,7 +25,7 @@ on:
         required: true
 permissions:
   contents: read
-  actions: read
+  actions: write
 env:
   CONTINUATION_SMOKE_ENABLED: ${{ vars.BOURBON_SIGNAL_CONTINUATION_SMOKE_ENABLED || '0' }}
   CONTINUATION_MAINTENANCE: ${{ vars.BOURBON_SIGNAL_CONTINUATION_MAINTENANCE || '1' }}
@@ -51,3 +51,18 @@ jobs:
           include-hidden-files: true
           retention-days: 30
           if-no-files-found: error
+      - name: Signal verified harmless producer completion
+        if: success()
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/refresh-continuation.mjs --mode=smoke --phase=signal
+      - name: Preserve harmless producer signal outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresh-continuation-signal-${{ github.run_id }}
+          path: .operator/refresh-continuation/producer-signal.json
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore

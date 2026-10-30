@@ -1,6 +1,12 @@
 name: Refresh continuation harmless relay
-run-name: Harmless continuation after ${{ github.event.workflow_run.id }}
+run-name: Harmless continuation after ${{ github.event.workflow_run.id || inputs.producer_run_id }}
 on:
+  workflow_dispatch:
+    inputs:
+      producer_run_id:
+        description: Internal harmless producer signal; requires its successful run and exact receiver-bound artifact
+        type: string
+        required: true
   workflow_run:
     workflows: [Refresh continuation harmless smoke]
     types: [completed]

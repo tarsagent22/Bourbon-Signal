@@ -32,6 +32,7 @@ export function commonDecision(s){
  if(!/^[a-f0-9]{40}$/.test(s.currentSha||'')||s.relaySha!==s.currentSha)return 'superseded_relay';
  if(s.relay?.state!=='active'||s.target?.state!=='active')return 'workflow_disabled';
  if(s.relay?.path!==PATHS[s.mode]||!id(s.relay?.id)||!id(s.target?.id))return 'unexpected_workflow';
+ if(s.signalFallbackReserved===true)return 'explicit_signal_receiver_reserved';
  if(!validateTimer(s.environment,s.environmentName,s.waitMinutes))return 'missing_or_wrong_wait_environment';
  if(s.activeRuns?.some(run=>ACTIVE.includes(run.status)))return 'refresh_already_active_or_queued';
  if(s.historyTruncated)return 'unknown_run_history';
@@ -44,8 +45,12 @@ export function productionDecision(s){
  const reason=commonDecision(s);if(reason)return{continue:false,reason};
  if(s.target.id!==REFRESH.id||s.target.path!==REFRESH.path||!trustedRun(s.source,REFRESH,s.currentSha))return{continue:false,reason:'untrusted_or_failed_producer'};
  if(!['schedule','workflow_dispatch'].includes(s.source.event))return{continue:false,reason:'unknown_source_event'};
+ if(s.source.event==='schedule'&&(!['tarsagent22','github-actions[bot]'].includes(s.source.actor?.login)||s.source.triggering_actor?.login!==s.source.actor.login))return{continue:false,reason:'untrusted_schedule_actor'};
  if(s.eventName==='workflow_dispatch'){
-  if(s.sender!=='tarsagent22'||String(s.inputs.accepted_run_id)!==String(s.source.id)||s.inputs.accepted_full_fleet_snapshot!=='true')
+  if(s.inputs.producer_run_id){
+   if(s.sender!=='github-actions[bot]'||s.verifiedProducerSignal!==true||s.inputs.accepted_run_id||s.inputs.accepted_full_fleet_snapshot==='true'
+    ||s.source.event!=='schedule'&&s.verifiedLineage!==true)return{continue:false,reason:'unverified_producer_signal'};
+  }else if(s.sender!=='tarsagent22'||String(s.inputs.accepted_run_id)!==String(s.source.id)||s.inputs.accepted_full_fleet_snapshot!=='true')
    return{continue:false,reason:'manual_full_fleet_acceptance_required'};
  }else if(s.eventName==='workflow_run'){
   if(s.source.event!=='schedule'&&!(s.source.event==='workflow_dispatch'&&s.verifiedLineage===true))
@@ -57,7 +62,7 @@ export function productionDecision(s){
 export function smokeDecision(s){
  const reason=commonDecision(s);if(reason)return{continue:false,reason};
  const m=s.marker;
- if(s.eventName!=='workflow_run'||s.target.id===REFRESH.id||s.target.path!==PATHS.producer||!trustedRun(s.source,s.target,s.currentSha)
+ if(!(s.eventName==='workflow_run'||s.eventName==='workflow_dispatch'&&s.sender==='github-actions[bot]'&&s.verifiedProducerSignal===true&&String(s.inputs.producer_run_id)===String(s.source.id))||s.target.id===REFRESH.id||s.target.path!==PATHS.producer||!trustedRun(s.source,s.target,s.currentSha)
   ||m?.schemaVersion!==1||m.kind!=='no_retailer_smoke'||m.sourceRunId!==s.source.id||m.mainSha!==s.currentSha
   ||!['immediate','paced'].includes(m.pacing)||!/^[a-f0-9]{32}$/.test(m.chainId||'')||!Number.isSafeInteger(m.cycle)||m.cycle<1)
   return{continue:false,reason:'untrusted_smoke_producer'};
@@ -137,7 +142,71 @@ async function verifiedLineage(api,source,relay,currentSha){
   &&same(receipt.inputs,{...DEFAULT_INPUTS,incident_key:`continuation-v1-${issuer.id}-${match[2]}`});
 }
 
-export async function snapshot({api,event,eventName,env,mode,nowMs=Date.now()}){
+// A signal is only a request to inspect a producer. Its original workflow must
+// finish successfully and upload this exact receiver-bound artifact first.
+export async function waitForSignaledProducer({api,sourceId,workflow,currentSha,now=Date.now,sleep=delay,maximumMs=120000}){
+ if(!id(sourceId)||maximumMs!==120000)fail('unreviewed_producer_wait');
+ const deadline=now()+maximumMs;
+ for(let attempt=0;attempt<25;attempt++){
+  const remaining=deadline-now();if(remaining<=0)break;
+  let timer;const run=await Promise.race([api.get(repoPath(`actions/runs/${sourceId}`)),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Object.assign(Error('producer_wait_timeout'),{code:'producer_wait_timeout'})),remaining);})]).finally(()=>clearTimeout(timer));
+  if(!trustedRun(run,workflow,currentSha,{success:false}))fail('untrusted_signaled_producer');
+  if(run.status==='completed'){if(run.conclusion!=='success')fail('failed_signaled_producer');return run;}
+  if(!['in_progress','queued','waiting','pending','requested'].includes(run.status))fail('unknown_signaled_producer_status');
+  if(attempt<24&&deadline-now()>0)await sleep(Math.min(5000,deadline-now()));
+ }
+ fail('producer_wait_timeout');
+}
+export function verifyProducerSignalReceipt(receipt,{source,relayRunId,relay,mode,currentSha,marker}){
+ if(receipt?.schemaVersion!==1||receipt.kind!=='producer_finish_signal_v1'||receipt.status!=='dispatched'
+  ||receipt.mode!==mode||receipt.sourceRunId!==source.id||receipt.sourceWorkflowId!==source.workflow_id||receipt.sourceWorkflowPath!==source.path
+  ||receipt.sourceEvent!==source.event||receipt.sourceAttempt!==1||receipt.mainSha!==currentSha||receipt.targetRelayRunId!==Number(relayRunId)
+  ||receipt.targetRelayId!==relay.id||receipt.targetRelayPath!==PATHS[mode])fail('unbound_producer_signal_receipt');
+ if(mode==='production'&&!same(receipt.scope,DEFAULT_INPUTS))fail('nondefault_producer_signal_scope');
+ if(mode==='smoke'&&receipt.markerSha256!==sha(JSON.stringify(marker)))fail('producer_signal_marker_mismatch');
+ return true;
+}
+export async function signalProducer({api,event,env,mode,persist}){
+ const enabled=mode==='production'?env.CONTINUATION_ENABLED:env.CONTINUATION_SMOKE_ENABLED;
+ if(enabled!=='1'||env.CONTINUATION_MAINTENANCE!=='0')return {status:'stopped',reason:'feature_off_or_maintenance'};
+ const sourcePath=mode==='production'?REFRESH.path:PATHS.producer;
+ if(!['production','smoke'].includes(mode)||env.GITHUB_REPOSITORY!==REPOSITORY||env.GITHUB_REF!=='refs/heads/main'
+  ||Number(env.GITHUB_RUN_ATTEMPT)!==1||env.GITHUB_WORKFLOW_REF!==`${REPOSITORY}/${sourcePath}@refs/heads/main`)fail('untrusted_signal_context');
+ const main=(await api.get(repoPath('git/ref/heads/main'))).object.sha;if(main!==env.GITHUB_SHA)fail('superseded_signal');
+ const workflow=await api.get(repoPath('actions/workflows/'+(mode==='production'?REFRESH.id:'refresh-continuation-smoke.yml')));
+ const relay=await api.get(repoPath('actions/workflows/'+PATHS[mode].split('/').at(-1)));
+ if(workflow.state!=='active'||workflow.path!==sourcePath||mode==='production'&&workflow.id!==REFRESH.id
+  ||mode==='smoke'&&workflow.id===REFRESH.id||relay.state!=='active'||relay.path!==PATHS[mode]||relay.id===workflow.id)fail('signal_workflow_disabled_or_untrusted');
+ const source=await api.get(repoPath(`actions/runs/${env.GITHUB_RUN_ID}`));
+ if(!trustedRun(source,workflow,main,{success:false})||source.status!=='in_progress'||source.event!==env.GITHUB_EVENT_NAME)fail('untrusted_signal_producer');
+ let marker;
+ if(mode==='production'){
+  if(source.event==='schedule'){
+   if(!['tarsagent22','github-actions[bot]'].includes(source.actor?.login)||source.triggering_actor?.login!==source.actor.login)fail('untrusted_schedule_actor');
+  }else if(source.event==='workflow_dispatch'){
+   if(!await verifiedLineage(api,source,relay,main))return{status:'stopped',reason:'manual_or_targeted_producer_needs_owner_bootstrap'};
+   const match=/^Inventory recovery continuation-v1-([1-9][0-9]*)-([1-9][0-9]*)$/.exec(source.display_title||'');
+   if(!same(event.inputs,{...DEFAULT_INPUTS,incident_key:`continuation-v1-${match[1]}-${match[2]}`}))fail('nondefault_signal_scope');
+  }else fail('untrusted_signal_event');
+ }else marker=await produceSmoke({api,event,env});
+ const receipt={schemaVersion:1,kind:'producer_finish_signal_v1',status:'dispatch_intent',mode,mainSha:main,sourceRunId:source.id,
+  sourceWorkflowId:workflow.id,sourceWorkflowPath:workflow.path,sourceEvent:source.event,sourceAttempt:1,
+  targetRelayId:relay.id,targetRelayPath:relay.path,targetRelayRunId:null,
+  ...(mode==='production'?{scope:DEFAULT_INPUTS}:{markerSha256:sha(JSON.stringify(JSON.parse(await readFile('.operator/refresh-continuation/smoke-marker.json','utf8'))))}),
+  signaledAt:new Date().toISOString(),producerConclusionNotYetKnown:true};
+ if(marker){const original=JSON.parse(await readFile('.operator/refresh-continuation/smoke-marker.json','utf8'));
+  for(const key of ['schemaVersion','kind','sourceRunId','mainSha','chainId','cycle','pacing'])if(original[key]!==marker[key])fail('local_smoke_marker_changed');}
+ if((await api.get(repoPath('git/ref/heads/main'))).object.sha!==main)fail('superseded_signal');
+ await persist(receipt);
+ try{
+  // One POST only. An unknown outcome cannot be retried by a rerun (attempt1).
+  const result=await api.post(repoPath(`actions/workflows/${relay.id}/dispatches`),{ref:'main',inputs:{producer_run_id:String(source.id)}});
+  if(!id(result?.workflow_run_id))fail('producer_signal_outcome_unknown');
+  receipt.targetRelayRunId=Number(result.workflow_run_id);receipt.status='dispatched';await persist(receipt);return receipt;
+ }catch(error){receipt.status='dispatch_outcome_unknown';receipt.reason=error.code||'signal_transport_or_persistence_error';await persist(receipt);throw error;}
+}
+
+export async function snapshot({api,event,eventName,env,mode,nowMs}){
  const enabled=mode==='production'?env.CONTINUATION_ENABLED:env.CONTINUATION_SMOKE_ENABLED;
  if(enabled!=='1'||env.CONTINUATION_MAINTENANCE!=='0')return{mode,repository:env.GITHUB_REPOSITORY,branch:'main',attempt:Number(env.GITHUB_RUN_ATTEMPT),enabled,maintenance:env.CONTINUATION_MAINTENANCE};
  if(env.GITHUB_REPOSITORY!==REPOSITORY||env.GITHUB_REF!=='refs/heads/main'||Number(env.GITHUB_RUN_ATTEMPT)!==1
@@ -145,13 +214,30 @@ export async function snapshot({api,event,eventName,env,mode,nowMs=Date.now()}){
  const currentSha=(await api.get(repoPath('git/ref/heads/main'))).object.sha;
  const relay=await api.get(repoPath('actions/workflows/'+PATHS[mode].split('/').at(-1)));
  const target=mode==='production'?await api.get(repoPath('actions/workflows/311991230')):await api.get(repoPath('actions/workflows/refresh-continuation-smoke.yml'));
- const sourceId=eventName==='workflow_dispatch'?event.inputs?.accepted_run_id:event.workflow_run?.id;
+ const explicitSignal=eventName==='workflow_dispatch'&&Boolean(event.inputs?.producer_run_id);
+ if(explicitSignal&&(event.sender?.login!=='github-actions[bot]'||event.inputs.accepted_run_id||event.inputs.accepted_full_fleet_snapshot==='true'))fail('untrusted_signal_dispatch');
+ const sourceId=eventName==='workflow_dispatch'?(event.inputs?.producer_run_id||event.inputs?.accepted_run_id):event.workflow_run?.id;
  if(!id(sourceId))fail('missing_producer_run');
- const source=await api.get(repoPath(`actions/runs/${sourceId}`));
+ const source=explicitSignal?await waitForSignaledProducer({api,sourceId,workflow:target,currentSha}):await api.get(repoPath(`actions/runs/${sourceId}`));
  if(eventName==='workflow_run'&&(event.action!=='completed'||event.repository?.full_name!==REPOSITORY||event.workflow_run?.workflow_id!==target.id))fail('untrusted_trigger_payload');
- let marker,verified=false;
+ let marker,verified=false,verifiedProducerSignal=false,signalFallbackReserved=false;
  if(mode==='smoke')marker=await receiptArtifact(api,source,`refresh-continuation-smoke-${source.id}`,'smoke-marker.json');
- else if(source.event==='workflow_dispatch'&&eventName==='workflow_run')verified=await verifiedLineage(api,source,relay,currentSha);
+ else if(source.event==='workflow_dispatch'&&(eventName==='workflow_run'||explicitSignal))verified=await verifiedLineage(api,source,relay,currentSha);
+ if(explicitSignal){
+  const receipt=await receiptArtifact(api,source,`refresh-continuation-signal-${source.id}`,'producer-signal.json');
+  verifiedProducerSignal=verifyProducerSignalReceipt(receipt,{source,relayRunId:env.GITHUB_RUN_ID,relay,mode,currentSha,marker});
+  if((await api.get(repoPath('git/ref/heads/main'))).object.sha!==currentSha)fail('superseded_signaled_producer');
+ }else if(eventName==='workflow_run'&&trustedRun(source,target,currentSha)){
+  const list=await api.get(repoPath(`actions/runs/${source.id}/artifacts?per_page=100`));if(list.total_count>100)fail('unknown_artifact_history');
+  if(list.artifacts.some(a=>a.name===`refresh-continuation-signal-${source.id}`)){
+   const receipt=await receiptArtifact(api,source,`refresh-continuation-signal-${source.id}`,'producer-signal.json');
+   verifyProducerSignalReceipt(receipt,{source,relayRunId:receipt.targetRelayRunId,relay,mode,currentSha,marker});
+   if(!id(receipt.targetRelayRunId))fail('unknown_signal_receiver');
+   const receiver=await api.get(repoPath(`actions/runs/${receipt.targetRelayRunId}`));
+   if(!trustedRun(receiver,relay,currentSha,{success:false})||receiver.event!=='workflow_dispatch'||receiver.actor?.login!=='github-actions[bot]')fail('untrusted_reserved_signal_receiver');
+   signalFallbackReserved=true;
+  }
+ }
  const environmentName=mode==='production'?ENVIRONMENTS.production:ENVIRONMENTS[marker?.pacing];
  if(!environmentName)fail('unknown_smoke_pacing');
  const environment=await api.get(repoPath('environments/'+environmentName));
@@ -159,8 +245,8 @@ export async function snapshot({api,event,eventName,env,mode,nowMs=Date.now()}){
  for(const status of ACTIVE){const page=await api.get(repoPath(`actions/workflows/${target.id}/runs?branch=main&status=${status}&per_page=100`));historyTruncated||=page.total_count>100;activeRuns.push(...page.workflow_runs);}
  const recent=await api.get(repoPath(`actions/workflows/${target.id}/runs?branch=main&per_page=10`));
  return{mode,repository:env.GITHUB_REPOSITORY,branch:'main',attempt:Number(env.GITHUB_RUN_ATTEMPT),enabled,maintenance:env.CONTINUATION_MAINTENANCE,
-  currentSha,relaySha:env.GITHUB_SHA,relay,target,source,eventName,sender:event.sender?.login,inputs:event.inputs||{},marker,verifiedLineage:verified,
-  environmentName,environment,waitMinutes:mode==='production'||marker?.pacing==='paced'?15:0,activeRuns,recentRuns:recent.workflow_runs,historyTruncated,nowMs};
+  currentSha,relaySha:env.GITHUB_SHA,relay,target,source,eventName,sender:event.sender?.login,inputs:event.inputs||{},marker,verifiedLineage:verified,verifiedProducerSignal,signalFallbackReserved,
+  environmentName,environment,waitMinutes:mode==='production'||marker?.pacing==='paced'?15:0,activeRuns,recentRuns:recent.workflow_runs,historyTruncated,nowMs:nowMs??Date.now()};
 }
 
 export async function dispatchOnce({api,plan,relayRunId,persist}){
@@ -211,15 +297,16 @@ export function validateWait(old,decision,runId,nowMs=Date.now()){
 }
 export async function main({env=process.env,event,api,args=process.argv.slice(2)}={}){
  const mode=args.find(x=>x.startsWith('--mode='))?.split('=')[1],phase=args.find(x=>x.startsWith('--phase='))?.split('=')[1];
- if(!['production','smoke','producer'].includes(mode)||!['plan','dispatch','produce'].includes(phase))fail('unknown_continuation_operation');
+ if(!['production','smoke','producer'].includes(mode)||!['plan','dispatch','produce','signal'].includes(phase))fail('unknown_continuation_operation');
  if((mode==='producer')!==(phase==='produce'))fail('unknown_continuation_operation');
  event||=JSON.parse(await readFile(env.GITHUB_EVENT_PATH,'utf8'));api||=githubClient(env.GITHUB_TOKEN);
  const dir='.operator/refresh-continuation';await mkdir(dir,{recursive:true});
  const persist=receipt=>writeFile(dir+'/continuation-receipt.json',JSON.stringify(receipt,null,2)+'\n');
+ if(phase==='signal')return signalProducer({api,event,env,mode,persist:receipt=>writeFile(dir+'/producer-signal.json',JSON.stringify(receipt,null,2)+'\n')});
  if(mode==='producer'){if(phase!=='produce'||env.GITHUB_EVENT_NAME!=='workflow_dispatch')fail('unknown_smoke_operation');await writeFile(dir+'/smoke-marker.json',JSON.stringify(await produceSmoke({api,event,env}),null,2)+'\n');return;}
  const s=await snapshot({api,event,eventName:env.GITHUB_EVENT_NAME,env,mode}),decision=mode==='production'?productionDecision(s):smokeDecision(s);
  if(phase==='plan'){
-  const plan={schemaVersion:1,...decision,mode,relayRunId:Number(env.GITHUB_RUN_ID),plannedAt:new Date().toISOString()};
+  const plan={schemaVersion:1,sourceRunId:s.source?.id,mainSha:s.currentSha,...decision,mode,relayRunId:Number(env.GITHUB_RUN_ID),plannedAt:new Date().toISOString()};
   await writeFile(dir+'/continuation-plan.json',JSON.stringify(plan,null,2)+'\n');
   await appendFile(env.GITHUB_OUTPUT,`continue=${decision.continue===true}\nenvironment=${decision.continue?decision.environment:''}\n`);
   console.log(JSON.stringify({continue:decision.continue,reason:decision.reason}));return plan;

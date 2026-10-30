@@ -741,3 +741,22 @@ jobs:
             engine/out/cache/texas-cityhive-expansion.json
             engine/out/states/*.json
             engine/out/source-refresh-verification.json
+
+      - name: Signal verified adaptive producer completion
+        if: ${{ success() && vars.BOURBON_SIGNAL_REFRESH_CONTINUATION_ENABLED == '1' && vars.BOURBON_SIGNAL_CONTINUATION_MAINTENANCE == '0' }}
+        continue-on-error: true
+        env:
+          CONTINUATION_ENABLED: ${{ vars.BOURBON_SIGNAL_REFRESH_CONTINUATION_ENABLED || '0' }}
+          CONTINUATION_MAINTENANCE: ${{ vars.BOURBON_SIGNAL_CONTINUATION_MAINTENANCE || '1' }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/refresh-continuation.mjs --mode=production --phase=signal
+
+      - name: Preserve adaptive producer signal outcome
+        if: ${{ always() && vars.BOURBON_SIGNAL_REFRESH_CONTINUATION_ENABLED == '1' && vars.BOURBON_SIGNAL_CONTINUATION_MAINTENANCE == '0' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresh-continuation-signal-${{ github.run_id }}
+          path: .operator/refresh-continuation/producer-signal.json
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore

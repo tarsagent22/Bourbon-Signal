@@ -506,6 +506,12 @@ for(const continuation of ['refresh-continuation.yml','refresh-continuation-smok
     fail('Continuation must remain default-off, GitHub-token-only, and separate from collection/publication: '+continuation);
 }
 if(!workflow.includes('node --test scripts/test-refresh-continuation.mjs'))fail('CI must exercise default-off continuation, failure, scope and smoke guards.');
+if(!workflow.includes('node --test scripts/test-refresh-continuation-signal.mjs'))fail('CI must exercise explicit producer-success waits, receiver-bound receipts and failed/unknown signal isolation.');
+for(const [file,mode] of [['.github/workflows/refresh-feed.yml','production'],['.github/workflows/refresh-continuation-smoke.yml','smoke']]){
+  const source=read(file);
+  if(!source.includes(`--mode=${mode} --phase=signal`)||!source.includes('name: refresh-continuation-signal-${{ github.run_id }}')
+    ||!source.includes('path: .operator/refresh-continuation/producer-signal.json'))fail('Reviewed producers must preserve their exact explicit-signal outcome: '+file);
+}
 if (!refreshFeedWorkflow.includes('run: npm run verify:state-integration -- --all-active')
   || /verify-active-state-integration-ci|prepare-legacy-site-fixture-ci/.test(refreshFeedWorkflow)) {
   fail('Production refresh must use the unchanged real-output state-integration CLI and never a CI fixture selector/preparer.');
