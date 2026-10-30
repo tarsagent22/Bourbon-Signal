@@ -1,0 +1,3 @@
+// Run the actual full site validator with an explicit offline lifecycle provider.
+import{readFile}from'node:fs/promises';import{mock}from'node:test';import path from'node:path';
+const directory=process.argv[2],config=JSON.parse(await readFile(path.join(directory,'../src/config/state-lifecycle.json'),'utf8')),original=await import('../../src/state-lifecycle.mjs');mock.module(new URL('../../src/state-lifecycle.mjs',import.meta.url),{namedExports:{...original,STATE_LIFECYCLE_CONFIG:config,STATE_LIFECYCLE:config.states,CUSTOMER_ACTIVE_STATE_IDS:new Set(config.activeStates)}});globalThis.fetch=()=>{throw Error('HTTP forbidden in full33 structural rehearsal');};process.chdir(directory);await import('../../src/verify-site-contract.mjs');

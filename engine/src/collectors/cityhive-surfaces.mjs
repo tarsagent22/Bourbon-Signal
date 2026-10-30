@@ -32,6 +32,12 @@ export function normalizeCityHivePremises(value) {
     .trim();
 }
 
+// Raw replay uses these native arrays to distinguish an explicit empty/ordinary
+// product response from a merchant-only page or an unknown challenge document.
+export function cityHiveNativeProductArrays(html) {
+  return nested(embeddedJson(html),value=>Array.isArray(value.products)).map(value=>value.products);
+}
+
 function exactPremises(value, store) {
   if (!value) return false;
   const observed = normalizeCityHivePremises(value);

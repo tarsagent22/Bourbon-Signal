@@ -26,7 +26,7 @@ test('inventory scheduling preserves explicit cooldown, disabled and requested-s
   assert.deepEqual(scheduled.map(row => row.run), [true, false]);
   assert.equal(inventoryStateCadenceMs('IA'), null);
   assert.equal(inventoryStateCadenceMs('UT'), null);
-  assert.equal(inventoryStateCadenceMs('MA'), null);
+  assert.equal(inventoryStateCadenceMs('ZZ'), null);
 });
 
 test('expanded Texas collector has one bounded attempt within its parent state envelope', () => {

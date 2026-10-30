@@ -1,0 +1,15 @@
+{
+  "contractVersion": "bourbon-signal/new-england-production-shared-metadata-baseline@1",
+  "files": {
+    "engine/src/state-sources.mjs": {
+      "import": {
+        "reviewed": "import {NEW_ENGLAND_PRODUCTION_CONFIGS} from './new-england-production-config.mjs';\n",
+        "original": ""
+      },
+      "registration": {
+        "reviewed": "}).concat(NEW_ENGLAND_PRODUCTION_CONFIGS);\n\nexport const CUSTOMER_ACTIVE_STATE_IDS",
+        "original": "});\n\nexport const CUSTOMER_ACTIVE_STATE_IDS"
+      }
+    }
+  }
+}

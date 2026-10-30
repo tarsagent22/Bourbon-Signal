@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { executeStateFixtures, validateStateFixtures } from '../src/verify-state-fixtures.mjs';
 import { isMassachusettsResearchInventory } from '../src/massachusetts-research-policy.mjs';
 import { MA_JULIOS_SOURCE as store } from '../src/collectors/massachusetts-retailer-surfaces.mjs';
+import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import { isActiveCustomerStateRow } from '../src/export-site-contract.mjs';
 
 test('MA executable golden fixtures cover actual collector-to-export projection', async () => {
@@ -11,7 +12,7 @@ test('MA executable golden fixtures cover actual collector-to-export projection'
   assert.deepEqual(validateStateFixtures(payload), { ok: true, failures: [] });
   const execution = await executeStateFixtures(payload, { bibleFile: new URL('../out/bourbon-bible.json', import.meta.url) });
   assert.deepEqual(execution, { ok: true, failures: [] });
-  assert.equal(isActiveCustomerStateRow({ state: 'MA' }), false);
+  assert.equal(isActiveCustomerStateRow({ state: 'MA' }), STATE_LIFECYCLE_CONFIG.activeStates.includes('MA'));
 });
 
 test('MA research export rejects tampered identity, stale evidence, quantities and delivery flags', () => {

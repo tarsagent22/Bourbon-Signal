@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-10-29T18:14:54.269Z",
+  "stateCount": 5,
+  "totalCount": 142,
+  "states": [
+    {
+      "state": "LA",
+      "file": "states/LA/drops.json",
+      "count": 85,
+      "sha256": "3cff555440ef5a45b0c1b9012719690384059d09d2b27426f9f312985bded227"
+    },
+    {
+      "state": "AK",
+      "file": "states/AK/drops.json",
+      "count": 44,
+      "sha256": "714f599e041fbca724d8ec62188381258f6aa90b1ef118694beb6165c32bbf60"
+    },
+    {
+      "state": "MA",
+      "file": "states/MA/drops.json",
+      "count": 5,
+      "sha256": "31709a1f96b74406ab5a249ee0c08b2fe3840809d8e6806890c0375ff9662b66"
+    },
+    {
+      "state": "CT",
+      "file": "states/CT/drops.json",
+      "count": 5,
+      "sha256": "c7709f5db6e8d14d02d8a7b86d6ff7f49753f184be98aec0ee01e62acc53fcb2"
+    },
+    {
+      "state": "RI",
+      "file": "states/RI/drops.json",
+      "count": 3,
+      "sha256": "cf486422b8750e8459b3819c536f08ec7b8daee4144653060263afefdf26c4a9"
+    }
+  ]
+}

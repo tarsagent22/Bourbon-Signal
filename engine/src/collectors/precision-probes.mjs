@@ -7,6 +7,8 @@ import { pennsylvaniaDirectFwgsRoadblock } from './pennsylvania-direct-source-po
 import { indianaDeniedSourceSkip } from './indiana-source-denial-policy.mjs';
 import { optionalDeniedSourceSkip, retainParkedOptionalSourceRows } from './optional-source-denial-policy.mjs';
 import { optionalSuspensionSkip, retainSuspendedOptionalRows } from './optional-source-suspensions.mjs';
+import {southCarolinaCityHiveApiRouteHold,southCarolinaCityHiveSourceHold,isHeldSouthCarolinaCityHiveRow,retainHeldSouthCarolinaCityHiveRow,isHeldSouthCarolinaCityHiveRoadblock} from './south-carolina-cityhive-api-policy.mjs';
+import {georgiaGoToGroupHold,retainGeorgiaGoToHoldRows} from './georgia-goto-group-policy.mjs';
 import { reviewedIndianaCityHiveBottleMatch, reviewedIndianaPaylessBottleMatch, buildIndianaPaylessAvailabilityProof, normalizeIndianaCityHiveQuantity, indianaSourceBottleMismatchReason } from './indiana-retailer-matching.mjs';
 import { validateFwgsFullArtifact } from '../fwgs-artifact-policy.mjs';
 import { collectTasteLiquors, TASTE_SOURCE } from './south-carolina-taste.mjs';
@@ -1178,7 +1180,7 @@ const SC_LIQUOR_LIBRARY_JSON_MAX_BYTES = 2 * 1_024 * 1_024;
 const SC_DISCOUNT_LIQUOR_ARTIFACT_PATH = 'out/browser/SC-discount-liquor-square-inventory.json';
 const SC_DISCOUNT_LIQUOR_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_DISCOUNT_LIQUOR_CACHE_MAX_AGE_MS || 2 * 60 * 60_000);
 const SC_DISCOUNT_LIQUOR_JSON_MAX_BYTES = 2 * 1_024 * 1_024;
-const SC_CITYHIVE_SOURCES = [
+export const SC_CITYHIVE_SOURCES = [
   {
     id: 'greens-beverage',
     chainName: "Green's Beverage",
@@ -4498,7 +4500,7 @@ export function cachedSouthCarolinaCityHiveSignals(cache, observedAt, { sourceSt
         && String(signal?.raw?.option?.product_id || '') === String(signal.productId)
         && String(signal?.raw?.option?.option_id || '') === String(signal.optionId);
     })
-    .map((signal) => ({
+    .map((signal) => isHeldSouthCarolinaCityHiveRow(signal) ? retainHeldSouthCarolinaCityHiveRow(signal) : ({
       ...signal,
       observedAt: cache.generatedAt || signal.observedAt || observedAt,
       ...(sourceStale ? { stale: true, sourceStale: true, canAlertAsInventory: false, canAlertAsWatch: false } : {}),
@@ -4541,7 +4543,7 @@ export function mergeSouthCarolinaCityHiveSignals(input = {}) {
     if (!key) continue;
     if (!merged.has(key)) merged.set(key, signal);
   }
-  return [...merged.values()];
+  return [...merged.values()].map(signal=>isHeldSouthCarolinaCityHiveRow(signal)?retainHeldSouthCarolinaCityHiveRow(signal):signal);
 }
 
 function southCarolinaCityHiveSignalChain(signal) {
@@ -5794,7 +5796,9 @@ function georgiaBinaryRetailerSignal(config, store, product, bible, observedAt, 
   };
 }
 
-async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options = {}) {
+export async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options = {}) {
+  if(config?.id!=='GA')throw Error('The reviewed Georgia GoTo lane cannot be reclassified as another state');
+  const policyHold=georgiaGoToGroupHold(config.id);if(policyHold)return policyHold;
   const signals = [];
   const roadblocks = [];
   const platformFailures = [];
@@ -5895,14 +5899,14 @@ async function collectGeorgia(config, bible, options = {}) {
   const cityHive = lanes.get('cityhive');
   const lightspeed = lanes.get('lightspeed');
   const goToLiquorStore = lanes.get('gotoliquorstore');
-  return retainSuspendedOptionalRows({
+  return retainGeorgiaGoToHoldRows(retainSuspendedOptionalRows({
     signals: [...configuredLocations, ...cityHive.signals, ...lightspeed.signals, ...goToLiquorStore.signals],
     roadblocks: [...cityHive.roadblocks, ...lightspeed.roadblocks, ...goToLiquorStore.roadblocks],
     metadata: {
       sourceConcurrency: laneRun.concurrency,
       sourceTimings: laneRun.timings,
     },
-  },options.existingSignals||[]);
+  },options.existingSignals||[]),options.existingSignals||[]);
 }
 
 function arizonaAttemptSources() {
@@ -6138,6 +6142,8 @@ async function collectArizona(config, bible, options = {}) {
 }
 
 export async function fetchSouthCarolinaCityHivePublicApi(source, merchantId, options = {}) {
+  const policyHold=southCarolinaCityHiveApiRouteHold();
+  if(policyHold)return policyHold;
   const apiKey = typeof source?.apiKeyEnv === 'string' ? String(process.env[source.apiKeyEnv] || '').trim() : '';
   if (!apiKey || typeof source?.apiClientOrigin !== 'string' || typeof source?.apiClientOriginUrl !== 'string') return null;
   const publicUrl = 'https://api.cityhive.net/api/v1/products/search.json';
@@ -6182,6 +6188,8 @@ export async function fetchSouthCarolinaCityHivePublicApi(source, merchantId, op
 
 export function resolveSouthCarolinaCityHiveProbePayload(input = {}) {
   const apiAttempt = input.apiAttempt && typeof input.apiAttempt === 'object' ? input.apiAttempt : null;
+  const policyHold=southCarolinaCityHiveSourceHold(input.source)||(apiAttempt?.status==='source_policy_disabled'?apiAttempt:null);
+  if(policyHold)return{blobs:null,evidence:null,evidenceUrl:policyHold.publicUrl,transportFailure:policyHold};
   const apiEvidence = input.apiEvidence && typeof input.apiEvidence === 'object' ? input.apiEvidence : null;
   const pageAttempt = input.pageAttempt && typeof input.pageAttempt === 'object' ? input.pageAttempt : null;
   const pageEvidence = input.pageEvidence && typeof input.pageEvidence === 'object' ? input.pageEvidence : null;
@@ -6220,7 +6228,7 @@ export function resolveSouthCarolinaCityHiveProbePayload(input = {}) {
 }
 
 export function shouldAttemptSouthCarolinaCityHiveStorefrontFallback(apiAttempt, useApiEvidence = false) {
-  return useApiEvidence !== true && !isTerminalProbeFailure(apiAttempt?.status);
+  return useApiEvidence !== true && apiAttempt?.status!=='source_policy_disabled' && apiAttempt?.reviewRequired!==true && !isTerminalProbeFailure(apiAttempt?.status);
 }
 
 function southCarolinaCityHiveEvidenceHasUsableInventory(evidence, bible, merchantId, sourceMerchantIds) {
@@ -6245,27 +6253,36 @@ function southCarolinaCityHiveEvidenceHasUsableInventory(evidence, bible, mercha
   return false;
 }
 
-async function collectSouthCarolinaCityHive(config, bible, observedAt) {
+export async function collectSouthCarolinaCityHive(config, bible, observedAt, options={}) {
   const signals = [];
   const roadblocks = [];
-  const cache = await readSouthCarolinaCityHiveCache();
+  const requestedSources=options.sourceIds?SC_CITYHIVE_SOURCES.filter(source=>options.sourceIds.includes(source.id)):SC_CITYHIVE_SOURCES;
+  if(options.sourceIds&&requestedSources.length!==new Set(options.sourceIds).size)throw Error('Unregistered South Carolina CityHive source selection');
+  const heldSources=requestedSources.filter(source=>southCarolinaCityHiveSourceHold(source));
+  const permittedSources=requestedSources.filter(source=>!southCarolinaCityHiveSourceHold(source));
+  roadblocks.push(...heldSources.map(source=>({state:config.id,...southCarolinaCityHiveSourceHold(source),url:southCarolinaCityHiveApiRouteHold().publicUrl})));
+  if(!permittedSources.length)return{signals,roadblocks,metadata:{requestCount:0,reviewRequired:true,heldSourceIds:heldSources.map(source=>source.id)}};
+  const priorCache = await (options.readCache||readSouthCarolinaCityHiveCache)();
+  const heldHistory=(priorCache?.signals||[]).filter(isHeldSouthCarolinaCityHiveRow).map(retainHeldSouthCarolinaCityHiveRow);
+  const cache=priorCache?{...priorCache,signals:(priorCache.signals||[]).filter(row=>!isHeldSouthCarolinaCityHiveRow(row)),roadblocks:(priorCache.roadblocks||[]).filter(row=>!isHeldSouthCarolinaCityHiveRoadblock(row))}:null;
   const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
   if (process.env.BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs <= SC_CITYHIVE_CACHE_MAX_AGE_MS) {
     const cachedSignals = cachedSouthCarolinaCityHiveSignals(cache, observedAt);
     const reconciled = reconcileCityHiveRateLimitsWithCache({
       roadblocks: cache.roadblocks || [],
-      sources: SC_CITYHIVE_SOURCES,
+      sources: permittedSources,
       retainedSignals: cachedSignals,
     });
-    const sourceLabels = new Set(SC_CITYHIVE_SOURCES.map((source) => source.sourceLabel));
+    const sourceLabels = new Set(permittedSources.map((source) => source.sourceLabel));
     const platformFailures = reconciled.roadblocks.filter((roadblock) =>
       sourceLabels.has(roadblock?.source) && isTerminalProbeFailure(roadblock?.status));
     const otherRoadblocks = reconciled.roadblocks.filter((roadblock) =>
       !platformFailures.includes(roadblock)
       && !(platformFailures.length && roadblock?.source === 'South Carolina CityHive retailer inventory pages'));
     return {
-      signals: cachedSignals,
+      signals: [...cachedSignals,...heldHistory],
       roadblocks: [
+        ...roadblocks,
         ...otherRoadblocks,
         ...summarizeRepeatedPlatformFailures(platformFailures, {
           state: config.id,
@@ -6294,13 +6311,16 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   };
   // Probe the three exact Myrtle merchants first, but isolate their failure budget
   // so a blocked Myrtle source cannot prevent representative statewide probes.
-  for (const probe of southCarolinaCityHiveProbePlan(SC_CITYHIVE_SOURCES, observedAt)) {
+  for (const probe of southCarolinaCityHiveProbePlan(permittedSources, observedAt)) {
     const { source, merchantId, url } = probe;
     if (blockedPriorities.has(probe.priority)) continue;
     if (blockedSourceKeys.has(source.id) || failedMerchantIds.has(merchantId)) continue;
     const sourceMerchantIds = new Set((source.merchantIds || []).filter((id) => SC_CITYHIVE_INVENTORY_MERCHANT_IDS.has(id)));
     const probeDeadlineMs = Date.now() + 36_000;
-    const apiAttempt = await fetchSouthCarolinaCityHivePublicApi(source, merchantId, { deadlineMs: probeDeadlineMs, searchText: probe.apiSearchText });
+    // The shared requested API route is held. Only other already-configured
+    // storefront sources may keep their original page path; held sources were
+    // removed before cache or transport selection above.
+    const apiAttempt = southCarolinaCityHiveApiRouteHold()?null:await fetchSouthCarolinaCityHivePublicApi(source, merchantId, { deadlineMs: probeDeadlineMs, searchText: probe.apiSearchText });
     const apiEvidence = apiAttempt?.ok ? southCarolinaCityHiveMerchantEvidence(apiAttempt.blobs, merchantId) : null;
     const useApiEvidence = southCarolinaCityHiveEvidenceHasUsableInventory(apiEvidence, bible, merchantId, sourceMerchantIds);
     let pageAttempt = null;
@@ -6309,7 +6329,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
     if (shouldAttemptSouthCarolinaCityHiveStorefrontFallback(apiAttempt, useApiEvidence)) {
       const remainingMs = Math.max(0, probeDeadlineMs - Date.now());
       pageAttempt = remainingMs >= 1_000
-        ? await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: remainingMs, maxBuffer: 8 * 1024 * 1024 })
+        ? await (options.fetchText||curlTextFetch)(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: remainingMs, maxBuffer: 8 * 1024 * 1024 })
         : { ok: false, status: 0, error: 'Shared CityHive probe deadline was exhausted before the storefront fallback.' };
       if (pageAttempt.ok) {
         pageBlobs = cityHiveJsonBlobs(pageAttempt.text);
@@ -6317,6 +6337,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
       }
     }
     const resolvedPayload = resolveSouthCarolinaCityHiveProbePayload({
+      source,
       apiAttempt,
       apiEvidence,
       useApiEvidence,
@@ -6482,7 +6503,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
           const successfulProbeCount = (successfulProbeCounts.get(merchantId) || 0) + 1;
           successfulProbeCounts.set(merchantId, successfulProbeCount);
           if (successfulProbeCount === SC_CITYHIVE_MAX_PAGES) completedMerchantIds.add(merchantId);
-          await sleep(SC_CITYHIVE_PAGE_DELAY_MS);
+          await (options.sleepFn||sleep)(SC_CITYHIVE_PAGE_DELAY_MS);
   }
 
   roadblocks.push(...summarizeRepeatedPlatformFailures(platformFailures, {
@@ -6515,10 +6536,10 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   }
   const reconciled = reconcileCityHiveRateLimitsWithCache({
     roadblocks,
-    sources: SC_CITYHIVE_SOURCES,
+    sources: permittedSources,
     retainedSignals: signals,
   });
-  return { signals, roadblocks: reconciled.roadblocks };
+  return { signals:[...signals,...heldHistory], roadblocks: reconciled.roadblocks };
 }
 
 async function fetchDaBrownBagSearch(term) {

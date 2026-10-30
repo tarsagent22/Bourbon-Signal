@@ -62,6 +62,11 @@ jobs:
       - name: Verify generated lifecycle configuration has no drift
         run: npm run verify:state-lifecycle-drift
 
+      - name: Verify native on-site visibility with an expired historical sibling
+        run: |
+          node --import tsx scripts/test-native-overdue-sibling-path.mts
+          node --test engine/test/canary-native-health.test.mjs
+
       - name: Reconcile workflow-issued state promotion provenance
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -1,0 +1,130 @@
+{
+  "scope": "historical_first_party_negative_and_other_expression_positive_fixture_not_live_inventory",
+  "negative": {
+    "sourceFixture": "engine/test/fixtures/louisiana-alaska-grocery/identity.json",
+    "sourceFixtureSha256": "5203c6a578dec3cbd4a309cc3e35d47d35bd80a8b356f19ffe2c2f835af3899f",
+    "source": {
+      "id": "albertsons-la-1311",
+      "stateCode": "LA",
+      "merchantId": "1311",
+      "storeId": "albertsons:1311",
+      "name": "Albertsons #1311",
+      "host": "www.albertsons.com",
+      "banner": "albertsons",
+      "resolverDomainName": "Albertsons",
+      "address": "7515 Perkins Rd, Baton Rouge, LA 70808",
+      "city": "Baton Rouge",
+      "zip": "70808",
+      "premiseUrl": "https://local.albertsons.com/la/baton-rouge/7515-perkins-rd.html",
+      "lat": 30.396880469317352,
+      "lng": -91.10980959269006,
+      "sourceLabel": "Albertsons Louisiana XAPI in-store availability",
+      "releaseStage": "research_only_requires_separate_promotion"
+    },
+    "product": {
+      "id": "960447819",
+      "pid": "960447819",
+      "storeId": "1311",
+      "name": "Wild Turkey Kentucky - 750 Ml",
+      "upc": "0072105994750",
+      "price": 69.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 40,
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    }
+  },
+  "otherWildTurkeyPositive": {
+    "sourceRun": "40934749420",
+    "canaryRun": "40935499425",
+    "headSha": "b4dc732ff70513684370cc1d8f234d350aa24a1b",
+    "artifactId": "12923484985",
+    "artifactDigest": "94ee04008c42e0efec743a3c877075a01a4e6de606f3acd979e8e03b6fc4a1b0",
+    "observedAt": "2026-10-29T18:54:08.291Z",
+    "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+    "product": {
+      "id": "289031989",
+      "pid": "289031989",
+      "storeId": "218",
+      "name": "Wild Turkey Rare Breed Whiskey - 750 Ml",
+      "upc": "0072105900022",
+      "price": 61.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 58,
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    }
+  },
+  "records": [
+    {
+      "id": "bb_2a3a72be37e1c233",
+      "canonical": "Wild Turkey Master",
+      "normalizedKey": "wild turkey master",
+      "aliases": [
+        "Wild Turkey Master"
+      ],
+      "tier": "unknown",
+      "producer": null,
+      "sources": [
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_2a3a72be37e1c233",
+          "canonicalName": "Wild Turkey Master",
+          "aliases": [
+            "Wild Turkey Master"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_22604f9ddde2b6ba",
+      "canonical": "Wild Turkey Rare Breed Straight Bourbon",
+      "normalizedKey": "wild turkey rare breed",
+      "aliases": [
+        "Wild Turkey Rare Breed Bourbon",
+        "Wild Turkey Rare Breed Straight Bourbon"
+      ],
+      "tier": "limited",
+      "producer": "Wild Turkey",
+      "sources": [
+        "state-data-additions",
+        "state:PA"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_22604f9ddde2b6ba",
+          "canonicalName": "Wild Turkey Rare Breed Straight Bourbon",
+          "aliases": [
+            "Wild Turkey Rare Breed Bourbon",
+            "Wild Turkey Rare Breed Straight Bourbon"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ],
+  "positiveMasterControl": "Synthetic literal-title control is created in unit tests only; no captured Master stock is claimed."
+}

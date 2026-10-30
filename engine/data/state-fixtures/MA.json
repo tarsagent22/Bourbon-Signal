@@ -3,18 +3,151 @@
   "state": "MA",
   "sourceSentinelRequired": true,
   "cases": [
-    { "id": "ma-rare-breed-research-projection", "kind": "positive_bottle_match", "input": {}, "expected": { "sourceRows": 1, "researchCandidateCount": 1, "canonicalName": "Wild Turkey Rare Breed Straight Bourbon", "customerActive": false, "deliveryEligible": false } },
-    { "id": "ma-standard-rye-is-not-a-rare-drop", "kind": "ordinary_vs_rare_negative", "input": { "rawName": "ELIJAH CRAIG STRAIGHT RYE" }, "expected": { "sourceRows": 1, "researchCandidateCount": 0, "deliveryEligible": false } },
-    { "id": "ma-cocktail-excluded", "kind": "rye_cream_liqueur_rtd_exclusion", "input": { "rawName": "Wild Turkey Rare Breed Cocktail" }, "expected": { "sourceRows": 0, "researchCandidateCount": 0 } },
-    { "id": "ma-other-size-excluded", "kind": "size_or_multipack_exclusion", "input": { "size": "1750" }, "expected": { "sourceRows": 0, "researchCandidateCount": 0 } },
-    { "id": "ma-binary-is-not-zero-stock", "kind": "availability_semantics", "input": {}, "expected": { "researchCandidateCount": 1, "quantity": null, "quantityIsExact": false, "inventorySemantics": "binary_retailer_orderable_no_exact_count", "deliveryEligible": false } },
-    { "id": "ma-wrong-premises-excluded", "kind": "store_identity", "input": { "wrongPremises": true }, "expected": { "sourceRows": 0, "researchCandidateCount": 0 } },
-    { "id": "ma-observation-time-retained", "kind": "timestamp_freshness", "input": { "ageMinutes": 5 }, "expected": { "researchCandidateCount": 1, "preserveOriginalTimestamp": true } },
-    { "id": "ma-stale-source-excluded", "kind": "timestamp_freshness", "input": { "ageMinutes": 181 }, "expected": { "sourceRows": 1, "researchCandidateCount": 0, "preserveOriginalTimestamp": true } },
-    { "id": "ma-wrong-host-excluded", "kind": "source_specific_sentinel", "input": { "wrongHost": true }, "expected": { "sourceRows": 0, "researchCandidateCount": 0 } },
-    { "id": "ma-wrong-merchant-excluded", "kind": "source_specific_sentinel", "input": { "wrongMerchant": true }, "expected": { "sourceRows": 0, "researchCandidateCount": 0 } },
-    { "id": "ma-shipping-is-not-pickup", "kind": "availability_semantics", "input": { "shippingOnly": true }, "expected": { "sourceRows": 0, "researchCandidateCount": 0 } },
-    { "id": "ma-preorder-is-not-current", "kind": "availability_semantics", "input": { "preorder": true }, "expected": { "sourceRows": 0, "researchCandidateCount": 0 } },
-    { "id": "ma-no-stock-is-not-available", "kind": "availability_semantics", "input": { "stock": 0 }, "expected": { "sourceRows": 0, "researchCandidateCount": 0 } }
+    {
+      "id": "ma-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2"
+      },
+      "expected": {
+        "sourceRows": 2,
+        "inventoryProofRows": 2
+      }
+    },
+    {
+      "id": "ma-standard-negative",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "rawName": "Unidentified Straight Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-rtd",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "rawName": "Elijah Craig Barrel Proof Cocktail"
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-mini",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-binary",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "allNotificationsDisabled": true
+      }
+    },
+    {
+      "id": "ma-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-preserve-clock",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "ageMinutes": 5
+      },
+      "expected": {
+        "sourceRows": 2,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "ma-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "ageMinutes": 121
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-foreign-host",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-shipping-option",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "shippingOnly": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-preorder",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "preorder": true
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-zero-stock",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2",
+        "stock": 0
+      },
+      "expected": {
+        "sourceRows": 0
+      }
+    },
+    {
+      "id": "ma-research-isolation",
+      "kind": "shadow_isolation",
+      "input": {
+        "sourceId": "table-and-vine:5f52a8713df8c66117da02b2"
+      },
+      "expected": {
+        "sourceRows": 2,
+        "researchExportRows": 0,
+        "allNotificationsDisabled": true
+      }
+    }
   ]
 }

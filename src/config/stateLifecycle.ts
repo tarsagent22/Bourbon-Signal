@@ -83,7 +83,12 @@ export const STATE_LIFECYCLE_CONFIG = {
       "NV": 240000,
       "ID": 180000,
       "AZ": 900000,
-      "FL": 180000
+      "FL": 180000,
+      "LA": 120000,
+      "AK": 120000,
+      "MA": 30000,
+      "CT": 30000,
+      "RI": 30000
     }
   },
   "states": {
@@ -1186,6 +1191,30 @@ export const STATE_LIFECYCLE_CONFIG = {
           }
         }
       }
+    },
+    "LA": {
+      "customerLabel": "Louisiana",
+      "sourceLabel": "Louisiana reviewed exact-store grocery inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Inactive source preparation. Customer availability requires separate verified promotion of the closed first-party premises and product proof."
+    },
+    "AK": {
+      "customerLabel": "Alaska",
+      "sourceLabel": "Alaska reviewed exact-store grocery inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Inactive source preparation. Customer availability requires separate verified promotion of the closed first-party premises and product proof."
     },
     "NM": {
       "customerLabel": "New Mexico",

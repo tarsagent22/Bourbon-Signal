@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "active": false,
+  "states": [
+    "MA",
+    "CT",
+    "RI"
+  ],
+  "productionActivationAllowed": false,
+  "sources": [
+    {
+      "id": "table-and-vine:5f52a8713df8c66117da02b2",
+      "chainId": "table-and-vine",
+      "chainName": "table-and-vine",
+      "name": "Table & Vine",
+      "state": "MA",
+      "stateCode": "MA",
+      "platform": "cityhive",
+      "baseUrl": "https://tableandvine.com",
+      "hostname": "tableandvine.com",
+      "merchantId": "5f52a8713df8c66117da02b2",
+      "address": "1119 Riverdale St, West Springfield, MA 01089, USA",
+      "city": "West Springfield",
+      "zip": "01089",
+      "storeId": "table-and-vine:5f52a8713df8c66117da02b2",
+      "sourceLabel": "table-and-vine MA first-party pickup inventory",
+      "categoryUrl": "https://tableandvine.com/shop/?subtype=Bourbon&merchant-id=5f52a8713df8c66117da02b2",
+      "lat": 42.1340182,
+      "lng": -72.6242642,
+      "discoveryUrl": "https://tableandvine.com/shop/?merchant-id=5f52a8713df8c66117da02b2&ch-query=barrel+proof",
+      "capturedAt": "2026-10-29T01:59:42.977Z",
+      "prioritySearchTerm": "barrel proof",
+      "discoveryCapturedAt": "2026-10-29T15:47:51.376Z",
+      "premiseEvidence": [
+        {
+          "kind": "current_first_party_merchant_and_product_pickup",
+          "url": "https://tableandvine.com/shop/?merchant-id=5f52a8713df8c66117da02b2&ch-query=barrel+proof",
+          "observedAt": "2026-10-29T15:47:51.376Z",
+          "sha256": "e2f65f22980d819694586ff6d5a77a57694d6d175d01441a5a03c5eee52370c7"
+        }
+      ]
+    },
+    {
+      "id": "redstone-liquors:5d5d87598a9270243a2d2714",
+      "chainId": "redstone-liquors",
+      "chainName": "redstone-liquors",
+      "name": "Redstone Liquors",
+      "state": "MA",
+      "stateCode": "MA",
+      "platform": "cityhive",
+      "baseUrl": "https://shop.redstoneliquors.com",
+      "hostname": "shop.redstoneliquors.com",
+      "merchantId": "5d5d87598a9270243a2d2714",
+      "address": "115 Main St, Stoneham, MA 02180, USA",
+      "city": "Stoneham",
+      "zip": "02180",
+      "storeId": "redstone-liquors:5d5d87598a9270243a2d2714",
+      "sourceLabel": "redstone-liquors MA first-party pickup inventory",
+      "categoryUrl": "https://shop.redstoneliquors.com/shop/?subtype=Bourbon&merchant-id=5d5d87598a9270243a2d2714",
+      "lat": 42.4944059,
+      "lng": -71.1019766,
+      "discoveryUrl": "https://shop.redstoneliquors.com/shop/?merchant-id=5d5d87598a9270243a2d2714&ch-query=barrel+proof",
+      "capturedAt": "2026-10-29T02:00:55.359Z",
+      "prioritySearchTerm": "barrel proof",
+      "discoveryCapturedAt": "2026-10-29T15:47:51.330Z",
+      "premiseEvidence": [
+        {
+          "kind": "current_first_party_merchant_and_product_pickup",
+          "url": "https://shop.redstoneliquors.com/shop/?merchant-id=5d5d87598a9270243a2d2714&ch-query=barrel+proof",
+          "observedAt": "2026-10-29T15:47:51.330Z",
+          "sha256": "7841d3d47ceb057ca72e54cb6304d09a23bd4741be7b535f8f108de28a6dcc58"
+        }
+      ]
+    },
+    {
+      "id": "branford-wine:5bbb62e2b7e6390c64b02365",
+      "chainId": "branford-wine",
+      "name": "Branford Wine & Spirits",
+      "state": "CT",
+      "stateCode": "CT",
+      "merchantId": "5bbb62e2b7e6390c64b02365",
+      "address": "384 E Main St, Branford, CT 06405, USA",
+      "city": "Branford",
+      "zip": "06405",
+      "lat": 41.296558,
+      "lng": -72.7807474,
+      "baseUrl": "https://branfordwineandspirits.com",
+      "hostname": "branfordwineandspirits.com",
+      "platform": "cityhive",
+      "storeId": "branford-wine:5bbb62e2b7e6390c64b02365",
+      "sourceLabel": "branford-wine CT first-party pickup inventory",
+      "categoryUrl": "https://branfordwineandspirits.com/shop/?subtype=Bourbon&merchant-id=5bbb62e2b7e6390c64b02365",
+      "prioritySearchTerm": "barrel proof",
+      "discoveryUrl": "https://branfordwineandspirits.com/shop/?ch-query=barrel+proof&merchant-id=5bbb62e2b7e6390c64b02365",
+      "discoveryCapturedAt": "2026-10-29T15:49:28.819Z",
+      "premiseEvidence": [
+        {
+          "kind": "current_first_party_merchant_and_product_pickup",
+          "url": "https://branfordwineandspirits.com/shop/?ch-query=barrel+proof&merchant-id=5bbb62e2b7e6390c64b02365",
+          "observedAt": "2026-10-29T15:49:28.819Z",
+          "sha256": "8802814b531baec179c496a9ecb1929ed800ebaf43901086d23d36ec7ea759a0"
+        },
+        {
+          "kind": "official_business_premise_registry",
+          "url": "https://data.ct.gov/resource/3ws5-dy44.json?$where=credentialid%3D%271438118%27&$limit=5",
+          "credentialId": "1438118",
+          "credential": "LIP.0015540",
+          "publishedStatus": "ACTIVE",
+          "effectiveDate": "2026-09-11T00:00:00.000",
+          "expirationDate": "2027-09-10T00:00:00.000",
+          "address": "384 E MAIN ST",
+          "city": "BRANFORD",
+          "meaning": "Official published premises/status; not a legal eligibility determination."
+        }
+      ]
+    },
+    {
+      "id": "golds-wine:60e4de26cedf7461ed8e3c8e",
+      "chainId": "golds-wine",
+      "name": "Gold's Wine and Spirits",
+      "state": "RI",
+      "stateCode": "RI",
+      "merchantId": "60e4de26cedf7461ed8e3c8e",
+      "address": "48 Valley Rd, Middletown, RI 02842, USA",
+      "city": "Middletown",
+      "zip": "02842",
+      "lat": 41.520376,
+      "lng": -71.29351299999999,
+      "baseUrl": "https://goldswineandspirits.com",
+      "hostname": "goldswineandspirits.com",
+      "platform": "cityhive",
+      "storeId": "golds-wine:60e4de26cedf7461ed8e3c8e",
+      "sourceLabel": "golds-wine RI first-party pickup inventory",
+      "categoryUrl": "https://goldswineandspirits.com/shop/?subtype=Bourbon&merchant-id=60e4de26cedf7461ed8e3c8e",
+      "prioritySearchTerm": "barrel proof",
+      "discoveryUrl": "https://goldswineandspirits.com/shop/?ch-query=barrel+proof&merchant-id=60e4de26cedf7461ed8e3c8e",
+      "discoveryCapturedAt": "2026-10-29T15:49:28.924Z",
+      "premiseEvidence": [
+        {
+          "kind": "current_first_party_merchant_and_product_pickup",
+          "url": "https://goldswineandspirits.com/shop/?ch-query=barrel+proof&merchant-id=60e4de26cedf7461ed8e3c8e",
+          "observedAt": "2026-10-29T15:49:28.924Z",
+          "sha256": "a8b0a2037e66cd33996570d1d0f037bdf00a13652ebcf7b0033ebd4de62df39b"
+        },
+        {
+          "kind": "official_historical_planning_premise",
+          "url": "https://www.middletownri.gov/DocumentCenter/View/8763/Minutes-5-10-23",
+          "recordDate": "2023-05-10",
+          "sha256": "b45aab84f58c39cde7ffd4f4457cde2cafcc96ae392e2ce551fa3b75eac8dd9a",
+          "meaning": "Planning record binds Golds liquor business to48ValleyRd; current pickup comes only from first-party source."
+        }
+      ]
+    },
+    {
+      "id": "ri-liquor-delivery:64f6226b7537422b95e04824",
+      "chainId": "ri-liquor-delivery",
+      "name": "Rhode Island Liquor Delivery",
+      "state": "RI",
+      "stateCode": "RI",
+      "merchantId": "64f6226b7537422b95e04824",
+      "address": "342 Broad St, Providence, RI 02907, USA",
+      "city": "Providence",
+      "zip": "02907",
+      "lat": 41.8138408,
+      "lng": -71.4212627,
+      "baseUrl": "https://riliquordelivery.com",
+      "hostname": "riliquordelivery.com",
+      "platform": "cityhive",
+      "storeId": "ri-liquor-delivery:64f6226b7537422b95e04824",
+      "sourceLabel": "ri-liquor-delivery RI first-party pickup inventory",
+      "categoryUrl": "https://riliquordelivery.com/shop/?subtype=Bourbon&merchant-id=64f6226b7537422b95e04824",
+      "prioritySearchTerm": "barrel proof",
+      "discoveryUrl": "https://riliquordelivery.com/shop/?ch-query=barrel+proof&merchant-id=64f6226b7537422b95e04824",
+      "discoveryCapturedAt": "2026-10-29T15:49:28.349Z",
+      "premiseEvidence": [
+        {
+          "kind": "current_first_party_merchant_and_product_pickup",
+          "url": "https://riliquordelivery.com/shop/?ch-query=barrel+proof&merchant-id=64f6226b7537422b95e04824",
+          "observedAt": "2026-10-29T15:49:28.349Z",
+          "sha256": "eab9a4e1d7adf4e1f6f1e430bb652ad17b46c3224feaf2794f93a640b66b1c2a"
+        },
+        {
+          "kind": "official_2026_business_premise_tax_clearance_only",
+          "url": "https://taxportal.ri.gov/rptp/portal/home/liquor_license_renewals/!ut/p/z0/04_Sj9CPykssy0xPLMnMz0vMAfIjo8ziTQ18nQ2NLAwCDAyDTAwCfX2DfY38vY0NDAz0C7IdFQEr-ILw/",
+          "businessName": "FERNANDEZ SQUARE LIQUORS INC",
+          "address": "342 BROAD ST",
+          "city": "PROVIDENCE",
+          "clearedDate": "2026-09-01",
+          "meaning": "Address binding only; does not establish an active liquor-license status or a reviewed DBA alias."
+        }
+      ]
+    },
+    {
+      "id": "stews-wines:621fe692b9f3c27b2a5dfe76",
+      "chainId": "stews-wines",
+      "name": "Stew Leonard's Wines of Norwalk",
+      "state": "CT",
+      "stateCode": "CT",
+      "merchantId": "621fe692b9f3c27b2a5dfe76",
+      "address": "55 Westport Ave, Norwalk, CT 06851, USA",
+      "city": "Norwalk",
+      "zip": "06851",
+      "lat": 41.1221222,
+      "lng": -73.40524979999999,
+      "baseUrl": "https://stewswines.com",
+      "hostname": "stewswines.com",
+      "platform": "cityhive",
+      "storeId": "stews-wines:621fe692b9f3c27b2a5dfe76",
+      "sourceLabel": "stews-wines CT first-party pickup inventory",
+      "categoryUrl": "https://stewswines.com/shop/?subtype=Bourbon&merchant-id=621fe692b9f3c27b2a5dfe76",
+      "prioritySearchTerm": "barrel proof",
+      "discoveryUrl": "https://stewswines.com/shop/?ch-query=barrel+proof&merchant-id=621fe692b9f3c27b2a5dfe76",
+      "discoveryCapturedAt": "2026-10-29T15:52:15.215Z",
+      "premiseEvidence": [
+        {
+          "kind": "current_first_party_merchant_and_product_pickup",
+          "url": "https://stewswines.com/shop/?ch-query=barrel+proof&merchant-id=621fe692b9f3c27b2a5dfe76",
+          "observedAt": "2026-10-29T15:52:15.215Z",
+          "sha256": "ebb55933469e65360832d11ff94c412e3e576ad73e835c0f0c73623f6451b6d0"
+        },
+        {
+          "kind": "official_business_premise_registry",
+          "url": "https://data.ct.gov/resource/3ws5-dy44.json?$where=upper(dba)%20like%20%27%25STEW%25%27%20OR%20upper(dba)%20like%20%27%25WINES%20AND%20MORE%25%27&$select=credentialid,dba,fullcredentialcode,status,active,effectivedate,expirationdate,address,city,state,zip,recordrefreshedon&$limit=20",
+          "credentialId": "228385",
+          "credential": "LIP.0013314",
+          "publishedStatus": "ACTIVE",
+          "effectiveDate": "2026-11-16T00:00:00.000",
+          "expirationDate": "2027-11-15T00:00:00.000",
+          "address": "55 WESTPORT AVE",
+          "city": "NORWALK",
+          "meaning": "Official published premises/status; not a legal eligibility determination."
+        }
+      ]
+    },
+    {
+      "id": "stews-wines:626c46756ea63026559b84f1",
+      "chainId": "stews-wines",
+      "name": "Stew Leonard's Wines of Danbury",
+      "state": "CT",
+      "stateCode": "CT",
+      "merchantId": "626c46756ea63026559b84f1",
+      "address": "2 Nabby Rd, Danbury, CT 06811, USA",
+      "city": "Danbury",
+      "zip": "06811",
+      "lat": 41.4272756,
+      "lng": -73.4201499,
+      "baseUrl": "https://stewswines.com",
+      "hostname": "stewswines.com",
+      "platform": "cityhive",
+      "storeId": "stews-wines:626c46756ea63026559b84f1",
+      "sourceLabel": "stews-wines CT first-party pickup inventory",
+      "categoryUrl": "https://stewswines.com/shop/?subtype=Bourbon&merchant-id=626c46756ea63026559b84f1",
+      "prioritySearchTerm": "barrel proof",
+      "discoveryUrl": "https://stewswines.com/shop/?ch-query=barrel+proof&merchant-id=626c46756ea63026559b84f1",
+      "discoveryCapturedAt": "2026-10-29T15:52:54.627Z",
+      "premiseEvidence": [
+        {
+          "kind": "current_first_party_merchant_and_product_pickup",
+          "url": "https://stewswines.com/shop/?ch-query=barrel+proof&merchant-id=626c46756ea63026559b84f1",
+          "observedAt": "2026-10-29T15:52:54.627Z",
+          "sha256": "504a183254012a274b2c188b06612b452a065c60e842082df3dd533e0443f30e"
+        },
+        {
+          "kind": "official_business_premise_registry",
+          "url": "https://data.ct.gov/resource/3ws5-dy44.json?$where=upper(dba)%20like%20%27%25STEW%25%27%20OR%20upper(dba)%20like%20%27%25WINES%20AND%20MORE%25%27&$select=credentialid,dba,fullcredentialcode,status,active,effectivedate,expirationdate,address,city,state,zip,recordrefreshedon&$limit=20",
+          "credentialId": "2416282",
+          "credential": "LIP.0016077",
+          "publishedStatus": "ACTIVE",
+          "effectiveDate": "2026-11-15T00:00:00.000",
+          "expirationDate": "2027-11-14T00:00:00.000",
+          "address": "2 NABBY RD",
+          "city": "DANBURY",
+          "meaning": "Official published premises/status; not a legal eligibility determination."
+        }
+      ]
+    }
+  ]
+}

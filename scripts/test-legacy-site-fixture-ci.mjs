@@ -8,12 +8,14 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {prepareLegacySiteFixtureForCi} from './prepare-legacy-site-fixture-ci.mjs';
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const STATES=['WA','NM','WI','OK'];
+const targetLifecycle=JSON.parse(await readFile(path.join(ROOT,'src/config/state-lifecycle.json'),'utf8'));
+const TARGET_COUNT=targetLifecycle.activeStates.length;
+const STATES=['WA','NM','WI','OK','LA','AK','MA','CT','RI'].filter(state=>targetLifecycle.activeStates.includes(state));
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const digest=async file=>createHash('sha256').update(await readFile(file)).digest('hex');
 const run=(script,args=[],cwd=ROOT,env=process.env)=>spawnSync(process.execPath,[path.join(ROOT,script),...args],{cwd,env,encoding:'utf8',windowsHide:true});
 
-test('CI preparation preserves every legacy inventory byte/clock and passes the actual site validator with four honest empty states',async()=>{
+test('CI preparation preserves every legacy inventory byte/clock and passes the actual site validator with honest empty added states',async()=>{
   const root=await mkdtemp(path.join(tmpdir(),'legacy-site-ci-'));
   assert.ok(path.resolve(root).startsWith(path.resolve(tmpdir())+path.sep));
   try{
@@ -32,9 +34,9 @@ test('CI preparation preserves every legacy inventory byte/clock and passes the 
     assert.deepEqual(quality.states.filter(row=>!STATES.includes(row.state)),oldQuality.states.filter(row=>!STATES.includes(row.state)));
     assert.deepEqual(index.states.filter(row=>!STATES.includes(row.state)),oldIndex.states.filter(row=>!STATES.includes(row.state)));
     for(const key of ['generatedAt','engineGeneratedAt','runId']){assert.equal(manifest[key],oldManifest[key]);assert.equal(stats[key],oldStats[key]);}
-    assert.equal(stats.stateCount,28);assert.equal(stats.stateCoverage.stateCount,28);assert.equal(quality.summary.stateCount,28);assert.equal(index.stateCount,28);
-    assert.equal(Object.values(stats.stateCoverage.counts).reduce((sum,value)=>sum+value,0),28);
-    assert.equal(quality.summary.releaseEligibleStates+quality.summary.releaseBlockedStates,28);
+    assert.equal(stats.stateCount,TARGET_COUNT);assert.equal(stats.stateCoverage.stateCount,TARGET_COUNT);assert.equal(quality.summary.stateCount,TARGET_COUNT);assert.equal(index.stateCount,TARGET_COUNT);
+    assert.equal(Object.values(stats.stateCoverage.counts).reduce((sum,value)=>sum+value,0),TARGET_COUNT);
+    assert.equal(quality.summary.releaseEligibleStates+quality.summary.releaseBlockedStates,TARGET_COUNT);
     assert.equal(index.totalCount,oldIndex.totalCount);assert.equal(stats.dropCount,oldStats.dropCount);
     for(const state of STATES){
       const entry=index.states.find(row=>row.state===state),partition=await read(path.join(site,entry.file)),coverage=stats.stateCoverage.states.find(row=>row.state===state),q=quality.states.find(row=>row.state===state);
@@ -69,4 +71,19 @@ test('CI-only preparer refuses ordinary or production invocation and remains abs
   assert.match(workflow,/node --test scripts\/test-legacy-site-fixture-ci\.mjs/);assert.ok(workflow.indexOf('node scripts/prepare-legacy-site-fixture-ci.mjs --ci-fixture-only')<workflow.indexOf('run: npm run verify:ci'));
   assert.doesNotMatch(pkg.scripts['verify:ci'],/prepare-legacy-site-fixture-ci/);assert.doesNotMatch(refresh,/prepare-legacy-site-fixture-ci|verify-active-state-integration-ci/);
   assert.match(refresh,/run: npm run verify:state-integration -- --all-active/);
+});
+
+test('explicit future33 fixture migration runs the actual full site validator without stock or clock invention',async()=>{
+ const root=await mkdtemp(path.join(tmpdir(),'future33-legacy-ci-'));assert.ok(path.resolve(root).startsWith(path.resolve(tmpdir())+path.sep));
+ try{
+  const site=path.join(root,'engine/out/site');await mkdir(path.dirname(site),{recursive:true});await cp(path.join(ROOT,'engine/out/site'),site,{recursive:true});await mkdir(path.join(root,'src/config'),{recursive:true});
+  await cp(path.join(ROOT,'engine/test/fixtures/nine-state-admission/lifecycle.json'),path.join(root,'src/config/state-lifecycle.json'));
+  await mkdir(path.join(root,'engine/data/state-integration'),{recursive:true});await cp(path.join(ROOT,'engine/data/state-integration'),path.join(root,'engine/data/state-integration'),{recursive:true});const manifests=await read(path.join(ROOT,'engine/test/fixtures/nine-state-admission/manifests.json'));
+  for(const[state,manifest]of Object.entries(manifests))await writeFile(path.join(root,'engine/data/state-integration',state+'.json'),JSON.stringify(manifest));
+  const before=await digest(path.join(site,'drops.json')),clock=(await read(path.join(site,'manifest.json'))).generatedAt,result=await prepareLegacySiteFixtureForCi({root,ci:true,workflow:'CI'});
+  assert.equal(result.inventoryRowsAdded,0);assert.equal(result.states.length,9);assert.equal(await digest(path.join(site,'drops.json')),before);assert.equal((await read(path.join(site,'manifest.json'))).generatedAt,clock);
+  // The actual Node module-mock child is intentional; no production provider is replaced.
+  const verified=spawnSync(process.execPath,['--experimental-test-module-mocks',path.join(ROOT,'engine/test/helpers/nine-state-site-contract.mjs'),path.join(root,'engine')],{cwd:ROOT,encoding:'utf8',windowsHide:true});
+  assert.equal(verified.status,0,verified.stdout+verified.stderr);assert.match(verified.stdout,/33 active states/);
+ }finally{await rm(root,{recursive:true,force:true});}
 });

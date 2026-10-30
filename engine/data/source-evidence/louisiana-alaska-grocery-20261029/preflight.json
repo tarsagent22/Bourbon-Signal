@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "observation": "live_local_preflight_not_production_activation",
+  "capturedAtStart": "2026-10-29T15:44:46.763Z",
+  "capturedAtEnd": "2026-10-29T15:46:35.854Z",
+  "sourceBaseCommit": "99df5d2c04bd2289f8708c7677377fe2e5294076",
+  "libraryCatalogDigest": "4b0c4224cb1c22a05fe7a9106f5d4b86162f581e1140b0004dc8b59d74e5aa2c",
+  "sourceCodeSha256": {
+    "engine/src/collectors/grocery-xapi-identity.mjs": "d6dccd143cfc393fa9494b06a0c3f0fa12a630e76cc2633e410109e1159e2ed9",
+    "engine/src/collectors/arizona-xapi-matching.mjs": "b03b3612d5baf0b38b78dbc2c9b18c36c5272559647b1eaeb4b378a0d3f28932",
+    "engine/src/collectors/arizona-xapi-library-identity.mjs": "f865d41f07f8ae8b606da3881500b98f687b4d219bea6f465b7f42d316d38c47"
+  },
+  "totals": {
+    "LA": {
+      "reviewedPhysicalPremises": 15,
+      "scarcePositivePremises": 15,
+      "scarceListings": 84,
+      "meaningfulHuntingPremises": 14,
+      "meaningfulHuntingListings": 37,
+      "expressions": [
+        "Eagle Rare 10 Year",
+        "E.H. Taylor Small Batch",
+        "E.H. Taylor Jr. Barrel Proof Bourbon",
+        "Weller Full Proof",
+        "Booker's Bourbon",
+        "W.L. Weller 12 Year",
+        "Old Fitzgerald 7Y Bottled in Bond"
+      ]
+    },
+    "AK": {
+      "reviewedPhysicalPremises": 19,
+      "scarcePositivePremises": 18,
+      "scarceListings": 43,
+      "meaningfulHuntingPremises": 11,
+      "meaningfulHuntingListings": 16,
+      "expressions": [
+        "Eagle Rare 10 Year",
+        "E.H. Taylor Small Batch"
+      ]
+    }
+  },
+  "inventorySemantics": "binary retailer in-store availability; no exact count inferred",
+  "stockCaveat": "Retailer titles explicitly warn limited quantities may be available in store. Verify before driving.",
+  "shadowRuns": 0,
+  "canaryRuns": 0,
+  "productionActivated": false,
+  "customerCoverageClaimed": false,
+  "governmentLicenseLookup": {
+    "LA": "ATC homepage HTTP403, no retry; no blanket license certification",
+    "AK": "Active XLSX download failed; response status not retained and not retried. One2025-26 municipal package-store renewal identifies OakenKeg720 at2920SewardHwy; no blanket license certification."
+  },
+  "excludedPremises": [
+    {
+      "state": "AK",
+      "merchantId": "1839",
+      "address": "147 Hightower Rd, Girdwood, AK 99587",
+      "reason": "resolver localPage returned404; no exact local-page coordinates; excluded despite product rows"
+    }
+  ],
+  "excludedBottleIdentity": "Generic Wild Turkey Kentucky title must not establish Wild Turkey Master expression; exact source product rows excluded from all value counts."
+}

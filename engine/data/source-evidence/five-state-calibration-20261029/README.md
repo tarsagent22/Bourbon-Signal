@@ -1,0 +1,9 @@
+# Five-state calibration before final source freeze
+
+Actual workflow40929279772 on f4cfef6279d06016442bb71314e29ba053e18ae6 completed all five inactive cohorts:41verified premises,103permitted source responses, zero roadblocks. The two original GitHub ZIP digests were verified before raw replay; their immutable metadata is in planning.json. Full current app catalog and Bible were refreshed by that workflow. Original clocks were retained.
+
+These are one measured sample per state, doubled and rounded up to30seconds: LA120s, AK120s, MA/CT/RI30s. They are planning forecasts, not source/parent hardcaps and not a p95 claim. Every prior state estimate, four-worker concurrency,30minute interval and5minute reserve remains unchanged. The full actual28+5 model projects1470s within1500s reserve-adjusted capacity (98%). Native source/parent budgets remain LA240/360s, AK300/420s, MA40/90s, CT50/90s, RI40/90s.
+
+The calibration does not count toward the final source proof after metadata changes. Fold the exact root four-state admission/publication-verifier fix, freeze the updated source head, then obtain THREE NEW qualifying complete-cohort observations, two actual canaries per state, owned live preview and issued provenance. All five future states remain inactive and all output/delivery flags remain disabled during source research. This evidence adds zero production coverage.
+
+Current raw reparse and normalized/classified customer projection produced145technical listings at40positive premises. The conservative named hunting subset is68listings at33premises: LA39/15, AK16/11, MA5/2, CT5/3, RI3/2. Crown Royal Chocolate and ordinary expressions are excluded from hunting counts. This is source/calibration projection evidence, not published customer delivery or guaranteed shelf counts. ZIPs and exact replay results are retained in the isolated worktree .operator/calibration-40929279772 directory.

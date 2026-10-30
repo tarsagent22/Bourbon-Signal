@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "state": "LA",
+  "lifecycle": {
+    "customerLabel": "Louisiana",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "la:grocery-xapi"
+    ],
+    "cohortSha256": "ed22f8e04bbfd3968b864bad1e97584766d3c3272c81ac19ea5732338afc6c6b",
+    "registration": "Closed LA/AK production adapter; authoritative lifecycle and exact immutable promotion evidence must both admit this cohort before any HTTP. Initial admitted output is on-site only, with all alert/watch/delivery flags false.",
+    "runtimeBudget": {
+      "sourceMs": 240000,
+      "stateMs": 360000,
+      "maxRequests": 43,
+      "requestTimeoutMs": 5000,
+      "interRequestDelayMs": 400
+    }
+  },
+  "storeIdentity": {
+    "mode": "exact_resolver_banner_domain_store_and_premises",
+    "addressRequired": true,
+    "proof": "Current exact resolver banner/domain/host/store/address, source product/variant, UPC, format, strength, price and positive in-store channel must agree."
+  },
+  "sourceSemantics": {
+    "availability": "Retailer-reported in-store availability. Exact reported integer quantities and binary availability with no exact count remain distinct. Verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false,
+    "channel": "instore",
+    "quantity": "Exact positive integer retailer count when explicitly supplied; otherwise binary availability with quantity0 and quantityIsExact false.",
+    "sourceFreshnessMinutes": 120,
+    "cacheMaxAgeMinutes": 30,
+    "initialCustomerMode": "onsite_only",
+    "outboundDeliveryAllowed": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Verified executable contract: actual Feed/drops route fixture applies state/store filters, and actual Dashboard component renders this lifecycle state choice. Authenticated UI acceptance is separate and unexercised."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Verified executable contract: actual store Finder/directory/locations and Coverage POST fixtures bind the closed cohort; actual area request builder uses the store query for this state."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Verified executable contract: real preferences GET/POST normalizes and deduplicates state choices, drops invalid states, preserves unrelated metadata, rejects free-tier writes with403 and signed-out requests with401. Clerk is an explicit offline provider adapter; no authenticated session claimed."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Verified executable contract: actual Dashboard component renders with the real preferences route response and isolated active lifecycle fixture, including the state choice. Provider/data-hook/presentation boundaries are offline fixtures; interactive authenticated UI/device acceptance is unexercised."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Verified executable contract: actual unified Feed/drops route accepts strict nonpreview operational/export rows and applies exact state/store filters; no live source, provider delivery or authenticated session claimed."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Verified executable contract: actual Finder search/exact-store services, selectable stores/locations routes and public Coverage GET/POST bind exact premises and current classified rows."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Verified executable contract: source, canonical, public, Feed and Coverage fixture paths preserve all inventory/watch/delivery/email/SMS flagsfalse. Free-tier preference mutations remain403; no provider delivery attempted."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Verified executable runtime contract: inactive/force-live0HTTP, complete-cohort30min cache/original clocks, bounded deadlines, native durable denial/in-flight holds and abort behavior pass. Genuine unattended hosted observations remain separately pending."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Verified executable contract: actual canonical/public/normalized/classified export preserves nonpreview binary0 unknown and exact positive integer quantities, rejects identity/flag/quarantine mutations and expires original source clocks."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Three future genuine workflow source observations are required; local preflight does not qualify."
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Two future actual workflow canaries, live preview and exact implementation provenance are required."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "This preparation does not activate a state, publish a snapshot or authorize customer delivery.",
+      "reason": "A separate reviewed promotion and guarded release are required."
+    }
+  },
+  "rollback": {
+    "disableSource": "Leave authoritative lifecycle inactive or disable/quarantine the state. Promotion admission runs before cache access and before HTTP; no fallback stock or outbound delivery is allowed."
+  },
+  "acceptanceGaps": {
+    "authenticatedBrowserSession": "not_exercised",
+    "interactiveDashboardAndPreferences": "not_exercised",
+    "physicalDevice": "not_exercised",
+    "sourceWorkflow": "pending_three_complete_current_observations",
+    "canaryWorkflow": "pending_two_actual_canaries",
+    "liveIsolatedPreview": "not_deployed",
+    "productionPublication": "not_deployed",
+    "outboundProviderDelivery": "not_attempted"
+  }
+}

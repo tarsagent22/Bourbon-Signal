@@ -494,6 +494,11 @@ for (const phrase of ['ALERT_DELIVERY_ENABLED: "0"', 'npm run canary:state', 'np
 }
 if (canaryWorkflow && /vercel deploy[^\n]*--prod/.test(canaryWorkflow)) fail('Canary workflow must deploy only an isolated preview, never --prod.');
 const refreshFeedWorkflow = expectFile('.github/workflows/refresh-feed.yml');
+const productionRefreshBudget = refreshFeedWorkflow.match(/collect-verify-publish:[\s\S]*?\n    steps:/)?.[0] || '';
+for (const [name, expected] of [['BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS', '1800000'], ['BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS', '1500000'], ['BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS', '1800000']]) {
+  if (!productionRefreshBudget.includes(`${name}: "${expected}"`)) fail(`Production refresh must retain the reviewed source30/export25/FWGS30 minute stage budgets: ${name}=${expected}.`);
+}
+if (!/timeout-minutes: 80\b/.test(productionRefreshBudget)) fail('Production refresh must retain the fail-closed 80-minute whole-job ceiling.');
 for(const continuation of ['refresh-continuation.yml','refresh-continuation-smoke.yml','refresh-continuation-smoke-relay.yml']){
   const source=expectFile('.github/workflows/'+continuation);
   if(!source.includes("ENABLED || '0'")||!source.includes("CONTINUATION_MAINTENANCE || '1'")

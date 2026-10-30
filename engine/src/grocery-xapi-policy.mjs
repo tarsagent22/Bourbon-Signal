@@ -1,3 +1,4 @@
+import {xapiExpressionTitleSupported} from './collectors/grocery-xapi-expression-title.mjs';
 import { WESTERN_GROCERY_EXPANSION_SOURCES } from './collectors/western-grocery-premises.mjs';
 
 export function groceryExpansionSourceForSignal(row) {
@@ -31,6 +32,7 @@ export function isGroceryExpansionInventory(row) {
     || row.locationPrecision !== 'store_level' || !Number.isFinite(Date.parse(row.observedAt))
     || typeof row.price !== 'number' || !Number.isFinite(row.price) || row.price <= 0) return false;
   const product = row.raw?.product || row.sourceProductBinding.productSnapshot;
+  if (!xapiExpressionTitleSupported(product?.name,row.canonicalName))return false;
   if (!product || String(product.id) !== row.productId || String(product.pid) !== row.variantId
     || String(product.storeId) !== row.merchantId || product.containsAlcohol !== true
     || !/^\d{12,14}$/.test(String(product.upc || ''))

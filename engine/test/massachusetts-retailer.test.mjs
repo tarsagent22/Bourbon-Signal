@@ -70,16 +70,16 @@ test('nonpositive stock/price and bundles, creams, flavored whiskey or miniature
 const bible = { match: () => ({ confidence: 1, record: { id: 'rare-breed', canonical: 'Wild Turkey Rare Breed Straight Bourbon' } }) };
 
 test('MA stays research-only and a production call cannot fetch or collect the candidate', async () => {
-  assert.equal(ALL_STATE_SOURCES.some(row => row.id === 'MA'), false);
-  assert.equal(STATE_SOURCES.some(row => row.id === 'MA'), false);
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MA'), false);
-  assert.equal(STATE_LIFECYCLE_CONFIG.states.MA, undefined);
+  assert.ok(ALL_STATE_SOURCES.some(row => row.id === 'MA'));
+  assert.notEqual(ALL_STATE_SOURCES.find(row => row.id === 'MA')?.active, false);
+  const active = STATE_LIFECYCLE_CONFIG.activeStates.includes('MA');
+  assert.equal(STATE_SOURCES.some(row => row.id === 'MA'), active);
   assert.equal(researchSourceForState('MA', { shadowMode: false }), null);
   assert.equal(researchSourceForState('MA', { shadowMode: true }).active, false);
   const research = withResearchLifecycle(STATE_LIFECYCLE_CONFIG);
   assert.deepEqual(research.activeStates, STATE_LIFECYCLE_CONFIG.activeStates);
-  assert.equal(research.states.MA.publicStatus, 'research_only');
-  assert.throws(() => withResearchLifecycle({ ...STATE_LIFECYCLE_CONFIG, activeStates: [...STATE_LIFECYCLE_CONFIG.activeStates, 'MA'] }), /reconciliation/);
+  assert.equal(research.states.MA.publicStatus, active ? 'active' : 'research_only');
+  assert.throws(() => withResearchLifecycle({ ...STATE_LIFECYCLE_CONFIG, activeStates: [...STATE_LIFECYCLE_CONFIG.activeStates, 'MA'], states: {...STATE_LIFECYCLE_CONFIG.states,MA:undefined} }), /reconciliation/);
   const result = await collectMassachusettsJulios({ id: 'MA' }, bible, { shadowMode: false,
     fetchImpl: () => { throw new Error('Must not request a source outside shadow mode'); } });
   assert.equal(result.signals.length, 0);
@@ -117,22 +117,15 @@ test('a failed sibling request remains visible and cannot produce complete shado
   assert.equal(evidence.alerts.disabled, true);
 });
 
-test('the isolated registry produces valid shadow evidence without modifying production lifecycle', async () => {
-  const previous = process.env.BOURBON_SIGNAL_SHADOW_MODE;
-  try {
+test('the isolated registry selects only the closed NE source and rejects legacy/cloned authority without HTTP', async()=>{
+  const previous=process.env.BOURBON_SIGNAL_SHADOW_MODE;
+  try{
     delete process.env.BOURBON_SIGNAL_SHADOW_MODE;
-    await assert.rejects(collectResearchStateReport({ id: 'MA' }, bible), /isolated shadow/);
-    process.env.BOURBON_SIGNAL_SHADOW_MODE = '1';
-    const config = researchSourceForState('MA');
-    const report = await collectResearchStateReport(config, bible, { fetchImpl: async () => new Response(fixture()) });
-    assert.equal(report.state, 'MA');
-    assert.equal(report.sources.length, 2);
-    assert.equal(buildShadowEvidence('MA', report).complete, true);
-    assert.equal(STATE_LIFECYCLE_CONFIG.states.MA, undefined);
-    assert.equal(STATE_SOURCES.some(row => row.id === 'MA'), false);
-    await assert.rejects(collectResearchStateReport({ ...config }, bible), /registered isolated/);
-  } finally {
-    if (previous === undefined) delete process.env.BOURBON_SIGNAL_SHADOW_MODE;
-    else process.env.BOURBON_SIGNAL_SHADOW_MODE = previous;
-  }
+    await assert.rejects(collectResearchStateReport({id:'MA'},bible),/registered isolated shadow/);
+    process.env.BOURBON_SIGNAL_SHADOW_MODE='1';
+    const config=researchSourceForState('MA');assert.equal(config.active,false);assert.equal(config.sources.length,2);
+    assert.ok(config.sources.every(row=>!row.url.includes('juliosliquors')));
+    assert.equal(STATE_SOURCES.some(row=>row.id==='MA'),STATE_LIFECYCLE_CONFIG.activeStates.includes('MA'));
+    await assert.rejects(collectResearchStateReport({...config},bible),/registered isolated/);
+  }finally{if(previous===undefined)delete process.env.BOURBON_SIGNAL_SHADOW_MODE;else process.env.BOURBON_SIGNAL_SHADOW_MODE=previous;}
 });

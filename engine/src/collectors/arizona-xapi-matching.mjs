@@ -1,3 +1,4 @@
+import {xapiExpressionTitleSupported} from './grocery-xapi-expression-title.mjs';
 import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { arizonaXapiLibraryIdentity } from './arizona-xapi-library-identity.mjs';
 
@@ -28,7 +29,9 @@ export function reviewedArizonaXapiBottleMatch(product, bible, { storeId } = {})
     || String(product?.upc || '') === row.upc || exactText(name) === exactText(row.name));
   if (!reviewed) {
     const legacy = cityHiveSafeBottleMatch(name, bible);
-    return legacy.record ? legacy : arizonaXapiLibraryIdentity(product, bible, { storeId });
+    const candidate=legacy.record?legacy:arizonaXapiLibraryIdentity(product,bible,{storeId});
+    return candidate.record&&!xapiExpressionTitleSupported(name,candidate.record.canonical)
+      ?{match:null,record:null,unsafeReason:'unverified_xapi_master_expression_title'}:candidate;
   }
 
   const rejected = { match: null, record: null, unsafeReason: 'unverified_arizona_xapi_product_identity' };

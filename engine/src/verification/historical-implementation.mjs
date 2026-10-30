@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import {normalizeNineStateAdmissionMetadata} from './nine-state-admission-metadata.mjs';
 
 const sharedBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
@@ -9,6 +10,8 @@ const centralProductionBaseline = JSON.parse(readFileSync(new URL('../../data/so
 const njMiBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/nj-mi-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const measuredForecastBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json', import.meta.url), 'utf8'));
 const fourStateAdmissionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const louisianaAlaskaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/louisiana-alaska-grocery-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
+const newEnglandBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/new-england-production-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -36,6 +39,7 @@ export const centralProductionOnSiteBoundary = `    ...(isCentralCityHiveProduct
     }:{}),
 `;
 export const reviewedExpansionTierBoundary = "    tier: texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),\n";
+export const newEnglandTypedSemanticsBoundary = '    ...(isNewEnglandInventory(signal)?{inventorySemantics:signal.sourceProductBinding.quantitySemantics}:{}),\n';
 export const originalNewYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'GA' && signal.inventorySemantics\n";
 export const newYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
 export const groceryExpansionSemanticsBoundary = "    inventorySemantics: isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics\n      : signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
@@ -68,7 +72,17 @@ function replaceUnique(text, current, original, label) {
   return text.replace(current, () => original);
 }
 
+export function reverseLouisianaAlaskaHistoricalAdditions(name, text) {
+  assert.equal(louisianaAlaskaBaseline.contractVersion, 'bourbon-signal/louisiana-alaska-grocery-production-shared-metadata-baseline@1');
+  for (const [key, entry] of Object.entries(louisianaAlaskaBaseline.files[name] || {})) {
+    text = replaceUnique(text, entry.reviewed, entry.original, name + ': LA/AK inactive ' + key);
+  }
+  return text;
+}
+
 export function normalizeHistoricalImplementationBytes(name, bytes) {
+  bytes=normalizeNineStateAdmissionMetadata(name,bytes);
+  if (louisianaAlaskaBaseline.files[name]) bytes = Buffer.from(reverseLouisianaAlaskaHistoricalAdditions(name, bytes.toString('utf8')));
   if (name === 'engine/src/operational-report.mjs') {
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));
     // Reverse only this exact FL proof-preservation addition at its original
@@ -90,6 +104,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, texasShopifyPickupTierImport, '', `${name}: TX exact pickup tier import`);
     text = replaceUnique(text, "import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';\n", '', name+': NJ/MI on-site import');
     text = replaceUnique(text, "    ...(isNjMiProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n", '', name+': NJ/MI false-alert on-site proof');
+    text = replaceUnique(text,newEnglandTypedSemanticsBoundary,'',name+': New England typed inventory semantics');
+    text = replaceUnique(text,"import {isNewEnglandProductionOnSiteSignal,isNewEnglandInventory} from './new-england-policy.mjs';\n",'',name+': New England on-site import');
+    text = replaceUnique(text,"    ...(isNewEnglandProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n",'',name+': New England false-alert on-site proof');
+    text = replaceUnique(text,"import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';\n",'',name+': New England tier import');
+    text = replaceUnique(text,"    ...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{}),\n",'',name+': New England reviewed tier override');
     text = replaceUnique(text, centralProductionOnSiteImport, '', `${name}: Central on-site import`);
     text = replaceUnique(text, centralProductionOnSiteBoundary, '', `${name}: Central false-alert on-site proof`);
     text = replaceUnique(text, reviewedExpansionTierBoundary, arizonaMetroTierBoundary, `${name}: reviewed source tier proof`);
@@ -127,6 +146,8 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       text = replaceUnique(text, entry.reviewed, entry.original, `${name}: four-state admission ${key}`);
     }
   }
+  assert.equal(newEnglandBaseline.contractVersion,'bourbon-signal/new-england-production-shared-metadata-baseline@1');
+  for(const[key,entry]of Object.entries(newEnglandBaseline.files[name]||{}))text=replaceUnique(text,entry.reviewed,entry.original,name+': New England reviewed '+key);
   const forecast = measuredForecastBaseline.files[name];
   if (forecast) {
     assert.equal(measuredForecastBaseline.contractVersion, 'bourbon-signal/measured-runtime-forecast-ms-boundary@1');

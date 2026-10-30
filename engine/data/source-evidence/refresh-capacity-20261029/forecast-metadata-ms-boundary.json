@@ -5,11 +5,13 @@
   "files": {
     "src/config/state-lifecycle.json": {
       "original": "    \"stateExpectedRunMs\": {\n      \"TX\": 420000,\n      \"VA\": 240000,\n      \"IN\": 240000,\n      \"TN\": 180000,\n      \"SC\": 180000,\n      \"NJ\": 120000,\n      \"MI\": 60000,\n      \"WI\": 150000,\n      \"OK\": 240000,\n      \"KY\": 180000,\n      \"WA\": 720000,\n      \"NM\": 300000\n    }",
-      "reviewed": "    \"stateExpectedRunMs\": {\n      \"TX\": 90000,\n      \"VA\": 1140000,\n      \"IN\": 240000,\n      \"TN\": 180000,\n      \"SC\": 180000,\n      \"NJ\": 120000,\n      \"MI\": 60000,\n      \"WI\": 30000,\n      \"OK\": 30000,\n      \"KY\": 180000,\n      \"WA\": 360000,\n      \"NM\": 120000,\n      \"CA\": 300000,\n      \"NV\": 240000,\n      \"ID\": 180000,\n      \"AZ\": 900000,\n      \"FL\": 180000\n    }"
+      "reviewed": "    \"stateExpectedRunMs\": {\n      \"TX\": 90000,\n      \"VA\": 1140000,\n      \"IN\": 240000,\n      \"TN\": 180000,\n      \"SC\": 180000,\n      \"NJ\": 120000,\n      \"MI\": 60000,\n      \"WI\": 30000,\n      \"OK\": 30000,\n      \"KY\": 180000,\n      \"WA\": 360000,\n      \"NM\": 120000,\n      \"CA\": 300000,\n      \"NV\": 240000,\n      \"ID\": 180000,\n      \"AZ\": 900000,\n      \"FL\": 180000,\n      \"LA\": 120000,\n      \"AK\": 120000,\n      \"MA\": 30000,\n      \"CT\": 30000,\n      \"RI\": 30000\n    }"
     },
     "src/config/stateLifecycle.ts": {
       "original": "    \"stateExpectedRunMs\": {\n      \"TX\": 420000,\n      \"VA\": 240000,\n      \"IN\": 240000,\n      \"TN\": 180000,\n      \"SC\": 180000,\n      \"NJ\": 120000,\n      \"MI\": 60000,\n      \"WI\": 150000,\n      \"OK\": 240000,\n      \"KY\": 180000,\n      \"WA\": 720000,\n      \"NM\": 300000\n    }",
-      "reviewed": "    \"stateExpectedRunMs\": {\n      \"TX\": 90000,\n      \"VA\": 1140000,\n      \"IN\": 240000,\n      \"TN\": 180000,\n      \"SC\": 180000,\n      \"NJ\": 120000,\n      \"MI\": 60000,\n      \"WI\": 30000,\n      \"OK\": 30000,\n      \"KY\": 180000,\n      \"WA\": 360000,\n      \"NM\": 120000,\n      \"CA\": 300000,\n      \"NV\": 240000,\n      \"ID\": 180000,\n      \"AZ\": 900000,\n      \"FL\": 180000\n    }"
+      "reviewed": "    \"stateExpectedRunMs\": {\n      \"TX\": 90000,\n      \"VA\": 1140000,\n      \"IN\": 240000,\n      \"TN\": 180000,\n      \"SC\": 180000,\n      \"NJ\": 120000,\n      \"MI\": 60000,\n      \"WI\": 30000,\n      \"OK\": 30000,\n      \"KY\": 180000,\n      \"WA\": 360000,\n      \"NM\": 120000,\n      \"CA\": 300000,\n      \"NV\": 240000,\n      \"ID\": 180000,\n      \"AZ\": 900000,\n      \"FL\": 180000,\n      \"LA\": 120000,\n      \"AK\": 120000,\n      \"MA\": 30000,\n      \"CT\": 30000,\n      \"RI\": 30000\n    }"
     }
-  }
+  },
+  "calibrationEvidence": "engine/data/source-evidence/five-state-calibration-20261029/planning.json",
+  "sampleStatistic": "Single complete hosted sample per future state, doubled and rounded up30seconds; not p95. Original prior-state estimates and original Mississippi hashes unchanged."
 }
