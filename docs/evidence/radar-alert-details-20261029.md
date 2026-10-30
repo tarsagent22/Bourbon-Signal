@@ -12,10 +12,14 @@ The opened alert now prioritizes individual bottles, store address, and next act
 - Offline preview built from the actual Radar screen with synthetic data. Run the existing radar-preview build and serve instructions; `?scenario=retailer-detail` reproduces the five-bottle Safeway example.
 - Browser verification could not run: computer-use reported local browser use disabled in Work settings. No visual or physical-phone acceptance is claimed.
 
-## Release handoff
+## Original preparation handoff (2026-10-29)
 
 This is a detached local preparation, not a released change. The repository's sole release lane remains occupied by draft PR #859, `Expand four-state inventory and repair fleet visibility`, objective #858. No second branch/PR was created, no objective lock was changed, and no OTA was published.
 
 Once the lane is free, reconcile onto fresh origin/main, visually verify 320px/390px and larger text, and use the guarded objective/PR/merge workflow. Confirm installed runtime/channel coverage before publishing compatible OTAs. Preserve the distinction between published bundles and installation/acceptance on a physical phone.
 
 Evidence logs and a source patch are saved under `C:/Users/chand/Documents/Bourbon Signal/radar-alert-redesign-20261029-evidence`.
+
+## Authorized release (2026-10-30)
+
+The owner approved live publication after receiving the hosted sample. PR #859 has merged and its objective lock is gone. This release is reconciled onto `a79b0a4a8b1afb5a2037f35d2aa76ba198fec834`. The new parsing cases are included in the existing Radar presentation test suite; no native dependencies or package configuration change. Publication and physical-device acceptance remain separate until verified.
