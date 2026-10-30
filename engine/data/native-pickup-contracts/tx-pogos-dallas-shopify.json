@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "state": "TX",
+  "sourceId": "tx:pogos-dallas-shopify",
+  "scope": "inactive_source_specific_semantic_template_not_promotion_or_customer_proof",
+  "lifecycle": {
+    "publicStatus": "active",
+    "customerLabel": "Texas",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "tx:pogos-dallas-shopify"
+    ],
+    "cohortSha256": "6c62d2d88e5d1e62ec34072ae81497bc3d5cd60eaa8646c4e0214e5d827aca7e",
+    "registration": "Default OFF. Exactly one native Shopify product/variant/premise; separate immutable3source/2canary/issuer authority required before storage or HTTP."
+  },
+  "storeIdentity": {
+    "mode": "exact_native_variant_and_pickup_premise",
+    "addressRequired": true,
+    "proof": "Exact reviewed first-party product ID, variant ID,750mL title, native pickup address and same-host URLs must agree. No shipping or nearby premise authority.",
+    "expectedKnownStores": 1,
+    "storeIds": [
+      "tx-tabc-100118646"
+    ]
+  },
+  "sourceSemantics": {
+    "availability": "Binary native pickup availability; quantity0 is non-exact and never a shelf count.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    },
+    "areaFilter": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    },
+    "preferences": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    },
+    "dashboard": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    },
+    "dropFeedApi": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    },
+    "finder": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    },
+    "alerts": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    },
+    "monitoring": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    },
+    "export": {
+      "status": "pending_executable_customer_proof",
+      "reason": "No hosted native source3/canary2/issuer or actual customer acceptance yet."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Dedicated native protocol pending; historical fixtures are not source observations."
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "No hosted native canary has run."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "Native authority remains disabled.",
+      "reason": "Immutable leaf proof and release review are pending."
+    }
+  }
+}

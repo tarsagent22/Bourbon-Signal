@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "scope": "inactive_source_preparation_not_production_admission",
+  "researchOnly": true,
+  "productionActivated": false,
+  "customerCoverageAdded": 0,
+  "shadowRuns": 0,
+  "canaryRuns": 0,
+  "source": {
+    "id": "pogos-dallas",
+    "runtimeId": "tx:pogos-dallas-shopify",
+    "state": "TX",
+    "chain": "pogos-dallas",
+    "merchantId": "shopify:66085617873",
+    "sourceLabel": "Pogo's Dallas native Shopify exact-variant pickup",
+    "baseUrl": "https://www.pogoswine.com",
+    "sectionId": "store-availability",
+    "headingIdentity": "product_title",
+    "stores": [
+      {
+        "id": "tx-tabc-100118646",
+        "name": "Pogo's Wine & Spirits",
+        "pickupName": "Pogo's Wine & Spirits",
+        "address": "5360 West Lovers Lane Suite 200 Dallas TX 75209",
+        "city": "Dallas",
+        "zip": "75209",
+        "county": "Dallas",
+        "officialDirectoryProof": {
+          "id": "tx-tabc-100118646",
+          "name": "PO-GO'S",
+          "address": "5360 W LOVERS LN STE 200",
+          "city": "Dallas",
+          "state": "TX",
+          "zip": "752094382",
+          "county": "Dallas",
+          "licenseType": "P",
+          "licenseStatus": "Active",
+          "expirationDate": "2028-08-27T00:00:00.000",
+          "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f",
+          "receiptSha256": "01c94fa98d21ebe65df3887955a339e04f4221ae773a1ddf2e9f43a54a1b4908"
+        }
+      }
+    ],
+    "products": [
+      {
+        "productId": "7702997237969",
+        "variantId": "42977940144337",
+        "handle": "colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml",
+        "title": "Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey 100 Proof (750ml)",
+        "canonicalName": "E.H. Taylor Small Batch",
+        "canonicalBottleId": "bb_152c90f782b801f5",
+        "variantTitle": "750 ML",
+        "sizeMl": 750,
+        "proof": 100,
+        "barcode": "088004005498",
+        "sku": "210000006244",
+        "evidence": {
+          "product": {
+            "url": "https://www.pogoswine.com/products/colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml.json",
+            "sha256": "179ea1bfcbcf03a0de39a5a1686a6b95fad721d1e830c2257e553b45499e10da",
+            "capturedAt": "2026-10-29T17:01:28.130Z",
+            "status": 200
+          },
+          "pickup": {
+            "url": "https://www.pogoswine.com/variants/42977940144337/?section_id=store-availability",
+            "sha256": "c96581a95a8deae5450cec9881ee2613c1c0e2b10b2afb9c4d691872a445c4e1",
+            "capturedAt": "2026-10-29T16:42:36.025Z",
+            "status": 200
+          }
+        },
+        "titleMapping": {
+          "rawTitle": "Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey 100 Proof (750ml)",
+          "canonicalName": "E.H. Taylor Small Batch",
+          "reason": "Literal reviewed Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey100Proof750ml title identifies existing E.H. Taylor Small Batch. Current strict raw Bible matcher returns null. Exact product/variant/title/format/proof/pickup-premise bindings are required; no global Bible or fuzzy match change.",
+          "allowedUnsafeReasons": []
+        }
+      }
+    ],
+    "budgets": {
+      "maxProducts": 1,
+      "maxStores": 1,
+      "maxRequests": 2
+    }
+  },
+  "plan": {
+    "scope": "preparation_only_no_activation",
+    "collectorVersion": "shopify-variant-pickup-v2-strict-premises",
+    "collectorSha256": "25a7ea79251b0a582abdee2c7f3e4e79eb8224a98dad4bc378c2c943c6aa05ba",
+    "configSha256": "a85200bb8aa1748fff0dbb618060323871789a4235f5907e1dcfaddee7687d13",
+    "source": {
+      "id": "pogos-dallas",
+      "runtimeId": "tx:pogos-dallas-shopify",
+      "state": "TX",
+      "chain": "pogos-dallas",
+      "merchantId": "shopify:66085617873",
+      "sourceLabel": "Pogo's Dallas native Shopify exact-variant pickup",
+      "baseUrl": "https://www.pogoswine.com",
+      "sectionId": "store-availability",
+      "headingIdentity": "product_title",
+      "stores": [
+        {
+          "id": "tx-tabc-100118646",
+          "name": "Pogo's Wine & Spirits",
+          "pickupName": "Pogo's Wine & Spirits",
+          "address": "5360 West Lovers Lane Suite 200 Dallas TX 75209",
+          "city": "Dallas",
+          "zip": "75209",
+          "county": "Dallas",
+          "officialDirectoryProof": {
+            "id": "tx-tabc-100118646",
+            "name": "PO-GO'S",
+            "address": "5360 W LOVERS LN STE 200",
+            "city": "Dallas",
+            "state": "TX",
+            "zip": "752094382",
+            "county": "Dallas",
+            "licenseType": "P",
+            "licenseStatus": "Active",
+            "expirationDate": "2028-08-27T00:00:00.000",
+            "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f",
+            "receiptSha256": "01c94fa98d21ebe65df3887955a339e04f4221ae773a1ddf2e9f43a54a1b4908"
+          }
+        }
+      ],
+      "products": [
+        {
+          "productId": "7702997237969",
+          "variantId": "42977940144337",
+          "handle": "colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml",
+          "title": "Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey 100 Proof (750ml)",
+          "canonicalName": "E.H. Taylor Small Batch",
+          "canonicalBottleId": "bb_152c90f782b801f5",
+          "variantTitle": "750 ML",
+          "sizeMl": 750,
+          "proof": 100,
+          "barcode": "088004005498",
+          "sku": "210000006244",
+          "evidence": {
+            "product": {
+              "url": "https://www.pogoswine.com/products/colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml.json",
+              "sha256": "179ea1bfcbcf03a0de39a5a1686a6b95fad721d1e830c2257e553b45499e10da",
+              "capturedAt": "2026-10-29T17:01:28.130Z",
+              "status": 200
+            },
+            "pickup": {
+              "url": "https://www.pogoswine.com/variants/42977940144337/?section_id=store-availability",
+              "sha256": "c96581a95a8deae5450cec9881ee2613c1c0e2b10b2afb9c4d691872a445c4e1",
+              "capturedAt": "2026-10-29T16:42:36.025Z",
+              "status": 200
+            }
+          },
+          "titleMapping": {
+            "rawTitle": "Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey 100 Proof (750ml)",
+            "canonicalName": "E.H. Taylor Small Batch",
+            "reason": "Literal reviewed Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey100Proof750ml title identifies existing E.H. Taylor Small Batch. Current strict raw Bible matcher returns null. Exact product/variant/title/format/proof/pickup-premise bindings are required; no global Bible or fuzzy match change.",
+            "allowedUnsafeReasons": []
+          }
+        }
+      ],
+      "budgets": {
+        "maxProducts": 1,
+        "maxStores": 1,
+        "maxRequests": 2,
+        "maxElapsedMs": 50000,
+        "requestTimeoutMs": 12000,
+        "maxBodyBytes": 2097152,
+        "maxTotalBytes": 4194304
+      },
+      "pickupLayout": "standard"
+    },
+    "reuseFamily": "shopify-store-availability",
+    "exceptions": [
+      "Literal reviewed Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey100Proof750ml title identifies existing E.H. Taylor Small Batch. Current strict raw Bible matcher returns null. Exact product/variant/title/format/proof/pickup-premise bindings are required; no global Bible or fuzzy match change."
+    ],
+    "plannedRequests": [
+      "https://www.pogoswine.com/products/colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml.json",
+      "https://www.pogoswine.com/variants/42977940144337/?section_id=store-availability"
+    ],
+    "requestCount": 2,
+    "budgets": {
+      "maxProducts": 1,
+      "maxStores": 1,
+      "maxRequests": 2,
+      "maxElapsedMs": 50000,
+      "requestTimeoutMs": 12000,
+      "maxBodyBytes": 2097152,
+      "maxTotalBytes": 4194304
+    }
+  },
+  "coverageDistinction": {
+    "officialDirectoryPremise": "Existing physical package-store premises in TABC directory; current active permit and exact suite/county independently verified. Not a newly created store or government directory record.",
+    "newEngineInventoryCandidate": "New proposed exact-variant pickup connection. No source is added to production authority.",
+    "canonicalCustomerLookup": {
+      "query": "Pogo",
+      "at": "2026-10-29T17:04:30.922Z",
+      "status": "not-found",
+      "caveat": "One literal public Coverage query; does not prove absence under every name/alias. Directory familiarity and new stock coverage remain separate."
+    }
+  },
+  "currentEvidence": {
+    "productCapture": "2026-10-29T17:01:28.130Z",
+    "pickupCapture": "2026-10-29T16:42:36.025Z",
+    "conservativeObservationClock": "2026-10-29T16:42:36.025Z",
+    "price": 63.98,
+    "quantity": 0,
+    "quantityIsExact": false,
+    "governmentLicenseObservedAt": "2026-10-29T17:02:00.192Z"
+  },
+  "pending": [
+    "Review and reconcile this inactive source onto the final production code; current TX leaf remains independently pinned to HotSpot.",
+    "Fresh hosted native transport access, original source clocks, current app library, strict customer projection and normal release acceptance remain required.",
+    "A future production wrapper must preserve independent denials and fail closed on store/product/variant/title/format/proof or official-premise mismatch."
+  ]
+}

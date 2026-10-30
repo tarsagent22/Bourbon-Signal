@@ -281,13 +281,14 @@ test('NJ/MI historical reversal rejects activation, altered registration and not
   for(const[name,entries]of Object.entries(baseline.files)){
     const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
     assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
-    for(const[key,{reviewed,original}]of Object.entries(entries)){
+    for(const[key,{reviewed:baselineReviewed,original}]of Object.entries(entries)){
+      const reviewed=name==='engine/src/state-sources.mjs'?baselineReviewed.replace('if(NJ_MI_PRODUCTION_STATES.includes(source.id))return source;','if(NJ_MI_PRODUCTION_STATES.includes(source.id))return nativeMichiganStateConfig(source);'):baselineReviewed;
       assert.equal(current.split(reviewed).length-1,1);
       const changed=name.endsWith('.mjs')?reviewed.replace('NJ_MI','UNREVIEWED')
         :key==='budgets'?reviewed.replace('120000','90000'):reviewed.replace('"publicStatus": "research_only"','"publicStatus": "active"');
       assert.notEqual(changed,reviewed);
       for(const mutation of[current.replace(reviewed,original),current.replace(reviewed,changed),current+'\n'+reviewed]){
-        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/(?:NJ\/MI reviewed|measured runtime forecast) .*exact historical verification hook/,key);
+        assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/(?:NJ\/MI reviewed|measured runtime forecast|native descriptor selection) .*exact historical verification hook/,key);
       }
     }
   }

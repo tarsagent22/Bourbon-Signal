@@ -6,6 +6,8 @@ import { pathToFileURL } from 'node:url';
 import { validateStateVerticalSliceManifest } from './state-vertical-slice-contract.mjs';
 import { validateStateFixtures } from './verify-state-fixtures.mjs';
 import { isMetroRetailerInventory } from './metro-retailer-policy.mjs';
+import {nativeMichiganVerificationId} from './native-shopify-production-config.mjs';
+import {nativeShopifyContractPaths} from './native-shopify-contract.mjs';
 
 function object(value) { return value && typeof value === 'object' && !Array.isArray(value); }
 function asArray(value) { return Array.isArray(value) ? value : []; }
@@ -223,8 +225,10 @@ async function main() {
   };
   const failures = [];
   for (const state of states) {
-    const manifest = await readJson(path.join(manifestDir, `${state}.json`), null);
-    const fixtures = await readJson(path.join(path.dirname(manifestDir), 'state-fixtures', `${state}.json`), null);
+    const nativeId=nativeMichiganVerificationId(state,{config});
+    const nativePaths=nativeId?nativeShopifyContractPaths(nativeId):null;
+    const manifest = await readJson(nativePaths?path.resolve(nativePaths.manifest):path.join(manifestDir, `${state}.json`), null);
+    const fixtures = await readJson(nativePaths?path.resolve(nativePaths.fixtures):path.join(path.dirname(manifestDir), 'state-fixtures', `${state}.json`), null);
     const grandfathered = new Set(config.reliabilityPolicy?.grandfatheredActiveStates || []);
     if (!manifest && grandfathered.has(state)) {
       console.log(`${state}: grandfathered lifecycle state remains under its existing state-specific quality gates; no new-promotion manifest required.`);

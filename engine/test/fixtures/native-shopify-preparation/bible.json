@@ -1,0 +1,115 @@
+{
+  "scope": "exact_cached_full_library_subset_for_offline_format_tests",
+  "records": [
+    {
+      "id": "bb_5afa9241206ab963",
+      "canonical": "Blanton's Original Single Barrel",
+      "normalizedKey": "blanton s original",
+      "aliases": [
+        "BLANTON'S BOURBON",
+        "Blanton",
+        "Blanton's",
+        "Blanton's Bourbon",
+        "Blanton's Original",
+        "Blanton's Original Single Barrel",
+        "Blanton's Single Barrel",
+        "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+        "Blantons"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "blantons-single-barrel",
+          "canonicalName": "Blanton's Single Barrel",
+          "aliases": [
+            "BLANTON'S BOURBON",
+            "Blanton",
+            "Blanton's",
+            "Blanton's Bourbon",
+            "Blanton's Original",
+            "Blanton's Original Single Barrel",
+            "Blanton's Single Barrel",
+            "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+            "Blantons",
+            "blanton",
+            "blanton's",
+            "blantons",
+            "blantons single barrel"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_152c90f782b801f5",
+      "canonical": "E.H. Taylor Small Batch",
+      "normalizedKey": "e h taylor",
+      "aliases": [
+        "Colonel E.H. Taylor Small Batch",
+        "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "E H Taylor Single Barrel",
+        "E H Taylor Small Batch",
+        "E.H. Taylor Jr. Small Batch .75L",
+        "E.H. Taylor SiB",
+        "E.H. Taylor Single Barrel",
+        "E.H. Taylor Small Batch",
+        "EH Taylor Single Barrel",
+        "EH Taylor Small Batch"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eh-taylor-small-batch",
+          "canonicalName": "E.H. Taylor Small Batch",
+          "aliases": [
+            "Colonel E.H. Taylor Small Batch",
+            "Colonel E.H. Taylor Small Batch Bottled in Bond",
+            "Colonel E.H. Taylor Small Batch Bottled in Bond Bourbon",
+            "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+            "E H Taylor Single Barrel",
+            "E H Taylor Small Batch",
+            "E.H. Taylor Bottled in Bond",
+            "E.H. Taylor Jr. Small Batch",
+            "E.H. Taylor Jr. Small Batch .75L",
+            "E.H. Taylor SiB",
+            "E.H. Taylor Single Barrel",
+            "E.H. Taylor Small Batch",
+            "EH Taylor Single Barrel",
+            "EH Taylor Small Batch",
+            "EHT",
+            "colonel taylor",
+            "e.h. taylor small batch",
+            "eh taylor",
+            "eht small batch"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

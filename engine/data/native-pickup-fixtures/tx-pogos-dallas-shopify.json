@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "state": "TX",
+  "sourceId": "tx:pogos-dallas-shopify",
+  "fixtureProtocol": "closed-native-shopify-pickup@1",
+  "sourceSentinelRequired": true,
+  "scope": "offline_original_clock_native_capture_format_not_hosted_stock",
+  "cases": [
+    {
+      "id": "tx-pogos-dallas-shopify-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "mutation": null
+      },
+      "expected": {
+        "eligibleAtFixtureClock": true
+      }
+    },
+    {
+      "id": "tx-pogos-dallas-shopify-unknown-title",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "mutation": "title"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "tx-pogos-dallas-shopify-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "mutation": "cream"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "tx-pogos-dallas-shopify-50ml",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "mutation": "size"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "tx-pogos-dallas-shopify-binary",
+      "kind": "availability_semantics",
+      "input": {
+        "mutation": null
+      },
+      "expected": {
+        "eligibleAtFixtureClock": true
+      }
+    },
+    {
+      "id": "tx-pogos-dallas-shopify-foreign-premise",
+      "kind": "store_identity",
+      "input": {
+        "mutation": "premise"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "tx-pogos-dallas-shopify-expired",
+      "kind": "timestamp_freshness",
+      "input": {
+        "mutation": "stale"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "tx-pogos-dallas-shopify-variant",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "mutation": "variant"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    }
+  ]
+}

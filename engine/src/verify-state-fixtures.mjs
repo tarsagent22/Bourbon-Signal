@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import {executeNewEnglandFixtures} from './new-england-fixtures.mjs';
 import {executeNjMiResearchFixtures} from './nj-mi-research-fixtures.mjs';
+import {executeNativeShopifyFixtures} from './native-shopify-fixtures.mjs';
+import {nativeMichiganVerificationId} from './native-shopify-production-config.mjs';
+import {nativeShopifyContractPaths} from './native-shopify-contract.mjs';
 import {executeLouisianaAlaskaGroceryFixtures} from './louisiana-alaska-grocery-fixtures.mjs';
 import { executeGroceryResearchFixtures } from './grocery-research-fixtures.mjs';
 import { readFile } from 'node:fs/promises';
@@ -484,6 +487,7 @@ function sameValue(left, right) { return JSON.stringify(left) === JSON.stringify
 export async function executeStateFixtures(payload, { bibleFile = path.resolve('out/bourbon-bible.json'), candidateActive = false } = {}) {
   const failures = [];
   const bible = await BourbonBible.load(bibleFile);
+  if(payload.fixtureProtocol==='closed-native-shopify-pickup@1'||payload.sourceId?.startsWith('mi:wine-palace')||payload.sourceId?.startsWith('tx:pogos'))return executeNativeShopifyFixtures(payload,{bible});
   if(['MA','CT','RI'].includes(payload.state))return executeNewEnglandFixtures(payload,{bible});
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
@@ -509,10 +513,13 @@ function argValue(flag) {
 
 async function main() {
   const state = String(argValue('--state') || '').toUpperCase();
-  const file = argValue('--file') || (state ? path.join('data', 'state-fixtures', `${state}.json`) : null);
+  const nativeSource=argValue('--native-source')||nativeMichiganVerificationId(state);
+  const nativePaths=nativeSource?nativeShopifyContractPaths(nativeSource):null;
+  const file = argValue('--file') || nativePaths?.fixtures || (state ? path.join('data', 'state-fixtures', `${state}.json`) : null);
   if (!file) throw new Error('Usage: verify-state-fixtures --state=<STATE> [--file=<path>]');
   const payload = JSON.parse(await readFile(path.resolve(file), 'utf8'));
   const shape = validateStateFixtures(payload);
+  if(nativeSource&&payload.sourceId!==nativeSource)shape.failures.push('Native fixture source differs from the exact requested leaf.');
   if (state && payload.state !== state) shape.failures.push(`Fixture state ${payload.state} does not match requested ${state}.`);
   if (!shape.ok || shape.failures.length) throw new Error(shape.failures.join(' '));
   const execution = await executeStateFixtures(payload, { candidateActive: process.argv.includes('--canary') });

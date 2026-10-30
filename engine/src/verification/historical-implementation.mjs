@@ -81,6 +81,7 @@ export function reverseLouisianaAlaskaHistoricalAdditions(name, text) {
 }
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
+  bytes=reverseNativeShopifySourceRegistration(name,bytes);
   bytes=normalizeNineStateAdmissionMetadata(name,bytes);
   if (louisianaAlaskaBaseline.files[name]) bytes = Buffer.from(reverseLouisianaAlaskaHistoricalAdditions(name, bytes.toString('utf8')));
   if (name === 'engine/src/operational-report.mjs') {
@@ -195,4 +196,14 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, nationwide.reviewed, nationwide.original, `${name}: CA reviewed metadata`);
   }
   return Buffer.from(text);
+}
+
+// Only this reviewed MI descriptor selection differs; no metadata wildcard or
+// original MS digest update. Held NJ/MI source definitions remain byte-pinned.
+export function reverseNativeShopifySourceRegistration(name,bytes){
+ if(name!=='engine/src/state-sources.mjs')return bytes;
+ let text=bytes.toString('utf8');
+ text=replaceUnique(text,"import {nativeMichiganStateConfig} from './native-shopify-production-config.mjs';\n",'',name+': native descriptor import');
+ text=replaceUnique(text,'  if(NJ_MI_PRODUCTION_STATES.includes(source.id))return nativeMichiganStateConfig(source);\n','  if(NJ_MI_PRODUCTION_STATES.includes(source.id))return source;\n',name+': native descriptor selection');
+ return Buffer.from(text);
 }

@@ -11,6 +11,8 @@ import { fetchWithMeta, tryParseJson } from '../core/fetcher.mjs';
 import { FALLBACK_HINTS } from '../fallback-hints.mjs';
 import { collectPrecisionProbes } from './precision-probes.mjs';
 import { collectTexasShopifyPickup, isTexasShopifyPickupInventory } from './texas-shopify-pickup.mjs';
+import {collectMichiganNativeShopifyState,collectNativeShopifyLeafReport} from './native-shopify-onsite.mjs';
+import {isNativeShopifyOnSiteSignal} from '../native-shopify-onsite-policy.mjs';
 import { texasLegacyPrecisionPolicyReport } from './texas-legacy-source-policy.mjs';
 import {collectCentralCityHiveProductionState} from './central-cityhive-production.mjs';
 import {CENTRAL_CITYHIVE_PRODUCTION_STATES} from '../central-cityhive-production-config.mjs';
@@ -483,6 +485,7 @@ function skippedConfiguredSource(source, sourceId, result) {
 }
 
 export async function collectState(config, bible, options = {}) {
+  if(config.id==='MI')return collectMichiganNativeShopifyState(config,bible,options);
   if(LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(config.id))return collectLouisianaAlaskaGroceryProductionState(config,bible,options);
   if (WESTERN_GROCERY_PRODUCTION_STATES.includes(config.id)) return collectWesternGroceryProductionState(config,bible,options);
   if(NEW_ENGLAND_PRODUCTION_STATES.includes(config.id))return collectNewEnglandProductionState(config,bible,options);
@@ -639,6 +642,9 @@ export async function collectState(config, bible, options = {}) {
     });
     signals.push(...pickup.signals);roadblocks.push(...pickup.roadblocks);
     sourceReports.push(...pickup.sourceReports);sourceResults.push(...pickup.sourceResults);
+    const native=await collectNativeShopifyLeafReport('tx:pogos-dallas-shopify',bible,{...options.nativeShopifyOptions,config:options.lifecycleConfig||undefined,signal:options.signal});
+    signals.push(...native.signals);roadblocks.push(...native.roadblocks);
+    sourceReports.push(...native.sourceReports);sourceResults.push(...native.sourceResults);
   }
   const precisionProbe = config.id === 'TX'
     ? texasLegacyPrecisionPolicyReport({ previousSourceResults: options.previousSourceResults })
@@ -685,7 +691,7 @@ export async function collectState(config, bible, options = {}) {
   // A healthy independent pickup leaf remains current when the unrelated
   // legacy Texas precision lane fails. Its siblings retain their stale flags;
   // the unchanged state volume guard still owns partial fallback publication.
-  const currentTexasPickup=config.id==='TX'&&dedupedSignals.some(row=>isTexasShopifyPickupInventory(row));
+  const currentTexasPickup=config.id==='TX'&&dedupedSignals.some(row=>isTexasShopifyPickupInventory(row)||isNativeShopifyOnSiteSignal(row));
   const reportStale = Boolean((precisionProbe.stale&&!currentTexasPickup) || staleRetainedNotDue);
   return {
     state: config.id,

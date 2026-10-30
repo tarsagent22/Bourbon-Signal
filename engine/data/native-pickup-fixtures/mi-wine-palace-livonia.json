@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "state": "MI",
+  "sourceId": "mi:wine-palace-livonia",
+  "fixtureProtocol": "closed-native-shopify-pickup@1",
+  "sourceSentinelRequired": true,
+  "scope": "offline_original_clock_native_capture_format_not_hosted_stock",
+  "cases": [
+    {
+      "id": "mi-wine-palace-livonia-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "mutation": null
+      },
+      "expected": {
+        "eligibleAtFixtureClock": true
+      }
+    },
+    {
+      "id": "mi-wine-palace-livonia-unknown-title",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "mutation": "title"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "mi-wine-palace-livonia-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "mutation": "cream"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "mi-wine-palace-livonia-50ml",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "mutation": "size"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "mi-wine-palace-livonia-binary",
+      "kind": "availability_semantics",
+      "input": {
+        "mutation": null
+      },
+      "expected": {
+        "eligibleAtFixtureClock": true
+      }
+    },
+    {
+      "id": "mi-wine-palace-livonia-foreign-premise",
+      "kind": "store_identity",
+      "input": {
+        "mutation": "premise"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "mi-wine-palace-livonia-expired",
+      "kind": "timestamp_freshness",
+      "input": {
+        "mutation": "stale"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    },
+    {
+      "id": "mi-wine-palace-livonia-variant",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "mutation": "variant"
+      },
+      "expected": {
+        "eligibleAtFixtureClock": false
+      }
+    }
+  ]
+}

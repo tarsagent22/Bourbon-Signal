@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "scope": "inactive_native_leaf_admission_preparation_no_production_collection",
+  "sources": [
+    { "sourceId": "mi:wine-palace-livonia", "enabled": false, "manifest": null, "promotionEvidence": null },
+    { "sourceId": "tx:pogos-dallas-shopify", "enabled": false, "manifest": null, "promotionEvidence": null }
+  ]
+}

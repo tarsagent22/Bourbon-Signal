@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "scope": "inactive_closed_native_pickup_preparation_not_runtime_admission",
+  "productionActivated": false,
+  "customerStoresAdded": 0,
+  "shadowRuns": 0,
+  "canaryRuns": 0,
+  "heldHosts": [
+    "garyswine.com",
+    "buyritewines.com",
+    "waynebuyrite.com",
+    "thewinegardenco.com",
+    "www.usawinenj.com"
+  ],
+  "sources": [
+    {
+      "key": "wine-palace-livonia",
+      "capturedPrice": 109.99,
+      "definition": {
+        "id": "wine-palace-livonia",
+        "runtimeId": "mi:wine-palace-livonia",
+        "state": "MI",
+        "chain": "wine-palace-livonia",
+        "merchantId": "wine-palace-livonia-shopify",
+        "sourceLabel": "Wine Palace of Livonia Shopify pickup inventory",
+        "baseUrl": "https://winepalacemi.com",
+        "sectionId": "pickup-availability",
+        "stores": [
+          {
+            "id": "wine-palace-livonia:48154",
+            "name": "Wine Palace of Livonia",
+            "pickupName": "Wine Palace of Livonia",
+            "address": "13971 Middlebelt Road Livonia MI 48154",
+            "city": "Livonia",
+            "zip": "48154"
+          }
+        ],
+        "products": [
+          {
+            "productId": "8263582515418",
+            "variantId": "44700164522202",
+            "handle": "blantons-bourbon-original-single-barrel-store-pick-750ml",
+            "title": "Blantons Bourbon Original Single Barrel",
+            "canonicalName": "Blanton's Original Single Barrel",
+            "variantTitle": "750ml",
+            "titleMapping": {
+              "rawTitle": "Blantons Bourbon Original Single Barrel",
+              "canonicalName": "Blanton's Original Single Barrel",
+              "reason": "The exact reviewed product title and 750ml variant state Original Single Barrel. Bourbon is a category word; no Gold, Straight From The Barrel, age or batch identity is inferred.",
+              "allowedUnsafeReasons": []
+            },
+            "evidence": {
+              "product": {
+                "url": "https://winepalacemi.com/products/blantons-bourbon-original-single-barrel-store-pick-750ml.json",
+                "sha256": "80e97ca42641273703fdc9854ee7178d0d655cf05ff7484ffd42b03487a1ebc6",
+                "capturedAt": "2026-10-29T12:48:25.616Z",
+                "status": 200
+              },
+              "pickup": {
+                "url": "https://winepalacemi.com/variants/44700164522202/?section_id=pickup-availability",
+                "sha256": "941955cdfb844e1db055d2931884b70c4a7663131809f1ffb52137362bae6803",
+                "capturedAt": "2026-10-29T12:48:25.847Z",
+                "status": 200
+              }
+            },
+            "canonicalBottleId": "bb_5afa9241206ab963",
+            "sizeMl": 750
+          }
+        ],
+        "pickupLayout": "standard",
+        "headingIdentity": "product_title",
+        "budgets": {
+          "maxProducts": 2,
+          "maxStores": 5,
+          "maxRequests": 6,
+          "maxElapsedMs": 50000,
+          "requestTimeoutMs": 12000,
+          "maxBodyBytes": 2097152,
+          "maxTotalBytes": 4194304
+        }
+      },
+      "clock": "2026-10-29T17:54:19.967Z",
+      "base": "native-shopify-preparation/wine-palace/",
+      "receipts": [
+        {
+          "url": "https://winepalacemi.com/products/blantons-bourbon-original-single-barrel-store-pick-750ml.json",
+          "status": 200,
+          "observedAt": "2026-10-29T17:54:20.267Z",
+          "sha256": "0e307320008df029e4cb66f2b375d4d4a37173249be94b20baf04a7407e2ccd0",
+          "bytes": 3197,
+          "file": "product.json",
+          "artifactPath": "product.json",
+          "finalUrl": "https://winepalacemi.com/products/blantons-bourbon-original-single-barrel-store-pick-750ml.json"
+        },
+        {
+          "url": "https://winepalacemi.com/variants/44700164522202/?section_id=pickup-availability",
+          "status": 200,
+          "observedAt": "2026-10-29T17:54:20.502Z",
+          "sha256": "941955cdfb844e1db055d2931884b70c4a7663131809f1ffb52137362bae6803",
+          "bytes": 2740,
+          "file": "pickup.html",
+          "artifactPath": "pickup.html",
+          "finalUrl": "https://winepalacemi.com/variants/44700164522202/?section_id=pickup-availability"
+        }
+      ],
+      "captureOrigin": {
+        "kind": "local_operator_capture",
+        "startedAt": "2026-10-29T17:54:19.967Z",
+        "finishedAt": "2026-10-29T17:54:20.505Z",
+        "reportedHttpRequests": 2
+      },
+      "configSha256": "2f497cc81d3cfd67ea175d45c99c513125cb8bba886631bb4a2e1d38237f3641",
+      "collectorSha256": "25a7ea79251b0a582abdee2c7f3e4e79eb8224a98dad4bc378c2c943c6aa05ba",
+      "collectorVersion": "shopify-variant-pickup-v2-strict-premises",
+      "enabled": false,
+      "ttlMs": 3600000
+    },
+    {
+      "key": "pogos-dallas",
+      "capturedPrice": 63.98,
+      "definition": {
+        "id": "pogos-dallas",
+        "runtimeId": "tx:pogos-dallas-shopify",
+        "state": "TX",
+        "chain": "pogos-dallas",
+        "merchantId": "shopify:66085617873",
+        "sourceLabel": "Pogo's Dallas native Shopify exact-variant pickup",
+        "baseUrl": "https://www.pogoswine.com",
+        "sectionId": "store-availability",
+        "headingIdentity": "product_title",
+        "stores": [
+          {
+            "id": "tx-tabc-100118646",
+            "name": "Pogo's Wine & Spirits",
+            "pickupName": "Pogo's Wine & Spirits",
+            "address": "5360 West Lovers Lane Suite 200 Dallas TX 75209",
+            "city": "Dallas",
+            "zip": "75209",
+            "county": "Dallas",
+            "officialDirectoryProof": {
+              "id": "tx-tabc-100118646",
+              "name": "PO-GO'S",
+              "address": "5360 W LOVERS LN STE 200",
+              "city": "Dallas",
+              "state": "TX",
+              "zip": "752094382",
+              "county": "Dallas",
+              "licenseType": "P",
+              "licenseStatus": "Active",
+              "expirationDate": "2028-08-27T00:00:00.000",
+              "sourceUrl": "https://data.texas.gov/d/7hf9-qc9f",
+              "receiptSha256": "01c94fa98d21ebe65df3887955a339e04f4221ae773a1ddf2e9f43a54a1b4908"
+            }
+          }
+        ],
+        "products": [
+          {
+            "productId": "7702997237969",
+            "variantId": "42977940144337",
+            "handle": "colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml",
+            "title": "Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey 100 Proof (750ml)",
+            "canonicalName": "E.H. Taylor Small Batch",
+            "canonicalBottleId": "bb_152c90f782b801f5",
+            "variantTitle": "750 ML",
+            "sizeMl": 750,
+            "proof": 100,
+            "barcode": "088004005498",
+            "sku": "210000006244",
+            "evidence": {
+              "product": {
+                "url": "https://www.pogoswine.com/products/colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml.json",
+                "sha256": "179ea1bfcbcf03a0de39a5a1686a6b95fad721d1e830c2257e553b45499e10da",
+                "capturedAt": "2026-10-29T17:01:28.130Z",
+                "status": 200
+              },
+              "pickup": {
+                "url": "https://www.pogoswine.com/variants/42977940144337/?section_id=store-availability",
+                "sha256": "c96581a95a8deae5450cec9881ee2613c1c0e2b10b2afb9c4d691872a445c4e1",
+                "capturedAt": "2026-10-29T16:42:36.025Z",
+                "status": 200
+              }
+            },
+            "titleMapping": {
+              "rawTitle": "Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey 100 Proof (750ml)",
+              "canonicalName": "E.H. Taylor Small Batch",
+              "reason": "Literal reviewed Colonel E. H. Taylor Small Batch Straight Kentucky Bourbon Whiskey100Proof750ml title identifies existing E.H. Taylor Small Batch. Current strict raw Bible matcher returns null. Exact product/variant/title/format/proof/pickup-premise bindings are required; no global Bible or fuzzy match change.",
+              "allowedUnsafeReasons": []
+            }
+          }
+        ],
+        "budgets": {
+          "maxProducts": 1,
+          "maxStores": 1,
+          "maxRequests": 2,
+          "maxElapsedMs": 50000,
+          "requestTimeoutMs": 12000,
+          "maxBodyBytes": 2097152,
+          "maxTotalBytes": 4194304
+        },
+        "pickupLayout": "standard"
+      },
+      "clock": "2026-10-29T16:42:36.025Z",
+      "base": "pogos-dallas-native-pickup/",
+      "receipts": [
+        {
+          "url": "https://www.pogoswine.com/products/colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml.json",
+          "finalUrl": "https://www.pogoswine.com/products/colonel-e-h-taylor-small-batch-straight-kentucky-bourbon-whiskey-100-proof-750ml.json",
+          "status": 200,
+          "observedAt": "2026-10-29T17:01:28.130Z",
+          "sha256": "179ea1bfcbcf03a0de39a5a1686a6b95fad721d1e830c2257e553b45499e10da",
+          "artifactPath": "product.json",
+          "bytes": 1927
+        },
+        {
+          "url": "https://www.pogoswine.com/variants/42977940144337/?section_id=store-availability",
+          "finalUrl": "https://www.pogoswine.com/variants/42977940144337/?section_id=store-availability",
+          "status": 200,
+          "observedAt": "2026-10-29T16:42:36.025Z",
+          "sha256": "c96581a95a8deae5450cec9881ee2613c1c0e2b10b2afb9c4d691872a445c4e1",
+          "artifactPath": "pickup.html",
+          "bytes": 2691
+        }
+      ],
+      "captureOrigin": {
+        "kind": "local_operator_capture",
+        "productCapturedAt": "2026-10-29T17:01:28.130Z",
+        "pickupCapturedAt": "2026-10-29T16:42:36.025Z"
+      },
+      "configSha256": "a85200bb8aa1748fff0dbb618060323871789a4235f5907e1dcfaddee7687d13",
+      "collectorSha256": "25a7ea79251b0a582abdee2c7f3e4e79eb8224a98dad4bc378c2c943c6aa05ba",
+      "collectorVersion": "shopify-variant-pickup-v2-strict-premises",
+      "enabled": false,
+      "ttlMs": 3600000
+    }
+  ]
+}
