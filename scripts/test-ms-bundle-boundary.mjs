@@ -1,3 +1,4 @@
+import {nativeShopifyProofImport,nativeShopifyTierImport,nativeShopifyOnSiteBoundary,nativeShopifyStaleBoundary,originalNativeShopifyStaleBoundary} from '../engine/src/verification/historical-implementation.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile as readRawFile } from 'node:fs/promises';
@@ -98,6 +99,7 @@ function signalSort(a, b) {
   assert.equal(digest(normalized), originalHash);
   assert.equal(normalized.toString().split(originalBoundary).length - 1, 1);
   assert.equal(normalized.toString(), reverseLouisianaAlaskaHistoricalAdditions(name, current).replace(addition, originalBoundary).replace(indianaAddition, '')
+    .replace(nativeShopifyProofImport,'').replace(nativeShopifyTierImport,'').replace(nativeShopifyOnSiteBoundary,'').replace(nativeShopifyStaleBoundary,originalNativeShopifyStaleBoundary)
     .replace(libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary)
     .replace(groceryExpansionProofImport, groceryExpansionTierImport)
     .replace(groceryExpansionSemanticsBoundary, newYorkVariantSemanticsBoundary)
@@ -440,4 +442,16 @@ test('LA/AK inactive preparation permits only exact closed hooks and leaves all 
     assert.notEqual(outside,current);
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(outside))),evidence.implementationFilesSha256[name]);
   }
+});
+
+test('native exact pickup hooks preserve original MS digest and cannot hide changed imports, semantics or delivery permission',async()=>{
+  const name='engine/src/operational-report.mjs',current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+  assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+  for(const hook of [nativeShopifyProofImport,nativeShopifyTierImport,nativeShopifyOnSiteBoundary,nativeShopifyStaleBoundary]){
+    assert.equal(current.split(hook).length-1,1);
+    for(const mutation of [current.replace(hook,''),current+'\n'+hook,current.replace(hook,hook===nativeShopifyStaleBoundary?hook.replace('!nativeShopifyLibraryTier(signal,bible)','false'):hook.replace(/native-shopify|canAlertAsInventory:false/,value=>value==='native-shopify'?'unreviewed-native':'canAlertAsInventory:true'))])
+      assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(mutation)),/exact historical verification hook/);
+  }
+  for(const changed of [groceryExpansionSemanticsBoundary.replace('isNativeShopifyEvent(signal)','true'),reviewedExpansionTierBoundary.replace('nativeShopifyLibraryTier(signal,bible)','record?.tier')])
+    assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(changed.includes('inventorySemantics')?groceryExpansionSemanticsBoundary:reviewedExpansionTierBoundary,changed))),/exact historical verification hook/);
 });

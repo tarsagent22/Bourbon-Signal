@@ -38,11 +38,16 @@ export const centralProductionOnSiteBoundary = `    ...(isCentralCityHiveProduct
       eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
 `;
-export const reviewedExpansionTierBoundary = "    tier: texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),\n";
+export const reviewedExpansionTierBoundary = "    tier: nativeShopifyLibraryTier(signal,bible) ?? texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),\n";
 export const newEnglandTypedSemanticsBoundary = '    ...(isNewEnglandInventory(signal)?{inventorySemantics:signal.sourceProductBinding.quantitySemantics}:{}),\n';
 export const originalNewYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'GA' && signal.inventorySemantics\n";
 export const newYorkVariantSemanticsBoundary = "    inventorySemantics: signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
-export const groceryExpansionSemanticsBoundary = "    inventorySemantics: isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics\n      : signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
+export const groceryExpansionSemanticsBoundary = "    inventorySemantics: isNativeShopifyEvent(signal) ? signal.inventorySemantics : isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics\n      : signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'\n      ? signal.inventorySemantics\n      : signal.state === 'GA' && signal.inventorySemantics\n";
+export const nativeShopifyProofImport = "import {isNativeShopifyEvent,isNativeShopifyOnSiteSignal} from './native-shopify-onsite-policy.mjs';\n";
+export const nativeShopifyTierImport = "import {nativeShopifyLibraryTier} from './collectors/native-shopify-onsite.mjs';\n";
+export const nativeShopifyStaleBoundary = "    sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal) || (isNativeShopifyEvent(signal) && (!isNativeShopifyOnSiteSignal(signal) || !nativeShopifyLibraryTier(signal,bible))),\n";
+export const originalNativeShopifyStaleBoundary = "    sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal),\n";
+export const nativeShopifyOnSiteBoundary = "    ...(isNativeShopifyOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n";
 export const westernGroceryAlertBoundary = "    canAlertAsInventory: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,\n    canAlertAsWatch: ['WA', 'NM'].includes(signal.state) ? false : sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,\n";
 export const originalWesternGroceryAlertBoundary = "    canAlertAsInventory: sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,\n    canAlertAsWatch: sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,\n";
 const originalFloridaProofBoundary = '    } : undefined\n  };\n}\n\nfunction signalSort(a, b) {\n';
@@ -85,6 +90,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   bytes=normalizeNineStateAdmissionMetadata(name,bytes);
   if (louisianaAlaskaBaseline.files[name]) bytes = Buffer.from(reverseLouisianaAlaskaHistoricalAdditions(name, bytes.toString('utf8')));
   if (name === 'engine/src/operational-report.mjs') {
+    bytes=Buffer.from(reverseNativeShopifyConsumerHooks(bytes.toString('utf8')));
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));
     // Reverse only this exact FL proof-preservation addition at its original
     // canonicalization boundary. The original MS full-file digest stays pinned.
@@ -206,4 +212,11 @@ export function reverseNativeShopifySourceRegistration(name,bytes){
  text=replaceUnique(text,"import {nativeMichiganStateConfig} from './native-shopify-production-config.mjs';\n",'',name+': native descriptor import');
  text=replaceUnique(text,'  if(NJ_MI_PRODUCTION_STATES.includes(source.id))return nativeMichiganStateConfig(source);\n','  if(NJ_MI_PRODUCTION_STATES.includes(source.id))return source;\n',name+': native descriptor selection');
  return Buffer.from(text);
+}
+
+export function reverseNativeShopifyConsumerHooks(text){
+ text=replaceUnique(text,nativeShopifyProofImport,'','exact native pickup proof import');
+ text=replaceUnique(text,nativeShopifyTierImport,'','exact native pickup tier import');
+ text=replaceUnique(text,nativeShopifyOnSiteBoundary,'','exact native pickup false-alert proof');
+ return replaceUnique(text,nativeShopifyStaleBoundary,originalNativeShopifyStaleBoundary,'exact native pickup stale/library suppression');
 }

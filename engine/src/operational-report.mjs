@@ -1,3 +1,5 @@
+import {isNativeShopifyEvent,isNativeShopifyOnSiteSignal} from './native-shopify-onsite-policy.mjs';
+import {nativeShopifyLibraryTier} from './collectors/native-shopify-onsite.mjs';
 import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';
 import {isNewEnglandProductionOnSiteSignal,isNewEnglandInventory} from './new-england-policy.mjs';
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
@@ -104,7 +106,7 @@ export function canonicalizeSignal(signal, bible) {
     bottleId,
     canonicalBottleId: bottleId,
     canonicalName,
-    tier: texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),
+    tier: nativeShopifyLibraryTier(signal,bible) ?? texasShopifyPickupLibraryTier(signal,bible) ?? groceryExpansionLibraryTier(signal,bible) ?? centralCityHiveLibraryTier(signal,bible) ?? ((signal.state === 'AZ' ? metroLibraryTier(signal, bible) : null) || record?.tier || null),
     ...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{}),
     producer: record?.producer || null,
     eventType: signal.eventType,
@@ -189,7 +191,7 @@ export function canonicalizeSignal(signal, bible) {
     baseConfidence: Number(signal.confidence || 0.35) || 0.35,
     confidence: policy.confidence,
     policyMode: policy.policyMode,
-    inventorySemantics: isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics
+    inventorySemantics: isNativeShopifyEvent(signal) ? signal.inventorySemantics : isGroceryExpansionInventory(signal) ? signal.sourceProductBinding.inventorySemantics
       : signal.state === 'NY' && signal.sourceProductBinding?.productIdentityMode === 'shopify_variant_pickup'
       ? signal.inventorySemantics
       : signal.state === 'GA' && signal.inventorySemantics
@@ -224,7 +226,12 @@ export function canonicalizeSignal(signal, bible) {
       eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
     }:{}),
     archivedSourceAlertBlocked: sourceAlertPolicy.raw?.archivedSourceAlertBlocked === true,
-    sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal),
+    ...(isNativeShopifyOnSiteSignal(signal)?{
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+    sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal) || (isNativeShopifyEvent(signal) && (!isNativeShopifyOnSiteSignal(signal) || !nativeShopifyLibraryTier(signal,bible))),
     staleSourceCaveat: signal.staleSourceCaveat || (virginiaInventoryExpired(signal) ? 'Virginia ABC inventory is older than the 24-hour live-inventory window; verify with the store.' : null),
     sampleOnly: Boolean(signal.raw?.sampleOnly),
     rawName: signal.rawName || null,

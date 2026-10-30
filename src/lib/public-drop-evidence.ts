@@ -1,3 +1,4 @@
+import {isNativeShopifyEvent,isNativeShopifyOnSiteSignal} from '../../engine/src/native-shopify-onsite-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 import { isGroceryExpansionInventory, isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveProductionOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
@@ -409,6 +410,7 @@ export function isPublicDropFeedEligible(
 ) {
   const drop = normalizePublicDropEvidenceInput(input);
   const state = stateCode(drop);
+  if(isNativeShopifyEvent(drop)&&!isNativeShopifyOnSiteSignal(drop,{nowMs:options.asOf==null?Date.now():new Date(options.asOf).getTime()}))return false;
   const reviewedSibling = reviewedNativeOverdueSiblingEvidence(drop, options);
   if (!state || options.degradedStateCodes?.has(state)
     && !independentlyAcceptedSource(drop) && !reviewedSibling) return false;

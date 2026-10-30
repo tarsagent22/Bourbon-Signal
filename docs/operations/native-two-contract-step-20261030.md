@@ -65,15 +65,13 @@ The source-specific semantic files deliberately mark all customer paths pending,
 and the standard vertical-slice validator rejects them. This is an executable
 first contract step, not permission to freeze or dispatch source evidence.
 
-Next work is the current-base canonical/public on-site consumer and full actual
-Feed/Coverage/preferences integration for these false-alert GHA rows, followed
-by truthful customer-path assertions. These collectors do not require future SQL
-scheduler ownership; no source poll IDs or SQL acceptance markers are invented.
-Only after that contract settles should the dedicated source-shadow, raw replay,
-canary and immutable issuer be added/frozen. Require genuine3source/2canary and
-owned preview proof per leaf before admission, plus actual postrelease current
-public premise acceptance before counting stores. No workflow shells are added
-at this incomplete contract stage.
+The next isolated public-consumer step is documented in
+`native-two-public-preparation-20261030.md`: its executable offline paths do not
+change these pending semantic templates or disabled authorities. Dedicated
+source-shadow, raw artifact origin verification, canary and immutable issuer
+still require a future reviewed freeze. Require genuine3source/2canary and an
+owned preview per leaf before admission, followed by actual current public
+premise acceptance before counting stores. No hosted workflow is added here.
 
 Before any eventual HTTP, recheck current-main host registrations and import/
 review every prior Wine Palace and Pogo source/host denial, unresolved attempt

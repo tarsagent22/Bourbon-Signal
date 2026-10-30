@@ -1,3 +1,4 @@
+import {isNativeShopifyEvent,isNativeShopifyOnSiteSignal} from '../../engine/src/native-shopify-onsite-policy.mjs';
 import {isNewEnglandOnSiteSignal} from '../../engine/src/new-england-policy.mjs';
 import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
@@ -76,6 +77,7 @@ export function isStoreDirectoryAnnotationSignal(drop: UserFacingDropSignal) {
 }
 
 export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
+  if(isNativeShopifyEvent(drop))return isNativeShopifyOnSiteSignal(drop);
   const type = String(drop.type ?? drop.event_type ?? "").toLowerCase();
   const state = String(drop.state ?? drop.stateCode ?? drop.state_code ?? "").toUpperCase();
   const quantity = asNumber(drop.quantity, asNumber(drop.quantity_in_stock, asNumber(drop.boardShipmentQuantity, asNumber(drop.quantity_shipped, asNumber(drop.storeQty, asNumber(drop.store_qty, asNumber(drop.warehouseQty, asNumber(drop.warehouse_qty))))))));
