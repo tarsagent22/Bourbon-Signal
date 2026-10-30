@@ -12,7 +12,7 @@ on:
         type: string
         required: true
       accepted_full_fleet_snapshot:
-        description: Current-main full-fleet snapshot/public acceptance accounts for 33 admitted states; legitimate zero/degraded/quarantined states add no current-store claims
+        description: Current-main full-fleet snapshot/public acceptance accounts for all currently admitted customer-active states; legitimate zero/degraded/quarantined/disabled states add no current-store claims
         type: boolean
         default: false
         required: true

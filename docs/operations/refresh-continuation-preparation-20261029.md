@@ -21,9 +21,9 @@ first attempts, successful schedule or verified own receipt lineage qualify.
 Any failure/cancellation/timeout stops. Unknown dispatch scope and targeted
 recovery runs cannot seed another request. No failure fingerprint or retry is
 invented. A manual bootstrap is an owner attestation that a successful current-main
-full-fleet snapshot passed actual public acceptance with 33 admitted states
-accounted for. It does **not** assert positive inventory in all 33 states:
-legitimate zero, degraded and quarantined states add no current-store claims.
+full-fleet snapshot passed actual public acceptance with all currently admitted customer-active states
+accounted for. It does **not** assert positive inventory in every admitted state:
+legitimate zero, degraded, quarantined and disabled states add no current-store claims.
 
 Every dispatch has exactly empty `states`, `sources`, Virginia store IDs,
 `force_all_states=false`, `recovery_attempt=0`, and an own-lineage incident key.

@@ -160,6 +160,7 @@ test('workflow/CI hooks stay off by default, smoke has no production runner or s
   assert.ok(workflow.includes('include-hidden-files: true'),'explicit small JSON paths under .operator must actually upload');
   assert.doesNotMatch(workflow,/BLOB_READ_WRITE_TOKEN|ENGINE_SNAPSHOT_ENCRYPTION_KEY|npm ci|refresh-feed\.yml|secrets\./);
  }
+ assert.ok(production.includes('all currently admitted customer-active states'));assert.ok(!production.includes('33 admitted states'));
  assert.ok(production.includes('workflows: [Refresh production inventory feed]'));assert.ok(relay.includes('workflows: [Refresh continuation harmless smoke]'));
  assert.ok(ci.includes('node --test scripts/test-refresh-continuation.mjs'));assert.ok(ops.includes('test-refresh-continuation.mjs'));
 });
