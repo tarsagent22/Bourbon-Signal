@@ -23,3 +23,5 @@ Evidence logs and a source patch are saved under `C:/Users/chand/Documents/Bourb
 ## Authorized release (2026-10-30)
 
 The owner approved live publication after receiving the hosted sample. PR #859 has merged and its objective lock is gone. This release is reconciled onto `a79b0a4a8b1afb5a2037f35d2aa76ba198fec834`. The new parsing cases are included in the existing Radar presentation test suite; no native dependencies or package configuration change. Publication and physical-device acceptance remain separate until verified.
+
+Fresh release validation: `npm --prefix apps/mobile run verify` and `npm run test:native-thin-slice` passed on 2026-10-30, including both native exports. Logs are retained in the external evidence folder.
