@@ -10,7 +10,7 @@ import {MN_MO_NATIVE_SOURCES,MN_MO_CORE_STORE_IDS,MN_MO_COHORTS,mnMoSourcesForSt
 import {parseMnMoCityHiveResearch} from '../src/collectors/mn-mo-cityhive-research.mjs';
 import {isMnMoCityHiveInventory,isMnMoCityHiveResearchInventory} from '../src/mn-mo-cityhive-policy.mjs';
 import {mnMoResearchSourceForState,collectMnMoCityHiveResearch} from '../src/mn-mo-cityhive-research-runtime.mjs';
-import {prepareMnMoCityHiveCandidate} from '../src/prepare-mn-mo-cityhive-candidate.mjs';
+import {prepareMnMoCityHiveCandidate,prepareMnMoCityHiveCanary} from '../src/prepare-mn-mo-cityhive-candidate.mjs';
 import {persistCityHiveIncidentJournal} from '../src/collectors/central-cityhive-transport.mjs';
 const fixtureRoot=new URL('./fixtures/mn-mo-cityhive/',import.meta.url),manifest=JSON.parse(await readFile(new URL('receipts.json',fixtureRoot),'utf8'));
 const bible=new BourbonBible(JSON.parse(gunzipSync(await readFile(new URL('bible.json.gz',fixtureRoot))).toString()).records),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -59,6 +59,7 @@ test('preparer independently replays exact bodies; synthetic workflow schemas ne
  const provenance={status:'verified_github_shadow_artifact',state,repository:'tarsagent22/Bourbon-Signal',workflowRunId:'123456789',headSha:'a'.repeat(40),currentHead:'a'.repeat(40),artifactDigest:'b'.repeat(64),artifactId:'123456'};
  const prepare=(r=report,p=provenance,nowMs=Date.now())=>prepareMnMoCityHiveCandidate({state,profile,report:r,reportDirectory,bible,provenance:p,nowMs});
  const packet=await prepare();assert.equal(packet.customerStoresAdded,0);assert.equal(packet.productionActivationAllowed,false);assert.equal(packet.customerDeliveryAllowed,false);assert.match(packet.scope,/NOT_CANARY_OR_PRODUCTION/);assert.equal(new Set(packet.rows.map(r=>r.storeId)).size,3);assert.ok(packet.rows.every(r=>isMnMoCityHiveResearchInventory(r)));
+ const canary=await prepareMnMoCityHiveCanary({state,profile,report,reportDirectory,bible,provenance});assert.equal(new Set(canary.drops.map(r=>r.storeId)).size,3);assert.ok(canary.drops.every(r=>r.previewOnly===true&&r.quantity===0&&r.canAlertAsInventory===false&&r.eligibleForDelivery===false));assert.equal(canary.customerStoresAdded,0);
  const fakeRows=structuredClone(report);fakeRows.signals=[{storeId:'invented'}];assert.deepEqual((await prepare(fakeRows)).rows,packet.rows,'Caller row/count claims are not source authority');
  await assert.rejects(()=>prepare(report,provenance,Date.now()+3*3600000),/stale/);
  const invalidClock=structuredClone(report);invalidClock.startedAt='unknown';await assert.rejects(()=>prepare(invalidClock),/Complete exact/);

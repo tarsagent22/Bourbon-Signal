@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import {mnMoCanaryImport,mnMoCanaryTierImport,mnMoCanaryBoundary} from '../engine/src/verification/historical-implementation.mjs';
 import { reverseLouisianaAlaskaHistoricalAdditions, normalizeHistoricalImplementationBytes, newEnglandTypedSemanticsBoundary, libraryAlertPolicyBoundary, originalLibraryAlertPolicyBoundary, arizonaMetroTierImport, arizonaMetroTierBoundary, originalArizonaMetroTierBoundary, groceryExpansionTierImport, groceryExpansionProofImport, groceryExpansionSemanticsBoundary, westernGroceryAlertBoundary, originalWesternGroceryAlertBoundary, centralCityHiveTierImport, texasShopifyPickupTierImport, reviewedExpansionTierBoundary, newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary, centralProductionOnSiteImport, centralProductionOnSiteBoundary } from '../engine/src/verification/historical-implementation.mjs';
 const require = createRequire(import.meta.url);
 const collector = new URL('../engine/src/collectors/mississippi-retailer-surfaces.mjs',import.meta.url);
@@ -87,7 +88,7 @@ test('FL and IN proof normalization reverse exact additions while preserving the
         'officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude',
       ].filter((field) => Object.hasOwn(signal.raw, field)).map((field) => [field, signal.raw[field]])) : undefined,
     } : {}),
-  };
+${mnMoCanaryBoundary}  };
 }
 
 function signalSort(a, b) {
@@ -107,6 +108,7 @@ function signalSort(a, b) {
     .replace("import {isNewEnglandProductionOnSiteSignal,isNewEnglandInventory} from './new-england-policy.mjs';\n",'').replace("    ...(isNewEnglandProductionOnSiteSignal(signal)?{\n      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,\n      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,\n      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,\n    }:{}),\n",'')
     .replace("import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';\n",'').replace("    ...(newEnglandLibraryTier(signal,bible)!==null?{tier:newEnglandLibraryTier(signal,bible)}:{}),\n",'')
     .replace(newEnglandTypedSemanticsBoundary, '')
+    .replace(mnMoCanaryImport,'').replace(mnMoCanaryTierImport,'').replace(mnMoCanaryBoundary,'')
     .replace(centralProductionOnSiteImport, '').replace(centralProductionOnSiteBoundary, '')
     .replace(reviewedExpansionTierBoundary, arizonaMetroTierBoundary)
     .replace(newYorkVariantSemanticsBoundary, originalNewYorkVariantSemanticsBoundary)
@@ -439,4 +441,12 @@ test('LA/AK inactive preparation permits only exact closed hooks and leaves all 
     assert.notEqual(outside,current);
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(outside))),evidence.implementationFilesSha256[name]);
   }
+});
+
+test('MN/MO isolated canary reversal requires exact closed proof, tier and false-alert bytes with original MS hash',async()=>{
+  const name='engine/src/operational-report.mjs',current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+  assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+  for(const hook of [mnMoCanaryImport,mnMoCanaryTierImport,mnMoCanaryBoundary])for(const changed of [current.replace(hook,''),current+'\n'+hook,current.replace(hook,hook.replace(/MnMo|mnMo/,'UNREVIEWED'))]){assert.notEqual(changed,current);assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(changed)),/MN\/MO .*exact historical verification hook/);}
+  for(const pair of [['isMnMoCityHiveCanaryOnSiteSignal(signal)','true'],['tier:mnMoCityHiveLibraryTier(signal,bible)','tier:"allocated"'],['canAlertAsInventory:false','canAlertAsInventory:true'],['eligibleForDelivery:false','eligibleForDelivery:true'],['raw:{...signal.raw}','raw:{shadowOnly:false}']])assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(mnMoCanaryBoundary,mnMoCanaryBoundary.replace(...pair)))),/MN\/MO .*exact historical verification hook/);
+  const changed=current.replace('const policy = confidenceForSignal(signal);','const policy = {};');assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(changed))),evidence.implementationFilesSha256[name]);
 });

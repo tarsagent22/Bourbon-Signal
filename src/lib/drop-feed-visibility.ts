@@ -1,3 +1,4 @@
+import {isMnMoCityHiveRetailerEvent,isMnMoCityHiveCanaryOnSiteSignal} from '../../engine/src/mn-mo-cityhive-policy.mjs';
 import {isNewEnglandOnSiteSignal} from '../../engine/src/new-england-policy.mjs';
 import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
@@ -154,6 +155,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && drop.inventorySemantics === "WVABCA reports that this retailer purchased the bottle within the last three months; this is a call-first purchase lead, not live shelf inventory."
     && !canAlert;
 
+  if (isMnMoCityHiveRetailerEvent(drop)) return isMnMoCityHiveCanaryOnSiteSignal(drop);
   if (isLouisianaAlaskaGroceryOnSiteSignal(drop)) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (['MA','CT','RI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNewEnglandOnSiteSignal(drop);

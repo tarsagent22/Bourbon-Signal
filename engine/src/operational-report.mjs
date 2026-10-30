@@ -1,3 +1,5 @@
+import {isMnMoCityHiveCanaryOnSiteSignal} from './mn-mo-cityhive-policy.mjs';
+import {mnMoCityHiveLibraryTier} from './collectors/mn-mo-cityhive-research.mjs';
 import {newEnglandLibraryTier} from './collectors/new-england-production-inventory.mjs';
 import {isNewEnglandProductionOnSiteSignal,isNewEnglandInventory} from './new-england-policy.mjs';
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
@@ -295,6 +297,12 @@ export function canonicalizeSignal(signal, bible) {
         'officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude',
       ].filter((field) => Object.hasOwn(signal.raw, field)).map((field) => [field, signal.raw[field]])) : undefined,
     } : {}),
+    ...(isMnMoCityHiveCanaryOnSiteSignal(signal)?{
+      tier:mnMoCityHiveLibraryTier(signal,bible),inventorySemantics:'binary_retailer_orderable_no_exact_count',previewOnly:true,raw:{...signal.raw},
+      canAlertAsInventory:false,canAlertAsWatch:false,can_alert_as_inventory:false,can_alert_as_watch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
   };
 }
 

@@ -4,6 +4,9 @@ import path from 'node:path';
 import {MN_MO_COHORTS,mnMoSourcesForState} from './collectors/mn-mo-cityhive-premises.mjs';
 import {parseMnMoCityHiveResearch} from './collectors/mn-mo-cityhive-research.mjs';
 import {isMnMoCityHiveResearchInventory} from './mn-mo-cityhive-policy.mjs';
+import {isMnMoCityHiveCanaryOnSiteSignal} from './mn-mo-cityhive-policy.mjs';
+import {canonicalizeSignal} from './operational-report.mjs';
+import {buildDrops,bibleLookup} from './export-site-contract.mjs';
 // Source-only preparation. It neither creates a canary authority nor overrides
 // inactive lifecycle or the normal customer inventory gates.
 export async function prepareMnMoCityHiveCandidate({state,profile='core5',report,reportDirectory,bible,provenance,nowMs=Date.now()}={}){
@@ -27,4 +30,21 @@ export async function prepareMnMoCityHiveCandidate({state,profile='core5',report
  if(seen.size!==sources.length)throw Error('Incomplete reviewed candidate cohort');
  return{schemaVersion:1,state,profile,scope:'RAW_REPARSED_INACTIVE_SOURCE_CANDIDATE_NOT_CANARY_OR_PRODUCTION_ADMISSION',generatedAt:report.finishedAt,cohortSha256:MN_MO_COHORTS[profile][state],workflowSource:provenance,sourceReceipts:receipts,originalSourceClockPreserved:true,selectedStoreIds:sources.map(s=>s.storeId),rows,
   requiredFutureShadowRuns:3,requiredFutureCanaryRuns:2,productionActivationAllowed:false,customerDeliveryAllowed:false,customerStoresAdded:0};
+}
+const preview=row=>({...row,previewOnly:true,raw:{...row.raw,shadowOnly:false},sourceProductBinding:{...row.sourceProductBinding,shadowOnly:false},inventorySemantics:'binary_retailer_orderable_no_exact_count',
+ canAlertAsInventory:false,canAlertAsWatch:false,can_alert_as_inventory:false,can_alert_as_watch:false,alertable:false,
+ eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false});
+export function projectMnMoCityHiveCanary(rows,bible,{nowMs=Date.now()}={}){
+ if(!Array.isArray(rows)||!rows.length||!rows.every(row=>isMnMoCityHiveResearchInventory(row,{nowMs})))throw Error('Strict current research inputs required before isolated projection');
+ const inputs=rows.map(preview);if(!inputs.every(row=>isMnMoCityHiveCanaryOnSiteSignal(row,{nowMs})))throw Error('Strict current isolated canary proof required');
+ const operational=inputs.map(row=>preview(canonicalizeSignal(row,bible))),drops=buildDrops(operational,bibleLookup(bible.records),operational).map(preview);
+ return{operational,drops};
+}
+export async function prepareMnMoCityHiveCanary(input={}){
+ const candidate=await prepareMnMoCityHiveCandidate(input),nowMs=input.nowMs??Date.now(),sources=mnMoSourcesForState(candidate.state,candidate.profile);
+ const {drops}=projectMnMoCityHiveCanary(candidate.rows,input.bible,{nowMs});
+ if(!drops.length||!drops.every(row=>isMnMoCityHiveCanaryOnSiteSignal(row,{nowMs}))||new Set(drops.map(r=>r.storeId)).size!==sources.length)throw Error('Actual engine canary projection lost a current reviewed premise');
+ return{schemaVersion:1,state:candidate.state,profile:candidate.profile,generatedAt:candidate.generatedAt,scope:'ISOLATED_MN_MO_CANARY_NOT_PRODUCTION_ADMISSION',originalSourceClockPreserved:true,workflowSource:candidate.workflowSource,sourceReceipts:candidate.sourceReceipts,sourceCohortSha256:candidate.cohortSha256,
+  locations:sources.map(s=>({id:s.storeId,storeId:s.storeId,state:s.state,name:s.name,storeName:s.name,address:s.address,storeAddress:s.address,city:s.city,zip:s.zip,lat:s.lat,lng:s.lng,type:'store',locationType:'store',source:s.sourceLabel,precision:'store_level',searchable:true,collectorAttached:true,hasSignals:true})),drops,
+  productionActivationAllowed:false,customerDeliveryAllowed:false,customerStoresAdded:0};
 }

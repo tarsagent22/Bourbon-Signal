@@ -29,3 +29,14 @@ export function isMnMoCityHiveResearchInventory(row,options){
   &&row.eligibleForOnSite===false&&row.eligibleForDropFeed===false&&row.eligibleForWatch===false
   &&row.eligibleForDelivery===false&&row.deliveryEligible===false&&row.eligibleForEmail===false&&row.eligibleForSms===false;
 }
+export const isMnMoCityHiveRetailerEvent=row=>['MN','MO'].includes(row?.state)&&['retailer_store_inventory_result','cityhive_store_inventory_result'].includes(row?.eventType||row?.type);
+export function isMnMoCityHiveCanaryOnSiteSignal(row,options){
+ const p=row?.sourceProductBinding,source=mnMoSourcesForState(row?.state,p?.profile).find(s=>s.storeId===row?.storeId);
+ return Boolean(source)&&isMnMoCityHiveInventory(row,options)&&row.previewOnly===true&&row.researchOnly!==true&&row.customerVisible!==false
+  &&row.sourceRuntimeId===mnMoResearchRuntimeId(source,p.profile)&&p.shadowOnly===false&&row.raw?.shadowOnly===false
+  &&row.raw?.cacheFallback!==true&&p.productionOnSiteOnly!==true&&!p.productionCohortSha256
+  &&row.inventorySemantics==='binary_retailer_orderable_no_exact_count'
+  &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.can_alert_as_inventory===false&&row.can_alert_as_watch===false&&row.alertable===false
+  &&row.eligibleForOnSite===true&&row.eligibleForDropFeed===true&&row.eligibleForWatch===false
+  &&row.eligibleForDelivery===false&&row.deliveryEligible===false&&row.eligibleForEmail===false&&row.eligibleForSms===false;
+}

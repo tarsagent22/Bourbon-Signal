@@ -1,3 +1,4 @@
+import {isMnMoCityHiveRetailerEvent,isMnMoCityHiveCanaryOnSiteSignal} from './mn-mo-cityhive-policy.mjs';
 import {isNewEnglandRetailerEvent,isNewEnglandInventory,isNewEnglandProductionOnSiteSignal,isNewEnglandOnSiteSignal} from './new-england-policy.mjs';
 import {isNjMiRetailerEvent,isNjMiResearchInventory,isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import {isLouisianaAlaskaGroceryInventory,isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';
@@ -433,7 +434,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
   const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal);
-  const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal)||isNewEnglandProductionOnSiteSignal(signal);
+  const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal)||isNewEnglandProductionOnSiteSignal(signal)||isMnMoCityHiveCanaryOnSiteSignal(signal);
   const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory;
   const isMetroInventory = isMetroRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
@@ -558,6 +559,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
     sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
+    ...(isMnMoCityHiveCanaryOnSiteSignal(signal)?{previewOnly:true,can_alert_as_inventory:false,can_alert_as_watch:false,deliveryEligible:false}:{}),
     productHandle: signal.productHandle || signal.raw?.product?.handle || null,
     productCode: virginiaProof.codeConflict ? null : (signal.productCode || signal.raw?.product?.code || null),
     ncCode: signal.ncCode || signal.raw?.ncCode || signal.raw?.NCCODE || null,
@@ -679,7 +681,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
       platformStoreId: signal.raw?.platformStoreId || null,
       permitNumber: signal.raw?.permitNumber || signal.permitNumber || null,
       sourceRuntimeNonAlertable: signal.raw?.sourceRuntimeNonAlertable === true,
-    } : undefined,
+    } : isMnMoCityHiveCanaryOnSiteSignal(signal) ? {chain:signal.raw.chain,reportedQuantity:signal.raw.reportedQuantity,shadowOnly:false} : undefined,
     sourceStale: signal.sourceStale === true || ohioFeedStaleCaveat(signal),
     stale: staleFallback,
     staleSourceCaveat: signal.staleSourceCaveat || (ohioFeedStaleCaveat(signal)
@@ -744,7 +746,7 @@ function isFastMovingStoreInventory(signal) {
   if (signal.locationPrecision !== 'store_level') return false;
   if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)
     && !isReviewedResearchGrocery(signal) && !isCentralCityHiveProductionOnSiteSignal(signal) && !isNjMiProductionOnSiteSignal(signal)
-    && !isNewEnglandOnSiteSignal(signal)) return false;
+    && !isNewEnglandOnSiteSignal(signal) && !isMnMoCityHiveCanaryOnSiteSignal(signal)) return false;
   if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
@@ -1088,7 +1090,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
-  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)||isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal)||isNewEnglandProductionOnSiteSignal(signal)));
+  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal) || isReviewedResearchGrocery(signal)||isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal)||isNewEnglandProductionOnSiteSignal(signal)||isMnMoCityHiveCanaryOnSiteSignal(signal)));
   const sameStore = (left, right) => {
     if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);
     return left.state === right.state
@@ -1220,6 +1222,7 @@ function hasPositiveAvailabilityStatus(signal) {
 }
 
 function isUserFacingDropSignal(signal) {
+  if(isMnMoCityHiveRetailerEvent(signal))return isMnMoCityHiveCanaryOnSiteSignal(signal);
   if (['WA', 'NM', 'LA', 'AK'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isNewEnglandRetailerEvent(signal))return isNewEnglandInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
@@ -1333,6 +1336,7 @@ function aggregateLeadIdentity(signal) {
 }
 
 function isSafePublicSignal(signal, shopifyPolicy) {
+  if(isMnMoCityHiveRetailerEvent(signal))return isMnMoCityHiveCanaryOnSiteSignal(signal);
   if (['WA', 'NM', 'LA', 'AK'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isNewEnglandRetailerEvent(signal))return isNewEnglandInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
@@ -1998,6 +2002,7 @@ function ohioFeedStaleCaveat(signal) {
 }
 
 export function dropHasPositiveAlertInventory(drop, shopifyPolicy) {
+  if(isMnMoCityHiveRetailerEvent(drop))return isMnMoCityHiveCanaryOnSiteSignal(drop);
   if(isNewEnglandRetailerEvent(drop))return isNewEnglandInventory(drop)&&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding?.shadowOnly!==true;
   if(isNjMiRetailerEvent(drop))return isNjMiResearchInventory(drop)&&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(drop))return isCentralCityHiveInventory(drop)&&drop.raw?.shadowOnly!==true&&drop.sourceProductBinding?.shadowOnly!==true;

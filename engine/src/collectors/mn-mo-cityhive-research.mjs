@@ -1,6 +1,8 @@
 import {MINNESOTA_CITYHIVE_EXPANSION_SOURCES,MIDWEST_CITYHIVE_EXPANSION_SOURCES,parseCentralCityHiveInventory} from './central-cityhive-expansion.mjs';
 import {MN_MO_COHORTS,mnMoSourcesForState,mnMoResearchRuntimeId} from './mn-mo-cityhive-premises.mjs';
-import {isMnMoCityHiveResearchInventory} from '../mn-mo-cityhive-policy.mjs';
+import {isMnMoCityHiveResearchInventory,isMnMoCityHiveInventory} from '../mn-mo-cityhive-policy.mjs';
+import {cityHiveSafeBottleMatch} from './safe-bottle-match.mjs';
+import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 const legacy=[...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES];
 export function parseMnMoCityHiveResearch(text,source,bible,{observedAt,profile='core5',onVerifiedPremise}={}){
  if(!mnMoSourcesForState(source?.state,profile).includes(source))throw Error('Exact reviewed MN/MO native premise required');
@@ -11,4 +13,10 @@ export function parseMnMoCityHiveResearch(text,source,bible,{observedAt,profile=
   eligibleForOnSite:false,eligibleForDropFeed:false,eligibleForWatch:false,eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
   sourceProductBinding:{...row.sourceProductBinding,source:'mn-mo-native-cityhive',collectorVersion:'mn-mo-native-cityhive-v1',profile,cohortSha256:MN_MO_COHORTS[profile][source.state],shadowOnly:true},raw:{...row.raw,shadowOnly:true}}))
   .filter(row=>isMnMoCityHiveResearchInventory(row,{nowMs:Date.parse(observedAt)}));
+}
+export function mnMoCityHiveLibraryTier(row,bible,{nowMs=Date.now()}={}){
+ if(!isMnMoCityHiveInventory(row,{nowMs}))return null;
+ const {record,match}=cityHiveSafeBottleMatch(row.sourceProductBinding.identityName,bible);
+ if(!record||match?.confidence!==1||record.id!==row.canonicalBottleId||record.canonical!==row.canonicalName||record.libraryAlertEligible===false)return null;
+ return centralCityHiveRecordMarketTier(record,row.state);
 }

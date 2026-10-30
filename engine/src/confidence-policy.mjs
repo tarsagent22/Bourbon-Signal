@@ -1,3 +1,4 @@
+import {isMnMoCityHiveCanaryOnSiteSignal,isMnMoCityHiveRetailerEvent} from './mn-mo-cityhive-policy.mjs';
 import {isNewEnglandProductionOnSiteSignal} from './new-england-policy.mjs';
 import {isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import {isLouisianaAlaskaGroceryInventory} from './louisiana-alaska-grocery-policy.mjs';
@@ -189,6 +190,7 @@ const COSTCO_WAREHOUSE_POLICY = {
 };
 
 function policyForSignal(signal, nowMs = Date.now()) {
+  if(isMnMoCityHiveCanaryOnSiteSignal(signal,{nowMs}))return{maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:'binary_retailer_orderable_no_exact_count',defaultCadence:'research-only'};
   if(isNewEnglandProductionOnSiteSignal(signal,{nowMs}))return{maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:'Reviewed exact-store pickup with explicit option restrictions and preorder exclusions. Binary availability is not a shelf count; verify before driving.',defaultCadence:'30m'};
   if(isCentralCityHiveProductionOnSiteSignal(signal,{nowMs})||isNjMiProductionOnSiteSignal(signal,{nowMs}))return{
     maxAlertMode:'onsite_retailer_store_inventory_caveat',inventorySemantics:'Reviewed exact-store pickup availability; binary availability is not an exact shelf count. Verify before driving.',defaultCadence:'30m'};
@@ -346,7 +348,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
   const virginiaInventoryExpired = signal.state === 'VA'
     && /store_inventory/i.test(eventType)
     && (!Number.isFinite(virginiaObservedAt) || Date.now() - virginiaObservedAt > VIRGINIA_INVENTORY_MAX_AGE_MS);
-  const runtimeAlertBlocked = signal.stale === true
+  const runtimeAlertBlocked = isMnMoCityHiveRetailerEvent(signal) || signal.stale === true
     || (signal.state === 'SC' && isSouthCarolinaLiquorLibrarySignal(signal) && !isSouthCarolinaLiquorLibraryInventory(signal, nowMs))
     || (signal.state === 'VA' && eventType === 'store_inventory_negative_balance')
     || signal.sourceStale === true

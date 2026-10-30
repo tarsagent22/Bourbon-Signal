@@ -16,6 +16,15 @@ const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-l
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
 const normalizedVerifierRead = `normalizeHistoricalImplementationBytes(file, ${originalVerifierRead})`;
+export const mnMoCanaryImport = "import {isMnMoCityHiveCanaryOnSiteSignal} from './mn-mo-cityhive-policy.mjs';\n";
+export const mnMoCanaryTierImport = "import {mnMoCityHiveLibraryTier} from './collectors/mn-mo-cityhive-research.mjs';\n";
+export const mnMoCanaryBoundary = `    ...(isMnMoCityHiveCanaryOnSiteSignal(signal)?{
+      tier:mnMoCityHiveLibraryTier(signal,bible),inventorySemantics:'binary_retailer_orderable_no_exact_count',previewOnly:true,raw:{...signal.raw},
+      canAlertAsInventory:false,canAlertAsWatch:false,can_alert_as_inventory:false,can_alert_as_watch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`;
 const indianaCandidateProof = "    ...(sig.state === 'IN' ? { sourceProductBinding: sig.sourceProductBinding || null } : {}),\n";
 export const libraryAlertPolicyBoundary = `  const sourceAlertPolicy = { ...enforceArchivedSourceAlertPolicy(signal) };
   if (record?.libraryAlertEligible === false) {
@@ -82,6 +91,12 @@ export function reverseLouisianaAlaskaHistoricalAdditions(name, text) {
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
   bytes=normalizeNineStateAdmissionMetadata(name,bytes);
+  if(name==='engine/src/operational-report.mjs'){
+    let text=replaceUnique(bytes.toString('utf8'),mnMoCanaryImport,'',name+': MN/MO canary-only import');
+    text=replaceUnique(text,mnMoCanaryTierImport,'',name+': MN/MO reviewed tier import');
+    text=replaceUnique(text,mnMoCanaryBoundary,'',name+': MN/MO canary-only false-alert boundary');
+    bytes=Buffer.from(text);
+  }
   if (louisianaAlaskaBaseline.files[name]) bytes = Buffer.from(reverseLouisianaAlaskaHistoricalAdditions(name, bytes.toString('utf8')));
   if (name === 'engine/src/operational-report.mjs') {
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));

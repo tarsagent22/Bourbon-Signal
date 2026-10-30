@@ -1,3 +1,4 @@
+import {isMnMoCityHiveRetailerEvent,isMnMoCityHiveCanaryOnSiteSignal} from '../../engine/src/mn-mo-cityhive-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 import { isGroceryExpansionInventory, isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveProductionOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
@@ -416,6 +417,7 @@ export function isPublicDropFeedEligible(
   // overdue-sibling exception. It never adds a quantity to the returned row.
   const proofDrop = reviewedSibling && state !== "CA" ? nativeBinaryProofInput(drop) : drop;
   const retailer = isVerifiedRetailerDrop(drop);
+  if(!retailer && isMnMoCityHiveRetailerEvent(drop) && !isMnMoCityHiveCanaryOnSiteSignal(drop,{nowMs:asTimestamp(options.asOf)}))return false;
   const sourceRuntimeRaw = drop.raw && typeof drop.raw === 'object' ? drop.raw as Record<string, unknown> : null;
   if (!retailer && ['WA', 'NM'].includes(state) && String(drop.type) === 'retailer_store_inventory_result'
     && (!isGroceryExpansionInventory(proofDrop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
