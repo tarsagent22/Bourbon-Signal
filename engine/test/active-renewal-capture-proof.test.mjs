@@ -125,3 +125,13 @@ test('reviewed WA catalog204 participates in full raw zero replay; unbound and b
   const changed=await apply(payload);await assert.rejects(()=>verifyActiveRenewalRawCaptures({...input,report:changed,lifecycle:input.lifecycleConfig}));await assert.rejects(()=>prepareGroceryCanary({...input,report:changed}));
  }
 });
+
+test('ordinary nonrenewal grocery replay cannot hide backend408 behind other independently positive captures',async t=>{
+ const directory=await mkdtemp(path.join(tmpdir(),'synthetic-grocery-initial-raw-'));t.after(()=>rm(directory,{recursive:true,force:true}));const input=await activeRenewalGroceryFixture({state:'WA',directory,bible}),report=structuredClone(input.report);delete report.metadata.manualActiveRenewal;
+ const fixture=JSON.parse(await readFile(new URL('./fixtures/washington-xapi-expansion/identity.json',import.meta.url))),indices=report.metadata.receipts.map((r,i)=>new URL(r.url).pathname.includes('search/substitute')?i:-1).filter(i=>i>=0).slice(0,2);
+ const write=async(index,payload)=>{const receipt=report.metadata.receipts[index],body=Buffer.from(JSON.stringify(payload));receipt.sha256=hash(body);receipt.bytes=body.length;await writeFile(path.join(directory,receipt.artifactPath),body);};
+ for(const index of indices){const store=new URL(report.metadata.receipts[index].url).searchParams.get('storeid');await write(index,{response:{docs:fixture.products.map(p=>({...p,storeId:store}))}});}
+ assert.ok((await prepareGroceryCanary({...input,report})).drops.length>0);
+ const store=new URL(report.metadata.receipts[indices[1]].url).searchParams.get('storeid');await write(indices[1],{appCode:'GR200 :: A-CT: 408',response:{docs:fixture.products.map(p=>({...p,storeId:store}))}});
+ await assert.rejects(()=>prepareGroceryCanary({...input,report}),/Unreviewed/);
+});

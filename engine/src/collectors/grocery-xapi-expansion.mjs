@@ -55,9 +55,9 @@ export function isGroceryExpansionEmptySearch(payload,source,term,{httpStatus}={
     &&filter.includes(`(inventory(${source.merchantId},attributes.custom_type_2) = 1)`);
 }
 
-function isCompleteProductSearch(payload,source){
+export function isGroceryExpansionProductSearch(payload,source){
   const docs=payload?.response?.docs;
-  return payload?.appCode!=='GR200 :: A-CT: 408'&&Array.isArray(docs)&&docs.length>0&&docs.length<=100
+  return WESTERN_GROCERY_EXPANSION_SOURCES.includes(source)&&payload?.appCode!=='GR200 :: A-CT: 408'&&Array.isArray(docs)&&docs.length>0&&docs.length<=100
     &&docs.every(product=>product&&typeof product.name==='string'&&product.name
       &&String(product.id)===String(product.pid)&&/^\d+$/.test(String(product.id))
       &&String(product.storeId)===source.merchantId&&typeof product.containsAlcohol==='boolean'
@@ -143,7 +143,7 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
       if(!response?.ok){sourceComplete=false;break;}
       let payload;try{payload=JSON.parse(response.text);}catch{sourceComplete=false;break;}
       if(isGroceryExpansionEmptySearch(payload,source,term,{httpStatus:response.status}))continue;
-      if(!isCompleteProductSearch(payload,source)){sourceComplete=false;break;}
+      if(!isGroceryExpansionProductSearch(payload,source)){sourceComplete=false;break;}
       for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
     }
     if(!sourceComplete)complete=false;

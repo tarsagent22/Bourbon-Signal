@@ -4,7 +4,7 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {BourbonBible} from './core/bible.mjs';
 import {LOUISIANA_ALASKA_GROCERY_SOURCES,LOUISIANA_ALASKA_RESOLVER_ZIPS} from './collectors/louisiana-alaska-grocery-premises.mjs';
-import {louisianaAlaskaGroceryPremiseMatches,parseLouisianaAlaskaGroceryInventory,isLouisianaAlaskaGroceryEmptySearch,classifyLouisianaAlaskaQuery,hasLouisianaAlaskaPositiveEvidenceOnly} from './collectors/louisiana-alaska-grocery-expansion.mjs';
+import {louisianaAlaskaGroceryPremiseMatches,parseLouisianaAlaskaGroceryInventory,classifyLouisianaAlaskaQuery,hasLouisianaAlaskaPositiveEvidenceOnly} from './collectors/louisiana-alaska-grocery-expansion.mjs';
 import {verifyLouisianaAlaskaPositiveCaptures} from './louisiana-alaska-grocery-positive-proof.mjs';
 import {isLouisianaAlaskaGroceryInventory} from './louisiana-alaska-grocery-policy.mjs';
 import {canonicalizeSignal} from './operational-report.mjs';
@@ -49,10 +49,10 @@ export async function prepareLouisianaAlaskaCanary({state,report,reportDirectory
       }
     }else{
       const source=sources.find(s=>s.host===url.hostname&&s.merchantId===url.searchParams.get('storeid')&&s.banner===url.searchParams.get('banner'));
+      const disposition=classifyLouisianaAlaskaQuery(payload,source,url.searchParams.get('q'),{httpStatus:receipt.status});
       if(!source||url.pathname!=='/abs/pub/xapi/search/substitute'||url.searchParams.get('channel')!=='instore'
         ||url.searchParams.get('rows')!=='100'||url.searchParams.get('start')!=='0'
-        ||(!Array.isArray(payload.response?.docs)&&!isLouisianaAlaskaGroceryEmptySearch(payload,source,url.searchParams.get('q'))
-          &&!(positiveAudit&&classifyLouisianaAlaskaQuery(payload,source,url.searchParams.get('q'),{httpStatus:receipt.status})==='UNCONFIRMED_EMPTY_QUERY')))throw new Error('Unreviewed store/channel inventory capture');
+        ||!(['BOUND_PRODUCTS','CONFIRMED_EMPTY'].includes(disposition)||positiveAudit&&disposition==='UNCONFIRMED_EMPTY_QUERY'))throw new Error('Unreviewed store/channel inventory capture');
       inventories.push({source,payload,observedAt:receipt.observedAt,term:url.searchParams.get('q')});
     }
     receipts.push({url:receipt.url,observedAt:receipt.observedAt,sha256:receipt.sha256});

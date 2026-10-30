@@ -84,7 +84,8 @@ export function hasLouisianaAlaskaPositiveEvidenceOnly(metadata,rows,state){
 }
 
 export function parseLouisianaAlaskaGroceryInventory(payload, source, bible, {observedAt}={}) {
-  if(!LOUISIANA_ALASKA_GROCERY_SOURCES.includes(source) || !Number.isFinite(Date.parse(observedAt)))return [];
+  if(!LOUISIANA_ALASKA_GROCERY_SOURCES.includes(source) || !Number.isFinite(Date.parse(observedAt))
+    ||payload?.appCode==='GR200 :: A-CT: 408')return [];
   return parseBoundGroceryXapiInventory(payload,source,bible).filter(row=>!(row.record.canonical==='Wild Turkey Master'&&!/\bmaster\b/i.test(row.title)) && currentDropTarget(row.record,source.stateCode) && Number.isFinite(row.price) && row.price>0).map(row=>({
     id:stableId([source.stateCode,'grocery-xapi',source.merchantId,row.productId]),state:source.stateCode,stateCode:source.stateCode,
     sourceLabel:source.sourceLabel,sourceUrl:`https://${source.host}/shop/product-details.${row.productId}.html`,

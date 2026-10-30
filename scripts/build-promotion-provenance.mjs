@@ -260,6 +260,8 @@ if (['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state)) files.push(
   'engine/src/prepare-central-cityhive-canary.mjs',
   'engine/test/canary-native-health.test.mjs',
   'engine/test/grocery-empty-search.test.mjs',
+  'engine/test/active-renewal-capture-proof.test.mjs',
+  'engine/test/helpers/active-renewal-capture-fixture.mjs',
   'engine/test/fixtures/grocery-wa-catalog-empty.json',
   'engine/test/fixtures/grocery-la-unbound-empty.json',
   'engine/test/fixtures/grocery-wa-backend-timeout.json',

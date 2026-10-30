@@ -5,6 +5,8 @@ import {fixture,mockedCompleteGroceryFetch,syntheticPromotedGroceryConfig,synthe
 import {collectLouisianaAlaskaResearchReport,louisianaAlaskaResearchSourceForState}from'../src/research-louisiana-alaska-grocery-runtime.mjs';
 import {verifyLouisianaAlaskaPositiveCaptures,verifiedLouisianaAlaskaPositiveReport,assertLouisianaAlaskaPositiveCanaryProfile}from'../src/louisiana-alaska-grocery-positive-proof.mjs';
 import {prepareLouisianaAlaskaCanary}from'../src/prepare-louisiana-alaska-canary.mjs';
+import {parseLouisianaAlaskaGroceryInventory}from'../src/collectors/louisiana-alaska-grocery-expansion.mjs';
+import {LOUISIANA_ALASKA_GROCERY_SOURCES}from'../src/collectors/louisiana-alaska-grocery-premises.mjs';
 import {buildShadowEvidence}from'../src/run-expansion-shadow.mjs';
 import {verifyActiveRenewalRawCaptures}from'../src/active-renewal-capture-proof.mjs';
 import {collectLouisianaAlaskaGroceryProductionSource}from'../src/collectors/louisiana-alaska-grocery-production.mjs';
@@ -15,7 +17,7 @@ const bible=new BourbonBible(fixture.records),bare=await readFile(new URL('./fix
 function mock({zero=false,onRequest=()=>{}}={}){const base=mockedCompleteGroceryFetch('LA',onRequest);let used=false;return async u=>{const url=new URL(u),q=url.searchParams.get('q');if(q&&!used&&!['bourbon','whiskey'].includes(q)){used=true;onRequest(u);return{ok:true,status:200,url:u,text:bare};}if(zero&&q){onRequest(u);return{ok:true,status:200,url:u,text:JSON.stringify({appCode:'GR204',response:{numFound:0,start:0,miscInfo:{query:q,filter:`(inventory(${url.searchParams.get('storeid')}, price) >0) AND (inventory(${url.searchParams.get('storeid')},attributes.custom_type_2) = 1)`}}})};}return base(u);};}
 async function setup(t,options={}){const directory=await mkdtemp(path.join(tmpdir(),'synthetic-la-positive-only-'));t.after(()=>rm(directory,{recursive:true,force:true}));
  const env={BOURBON_SIGNAL_SHADOW_MODE:'1',GITHUB_ACTIONS:'true',GITHUB_RUN_ID:'123',GITHUB_SHA:'a'.repeat(40),GITHUB_REPOSITORY:'tarsagent22/Bourbon-Signal'};
- const report=await collectLouisianaAlaskaResearchReport(louisianaAlaskaResearchSourceForState('LA'),bible,{env,reportDirectory:directory,incidentDir:path.join(directory,'incidents'),cursorDir:path.join(directory,'cursor'),sleep:async()=>{},fetchText:mock(options)});
+ const report=await collectLouisianaAlaskaResearchReport(louisianaAlaskaResearchSourceForState('LA'),bible,{env,reportDirectory:directory,incidentDir:path.join(directory,'incidents'),cursorDir:path.join(directory,'cursor'),sleep:async()=>{},fetchText:options.complete?mockedCompleteGroceryFetch('LA'):mock(options)});
  return{state:'LA',report,reportDirectory:directory,bible,provenance:{status:'verified_github_shadow_artifact',state:'LA',repository:env.GITHUB_REPOSITORY,workflowRunId:'123',headSha:env.GITHUB_SHA,currentHead:env.GITHUB_SHA,artifactDigest:'b'.repeat(64)}};}
 
 test('full raw positive-only profile keeps complete false and carries exact unconfirmed caveat through canary',async t=>{
@@ -32,6 +34,14 @@ test('all-zero plus no-echo remains incomplete and cannot qualify even with forg
  await assert.rejects(()=>prepareLouisianaAlaskaCanary(input));await assert.rejects(()=>verifyLouisianaAlaskaPositiveCaptures(input));
  const positive=await setup(t),forged=structuredClone(input.report);forged.metadata.profileScope='POSITIVE_EVIDENCE_ONLY';forged.signals=positive.report.signals;forged.sources=positive.report.sources;forged.sourceResults=positive.report.sourceResults;
  await assert.rejects(()=>verifyLouisianaAlaskaPositiveCaptures({...input,report:forged}));assert.equal(verifiedLouisianaAlaskaPositiveReport(forged),null);
+});
+
+test('ordinary complete LA raw replay independently rejects backend408 despite other valid stock and complete markers',async t=>{
+ const input=await setup(t,{complete:true});assert.equal(input.report.metadata.complete,true);assert.ok((await prepareLouisianaAlaskaCanary(input)).drops.length>0);
+ const at=input.report.metadata.receipts.findIndex(r=>new URL(r.url).pathname.includes('search/substitute')),receipt=input.report.metadata.receipts[at],file=path.join(input.reportDirectory,receipt.artifactPath),original=JSON.parse(await readFile(file,'utf8'));
+ for(const response of [original.response,{docs:[]},undefined]){const payload={appCode:'GR200 :: A-CT: 408',...(response?{response}:{})},report=structuredClone(input.report),body=Buffer.from(JSON.stringify(payload));report.metadata.receipts[at].bytes=body.length;report.metadata.receipts[at].sha256=sha(body);await writeFile(file,body);await assert.rejects(()=>prepareLouisianaAlaskaCanary({...input,report}),/Unreviewed/);
+  const url=new URL(receipt.url),source=LOUISIANA_ALASKA_GROCERY_SOURCES.find(s=>s.merchantId===url.searchParams.get('storeid')&&s.stateCode==='LA');assert.deepEqual(parseLouisianaAlaskaGroceryInventory(payload,source,bible,{observedAt:receipt.observedAt}),[]);
+ }
 });
 
 test('raw replay rejects fake counts, product proof, missing profiles, stale/denied/redirected and malformed source bodies',async t=>{
