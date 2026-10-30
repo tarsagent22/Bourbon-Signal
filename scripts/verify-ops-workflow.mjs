@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const root = process.cwd();
 const failures = [];
@@ -416,11 +417,31 @@ if (!/pidAlive\) \{[\s\S]*?return false;/.test(refreshSite)) {
   fail('engine/src/refresh-site.mjs should never ignore a live refresh lock just because the run is older than the stale-lock threshold.');
 }
 const fwgsFreshnessPolicy = read('engine/src/fwgs-publication-freshness.mjs');
-if (!/browserCollectorRefreshDecision/.test(refreshSite) || !/lastBrowserRefreshAt/.test(fwgsFreshnessPolicy) || /lastBrowserAttemptAt/.test(fwgsFreshnessPolicy) || !/FWGS_PUBLICATION_HEADROOM_MS = 30 \* 60_000/.test(fwgsFreshnessPolicy)) {
-  fail('engine/src/refresh-site.mjs should throttle successful FWGS refreshes while allowing a failed latest attempt to retry on the next scheduled run.');
+if (!/browserCollectorRefreshDecision/.test(refreshSite) || !/lastBrowserRefreshAt:\s*last\?\.lastBrowserRefreshAt/.test(refreshSite) || /lastBrowserAttemptAt/.test(fwgsFreshnessPolicy)
+ || !/if \(browserOk\) lastBrowserRefreshAt =/.test(refreshSite)) {
+  fail('The FWGS controller must use the last successful browser clock, never a failed attempt, and advance it only after successful FWGS collection.');
+}
+const fwgsPolicy = await import(pathToFileURL(path.join(root, 'engine/src/fwgs-publication-freshness.mjs')).href);
+if (fwgsPolicy.FWGS_PUBLICATION_MAX_AGE_MS !== 120 * 60_000 || fwgsPolicy.FWGS_PUBLICATION_HEADROOM_MS !== 95 * 60_000
+ || fwgsPolicy.FWGS_REUSABLE_SOURCE_MAX_AGE_MS !== 25 * 60_000 || fwgsPolicy.FWGS_REUSABLE_CHUNK_MAX_AGE_MS !== 5 * 60_000
+ || fwgsPolicy.fwgsReuseAgeLimit(120 * 60_000) !== 25 * 60_000 || fwgsPolicy.fwgsChunkReuseAgeLimit(120 * 60_000) !== 5 * 60_000) {
+  fail('FWGS must retain the 120-minute publication ceiling and enforce reviewed 25-minute artifact/controller and five-minute chunk reuse ceilings.');
+}
+// Pure offline timing checks: these sentinels are not collected inventory.
+const fwgsCheckNow = Date.parse('2026-10-29T12:00:00Z');
+const fwgsDecision = (ageMinutes, successMinutes, options = {}) => fwgsPolicy.browserCollectorRefreshDecision({
+  rawStates: 'PA', nowMs: fwgsCheckNow, browserRefreshMinutes: 240,
+  lastBrowserRefreshAt: new Date(fwgsCheckNow - successMinutes * 60_000).toISOString(),
+  lastBrowserAttemptAt: new Date(fwgsCheckNow).toISOString(),
+  fwgsArtifact: { generatedAt: new Date(fwgsCheckNow - ageMinutes * 60_000).toISOString(), inventoryEndpoint: '/ccstorex/custom/v1/b2b/get-inventory' }, ...options,
+});
+if (fwgsDecision(25, 10).due || !fwgsDecision(25 + 1 / 60_000, 10).fwgsOnly || !fwgsDecision(20, 241).due
+ || fwgsDecision(26, 10, { skip: true }).due) {
+  fail('FWGS must throttle a fresh successful artifact, retry after a failed attempt, refresh overdue original evidence, and preserve explicit browser holds.');
 }
 const fwgsFull = read('engine/src/fwgs-browser-full.mjs');
-if (!/ALLOW_PARTIAL/.test(fwgsFull) || !/leaving previous full artifact untouched/.test(fwgsFull) || !/readUsableChunk/.test(fwgsFull)) {
+if (!/ALLOW_PARTIAL/.test(fwgsFull) || !/leaving previous full artifact untouched/.test(fwgsFull) || !/readUsableChunk/.test(fwgsFull)
+ || !/CHUNK_REUSE_MAX_AGE_MS = fwgsChunkReuseAgeLimit\(/.test(fwgsFull) || !/fwgsPublicationFreshness\(merged\)/.test(fwgsFull)) {
   fail('FWGS full browser refresh should be all-or-nothing by default, with valid recent chunk fallback, so partial chunk failures do not degrade production coverage.');
 }
 const ncCollector = read('engine/src/collectors/north-carolina-intelligence.mjs');
