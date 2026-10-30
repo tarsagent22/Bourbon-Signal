@@ -20,6 +20,7 @@ async function collectCapture(capture, { products = capture.products, stores = [
   return collectArizonaAlbertsons({ id: 'AZ' }, bible, capture.observedAt, {
     zips: [capture.store.address.zipcode],
     maxStores: 1,
+    priorityQueries: false,
     nowMs: Date.parse(capture.observedAt),
     sleep: async () => {},
     matchProduct,

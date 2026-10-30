@@ -8,6 +8,7 @@ import {collectGroceryExpansion} from './grocery-xapi-expansion.mjs';
 import {CALIFORNIA_GROCERY_SOURCES} from './california-grocery-premises.mjs';
 
 export const CALIFORNIA_GROCERY_RUNTIME_ID='ca:grocery-xapi';
+export const CALIFORNIA_GROCERY_SOURCE_TIMEOUT_MS=26*60_000;
 export const CALIFORNIA_GROCERY_CACHE_MAX_AGE_MS=30*60_000;
 export function californiaGroceryCohortKey(sources=CALIFORNIA_GROCERY_SOURCES){
   return createHash('sha256').update(JSON.stringify(['strict-grocery-proof-v1',sources.map(source=>[

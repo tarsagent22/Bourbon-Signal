@@ -9,10 +9,10 @@ import { stripHtml } from './core/text.mjs';
 import { arizonaXapiLibraryIdentity } from './collectors/arizona-xapi-library-identity.mjs';
 import { metroBottleMatch } from './collectors/arizona-metro-retailer-proof.mjs';
 import { isPublicDropFeedEligible } from '../../src/lib/public-drop-evidence.ts';
-import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT } from './collectors/arizona-xapi.mjs';
+import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_RELEASED_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT, ARIZONA_XAPI_PRIORITY_TERMS } from './collectors/arizona-xapi.mjs';
 
 export const ARIZONA_EXPANSION_EXPECTATIONS = Object.freeze({
-  minimumSelectedStores: 134, minimumBaselineStores: 24, minimumAddedStores: 110,
+  minimumSelectedStores: 138, minimumBaselineStores: 24, minimumAddedStores: 114,
   minimumPositiveXapiStores: 120, minimumAddedPublicStores: 95, minimumPublicRows: 450,
   minimumNewSelectedStores: 6, minimumNewPublicStores: 4,
   minimumReviewedDepthRows: 120, minimumSmartFinalStores: 2,
@@ -45,7 +45,7 @@ function sentinelPromotion(row) {
 }
 
 function validPremises(entry) {
-  return /^(?:safeway|albertsons):\d{2,6}$/.test(String(entry?.storeId || ''))
+  return /^(?:safeway|albertsons):\d{1,6}$/.test(String(entry?.storeId || ''))
     && typeof entry?.city === 'string' && /[a-z]/i.test(entry.city)
     && typeof entry?.address === 'string' && /^\d[^,]*,\s*[^,]+,\s*AZ\s+\d{5}(?:-\d{4})?$/.test(entry.address)
     && text(entry.address.match(/,\s*([^,]+),\s*AZ\s+\d{5}/)?.[1]) === text(entry.city);
@@ -56,7 +56,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const check = (condition, message) => { if (!condition) errors.push(message); };
   const expected = { ...ARIZONA_EXPANSION_EXPECTATIONS, ...expectations };
   const libraryBible = { records: bibleRecords || libraryRecords.map(bottle => ({ id: bottle.id, canonical: bottle.canonicalName, libraryIdentities: [bottle] })) };
-  const allowedTerms = new Set(['bourbon', 'whiskey', "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...librarySearchPool({records:libraryRecords.map(bottle => ({libraryIdentities:[bottle]}))})]);
+  const allowedTerms = new Set(['bourbon', 'whiskey', ...ARIZONA_XAPI_PRIORITY_TERMS, "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...librarySearchPool({records:libraryRecords.map(bottle => ({libraryIdentities:[bottle]}))})]);
   for (const [key, value] of Object.entries(expected)) check(Number.isSafeInteger(value) && value >= 0, `Invalid verifier expectation: ${key}.`);
   const nowMs = now instanceof Date ? now.getTime() : Number(now);
   const startMs = Date.parse(state?.startedAt);
@@ -88,6 +88,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const expectedBaseline = selected.filter((entry) => baselineIds.has(String(entry?.storeId).split(':')[1]));
   const expectedAdded = selected.filter((entry) => !baselineIds.has(String(entry?.storeId).split(':')[1]));
   const previousIds = new Set(ARIZONA_XAPI_PREVIOUS_STORE_IDS);
+  if(expected.minimumSelectedStores >= 138) check(ARIZONA_XAPI_RELEASED_STORE_IDS.every(id => selected.some(entry => String(entry?.storeId).split(':')[1] === id)), 'All134 latest released grocery premises must remain selected.');
   const newStores = selected.filter((entry) => !previousIds.has(String(entry?.storeId).split(':')[1]));
   const sameEntries = (actual, desired) => actual.length === desired.length && new Set(actual.map((entry) => entry?.storeId)).size === actual.length
     && actual.every((entry) => desired.some((row) => row?.storeId === entry?.storeId && row?.address === entry?.address && row?.city === entry?.city));
@@ -104,7 +105,17 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const search = requests.filter((request) => request?.kind === 'inventory');
   const bourbon = search.filter((request) => request.term === 'bourbon');
   const whiskey = search.filter((request) => request.term === 'whiskey');
-  const rare = search.filter((request) => !['bourbon', 'whiskey'].includes(request.term));
+  const priorityTerms = Array.isArray(metadata?.priorityTerms) ? metadata.priorityTerms : [];
+  const priority = search.filter(request => priorityTerms.includes(request.term));
+  const rare = search.filter((request) => !['bourbon', 'whiskey', ...priorityTerms].includes(request.term));
+  if(expected.minimumSelectedStores>=138) check(priorityTerms.length===2 && metadata.maxSearchCount===ARIZONA_XAPI_SEARCH_LIMIT
+    && whiskey.length===selected.length && selected.every(entry=>whiskey.filter(request=>entry.storeId.endsWith(':'+request.storeId)).length===1), 'Current Arizona expansion requires one whiskey and both priority searches at every selected premise.');
+  if (priorityTerms.length) {
+    const offset = (metadata.priorityInvocation % 4) * 2;
+    check(Number.isSafeInteger(metadata.priorityInvocation) && metadata.priorityInvocation >= 0
+      && JSON.stringify(priorityTerms) === JSON.stringify(ARIZONA_XAPI_PRIORITY_TERMS.slice(offset, offset + 2)), 'Arizona priority rotation must use the reviewed two-term window.');
+    check(priority.length === selected.length * 2 && selected.every(entry => priorityTerms.every(term => priority.filter(request => request.term === term && entry.storeId.endsWith(':' + request.storeId)).length === 1)), 'Every selected Arizona premise requires both bounded priority queries.');
+  }
   const blockedHosts = new Set();
   const successfulQueries = new Set();
   const bourbonStores = new Set();
@@ -128,8 +139,8 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
     } else check(request.kind === 'resolver' && url.origin === 'https://www.safeway.com' && url.pathname === '/abs/pub/xapi/storeresolver/v2/all'
       && /^\d{5}$/.test(url.searchParams.get('zipcode') || '') && url.searchParams.get('radius') === '50' && url.searchParams.get('size') === '100', 'XAPI resolver request violates the configured public route.');
   }
-  check(search.length === metadata?.totalSearchCount && bourbon.length === metadata?.bourbonSearchCount && rare.length === metadata?.rareSearchCount && whiskey.length === (metadata?.whiskeySearchCount || 0), 'XAPI search counts do not match the request ledger.');
-  check(search.length <= Math.min(ARIZONA_XAPI_SEARCH_LIMIT, expected.maximumSearchCount) && rare.length <= Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, expected.maximumRareSearchCount) && metadata?.maxSearchCount === ARIZONA_XAPI_SEARCH_LIMIT, 'XAPI request budget exceeds the bounded broad and library query caps.');
+  check(search.length === metadata?.totalSearchCount && bourbon.length === metadata?.bourbonSearchCount && rare.length === metadata?.rareSearchCount && priority.length === (metadata?.prioritySearchCount || 0) && whiskey.length === (metadata?.whiskeySearchCount || 0), 'XAPI search counts do not match the request ledger.');
+  check(search.length <= Math.min(ARIZONA_XAPI_SEARCH_LIMIT, expected.maximumSearchCount) && rare.length <= Math.min(ARIZONA_XAPI_RARE_QUERY_LIMIT, expected.maximumRareSearchCount) && metadata?.maxSearchCount <= ARIZONA_XAPI_SEARCH_LIMIT && metadata.maxSearchCount >= search.length, 'XAPI request budget exceeds the bounded broad and library query caps, including priority queries.');
   check(bourbon.length === selected.length && bourbonStores.size === selected.length && selected.every((entry) => bourbonStores.has(entry?.storeId)), 'Each selected XAPI store must receive exactly one bourbon query.');
   for (const row of xapi) {
     const entry = byStore.get(row.storeId);
@@ -192,6 +203,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   check(addedPublicStores.size >= expected.minimumAddedPublicStores, 'No added XAPI store survived into current public inventory.');
   const newPublicStores = new Set(publicInventory.filter((row) => newStores.some((entry) => entry.storeId === row.storeId)).map((row) => row.storeId));
   check(newPublicStores.size >= expected.minimumNewPublicStores, 'Genuinely new stores do not reach the current public inventory floor.');
+  if(expected.minimumSelectedStores>=138) check(new Set(publicInventory.filter(row=>xapiType(row)&&!ARIZONA_XAPI_RELEASED_STORE_IDS.includes(String(row.storeId).split(':')[1])).map(row=>row.storeId)).size>=3, 'At least three genuinely new Arizona grocery premises must survive public export beyond the latest released134-store cohort.');
   const buffalo = publicInventory.filter((row) => xapiType(row) && productId(row) === '960051942' && sourceByIdentity.get(identity(row))?.canonicalName === 'Buffalo Trace Bourbon');
   check(buffalo.length > 0, 'Exact Buffalo Trace XAPI product 960051942 must survive public export.');
   const reviewedDepthRows = publicInventory.filter(row => xapiType(row) && ['970022436', '970468334', '960293806'].includes(productId(row)));

@@ -24,7 +24,7 @@ async function capturedPipeline(t, { binary = false } = {}) {
     const products = structuredClone(capture.products);
     if (binary) for (const product of products) delete product.channelInventory.instoreItemQty;
     const result = await collectArizonaAlbertsons({ id: 'AZ' }, bible, capture.observedAt, {
-      zips: [capture.store.address.zipcode], maxStores: 1, nowMs: Date.parse(capture.observedAt), sleep: async () => {},
+      zips: [capture.store.address.zipcode], maxStores: 1, priorityQueries: false, nowMs: Date.parse(capture.observedAt), sleep: async () => {},
       fetchText: async (value) => {
         const url = new URL(value);
         return url.pathname.includes('/storeresolver/')
