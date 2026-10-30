@@ -106,3 +106,22 @@ for(const state of ['WA','NM'])test(`${state} complete closed resolver/search pr
  const original=await readFile(path.join(directory,input.report.metadata.receipts[index].artifactPath));
  for(const mutate of [p=>p.response.miscInfo.query='other-query',p=>p.response.miscInfo.filter='wrong-store',p=>p.response.numFound=1,p=>p.response.docs=[],p=>delete p.appCode]){const report=structuredClone(input.report),payload=JSON.parse(original);mutate(payload);const body=Buffer.from(JSON.stringify(payload)),receipt=report.metadata.receipts[index];receipt.sha256=hash(body);receipt.bytes=body.length;await writeFile(path.join(directory,receipt.artifactPath),body);await assert.rejects(()=>prepareGroceryCanary({...input,report}));}
 });
+
+test('reviewed WA catalog204 participates in full raw zero replay; unbound and backend408 never mint negative authority',async t=>{
+ const directory=await mkdtemp(path.join(tmpdir(),'synthetic-wa-native-catalog-zero-'));t.after(()=>rm(directory,{recursive:true,force:true}));
+ const input=await activeRenewalGroceryFixture({state:'WA',directory,bible});
+ const index=input.report.metadata.receipts.findIndex(r=>new URL(r.url).pathname.includes('search/substitute'));
+ const url=new URL(input.report.metadata.receipts[index].url),store=url.searchParams.get('storeid');
+ const native=JSON.parse(await readFile(new URL('./fixtures/grocery-wa-catalog-empty.json',import.meta.url)));
+ native.response.miscInfo.query=url.searchParams.get('q');native.response.miscInfo.filter=native.response.miscInfo.filter.replaceAll('1299',store);
+ const apply=async payload=>{const report=structuredClone(input.report),receipt=report.metadata.receipts[index],body=Buffer.from(JSON.stringify(payload));receipt.sha256=hash(body);receipt.bytes=body.length;await writeFile(path.join(directory,receipt.artifactPath),body);return report;};
+ const report=await apply(native);const candidate=await prepareGroceryCanary({...input,report});assert.deepEqual(candidate.drops,[]);assert.equal(isVerifiedActiveRenewalCanary(candidate,{lifecycle:input.lifecycleConfig}),true);
+ const partial=structuredClone(report);partial.metadata.receipts[index].status=206;partial.metadata.requests[index].status=206;
+ await assert.rejects(()=>verifyActiveRenewalRawCaptures({...input,report:partial,lifecycle:input.lifecycleConfig}));await assert.rejects(()=>prepareGroceryCanary({...input,report:partial}));
+ const unbound=JSON.parse(await readFile(new URL('./fixtures/grocery-la-unbound-empty.json',import.meta.url)));
+ const timeout=JSON.parse(await readFile(new URL('./fixtures/grocery-wa-backend-timeout.json',import.meta.url)));
+ for(const payload of [unbound,timeout,{appCode:'GR200 :: A-CT: 408'}, {...native,appCode:'GR200 :: A-CT: 408'},
+  {...native,response:{...native.response,docs:[{}]}}, {...native,response:{...native.response,miscInfo:{...native.response.miscInfo,query:'different'}}}]){
+  const changed=await apply(payload);await assert.rejects(()=>verifyActiveRenewalRawCaptures({...input,report:changed,lifecycle:input.lifecycleConfig}));await assert.rejects(()=>prepareGroceryCanary({...input,report:changed}));
+ }
+});

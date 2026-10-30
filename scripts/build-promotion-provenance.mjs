@@ -253,6 +253,10 @@ if (['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state)) files.push(
   'engine/src/prepare-grocery-canary.mjs',
   'engine/src/prepare-central-cityhive-canary.mjs',
   'engine/test/canary-native-health.test.mjs',
+  'engine/test/grocery-empty-search.test.mjs',
+  'engine/test/fixtures/grocery-wa-catalog-empty.json',
+  'engine/test/fixtures/grocery-la-unbound-empty.json',
+  'engine/test/fixtures/grocery-wa-backend-timeout.json',
   // The shared overdue-sibling consumer evaluates every closed native family.
   // Each state attests the same exact permission/premise/freshness dependencies.
   'engine/src/louisiana-alaska-grocery-policy.mjs',

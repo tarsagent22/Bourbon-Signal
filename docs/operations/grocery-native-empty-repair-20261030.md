@@ -1,0 +1,11 @@
+# Offline native empty-response repair
+
+This source-phase change begins at frozen `58bc2da65a48422ced00c12146cc7bc0ff3a1117`. It does not qualify or reuse either failed v4 observation. No retailer requests were made while preparing this change. All prior archives remain immutable.
+
+The failed replacement observation `40985125179` captured HTTP 200 from the reviewed WA Safeway store 1299 / `Rock Hill Farms Single Barrel` request at `2026-10-30T01:23:52.265Z`. Its 819-byte body has SHA-256 `6ec02e974304aec0e22f75cb88f35049f98b0922e906af0763c23edbe7be1d26`. It explicitly echoes the exact query and both inventory constraints for store 1299, with numeric `numFound:0`, `start:0`, and `docs:[]`. The new branch recognizes only the captured `GR200 :: A-CT: 204` code/message/OG200 object and response keyset, the exact reviewed filter, an exact registered WA source, and HTTP 200. It creates no stock row or displayed quantity. The older bound GR204/no-docs contract remains unchanged.
+
+The same failed observation captured a 75-byte LA Albertsons store 717 / `Parker's Heritage Collection 19th Edition` response at `2026-10-30T01:21:24.770Z`, SHA-256 `044a2ee6c99afbbae7d7d20b1da262b4b4414528b79d21484ad4c1e15d940689`. Its bare GR204 object has no native response, query echo or store inventory filters. This checkpoint leaves it unconfirmed and incomplete. It cannot establish zero inventory, negative renewal authority or a complete source observation.
+
+The first failed observation `40984202172` captured a backend `GR200 :: A-CT: 408` body at WA store 3120, SHA-256 `5771f10ad41d39bedbd8b1ae51d3574626433398b9c8412517eabc140440e0bc`. It returned HTTP 200, so the change never fabricates a numeric HTTP 408. The collector and raw replay reject that backend timeout with missing docs, empty docs, or nonempty docs. Missing selected-store product identities remain incomplete. The captured body is a regression fixture, not fallback inventory.
+
+All three fixtures preserve original body bytes. Synthetic injected-request and raw-profile tests are explicitly test-only; their rewritten query/store fields never become source or promotion evidence. The all-nine issuer closure binds the new tests and captured fixtures. A future frozen producer requires genuinely fresh source/canary/issuer qualification; these offline checks authorize no activation.

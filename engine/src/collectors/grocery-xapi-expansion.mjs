@@ -33,18 +33,40 @@ export function groceryProductSnapshot(product) {
     ]));
 }
 
-export function isGroceryExpansionEmptySearch(payload,source,term){
-  if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source)||payload?.appCode!=='GR204'
-    ||payload.response?.numFound!==0||payload.response?.start!==0
-    ||Object.hasOwn(payload.response,'docs')||payload.response.miscInfo?.query!==term)return false;
+export function isGroceryExpansionEmptySearch(payload,source,term,{httpStatus}={}){
+  if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source)||typeof term!=='string'||!term
+    ||payload?.response?.numFound!==0||payload.response?.start!==0
+    ||payload.response.miscInfo?.query!==term)return false;
   const filter=payload.response.miscInfo.filter;
+  const legacy=payload.appCode==='GR204'&&!Object.hasOwn(payload.response,'docs');
+  // Captured WA native catalog-zero variant. Its exact query and both selected
+  // store inventory constraints are echoed; a bare GR204 has no such proof.
+  const reviewedWa=source.stateCode==='WA'&&httpStatus===200&&payload.appCode==='GR200 :: A-CT: 204'
+    &&payload.appMsg==='GR : SUCCESS. :: A-CT: Catalog returned empty response.'
+    &&Array.isArray(payload.response.docs)&&payload.response.docs.length===0&&payload.response.isExactMatch===true
+    &&JSON.stringify(Object.keys(payload).sort())===JSON.stringify(['appCode','appMsg','offersError','response'])
+    &&JSON.stringify(Object.keys(payload.response).sort())===JSON.stringify(['docs','isExactMatch','miscInfo','numFound','start'])
+    &&payload.offersError?.code==='OG200'&&payload.offersError.error==='OG Skipped Service Call.'
+    &&Object.keys(payload.offersError).length===2
+    &&filter===`(inventory(${source.merchantId}, price) >0) AND (inventory(${source.merchantId},attributes.custom_type_2) = 1) AND (attributes.is_custom_cake: ANY("false"))`;
+  if(!legacy&&!reviewedWa)return false;
   return typeof filter==='string'
     &&filter.includes(`(inventory(${source.merchantId}, price) >0)`)
     &&filter.includes(`(inventory(${source.merchantId},attributes.custom_type_2) = 1)`);
 }
 
+function isCompleteProductSearch(payload,source){
+  const docs=payload?.response?.docs;
+  return payload?.appCode!=='GR200 :: A-CT: 408'&&Array.isArray(docs)&&docs.length>0&&docs.length<=100
+    &&docs.every(product=>product&&typeof product.name==='string'&&product.name
+      &&String(product.id)===String(product.pid)&&/^\d+$/.test(String(product.id))
+      &&String(product.storeId)===source.merchantId&&typeof product.containsAlcohol==='boolean'
+      &&product.channelEligibility&&product.channelInventory);
+}
+
 export function parseGroceryExpansionInventory(payload, source, bible, {observedAt}={}) {
-  if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source) || !Number.isFinite(Date.parse(observedAt)))return [];
+  if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source) || !Number.isFinite(Date.parse(observedAt))
+    ||payload?.appCode==='GR200 :: A-CT: 408')return [];
   return parseBoundGroceryXapiInventory(payload,source,bible).filter(row=>currentDropTarget(row.record,source.stateCode) && Number.isFinite(row.price) && row.price>0).map(row=>({
     id:stableId([source.stateCode,'grocery-xapi',source.merchantId,row.productId]),state:source.stateCode,stateCode:source.stateCode,
     sourceLabel:source.sourceLabel,sourceUrl:`https://${source.host}/shop/product-details.${row.productId}.html`,
@@ -120,12 +142,8 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
       const response=await request(`${host}/abs/pub/xapi/search/substitute?${params}`,'inventory',source,term);
       if(!response?.ok){sourceComplete=false;break;}
       let payload;try{payload=JSON.parse(response.text);}catch{sourceComplete=false;break;}
-      if(!Array.isArray(payload?.response?.docs)){
-        // The first-party API omits docs for its explicit, store-bound GR204
-        // empty-search response. This is healthy zero, never stock evidence.
-        if(isGroceryExpansionEmptySearch(payload,source,term))continue;
-        sourceComplete=false;break;
-      }
+      if(isGroceryExpansionEmptySearch(payload,source,term,{httpStatus:response.status}))continue;
+      if(!isCompleteProductSearch(payload,source)){sourceComplete=false;break;}
       for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
     }
     if(!sourceComplete)complete=false;

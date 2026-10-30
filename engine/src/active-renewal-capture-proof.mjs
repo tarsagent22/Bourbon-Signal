@@ -89,9 +89,10 @@ export async function verifyActiveRenewalRawCaptures({state,report,reportDirecto
    }else{
     const source=sources.find(source=>source.host===url.hostname&&source.merchantId===url.searchParams.get('storeid')&&source.banner===url.searchParams.get('banner'));
     assert.ok(source&&url.pathname==='/abs/pub/xapi/search/substitute'&&url.searchParams.get('channel')==='instore'&&url.searchParams.get('rows')==='100'&&url.searchParams.get('start')==='0');
+    assert.notEqual(payload.appCode,'GR200 :: A-CT: 408','A native backend timeout cannot establish complete positive or negative inventory');
     const docs=payload.response?.docs;
     if(Array.isArray(docs)&&docs.length){assert.ok(docs.length<=100&&docs.every(product=>product&&typeof product.name==='string'&&product.name&&String(product.id)===String(product.pid)&&/^\d+$/.test(String(product.id))&&String(product.storeId)===source.merchantId&&typeof product.containsAlcohol==='boolean'&&product.channelEligibility&&product.channelInventory),'Malformed native grocery product');}
-    else assert.ok(isGroceryExpansionEmptySearch(payload,source,url.searchParams.get('q')),'Unrecognized or ambiguous grocery empty response');
+    else assert.ok(isGroceryExpansionEmptySearch(payload,source,url.searchParams.get('q'),{httpStatus:receipt.status}),'Unrecognized or ambiguous grocery empty response');
     captures.push({source,term:url.searchParams.get('q')});for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt:receipt.observedAt}))rows.set(row.id,row);
    }
   }else{
