@@ -249,6 +249,19 @@ if (['LA','AK'].includes(state)) files.push(
   `engine/out/canary/${state}/public-projection.json`,
 );
 if (['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state)) files.push(
+  // The shared overdue-sibling consumer evaluates every closed native family.
+  // Each state attests the same exact permission/premise/freshness dependencies.
+  'engine/src/louisiana-alaska-grocery-policy.mjs',
+  'engine/src/collectors/louisiana-alaska-grocery-premises.mjs',
+  'engine/src/new-england-policy.mjs',
+  'engine/src/collectors/new-england-premises.mjs',
+  'engine/data/new-england-research-sources.json',
+  'engine/src/collectors/california-grocery-premises.mjs',
+  'engine/src/collectors/new-mexico-grocery-premises.mjs',
+  'src/lib/drop-feed-policy.ts',
+  'src/lib/drop-quantity-semantics.ts',
+  'scripts/test-native-overdue-sibling-path.mts',
+  'scripts/fixtures/native-overdue-sibling/nm-40965098976.json',
   'engine/src/verification/nine-state-admission-metadata.mjs',
   'engine/src/active-research-renewal.mjs',
   'engine/src/active-renewal-capture-proof.mjs',

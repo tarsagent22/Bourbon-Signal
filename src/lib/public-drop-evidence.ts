@@ -1,5 +1,7 @@
 import {isLouisianaAlaskaGroceryOnSiteSignal} from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
-import { isGroceryExpansionInventory } from '../../engine/src/grocery-xapi-policy.mjs';
+import { isGroceryExpansionInventory, isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
+import { isCentralCityHiveProductionOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
+import { isNewEnglandProductionOnSiteSignal } from '../../engine/src/new-england-policy.mjs';
 import { dropFreshnessTime } from "./drop-feed-policy.ts";
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
 import { resolveDropQuantitySemantics } from "./drop-quantity-semantics.ts";
@@ -327,6 +329,42 @@ function reviewedCaliforniaOverdueSiblingEvidence(drop: PublicDropEvidenceInput,
     && isCurrentInventoryEvidence({ ...drop, lastConfirmedAt: drop.observedAt, last_confirmed_at: drop.observedAt }, options.asOf);
 }
 
+function nativeBinaryProofInput(drop: PublicDropEvidenceInput) {
+  const binding = drop.sourceProductBinding as Record<string, unknown> | undefined;
+  const binary = binding?.inventorySemantics ?? binding?.quantitySemantics;
+  return drop.quantity == null && drop.quantityIsExact === false
+    && binary === "binary_retailer_orderable_no_exact_count" ? { ...drop, quantity: 0 } : drop;
+}
+
+function reviewedNativeOverdueSiblingEvidence(drop: PublicDropEvidenceInput, options: PublicDropEligibilityOptions) {
+  // Keep the existing California contract unchanged. The additional families
+  // must independently satisfy their closed production-native on-site policy.
+  if (reviewedCaliforniaOverdueSiblingEvidence(drop, options)) return true;
+  const reasons = options.degradedStateReasons?.get(stateCode(drop));
+  if (reasons?.length !== 1 || reasons[0] !== "inventory_confirmation_overdue") return false;
+  const raw = drop.raw && typeof drop.raw === "object" ? drop.raw as Record<string, unknown> : null;
+  const binding = drop.sourceProductBinding as Record<string, unknown> | undefined;
+  if (sourceStale(drop) || drop.quarantined === true || drop.previewOnly === true || drop.researchOnly === true
+    || drop.shadowOnly === true || drop.customerVisible === false
+    || raw?.sourceRuntimeNonAlertable === true || raw?.staleFallback === true || raw?.cacheFallback === true
+    || raw?.shadowOnly === true || binding?.shadowOnly === true
+    || drop.eligibleForOnSite !== true || drop.eligibleForDropFeed !== true
+    || drop.canAlertAsInventory !== false || drop.can_alert_as_inventory === true
+    || drop.canAlertAsWatch !== false || drop.can_alert_as_watch === true || drop.alertable === true
+    || drop.eligibleForWatch !== false || drop.eligibleForDelivery !== false || drop.deliveryEligible === true
+    || drop.eligibleForEmail !== false || drop.eligibleForSms !== false) return false;
+  // Some native public exports omit their internal binary zero. Restore it
+  // only inside full proof validation; the customer row/count is never changed.
+  const proofInput = nativeBinaryProofInput(drop);
+  const nowMs = asTimestamp(options.asOf);
+  const native = isGroceryExpansionOnSiteSignal(proofInput)
+    || isCentralCityHiveProductionOnSiteSignal(proofInput, { nowMs })
+    || isLouisianaAlaskaGroceryOnSiteSignal(proofInput)
+    || isNewEnglandProductionOnSiteSignal(proofInput, { nowMs });
+  return native && isCurrentInventoryEvidence(drop, options.asOf)
+    && isCurrentInventoryEvidence({ ...drop, lastConfirmedAt: drop.observedAt, last_confirmed_at: drop.observedAt }, options.asOf);
+}
+
 function isVerifiedRetailerDrop(drop: PublicDropEvidenceInput) {
   return drop.source === "verified-retailer" && drop.retailerReported === true;
 }
@@ -371,14 +409,18 @@ export function isPublicDropFeedEligible(
 ) {
   const drop = normalizePublicDropEvidenceInput(input);
   const state = stateCode(drop);
+  const reviewedSibling = reviewedNativeOverdueSiblingEvidence(drop, options);
   if (!state || options.degradedStateCodes?.has(state)
-    && !independentlyAcceptedSource(drop) && !reviewedCaliforniaOverdueSiblingEvidence(drop, options)) return false;
+    && !independentlyAcceptedSource(drop) && !reviewedSibling) return false;
+  // This local view exists only after full native validation of the additional
+  // overdue-sibling exception. It never adds a quantity to the returned row.
+  const proofDrop = reviewedSibling && state !== "CA" ? nativeBinaryProofInput(drop) : drop;
   const retailer = isVerifiedRetailerDrop(drop);
   const sourceRuntimeRaw = drop.raw && typeof drop.raw === 'object' ? drop.raw as Record<string, unknown> : null;
   if (!retailer && ['WA', 'NM'].includes(state) && String(drop.type) === 'retailer_store_inventory_result'
-    && (!isGroceryExpansionInventory(drop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
+    && (!isGroceryExpansionInventory(proofDrop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
   if (!retailer && ['LA', 'AK'].includes(state) && String(drop.type) === 'retailer_store_inventory_result'
-    && (!isLouisianaAlaskaGroceryOnSiteSignal(drop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
+    && (!isLouisianaAlaskaGroceryOnSiteSignal(proofDrop) || drop.quarantined === true || sourceRuntimeRaw?.sourceRuntimeNonAlertable === true || sourceRuntimeRaw?.staleFallback === true)) return false;
   // Arizona's live coverage uses the same reviewed premises/source identity as
   // engine alerts. Positive quantities on policy-only rows are not evidence of
   // current customer availability. Verified retailer submissions use their own
@@ -386,7 +428,7 @@ export function isPublicDropFeedEligible(
   if (!retailer && state === "AZ" && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(drop.type))) {
     if (drop.canAlertAsInventory !== true || drop.eligibleForOnSite === false || !isArizonaRetailerInventory(drop)) return false;
   }
-  if (!retailer && !isUserFacingDropSignal(drop)) return false;
+  if (!retailer && !isUserFacingDropSignal(proofDrop)) return false;
   if (isBlockedWarehouseDrop(drop)) return false;
   const explicitNcBoardShipment = state === "NC"
     && text(drop.type ?? drop.event_type, 120).toLowerCase() === "nc_board_shipment_snapshot"
@@ -720,11 +762,13 @@ export function derivePublicDropEvidence(
     byState.set(state, bucket);
 
     const fresh = isFreshPublicDrop(drop, asOf);
-    const exactInventory = exactStoreInventoryCandidate(drop);
+    const reviewedSibling = reviewedNativeOverdueSiblingEvidence(drop, eligibilityOptions);
+    const proofDrop = reviewedSibling && state !== "CA" ? nativeBinaryProofInput(drop) : drop;
+    const exactInventory = exactStoreInventoryCandidate(proofDrop);
     const current = exactInventory ? isCurrentInventoryEvidence(drop, asOf) : fresh && !sourceStale(drop);
     if (current) bucket.freshPublicSignalCount += 1;
     else bucket.stalePublicSignalCount += 1;
-    if (current && (independentlyAcceptedSource(drop) || reviewedCaliforniaOverdueSiblingEvidence(drop, eligibilityOptions))) bucket.independentFreshPublicSignalCount += 1;
+    if (current && (independentlyAcceptedSource(drop) || reviewedSibling)) bucket.independentFreshPublicSignalCount += 1;
 
     if (current && !exactInventory) addFreshPublicUpdateScope(bucket, drop);
     if (!exactInventory) continue;
