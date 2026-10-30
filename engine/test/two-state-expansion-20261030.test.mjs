@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ARIZONA_XAPI_DEFAULT_STORES,ARIZONA_XAPI_SEARCH_LIMIT,ARIZONA_XAPI_PRIORITY_TERMS,addArizonaPriorityQueries,arizonaXapiLibraryQueryAssignments,isArizonaXapiStore} from '../src/collectors/arizona-xapi.mjs';
 import {CALIFORNIA_GROCERY_SOURCES} from '../src/collectors/california-grocery-premises.mjs';
-import {GROCERY_EXPANSION_REQUEST_LIMITS} from '../src/collectors/grocery-xapi-expansion.mjs';
+import {GROCERY_EXPANSION_REQUEST_LIMITS,CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT} from '../src/collectors/grocery-xapi-expansion.mjs';
 import {WESTERN_GROCERY_RESOLVER_ZIPS} from '../src/collectors/western-grocery-premises.mjs';
 
 test('each Arizona premise receives all eight priority searches in four passes without losing any library query',()=>{
@@ -17,9 +17,10 @@ test('each Arizona premise receives all eight priority searches in four passes w
   for(const invocation of [-1,NaN,1.5])assert.throws(()=>addArizonaPriorityQueries(plan,invocation));
 });
 
-test('California expansion request ceiling contains every resolver, two searches per premise and eight library searches',()=>{
+test('California request ceiling contains every resolver, two searches per premise, eight library searches and eight transient retries',()=>{
   assert.equal(CALIFORNIA_GROCERY_SOURCES.length,433);
-  assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.CA,WESTERN_GROCERY_RESOLVER_ZIPS.CA.length+CALIFORNIA_GROCERY_SOURCES.length*2+8);
+  assert.equal(CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,8);
+  assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.CA,WESTERN_GROCERY_RESOLVER_ZIPS.CA.length+CALIFORNIA_GROCERY_SOURCES.length*2+8+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT);
   assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.WA,127);
   assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.NM,43);
   assert.ok(CALIFORNIA_GROCERY_SOURCES.every(s=>s.lat>32&&s.lat<43&&s.lng> -125&&s.lng< -114&&new URL(s.premiseUrl).protocol==='https:'));

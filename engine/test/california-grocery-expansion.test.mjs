@@ -29,12 +29,12 @@ test('California cannot inherit another-state premises or conflicting product/st
   assert.equal(groceryExpansionPremiseMatches(source,{...fixture.store,address:{...fixture.store.address,state:'WA'}}),false);
 });
 
-test('California uses forty resolvers and separately bounded914request plan while WA remains127',async()=>{
+test('California uses forty resolvers and a914request plan plus8 bounded transient retries while WA remains127',async()=>{
   const cursorDir=await mkdtemp(path.join(tmpdir(),'ca-grocery-'));
   try{
     const result=await collectGroceryExpansion({id:'CA'},bible,{cursorDir,observedAt:fixture.capturedAt,sleep:async()=>{},fetchText:async url=>({ok:true,status:200,
       text:JSON.stringify(url.includes('storeresolver')?{instore:{stores:[fixture.store]}}:{response:{docs:fixture.products}})})});
-    assert.equal(result.metadata.maxRequestCount,914);assert.equal(result.metadata.requests.length,43);
+    assert.equal(result.metadata.maxRequestCount,922);assert.equal(result.metadata.maxTransientRetries,8);assert.equal(result.metadata.transientRetries,0);assert.equal(result.metadata.requests.length,43);
     assert.equal(result.metadata.requests.filter(r=>r.kind==='resolver').length,40);
     assert.deepEqual(result.metadata.verifiedPremises,['pavilions:2784']);assert.equal(result.signals.length,5);
     assert.equal(result.metadata.complete,false);
