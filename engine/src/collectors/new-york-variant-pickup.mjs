@@ -3,6 +3,7 @@ import { collectShopifyVariantPickup, validateShopifyVariantSource } from './sho
 
 // These are exact reviewed product/variant probes, not catalog availability.
 // The ordinary metro runner owns refresh, durable denial cooldown and expiry.
+export const NEW_YORK_NATIVE_PICKUP_REFRESH_CADENCE_MS = 30 * 60_000;
 export const NEW_YORK_VARIANT_PICKUP_SOURCES = Object.freeze(reviewed.sources.map(input => {
   const definition = validateShopifyVariantSource(input);
   return Object.freeze({ id: definition.id, chainName: definition.stores[0].name,
@@ -12,10 +13,15 @@ export const NEW_YORK_VARIANT_PICKUP_SOURCES = Object.freeze(reviewed.sources.ma
       : definition.id === 'winecity-east-northport' ? 'Suffolk County' : 'New York City', baseUrl: definition.baseUrl,
     host: new URL(definition.baseUrl).hostname, productsUrl: definition.products[0].evidence.product.url,
     fulfillmentPolicyUrl: definition.products[0].evidence.pickup.url,
+    depthDiscovery: Object.freeze({ refreshCadenceMs: NEW_YORK_NATIVE_PICKUP_REFRESH_CADENCE_MS }),
     stores: Object.freeze(definition.stores.map(store => Object.freeze({ ...store, merchantId: definition.merchantId, state: 'NY', stateCode: 'NY' }))),
     pickupDefinition: definition,
   });
 }));
+
+// Cadence migration belongs only to these frozen registered objects, never a
+// same-ID CityHive sibling, clone, alternate host or caller-supplied descriptor.
+export const isReviewedNewYorkNativePickupSource = source => NEW_YORK_VARIANT_PICKUP_SOURCES.includes(source);
 
 export async function collectNewYorkVariantPickup(config, bible, candidate, observedAt, options = {}) {
   const source = NEW_YORK_VARIANT_PICKUP_SOURCES.find(item => item.id === candidate?.id);

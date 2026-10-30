@@ -2,6 +2,99 @@
   "schemaVersion": 1,
   "automations": [
     {
+      "id": "github-refresh-continuation",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/refresh-continuation.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "on every completed production refresh; default off",
+      "delivery": "github_only",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_rest",
+          "github_actions_artifact_download"
+        ],
+        "maxRequestsPerRun": 120
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "guarded_recovery_dispatch",
+      "silencePolicy": "quiet_on_success",
+      "killSwitch": "github_workflow_disable; feature flag must equal1 and maintenance must equal0",
+      "artifacts": [
+        ".operator/refresh-continuation/continuation-plan.json",
+        ".operator/refresh-continuation/continuation-receipt.json",
+        ".operator/refresh-continuation/smoke-marker.json"
+      ]
+    },
+    {
+      "id": "github-refresh-continuation-smoke",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/refresh-continuation-smoke.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "manual bounded smoke seed and verified relay dispatch; default off",
+      "delivery": "github_only",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_rest",
+          "github_actions_artifact_download"
+        ],
+        "maxRequestsPerRun": 60
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "quiet_on_success",
+      "killSwitch": "github_workflow_disable; feature flag must equal1 and maintenance must equal0",
+      "artifacts": [
+        ".operator/refresh-continuation/continuation-plan.json",
+        ".operator/refresh-continuation/continuation-receipt.json",
+        ".operator/refresh-continuation/smoke-marker.json"
+      ]
+    },
+    {
+      "id": "github-refresh-continuation-smoke-relay",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/refresh-continuation-smoke-relay.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "on every completed harmless smoke producer; default off",
+      "delivery": "github_only",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_rest",
+          "github_actions_artifact_download"
+        ],
+        "maxRequestsPerRun": 120
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "quiet_on_success",
+      "killSwitch": "github_workflow_disable; feature flag must equal1 and maintenance must equal0",
+      "artifacts": [
+        ".operator/refresh-continuation/continuation-plan.json",
+        ".operator/refresh-continuation/continuation-receipt.json",
+        ".operator/refresh-continuation/smoke-marker.json"
+      ]
+    },
+    {
       "id": "github-shopify-cohort-receipts",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/shopify-cohort-receipts.yml",

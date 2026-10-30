@@ -1,0 +1,83 @@
+name: Production refresh continuation
+run-name: Production refresh continuation after ${{ github.event.workflow_run.id || inputs.accepted_run_id }}
+on:
+  workflow_run:
+    workflows: [Refresh production inventory feed]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      accepted_run_id:
+        description: Successful current-main full-fleet snapshot already accepted through the public customer path
+        type: string
+        required: true
+      accepted_full_fleet_snapshot:
+        description: Current-main full-fleet snapshot/public acceptance accounts for all currently admitted customer-active states; legitimate zero/degraded/quarantined/disabled states add no current-store claims
+        type: boolean
+        default: false
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: production-refresh-continuation
+  cancel-in-progress: false
+env:
+  CONTINUATION_ENABLED: ${{ vars.BOURBON_SIGNAL_REFRESH_CONTINUATION_ENABLED || '0' }}
+  CONTINUATION_MAINTENANCE: ${{ vars.BOURBON_SIGNAL_CONTINUATION_MAINTENANCE || '1' }}
+jobs:
+  validate:
+    if: ${{ github.repository == 'tarsagent22/Bourbon-Signal' && vars.BOURBON_SIGNAL_REFRESH_CONTINUATION_ENABLED == '1' && vars.BOURBON_SIGNAL_CONTINUATION_MAINTENANCE == '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      continue: ${{ steps.plan.outputs.continue }}
+      environment: ${{ steps.plan.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - id: plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/refresh-continuation.mjs --mode=production --phase=plan
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: refresh-continuation-plan-${{ github.run_id }}
+          path: .operator/refresh-continuation/continuation-plan.json
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore
+  continue:
+    needs: validate
+    if: ${{ needs.validate.outputs.continue == 'true' }}
+    environment:
+      name: ${{ needs.validate.outputs.environment }}
+      deployment: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/refresh-continuation.mjs --mode=production --phase=dispatch
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: refresh-continuation-receipt-${{ github.run_id }}
+          path: .operator/refresh-continuation/continuation-receipt.json
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore

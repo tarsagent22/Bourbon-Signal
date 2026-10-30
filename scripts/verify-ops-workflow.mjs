@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const root = process.cwd();
 const failures = [];
@@ -415,11 +416,32 @@ if (!/readdir\(siteDir\)/.test(refreshSite) || !/siteExportFileCount/.test(refre
 if (!/pidAlive\) \{[\s\S]*?return false;/.test(refreshSite)) {
   fail('engine/src/refresh-site.mjs should never ignore a live refresh lock just because the run is older than the stale-lock threshold.');
 }
-if (!/lastSuccessMs/.test(refreshSite) || /candidates\s*=\s*\[[^\]]*lastBrowserAttemptAt/s.test(refreshSite)) {
-  fail('engine/src/refresh-site.mjs should throttle successful FWGS refreshes while allowing a failed latest attempt to retry on the next scheduled run.');
+const fwgsFreshnessPolicy = read('engine/src/fwgs-publication-freshness.mjs');
+if (!/browserCollectorRefreshDecision/.test(refreshSite) || !/lastBrowserRefreshAt:\s*last\?\.lastBrowserRefreshAt/.test(refreshSite) || /lastBrowserAttemptAt/.test(fwgsFreshnessPolicy)
+ || !/if \(browserOk\) lastBrowserRefreshAt =/.test(refreshSite)) {
+  fail('The FWGS controller must use the last successful browser clock, never a failed attempt, and advance it only after successful FWGS collection.');
+}
+const fwgsPolicy = await import(pathToFileURL(path.join(root, 'engine/src/fwgs-publication-freshness.mjs')).href);
+if (fwgsPolicy.FWGS_PUBLICATION_MAX_AGE_MS !== 120 * 60_000 || fwgsPolicy.FWGS_PUBLICATION_HEADROOM_MS !== 95 * 60_000
+ || fwgsPolicy.FWGS_REUSABLE_SOURCE_MAX_AGE_MS !== 25 * 60_000 || fwgsPolicy.FWGS_REUSABLE_CHUNK_MAX_AGE_MS !== 5 * 60_000
+ || fwgsPolicy.fwgsReuseAgeLimit(120 * 60_000) !== 25 * 60_000 || fwgsPolicy.fwgsChunkReuseAgeLimit(120 * 60_000) !== 5 * 60_000) {
+  fail('FWGS must retain the 120-minute publication ceiling and enforce reviewed 25-minute artifact/controller and five-minute chunk reuse ceilings.');
+}
+// Pure offline timing checks: these sentinels are not collected inventory.
+const fwgsCheckNow = Date.parse('2026-10-29T12:00:00Z');
+const fwgsDecision = (ageMinutes, successMinutes, options = {}) => fwgsPolicy.browserCollectorRefreshDecision({
+  rawStates: 'PA', nowMs: fwgsCheckNow, browserRefreshMinutes: 240,
+  lastBrowserRefreshAt: new Date(fwgsCheckNow - successMinutes * 60_000).toISOString(),
+  lastBrowserAttemptAt: new Date(fwgsCheckNow).toISOString(),
+  fwgsArtifact: { generatedAt: new Date(fwgsCheckNow - ageMinutes * 60_000).toISOString(), inventoryEndpoint: '/ccstorex/custom/v1/b2b/get-inventory' }, ...options,
+});
+if (fwgsDecision(25, 10).due || !fwgsDecision(25 + 1 / 60_000, 10).fwgsOnly || !fwgsDecision(20, 241).due
+ || fwgsDecision(26, 10, { skip: true }).due) {
+  fail('FWGS must throttle a fresh successful artifact, retry after a failed attempt, refresh overdue original evidence, and preserve explicit browser holds.');
 }
 const fwgsFull = read('engine/src/fwgs-browser-full.mjs');
-if (!/ALLOW_PARTIAL/.test(fwgsFull) || !/leaving previous full artifact untouched/.test(fwgsFull) || !/readUsableChunk/.test(fwgsFull)) {
+if (!/ALLOW_PARTIAL/.test(fwgsFull) || !/leaving previous full artifact untouched/.test(fwgsFull) || !/readUsableChunk/.test(fwgsFull)
+ || !/CHUNK_REUSE_MAX_AGE_MS = fwgsChunkReuseAgeLimit\(/.test(fwgsFull) || !/fwgsPublicationFreshness\(merged\)/.test(fwgsFull)) {
   fail('FWGS full browser refresh should be all-or-nothing by default, with valid recent chunk fallback, so partial chunk failures do not degrade production coverage.');
 }
 const ncCollector = read('engine/src/collectors/north-carolina-intelligence.mjs');
@@ -472,6 +494,13 @@ for (const phrase of ['ALERT_DELIVERY_ENABLED: "0"', 'npm run canary:state', 'np
 }
 if (canaryWorkflow && /vercel deploy[^\n]*--prod/.test(canaryWorkflow)) fail('Canary workflow must deploy only an isolated preview, never --prod.');
 const refreshFeedWorkflow = expectFile('.github/workflows/refresh-feed.yml');
+for(const continuation of ['refresh-continuation.yml','refresh-continuation-smoke.yml','refresh-continuation-smoke-relay.yml']){
+  const source=expectFile('.github/workflows/'+continuation);
+  if(!source.includes("ENABLED || '0'")||!source.includes("CONTINUATION_MAINTENANCE || '1'")
+    ||/BLOB_READ_WRITE_TOKEN|ENGINE_SNAPSHOT_ENCRYPTION_KEY|secrets\.|npm ci|publish-site-snapshot/.test(source))
+    fail('Continuation must remain default-off, GitHub-token-only, and separate from collection/publication: '+continuation);
+}
+if(!workflow.includes('node --test scripts/test-refresh-continuation.mjs'))fail('CI must exercise default-off continuation, failure, scope and smoke guards.');
 if (!refreshFeedWorkflow.includes('run: npm run verify:state-integration -- --all-active')
   || /verify-active-state-integration-ci|prepare-legacy-site-fixture-ci/.test(refreshFeedWorkflow)) {
   fail('Production refresh must use the unchanged real-output state-integration CLI and never a CI fixture selector/preparer.');

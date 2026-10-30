@@ -1,0 +1,127 @@
+{
+  "scope": "offline_actual_main_M_four_admitted_state_issued_provenance_noninterference_not_source_refresh_or_customer_delivery",
+  "baselineMain": "9a6e0ec0bbf74ede2d69cf9cc37e02d7ae4d5cd2",
+  "baselineActiveStateCount": 28,
+  "states": {
+    "WA": {
+      "issuerRunId": "40925309053",
+      "issuerHead": "3f975f896bd7c5c7f887570335c48e89cd158569",
+      "zipSha256": "2d4f9d27e58f6e8c7c26938e32d55074b65719cfedda228e26d4dd1741061158",
+      "originalBundleDigest": "00820577e64126fe48f5595c59844dbdfc829e9bf5ce66fd1b14c8d660a656c8",
+      "originalFileDigestCount": 89,
+      "checkedInPathsComparedToMain": 81,
+      "generatedOriginalPathsNotRecreated": {
+        "engine/data/canary-inputs/WA.json": "46d221f26a75897719258a80f6403ba08f403b7048ec6a3e0e80197e13b40ca1",
+        "engine/out/canary/WA/site/canary-preview-policy.json": "ebe90790c9d5166af051bd221e83ad80a57e5716a9a2d79ad5d8eaebaca66033",
+        "engine/out/canary/WA/site/lifecycle-preview.json": "3c76f3b0c8cfb4d44918e1dd84654b84d435309d9fc2aa9d97f8bbb900a87c38",
+        "engine/out/canary/WA/site/states/WA/drops.json": "6e6e931fafbd6bbb8e293a33ea3ed6df7f47b0f60c7d30a5ed9a81915e8e80a2",
+        "engine/out/library-catalog.json": "e5878caf23db056c1012ad4de97a464c691304ebe809467d29a78c647b0de710",
+        "engine/out/bourbon-bible.json": "c529d20b2b8abb40ac7f0d4c687655620f18713ac184f6d83615c9d24144de62",
+        "engine/out/canary/WA/public-projection.json": "7469c20e204caf8d866e97b8796c671f2f1aecff31cbd62562196d54d805a74e",
+        "engine/out/grocery-shadow-input/WA/provenance.json": "5af983dc12c2c3be96baee28d9ef63440203c0adaa994ef55b057034ff3d6e83"
+      },
+      "preexistingMainDifferencesFromInactiveIssuer": [
+        "engine/data/state-integration/WA.json",
+        "src/config/state-lifecycle.json"
+      ],
+      "hotfixChangedClosurePaths": []
+    },
+    "NM": {
+      "issuerRunId": "40925312923",
+      "issuerHead": "3f975f896bd7c5c7f887570335c48e89cd158569",
+      "zipSha256": "675357ee920b2b8bf293a161802af29f9fb08d9af6643fa04c4bf741ffd6cbb3",
+      "originalBundleDigest": "140cb2722fce9f8595317f755954b7b935c25464447e082b1cb0836a72616c11",
+      "originalFileDigestCount": 89,
+      "checkedInPathsComparedToMain": 81,
+      "generatedOriginalPathsNotRecreated": {
+        "engine/data/canary-inputs/NM.json": "9c593479822a894659d7671c76cc3bb0430b2fcfd015a1db3aa355c57305549e",
+        "engine/out/canary/NM/site/canary-preview-policy.json": "0ad6ae0468b5dce72b613196360970596f6f6206efac1e6c1e020e181391b8fa",
+        "engine/out/canary/NM/site/lifecycle-preview.json": "85dacf1ed5652ce1c4bdbb828cdc1d56ba7df3cb23de995df6ec0a8caef84203",
+        "engine/out/canary/NM/site/states/NM/drops.json": "df15237c98d22a18891863fc009a2d5d14bab2b6ee83e490094a39fdd3358f25",
+        "engine/out/library-catalog.json": "a6dcf1082cd5665e184eee21b76542d559d3c012a131949c7f166f6e50560d1a",
+        "engine/out/bourbon-bible.json": "c2a49c7eb9293803e2671eb49320038acbc9b57cf8a13dc67aae39160695f4c4",
+        "engine/out/canary/NM/public-projection.json": "a6fa6d5bb19745378c46547742200c25643878f84188be0276947f523ba02a07",
+        "engine/out/grocery-shadow-input/NM/provenance.json": "74e5be741e3f2ee609cf445f7f46231466612295c5f766703529b8d878b3c296"
+      },
+      "preexistingMainDifferencesFromInactiveIssuer": [
+        "engine/data/state-integration/NM.json",
+        "src/config/state-lifecycle.json"
+      ],
+      "hotfixChangedClosurePaths": []
+    },
+    "WI": {
+      "issuerRunId": "40925317245",
+      "issuerHead": "3f975f896bd7c5c7f887570335c48e89cd158569",
+      "zipSha256": "3194afb7592efeb816f391fb07b821bb9c3afea584759ef09ec6ef67b515f77b",
+      "originalBundleDigest": "e892504b1e76564505d7d7d0b6c7412610582f8c42abb850c9a36fffc58ff2d1",
+      "originalFileDigestCount": 93,
+      "checkedInPathsComparedToMain": 86,
+      "generatedOriginalPathsNotRecreated": {
+        "engine/out/canary/WI/site/canary-preview-policy.json": "42140e51e88fbc086cd3c9d4f7d1373ae6d80d224ddacd644bc232eef31f3424",
+        "engine/out/canary/WI/site/lifecycle-preview.json": "0b1f27544245f9c258c8ffa2e6efc66b4eccf069094674e920deb74ac33ff115",
+        "engine/out/canary/WI/site/states/WI/drops.json": "87f9cdb9b4211397d23294e5ba0475477bcecf607e477bb71f6532a818b54269",
+        "engine/out/library-catalog.json": "eac70671a7394b0468c48579eb1edbe69bfa4a5b4cb4171783d4e633590ec347",
+        "engine/out/bourbon-bible.json": "4ab5490fde3f55bb57e1b35e5aa32a60b39273c0feecbbda5ebc8824e9895bbe",
+        "engine/out/cityhive-shadow-input/WI/provenance.json": "ac629388e7a7b59a5272123c201f9e6fc5761da8e7df7fa548e9eb69693f1663",
+        "engine/out/canary/WI/public-projection.json": "8b9f778dda4233d44ae8378339ff74cd7acab295272ed93c3c2d19b344fbcce7"
+      },
+      "preexistingMainDifferencesFromInactiveIssuer": [
+        "engine/data/canary-inputs/WI.json",
+        "engine/data/state-integration/WI.json",
+        "src/config/state-lifecycle.json"
+      ],
+      "hotfixChangedClosurePaths": []
+    },
+    "OK": {
+      "issuerRunId": "40925321358",
+      "issuerHead": "3f975f896bd7c5c7f887570335c48e89cd158569",
+      "zipSha256": "105dadd393d38a4520e76547a9399fd2bb97590c1da0b3f7cbf6bf9473be6b1e",
+      "originalBundleDigest": "2699fe4181305c5ed6a3b07d1932813ffec81be4d6d19cfa210e2d97697629cf",
+      "originalFileDigestCount": 93,
+      "checkedInPathsComparedToMain": 86,
+      "generatedOriginalPathsNotRecreated": {
+        "engine/out/canary/OK/site/canary-preview-policy.json": "dd26ba9a9474a8253323b3e25c9ea47744b0898a5d7f37d5f81376d36f4f5505",
+        "engine/out/canary/OK/site/lifecycle-preview.json": "4738038b4ecbcc518144497336aa607e5fa31e447e6a67bd234f2e202ba3a48f",
+        "engine/out/canary/OK/site/states/OK/drops.json": "4f35e968e3bc0614a52033d151bc2b1917e4e1638170da0e4a8a103138162acd",
+        "engine/out/library-catalog.json": "3d109ef022051b694a914fc60322bcf5b56f2b6b7a5d6f6dabce50b75cecff69",
+        "engine/out/bourbon-bible.json": "2f16744c2b5b24f5d7fb9c44cd734322673ad3dfda0bfe464becfb15ea30a92a",
+        "engine/out/cityhive-shadow-input/OK/provenance.json": "04c85174f098615b9e58836f29af04136693b4a07c1be4ddacc78e13843efa12",
+        "engine/out/canary/OK/public-projection.json": "0d52209ee913e1ca231b06622837cc6eb4aa62a7a1b1f25ee08f3a75a9106611"
+      },
+      "preexistingMainDifferencesFromInactiveIssuer": [
+        "engine/data/canary-inputs/OK.json",
+        "engine/data/state-integration/OK.json",
+        "src/config/state-lifecycle.json"
+      ],
+      "hotfixChangedClosurePaths": []
+    }
+  },
+  "uniqueCheckedInIssuedClosurePaths": 106,
+  "runtimeSemanticsUnchanged": {
+    "WA": {
+      "runtimeMetadataSha256": "cf563069b3456f3d03404ac4f783c2b4f427dc83a52c680ccd874efd5ae5c62c",
+      "cohortSha256": "f74c2a2f3076dab9bacce0e9ab6369280178ff9b1d46937999698bc1dcf1a381",
+      "semanticSourceConfigSha256": "0a7409f08ba72a18503ea9ddb5657a546984dfecaca1c94c1af657040c4c7f21"
+    },
+    "NM": {
+      "runtimeMetadataSha256": "7334b75d17ef73176c4a65ced6bcc60f7bdb0cd040967f5164319aa4d5a94a92",
+      "cohortSha256": "b6db60bccc43452bc5293f272755cbaf8a0c50cf37866dad43ef5f610b3db95d",
+      "semanticSourceConfigSha256": "b81d1c156549c6d9199d60f25858db7f2eff16c777b356261472942e5fafbcf0"
+    },
+    "WI": {
+      "runtimeMetadataSha256": "12fd12fb912ec356fb0d3e859ab2768612a8907f6041016ae9221f5ea4f88144",
+      "cohortSha256": "1da638a6f97c3a85778b304023bb800c88e65de06df54d7b7aef29f7a0ae5ba9",
+      "semanticSourceConfigSha256": "d6672f240e10bcfe4a0cbc3e5a607fab9218640d65678e73c713dbf3f6dddc66"
+    },
+    "OK": {
+      "runtimeMetadataSha256": "be105f3ccaf92d51033ee6ec7a3a11720adc04a6d2908521a214b31a262184c1",
+      "cohortSha256": "6dde5f60f9bca6e0450fa8509cbd5074899c1dc453f9e45b3f43fd9a46d790c1",
+      "semanticSourceConfigSha256": "42af4e2d352dfd6ddd43521edf64de30cbcbbfd55de6ef51bfd24aae7caa224d"
+    }
+  },
+  "rootPackageUnchanged": true,
+  "refreshWorkflowUnchanged": true,
+  "sourceHttpRequests": 0,
+  "activationOrProviderMutations": 0,
+  "scopeLimit": "Original immutable source ZIPs and generated artifact digests are retained; no proof clocks or generated artifact files recreated. Preexisting admission changes from inactive issuer source are not relabeled as exact source equality."
+}

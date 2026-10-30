@@ -1,0 +1,15 @@
+{
+  "scope": "unchanged_archived_production_metro_attempt_ledger_offline_timing_fixture_not_current_inventory",
+  "repository": "tarsagent22/Bourbon-Signal",
+  "workflowRunId": "40949342705",
+  "commit": "9a6e0ec0bbf74ede2d69cf9cc37e02d7ae4d5cd2",
+  "artifactId": 12932458692,
+  "artifactName": "inventory-refresh-40949342705",
+  "artifactDigest": "f9018c5758491a02966b7a2e9cdbe4fdecd157747ece727de89b9e6d9e706694",
+  "member": "optimization/metro-source-attempts/NY.json",
+  "fileSha256": "89553255f4da62910fe534a3e676a19ae7bdf835f3c9fa472d616096fca66eee",
+  "observedNativeSuccesses": 5,
+  "originalCadenceMs": 14400000,
+  "originalClocksPreserved": true,
+  "fixtureChangesSourcePermissions": false
+}
