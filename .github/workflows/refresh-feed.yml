@@ -567,10 +567,13 @@ jobs:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           BOURBON_SIGNAL_VERIFY_STATES: ${{ inputs.states || '' }}
         run: |
-          if ! npm run verify:production-engine; then
+          mkdir -p engine/out/verification
+          if ! npm run verify:production-engine -- --json > engine/out/verification/production-engine-verification.log; then
+            cat engine/out/verification/production-engine-verification.log
             node engine/src/data-plane/publish-site-snapshot.mjs --rollback-if-active "${{ steps.publish.outputs.snapshot_id }}"
             exit 1
           fi
+          cat engine/out/verification/production-engine-verification.log
 
       - name: Dispatch isolated recovery from current main
         if: ${{ success() && steps.recovery-plan.outputs.has_recovery == 'true' }}
@@ -703,6 +706,7 @@ jobs:
             engine/out/verification/in-improvements.json
             engine/out/verification/library-coverage.json
             engine/out/verification/library-coverage.md
+            engine/out/verification/production-engine-verification.log
             engine/out/library-catalog.json
             engine/out/bourbon-bible.json
             engine/out/optimization/source-run-history.json
