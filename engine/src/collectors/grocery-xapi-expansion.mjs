@@ -7,7 +7,8 @@ import { WESTERN_GROCERY_EXPANSION_SOURCES, WESTERN_GROCERY_RESOLVER_ZIPS } from
 const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn']);
 export const GROCERY_EXPANSION_REQUEST_LIMIT = 127;
-export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:914,NM:43});
+export const CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT = 8;
+export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:914+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,NM:43});
 const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({WA:58,CA:433,NM:16});
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
@@ -76,8 +77,10 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
   const requestLimit=GROCERY_EXPANSION_REQUEST_LIMITS[config.id];
   if(!sources.length || !requestLimit || sources.length>GROCERY_EXPANSION_STORE_LIMITS[config.id])throw new Error('Grocery expansion exceeds reviewed state/store budget');
   const requests=[],signals=[],roadblocks=[],sourceAttempts={...attempts},blockedHosts=new Set();
+  const retryLimit=config.id==='CA'?CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT:0;
+  let transientRetries=0;
   for(const[key,value]of Object.entries(attempts))if(key.startsWith('host:')&&Date.parse(value.nextAllowedAt)>nowMs)blockedHosts.add(key.slice(5));
-  const request=async(url,kind,source=null,term=null)=>{
+  const attemptRequest=async(url,kind,source=null,term=null)=>{
     signal?.throwIfAborted();const host=new URL(url).hostname;
     if(blockedHosts.has(host))return null;
     if(requests.length>=requestLimit)throw new Error('Grocery expansion request ceiling reached');
@@ -92,6 +95,17 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     }
     if(!response.ok && response.status!==206)roadblocks.push({state:config.id,source:source?.sourceLabel || 'Grocery store resolver',url,status:response.status||0,error:response.error || `HTTP ${response.status}`});
     return response;
+  };
+  const request=async(url,kind,source=null,term=null)=>{
+    const first=await attemptRequest(url,kind,source,term);
+    // One retry for a transient transport/server failure, with a shared cap.
+    // Denials, rate limits, schema failures and aborted runs never retry.
+    if(!first || first.ok || ![0,408,500,502,503,504].includes(Number(first.status))
+      || transientRetries>=retryLimit || Number(first.retryAfterSeconds)>2)return first;
+    signal?.throwIfAborted();
+    transientRetries++;
+    await sleep(Math.max(1000,(Number(first.retryAfterSeconds)||0)*1000));
+    return attemptRequest(url,kind,source,term);
   };
   const resolver=new Map(),conflicts=new Set();let resolverComplete=true;
   for(const zip of WESTERN_GROCERY_RESOLVER_ZIPS[config.id] || []){
@@ -133,5 +147,5 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
   }
   return {signals,roadblocks,metadata:{complete,sourceAttempts,requests,selectedStores:sources.map(source=>source.storeId),
     verifiedPremises:eligible.map(source=>source.storeId),positiveStores:[...new Set(signals.map(row=>row.storeId))],
-    maxRequestCount:requestLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
+    maxRequestCount:requestLimit,transientRetries,maxTransientRetries:retryLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
 }
