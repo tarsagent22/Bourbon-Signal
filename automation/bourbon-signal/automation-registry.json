@@ -8,7 +8,7 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "default off; bounded trusted-main continuation or explicit harmless smoke",
+      "frequency": "on every completed production refresh; default off",
       "delivery": "github_only",
       "agent": {
         "provider": null,
@@ -39,7 +39,7 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "default off; bounded trusted-main continuation or explicit harmless smoke",
+      "frequency": "manual bounded smoke seed and verified relay dispatch; default off",
       "delivery": "github_only",
       "agent": {
         "provider": null,
@@ -70,7 +70,7 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "default off; bounded trusted-main continuation or explicit harmless smoke",
+      "frequency": "on every completed harmless smoke producer; default off",
       "delivery": "github_only",
       "agent": {
         "provider": null,
