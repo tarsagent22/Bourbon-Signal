@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict';
-import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../engine/src/core/bible.mjs';
 import {collectState} from '../engine/src/collectors/generic-state.mjs';
 import {ALL_STATE_SOURCES} from '../engine/src/state-sources.mjs';
-import {canonicalizeSignal} from '../engine/src/operational-report.mjs';
+import {canonicalizeSignal,candidateFromChange} from '../engine/src/operational-report.mjs';
+import {guardStateReport} from '../engine/src/state-report-guard.mjs';
+import {LOUISIANA_ALASKA_GROCERY_SOURCES} from '../engine/src/collectors/louisiana-alaska-grocery-premises.mjs';
+import {parseLouisianaAlaskaGroceryInventory} from '../engine/src/collectors/louisiana-alaska-grocery-expansion.mjs';
 import {buildDrops,bibleLookup,buildStores,buildCurrentInventoryAlertsFromDrops} from '../engine/src/export-site-contract.mjs';
 import {fixture,syntheticPromotedGroceryConfig,syntheticPromotionManifest,mockedCompleteGroceryFetch} from '../engine/test/helpers/synthetic-louisiana-alaska-promotion.mjs';
 import * as siteModule from '../src/lib/site-engine-contract.ts';
@@ -27,16 +32,33 @@ const {buildCoverageContract,searchCoverageTargets,findCoverageStoreTarget}=inte
 const {loadWithMocks}=interop(harness),{createSignalFeedHandler}=interop(feedModule);
 const {candidateMatchesMonitoringScopes}=interop(matcherModule),{monitoringScopesFromPreferences}=interop(scopesModule);
 const bible=new BourbonBible(fixture.records),index=getDropClassificationIndex(JSON.parse(await readFile('src/data/drop-feed-classification.generated.json','utf8')).records),output=[];
-for(const state of ['LA','AK']){
+const positiveEvidenceOnly=process.argv.includes('--positive-evidence-only');
+const unconfirmedStore=positiveEvidenceOnly&&process.argv.includes('--unconfirmed-store')?LOUISIANA_ALASKA_GROCERY_SOURCES.find(s=>s.stateCode==='LA'):null;
+for(const state of positiveEvidenceOnly?['LA']:['LA','AK']){
   const dir=await mkdtemp(path.join(tmpdir(),'louisiana-alaska-production-path-'));assert.ok(path.resolve(dir).startsWith(path.resolve(tmpdir())+path.sep));
   try{
     // Explicitly synthetic promotion schemas + frozen HTTP fixtures. These
     // calls exercise the real runtime and services; they are not live evidence.
     const lifecycle=syntheticPromotedGroceryConfig(state),promotion={lifecycleConfig:lifecycle,promotionManifest:syntheticPromotionManifest(state,lifecycle)},config=ALL_STATE_SOURCES.find(row=>row.id===state),at=new Date().toISOString();
+    const originalFetch=mockedCompleteGroceryFetch(state),bare=await readFile('engine/test/fixtures/grocery-la-unbound-empty.json','utf8');let replaced=false;
     const report=await collectState(config,bible,{...promotion,sourceRunnerOptions:{checkpointDir:null},grocerySourceOptions:{...promotion,
-      cacheDir:path.join(dir,'cache'),incidentDir:path.join(dir,'incidents'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},fetchText:mockedCompleteGroceryFetch(state)}});
+      cacheDir:path.join(dir,'cache'),incidentDir:path.join(dir,'incidents'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},fetchText:async value=>{const u=new URL(value),q=u.searchParams.get('q');if(positiveEvidenceOnly&&q&&(unconfirmedStore?u.searchParams.get('storeid')===unconfirmedStore.merchantId:!replaced&&!['bourbon','whiskey'].includes(q))){replaced=true;return{ok:true,status:200,url:value,text:bare};}return originalFetch(value);}}});
+    if(positiveEvidenceOnly){assert.equal(report.metadata.grocery.complete,false);assert.equal(report.metadata.grocery.profileScope,'POSITIVE_EVIDENCE_ONLY');assert.equal(report.metadata.grocery.negativeComplete,false);assert.ok(report.metadata.grocery.unconfirmedNegativeQueryCount>0);}
     assert.equal(report.status,'useful');assert.ok(report.signals.length>0);
     const operational=report.signals.map(row=>canonicalizeSignal(row,bible));
+    if(unconfirmedStore){
+      const oldClock=new Date(Date.now()-60*60000).toISOString(),oldNative=parseLouisianaAlaskaGroceryInventory({response:{docs:fixture.products.map(p=>({...p,storeId:unconfirmedStore.merchantId}))}},unconfirmedStore,bible,{observedAt:oldClock})[0];
+      const prior=canonicalizeSignal({...oldNative,sourceRuntimeId:'la:grocery-xapi',canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false},bible);
+      const guarded=guardStateReport({previous:{...report,signals:[prior]},candidate:report});assert.equal(guarded.accepted,true);assert.ok(guarded.report.signals.every(r=>r.storeId!==unconfirmedStore.storeId));
+      const cwd=path.join(dir,'operational-check'),out=path.join(cwd,'out');await mkdir(path.join(out,'history','snapshots'),{recursive:true});
+      await writeFile(path.join(out,'bourbon-bible.json'),JSON.stringify({records:bible.records}));await writeFile(path.join(out,'signals.json'),JSON.stringify({signals:guarded.report.signals}));
+      const original=JSON.stringify({generatedAt:oldClock,signals:[prior]}),priorFile=path.join(out,'history','snapshots','0000-prior.json');await writeFile(priorFile,original);
+      execFileSync(process.execPath,[path.resolve('engine/src/operational-report.mjs')],{cwd,stdio:'pipe',windowsHide:true});
+      const diff=JSON.parse(await readFile(path.join(out,'diff.json'),'utf8')),missing=diff.changes.find(c=>c.type==='missing_signal'&&c.before.storeId===unconfirmedStore.storeId);assert.ok(missing);assert.equal(missing.after,null);assert.equal(missing.before.observedAt,oldClock);
+      const candidate=candidateFromChange(missing);assert.equal(candidate.eligibleForDelivery,false);assert.equal(candidate.action,'do_not_alert_context_only');assert.ok(candidate.blockers.includes('missing_signal_not_sendable'));
+      assert.equal(createHash('sha256').update(await readFile(priorFile)).digest('hex'),createHash('sha256').update(original).digest('hex'),'Original historical snapshot and clock remain unchanged');
+      const historicalExport=buildDrops([...operational,prior],bibleLookup(bible.records),operational);assert.ok(historicalExport.every(r=>r.storeId!==unconfirmedStore.storeId),'Unknown absence cannot backfill old stock or invent a zero-stock row');
+    }
     const drops=buildDrops(operational,bibleLookup(bible.records),operational);
     assert.equal(buildDrops(operational,bibleLookup(bible.records),[]).length,0,'A complete current negative observation cannot resurrect historical LA/AK availability');
     assert.ok(drops.length>0);assert.ok(drops.every(row=>!Object.hasOwn(row,'previewOnly')));
@@ -52,9 +74,11 @@ for(const state of ['LA','AK']){
       assert.equal(isPublicDropFeedEligible({...rows[0],...mutation}),false,JSON.stringify(mutation));
     }
     const stores=buildStores(operational).filter(row=>row.state===state).map(normalizeStoreForSite);
-    assert.equal(stores.length,state==='LA'?15:19);assert.ok(stores.every(row=>row.signalCount>0));
+    assert.equal(stores.length,(state==='LA'?15:19)-(unconfirmedStore?1:0));assert.ok(stores.every(row=>row.signalCount>0));
+    const knownUnconfirmed=unconfirmedStore?{id:unconfirmedStore.storeId,storeId:unconfirmedStore.storeId,name:unconfirmedStore.name,storeName:unconfirmedStore.name,address:unconfirmedStore.address,storeAddress:unconfirmedStore.address,state,city:unconfirmedStore.city,zip:unconfirmedStore.zip,lat:unconfirmedStore.lat,lng:unconfirmedStore.lng,signalCount:0,hasSignals:false,type:'store',locationType:'store',collectorAttached:true}:null;
+    const knownLocations=knownUnconfirmed?[...stores,knownUnconfirmed]:stores;
     const stateRows=[{state,publicStatus:'active',coverageTier:'sparse_live_store_inventory',signalCount:accepted.length}];
-    const args={lifecycle,stateRows,stores,locations:stores,drops:rows,degradedStates:[],healthLimited:false,asOf:at};
+    const args={lifecycle,stateRows,stores,locations:knownLocations,drops:rows,degradedStates:[],healthLimited:false,asOf:at};
     const coverage=buildCoverageContract(args).states.find(row=>row.code===state)!;
     assert.equal(coverage.capabilities.currentBottleAvailability,true);assert.equal(coverage.capabilities.restockAlerts,false);
     assert.equal(coverage.scope.inventoryMonitoredStores,stores.length);
@@ -109,7 +133,7 @@ for(const state of ['LA','AK']){
       '@/data/drop-feed-classification.generated.json':{records:JSON.parse(await readFile('src/data/drop-feed-classification.generated.json','utf8')).records},
       './nationwide-pilot-receipt':interop(receiptModule),'@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(rows:unknown[])=>({drops:rows,version:'synthetic-production-only'})},
       '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportResults:async(names:string[])=>names.map(name=>({source:'remote-snapshot',snapshotId:'synthetic-production-only',payload:
-        name==='drops'?{drops}:name==='stats'?{generatedAt:at,stateCoverage:{states:stateRows}}:name==='stores'?{stores}:{locations:stores}}))},
+        name==='drops'?{drops}:name==='stats'?{generatedAt:at,stateCoverage:{states:stateRows}}:name==='stores'?{stores}:{locations:knownLocations}}))},
     });
     const coverageRoute=loadWithMocks('src/app/api/coverage/route.ts',{
       'next/server':{NextResponse:Response},'@/lib/coverage-server':coverageServer,'@/lib/nationwide-pilot-receipt':interop(receiptModule),
@@ -121,9 +145,12 @@ for(const state of ['LA','AK']){
     }
     const publicCoverage=await(await coverageRoute.GET(new Request('https://fixture.test/api/coverage'))).json();
     assert.equal(publicCoverage.states.find((row:any)=>row.code===state).freshness.currentInventoryStores,stores.length);
+    if(knownUnconfirmed){const response=await coverageRoute.POST(new Request('https://fixture.test/api/coverage',{method:'POST',body:JSON.stringify({state,query:knownUnconfirmed.storeAddress})}));const body=await response.json();assert.ok(body.results.some((r:any)=>r.storeId===knownUnconfirmed.storeId&&r.status==='known-expansion-candidate'));assert.ok(!body.results.some((r:any)=>r.storeId===knownUnconfirmed.storeId&&r.status==='actively-monitored'));}
     const later=new Date(Date.now()+121*60_000).toISOString();assert.ok(rows.every(row=>!isCurrentInventoryEvidence(row,later)));
     assert.equal(buildCoverageContract({...args,asOf:later}).states.find(row=>row.code===state)!.capabilities.currentBottleAvailability,false);
     output.push({state,scope:'synthetic_runtime_and_actual_customer_pipeline_only_not_source_or_promotion_evidence',rows:accepted.length,stores:stores.length,
+      sourceObservationScope:report.metadata.grocery.profileScope,negativeComplete:report.metadata.grocery.negativeComplete,unconfirmedNegativeQueryCount:report.metadata.grocery.unconfirmedNegativeQueryCount,
+      unknownPriorStoreNotSoldOut:unconfirmedStore?true:null,unknownPriorSnapshotClockPreserved:unconfirmedStore?true:null,
       actualFeedRoute:true,actualCoveragePost:true,actualSelectableDirectoryAndLocations:true,coverageStoreSearchAndScope:true,previewOnlyPropertyAbsent:true,allDeliveryDisabled:true});
   }finally{await rm(dir,{recursive:true,force:true});}
 }

@@ -4,7 +4,8 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {BourbonBible} from './core/bible.mjs';
 import {LOUISIANA_ALASKA_GROCERY_SOURCES,LOUISIANA_ALASKA_RESOLVER_ZIPS} from './collectors/louisiana-alaska-grocery-premises.mjs';
-import {louisianaAlaskaGroceryPremiseMatches,parseLouisianaAlaskaGroceryInventory,isLouisianaAlaskaGroceryEmptySearch} from './collectors/louisiana-alaska-grocery-expansion.mjs';
+import {louisianaAlaskaGroceryPremiseMatches,parseLouisianaAlaskaGroceryInventory,isLouisianaAlaskaGroceryEmptySearch,classifyLouisianaAlaskaQuery,hasLouisianaAlaskaPositiveEvidenceOnly} from './collectors/louisiana-alaska-grocery-expansion.mjs';
+import {verifyLouisianaAlaskaPositiveCaptures} from './louisiana-alaska-grocery-positive-proof.mjs';
 import {isLouisianaAlaskaGroceryInventory} from './louisiana-alaska-grocery-policy.mjs';
 import {canonicalizeSignal} from './operational-report.mjs';
 import {buildDrops,bibleLookup} from './export-site-contract.mjs';
@@ -12,13 +13,15 @@ import {withResearchLifecycle} from './research-state-registry.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 
 export async function prepareLouisianaAlaskaCanary({state,report,reportDirectory,bible,provenance,nowMs=Date.now()}={}){
-  if(!['LA','AK'].includes(state)||report?.state!==state||report.metadata?.complete!==true
+  const positiveOnly=hasLouisianaAlaskaPositiveEvidenceOnly(report?.metadata,report?.signals,state);
+  if(!['LA','AK'].includes(state)||report?.state!==state||(report.metadata?.complete!==true&&!positiveOnly)
     ||!report.sources?.length||!report.sources.every(row=>row.ok===true))throw new Error('A complete matching grocery shadow report is required');
   const origin=report.metadata.origin;
   if(provenance?.headSha!==provenance?.currentHead)throw Error('LA/AK canary requires exact source head; issue fresh shadows after any code change');
   if(provenance?.status!=='verified_github_shadow_artifact'||provenance.state!==state
     ||origin?.kind!=='github_actions'||String(origin.workflowRunId)!==provenance.workflowRunId
     ||origin.repository!==provenance.repository||origin.commitSha!==provenance.headSha)throw new Error('Canary input requires verified workflow-issued shadow provenance');
+  const positiveAudit=positiveOnly?await verifyLouisianaAlaskaPositiveCaptures({state,report,reportDirectory,bible,nowMs}):null;
   const sources=LOUISIANA_ALASKA_GROCERY_SOURCES.filter(source=>source.stateCode===state),resolver=new Map(),conflicts=new Set();
   const inventories=[],resolverZips=new Set(),receipts=[];
   for(const receipt of report.metadata.receipts||[]){
@@ -48,7 +51,8 @@ export async function prepareLouisianaAlaskaCanary({state,report,reportDirectory
       const source=sources.find(s=>s.host===url.hostname&&s.merchantId===url.searchParams.get('storeid')&&s.banner===url.searchParams.get('banner'));
       if(!source||url.pathname!=='/abs/pub/xapi/search/substitute'||url.searchParams.get('channel')!=='instore'
         ||url.searchParams.get('rows')!=='100'||url.searchParams.get('start')!=='0'
-        ||(!Array.isArray(payload.response?.docs)&&!isLouisianaAlaskaGroceryEmptySearch(payload,source,url.searchParams.get('q'))))throw new Error('Unreviewed store/channel inventory capture');
+        ||(!Array.isArray(payload.response?.docs)&&!isLouisianaAlaskaGroceryEmptySearch(payload,source,url.searchParams.get('q'))
+          &&!(positiveAudit&&classifyLouisianaAlaskaQuery(payload,source,url.searchParams.get('q'),{httpStatus:receipt.status})==='UNCONFIRMED_EMPTY_QUERY')))throw new Error('Unreviewed store/channel inventory capture');
       inventories.push({source,payload,observedAt:receipt.observedAt,term:url.searchParams.get('q')});
     }
     receipts.push({url:receipt.url,observedAt:receipt.observedAt,sha256:receipt.sha256});
@@ -68,6 +72,7 @@ export async function prepareLouisianaAlaskaCanary({state,report,reportDirectory
     canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false}));
   if(!drops.length)throw new Error('No qualified preview rows survived current source and export policy');
   return {schemaVersion:1,state,generatedAt:report.finishedAt,scope:'isolated_canary_input_no_production_activation',
+    ...(positiveAudit?{sourceQueryProfile:positiveAudit.summary}:{}),
     originalSourceClockPreserved:true,workflowSource:provenance,sourceReceipts:receipts,
     locations:sources.map(source=>({id:source.storeId,storeId:source.storeId,name:source.name,storeName:source.name,
       address:source.address,storeAddress:source.address,city:source.city,state,zip:source.zip,lat:source.lat,lng:source.lng,

@@ -250,6 +250,12 @@ if (['LA','AK'].includes(state)) files.push(
 );
 if (['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state)) files.push(
   'engine/src/canary-source-health.mjs',
+  'engine/src/louisiana-alaska-grocery-positive-proof.mjs',
+  'engine/src/collectors/louisiana-alaska-grocery-expansion.mjs',
+  'engine/test/louisiana-alaska-positive-only.test.mjs',
+  'scripts/test-louisiana-alaska-grocery-production-path.mts',
+  'engine/test/helpers/synthetic-louisiana-alaska-promotion.mjs',
+  'engine/test/fixtures/louisiana-alaska-grocery/identity.json',
   'engine/src/prepare-grocery-canary.mjs',
   'engine/src/prepare-central-cityhive-canary.mjs',
   'engine/test/canary-native-health.test.mjs',
@@ -320,7 +326,16 @@ if (['LA','AK','MA','CT','RI'].includes(state)) files.push(
   'scripts/plan-five-state-calibration.mjs',
   'package.json',
 );
-let sourceProof;
+let sourceProof,sourceObservationProfile;
+if(['LA','AK'].includes(state)){
+  const candidate=JSON.parse(await readFile(path.join(root,'engine',candidateDrops),'utf8'));
+  if(candidate.sourceQueryProfile){
+    const {assertLouisianaAlaskaPositiveCanaryProfile}=await import('../engine/src/louisiana-alaska-grocery-positive-proof.mjs');
+    sourceObservationProfile=assertLouisianaAlaskaPositiveCanaryProfile(candidate);
+    const publicProof=JSON.parse(await readFile(path.join(root,`engine/out/canary/${state}/public-projection.json`),'utf8'));
+    if(JSON.stringify(publicProof.sourceObservationProfile)!==JSON.stringify(sourceObservationProfile)||publicProof.sourceNegativeComplete!==false)throw Error('Positive-only issuer profile must match actual public canary evidence');
+  }
+}
 if (['MA','CT','RI'].includes(state)) {
   files.push(
     'engine/data/new-england-research-sources.json',
@@ -381,6 +396,7 @@ const payload = {
   generatedAt: new Date().toISOString(),
   fileDigests,
   ...(sourceProof ? {sourceProof} : {}),
+  ...(sourceObservationProfile?{sourceObservationProfile}:{}),
 };
 payload.bundleDigest = createHash('sha256').update(JSON.stringify(payload.fileDigests)).digest('hex');
 const out = path.join(root, 'engine', 'out', 'promotion-provenance', `${state}.json`);

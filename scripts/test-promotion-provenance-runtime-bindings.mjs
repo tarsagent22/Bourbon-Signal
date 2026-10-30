@@ -9,6 +9,14 @@ import {fileURLToPath} from 'node:url';
 const script=fileURLToPath(new URL('./build-promotion-provenance.mjs',import.meta.url));
 const root=path.dirname(path.dirname(script)),source=await readFile(script,'utf8');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+async function syntheticPositiveCandidate(directory){
+  const {BourbonBible}=await import('../engine/src/core/bible.mjs'),{fixture,mockedCompleteGroceryFetch}=await import('../engine/test/helpers/synthetic-louisiana-alaska-promotion.mjs');
+  const {collectLouisianaAlaskaResearchReport,louisianaAlaskaResearchSourceForState}=await import('../engine/src/research-louisiana-alaska-grocery-runtime.mjs'),{prepareLouisianaAlaskaCanary}=await import('../engine/src/prepare-louisiana-alaska-canary.mjs');
+  const bible=new BourbonBible(fixture.records),fetch=mockedCompleteGroceryFetch('LA'),bare=await readFile(path.join(root,'engine/test/fixtures/grocery-la-unbound-empty.json'),'utf8');let used=false;
+  const env={BOURBON_SIGNAL_SHADOW_MODE:'1',GITHUB_ACTIONS:'true',GITHUB_RUN_ID:'123',GITHUB_SHA:'a'.repeat(40),GITHUB_REPOSITORY:'tarsagent22/Bourbon-Signal'};
+  const report=await collectLouisianaAlaskaResearchReport(louisianaAlaskaResearchSourceForState('LA'),bible,{env,reportDirectory:directory,incidentDir:path.join(directory,'incidents'),cursorDir:path.join(directory,'cursor'),sleep:async()=>{},fetchText:async u=>{const q=new URL(u).searchParams.get('q');if(!used&&q&&!['bourbon','whiskey'].includes(q)){used=true;return{ok:true,status:200,url:u,text:bare};}return fetch(u);}});
+  return prepareLouisianaAlaskaCanary({state:'LA',report,reportDirectory:directory,bible,provenance:{status:'verified_github_shadow_artifact',state:'LA',repository:env.GITHUB_REPOSITORY,workflowRunId:'123',headSha:env.GITHUB_SHA,currentHead:env.GITHUB_SHA,artifactDigest:'b'.repeat(64)}});
+}
 const common=['engine/src/collectors/generic-state.mjs','engine/src/confidence-policy.mjs','engine/src/run.mjs',
   'engine/src/core/collection-http.mjs','engine/src/reliability-policy.mjs','.github/workflows/refresh-feed.yml',
   '.github/workflows/state-expansion-shadow.yml','engine/out/library-catalog.json','engine/out/bourbon-bible.json'];
@@ -35,6 +43,13 @@ for(const state of ['WA','NM','WI','OK','NJ','MI','LA','AK','MA','CT','RI'])test
     env:{...process.env,PROMOTION_CANDIDATE_DROPS:`data/canary-inputs/${state}.json`,GITHUB_REPOSITORY:'synthetic/unit-only',GITHUB_RUN_ID:'unit-only',GITHUB_SHA:'unit-only'}});
   const first=run();assert.equal(first.status,0,first.stderr);
   const out=path.join(directory,`engine/out/promotion-provenance/${state}.json`),payload=JSON.parse(await readFile(out,'utf8'));
+  if(state==='LA'){
+    const candidateFile=path.join(directory,'engine/data/canary-inputs/LA.json'),projectionFile=path.join(directory,'engine/out/canary/LA/public-projection.json'),beforeCandidate=await readFile(candidateFile),beforeProjection=await readFile(projectionFile),candidate=await syntheticPositiveCandidate(path.join(directory,'unit-only-raw-profile'));
+    await writeFile(candidateFile,JSON.stringify(candidate));await writeFile(projectionFile,JSON.stringify({syntheticUnitOnly:true,sourceObservationProfile:candidate.sourceQueryProfile,sourceNegativeComplete:false}));assert.equal(run().status,0);
+    const positive=JSON.parse(await readFile(out,'utf8'));assert.equal(positive.sourceObservationProfile.profileScope,'POSITIVE_EVIDENCE_ONLY');assert.equal(positive.sourceObservationProfile.negativeComplete,false);assert.equal(positive.sourceObservationProfile.unconfirmedNegativeQueryCount,1);
+    await writeFile(projectionFile,JSON.stringify({syntheticUnitOnly:true,sourceObservationProfile:candidate.sourceQueryProfile,sourceNegativeComplete:true}));assert.notEqual(run().status,0,'Issuer must not label positive-only source as negative complete');
+    await writeFile(candidateFile,beforeCandidate);await writeFile(projectionFile,beforeProjection);assert.equal(run().status,0);
+  }
   const central=['WI','OK'].includes(state),njmi=['NJ','MI'].includes(state),laak=['LA','AK'].includes(state);
   const module=ne?'engine/src/collectors/new-england-production.mjs':laak?'engine/src/collectors/louisiana-alaska-grocery-production.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
   const config=ne?'engine/src/new-england-production-config.mjs':laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
@@ -43,6 +58,7 @@ for(const state of ['WA','NM','WI','OK','NJ','MI','LA','AK','MA','CT','RI'])test
   if(nine)newDependencies.push('engine/src/collectors/georgia-goto-group-policy.mjs','engine/src/collectors/georgia-retailer-surfaces.mjs','engine/data/source-evidence/georgia-goto-group-hold-20261029/policy.json','engine/data/source-evidence/georgia-goto-group-hold-20261029/GA.json');
   if(nine)newDependencies.push('engine/src/canary-source-health.mjs','engine/src/prepare-grocery-canary.mjs','engine/src/prepare-central-cityhive-canary.mjs','engine/test/canary-native-health.test.mjs');
   if(nine)newDependencies.push('engine/test/grocery-empty-search.test.mjs','engine/test/fixtures/grocery-wa-catalog-empty.json','engine/test/fixtures/grocery-la-unbound-empty.json','engine/test/fixtures/grocery-wa-backend-timeout.json');
+  if(nine)newDependencies.push('engine/src/louisiana-alaska-grocery-positive-proof.mjs','engine/src/collectors/louisiana-alaska-grocery-expansion.mjs','engine/test/louisiana-alaska-positive-only.test.mjs','scripts/test-louisiana-alaska-grocery-production-path.mts','engine/test/helpers/synthetic-louisiana-alaska-promotion.mjs','engine/test/fixtures/louisiana-alaska-grocery/identity.json');
   if(nine)newDependencies.push('engine/src/louisiana-alaska-grocery-policy.mjs','engine/src/collectors/louisiana-alaska-grocery-premises.mjs','engine/src/new-england-policy.mjs','engine/src/collectors/new-england-premises.mjs','engine/data/new-england-research-sources.json','engine/src/collectors/california-grocery-premises.mjs','engine/src/collectors/new-mexico-grocery-premises.mjs','src/lib/drop-feed-policy.ts','src/lib/drop-quantity-semantics.ts','scripts/test-native-overdue-sibling-path.mts','scripts/fixtures/native-overdue-sibling/nm-40965098976.json');
   for(const file of [...common,module,config,...newDependencies])assert.equal(payload.fileDigests[file],sha(await readFile(path.join(directory,file))),file);
   await appendFile(path.join(directory,module),'\n// synthetic mutation\n');assert.equal(run().status,0);

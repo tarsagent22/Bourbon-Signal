@@ -1,8 +1,10 @@
 import { arizonaXapiLibraryQueryAssignments } from './arizona-xapi.mjs';
 import { stableId } from '../core/text.mjs';
+import {createHash} from 'node:crypto';
 import { librarySourceSearchPlan } from '../library-search-runtime.mjs';
 import { parseBoundGroceryXapiInventory } from './grocery-xapi-identity.mjs';
 import { LOUISIANA_ALASKA_GROCERY_SOURCES, LOUISIANA_ALASKA_RESOLVER_ZIPS } from './louisiana-alaska-grocery-premises.mjs';
+import {isLouisianaAlaskaGroceryInventory} from '../louisiana-alaska-grocery-policy.mjs';
 
 const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn']);
@@ -43,6 +45,44 @@ export function isLouisianaAlaskaGroceryEmptySearch(payload,source,term){
     &&filter.includes(`(inventory(${source.merchantId},attributes.custom_type_2) = 1)`);
 }
 
+export function classifyLouisianaAlaskaQuery(payload,source,term,{httpStatus}={}){
+  if(!LOUISIANA_ALASKA_GROCERY_SOURCES.includes(source)||typeof term!=='string'||!term
+    ||![200,206].includes(httpStatus)||payload?.appCode==='GR200 :: A-CT: 408')return 'INVALID';
+  if(isLouisianaAlaskaGroceryEmptySearch(payload,source,term))return 'CONFIRMED_EMPTY';
+  if(source.stateCode==='LA'&&source.host==='www.albertsons.com'&&httpStatus===200
+    &&payload?.appCode==='GR204'&&payload.appMsg==='GR : Google Retail returned empty response..'
+    &&JSON.stringify(Object.keys(payload).sort())===JSON.stringify(['appCode','appMsg']))return 'UNCONFIRMED_EMPTY_QUERY';
+  if(payload?.appCode!==undefined&&!['GR200','GR200 :: A-CT: 200'].includes(payload.appCode))return 'INVALID';
+  const docs=payload?.response?.docs;
+  return Array.isArray(docs)&&docs.length>0&&docs.length<=100&&docs.every(product=>product
+    &&typeof product.name==='string'&&product.name&&String(product.id)===String(product.pid)&&/^\d+$/.test(String(product.id))
+    &&String(product.storeId)===source.merchantId&&typeof product.containsAlcohol==='boolean'
+    &&product.channelEligibility&&product.channelInventory)?'BOUND_PRODUCTS':'INVALID';
+}
+
+// This is a metadata consistency check, never raw or negative authority. The
+// source collector derives it; the shadow/preparer independently replays raw.
+export function hasLouisianaAlaskaPositiveEvidenceOnly(metadata,rows,state){
+ try{const sources=LOUISIANA_ALASKA_GROCERY_SOURCES.filter(s=>s.stateCode===state),ids=sources.map(s=>s.storeId),queries=metadata?.unconfirmedNegativeQueries,evidence=metadata?.queryEvidence;
+  return state==='LA'&&metadata?.complete===false&&metadata.profileScope==='POSITIVE_EVIDENCE_ONLY'
+    &&metadata.requestProfileComplete===true&&metadata.negativeComplete===false
+    &&Number.isSafeInteger(metadata.unconfirmedNegativeQueryCount)&&metadata.unconfirmedNegativeQueryCount>0
+    &&Array.isArray(queries)&&queries.length===metadata.unconfirmedNegativeQueryCount
+    &&metadata.requests?.length===43&&metadata.requests.every(r=>r.ok===true&&[200,206].includes(r.status))
+    &&JSON.stringify(metadata.selectedStores)===JSON.stringify(ids)&&metadata.verifiedPremises?.length===ids.length&&ids.every(id=>metadata.verifiedPremises.includes(id))
+    &&Array.isArray(evidence)&&evidence.length===38&&evidence.every(q=>{const s=sources.find(s=>s.id===q.sourceId&&s.storeId===q.storeId&&s.merchantId===q.merchantId),u=new URL(q.url);return s
+      &&['BOUND_PRODUCTS','CONFIRMED_EMPTY','UNCONFIRMED_EMPTY_QUERY'].includes(q.disposition)&&u.origin===`https://${s.host}`&&u.pathname==='/abs/pub/xapi/search/substitute'
+      &&u.searchParams.get('storeid')===s.merchantId&&u.searchParams.get('banner')===s.banner&&u.searchParams.get('channel')==='instore'&&u.searchParams.get('q')===q.term
+      &&metadata.requests.some(r=>r.kind==='inventory'&&r.url===q.url&&r.status===q.httpStatus);})
+    &&JSON.stringify(queries)===JSON.stringify(evidence.filter(q=>q.disposition==='UNCONFIRMED_EMPTY_QUERY'))
+    &&Object.keys(metadata.sourceAttempts||{}).length===sources.length&&sources.every(s=>metadata.sourceAttempts[s.id]?.status===(queries.some(q=>q.sourceId===s.id)?'positive_evidence_only':'success')&&metadata.sourceAttempts[s.id]?.inspected===true)
+    &&sources.every(s=>['bourbon','whiskey'].every(term=>evidence.some(q=>q.sourceId===s.id&&q.term===term)))
+    &&queries.every(q=>q.disposition==='UNCONFIRMED_EMPTY_QUERY'&&ids.includes(q.storeId)&&typeof q.term==='string'&&q.term
+      &&q.httpStatus===200&&/^[a-f0-9]{64}$/.test(q.bodySha256))
+    &&Array.isArray(rows)&&rows.length>0&&rows.every(row=>row.state===state&&ids.includes(row.storeId)&&isLouisianaAlaskaGroceryInventory(row));
+ }catch{return false;}
+}
+
 export function parseLouisianaAlaskaGroceryInventory(payload, source, bible, {observedAt}={}) {
   if(!LOUISIANA_ALASKA_GROCERY_SOURCES.includes(source) || !Number.isFinite(Date.parse(observedAt)))return [];
   return parseBoundGroceryXapiInventory(payload,source,bible).filter(row=>!(row.record.canonical==='Wild Turkey Master'&&!/\bmaster\b/i.test(row.title)) && currentDropTarget(row.record,source.stateCode) && Number.isFinite(row.price) && row.price>0).map(row=>({
@@ -75,7 +115,7 @@ export async function collectLouisianaAlaskaGrocery(config,bible,{fetchText,obse
   const sources=LOUISIANA_ALASKA_GROCERY_SOURCES.filter(source=>source.stateCode===config.id);
   const requestLimit=LOUISIANA_ALASKA_GROCERY_REQUEST_LIMITS[config.id];
   if(!sources.length || !requestLimit || sources.length>LOUISIANA_ALASKA_GROCERY_STORE_LIMITS[config.id])throw new Error('Grocery expansion exceeds reviewed state/store budget');
-  const requests=[],signals=[],roadblocks=[],sourceAttempts={...attempts},blockedHosts=new Set();
+  const requests=[],signals=[],roadblocks=[],sourceAttempts={...attempts},blockedHosts=new Set(),queryEvidence=[];
   for(const[key,value]of Object.entries(attempts))if(key.startsWith('host:')&&Date.parse(value.nextAllowedAt)>nowMs)blockedHosts.add(key.slice(5));
   const request=async(url,kind,source=null,term=null)=>{
     signal?.throwIfAborted();const host=new URL(url).hostname;
@@ -113,25 +153,32 @@ export async function collectLouisianaAlaskaGrocery(config,bible,{fetchText,obse
   }
   let complete=resolverComplete && eligible.length===sources.length;
   for(const[index,source]of eligible.entries()){
-    let sourceComplete=true;const seen=new Set();
+    let sourceComplete=true;const seen=new Set(),unconfirmed=[];
     for(const term of ['bourbon','whiskey',...(extraTerms.get(index)||[])]){
       const host=`https://${source.host}`;
       const params=new URLSearchParams({'request-id':String(Date.now()),url:host,pageurl:host,pagename:'search',rows:'100',start:'0','search-type':'keyword',storeid:source.merchantId,featured:'true','search-uid':'',q:term,channel:'instore',banner:source.banner});
       const response=await request(`${host}/abs/pub/xapi/search/substitute?${params}`,'inventory',source,term);
       if(!response?.ok){sourceComplete=false;break;}
       let payload;try{payload=JSON.parse(response.text);}catch{sourceComplete=false;break;}
-      if(!Array.isArray(payload?.response?.docs)){
-        // The first-party API omits docs for its explicit, store-bound GR204
-        // empty-search response. This is healthy zero, never stock evidence.
-        if(isLouisianaAlaskaGroceryEmptySearch(payload,source,term))continue;
-        sourceComplete=false;break;
-      }
+      const disposition=classifyLouisianaAlaskaQuery(payload,source,term,{httpStatus:response.status});
+      const evidence={sourceId:source.id,storeId:source.storeId,merchantId:source.merchantId,term,url:requests.at(-1).url,
+        httpStatus:response.status,disposition,bodySha256:createHash('sha256').update(response.text).digest('hex')};
+      queryEvidence.push(evidence);
+      if(disposition==='UNCONFIRMED_EMPTY_QUERY'){unconfirmed.push(evidence);continue;}
+      if(disposition==='CONFIRMED_EMPTY')continue;
+      if(disposition!=='BOUND_PRODUCTS'){sourceComplete=false;break;}
       for(const row of parseLouisianaAlaskaGroceryInventory(payload,source,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
     }
     if(!sourceComplete)complete=false;
-    sourceAttempts[source.id]={lastAttemptAt:observedAt,status:sourceComplete?'success':'incomplete',inspected:true,positiveRows:seen.size};
+    sourceAttempts[source.id]={lastAttemptAt:observedAt,status:sourceComplete?(unconfirmed.length?'positive_evidence_only':'success'):'incomplete',inspected:true,positiveRows:seen.size};
   }
-  return {signals,roadblocks,metadata:{complete,sourceAttempts,requests,selectedStores:sources.map(source=>source.storeId),
+  const requestProfileComplete=complete,unconfirmedNegativeQueries=queryEvidence.filter(q=>q.disposition==='UNCONFIRMED_EMPTY_QUERY');
+  const negativeComplete=requestProfileComplete&&unconfirmedNegativeQueries.length===0;
+  const profileScope=negativeComplete?'COMPLETE_REVIEWED_PROFILE':requestProfileComplete&&signals.length>0?'POSITIVE_EVIDENCE_ONLY':'INCOMPLETE';
+  return {signals,roadblocks,metadata:{complete:negativeComplete,requestProfileComplete,negativeComplete,profileScope,
+    unconfirmedNegativeQueryCount:unconfirmedNegativeQueries.length,unconfirmedNegativeQueries,
+    confirmedEmptyQueryCount:queryEvidence.filter(q=>q.disposition==='CONFIRMED_EMPTY').length,queryEvidence,
+    sourceAttempts,requests,selectedStores:sources.map(source=>source.storeId),
     verifiedPremises:eligible.map(source=>source.storeId),positiveStores:[...new Set(signals.map(row=>row.storeId))],
     maxRequestCount:requestLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
 }

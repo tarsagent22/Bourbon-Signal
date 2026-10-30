@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {isNewEnglandResearchInventory} from './new-england-policy.mjs';
 import {isLouisianaAlaskaGroceryShadowInventory} from './research-louisiana-alaska-grocery-runtime.mjs';
+import {verifyLouisianaAlaskaPositiveCaptures,verifiedLouisianaAlaskaPositiveReport} from './louisiana-alaska-grocery-positive-proof.mjs';
 import { execFile, spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -67,7 +68,7 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
   if (report?.stale === true) return [];
   const nowMs = Date.parse(String(now || ''));
   return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
-    || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
+    || (report.metadata?.complete===true||verifiedLouisianaAlaskaPositiveReport(report))&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
       &&report.metadata.customerDeliveryAllowed===false&&(isActiveRenewalResearchInventory(row,report,{nowMs})||isNewEnglandResearchInventory(row,{nowMs})||isLouisianaAlaskaGroceryShadowInventory(row)||isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
@@ -152,6 +153,7 @@ export function buildShadowEvidence(state, report, { now = new Date().toISOStrin
     mode: 'shadow',
     generatedAt: now,
     complete,
+    sourceObservationProfile:verifiedLouisianaAlaskaPositiveReport(report),
     outcome: complete ? 'complete' : readiness.discovery.status !== 'succeeded'
       ? `incomplete_discovery_${readiness.discovery.status}`
       : readiness.inventory.status === 'blocked_prerequisite'
@@ -389,6 +391,7 @@ export async function runExpansionShadow({ lifecycle, states = [], renewActiveSt
       await verifyActiveRenewalRawCaptures({state,report,reportDirectory:stateDir,lifecycle,
         bible:await BourbonBible.load(path.join(cwd,'out/bourbon-bible.json'))});
     }
+    if(report.metadata?.profileScope==='POSITIVE_EVIDENCE_ONLY')await verifyLouisianaAlaskaPositiveCaptures({state,report,reportDirectory:stateDir,bible:await BourbonBible.load(path.join(cwd,'out/bourbon-bible.json'))});
     const evidence = buildShadowEvidence(state, report);
     evidence.prerequisite = {
       ok: prerequisite.ok,
@@ -419,7 +422,7 @@ export async function runExpansionShadow({ lifecycle, states = [], renewActiveSt
     if(renewals.length&&(!execution.ok||reportHasAccessDenial(report)))
       throw Error('Manual active-renewal batch stopped after '+state+': '+(!execution.ok?'source execution failed':'source access denial')+'; report and incident evidence were preserved');
   }
-  const summaryResults = results.map((result) => ({ state: result.state, directory: result.directory, executionOk: result.evidence.execution?.ok === true, collectorStatus: result.evidence.collector?.status || 'unknown', prerequisite: result.evidence.prerequisite, complete: result.evidence.complete, outcome: result.evidence.outcome, readiness: result.evidence.readiness, publication: result.evidence.publication, alerts: result.evidence.alerts, metrics: result.evidence.metrics }));
+  const summaryResults = results.map((result) => ({ state: result.state, directory: result.directory, executionOk: result.evidence.execution?.ok === true, collectorStatus: result.evidence.collector?.status || 'unknown', prerequisite: result.evidence.prerequisite, complete: result.evidence.complete, sourceObservationProfile:result.evidence.sourceObservationProfile, outcome: result.evidence.outcome, readiness: result.evidence.readiness, publication: result.evidence.publication, alerts: result.evidence.alerts, metrics: result.evidence.metrics }));
   const summary = {
     schemaVersion: 1,
     mode: 'shadow',

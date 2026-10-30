@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
+import {assertLouisianaAlaskaPositiveCanaryProfile} from '../engine/src/louisiana-alaska-grocery-positive-proof.mjs';
 import * as classificationModule from '../src/lib/drop-classification.ts';
 import * as publicEvidenceModule from '../src/lib/public-drop-evidence.ts';
 import * as coverageModule from '../src/lib/coverage-model.ts';
@@ -13,6 +14,8 @@ assert.ok(['LA','AK'].includes(state),'Use reviewed --state=LA|AK');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
+const candidate=await read(`engine/data/canary-inputs/${state}.json`),sourceObservationProfile=assertLouisianaAlaskaPositiveCanaryProfile(candidate);
+assert.deepEqual(partition.drops,candidate.drops,'Actual canary partition must preserve prepared raw candidate rows');
 const lifecycle=await read(root+'/lifecycle-preview.json'),locations=(await read(root+'/locations.json')).locations;
 const catalog=await read('src/data/drop-feed-classification.generated.json'),index=getDropClassificationIndex(catalog.records);
 const classified=partition.drops.map(row=>normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite(row),index)));
@@ -37,6 +40,7 @@ assert.equal(coverage?.capabilities.restockAlerts,false);
 assert.ok(coverage.scope.searchableStores>0);
 assert.equal(coverage.scope.inventoryMonitoredStores,new Set(accepted.map(row=>row.storeId)).size);
 const proof={state,evaluatedAt:clock,nonpreviewSourcePolicyUsed:true,authenticatedUiAcceptance:false,scope:'local_customer_projection_of_workflow_canary_not_live_preview',
+  sourceObservationProfile,sourceNegativeComplete:sourceObservationProfile?false:true,
   rawRows:partition.drops.length,publicCurrentRows:accepted.length,publicCurrentStores:coverage.scope.inventoryMonitoredStores,
   searchableStores:coverage.scope.searchableStores,allDeliveryDisabled:true,binaryQuantityRemainsZero:true};
 await writeFile(`engine/out/canary/${state}/public-projection.json`,JSON.stringify(proof,null,2)+'\n');

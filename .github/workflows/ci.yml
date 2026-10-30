@@ -66,6 +66,9 @@ jobs:
         run: |
           node --import tsx scripts/test-native-overdue-sibling-path.mts
           node --test engine/test/canary-native-health.test.mjs
+          node --test engine/test/louisiana-alaska-positive-only.test.mjs
+          node --import tsx scripts/test-louisiana-alaska-grocery-production-path.mts --positive-evidence-only
+          node --import tsx scripts/test-louisiana-alaska-grocery-production-path.mts --positive-evidence-only --unconfirmed-store
 
       - name: Reconcile workflow-issued state promotion provenance
         env:
