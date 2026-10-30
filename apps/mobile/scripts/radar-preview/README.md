@@ -39,3 +39,8 @@ reload; server persistence and queued-push filtering are covered separately by
 This local refinement is based on current main and excludes the separate unfinished membership audit. This change does
 not change server matching policy or membership entitlements. Selected rarity
 tiers still apply to specific-bottle watches as well as discovery mode.
+
+`?scenario=retailer-detail` reproduces the five-bottle Safeway alert with
+retailer notices, a street address, and past-report status. Expand Past alerts,
+then the report. Verify the bottle rows, one availability note, Directions,
+View report, and the collapsed Report details disclosure.

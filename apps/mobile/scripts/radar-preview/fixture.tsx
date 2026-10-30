@@ -19,6 +19,19 @@ if (scenario === 'phase1') alerts = [
   {...alerts[0],id:'single',bottleName:'E.H. Taylor Small Batch',createdAt:new Date(Date.now()-15*60000).toISOString(),storeLabel:'North Carolina ABC Store #12',matchedArea:'Wake County'},
   {...alerts[0],id:'grouped',bottleName:'Stagg + Eagle Rare',bottleNames:['Stagg','Eagle Rare 10 Year'],createdAt:new Date(Date.now()-30*60000).toISOString(),storeLabel:'Synthetic ABC Store',matchedArea:'Triad Municipal ABC'},
   {...alerts[0],id:'community',bottleName:'E.H. Taylor Single Barrel',createdAt:new Date(Date.now()-60*60000).toISOString(),sourceType:'community',sourceLabel:'Community sighting',readAt:new Date().toISOString()},...alerts];
+if (scenario === 'retailer-detail') alerts = [{
+  ...alerts[0], id: 'safeway-detail', signalId: 'fixture-safeway', state: 'AZ', matchedArea: 'Gilbert',
+  storeLabel: 'Safeway #343 — 3960 S Val Vista Dr, Gilbert, AZ 85297',
+  sourceLabel: 'Safeway Arizona XAPI store inventory', quantity: 5,
+  createdAt: new Date(Date.now() - 60 * 60000).toISOString(), freshnessLimitHours: 0.5,
+  bottleNames: [
+    'Old Fitzgerald Bourbon Bib 7 Year Whiskey - 700 Ml (limited quantities may be available in store)',
+    'W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)',
+    'Eagle Rare 12yr Bourbon - 750 Ml (limited quantities may be available in store)',
+    'Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)',
+    'Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)',
+  ],
+}];
 const api = {
   async getMemberPreferences(){return structuredClone(prefs);},
   async getMemberAlerts(){return {alerts:structuredClone(alerts),unreadCount:alerts.filter(a=>!a.readAt&&!a.archivedAt).length};},
