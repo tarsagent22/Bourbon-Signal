@@ -249,6 +249,10 @@ if (['LA','AK'].includes(state)) files.push(
   `engine/out/canary/${state}/public-projection.json`,
 );
 if (['WA','NM','WI','OK','LA','AK','MA','CT','RI'].includes(state)) files.push(
+  'engine/src/canary-source-health.mjs',
+  'engine/src/prepare-grocery-canary.mjs',
+  'engine/src/prepare-central-cityhive-canary.mjs',
+  'engine/test/canary-native-health.test.mjs',
   // The shared overdue-sibling consumer evaluates every closed native family.
   // Each state attests the same exact permission/premise/freshness dependencies.
   'engine/src/louisiana-alaska-grocery-policy.mjs',

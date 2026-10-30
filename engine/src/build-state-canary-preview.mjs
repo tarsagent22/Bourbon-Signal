@@ -2,11 +2,44 @@
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { BourbonBible } from './core/bible.mjs';
+import { attestActiveRenewalCanaryHealthFromArtifact, verifiedCanaryReplacementProof } from './canary-source-health.mjs';
 
 function asArray(value) { return Array.isArray(value) ? value : []; }
 function clone(value) { return structuredClone(value || {}); }
 
-export function buildCanaryPreviewPayload({ base, state, candidateDrops, candidateLocations = [], candidateGeneratedAt = null }) {
+function deriveAuditedReplacementHealth(stats, state, rows, locations, generatedAt, attestation) {
+  const health = stats.refreshHealth, inherited = asArray(health?.degradedStates).filter(row => row?.state === state);
+  if (!inherited.length) return;
+  // Only an existing complete, raw-audited active renewal can retire an obsolete
+  // sibling warning. New-state JSON, partial profiles and marker-only claims
+  // never confer this authority; every other inherited veto remains intact.
+  if (inherited.some(row => row.status !== 'degraded' || row.stale === true
+    || row.reasons != null && !Array.isArray(row.reasons)
+    || ![...asArray(row.reasons), ...(row.staleReason ? [row.staleReason] : [])].length
+    || [...asArray(row.reasons), ...(row.staleReason ? [row.staleReason] : [])].some(reason => reason !== 'inventory_confirmation_overdue'))) return;
+  const proof = verifiedCanaryReplacementProof(attestation, { state, rows, locations, generatedAt });
+  if (!proof) return;
+  const remaining = health.degradedStates.filter(row => row?.state !== state);
+  // This is a bounded isolated-view projection. Retain the original production
+  // health records/counts in place, and explicitly record the retired warning.
+  // No state-health file, source clock, sibling health or production policy changes.
+  stats.refreshHealth = { ...health, degradedStates: remaining, degradedStateCount: remaining.length,
+    canaryDerivedStateReplacements: { ...health.canaryDerivedStateReplacements, [state]: {
+      protocol: 'bourbon-signal/audited-canary-state-health@1', state,
+      reason: 'complete_audited_partition_replaces_expired_historical_siblings',
+      retiredWarnings: clone(inherited), originalDegradedStateCount: health.degradedStateCount ?? health.degradedStates.length,
+      sourceHead: proof.sourceHead, workflowRunId: proof.workflowRunId, sourceArtifactDigest: proof.sourceArtifactDigest,
+      cohortSha256: proof.cohortSha256, payloadDigest: proof.payloadDigest, rawReceiptDigest: proof.rawReceiptDigest,
+      observedFrom: proof.observedFrom, observedThrough: proof.observedThrough, generatedAt,
+      candidateRows: rows.length, positiveStoreIds: [...proof.positiveStoreIds], reviewedStoreIds: [...proof.storeIds],
+      partitionRowsSha256: createHash('sha256').update(JSON.stringify(rows)).digest('hex'),
+      productionHealthChanged: false, sourceClocksPreserved: true,
+    } } };
+}
+
+export function buildCanaryPreviewPayload({ base, state, candidateDrops, candidateLocations = [], candidateGeneratedAt = null, candidateHealthAttestation = null }) {
   const normalizedState = String(state || '').toUpperCase();
   const candidateRows = asArray(candidateDrops);
   if (!normalizedState || candidateRows.some((row) => String(row?.state || '').toUpperCase() !== normalizedState)) {
@@ -39,6 +72,7 @@ export function buildCanaryPreviewPayload({ base, state, candidateDrops, candida
   coverage.states = coverageStates;
   stats.stateCoverage = coverage;
   stats.stateCount = coverageStates.length;
+  deriveAuditedReplacementHealth(stats, normalizedState, candidateRows, explicitCandidateLocations, candidateGeneratedAt, candidateHealthAttestation);
   const locations = clone(base?.locations);
   const locationRows = asArray(locations.locations || locations.stores);
   const dropLocations = candidateRows
@@ -107,7 +141,7 @@ async function readJson(file, fallback = {}) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
-export async function buildStateCanaryPreview({ state, candidateDrops, candidateLocations = [], candidateGeneratedAt = null, lifecycleConfig = null, siteDir = path.resolve('out', 'site'), outDir = path.resolve('out', 'canary', String(state || '').toUpperCase()) } = {}) {
+export async function buildStateCanaryPreview({ state, candidateDrops, candidateLocations = [], candidateGeneratedAt = null, candidateHealthAttestation = null, lifecycleConfig = null, siteDir = path.resolve('out', 'site'), outDir = path.resolve('out', 'canary', String(state || '').toUpperCase()) } = {}) {
   const base = {
     manifest: await readJson(path.join(siteDir, 'manifest.json')),
     drops: await readJson(path.join(siteDir, 'drops.json'), { drops: [] }),
@@ -116,7 +150,7 @@ export async function buildStateCanaryPreview({ state, candidateDrops, candidate
     stats: await readJson(path.join(siteDir, 'stats.json'), {}),
     locations: await readJson(path.join(siteDir, 'locations.json'), { locations: [] }),
   };
-  const preview = buildCanaryPreviewPayload({ base, state, candidateDrops, candidateLocations, candidateGeneratedAt });
+  const preview = buildCanaryPreviewPayload({ base, state, candidateDrops, candidateLocations, candidateGeneratedAt, candidateHealthAttestation });
   const lifecyclePreview = lifecycleConfig ? clone(lifecycleConfig) : null;
   if (lifecyclePreview?.states?.[preview.stateDrops.state]) {
     lifecyclePreview.activeStates = Array.from(new Set([...(lifecyclePreview.activeStates || []), preview.stateDrops.state]));
@@ -179,7 +213,14 @@ async function main() {
     candidateLocations = storeUniverse.stores;
   }
   const lifecycleConfig = await readJson(path.resolve(argValue('--config') || path.join('..', 'src', 'config', 'state-lifecycle.json')), null);
-  const result = await buildStateCanaryPreview({ state, candidateDrops, candidateLocations, candidateGeneratedAt: payload.generatedAt, lifecycleConfig, siteDir: path.resolve(argValue('--site-dir') || path.join('out', 'site')), outDir: path.resolve(argValue('--out-dir') || path.join('out', 'canary', state, 'site')) });
+  let candidateHealthAttestation = null;
+  if (payload.activeRenewalProof) {
+    const family = ['WA','NM'].includes(state) ? 'grocery' : ['WI','OK'].includes(state) ? 'cityhive' : null;
+    if (!family) throw Error('Only reviewed active renewal can derive canary state health');
+    const source = path.resolve('out', `${family}-shadow-input`, state);
+    candidateHealthAttestation = await attestActiveRenewalCanaryHealthFromArtifact(payload, {bible:await BourbonBible.load(), artifactDirectory:path.join(source,'extracted'), provenanceFile:path.join(source,'provenance.json')});
+  }
+  const result = await buildStateCanaryPreview({ state, candidateDrops, candidateLocations, candidateGeneratedAt: payload.generatedAt, candidateHealthAttestation, lifecycleConfig, siteDir: path.resolve(argValue('--site-dir') || path.join('out', 'site')), outDir: path.resolve(argValue('--out-dir') || path.join('out', 'canary', state, 'site')) });
   console.log(JSON.stringify({ state, outDir: result.outDir, alertsDisabled: true, productionSnapshotTouched: false, productionDeploymentEnabled: false }, null, 2));
 }
 
