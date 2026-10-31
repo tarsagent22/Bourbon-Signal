@@ -1,0 +1,568 @@
+{
+  "observedAt": "2026-10-31T02:46:06.640Z",
+  "premiseMapQuery": "Virginia Market, 702 E Virginia Ave, Phoenix, AZ 85006",
+  "products": [
+    {
+      "id": 59720,
+      "name": "Woodford Bourbon 750ml",
+      "permalink": "https://virginiamarketstore.com/product/woodford-bourbon-750ml-4/",
+      "sku": "81128001506",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "4799",
+        "regular_price": "4799",
+        "sale_price": "4799",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 59692,
+      "name": "Woodford Bourbon 750ml",
+      "permalink": "https://virginiamarketstore.com/product/woodford-bourbon-750ml-3/",
+      "sku": "81128201982",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "4319",
+        "regular_price": "4319",
+        "sale_price": "4319",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 59675,
+      "name": "Elijah Craig Bourbon Rye 750ml",
+      "permalink": "https://virginiamarketstore.com/product/elijah-craig-bourbon-rye-750ml-2/",
+      "sku": "96749002733",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "3959",
+        "regular_price": "3959",
+        "sale_price": "3959",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 59639,
+      "name": "Buffalo Trace Bourbon 750ml",
+      "permalink": "https://virginiamarketstore.com/product/buffalo-trace-bourbon-750ml-2/",
+      "sku": "80244009236",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "3239",
+        "regular_price": "3239",
+        "sale_price": "3239",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 58984,
+      "name": "Elijah Craig Bourbon Rye 375ml",
+      "permalink": "https://virginiamarketstore.com/product/elijah-craig-bourbon-rye-375ml-2/",
+      "sku": "96749003983",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "2519",
+        "regular_price": "2519",
+        "sale_price": "2519",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 58966,
+      "name": "Woodford Bourbon 375ml",
+      "permalink": "https://virginiamarketstore.com/product/woodford-bourbon-375ml-2/",
+      "sku": "81128011680",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "2399",
+        "regular_price": "2399",
+        "sale_price": "2399",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 58888,
+      "name": "Bulleit Bourbon 375ml",
+      "permalink": "https://virginiamarketstore.com/product/bulleit-bourbon-375ml-2/",
+      "sku": "87000004122",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "1999",
+        "regular_price": "1999",
+        "sale_price": "1999",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 53266,
+      "name": "Angels Envy Bourbon 750ml",
+      "permalink": "https://virginiamarketstore.com/product/angels-envy-bourbon-750ml/",
+      "sku": "850047003003",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "6599",
+        "regular_price": "6599",
+        "sale_price": "6599",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 59785,
+      "name": "E. H. Taylor Straightrye 750ml",
+      "permalink": "https://virginiamarketstore.com/product/e-h-taylor-straightrye-750ml-2/",
+      "sku": "88004005504",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "19200",
+        "regular_price": "19200",
+        "sale_price": "19200",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 59782,
+      "name": "Larceny Bbn Brl Proof 750ml",
+      "permalink": "https://virginiamarketstore.com/product/larceny-bbn-brl-proof-750ml-2/",
+      "sku": "96749002658",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "11999",
+        "regular_price": "11999",
+        "sale_price": "11999",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    },
+    {
+      "id": 59769,
+      "name": "E. H. Taylor Small Batch 750ml",
+      "permalink": "https://virginiamarketstore.com/product/e-h-taylor-small-batch-750ml-2/",
+      "sku": "88004005498",
+      "is_in_stock": true,
+      "is_purchasable": true,
+      "is_on_backorder": false,
+      "prices": {
+        "price": "7200",
+        "regular_price": "7200",
+        "sale_price": "7200",
+        "price_range": null,
+        "currency_code": "USD",
+        "currency_symbol": "$",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "$",
+        "currency_suffix": ""
+      }
+    }
+  ],
+  "records": [
+    {
+      "id": "bb_4559c56808df985c",
+      "canonical": "Woodford Reserve Bourbon",
+      "normalizedKey": "woodford",
+      "aliases": [
+        "Woodford Reserve Bourbon",
+        "Woodford Reserve Bourbon Whiskey",
+        "Woodford Reserve Straight Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Woodford Reserve",
+      "sources": [
+        "state-data-additions",
+        "state:MS"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "woodford-reserve",
+          "canonicalName": "Woodford Reserve Bourbon",
+          "aliases": [
+            "Woodford Reserve",
+            "Woodford Reserve Bourbon",
+            "Woodford Reserve Bourbon Whiskey",
+            "Woodford Reserve Straight Bourbon",
+            "woodford",
+            "woodford reserve kentucky straight bourbon"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_babb8d7d3e6be567",
+      "canonical": "Elijah Craig Straight Rye Whiskey",
+      "normalizedKey": "elijah craig rye",
+      "aliases": [
+        "Elijah Craig Ky Strt Rye Whsky",
+        "Elijah Craig Ky Strt Rye Whsky 1.75L",
+        "Elijah Craig Ky Strt Rye Whsky 750ml",
+        "Elijah Craig Straight Rye Whiskey"
+      ],
+      "tier": "standard",
+      "producer": "Heaven Hill",
+      "sources": [
+        "state:SC:dunes",
+        "state:SC"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_babb8d7d3e6be567",
+          "canonicalName": "Elijah Craig Straight Rye Whiskey",
+          "aliases": [
+            "Elijah Craig Ky Strt Rye Whsky",
+            "Elijah Craig Ky Strt Rye Whsky 1.75L",
+            "Elijah Craig Ky Strt Rye Whsky 750ml",
+            "Elijah Craig Straight Rye Whiskey"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_317836b9e64a7620",
+      "canonical": "Buffalo Trace Bourbon",
+      "normalizedKey": "buffalo trace",
+      "aliases": [
+        "BUFFALO TRACE LITER",
+        "BUFFALO TRACE bourbon",
+        "Buffalo Trace",
+        "Buffalo Trace Bourbon",
+        "Buffalo Trace KY Straight Bourbon",
+        "Buffalo Trace KY Straight Bourbon .75L",
+        "Buffalo Trace KY Straight Bourbon 1.00L",
+        "Buffalo Trace Kentucky Straight Bourbon",
+        "Buffalo Trace Liter"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "buffalo-trace-bourbon",
+          "canonicalName": "Buffalo Trace Bourbon",
+          "aliases": [
+            "BT",
+            "BUFFALO TRACE LITER",
+            "BUFFALO TRACE bourbon",
+            "Buffalo Trace",
+            "Buffalo Trace Bourbon",
+            "Buffalo Trace KY",
+            "Buffalo Trace KY Straight Bourbon",
+            "Buffalo Trace KY Straight Bourbon .75L",
+            "Buffalo Trace KY Straight Bourbon 1.00L",
+            "Buffalo Trace Kentucky Straight Bourbon",
+            "Buffalo Trace Liter",
+            "bt",
+            "buffalo trace",
+            "buffalo trace kentucky straight bourbon"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_13fcb09e58792e06",
+      "canonical": "Bulleit Bourbon",
+      "normalizedKey": "bulleit",
+      "aliases": [
+        "BULLEIT BOURBON",
+        "Bulleit Bourbon",
+        "Bulleit Kentucky Straight Bourbon",
+        "Bulleit Straight Bourbon",
+        "Bulleit Straight Bourbon 90 Proof"
+      ],
+      "tier": "standard",
+      "producer": "Diageo",
+      "sources": [
+        "state-data-additions",
+        "state:VT"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bulleit-bourbon",
+          "canonicalName": "Bulleit Bourbon",
+          "aliases": [
+            "BULLEIT BOURBON",
+            "Bulleit",
+            "Bulleit Bourbon",
+            "Bulleit Kentucky Straight Bourbon",
+            "Bulleit Straight Bourbon",
+            "Bulleit Straight Bourbon 90 Proof"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_361a268eaf7afec6",
+      "canonical": "Angel's Envy Bourbon",
+      "normalizedKey": "angel s envy",
+      "aliases": [
+        "Angel's Envy Bourbon",
+        "Angel's Envy Bourbon 750mL",
+        "Angel's Envy Kentucky Straight Bourbon",
+        "Angels Envy Bourbon"
+      ],
+      "tier": "standard",
+      "producer": "Angel's Envy",
+      "sources": [
+        "state-data-additions",
+        "state:TN"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "angels-envy-bourbon",
+          "canonicalName": "Angel's Envy Bourbon",
+          "aliases": [
+            "Angel's Envy",
+            "Angel's Envy Bourbon",
+            "Angel's Envy Bourbon 750mL",
+            "Angel's Envy Kentucky Straight Bourbon",
+            "Angels Envy Bourbon",
+            "angel envy bourbon",
+            "angels envy"
+          ],
+          "nationalTier": "regular",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "e-h-taylor-jr-straight-rye-whiskey",
+      "canonical": "E.H. Taylor Jr. Straight Rye Whiskey",
+      "normalizedKey": "library:e-h-taylor-jr-straight-rye-whiskey",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "e-h-taylor-jr-straight-rye-whiskey",
+          "canonicalName": "E.H. Taylor Jr. Straight Rye Whiskey",
+          "aliases": [
+            "E.H. TAYLOR STRGT RYE WHIS",
+            "E.H. Taylor Jr. Straight Rye",
+            "E.H. Taylor Jr. Straight Rye Whiskey",
+            "E.H. Taylor Rye",
+            "E.H. Taylor Straight Rye",
+            "E.H. Taylor Strgt Rye Whis",
+            "EH Taylor Rye",
+            "EHT"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_dec2c347ba378237",
+      "canonical": "Larceny Barrel Proof",
+      "normalizedKey": "larceny proof",
+      "aliases": [
+        "Larceny Barrel Proof"
+      ],
+      "tier": "standard",
+      "producer": "Heaven Hill",
+      "sources": [
+        "state:PA:reviewed-fwgs",
+        "state:PA"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "larceny-barrel-proof",
+          "canonicalName": "Larceny Barrel Proof",
+          "aliases": [
+            "LBP",
+            "Larceny Barrel Proof",
+            "larceny barrel proof",
+            "larceny bp",
+            "lbp"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_152c90f782b801f5",
+      "canonical": "E.H. Taylor Small Batch",
+      "normalizedKey": "e h taylor",
+      "aliases": [
+        "Colonel E.H. Taylor Small Batch",
+        "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "E H Taylor Single Barrel",
+        "E H Taylor Small Batch",
+        "E.H. Taylor Jr. Small Batch .75L",
+        "E.H. Taylor SiB",
+        "E.H. Taylor Single Barrel",
+        "E.H. Taylor Small Batch",
+        "EH Taylor Single Barrel",
+        "EH Taylor Small Batch"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eh-taylor-small-batch",
+          "canonicalName": "E.H. Taylor Small Batch",
+          "aliases": [
+            "Colonel E.H. Taylor Small Batch",
+            "Colonel E.H. Taylor Small Batch Bottled in Bond",
+            "Colonel E.H. Taylor Small Batch Bottled in Bond Bourbon",
+            "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+            "E H Taylor Single Barrel",
+            "E H Taylor Small Batch",
+            "E.H. Taylor Bottled in Bond",
+            "E.H. Taylor Jr. Small Batch",
+            "E.H. Taylor Jr. Small Batch .75L",
+            "E.H. Taylor SiB",
+            "E.H. Taylor Single Barrel",
+            "E.H. Taylor Small Batch",
+            "EH Taylor Single Barrel",
+            "EH Taylor Small Batch",
+            "EHT",
+            "colonel taylor",
+            "e.h. taylor small batch",
+            "eh taylor",
+            "eht small batch"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}

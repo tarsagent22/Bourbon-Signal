@@ -23,7 +23,7 @@ export function isArizonaRetailerSignalIdentity(signal) {
   const chain = String(signal.sourceChain || signal.raw?.chain || '');
   let sourceHostname = '';
   try { sourceHostname = new URL(String(signal.sourceUrl || '')).hostname.replace(/^www\./i, '').toLowerCase(); } catch {}
-  if (['mesa-liquor','best-liquor-tempe','liquor-wheel-2-phoenix'].includes(chain)) return isMetroRetailerProof(signal);
+  if (['mesa-liquor','best-liquor-tempe','liquor-wheel-2-phoenix','virginia-market-phoenix'].includes(chain)) return isMetroRetailerProof(signal);
   if (/^(Safeway|Albertsons) Arizona XAPI store inventory$/.test(source)) {
     const expectedChain = source.startsWith('Albertsons') ? 'albertsons' : 'safeway';
     return chain === expectedChain

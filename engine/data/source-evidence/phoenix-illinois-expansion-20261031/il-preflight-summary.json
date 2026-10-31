@@ -1,0 +1,16 @@
+{
+  "observation": "combined_live_local_preflights_not_production_delivery",
+  "reviewedPremises": 180,
+  "positiveStores": 173,
+  "publicRows": 1029,
+  "allocatedRows": 485,
+  "allocatedStores": 163,
+  "canonicalBottles": 21,
+  "sourceObservationRange": {
+    "earliest": "2026-10-31T02:43:42.281Z",
+    "latest": "2026-10-31T03:13:15.623Z"
+  },
+  "initialComplete": false,
+  "initialGR204SchemaGaps": 2,
+  "followupRequests": 97
+}

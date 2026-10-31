@@ -1,0 +1,16 @@
+{
+  "observation": "live_local_preflight_not_production_delivery",
+  "selectedStores": 138,
+  "positiveGroceryStores": 137,
+  "publicGroceryRows": 774,
+  "allocatedRows": 409,
+  "phoenixMetroStores": 79,
+  "phoenixMetroRows": 507,
+  "additionalRowsFromDeeperQueries": 0,
+  "additionalPhoenixRowsFromDeeperQueries": 0,
+  "additionalPhoenixAllocatedRows": 0,
+  "phoenixStoresWithNewDepth": 0,
+  "requests": 1910,
+  "searches": 1865,
+  "denials": 0
+}

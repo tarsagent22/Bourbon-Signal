@@ -1,3 +1,4 @@
+import {ILLINOIS_GROCERY_SOURCES} from "../../engine/src/collectors/illinois-grocery-premises.mjs";
 import {brotliCompressSync,brotliDecompressSync,constants} from "node:zlib";
 import {unstable_cache} from "next/cache";
 import reviewed from "../data/sighting-store-directory.generated.json";
@@ -9,7 +10,9 @@ import {CALIFORNIA_REVIEWED_PREMISES} from "./california-reviewed-premises";
 import {reconcileReviewedTexasPremises} from "./texas-reviewed-premises";
 
 export const SIGHTING_STORE_DIRECTORY_VERSION = reviewed.generatedAt;
-const reviewedRows = [...reconcileReviewedTexasPremises(reviewed.stores), ...CALIFORNIA_REVIEWED_PREMISES] as Array<Record<string, unknown>>;
+const reviewedRows = [...reconcileReviewedTexasPremises(reviewed.stores), ...CALIFORNIA_REVIEWED_PREMISES,
+  ...ILLINOIS_GROCERY_SOURCES.map(source=>({id:source.storeId,state:'IL',name:source.name,address:source.address,
+    city:source.city,zip:source.zip,source:'Reviewed first-party Illinois grocery premises',sourceUrl:source.premiseUrl}))] as Array<Record<string, unknown>>;
 const completeOfficialStates = new Set(["NC", "VA", "UT", "ID", "NY", "CO", "CA", "TX", "KY", "FL", "SC", "TN"]);
 const officialAddresses = new Set(reviewedRows.filter(row => completeOfficialStates.has(String(row.state))).flatMap(row => {
   const store = normalizeSightingStore(row);

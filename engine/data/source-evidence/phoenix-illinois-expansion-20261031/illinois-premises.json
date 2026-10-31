@@ -1,0 +1,3964 @@
+{
+  "proofs": [
+    {
+      "storeId": "jewelosco:3368",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/550-n-state-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "550 N State St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60654",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.89228949409949,
+        "lng": -87.62858395152054
+      },
+      "sourceObservedAt": "2026-10-31T02:38:13.115Z"
+    },
+    {
+      "storeId": "jewelosco:3376",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/370-n-des-plaines-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "370 N Des Plaines St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60661",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8887205,
+        "lng": -87.6449859
+      },
+      "sourceObservedAt": "2026-10-31T02:38:13.506Z"
+    },
+    {
+      "storeId": "jewelosco:3234",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/102-w-division-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "102 W Division St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60610",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.90388630481875,
+        "lng": -87.63166449200446
+      },
+      "sourceObservedAt": "2026-10-31T02:38:13.852Z"
+    },
+    {
+      "storeId": "jewelosco:3345",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/1224-s-wabash-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1224 S Wabash Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60605",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.866463,
+        "lng": -87.6262491
+      },
+      "sourceObservedAt": "2026-10-31T02:38:14.223Z"
+    },
+    {
+      "storeId": "jewelosco:3546",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/424-w-division-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "424 W Division St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60610",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9048762,
+        "lng": -87.6396612
+      },
+      "sourceObservedAt": "2026-10-31T02:38:14.571Z"
+    },
+    {
+      "storeId": "jewelosco:4500",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/1340-s-canal-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1340 S Canal St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60607",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8641785,
+        "lng": -87.6399149
+      },
+      "sourceObservedAt": "2026-10-31T02:38:14.936Z"
+    },
+    {
+      "storeId": "jewelosco:1241",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/1341-n-paulina-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1341 N Paulina St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60622",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.906475365549845,
+        "lng": -87.66944628650818
+      },
+      "sourceObservedAt": "2026-10-31T02:38:15.304Z"
+    },
+    {
+      "storeId": "jewelosco:3344",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/1220-s-ashland-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1220 S Ashland Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60608",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8659163,
+        "lng": -87.668622
+      },
+      "sourceObservedAt": "2026-10-31T02:38:15.766Z"
+    },
+    {
+      "storeId": "jewelosco:4043",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/443-e-34th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "443 E 34th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60616",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8330404,
+        "lng": -87.6148371
+      },
+      "sourceObservedAt": "2026-10-31T02:38:16.153Z"
+    },
+    {
+      "storeId": "jewelosco:202",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/2550-n-clybourn-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2550 N Clybourn Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60614",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9272358,
+        "lng": -87.674309
+      },
+      "sourceObservedAt": "2026-10-31T02:38:16.515Z"
+    },
+    {
+      "storeId": "jewelosco:3441",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/2940-n-ashland-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2940 N Ashland Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60657",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9353485,
+        "lng": -87.6700592
+      },
+      "sourceObservedAt": "2026-10-31T02:38:16.861Z"
+    },
+    {
+      "storeId": "jewelosco:3514",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/3531-n-broadway-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3531 N Broadway St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60657",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.94680808104657,
+        "lng": -87.64615198280336
+      },
+      "sourceObservedAt": "2026-10-31T02:38:17.224Z"
+    },
+    {
+      "storeId": "jewelosco:3632",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/3630-n-southport-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3630 N Southport Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60613",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9481402,
+        "lng": -87.6643538
+      },
+      "sourceObservedAt": "2026-10-31T02:38:17.573Z"
+    },
+    {
+      "storeId": "jewelosco:2602",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/3644-s-archer-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3644 S Archer Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60609",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8277693,
+        "lng": -87.6827479
+      },
+      "sourceObservedAt": "2026-10-31T02:38:17.993Z"
+    },
+    {
+      "storeId": "jewelosco:901",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/3400-n-western-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3400 N Western Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60618",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9435177,
+        "lng": -87.6901003
+      },
+      "sourceObservedAt": "2026-10-31T02:38:18.358Z"
+    },
+    {
+      "storeId": "jewelosco:3455",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/4355-n-sheridan-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4355 N Sheridan Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60613",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.961301678134625,
+        "lng": -87.65344326442312
+      },
+      "sourceObservedAt": "2026-10-31T02:38:18.713Z"
+    },
+    {
+      "storeId": "jewelosco:3454",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/4250-n-lincoln-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4250 N Lincoln Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60618",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9584511,
+        "lng": -87.6823582
+      },
+      "sourceObservedAt": "2026-10-31T02:38:19.090Z"
+    },
+    {
+      "storeId": "jewelosco:3470",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/3570-n-elston-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3570 N Elston Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60618",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9453037,
+        "lng": -87.7086398
+      },
+      "sourceObservedAt": "2026-10-31T02:38:19.445Z"
+    },
+    {
+      "storeId": "jewelosco:3443",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/5343-n-broadway.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "5343 N Broadway",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60640",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9792092,
+        "lng": -87.6593051
+      },
+      "sourceObservedAt": "2026-10-31T02:38:19.815Z"
+    },
+    {
+      "storeId": "jewelosco:3407",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/5516-n-clark-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "5516 N Clark St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60640",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.982806,
+        "lng": -87.6691599
+      },
+      "sourceObservedAt": "2026-10-31T02:38:20.164Z"
+    },
+    {
+      "storeId": "jewelosco:187",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/11730-s-marshfield-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "11730 S Marshfield Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60643",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.68024514885139,
+        "lng": -87.6645535111145
+      },
+      "sourceObservedAt": "2026-10-31T02:38:20.522Z"
+    },
+    {
+      "storeId": "jewelosco:2504",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/merrionette-park/3243-w-115th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Merrionette Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3243 W 115th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60803",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.683027,
+        "lng": -87.7023094
+      },
+      "sourceObservedAt": "2026-10-31T02:38:20.877Z"
+    },
+    {
+      "storeId": "jewelosco:1214",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/3128-w-103rd-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3128 W 103rd St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60655",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.706863,
+        "lng": -87.6998763
+      },
+      "sourceObservedAt": "2026-10-31T02:38:21.225Z"
+    },
+    {
+      "storeId": "jewelosco:3176",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/9400-s-ashland-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "9400 S Ashland Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60620",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7229691,
+        "lng": -87.6633909
+      },
+      "sourceObservedAt": "2026-10-31T02:38:21.576Z"
+    },
+    {
+      "storeId": "jewelosco:3098",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/alsip/12001-s-pulaski-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Alsip",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "12001 S Pulaski Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60803",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.674008058617794,
+        "lng": -87.71785262142639
+      },
+      "sourceObservedAt": "2026-10-31T02:38:21.946Z"
+    },
+    {
+      "storeId": "jewelosco:3181",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/87-w-87th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "87 W 87th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60620",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.735136575286795,
+        "lng": -87.62788040926209
+      },
+      "sourceObservedAt": "2026-10-31T02:38:22.306Z"
+    },
+    {
+      "storeId": "jewelosco:607",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/oak-lawn/9424-s-pulaski-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Oak Lawn",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "9424 S Pulaski Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60453",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7211296,
+        "lng": -87.7221072
+      },
+      "sourceObservedAt": "2026-10-31T02:38:22.674Z"
+    },
+    {
+      "storeId": "jewelosco:92",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/1655-e-95th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1655 E 95th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60617",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7205224,
+        "lng": -87.5827119
+      },
+      "sourceObservedAt": "2026-10-31T02:38:23.016Z"
+    },
+    {
+      "storeId": "jewelosco:157",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/oak-lawn/4650-w-103rd-st.html",
+      "status": 200,
+      "address": {
+        "city": "Oak Lawn",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4650 W 103rd St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60453",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.70662982660998,
+        "lng": -87.73734105767213
+      },
+      "sourceObservedAt": "2026-10-31T02:38:23.366Z"
+    },
+    {
+      "storeId": "jewelosco:63",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/south-holland/763-e-162nd-st.html",
+      "status": 200,
+      "address": {
+        "city": "South Holland",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "763 E 162nd St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60473",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.6001111,
+        "lng": -87.5983196
+      },
+      "sourceObservedAt": "2026-10-31T02:38:23.723Z"
+    },
+    {
+      "storeId": "jewelosco:230",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/7530-s-stony-island-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "7530 S Stony Island Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60649",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.75829073760511,
+        "lng": -87.58766129206545
+      },
+      "sourceObservedAt": "2026-10-31T02:38:24.070Z"
+    },
+    {
+      "storeId": "jewelosco:4060",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/burbank/7910-s-cicero-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Burbank",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "7910 S Cicero Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60459",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7472786,
+        "lng": -87.742417
+      },
+      "sourceObservedAt": "2026-10-31T02:38:24.439Z"
+    },
+    {
+      "storeId": "jewelosco:2363",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/oak-forest/5616-w-159th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Oak Forest",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "5616 W 159th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60452",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.6040128,
+        "lng": -87.7576728
+      },
+      "sourceObservedAt": "2026-10-31T02:38:24.799Z"
+    },
+    {
+      "storeId": "jewelosco:3053",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/palos-heights/12803-s-harlem-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Palos Heights",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "12803 S Harlem Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60463",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.6590691,
+        "lng": -87.794681
+      },
+      "sourceObservedAt": "2026-10-31T02:38:25.185Z"
+    },
+    {
+      "storeId": "jewelosco:86",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/oak-lawn/8801-s-ridgeland-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Oak Lawn",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "8801 S Ridgeland Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60453",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7316906,
+        "lng": -87.7788652
+      },
+      "sourceObservedAt": "2026-10-31T02:38:25.541Z"
+    },
+    {
+      "storeId": "jewelosco:3188",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/homewood/17705-s-halsted-st.html",
+      "status": 200,
+      "address": {
+        "city": "Homewood",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "17705 S Halsted St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60430",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.567650554049195,
+        "lng": -87.63373726375428
+      },
+      "sourceObservedAt": "2026-10-31T02:38:25.905Z"
+    },
+    {
+      "storeId": "jewelosco:3082",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/6014-s-cottage-grove.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "6014 S Cottage Grove",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60637",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.785118,
+        "lng": -87.6062928
+      },
+      "sourceObservedAt": "2026-10-31T02:38:26.289Z"
+    },
+    {
+      "storeId": "jewelosco:659",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/homewood/3153-w-183rd.html",
+      "status": 200,
+      "address": {
+        "city": "Homewood",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3153 W 183rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60430",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.5559466,
+        "lng": -87.6932305
+      },
+      "sourceObservedAt": "2026-10-31T02:38:26.673Z"
+    },
+    {
+      "storeId": "jewelosco:3170",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/5320-s-pulaski-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "5320 S Pulaski Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60632",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.79589115579408,
+        "lng": -87.72506399391784
+      },
+      "sourceObservedAt": "2026-10-31T02:38:27.048Z"
+    },
+    {
+      "storeId": "jewelosco:4029",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/hickory-hills/9528-s-roberts-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Hickory Hills",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "9528 S Roberts Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60457",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7174425,
+        "lng": -87.8204255
+      },
+      "sourceObservedAt": "2026-10-31T02:38:27.437Z"
+    },
+    {
+      "storeId": "jewelosco:3224",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/6430-w-irving-park-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "6430 W Irving Park Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60634",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.953992655881564,
+        "lng": -87.7878070865082
+      },
+      "sourceObservedAt": "2026-10-31T02:38:27.803Z"
+    },
+    {
+      "storeId": "jewelosco:3349",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/2520-n-narragansett-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2520 N Narragansett Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60639",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9262217,
+        "lng": -87.7863353
+      },
+      "sourceObservedAt": "2026-10-31T02:38:28.163Z"
+    },
+    {
+      "storeId": "jewelosco:1282",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/4729-n-central-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4729 N Central Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60630",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.96690437155385,
+        "lng": -87.76668394232789
+      },
+      "sourceObservedAt": "2026-10-31T02:38:28.526Z"
+    },
+    {
+      "storeId": "jewelosco:3262",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/4660-w-irving-park-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4660 W Irving Park Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60641",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9552216,
+        "lng": -87.7448987
+      },
+      "sourceObservedAt": "2026-10-31T02:38:28.883Z"
+    },
+    {
+      "storeId": "jewelosco:1296",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/7342-w-foster-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "7342 W Foster Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60656",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9751678428801,
+        "lng": -87.81103668227844
+      },
+      "sourceObservedAt": "2026-10-31T02:38:29.285Z"
+    },
+    {
+      "storeId": "jewelosco:3477",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/4734-n-cumberland-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4734 N Cumberland Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60656",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9655628,
+        "lng": -87.8380564
+      },
+      "sourceObservedAt": "2026-10-31T02:38:29.637Z"
+    },
+    {
+      "storeId": "jewelosco:3442",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/4042-w-foster-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4042 W Foster Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60630",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9762809,
+        "lng": -87.7298879
+      },
+      "sourceObservedAt": "2026-10-31T02:38:29.992Z"
+    },
+    {
+      "storeId": "jewelosco:3290",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/melrose-park/800-w-north-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Melrose Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "800 W North Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60160",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9070678,
+        "lng": -87.8428073
+      },
+      "sourceObservedAt": "2026-10-31T02:38:30.368Z"
+    },
+    {
+      "storeId": "jewelosco:3223",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/river-forest/7525-w-lake-st.html",
+      "status": 200,
+      "address": {
+        "city": "River Forest",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "7525 W Lake St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60305",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.887802435172546,
+        "lng": -87.81333310370484
+      },
+      "sourceObservedAt": "2026-10-31T02:38:30.745Z"
+    },
+    {
+      "storeId": "jewelosco:3484",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/niles/5667-w-touhy-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Niles",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "5667 W Touhy Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60714",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0109225,
+        "lng": -87.7690475
+      },
+      "sourceObservedAt": "2026-10-31T02:38:31.102Z"
+    },
+    {
+      "storeId": "jewelosco:288",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/oak-park/438-w-madison-st.html",
+      "status": 200,
+      "address": {
+        "city": "Oak Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "438 W Madison St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60302",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8800865,
+        "lng": -87.786446
+      },
+      "sourceObservedAt": "2026-10-31T02:38:31.534Z"
+    },
+    {
+      "storeId": "jewelosco:4057",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/franklin-park/10203-w-grand-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Franklin Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "10203 W Grand Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60131",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9293839,
+        "lng": -87.8803885
+      },
+      "sourceObservedAt": "2026-10-31T02:38:31.886Z"
+    },
+    {
+      "storeId": "jewelosco:3481",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/park-ridge/481-busse-hwy.html",
+      "status": 200,
+      "address": {
+        "city": "Park Ridge",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "481 Busse Hwy",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60068",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0157528,
+        "lng": -87.8392527
+      },
+      "sourceObservedAt": "2026-10-31T02:38:32.262Z"
+    },
+    {
+      "storeId": "jewelosco:3446",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/niles/7900-milwaukee-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Niles",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "7900 Milwaukee Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60714",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0247645,
+        "lng": -87.8142694
+      },
+      "sourceObservedAt": "2026-10-31T02:38:32.646Z"
+    },
+    {
+      "storeId": "jewelosco:3236",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/oak-park/7036-roosevelt-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Oak Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "7036 Roosevelt Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60304",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.86522489999999,
+        "lng": -87.80060222275392
+      },
+      "sourceObservedAt": "2026-10-31T02:38:33.018Z"
+    },
+    {
+      "storeId": "jewelosco:2219",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/glenview/2775-pfingsten-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Glenview",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2775 Pfingsten Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60026",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1047263,
+        "lng": -87.8458294
+      },
+      "sourceObservedAt": "2026-10-31T02:38:33.355Z"
+    },
+    {
+      "storeId": "jewelosco:3475",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/deerfield/16-s-waukegan-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Deerfield",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "16 S Waukegan Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60015",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1516546,
+        "lng": -87.8372158
+      },
+      "sourceObservedAt": "2026-10-31T02:38:33.714Z"
+    },
+    {
+      "storeId": "jewelosco:3426",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/glenview/2502-n-waukegan-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Glenview",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2502 N Waukegan Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60025",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0996654,
+        "lng": -87.8009306
+      },
+      "sourceObservedAt": "2026-10-31T02:38:34.095Z"
+    },
+    {
+      "storeId": "jewelosco:1",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/glenview/1340-patriot-blvd.html",
+      "status": 200,
+      "address": {
+        "city": "Glenview",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1340 Patriot Blvd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60026",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0785964,
+        "lng": -87.8193346
+      },
+      "sourceObservedAt": "2026-10-31T02:38:34.442Z"
+    },
+    {
+      "storeId": "jewelosco:3459",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/highland-park/1600-deerfield-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Highland Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1600 Deerfield Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60035",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.177673,
+        "lng": -87.8216359
+      },
+      "sourceObservedAt": "2026-10-31T02:38:34.790Z"
+    },
+    {
+      "storeId": "jewelosco:3476",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/mount-prospect/333-e-euclid-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Mount Prospect",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "333 E Euclid Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60056",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0873539,
+        "lng": -87.930956
+      },
+      "sourceObservedAt": "2026-10-31T02:38:35.152Z"
+    },
+    {
+      "storeId": "jewelosco:3429",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/niles/8730-w-dempster.html",
+      "status": 200,
+      "address": {
+        "city": "Niles",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "8730 W Dempster",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60714",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.040802,
+        "lng": -87.8441811
+      },
+      "sourceObservedAt": "2026-10-31T02:38:35.507Z"
+    },
+    {
+      "storeId": "jewelosco:3479",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/buffalo-grove/79-mchenry-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Buffalo Grove",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "79 McHenry Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60089",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1552041,
+        "lng": -87.9577312
+      },
+      "sourceObservedAt": "2026-10-31T02:38:35.873Z"
+    },
+    {
+      "storeId": "jewelosco:3478",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/arlington-heights/440-e-rand-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Arlington Heights",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "440 E Rand Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60004",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1115233,
+        "lng": -87.9768143
+      },
+      "sourceObservedAt": "2026-10-31T02:38:36.225Z"
+    },
+    {
+      "storeId": "jewelosco:3465",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/skokie/9449-n-skokie-blvd.html",
+      "status": 200,
+      "address": {
+        "city": "Skokie",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "9449 N Skokie Blvd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60077",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0529411,
+        "lng": -87.744743
+      },
+      "sourceObservedAt": "2026-10-31T02:38:36.677Z"
+    },
+    {
+      "storeId": "jewelosco:3425",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/des-plaines/1500-s-lee-st.html",
+      "status": 200,
+      "address": {
+        "city": "Des Plaines",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1500 S Lee St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60018",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0257761,
+        "lng": -87.8955965
+      },
+      "sourceObservedAt": "2026-10-31T02:38:37.046Z"
+    },
+    {
+      "storeId": "jewelosco:3422",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/arlington-heights/122-n-vail-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Arlington Heights",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "122 N Vail Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60005",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0841961,
+        "lng": -87.9854773
+      },
+      "sourceObservedAt": "2026-10-31T02:38:37.399Z"
+    },
+    {
+      "storeId": "jewelosco:3473",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/des-plaines/819-s-elmhurst-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Des Plaines",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "819 S Elmhurst Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60016",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0367462,
+        "lng": -87.939005
+      },
+      "sourceObservedAt": "2026-10-31T02:38:37.764Z"
+    },
+    {
+      "storeId": "jewelosco:3471",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/wilmette/1517-sheridan-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Wilmette",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1517 Sheridan Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60091",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0865803,
+        "lng": -87.7010666
+      },
+      "sourceObservedAt": "2026-10-31T02:38:38.130Z"
+    },
+    {
+      "storeId": "jewelosco:3456",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/wilmette/411-n-green-bay-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Wilmette",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "411 N Green Bay Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60091",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0725918,
+        "lng": -87.7063341
+      },
+      "sourceObservedAt": "2026-10-31T02:38:38.520Z"
+    },
+    {
+      "storeId": "jewelosco:3461",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/arlington-heights/1860-s-arlington-heights-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Arlington Heights",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1860 S Arlington Heights Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60005",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0521265,
+        "lng": -87.9836846
+      },
+      "sourceObservedAt": "2026-10-31T02:38:38.913Z"
+    },
+    {
+      "storeId": "jewelosco:3490",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/lake-forest/890-n-western-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Lake Forest",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "890 N Western Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60045",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.2559505,
+        "lng": -87.8415197
+      },
+      "sourceObservedAt": "2026-10-31T02:38:39.278Z"
+    },
+    {
+      "storeId": "jewelosco:1518",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/mchenry/4222-w-elm-st.html",
+      "status": 200,
+      "address": {
+        "city": "McHenry",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4222 W Elm St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60050",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.3478624,
+        "lng": -88.2800807
+      },
+      "sourceObservedAt": "2026-10-31T02:38:39.636Z"
+    },
+    {
+      "storeId": "jewelosco:2517",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/crystal-lake/6140-northwest-hwy.html",
+      "status": 200,
+      "address": {
+        "city": "Crystal Lake",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "6140 Northwest Hwy",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60014",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.2288441,
+        "lng": -88.3184352
+      },
+      "sourceObservedAt": "2026-10-31T02:38:39.995Z"
+    },
+    {
+      "storeId": "jewelosco:3503",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/woodstock/145-s-eastwood-dr.html",
+      "status": 200,
+      "address": {
+        "city": "Woodstock",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "145 S Eastwood Dr",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60098",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.3150969,
+        "lng": -88.4342724
+      },
+      "sourceObservedAt": "2026-10-31T02:38:40.360Z"
+    },
+    {
+      "storeId": "jewelosco:3453",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/fox-lake/1350-us-route-12.html",
+      "status": 200,
+      "address": {
+        "city": "Fox Lake",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1350 US Route 12",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60020",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.3666263,
+        "lng": -88.1726522
+      },
+      "sourceObservedAt": "2026-10-31T02:38:40.730Z"
+    },
+    {
+      "storeId": "jewelosco:3496",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/cary/696-northwest-hwy.html",
+      "status": 200,
+      "address": {
+        "city": "Cary",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "696 Northwest Hwy",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60013",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.2184396,
+        "lng": -88.2558043
+      },
+      "sourceObservedAt": "2026-10-31T02:38:41.093Z"
+    },
+    {
+      "storeId": "jewelosco:3415",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/spring-grove/2401-route-12.html",
+      "status": 200,
+      "address": {
+        "city": "Spring Grove",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2401 Route 12",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60081",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.4356284,
+        "lng": -88.2438693
+      },
+      "sourceObservedAt": "2026-10-31T02:38:41.454Z"
+    },
+    {
+      "storeId": "jewelosco:3515",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/wauconda/547-w-liberty-st.html",
+      "status": 200,
+      "address": {
+        "city": "Wauconda",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "547 W Liberty St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60084",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.2593276,
+        "lng": -88.1522156
+      },
+      "sourceObservedAt": "2026-10-31T02:38:41.809Z"
+    },
+    {
+      "storeId": "jewelosco:2507",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/fox-river-grove/800-nw-hwy-14.html",
+      "status": 200,
+      "address": {
+        "city": "Fox River Grove",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "800 NW Hwy 14",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60021",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.19532046006186,
+        "lng": -88.20990254655763
+      },
+      "sourceObservedAt": "2026-10-31T02:38:42.200Z"
+    },
+    {
+      "storeId": "jewelosco:1256",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/algonquin/103-s-randall-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Algonquin",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "103 S Randall Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60102",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.17473110460268,
+        "lng": -88.33285882327881
+      },
+      "sourceObservedAt": "2026-10-31T02:38:42.582Z"
+    },
+    {
+      "storeId": "jewelosco:3198",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/huntley/10090-hwy-47.html",
+      "status": 200,
+      "address": {
+        "city": "Huntley",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "10090 HWY 47",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60142",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1822408,
+        "lng": -88.422655
+      },
+      "sourceObservedAt": "2026-10-31T02:38:42.963Z"
+    },
+    {
+      "storeId": "jewelosco:2310",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/algonquin/1501-e-algonquin-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Algonquin",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1501 E Algonquin Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60102",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1586201,
+        "lng": -88.2746137
+      },
+      "sourceObservedAt": "2026-10-31T02:38:43.321Z"
+    },
+    {
+      "storeId": "jewelosco:3432",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/round-lake/900-e-rollins-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Round Lake",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "900 E Rollins Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60073",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.3819627,
+        "lng": -88.0609097
+      },
+      "sourceObservedAt": "2026-10-31T02:38:43.691Z"
+    },
+    {
+      "storeId": "jewelosco:4305",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/lake-zurich/345-s-rand-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Lake Zurich",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "345 S Rand Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60047",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1912534,
+        "lng": -88.1100881
+      },
+      "sourceObservedAt": "2026-10-31T02:38:44.038Z"
+    },
+    {
+      "storeId": "jewelosco:3485",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/lake-zurich/485-ela-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Lake Zurich",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "485 Ela Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60047",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1893656,
+        "lng": -88.1031665
+      },
+      "sourceObservedAt": "2026-10-31T02:38:44.404Z"
+    },
+    {
+      "storeId": "jewelosco:3464",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/grayslake/885-e-belvidere-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Grayslake",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "885 E Belvidere Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60030",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.3356638,
+        "lng": -88.0263689
+      },
+      "sourceObservedAt": "2026-10-31T02:38:44.808Z"
+    },
+    {
+      "storeId": "jewelosco:3394",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/huntley/13200-village-green-dr.html",
+      "status": 200,
+      "address": {
+        "city": "Huntley",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "13200 Village Green Dr",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60142",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.136360389150546,
+        "lng": -88.42904645952454
+      },
+      "sourceObservedAt": "2026-10-31T02:38:45.193Z"
+    },
+    {
+      "storeId": "jewelosco:3451",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/barrington/150-w-main-st.html",
+      "status": 200,
+      "address": {
+        "city": "Barrington",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "150 W Main St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60010",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1550146,
+        "lng": -88.1379632
+      },
+      "sourceObservedAt": "2026-10-31T02:38:45.539Z"
+    },
+    {
+      "storeId": "jewelosco:3466",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/antioch/966-route-59.html",
+      "status": 200,
+      "address": {
+        "city": "Antioch",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "966 Route 59",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60002",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.4768415,
+        "lng": -88.1059922
+      },
+      "sourceObservedAt": "2026-10-31T02:38:45.910Z"
+    },
+    {
+      "storeId": "jewelosco:3061",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/mundelein/1150-w-maple-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Mundelein",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1150 W Maple Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60060",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.277408479490525,
+        "lng": -88.02080607116395
+      },
+      "sourceObservedAt": "2026-10-31T02:38:46.256Z"
+    },
+    {
+      "storeId": "jewelosco:1306",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/west-dundee/1250-w-main-st.html",
+      "status": 200,
+      "address": {
+        "city": "West Dundee",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1250 W Main St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60118",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1005429,
+        "lng": -88.299973
+      },
+      "sourceObservedAt": "2026-10-31T02:38:46.633Z"
+    },
+    {
+      "storeId": "jewelosco:3291",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/elgin/1040-summit-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Elgin",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1040 Summit Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60120",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0479447,
+        "lng": -88.2528578
+      },
+      "sourceObservedAt": "2026-10-31T02:38:47.006Z"
+    },
+    {
+      "storeId": "jewelosco:2313",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/elgin/1660-larkin-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Elgin",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1660 Larkin Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60123",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0348392,
+        "lng": -88.3192134
+      },
+      "sourceObservedAt": "2026-10-31T02:38:47.382Z"
+    },
+    {
+      "storeId": "jewelosco:3486",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/hoffman-estates/1485-palatine-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Hoffman Estates",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1485 Palatine Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60192",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1094397,
+        "lng": -88.116173
+      },
+      "sourceObservedAt": "2026-10-31T02:38:47.743Z"
+    },
+    {
+      "storeId": "jewelosco:4268",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/streamwood/217-irving-park-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Streamwood",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "217 Irving Park Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60107",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0112154,
+        "lng": -88.1779003
+      },
+      "sourceObservedAt": "2026-10-31T02:38:48.115Z"
+    },
+    {
+      "storeId": "jewelosco:3216",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/schaumburg/2501-schaumburg-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Schaumburg",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2501 Schaumburg Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60194",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0229607,
+        "lng": -88.1432721
+      },
+      "sourceObservedAt": "2026-10-31T02:38:48.458Z"
+    },
+    {
+      "storeId": "jewelosco:3343",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/south-elgin/375-randall-rd.html",
+      "status": 200,
+      "address": {
+        "city": "South Elgin",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "375 Randall Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60177",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9868007,
+        "lng": -88.3388748
+      },
+      "sourceObservedAt": "2026-10-31T02:38:48.804Z"
+    },
+    {
+      "storeId": "jewelosco:260",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/st-charles/652-kirk-rd.html",
+      "status": 200,
+      "address": {
+        "city": "St Charles",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "652 Kirk Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60174",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9245358,
+        "lng": -88.2731466
+      },
+      "sourceObservedAt": "2026-10-31T02:38:49.162Z"
+    },
+    {
+      "storeId": "jewelosco:3331",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/st-charles/2073-prairie-st.html",
+      "status": 200,
+      "address": {
+        "city": "St Charles",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2073 Prairie St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60174",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.90258675864131,
+        "lng": -88.33781698280335
+      },
+      "sourceObservedAt": "2026-10-31T02:38:49.518Z"
+    },
+    {
+      "storeId": "jewelosco:3219",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/batavia/119-s-randall-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Batavia",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "119 S Randall Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60510",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.848228007932896,
+        "lng": -88.34263452275391
+      },
+      "sourceObservedAt": "2026-10-31T02:38:49.859Z"
+    },
+    {
+      "storeId": "jewelosco:3338",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/west-chicago/177-e-roosevelt-rd.html",
+      "status": 200,
+      "address": {
+        "city": "West Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "177 E Roosevelt Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60185",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8660216,
+        "lng": -88.2026402
+      },
+      "sourceObservedAt": "2026-10-31T02:38:50.238Z"
+    },
+    {
+      "storeId": "jewelosco:3348",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/bartlett/125-e-stearns-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Bartlett",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "125 E Stearns Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60103",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.971274723323305,
+        "lng": -88.18284919073793
+      },
+      "sourceObservedAt": "2026-10-31T02:38:50.625Z"
+    },
+    {
+      "storeId": "jewelosco:2346",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/carol-stream/750-army-trail-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Carol Stream",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "750 Army Trail Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60188",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9394044,
+        "lng": -88.1462439
+      },
+      "sourceObservedAt": "2026-10-31T02:38:50.997Z"
+    },
+    {
+      "storeId": "jewelosco:3347",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/elburn/800-n-main-st.html",
+      "status": 200,
+      "address": {
+        "city": "Elburn",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "800 N Main St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60119",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9011794,
+        "lng": -88.4745517
+      },
+      "sourceObservedAt": "2026-10-31T02:38:51.350Z"
+    },
+    {
+      "storeId": "jewelosco:3240",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/aurora/1157-n-eola-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Aurora",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1157 N Eola Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60502",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7800432,
+        "lng": -88.2383806
+      },
+      "sourceObservedAt": "2026-10-31T02:38:51.696Z"
+    },
+    {
+      "storeId": "jewelosco:283",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/wheaton/2031-n-main-st.html",
+      "status": 200,
+      "address": {
+        "city": "Wheaton",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2031 N Main St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60187",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.886653982489996,
+        "lng": -88.10602090793456
+      },
+      "sourceObservedAt": "2026-10-31T02:38:52.094Z"
+    },
+    {
+      "storeId": "jewelosco:264",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/glendale-heights/2164-bloomingdale-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Glendale Heights",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2164 Bloomingdale Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60139",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9384411,
+        "lng": -88.0821859
+      },
+      "sourceObservedAt": "2026-10-31T02:38:52.441Z"
+    },
+    {
+      "storeId": "jewelosco:4252",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/aurora/1952-w-galena-blvd.html",
+      "status": 200,
+      "address": {
+        "city": "Aurora",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1952 W Galena Blvd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60506",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7633664,
+        "lng": -88.3647604
+      },
+      "sourceObservedAt": "2026-10-31T02:38:52.817Z"
+    },
+    {
+      "storeId": "jewelosco:3230",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/wheaton/30-danada-square-w.html",
+      "status": 200,
+      "address": {
+        "city": "Wheaton",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "30 Danada Square W",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60189",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8315612,
+        "lng": -88.105103
+      },
+      "sourceObservedAt": "2026-10-31T02:38:53.236Z"
+    },
+    {
+      "storeId": "jewelosco:185",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/naperville/127-e-ogden-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Naperville",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "127 E Ogden Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60563",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.78695259224272,
+        "lng": -88.1452237
+      },
+      "sourceObservedAt": "2026-10-31T02:38:53.602Z"
+    },
+    {
+      "storeId": "jewelosco:59",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/naperville/1759-w-ogden-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Naperville",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1759 W Ogden Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60540",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7631238,
+        "lng": -88.1880946
+      },
+      "sourceObservedAt": "2026-10-31T02:38:53.961Z"
+    },
+    {
+      "storeId": "jewelosco:3374",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/sugar-grove/465-n-route-47.html",
+      "status": 200,
+      "address": {
+        "city": "Sugar Grove",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "465 N Route 47",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60554",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7736907,
+        "lng": -88.4390929
+      },
+      "sourceObservedAt": "2026-10-31T02:38:54.352Z"
+    },
+    {
+      "storeId": "jewelosco:4516",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/waukegan/922-n-green-bay-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Waukegan",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "922 N Green Bay Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60085",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.3739534,
+        "lng": -87.8840035
+      },
+      "sourceObservedAt": "2026-10-31T02:38:54.747Z"
+    },
+    {
+      "storeId": "jewelosco:3405",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/gurnee/6509-w-grand-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Gurnee",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "6509 W Grand Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60031",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.38026919228377,
+        "lng": -87.96582452460632
+      },
+      "sourceObservedAt": "2026-10-31T02:38:55.118Z"
+    },
+    {
+      "storeId": "jewelosco:1424",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/waukegan/3124-n-lewis-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Waukegan",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3124 N Lewis Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60087",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.4091581,
+        "lng": -87.8571566
+      },
+      "sourceObservedAt": "2026-10-31T02:38:55.481Z"
+    },
+    {
+      "storeId": "jewelosco:606",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/libertyville/1300-s-milwaukee-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Libertyville",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1300 S Milwaukee Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60048",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.2623573,
+        "lng": -87.9471435
+      },
+      "sourceObservedAt": "2026-10-31T02:38:55.837Z"
+    },
+    {
+      "storeId": "jewelosco:3421",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/zion/1400-21st-st.html",
+      "status": 200,
+      "address": {
+        "city": "Zion",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1400 21st St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60099",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.4575819,
+        "lng": -87.8283629
+      },
+      "sourceObservedAt": "2026-10-31T02:38:56.194Z"
+    },
+    {
+      "storeId": "jewelosco:3488",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/mundelein/1501-s-lake-st.html",
+      "status": 200,
+      "address": {
+        "city": "Mundelein",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1501 S Lake St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60060",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.2437084,
+        "lng": -87.9930378
+      },
+      "sourceObservedAt": "2026-10-31T02:38:56.584Z"
+    },
+    {
+      "storeId": "jewelosco:3474",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/palatine/423-e-dundee-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Palatine",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "423 E Dundee Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60074",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1379378,
+        "lng": -88.0327641
+      },
+      "sourceObservedAt": "2026-10-31T02:38:56.934Z"
+    },
+    {
+      "storeId": "jewelosco:1074",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/joliet/1401-w-jefferson-st.html",
+      "status": 200,
+      "address": {
+        "city": "Joliet",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1401 W Jefferson St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60435",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.5249755,
+        "lng": -88.1160746
+      },
+      "sourceObservedAt": "2026-10-31T02:38:57.298Z"
+    },
+    {
+      "storeId": "jewelosco:224",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/joliet/1537-n-larkin.html",
+      "status": 200,
+      "address": {
+        "city": "Joliet",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1537 N Larkin",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60435",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.5508928,
+        "lng": -88.1273809
+      },
+      "sourceObservedAt": "2026-10-31T02:38:57.649Z"
+    },
+    {
+      "storeId": "jewelosco:3084",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/shorewood/199-brookforest-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Shorewood",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "199 Brookforest Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60404",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.5225814,
+        "lng": -88.2022414
+      },
+      "sourceObservedAt": "2026-10-31T02:38:58.005Z"
+    },
+    {
+      "storeId": "jewelosco:80",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/plainfield/2480-route-59.html",
+      "status": 200,
+      "address": {
+        "city": "Plainfield",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2480 Route 59",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60586",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.5663467,
+        "lng": -88.1980813
+      },
+      "sourceObservedAt": "2026-10-31T02:38:58.394Z"
+    },
+    {
+      "storeId": "jewelosco:3191",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/romeoville/20-s-weber-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Romeoville",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "20 S Weber Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60446",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.62317752139107,
+        "lng": -88.12607470370483
+      },
+      "sourceObservedAt": "2026-10-31T02:38:58.764Z"
+    },
+    {
+      "storeId": "jewelosco:3720",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/lockport/16625-w-159th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Lockport",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "16625 W 159th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60441",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.5960123,
+        "lng": -88.0246711
+      },
+      "sourceObservedAt": "2026-10-31T02:38:59.116Z"
+    },
+    {
+      "storeId": "jewelosco:3178",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/new-lenox/475-n-nelson-rd.html",
+      "status": 200,
+      "address": {
+        "city": "New Lenox",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "475 N Nelson Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60451",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.5175439,
+        "lng": -87.9872046
+      },
+      "sourceObservedAt": "2026-10-31T02:38:59.479Z"
+    },
+    {
+      "storeId": "jewelosco:1190",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/plainfield/13460-s-rt-59.html",
+      "status": 200,
+      "address": {
+        "city": "Plainfield",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "13460 S Rt 59",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60585",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.638057,
+        "lng": -88.205787
+      },
+      "sourceObservedAt": "2026-10-31T02:38:59.874Z"
+    },
+    {
+      "storeId": "jewelosco:3182",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/lemont/1202-state-st.html",
+      "status": 200,
+      "address": {
+        "city": "Lemont",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1202 State St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60439",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.65553091609612,
+        "lng": -88.00170163491822
+      },
+      "sourceObservedAt": "2026-10-31T02:39:00.265Z"
+    },
+    {
+      "storeId": "jewelosco:3776",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/new-lenox/2021-e-laraway-rd.html",
+      "status": 200,
+      "address": {
+        "city": "New Lenox",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2021 E Laraway Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60451",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.4855681,
+        "lng": -87.9251415
+      },
+      "sourceObservedAt": "2026-10-31T02:39:00.617Z"
+    },
+    {
+      "storeId": "jewelosco:3730",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/minooka/2051-ridge-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Minooka",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2051 Ridge Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60447",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.4201393,
+        "lng": -88.2727781
+      },
+      "sourceObservedAt": "2026-10-31T02:39:00.996Z"
+    },
+    {
+      "storeId": "jewelosco:1303",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/homer-glen/14200-s-bell-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Homer Glen",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "14200 S Bell Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60491",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.6306993,
+        "lng": -87.9327933
+      },
+      "sourceObservedAt": "2026-10-31T02:39:01.391Z"
+    },
+    {
+      "storeId": "jewelosco:4013",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/bolingbrook/1200-w-boughton-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Bolingbrook",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1200 W Boughton Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60440",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7050679,
+        "lng": -88.1240819
+      },
+      "sourceObservedAt": "2026-10-31T02:39:01.750Z"
+    },
+    {
+      "storeId": "jewelosco:3192",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/orland-park/17930-wolf-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Orland Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "17930 Wolf Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60467",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.563148776105,
+        "lng": -87.89322744232787
+      },
+      "sourceObservedAt": "2026-10-31T02:39:02.101Z"
+    },
+    {
+      "storeId": "jewelosco:58",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/naperville/2855-95th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Naperville",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2855 95th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60564",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7120039,
+        "lng": -88.2033116
+      },
+      "sourceObservedAt": "2026-10-31T02:39:02.464Z"
+    },
+    {
+      "storeId": "jewelosco:52",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/frankfort/21164-s-la-grange-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Frankfort",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "21164 S La Grange Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60423",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.50488047008726,
+        "lng": -87.85340872570782
+      },
+      "sourceObservedAt": "2026-10-31T02:39:02.890Z"
+    },
+    {
+      "storeId": "jewelosco:3051",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/orland-park/9350-w-159th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Orland Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "9350 W 159th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60462",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.6034431,
+        "lng": -87.8466567
+      },
+      "sourceObservedAt": "2026-10-31T02:39:03.277Z"
+    },
+    {
+      "storeId": "jewelosco:1111",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/naperville/1227-naper-blvd.html",
+      "status": 200,
+      "address": {
+        "city": "Naperville",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1227 Naper Blvd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60540",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7514341,
+        "lng": -88.11699
+      },
+      "sourceObservedAt": "2026-10-31T02:39:03.636Z"
+    },
+    {
+      "storeId": "jewelosco:362",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/woodridge/2317-75th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Woodridge",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2317 75th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60517",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.749388,
+        "lng": -88.0383917
+      },
+      "sourceObservedAt": "2026-10-31T02:39:04.022Z"
+    },
+    {
+      "storeId": "jewelosco:2160",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/palos-park/9652-w-131st-st.html",
+      "status": 200,
+      "address": {
+        "city": "Palos Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "9652 W 131st St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60464",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.65353160715684,
+        "lng": -87.85628694232788
+      },
+      "sourceObservedAt": "2026-10-31T02:39:04.474Z"
+    },
+    {
+      "storeId": "jewelosco:3165",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/tinley-park/17117-s-harlem-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Tinley Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "17117 S Harlem Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60477",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.5793495,
+        "lng": -87.7917226
+      },
+      "sourceObservedAt": "2026-10-31T02:39:04.827Z"
+    },
+    {
+      "storeId": "jewelosco:3167",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/south-chicago-heights/3220-chicago-rd.html",
+      "status": 200,
+      "address": {
+        "city": "South Chicago Heights",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3220 Chicago Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60411",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.479497062033936,
+        "lng": -87.63894813624573
+      },
+      "sourceObservedAt": "2026-10-31T02:39:05.186Z"
+    },
+    {
+      "storeId": "jewelosco:56",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/lisle/1156-maple-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Lisle",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1156 Maple Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60532",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7870243,
+        "lng": -88.0755776
+      },
+      "sourceObservedAt": "2026-10-31T02:39:05.570Z"
+    },
+    {
+      "storeId": "jewelosco:4047",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/downers-grove/6215-main-st.html",
+      "status": 200,
+      "address": {
+        "city": "Downers Grove",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "6215 Main St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60516",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7741299,
+        "lng": -88.0073628
+      },
+      "sourceObservedAt": "2026-10-31T02:39:05.945Z"
+    },
+    {
+      "storeId": "jewelosco:3097",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/downers-grove/1148-ogden-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Downers Grove",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1148 Ogden Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60515",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8096644,
+        "lng": -88.0138068
+      },
+      "sourceObservedAt": "2026-10-31T02:39:06.303Z"
+    },
+    {
+      "storeId": "jewelosco:3340",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/glen-ellyn/599-e-roosevelt-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Glen Ellyn",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "599 E Roosevelt Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60137",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.858449264490694,
+        "lng": -88.0627612325409
+      },
+      "sourceObservedAt": "2026-10-31T02:39:06.684Z"
+    },
+    {
+      "storeId": "jewelosco:123",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/darien/7329-s-cass-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Darien",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "7329 S Cass Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60561",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7538281,
+        "lng": -87.9720338
+      },
+      "sourceObservedAt": "2026-10-31T02:39:07.036Z"
+    },
+    {
+      "storeId": "jewelosco:68",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/westmont/4-e-ogden-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Westmont",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "4 E Ogden Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60559",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8111933,
+        "lng": -87.9734865
+      },
+      "sourceObservedAt": "2026-10-31T02:39:07.402Z"
+    },
+    {
+      "storeId": "jewelosco:4138",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/oswego/2540-us-30.html",
+      "status": 200,
+      "address": {
+        "city": "Oswego",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2540 US-30",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60543",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7176078,
+        "lng": -88.3177989
+      },
+      "sourceObservedAt": "2026-10-31T02:39:07.790Z"
+    },
+    {
+      "storeId": "jewelosco:3278",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/lombard/1177-s-main-st.html",
+      "status": 200,
+      "address": {
+        "city": "Lombard",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1177 S Main St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60148",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8611775,
+        "lng": -88.0153844
+      },
+      "sourceObservedAt": "2026-10-31T02:39:08.160Z"
+    },
+    {
+      "storeId": "jewelosco:81",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/oswego/3795-orchard-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Oswego",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3795 Orchard Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60543",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.6835479,
+        "lng": -88.383171
+      },
+      "sourceObservedAt": "2026-10-31T02:39:08.506Z"
+    },
+    {
+      "storeId": "jewelosco:3381",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/sycamore/220-w-peace-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Sycamore",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "220 W Peace Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60178",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.013837,
+        "lng": -88.6779328
+      },
+      "sourceObservedAt": "2026-10-31T02:39:08.877Z"
+    },
+    {
+      "storeId": "jewelosco:3272",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/dekalb/1320-sycamore-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Dekalb",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1320 Sycamore Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60115",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.942509872348396,
+        "lng": -88.73672147909849
+      },
+      "sourceObservedAt": "2026-10-31T02:39:09.242Z"
+    },
+    {
+      "storeId": "jewelosco:116",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/bloomington/2203-e-oakland-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Bloomington",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2203 E Oakland Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "61701",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 40.47230885937127,
+        "lng": -88.96036175581972
+      },
+      "sourceObservedAt": "2026-10-31T02:39:09.602Z"
+    },
+    {
+      "storeId": "jewelosco:3073",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/normal/901-s-cottage-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Normal",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "901 S Cottage Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "61761",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 40.5014996,
+        "lng": -89.0124187
+      },
+      "sourceObservedAt": "2026-10-31T02:39:09.960Z"
+    },
+    {
+      "storeId": "jewelosco:3775",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/bloomington/2103-n-veterans-pkwy.html",
+      "status": 200,
+      "address": {
+        "city": "Bloomington",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2103 N Veterans Pkwy",
+        "line2": null,
+        "line3": null,
+        "postalCode": "61704",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 40.5097465,
+        "lng": -88.9502414
+      },
+      "sourceObservedAt": "2026-10-31T02:39:10.340Z"
+    },
+    {
+      "storeId": "jewelosco:3445",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/palatine/45-s-plum-grove-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Palatine",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "45 S Plum Grove Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60067",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.1092036,
+        "lng": -88.0428655
+      },
+      "sourceObservedAt": "2026-10-31T02:39:10.700Z"
+    },
+    {
+      "storeId": "jewelosco:3491",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/rolling-meadows/3000-kirchoff-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Rolling Meadows",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "3000 Kirchoff Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60008",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.078756,
+        "lng": -88.0175801
+      },
+      "sourceObservedAt": "2026-10-31T02:39:11.050Z"
+    },
+    {
+      "storeId": "jewelosco:3316",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/hoffman-estates/1069-n-roselle-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Hoffman Estates",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1069 N Roselle Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60169",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.047768230387405,
+        "lng": -88.07771791401672
+      },
+      "sourceObservedAt": "2026-10-31T02:39:11.396Z"
+    },
+    {
+      "storeId": "jewelosco:3220",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/elk-grove-village/20-w-biesterfield.html",
+      "status": 200,
+      "address": {
+        "city": "Elk Grove Village",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "20 W Biesterfield",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60007",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0054048,
+        "lng": -88.0050331
+      },
+      "sourceObservedAt": "2026-10-31T02:39:11.821Z"
+    },
+    {
+      "storeId": "jewelosco:4308",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/schaumburg/1151-s-roselle-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Schaumburg",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1151 S Roselle Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60193",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0062088,
+        "lng": -88.0780144
+      },
+      "sourceObservedAt": "2026-10-31T02:39:12.197Z"
+    },
+    {
+      "storeId": "jewelosco:3284",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/villa-park/33-e-st-charles-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Villa Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "33 E St Charles Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60181",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8885834,
+        "lng": -87.9782053
+      },
+      "sourceObservedAt": "2026-10-31T02:39:12.557Z"
+    },
+    {
+      "storeId": "jewelosco:2444",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/elmhurst/944-s-york-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Elmhurst",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "944 S York Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60126",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.870378996343014,
+        "lng": -87.93569397857362
+      },
+      "sourceObservedAt": "2026-10-31T02:39:12.912Z"
+    },
+    {
+      "storeId": "jewelosco:3346",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/elmhurst/153-schiller-st.html",
+      "status": 200,
+      "address": {
+        "city": "Elmhurst",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "153 Schiller St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60126",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.901479502143715,
+        "lng": -87.93714595026245
+      },
+      "sourceObservedAt": "2026-10-31T02:39:13.259Z"
+    },
+    {
+      "storeId": "jewelosco:3294",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/addison/140-w-lake-st.html",
+      "status": 200,
+      "address": {
+        "city": "Addison",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "140 W Lake St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60101",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9349175,
+        "lng": -87.9925583
+      },
+      "sourceObservedAt": "2026-10-31T02:39:13.659Z"
+    },
+    {
+      "storeId": "jewelosco:3495",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/bensenville/1127-s-york-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Bensenville",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1127 S York Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60106",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.93242751757575,
+        "lng": -87.9377606122261
+      },
+      "sourceObservedAt": "2026-10-31T02:39:14.004Z"
+    },
+    {
+      "storeId": "jewelosco:4228",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/westchester/2128-s-mannheim-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Westchester",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2128 S Mannheim Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60154",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8497523,
+        "lng": -87.8823343
+      },
+      "sourceObservedAt": "2026-10-31T02:39:14.358Z"
+    },
+    {
+      "storeId": "jewelosco:3003",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/clarendon-hills/303-holmes-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Clarendon Hills",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "303 Holmes Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60514",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7873419,
+        "lng": -87.9499568
+      },
+      "sourceObservedAt": "2026-10-31T02:39:14.749Z"
+    },
+    {
+      "storeId": "jewelosco:3341",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/wood-dale/343-w-irving-park-rd.html",
+      "status": 200,
+      "address": {
+        "city": "Wood Dale",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "343 W Irving Park Rd",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60191",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.9671078,
+        "lng": -87.9908237
+      },
+      "sourceObservedAt": "2026-10-31T02:39:15.111Z"
+    },
+    {
+      "storeId": "jewelosco:2265",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/la-grange-park/507-e-woodlawn-ave.html",
+      "status": 200,
+      "address": {
+        "city": "La Grange Park",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "507 E Woodlawn Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60526",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8237973,
+        "lng": -87.8681977
+      },
+      "sourceObservedAt": "2026-10-31T02:39:15.458Z"
+    },
+    {
+      "storeId": "jewelosco:2702",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/yorkville/234-e-veterans-pkwy.html",
+      "status": 200,
+      "address": {
+        "city": "Yorkville",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "234 E Veterans Pkwy",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60560",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.6555013,
+        "lng": -88.4404716
+      },
+      "sourceObservedAt": "2026-10-31T02:39:15.838Z"
+    },
+    {
+      "storeId": "jewelosco:3741",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/morris/1414-n-division-st.html",
+      "status": 200,
+      "address": {
+        "city": "Morris",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1414 N Division St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60450",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.3724937,
+        "lng": -88.4230809
+      },
+      "sourceObservedAt": "2026-10-31T02:39:16.191Z"
+    },
+    {
+      "storeId": "jewelosco:122",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/moline/2010-1st-st-a.html",
+      "status": 200,
+      "address": {
+        "city": "Moline",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2010 1st St A",
+        "line2": null,
+        "line3": null,
+        "postalCode": "61265",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.4917857,
+        "lng": -90.5352622
+      },
+      "sourceObservedAt": "2026-10-31T02:39:16.531Z"
+    },
+    {
+      "storeId": "jewelosco:3770",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/east-moline/107-avenue-of-the-cities.html",
+      "status": 200,
+      "address": {
+        "city": "East Moline",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "107 Avenue Of The Cities",
+        "line2": null,
+        "line3": null,
+        "postalCode": "61244",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.4915867,
+        "lng": -90.459395
+      },
+      "sourceObservedAt": "2026-10-31T02:39:16.912Z"
+    },
+    {
+      "storeId": "jewelosco:3088",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/silvis/1312-john-deere-expy.html",
+      "status": 200,
+      "address": {
+        "city": "Silvis",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1312 John Deere Expy",
+        "line2": null,
+        "line3": null,
+        "postalCode": "61282",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.494813,
+        "lng": -90.4077154
+      },
+      "sourceObservedAt": "2026-10-31T02:39:17.284Z"
+    },
+    {
+      "storeId": "jewelosco:3428",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/evanston/1128-chicago-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Evanston",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1128 Chicago Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60202",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0391175,
+        "lng": -87.6805432
+      },
+      "sourceObservedAt": "2026-10-31T03:01:57.589Z"
+    },
+    {
+      "storeId": "jewelosco:3487",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/evanston/2485-howard-st.html",
+      "status": 200,
+      "address": {
+        "city": "Evanston",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "2485 Howard St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60202",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0210557,
+        "lng": -87.7080309
+      },
+      "sourceObservedAt": "2026-10-31T03:01:58.020Z"
+    },
+    {
+      "storeId": "jewelosco:3538",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/1763-w-howard-st.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "1763 W Howard St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60626",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 42.0175541,
+        "lng": -87.6744985
+      },
+      "sourceObservedAt": "2026-10-31T03:01:58.392Z"
+    },
+    {
+      "storeId": "jewelosco:1403",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/stickney/7122-40th-st.html",
+      "status": 200,
+      "address": {
+        "city": "Stickney",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "7122 40th St",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60402",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.8206026,
+        "lng": -87.8012571
+      },
+      "sourceObservedAt": "2026-10-31T03:01:58.758Z"
+    },
+    {
+      "storeId": "jewelosco:3721",
+      "verified": true,
+      "url": "https://local.jewelosco.com/il/chicago/6107-s-archer-ave.html",
+      "status": 200,
+      "address": {
+        "city": "Chicago",
+        "countryCode": "US",
+        "extraDescription": null,
+        "line1": "6107 S Archer Ave",
+        "line2": null,
+        "line3": null,
+        "postalCode": "60638",
+        "region": "IL",
+        "sublocality": null
+      },
+      "geo": {
+        "lat": 41.7938047,
+        "lng": -87.7703682
+      },
+      "sourceObservedAt": "2026-10-31T03:01:59.117Z"
+    }
+  ]
+}

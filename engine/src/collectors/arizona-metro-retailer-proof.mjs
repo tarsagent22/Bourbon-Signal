@@ -3,6 +3,7 @@ import { cityHiveUnsafeBottleMatchReason } from './safe-bottle-match.mjs';
 export const PHOENIX_METRO_RETAILERS = Object.freeze([
   { id:'mesa-liquor', sourceLabel:'Mesa Liquor WooCommerce store inventory', baseUrl:'https://mesaliquorstore.com', merchantId:'mesa-liquor-woocommerce', store:{id:'mesa-liquor:1930-e-broadway',name:'Mesa Liquor',address:'1930 E Broadway Rd, Mesa, AZ 85204',street:'1930 E Broadway Rd',city:'Mesa',zip:'85204'} },
   { id:'best-liquor-tempe', sourceLabel:'Best Liquor Tempe WooCommerce store inventory', baseUrl:'https://bestliquortempe.com', merchantId:'best-liquor-tempe-woocommerce', store:{id:'best-liquor-tempe:3320-s-priest',name:'Best Liquor',address:'3320 S Priest Dr Suite #2, Tempe, AZ 85282',street:'3320 S Priest Dr Suite #2',city:'Tempe',zip:'85282'} },
+  {id:'virginia-market-phoenix',sourceLabel:'Virginia Market Phoenix WooCommerce store inventory',baseUrl:'https://virginiamarketstore.com',merchantId:'virginia-market-woocommerce',store:{id:'virginia-market:702-e-virginia',name:'Virginia Market',address:'702 E Virginia Ave, Phoenix, AZ 85006',street:'702 E Virginia Ave',city:'Phoenix',zip:'85006',lat:33.4768522,lng:-112.0648288}},
 ]);
 export const LIQUOR_WHEEL_PHOENIX = Object.freeze({id:'liquor-wheel-2-phoenix',sourceLabel:'Liquor Wheel 2 Phoenix pickup inventory',baseUrl:'https://liquorwheel2.com',merchantId:'100112',store:{id:'liquor-wheel-2-phoenix:2209-n-16th',name:'Liquor Wheel 2',address:'2209 North 16th Street, Phoenix, AZ 85006',street:'2209 North 16th Street',city:'Phoenix',zip:'85006'}});
 export const metroRetailerSources = () => [...PHOENIX_METRO_RETAILERS,LIQUOR_WHEEL_PHOENIX].map(r=>({...r,stateCode:'AZ'}));
@@ -78,7 +79,7 @@ export function isMetroRetailerProof(row) {
     ||!(p.canonicalName===row.canonicalName||p.rawName===row.canonicalName)
     ||!(p.canonicalBottleId===row.canonicalBottleId||p.rawName===row.canonicalName)
     ||p.price!==row.price||p.observedAt!==row.observedAt||!Number.isFinite(Date.parse(row.observedAt))||Number(row.quantity||0)!==0||row.quantityIsExact!==false)return false;
-  if(p.source==='arizona-woocommerce')return metroPremiseMatches(p.premiseMapQuery,retailer.store)&&p.premiseUrl===retailer.baseUrl+'/contact/'
+  if(p.source==='arizona-woocommerce')return (retailer.store.lat===undefined||(Number(row.lat)===retailer.store.lat&&Number(row.lng)===retailer.store.lng))&&metroPremiseMatches(p.premiseMapQuery,retailer.store)&&p.premiseUrl===retailer.baseUrl+'/contact/'
     &&hostOf(p.productQueryUrl)===hostOf(retailer.baseUrl)&&new URL(p.productQueryUrl).pathname==='/wp-json/wc/store/v1/products'
     &&String(p.product?.id)===p.productId&&decode(p.product.name)===p.rawName&&p.product.permalink===row.sourceUrl
     &&p.product.is_in_stock===true&&p.product.is_purchasable===true&&p.product.is_on_backorder===false&&priceOf(p.product.prices)===p.price

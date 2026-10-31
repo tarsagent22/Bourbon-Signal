@@ -124,7 +124,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
     try { url = new URL(request?.url); } catch { check(false, 'XAPI request ledger contains an invalid URL.'); continue; }
     check(url.protocol === 'https:' && !url.username && !url.password && !url.hash, 'XAPI request ledger contains an unsafe URL.');
     check(!blockedHosts.has(url.host), `XAPI made a request after denial on ${url.host}.`);
-    if ([401, 403, 429].includes(numericStatus(request.status))) blockedHosts.add(url.host);
+    if ([401,403,429,435].includes(numericStatus(request.status))) blockedHosts.add(url.host);
     if (request.kind === 'inventory') {
       const banner = url.hostname.match(/^www\.(safeway|albertsons)\.com$/)?.[1];
       const storeKey = `${banner}:${request.storeId}`;
@@ -168,7 +168,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const published = rows(drops, 'drops').filter((row) => row?.state === 'AZ' || row?.stateCode === 'AZ');
   const metroRequests = state?.precisionMetadata?.metro?.sources?.flatMap(source => source.requests || []) || [];
   const metroSuccessful = new Set(metroRequests.filter(r => r.ok === true && numericStatus(r.status) === 200).map(r => r.url));
-  for (const row of inventory.filter(row => ['mesa-liquor','best-liquor-tempe','liquor-wheel-2-phoenix'].includes(row.sourceChain))) {
+  for (const row of inventory.filter(row => ['mesa-liquor','best-liquor-tempe','liquor-wheel-2-phoenix','virginia-market-phoenix'].includes(row.sourceChain))) {
     const proof = row.sourceProductBinding;
     const match = metroBottleMatch(proof?.identityName || row.rawName, libraryBible);
     check(Boolean(match) && match.id === row.canonicalBottleId

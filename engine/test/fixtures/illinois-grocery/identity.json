@@ -1,0 +1,475 @@
+{
+  "capturedAt": "2026-10-31T02:27:28.589Z",
+  "store": {
+    "distance": 0.5,
+    "locationId": "3368",
+    "timezone": "America/Chicago",
+    "polarisBannerName": "jewelosco",
+    "domainName": "Jewel-Osco",
+    "address": {
+      "line1": "550 N State St",
+      "city": "Chicago",
+      "state": "IL",
+      "country": "US",
+      "zipcode": "60654"
+    },
+    "justForU": true,
+    "localPage": "https://local.jewelosco.com/il/chicago/550-n-state-st.html",
+    "storeRewards": {
+      "storeId": "3368",
+      "hasGroceryDelivery": true,
+      "hasDUG": false,
+      "hasRushDelivery": false,
+      "hasGroceryRewards": true,
+      "rewardsProgramId": "5-321",
+      "storeLogoName": "jewelosco_logo",
+      "storeLogoURL": "https://images.albertsons-media.com/is/image/ABS/jewelosco_logo"
+    },
+    "isDUGStore": false,
+    "isPickupStore": false,
+    "isWFC": false,
+    "isNonMigratedStore": false,
+    "division": {
+      "name": "JewelOsco",
+      "number": "32"
+    },
+    "storeFeatures": {
+      "isErumStore": true,
+      "isGuestCartEnabled": false,
+      "isMFC": false,
+      "isAutoReplenishmentEnabled": false,
+      "isSNAP2Eligible": false,
+      "isSubstitutions2Enabled": false,
+      "isExpressStore": false,
+      "isWGDEnabled": false,
+      "isStoreTippingEnabled": false,
+      "isDarkStore": false,
+      "isWineD2CEnabled": false,
+      "isScanAndPayEnabled": false,
+      "isPaymentV2": true,
+      "isSNAPEligible": false,
+      "isFullAuthEnabled": false,
+      "isEditOrderEnabled": false,
+      "isWYSIWYGEnabled": false,
+      "isEnterpriseTaxation": false,
+      "isSubscriptionUDC": false,
+      "isRolloutWYSIWYGEnabled": false,
+      "isPromisePlatformStore": false,
+      "isHourlyStore": false,
+      "isSequentialTenderingMLModel": false,
+      "isOttValveEnabled": false,
+      "isFlashDugEnabled": false,
+      "isFlashDeliveryEnabled": false,
+      "isFlash2Enabled": false,
+      "isApprovedSubsEnabled": false,
+      "is3PLBatching": false,
+      "is3PLShopAndDriveEnabled": false,
+      "isAltPickUpEnabled": false,
+      "isMerchPickingEnabled": false,
+      "isDirectedSpendEnabled": false,
+      "isFoodIsMedicineNBEnabled": false,
+      "isCustomerCentricTillingEnabled": false,
+      "isSNSCNCEnabled": false,
+      "isBagFeeWaivedforEBT": false,
+      "isB2BStore": false,
+      "isDeliveryPreference": false,
+      "isPrePickingEnabled": false,
+      "isIntradayFastPickingEnabled": false,
+      "isISMLocationServiceEnabled": false,
+      "is2WayCommunication": false,
+      "isFoodIsMedicineBentoEnabled": false,
+      "isSNSB2BEnabled": false,
+      "isCustBagPreference": false,
+      "is3PPEnabled": false,
+      "isOrderAmends": false,
+      "isDynamicSlotEnabled": false,
+      "isGiftEnabled": false,
+      "showDUGEndTime": true,
+      "isFlashCapacityEnabled": true,
+      "isSlowPickingEnabled": false,
+      "isBNCEnabled": false,
+      "isDCMEnabled": false,
+      "isSOAEnabled": true,
+      "isSOAUXEnabled": false,
+      "isDeptUpdateNotification": false,
+      "isInHomeServiceEnabled": false,
+      "isSCEEnabled": false,
+      "isAisleGeoLocation": false,
+      "isLaborHealthEnabled": false,
+      "isLaborHealthUXEnabled": false,
+      "isCrossStreetsEnabled": false,
+      "legalNotAllowed": false
+    },
+    "ecomStore": true
+  },
+  "products": [
+    {
+      "id": "960488502",
+      "pid": "960488502",
+      "storeId": "3368",
+      "name": "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof - 750 Ml (limited quantities may be available in store)",
+      "upc": "0008800400552",
+      "price": 82.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 63,
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    },
+    {
+      "id": "189031042",
+      "pid": "189031042",
+      "storeId": "3368",
+      "name": "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof - 750 Ml (limited quantities may be available in store)",
+      "upc": "0008800402134",
+      "price": 56.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 45,
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    },
+    {
+      "id": "960540802",
+      "pid": "960540802",
+      "storeId": "3368",
+      "name": "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof - 750 Ml (limited quantities may be available in store)",
+      "upc": "0008800403149",
+      "price": 69.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 57,
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    },
+    {
+      "id": "960293806",
+      "pid": "960293806",
+      "storeId": "3368",
+      "name": "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof - 750 Ml (limited quantities may be available in store)",
+      "upc": "0008800400549",
+      "price": 64.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 50,
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    },
+    {
+      "id": "960260471",
+      "pid": "960260471",
+      "storeId": "3368",
+      "name": "Elijah Craig Barrel Proof - 750 Ml (limited quantities may be available in store)",
+      "upc": "0009674900386",
+      "price": 69.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 62,
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    },
+    {
+      "id": "971425296",
+      "pid": "971425296",
+      "storeId": "3368",
+      "name": "E H Taylor Jr Cured Oak - 750 Ml (limited quantities may be available in store)",
+      "upc": "0008800402129",
+      "price": 89.99,
+      "containsAlcohol": true,
+      "alcoholVolumePct": 50,
+      "dispItemSizeQty": "750",
+      "dispItemPackageQty": "1",
+      "dispUnitOfMeasure": "ML",
+      "unitOfMeasure": "ML",
+      "channelEligibility": {
+        "inStore": true
+      },
+      "channelInventory": {
+        "instore": "1"
+      }
+    }
+  ],
+  "records": [
+    {
+      "id": "e-h-taylor-jr-barrel-proof-bourbon",
+      "canonical": "E.H. Taylor Jr. Barrel Proof Bourbon",
+      "normalizedKey": "library:e-h-taylor-jr-barrel-proof-bourbon",
+      "aliases": [],
+      "tier": "allocated",
+      "producer": null,
+      "sources": [
+        "app:library"
+      ],
+      "strictLibraryIdentity": true,
+      "libraryAlertEligible": true,
+      "libraryIdentities": [
+        {
+          "id": "e-h-taylor-jr-barrel-proof-bourbon",
+          "canonicalName": "E.H. Taylor Jr. Barrel Proof Bourbon",
+          "aliases": [
+            "E H Taylor Barrel Proof",
+            "E.H. TAYLOR JR. BARREL PROOF",
+            "E.H. Taylor Barrel Proof",
+            "E.H. Taylor Jr. Barrel Proof",
+            "E.H. Taylor Jr. Barrel Proof Bourbon",
+            "EH Taylor Barrel Proof",
+            "EHT"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_d0fe561ac45db2d5",
+      "canonical": "Eagle Rare 10 Year",
+      "normalizedKey": "eagle rare 10 year",
+      "aliases": [
+        "EAGLE RARE 10Y",
+        "Eagle Rare",
+        "Eagle Rare 10 Year",
+        "Eagle Rare 10 Year Kentucky Straight Bourbon",
+        "Eagle Rare 10 Yr",
+        "Eagle Rare 10Y"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts",
+        "site:old-drops"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eagle-rare-10",
+          "canonicalName": "Eagle Rare 10 Year",
+          "aliases": [
+            "EAGLE RARE 10Y",
+            "Eagle Rare",
+            "Eagle Rare 10 Year",
+            "Eagle Rare 10 Year Kentucky Straight Bourbon",
+            "Eagle Rare 10 Yr",
+            "Eagle Rare 10Y",
+            "eagle rare",
+            "eagle rare 10",
+            "er10"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_a3c16eb6f814785b",
+      "canonical": "Weller Full Proof",
+      "normalizedKey": "weller full proof",
+      "aliases": [
+        "W.L. Weller Full Proof",
+        "Weller FP",
+        "Weller Full Proof"
+      ],
+      "tier": "unicorn",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "state-data-additions",
+        "state:site",
+        "state:watchlist",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "weller-full-proof",
+          "canonicalName": "W.L. Weller Full Proof",
+          "aliases": [
+            "W.L. Weller Full Proof",
+            "Weller FP",
+            "Weller Full Proof",
+            "weller fp",
+            "weller full proof"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "unicorn"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_152c90f782b801f5",
+      "canonical": "E.H. Taylor Small Batch",
+      "normalizedKey": "e h taylor",
+      "aliases": [
+        "Colonel E.H. Taylor Small Batch",
+        "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+        "E H Taylor Single Barrel",
+        "E H Taylor Small Batch",
+        "E.H. Taylor Jr. Small Batch .75L",
+        "E.H. Taylor SiB",
+        "E.H. Taylor Single Barrel",
+        "E.H. Taylor Small Batch",
+        "EH Taylor Single Barrel",
+        "EH Taylor Small Batch"
+      ],
+      "tier": "allocated",
+      "producer": "Buffalo Trace",
+      "sources": [
+        "seed",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "eh-taylor-small-batch",
+          "canonicalName": "E.H. Taylor Small Batch",
+          "aliases": [
+            "Colonel E.H. Taylor Small Batch",
+            "Colonel E.H. Taylor Small Batch Bottled in Bond",
+            "Colonel E.H. Taylor Small Batch Bottled in Bond Bourbon",
+            "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+            "E H Taylor Single Barrel",
+            "E H Taylor Small Batch",
+            "E.H. Taylor Bottled in Bond",
+            "E.H. Taylor Jr. Small Batch",
+            "E.H. Taylor Jr. Small Batch .75L",
+            "E.H. Taylor SiB",
+            "E.H. Taylor Single Barrel",
+            "E.H. Taylor Small Batch",
+            "EH Taylor Single Barrel",
+            "EH Taylor Small Batch",
+            "EHT",
+            "colonel taylor",
+            "e.h. taylor small batch",
+            "eh taylor",
+            "eht small batch"
+          ],
+          "nationalTier": "allocated",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_be6a0afd4ba5f963",
+      "canonical": "Elijah Craig Barrel Proof",
+      "normalizedKey": "elijah craig proof",
+      "aliases": [
+        "ECBP",
+        "Elijah Craig BP",
+        "Elijah Craig Barrel Proof"
+      ],
+      "tier": "allocated",
+      "producer": "Heaven Hill",
+      "sources": [
+        "seed",
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "elijah-craig-barrel-proof",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "aliases": [
+            "ECBP",
+            "Elijah Craig BP",
+            "Elijah Craig Barrel Proof",
+            "Elijah Craig Barrel Proof Small Batch",
+            "ecbp",
+            "elijah craig barrel proof",
+            "elijah craig bp"
+          ],
+          "nationalTier": "limited",
+          "stateOverrides": [
+            {
+              "jurisdiction": "AL",
+              "tier": "allocated"
+            }
+          ],
+          "isAlertEligible": true
+        }
+      ]
+    },
+    {
+      "id": "bb_9a5c1a3d1ce97178",
+      "canonical": "E.H. Taylor Cured Oak",
+      "normalizedKey": "e h taylor cured oak",
+      "aliases": [
+        "E.H. Taylor Cured Oak"
+      ],
+      "tier": "unknown",
+      "producer": null,
+      "sources": [
+        "site:bottles.ts"
+      ],
+      "libraryIdentities": [
+        {
+          "id": "bb_9a5c1a3d1ce97178",
+          "canonicalName": "E.H. Taylor Cured Oak",
+          "aliases": [
+            "E.H. Taylor Cured Oak"
+          ],
+          "nationalTier": "unicorn",
+          "stateOverrides": [],
+          "isAlertEligible": true
+        }
+      ]
+    }
+  ]
+}
