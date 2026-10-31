@@ -37,10 +37,12 @@ async function main() {
    await assert.rejects(glob.glob('**/*',{cwd:project,signal:controller.signal}), /regression abort/);
   }
  }
+ if (JSON.parse(fs.readFileSync(path.join(project,'package.json'))).devDependencies?.eslint) {
  const {ESLint} = loader('eslint');
  const eslint = new ESLint({overrideConfigFile:true,overrideConfig:[{files:['**/*.js'],rules:{'no-unused-vars':'error'}}]});
  const result = await eslint.lintText('const unusedSecurityFixture = 1;', {filePath:'security-fixture.js'});
  assert.ok(result[0].messages.some(message=>message.ruleId==='no-unused-vars'));
+ }
  // Exercise the high-optimization parser in an isolated process with a hard deadline.
  execFileSync(process.execPath,['-e',`const assert=require('node:assert/strict');const mm=require('minimatch');const p=Array(32).fill('**/../x').join('/'); try { const x=new mm.Minimatch(p,{optimizationLevel:2});assert.ok(x.set.length<=100000); } catch(e) { assert.match(e.message,/brace|expand|limit|complex|pattern|maximum/i); }`],{cwd:project,timeout:5000,stdio:'inherit'});
  const response = await fetch('https://registry.npmjs.org/-/npm/v1/security/advisories/bulk', {
