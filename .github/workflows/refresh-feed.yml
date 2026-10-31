@@ -15,6 +15,11 @@ on:
         description: "Optional comma-separated state ids to refresh"
         required: false
         default: ""
+      require_phoenix_expansion:
+        description: "Require current Virginia Market Phoenix public and allocated inventory proof for this expansion"
+        required: false
+        type: boolean
+        default: false
       sources:
         description: "Optional reviewed SC source lane ids; publish fresh target inventory independently and retain siblings as stale context"
         required: false
@@ -357,6 +362,8 @@ jobs:
       - name: Verify targeted Arizona retailer inventory expansion
         if: ${{ inputs.states && contains(inputs.states, 'AZ') }}
         working-directory: engine
+        env:
+          BOURBON_SIGNAL_REQUIRE_PHOENIX_EXPANSION: ${{ inputs.require_phoenix_expansion && '1' || '0' }}
         run: npm run verify:az
 
       - name: Verify targeted Illinois exact-store grocery expansion

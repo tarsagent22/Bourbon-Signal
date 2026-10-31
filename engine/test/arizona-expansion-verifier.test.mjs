@@ -48,7 +48,7 @@ async function capturedPipeline(t, { binary = false } = {}) {
     drops: { runId: 'captured-az-boundary', drops },
     alerts: { runId: 'captured-az-boundary', alerts },
     stats: { runId: 'captured-az-boundary', stateCoverage: { states: [{ state: 'AZ', coverageTier: lifecycle.coverageTier, publicStatus: lifecycle.publicStatus }] } },
-    now, expectations,
+    now, expectations, bibleRecords:bible.records,
   }));
 }
 
@@ -68,6 +68,8 @@ async function withDisabledCandidate(t) {
   input.state.signals.push(source);
   input.drops.drops.push(candidate);
   input.libraryRecords = [...bible.records.flatMap(record => record.libraryIdentities || []).filter(bottle => bottle.id !== disabledFixture.catalogRecord.id), disabledFixture.catalogRecord];
+  // This older disabled identity is supplied by its own captured catalog.
+  delete input.bibleRecords;
   const meta = input.state.precisionMetadata.xapi;
   const premise = { storeId: source.storeId, address: source.storeAddress, city: source.city };
   meta.selectedStores.push(premise); meta.addedStores.push(premise);

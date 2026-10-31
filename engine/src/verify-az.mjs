@@ -16,6 +16,7 @@ export const ARIZONA_EXPANSION_EXPECTATIONS = Object.freeze({
   minimumPositiveXapiStores: 120, minimumAddedPublicStores: 95, minimumPublicRows: 450,
   minimumNewSelectedStores: 6, minimumNewPublicStores: 4,
   minimumReviewedDepthRows: 120, minimumSmartFinalStores: 2,
+  minimumPhoenixPublicRows: 0, minimumPhoenixAllocatedRows: 0,
   maximumSearchCount: ARIZONA_XAPI_SEARCH_LIMIT, maximumRareSearchCount: ARIZONA_XAPI_RARE_QUERY_LIMIT, maximumAgeMs: 2 * 60 * 60_000,
 });
 const inventoryType = (row) => /^(?:cityhive|retailer)_store_inventory_result$/.test(String(row?.eventType || row?.type || ''));
@@ -25,6 +26,9 @@ const productId = (row) => String(row?.productId || row?.raw?.product?.id || row
 const identity = (row) => [row?.sourceLabel || row?.source, row?.sourceChain, row?.merchantId, row?.storeId, productId(row), row?.sourceUrl].join('|');
 const rows = (payload, key) => Array.isArray(payload) ? payload : Array.isArray(payload?.[key]) ? payload[key] : [];
 const numericStatus = (value) => Number(String(value || '').match(/^(?:http[_ -]?)?(\d{3})$/i)?.[1] || 0);
+// The four premises delivered on October30 are already in the released138.
+// Preserve their original three-positive-store floor as continuity, not gains.
+const OCT30_RELEASED_STORE_IDS = new Set(['25','4','1706','239']);
 
 function miniature(row) {
   const size = row?.raw?.option?.option_params?.size;
@@ -56,7 +60,9 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const check = (condition, message) => { if (!condition) errors.push(message); };
   const expected = { ...ARIZONA_EXPANSION_EXPECTATIONS, ...expectations };
   const libraryBible = { records: bibleRecords || libraryRecords.map(bottle => ({ id: bottle.id, canonical: bottle.canonicalName, libraryIdentities: [bottle] })) };
-  const allowedTerms = new Set(['bourbon', 'whiskey', ...ARIZONA_XAPI_PRIORITY_TERMS, "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...librarySearchPool({records:libraryRecords.map(bottle => ({libraryIdentities:[bottle]}))})]);
+  // The collector plans from the source Bible. Its reviewed identity ordering
+  // can retain a different valid retrieval prefix than the flat catalog pool.
+  const allowedTerms = new Set(['bourbon', 'whiskey', ...ARIZONA_XAPI_PRIORITY_TERMS, "blanton's", 'weller', 'buffalo trace', 'e.h. taylor', ...librarySearchPool(libraryBible), ...librarySearchPool({records:libraryRecords.map(bottle => ({libraryIdentities:[bottle]}))})]);
   for (const [key, value] of Object.entries(expected)) check(Number.isSafeInteger(value) && value >= 0, `Invalid verifier expectation: ${key}.`);
   const nowMs = now instanceof Date ? now.getTime() : Number(now);
   const startMs = Date.parse(state?.startedAt);
@@ -88,7 +94,7 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   const expectedBaseline = selected.filter((entry) => baselineIds.has(String(entry?.storeId).split(':')[1]));
   const expectedAdded = selected.filter((entry) => !baselineIds.has(String(entry?.storeId).split(':')[1]));
   const previousIds = new Set(ARIZONA_XAPI_PREVIOUS_STORE_IDS);
-  if(expected.minimumSelectedStores >= 138) check(ARIZONA_XAPI_RELEASED_STORE_IDS.every(id => selected.some(entry => String(entry?.storeId).split(':')[1] === id)), 'All134 latest released grocery premises must remain selected.');
+  if(expected.minimumSelectedStores >= 138) check(ARIZONA_XAPI_RELEASED_STORE_IDS.every(id => selected.some(entry => String(entry?.storeId).split(':')[1] === id)), 'All138 latest released grocery premises must remain selected.');
   const newStores = selected.filter((entry) => !previousIds.has(String(entry?.storeId).split(':')[1]));
   const sameEntries = (actual, desired) => actual.length === desired.length && new Set(actual.map((entry) => entry?.storeId)).size === actual.length
     && actual.every((entry) => desired.some((row) => row?.storeId === entry?.storeId && row?.address === entry?.address && row?.city === entry?.city));
@@ -203,7 +209,13 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   check(addedPublicStores.size >= expected.minimumAddedPublicStores, 'No added XAPI store survived into current public inventory.');
   const newPublicStores = new Set(publicInventory.filter((row) => newStores.some((entry) => entry.storeId === row.storeId)).map((row) => row.storeId));
   check(newPublicStores.size >= expected.minimumNewPublicStores, 'Genuinely new stores do not reach the current public inventory floor.');
-  if(expected.minimumSelectedStores>=138) check(new Set(publicInventory.filter(row=>xapiType(row)&&!ARIZONA_XAPI_RELEASED_STORE_IDS.includes(String(row.storeId).split(':')[1])).map(row=>row.storeId)).size>=3, 'At least three genuinely new Arizona grocery premises must survive public export beyond the latest released134-store cohort.');
+  const recentReleasedPublicStores=new Set(publicInventory.filter(row=>xapiType(row)&&OCT30_RELEASED_STORE_IDS.has(String(row.storeId).split(':')[1])).map(row=>row.storeId));
+  if(expected.minimumSelectedStores>=138)check(recentReleasedPublicStores.size>=3,'At least three of the four October30 released grocery premises must retain current public inventory.');
+  const newPhoenixPublicRows=publicInventory.filter(row=>row.sourceChain==='virginia-market-phoenix');
+  const newPhoenixAllocatedRows=newPhoenixPublicRows.filter(row=>['allocated','unicorn'].includes(row.tier));
+  check(newPhoenixPublicRows.length>=expected.minimumPhoenixPublicRows
+    &&newPhoenixAllocatedRows.length>=expected.minimumPhoenixAllocatedRows,
+    'Virginia Market Phoenix expansion requires its current exact-store public and allocated inventory floors.');
   const buffalo = publicInventory.filter((row) => xapiType(row) && productId(row) === '960051942' && sourceByIdentity.get(identity(row))?.canonicalName === 'Buffalo Trace Bourbon');
   check(buffalo.length > 0, 'Exact Buffalo Trace XAPI product 960051942 must survive public export.');
   const reviewedDepthRows = publicInventory.filter(row => xapiType(row) && ['970022436', '970468334', '960293806'].includes(productId(row)));
@@ -231,7 +243,12 @@ export function diagnoseArizonaExpansionArtifact({ state, drops, stats, alerts, 
   return { status: errors.length ? 'failed' : 'ok', errors, stateStatus: state?.status || null, inventorySignals: inventory.length, xapiInventorySignals: xapi.length,
     selectedStores: selected.length, baselineStores: baseline.length, addedStores: added.length, positiveXapiStores: positiveStores.size,
     publicRows: publicIdentities.size, addedPublicStores: addedPublicStores.size, buffaloTracePublicRows: buffalo.length, alerts: publishedAlerts.length,
-    newSelectedStores: newStores.length, newPublicStores: newPublicStores.size, reviewedDepthRows: reviewedDepthRows.length, smartFinalPublicStores: smartPublicStores.size,
+    newSelectedStores: newStores.length, newPublicStores: newPublicStores.size, recentReleasedPublicStores:recentReleasedPublicStores.size,
+    currentReleasedCohortSize:ARIZONA_XAPI_RELEASED_STORE_IDS.length,
+    newXapiPublicStoresSinceCurrentRelease:new Set(publicInventory.filter(row=>xapiType(row)&&!ARIZONA_XAPI_RELEASED_STORE_IDS.includes(String(row.storeId).split(':')[1])).map(row=>row.storeId)).size,
+    newPhoenixPublicRows:newPhoenixPublicRows.length,newPhoenixAllocatedRows:newPhoenixAllocatedRows.length,
+    requiredPhoenixPublicRows:expected.minimumPhoenixPublicRows,requiredPhoenixAllocatedRows:expected.minimumPhoenixAllocatedRows,
+    reviewedDepthRows: reviewedDepthRows.length, smartFinalPublicStores: smartPublicStores.size,
     candidateInventoryRows: inventoryCandidates.length, catalogDisabledCandidateRows: inventoryCandidates.filter(explicitlyDisabled).length,
     searchCount: search.length, bourbonSearchCount: bourbon.length, whiskeySearchCount: whiskey.length, rareSearchCount: rare.length, maximumAgeMinutes: ageLimit / 60_000 };
 }
@@ -252,7 +269,9 @@ async function main() {
     .map(async (file) => JSON.parse(await readFile(path.join(out, file), 'utf8'))));
   const catalog = JSON.parse(await readFile(path.join(out, 'library-catalog.json'), 'utf8').catch(error => { if (error.code === 'ENOENT') return JSON.stringify(classification); throw error; }));
   const bible = JSON.parse(await readFile(path.join(out, 'bourbon-bible.json'), 'utf8'));
-  const input = { state, drops, stats, alerts, libraryRecords: catalog.records, bibleRecords: bible.records };
+  const input = { state, drops, stats, alerts, libraryRecords: catalog.records, bibleRecords: bible.records,
+    expectations:process.env.BOURBON_SIGNAL_REQUIRE_PHOENIX_EXPANSION==='1'
+      ?{minimumPhoenixPublicRows:4,minimumPhoenixAllocatedRows:2}:{} };
   const diagnostics = diagnoseArizonaExpansionArtifact(input);
   await writeFile(path.join(out, 'az-expansion-verification.json'), JSON.stringify({
     checkedAt: new Date().toISOString(), runId: stats.runId, ...diagnostics,
