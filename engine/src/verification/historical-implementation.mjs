@@ -10,6 +10,7 @@ const njMiBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence
 const measuredForecastBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/refresh-capacity-20261029/forecast-metadata-ms-boundary.json', import.meta.url), 'utf8'));
 const fourStateAdmissionBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const californiaCityMenuBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/two-state-expansion-20261030/california-city-menu-ms-boundary.json', import.meta.url), 'utf8'));
+const phoenixIllinoisBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/phoenix-illinois-expansion-20261031/shared-metadata-ms-boundary.json', import.meta.url), 'utf8'));
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
@@ -121,6 +122,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (!sharedFiles.has(name)) return bytes;
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
+  assert.equal(phoenixIllinoisBaseline.contractVersion,'bourbon-signal/phoenix-illinois-shared-metadata-ms-boundary@1');
+  // Reverse only the literal reviewed AZ source addition and IL source/city
+  // metadata. All original MS full-file hashes and older boundaries stay pinned.
+  for(const [state,entry]of Object.entries(phoenixIllinoisBaseline.files[name]||{}))
+    text=replaceUnique(text,entry.reviewed,entry.original,`${name}: Phoenix Illinois ${state} reviewed metadata`);
   const admission = fourStateAdmissionBaseline.files[name];
   if (admission) {
     assert.equal(fourStateAdmissionBaseline.contractVersion, 'bourbon-signal/four-state-actual-admission-ms-boundary@1');
