@@ -1,3 +1,4 @@
+import { standardBottleName } from "../../shared/standard-bottle-identity.ts";
 import { readOwnerBottleRecords } from "@/lib/owner-admin-repository";
 import { expandCorrectedWatchNames } from "@/lib/admin-watch-aliases";
 import { createBottleMuteMatcher } from "@/lib/bottle-mutes";
@@ -267,12 +268,12 @@ export async function readAlertCandidateBatch(dryRun = true) {
     if (process.env.NODE_ENV !== "test") console.warn("community alert candidates unavailable", error instanceof Error ? error.message : "unknown error");
   }
   return {
-    candidates: await mergeRuntimeSourceCandidates([
+    candidates: (await mergeRuntimeSourceCandidates([
       ...(Array.isArray(result.payload?.alerts)
         ? (result.payload.alerts as CandidateAlert[]).map(withAvailabilityEpisodeIdentity)
         : []),
       ...communityCandidates,
-    ], result),
+    ], result)).map((candidate): CandidateAlert => ({ ...candidate, bottle: standardBottleName(asString(candidate.bottle, "Bottle signal")) })),
     snapshot: result,
   };
 }
@@ -876,8 +877,8 @@ function normalizeMemberAlertRecord(input: unknown): MemberAlertRecord | null {
     userId,
     dedupeKey,
     signalId: asString(source.signalId) || undefined,
-    bottleName,
-    bottleNames: Array.isArray(source.bottleNames) ? uniqueStrings(source.bottleNames.map((value) => asString(value))) : undefined,
+    bottleName: standardBottleName(bottleName),
+    bottleNames: Array.isArray(source.bottleNames) ? uniqueStrings(source.bottleNames.map((value) => standardBottleName(asString(value)))) : undefined,
     underlyingStableKeys: uniqueStrings(toStrings(source.underlyingStableKeys)),
     state: asString(source.state),
     storeLabel: asString(source.storeLabel, "Tracked location"),

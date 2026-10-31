@@ -28,7 +28,8 @@
   ],
   "buffalo-trace-bourbon": [
     "Buffalo Trace Straight Bourbon Whiskey",
-    "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)"
+    "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+    "Buffalo Trace Straight Bourbon"
   ],
   "eagle-rare-10": [
     "Eagle Rare 10 Year Kentucky Straight Bourbon",
@@ -38,7 +39,8 @@
   ],
   "eh-taylor-small-batch": [
     "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
-    "Colonel E.H. Taylor Small Batch Bourbon"
+    "Colonel E.H. Taylor Small Batch Bourbon",
+    "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof"
   ],
   "elijah-craig-barrel-proof": [
     "Elijah Craig Barrel Proof Small Batch",
@@ -139,7 +141,9 @@
   ],
   "old-fitzgerald-7y-bottled-in-bond": [
     "Old Fitzgerald 7 Year Bottled in Bond",
-    "Old Fitzgerald Bourbon 7 Year Bottled in Bond"
+    "Old Fitzgerald Bourbon 7 Year Bottled in Bond",
+    "Old Fitzgerald Bourbon Bottled in Bond 7 Year Whiskey",
+    "Old Fitzgerald Bourbon BiB 7 Year Whiskey"
   ],
   "bb_70221e1cdb151a04": [
     "Maker's Mark Private Selection \"Butterscotch Pudding\"",
@@ -194,5 +198,8 @@
   ],
   "old-fitzgerald-bottled-in-bond-10y-spring-26-decanter": [
     "Old Fitzgerald BIB 10Y Spring 26 Decanter"
+  ],
+  "eagle-rare-12": [
+    "Eagle Rare 12 Year Bourbon"
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "ea15a2b3d300dd6ebec31bd03f4cccff08c1a52358ac9ecb41d620976bcf2a19",
+  "revision": "5adffcda73b0732d3acea526e489241174fae67c64ad2a10eedce9ca464d8019",
   "entries": [
     {
       "catalogId": "1792-12-year",
@@ -2323,7 +2323,8 @@
         "Buffalo Trace",
         "Buffalo Trace Kentucky Straight Bourbon",
         "Buffalo Trace Straight Bourbon Whiskey",
-        "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)"
+        "Buffalo Trace Bourbon 90 Proof - 750 Ml (limited quantities may be available in store)",
+        "Buffalo Trace Straight Bourbon"
       ],
       "sha256": "15ee029350a26d5abd43111b395a1c1ffaef0056aedf29fe743c126f72fbf75b",
       "width": 400,
@@ -2822,7 +2823,8 @@
       "catalogId": "eagle-rare-12",
       "displayName": "Eagle Rare 12 Year",
       "exactNames": [
-        "Eagle Rare 12 Year"
+        "Eagle Rare 12 Year",
+        "Eagle Rare 12 Year Bourbon"
       ],
       "sha256": "c742e9ef30529b3d4258e7f956a4c85d9796a0073c26a058dce80fc5afe9fd9c",
       "width": 400,
@@ -2935,7 +2937,8 @@
         "Colonel E.H. Taylor Small Batch Bottled in Bond Bourbon",
         "Colonel E.H. Taylor Small Batch Bottled in Bond",
         "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
-        "Colonel E.H. Taylor Small Batch Bourbon"
+        "Colonel E.H. Taylor Small Batch Bourbon",
+        "E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey 100 Proof"
       ],
       "sha256": "3eb09d7951dd341fddf929bd6541123e9bfb901a1ad30577734aa4b9238d22e1",
       "width": 400,
@@ -6004,7 +6007,9 @@
       "exactNames": [
         "Old Fitzgerald 7Y Bottled in Bond",
         "Old Fitzgerald 7 Year Bottled in Bond",
-        "Old Fitzgerald Bourbon 7 Year Bottled in Bond"
+        "Old Fitzgerald Bourbon 7 Year Bottled in Bond",
+        "Old Fitzgerald Bourbon Bottled in Bond 7 Year Whiskey",
+        "Old Fitzgerald Bourbon BiB 7 Year Whiskey"
       ],
       "sha256": "959d4f33d33fedc3595678ffa99e363f3db259329311f78837a194ec3118a388",
       "width": 400,

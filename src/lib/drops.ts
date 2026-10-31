@@ -1,3 +1,4 @@
+import { standardBottleIdentity, standardBottleName } from "../../shared/standard-bottle-identity.ts";
 import { getActiveEngineStateName } from "@/lib/activeStates";
 import { dropDisplayTime } from "@/lib/drop-feed-policy";
 import { getScheduledReleaseSignalCopy, isScheduledReleaseSignal } from "@/lib/scheduled-release-signals";
@@ -179,8 +180,10 @@ export function isRealDropEvent(event: DropEvent): boolean {
 export function cleanBrandName(name: string): string {
   if (!name) return "Unknown";
   if (/^\d+$/.test(name)) return "";
+  const standard = standardBottleIdentity(name);
+  if (standard) return standard.name;
 
-  let cleaned = name
+  let cleaned = standardBottleName(name)
     .replace(/\b(700ML|750ML|1\.00L|1\.75L|375ML|50ML)\b/gi, "")
     .replace(/\s{2,}/g, " ")
     .trim();
