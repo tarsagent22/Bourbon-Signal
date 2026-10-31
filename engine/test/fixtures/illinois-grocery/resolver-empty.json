@@ -1,0 +1,48 @@
+{
+  "url": "https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=62701&radius=50&size=100",
+  "capturedAt": "2026-10-31T04:39:28.085Z",
+  "status": 200,
+  "payload": {
+    "delivery": {
+      "errors": [
+        {
+          "code": "SR-0003",
+          "message": "No stores found for the search criteria",
+          "statusCode": 404
+        }
+      ],
+      "ack": "1",
+      "count": 0
+    },
+    "instore": {
+      "count": 0,
+      "errors": [
+        {
+          "code": "SR-0003",
+          "message": "No store founds for entered search criteria",
+          "statusCode": 404
+        }
+      ],
+      "ack": "1"
+    },
+    "pickup": {
+      "count": 0,
+      "errors": [
+        {
+          "code": "SR-0003",
+          "message": "No store founds for entered search criteria",
+          "statusCode": 404
+        }
+      ],
+      "ack": "1"
+    },
+    "errors": [
+      {
+        "code": "SR-1010",
+        "message": "404 Not Found from GET https://esap-apim-prod-01.albertsons.com/abs/int/osmi/mkpseller/api/v2/marketplace/sellers/zipcode/62701",
+        "detail": "404 Not Found from GET https://esap-apim-prod-01.albertsons.com/abs/int/osmi/mkpseller/api/v2/marketplace/sellers/zipcode/62701",
+        "statusCode": 500
+      }
+    ]
+  }
+}

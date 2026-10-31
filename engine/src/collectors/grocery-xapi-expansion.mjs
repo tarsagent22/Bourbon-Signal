@@ -16,6 +16,17 @@ export const ILLINOIS_GROCERY_PRIORITY_TERMS=Object.freeze(['weller','eagle rare
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
 
+export function isGroceryExpansionEmptyResolver(payload,stateCode){
+  if(stateCode!=='IL')return false;
+  const channel=payload?.instore,error=channel?.errors?.[0];
+  return channel?.count===0&&channel.ack==='1'
+    &&Object.keys(channel).sort().join('|')==='ack|count|errors'
+    &&Array.isArray(channel.errors)&&channel.errors.length===1
+    &&error?.code==='SR-0003'&&error.statusCode===404
+    &&error.message==='No store founds for entered search criteria'
+    &&Object.keys(error).sort().join('|')==='code|message|statusCode';
+}
+
 export function groceryExpansionPremiseMatches(source, store) {
   const address=store?.address;
   return String(store?.locationId || '')===source.merchantId && address?.state===source.stateCode
@@ -124,12 +135,15 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     await sleep(Math.max(1000,(Number(first.retryAfterSeconds)||0)*1000));
     return attemptRequest(url,kind,source,term);
   };
-  const resolver=new Map(),conflicts=new Set();let resolverComplete=true;
+  const resolver=new Map(),conflicts=new Set(),resolverEmptyZips=[],resolverFailures=[];let resolverComplete=true;
   for(const zip of WESTERN_GROCERY_RESOLVER_ZIPS[config.id] || []){
     const response=await request(`https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=${zip}&radius=50&size=100`,'resolver');
     if(!response || (!response.ok && response.status!==206)){resolverComplete=false;continue;}
     let payload;try{payload=JSON.parse(response.text);}catch{resolverComplete=false;continue;}
-    if(!Array.isArray(payload?.instore?.stores)){resolverComplete=false;continue;}
+    if(!Array.isArray(payload?.instore?.stores)){
+      if(isGroceryExpansionEmptyResolver(payload,config.id)){resolverEmptyZips.push(zip);continue;}
+      resolverComplete=false;resolverFailures.push({zip,reason:'invalid_instore_channel_shape'});continue;
+    }
     for(const store of payload.instore.stores){
       const id=String(store?.locationId || '');if(!id || conflicts.has(id))continue;
       const key=normalize([store.polarisBannerName,store.domainName,store.address?.line1,store.address?.city,store.address?.state,store.address?.country,store.address?.zipcode].join('|'));
@@ -169,6 +183,6 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     sourceAttempts[source.id]={lastAttemptAt:observedAt,status:sourceComplete?'success':'incomplete',inspected:true,positiveRows:seen.size};
   },deep?2:1);
   return {signals,roadblocks,metadata:{complete,sourceAttempts,requests,selectedStores:sources.map(source=>source.storeId),
-    verifiedPremises:eligible.map(source=>source.storeId),positiveStores:[...new Set(signals.map(row=>row.storeId))],
+    verifiedPremises:eligible.map(source=>source.storeId),resolverEmptyZips,resolverFailures,positiveStores:[...new Set(signals.map(row=>row.storeId))],
     maxRequestCount:requestLimit,storeConcurrency:deep?2:1,broadPageLimit:deep?3:1,priorityTerms:deep?ILLINOIS_GROCERY_PRIORITY_TERMS:[],exhaustiveRetrievalVerified:false,transientRetries,maxTransientRetries:retryLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
 }

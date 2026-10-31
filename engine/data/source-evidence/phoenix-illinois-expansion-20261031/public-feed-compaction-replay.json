@@ -1,0 +1,165 @@
+{
+  "checkedAt": "2026-10-31T04:45:10.875Z",
+  "sourceRun": 41166891464,
+  "states": 30,
+  "rows": 14837,
+  "originalBytes": 63301761,
+  "compactBytes": 50908559,
+  "exportLimitBytes": 62914560,
+  "readerLimitBytes": 67108864,
+  "everyRowPreserved": true,
+  "allNonNullProofAndFalseZeroFieldsPreserved": true,
+  "customerNormalizationClassificationSurfaceAndEligibilityIdentical": true,
+  "stateCounts": [
+    {
+      "state": "AL",
+      "rows": 496,
+      "eligibleRows": 496
+    },
+    {
+      "state": "AZ",
+      "rows": 794,
+      "eligibleRows": 793
+    },
+    {
+      "state": "CA",
+      "rows": 2114,
+      "eligibleRows": 2114
+    },
+    {
+      "state": "CO",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "FL",
+      "rows": 687,
+      "eligibleRows": 536
+    },
+    {
+      "state": "GA",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "IA",
+      "rows": 818,
+      "eligibleRows": 139
+    },
+    {
+      "state": "ID",
+      "rows": 210,
+      "eligibleRows": 203
+    },
+    {
+      "state": "IL",
+      "rows": 1434,
+      "eligibleRows": 1373
+    },
+    {
+      "state": "IN",
+      "rows": 151,
+      "eligibleRows": 140
+    },
+    {
+      "state": "KY",
+      "rows": 1,
+      "eligibleRows": 1
+    },
+    {
+      "state": "MI",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "MN",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "MO",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "MS",
+      "rows": 9,
+      "eligibleRows": 8
+    },
+    {
+      "state": "NC",
+      "rows": 2101,
+      "eligibleRows": 1953
+    },
+    {
+      "state": "NM",
+      "rows": 38,
+      "eligibleRows": 38
+    },
+    {
+      "state": "NV",
+      "rows": 91,
+      "eligibleRows": 47
+    },
+    {
+      "state": "NY",
+      "rows": 48,
+      "eligibleRows": 38
+    },
+    {
+      "state": "OH",
+      "rows": 1204,
+      "eligibleRows": 925
+    },
+    {
+      "state": "OK",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "PA",
+      "rows": 3362,
+      "eligibleRows": 3362
+    },
+    {
+      "state": "SC",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "TN",
+      "rows": 39,
+      "eligibleRows": 35
+    },
+    {
+      "state": "TX",
+      "rows": 14,
+      "eligibleRows": 3
+    },
+    {
+      "state": "UT",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "VA",
+      "rows": 1039,
+      "eligibleRows": 734
+    },
+    {
+      "state": "WA",
+      "rows": 181,
+      "eligibleRows": 181
+    },
+    {
+      "state": "WI",
+      "rows": 0,
+      "eligibleRows": 0
+    },
+    {
+      "state": "WV",
+      "rows": 6,
+      "eligibleRows": 6
+    }
+  ]
+}
