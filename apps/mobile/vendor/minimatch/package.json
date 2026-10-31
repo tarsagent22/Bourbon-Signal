@@ -1,0 +1,12 @@
+{
+  "name": "minimatch",
+  "version": "11.0.3-bs.1",
+  "description": "Legacy callable CommonJS compatibility for the patched upstream minimatch",
+  "license": "ISC",
+  "main": "index.cjs",
+  "exports": {
+    ".": { "import": "./index.mjs", "require": "./index.cjs" },
+    "./package.json": "./package.json"
+  },
+  "dependencies": { "minimatch-upstream": "npm:minimatch@11.0.3" }
+}
