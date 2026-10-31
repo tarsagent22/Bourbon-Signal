@@ -225,7 +225,9 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     input.rawName,
   ) || "Unknown bottle";
   const standardBottle = standardBottleIdentity(sourceBottleName, sourceBottleId);
-  const bottleId = standardBottle?.id || sourceBottleId;
+  // Existing source IDs bind signal details and inventory proof. Standardize
+  // their presentation without changing those durable links.
+  const bottleId = sourceBottleId || standardBottle?.id;
   const bottleName = standardBottle?.name || standardBottleName(sourceBottleName);
   const state = normalizeState(input.state ?? input.state_code ?? input.region);
   const storeId = text(input.store_id, input.storeId);

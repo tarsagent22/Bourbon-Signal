@@ -23,7 +23,7 @@ test('literal screenshot titles use library name, identity and existing artwork 
     assert.equal(cleanBrandName(rawName), name);
     assert.equal(getDisplayName({ canonical_name:rawName, brand_name:rawName } as never), name);
     const signal = normalizeDropSignal({ id:'existing-event', bottle_id:'retailer-id', canonical_name:rawName, raw_name:rawName, store_id:'343', retail_price:54.99 });
-    assert.deepEqual([signal.bottle.id, signal.bottle.name], [id, name]);
+    assert.deepEqual([signal.bottle.id, signal.bottle.name], ['retailer-id', name]);
     assert.equal(signal.id, 'trusted_source:existing-event');
     assert.equal(resolveLabeledBottleArtwork({bottleId:'retailer-id',bottleName:rawName})?.catalogId, id);
     assert.equal(resolveLabeledBottleArtwork({bottleId:id,bottleName:rawName})?.catalogId, id);
