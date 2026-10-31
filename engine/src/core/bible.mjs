@@ -2,6 +2,7 @@
 import path from 'node:path';
 import { fingerprintName, normalizeBottleName } from './text.mjs';
 import { libraryIdentityKey } from './library-catalog.mjs';
+import { standardInventoryBottleIdentity } from './standard-bottle-identity.mjs';
 
 export class BourbonBible {
   constructor(records) {
@@ -61,6 +62,14 @@ export class BourbonBible {
     }
     if (this.byNormalizedAlias.has(normalizedAlias) && !exactAlias) return null;
     if (exactAlias) return { record: exactAlias, confidence: 1, method: 'exact-normalized-alias' };
+    const standard = standardInventoryBottleIdentity(rawName);
+    if (standard) {
+      const records = this.records.filter(record => record.id === standard.id
+        || record.libraryIdentities?.some(bottle => bottle.id === standard.id)
+        || libraryIdentityKey(record.canonical) === libraryIdentityKey(standard.name));
+      if (records.length === 1) return { record: records[0], confidence: 1, method: 'reviewed-retailer-library-identity' };
+      if (records.length > 1) return null;
+    }
     if (/\b(?:small batch|limited edition|single barrel|barrel proof|double oaked|straight bourbon)\b/iu.test(normalized)) return null;
     const key = fingerprintName(normalized);
     if (!key) return null;

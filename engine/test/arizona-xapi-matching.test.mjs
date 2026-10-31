@@ -47,7 +47,7 @@ test('exact captured XAPI identity adds two Buffalo Trace public rows and alerts
   const after = [];
   for (const capture of fixture.captures) {
     const product = capture.products.find((row) => row.id === reviewedId);
-    assert.equal(cityHiveSafeBottleMatch(product.name, bible).record, null, 'the previous source matcher does not recognize this title');
+    assert.equal(cityHiveSafeBottleMatch(product.name, bible).record?.canonical, 'Buffalo Trace Bourbon', 'reviewed library aliases now recognize retailer presentation noise');
     const matched = reviewedArizonaXapiBottleMatch(product, bible, { storeId: capture.store.locationId });
     assert.equal(matched.record?.canonical, 'Buffalo Trace Bourbon');
     assert.equal(matched.match?.method, 'reviewed-arizona-xapi-product-identity');
@@ -67,8 +67,8 @@ test('exact captured XAPI identity adds two Buffalo Trace public rows and alerts
     assert.equal(result.metadata.totalSearchCount, 3, 'matching adds no source request beyond the two broad and one supplemental searches');
     after.push(signal);
   }
-  assert.deepEqual(project(before).drops, []);
-  assert.deepEqual(project(before).alerts, []);
+  assert.equal(project(before).drops.length, 2);
+  assert.equal(project(before).alerts.length, 2);
   const projected = project(after);
   assert.equal(projected.operational.length, 2);
   assert.equal(projected.drops.length, 2);

@@ -1,3 +1,4 @@
+import { standardBottleName } from "../../shared/standard-bottle-identity.ts";
 import { Resend } from "resend";
 import type { AreaPreferences } from "@/app/api/user/preferences/route";
 import type { DropEvent } from "@/lib/drops";
@@ -45,7 +46,7 @@ export function getResendClient() {
 }
 
 export function normalizeBottleName(drop: DropEvent) {
-  return (drop.tracked_brand_name || drop.brand_name || "Unknown Bottle").trim();
+  return standardBottleName(drop.canonical_name || drop.tracked_brand_name || drop.brand_name || "Unknown Bottle");
 }
 
 export function normalizeStoreLabel(drop: DropEvent) {

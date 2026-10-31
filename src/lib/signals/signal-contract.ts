@@ -1,3 +1,4 @@
+import { standardBottleIdentity, standardBottleName } from "../../../shared/standard-bottle-identity.ts";
 import type { MemberSighting } from "../sightings.ts";
 import { isScheduledReleaseSignal, scheduledReleaseDateValue, type ScheduledReleaseInput } from "../scheduled-release-signals.ts";
 import { dropDisplayTime } from "../drop-feed-policy.ts";
@@ -212,8 +213,8 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
   const kind = signalKind(input);
   const type = sourceType(input, kind);
   const rawId = text(input.id, input.eventId, input.canonical_id, input.canonicalId) || "unknown";
-  const bottleId = text(input.bottle_id, input.bottleId, input.canonical_id, input.canonicalId);
-  const bottleName = text(
+  const sourceBottleId = text(input.bottle_id, input.bottleId, input.canonical_id, input.canonicalId);
+  const sourceBottleName = text(
     input.canonical_name,
     input.canonicalName,
     input.bottle_name,
@@ -223,6 +224,11 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     input.raw_name,
     input.rawName,
   ) || "Unknown bottle";
+  const standardBottle = standardBottleIdentity(sourceBottleName, sourceBottleId);
+  // Existing source IDs bind signal details and inventory proof. Standardize
+  // their presentation without changing those durable links.
+  const bottleId = sourceBottleId || standardBottle?.id;
+  const bottleName = standardBottle?.name || standardBottleName(sourceBottleName);
   const state = normalizeState(input.state ?? input.state_code ?? input.region);
   const storeId = text(input.store_id, input.storeId);
   const storeName = text(input.store_name, input.storeName);
@@ -354,7 +360,7 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
     },
     bottle: {
       ...(sighting.bottleId ? { id: sighting.bottleId } : {}),
-      name: sighting.bottleName || "Unknown bottle",
+      name: standardBottleName(sighting.bottleName || "Unknown bottle"),
       rarityPending: sighting.bottleRarity?.pending ?? (!sighting.bottleId || sighting.reviewState?.needsBottleReview === true),
       ...(sighting.bottleRarity ? { scarcity: sighting.bottleRarity } : {}),
       ...(signalRarity(sighting.rarityTier) ? { rarity: signalRarity(sighting.rarityTier) } : {}),

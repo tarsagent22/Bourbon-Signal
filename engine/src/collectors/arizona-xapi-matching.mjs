@@ -28,6 +28,9 @@ export function reviewedArizonaXapiBottleMatch(product, bible, { storeId } = {})
     || String(product?.upc || '') === row.upc || exactText(name) === exactText(row.name));
   if (!reviewed) {
     const legacy = cityHiveSafeBottleMatch(name, bible);
+    // A shared display alias identifies the expression, not this store's SKU,
+    // strength or package. Keep the source-specific verification boundary.
+    if (legacy.match?.method === 'reviewed-retailer-library-identity') return arizonaXapiLibraryIdentity(product, bible, { storeId });
     return legacy.record ? legacy : arizonaXapiLibraryIdentity(product, bible, { storeId });
   }
 

@@ -1,3 +1,4 @@
+import { standardBottleIdentity } from "../../shared/standard-bottle-identity.ts";
 import { REVIEWED_SIGHTING_RARITY } from "../data/reviewed-sighting-rarity";
 import discoveryBottles from '../../shared/library-discovery-bottles.json';
 import expressionBottles from '../../shared/library-expression-bottles.json';
@@ -248,9 +249,11 @@ async function readEngineBibleBottles(): Promise<BibleBottleInput[]> {
       .map((item) => item && typeof item === "object" ? item as Record<string, unknown> : null)
       .filter(Boolean)
       .map((item) => {
-        const canonicalName = String(item!.canonical_name || item!.name || item!.bottleName || "").trim();
+        const rawName = String(item!.canonical_name || item!.name || item!.bottleName || "").trim();
+        const standard = standardBottleIdentity(rawName);
+        const canonicalName = standard?.name || rawName;
         if (!canonicalName) return null;
-        const id = String(item!.canonical_id || item!.id || slugifyBottle(canonicalName));
+        const id = standard?.id || String(item!.canonical_id || item!.id || slugifyBottle(canonicalName));
         const tier = tierFromEngine(item!.tier);
         const engineTier = normalizeBottleScarcity({ availability: tier }).nationalTier;
         const aliases = Array.isArray(item!.aliases) ? item!.aliases.map(String) : [];
@@ -263,7 +266,7 @@ async function readEngineBibleBottles(): Promise<BibleBottleInput[]> {
           msrp: typeof item!.msrp === "number" ? item!.msrp : null,
           availability: tier,
           buyerVerdict: tier === "unicorn" ? "special_find" : "grab_at_msrp",
-          aliases: [canonicalName, ...aliases],
+          aliases: [canonicalName, rawName, ...aliases],
           isSignalTracked: true,
           isAlertEligible: typeof item!.library_alert_eligible === "boolean" ? item!.library_alert_eligible : tier !== "common",
           engineScarcityEvidence: {

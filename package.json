@@ -211,7 +211,7 @@
     "pretest:ma-source-preflight": "npm --prefix engine run bible",
     "test:ma-source-preflight": "node --test scripts/test-ma-public-source.mjs engine/test/massachusetts-retailer.test.mjs engine/test/massachusetts-research-export.test.mjs",
     "test:engine-feed-verification": "node --no-warnings --experimental-strip-types --test scripts/test-engine-feed-verification.mjs",
-    "test:labeled-artwork": "tsx --test scripts/test-labeled-bottle-art.mts",
+    "test:labeled-artwork": "tsx --test scripts/test-labeled-bottle-art.mts scripts/test-standard-bottle-identity.mts && node --test engine/test/standard-bottle-identity.test.mjs",
     "artwork:labeled:audit": "node scripts/audit-labeled-bottle-art.mjs",
     "artwork:labeled:complete": "node scripts/audit-labeled-bottle-art.mjs --require-complete",
     "artwork:feed:audit": "tsx scripts/audit-feed-bottle-art.mts",
