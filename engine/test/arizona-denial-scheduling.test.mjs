@@ -327,7 +327,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
         if(parsed.pathname==='/contact/') return '<iframe src="https://maps.google.com/maps?q=' + encodeURIComponent(parsed.hostname==='mesaliquorstore.com'?'1930 E Broadway Rd, Mesa, AZ 85204':'3320 S Priest Dr Suite #2, Tempe, AZ 85282') + '"></iframe>';
         return [{ id: 123, name: 'Buffalo Trace Bourbon 750ml', is_in_stock: true, is_purchasable: true, is_on_backorder: false, permalink: parsed.origin + '/product/buffalo-trace/', prices: { price: '3499', currency_minor_unit: 2, currency_code: 'USD' } }];
       }
-      if(parsed.hostname==='liquorwheel2.com') return '';
+      if(parsed.hostname==='liquorwheel2.com'||parsed.hostname==='virginiamarketstore.com') return '';
       if (url.includes('/storeresolver/')) return { instore: { stores: [{ locationId: '1491', polarisBannerName: 'safeway', domainName: 'Safeway', distance: 1, address: { line1: '7920 E Chaparral Rd', city: 'Scottsdale', state: 'AZ', zipcode: '85250' } }] } };
       if (url.includes('/search/substitute')) return { response: { docs: [{ id: '189032017', storeId: '1491', name: 'Buffalo Trace Bourbon 750ml', price: 34.99, channelInventory: { instore: '1', instoreItemQty: 3 } }] } };
       if (parsed.hostname === 'redsky.target.com') return { data: { search: { products: [] } } };

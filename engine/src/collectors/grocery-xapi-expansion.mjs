@@ -1,3 +1,4 @@
+import {pacedRequestGate,forEachStoreBounded} from './paced-store-workers.mjs';
 import { arizonaXapiLibraryQueryAssignments } from './arizona-xapi.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchPlan } from '../library-search-runtime.mjs';
@@ -8,8 +9,10 @@ const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+
 const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn']);
 export const GROCERY_EXPANSION_REQUEST_LIMIT = 127;
 export const CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT = 8;
-export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:914+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,NM:43});
-const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({WA:58,CA:433,NM:16});
+export const ILLINOIS_GROCERY_TRANSIENT_RETRY_LIMIT = 8;
+export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({IL:2700,WA:127,CA:914+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,NM:43});
+const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({IL:180,WA:58,CA:433,NM:16});
+export const ILLINOIS_GROCERY_PRIORITY_TERMS=Object.freeze(['weller','eagle rare','e.h. taylor',"blanton's",'stagg',"michter's","booker's",'old fitzgerald']);
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
 
@@ -34,9 +37,16 @@ export function groceryProductSnapshot(product) {
     ]));
 }
 
-export function isGroceryExpansionEmptySearch(payload,source,term){
+export function isGroceryExpansionEmptySearch(payload,source,term,{start=0}={}){
   if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source)||payload?.appCode!=='GR204'
-    ||payload.response?.numFound!==0||payload.response?.start!==0
+    ||typeof term!=='string'||!term.trim()||!Number.isInteger(start)
+    ||![0,...(source.stateCode==='IL'&&['bourbon','whiskey'].includes(term)?[100,200]:[])].includes(start))return false;
+  // Captured Illinois responses sometimes omit the entire response object for
+  // Google's explicit empty result. This exact closed form is healthy zero;
+  // it never proves stock, a positive store, or a bottle identity.
+  if(source.stateCode==='IL'&&JSON.stringify(Object.keys(payload).sort())===JSON.stringify(['appCode','appMsg'])
+    &&payload.appMsg==='GR : Google Retail returned empty response..')return true;
+  if(payload.response?.numFound!==0||payload.response?.start!==start
     ||Object.hasOwn(payload.response,'docs')||payload.response.miscInfo?.query!==term)return false;
   const filter=payload.response.miscInfo.filter;
   return typeof filter==='string'
@@ -77,19 +87,26 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
   const requestLimit=GROCERY_EXPANSION_REQUEST_LIMITS[config.id];
   if(!sources.length || !requestLimit || sources.length>GROCERY_EXPANSION_STORE_LIMITS[config.id])throw new Error('Grocery expansion exceeds reviewed state/store budget');
   const requests=[],signals=[],roadblocks=[],sourceAttempts={...attempts},blockedHosts=new Set();
-  const retryLimit=config.id==='CA'?CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT:0;
+  const retryLimit=config.id==='CA'?CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT:config.id==='IL'?ILLINOIS_GROCERY_TRANSIENT_RETRY_LIMIT:0;
   let transientRetries=0;
+  const deep=config.id==='IL';
+  const gate=deep?pacedRequestGate({intervalMs:500,sleep,signal}):null;
   for(const[key,value]of Object.entries(attempts))if(key.startsWith('host:')&&Date.parse(value.nextAllowedAt)>nowMs)blockedHosts.add(key.slice(5));
   const attemptRequest=async(url,kind,source=null,term=null)=>{
     signal?.throwIfAborted();const host=new URL(url).hostname;
+    if(gate)await gate();
     if(blockedHosts.has(host))return null;
     if(requests.length>=requestLimit)throw new Error('Grocery expansion request ceiling reached');
-    if(requests.length)await sleep(400);
+    if(!gate&&requests.length)await sleep(400);
+    // Reserve before awaiting I/O so concurrent workers share the same ceiling.
+    const receipt={kind,sourceId:source?.id||null,merchantId:source?.merchantId||null,term,url,status:0,ok:false,observedAt:new Date().toISOString()};
+    requests.push(receipt);
     const response=await fetchText(url,{signal,timeoutMs:15000,maxBytes:4*1024*1024,maxRedirects:0,
       headers:{accept:'application/json','ocp-apim-subscription-key':kind==='resolver'?publicStoreKey:publicSearchKey}});
-    requests.push({kind,sourceId:source?.id || null,merchantId:source?.merchantId || null,term,url,status:response.status||0,ok:response.ok===true,observedAt:new Date().toISOString()});
+    Object.assign(receipt,{status:response.status||0,ok:response.ok===true,observedAt:new Date().toISOString()});
     if([401,403,429,435].includes(Number(response.status))){
-      blockedHosts.add(host);sourceAttempts[`host:${host}`]={lastAttemptAt:observedAt,status:'access_denied',httpStatus:response.status,nextAllowedAt:new Date(nowMs+86_400_000).toISOString()};
+      const deniedAt=new Date().toISOString();
+      blockedHosts.add(host);sourceAttempts[`host:${host}`]={lastAttemptAt:deniedAt,status:'access_denied',httpStatus:response.status,nextAllowedAt:new Date(Date.parse(deniedAt)+86_400_000).toISOString()};
       // Persist denial immediately; a later timeout/publication failure must not erase it.
       await persistAttempts(structuredClone(sourceAttempts));
     }
@@ -120,32 +137,38 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     }
   }
   const eligible=sources.filter(source=>groceryExpansionPremiseMatches(source,resolver.get(source.merchantId)?.store));
-  const plan=eligible.length?await librarySourceSearchPlan(bible,{sourceKey:`${config.id}:grocery-xapi-expansion`,budget:Math.min(8,eligible.length),broadTerms:[],cursorDir}):null;
+  const plan=eligible.length?await librarySourceSearchPlan(bible,{sourceKey:`${config.id}:grocery-xapi-expansion`,budget:Math.min(deep?48:8,eligible.length),broadTerms:[],cursorDir}):null;
   const extraTerms=new Map();
   if(plan?.terms.length)for(const{storeIndex,term}of arizonaXapiLibraryQueryAssignments(eligible.length,{terms:plan.terms,poolSize:plan.poolSize,invocation:plan.invocation,maximumStores:GROCERY_EXPANSION_STORE_LIMITS[config.id]})){
     extraTerms.set(storeIndex,[...(extraTerms.get(storeIndex)||[]),term]);
   }
   let complete=resolverComplete && eligible.length===sources.length;
-  for(const[index,source]of eligible.entries()){
+  await forEachStoreBounded(eligible,async(source,index)=>{
     let sourceComplete=true;const seen=new Set();
-    for(const term of ['bourbon','whiskey',...(extraTerms.get(index)||[])]){
-      const host=`https://${source.host}`;
-      const params=new URLSearchParams({'request-id':String(Date.now()),url:host,pageurl:host,pagename:'search',rows:'100',start:'0','search-type':'keyword',storeid:source.merchantId,featured:'true','search-uid':'',q:term,channel:'instore',banner:source.banner});
-      const response=await request(`${host}/abs/pub/xapi/search/substitute?${params}`,'inventory',source,term);
-      if(!response?.ok){sourceComplete=false;break;}
-      let payload;try{payload=JSON.parse(response.text);}catch{sourceComplete=false;break;}
-      if(!Array.isArray(payload?.response?.docs)){
-        // The first-party API omits docs for its explicit, store-bound GR204
-        // empty-search response. This is healthy zero, never stock evidence.
-        if(isGroceryExpansionEmptySearch(payload,source,term))continue;
-        sourceComplete=false;break;
+    const terms=[...new Set(['bourbon','whiskey',...(deep?ILLINOIS_GROCERY_PRIORITY_TERMS:[]),...(extraTerms.get(index)||[])])];
+    for(const term of terms){
+      for(let page=0;page<(deep&&['bourbon','whiskey'].includes(term)?3:1);page++){
+        const host=`https://${source.host}`;
+        const params=new URLSearchParams({'request-id':String(Date.now()),url:host,pageurl:host,pagename:'search',rows:'100',start:String(page*100),'search-type':'keyword',storeid:source.merchantId,featured:'true','search-uid':'',q:term,channel:'instore',banner:source.banner});
+        const response=await request(`${host}/abs/pub/xapi/search/substitute?${params}`,'inventory',source,term);
+        if(!response?.ok){sourceComplete=false;break;}
+        let payload;try{payload=JSON.parse(response.text);}catch{sourceComplete=false;break;}
+        if(!Array.isArray(payload?.response?.docs)){
+          if(isGroceryExpansionEmptySearch(payload,source,term,{start:page*100}))break;
+          sourceComplete=false;break;
+        }
+        if(deep&&(payload.response.start!==page*100||payload.response.miscInfo?.query!==term)){
+          sourceComplete=false;break;
+        }
+        for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
+        if(!payload.response.miscInfo?.nextPageToken)break;
       }
-      for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
+      if(!sourceComplete)break;
     }
     if(!sourceComplete)complete=false;
     sourceAttempts[source.id]={lastAttemptAt:observedAt,status:sourceComplete?'success':'incomplete',inspected:true,positiveRows:seen.size};
-  }
+  },deep?2:1);
   return {signals,roadblocks,metadata:{complete,sourceAttempts,requests,selectedStores:sources.map(source=>source.storeId),
     verifiedPremises:eligible.map(source=>source.storeId),positiveStores:[...new Set(signals.map(row=>row.storeId))],
-    maxRequestCount:requestLimit,transientRetries,maxTransientRetries:retryLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
+    maxRequestCount:requestLimit,storeConcurrency:deep?2:1,broadPageLimit:deep?3:1,priorityTerms:deep?ILLINOIS_GROCERY_PRIORITY_TERMS:[],exhaustiveRetrievalVerified:false,transientRetries,maxTransientRetries:retryLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
 }

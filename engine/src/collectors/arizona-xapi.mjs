@@ -30,10 +30,11 @@ export const ARIZONA_XAPI_PREVIOUS_STORE_IDS = Object.freeze([
   ...ARIZONA_XAPI_PASS1_STORE_IDS,
   '1536', '2076', '1733', '3187', '249', '2017', '2069', '2648', '3189', '272', '1291', '1543', '1771', '1887', '1654', '1948', '1566', '197', '72', '1591', '958', '1221', '1750', '2799', '2952', '1002', '1549', '2042', '2644', '1849', '1515', '1874', '3989', '1663', '1201', '963', '2922', '1253', '240', '250', '1988', '1979', '1255', '2097', '960', '1980', '413', '1984',
 ]);
-// Complete released139-store public-state snapshot's134-premise grocery cohort
+// Preserve the latest released138-premise grocery cohort, including the four
+// premises added in the October30 production expansion. Previous134-premise cohort
 // (production workflow41131627756). Directory-only stores never count as gains.
 export const ARIZONA_XAPI_RELEASED_STORE_IDS = Object.freeze([
-  ...ARIZONA_XAPI_PREVIOUS_STORE_IDS, '1989', '2985', '3322', '3334', '1986', '1749',
+  ...ARIZONA_XAPI_PREVIOUS_STORE_IDS, '25', '4', '1706', '239', '1989', '2985', '3322', '3334', '1986', '1749',
 ]);
 export const ARIZONA_XAPI_DEFAULT_STORES = 138;
 export const ARIZONA_XAPI_SEARCH_LIMIT = 600;

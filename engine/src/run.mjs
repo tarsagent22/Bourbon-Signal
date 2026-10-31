@@ -66,6 +66,7 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // Nevada's bounded grocery and independent retailer pass must finish before
   // its parent expires, including a slow storefront sibling.
   NV: Number(process.env.BOURBON_SIGNAL_NV_STATE_TIMEOUT_MS || 720_000),
+  IL: Number(process.env.BOURBON_SIGNAL_IL_STATE_TIMEOUT_MS || 2_580_000),
   CA: Number(process.env.BOURBON_SIGNAL_CA_STATE_TIMEOUT_MS || 1_680_000),
   // Closed grocery children are bounded at600s/180s; keep parent cleanup room.
   WA: Number(process.env.BOURBON_SIGNAL_WA_STATE_TIMEOUT_MS || 720_000),

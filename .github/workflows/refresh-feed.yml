@@ -50,8 +50,8 @@ jobs:
       BOURBON_SIGNAL_BROWSER_PREFLIGHT: "0"
       BOURBON_SIGNAL_AUTO_DEPLOY: "0"
       BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES: "30"
-      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1920000"
-      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "2100000"
+      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "2820000"
+      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "3000000"
       BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS: "1800000"
       FWGS_INVENTORY_CONCURRENCY: "16"
       FWGS_INVENTORY_SKU_BATCH_SIZE: "24"
@@ -358,6 +358,11 @@ jobs:
         if: ${{ inputs.states && contains(inputs.states, 'AZ') }}
         working-directory: engine
         run: npm run verify:az
+
+      - name: Verify targeted Illinois exact-store grocery expansion
+        if: ${{ inputs.states && contains(inputs.states, 'IL') }}
+        working-directory: engine
+        run: node src/verify-il-grocery.mjs
 
       - name: Verify targeted South Carolina All American inventory
         if: ${{ inputs.states && contains(inputs.states, 'SC') && !inputs.sources }}
@@ -703,7 +708,9 @@ jobs:
             engine/out/site/state-health.json
             engine/out/site/states/AZ/drops.json
             engine/out/site/states/CA/drops.json
+            engine/out/site/states/IL/drops.json
             engine/out/az-expansion-verification.json
+            engine/out/illinois-grocery-verification.json
             engine/out/pa-expansion-verification.json
             engine/out/verification/in-improvements.json
             engine/out/verification/library-coverage.json

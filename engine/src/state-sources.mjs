@@ -157,9 +157,10 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'IL', label: "Illinois Binny's + retailer inventory watch", tier: 'B', strategy: 'retailer_store_inventory', cadence: '15-60m',
+    id: 'IL', label: "Illinois Binny's, Jewel-Osco + retailer inventory", tier: 'B', strategy: 'retailer_store_inventory', cadence: '15-60m',
     value: "Illinois is a private retail market, so the highest-value public signal is retailer-specific. Binny's exposes a public Algolia product/store index with Illinois store locations plus per-store bourbon purchase availability, stock labels, prices, and aisle metadata. Treat as retailer-published availability, not guaranteed shelf possession.",
     sources: [
+      {kind:'api',url:'https://www.jewelosco.com/abs/pub/xapi/search/substitute',label:'Jewel-Osco Illinois reviewed exact-store in-store availability',precisionOnly:true},
       { kind: 'api', url: 'https://Z25A2A928M-dsn.algolia.net/1/indexes/Products_Production/query', label: "Binny's public product/store inventory index", precisionOnly: true },
       { kind: 'api', url: 'https://Z25A2A928M-dsn.algolia.net/1/indexes/Stores_Production/query', label: "Binny's public Illinois store index", precisionOnly: true },
       { kind: 'html', url: 'https://www.binnys.com/spirits?refinementList%5BproductVarietal%5D%5B0%5D=Bourbon', label: "Binny's bourbon category", precisionOnly: true },
@@ -401,6 +402,7 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://onestopdrivethruliquor.com/shop/?search=bourbon', label: 'One Stop Drive Thru Liquor Phoenix CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://liquorexpresstempe.store/shop/?subtype=bourbon', label: 'Liquor Express Tempe CityHive bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://mesaliquorstore.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100&page=1', label: 'Mesa Liquor WooCommerce in-stock bourbon inventory', precisionOnly: true },
+      {kind:'api',url:'https://virginiamarketstore.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100&page=1',label:'Virginia Market Phoenix exact-store availability',precisionOnly:true},
       { kind: 'api', url: 'https://bestliquortempe.com/wp-json/wc/store/v1/products?search=bourbon&per_page=100&page=1', label: 'Best Liquor Tempe WooCommerce in-stock bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://flagstaffliquor.com/products.json?limit=250', label: 'Flagstaff Liquor Shopify available bourbon inventory', precisionOnly: true },
       { kind: 'api', url: 'https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=85001&radius=50&size=100', label: 'Safeway and Albertsons Arizona XAPI store inventory', precisionOnly: true },

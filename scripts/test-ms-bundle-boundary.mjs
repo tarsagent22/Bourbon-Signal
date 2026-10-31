@@ -13,6 +13,7 @@ const sharedBaseline = JSON.parse(await readFile(new URL('../engine/data/source-
 const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']);
 const actualAdmission = JSON.parse(await readFile(new URL('../engine/data/source-evidence/four-state-admission-20261029/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const californiaCityMenuBaseline = JSON.parse(await readFile(new URL('../engine/data/source-evidence/two-state-expansion-20261030/california-city-menu-ms-boundary.json', import.meta.url), 'utf8'));
+const phoenixIllinoisBaseline=JSON.parse(await readFile(new URL('../engine/data/source-evidence/phoenix-illinois-expansion-20261031/shared-metadata-ms-boundary.json',import.meta.url),'utf8'));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 
 test('MS historical implementation bytes remain pinned, including policy', async () => {
@@ -184,14 +185,15 @@ test('AZ metadata reversal accepts only its exact reviewed block and keeps origi
   const az = JSON.parse(await readFile(new URL('../engine/data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
   for (const name of sharedFiles) {
     const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
-    const { original, reviewed } = az.files[name];
+    const expanded=phoenixIllinoisBaseline.files[name]?.AZ;
+    const {original,reviewed}=expanded||az.files[name];
     assert.notEqual(original, reviewed);
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const changed of [
       current.replace(reviewed, original),
       current.replace(reviewed, reviewed.replace('Arizona', 'Unreviewed geography')),
       current + '\n' + reviewed,
-    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(changed)), /AZ reviewed metadata/);
+    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(changed)), /(?:AZ reviewed metadata|Phoenix Illinois AZ reviewed metadata)/);
     const outside = current.replace(name.endsWith('.mjs') ? "id: 'VA'" : '"VA": {', name.endsWith('.mjs') ? "id: 'VA_UNREVIEWED'" : '"VA_UNREVIEWED": {');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name]);
   }
@@ -415,4 +417,24 @@ test('MS bundle boundary changes only registry loading; bundled policy and colle
   }
   const config = await readFile(new URL('../next.config.ts',import.meta.url),'utf8');
   assert.match(config,/ms-registry-boundary\.cjs/);
+});
+
+test('Phoenix/Illinois metadata reversal is exact and cannot hide any state policy or MS change',async()=>{
+  assert.equal(phoenixIllinoisBaseline.baseCommit,'0184eac94cf3f08d7a5392f5241450ebccbab909');
+  for(const [name,entries]of Object.entries(phoenixIllinoisBaseline.files)){
+    const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+    for(const [state,{original,reviewed}]of Object.entries(entries)){
+      assert.ok(['AZ','IL'].includes(state));assert.notEqual(original,reviewed);
+      assert.equal(current.split(reviewed).length-1,1);
+      const changes=[current.replace(reviewed,original),current+'\n'+reviewed,
+        current.replace(reviewed,reviewed.replace(state==='AZ'?'Virginia Market':'Illinois','Unreviewed geography'))];
+      if(!name.endsWith('.mjs'))changes.push(current.replace(reviewed,reviewed.replace('"publicStatus": "active"','"publicStatus": "research_only"')),
+        current.replace(reviewed,reviewed.replace('"refinementLevel": "statewide"','"refinementLevel": "store"')),
+        current.replace(reviewed,reviewed.replace('"publicStatus": "active"','"publicStatus": "active",\n      "watchAlertable": true')));
+      for(const changed of changes)assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(changed)),/Phoenix Illinois .*exact historical verification hook/);
+    }
+    const changed=current.replace(name.endsWith('.mjs')?"id: 'MS'":'"MS": {',name.endsWith('.mjs')?"id: 'MS_UNREVIEWED'":'"MS_UNREVIEWED": {');
+    assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(changed))),evidence.implementationFilesSha256[name]);
+  }
 });

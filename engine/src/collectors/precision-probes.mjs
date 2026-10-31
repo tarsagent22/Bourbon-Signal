@@ -1,3 +1,5 @@
+import {arizonaXapiIncidents} from './arizona-xapi-incidents.mjs';
+import {collectIllinoisGrocerySource,ILLINOIS_GROCERY_RUNTIME_ID,ILLINOIS_GROCERY_SOURCE_TIMEOUT_MS} from './illinois-grocery-runtime-source.mjs';
 import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID, CALIFORNIA_GROCERY_SOURCE_TIMEOUT_MS } from './california-grocery-runtime-source.mjs';
 import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS, nevadaRetailerCohortKey, nevadaRetailerCacheMatchesCohort } from './nevada-xapi-runtime.mjs';
 import { reviewedFwgsBottleMatch } from './fwgs-reviewed-matching.mjs';
@@ -4628,7 +4630,8 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
   const roadblocks = [];
   const stores = new Map();
   const conflicts = new Set();
-  const blockedHosts = new Set();
+  const incidents=await arizonaXapiIncidents({file:options.xapiIncidentsFile,persist:Boolean(options.xapiIncidentsFile)||!options.fetchText,nowMs:options.nowMs??Date.now()});
+  const blockedHosts=incidents.blocked;
   const fetchText = options.fetchText || textFetch;
   const pause = options.sleep || sleep;
   const metadata = { discoveredStores: [], selectedStores: [], baselineStores: [], addedStores: [], bourbonSearchCount: 0, whiskeySearchCount: 0, prioritySearchCount: 0, rareSearchCount: 0, totalSearchCount: 0, maxSearchCount: ARIZONA_XAPI_SEARCH_LIMIT, requests: [] };
@@ -4637,7 +4640,7 @@ export async function collectArizonaAlbertsons(config, bible, observedAt, option
     if (blockedHosts.has(host)) return null;
     const res = await fetchText(url, { headers, timeoutMs: kind === 'resolver' ? 20_000 : 25_000, signal: options.signal });
     metadata.requests.push({ requestedAt:new Date().toISOString(), kind, url, storeId, term, status: res.status || 0, ok: res.ok || res.status === 206 });
-    if ([401, 403, 429].includes(res.status)) blockedHosts.add(host);
+    if ([401,403,429,435].includes(res.status)) incidents.record(host,res.status);
     return res;
   }
   for (const zip of options.zips || AZ_ALBERTSONS_ZIPS) {
@@ -9616,6 +9619,7 @@ export function precisionExistingSignalsForState(stateId, existingSignals = [], 
 
 export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
+  if (config.id === 'IL') return collectIllinois(config,bible,options);
   if (!LEGACY_PRECISION_RUNTIME_STATES.has(config.id)) {
     return collectPrecisionProbesDirect(config, bible, existingSignals, options);
   }
@@ -9713,7 +9717,40 @@ function binnysPrice(row = {}, hit = {}) {
   return Number(prices.bestPrice || prices.salePrice || prices.regularPrice || hit.onlineStoreBestPrice || 0) || null;
 }
 
-export async function collectIllinois(config, bible, options = {}) {
+export async function collectIllinois(config,bible,options={}) {
+  // Keep existing Binny's/independent lanes independent from the new grocer.
+  const existing=options.query?collectIllinoisBinnys(config,bible,options):runLegacyPrecisionSource({
+    sourceId:legacyPrecisionSourceId('IL'),stateId:'IL',label:"Illinois Binny's and independent inventory",
+    url:precisionRuntimeUrl(config),
+    collect:({signal})=>collectIllinoisBinnys(config,bible,{...options,signal:options.signal?AbortSignal.any([signal,options.signal]):signal}),
+    previousResults:options.previousSourceResults,circuitBreaker:options.sourceCircuitBreaker,
+    sourceRunnerOptions:legacyPrecisionRuntimeOptions('IL',options.sourceRunnerOptions||{}),
+  });
+  if(options.query&&!options.grocerySourceOptions)return existing;
+  const groceryRun=runSourceAdapters([createSourceAdapter({
+    id:ILLINOIS_GROCERY_RUNTIME_ID,label:'Illinois reviewed exact-store grocery inventory',
+    url:'https://www.jewelosco.com/abs/pub/xapi/search/substitute',
+    metadata:{stateId:'IL',lane:'illinois_grocery'},
+    execute:(_context,{signal})=>collectIllinoisGrocerySource(config,bible,{...options.grocerySourceOptions,
+      signal:options.signal?AbortSignal.any([options.signal,signal]):signal}),
+    validate:value=>Array.isArray(value?.signals)&&Array.isArray(value?.roadblocks)
+      &&(value?.metadata?.complete===true||value.signals.length>0)?true:'Illinois grocery has no current verified observations',
+    recordCount:(value,{candidate}={})=>candidate?.metadata?.complete===false?NaN:value.signals.length,
+  })],{}, {...options.sourceRunnerOptions,previousResults:options.previousSourceResults,
+    circuitBreaker:options.sourceCircuitBreaker,concurrency:1,perDomain:1,schedule:false,
+    timeoutMs:ILLINOIS_GROCERY_SOURCE_TIMEOUT_MS,maxAttempts:1});
+  const [legacy,run]=await Promise.all([existing,groceryRun]);
+  const grocery=run.results[0];
+  return {signals:[...legacy.signals,...(grocery.value?.signals||[])],
+    roadblocks:[...legacy.roadblocks,...(grocery.value?.roadblocks||[]),...(!grocery.ok?[{
+      state:'IL',source:'Illinois reviewed exact-store grocery inventory',sourceRuntimeId:ILLINOIS_GROCERY_RUNTIME_ID,
+      url:'https://www.jewelosco.com/abs/pub/xapi/search/substitute',status:grocery.status,
+      error:grocery.error?.message||'Independent grocery source failed'}]:[])],
+    sourceResults:[...(legacy.sourceResults||[]),...run.results.map(summarizeSourceResult)],
+    metadata:{grocery:grocery.value?.metadata||null,grocerySourceStatus:grocery.status}};
+}
+
+async function collectIllinoisBinnys(config, bible, options = {}) {
   const signals = [];
   const roadblocks = [];
   const observedAt = options.observedAt || new Date().toISOString();
