@@ -8,7 +8,8 @@ const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+
 const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn']);
 export const GROCERY_EXPANSION_REQUEST_LIMIT = 127;
 export const CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT = 8;
-export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:914+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,NM:43});
+export const CALIFORNIA_GROCERY_SUPPLEMENTAL_RESOLVER_LIMIT = 16;
+export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({WA:127,CA:914+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT+CALIFORNIA_GROCERY_SUPPLEMENTAL_RESOLVER_LIMIT,NM:43});
 const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({WA:58,CA:433,NM:16});
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
@@ -107,16 +108,30 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     await sleep(Math.max(1000,(Number(first.retryAfterSeconds)||0)*1000));
     return attemptRequest(url,kind,source,term);
   };
-  const resolver=new Map(),conflicts=new Set();let resolverComplete=true;
-  for(const zip of WESTERN_GROCERY_RESOLVER_ZIPS[config.id] || []){
+  const resolver=new Map(),conflicts=new Set(),supplementalResolverZips=[];let resolverComplete=true;
+  const resolveZip=async zip=>{
     const response=await request(`https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=${zip}&radius=50&size=100`,'resolver');
-    if(!response || (!response.ok && response.status!==206)){resolverComplete=false;continue;}
-    let payload;try{payload=JSON.parse(response.text);}catch{resolverComplete=false;continue;}
-    if(!Array.isArray(payload?.instore?.stores)){resolverComplete=false;continue;}
+    if(!response || (!response.ok && response.status!==206))return false;
+    let payload;try{payload=JSON.parse(response.text);}catch{return false;}
+    if(!Array.isArray(payload?.instore?.stores))return false;
     for(const store of payload.instore.stores){
       const id=String(store?.locationId || '');if(!id || conflicts.has(id))continue;
       const key=normalize([store.polarisBannerName,store.domainName,store.address?.line1,store.address?.city,store.address?.state,store.address?.country,store.address?.zipcode].join('|'));
       if(resolver.has(id)&&resolver.get(id).key!==key){resolver.delete(id);conflicts.add(id);}else resolver.set(id,{key,store});
+    }
+    return true;
+  };
+  for(const zip of WESTERN_GROCERY_RESOLVER_ZIPS[config.id] || [])if(!await resolveZip(zip))resolverComplete=false;
+  // A healthy regional response can omit a reviewed premise. Resolve only
+  // still-missing frozen premises by their own ZIP; conflicts stay excluded.
+  if(config.id==='CA'&&resolverComplete){
+    const attempted=new Set();
+    for(let count=0;count<CALIFORNIA_GROCERY_SUPPLEMENTAL_RESOLVER_LIMIT;count++){
+      const pending=sources.filter(source=>!conflicts.has(source.merchantId)&&!groceryExpansionPremiseMatches(source,resolver.get(source.merchantId)?.store));
+      const zip=pending.map(source=>source.zip).find(value=>!attempted.has(value));
+      if(!zip)break;
+      attempted.add(zip);supplementalResolverZips.push(zip);
+      if(!await resolveZip(zip)){resolverComplete=false;break;}
     }
   }
   const eligible=sources.filter(source=>groceryExpansionPremiseMatches(source,resolver.get(source.merchantId)?.store));
@@ -147,5 +162,5 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
   }
   return {signals,roadblocks,metadata:{complete,sourceAttempts,requests,selectedStores:sources.map(source=>source.storeId),
     verifiedPremises:eligible.map(source=>source.storeId),positiveStores:[...new Set(signals.map(row=>row.storeId))],
-    maxRequestCount:requestLimit,transientRetries,maxTransientRetries:retryLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
+    maxRequestCount:requestLimit,transientRetries,maxTransientRetries:retryLimit,supplementalResolverZips,conflictingStoreIds:[...conflicts],librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
 }

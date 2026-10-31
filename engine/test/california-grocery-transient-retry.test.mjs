@@ -31,7 +31,7 @@ test('one captured Vons2111 transport failure can complete all433 premises witho
   });
   assert.equal(attempts,2);assert.equal(result.metadata.complete,true);
   assert.equal(result.metadata.verifiedPremises.length,433);assert.equal(result.metadata.transientRetries,1);
-  assert.ok(result.metadata.requests.length<=922);
+  assert.ok(result.metadata.requests.length<=938);
   const failed=result.metadata.requests.filter(request=>!request.ok);
   assert.equal(failed.length,1);assert.equal(failed[0].merchantId,'2111');
   for(const source of CALIFORNIA_GROCERY_SOURCES)for(const term of ['bourbon','whiskey'])assert.equal(result.metadata.requests.filter(request=>request.sourceId===source.id&&request.term===term&&request.ok).length,1);
