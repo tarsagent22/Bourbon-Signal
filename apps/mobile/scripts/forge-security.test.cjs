@@ -4,9 +4,8 @@ const { createHash, generateKeyPairSync } = require('node:crypto');
 const { readFileSync, readdirSync } = require('node:fs');
 const path = require('node:path');
 const { createRequire } = require('node:module');
-const vendor = path.resolve(__dirname, '../vendor/node-forge');
-const forge = require(vendor);
-const provenance = require(path.join(vendor, 'provenance.json'));
+const forge = require('node-forge');
+const provenance = require('../security/node-forge-1.4.2.json');
 const key = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const privateKey = forge.pki.privateKeyFromPem(key.privateKey.export({ type: 'pkcs1', format: 'pem' }));
 const publicKey = forge.pki.publicKeyFromPem(key.publicKey.export({ type: 'pkcs1', format: 'pem' }));
@@ -22,18 +21,11 @@ function signature(children, outerExtra = []) {
   return privateKey.sign(a.toDer(info).getBytes(), 'NONE');
 }
 
-test('only the reviewed RSA backport differs from published upstream library source', () => {
-  const hash = file => createHash('sha256').update(readFileSync(file)).digest('hex');
-  for (const [file, expected] of Object.entries(provenance.originalFiles)) {
-    if (!file.startsWith('lib/') && file !== 'LICENSE' && file !== 'README.md') continue;
-    assert.equal(hash(path.join(vendor, file)), file === 'lib/rsa.js' ? provenance.patchedRsaSha256 : expected, file);
+test('published cryptography version and security-critical source match reviewed provenance', () => {
+  assert.equal(require('node-forge/package.json').version, provenance.version);
+  for (const [file, expected] of Object.entries(provenance.sha256)) {
+    assert.equal(createHash('sha256').update(readFileSync(require.resolve('node-forge/' + file))).digest('hex'), expected);
   }
-  const rsa = readFileSync(path.join(vendor, 'lib/rsa.js'), 'utf8');
-  const patch = "obj.value.length !== 2 ||\n            obj.value[0].value.length !==\n              (('parameters' in capture) ? 2 : 1)) {";
-  const original = rsa.replace(patch, 'obj.value.length !== 2) {');
-  assert.notEqual(original, rsa);
-  assert.equal(createHash('sha256').update(original).digest('hex'), provenance.originalFiles['lib/rsa.js']);
-  assert.deepEqual(readdirSync(path.join(vendor, 'lib')).sort(), Object.keys(provenance.originalFiles).filter(x => x.startsWith('lib/')).map(x => x.slice(4)).sort());
 });
 
 test('valid SHA-256 DigestInfo with absent or NULL parameters still verifies', () => {
@@ -42,38 +34,41 @@ test('valid SHA-256 DigestInfo with absent or NULL parameters still verifies', (
   assert.equal(publicKey.verify(md.digest().getBytes(), privateKey.sign(md)), true);
 });
 
-test('nested DigestAlgorithm garbage reproduces on upstream but is rejected after the backport', () => {
+test('malformed RSA DigestInfo is rejected by published upstream', () => {
   const garbage = a.create(a.Class.UNIVERSAL, a.Type.OCTETSTRING, false, 'injected bytes');
-  const badSignature = signature([oid, nil(), garbage]);
-  // Run the original, provenance-verified rsa.js in a fresh CommonJS module
-  // against the same forge modules, then restore the patched implementation.
-  const Module = require('node:module');
-  const file = path.join(vendor, 'lib/rsa.js');
-  const original = readFileSync(file, 'utf8').replace("obj.value.length !== 2 ||\n            obj.value[0].value.length !==\n              (('parameters' in capture) ? 2 : 1)) {", 'obj.value.length !== 2) {');
-  const module = new Module(file, moduleParent());
-  module.filename = file; module.paths = Module._nodeModulePaths(path.dirname(file));
-  try {
-    module._compile(original, file);
-    const unpatchedKey = forge.pki.setRsaPublicKey(publicKey.n, publicKey.e);
-    assert.equal(unpatchedKey.verify(digest, badSignature), true, 'must demonstrate the original flaw');
-  } finally {
-    delete require.cache[require.resolve(file)]; require(file);
-  }
-  const patchedKey = forge.pki.setRsaPublicKey(publicKey.n, publicKey.e);
-  assert.throws(() => patchedKey.verify(digest, badSignature), /DigestInfo/);
-  assert.throws(() => patchedKey.verify(digest, signature([oid, nil(), nil()])), /DigestInfo/);
-  assert.throws(() => patchedKey.verify(digest, signature([oid, nil()], [nil()])), /DigestInfo/);
-  assert.equal(patchedKey.verify('wrong digest', signature([oid, nil()])), false);
+  assert.throws(() => publicKey.verify(digest, signature([oid, nil(), garbage])), /DigestInfo/);
+  assert.throws(() => publicKey.verify(digest, signature([oid, nil(), nil()])), /DigestInfo/);
+  assert.throws(() => publicKey.verify(digest, signature([oid, nil()], [nil()])), /DigestInfo/);
+  assert.equal(publicKey.verify('wrong digest', signature([oid, nil()])), false);
 });
-function moduleParent() { return module; }
 
-test('Expo CLI and certificate tooling resolve the patched local dependency and still sign certificates', () => {
+test('interleaved TLS records after fragmented handshake close cleanly without crashing', () => {
+  for (const server of [true, false]) for (const type of [20, 21, 23, 24]) {
+    const errors = [];
+    const connection = forge.tls.createConnection({ server, caStore: [],
+      tlsDataReady() {}, dataReady() {}, connected() {}, closed() {},
+      error(c, error) { errors.push(error); }
+    });
+    if (!server) connection.handshake();
+    const hello = server ? '01' : '02';
+    const fragment = '1603010006' + hello + '0000100301';
+    const interleaved = type.toString(16) + '030100020228';
+    assert.doesNotThrow(() => connection.process(forge.util.hexToBytes(fragment + interleaved)));
+    assert.equal(connection.fail, true);
+    assert.ok(errors.some(error => error.message === 'Invalid fragmented record.' &&
+      error.alert.level === forge.tls.Alert.Level.fatal &&
+      error.alert.description === forge.tls.Alert.Description.unexpected_message));
+    assert.doesNotThrow(() => connection.process(forge.util.hexToBytes(interleaved)));
+  }
+});
+
+test('Expo CLI and certificate tooling resolve the published secure dependency and still sign certificates', () => {
   const cliRequire = createRequire(require.resolve('expo/package.json'));
   const expoCliRequire = createRequire(cliRequire.resolve('@expo/cli/package.json'));
   const certRequire = createRequire(require.resolve('@expo/code-signing-certificates/package.json'));
   for (const loader of [expoCliRequire, certRequire]) {
-    assert.equal(require('node:fs').realpathSync(loader.resolve('node-forge/lib/rsa.js')), path.join(vendor, 'lib/rsa.js'));
-    assert.equal(loader('node-forge/package.json').version, '1.4.1-bs.1');
+    assert.equal(require('node:fs').realpathSync(loader.resolve('node-forge/lib/rsa.js')), require('node:fs').realpathSync(require.resolve('node-forge/lib/rsa.js')));
+    assert.equal(loader('node-forge/package.json').version, '1.4.2');
   }
   const certs = require('@expo/code-signing-certificates');
   const pair = { publicKey: forge.pki.setRsaPublicKey(publicKey.n, publicKey.e), privateKey };

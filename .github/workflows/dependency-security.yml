@@ -32,7 +32,11 @@ jobs:
           else
             node ../../scripts/check-braces-backport-advisories.cjs
           fi
-      - name: Verify the mobile cryptography backport
+      - name: Verify patched glob consumers
+        if: matrix.package != 'engine'
+        working-directory: ${{ matrix.package }}
+        run: node ${{ matrix.package == 'apps/mobile' && '../../' || '' }}scripts/check-glob-compatibility.cjs
+      - name: Verify published mobile cryptography
         if: matrix.package == 'apps/mobile'
         working-directory: apps/mobile
         run: |

@@ -1,0 +1,13 @@
+{
+  "version": "1.4.2",
+  "resolved": "https://registry.npmjs.org/node-forge/-/node-forge-1.4.2.tgz",
+  "integrity": "sha512-rRtAR5XLJ8gCKd9du4qrKAsgCG1ObGP4gLeNJMa4vYSeq4bmBMOJk5IHkrviBV0q7uoAJlVd8HEQYQSVUb4FGQ==",
+  "advisories": [
+    "https://github.com/advisories/GHSA-86w9-cpqp-85rv",
+    "https://github.com/advisories/GHSA-8hrf-8g6f-7xwp"
+  ],
+  "sha256": {
+    "lib/rsa.js": "6632e195295ce76f6bb9131ee770dcd6cc1ee4ffac7906302208b00faf95a87f",
+    "lib/tls.js": "3d7def7a2e1c568de50c18109d7186c0c83d0384c7f9badab4831722b6233cbe"
+  }
+}
