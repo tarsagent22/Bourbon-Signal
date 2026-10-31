@@ -201,5 +201,56 @@
     "names": [],
     "sha256": "ef419ef8223b47c16a40459a4f2ef27fd604b827a076bc3c6ca59dea5376cfe6",
     "reference": "https://www.miralomamarket.com/products/old-overholt-11-year-cask-strength-rye-2024-release"
+  },
+  {
+    "id": "owner-2f91892e-dc40-4cb2-83a5-69e6d375edb3",
+    "name": "Barrell Vantage",
+    "names": [
+      "Barrel Craft Vantage",
+      "Barrell Craft Vantage"
+    ],
+    "sha256": "194c994bd36a8c601493571a83d540d52dafc47c56565f7bd95327728c311f1f",
+    "reference": "https://www.barrellbourbon.com/vantage",
+    "caption": "Expression artwork · proof not specified"
+  },
+  {
+    "id": "owner-f50426eb-2a62-45af-95c1-39bab68c273f",
+    "name": "Girl Dad Bourbon",
+    "names": [],
+    "sha256": "c681d88a2c00ff589db478c3475a0e4b60089f94107583ac521042f84e61eb87",
+    "reference": "https://southernspecialtyspirits.com/brands/girl-dad-bourbon",
+    "caption": "Brand artwork · age not specified"
+  },
+  {
+    "id": "owner-3a814265-c126-4cec-bf8b-ed22b2c86a8b",
+    "name": "291 Colorado Small Batch Rye Whiskey",
+    "names": [
+      "291 Small Batch Rye",
+      "Distillery 291 Small Batch Rye"
+    ],
+    "sha256": "bb6ee8475bbd94ef35caf33535e04c6f498ed13ca37b789ae50fbc74b46577ba",
+    "reference": "https://distillery291.com/colorado-rye-whiskey-small-batch-aspen-wood-staves/",
+    "caption": "Expression artwork · proof varies"
+  },
+  {
+    "id": "owner-ee8b241f-ec3f-4fe0-ac2a-c6c6793626dd",
+    "name": "Conviction Toast Cask Finish",
+    "names": [
+      "Conviction Toast",
+      "Conviction Toast Cask"
+    ],
+    "sha256": "d0e3f088c0246b4513e2c056cd16b03307bdc009b9d12f78eb95d1b094dff96f",
+    "reference": "https://www.southerngracedistilleries.com/cask-finished-conviction",
+    "caption": "Expression artwork · release and proof not specified"
+  },
+  {
+    "id": "owner-6a855f4a-8009-499b-85f8-8ebe53e45df5",
+    "name": "Penelope Estate Collection Private Select 36% Rye Mash Bill",
+    "names": [
+      "Penelope Estate Collection Private Select 36% Rye"
+    ],
+    "sha256": "bca5732d67dff2887c20038b8444f90af9151349dc40fb4668ac1c615dd4d301",
+    "reference": "https://penelopebourbon.com/estate-collection/",
+    "caption": "Expression artwork · age and proof not specified"
   }
 ]

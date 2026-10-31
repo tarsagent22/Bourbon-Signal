@@ -54,6 +54,7 @@ export interface BibleSearchResult extends BibleBottle {
 }
 
 const SEED_BOTTLES: BibleBottleInput[] = [
+  { ...signalBottle("jack-daniels-10-year-batch-3", "Jack Daniel's 10 Year Batch 3", "Jack Daniel's", ["Jack Daniels 10 Year Batch 3"], "allocated", "Producer-confirmed 2024 third batch of Jack Daniel's 10-year Tennessee whiskey.", "Confirm Batch 3 on the label."), producer:"Jack Daniel Distillery", proof:97, ageStatement:"10 Year" },
   // Exact expression identities, with unresolved pricing and rarity kept pending.
   // Discovery editions have reviewed art; producer-verified additions may not yet.
   ...[...discoveryBottles, ...expressionBottles].map(bottle => ({
@@ -325,6 +326,11 @@ async function buildBourbonBible({ includeApprovedCatalog = true, ownerRecords }
     const original=bottle;
     const patch = overrides.get(original.id)?.patch || {};
     bottle = {...original,...patch,id:original.id,aliases:Array.isArray(patch.aliases)?patch.aliases as string[]:original.aliases} as BibleBottleInput;
+    const standard = standardBottleIdentity(bottle.canonicalName, bottle.id);
+    if (standard && standard.name !== bottle.canonicalName) bottle = {
+      ...bottle, canonicalName:standard.name,
+      aliases:[...new Set([...(bottle.aliases || []), bottle.canonicalName, standard.name])],
+    };
     if (patch.availability) bottle.nationalTier=normalizeBottleScarcity({availability:bottle.availability}).nationalTier;
     const inheritedTier = normalizeBottleScarcity({ availability: bottle.availability }).nationalTier;
     const engineEvidence = bottle.engineScarcityEvidence;

@@ -104,5 +104,15 @@
     "names": [],
     "sha256": "1062c16c36243c492ab803d7d9af5e893a395b42e63e0a9d69706f76cfd178a3",
     "reference": "https://breakingbourbon.com/bourbon-whiskey-press-releases/makers-mark-r-unveils-2021-limited-edition-wood-finishing-series-bourbons"
+  },
+  {
+    "id": "jack-daniels-10-year-batch-3",
+    "name": "Jack Daniel's 10 Year Batch 3",
+    "names": [
+      "Jack Daniels 10 Year Batch 3",
+      "Jack Daniels 10 Year Batch 3 700ml"
+    ],
+    "sha256": "e9b30e57bb3b9774748a347ae2f10be60a620b24d44b01e827cb8c61568d55d4",
+    "reference": "https://pressroom.jackdaniels.com/jack-daniels-launches-new-batches-of-12-year-old-and-10-year-old-tennessee-whiskey/"
   }
 ]

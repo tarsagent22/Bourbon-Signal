@@ -830,4 +830,10 @@ export const LABELED_ARTWORK_ASSETS: Record<string, number> = {
   'afddc764415d11c0caf90e9d834f566c8948a2b66474c0df6a77c6f110708b6f': require('../../assets/bottles/labeled-v1/afddc764415d11c0caf90e9d834f566c8948a2b66474c0df6a77c6f110708b6f.png'),
   '5332e0e45b408677547166318a0ecedb96857d375c382b3948c0723b3f68a6dd': require('../../assets/bottles/labeled-v1/5332e0e45b408677547166318a0ecedb96857d375c382b3948c0723b3f68a6dd.png'),
   'ef419ef8223b47c16a40459a4f2ef27fd604b827a076bc3c6ca59dea5376cfe6': require('../../assets/bottles/labeled-v1/ef419ef8223b47c16a40459a4f2ef27fd604b827a076bc3c6ca59dea5376cfe6.png'),
+  'e9b30e57bb3b9774748a347ae2f10be60a620b24d44b01e827cb8c61568d55d4': require('../../assets/bottles/labeled-v1/e9b30e57bb3b9774748a347ae2f10be60a620b24d44b01e827cb8c61568d55d4.png'),
+  '194c994bd36a8c601493571a83d540d52dafc47c56565f7bd95327728c311f1f': require('../../assets/bottles/labeled-v1/194c994bd36a8c601493571a83d540d52dafc47c56565f7bd95327728c311f1f.png'),
+  'c681d88a2c00ff589db478c3475a0e4b60089f94107583ac521042f84e61eb87': require('../../assets/bottles/labeled-v1/c681d88a2c00ff589db478c3475a0e4b60089f94107583ac521042f84e61eb87.png'),
+  'bb6ee8475bbd94ef35caf33535e04c6f498ed13ca37b789ae50fbc74b46577ba': require('../../assets/bottles/labeled-v1/bb6ee8475bbd94ef35caf33535e04c6f498ed13ca37b789ae50fbc74b46577ba.png'),
+  'd0e3f088c0246b4513e2c056cd16b03307bdc009b9d12f78eb95d1b094dff96f': require('../../assets/bottles/labeled-v1/d0e3f088c0246b4513e2c056cd16b03307bdc009b9d12f78eb95d1b094dff96f.png'),
+  'bca5732d67dff2887c20038b8444f90af9151349dc40fb4668ac1c615dd4d301': require('../../assets/bottles/labeled-v1/bca5732d67dff2887c20038b8444f90af9151349dc40fb4668ac1c615dd4d301.png'),
 };

@@ -10274,6 +10274,72 @@
       "reviewed": true,
       "reviewNotes": "Compared with the verified expression packaging reference: full bottle, glass and closure, brand, expression label, colors and main label layout match. Different Penelope expressions preserve independent labels; no glass-shape inheritance.",
       "bytes": 326401
+    },
+    {
+      "key": "jack-daniels-10-year-batch-3",
+      "masterSha256": "aeed40f5d6ffc388b5c6fe42a433e690966c3b10d6ab9c41688421eea75b872f",
+      "sha256": "e9b30e57bb3b9774748a347ae2f10be60a620b24d44b01e827cb8c61568d55d4",
+      "prompt": "Edit original Jack Daniels 10 Year illustration to exact producer-confirmed 2024 Batch 3, retaining 10 YEARS OLD, adding BATCH 3, 97 PROOF, 48.5% ALC/VOL and 700mL; preserve complete bottle and transparent alpha. Remove all outside-bottle halo/background in a second built-in edit.",
+      "reference": "https://pressroom.jackdaniels.com/jack-daniels-launches-new-batches-of-12-year-old-and-10-year-old-tennessee-whiskey/",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding, 10 Year, Batch 3, 97 Proof and 700mL. Fully transparent outside-bottle sample pixels verified. Separate edition identity retained.",
+      "bytes": 247359
+    },
+    {
+      "key": "barrell-vantage",
+      "masterSha256": "e8dc4f152a5bc9c7d74321952e5a2ae940ad8e0d853328c548c02c648a62cb6f",
+      "sha256": "194c994bd36a8c601493571a83d540d52dafc47c56565f7bd95327728c311f1f",
+      "prompt": "Create one original premium bottle illustration for an existing whiskey app. Image 1 is the producer's product-identity reference; Image 2 is a STYLE reference only. Match the illustration quality and clean glass highlights of Image 2, but use ONLY Image 1's bottle shape, closure, label and branding. Single complete front-facing bottle centered on genuinely transparent RGBA background; all pixels outside the bottle fully transparent, no glow, shadow, backdrop, surface, caption or border. Maintain 2:3 portrait composition with generous clear padding. Do not crop cap or base. This is an original illustration, not a copy of the reference photograph. BARRELL VANTAGE. Preserve Image 1's rounded tall clear-glass bottle, wooden stopper, pale blue neck ribbon with small orange V mark, amber bourbon, distinctive orange upper shield label and pale-blue lower shield label. Label text: BARRELL, VANTAGE, TRIPLE OAK, BLEND OF STRAIGHT BOURBON WHISKEYS, CASK STRENGTH, 750 mL. Numeric proof varies and is not known for this record: omit handwritten numerical proof/ABV fields, no age or batch claims. Do not depict Toasted Vantage, Dovetail or Seagrass. Remove every advertising award badge floating outside the bottle.",
+      "reference": "https://www.barrellbourbon.com/vantage",
+      "method": "Built-in image_gen original illustration with producer product reference",
+      "reviewed": true,
+      "reviewNotes": "Complete silhouette, distinct producer/expression label and required transparent RGBA verified. Unspecified numeric age, proof or batch claims omitted; detail caption discloses the scope. Microprint illustrative.",
+      "bytes": 243596
+    },
+    {
+      "key": "girl-dad-bourbon",
+      "masterSha256": "9fecb073133bff9a5cc487d1151db55af5035157e4d36158ff7b4ccc3de8de96",
+      "sha256": "c681d88a2c00ff589db478c3475a0e4b60089f94107583ac521042f84e61eb87",
+      "prompt": "Create one original premium bottle illustration for an existing whiskey app. Image 1 is the producer's product-identity reference; Image 2 is a STYLE reference only. Match the illustration quality and clean glass highlights of Image 2, but use ONLY Image 1's bottle shape, closure, label and branding. Single complete front-facing bottle centered on genuinely transparent RGBA background; all pixels outside the bottle fully transparent, no glow, shadow, backdrop, surface, caption or border. Maintain 2:3 portrait composition with generous clear padding. Do not crop cap or base. This is an original illustration, not a copy of the reference photograph. GIRL DAD BOURBON. Preserve Image 1's slender straight-sided rounded clear bottle, long narrow neck, bright pink dipped-wax seal, dark amber bourbon, cream label with pink typography GIRL DAD BOURBON, illustrated jockey on white horse and horseshoe motif. Label text KENTUCKY STRAIGHT BOURBON WHISKEY, SMALL BATCH, 101 PROOF, 50.5% ALC/VOL, 750 mL. The generic submitted identity does not specify age; producer pages disagree about 7 versus 8 years. DO NOT print any age statement, release year or Founders Batch designation. Replace the pictured aged-7-years badge with SMALL BATCH. Keep the actual distinct Girl Dad visual identity.",
+      "reference": "https://southernspecialtyspirits.com/brands/girl-dad-bourbon",
+      "method": "Built-in image_gen original illustration with producer product reference",
+      "reviewed": true,
+      "reviewNotes": "Complete silhouette, distinct producer/expression label and required transparent RGBA verified. Unspecified numeric age, proof or batch claims omitted; detail caption discloses the scope. Microprint illustrative.",
+      "bytes": 196489
+    },
+    {
+      "key": "distillery-291-small-batch-rye",
+      "masterSha256": "080625c4df1ee327a4cb940e61180ce246bd5ceb91e9e004d3d2395a5150a2e0",
+      "sha256": "bb6ee8475bbd94ef35caf33535e04c6f498ed13ca37b789ae50fbc74b46577ba",
+      "prompt": "Create one original premium bottle illustration for an existing whiskey app. Image 1 is the producer's product-identity reference; Image 2 is a STYLE reference only. Match the illustration quality and clean glass highlights of Image 2, but use ONLY Image 1's bottle shape, closure, label and branding. Single complete front-facing bottle centered on genuinely transparent RGBA background; all pixels outside the bottle fully transparent, no glow, shadow, backdrop, surface, caption or border. Maintain 2:3 portrait composition with generous clear padding. Do not crop cap or base. This is an original illustration, not a copy of the reference photograph. DISTILLERY 291 COLORADO SMALL BATCH RYE WHISKEY. Preserve Image 1's very tall slender clear bottle with round shoulders, long narrow neck, natural cork and wire-loop closure, amber whiskey, dark mottled bronze/brown rectangular front label. Prominent readable 291 in cream numerals, SMALL BATCH, COLORADO RYE WHISKEY, FINISHED WITH ASPEN WOOD STAVES, 750 mL. Preserve a few small round gold medal motifs on the lower bottle as in the reference, but no extra invented awards or outside-bottle promotional badges. Numerical proof varies between batches and is not provided by the record: do NOT print a proof, ABV number, age, batch number or Single Barrel designation. This must be the rye small batch bottle, never the bourbon or barrel-proof Single Barrel product.",
+      "reference": "https://distillery291.com/colorado-rye-whiskey-small-batch-aspen-wood-staves/",
+      "method": "Built-in image_gen original illustration with producer product reference",
+      "reviewed": true,
+      "reviewNotes": "Complete silhouette, distinct producer/expression label and required transparent RGBA verified. Unspecified numeric age, proof or batch claims omitted; detail caption discloses the scope. Microprint illustrative.",
+      "bytes": 188206
+    },
+    {
+      "key": "conviction-toast-cask-finish",
+      "masterSha256": "289cc73e868b6e87a4ebbd792259ce699dce40f48a5f0113fb6dd4d7e3ff18b9",
+      "sha256": "d0e3f088c0246b4513e2c056cd16b03307bdc009b9d12f78eb95d1b094dff96f",
+      "prompt": "Create one original premium bottle illustration for an existing whiskey app. Image 1 is the producer's product-identity reference; Image 2 is a STYLE reference only. Match the illustration quality and clean glass highlights of Image 2, but use ONLY Image 1's bottle shape, closure, label and branding. Single complete front-facing bottle centered on genuinely transparent RGBA background; all pixels outside the bottle fully transparent, no glow, shadow, backdrop, surface, caption or border. Maintain 2:3 portrait composition with generous clear padding. Do not crop cap or base. This is an original illustration, not a copy of the reference photograph. SOUTHERN GRACE CONVICTION TOAST CASK FINISH. Preserve Image 1's tall rectangular straight-sided clear bottle, sharp squared shoulder and base, long thin neck, transparent closure, dark amber whiskey, tall tan textured rectangular label. Distinct vertical CONVICTION lettering along left band; SGD at top; TOAST in large black letters and CASK FINISH below. Secondary label wording STRAIGHT BOURBON WHISKEY FINISHED IN HEAVILY TOASTED OAK CASKS, UNCUT, UNFILTERED, SOUR MASH, 750 mL. Numeric proof and release year were not supplied; DO NOT print 107, a different proof, any ABV number, year, age or barrel number. Do not turn this into Conviction 1929 Double Oak or ordinary Conviction Bourbon.",
+      "reference": "https://www.southerngracedistilleries.com/cask-finished-conviction",
+      "method": "Built-in image_gen original illustration with producer product reference",
+      "reviewed": true,
+      "reviewNotes": "Complete silhouette, distinct producer/expression label and required transparent RGBA verified. Unspecified numeric age, proof or batch claims omitted; detail caption discloses the scope. Microprint illustrative.",
+      "bytes": 232115
+    },
+    {
+      "key": "penelope-private-select-36-rye",
+      "masterSha256": "445b4c6cd89a17fdd8019a5aeba4eaf4e788bd39621deda5e8126b9c7c71d5b7",
+      "sha256": "bca5732d67dff2887c20038b8444f90af9151349dc40fb4668ac1c615dd4d301",
+      "prompt": "Create one original premium bottle illustration for an existing whiskey app. Image 1 is the producer's product-identity reference; Image 2 is a STYLE reference only. Match the illustration quality and clean glass highlights of Image 2, but use ONLY Image 1's bottle shape, closure, label and branding. Single complete front-facing bottle centered on genuinely transparent RGBA background; all pixels outside the bottle fully transparent, no glow, shadow, backdrop, surface, caption or border. Maintain 2:3 portrait composition with generous clear padding. Do not crop cap or base. This is an original illustration, not a copy of the reference photograph. PENELOPE ESTATE COLLECTION PRIVATE SELECT, 36% RYE MASH BILL. Preserve Image 1's tall cylindrical clear bottle with rounded shoulders, long neck, black closure, fine gold PRIVATE SELECT neck band, rich amber bourbon, oversized gold Penelope P on the bottle, delicate gold rose emblem and ESTATE COLLECTION, black-and-gold bottom label. Label text PENELOPE, BLEND OF STRAIGHT BOURBON WHISKEY, PRIVATE SELECT, 36% RYE MASH BILL, 750 mL. This record identifies a bourbon mash bill, NOT a rye whiskey. The submitted identity does not specify age, proof, batch or vintage, so REMOVE the reference's 10 YEAR, 102.2 PROOF and numerical ABV and do not substitute 9 YEAR or 107 PROOF. Use the blank or decorative field for 36% RYE MASH BILL instead. Do not depict Conundrum, Omega or Rye Single Barrel.",
+      "reference": "https://penelopebourbon.com/estate-collection/",
+      "method": "Built-in image_gen original illustration with producer product reference",
+      "reviewed": true,
+      "reviewNotes": "Complete silhouette, distinct producer/expression label and required transparent RGBA verified. Unspecified numeric age, proof or batch claims omitted; detail caption discloses the scope. Microprint illustrative.",
+      "bytes": 183939
     }
   ]
 }

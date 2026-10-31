@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 const require = createRequire(import.meta.url);
 const { standardBottleIdentity, standardBottleName } = require('../shared/standard-bottle-identity.ts') as typeof import('../shared/standard-bottle-identity');
 const { resolveLabeledBottleArtwork } = require('../shared/labeled-bottle-artwork.ts') as typeof import('../shared/labeled-bottle-artwork');
 const { cleanBrandName, getDisplayName } = require('../src/lib/drops.ts') as typeof import('../src/lib/drops');
 const { normalizeDropSignal } = require('../src/lib/signals/signal-contract.ts') as typeof import('../src/lib/signals/signal-contract');
+const catalog = require('../apps/mobile/src/cellar/bottle-catalog-seed.json');
 import { retailerBottleIdentityKey, createStandardBottleIndex } from '../shared/retailer-bottle-name.mjs';
 
 const examples = [
@@ -60,4 +62,48 @@ test('noise cleanup keeps ages, proofs, editions, finishes and store picks disti
     { catalogId:'two', displayName:'Two',exactNames:['Same'],sha256:'b' },
   ]);
   assert.equal(conflict.get(retailerBottleIdentityKey('Same 700ml')), null);
+});
+
+test('every captured inventory identity has one standard name and exact reviewed artwork', () => {
+  const fleet = JSON.parse(readFileSync(new URL('./fixtures/feed-bottle-reconciliation-20261031.json', import.meta.url), 'utf8'));
+  assert.equal(fleet.entries.length, 274);
+  for (const row of fleet.entries) {
+    const expected = {id:row.standardId, name:row.standardName};
+    assert.deepEqual(standardBottleIdentity(row.bottleName, row.bottleId), expected, row.bottleName);
+    const signal = normalizeDropSignal({id:'retained-event', canonical_id:row.bottleId, canonical_name:row.bottleName, quantity:3, retail_price:64.99});
+    assert.equal(signal.bottle.id, row.bottleId, 'Do not rewrite durable source links');
+    assert.equal(signal.bottle.name, row.standardName, row.bottleName);
+    assert.equal(signal.availability?.quantity, 3);
+    assert.equal(signal.availability?.price, 64.99);
+    for (const bottleName of [row.bottleName, row.standardName]) {
+      assert.equal(resolveLabeledBottleArtwork({bottleId:row.bottleId,bottleName}, catalog)?.sha256, row.expectedArtworkSha256, bottleName);
+    }
+  }
+});
+
+test('an explicit batch is a separate library identity and unknown releases remain unresolved', () => {
+  const batch3 = standardBottleIdentity('Jack Daniels 10 Year Batch 3 700ml');
+  assert.deepEqual(batch3, {id:'jack-daniels-10-year-batch-3',name:"Jack Daniel's 10 Year Batch 3"});
+  assert.notEqual(resolveLabeledBottleArtwork({bottleName:batch3!.name})?.sha256,
+    resolveLabeledBottleArtwork({bottleId:'jack-daniels-10-year'})?.sha256);
+  for (const bottleName of ['Jack Daniels 10 Year Batch 4 700ml','Basil Hayden 10 Year 90 Proof',
+    'W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 115 Proof', 'Penelope Havana Rye']) {
+    assert.equal(standardBottleIdentity(bottleName), undefined, bottleName);
+    assert.equal(resolveLabeledBottleArtwork({bottleName}), undefined, bottleName);
+  }
+});
+
+test('recent live catalogue additions have producer-reviewed names and expression artwork', () => {
+  const additions = JSON.parse(readFileSync(new URL('./fixtures/catalog-bottle-reconciliation-20261031.json', import.meta.url), 'utf8'));
+  assert.equal(additions.entries.length, 5);
+  for (const row of additions.entries) {
+    assert.deepEqual(standardBottleIdentity(row.bottleName, row.bottleId), {id:row.standardId,name:row.standardName});
+    assert.equal(resolveLabeledBottleArtwork(row, catalog)?.sha256, row.expectedArtworkSha256, row.bottleName);
+  }
+  for (const bottleName of ['Barrell Toasted Vantage', 'Girl Dad Bourbon 8 Year',
+    '291 Single Barrel Rye', 'Conviction 1929 Toast Cask',
+    'Penelope Estate Collection Private Select 21% Rye']) {
+    assert.equal(standardBottleIdentity(bottleName), undefined, bottleName);
+    assert.equal(resolveLabeledBottleArtwork({bottleName}), undefined, bottleName);
+  }
 });

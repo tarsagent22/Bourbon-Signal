@@ -13,7 +13,12 @@ export function resolveLabeledBottleArtwork(identity: PhotoIdentity, catalog: re
   const exact = resolveBottlePhoto(LABELED_BOTTLE_ARTWORK, {...identity, bottleId}, catalog);
   if (exact || !identity.bottleName) return exact;
   const standard = standardBottleIdentity(identity.bottleName, bottleId);
-  if (standard) return resolveBottlePhoto(LABELED_BOTTLE_ARTWORK, {...identity, bottleId, bottleName:standard.name}, catalog);
+  if (standard) {
+    const compatible = resolveBottlePhoto(LABELED_BOTTLE_ARTWORK, {...identity, bottleId, bottleName:standard.name}, catalog);
+    if (!compatible) return undefined;
+    const canonical = resolveBottlePhoto(LABELED_BOTTLE_ARTWORK, {bottleId:standard.id, bottleName:standard.name}, catalog);
+    return canonical?.sha256 === compatible.sha256 ? canonical : compatible;
+  }
   // Retailer variants append package volume, sometimes twice. Remove only a
   // trailing volume; ages, proofs, finishes and expression names stay intact.
   const bottleName = identity.bottleName.replace(/(?:\s+(?:[-–—·]\s*)?(?:\d+(?:\.\d+)?|\.\d+)\s*(?:ml|lt|l))+\s*$/i, '').trim();

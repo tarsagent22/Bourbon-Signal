@@ -15,7 +15,8 @@
   "blantons-single-barrel": [
     "Blanton's Single Barrel Bourbon",
     "Blanton's The Original Single Barrel Bourbon",
-    "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey"
+    "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+    "Blanton's Bourbon"
   ],
   "blantons-gold-bourbon": [
     "Blanton's Gold",
@@ -24,7 +25,9 @@
   ],
   "bookers": [
     "Booker's Bourbon Small Batch",
-    "BOOKERS BBN"
+    "BOOKERS BBN",
+    "Booker's",
+    "Bookers Kentucky Straight Bourbon"
   ],
   "buffalo-trace-bourbon": [
     "Buffalo Trace Straight Bourbon Whiskey",
@@ -35,7 +38,9 @@
     "Eagle Rare 10 Year Kentucky Straight Bourbon",
     "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey",
     "Eagle Rare 10 Year Old Bourbon",
-    "Eagle Rare 10 Yr KY Stright Bourbon"
+    "Eagle Rare 10 Yr KY Stright Bourbon",
+    "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey 90 Proof",
+    "Eagle Rare Bourbon 10 Years"
   ],
   "eh-taylor-small-batch": [
     "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
@@ -55,7 +60,8 @@
     "Green River Full Proof Bourbon Whiskey"
   ],
   "heaven-hill-bottled-in-bond": [
-    "Heaven Hill 7 year old Bottled in Bond Kentucky Straight Bourbon"
+    "Heaven Hill 7 year old Bottled in Bond Kentucky Straight Bourbon",
+    "Heaven Hill Kentucky Straight 7 Year 100 Proof"
   ],
   "heaven-hill-grain-to-glass-ky-st-bourbon": [
     "Heaven Hill Grain to Glass Kentucky Straight Bourbon",
@@ -76,11 +82,14 @@
     "Early Times Bottled-in-Bond"
   ],
   "weller-12-year": [
-    "Weller 12 Year Bourbon Whiskey"
+    "Weller 12 Year Bourbon Whiskey",
+    "W.L. Weller 12 Year Kentucky Straight Bourbon Whiskey 90 Proof"
   ],
   "weller-full-proof": [
     "Weller Full Proof Bourbon Whiskey",
-    "Weller Full Proof Whiskey"
+    "Weller Full Proof Whiskey",
+    "W.L. Weller Full Proof Kentucky Straight Bourbon Whiskey 114 Proof",
+    "Weller Full Proof Wheated Bourbon"
   ],
   "weller-antique-107": [
     "Weller Antique 107 Bourbon Whiskey",
@@ -94,7 +103,8 @@
   ],
   "basil-haydens-10y": [
     "Basil Hayden 10 Year Old Bourbon Whiskey",
-    "Basil Hayden 10yr"
+    "Basil Hayden 10yr",
+    "Basil Hayden 10 Year 80 Proof"
   ],
   "old-rip-van-winkle-10": [
     "Old Rip Van Winkle 10 Year Bourbon Whiskey"
@@ -118,7 +128,8 @@
   ],
   "blade-and-bow": [
     "Blade and Bow Kentucky Straight Bourbon Whiskey",
-    "BLADE & BOW KY"
+    "BLADE & BOW KY",
+    "Blade & Bow Kentucky Straight Bourbon"
   ],
   "bb_473aba10a697b5fc": [
     "Penelope Four Grain Straight Bourbon"
@@ -161,7 +172,8 @@
     "Barrell Bourbon New Year Bourbon"
   ],
   "blantons-straight-from-the-barrel": [
-    "Blanton's Straight From The Barrel Bourbon"
+    "Blanton's Straight From The Barrel Bourbon",
+    "Blanton's Straight From the Barrel Bourbon Whiskey 123 Proof"
   ],
   "weller-full-proof-single-barrel-select": [
     "Weller Full Proof Barrel Select"
@@ -188,7 +200,8 @@
     "Little Book Chapter"
   ],
   "1792-bottled-in-bond": [
-    "1792 Bourbon Bottled in Bond"
+    "1792 Bourbon Bottled in Bond",
+    "1792 Bottled In Bond Bourbon"
   ],
   "woodford-reserve-masters-coll-sweet-oak": [
     "Woodford Reserve Masters Collection Sweet Oak Bourbon"
@@ -201,5 +214,20 @@
   ],
   "eagle-rare-12": [
     "Eagle Rare 12 Year Bourbon"
+  ],
+  "e-h-taylor-jr-barrel-proof-bourbon": [
+    "Colonel E.H. Taylor Barrel Proof Straight Kentucky Bourbon Whiskey Variable Proof"
+  ],
+  "e-h-taylor-jr-straight-rye-whiskey": [
+    "E.H. Taylor Straight Kentucky Rye Whiskey 100 Proof"
+  ],
+  "elijah-craig-rye": [
+    "Elijah Craig Bourbon Rye"
+  ],
+  "larceny-barrel-proof": [
+    "Larceny Bourbon Barrel Proof"
+  ],
+  "penelope-havana": [
+    "Penelope Havana Bourbon"
   ]
 }
