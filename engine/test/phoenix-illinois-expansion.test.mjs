@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {BourbonBible} from '../src/core/bible.mjs';
 import {ILLINOIS_GROCERY_SOURCES as sources} from '../src/collectors/illinois-grocery-premises.mjs';
-import {collectGroceryExpansion,parseGroceryExpansionInventory,isGroceryExpansionEmptySearch,ILLINOIS_GROCERY_PRIORITY_TERMS} from '../src/collectors/grocery-xapi-expansion.mjs';
+import {collectGroceryExpansion,parseGroceryExpansionInventory,isGroceryExpansionEmptySearch,isGroceryExpansionEmptyResolver,ILLINOIS_GROCERY_PRIORITY_TERMS} from '../src/collectors/grocery-xapi-expansion.mjs';
 import {isGroceryExpansionInventory} from '../src/grocery-xapi-policy.mjs';
 import {canonicalizeSignal} from '../src/operational-report.mjs';
 import {bibleLookup,buildDrops,dropHasPositiveAlertInventory} from '../src/export-site-contract.mjs';
@@ -16,6 +16,7 @@ import {arizonaXapiIncidents} from '../src/collectors/arizona-xapi-incidents.mjs
 import {PHOENIX_METRO_RETAILERS,parseMetroWooProduct,isMetroRetailerProof,metroLibraryTier} from '../src/collectors/arizona-metro-retailers.mjs';
 const fixture=JSON.parse(await readFile(new URL('./fixtures/illinois-grocery/identity.json',import.meta.url)));
 const virginia=JSON.parse(await readFile(new URL('./fixtures/virginia-market-phoenix/identity.json',import.meta.url)));
+const resolverEmpty=JSON.parse(await readFile(new URL('./fixtures/illinois-grocery/resolver-empty.json',import.meta.url)));
 const bible=new BourbonBible(fixture.records),source=sources.find(row=>row.merchantId===String(fixture.store.locationId));
 const resolveStores=sources.map(row=>({locationId:row.merchantId,polarisBannerName:row.banner,domainName:row.resolverDomainName,
   address:{line1:row.address.slice(0,row.address.indexOf(', ')),city:row.city,state:'IL',country:'US',zipcode:row.zip}}));
@@ -28,12 +29,13 @@ test('all 180 closed Illinois premises receive the core searches and bounded pag
   const result=await collectGroceryExpansion({id:'IL'},bible,{sleep:async()=>{},observedAt:fixture.capturedAt,
     fetchText:async url=>{
       urls.push(url);active++;maximum=Math.max(maximum,active);await new Promise(resolve=>setImmediate(resolve));active--;
-      const u=new URL(url);if(u.pathname.includes('storeresolver'))return {ok:true,status:206,text:JSON.stringify({instore:{stores:resolveStores}})};
+      const u=new URL(url);if(u.pathname.includes('storeresolver'))return {ok:true,status:206,text:JSON.stringify(u.searchParams.get('zipcode')==='62701'?resolverEmpty.payload:{instore:{stores:resolveStores}})};
       const id=u.searchParams.get('storeid'),term=u.searchParams.get('q'),start=Number(u.searchParams.get('start'));
       return {ok:true,status:200,text:JSON.stringify(id===source.merchantId
         ?{response:{start,docs:fixture.products,miscInfo:{query:term,nextPageToken:'more'}}}:empty(id,term))};
     }});
   assert.equal(result.metadata.complete,true);
+  assert.deepEqual(result.metadata.resolverEmptyZips,['62701']);
   assert.equal(result.metadata.verifiedPremises.length,180);
   assert.ok(maximum<=2);assert.ok(maximum>1);
   assert.ok(urls.length<=2700);
@@ -59,6 +61,18 @@ test('all 180 closed Illinois premises receive the core searches and bounded pag
   assert.throws(()=>verifyIllinoisGrocery(recovered),/recovered/);
 
   assert.deepEqual(urls.filter(url=>{const u=new URL(url);return u.searchParams.get('storeid')===source.merchantId&&u.searchParams.get('q')==='bourbon';}).map(url=>new URL(url).searchParams.get('start')),['0','100','200']);
+});
+
+test('captured Illinois no-store resolver response is zero only and cannot prove a premise',async()=>{
+  assert.equal(isGroceryExpansionEmptyResolver(resolverEmpty.payload,'IL'),true);
+  assert.equal(isGroceryExpansionEmptyResolver(resolverEmpty.payload,'CA'),false);
+  const edits=[p=>p.instore.count=1,p=>p.instore.ack='0',p=>p.instore.stores=[],
+    p=>p.instore.errors.push({...p.instore.errors[0]}),p=>p.instore.errors[0].statusCode=500,
+    p=>p.instore.errors[0].message='Service unavailable',p=>p.instore.errors[0].extra='unexpected'];
+  for(const edit of edits){const changed=structuredClone(resolverEmpty.payload);edit(changed);assert.equal(isGroceryExpansionEmptyResolver(changed,'IL'),false);}
+  const result=await collectGroceryExpansion({id:'IL'},bible,{sleep:async()=>{},fetchText:async()=>({ok:true,status:200,text:JSON.stringify(resolverEmpty.payload)})});
+  assert.equal(result.metadata.complete,false);assert.equal(result.metadata.verifiedPremises.length,0);
+  assert.equal(result.signals.length,0);assert.ok(result.metadata.requests.every(row=>row.kind==='resolver'));
 });
 
 test('Illinois source proof survives real operational/public projections and rejects premise, product and stock changes',t=>{

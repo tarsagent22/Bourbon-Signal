@@ -2,6 +2,15 @@ export const MAX_CONTEXT_DROP_ROWS = 10_000;
 // Keep the snapshot reader's existing64MiB plaintext bound, with wrapper room.
 export const MAX_CUSTOMER_DROP_BYTES = 60 * 1024 * 1024;
 const stateOf = row => String(row?.state || row?.state_code || '').toUpperCase();
+const LEGACY_NULL_FIELDS = new Set(['eventAt','eventDate','releaseDate','staleSourceCaveat']);
+
+// Nullable optional placeholders have no source evidence. Omit only those
+// top-level values on the wire; retain false, zero, all nested proof fields,
+// and legacy nullable chronology/caveat fields used by retained partitions.
+export function compactCustomerDrop(row) {
+  if (!Object.values(row).some(value => value === null)) return row;
+  return Object.fromEntries(Object.entries(row).filter(([key, value]) => value !== null || LEGACY_NULL_FIELDS.has(key)));
+}
 
 /** Never truncate current evidence or a complete retained partition for history.
  * The caller supplies already-admitted rows. Optional context is bounded;
@@ -20,7 +29,7 @@ export function selectFleetDropBudget(rows, { isRequired = () => true,
     }
     if (selected.has(row)) continue;
     selected.add(row);
-    bytes += Buffer.byteLength(JSON.stringify(row)) + 1;
+    bytes += Buffer.byteLength(JSON.stringify(compactCustomerDrop(row))) + 1;
     if (bytes > maxBytes) throw new Error('Required current/fallback customer evidence exceeds the ' + maxBytes + '-byte drop budget; no partition was truncated.');
   }
   const queues = [...optional.values()];
@@ -30,7 +39,7 @@ export function selectFleetDropBudget(rows, { isRequired = () => true,
     for (const queue of queues) {
       if (cursor >= queue.length) continue;
       advanced = true;
-      const row = queue[cursor], size = Buffer.byteLength(JSON.stringify(row)) + 1;
+      const row = queue[cursor], size = Buffer.byteLength(JSON.stringify(compactCustomerDrop(row))) + 1;
       if (selected.has(row) || bytes + size > maxBytes) continue;
       selected.add(row);bytes += size;context++;
       if (context === maxContextRows) break;
@@ -38,5 +47,5 @@ export function selectFleetDropBudget(rows, { isRequired = () => true,
     if (!advanced) break;
     cursor++;
   }
-  return rows.filter(row => selected.has(row));
+  return rows.filter(row => selected.has(row)).map(compactCustomerDrop);
 }

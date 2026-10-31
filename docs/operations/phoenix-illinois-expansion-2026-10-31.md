@@ -24,3 +24,11 @@ The grocery source has a 40-minute deadline, Illinois's parent has 43 minutes, t
 The backend supplies 126 Illinois city choices. Six city replays exercise actual Feed/drop routes, existing mobile filters, city monitoring scopes, alert labels, welcome preview, store directory and nearby maps; all 180 premise addresses remain selectable. These are synthetic route tests, not production or physical-device acceptance.
 
 The prerequisite dependency repair was delivered separately in PR873 (merge0184eac9). This expansion changes backend data and collection behavior; it does not require a mobile binary or OTA.
+
+## Production collection and bounded-export follow-up
+
+PR875 merged as d59034a5. Production run41166891464 collected both states, including173 Illinois grocery stores with1,029 eligible listings and485 allocated listings, but activated no snapshot: the required current fleet exceeded the60MiB export budget. These captures are not delivered gains.
+
+A replay of all14,837 captured public rows measured63,301,761 bytes before compaction and50,908,559 bytes after omitting empty top-level optional placeholders. Every row, nonempty field, false/zero value, nested proof and original clock survives. Customer normalization, classification, surface capabilities and eligibility are identical. Legacy nullable chronology/caveat fields remain explicit for retained-partition compatibility. The60MiB export budget and64MiB reader/decompression bounds are unchanged.
+
+The54-ZIP resolver diagnostic also identified Springfield62701's exact HTTP200 in-store SR-0003 no-store response: count0, ack1, one404 error and no stores array. This exact Illinois-only shape is healthy zero, never premise or stock proof. All180 selected premises still require matching positive resolver records from other responses and complete inventory searches. Unknown shapes, denials, conflicting premises and positive-looking mutations remain rejected. The original incomplete production receipt is preserved; delivery requires another fresh production run after this repair.
