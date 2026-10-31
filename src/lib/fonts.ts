@@ -1,23 +1,10 @@
-import { Fraunces, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
-
-export const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-playfair", // keep same CSS var name so all existing code works
-  display: "swap",
-  weight: ["400", "700", "900"],
-  style: ["normal", "italic"],
-});
-
-export const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans", // keep same CSS var name so all existing code works
-  display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-export const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-  display: "swap",
-  weight: ["400", "600", "700"],
-});
+// These are the same self-hosted faces and variables used by the app.
+export const fraunces = { variable: 'font-fraunces' } as const;
+export const plusJakarta = { variable: 'font-plus-jakarta' } as const;
+export const jetbrainsMono = { variable: 'font-jetbrains-mono' } as const;
+export const LOCAL_FONT_PRELOADS = [
+  "/fonts/fraunces-c9745ee907c02cdd.woff2",
+  "/fonts/fraunces-88e17be075f1be50.woff2",
+  "/fonts/plus-jakarta-cd8db90cd950e26b.woff2",
+  "/fonts/jetbrains-mono-2c32b9b3ee358c11.woff2"
+] as const;

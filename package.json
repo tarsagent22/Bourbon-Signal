@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/verify-local-fonts.mjs && next build",
     "migrate:recommendation-feedback": "node scripts/migrate-recommendation-feedback.mjs",
     "migrate:coverage-requests": "node scripts/migrate-coverage-requests.mjs --check",
     "migrate:coverage-requests:apply": "node scripts/migrate-coverage-requests.mjs --apply",

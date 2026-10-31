@@ -3,8 +3,9 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
-import { fraunces, plusJakarta, jetbrainsMono } from "@/lib/fonts";
+import { fraunces, plusJakarta, jetbrainsMono, LOCAL_FONT_PRELOADS } from "@/lib/fonts";
 import "./globals.css";
+import "./fonts.css";
 import ToastContainer from "@/components/Toast";
 import PreviewTierSwitcher from "@/components/PreviewTierSwitcher";
 import { LiquidToggleFilter } from "@/components/LiquidToggle";
@@ -184,6 +185,11 @@ export default function RootLayout({
         lang="en"
         className={`${fraunces.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
       >
+        <head>
+          {LOCAL_FONT_PRELOADS.map((href) => (
+            <link key={href} rel="preload" href={href} as="font" type="font/woff2" crossOrigin="anonymous" />
+          ))}
+        </head>
         <body style={{ fontFamily: "var(--font-dm-sans)" }}>
           <LiquidToggleFilter />
           <LifecycleTimeZoneCapture />
