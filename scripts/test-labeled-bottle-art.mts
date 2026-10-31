@@ -20,12 +20,8 @@ test('every previously illustrated catalog and public owner bottle has labeled a
   const expected = [...historical,...ownerCatalog,...feedProducts,...libraryProducts].map(row => row.id).sort();
   assert.deepEqual(LABELED_BOTTLE_ARTWORK.entries.map(row => row.catalogId).sort(),expected);
   const fallback = readFileSync(new URL('../apps/mobile/src/components/CellarBottleSilhouette.tsx',import.meta.url),'utf8');
-  assert.match(fallback,/neutral-labeled\.png/);
-  assert.doesNotMatch(fallback,/LabelFreeBottleArtwork|label-free-artwork-assets/);
-  const neutral = readFileSync(new URL('../apps/mobile/assets/bottles/neutral-labeled.png',import.meta.url));
-  assert.equal(neutral.readUInt32BE(16),400);
-  assert.equal(neutral.readUInt32BE(20),600);
-  assert.equal(neutral[25],6);
+  assert.match(fallback,/Image pending/);
+  assert.doesNotMatch(fallback,/neutral-labeled\.png|BottleArtworkImage/);
 });
 
 test('labeled illustrations preserve exact catalog identities and immutable native/web assets', () => {

@@ -143,7 +143,8 @@ test('third-batch exports and generated registry match every reviewed asset and 
  assert.equal((registry.match(/require\(/g)||[]).length,38+fourthBatch.shapes.length+fifthBatch.shapes.length+sixthBatch.shapes.length);
  for(const batch of [1,2,3,4,5,6])assert.ok(catalog.includes(`label-free-v${batch}/catalog.json`));
  const fallback=readFileSync(new URL('./CellarBottleSilhouette.tsx',import.meta.url),'utf8');
- assert.match(fallback,/neutral-labeled\.png/);
+ assert.match(fallback,/Image pending/);
+ assert.doesNotMatch(fallback,/neutral-labeled\.png|BottleArtworkImage/);
  assert.doesNotMatch(fallback,/styles\.label|useBottlePhoto/);
 });
 

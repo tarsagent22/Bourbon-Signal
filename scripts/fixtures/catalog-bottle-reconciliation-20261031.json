@@ -1,0 +1,45 @@
+{
+  "source": "Five additional live catalogue entries absent from the previous bundled seed; producer references reviewed.",
+  "entries": [
+    {
+      "bottleId": "owner-2f91892e-dc40-4cb2-83a5-69e6d375edb3",
+      "bottleName": "Barrel Craft Vantage",
+      "standardId": "owner-2f91892e-dc40-4cb2-83a5-69e6d375edb3",
+      "standardName": "Barrell Vantage",
+      "expectedArtworkSha256": "194c994bd36a8c601493571a83d540d52dafc47c56565f7bd95327728c311f1f",
+      "reference": "https://www.barrellbourbon.com/vantage"
+    },
+    {
+      "bottleId": "owner-f50426eb-2a62-45af-95c1-39bab68c273f",
+      "bottleName": "Girl Dad Bourbon",
+      "standardId": "owner-f50426eb-2a62-45af-95c1-39bab68c273f",
+      "standardName": "Girl Dad Bourbon",
+      "expectedArtworkSha256": "c681d88a2c00ff589db478c3475a0e4b60089f94107583ac521042f84e61eb87",
+      "reference": "https://southernspecialtyspirits.com/brands/girl-dad-bourbon"
+    },
+    {
+      "bottleId": "owner-3a814265-c126-4cec-bf8b-ed22b2c86a8b",
+      "bottleName": "291 Small Batch Rye",
+      "standardId": "owner-3a814265-c126-4cec-bf8b-ed22b2c86a8b",
+      "standardName": "291 Colorado Small Batch Rye Whiskey",
+      "expectedArtworkSha256": "bb6ee8475bbd94ef35caf33535e04c6f498ed13ca37b789ae50fbc74b46577ba",
+      "reference": "https://distillery291.com/colorado-rye-whiskey-small-batch-aspen-wood-staves/"
+    },
+    {
+      "bottleId": "owner-ee8b241f-ec3f-4fe0-ac2a-c6c6793626dd",
+      "bottleName": "Conviction Toast",
+      "standardId": "owner-ee8b241f-ec3f-4fe0-ac2a-c6c6793626dd",
+      "standardName": "Conviction Toast Cask Finish",
+      "expectedArtworkSha256": "d0e3f088c0246b4513e2c056cd16b03307bdc009b9d12f78eb95d1b094dff96f",
+      "reference": "https://www.southerngracedistilleries.com/cask-finished-conviction"
+    },
+    {
+      "bottleId": "owner-6a855f4a-8009-499b-85f8-8ebe53e45df5",
+      "bottleName": "Penelope Estate Collection Private Select 36% Rye",
+      "standardId": "owner-6a855f4a-8009-499b-85f8-8ebe53e45df5",
+      "standardName": "Penelope Estate Collection Private Select 36% Rye Mash Bill",
+      "expectedArtworkSha256": "bca5732d67dff2887c20038b8444f90af9151349dc40fb4668ac1c615dd4d301",
+      "reference": "https://penelopebourbon.com/estate-collection/"
+    }
+  ]
+}

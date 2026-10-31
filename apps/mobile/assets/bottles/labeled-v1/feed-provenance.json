@@ -100,6 +100,17 @@
       "reviewed": true,
       "reviewNotes": "Compared with producer press image: exact FAE-01 2021 panel, 110.6 proof, 55.3 percent ABV, red wax closure and round shoulder medallion. Distinct from BRT-01, BRT-02 and unspecified series artwork. Transparent pixels and full uncropped bottle verified.",
       "bytes": 250347
+    },
+    {
+      "key": "jack-daniels-10-year-batch-3",
+      "masterSha256": "aeed40f5d6ffc388b5c6fe42a433e690966c3b10d6ab9c41688421eea75b872f",
+      "sha256": "e9b30e57bb3b9774748a347ae2f10be60a620b24d44b01e827cb8c61568d55d4",
+      "prompt": "Edit original Jack Daniels 10 Year illustration to exact producer-confirmed 2024 Batch 3, retaining 10 YEARS OLD, adding BATCH 3, 97 PROOF, 48.5% ALC/VOL and 700mL; preserve complete bottle and transparent alpha. Remove all outside-bottle halo/background in a second built-in edit.",
+      "reference": "https://pressroom.jackdaniels.com/jack-daniels-launches-new-batches-of-12-year-old-and-10-year-old-tennessee-whiskey/",
+      "method": "Built-in image_gen edit of existing labeled illustration",
+      "reviewed": true,
+      "reviewNotes": "Visually inspected complete bottle, branding, 10 Year, Batch 3, 97 Proof and 700mL. Fully transparent outside-bottle sample pixels verified. Separate edition identity retained.",
+      "bytes": 247359
     }
   ]
 }
