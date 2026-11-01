@@ -52,6 +52,26 @@ test('owner catalog bypasses discovery cache and pairs definitions with their ex
  bible.clearBourbonBibleCache();
  const discovery=(await bible.getBourbonBible()).find(b=>b.id===old.id);assert.ok(discovery);assert.equal(discovery.canonicalName,'Reviewed Maker’s Mark 750 ml');assert.deepEqual(discovery.aliases,['Reviewed Maker’s Mark']);assert.equal('photoEvidenceUrl' in discovery,false);assert.equal('sourceUrl' in discovery,false);assert.doesNotMatch(JSON.stringify(await bible.searchBourbonBible('Reviewed Maker’s Mark')),/private[.]example/);
 });
+test('standardized duplicate catalog entries preserve legacy public and owner detail links',async()=>{
+ const redirects=JSON.parse(fs.readFileSync(`${root}/shared/standard-bottle-identity-redirects.json`,'utf8'));
+ const bible=moduleFrom('src/lib/bourbonBible.ts',{
+  '@/data/bourbonBibleInventory.json':JSON.parse(fs.readFileSync(`${root}/src/data/bourbonBibleInventory.json`,'utf8')),
+  '@/lib/site-engine-contract':{readSiteExport:async()=>null},
+  '@/lib/bottle-catalog-merge':moduleFrom('src/lib/bottle-catalog-merge.ts'),
+  '@/data/bottle-scarcity-overrides':{getBottleStateScarcityOverrides:()=>[]},
+  '@/lib/bottle-scarcity':moduleFrom('src/lib/bottle-scarcity.ts'),
+  '@/lib/approved-catalog-service':{listApprovedBottles:async()=>[]},
+  '@/lib/owner-admin-repository':{readOwnerBottleRecords:async()=>[]},
+  './bottle-photos':{catalogBottlePhoto:()=>undefined},
+ });
+ for(const [legacy,standard] of Object.entries(redirects)){
+  const current=await bible.getBottleById(standard);assert.ok(current,standard);
+  assert.equal((await bible.getBottleById(legacy))?.id,standard,legacy);
+  assert.equal((await bible.getOwnerBottleById(legacy))?.id,standard,legacy);
+ }
+ assert.equal(await bible.getBottleById('unreviewed-different-expression'),null);
+});
+
 test("actual post route corrects mappings atomically, preserves photo review, rejects stale edits and supports removal/history/restore", async () => {
   const db = new PGlite();
   try {

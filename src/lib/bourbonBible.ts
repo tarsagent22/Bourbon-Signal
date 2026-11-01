@@ -1,4 +1,5 @@
 import { standardBottleIdentity } from "../../shared/standard-bottle-identity.ts";
+import standardBottleRedirects from "../../shared/standard-bottle-identity-redirects.json";
 import { REVIEWED_SIGHTING_RARITY } from "../data/reviewed-sighting-rarity";
 import discoveryBottles from '../../shared/library-discovery-bottles.json';
 import expressionBottles from '../../shared/library-expression-bottles.json';
@@ -387,7 +388,8 @@ export async function getOwnerBottleById(id:string) {
   const records=await readOwnerBottleRecords();
   const catalog=await getOwnerBourbonBible(records);
   const currentId=records.find(r=>r.bottle_id===id)?.redirect_id||id;
-  return catalog.find(b=>b.id===currentId)||null;
+  const standardId=(standardBottleRedirects as Record<string,string>)[currentId]||currentId;
+  return catalog.find(b=>b.id===standardId)||null;
 }
 
 export async function getBourbonBible() {
@@ -431,8 +433,10 @@ export async function searchBourbonBible(query: string, limit = 8): Promise<Bibl
 
 export async function getBottleById(id: string) {
   const catalog=await getBourbonBible();
-  const direct=catalog.find(bottle=>bottle.id===id);
+  const standardId=(standardBottleRedirects as Record<string,string>)[id]||id;
+  const direct=catalog.find(bottle=>bottle.id===standardId);
   if(direct)return direct;
   const redirect=(await readOwnerBottleRecords()).find(r=>r.bottle_id===id)?.redirect_id;
-  return catalog.find(bottle=>bottle.id===redirect)||null;
+  const redirectedStandardId=redirect ? (standardBottleRedirects as Record<string,string>)[redirect]||redirect : undefined;
+  return catalog.find(bottle=>bottle.id===redirectedStandardId)||null;
 }
