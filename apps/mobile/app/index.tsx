@@ -25,6 +25,9 @@ export default function EntryScreen() {
     const controller = new AbortController();
     setDestination(null);
     setError("");
+    // Profile and setup are independent reads. Warm the shared account cache
+    // during setup so Home can resolve membership and saved filters immediately.
+    void api.getMemberProfile({ signal: controller.signal }).catch(() => undefined);
     void api.getMobileOnboardingStatus({ fresh: true, signal: controller.signal })
       .then((status) => setDestination(status.completed ? "app" : "onboarding"))
       .catch(async (caught) => {

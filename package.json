@@ -127,7 +127,7 @@
     "test:state-report-hydration": "node scripts/test-state-report-hydration.mjs",
     "test:production-verification-scope": "node scripts/test-production-verification-scope.mjs",
     "test:alert-copy-contract": "node scripts/verify-alert-copy-contract.mjs",
-    "test:engine-snapshot-reader": "node --experimental-strip-types scripts/test-engine-snapshot-reader.mjs",
+    "test:engine-snapshot-reader": "node --experimental-strip-types scripts/test-engine-snapshot-reader.mjs && node --experimental-strip-types --test scripts/test-remote-site-snapshot.mts",
     "verify:production-engine": "tsx scripts/verify-production-engine-regression.mjs",
     "test:performance-budgets": "node scripts/test-performance-budgets.mjs",
     "test:alert-dedupe": "node --no-warnings --experimental-strip-types scripts/test-alert-dedupe.mts",

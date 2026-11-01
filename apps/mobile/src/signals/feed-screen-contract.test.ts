@@ -42,7 +42,7 @@ test("Home restores user-scoped browsing filters without touching Radar preferen
   assert.match(feed, /saveHomeBrowsingPreferences/);
   assert.doesNotMatch(feed, /getMemberPreferences|updateMemberPreferences|notificationPreferences|monitoringScopes/);
   assert.match(feed, /loadedBrowsingStorageKey === browsingStorageKey/);
-  const identityReset = feed.match(/useEffect\(\(\) => \{\s*let current = true;[\s\S]*?\}, \[browsingStorageKey\]\);/)?.[0] || "";
+  const identityReset = feed.match(/useEffect\(\(\) => \{\s*let current = true;[\s\S]*?\}, \[api, browsingStorageKey\]\);/)?.[0] || "";
   assert.match(identityReset, /setSignals\(\[\]\)/, "one member's feed must not remain mounted for another identity");
   assert.match(identityReset, /requestSequence\.current \+= 1/);
   assert.match(identityReset, /profileRequestSequence\.current \+= 1/);
@@ -58,7 +58,7 @@ test("immediate rarity and bottle input invalidate pending Home restore", () => 
 test("auth failures fence overlapping feed requests and identity reloads profile", () => {
   assert.match(feed, /apiError\?\.status === 401 \|\| apiError\?\.status === 403\) \{\s*requestSequence\.current \+= 1;/);
   assert.match(feed, /if \(accessChanged\) \{\s*requestSequence\.current \+= 1;/);
-  assert.match(feed, /useEffect\(\(\) => \{ if \(browsingStorageKey\) void loadProfile\(false\); \}, \[browsingStorageKey, loadProfile\]\)/);
+  assert.match(feed, /resolveHomeStartup\(loadHomeBrowsingPreferences\(browsingStorageKey\), loadProfile\(\)/);
 });
 
 test("snapshot cursor expiry preserves reading position until explicit refresh", () => {

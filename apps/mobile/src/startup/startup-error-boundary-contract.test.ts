@@ -58,3 +58,34 @@ test("authentication and account routing start while fonts load behind the nativ
     else process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY = savedKey;
   }
 });
+
+
+test("entry starts profile and setup together without waiting for profile completion", async () => {
+  const calls: string[] = [];
+  let effect!: () => (() => void);
+  let finishSetup!: (status: { completed: boolean }) => void;
+  let destination: unknown;
+  let stateIndex = 0;
+  const { default: Entry } = loadWithMocks("app/index.tsx", {
+    "@clerk/expo": { useAuth: () => ({ isLoaded: true, isSignedIn: true }) },
+    "expo-router": { Redirect: "Redirect" },
+    react: {
+      useEffect: (callback: typeof effect) => { effect = callback; },
+      useState: (value: unknown) => { const index = stateIndex++; return [value, (next: unknown) => { if (index === 0) destination = next; }]; },
+    },
+    "react-native": { StyleSheet: { create: (styles: unknown) => styles } },
+    "../src/components/BrandLoading": { BrandLoading: "BrandLoading" },
+    "../src/hooks/useMobileApi": { useMobileApi: () => ({
+      getMemberProfile: () => { calls.push('profile'); return new Promise(() => {}); },
+      getMobileOnboardingStatus: () => { calls.push('setup'); return new Promise(resolve => { finishSetup = resolve; }); },
+    }) },
+    "../src/api/client": {},
+  });
+  Entry();
+  const cleanup = effect();
+  assert.deepEqual(calls, ['profile', 'setup']);
+  finishSetup({ completed: true });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(destination, 'app', 'a slow profile cannot block server-authoritative routing');
+  cleanup();
+});

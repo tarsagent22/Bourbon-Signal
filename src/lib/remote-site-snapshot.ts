@@ -67,25 +67,64 @@ function verifyManifest(value: unknown): SiteSnapshotManifest {
   return manifest;
 }
 
-export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapshotStorage; encryptionKey: string }) {
-  return {
-    async read(name: string) {
-      const pointer = await options.storage.readPointer();
-      const snapshotId = typeof pointer?.active === "string" ? pointer.active : "";
-      if (!snapshotId) throw new Error("Remote engine snapshot has no active pointer");
-      const manifestRaw = await options.storage.readObject(`engine/snapshots/${snapshotId}/manifest.json`);
-      if (!manifestRaw) throw new Error(`Remote engine snapshot manifest missing: ${snapshotId}`);
-      const manifest = verifyManifest(JSON.parse(manifestRaw));
+export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapshotStorage; encryptionKey: string; cacheImmutable?: boolean; cacheBytes?: number }) {
+  // Reader-local storage/key boundary. Only verified immutable objects are reused;
+  // the active pointer and all consumer policy/expiry checks remain live.
+  const manifests = new Map<string, Promise<SiteSnapshotManifest>>();
+  const payloads = new Map<string, { promise: Promise<Record<string, unknown>>; bytes: number }>();
+  const maximumBytes = Math.max(0, options.cacheBytes ?? 32 * 1024 * 1024);
+  async function manifestFor(snapshotId: string) {
+    const hit = options.cacheImmutable && manifests.get(snapshotId);
+    if (hit) return hit;
+    const attempt = (async () => {
+      const raw = await options.storage.readObject(`engine/snapshots/${snapshotId}/manifest.json`);
+      if (!raw) throw new Error(`Remote engine snapshot manifest missing: ${snapshotId}`);
+      const manifest = verifyManifest(JSON.parse(raw));
       if (manifest.snapshotId !== snapshotId) throw new Error("Remote engine snapshot pointer identity mismatch");
-      const filePath = name.endsWith(".json") ? name : `${name}.json`;
-      const descriptor = manifest.files[filePath];
-      if (!descriptor) throw new Error(`Engine snapshot file is not declared: ${filePath}`);
+      return manifest;
+    })();
+    if (options.cacheImmutable) {
+      manifests.set(snapshotId, attempt);
+      while (manifests.size > 2) manifests.delete(manifests.keys().next().value!);
+    }
+    try { return await attempt; }
+    catch (error) { if (manifests.get(snapshotId) === attempt) manifests.delete(snapshotId); throw error; }
+  }
+  async function payloadFor(snapshotId: string, filePath: string, descriptor: FileDescriptor) {
+    const key = `${snapshotId}:${filePath}:${descriptor.sha256}:${descriptor.bytes}`;
+    const hit = options.cacheImmutable && payloads.get(key);
+    if (hit) return structuredClone(await hit.promise);
+    const attempt = (async () => {
       const encrypted = await options.storage.readObject(`engine/snapshots/${snapshotId}/files/${filePath}.enc`);
       if (!encrypted) throw new Error(`Engine snapshot file is missing: ${filePath}`);
       const plaintext = decryptObject(encrypted, options.encryptionKey, descriptor.bytes);
       if (Buffer.byteLength(plaintext) !== descriptor.bytes || sha256(plaintext) !== descriptor.sha256) {
         throw new Error(`Engine snapshot file hash mismatch: ${filePath}`);
       }
+      return JSON.parse(plaintext) as Record<string, unknown>;
+    })();
+    if (options.cacheImmutable && descriptor.bytes >= 0 && descriptor.bytes <= maximumBytes) {
+      payloads.set(key, { promise: attempt, bytes: descriptor.bytes });
+      let bytes = [...payloads.values()].reduce((sum, entry) => sum + entry.bytes, 0);
+      while (bytes > maximumBytes || payloads.size > 16) {
+        const oldest = payloads.keys().next().value!;
+        bytes -= payloads.get(oldest)!.bytes;
+        payloads.delete(oldest);
+      }
+    }
+    try { return structuredClone(await attempt); }
+    catch (error) { if (payloads.get(key)?.promise === attempt) payloads.delete(key); throw error; }
+  }
+  return {
+    async read(name: string, pinnedPointer?: Record<string, unknown> | null) {
+      const pointer = pinnedPointer === undefined ? await options.storage.readPointer() : pinnedPointer;
+      const snapshotId = typeof pointer?.active === "string" ? pointer.active : "";
+      if (!snapshotId) throw new Error("Remote engine snapshot has no active pointer");
+      const manifest = await manifestFor(snapshotId);
+      const filePath = name.endsWith(".json") ? name : `${name}.json`;
+      const descriptor = manifest.files[filePath];
+      if (!descriptor) throw new Error(`Engine snapshot file is not declared: ${filePath}`);
+      const payload = await payloadFor(snapshotId, filePath, descriptor);
       const rollback = pointer?.lastRollback && typeof pointer.lastRollback === "object"
         ? pointer.lastRollback as Record<string, unknown>
         : null;
@@ -101,7 +140,7 @@ export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapsho
         lastRollbackAt: typeof rollback?.at === "string" ? rollback.at : null,
         lastRollbackFrom: typeof rollback?.from === "string" ? rollback.from : null,
         lastRollbackTo: typeof rollback?.to === "string" ? rollback.to : null,
-        payload: JSON.parse(plaintext) as Record<string, unknown>,
+        payload,
       };
     },
   };

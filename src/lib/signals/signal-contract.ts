@@ -209,6 +209,34 @@ function signalAvailability(drop: Record<string, unknown>, kind: SignalKind) {
   };
 }
 
+function dropSignalTiming(input: Record<string, unknown>, kind: SignalKind) {
+  const observedAt = kind === "release"
+    ? text(input.observed_at, input.observedAt)
+    : text(input.observed_at, input.observedAt, input.event_at, input.eventAt);
+  const reportedAt = kind === "release"
+    ? text(input.created_at, input.createdAt, input.first_seen_at, input.firstSeenAt)
+    : text(input.created_at, input.createdAt, input.first_seen_at, input.firstSeenAt, observedAt);
+  const displayAt = (kind === "release" ? text(
+    reportedAt,
+    observedAt,
+    input.timestamp,
+    input.displayAt,
+    input.display_at,
+    input.last_confirmed_at,
+    input.lastConfirmedAt,
+  ) : text(
+    dropDisplayTime(input),
+    input.displayAt,
+    input.display_at,
+    input.last_confirmed_at,
+    input.lastConfirmedAt,
+    observedAt,
+    reportedAt,
+    input.timestamp,
+  )) || new Date(0).toISOString();
+  return { observedAt, reportedAt, displayAt };
+}
+
 export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSignal {
   const kind = signalKind(input);
   const type = sourceType(input, kind);
@@ -236,30 +264,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
   const storeCity = text(input.store_city, input.storeCity, input.city);
   const storeZip = text(input.store_zip, input.storeZip, input.zip);
   const scope = locationScope(input);
-  const observedAt = kind === "release"
-    ? text(input.observed_at, input.observedAt)
-    : text(input.observed_at, input.observedAt, input.event_at, input.eventAt);
-  const reportedAt = kind === "release"
-    ? text(input.created_at, input.createdAt, input.first_seen_at, input.firstSeenAt)
-    : text(input.created_at, input.createdAt, input.first_seen_at, input.firstSeenAt, observedAt);
-  const displayAt = (kind === "release" ? text(
-    reportedAt,
-    observedAt,
-    input.timestamp,
-    input.displayAt,
-    input.display_at,
-    input.last_confirmed_at,
-    input.lastConfirmedAt,
-  ) : text(
-    dropDisplayTime(input),
-    input.displayAt,
-    input.display_at,
-    input.last_confirmed_at,
-    input.lastConfirmedAt,
-    observedAt,
-    reportedAt,
-    input.timestamp,
-  )) || new Date(0).toISOString();
+  const { observedAt, reportedAt, displayAt } = dropSignalTiming(input, kind);
   const historical = input.historical === true;
   const inventoryEligible = !historical && boolean(input.can_alert_as_inventory, input.canAlertAsInventory);
   const watchEligible = !historical && (boolean(input.canAlertAsWatch) || kind === "release" || inventoryEligible);
@@ -418,8 +423,15 @@ export function sortDropsByCanonicalSignalOrder<T extends Record<string, unknown
     if (!prior || observed(drop) >= observed(prior)) listings.set(key, drop);
   }
   return [...listings.values()]
-    .map((drop) => ({ drop, signal: normalizeDropSignal(drop) }))
-    .sort((left, right) => compareCanonicalSignalsNewestFirst(left.signal, right.signal))
+    .map((drop) => {
+      const kind = signalKind(drop);
+      const id = prefixedId(sourceType(drop, kind), text(drop.id, drop.eventId, drop.canonical_id, drop.canonicalId) || "unknown");
+      return { drop, id, time: Date.parse(dropSignalTiming(drop, kind).displayAt) };
+    })
+    .sort((left, right) => {
+      const difference = right.time - left.time;
+      return Number.isFinite(difference) && difference !== 0 ? difference : left.id.localeCompare(right.id);
+    })
     .map(({ drop }) => drop);
 }
 
