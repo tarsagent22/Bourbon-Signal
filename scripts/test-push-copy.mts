@@ -6,6 +6,37 @@ import { buildExpoPushMessages, sendExpoPushMessages } from "../src/lib/push-dev
 const names = ["E.H. Taylor Small Batch", "Blanton’s", "Eagle Rare 10 Year"];
 const details = { storeLabel: "Triad ABC Board", matchedArea: "the Triad", quantity: 16 };
 
+test("alert locations omit administrative city and town suffixes and preserve proper names", async () => {
+  for (const [input, expected] of [
+    ["Gilbert town", "Gilbert"], ["Gilbert town, AZ", "Gilbert, AZ"],
+    ["Chandler city", "Chandler"], ["Chandler city, AZ", "Chandler, AZ"],
+    ["Queen Creek town", "Queen Creek"], ["Salt Lake City city", "Salt Lake City"],
+    ["Charles Town town", "Charles Town"], ["Kansas City", "Kansas City"],
+    ["Charles Town", "Charles Town"], ["Town and Country", "Town and Country"],
+    ["  Gilbert\n town  ", "Gilbert"],
+  ]) {
+    const community = buildPushPreview("locality", ["Stagg"], { sourceType: "community", storeCity: input });
+    assert.equal(community.body, `Stagg\n${expected}`);
+    const fallback = buildPushPreview("locality", ["Stagg"], { sourceType: "community", matchedArea: input });
+    assert.equal(fallback.body, `Stagg\n${expected}`);
+    for (let i = 0; i < 12; i++) {
+      const message = buildExpoPushMessages(["ExpoPushToken[aaaaaaaaaaaaaaaa]"], {
+        id: `locality-${i}`, bottleName: "Stagg", matchedArea: input, storeLabel: "Old Town Liquor city",
+      })[0]!;
+      let wire: any;
+      await sendExpoPushMessages([message], (async (_url, init) => {
+        wire = JSON.parse(String(init?.body))[0];
+        return Response.json({ data: [{ status: "ok", id: "receipt" }] });
+      }) as typeof fetch);
+      assert.ok(`${wire.title}\n${wire.body}`.includes(expected));
+      assert.match(wire.body, /Old Town Liquor city/);
+      if (input.includes(" town") || input.includes(" city")) {
+        assert.ok(!`${wire.title}\n${wire.body}`.replace("Old Town Liquor city", "").includes(input.trim()));
+      }
+    }
+  }
+});
+
 test("different alerts vary; a retry or another device keeps exactly the same copy", () => {
   const copies = new Set(Array.from({ length: 60 }, (_, i) => JSON.stringify(buildPushPreview(`alert-${i}`, [names[0]], details))));
   assert.equal(copies.size, 3);

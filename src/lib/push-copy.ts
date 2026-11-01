@@ -19,8 +19,8 @@ export function pushDisplayText(input: unknown, limit: number) {
 }
 
 function pushLocalityText(input: unknown, limit: number) {
-  // Census labels append lowercase "city"; retain proper names such as Kansas City.
-  const locality = pushDisplayText(input, Number.MAX_SAFE_INTEGER).replace(/ city(?=,|$)/g, "");
+  // Census labels append lowercase administrative suffixes; retain Kansas City and Charles Town.
+  const locality = pushDisplayText(input, Number.MAX_SAFE_INTEGER).replace(/ (?:city|town)(?=,|$)/g, "");
   return pushDisplayText(locality, limit);
 }
 
