@@ -223,6 +223,7 @@ export default function SignalFeedScreen() {
     try {
       const response = await api.getMemberProfile({ fresh });
       if (requestId === profileRequestSequence.current) setProfile(response.profile);
+      return response.profile;
     } catch {
       if (requestId === profileRequestSequence.current) setProfileError("Home filters are temporarily unavailable. Tap to retry.");
     }
@@ -349,7 +350,7 @@ export default function SignalFeedScreen() {
     setError("");
     setLoaded(false);
     setLoading(false);
-    void resolveHomeStartup(loadHomeBrowsingPreferences(browsingStorageKey), api.getMemberProfile().then(member => member.profile.homeState || undefined)).then(({ saved, homeState }) => {
+    void resolveHomeStartup(loadHomeBrowsingPreferences(browsingStorageKey), loadProfile().then(member => member?.homeState || undefined)).then(({ saved, homeState }) => {
       if (!current) return;
       if (saved && mutationAtStart === browsingMutationSequence.current) {
         setView(saved.view);
@@ -367,7 +368,7 @@ export default function SignalFeedScreen() {
       backgroundRequestSequence.current += 1;
       profileRequestSequence.current += 1;
     };
-  }, [browsingStorageKey]);
+  }, [api, browsingStorageKey]);
 
   useEffect(() => {
     if (!browsingLoaded || loadedBrowsingStorageKey !== browsingStorageKey) return;
@@ -467,7 +468,6 @@ export default function SignalFeedScreen() {
     listRef.current?.scrollToOffset({ offset: 0, animated: !motionDisabled });
   }, [motionDisabled, queuedSignals]);
 
-  useEffect(() => { if (browsingStorageKey) void loadProfile(false); }, [browsingStorageKey, loadProfile]);
   useEffect(() => {
     if (!browsingLoaded || (requestedView !== "community" && requestedView !== "market")) return;
     selectView(requestedView);

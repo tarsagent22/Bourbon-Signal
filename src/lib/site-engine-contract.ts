@@ -74,6 +74,7 @@ const readImmutableObject = unstable_cache(
   { revalidate: 31_536_000 },
 );
 const remoteReader = createRemoteSiteSnapshotReader({
+  cacheImmutable: true,
   encryptionKey: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "",
   storage: { readPointer: readActivePointer, readObject: readImmutableObject },
 });
@@ -134,11 +135,9 @@ export async function readSiteExportResults(names: SiteExportName[]): Promise<Si
   }
   try {
     const pointer = await readActivePointer();
-    const pinnedReader = createRemoteSiteSnapshotReader({
-      encryptionKey: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "",
-      storage: { readPointer: async () => pointer, readObject: readImmutableObject },
-    });
-    const remote = await Promise.all(names.map((name) => pinnedReader.read(name)));
+    // Reuse verified immutable files across pinned bundles; pointer selection and
+    // mutable source policy are still evaluated for each consumer request.
+    const remote = await Promise.all(names.map((name) => remoteReader.read(name, pointer)));
     return remote.map((result, index) => remoteExportResult(names[index], result, bundled[index], mode));
   } catch (error) {
     const fallback = names.map((name) => readBundledSiteExport(name));

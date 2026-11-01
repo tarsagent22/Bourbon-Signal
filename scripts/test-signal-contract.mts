@@ -349,3 +349,27 @@ assert.equal(unsupportedFilter.status, 400, "unapproved source filters must stil
 assert.equal(filterCalls.length, 2, "unsupported filters must fail before additional source access");
 
 console.log("Canonical Signal v1 contract passed.");
+
+
+// Golden equivalence against full-card normalization, including tied/invalid
+// clocks, all source kinds and multiple observations of one availability episode.
+const orderingRows = Array.from({ length: 300 }, (_, index) => ({
+  id: `row-${index}`, canonical_name: 'Buffalo Trace Bourbon', state: 'NC',
+  observed_at: index % 7 === 0 ? 'invalid' : `2026-10-${String(1 + index % 28).padStart(2, '0')}T12:00:00Z`,
+  first_seen_at: index % 9 === 0 ? 'invalid' : '2026-10-01T12:00:00Z',
+  event_type: ['inventory', 'scheduled_release', 'tasting', 'lottery'][index % 4],
+  availabilityEpisodeId: index % 3 === 0 ? `episode-${index % 12}` : undefined,
+  retailerReported: index % 5 === 0,
+}));
+const legacyListings = new Map<string, typeof orderingRows[number]>();
+for (const row of orderingRows) {
+  const key = row.availabilityEpisodeId ? `episode:${row.availabilityEpisodeId}` : `row:${legacyListings.size}`;
+  const prior = legacyListings.get(key);
+  if (!prior || (Date.parse(row.observed_at) || 0) >= (Date.parse(prior.observed_at) || 0)) legacyListings.set(key, row);
+}
+const legacySorted = [...legacyListings.values()].map(drop => ({ drop, signal: normalizeDropSignal(drop) }))
+  .sort((left, right) => {
+    const difference = Date.parse(right.signal.timing.displayAt) - Date.parse(left.signal.timing.displayAt);
+    return Number.isFinite(difference) && difference !== 0 ? difference : left.signal.id.localeCompare(right.signal.id);
+  }).map(({ drop }) => drop);
+assert.deepEqual(sortDropsByCanonicalSignalOrder(orderingRows), legacySorted, 'lightweight sorting exactly preserves full normalized-card ordering');
