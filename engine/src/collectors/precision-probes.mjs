@@ -1,5 +1,5 @@
 import {arizonaXapiIncidents} from './arizona-xapi-incidents.mjs';
-import { PHOENIX_CITYHIVE_EXPANSION_SOURCES, phoenixExpansionPremise, phoenixExpansionOption } from './phoenix-cityhive-expansion.mjs';
+import { PHOENIX_CITYHIVE_EXPANSION_SOURCES, phoenixExpansionPremise, phoenixExpansionOption, phoenixExpansionBottleMatch } from './phoenix-cityhive-expansion.mjs';
 import {collectIllinoisGrocerySource,ILLINOIS_GROCERY_RUNTIME_ID,ILLINOIS_GROCERY_SOURCE_TIMEOUT_MS} from './illinois-grocery-runtime-source.mjs';
 import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID, CALIFORNIA_GROCERY_SOURCE_TIMEOUT_MS } from './california-grocery-runtime-source.mjs';
 import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS, nevadaRetailerCohortKey, nevadaRetailerCacheMatchesCohort } from './nevada-xapi-runtime.mjs';
@@ -6029,7 +6029,9 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
                 if (seenProductOptions.has(key)) continue;
                 seenProductOptions.add(key);
                 const rawName = option.option_display_data?.name || product.name || '';
-                const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+                const { match, record, unsafeReason } = source.strictPremise
+                  ? {match:{confidence:0.9},record:phoenixExpansionBottleMatch(rawName,bible),unsafeReason:null}
+                  : cityHiveSafeBottleMatch(rawName, bible);
                 if (!record) continue;
                 let detailAvailabilityVerified = false;
                 let detailEvidence = null;

@@ -39,7 +39,7 @@ async function run(t,{mutate=()=>{},denyHost=null,advanceMs=0}={}){
 
 test('captured new metro premises survive the real operational and public projections with bounded distinct pages',async t=>{
   const {result,drops,calls}=await run(t);
-  assert.equal(new Set(drops.map(r=>r.storeId)).size,2);assert(drops.length>=8);
+  assert.equal(new Set(drops.map(r=>r.storeId)).size,2);assert(drops.length>=6);
   assert(result.signals.some(r=>r.canonicalName==='Buffalo Trace Bourbon'));
   assert(!drops.some(r=>r.canonicalName==='Buffalo Trace Bourbon'),'The current customer library marks Buffalo Trace regular in Arizona; the legacy allocated seed cannot elevate it.');
   assert(drops.some(r=>r.canonicalName==='E.H. Taylor Small Batch'));

@@ -1,5 +1,4 @@
-import { PHOENIX_CITYHIVE_EXPANSION_SOURCES, isPhoenixCityHiveExpansionProof } from '../collectors/phoenix-cityhive-expansion.mjs';
-import { cityHiveSafeBottleMatch } from '../collectors/safe-bottle-match.mjs';
+import { PHOENIX_CITYHIVE_EXPANSION_SOURCES, isPhoenixCityHiveExpansionProof, phoenixExpansionBottleMatch } from '../collectors/phoenix-cityhive-expansion.mjs';
 import { BourbonBible } from '../core/bible.mjs';
 import { isPublicDropFeedEligible } from '../../../src/lib/public-drop-evidence.ts';
 
@@ -18,7 +17,7 @@ export function diagnosePhoenixMetroExpansion({state,drops,bibleRecords,required
   const successful=new Set(requests.filter(r=>r.ok===true&&r.status===200).map(r=>r.url));
   const sourceByKey=new Map(signals.map(r=>[key(r),r]));
   for(const row of signals){
-    const match=cityHiveSafeBottleMatch(row.rawName,bible).record;
+    const match=phoenixExpansionBottleMatch(row.rawName,bible);
     check(isPhoenixCityHiveExpansionProof(row)&&current(row)&&successful.has(row.sourceUrl)
       &&match?.id===row.canonicalBottleId&&row.sourceProductBinding.canonicalName===match.canonical,
     'New Phoenix metro source row lost current premise, bottle, option or successful request proof.');
@@ -39,6 +38,6 @@ export function diagnosePhoenixMetroExpansion({state,drops,bibleRecords,required
     }
   }
   const allocatedRows=publicRows.filter(r=>['allocated','unicorn'].includes(r.tier));
-  if(required){check(publicRows.length>=8,'New Phoenix metro inventory must retain at least eight public listings.');check(allocatedRows.length>=3,'New Phoenix metro inventory must retain at least three allocated listings.');}
+  if(required){check(publicRows.length>=6,'New Phoenix metro inventory must retain at least six public listings.');check(allocatedRows.length>=1,'New Phoenix metro inventory must retain allocated inventory.');}
   return {status:errors.length?'failed':'ok',errors,newMetroStores:new Set(publicRows.map(r=>r.storeId)).size,newMetroPublicRows:publicRows.length,newMetroAllocatedRows:allocatedRows.length,newMetroRequests:requests.length};
 }

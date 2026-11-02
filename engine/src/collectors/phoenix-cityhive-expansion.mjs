@@ -1,5 +1,10 @@
 import { standardInventoryBottleIdentity } from '../core/standard-bottle-identity.mjs';
 import { libraryIdentityKey } from '../core/library-catalog.mjs';
+import { metroBottleMatch } from './arizona-metro-retailer-proof.mjs';
+
+export function phoenixExpansionBottleMatch(rawName,bible) {
+  return metroBottleMatch(String(rawName||'').replace(/(\d+\s*years?)\s+old\b/gi,'$1'),bible);
+}
 
 const source = (id, chainName, host, merchantId, premiseAddress) => Object.freeze({
   id, chainName, sourceLabel: `${chainName} Phoenix metro CityHive store inventory`,
