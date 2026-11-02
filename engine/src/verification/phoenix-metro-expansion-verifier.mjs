@@ -39,6 +39,6 @@ export function diagnosePhoenixMetroExpansion({state,drops,bibleRecords,required
     }
   }
   const allocatedRows=publicRows.filter(r=>['allocated','unicorn'].includes(r.tier));
-  if(required){check(publicRows.length>=10,'New Phoenix metro inventory must retain at least ten public listings.');check(allocatedRows.length>=3,'New Phoenix metro inventory must retain at least three allocated listings.');}
+  if(required){check(publicRows.length>=8,'New Phoenix metro inventory must retain at least eight public listings.');check(allocatedRows.length>=3,'New Phoenix metro inventory must retain at least three allocated listings.');}
   return {status:errors.length?'failed':'ok',errors,newMetroStores:new Set(publicRows.map(r=>r.storeId)).size,newMetroPublicRows:publicRows.length,newMetroAllocatedRows:allocatedRows.length,newMetroRequests:requests.length};
 }

@@ -1,5 +1,5 @@
 import {isNjMiRetailerEvent,isNjMiResearchInventory,isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
-import { isPhoenixCityHiveExpansionProof } from './collectors/phoenix-cityhive-expansion.mjs';
+import { isPhoenixCityHiveExpansionProof, phoenixExpansionLibraryTier } from './collectors/phoenix-cityhive-expansion.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { selectFleetDropBudget } from './fleet-drop-budget.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
@@ -294,6 +294,8 @@ function findBibleRecord(signal, bible) {
 }
 
 function exportedTier(signal, bibleRecord) {
+  const phoenixTier=phoenixExpansionLibraryTier(signal,bibleRecord);
+  if(phoenixTier)return phoenixTier;
   const signalTier = signal.tier && signal.tier !== 'unknown' ? signal.tier : null;
   return signalTier || bibleRecord?.tier || null;
 }

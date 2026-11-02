@@ -1,4 +1,5 @@
 import { standardInventoryBottleIdentity } from '../core/standard-bottle-identity.mjs';
+import { libraryIdentityKey } from '../core/library-catalog.mjs';
 
 const source = (id, chainName, host, merchantId, premiseAddress) => Object.freeze({
   id, chainName, sourceLabel: `${chainName} Phoenix metro CityHive store inventory`,
@@ -68,4 +69,13 @@ export function isPhoenixCityHiveExpansionProof(row) {
     && (option.option_display_data?.name || product.name) === row.rawName
     && option.price === row.price && option.quantity === row.quantity
     && row.lat === option.coordinates[1] && row.lng === option.coordinates[0];
+}
+
+export function phoenixExpansionLibraryTier(row, record) {
+  if(!isPhoenixCityHiveExpansionProof(row)||record?.id!==row.sourceProductBinding.canonicalBottleId)return null;
+  const canonical=libraryIdentityKey(row.sourceProductBinding.canonicalName);
+  const matches=(record.libraryIdentities||[]).filter(bottle=>[bottle.canonicalName,...(bottle.aliases||[])].some(name=>libraryIdentityKey(name)===canonical));
+  if(new Set(matches.map(bottle=>bottle.id)).size!==1||matches[0].isAlertEligible!==true)return 'standard';
+  const bottle=matches[0],tier=bottle.stateOverrides?.find(o=>o.jurisdiction==='AZ')?.tier||bottle.nationalTier;
+  return ({regular:'standard',allocated:'allocated',limited:'limited',highly_allocated:'unicorn',unicorn:'unicorn'})[tier]||'standard';
 }

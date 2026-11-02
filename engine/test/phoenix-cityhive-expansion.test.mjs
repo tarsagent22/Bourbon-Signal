@@ -39,8 +39,9 @@ async function run(t,{mutate=()=>{},denyHost=null,advanceMs=0}={}){
 
 test('captured new metro premises survive the real operational and public projections with bounded distinct pages',async t=>{
   const {result,drops,calls}=await run(t);
-  assert.equal(new Set(drops.map(r=>r.storeId)).size,2);assert(drops.length>=10);
-  assert(drops.some(r=>r.canonicalName==='Buffalo Trace Bourbon'));
+  assert.equal(new Set(drops.map(r=>r.storeId)).size,2);assert(drops.length>=8);
+  assert(result.signals.some(r=>r.canonicalName==='Buffalo Trace Bourbon'));
+  assert(!drops.some(r=>r.canonicalName==='Buffalo Trace Bourbon'),'The current customer library marks Buffalo Trace regular in Arizona; the legacy allocated seed cannot elevate it.');
   assert(drops.some(r=>r.canonicalName==='E.H. Taylor Small Batch'));
   assert(drops.every(isPhoenixCityHiveExpansionProof));
   for(const s of sources){const urls=calls.filter(u=>new URL(u).origin===s.baseUrl);assert(urls.length<=19);assert(urls.some(u=>new URL(u).searchParams.get('skip')==='18'&&new URL(u).searchParams.get('limit')==='18'));assert(urls.some(u=>new URL(u).searchParams.has('ch-query')));}
