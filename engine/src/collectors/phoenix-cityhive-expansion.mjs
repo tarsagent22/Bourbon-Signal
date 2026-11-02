@@ -75,7 +75,7 @@ export function phoenixExpansionLibraryTier(row, record) {
   if(!isPhoenixCityHiveExpansionProof(row)||record?.id!==row.sourceProductBinding.canonicalBottleId)return null;
   const canonical=libraryIdentityKey(row.sourceProductBinding.canonicalName);
   const matches=(record.libraryIdentities||[]).filter(bottle=>[bottle.canonicalName,...(bottle.aliases||[])].some(name=>libraryIdentityKey(name)===canonical));
-  if(new Set(matches.map(bottle=>bottle.id)).size!==1||matches[0].isAlertEligible!==true)return 'standard';
+  if(new Set(matches.map(bottle=>bottle.id)).size!==1||matches[0].isAlertEligible===false)return 'standard';
   const bottle=matches[0],tier=bottle.stateOverrides?.find(o=>o.jurisdiction==='AZ')?.tier||bottle.nationalTier;
   return ({regular:'standard',allocated:'allocated',limited:'limited',highly_allocated:'unicorn',unicorn:'unicorn'})[tier]||'standard';
 }
