@@ -6123,7 +6123,8 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
         }
       }
     }
-  }, { fetchText: options.fetchText || curlTextFetch, signal: options.signal, registeredSources: arizonaAttemptSources(), writeAttempts: options.writeArizonaSourceAttempts });
+  }, { fetchText: options.fetchText || ((url, settings) => PHOENIX_CITYHIVE_EXPANSION_SOURCES.some(source=>url.startsWith(source.baseUrl+'/'))
+    ? textFetch(url,settings) : curlTextFetch(url,settings)), signal: options.signal, registeredSources: arizonaAttemptSources(), writeAttempts: options.writeArizonaSourceAttempts });
 
   if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
     roadblocks.push({
