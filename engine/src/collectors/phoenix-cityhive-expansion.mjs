@@ -1,5 +1,5 @@
 import { standardInventoryBottleIdentity } from '../core/standard-bottle-identity.mjs';
-import { libraryIdentityKey } from '../core/library-catalog.mjs';
+import { libraryIdentityKey } from '../core/library-identity.mjs';
 import { metroBottleMatch } from './arizona-metro-retailer-proof.mjs';
 
 export function phoenixExpansionBottleMatch(rawName,bible) {
