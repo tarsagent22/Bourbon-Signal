@@ -65,6 +65,11 @@ test('production selects the live catalog for every subprocess rebuild, while of
   const jobEnvironment = workflow.slice(0, workflow.indexOf('    steps:'));
   assert.match(jobEnvironment, /BOURBON_SIGNAL_LIBRARY_CATALOG_FILE:.*github\.workspace.*\/engine\/out\/library-catalog\.json/);
   assert(workflow.indexOf('- name: Synchronize the full customer bottle library') < workflow.indexOf('- name: Verify deterministic customer-surface regressions'));
+  const resync=workflow.indexOf('- name: Refresh full bottle library after collection before publication checks');
+  assert(resync>workflow.indexOf('- name: Refresh all due customer-active states'));
+  assert(resync<workflow.indexOf('- name: Verify targeted Arizona retailer inventory expansion'));
+  assert(resync<workflow.indexOf('- name: Verify coherent site contract unconditionally'));
+  assert.match(workflow.slice(resync,workflow.indexOf('- name: Verify North Carolina scheduled continuity',resync)),/run: node src\/sync-library-catalog\.mjs/);
   const root = await mkdtemp(path.join(tmpdir(), 'library-rebuild-'));
   const engine = path.join(root, 'engine');
   const { mkdir } = await import('node:fs/promises');

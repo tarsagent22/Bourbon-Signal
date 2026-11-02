@@ -1,4 +1,5 @@
 const TARGET_ARIZONA_STORE_IDS = new Set(['233','251','319','363','639','700','825','851','854','855','884','909','935','936','950','1141','1209','1242','1316','1327','1335','1360','1361','1386','1429','1432','1439','1838','1863','1905','1959','1960','2083','2140','2149','2176','2227','2236','2341','2354','2365','2368','2400','2747','2915','2920','2944','2953','3261']);
+import { PHOENIX_CITYHIVE_EXPANSION_SOURCES, isPhoenixCityHiveExpansionProof } from './collectors/phoenix-cityhive-expansion.mjs';
 
 import { isMetroRetailerProof } from './collectors/arizona-metro-retailer-proof.mjs';
 const SMART_FINAL_IDS = new Set(['491', '497', '499', '720', '721', '730', '826']);
@@ -21,6 +22,7 @@ export function isArizonaRetailerSignalIdentity(signal) {
   const source = String(signal.sourceLabel || signal.source || '');
   const merchantId = String(signal.merchantId || signal.raw?.option?.merchant_id || signal.raw?.merchantId || '');
   const chain = String(signal.sourceChain || signal.raw?.chain || '');
+  if (PHOENIX_CITYHIVE_EXPANSION_SOURCES.some(source => source.id === chain)) return isPhoenixCityHiveExpansionProof(signal);
   let sourceHostname = '';
   try { sourceHostname = new URL(String(signal.sourceUrl || '')).hostname.replace(/^www\./i, '').toLowerCase(); } catch {}
   if (['mesa-liquor','best-liquor-tempe','liquor-wheel-2-phoenix','virginia-market-phoenix'].includes(chain)) return isMetroRetailerProof(signal);

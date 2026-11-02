@@ -1,17 +1,13 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { normalizeBottleName } from './text.mjs';
+import { libraryIdentityKey } from './library-identity.mjs';
+export { libraryIdentityKey } from './library-identity.mjs';
 import { cityHiveUnsafeBottleMatchReason } from '../collectors/safe-bottle-match.mjs';
 
 export const DROP_TIERS = new Set(['limited', 'allocated', 'highly_allocated', 'unicorn']);
 export const isLibraryDetectionTarget = bottle => DROP_TIERS.has(bottle.nationalTier) || bottle.stateOverrides.some(override => DROP_TIERS.has(override.tier));
 // Keep expression words, numbers, finishes and proof. The legacy fingerprint
 // deliberately drops several of these and must never index new library entries.
-export function libraryIdentityKey(value) {
-  return normalizeBottleName(value).toLowerCase().replace(/&/g, ' and ')
-    .replace(/\b(\d{1,2})\s*(?:years? old|years?|yrs?|y)\b/g, '$1 year')
-    .replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
-}
 
 export function normalizeLibraryCatalog(payload) {
   const input = payload?.bottles || payload?.records;

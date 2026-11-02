@@ -1,4 +1,5 @@
 import {isNjMiRetailerEvent,isNjMiResearchInventory,isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
+import { isPhoenixCityHiveExpansionProof, phoenixExpansionLibraryTier } from './collectors/phoenix-cityhive-expansion.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
 import { selectFleetDropBudget } from './fleet-drop-budget.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
@@ -293,6 +294,8 @@ function findBibleRecord(signal, bible) {
 }
 
 function exportedTier(signal, bibleRecord) {
+  const phoenixTier=phoenixExpansionLibraryTier(signal,bibleRecord);
+  if(phoenixTier)return phoenixTier;
   const signalTier = signal.tier && signal.tier !== 'unknown' ? signal.tier : null;
   return signalTier || bibleRecord?.tier || null;
 }
@@ -413,6 +416,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isNcBoardShipment = signal.state === 'NC'
     && String(signal.eventType || signal.type || '').toLowerCase() === 'nc_board_shipment_snapshot';
   const preferRetailerName = !(signal.state==='IL'&&(isMidwestCityHiveInventory(signal)||isGroceryExpansionInventory(signal)))
+    && !isPhoenixCityHiveExpansionProof(signal)
     && ['IN', 'IL', 'TN', 'SC', 'AZ', 'GA', 'NY', 'CO'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const isCostcoWarehouseInventory = isCostcoWarehouseInventorySignal(signal);
   const isKyOfficialDistillery = isKentuckyOfficialDistillerySignal(signal);

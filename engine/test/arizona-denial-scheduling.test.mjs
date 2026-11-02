@@ -93,12 +93,13 @@ function sweep(directory, {
 test('production denials remain parked while the new source gets its independent first attempt', (t) => {
   const directory = workspace(t);
   const first = sweep(directory, { at: '2026-10-22T17:50:00.000Z' });
-  assert.equal(first.calls.length, 1);
-  assert.equal(new URL(first.calls[0]).hostname, 'a1liquorstore.com');
+  const unseeded=AZ_CITYHIVE_SOURCES.filter(source=>source.id==='a1-liquor-phoenix'||source.strictPremise);
+  assert.equal(first.calls.length, unseeded.length);
+  assert.deepEqual(first.calls.map(url=>new URL(url).hostname),unseeded.map(source=>new URL(source.baseUrl).hostname));
   assert.equal(first.result.signals.length, 0);
-  assert.deepEqual(first.result.metadata.skippedSourceIds, AZ_CITYHIVE_SOURCES.filter(source => source.id !== 'a1-liquor-phoenix').map(source => source.id));
-  assert.equal(Object.keys(first.ledger.sourceAttempts).length, 9);
-  for (const source of AZ_CITYHIVE_SOURCES.filter(source => source.id !== 'a1-liquor-phoenix')) {
+  assert.deepEqual(first.result.metadata.skippedSourceIds, AZ_CITYHIVE_SOURCES.filter(source => !unseeded.includes(source)).map(source => source.id));
+  assert.equal(Object.keys(first.ledger.sourceAttempts).length, AZ_CITYHIVE_SOURCES.length+1);
+  for (const source of AZ_CITYHIVE_SOURCES.filter(source => !unseeded.includes(source))) {
     assert.equal(first.ledger.sourceAttempts[source.id].lastAttemptAt, '2026-10-22T17:07:44.857Z');
     assert.equal(first.ledger.sourceAttempts[source.id].nextAllowedAt, '2026-10-23T17:07:44.857Z');
   }
@@ -339,7 +340,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
       sourceRunnerOptions: { schedule: false, maxAttempts: 3 },
       fetchText: async url => {
         const source = AZ_CITYHIVE_SOURCES.find(source => new URL(source.baseUrl).hostname === new URL(url).hostname);
-        if (source && (source.id === 'a1-liquor-phoenix' || ['denial', 'success'].includes(${JSON.stringify(ledgerFailure)}))) {
+        if (source && (source.id === 'a1-liquor-phoenix' || source.strictPremise || ['denial', 'success'].includes(${JSON.stringify(ledgerFailure)}))) {
           calls.push(url);
           return { ok: ${ledgerFailure === 'success'}, status: ${ledgerFailure === 'success' ? 200 : 403}, text: ${ledgerFailure === 'success'} ? page(source) : '' };
         }
@@ -358,7 +359,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
   const child = spawnSync(process.execPath, ['--input-type=module', '-e', script], { cwd: directory, env: { ...process.env, PATH: '', Path: '', BOURBON_SIGNAL_QUARANTINED_SOURCES: '', BOURBON_SIGNAL_SOURCE_CHECKPOINT_DIRECTORY: '' }, encoding: 'utf8', windowsHide: true, timeout: 20_000 });
   assert.equal(child.status, 0, child.stderr || child.error?.message);
   const { calls, result } = JSON.parse(child.stdout);
-  assert.equal(calls.some(url => new URL(url).hostname === 'mesaliquorstore.com'), ledgerFailure==='none');
+  assert.equal(calls.some(url => new URL(url).hostname === 'mesaliquorstore.com'), ledgerFailure==='none',JSON.stringify(result.roadblocks));
   assert.equal(calls.some(url => new URL(url).hostname === 'bestliquortempe.com'), ledgerFailure==='none');
   assert.ok(calls.some(url => url.includes('/search/substitute')));
   assert.equal(result.signals.filter(signal => signal.sourceChain === 'mesa-liquor').length, ledgerFailure==='none'?1:0);
@@ -367,7 +368,7 @@ for (const ledgerFailure of ['none', 'initial', 'denial', 'success']) test(`full
   assert.ok(result.signals.every(signal => signal.observedAt === at));
   assert.ok(result.roadblocks.every(roadblock => roadblock.sourceRuntimeId === 'precision:az'));
   const riskyRequests = calls.filter(url => AZ_CITYHIVE_SOURCES.some(source => new URL(source.baseUrl).hostname === new URL(url).hostname));
-  assert.equal(riskyRequests.length, ledgerFailure === 'initial' ? 0 : 1);
+  assert.equal(riskyRequests.length, ledgerFailure === 'none' ? 1+AZ_CITYHIVE_SOURCES.filter(s=>s.strictPremise).length : ledgerFailure === 'initial' ? 0 : 1);
   assert.ok(!calls.some(url => new URL(url).hostname === 'flagstaffliquor.com'));
   assert.equal(result.metadata.cityhive.requestCount, riskyRequests.length);
   assert.equal(result.metadata.cityhive.attemptStateAvailable, ledgerFailure === 'none');
