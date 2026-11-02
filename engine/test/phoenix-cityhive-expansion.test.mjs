@@ -11,10 +11,19 @@ import {canonicalizeSignal} from '../src/operational-report.mjs';
 import {bibleLookup,buildDrops} from '../src/export-site-contract.mjs';
 import {isPublicDropFeedEligible} from '../../src/lib/public-drop-evidence.ts';
 import {diagnosePhoenixMetroExpansion} from '../src/verification/phoenix-metro-expansion-verifier.mjs';
+import {normalizeBottleName as browserNormalize} from '../src/core/bottle-name.mjs';
+import {normalizeBottleName as engineNormalize} from '../src/core/text.mjs';
 const fixture=JSON.parse(gunzipSync(await readFile(new URL('./fixtures/phoenix-cityhive-20261102.json.gz',import.meta.url))));
 const bible=await BourbonBible.load(new URL('../out/bourbon-bible.json',import.meta.url));
 const normalize=url=>{const u=new URL(url);u.searchParams.sort();return u.href;};
 const pages=new Map(fixture.pages.map(p=>[normalize(p.url),p]));
+
+test('browser-safe catalog normalization preserves the pinned engine matcher behavior',()=>{
+  const names=fixture.pages.flatMap(page=>page.products.map(product=>product.name));
+  for(const name of [...names,...bible.records.map(row=>row.canonical),'Maker’s Kentucky Straight Bourbon Whiskey 750 ml','A 1.75 l','B 0.75 l','C 1.00 l']){
+    assert.equal(browserNormalize(name),engineNormalize(name));
+  }
+});
 
 async function run(t,{mutate=()=>{},denyHost=null,advanceMs=0}={}){
   const root=await mkdtemp(path.join(tmpdir(),'bs-phoenix-expansion-'));

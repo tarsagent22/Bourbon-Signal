@@ -1,6 +1,4 @@
-import { normalizeBottleName } from './bottle-name.mjs';
-export { normalizeBottleName } from './bottle-name.mjs';
-import { createHash } from 'node:crypto';
+﻿import { createHash } from 'node:crypto';
 
 export function stableId(parts) {
   return createHash('sha1').update(parts.filter(Boolean).join('|')).digest('hex').slice(0, 16);
@@ -36,6 +34,21 @@ export function titleCase(input) {
     .replace(/\bBooker'S\b/g, "Booker's")
     .replace(/\bBaker'S\b/g, "Baker's")
     .replace(/\bCasey Jones\b/g, 'Casey Jones');
+}
+
+export function normalizeBottleName(raw) {
+  return String(raw || '')
+    .normalize('NFKD')
+    .replace(/[’`]/g, "'")
+    .replace(/\b(50|100|200|375|700|750)\s?ml\b/gi, ' ')
+    .replace(/\b1\.?00\s?l\b/gi, ' ')
+    .replace(/\b1\.75\s?l\b/gi, ' ')
+    .replace(/\b0\.75\s?l\b/gi, ' ')
+    .replace(/\bbourbon whiskey\b/gi, 'bourbon')
+    .replace(/\bkentucky straight\b/gi, 'ky straight')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+[,.-]+\s*$/g, '')
+    .trim();
 }
 
 export function fingerprintName(raw) {
