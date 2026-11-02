@@ -20,6 +20,11 @@ on:
         required: false
         type: boolean
         default: false
+      require_phoenix_metro_expansion:
+        description: "Require new Mesa and Chandler exact-store inventory in the published Phoenix expansion"
+        required: false
+        type: boolean
+        default: false
       sources:
         description: "Optional reviewed SC source lane ids; publish fresh target inventory independently and retain siblings as stale context"
         required: false
@@ -324,6 +329,10 @@ jobs:
           done
           exit "$status"
 
+      - name: Refresh full bottle library after collection before publication checks
+        working-directory: engine
+        run: node src/sync-library-catalog.mjs
+
       - name: Verify North Carolina scheduled continuity or isolate a safe partial fallback
         if: ${{ !inputs.states }}
         working-directory: engine
@@ -364,6 +373,7 @@ jobs:
         working-directory: engine
         env:
           BOURBON_SIGNAL_REQUIRE_PHOENIX_EXPANSION: ${{ inputs.require_phoenix_expansion && '1' || '0' }}
+          BOURBON_SIGNAL_REQUIRE_PHOENIX_METRO_EXPANSION: ${{ inputs.require_phoenix_metro_expansion && '1' || '0' }}
         run: npm run verify:az
 
       - name: Verify targeted Illinois exact-store grocery expansion

@@ -1,4 +1,5 @@
 import {arizonaXapiIncidents} from './arizona-xapi-incidents.mjs';
+import { PHOENIX_CITYHIVE_EXPANSION_SOURCES, phoenixExpansionPremise, phoenixExpansionOption } from './phoenix-cityhive-expansion.mjs';
 import {collectIllinoisGrocerySource,ILLINOIS_GROCERY_RUNTIME_ID,ILLINOIS_GROCERY_SOURCE_TIMEOUT_MS} from './illinois-grocery-runtime-source.mjs';
 import { collectCaliforniaGrocerySource, CALIFORNIA_GROCERY_RUNTIME_ID, CALIFORNIA_GROCERY_SOURCE_TIMEOUT_MS } from './california-grocery-runtime-source.mjs';
 import { resolveNevadaXapiPremises, parseBoundNevadaXapiInventory, NEVADA_XAPI_TERMS, nevadaRetailerCohortKey, nevadaRetailerCacheMatchesCohort } from './nevada-xapi-runtime.mjs';
@@ -965,7 +966,8 @@ export const AZ_CITYHIVE_SOURCES = [
     merchantIds: ['68dd5e50f9a9491455c941be'],
     premiseAddress: '901 E Indian School Rd, Phoenix, AZ 85014, USA',
     urls: ['https://a1liquorstore.com/shop/?subtype=bourbon'],
-  }
+  },
+  ...PHOENIX_CITYHIVE_EXPANSION_SOURCES,
 ];
 
 const AZ_FLAGSTAFF_LIQUOR_URL = 'https://flagstaffliquor.com/products.json?limit=250';
@@ -5923,19 +5925,29 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
   const seenProductOptions = new Set();
   const seenStores = new Set();
   const detailChecksBySource = new Map();
+  const phoenixExpansionRequests = [];
 
   if (options.cityHiveSourceIds && (!Array.isArray(options.cityHiveSourceIds) || !options.cityHiveSourceIds.length
     || options.cityHiveSourceIds.some(id => !AZ_CITYHIVE_SOURCES.some(source => source.id === id)))) throw new Error('Unreviewed Arizona CityHive source selection');
   const sources = options.cityHiveSourceIds ? AZ_CITYHIVE_SOURCES.filter(source => options.cityHiveSourceIds.includes(source.id)) : AZ_CITYHIVE_SOURCES;
   const sourceRun = await runArizonaSourcesWithDenialBackoff(sources, async (source, { fetchText }) => {
+    const sourceStartedAt = Date.now();
+    let sourceRequests = 0;
+    const request = async (url, settings) => {
+      if (source.strictPremise && (sourceRequests >= 19 || Date.now() - sourceStartedAt >= 120_000)) return {ok:false,status:0,text:'',error:'Phoenix retailer request/time budget exhausted'};
+      sourceRequests++;
+      const response = await fetchText(url, {...settings, ...(source.strictPremise ? {timeoutMs:10_000} : {})});
+      if (source.strictPremise) phoenixExpansionRequests.push({sourceId:source.id,url,status:response.status,ok:response.ok,finishedAt:new Date().toISOString()});
+      return response;
+    };
     const sourceMerchantIds = new Set(source.merchantIds || []);
     const terms = libraryDetectionQueries(bible).length ? await librarySourceSearchTerms(bible, { sourceKey: `AZ:cityhive:${source.id}`, budget: 3, broadTerms: ['rye'], cursorDir: options.cursorDir }) : [];
-    const urls = [...new Set([...source.urls, ...terms.map(term => `${source.baseUrl}/shop/?search=${encodeURIComponent(term)}`)])];
+    const urls = [...new Set([...source.urls, ...terms.map(term => `${source.baseUrl}/shop/?${source.strictPremise?'ch-query':'search'}=${encodeURIComponent(term)}${source.strictPremise?'&limit=18':''}`)])];
     for (const seedUrl of urls) {
       for (const merchantId of source.merchantIds || []) {
-        for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, AZ_CITYHIVE_MAX_PAGES)) {
+        for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, source.strictPremise ? (new URL(seedUrl).searchParams.has('subtype') ? source.maxPages : 1) : AZ_CITYHIVE_MAX_PAGES)) {
           options.signal?.throwIfAborted();
-          const res = await fetchText(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024, signal: options.signal });
+          const res = await request(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024, signal: options.signal });
           if (!res.ok) {
             roadblocks.push({
               state: config.id,
@@ -5950,6 +5962,11 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
           }
           const blobs = cityHiveJsonBlobs(res.text);
           const products = cityHiveProducts(blobs);
+          const boundPremise = source.strictPremise ? phoenixExpansionPremise(source, cityHiveMerchantConfigs(blobs)) : null;
+          if (source.strictPremise && !boundPremise) {
+            roadblocks.push({state:config.id,source:source.sourceLabel,url,status:'unverified_premise',error:'Current merchant configuration does not confirm the reviewed premise and fulfillment.'});
+            break;
+          }
           for (const cfg of cityHiveMerchantConfigs(blobs)) {
             const merchant = cfg?.merchant || cfg;
             if (!merchant?.id || !sourceMerchantIds.has(String(merchant.id)) || seenStores.has(`${source.id}|${merchant.id}`)) continue;
@@ -5994,6 +6011,7 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
                 const optionMerchantId = String(option.merchant_id || '');
                 if (!sourceMerchantIds.has(optionMerchantId)) continue;
                 const fullAddress = option.full_address || '';
+                if (source.strictPremise && !phoenixExpansionOption(source, boundPremise, product, option)) continue;
                 if (!/,\s*AZ\s+\d{5}/i.test(fullAddress)) continue;
                 if (source.premiseAddress && fullAddress !== source.premiseAddress) continue;
                 if (!isBourbonRelevantProduct(product, option)) continue;
@@ -6058,6 +6076,13 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
                   sourceUrl: url,
                   sourceChain: source.id,
                   merchantId: optionMerchantId,
+                  ...(source.strictPremise ? {productId:option.product_id,optionId:option.option_id,variantId:option.option_id,quantityIsExact:true,
+                    sourceProductBinding:{schemaVersion:1,source:'phoenix-cityhive-expansion',
+                      merchant:{id:boundPremise.id,name:boundPremise.name,address:{full_address:boundPremise.address.full_address,location:boundPremise.address.location},accept_orders:boundPremise.accept_orders,pickup:boundPremise.pickup,delivery:boundPremise.delivery},
+                      product:{id:product.id,name:product.name,merchants:product.merchants.map(m=>({merchant_id:m.merchant_id,full_address:m.full_address,offer_types:m.offer_types}))},
+                      option:{product_id:option.product_id,option_id:option.option_id,option_params:option.option_params,product_url:option.product_url,quantity:option.quantity,merchant_id:option.merchant_id,full_address:option.full_address,price:option.price,coordinates:option.coordinates,allowed_offer_types:option.allowed_offer_types,preorder_details:option.preorder_details,option_display_data:{name:option.option_display_data?.name}},
+                      productId:option.product_id,optionId:option.option_id,rawName,canonicalBottleId:record.id,canonicalName:record.canonical,
+                      price,quantity,observedAt}} : {}),
                   rawName,
                   canonicalBottleId: record.id,
                   canonicalName: record.canonical,
@@ -6089,7 +6114,7 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
                     : detailAvailabilityVerified
                       ? `${source.chainName} product-detail JSON-LD verifies the selected option for ${rawName} is InStock at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}; exact quantity is not published.`
                       : `${source.chainName} CityHive lists ${rawName}${size ? ` (${size})` : ''} at ${fullAddress}${price ? ` for $${price.toFixed(2)}` : ''}; the sentinel value does not prove current availability.`,
-                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, reportedQuantity, detailEvidence, quantitySemantics: exactQuantityKnown ? 'exact_retailer_quantity' : detailAvailabilityVerified ? 'binary_detail_availability' : 'catalog_sentinel_unverified', matchGuard: unsafeReason }
+                  raw: { chain: source.id, product: { id: product.id, name: product.name, basic_category: product.basic_category }, ...(source.strictPremise ? {boundProduct:{id:product.id,name:product.name,merchants:product.merchants.map(m=>({merchant_id:m.merchant_id,full_address:m.full_address,offer_types:m.offer_types}))}} : {}), option, reportedQuantity, detailEvidence, quantitySemantics: exactQuantityKnown ? 'exact_retailer_quantity' : detailAvailabilityVerified ? 'binary_detail_availability' : 'catalog_sentinel_unverified', matchGuard: unsafeReason }
                 });
               }
             }
@@ -6114,7 +6139,7 @@ export async function collectArizonaCityHive(config, bible, observedAt = new Dat
       nextRoute: 'Inspect embedded CityHive product JSON and exact bottle aliases; do not weaken identity or in-stock guards.'
     });
   }
-  return { signals, roadblocks: [...roadblocks, ...sourceRun.roadblocks], metadata: sourceRun.metadata };
+  return { signals, roadblocks: [...roadblocks, ...sourceRun.roadblocks], metadata: {...sourceRun.metadata,phoenixExpansionRequests} };
 }
 
 async function collectArizona(config, bible, options = {}) {

@@ -8,6 +8,7 @@ import { libraryIdentityKey } from './core/library-catalog.mjs';
 import { stripHtml } from './core/text.mjs';
 import { arizonaXapiLibraryIdentity } from './collectors/arizona-xapi-library-identity.mjs';
 import { metroBottleMatch } from './collectors/arizona-metro-retailer-proof.mjs';
+import { diagnosePhoenixMetroExpansion } from './verification/phoenix-metro-expansion-verifier.mjs';
 import { isPublicDropFeedEligible } from '../../src/lib/public-drop-evidence.ts';
 import { ARIZONA_XAPI_BASELINE_STORE_IDS, ARIZONA_XAPI_PREVIOUS_STORE_IDS, ARIZONA_XAPI_RELEASED_STORE_IDS, ARIZONA_XAPI_SEARCH_LIMIT, ARIZONA_XAPI_SEARCH_ROWS, ARIZONA_XAPI_RARE_QUERY_LIMIT, ARIZONA_XAPI_PRIORITY_TERMS } from './collectors/arizona-xapi.mjs';
 
@@ -273,14 +274,19 @@ async function main() {
     expectations:process.env.BOURBON_SIGNAL_REQUIRE_PHOENIX_EXPANSION==='1'
       ?{minimumPhoenixPublicRows:4,minimumPhoenixAllocatedRows:2}:{} };
   const diagnostics = diagnoseArizonaExpansionArtifact(input);
+  const metro=diagnosePhoenixMetroExpansion({state,drops,bibleRecords:bible.records,required:process.env.BOURBON_SIGNAL_REQUIRE_PHOENIX_METRO_EXPANSION==='1'});
+  diagnostics.errors.push(...metro.errors);
+  diagnostics.status=diagnostics.errors.length?'failed':'ok';
   await writeFile(path.join(out, 'az-expansion-verification.json'), JSON.stringify({
-    checkedAt: new Date().toISOString(), runId: stats.runId, ...diagnostics,
+    checkedAt: new Date().toISOString(), runId: stats.runId, ...diagnostics,phoenixMetroExpansion:metro,
     alertCandidateIdentities: rows(alerts, 'alerts').filter((row) => row?.state === 'AZ' || row?.stateCode === 'AZ').map((row) => ({
       sourceIdentity: identity(row), id: row.id, dedupeKey: row.dedupeKey, changeType: row.changeType,
       observedAt: row.observedAt, canonicalBottleId: row.canonicalBottleId, quantity: row.quantity, price: row.price,
     })),
   }, null, 2));
-  console.log(JSON.stringify(verifyArizonaExpansionArtifact(input), null, 2));
+  verifyArizonaExpansionArtifact(input);
+  if(metro.errors.length)throw new Error(metro.errors.join('\n'));
+  console.log(JSON.stringify({...diagnostics,phoenixMetroExpansion:metro}, null, 2));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
