@@ -7,9 +7,42 @@ import {
   buildAvailabilityEpisodeIndex,
   buildCurrentInventoryAlertsFromDrops,
   buildDrops,
+  publicSignal,
 } from '../src/export-site-contract.mjs';
 
 const fixture = JSON.parse(await readFile(new URL('./fixtures/availability-episodes.json', import.meta.url), 'utf8'));
+
+test('retailer display IDs preserve the collector subject and the already-delivered episode across refreshes', () => {
+  const start = '2026-11-01T12:00:00.000Z';
+  const checked = '2026-11-02T12:00:00.000Z';
+  const signal = { ...fixture.identity, state: 'AZ', sourceRuntimeId: 'precision:az',
+    sourceChain: 'safeway', storeId: 'safeway:343', productId: '971300456',
+    canonicalBottleId: 'bb-eagle-rare-12', canonicalName: 'Eagle Rare 12 Year',
+    rawName: 'Eagle Rare 12yr Bourbon - 750 ML', eventType: 'retailer_store_inventory_result',
+    availabilityStatus: 'in_stock', sourceAvailabilityVerified: true, quantity: 1, observedAt: start };
+  const subject = availabilityEpisodeIdentity(signal);
+  const state = buildAvailabilityEpisodeIndex([signal]).get(subject);
+  const display = publicSignal(signal, { byId: new Map(), byName: new Map() }, {
+    firstSeenAt: start, lastConfirmedAt: start, availabilityEpisodeId: state.id, availabilityEpisodeStartedAt: start,
+  });
+  assert.notEqual(display.canonicalBottleId, signal.canonicalBottleId);
+  assert.equal(display.availabilitySubjectId, subject);
+  assert.equal(availabilityEpisodeIdentity(display), subject);
+  const legacy = { ...display }; delete legacy.availabilitySubjectId;
+  for (const previous of [display, legacy]) {
+    const next = { ...signal, observedAt: checked, quantity: 7 };
+    const resumed = buildAvailabilityEpisodeIndex([next], { previousDrops: [previous] }).get(subject);
+    assert.equal(resumed.id, state.id, 'existing delivery identity must survive deployment and refreshed stock');
+    assert.equal(resumed.lastConfirmedAt, checked);
+    const unavailable = { ...next, observedAt: '2026-11-02T12:10:00.000Z', quantity: 0, availabilityStatus: 'out_of_stock' };
+    const restock = { ...next, observedAt: '2026-11-02T12:20:00.000Z' };
+    assert.notEqual(buildAvailabilityEpisodeIndex([next, unavailable, restock], { previousDrops: [previous] }).get(subject).id, state.id);
+    for (const changed of [{storeId:'safeway:other'}, {productId:'other'}, {sourceRuntimeId:'other'}, {variantId:'other'}]) {
+      const other = { ...next, ...changed };
+      assert.notEqual(buildAvailabilityEpisodeIndex([other], { previousDrops: [legacy] }).get(availabilityEpisodeIdentity(other)).id, state.id);
+    }
+  }
+});
 
 function observations(name) {
   return fixture.cases[name].map((observation) => ({ ...fixture.identity, ...observation }));
