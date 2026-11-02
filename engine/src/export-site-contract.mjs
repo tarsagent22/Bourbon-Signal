@@ -584,7 +584,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     firstSeenAt,
     lastConfirmedAt,
     availabilityEpisodeId: freshness?.availabilityEpisodeId || null,
-    availabilitySubjectId: availabilityEpisodeIdentity(signal),
+    availabilityBottleId: availabilityBottleIdentity(signal),
     availabilityEpisodeStartedAt: freshness?.availabilityEpisodeStartedAt || null,
     availabilityEpisodeKind: freshness?.availabilityEpisodeKind || null,
     listingChangedAt: freshness?.listingChangedAt || null,
@@ -820,7 +820,6 @@ function availabilityObservationAt(signal) {
 
 export function availabilityEpisodeIdentity(signal) {
   if (!signal || typeof signal !== 'object') return '';
-  if (signal.availabilitySubjectId) return signal.availabilitySubjectId;
   const source = signal.sourceRuntimeId
     || signal.leafSourceRuntimeId
     || signal.sourceChain
@@ -828,12 +827,7 @@ export function availabilityEpisodeIdentity(signal) {
     || signal.sourceUrl
     || signal.sourceLabel
     || signal.source;
-  const bottle = signal.canonicalBottleId
-    || signal.canonicalId
-    || signal.bottleId
-    || signal.canonicalName
-    || signal.bottleName
-    || signal.rawName;
+  const bottle = availabilityBottleIdentity(signal);
   const location = signal.storeId
     || signal.runtimeStoreId
     || signal.storeAddress
@@ -842,6 +836,11 @@ export function availabilityEpisodeIdentity(signal) {
   if (!source || !bottle || !location) return '';
   const variant = signal.variantId || signal.optionId || signal.raw?.variant?.id || signal.raw?.option?.option_id;
   return stableId(['availability_subject', signal.state || signal.stateCode || '', source, bottle, location, ...(variant ? [variant] : [])]);
+}
+
+function availabilityBottleIdentity(signal) {
+  return signal.availabilityBottleId || signal.canonicalBottleId || signal.canonicalId
+    || signal.bottleId || signal.canonicalName || signal.bottleName || signal.rawName;
 }
 
 // Public retailer rows can use a source-name display ID instead of the collector's
@@ -899,7 +898,8 @@ export function buildAvailabilityEpisodeIndex(signals = [], { previousDrops = []
       ? previousDrops.drops
       : [];
   for (const drop of previousDropRows) {
-    const subjectId = drop.availabilitySubjectId || sourceSubjects.get(availabilitySourceProductIdentity(drop))?.subject || availabilityEpisodeIdentity(drop);
+    const subjectId = drop.availabilityBottleId ? availabilityEpisodeIdentity(drop)
+      : sourceSubjects.get(availabilitySourceProductIdentity(drop))?.subject || availabilityEpisodeIdentity(drop);
     if (!subjectId) continue;
     const seed = seededAvailabilityEpisode(drop, subjectId);
     const existing = index.get(subjectId);

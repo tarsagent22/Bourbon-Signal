@@ -26,9 +26,10 @@ test('retailer display IDs preserve the collector subject and the already-delive
     firstSeenAt: start, lastConfirmedAt: start, availabilityEpisodeId: state.id, availabilityEpisodeStartedAt: start,
   });
   assert.notEqual(display.canonicalBottleId, signal.canonicalBottleId);
-  assert.equal(display.availabilitySubjectId, subject);
+  assert.equal(display.availabilityBottleId, signal.canonicalBottleId);
   assert.equal(availabilityEpisodeIdentity(display), subject);
-  const legacy = { ...display }; delete legacy.availabilitySubjectId;
+  assert.notEqual(availabilityEpisodeIdentity({ ...display, storeId: 'safeway:other' }), subject);
+  const legacy = { ...display }; delete legacy.availabilityBottleId;
   for (const previous of [display, legacy]) {
     const next = { ...signal, observedAt: checked, quantity: 7 };
     const resumed = buildAvailabilityEpisodeIndex([next], { previousDrops: [previous] }).get(subject);
