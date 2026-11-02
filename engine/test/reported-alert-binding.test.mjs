@@ -41,3 +41,16 @@ test('verified Arizona binary stock also remains eligible for current-inventory 
  assert.equal(bindReportedInventoryAlertsToPublicDrops(current,drops).length,1);
  assert.equal(buildCurrentInventoryAlertsFromDrops(drops.map(d=>({...d,sourceProductBinding:null}))).length,0);
 });
+
+test('reported changes and current stock share one delivery identity for the same availability episode',t=>{
+ const{drops,alerts}=replay(t);
+ const [reported]=bindReportedInventoryAlertsToPublicDrops(alerts,drops);
+ const [current]=buildCurrentInventoryAlertsFromDrops(drops);
+ assert.ok(current.availabilityEpisodeId);
+ assert.equal(reported.eventIdentityKey,current.eventIdentityKey);
+ assert.equal(reported.dedupeKey,current.dedupeKey);
+ assert.equal(reported.availabilityEpisodeId,current.availabilityEpisodeId);
+ assert.equal(reported.legacyDedupeKey,alerts[0].dedupeKey);
+ const repeated=bindReportedInventoryAlertsToPublicDrops([reported],drops);
+ assert.equal(repeated[0].legacyDedupeKey,alerts[0].dedupeKey);
+});

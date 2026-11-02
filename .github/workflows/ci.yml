@@ -50,6 +50,12 @@ jobs:
       - name: Verify engine reliability and expansion capacity
         run: npm --prefix engine run verify:reliability
 
+      - name: Verify inventory alert continuity across refreshes
+        run: |
+          npm run test:alert-dedupe
+          npm run test:availability-episode-alerts
+          node --test engine/test/reported-alert-binding.test.mjs
+
       - name: Verify default-off refresh continuation and harmless smoke guards
         run: node --test scripts/test-refresh-continuation.mjs
 

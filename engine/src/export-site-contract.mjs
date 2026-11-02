@@ -584,6 +584,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     firstSeenAt,
     lastConfirmedAt,
     availabilityEpisodeId: freshness?.availabilityEpisodeId || null,
+    availabilityBottleId: availabilityBottleIdentity(signal),
     availabilityEpisodeStartedAt: freshness?.availabilityEpisodeStartedAt || null,
     availabilityEpisodeKind: freshness?.availabilityEpisodeKind || null,
     listingChangedAt: freshness?.listingChangedAt || null,
@@ -826,12 +827,7 @@ export function availabilityEpisodeIdentity(signal) {
     || signal.sourceUrl
     || signal.sourceLabel
     || signal.source;
-  const bottle = signal.canonicalBottleId
-    || signal.canonicalId
-    || signal.bottleId
-    || signal.canonicalName
-    || signal.bottleName
-    || signal.rawName;
+  const bottle = availabilityBottleIdentity(signal);
   const location = signal.storeId
     || signal.runtimeStoreId
     || signal.storeAddress
@@ -840,6 +836,23 @@ export function availabilityEpisodeIdentity(signal) {
   if (!source || !bottle || !location) return '';
   const variant = signal.variantId || signal.optionId || signal.raw?.variant?.id || signal.raw?.option?.option_id;
   return stableId(['availability_subject', signal.state || signal.stateCode || '', source, bottle, location, ...(variant ? [variant] : [])]);
+}
+
+function availabilityBottleIdentity(signal) {
+  return signal.availabilityBottleId || signal.canonicalBottleId || signal.canonicalId
+    || signal.bottleId || signal.canonicalName || signal.bottleName || signal.rawName;
+}
+
+// Public retailer rows can use a source-name display ID instead of the collector's
+// canonical bottle ID. Bridge older exports only through an exact source product
+// at the same premise; never infer continuity from a bottle name or a region.
+function availabilitySourceProductIdentity(signal) {
+  const source = signal.sourceRuntimeId || signal.leafSourceRuntimeId || signal.sourceChain || signal.merchantId || signal.sourceUrl || signal.sourceLabel || signal.source;
+  const location = signal.storeId || signal.runtimeStoreId || signal.storeAddress;
+  const product = signal.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || signal.sourceProductProofId || signal.productCode || signal.sku;
+  const variant = signal.variantId || signal.optionId || signal.raw?.variant?.id || signal.raw?.option?.option_id || '';
+  if (!source || !location || !product) return '';
+  return JSON.stringify([signal.state || signal.stateCode || '', source, location, String(product), String(variant)]);
 }
 
 function availabilityEpisodeId(subjectId, startedAt) {
@@ -869,13 +882,24 @@ function seededAvailabilityEpisode(drop, subjectId) {
 
 export function buildAvailabilityEpisodeIndex(signals = [], { previousDrops = [] } = {}) {
   const index = new Map();
+  const sourceSubjects = new Map();
+  for (const signal of signals) {
+    const key = availabilitySourceProductIdentity(signal);
+    const subject = availabilityEpisodeIdentity(signal);
+    const at = Date.parse(availabilityObservationAt(signal) || '');
+    if (!key || !subject || !Number.isFinite(at)) continue;
+    const prior = sourceSubjects.get(key);
+    if (!prior || at > prior.at) sourceSubjects.set(key, { subject, at });
+    else if (at === prior.at && prior.subject !== subject) sourceSubjects.set(key, { subject: null, at });
+  }
   const previousDropRows = Array.isArray(previousDrops)
     ? previousDrops
     : Array.isArray(previousDrops?.drops)
       ? previousDrops.drops
       : [];
   for (const drop of previousDropRows) {
-    const subjectId = availabilityEpisodeIdentity(drop);
+    const subjectId = drop.availabilityBottleId ? availabilityEpisodeIdentity(drop)
+      : sourceSubjects.get(availabilitySourceProductIdentity(drop))?.subject || availabilityEpisodeIdentity(drop);
     if (!subjectId) continue;
     const seed = seededAvailabilityEpisode(drop, subjectId);
     const existing = index.get(subjectId);
@@ -2047,8 +2071,9 @@ export function bindReportedInventoryAlertsToPublicDrops(candidates, drops, {sho
     if (!byIdentity.has(key)) byIdentity.set(key, []);
     byIdentity.get(key).push(drop);
   }
-  return (candidates || []).filter(candidate => candidate.action !== 'inventory_alert_candidate'
-    || (byIdentity.get(identity(candidate)) || []).some(drop =>
+  return (candidates || []).flatMap(candidate => {
+    if (candidate.action !== 'inventory_alert_candidate') return [candidate];
+    const matched = (byIdentity.get(identity(candidate)) || []).find(drop =>
       candidate.observedAt === drop.observedAt
       && candidate.availabilityStatus === drop.availabilityStatus
       && String(candidate.eventType || candidate.type) === String(drop.type || drop.eventType)
@@ -2056,7 +2081,19 @@ export function bindReportedInventoryAlertsToPublicDrops(candidates, drops, {sho
       && Number(candidate.price || 0) === Number(drop.price || 0)
       && candidate.storeAddress === drop.storeAddress && candidate.city === drop.city
       && !(drop.quantityIsExact === false && candidate.quantityIsExact !== false)
-      && !(Number(drop.quantity || 0) === 0 && candidate.quantityIsExact === true)));
+      && !(Number(drop.quantity || 0) === 0 && candidate.quantityIsExact === true));
+    if (!matched) return [];
+    if (!matched.availabilityEpisodeId) return [candidate];
+    const eventIdentityKey = `availability-episode:${matched.availabilityEpisodeId}`;
+    return [{ ...candidate,
+      availabilityEpisodeId: matched.availabilityEpisodeId,
+      availabilityEpisodeStartedAt: matched.availabilityEpisodeStartedAt,
+      availabilityEpisodeKind: matched.availabilityEpisodeKind,
+      eventIdentityKey,
+      legacyDedupeKey: candidate.legacyDedupeKey || candidate.dedupeKey,
+      dedupeKey: stableId(['current_inventory_alert', eventIdentityKey]),
+    }];
+  });
 }
 
 export function buildCurrentInventoryAlertsFromDrops(drops, { shopifyPolicy } = {}) {
