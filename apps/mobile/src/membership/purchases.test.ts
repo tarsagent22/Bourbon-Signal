@@ -114,6 +114,32 @@ test("normal Free sign-in does not trigger a store restore or server purchase re
   assert.equal(h.events.some(e => e.startsWith("reconcile:") || e === "restore"), false);
 });
 
+test("server-confirmed membership changes refresh screens without a native receipt reconciliation", async () => {
+  const h = harness();
+  h.adapter.getActiveSubscriptionProductIds = async () => [];
+  let tier: "free" | "barrel" = "free";
+  h.api.getMemberProfile = async () => profile(tier);
+  const changed: string[] = [];
+  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public", onMembershipChanged: id => changed.push(id) });
+  const session = { isLoaded: true, isSignedIn: true, userId: "member-A" };
+  await coordinator.recognizeSession(session);
+  assert.deepEqual(changed, []);
+  tier = "barrel";
+  await coordinator.recognizeSession(session);
+  assert.equal(coordinator.getState().profile?.membership.paid, true);
+  assert.deepEqual(changed, ["member-A"]);
+  await coordinator.recognizeSession(session);
+  assert.deepEqual(changed, ["member-A"], "unchanged access must not repeatedly invalidate screens");
+  tier = "free";
+  await coordinator.recognizeSession(session);
+  assert.deepEqual(changed, ["member-A", "member-A"]);
+  tier = "barrel";
+  const returningMember = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public", onMembershipChanged: id => changed.push(id) });
+  await returningMember.recognizeSession(session);
+  assert.deepEqual(changed, ["member-A", "member-A", "member-A"], "existing paid access refreshes screens on sign-in too");
+  assert.equal(h.events.some(e => e.startsWith("reconcile:") || e === "restore"), false);
+});
+
 test("an active native receipt cannot grant access when server confirmation fails", async () => {
   const h = harness({ reconcileError: new Error("ownership mismatch") });
   h.adapter.getActiveSubscriptionProductIds = async () => [APPLE_PRODUCT_IDS.barrel.monthly];

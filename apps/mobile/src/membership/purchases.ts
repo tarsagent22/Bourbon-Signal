@@ -287,7 +287,13 @@ export function createPurchaseCoordinator({
         configuredUserId = userId;
         const profileResponse = await api.getMemberProfile({ fresh: true });
         if (!current()) return state;
+        const previousMembership = state.profile?.membership;
         publish({ profile: profileResponse.profile });
+        if (previousMembership
+          ? previousMembership.tier !== profileResponse.profile.membership.tier || previousMembership.paid !== profileResponse.profile.membership.paid
+          : profileResponse.profile.membership.paid) {
+          try { onMembershipChanged?.(userId); } catch { /* Screen refresh cannot invalidate confirmed access. */ }
+        }
         const readiness = await membershipApi.readiness({ fresh: true });
         if (!current() || !readiness.available) return state;
         publish({ membership: readiness.membership, restoreAvailable: readiness.restoreAvailable,
