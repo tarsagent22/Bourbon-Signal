@@ -18,7 +18,8 @@ concurrency:
 
 jobs:
   ios-compile:
-    runs-on: macos-latest
+    # Pin the supported Intel image while hosted arm64 capacity is constrained.
+    runs-on: macos-26-intel
     timeout-minutes: 35
     defaults:
       run:
