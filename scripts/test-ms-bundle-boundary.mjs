@@ -371,6 +371,10 @@ test('coverage test allowance preserves MS assertions and every other test byte'
   const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
   const originalHash = evidence.implementationFilesSha256[name];
   assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), originalHash);
+  const ncCount = 'assert.equal(northCarolina.scope.knownBoards, 174, "NC coverage must expose every current official ABC board separately from stores");';
+  for (const changed of [current.replace(ncCount, ncCount.replace('174', '175')), current.replace(ncCount, ''), current + '\n' + ncCount]) {
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(changed)), /NC official board count .*exact historical verification hook/);
+  }
   for (const line of [
     '  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro", "Suffolk County"]],\n',
     '  ["CO", ["Boulder County", "Colorado Springs", "Denver Metro"]],\n',
