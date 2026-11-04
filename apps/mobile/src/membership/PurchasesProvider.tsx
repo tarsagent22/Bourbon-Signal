@@ -1,6 +1,6 @@
 import { useAuth } from "@clerk/expo";
 import { createContext, type PropsWithChildren, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import { useMobileApi } from "../hooks/useMobileApi";
 import {
   createPurchaseCoordinator,
@@ -10,6 +10,7 @@ import {
   type PurchaseCoordinatorState,
 } from "./purchases";
 import { createRevenueCatPurchaseAdapter } from "./revenuecat-adapter";
+import { notifyMembershipChanged } from "./membership-events";
 
 const initialState: PurchaseCoordinatorState = {
   status: "signed_out",
@@ -48,6 +49,7 @@ export function PurchasesProvider({ children, adapter: injectedAdapter }: PropsW
     publicAndroidApiKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY || "",
     publicIosApiKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY || "",
     platform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web",
+    onMembershipChanged: notifyMembershipChanged,
   }), [adapter, api]);
   const [state, setState] = useState<PurchaseCoordinatorState>(coordinator.getState());
   const sessionRef = useRef({ isLoaded: auth.isLoaded, isSignedIn: Boolean(auth.isSignedIn), userId: auth.userId || null });
@@ -55,11 +57,24 @@ export function PurchasesProvider({ children, adapter: injectedAdapter }: PropsW
 
   useEffect(() => coordinator.subscribe(setState), [coordinator]);
   useEffect(() => {
-    // Keep native StoreKit/RevenueCat out of the root launch path. Membership
-    // pages can request an explicit refresh once the app is open; this keeps
-    // front-end review screens usable even when native purchase setup is absent.
-    if (!auth.isLoaded || auth.isSignedIn) return;
-    void coordinator.syncSession(sessionRef.current);
+    if (!auth.isLoaded) return;
+    if (!auth.isSignedIn || Platform.OS === "web") {
+      void coordinator.syncSession(sessionRef.current);
+      return;
+    }
+    // Run after the first screen can render; never wait for purchase prices or
+    // present a restore/authentication sheet during normal sign-in.
+    let lastCheck = 0;
+    const recognize = () => {
+      if (Date.now() - lastCheck < 30_000) return;
+      lastCheck = Date.now();
+      void coordinator.recognizeSession(sessionRef.current);
+    };
+    const timer = setTimeout(recognize, 1_200);
+    const subscription = AppState.addEventListener("change", state => {
+      if (state === "active") recognize();
+    });
+    return () => { clearTimeout(timer); subscription.remove(); };
   }, [auth.isLoaded, auth.isSignedIn, auth.userId, coordinator]);
 
   // Stable across purchase-state updates so screen entry effects do not keep

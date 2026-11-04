@@ -115,14 +115,14 @@ export function createAppleMembershipApiHandlers(dependencies: {
     const payload = await request.json().catch(() => null) as Record<string, unknown> | null;
     const action = payload?.action;
     const productId = payload?.productId;
-    if (action !== "purchase" && action !== "restore") {
-      return errorResponse(400, "INVALID_REQUEST", "Action must be purchase or restore.");
+    if (action !== "purchase" && action !== "restore" && action !== "sync") {
+      return errorResponse(400, "INVALID_REQUEST", "Action must be purchase, restore, or sync.");
     }
     if (action === "purchase" && (typeof productId !== "string" || !productIds.includes(productId))) {
       return errorResponse(422, "PRODUCT_NOT_ALLOWED", "That Apple membership product is not supported.");
     }
-    if (action === "restore" && productId !== undefined) {
-      return errorResponse(400, "INVALID_REQUEST", "Restore does not accept a client-selected product.");
+    if ((action === "restore" || action === "sync") && productId !== undefined) {
+      return errorResponse(400, "INVALID_REQUEST", "Membership recognition does not accept a client-selected product.");
     }
     try {
       const account = await dependencies.getAccount(clerkUserId);

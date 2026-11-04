@@ -171,6 +171,7 @@ export interface AppleMembershipReadinessResponse {
 }
 
 export type AppleMembershipReconciliationRequest =
+  | { action: "sync"; productId?: never }
   | { action: "purchase"; productId: AppleMembershipProductId }
   | { action: "restore"; productId?: never };
 

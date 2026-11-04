@@ -93,6 +93,52 @@ function harness(overrides: {
   return { adapter, api, events };
 }
 
+test("sign-in recognizes a verified subscription without offerings, purchase, or Restore", async () => {
+  const h = harness();
+  h.adapter.getActiveSubscriptionProductIds = async () => [APPLE_PRODUCT_IDS.barrel.monthly];
+  const changed: string[] = [];
+  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public", onMembershipChanged: id => changed.push(id) });
+  await coordinator.recognizeSession({ isLoaded: true, isSignedIn: true, userId: "member-A" });
+  assert.equal(coordinator.getState().profile?.membership.paid, true);
+  assert.ok(h.events.includes("reconcile:sync:none"));
+  assert.equal(h.events.some(e => e === "offering" || e === "restore" || e.startsWith("purchase:")), false);
+  assert.deepEqual(changed, ["member-A"]);
+});
+
+test("normal Free sign-in does not trigger a store restore or server purchase reconciliation", async () => {
+  const h = harness();
+  h.adapter.getActiveSubscriptionProductIds = async () => [];
+  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public" });
+  await coordinator.recognizeSession({ isLoaded: true, isSignedIn: true, userId: "member-free" });
+  assert.equal(coordinator.getState().profile?.membership.paid, false);
+  assert.equal(h.events.some(e => e.startsWith("reconcile:") || e === "restore"), false);
+});
+
+test("an active native receipt cannot grant access when server confirmation fails", async () => {
+  const h = harness({ reconcileError: new Error("ownership mismatch") });
+  h.adapter.getActiveSubscriptionProductIds = async () => [APPLE_PRODUCT_IDS.barrel.monthly];
+  const changed: string[] = [];
+  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public", onMembershipChanged: id => changed.push(id) });
+  await coordinator.recognizeSession({ isLoaded: true, isSignedIn: true, userId: "member-A" });
+  assert.equal(coordinator.getState().profile?.membership.paid, false);
+  assert.deepEqual(changed, []);
+});
+
+test("returning from the Apple purchase sheet does not cancel an in-flight purchase", async () => {
+  const h = harness();
+  let finish!: () => void;
+  h.adapter.purchase = async () => new Promise<void>(resolve => { finish = resolve; });
+  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public" });
+  const session = { isLoaded: true, isSignedIn: true, userId: "member-A" };
+  await coordinator.syncSession(session);
+  const purchasing = coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly);
+  await coordinator.recognizeSession(session);
+  assert.equal(coordinator.getState().status, "purchasing");
+  finish();
+  await purchasing;
+  assert.equal(coordinator.getState().profile?.membership.paid, true);
+});
+
 test("Apple product mapping is immutable, complete, and ignores unapproved products", () => {
   assert.deepEqual(APPLE_PRODUCT_IDS, {
     standard: {

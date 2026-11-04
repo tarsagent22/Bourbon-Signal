@@ -391,6 +391,25 @@ test("purchase readiness exposes only the two live monthly products", async () =
   assert.deepEqual(body.eligibleProductIds, [...APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS]);
 });
 
+test("silent recognition uses the authenticated account and rejects a client-selected product", async () => {
+  const calls: string[] = [];
+  const handlers = createAppleMembershipApiHandlers({
+    configuration: () => ({ ready: true, apiKey: "key", webhookSecret: "secret" }),
+    getAccount: async () => ({ publicMetadata: {}, privateMetadata: {} }),
+    readCurrent: async () => null,
+    reconcile: async input => {
+      calls.push(input.clerkUserId);
+      return { outcome: "applied", effectiveTier: "barrel", membership: recordFrom(snapshot({ productId: APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0] })) };
+    },
+  });
+  const request = (body: unknown) => new Request("https://example.test/api/v1/me/apple-membership", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const response = await handlers.reconcile(request({ action: "sync", clerkUserId: USER_B }), USER_A);
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls, [USER_A]);
+  assert.equal((await handlers.reconcile(request({ action: "sync", productId: APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0] }), USER_A)).status, 400);
+  assert.deepEqual(calls, [USER_A]);
+});
+
 test("Apple transaction binding rejects wrong bundle, product, environment, transaction, and purchase type", async () => {
   const input = { transactionId: "1001", productId: APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0], environment: "sandbox" as const };
   const decoded = { transactionId: "1001", originalTransactionId: "1000", productId: input.productId, environment: Environment.SANDBOX, bundleId: "com.bourbonsignal.app", type: "Auto-Renewable Subscription" };

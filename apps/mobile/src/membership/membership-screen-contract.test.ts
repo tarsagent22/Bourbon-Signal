@@ -90,10 +90,12 @@ test("the authenticated app tree owns the purchase provider and no paywall UI de
   assert.doesNotMatch(packageJson, /react-native-purchases-ui/);
 });
 
-test("the purchase provider does not initialize StoreKit during root startup", () => {
+test("the purchase provider defers automatic recognition and loads prices only on membership routes", () => {
   const provider = read("src/membership/PurchasesProvider.tsx");
   const planScreen = read("app/(app)/account/membership/[tier].tsx");
-  assert.match(provider, /if \(!auth\.isLoaded \|\| auth\.isSignedIn\) return;/);
+  assert.match(provider, /setTimeout\(recognize, 1_200\)/);
+  assert.match(provider, /coordinator\.recognizeSession\(sessionRef\.current\)/);
+  assert.doesNotMatch(provider, /loadDefaultOffering|syncPurchases/);
   assert.match(planScreen, /Refresh purchase status/);
   for (const screen of [planScreen, read("app/(app)/account/membership.tsx")]) {
     assert.match(screen, /useEffect\(\(\) => \{ void refreshPurchases\(\); \}, \[refreshPurchases\]\)/,

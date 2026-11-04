@@ -32,6 +32,32 @@ function sdkHarness(errorCode?: string) {
   return { sdk, calls };
 }
 
+test("a remounted adapter identifies the signed-in account in an already-configured native SDK", async () => {
+  const { sdk, calls } = sdkHarness();
+  let nativeUser = "previous-account";
+  const persistedSdk = { ...sdk, isConfigured: async () => true, getAppUserID: async () => nativeUser,
+    logIn: async (id: string) => { calls.push(`login:${id}`); nativeUser = id; },
+    getCustomerInfo: async () => ({ activeSubscriptions: [APPLE_PRODUCT_IDS.barrel.monthly] }) };
+  const adapter = createRevenueCatPurchaseAdapter(async () => ({ default: persistedSdk }));
+  await adapter.configure({ apiKey: "appl_public", appUserId: "signed-in-account" });
+  assert.deepEqual(await adapter.getActiveSubscriptionProductIds?.(), [APPLE_PRODUCT_IDS.barrel.monthly]);
+  assert.deepEqual(calls, ["login:signed-in-account"]);
+  nativeUser = "unexpected-account";
+  await adapter.restore();
+  assert.equal(nativeUser, "signed-in-account");
+  assert.deepEqual(calls.slice(-2), ["login:signed-in-account", "restore"]);
+});
+
+test("receipt ownership failures explain account recovery without leaking provider details", async () => {
+  const { sdk } = sdkHarness("7");
+  const adapter = createRevenueCatPurchaseAdapter(async () => ({ default: { ...sdk,
+    PURCHASES_ERROR_CODE: { ...sdk.PURCHASES_ERROR_CODE, RECEIPT_ALREADY_IN_USE_ERROR: "7" } } }));
+  await adapter.configure({ apiKey: "appl_public", appUserId: "member-A" });
+  await adapter.loadDefaultOffering();
+  await assert.rejects(adapter.purchase(APPLE_PRODUCT_IDS.barrel.monthly), (error: unknown) => error instanceof PurchaseProviderError
+    && error.code === "account" && error.message.includes("different Bourbon Signal account") && !error.message.includes("provider detail"));
+});
+
 test("RevenueCat adapter uses localized StoreKit metadata but never treats offer metadata as per-user trial eligibility", async () => {
   const { sdk, calls } = sdkHarness();
   const adapter = createRevenueCatPurchaseAdapter(async () => ({ default: sdk }));

@@ -52,6 +52,7 @@ export interface PurchaseAdapter {
   loadDefaultOffering(): Promise<PurchaseStorePackage[]>;
   purchase(productId: AppleProductId, replacingProductId?: AppleProductId): Promise<void>;
   restore(): Promise<void>;
+  getActiveSubscriptionProductIds?(): Promise<string[]>;
 }
 
 export interface AppleMembershipApi {
@@ -63,7 +64,7 @@ export interface AppleMembershipApi {
 }
 
 export class PurchaseProviderError extends Error {
-  constructor(readonly code: "cancelled" | "pending" | "unavailable" | "network" | "provider", message: string) {
+  constructor(readonly code: "cancelled" | "pending" | "unavailable" | "network" | "provider" | "account", message: string) {
     super(message);
     this.name = "PurchaseProviderError";
   }
@@ -135,12 +136,14 @@ export function createPurchaseCoordinator({
   publicIosApiKey,
   publicAndroidApiKey="",
   platform,
+  onMembershipChanged,
 }: {
   adapter: PurchaseAdapter;
   api: AppleMembershipApi;
   publicIosApiKey: string;
   publicAndroidApiKey?: string;
   platform: "ios" | "android" | "web";
+  onMembershipChanged?: (userId: string) => void;
 }) {
   const purchaseLabel=platform==="android" ? "Google Play" : "Apple";
   const storeLabel=platform==="android" ? "Google Play" : "App Store";
@@ -148,6 +151,7 @@ export function createPurchaseCoordinator({
   let state: PurchaseCoordinatorState = { ...EMPTY_STATE };
   let configuredUserId: string | null = null;
   let sessionRevision = 0;
+  let requestedUserId: string | null = null;
   let sessionQueue: Promise<void> = Promise.resolve();
   const listeners = new Set<(next: PurchaseCoordinatorState) => void>();
 
@@ -229,8 +233,50 @@ export function createPurchaseCoordinator({
   }
 
   function syncSession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    requestedUserId = session.isSignedIn ? session.userId : null;
     const revision = ++sessionRevision;
     const run = sessionQueue.then(() => applySession(session, revision));
+    sessionQueue = run.then(() => undefined, () => undefined);
+    return run;
+  }
+
+  function recognizeSession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    if (!session.isLoaded || !session.isSignedIn || !session.userId || platform === "web") return syncSession(session);
+    // Returning from Apple's purchase sheet must not invalidate its pending operation.
+    if (session.userId === configuredUserId && ["purchasing", "restoring"].includes(state.status)) return Promise.resolve(state);
+    const userId = session.userId;
+    const revision = requestedUserId === userId ? sessionRevision : ++sessionRevision;
+    requestedUserId = userId;
+    const run = sessionQueue.then(async () => {
+      if (revision !== sessionRevision) return state;
+      const apiKey = platform === "android" ? publicAndroidApiKey : publicIosApiKey;
+      if (!apiKey.trim() || !membershipApi.readiness || !membershipApi.reconcile) return state;
+      try {
+        if (configuredUserId && configuredUserId !== userId) {
+          await adapter.clearSession();
+          if (revision !== sessionRevision) return state;
+          publish({ ...EMPTY_STATE });
+        }
+        await adapter.configure({ apiKey: apiKey.trim(), appUserId: userId });
+        if (revision !== sessionRevision) return state;
+        configuredUserId = userId;
+        const profileResponse = await api.getMemberProfile({ fresh: true });
+        if (revision !== sessionRevision) return state;
+        publish({ profile: profileResponse.profile });
+        const readiness = await membershipApi.readiness({ fresh: true });
+        if (revision !== sessionRevision || !readiness.available) return state;
+        publish({ membership: readiness.membership, restoreAvailable: readiness.restoreAvailable,
+          ...(state.status === "signed_out" ? { status: "ready" as const, message: "" } : {}) });
+        const active = await adapter.getActiveSubscriptionProductIds?.() || [];
+        if (revision !== sessionRevision) return state;
+        // No restore/syncPurchases call: those may prompt Apple authentication or transfer receipts.
+        if (!readiness.membership && !active.some(isAppleProductId)) return state;
+        await reconcile({ revision, userId }, { action: "sync" });
+      } catch {
+        // Preserve server-confirmed access and allow a later foreground check to retry.
+      }
+      return state;
+    });
     sessionQueue = run.then(() => undefined, () => undefined);
     return run;
   }
@@ -266,6 +312,8 @@ export function createPurchaseCoordinator({
         && (tier === "free" || refreshed.profile.membership.paid)
         && (!expectedTier || rank(tier) >= rank(expectedTier));
       if (!reconciled) throw new Error(`Authoritative membership did not match the ${purchaseLabel} purchase.`);
+      const membershipChanged = state.profile?.membership.tier !== refreshed.profile.membership.tier
+        || state.profile?.membership.paid !== refreshed.profile.membership.paid;
       publish({
         status: "ready",
         profile: refreshed.profile,
@@ -274,6 +322,7 @@ export function createPurchaseCoordinator({
           ? `No active ${purchaseLabel} membership was found. Your server-confirmed Free access is unchanged.`
           : `${tier === "bottled-in-bond" ? "Founder" : tier === "barrel" ? "Barrel Proof" : "Standard"} access is confirmed.`,
       });
+      if (membershipChanged) { try { onMembershipChanged?.(operation.userId); } catch { /* Screen refresh cannot invalidate confirmed access. */ } }
       return state;
     } catch {
       if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
@@ -298,7 +347,7 @@ export function createPurchaseCoordinator({
         publish({ status: "pending", message: `The ${storeLabel} says this purchase is pending. Access will not change until Bourbon Signal confirms it.` });
         return state;
       }
-      publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "network"
+      publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "account" ? caught.message : caught instanceof PurchaseProviderError && caught.code === "network"
         ? `The ${storeLabel} could not be reached. Check your connection and try again.`
         : `The ${storeLabel} could not complete this purchase. No membership change was made.` });
       throw caught;
@@ -314,7 +363,7 @@ export function createPurchaseCoordinator({
       await adapter.restore();
     } catch (caught) {
       if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
-      publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "network"
+      publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "account" ? caught.message : caught instanceof PurchaseProviderError && caught.code === "network"
         ? `The ${storeLabel} could not be reached. Check your connection and try again.`
         : `Previous ${purchaseLabel} purchases could not be restored. Your current membership is unchanged.` });
       throw caught;
@@ -329,6 +378,7 @@ export function createPurchaseCoordinator({
       return () => { listeners.delete(listener); };
     },
     syncSession,
+    recognizeSession,
     purchase,
     restore,
   };

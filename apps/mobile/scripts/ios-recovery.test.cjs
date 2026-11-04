@@ -6,7 +6,7 @@ const pkg = require('../package.json');
 
 test('Scanner binaries are isolated from prior OTA runtimes and each other', () => {
   assert.equal(app.ios.runtimeVersion, '1.1.0-ios-live-labels-1');
-  assert.equal(app.version, '1.1.0');
+  assert.equal(app.version, '1.1.1');
   assert.deepEqual(app.runtimeVersion, { policy: 'appVersion' });
   assert.equal(app.android.runtimeVersion, '1.1.0-android-live-labels-1');
   assert.equal(app.updates.checkAutomatically, 'ON_LOAD');
