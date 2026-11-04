@@ -120,7 +120,8 @@ test("server-confirmed membership changes refresh screens without a native recei
   let tier: "free" | "barrel" = "free";
   h.api.getMemberProfile = async () => profile(tier);
   const changed: string[] = [];
-  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public", onMembershipChanged: id => changed.push(id) });
+  const notify = (id: string) => { changed.push(id); };
+  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public", onMembershipChanged: notify });
   const session = { isLoaded: true, isSignedIn: true, userId: "member-A" };
   await coordinator.recognizeSession(session);
   assert.deepEqual(changed, []);
@@ -134,7 +135,7 @@ test("server-confirmed membership changes refresh screens without a native recei
   await coordinator.recognizeSession(session);
   assert.deepEqual(changed, ["member-A", "member-A"]);
   tier = "barrel";
-  const returningMember = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public", onMembershipChanged: id => changed.push(id) });
+  const returningMember = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public", onMembershipChanged: notify });
   await returningMember.recognizeSession(session);
   assert.deepEqual(changed, ["member-A", "member-A", "member-A"], "existing paid access refreshes screens on sign-in too");
   assert.equal(h.events.some(e => e.startsWith("reconcile:") || e === "restore"), false);
