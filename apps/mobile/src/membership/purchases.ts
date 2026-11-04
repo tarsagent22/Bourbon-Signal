@@ -150,8 +150,10 @@ export function createPurchaseCoordinator({
   const membershipApi=platform==="android" ? {readiness:api.getGoogleMembershipReadiness?.bind(api),reconcile:api.reconcileGoogleMembership?.bind(api)} : {readiness:api.getAppleMembershipReadiness.bind(api),reconcile:api.reconcileAppleMembership.bind(api)};
   let state: PurchaseCoordinatorState = { ...EMPTY_STATE };
   let configuredUserId: string | null = null;
+  let configuringUserId: string | null = null;
   let sessionRevision = 0;
   let requestedUserId: string | null = null;
+  let purchaseEpoch = 0;
   let sessionQueue: Promise<void> = Promise.resolve();
   const listeners = new Set<(next: PurchaseCoordinatorState) => void>();
 
@@ -192,7 +194,9 @@ export function createPurchaseCoordinator({
     publish({ ...EMPTY_STATE, status: "configuring", message: `Loading secure ${purchaseLabel} purchase options.` });
 
     try {
-      await adapter.configure({ apiKey: apiKey.trim(), appUserId: session.userId });
+      configuringUserId = session.userId;
+      try { await adapter.configure({ apiKey: apiKey.trim(), appUserId: session.userId }); }
+      finally { configuringUserId = null; }
       configuredUserId = session.userId;
       if (revision !== sessionRevision) return state;
       const profileResponse = await api.getMemberProfile({ fresh: true });
@@ -232,8 +236,23 @@ export function createPurchaseCoordinator({
     return state;
   }
 
+  function observeSession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    if (!session.isLoaded) return;
+    const nextUserId = session.isSignedIn ? session.userId : null;
+    if (requestedUserId === nextUserId) return;
+    const hadAccount = configuringUserId !== null || configuredUserId !== null;
+    requestedUserId = nextUserId;
+    configuredUserId = null;
+    ++sessionRevision;
+    publish({ ...EMPTY_STATE });
+    if (hadAccount) sessionQueue = sessionQueue.then(async () => {
+      await adapter.clearSession();
+      configuredUserId = null;
+    }).catch(() => undefined);
+  }
+
   function syncSession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
-    requestedUserId = session.isSignedIn ? session.userId : null;
+    observeSession(session);
     const revision = ++sessionRevision;
     const run = sessionQueue.then(() => applySession(session, revision));
     sessionQueue = run.then(() => undefined, () => undefined);
@@ -241,6 +260,7 @@ export function createPurchaseCoordinator({
   }
 
   function recognizeSession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    observeSession(session);
     if (!session.isLoaded || !session.isSignedIn || !session.userId || platform === "web") return syncSession(session);
     // Returning from Apple's purchase sheet must not invalidate its pending operation.
     if (session.userId === configuredUserId && ["purchasing", "restoring"].includes(state.status)) return Promise.resolve(state);
@@ -249,29 +269,34 @@ export function createPurchaseCoordinator({
     requestedUserId = userId;
     const run = sessionQueue.then(async () => {
       if (revision !== sessionRevision) return state;
+      if (["purchasing", "restoring"].includes(state.status)) return state;
+      const recognitionEpoch = purchaseEpoch;
+      const current = () => revision === sessionRevision && recognitionEpoch === purchaseEpoch;
       const apiKey = platform === "android" ? publicAndroidApiKey : publicIosApiKey;
       if (!apiKey.trim() || !membershipApi.readiness || !membershipApi.reconcile) return state;
       try {
         if (configuredUserId && configuredUserId !== userId) {
           await adapter.clearSession();
-          if (revision !== sessionRevision) return state;
+          if (!current()) return state;
           publish({ ...EMPTY_STATE });
         }
-        await adapter.configure({ apiKey: apiKey.trim(), appUserId: userId });
-        if (revision !== sessionRevision) return state;
+        configuringUserId = userId;
+        try { await adapter.configure({ apiKey: apiKey.trim(), appUserId: userId }); }
+        finally { configuringUserId = null; }
+        if (!current()) return state;
         configuredUserId = userId;
         const profileResponse = await api.getMemberProfile({ fresh: true });
-        if (revision !== sessionRevision) return state;
+        if (!current()) return state;
         publish({ profile: profileResponse.profile });
         const readiness = await membershipApi.readiness({ fresh: true });
-        if (revision !== sessionRevision || !readiness.available) return state;
+        if (!current() || !readiness.available) return state;
         publish({ membership: readiness.membership, restoreAvailable: readiness.restoreAvailable,
           ...(state.status === "signed_out" ? { status: "ready" as const, message: "" } : {}) });
         const active = await adapter.getActiveSubscriptionProductIds?.() || [];
-        if (revision !== sessionRevision) return state;
+        if (!current()) return state;
         // No restore/syncPurchases call: those may prompt Apple authentication or transfer receipts.
         if (!readiness.membership && !active.some(isAppleProductId)) return state;
-        await reconcile({ revision, userId }, { action: "sync" });
+        await reconcile({ revision, userId, recognitionEpoch }, { action: "sync" });
       } catch {
         // Preserve server-confirmed access and allow a later foreground check to retry.
       }
@@ -290,15 +315,16 @@ export function createPurchaseCoordinator({
     return { revision: sessionRevision, userId: configuredUserId };
   }
 
-  function isSameAccount(operation: { revision: number; userId: string }) {
-    return operation.revision === sessionRevision && operation.userId === configuredUserId;
+  function isSameAccount(operation: { revision: number; userId: string; recognitionEpoch?: number }) {
+    return operation.revision === sessionRevision && operation.userId === configuredUserId
+      && (operation.recognitionEpoch === undefined || operation.recognitionEpoch === purchaseEpoch);
   }
 
-  function assertSameAccount(operation: { revision: number; userId: string }) {
+  function assertSameAccount(operation: { revision: number; userId: string; recognitionEpoch?: number }) {
     if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
   }
 
-  async function reconcile(operation: { revision: number; userId: string }, input: AppleMembershipReconciliationRequest, expectedTier?: "standard" | "barrel") {
+  async function reconcile(operation: { revision: number; userId: string; recognitionEpoch?: number }, input: AppleMembershipReconciliationRequest, expectedTier?: "standard" | "barrel") {
     assertSameAccount(operation);
     let reconciliation: AppleMembershipReconciliationResponse;
     try {
@@ -334,6 +360,7 @@ export function createPurchaseCoordinator({
   async function purchase(productId: AppleProductId) {
     if (!(REQUIRED_PURCHASE_PRODUCT_IDS as readonly string[]).includes(productId)) throw new Error("This membership product is not available for new purchases.");
     const operation = assertReady(productId);
+    ++purchaseEpoch;
     publish({ status: "purchasing", message: `Waiting for the ${storeLabel}. Paid access has not changed yet.` });
     try {
       await adapter.purchase(productId, platform==="android" && state.membership && Date.parse(state.membership.expiresAt || "") > Date.now() && ["active","trialing","canceled_period_end","grace_period"].includes(state.membership.status) ? state.membership.productId : undefined);
@@ -357,6 +384,7 @@ export function createPurchaseCoordinator({
 
   async function restore() {
     const operation = assertReady();
+    ++purchaseEpoch;
     if (!state.restoreAvailable) throw new Error(`${purchaseLabel} purchase restoration is not available right now.`);
     publish({ status: "restoring", message: `Checking the ${storeLabel} for previous purchases. Access has not changed yet.` });
     try {
@@ -378,6 +406,7 @@ export function createPurchaseCoordinator({
       return () => { listeners.delete(listener); };
     },
     syncSession,
+    observeSession,
     recognizeSession,
     purchase,
     restore,

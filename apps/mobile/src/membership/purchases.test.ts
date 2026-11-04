@@ -139,6 +139,37 @@ test("returning from the Apple purchase sheet does not cancel an in-flight purch
   assert.equal(coordinator.getState().profile?.membership.paid, true);
 });
 
+test("observing a different sign-in clears the previous account's paid profile immediately", async () => {
+  const h = harness();
+  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public" });
+  await coordinator.syncSession({ isLoaded: true, isSignedIn: true, userId: "member-A" });
+  await coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly);
+  assert.equal(coordinator.getState().profile?.membership.paid, true);
+  coordinator.observeSession({ isLoaded: true, isSignedIn: true, userId: "member-B" });
+  assert.equal(coordinator.getState().profile, null);
+  assert.deepEqual(coordinator.getState().eligibleProductIds, []);
+});
+
+test("a delayed background profile cannot overwrite a newer confirmed purchase", async () => {
+  const h = harness();
+  let reads = 0;
+  let finishRead!: (value: MemberProfile) => void;
+  h.api.getMemberProfile = async () => {
+    reads += 1;
+    if (reads === 2) return new Promise(resolve => { finishRead = resolve; });
+    return profile(reads > 2 ? "barrel" : "free");
+  };
+  const coordinator = createPurchaseCoordinator({ ...h, platform: "ios", publicIosApiKey: "appl_public" });
+  const session = { isLoaded: true, isSignedIn: true, userId: "member-A" };
+  await coordinator.syncSession(session);
+  const background = coordinator.recognizeSession(session);
+  while (!finishRead) await new Promise(resolve => setImmediate(resolve));
+  await coordinator.purchase(APPLE_PRODUCT_IDS.barrel.monthly);
+  finishRead(profile("free"));
+  await background;
+  assert.equal(coordinator.getState().profile?.membership.tier, "barrel");
+});
+
 test("Apple product mapping is immutable, complete, and ignores unapproved products", () => {
   assert.deepEqual(APPLE_PRODUCT_IDS, {
     standard: {

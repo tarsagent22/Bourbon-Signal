@@ -58,6 +58,7 @@ export function PurchasesProvider({ children, adapter: injectedAdapter }: PropsW
   useEffect(() => coordinator.subscribe(setState), [coordinator]);
   useEffect(() => {
     if (!auth.isLoaded) return;
+    coordinator.observeSession(sessionRef.current);
     if (!auth.isSignedIn || Platform.OS === "web") {
       void coordinator.syncSession(sessionRef.current);
       return;
