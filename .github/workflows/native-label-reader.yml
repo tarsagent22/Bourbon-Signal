@@ -20,7 +20,7 @@ jobs:
   ios-compile:
     # Pin the supported Intel image while hosted arm64 capacity is constrained.
     runs-on: macos-26-intel
-    timeout-minutes: 35
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: apps/mobile
@@ -43,7 +43,7 @@ jobs:
         run: pod install --project-directory=ios
       - name: Compile simulator app without signing
         run: >-
-          xcodebuild -workspace ios/BourbonSignal.xcworkspace
+          xcodebuild -jobs 4 -workspace ios/BourbonSignal.xcworkspace
           -scheme BourbonSignal -configuration Debug -sdk iphonesimulator
           -destination 'generic/platform=iOS Simulator'
           -derivedDataPath build/native-label-reader
