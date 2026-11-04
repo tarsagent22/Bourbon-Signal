@@ -15,7 +15,7 @@ const registry = readJson("src/config/nc-abc-boards.json") as {
   boards: Array<{ id: string; label: string; filterLabel: string }>;
 };
 assert.equal(registry.sourceUrl, "https://abc2.nc.gov/Search/ABCStoreLocator");
-assert.equal(registry.boards.length, 173, "the canonical registry must contain every current official NC ABC board option");
+assert.equal(registry.boards.length, 174, "the canonical registry must contain every current official NC ABC board option");
 assert.equal(new Set(registry.boards.map((board) => board.id)).size, registry.boards.length, "canonical board IDs must be unique");
 assert.equal(new Set(registry.boards.map((board) => normalize(board.label))).size, registry.boards.length, "canonical board labels must be unique");
 assert.equal(new Set(registry.boards.map((board) => normalize(board.filterLabel))).size, registry.boards.length, "customer board options must be unique");
@@ -24,7 +24,7 @@ for (const board of registry.boards) {
   assert.match(board.label, / ABC (?:Board|Commission)$/);
   assert.equal(board.filterLabel, board.label.replace(/ Board$/, ""));
 }
-for (const sentinel of ["Alamance Municipal ABC Board", "Mecklenburg County ABC Board", "Catawba Tribal ABC Commission", "Cherokee Tribal ABC Commission", "Wilkesboro ABC Board", "Yadkin Valley ABC Board"]) {
+for (const sentinel of ["Alamance Municipal ABC Board", "Mecklenburg County ABC Board", "Catawba Tribal ABC Commission", "Cherokee Tribal ABC Commission", "Stanley ABC Board", "Wilkesboro ABC Board", "Yadkin Valley ABC Board"]) {
   assert.ok(registry.boards.some((board) => board.label === sentinel), `${sentinel} must remain in the canonical registry`);
 }
 

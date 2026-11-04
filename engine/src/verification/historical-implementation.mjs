@@ -103,13 +103,17 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     return Buffer.from(text);
   }
   if (name === 'scripts/test-coverage-contract.mts') {
-    // Only the two expanded-area expectations differ from this pinned test.
+    // Only the expanded-area expectations and the exact current NC directory
+    // count differ from this pinned test. Inventory and MS assertions stay pinned.
     let text = replaceUnique(bytes.toString('utf8'),
       '  ["NY", ["Buffalo", "Hudson Valley", "Lake George", "Nassau County", "New York City", "Rochester Metro", "Suffolk County"]],\n',
       '  ["NY", ["Buffalo", "Nassau County", "New York City"]],\n', `${name}: NY areas`);
     text = replaceUnique(text,
       '  ["CO", ["Boulder County", "Colorado Springs", "Denver Metro"]],\n',
       '  ["CO", ["Denver Metro"]],\n', `${name}: CO areas`);
+    text = replaceUnique(text,
+      'assert.equal(northCarolina.scope.knownBoards, 174, "NC coverage must expose every current official ABC board separately from stores");',
+      'assert.equal(northCarolina.scope.knownBoards, 173, "NC coverage must expose every current official ABC board separately from stores");', `${name}: NC official board count`);
     return Buffer.from(text);
   }
   if (name === 'engine/src/verify-ms.mjs') {

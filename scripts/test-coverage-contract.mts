@@ -232,7 +232,7 @@ assert.equal(northCarolina.coverageDepth, "active", "broad board leads plus sele
 assert.equal(northCarolina.coverageStrength, "strong", "broad NC board shipment sources are strong coverage independent of freshness");
 assert.ok(northCarolina.scope.trackedShipmentBoards >= 25, "NC Strong coverage is backed by broad canonical tracked-board evidence rather than a directory count");
 assert.ok(northCarolina.layers.live < northCarolina.layers.known, "NC store-locator records stay separate from monitored inventory stores");
-assert.equal(northCarolina.scope.knownBoards, 173, "NC coverage must expose every current official ABC board separately from stores");
+assert.equal(northCarolina.scope.knownBoards, 174, "NC coverage must expose every current official ABC board separately from stores");
 assert.equal(northCarolina.scope.shipmentBoards, 160, "NC coverage must count fresh canonical boards represented by current shipment output");
 assert.equal(northCarolina.scope.searchableStores, 465, "NC coverage must expose the official searchable store directory without inflating it with signal records");
 assert.equal(northCarolina.scope.inventoryMonitoredStores, 47, "NC coverage must count exact-store inventory sources independently from the official directory");

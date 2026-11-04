@@ -52,6 +52,7 @@ export interface PurchaseAdapter {
   loadDefaultOffering(): Promise<PurchaseStorePackage[]>;
   purchase(productId: AppleProductId, replacingProductId?: AppleProductId): Promise<void>;
   restore(): Promise<void>;
+  getActiveSubscriptionProductIds?(): Promise<string[]>;
 }
 
 export interface AppleMembershipApi {
@@ -63,7 +64,7 @@ export interface AppleMembershipApi {
 }
 
 export class PurchaseProviderError extends Error {
-  constructor(readonly code: "cancelled" | "pending" | "unavailable" | "network" | "provider", message: string) {
+  constructor(readonly code: "cancelled" | "pending" | "unavailable" | "network" | "provider" | "account", message: string) {
     super(message);
     this.name = "PurchaseProviderError";
   }
@@ -135,19 +136,24 @@ export function createPurchaseCoordinator({
   publicIosApiKey,
   publicAndroidApiKey="",
   platform,
+  onMembershipChanged,
 }: {
   adapter: PurchaseAdapter;
   api: AppleMembershipApi;
   publicIosApiKey: string;
   publicAndroidApiKey?: string;
   platform: "ios" | "android" | "web";
+  onMembershipChanged?: (userId: string) => void;
 }) {
   const purchaseLabel=platform==="android" ? "Google Play" : "Apple";
   const storeLabel=platform==="android" ? "Google Play" : "App Store";
   const membershipApi=platform==="android" ? {readiness:api.getGoogleMembershipReadiness?.bind(api),reconcile:api.reconcileGoogleMembership?.bind(api)} : {readiness:api.getAppleMembershipReadiness.bind(api),reconcile:api.reconcileAppleMembership.bind(api)};
   let state: PurchaseCoordinatorState = { ...EMPTY_STATE };
   let configuredUserId: string | null = null;
+  let configuringUserId: string | null = null;
   let sessionRevision = 0;
+  let requestedUserId: string | null = null;
+  let purchaseEpoch = 0;
   let sessionQueue: Promise<void> = Promise.resolve();
   const listeners = new Set<(next: PurchaseCoordinatorState) => void>();
 
@@ -188,7 +194,9 @@ export function createPurchaseCoordinator({
     publish({ ...EMPTY_STATE, status: "configuring", message: `Loading secure ${purchaseLabel} purchase options.` });
 
     try {
-      await adapter.configure({ apiKey: apiKey.trim(), appUserId: session.userId });
+      configuringUserId = session.userId;
+      try { await adapter.configure({ apiKey: apiKey.trim(), appUserId: session.userId }); }
+      finally { configuringUserId = null; }
       configuredUserId = session.userId;
       if (revision !== sessionRevision) return state;
       const profileResponse = await api.getMemberProfile({ fresh: true });
@@ -228,9 +236,78 @@ export function createPurchaseCoordinator({
     return state;
   }
 
+  function observeSession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    if (!session.isLoaded) return;
+    const nextUserId = session.isSignedIn ? session.userId : null;
+    if (requestedUserId === nextUserId) return;
+    const hadAccount = configuringUserId !== null || configuredUserId !== null;
+    requestedUserId = nextUserId;
+    configuredUserId = null;
+    ++sessionRevision;
+    publish({ ...EMPTY_STATE });
+    if (hadAccount) sessionQueue = sessionQueue.then(async () => {
+      await adapter.clearSession();
+      configuredUserId = null;
+    }).catch(() => undefined);
+  }
+
   function syncSession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    observeSession(session);
     const revision = ++sessionRevision;
     const run = sessionQueue.then(() => applySession(session, revision));
+    sessionQueue = run.then(() => undefined, () => undefined);
+    return run;
+  }
+
+  function recognizeSession(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    observeSession(session);
+    if (!session.isLoaded || !session.isSignedIn || !session.userId || platform === "web") return syncSession(session);
+    // Returning from Apple's purchase sheet must not invalidate its pending operation.
+    if (session.userId === configuredUserId && ["purchasing", "restoring"].includes(state.status)) return Promise.resolve(state);
+    const userId = session.userId;
+    const revision = requestedUserId === userId ? sessionRevision : ++sessionRevision;
+    requestedUserId = userId;
+    const run = sessionQueue.then(async () => {
+      if (revision !== sessionRevision) return state;
+      if (["purchasing", "restoring"].includes(state.status)) return state;
+      const recognitionEpoch = purchaseEpoch;
+      const current = () => revision === sessionRevision && recognitionEpoch === purchaseEpoch;
+      const apiKey = platform === "android" ? publicAndroidApiKey : publicIosApiKey;
+      if (!apiKey.trim() || !membershipApi.readiness || !membershipApi.reconcile) return state;
+      try {
+        if (configuredUserId && configuredUserId !== userId) {
+          await adapter.clearSession();
+          if (!current()) return state;
+          publish({ ...EMPTY_STATE });
+        }
+        configuringUserId = userId;
+        try { await adapter.configure({ apiKey: apiKey.trim(), appUserId: userId }); }
+        finally { configuringUserId = null; }
+        if (!current()) return state;
+        configuredUserId = userId;
+        const profileResponse = await api.getMemberProfile({ fresh: true });
+        if (!current()) return state;
+        const previousMembership = state.profile?.membership;
+        publish({ profile: profileResponse.profile });
+        if (previousMembership
+          ? previousMembership.tier !== profileResponse.profile.membership.tier || previousMembership.paid !== profileResponse.profile.membership.paid
+          : profileResponse.profile.membership.paid) {
+          try { onMembershipChanged?.(userId); } catch { /* Screen refresh cannot invalidate confirmed access. */ }
+        }
+        const readiness = await membershipApi.readiness({ fresh: true });
+        if (!current() || !readiness.available) return state;
+        publish({ membership: readiness.membership, restoreAvailable: readiness.restoreAvailable,
+          ...(state.status === "signed_out" ? { status: "ready" as const, message: "" } : {}) });
+        const active = await adapter.getActiveSubscriptionProductIds?.() || [];
+        if (!current()) return state;
+        // No restore/syncPurchases call: those may prompt Apple authentication or transfer receipts.
+        if (!readiness.membership && !active.some(isAppleProductId)) return state;
+        await reconcile({ revision, userId, recognitionEpoch }, { action: "sync" });
+      } catch {
+        // Preserve server-confirmed access and allow a later foreground check to retry.
+      }
+      return state;
+    });
     sessionQueue = run.then(() => undefined, () => undefined);
     return run;
   }
@@ -244,15 +321,16 @@ export function createPurchaseCoordinator({
     return { revision: sessionRevision, userId: configuredUserId };
   }
 
-  function isSameAccount(operation: { revision: number; userId: string }) {
-    return operation.revision === sessionRevision && operation.userId === configuredUserId;
+  function isSameAccount(operation: { revision: number; userId: string; recognitionEpoch?: number }) {
+    return operation.revision === sessionRevision && operation.userId === configuredUserId
+      && (operation.recognitionEpoch === undefined || operation.recognitionEpoch === purchaseEpoch);
   }
 
-  function assertSameAccount(operation: { revision: number; userId: string }) {
+  function assertSameAccount(operation: { revision: number; userId: string; recognitionEpoch?: number }) {
     if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
   }
 
-  async function reconcile(operation: { revision: number; userId: string }, input: AppleMembershipReconciliationRequest, expectedTier?: "standard" | "barrel") {
+  async function reconcile(operation: { revision: number; userId: string; recognitionEpoch?: number }, input: AppleMembershipReconciliationRequest, expectedTier?: "standard" | "barrel") {
     assertSameAccount(operation);
     let reconciliation: AppleMembershipReconciliationResponse;
     try {
@@ -266,6 +344,8 @@ export function createPurchaseCoordinator({
         && (tier === "free" || refreshed.profile.membership.paid)
         && (!expectedTier || rank(tier) >= rank(expectedTier));
       if (!reconciled) throw new Error(`Authoritative membership did not match the ${purchaseLabel} purchase.`);
+      const membershipChanged = state.profile?.membership.tier !== refreshed.profile.membership.tier
+        || state.profile?.membership.paid !== refreshed.profile.membership.paid;
       publish({
         status: "ready",
         profile: refreshed.profile,
@@ -274,6 +354,7 @@ export function createPurchaseCoordinator({
           ? `No active ${purchaseLabel} membership was found. Your server-confirmed Free access is unchanged.`
           : `${tier === "bottled-in-bond" ? "Founder" : tier === "barrel" ? "Barrel Proof" : "Standard"} access is confirmed.`,
       });
+      if (membershipChanged) { try { onMembershipChanged?.(operation.userId); } catch { /* Screen refresh cannot invalidate confirmed access. */ } }
       return state;
     } catch {
       if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
@@ -285,6 +366,7 @@ export function createPurchaseCoordinator({
   async function purchase(productId: AppleProductId) {
     if (!(REQUIRED_PURCHASE_PRODUCT_IDS as readonly string[]).includes(productId)) throw new Error("This membership product is not available for new purchases.");
     const operation = assertReady(productId);
+    ++purchaseEpoch;
     publish({ status: "purchasing", message: `Waiting for the ${storeLabel}. Paid access has not changed yet.` });
     try {
       await adapter.purchase(productId, platform==="android" && state.membership && Date.parse(state.membership.expiresAt || "") > Date.now() && ["active","trialing","canceled_period_end","grace_period"].includes(state.membership.status) ? state.membership.productId : undefined);
@@ -298,7 +380,7 @@ export function createPurchaseCoordinator({
         publish({ status: "pending", message: `The ${storeLabel} says this purchase is pending. Access will not change until Bourbon Signal confirms it.` });
         return state;
       }
-      publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "network"
+      publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "account" ? caught.message : caught instanceof PurchaseProviderError && caught.code === "network"
         ? `The ${storeLabel} could not be reached. Check your connection and try again.`
         : `The ${storeLabel} could not complete this purchase. No membership change was made.` });
       throw caught;
@@ -308,13 +390,14 @@ export function createPurchaseCoordinator({
 
   async function restore() {
     const operation = assertReady();
+    ++purchaseEpoch;
     if (!state.restoreAvailable) throw new Error(`${purchaseLabel} purchase restoration is not available right now.`);
     publish({ status: "restoring", message: `Checking the ${storeLabel} for previous purchases. Access has not changed yet.` });
     try {
       await adapter.restore();
     } catch (caught) {
       if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
-      publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "network"
+      publish({ status: "error", message: caught instanceof PurchaseProviderError && caught.code === "account" ? caught.message : caught instanceof PurchaseProviderError && caught.code === "network"
         ? `The ${storeLabel} could not be reached. Check your connection and try again.`
         : `Previous ${purchaseLabel} purchases could not be restored. Your current membership is unchanged.` });
       throw caught;
@@ -329,6 +412,8 @@ export function createPurchaseCoordinator({
       return () => { listeners.delete(listener); };
     },
     syncSession,
+    observeSession,
+    recognizeSession,
     purchase,
     restore,
   };

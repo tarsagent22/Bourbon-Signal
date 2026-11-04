@@ -14,6 +14,9 @@ type RevenueCatPackage = {
 
 type RevenueCatSdk = {
   configure(input: { apiKey: string; appUserID: string }): void;
+  isConfigured?(): Promise<boolean>;
+  getAppUserID?(): Promise<string>;
+  getCustomerInfo?(): Promise<{ activeSubscriptions: string[] }>;
   logIn(appUserId: string): Promise<unknown>;
   getOfferings(): Promise<{ current: { availablePackages: RevenueCatPackage[] } | null }>;
   purchasePackage(item: RevenueCatPackage): Promise<unknown>;
@@ -25,6 +28,8 @@ type RevenueCatSdk = {
     NETWORK_ERROR: string;
     OFFLINE_CONNECTION_ERROR: string;
     PRODUCT_NOT_AVAILABLE_FOR_PURCHASE_ERROR: string;
+    RECEIPT_ALREADY_IN_USE_ERROR?: string;
+    RECEIPT_IN_USE_BY_OTHER_SUBSCRIBER_ERROR?: string;
   };
 };
 
@@ -40,7 +45,11 @@ function localizedPeriod(period: string | null) {
 }
 
 function providerError(sdk: RevenueCatSdk, caught: unknown,platform: "ios"|"android") {
+  if (caught instanceof PurchaseProviderError) return caught;
   const code = typeof caught === "object" && caught !== null && "code" in caught ? String(caught.code) : "";
+  if ([sdk.PURCHASES_ERROR_CODE.RECEIPT_ALREADY_IN_USE_ERROR, sdk.PURCHASES_ERROR_CODE.RECEIPT_IN_USE_BY_OTHER_SUBSCRIBER_ERROR].filter(Boolean).includes(code)) {
+    return new PurchaseProviderError("account", "This store purchase is linked to a different Bourbon Signal account. Sign in to that account or contact Membership support to recover it.");
+  }
   if (code === sdk.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) return new PurchaseProviderError("cancelled", "Purchase canceled.");
   if (code === sdk.PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR) return new PurchaseProviderError("pending", "Purchase pending.");
   if (code === sdk.PURCHASES_ERROR_CODE.PRODUCT_NOT_AVAILABLE_FOR_PURCHASE_ERROR) return new PurchaseProviderError("unavailable", platform==="android" ? "This Google Play product is not available." : "This Apple product is not available.");
@@ -62,16 +71,27 @@ export function createRevenueCatPurchaseAdapter(load: RevenueCatLoader = default
     return sdk;
   }
 
+  async function confirmAccount(purchases: RevenueCatSdk) {
+    if (!activeUserId) throw new PurchaseProviderError("account", "Sign in before checking your membership.");
+    if (purchases.getAppUserID && await purchases.getAppUserID() !== activeUserId) {
+      await purchases.logIn(activeUserId);
+      if (await purchases.getAppUserID() !== activeUserId) throw new PurchaseProviderError("account", "Your purchase account could not be matched to your sign-in. Please sign in again.");
+    }
+  }
+
   return {
     async configure({ apiKey, appUserId }) {
       const purchases = await module();
-      if (!configured) {
+      const nativeConfigured = purchases.isConfigured ? await purchases.isConfigured() : configured;
+      if (!nativeConfigured) {
         purchases.configure({ apiKey, appUserID: appUserId });
         configured = true;
-      } else if (activeUserId !== appUserId) {
+      } else if ((purchases.getAppUserID ? await purchases.getAppUserID() : activeUserId) !== appUserId) {
         await purchases.logIn(appUserId);
       }
       activeUserId = appUserId;
+      configured = true;
+      await confirmAccount(purchases);
     },
     async clearSession() {
       packages.clear();
@@ -105,11 +125,17 @@ export function createRevenueCatPurchaseAdapter(load: RevenueCatLoader = default
         }];
       });
     },
+    async getActiveSubscriptionProductIds() {
+      const purchases = await module();
+      await confirmAccount(purchases);
+      return purchases.getCustomerInfo ? (await purchases.getCustomerInfo()).activeSubscriptions : [];
+    },
     async purchase(productId: AppleProductId,replacingProductId?:AppleProductId) {
       const purchases = await module();
       const item = packages.get(productId);
       if (!item) throw new PurchaseProviderError("unavailable", platform==="android" ? "This Google Play product is not available." : "This Apple product is not available.");
       try {
+        await confirmAccount(purchases);
         if(platform==="android") {
           const base=basePlans.get(productId);
           if(!base || !purchases.purchaseSubscriptionOption)throw new PurchaseProviderError("unavailable","Google Play base plan is unavailable.");
@@ -122,6 +148,7 @@ export function createRevenueCatPurchaseAdapter(load: RevenueCatLoader = default
     async restore() {
       const purchases = await module();
       try {
+        await confirmAccount(purchases);
         await purchases.restorePurchases();
       } catch (caught) {
         throw providerError(purchases, caught,platform);

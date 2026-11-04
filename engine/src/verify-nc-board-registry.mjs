@@ -13,7 +13,7 @@ const registry = await readJson(path.resolve('..', 'src', 'config', 'nc-abc-boar
 const site = await readJson(path.resolve('out', 'site', 'locations.json'));
 const boards = registry.boards || [];
 if (registry.contractVersion !== 'bourbon-signal-nc-abc-board-registry-v1') fail('unsupported registry contract');
-if (boards.length !== 173) fail(`expected 173 canonical board IDs, found ${boards.length}`);
+if (boards.length !== 174) fail(`expected 174 canonical board IDs, found ${boards.length}`);
 if (new Set(boards.map((board) => board.id)).size !== boards.length) fail('canonical board IDs are not unique');
 if (new Set(boards.map((board) => board.sourceId)).size !== boards.length) fail('official board source IDs are not unique');
 const siteBoards = (site.locations || [])

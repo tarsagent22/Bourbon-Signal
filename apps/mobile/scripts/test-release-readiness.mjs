@@ -20,7 +20,7 @@ const app = readJson("app.json").expo;
 const eas = readJson("eas.json");
 const pkg = readJson("package.json");
 
-assert.equal(app.version, "1.1.0", "the camera and push native candidate must use a fresh public runtime version");
+assert.equal(app.version, "1.1.1", "the first subscription submission must match the prepared App Store version");
 assert.equal(app.ios?.bundleIdentifier, "com.bourbonsignal.app");
 assert.equal(app.ios?.config?.usesNonExemptEncryption, false);
 assert.equal(app.runtimeVersion?.policy, "appVersion");

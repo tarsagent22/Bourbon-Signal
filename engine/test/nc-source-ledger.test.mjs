@@ -93,13 +93,17 @@ test('maps one-store board shipments to the official store as non-inventory stor
   assert.equal(enriched.find((signal) => signal.id === 'wake-inventory').locationPrecision, 'store_level');
 });
 
-test('checked NC artifacts produce a complete 173-board ledger with qualified one-store shipment coverage', async () => {
+test('checked NC artifacts produce a complete 174-board ledger with qualified one-store shipment coverage', async () => {
   const [locationPayload, intelligence] = await Promise.all([
     readFile(new URL('../out/site/locations.json', import.meta.url), 'utf8').then(JSON.parse),
     readFile(new URL('../out/site/nc-intelligence.json', import.meta.url), 'utf8').then(JSON.parse),
   ]);
   const ledger = buildNcSourceLedger(locationPayload.locations, intelligence);
-  assert.equal(ledger.boardCount, 173);
+  assert.equal(ledger.boardCount, 174);
+  const stanley = ledger.boards.find(board => board.boardName === 'Stanley ABC Board');
+  assert.ok(stanley);
+  assert.equal(stanley.canAlertAsInventory, false);
+  assert.equal(stanley.officialStoreCount, 0);
   assert.equal(ledger.boards.every((board) => board.boardId && board.boardName && board.qualification && board.expectedCadence && board.health && board.nextAction), true);
   assert.equal(ledger.boards.filter((board) => board.qualification === 'direct_inventory_monitored').length >= 3, true);
   assert.equal(ledger.boards.filter((board) => board.officialStoreCount === 1).length >= 75, true);
@@ -152,11 +156,11 @@ test('a forged board-page redirect cannot certify supporting source health', () 
   assert.equal(board.lastSuccessfulSupportingEvidenceAt, null);
 });
 
-test('NC source ledger production contract requires exactly 173 unique official boards', () => {
-  const boards = Array.from({ length: 173 }, (_, index) => ({ boardId: `board-${index + 1}` }));
-  assert.deepEqual(validateNcSourceLedgerContract({ boardCount: 173, boards }), []);
-  assert.match(validateNcSourceLedgerContract({ boardCount: 172, boards: boards.slice(0, 172) }).join(' '), /exactly 173/i);
-  assert.match(validateNcSourceLedgerContract({ boardCount: 173, boards: [...boards.slice(0, 172), { boardId: 'board-172' }] }).join(' '), /unique board ids/i);
+test('NC source ledger production contract requires exactly 174 unique official boards', () => {
+  const boards = Array.from({ length: 174 }, (_, index) => ({ boardId: `board-${index + 1}` }));
+  assert.deepEqual(validateNcSourceLedgerContract({ boardCount: 174, boards }), []);
+  assert.match(validateNcSourceLedgerContract({ boardCount: 173, boards: boards.slice(0, 173) }).join(' '), /exactly 174/i);
+  assert.match(validateNcSourceLedgerContract({ boardCount: 174, boards: [...boards.slice(0, 173), { boardId: 'board-173' }] }).join(' '), /unique board ids/i);
 });
 
 test('single-store coverage is stable when a quiet shipment day changes current qualifications', () => {

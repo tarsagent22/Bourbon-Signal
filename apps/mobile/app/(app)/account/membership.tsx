@@ -61,7 +61,7 @@ export default function MembershipScreen() {
     if (operationLock.current) return;
     operationLock.current = true;
     setOperationBusy(true); setError("");
-    try { await action(); } catch { setError("That couldn’t be completed. Please try again."); }
+    try { await action(); } catch (caught) { setError(caught instanceof Error ? caught.message : "That couldn’t be completed. Please try again."); }
     finally { operationLock.current = false; setOperationBusy(false); }
   }
   async function choose(tier: "standard" | "barrel") {

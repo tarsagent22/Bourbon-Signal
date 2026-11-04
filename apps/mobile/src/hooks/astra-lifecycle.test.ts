@@ -11,7 +11,7 @@ function hooks() {
     return slots[index].value;
   };
   return { reset: () => { cursor = 0; }, effects,
-    react: { useRef: (initial: unknown) => memo(() => ({ current: initial }), []), useMemo: memo, useCallback: (f: unknown,deps: unknown[]) => memo(() => f,deps), useEffect: (f: () => unknown,deps: unknown[]) => memo(() => { effects.push(f); },deps) } };
+    react: { useState: (initial: unknown) => { const box = memo(() => ({ value: initial }), []); return [box.value, (value: any) => { box.value = typeof value === 'function' ? value(box.value) : value; }]; }, useRef: (initial: unknown) => memo(() => ({ current: initial }), []), useMemo: memo, useCallback: (f: unknown,deps: unknown[]) => memo(() => f,deps), useEffect: (f: () => unknown,deps: unknown[]) => memo(() => { effects.push(f); },deps) } };
 }
 test('M07: focus/resume hook refreshes only focused screen with latest loader, cleans listeners', async () => {
   const h = hooks(); let focus!: () => () => void; let onState!: (s: string) => void; let removed = false; const calls: string[] = [];
