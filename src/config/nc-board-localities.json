@@ -1243,6 +1243,12 @@
       "sourceUrl": "https://abc2.nc.gov/Districts/Board/236"
     },
     {
+      "value": "Stanley ABC",
+      "county": "Gaston County",
+      "cities": [],
+      "sourceUrl": "https://abc2.nc.gov/Districts/Board/261"
+    },
+    {
       "value": "Statesville ABC",
       "county": "Iredell County",
       "cities": [

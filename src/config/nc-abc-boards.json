@@ -1,7 +1,7 @@
 {
   "contractVersion": "bourbon-signal-nc-abc-board-registry-v1",
   "sourceUrl": "https://abc2.nc.gov/Search/ABCStoreLocator",
-  "observedAt": "2026-07-27",
+  "observedAt": "2026-11-04",
   "boards": [
     {
       "id": "nc-abc-board-61",
@@ -854,6 +854,12 @@
       "sourceId": "236",
       "label": "Spruce Pine ABC Board",
       "filterLabel": "Spruce Pine ABC"
+    },
+    {
+      "id": "nc-abc-board-261",
+      "sourceId": "261",
+      "label": "Stanley ABC Board",
+      "filterLabel": "Stanley ABC"
     },
     {
       "id": "nc-abc-board-170",

@@ -31,7 +31,7 @@ if (stores.length < 450) fail(`expected at least 450 official ABC stores, found 
 if (canonicalRegistry.contractVersion !== 'bourbon-signal-nc-abc-board-registry-v1') {
   fail('canonical board registry contract is missing or unsupported');
 }
-if (canonicalBoards.length !== 173) fail(`expected 173 canonical board IDs, found ${canonicalBoards.length}`);
+if (canonicalBoards.length !== 174) fail(`expected 174 canonical board IDs, found ${canonicalBoards.length}`);
 if (new Set(canonicalBoards.map((board) => board.id)).size !== canonicalBoards.length) fail('canonical board IDs are not unique');
 if (new Set(canonicalBoards.map((board) => board.label)).size !== canonicalBoards.length) fail('canonical board labels are not unique');
 

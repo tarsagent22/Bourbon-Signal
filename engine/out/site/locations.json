@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "count": 5677,
+  "count": 5678,
   "locations": [
     {
       "id": "7e4332f37178b757",
@@ -61513,6 +61513,30 @@
       "lastSignalAt": null,
       "lastVerifiedAt": "2026-07-07T06:25:33.264Z",
       "notes": "Official NC ABC board option id 236. Store locator is available; public bottle inventory varies by board."
+    },
+    {
+      "id": "71f39a2e91910042",
+      "state": "NC",
+      "type": "county_board",
+      "locationType": "county_board",
+      "name": "Stanley ABC Board",
+      "address": null,
+      "city": null,
+      "county": null,
+      "zip": null,
+      "lat": null,
+      "lng": null,
+      "precision": "county_board",
+      "source": "NC ABC Commission board list",
+      "sourceUrl": "https://abc2.nc.gov/Search/ABCStoreLocator",
+      "inventoryCapability": "county_board_watch",
+      "searchable": true,
+      "collectorAttached": false,
+      "hasSignals": false,
+      "signalCount": 0,
+      "lastSignalAt": null,
+      "lastVerifiedAt": "2026-11-04T20:13:22.622Z",
+      "notes": "Official NC ABC board option id 261. Store locator is available; public bottle inventory varies by board."
     },
     {
       "id": "71447e577f728d1a",
