@@ -18,7 +18,7 @@ function unique(values = []) {
   return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))];
 }
 
-export function validateNcSourceLedgerContract(ledger, expectedBoardCount = 173) {
+export function validateNcSourceLedgerContract(ledger, expectedBoardCount = 174) {
   const errors = [];
   const boards = Array.isArray(ledger?.boards) ? ledger.boards : [];
   const boardIds = boards.map((board) => String(board?.boardId || '').trim()).filter(Boolean);
