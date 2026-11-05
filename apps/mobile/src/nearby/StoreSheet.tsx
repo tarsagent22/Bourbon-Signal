@@ -365,7 +365,7 @@ export function StoreSheet({
             {notice
               ? "Some results could not refresh. Open List to retry."
               : unlocatedCount
-                ? `Tap a pin to explore · ${unlocatedCount} {unlocatedCount === 1 ? "report" : "reports"} without pins in List`
+                ? "Swipe up for stores and reports without pins"
                 : "Tap a store pin or swipe up to browse"}
           </Text>
         </Pressable>
