@@ -1,3 +1,4 @@
+import * as nearbyScopeModule from "../src/lib/nearby-feed-scope.ts";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
@@ -87,6 +88,7 @@ async function harness() {
   const route = await load('src/app/api/drops/route.ts', name => {
     if (name === 'next/server') return { NextResponse: { json: Response.json } };
     if (name === 'next/cache') return { unstable_cache: unstable };
+    if (name.includes('nearby-feed-scope')) return (nearbyScopeModule as any).default || nearbyScopeModule;
     if (name.includes('prepared-drop-cache')) return { createPreparedDropCache: memo, createAsyncPreparedDropCache: asyncMemo };
     if (name.includes('public-feed-pack')) return pack;
     if (name.includes('source-lane-runtime')) return wrapper;
