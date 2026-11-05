@@ -1,6 +1,6 @@
 export { parseBoundGroceryXapiInventory as parseBoundNevadaXapiInventory } from './grocery-xapi-identity.mjs';
 
-export const NEVADA_XAPI_RESOLVER_ZIPS = Object.freeze(['89101', '89501', '89701', '89048']);
+export const NEVADA_XAPI_RESOLVER_ZIPS = Object.freeze(["89101","89501","89701","89048","89801","89445","89406","89301","89415","89027","89040","89005"]);
 export const NEVADA_XAPI_TERMS = Object.freeze(['bourbon', 'whiskey']);
 export function nevadaRetailerCohortKey(sources) {
   return JSON.stringify(['strict-xapi-metadata-v2', ...sources.filter(source=>source.inventoryEligible)

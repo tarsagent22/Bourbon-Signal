@@ -18,7 +18,7 @@ test('each Arizona premise receives all eight priority searches in four passes w
 });
 
 test('California request ceiling contains every resolver, two searches per premise, eight library searches and eight transient retries',()=>{
-  assert.equal(CALIFORNIA_GROCERY_SOURCES.length,433);
+  assert.equal(CALIFORNIA_GROCERY_SOURCES.length,521);
   assert.equal(CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,8);
   assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.CA,WESTERN_GROCERY_RESOLVER_ZIPS.CA.length+CALIFORNIA_GROCERY_SOURCES.length*2+8+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT);
   assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.WA,127);
@@ -27,13 +27,13 @@ test('California request ceiling contains every resolver, two searches per premi
 });
 
 test('library assignment stays exhaustive for the larger California cohort and rejects an unbounded caller',()=>{
-  const storeCount=433,poolSize=350,batchSize=8,pairs=new Set();
+  const storeCount=521,poolSize=350,batchSize=8,pairs=new Set();
   for(let invocation=0;invocation<Math.ceil(storeCount*poolSize/batchSize);invocation++){
     const terms=Array.from({length:batchSize},(_,i)=>`term-${(invocation*batchSize+i)%poolSize}`);
-    for(const assignment of arizonaXapiLibraryQueryAssignments(storeCount,{maximumStores:433,terms,poolSize,invocation}))pairs.add(`${assignment.storeIndex}|${assignment.term}`);
+    for(const assignment of arizonaXapiLibraryQueryAssignments(storeCount,{maximumStores:521,terms,poolSize,invocation}))pairs.add(`${assignment.storeIndex}|${assignment.term}`);
   }
   assert.equal(pairs.size,storeCount*poolSize);
-  assert.throws(()=>arizonaXapiLibraryQueryAssignments(storeCount,{maximumStores:501,terms:['x'],poolSize,invocation:0}));
+  assert.throws(()=>arizonaXapiLibraryQueryAssignments(storeCount,{maximumStores:522,terms:['x'],poolSize,invocation:0}));
 });
 
 test('the reviewed one-digit Arizona merchant still requires exact banner and current physical premise',()=>{
