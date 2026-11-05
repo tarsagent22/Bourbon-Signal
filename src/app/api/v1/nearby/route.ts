@@ -1,8 +1,19 @@
-import { withNearbyFeedScope } from "@/lib/nearby-feed-scope";
+import {
+  withNearbyFeedScope,
+  nearbySearchCities,
+} from "@/lib/nearby-feed-scope";
 import { NextRequest, NextResponse } from "next/server";
 import { GET as feed } from "../signals/route";
-import { readSiteExportResults } from "@/lib/site-engine-contract";
-import { nearbyStoreIndex, addNearbySignals } from "@/lib/nearby";
+import { mergeStoreDirectoryPayloads } from "@/lib/store-directory";
+import {
+  readSiteExportResults,
+  readBundledSiteExport,
+} from "@/lib/site-engine-contract";
+import {
+  nearbyStoreIndex,
+  addNearbySignals,
+  unlocatedNearbySignals,
+} from "@/lib/nearby";
 
 import { validPoint, type NearbyStore } from "../../../../../shared/nearby";
 import type { SignalFeedPage } from "../../../../../apps/mobile/src/api/types";
@@ -31,13 +42,20 @@ export async function GET(request: NextRequest) {
   try {
     const exports = await readSiteExportResults(["stores", "locations"]);
     const byAddress = nearbyStoreIndex(
-      exports.flatMap((e) => [
-        ...(Array.isArray(e.payload?.stores) ? e.payload.stores : []),
-        ...(Array.isArray(e.payload?.locations) ? e.payload.locations : []),
+      mergeStoreDirectoryPayloads([
+        ...exports.map((e) => e.payload),
+        readBundledSiteExport("locations"),
+        readBundledSiteExport("stores"),
       ]),
     );
     const started = Date.now();
     const found = new Map<string, NearbyStore>();
+    const unlocated = new Map<string, SignalFeedPage["signals"][number]>();
+    const place = {
+      state: (q.get("placeState") || "").toUpperCase(),
+      city: q.get("placeCity") || "",
+    };
+    const cities = nearbySearchCities(byAddress, origin, radius, place);
     let cursor: string | null = null,
       partial = exports.some(
         (e) =>
@@ -53,7 +71,10 @@ export async function GET(request: NextRequest) {
         break;
       }
       const url = new URL("/api/v1/signals", request.url);
-      url.searchParams.set("limit", q.get("view") === "community" ? "100" : "9999");
+      url.searchParams.set(
+        "limit",
+        q.get("view") === "community" ? "100" : "9999",
+      );
       for (const key of [
         "view",
         "search",
@@ -66,12 +87,22 @@ export async function GET(request: NextRequest) {
         if (v) url.searchParams.set(key, v);
       }
       if (cursor) url.searchParams.set("cursor", cursor);
-      const response = await withNearbyFeedScope(byAddress, origin, radius, () =>
-        feed(new NextRequest(url, { headers: request.headers })),
+      const response = await withNearbyFeedScope(
+        byAddress,
+        origin,
+        radius,
+        () => feed(new NextRequest(url, { headers: request.headers })),
+        place,
       );
       if (!response.ok) return response;
       const data = (await response.json()) as SignalFeedPage;
       previewLocked = data.access.previewLocked;
+      for (const signal of unlocatedNearbySignals(
+        data.signals,
+        byAddress,
+        cities,
+      ))
+        unlocated.set(signal.id, signal);
       partial ||= data.degraded;
       unmapped += addNearbySignals(
         data.signals,
@@ -97,6 +128,7 @@ export async function GET(request: NextRequest) {
         partial,
         unmapped,
         previewLocked,
+        unlocated: [...unlocated.values()],
       },
       { headers },
     );

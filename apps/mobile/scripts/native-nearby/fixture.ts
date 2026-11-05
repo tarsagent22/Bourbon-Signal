@@ -28,6 +28,7 @@ const stores = [
     latitude: 33.364,
     longitude: -111.79,
     distance: 1.2,
+    approximateLocation: true,
     signals: [
       signal("a", "Buffalo Trace Bourbon", 23.99),
       signal("b", "W.L. Weller Full Proof", 69.99),
@@ -49,7 +50,23 @@ const api = {
   nearby: async () => ({
     stores,
     partial: false,
-    unmapped: 0,
+    unmapped: 1,
+    unlocated: [
+      {
+        ...signal("unlocated", "Eagle Rare 10 Year", 49.99),
+        location: {
+          scope: "exact_store",
+          label: "Gilbert, AZ",
+          store: {
+            id: "fixture-unlocated",
+            name: "Unlocated fixture store",
+            address: "200 Example Street",
+            city: "Gilbert",
+            state: "AZ",
+          },
+        },
+      },
+    ],
     previewLocked: false,
   }),
   getMemberPreferences: async () => ({

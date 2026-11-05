@@ -101,11 +101,17 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
           </Text>
         </View>
         <View style={s.distance}>
-          <Text style={s.distanceNumber}>{store.distance.toFixed(1)}</Text>
+          <Text style={s.distanceNumber}>
+            {store.approximateLocation ? "~" : ""}
+            {store.distance.toFixed(1)}
+          </Text>
           <Text style={s.small}>MILES</Text>
         </View>
       </View>
       <Text style={s.address}>{store.address}</Text>
+      {store.approximateLocation && (
+        <Text style={s.small}>Approximate address location</Text>
+      )}
       {(expanded ? store.signals : store.signals.slice(0, 3)).map((signal) => (
         <SignalCard
           key={signal.id}
@@ -142,6 +148,7 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
 export default function Nearby() {
   const params = useLocalSearchParams<{
       store?: string;
+      unlocated?: string;
       search?: string;
       view?: string;
       state?: string;
@@ -175,6 +182,20 @@ export default function Nearby() {
     useRef<FlatList<ReturnType<typeof mapFeedRows>[number]>>(null);
   const [cardIndex, setCardIndex] = useState(0);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [unlocatedOpen, setUnlocatedOpen] = useState(params.unlocated === "1");
+  const unlocated = useMemo(
+    () =>
+      (result?.unlocated || []).filter(
+        (signal) =>
+          !watchOnly ||
+          (watched || []).some(
+            (name) =>
+              name.trim().toLowerCase() ===
+              signal.bottle.name.trim().toLowerCase(),
+          ),
+      ),
+    [result, watchOnly, watched],
+  );
   const [filterDraft, setFilterDraft] = useState({
     radius: 25,
     tiers: "",
@@ -242,6 +263,11 @@ export default function Nearby() {
       freshness: fresh,
     }))
       if (v) q.set(k, v);
+    const placeParts = place.label.match(/^(.+), ([A-Z]{2})$/);
+    if (placeParts) {
+      q.set("placeCity", placeParts[1]);
+      q.set("placeState", placeParts[2]);
+    }
     const key = q.toString();
     const preview = readNearbyPreview(api, key);
     if (lastApi.current !== api || lastQuery.current !== key || preview)
@@ -516,6 +542,22 @@ export default function Nearby() {
             </Pressable>
           )}
         </View>
+        {rows.length > 0 && unlocated.length > 0 && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setUnlocatedOpen(true)}
+            style={s.feedCount}
+          >
+            <Icon
+              name="map-marker-question-outline"
+              size={16}
+              color={c.accent}
+            />
+            <Text style={s.feedCountText}>
+              {unlocated.length} reports without pins
+            </Text>
+          </Pressable>
+        )}
         {rows.length ? (
           <>
             {(error || result?.partial) && (
@@ -583,7 +625,9 @@ export default function Nearby() {
                       ? "Reports are still catching up"
                       : result?.previewLocked
                         ? "More reports need membership access"
-                        : "No matching bottles yet"}
+                        : unlocated.length
+                          ? "Reports found without map pins"
+                          : "No matching bottles yet"}
             </Text>
             <Text style={s.copy}>
               {error ||
@@ -597,7 +641,9 @@ export default function Nearby() {
                         ? "The search could not finish. Try again to load nearby reports."
                         : result?.previewLocked
                           ? "Open the feed to review your membership access."
-                          : "Widen your radius or try another bottle.")}
+                          : unlocated.length
+                            ? "These local reports need a verified map location. Their distance from you is unavailable."
+                            : "Widen your radius or try another bottle.")}
             </Text>
             {!busy && !restoringPlace && (
               <Button
@@ -606,7 +652,9 @@ export default function Nearby() {
                     ? "Choose location"
                     : error || result?.partial
                       ? "Try again"
-                      : "Adjust filters"
+                      : unlocated.length
+                        ? `View ${unlocated.length} reports`
+                        : "Adjust filters"
                 }
                 selected
                 onPress={() =>
@@ -614,7 +662,9 @@ export default function Nearby() {
                     ? setPlaceSheet(true)
                     : error || result?.partial
                       ? setRetry((n) => n + 1)
-                      : openFilters()
+                      : unlocated.length
+                        ? setUnlocatedOpen(true)
+                        : openFilters()
                 }
               />
             )}
@@ -694,6 +744,49 @@ export default function Nearby() {
                 No matching reports. Try another location or filter.
               </Text>
             }
+          />
+        </View>
+      </Modal>
+      <Modal
+        visible={unlocatedOpen}
+        animationType="slide"
+        onRequestClose={() => setUnlocatedOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: c.background,
+            paddingTop: insets.top + 16,
+          }}
+        >
+          <View style={[s.row, { paddingHorizontal: 20 }]}>
+            <Text style={[s.section, { flex: 1 }]}>Reports without pins</Text>
+            <Button label="Close" onPress={() => setUnlocatedOpen(false)} />
+          </View>
+          <Text
+            style={[s.copy, { paddingHorizontal: 20, paddingVertical: 12 }]}
+          >
+            Stores in the cities around your search. Distance and radius
+            inclusion are unverified until their map locations are available.
+          </Text>
+          <FlatList
+            data={unlocated}
+            keyExtractor={(signal) => signal.id}
+            initialNumToRender={5}
+            windowSize={5}
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              paddingBottom: insets.bottom + 20,
+            }}
+            renderItem={({ item }) => (
+              <SignalCard
+                signal={item}
+                onPress={() => {
+                  setUnlocatedOpen(false);
+                  openReport(item.id);
+                }}
+              />
+            )}
           />
         </View>
       </Modal>
