@@ -12,6 +12,7 @@ export default function NearbyMap(_: NearbyMapProps) {
     >
       <Text style={{ color: "#B9AA98" }}>
         The interactive map is available in the iOS app.
+        Use List below to explore nearby stores.
       </Text>
     </View>
   );

@@ -55,7 +55,7 @@ jobs:
           assert '/app/(app)/nearby.tsx' in sources
           assert any('expo-secure-store' in s for s in sources)
           assert any('react-native-maps' in s for s in sources)
-          assert '/src/nearby/NearbyMap.native.tsx' in sources
+          assert '/src/nearby/NearbyMap.ios.tsx' in sources
           assert any('react-navigation' in s for s in sources)
           shutil.copyfile('native-evidence/nearby-fixture.hbc', 'native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle')
           PY
