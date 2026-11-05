@@ -440,8 +440,19 @@ export default function Nearby() {
           stores={stores}
           selected={selected}
           onSelect={selectStore}
-          onSearchArea={(point) => {
-            setPlace({ ...point, label: "Map area" });
+          onSearchArea={async (point) => {
+            const id = ++placeSequence.current;
+            sequence.current++;
+            touched.current = true;
+            setBusy(true);
+            const resolved = await currentPlaceWithCity(
+              point,
+              Location.reverseGeocodeAsync,
+              undefined,
+              "Map area",
+            );
+            if (id !== placeSequence.current) return;
+            setPlace(resolved);
             setSelected(null);
           }}
           bottomInset={sheetHeight}

@@ -78,6 +78,7 @@ export async function currentPlaceWithCity(
     }>
   >,
   budgetMs = 1200,
+  fallbackLabel = "Current location",
 ): Promise<Point & { label: string }> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -99,7 +100,7 @@ export async function currentPlaceWithCity(
   } finally {
     clearTimeout(timer);
   }
-  return { ...point, label: "Current location" };
+  return { ...point, label: fallbackLabel };
 }
 
 export function appleStoreDirectionsUrl(

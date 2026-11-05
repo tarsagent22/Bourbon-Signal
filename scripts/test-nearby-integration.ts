@@ -171,3 +171,10 @@ test('directions for interpolated pins use the real address instead of an estima
  assert.equal(new URL(appleStoreDirectionsUrl({...store,approximateLocation:true})).searchParams.get('daddr'),'123 Main St, Raleigh, NC');
  assert.equal(new URL(appleStoreDirectionsUrl(store)).searchParams.get('daddr'),'35.78,-78.64');
 });
+
+
+test('panned map searches keep their center and an honest label if city lookup fails',async()=>{
+ const point={latitude:41.9,longitude:-87.6};
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>{throw Error('offline')},5,'Map area'),{...point,label:'Map area'});
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>[{city:'Chicago',region:'IL',isoCountryCode:'US'}],5,'Map area'),{...point,label:'Chicago, IL'});
+});
