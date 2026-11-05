@@ -1,4 +1,4 @@
-import { COVERAGE_STATES } from "../../../../shared/coverage-states.ts";
+import { COVERAGE_STATES } from "../../../../shared/coverage-states";
 import type { Point, NearbyStore } from "../../../../shared/nearby";
 export function placeLookupPath(value: string, defaultState = "") {
   const input = value.trim();
