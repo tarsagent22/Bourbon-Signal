@@ -4,11 +4,11 @@ const fs = require('node:fs');
 const app = require('../app.json').expo;
 const pkg = require('../package.json');
 
-test('Scanner binaries are isolated from prior OTA runtimes and each other', () => {
-  assert.equal(app.ios.runtimeVersion, '1.1.0-ios-live-labels-1');
+test('Native map binaries are isolated from prior OTA runtimes and each other', () => {
+  assert.equal(app.ios.runtimeVersion, '1.1.1-ios-nearby-native-1');
   assert.equal(app.version, '1.1.1');
   assert.deepEqual(app.runtimeVersion, { policy: 'appVersion' });
-  assert.equal(app.android.runtimeVersion, '1.1.0-android-live-labels-1');
+  assert.equal(app.android.runtimeVersion, '1.1.1-android-nearby-native-1');
   assert.equal(app.updates.checkAutomatically, 'ON_LOAD');
 });
 test('release entry cannot use the diagnostic fixture', () => {
@@ -16,7 +16,7 @@ test('release entry cannot use the diagnostic fixture', () => {
   const metro = fs.readFileSync('metro.config.js','utf8');
   assert.match(metro,/getDefaultConfig/);
   assert.match(metro,/shared/);
-  assert.doesNotMatch(metro,/native-home|diagnostic|resolveRequest|entryFile/);
+  assert.doesNotMatch(metro,/native-home|native-nearby|diagnostic|resolveRequest|entryFile/);
 });
 test('secure locked plist parser handles Expo generated XML', () => {
   const plist = require('@expo/plist').default;

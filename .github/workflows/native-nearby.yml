@@ -6,6 +6,7 @@ on:
       - "apps/mobile/src/nearby/**"
       - "apps/mobile/app/(app)/nearby.tsx"
       - "apps/mobile/scripts/native-nearby/**"
+      - "apps/mobile/scripts/ios-recovery.test.cjs"
       - ".github/workflows/native-nearby.yml"
 permissions:
   contents: read

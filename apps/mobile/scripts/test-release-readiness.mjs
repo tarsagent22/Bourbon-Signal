@@ -24,7 +24,7 @@ assert.equal(app.version, "1.1.1", "the first subscription submission must match
 assert.equal(app.ios?.bundleIdentifier, "com.bourbonsignal.app");
 assert.equal(app.ios?.config?.usesNonExemptEncryption, false);
 assert.equal(app.runtimeVersion?.policy, "appVersion");
-assert.equal(app.ios?.runtimeVersion, "1.1.1-ios-nearby-native-1", "Live scanning adds native modules and must not share the previous OTA runtime");
+assert.equal(app.ios?.runtimeVersion, "1.1.1-ios-nearby-native-1", "Nearby maps add native modules and must not share the previous OTA runtime");
 assert.equal(app.extra?.eas?.projectId, "693a1966-5bfc-4f25-9fe4-e39c009ec04a");
 assert.equal(app.updates?.url, "https://u.expo.dev/693a1966-5bfc-4f25-9fe4-e39c009ec04a");
 assert.equal(app.updates?.checkAutomatically, "ON_LOAD");
