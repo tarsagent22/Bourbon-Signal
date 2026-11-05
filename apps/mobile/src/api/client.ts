@@ -296,6 +296,7 @@ export function createMobileApi({
     getCollectionHistory() {
       return request<{ collectionVersion: number; value: CollectionValue; history: CollectionHistory }>('/api/v1/me/collection-history', { fresh: true });
     },
+    nearby(params: URLSearchParams) { return request<import("../../../../shared/nearby").NearbyResult>(`/api/v1/nearby?${params}`, { fresh: true }); },
     listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle, search }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string; search?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (view && view !== "all") params.set("view", view);

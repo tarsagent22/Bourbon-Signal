@@ -1,0 +1,8 @@
+import {build} from 'esbuild';
+import path from 'node:path';
+import {mkdir,copyFile,writeFile} from 'node:fs/promises';
+const here=import.meta.dirname,mobile=path.resolve(here,'../..'),output=path.join(mobile,'dist/nearby-preview');
+await mkdir(output,{recursive:true});
+await build({entryPoints:[path.join(here,'entry.tsx')],outfile:path.join(output,'app.js'),bundle:true,platform:'browser',jsx:'automatic',loader:{'.js':'jsx','.ttf':'file'},define:{'process.env.NODE_ENV':'"development"',__DEV__:'true',global:'globalThis'},plugins:[{name:'preview',setup(b){b.onResolve({filter:/^react-native$/},()=>({path:import.meta.resolve('react-native-web').replace('file:///','')}));b.onResolve({filter:/^@expo\/vector-icons$/},()=>({path:path.join(here,'../cohesion-preview/icons.jsx')}));b.onResolve({filter:/^(expo-router|expo-secure-store)$|\/useMobileApi$/},()=>({path:path.join(here,'fixture.ts')}));}}]});
+for(const [from,to]of [['@expo-google-fonts/fraunces/700Bold/Fraunces_700Bold.ttf','fraunces.ttf'],['@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf','icons.ttf']])await copyFile(path.join(mobile,'node_modules',from),path.join(output,to));
+await writeFile(path.join(output,'index.html'),`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>@font-face{font-family:Fraunces_700Bold;src:url(fraunces.ttf)}@font-face{font-family:MaterialCommunityIcons;src:url(icons.ttf)}html,body,#root{height:100%;margin:0;background:#0B0A09}*{box-sizing:border-box}</style></head><body><div id="root"></div><script src="app.js"></script></body></html>`);
