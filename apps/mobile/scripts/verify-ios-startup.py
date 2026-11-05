@@ -38,12 +38,6 @@ def main():
     pid = pid_match.group(1) if pid_match else None
     alive = False
     try:
-        deeplink = os.environ.get('NATIVE_OPEN_URL')
-        if deeplink:
-            if not deeplink.startswith('bourbonsignal://'):
-                raise RuntimeError('Diagnostic navigation must stay in Bourbon Signal')
-            time.sleep(10)
-            run('xcrun', 'simctl', 'openurl', udid, deeplink)
         time.sleep(25)
         alive = bool(pid and run('ps', '-p', pid, '-o', 'comm=', check=False).returncode == 0)
         log = run('xcrun', 'simctl', 'spawn', udid, 'log', 'show', '--last', '2m', '--style', 'compact', '--predicate', 'process == "BourbonSignal"', check=False)

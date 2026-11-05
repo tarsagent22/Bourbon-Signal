@@ -369,6 +369,7 @@ export default function Nearby() {
         stores={stores}
         selected={selected}
         onSelect={(id) => {
+          Keyboard.dismiss();
           setSelected(id);
           setListMode(false);
         }}

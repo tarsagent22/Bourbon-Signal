@@ -87,9 +87,14 @@ jobs:
         run: python3 scripts/verify-ios-startup.py
       - name: Capture selected store inside the native map
         env:
-          NATIVE_OPEN_URL: "bourbonsignal://nearby?store=fixture-one"
           NATIVE_SCENARIO: nearby-detail
-        run: python3 scripts/verify-ios-startup.py
+        run: |
+          cp metro.config.js native-evidence/production-metro.config.js
+          trap 'cp native-evidence/production-metro.config.js metro.config.js' EXIT
+          printf "%s\n" "module.exports = require('./scripts/native-nearby/metro.config.cjs');" > metro.config.js
+          npx expo export:embed --entry-file scripts/native-nearby/entry-details.tsx --platform ios --dev false --bytecode --reset-cache --bundle-output native-evidence/nearby-detail.hbc
+          cp native-evidence/nearby-detail.hbc native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle
+          python3 scripts/verify-ios-startup.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
