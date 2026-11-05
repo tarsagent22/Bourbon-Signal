@@ -50,7 +50,7 @@ A signed-in member can open Account → Privacy & Support → Request account de
 - Denial preserves manual posting without a photo.
 - Selected evidence is resized and re-encoded without embedded metadata before upload.
 - No permission prompt runs at app launch.
-- The candidate does not expose barcode matching and does not request microphone or location access.
+- The candidate does not expose barcode matching and does not request microphone or background location access.
 
 ## Review access and remaining setup
 
@@ -71,3 +71,5 @@ Before submission:
 - Marketing: https://www.bourbonsignal.com
 
 Expo configuration declares `usesNonExemptEncryption: false`; confirm that answer against the final signed archive.
+
+Native Nearby embeds Apple Maps on iOS. Tap a pin to view bottle reports inside the app. Only Directions opens external navigation. Foreground location is optional and requested only from Use my location.

@@ -24,7 +24,7 @@ assert.equal(app.version, "1.1.1", "the first subscription submission must match
 assert.equal(app.ios?.bundleIdentifier, "com.bourbonsignal.app");
 assert.equal(app.ios?.config?.usesNonExemptEncryption, false);
 assert.equal(app.runtimeVersion?.policy, "appVersion");
-assert.equal(app.ios?.runtimeVersion, "1.1.0-ios-live-labels-1", "Live scanning adds native modules and must not share the previous OTA runtime");
+assert.equal(app.ios?.runtimeVersion, "1.1.1-ios-nearby-native-1", "Nearby maps add native modules and must not share the previous OTA runtime");
 assert.equal(app.extra?.eas?.projectId, "693a1966-5bfc-4f25-9fe4-e39c009ec04a");
 assert.equal(app.updates?.url, "https://u.expo.dev/693a1966-5bfc-4f25-9fe4-e39c009ec04a");
 assert.equal(app.updates?.checkAutomatically, "ON_LOAD");
@@ -40,7 +40,7 @@ for (const dependency of ["expo-image-picker", "expo-image-manipulator", "expo-f
   assert.match(pkg.dependencies?.[dependency] || "", /^~57\./, `${dependency} must use the Expo SDK-compatible release`);
 }
 assert.match(pkg.dependencies?.["expo-camera"] || "", /^~57\./, "live scanning requires the SDK-compatible native camera");
-assert.equal(pkg.dependencies?.["expo-location"], undefined, "unused location code and permission declarations must not ship");
+assert.match(pkg.dependencies?.["expo-location"] || "", /^~57\./, "nearby uses compatible foreground location");
 
 const pluginEntry = (name) => app.plugins?.find((plugin) => plugin === name || (Array.isArray(plugin) && plugin[0] === name));
 const pluginOptions = (name) => {
@@ -51,7 +51,8 @@ const pluginOptions = (name) => {
 };
 
 assert.deepEqual(pluginOptions("expo-camera"), { cameraPermission: CAMERA_PERMISSION_MESSAGE, microphonePermission: false, recordAudioAndroid: false, barcodeScannerEnabled: true });
-assert.equal(pluginEntry("expo-location"), undefined);
+assert.equal(pluginOptions("expo-location").isIosBackgroundLocationEnabled, false);
+assert.equal(pluginOptions("expo-location").isAndroidBackgroundLocationEnabled, false);
 assert.deepEqual(pluginOptions("expo-notifications"), {
   icon: "./assets/notification-icon.png",
   color: "#C48A4A",
@@ -67,8 +68,6 @@ assert.deepEqual(app.android?.permissions, [
 ]);
 assert.deepEqual(app.android?.blockedPermissions, [
   "android.permission.ACCESS_BACKGROUND_LOCATION",
-  "android.permission.ACCESS_COARSE_LOCATION",
-  "android.permission.ACCESS_FINE_LOCATION",
   "android.permission.RECORD_AUDIO",
   "android.permission.READ_EXTERNAL_STORAGE",
   "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -101,7 +100,6 @@ assert.equal(infoPlist.NSCameraUsageDescription, CAMERA_PERMISSION_MESSAGE);
 assert.equal(infoPlist.NSPhotoLibraryUsageDescription, PHOTO_LIBRARY_PERMISSION_MESSAGE);
 for (const forbiddenKey of [
   "NSMicrophoneUsageDescription",
-  "NSLocationWhenInUseUsageDescription",
   "NSLocationAlwaysAndWhenInUseUsageDescription",
   "NSLocationAlwaysUsageDescription",
   "NSMotionUsageDescription",
@@ -159,7 +157,7 @@ assert.doesNotMatch(privacyInventory, /\| User Content \| No collection/);
 assert.match(privacyInventory, /prompts only after an explicit member action/i);
 assert.match(privacyInventory, /optional sighting evidence/i);
 assert.match(privacyInventory, /resized.*metadata/i);
-assert.match(privacyInventory, /microphone and all location permissions remain disabled/i);
+assert.match(privacyInventory, /background location and microphone permissions remain disabled/i);
 assert.doesNotMatch(privacyInventory, /No camera, photo library, contacts, microphone, Bluetooth, or device-location permission/);
 const reviewNotes = read("store/app-review-notes.md");
 assert.doesNotMatch(`${JSON.stringify(app)}\n${privacyInventory}\n${reviewNotes}`, /Trip Mode|trip_mode|trip-mode/i,
@@ -174,7 +172,7 @@ assert.doesNotMatch(reviewNotes, /Signals tab|Open HQ|HQ → Request account del
 assert.match(reviewNotes, /no permission prompt runs at app launch/i);
 assert.match(reviewNotes, /optional sighting evidence/i);
 assert.match(reviewNotes, /does not expose barcode matching/i);
-assert.match(reviewNotes, /does not request microphone or location/i);
+assert.match(reviewNotes, /does not request microphone or background location/i);
 const releaseChecklist = read("store/release-checklist.md");
 assert.match(releaseChecklist, /camera and selected-photo evidence/i);
 assert.match(releaseChecklist, /manual posting without a photo/i);
