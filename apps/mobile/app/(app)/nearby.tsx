@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Keyboard,
+  KeyboardAvoidingView,
   Linking,
   Modal,
   Platform,
@@ -109,7 +110,7 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
                 ? "Older report"
                 : signal.availability?.label || "Reported availability"}
               {signal.availability?.price != null
-                ? ` Â· $${signal.availability.price.toFixed(2)}`
+                ? ` Ã‚Â· $${signal.availability.price.toFixed(2)}`
                 : ""}
             </Text>
             <Text style={s.small}>
@@ -140,13 +141,13 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
       <View style={s.row}>
         <View style={{ flex: 1 }}>
           <Button
-            label="Directions â†—"
+            label="Directions Ã¢â€ â€”"
             selected
             onPress={() => void open(true)}
           />
         </View>
         <View style={{ flex: 1 }}>
-          <Button label="View map â†—" onPress={() => void open(false)} />
+          <Button label="View map Ã¢â€ â€”" onPress={() => void open(false)} />
         </View>
       </View>
       {error ? (
@@ -408,7 +409,7 @@ export default function Nearby() {
       {params.state ? (
         <Text style={s.small}>
           Using your {params.state}
-          {params.area ? ` Â· ${params.area}` : ""} feed selection
+          {params.area ? ` Ã‚Â· ${params.area}` : ""} feed selection
         </Text>
       ) : null}
       <View style={[s.row, { justifyContent: "space-between", marginTop: 8 }]}>
@@ -425,7 +426,7 @@ export default function Nearby() {
       </View>
       {place ? (
         <Text style={s.small}>
-          Straight-line miles Â· Availability can change
+          Straight-line miles Ã‚Â· Availability can change
         </Text>
       ) : null}
       {result?.partial ? (
@@ -445,7 +446,7 @@ export default function Nearby() {
           style={s.link}
         >
           <Text style={{ color: c.accent }}>
-            Your Intel preview Â· Explore membership â†’
+            Your Intel preview Ã‚Â· Explore membership Ã¢â€ â€™
           </Text>
         </Pressable>
       ) : null}
@@ -500,7 +501,7 @@ export default function Nearby() {
               </Text>
               <Text style={s.emptyCopy}>
                 {!place
-                  ? "Pick a starting point. Weâ€™ll bring the nearby reports together for you."
+                  ? "Pick a starting point. WeÃ¢â‚¬â„¢ll bring the nearby reports together for you."
                   : result?.partial
                     ? "The search is incomplete. Try again or narrow the bottle search."
                     : "Try a wider radius, another bottle, or a longer time window."}
@@ -527,7 +528,10 @@ export default function Nearby() {
         animationType="slide"
         onRequestClose={() => setPlaceSheet(false)}
       >
-        <View style={s.overlay}>
+        <KeyboardAvoidingView
+          style={s.overlay}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
           <View style={s.sheet}>
             <View style={s.row}>
               <Text style={[s.section, { flex: 1 }]}>
@@ -554,7 +558,7 @@ export default function Nearby() {
             ) : null}
             <Button
               label={
-                locating ? "Finding your locationâ€¦" : "Explore this area"
+                locating ? "Finding your locationÃ¢â‚¬Â¦" : "Explore this area"
               }
               selected
               disabled={locating || !draft.trim()}
@@ -564,7 +568,7 @@ export default function Nearby() {
               Uses the approximate city or ZIP center. No GPS permission needed.
             </Text>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
       <Modal
         visible={filters}
@@ -574,6 +578,7 @@ export default function Nearby() {
       >
         <View style={s.overlay}>
           <ScrollView
+            style={{ flexGrow: 0, maxHeight: "85%" }}
             contentContainerStyle={s.sheet}
             keyboardShouldPersistTaps="handled"
           >
