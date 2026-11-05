@@ -537,7 +537,6 @@ export default function SignalFeedScreen() {
 
   const header = (
     <View style={styles.header}>
-<Pressable accessibilityRole="button" onPress={() => router.push({pathname:"/(app)/nearby",params:{search:bottleQuery,view,state:filters.state,area:filters.area,tiers:filters.rarities.join(","),freshness:filters.freshness || ""}})} style={{minHeight:48,justifyContent:"center",paddingHorizontal:16,borderRadius:12,borderWidth:1,borderColor:colors.border,backgroundColor:colors.surface}}><Text style={{color:colors.accent,fontWeight:"600"}}>Find nearby · Explore map</Text></Pressable>
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"

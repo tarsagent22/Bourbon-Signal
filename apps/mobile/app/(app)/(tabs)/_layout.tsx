@@ -43,6 +43,9 @@ export function AlertInboxButton() {
 
 export function HomeHeaderActions() {
   return <View style={styles.headerActions}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Explore nearby on the map" accessibilityHint="Browse bottle reports around you" onPress={() => router.push("/(app)/nearby")} style={({ pressed }) => [styles.scanButton, pressed && styles.pressed]}>
+      <MaterialCommunityIcons name="map-outline" size={22} color={colors.accent} />
+    </Pressable>
     <Pressable accessibilityRole="button" accessibilityLabel="Bottle Check: scan or search a bottle" onPress={() => router.push("/(app)/bottle-check")} style={({ pressed }) => [styles.scanButton, pressed && styles.pressed]}>
       <MaterialCommunityIcons name="line-scan" size={23} color={colors.accent} />
     </Pressable>

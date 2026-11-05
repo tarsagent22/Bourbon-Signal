@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import MapView, { Circle, Marker } from "react-native-maps";
+import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { colors as c } from "../theme";
 import {
   clusterStores,
@@ -18,6 +19,16 @@ export default function NearbyMap({
   onSearchArea,
   bottomInset,
 }: NearbyMapProps) {
+  const [iconsReady, setIconsReady] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void Icon.loadFont().then(() => {
+      if (active) setIconsReady(true);
+    }).catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
   const map = useRef<MapView>(null),
     [ready, setReady] = useState(false),
     [region, setRegion] = useState<MapRegion>(
@@ -32,12 +43,26 @@ export default function NearbyMap({
   }, [ready, origin?.latitude, origin?.longitude, radius]);
   const selectedLocation = stores.find((row) => row.id === selected);
   useEffect(() => {
-    if (ready && selectedLocation) map.current?.animateToRegion(radiusRegion(selectedLocation, Math.min(radius, 3)), 300);
+    if (ready && selectedLocation)
+      map.current?.animateToRegion(
+        radiusRegion(selectedLocation, Math.min(radius, 3)),
+        300,
+      );
   }, [ready, selectedLocation?.latitude, selectedLocation?.longitude]);
-  const clusters = useMemo(
-    () => clusterStores(stores, region),
-    [stores, region],
-  );
+  const clusters = useMemo(() => {
+    const groups = clusterStores(
+      stores.filter((store) => store.id !== selected),
+      region,
+    );
+    if (selectedLocation)
+      groups.push({
+        id: `selected-${selectedLocation.id}`,
+        stores: [selectedLocation],
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+      });
+    return groups;
+  }, [stores, region, selected]);
   const moved = origin && miles(origin, region) > Math.max(2, radius * 0.3);
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -65,8 +90,8 @@ export default function NearbyMap({
           <Circle
             center={origin}
             radius={radius * 1609.344}
-            fillColor="#D69A4A08"
-            strokeColor="#D69A4A66"
+            fillColor="#00000000"
+            strokeColor="#D69A4A30"
             strokeWidth={1}
           />
         ) : null}
@@ -83,9 +108,9 @@ export default function NearbyMap({
         ) : null}
         {clusters.map((group) => (
           <Marker
-            key={`${group.id}:${group.stores.length}:${group.stores.some((s) => s.id === selected)}`}
+            key={`${group.id}:${group.stores.length}:${group.stores.some((s) => s.id === selected)}:${iconsReady}`}
             coordinate={group}
-            tracksViewChanges={false}
+            tracksViewChanges={!iconsReady}
             accessibilityLabel={
               group.stores.length > 1
                 ? `${group.stores.length} stores. Zoom in`
@@ -107,14 +132,28 @@ export default function NearbyMap({
             <View
               style={[
                 s.pin,
+                group.stores.length === 1 && s.singlePin,
                 group.stores.some((s) => s.id === selected) && s.selected,
               ]}
             >
-              <Text style={s.count}>
-                {group.stores.length > 1
-                  ? group.stores.length
-                  : group.stores[0].signals.length}
-              </Text>
+              {group.stores.length > 1 ? (
+                <>
+                  <Icon
+                    name="storefront-outline"
+                    size={13}
+                    color={c.background}
+                  />
+                  <Text style={s.count}>{group.stores.length}</Text>
+                </>
+              ) : (
+                <Icon
+                  name="storefront-outline"
+                  size={19}
+                  color={
+                    group.stores[0].id === selected ? c.background : c.accent
+                  }
+                />
+              )}
             </View>
           </Marker>
         ))}
@@ -130,19 +169,26 @@ export default function NearbyMap({
           }
           style={s.search}
         >
+          <Icon name="magnify" size={16} color={c.accent} />
           <Text style={s.searchText}>Search this area</Text>
         </Pressable>
       ) : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Recenter map"
+        disabled={!origin}
+        accessibilityState={{ disabled: !origin }}
         onPress={() => {
           if (origin)
             map.current?.animateToRegion(radiusRegion(origin, radius), 300);
         }}
         style={[s.recenter, { bottom: bottomInset + 12 }]}
       >
-        <Text style={s.recenterText}>◎</Text>
+        <Icon
+          name="crosshairs-gps"
+          size={21}
+          color={origin ? c.text : c.muted}
+        />
       </Pressable>
     </View>
   );
@@ -151,6 +197,12 @@ const s = StyleSheet.create({
   pin: {
     minWidth: 36,
     height: 36,
+    flexDirection: "row",
+    gap: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
     borderRadius: 18,
     paddingHorizontal: 9,
     backgroundColor: c.accent,
@@ -159,7 +211,16 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  selected: { backgroundColor: c.text, borderColor: c.accent },
+  singlePin: {
+    backgroundColor: "#211A13",
+    borderColor: "#B38349",
+    borderWidth: 1.5,
+  },
+  selected: {
+    backgroundColor: c.accent,
+    borderColor: "#F4D19E",
+    transform: [{ scale: 1.12 }],
+  },
   count: { color: c.background, fontSize: 14, fontWeight: "800" },
   origin: {
     width: 12,
@@ -171,7 +232,10 @@ const s = StyleSheet.create({
   },
   search: {
     position: "absolute",
-    top: 136,
+    top: 126,
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
     alignSelf: "center",
     minHeight: 44,
     justifyContent: "center",
