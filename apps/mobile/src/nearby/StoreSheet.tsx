@@ -16,6 +16,7 @@ import type { NearbyStore } from "../../../../shared/nearby";
 import type { Signal } from "../api/types";
 import { CellarBottleArtwork } from "../components/CellarBottleArtwork";
 import {
+  signalRowFacts,
   signalRowReportTimestamp,
   signalRowReportSummary,
 } from "../components/signal-row-presentation";
@@ -48,10 +49,11 @@ const BottleRow = memo(function BottleRow({
 }) {
   const now = useReportClock();
   const appearance = signalFeedCardAppearance(signal);
+  const facts = signalRowFacts(signal, now);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Open ${signal.bottle.name} report`}
+      accessibilityLabel={`${signal.bottle.name}, ${facts.status}. Open report`}
       onPress={() => onOpen(signal.id)}
       style={s.bottle}
     >
@@ -69,6 +71,7 @@ const BottleRow = memo(function BottleRow({
             : "Price not reported"}
         </Text>
         <Text style={s.meta}>{signalRowReportSummary(signal, now).label}</Text>
+        {facts.showStatus && <Text style={s.meta}>{facts.status}</Text>}
       </View>
       <Icon name="chevron-right" size={20} color={c.muted} />
     </Pressable>
