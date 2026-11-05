@@ -151,6 +151,7 @@ export default function Nearby() {
     }>(),
     api = useMobileApi();
   const [place, setPlace] = useState<Place | null>(null),
+    [restoringPlace, setRestoringPlace] = useState(true),
     [draft, setDraft] = useState(""),
     [placeSheet, setPlaceSheet] = useState(false),
     [locating, setLocating] = useState(false),
@@ -205,7 +206,10 @@ export default function Nearby() {
         )
           setPlace(p);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (active) setRestoringPlace(false);
+      });
     api
       .getMemberPreferences({ fresh: true })
       .then((p) => {
@@ -397,18 +401,20 @@ export default function Nearby() {
   }
   return (
     <View style={s.screen}>
-      <NearbyMap
-        origin={place}
-        radius={radius}
-        stores={stores}
-        selected={selected}
-        onSelect={selectStore}
-        onSearchArea={(point) => {
-          setPlace({ ...point, label: "Map area" });
-          setSelected(null);
-        }}
-        bottomInset={sheetHeight}
-      />
+      {!restoringPlace && (
+        <NearbyMap
+          origin={place}
+          radius={radius}
+          stores={stores}
+          selected={selected}
+          onSelect={selectStore}
+          onSearchArea={(point) => {
+            setPlace({ ...point, label: "Map area" });
+            setSelected(null);
+          }}
+          bottomInset={sheetHeight}
+        />
+      )}
       <View style={s.mapControls}>
         <View style={s.mapSearchRow}>
           <Pressable
@@ -481,11 +487,11 @@ export default function Nearby() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Refresh nearby reports"
-            disabled={busy || !place}
+            disabled={busy || restoringPlace || !place}
             onPress={() => setRetry((n) => n + 1)}
             style={s.feedCount}
           >
-            {busy ? (
+            {busy || restoringPlace ? (
               <ActivityIndicator size="small" color={c.accent} />
             ) : (
               <Icon name="glass-cocktail" size={15} color={c.accent} />
@@ -493,7 +499,7 @@ export default function Nearby() {
             <Text style={s.feedCountText}>
               {rows.length
                 ? `${Math.min(cardIndex + 1, rows.length)} / ${rows.length} reports`
-                : busy
+                : busy || restoringPlace
                   ? "Finding bottles…"
                   : "Nearby bottles"}
             </Text>
@@ -566,21 +572,25 @@ export default function Nearby() {
         ) : (
           <View style={s.emptyCard}>
             <Text style={s.section}>
-              {!place
-                ? "Your next find starts here"
-                : busy
-                  ? "Looking around you"
-                  : "No matching bottles yet"}
+              {restoringPlace
+                ? "Opening your map"
+                : !place
+                  ? "Your next find starts here"
+                  : busy
+                    ? "Looking around you"
+                    : "No matching bottles yet"}
             </Text>
             <Text style={s.copy}>
               {error ||
-                (!place
-                  ? "Use your location or choose a city to explore."
-                  : busy
-                    ? "The map is ready. Reports are on their way."
-                    : "Widen your radius or try another bottle.")}
+                (restoringPlace
+                  ? "Getting your saved location ready."
+                  : !place
+                    ? "Use your location or choose a city to explore."
+                    : busy
+                      ? "The map is ready. Reports are on their way."
+                      : "Widen your radius or try another bottle.")}
             </Text>
-            {!busy && (
+            {!busy && !restoringPlace && (
               <Button
                 label={
                   !place
