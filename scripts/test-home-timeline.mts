@@ -16,7 +16,7 @@ const route=loadWithMocks('src/app/api/drops/route.ts',{
  '@clerk/nextjs/server':{auth:async()=>({userId:signedIn?'test':null}),clerkClient:async()=>({users:{getUser:async()=>({publicMetadata:{}})}})},
  '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier,feedPreviewLimit:tier==='free'?6:null,canUseAdvancedFilters:tier==='barrel',canUseBottleSearch:tier==='barrel',canUseDropFeedFilters:tier==='barrel'})},
  '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(drops:unknown[])=>({drops,version:'one'})},
- '@/lib/site-engine-contract':{normalizeDropForSite:(row:object)=>{normalizeCount++;return {...row};},readSiteExportIdentity:async()=>snapshot,readSiteExportResults:async()=>[{payload:{drops:rows,generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'},{payload:{generatedAt:new Date(now).toISOString()}}],siteExportHeaders:()=>({})},
+ '@/lib/site-engine-contract':{normalizeDropForSite:(row:object)=>{normalizeCount++;return {...row};},readSiteExportIdentity:async()=>snapshot,readSiteExportResults:async()=>[{payload:{drops:rows,generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'},{payload:{generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'}],siteExportHeaders:()=>({})},
  '@/lib/drop-classification':{DROP_FEED_CLASSIFICATION_TIERS:['limited','allocated','unicorn'],getDropClassificationIndex:()=>({version:'one'}),classifyPublicDrop:(drop:any)=>({...drop,rarity_tier:drop.tier,classification_source:'test'})},
  '@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},
 });
