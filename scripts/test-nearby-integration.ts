@@ -54,3 +54,14 @@ test('larger internal map reads never raise ordinary API limits or free preview 
  });
  assert.equal(nearbyFeedPageLimit(100),100);
 });
+
+import { createAsyncPreparedDropCache } from '../src/lib/prepared-drop-cache.ts';
+test('longer immutable reuse skips degraded results and switches immediately with snapshot identity',async()=>{
+ let now=0,calls=0;const cache=createAsyncPreparedDropCache<{ok:boolean}>(300000,()=>now,value=>value.ok);
+ const build=async()=>{calls++;return {ok:true}};
+ await cache.get('snapshot-a',build);now=60000;assert.equal((await cache.get('snapshot-a',build)).hit,true);assert.equal(calls,1);
+ await cache.get('snapshot-b',build);assert.equal(calls,2);
+ assert.equal((await cache.get('degraded',async()=>({ok:false}))).hit,false);
+ assert.equal((await cache.get('degraded',build)).hit,false);assert.equal(calls,3);
+ now=400000;assert.equal((await cache.get('snapshot-b',build)).hit,false);
+});

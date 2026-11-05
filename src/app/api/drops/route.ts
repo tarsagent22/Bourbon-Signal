@@ -195,14 +195,16 @@ async function readSharedPublicPreparation(identity: string) {
   const classification = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]).version;
   try {
     const packed = await readPackedPublicFeed(identity, classification);
-    return { ...unpackPublicFeed<PublicFeedBase>(packed), packedBytes: Buffer.byteLength(packed) };
+    return { ...unpackPublicFeed<PublicFeedBase>(packed), cacheable: true, packedBytes: Buffer.byteLength(packed) };
   } catch {
     // Cache failure may reread the immutable base; it cannot bypass the fresh
     // source composition that follows this function on every normal request.
     return { ...await preparePublicFeedBase(), packedBytes: 0 };
   }
 }
-const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof readSharedPublicPreparation>>>();
+// Identity changes still miss immediately. Only the verified immutable base
+// stays warm; source heads, inventory expiry and entitlements run on every GET.
+const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof readSharedPublicPreparation>>>(300_000, Date.now, value => value.cacheable);
 
 async function preparePublicFeedSnapshot(base: PublicFeedBase) {
   const [sourceOverlay, retailerSubmissions] = await Promise.all([
