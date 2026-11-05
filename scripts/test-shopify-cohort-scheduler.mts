@@ -1,3 +1,4 @@
+import * as consumptionTrace from "../src/lib/source-consumption-trace.ts";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
@@ -89,7 +90,7 @@ async function harness(config = configs.find((row: Row) => row.id === 'christies
     return forbidden(`unexpected SQL ${sql.slice(0, 90)}`)();
   } };
   const schedulerSource = await readFile(new URL('../src/lib/source-scheduler.ts', import.meta.url), 'utf8');
-  const modules = new Map<string, any>();
+  const modules = new Map<string, any>([["./source-consumption-trace", (consumptionTrace as any).default || consumptionTrace]]);
   for (const match of schedulerSource.matchAll(/from\s+['"]([^'"]+\.mjs)['"]/g)) {
     if (match[1].includes('/collectors/') || match[1].includes('/core/fetcher')) continue;
     modules.set(match[1], await import(new URL(match[1], new URL('../src/lib/source-scheduler.ts', import.meta.url)).href));

@@ -1,3 +1,4 @@
+import { withNearbyFeedScope } from "@/lib/nearby-feed-scope";
 import { NextRequest, NextResponse } from "next/server";
 import { GET as feed } from "../signals/route";
 import { readSiteExportResults } from "@/lib/site-engine-contract";
@@ -65,8 +66,8 @@ export async function GET(request: NextRequest) {
         if (v) url.searchParams.set(key, v);
       }
       if (cursor) url.searchParams.set("cursor", cursor);
-      const response = await feed(
-        new NextRequest(url, { headers: request.headers }),
+      const response = await withNearbyFeedScope(byAddress, origin, radius, () =>
+        feed(new NextRequest(url, { headers: request.headers })),
       );
       if (!response.ok) return response;
       const data = (await response.json()) as SignalFeedPage;

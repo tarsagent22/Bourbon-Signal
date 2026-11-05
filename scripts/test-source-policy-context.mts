@@ -1,3 +1,4 @@
+import * as consumptionTrace from "../src/lib/source-consumption-trace.ts";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
@@ -18,7 +19,7 @@ const manifest = JSON.parse(await readFile(new URL('manifest.json', fixtureRoot)
 const bodies = new Map<string, string>(await Promise.all(manifest.captures.map(async (capture: Row) =>
   [capture.requestedUrl, await readFile(new URL(capture.file, fixtureRoot), 'utf8')])));
 const sourceText = await readFile(new URL('../src/lib/source-scheduler.ts', import.meta.url), 'utf8');
-const modules = new Map<string, any>();
+const modules = new Map<string, any>([["./source-consumption-trace", (consumptionTrace as any).default || consumptionTrace]]);
 for (const match of sourceText.matchAll(/from\s+['"]([^'"]+\.mjs)['"]/g)) {
   if (!match[1].includes('/collectors/') && !match[1].includes('/core/fetcher')) {
     modules.set(match[1], await import(new URL(match[1], new URL('../src/lib/source-scheduler.ts', import.meta.url)).href));

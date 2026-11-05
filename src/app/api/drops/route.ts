@@ -1,3 +1,4 @@
+import { filterNearbyFeedDrops } from "@/lib/nearby-feed-scope";
 import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
 import { unstable_cache } from "next/cache";
 import { packPublicFeed, unpackPublicFeed } from "@/lib/public-feed-pack";
@@ -38,7 +39,7 @@ import {
   type DropClassificationBottle,
 } from "@/lib/drop-classification";
 
-const preparedDropCache = createPreparedDropCache<ReturnType<typeof normalizeDropForSite>[]>();
+const preparedDropCache = createPreparedDropCache<ReturnType<typeof normalizeDropForSite>[]>(4, 300_000);
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set<string>(DROP_FEED_CLASSIFICATION_TIERS);
@@ -170,12 +171,16 @@ async function preparePublicFeedBase() {
   const degradedStates = degradedEngineStates(statsPayload);
   const eligible = normalizedDrops;
   const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
-  return { dropResult, exportPayload, statsPayload, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
+  return { dropResult, exportPayload, statsPayload, classificationIndex, normalizedDrops, eligible, degradedStates, freshness, cacheable: [dropResult, statsResult].every(result => result.source === "remote-snapshot" || result.source === "local-export") };
 }
 
 type PublicFeedBase = Awaited<ReturnType<typeof preparePublicFeedBase>>;
 const readPackedPublicFeed = unstable_cache(async (_identity: string, _classification: string) => {
   const prepared = await preparePublicFeedBase();
+  if (!prepared.cacheable || !prepared.exportPayload || !prepared.statsPayload) {
+    throw new Error("Incomplete feed preparation cannot enter the immutable cache");
+  }
+  if (_identity !== await readSiteExportIdentity()) throw new Error("Snapshot changed during preparation");
   // No durable source projection, runtime policy, or retailer submission is
   // persisted here. Those are read after both shared cache layers on every GET.
   const { drops: _rawDrops, ...exportMetadata } = prepared.exportPayload || {};
@@ -185,7 +190,7 @@ const readPackedPublicFeed = unstable_cache(async (_identity: string, _classific
     classificationIndex: { version: prepared.classificationIndex.version },
   };
   return packPublicFeed(prepared, metadata);
-}, ['public-feed-immutable-base-v3', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 15 });
+}, ['public-feed-immutable-base-v4', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 3600 });
 async function readSharedPublicPreparation(identity: string) {
   const classification = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]).version;
   try {
@@ -488,6 +493,9 @@ export async function GET(request: Request) {
         });
       });
     }
+
+    // Narrow the authorized, policy-filtered feed before its page boundary.
+    drops = filterNearbyFeedDrops(drops);
 
     drops = canonicalSignalOrder
       ? drops
