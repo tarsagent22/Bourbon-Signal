@@ -34,6 +34,7 @@ import { useMobileApi } from "../../src/hooks/useMobileApi";
 import {
   nearbyVisible,
   currentPlaceWithCity,
+  appleStoreDirectionsUrl,
   parsePlace,
   placeLookupPath,
   storeMapUrl,
@@ -82,7 +83,7 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
     try {
       await Linking.openURL(
         Platform.OS === "ios"
-          ? `https://maps.apple.com/?daddr=${store.latitude},${store.longitude}&dirflg=d`
+          ? appleStoreDirectionsUrl(store)
           : storeMapUrl(store, directions),
       );
     } catch {

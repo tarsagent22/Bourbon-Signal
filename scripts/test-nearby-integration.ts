@@ -163,3 +163,11 @@ test('reviewed duplicate premise bindings never contain conflicting positions',(
   if(prior)assert.ok(miles(prior,point)<=0.25,proof.id);positions.set(id,point);
  }
 });
+
+
+import { appleStoreDirectionsUrl } from '../apps/mobile/src/signals/nearby.ts';
+test('directions for interpolated pins use the real address instead of an estimated road point',()=>{
+ const store={address:'123 Main St',city:'Raleigh',state:'NC',latitude:35.78,longitude:-78.64};
+ assert.equal(new URL(appleStoreDirectionsUrl({...store,approximateLocation:true})).searchParams.get('daddr'),'123 Main St, Raleigh, NC');
+ assert.equal(new URL(appleStoreDirectionsUrl(store)).searchParams.get('daddr'),'35.78,-78.64');
+});

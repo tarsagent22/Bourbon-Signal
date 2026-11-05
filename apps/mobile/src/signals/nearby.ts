@@ -70,9 +70,7 @@ export function nearbyVisible(
 // Use the installed location module, bounded so a slow geocoder cannot hold the map.
 export async function currentPlaceWithCity(
   point: Point,
-  reverse: (
-    point: Point,
-  ) => Promise<
+  reverse: (point: Point) => Promise<
     Array<{
       city?: string | null;
       region?: string | null;
@@ -102,4 +100,21 @@ export async function currentPlaceWithCity(
     clearTimeout(timer);
   }
   return { ...point, label: "Current location" };
+}
+
+export function appleStoreDirectionsUrl(
+  store: Pick<
+    NearbyStore,
+    | "address"
+    | "city"
+    | "state"
+    | "latitude"
+    | "longitude"
+    | "approximateLocation"
+  >,
+) {
+  const destination = store.approximateLocation
+    ? `${store.address}, ${store.city}, ${store.state}`
+    : `${store.latitude},${store.longitude}`;
+  return `https://maps.apple.com/?daddr=${encodeURIComponent(destination)}&dirflg=d`;
 }
