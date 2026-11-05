@@ -19,6 +19,7 @@ export interface MapStoreRecord {
   hasSignals?: boolean;
   searchable?: boolean;
   isMappable: boolean;
+  coordinateMethod?: "address_interpolation";
   precision: "store" | "board";
   displayLabel: string;
 }

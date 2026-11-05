@@ -7,6 +7,7 @@ export type NearbyStore = Point & {
   city: string;
   state: string;
   distance: number;
+  approximateLocation?: boolean;
   signals: Signal[];
 };
 export type NearbyResult = {
@@ -14,6 +15,8 @@ export type NearbyResult = {
   partial: boolean;
   unmapped: number;
   previewLocked: boolean;
+  // Same-city reports without verified coordinates; never pins or radius claims.
+  unlocated?: Signal[];
 };
 export function validPoint(p: Point) {
   return (

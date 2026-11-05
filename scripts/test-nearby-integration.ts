@@ -65,3 +65,116 @@ test('longer immutable reuse skips degraded results and switches immediately wit
  assert.equal((await cache.get('degraded',build)).hit,false);assert.equal(calls,3);
  now=400000;assert.equal((await cache.get('snapshot-b',build)).hit,false);
 });
+import reviewedCoordinates from '../src/data/reviewed-store-coordinates.json';
+import { unlocatedNearbySignals } from '../src/lib/nearby.ts';
+import { nearbySearchCities } from '../src/lib/nearby-feed-scope.ts';
+
+test('reviewed nationwide coordinates bind each original premise and mark interpolated pins',()=>{
+ const states=new Set<string>();
+ for(const proof of reviewedCoordinates.stores){
+  const row={...proof,lat:0,lng:0,locationType:'store'};
+  const index=nearbyStoreIndex([row]);assert.equal(index.size,1,proof.id);
+  assert.equal(nearbyStoreIndex([{...row,address:'999999 Different Road'}]).size,0,proof.id);
+  assert.match(proof.sourceSha256,/^[a-f0-9]{64}$/);states.add(proof.state);
+  const found=new Map<string,NearbyStore>();const report={...signal,location:{scope:'exact_store',store:proof}} as Signal;
+  addNearbySignals([report],index,{latitude:proof.lat,longitude:proof.lng},10,found);
+  assert.equal(found.size,1);assert.equal([...found.values()][0].approximateLocation,'coordinateMethod' in proof && proof.coordinateMethod==='address_interpolation');
+ }
+ assert.ok(states.size>=15);
+});
+
+test('legacy exact-premise classifications are mapped without promoting broad boards',()=>{
+ assert.equal(nearbyStoreIndex([{...raw,locationType:'county_board',precision:'store_equivalent_shipment'}]).size,1);
+ assert.equal(nearbyStoreIndex([{...raw,locationType:'county_board',precision:'distillery',name:'Distillery Gift Shop'}]).size,1);
+ assert.equal(nearbyStoreIndex([{...raw,locationType:'county_board',precision:'board_county'}]).size,0);
+ assert.equal(nearbyStoreIndex([{...raw,locationType:'county_board',precision:'distillery',name:'Statewide distillery releases'}]).size,0);
+});
+
+test('same-city unlocated reports stay separate and never become out-of-radius pins',()=>{
+ const far={...raw,id:'far',address:'99 Far Road',lat:36.5};
+ const index=nearbyStoreIndex([raw,far]);const origin={latitude:35.78,longitude:-78.64};
+ const drops=[
+  {id:'mapped',state:'NC',store_address:raw.address,store_city:'Raleigh'},
+  {id:'unlocated',state:'NC',store_address:'555 Unknown Road',store_city:'Raleigh'},
+  {id:'far',state:'NC',store_address:far.address,store_city:'Raleigh'},
+  {id:'other-city',state:'NC',store_address:'555 Unknown Road',store_city:'Durham'},
+  {id:'other-state',state:'AZ',store_address:'555 Unknown Road',store_city:'Raleigh'},
+ ];
+ withNearbyFeedScope(index,origin,10,()=>assert.deepEqual(filterNearbyFeedDrops(drops).map(d=>d.id),['mapped','unlocated']));
+ const reports=drops.map(d=>({...signal,id:d.id,location:{scope:'exact_store',store:{state:d.state,city:d.store_city,address:d.store_address}}})) as Signal[];
+ const cities=nearbySearchCities(index,origin,10);
+ const unknown=unlocatedNearbySignals(reports,index,cities);assert.deepEqual(unknown.map(s=>s.id),['unlocated']);
+ const found=new Map<string,NearbyStore>();addNearbySignals(unknown,index,origin,10,found);assert.equal(found.size,0);
+});
+
+test('manual cities surface unlocated local reports when no store has a coordinate yet',()=>{
+ const rows=[{id:'local',state:'MO',store_city:'Saint Louis',store_address:'111 Test Road'},{id:'elsewhere',state:'IL',store_city:'Saint Louis',store_address:'111 Test Road'}];
+ const index=nearbyStoreIndex([]);const place={state:'MO',city:'St. Louis'};
+ withNearbyFeedScope(index,{latitude:38.6,longitude:-90.2},25,()=>assert.deepEqual(filterNearbyFeedDrops(rows).map(r=>r.id),['local']),place);
+ withNearbyFeedScope(index,{latitude:38.6,longitude:-90.2},25,()=>assert.deepEqual(filterNearbyFeedDrops(rows),[]));
+});
+
+import { createHash } from 'node:crypto';
+import coordinateEvidence from './fixtures/nearby-coordinate-evidence-20261105.json';
+test('every added address pin retains its matching geocoder evidence and approximate precision',()=>{
+ for(const proof of reviewedCoordinates.stores){
+  if(!('coordinateMethod' in proof))continue;
+  assert.equal(proof.coordinateMethod,'address_interpolation');
+  const row=(coordinateEvidence.records as Record<string,string[]>)[proof.sourceSha256];assert.ok(row,proof.id);
+  assert.equal(createHash('sha256').update(JSON.stringify(row)).digest('hex'),proof.sourceSha256);
+  const [lng,lat]=row[5].split(',').map(Number);assert.equal(proof.lat,lat);assert.equal(proof.lng,lng);
+  assert.equal(row[2],'Match');assert.equal(row[4],proof.matchedAddress);
+  assert.equal(row[4].split(',').at(-2)?.trim(),proof.state);
+ }
+});
+
+import { currentPlaceWithCity } from '../apps/mobile/src/signals/nearby.ts';
+test('GPS city context uses existing coordinates and a bounded reverse lookup',async()=>{
+ const point={latitude:33.35,longitude:-111.78};
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>[{city:'Gilbert',region:'Arizona',isoCountryCode:'US'}]),{...point,label:'Gilbert, AZ'});
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>[{city:'London',region:'Ontario',isoCountryCode:'CA'}]),{...point,label:'Current location'});
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>{throw Error('unavailable')}),{...point,label:'Current location'});
+ assert.deepEqual(await currentPlaceWithCity(point,()=>new Promise(()=>{}),5),{...point,label:'Current location'});
+});
+
+test('current source coordinates win over address fallbacks across duplicate directory rows',()=>{
+ const base={id:'safeway:1534',name:'Safeway #1534',address:'90 S Val Vista Dr, Gilbert, AZ 85296',city:'Gilbert',state:'AZ'};
+ const fallback={...base,lat:0,lng:0};const current={...base,lat:33.5,lng:-111.8};
+ for(const rows of [[fallback,current],[current,fallback]]){
+  const values=[...nearbyStoreIndex(rows).values()];assert.equal(values.length,1);assert.equal(values[0].lat,33.5);
+ }
+ assert.equal(nearbyStoreIndex([current,{...current,lat:34},fallback]).size,0);
+});
+
+
+test('bundled directory positions cannot override current source coordinates',()=>{
+ const current={...raw,lat:35.78};const bundled={...raw,lat:36};
+ assert.equal([...nearbyStoreIndex([current],[bundled]).values()][0].lat,35.78);
+ assert.equal([...nearbyStoreIndex([{...current,lat:0,lng:0}],[bundled]).values()][0].lat,36);
+ assert.equal(nearbyStoreIndex([current,{...current,lat:35}],[bundled]).size,0);
+});
+
+import { miles } from '../shared/nearby.ts';
+import { sightingStoreAddressKey } from '../src/lib/sighting-store-directory-core.ts';
+test('reviewed duplicate premise bindings never contain conflicting positions',()=>{
+ const positions=new Map<string,{latitude:number;longitude:number}>();
+ for(const proof of reviewedCoordinates.stores){
+  const id=proof.id+':'+sightingStoreAddressKey(proof);const point={latitude:proof.lat,longitude:proof.lng};const prior=positions.get(id);
+  if(prior)assert.ok(miles(prior,point)<=0.25,proof.id);positions.set(id,point);
+ }
+});
+
+
+import { appleStoreDirectionsUrl } from '../apps/mobile/src/signals/nearby.ts';
+test('directions for interpolated pins use the real address instead of an estimated road point',()=>{
+ const store={address:'123 Main St',city:'Raleigh',state:'NC',latitude:35.78,longitude:-78.64};
+ assert.equal(new URL(appleStoreDirectionsUrl({...store,approximateLocation:true})).searchParams.get('daddr'),'123 Main St, Raleigh, NC');
+ assert.equal(new URL(appleStoreDirectionsUrl(store)).searchParams.get('daddr'),'35.78,-78.64');
+});
+
+
+test('panned map searches keep their center and an honest label if city lookup fails',async()=>{
+ const point={latitude:41.9,longitude:-87.6};
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>{throw Error('offline')},5,'Map area'),{...point,label:'Map area'});
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>[{city:'Chicago',region:'IL',isoCountryCode:'US'}],5,'Map area'),{...point,label:'Chicago, IL'});
+});

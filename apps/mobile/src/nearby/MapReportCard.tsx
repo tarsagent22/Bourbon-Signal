@@ -42,7 +42,10 @@ export const MapReportCard = memo(function MapReportCard({
         <Text numberOfLines={1} style={s.storeName}>
           {store.name}
         </Text>
-        <Text style={s.distance}>{store.distance.toFixed(1)} mi</Text>
+        <Text style={s.distance}>
+          {store.approximateLocation ? "~" : ""}
+          {store.distance.toFixed(1)} mi
+        </Text>
         <Icon name="chevron-up" size={18} color={c.muted} />
       </Pressable>
       <Pressable

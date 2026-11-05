@@ -95,6 +95,16 @@ jobs:
           npx expo export:embed --entry-file scripts/native-nearby/entry-details.tsx --platform ios --dev false --bytecode --reset-cache --bundle-output native-evidence/nearby-detail.hbc
           cp native-evidence/nearby-detail.hbc native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle
           python3 scripts/verify-ios-startup.py
+      - name: Capture reports without map pins
+        env:
+          NATIVE_SCENARIO: nearby-unlocated
+        run: |
+          cp metro.config.js native-evidence/production-metro.config.js
+          trap 'cp native-evidence/production-metro.config.js metro.config.js' EXIT
+          printf "%s\n" "module.exports = require('./scripts/native-nearby/metro.config.cjs');" > metro.config.js
+          npx expo export:embed --entry-file scripts/native-nearby/entry-unlocated.tsx --platform ios --dev false --bytecode --reset-cache --bundle-output native-evidence/nearby-unlocated.hbc
+          cp native-evidence/nearby-unlocated.hbc native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle
+          python3 scripts/verify-ios-startup.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -103,4 +113,5 @@ jobs:
             apps/mobile/native-evidence/xcodebuild.log
             apps/mobile/native-evidence/nearby-fixture/
             apps/mobile/native-evidence/nearby-detail/
+            apps/mobile/native-evidence/nearby-unlocated/
           retention-days: 7
