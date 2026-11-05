@@ -153,7 +153,7 @@ export default function NearbyMap({
         pointerEvents="none"
         style={[
           StyleSheet.absoluteFill,
-          { backgroundColor: "#211509", opacity: 0.1 },
+          { backgroundColor: "#1C1510", opacity: 0.2 },
         ]}
       />
       {moved ? (

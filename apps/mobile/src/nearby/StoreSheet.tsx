@@ -251,7 +251,11 @@ export function StoreSheet({
             </View>
             <Text numberOfLines={1} style={s.meta}>
               {reports(store.signals.length)}
-              {expanded ? ` · ${store.city}, ${store.state}` : ""}
+              {expanded
+                ? ` · ${store.city}, ${store.state}`
+                : freshest
+                  ? ` · ${signalRowReportTimestamp(freshest, now)}`
+                  : ""}
             </Text>
             {!expanded && (
               <View style={s.thumbnails}>
@@ -342,7 +346,8 @@ export function StoreSheet({
                     color={c.muted}
                   />
                   <Text style={s.meta}>
-                    {unlocatedCount} reports without pins
+                    {unlocatedCount}{" "}
+                    {unlocatedCount === 1 ? "report" : "reports"} without pins
                   </Text>
                   <Icon name="chevron-right" size={18} color={c.muted} />
                 </Pressable>
@@ -360,7 +365,7 @@ export function StoreSheet({
             {notice
               ? "Some results could not refresh. Open List to retry."
               : unlocatedCount
-                ? `Tap a pin to explore · ${unlocatedCount} reports without pins in List`
+                ? `Tap a pin to explore · ${unlocatedCount} {unlocatedCount === 1 ? "report" : "reports"} without pins in List`
                 : "Tap a store pin or swipe up to browse"}
           </Text>
         </Pressable>
