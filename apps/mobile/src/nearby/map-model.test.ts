@@ -7,7 +7,7 @@ const store = (id: string, latitude: number, longitude: number) =>
   ({ id, latitude, longitude, signals: [] }) as unknown as NearbyStore;
 test("dense stores cluster without losing stores, then separate at street zoom", () => {
   const rows = Array.from({ length: 200 }, (_, i) =>
-    store(String(i), 33.352 + i / 100000, -111.789),
+    store(String(i), 33.352 + i / 1000000, -111.789),
   );
   const broad = clusterStores(rows, radiusRegion(rows[0], 25));
   assert.ok(broad.length < rows.length / 10);
@@ -40,4 +40,10 @@ test("nearby and feed copy must remain UTF-8 without mojibake", () => {
       readFileSync(new URL(file, import.meta.url), "utf8"),
       /\u00c3|\u00c2|\u00e2\u20ac|\u00e2\u201a/,
     );
+});
+
+test("offscreen stores do not create native markers", () => {
+ const center = {latitude:33.352,longitude:-111.789};
+ const rows = [store("visible",center.latitude,center.longitude),...Array.from({length:10000},(_,i)=>store(String(i),40+i/100000,-80))];
+ assert.deepEqual(clusterStores(rows,radiusRegion(center,25)).flatMap(g=>g.stores.map(s=>s.id)),["visible"]);
 });

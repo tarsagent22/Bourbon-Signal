@@ -18,6 +18,8 @@ export function clusterStores(stores: NearbyStore[], region: MapRegion) {
   const step = region.latitudeDelta / 8,
     lngStep = region.longitudeDelta / 6;
   for (const s of stores) {
+    const longitudeOffset = Math.abs(((s.longitude - region.longitude + 540) % 360) - 180);
+    if (Math.abs(s.latitude - region.latitude) > region.latitudeDelta * 0.75 || longitudeOffset > region.longitudeDelta * 0.75) continue;
     const key =
       region.latitudeDelta < 0.002
         ? s.id

@@ -12,7 +12,7 @@ permissions:
   contents: read
 concurrency:
   group: native-nearby-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   startup:
     runs-on: macos-26

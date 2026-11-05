@@ -30,6 +30,10 @@ export default function NearbyMap({
     if (ready && origin)
       map.current?.animateToRegion(radiusRegion(origin, radius), 350);
   }, [ready, origin?.latitude, origin?.longitude, radius]);
+  useEffect(() => {
+    const store = stores.find((row) => row.id === selected);
+    if (ready && store) map.current?.animateToRegion(radiusRegion(store, Math.min(radius, 3)), 300);
+  }, [ready, selected]);
   const clusters = useMemo(
     () => clusterStores(stores, region),
     [stores, region],
