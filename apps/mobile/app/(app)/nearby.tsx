@@ -547,22 +547,23 @@ export default function Nearby() {
             </Pressable>
           )}
         </View>
-        {rows.length > 0 && unlocated.length > 0 && (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setUnlocatedOpen(true)}
-            style={s.feedCount}
-          >
-            <Icon
-              name="map-marker-question-outline"
-              size={16}
-              color={c.accent}
-            />
-            <Text style={s.feedCountText}>
-              {unlocated.length} reports without pins
-            </Text>
-          </Pressable>
-        )}
+        {(rows.length > 0 || error || result?.partial) &&
+          unlocated.length > 0 && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setUnlocatedOpen(true)}
+              style={s.feedCount}
+            >
+              <Icon
+                name="map-marker-question-outline"
+                size={16}
+                color={c.accent}
+              />
+              <Text style={s.feedCountText}>
+                {unlocated.length} reports without pins
+              </Text>
+            </Pressable>
+          )}
         {rows.length ? (
           <>
             {(error || result?.partial) && (
