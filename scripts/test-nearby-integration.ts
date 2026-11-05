@@ -153,3 +153,13 @@ test('bundled directory positions cannot override current source coordinates',()
  assert.equal([...nearbyStoreIndex([{...current,lat:0,lng:0}],[bundled]).values()][0].lat,36);
  assert.equal(nearbyStoreIndex([current,{...current,lat:35}],[bundled]).size,0);
 });
+
+import { miles } from '../shared/nearby.ts';
+import { sightingStoreAddressKey } from '../src/lib/sighting-store-directory-core.ts';
+test('reviewed duplicate premise bindings never contain conflicting positions',()=>{
+ const positions=new Map<string,{latitude:number;longitude:number}>();
+ for(const proof of reviewedCoordinates.stores){
+  const id=proof.id+':'+sightingStoreAddressKey(proof);const point={latitude:proof.lat,longitude:proof.lng};const prior=positions.get(id);
+  if(prior)assert.ok(miles(prior,point)<=0.25,proof.id);positions.set(id,point);
+ }
+});
