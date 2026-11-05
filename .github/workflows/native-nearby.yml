@@ -1,0 +1,84 @@
+name: Native Nearby map
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/mobile/src/nearby/**"
+      - "apps/mobile/app/(app)/nearby.tsx"
+      - "apps/mobile/scripts/native-nearby/**"
+      - ".github/workflows/native-nearby.yml"
+permissions:
+  contents: read
+concurrency:
+  group: native-nearby-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  startup:
+    runs-on: macos-26
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: apps/mobile
+    env:
+      CI: "1"
+      EXPO_NO_TELEMETRY: "1"
+      EXPO_PUBLIC_API_URL: https://www.bourbonsignal.com
+      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NATIVE_SMOKE_CLERK_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:ios-recovery
+      - run: npx expo prebuild --platform ios --no-install
+      - run: pod install --project-directory=ios
+      - name: Compile Release native shell
+        run: |
+          mkdir -p native-evidence
+          xcodebuild -workspace ios/BourbonSignal.xcworkspace -scheme BourbonSignal -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath native-evidence/build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES ARCHS="$(uname -m)" -quiet > native-evidence/xcodebuild.log 2>&1
+      - name: Bundle native Nearby fixture with explicit seams
+        run: |
+          cp metro.config.js native-evidence/production-metro.config.js
+          trap 'cp native-evidence/production-metro.config.js metro.config.js' EXIT
+          printf "%s\n" "module.exports = require('./scripts/native-nearby/metro.config.cjs');" > metro.config.js
+          npx expo export:embed --entry-file scripts/native-nearby/entry.tsx --platform ios --dev false --bytecode --reset-cache --bundle-output native-evidence/nearby-fixture.hbc --sourcemap-output native-evidence/nearby-fixture.map
+          python3 - <<'PY'
+          import json, shutil
+          from pathlib import Path
+          sources = json.loads(Path('native-evidence/nearby-fixture.map').read_text())['sources']
+          assert '/scripts/native-nearby/fixture.ts' in sources
+          assert '/src/hooks/useMobileApi.ts' not in sources
+          assert '/app/(app)/nearby.tsx' in sources
+          assert any('expo-secure-store' in s for s in sources)
+          assert any('react-native-maps' in s for s in sources)
+          assert '/src/nearby/NearbyMap.native.tsx' in sources
+          assert any('react-navigation' in s for s in sources)
+          shutil.copyfile('native-evidence/nearby-fixture.hbc', 'native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle')
+          PY
+      - name: Capture actual native Nearby
+        env:
+          NATIVE_SCENARIO: nearby-fixture
+        run: python3 scripts/verify-ios-startup.py
+      - name: Capture selected store inside the native map
+        env:
+          EXPO_PUBLIC_NATIVE_NEARBY_DETAIL: "1"
+          NATIVE_SCENARIO: nearby-detail
+        run: |
+          cp metro.config.js native-evidence/production-metro.config.js
+          trap 'cp native-evidence/production-metro.config.js metro.config.js' EXIT
+          printf "%s\n" "module.exports = require('./scripts/native-nearby/metro.config.cjs');" > metro.config.js
+          npx expo export:embed --entry-file scripts/native-nearby/entry.tsx --platform ios --dev false --bytecode --reset-cache --bundle-output native-evidence/nearby-detail.hbc
+          cp native-evidence/nearby-detail.hbc native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle
+          python3 scripts/verify-ios-startup.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-nearby-fixture-${{ github.sha }}
+          path: |
+            apps/mobile/native-evidence/xcodebuild.log
+            apps/mobile/native-evidence/nearby-fixture/
+            apps/mobile/native-evidence/nearby-detail/
+          retention-days: 7

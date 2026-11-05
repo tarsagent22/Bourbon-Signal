@@ -537,7 +537,7 @@ export default function SignalFeedScreen() {
 
   const header = (
     <View style={styles.header}>
-<Pressable accessibilityRole="button" onPress={() => router.push({pathname:"/(app)/nearby",params:{search:bottleQuery,view,state:filters.state,area:filters.area,tiers:filters.rarities.join(","),freshness:filters.freshness || ""}})} style={{minHeight:48,justifyContent:"center",paddingHorizontal:16,borderRadius:12,borderWidth:1,borderColor:colors.border,backgroundColor:colors.surface}}><Text style={{color:colors.accent,fontWeight:"600"}}>Find nearby Â· Explore map</Text></Pressable>
+<Pressable accessibilityRole="button" onPress={() => router.push({pathname:"/(app)/nearby",params:{search:bottleQuery,view,state:filters.state,area:filters.area,tiers:filters.rarities.join(","),freshness:filters.freshness || ""}})} style={{minHeight:48,justifyContent:"center",paddingHorizontal:16,borderRadius:12,borderWidth:1,borderColor:colors.border,backgroundColor:colors.surface}}><Text style={{color:colors.accent,fontWeight:"600"}}>Find nearby · Explore map</Text></Pressable>
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"
@@ -587,11 +587,11 @@ export default function SignalFeedScreen() {
           />
         </View>
 
-        {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading citiesâ€¦</Text> : null}
+        {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
 
-        {!filtersAllowed && profile ? <><Text style={styles.areaOptionNote}>{view === "market" ? "Intel preview Â· Six recent signals Â· All states" : "Community sightings Â· All states"}</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>State filters and bottle alerts Â· Standard â†’</Text></Pressable></> : !detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search Â· Barrel Proof â†’</Text></Pressable> : null}
+        {!filtersAllowed && profile ? <><Text style={styles.areaOptionNote}>{view === "market" ? "Intel preview · Six recent signals · All states" : "Community sightings · All states"}</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>State filters and bottle alerts · Standard →</Text></Pressable></> : !detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search · Barrel Proof →</Text></Pressable> : null}
         {detailedFilters ? <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
@@ -640,7 +640,7 @@ export default function SignalFeedScreen() {
           })}
         </ScrollView>
         {filters.state ? <View style={styles.locationSelection}>
-          <Text numberOfLines={2} style={styles.locationSelectionText}>{filters.area ? `${filters.state} Â· ${selectedAreaLabel}${filters.state === "NC" && selectedArea?.subtitle ? ` Â· ${filters.area}` : ""}` : `${filters.state} Â· All ${areaLabel === "City" ? "cities" : "areas"}`}</Text>
+          <Text numberOfLines={2} style={styles.locationSelectionText}>{filters.area ? `${filters.state} · ${selectedAreaLabel}${filters.state === "NC" && selectedArea?.subtitle ? ` · ${filters.area}` : ""}` : `${filters.state} · All ${areaLabel === "City" ? "cities" : "areas"}`}</Text>
           <Pressable accessibilityLabel="Clear Home location filters" accessibilityRole="button" onPress={() => applyFilters({ ...filters, state: "", area: "" })} style={styles.clearLocationButton}>
             <MaterialCommunityIcons color={colors.accent} name="close" size={17} />
             <Text style={styles.clearLocationText}>Clear</Text>
@@ -653,7 +653,7 @@ export default function SignalFeedScreen() {
           <Text accessibilityRole="alert" style={styles.inlineErrorText}>{profileError}</Text>
         </Pressable>
       ) : null}
-      {profileError || error ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: `${view === 'market' ? 'Intel' : 'Community'} feed`, state: filters.state, area: selectedAreaLabel }) })} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.accent, fontSize: 14 }}>Get help with this feed â†’</Text></Pressable> : null}
+      {profileError || error ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: `${view === 'market' ? 'Intel' : 'Community'} feed`, state: filters.state, area: selectedAreaLabel }) })} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.accent, fontSize: 14 }}>Get help with this feed →</Text></Pressable> : null}
 
       {paidAccessMismatch ? (
         <View style={styles.inlineError}>
@@ -664,13 +664,13 @@ export default function SignalFeedScreen() {
   );
 
   const feedFooter = loaded && loading
-        ? <View style={styles.footer}><Text style={styles.loadingText}>Loadingâ€¦</Text></View>
+        ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
         : error && signals.length
           ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(feedRetryAction(hasMore).refresh)} style={styles.retryTarget}><Text style={styles.retry}>{feedRetryAction(hasMore).label}</Text></Pressable></View>
           : loaded && hasMore
             ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Load more matching Signals</Text></Pressable></View>
             : loaded && !hasMore && visibleSignals.length
-              ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>Youâ€™ve reached the end of your Intel preview.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts â†’</Text></Pressable></View> : <Text style={styles.end}>Youâ€™re caught up.</Text>
+              ? view === "market" && tier === "free" ? <View style={styles.footer}><Text style={styles.end}>You’ve reached the end of your Intel preview.</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>Get the full feed and bottle alerts →</Text></Pressable></View> : <Text style={styles.end}>You’re caught up.</Text>
               : null;
 
   return (
@@ -720,13 +720,13 @@ export default function SignalFeedScreen() {
                 <Text style={styles.previewTitle}>Find bottles near you</Text>
                 <Text style={styles.previewDetail}>Free membership includes a market overview. Standard unlocks bottle locations and alerts.</Text>
                 {marketSummaries.slice(0, 7).map((summary) => <View key={`${summary.state}:${summary.areaLabel}`} style={styles.summaryCard}>
-                  <Text style={styles.previewTitle}>{summary.areaLabel} Â· {summary.state}</Text>
+                  <Text style={styles.previewTitle}>{summary.areaLabel} · {summary.state}</Text>
                   <Text style={styles.previewDetail}>{summary.signalCount} bottle report{summary.signalCount === 1 ? "" : "s"} this week</Text>
-                  <Text style={styles.previewDetail}>{summary.bottleNames.join(" Â· ")}</Text>
+                  <Text style={styles.previewDetail}>{summary.bottleNames.join(" · ")}</Text>
                 </View>)}
                 {!marketSummaries.length ? <Text style={styles.previewDetail}>No recent reports in this view. Try another state or check Community.</Text> : null}
-                <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships â†’</Text></Pressable>
-                <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community â†’</Text></Pressable>
+                <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable>
+                <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community →</Text></Pressable>
               </View>
             : <View style={{gap:12}}><EmptyState title={emptyFeed.title} detail={emptyFeed.detail} actionLabel={emptyFeed.actionLabel}
               onAction={() => {
@@ -740,7 +740,7 @@ export default function SignalFeedScreen() {
                   case "community": selectView("community"); break;
                 }
               }} />
-              {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:coverageContext({state:filters.state || profile?.homeState,area:selectedAreaLabel})})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here â†’</Text></Pressable>:null}</View>}
+              {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:coverageContext({state:filters.state || profile?.homeState,area:selectedAreaLabel})})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
       ListFooterComponent={!visibleSignals.length ? feedFooter : null}
     />
       </View>
@@ -752,7 +752,7 @@ export default function SignalFeedScreen() {
         style={({ pressed }) => [styles.newSignalsPill, { top: headerHeight + 8 }, pressed && styles.newSignalsPillPressed]}
       >
         <MaterialCommunityIcons color="#171009" name="arrow-up" size={17} />
-        <Text style={styles.newSignalsText}>New signals Â· {queuedSignals.length}</Text>
+        <Text style={styles.newSignalsText}>New signals · {queuedSignals.length}</Text>
       </Pressable> : null}
     </View>
     );

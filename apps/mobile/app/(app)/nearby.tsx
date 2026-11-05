@@ -16,6 +16,8 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import NearbyMap from "../../src/nearby/NearbyMap";
+import * as Location from "expo-location";
 import * as SecureStore from "expo-secure-store";
 import { colors as c, fonts } from "../../src/theme";
 import { useMobileApi } from "../../src/hooks/useMobileApi";
@@ -67,7 +69,11 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
     [error, setError] = useState("");
   async function open(directions: boolean) {
     try {
-      await Linking.openURL(storeMapUrl(store, directions));
+      await Linking.openURL(
+        Platform.OS === "ios"
+          ? `https://maps.apple.com/?daddr=${store.latitude},${store.longitude}&dirflg=d`
+          : storeMapUrl(store, directions),
+      );
     } catch {
       setError("Maps could not open. Please try again.");
     }
@@ -110,7 +116,7 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
                 ? "Older report"
                 : signal.availability?.label || "Reported availability"}
               {signal.availability?.price != null
-                ? ` Ã‚Â· $${signal.availability.price.toFixed(2)}`
+                ? ` · $${signal.availability.price.toFixed(2)}`
                 : ""}
             </Text>
             <Text style={s.small}>
@@ -141,13 +147,10 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
       <View style={s.row}>
         <View style={{ flex: 1 }}>
           <Button
-            label="Directions Ã¢â€ â€”"
+            label="Directions"
             selected
             onPress={() => void open(true)}
           />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Button label="View map Ã¢â€ â€”" onPress={() => void open(false)} />
         </View>
       </View>
       {error ? (
@@ -160,6 +163,7 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
 });
 export default function Nearby() {
   const params = useLocalSearchParams<{
+      store?: string;
       search?: string;
       view?: string;
       state?: string;
@@ -239,8 +243,6 @@ export default function Nearby() {
       search: query,
       tiers,
       freshness: fresh,
-      state: params.state,
-      area: params.area,
     }))
       if (v) q.set(k, v);
     api
@@ -313,215 +315,230 @@ export default function Nearby() {
     [result, radius, watchOnly, watched],
   );
   const activeFilters = Boolean(tiers || fresh || watchOnly || query);
-  const header = (
-    <View style={s.header}>
-      <Text style={s.eyebrow}>THE NEXT STOP ON YOUR HUNT</Text>
-      <Text accessibilityRole="header" style={s.title}>
-        A little closer.
-      </Text>
-      <Text style={s.intro}>
-        Explore bottle reports around a place you choose.
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Choose city or ZIP code"
-        onPress={() => {
-          setDraft(place?.label || "");
-          setPlaceError("");
-          setPlaceSheet(true);
-        }}
-        style={({ pressed }) => [s.location, pressed && { opacity: 0.75 }]}
-      >
-        <View style={s.locationIcon}>
-          <Icon name="map-marker-outline" color={c.accent} size={26} />
-        </View>
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={s.small}>SEARCH AROUND</Text>
-          <Text style={s.locationName}>
-            {place?.label || "Choose a city or ZIP"}
-          </Text>
-        </View>
-        <Icon name="chevron-down" color={c.muted} size={22} />
-      </Pressable>
-      <View style={s.radius}>
-        {[10, 25, 50, 100].map((n) => (
-          <Pressable
-            key={n}
-            accessibilityRole="button"
-            accessibilityState={{ selected: radius === n }}
-            onPress={() => setRadius(n)}
-            style={[s.radiusItem, radius === n && s.radiusSelected]}
-          >
-            <Text
-              style={{
-                color: radius === n ? c.text : c.muted,
-                fontWeight: radius === n ? "700" : "400",
-              }}
-            >
-              {n} mi
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-      <View style={s.row}>
-        <View style={s.search}>
-          <Icon name="magnify" size={21} color={c.muted} />
-          <TextInput
-            accessibilityLabel="Search nearby bottles or stores"
-            placeholder="Bottles or stores"
-            placeholderTextColor={c.muted}
-            style={s.searchInput}
-            value={search}
-            onChangeText={setSearch}
-            returnKeyType="search"
-            onSubmitEditing={() => {
-              setQuery(search.trim());
-              Keyboard.dismiss();
-            }}
-          />
-          {search ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Clear search"
-              onPress={() => {
-                setSearch("");
-                setQuery("");
-              }}
-              style={s.clear}
-            >
-              <Icon name="close-circle" size={19} color={c.muted} />
-            </Pressable>
-          ) : null}
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Nearby filters"
-          onPress={() => setFilters(true)}
-          style={s.filterButton}
-        >
-          <Icon
-            name="tune-variant"
-            size={23}
-            color={activeFilters ? c.accent : c.muted}
-          />
-        </Pressable>
-      </View>
-      {params.state ? (
-        <Text style={s.small}>
-          Using your {params.state}
-          {params.area ? ` Ã‚Â· ${params.area}` : ""} feed selection
-        </Text>
-      ) : null}
-      <View style={[s.row, { justifyContent: "space-between", marginTop: 8 }]}>
-        <Text style={s.section}>
-          {busy
-            ? "Finding nearby reports"
-            : `${stores.length} nearby ${stores.length === 1 ? "stop" : "stops"}`}
-        </Text>
-        {busy ? (
-          <ActivityIndicator color={c.accent} />
-        ) : (
-          <Text style={s.small}>NEAREST FIRST</Text>
-        )}
-      </View>
-      {place ? (
-        <Text style={s.small}>
-          Straight-line miles Ã‚Â· Availability can change
-        </Text>
-      ) : null}
-      {result?.partial ? (
-        <Text style={s.notice}>
-          Some reports could not be searched. These results may be incomplete.
-        </Text>
-      ) : null}
-      {Boolean(result?.unmapped) ? (
-        <Text style={s.small}>
-          Reports without precise store coordinates are excluded.
-        </Text>
-      ) : null}
-      {result?.previewLocked ? (
-        <Pressable
-          onPress={() => router.push("/(app)/account/membership")}
-          accessibilityRole="button"
-          style={s.link}
-        >
-          <Text style={{ color: c.accent }}>
-            Your Intel preview Ã‚Â· Explore membership Ã¢â€ â€™
-          </Text>
-        </Pressable>
-      ) : null}
-      {error ? (
-        <View accessibilityRole="alert" style={s.noticeBox}>
-          <Text style={s.error}>{error}</Text>
-          <View style={s.row}>
-            <Button label="Try again" onPress={() => setRetry((n) => n + 1)} />
-            <Button
-              label="Clear filters"
-              onPress={() => {
-                setSearch("");
-                setQuery("");
-                setTiers("");
-                setFresh("");
-                setWatchOnly(false);
-              }}
-            />
-          </View>
-        </View>
-      ) : null}
-    </View>
-  );
+  const [selected, setSelected] = useState<string | null>(params.store || null);
+  const [listMode, setListMode] = useState(false);
+  const selectedStore = stores.find((store) => store.id === selected);
+  async function useCurrentLocation() {
+    if (locating) return;
+    const id = ++placeSequence.current;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    setLocating(true);
+    setPlaceError("");
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (id !== placeSequence.current) return;
+      if (!permission.granted) {
+        setPlaceError(
+          "Location access is off. You can still enter a city or ZIP code.",
+        );
+        return;
+      }
+      const current = await Promise.race([
+        Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        }),
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error("Location timed out")),
+            15000,
+          );
+        }),
+      ]);
+      if (id !== placeSequence.current) return;
+      touched.current = true;
+      setPlace({
+        latitude: current.coords.latitude,
+        longitude: current.coords.longitude,
+        label: "Current location",
+      });
+      setSelected(null);
+      setPlaceSheet(false);
+    } catch {
+      if (id === placeSequence.current)
+        setPlaceError("Your location is unavailable. Try a city or ZIP code.");
+    } finally {
+      clearTimeout(timeout);
+      if (id === placeSequence.current) setLocating(false);
+    }
+  }
   return (
     <View style={s.screen}>
-      <FlatList
-        data={stores}
-        keyExtractor={(s) => s.id}
-        renderItem={({ item }) => <StoreCard store={item} />}
-        ListHeaderComponent={header}
-        contentContainerStyle={s.list}
-        keyboardShouldPersistTaps="handled"
-        initialNumToRender={4}
-        maxToRenderPerBatch={4}
-        windowSize={5}
-        refreshing={busy && Boolean(result)}
-        onRefresh={place ? () => setRetry((n) => n + 1) : undefined}
-        ListEmptyComponent={
-          !busy && !error ? (
-            <View style={s.empty}>
-              <Icon
-                name={place ? "map-marker-radius-outline" : "compass-outline"}
-                size={44}
-                color={c.accent}
-              />
-              <Text style={s.emptyTitle}>
-                {!place
-                  ? "Where will you look next?"
-                  : watchOnly && !watched?.length
-                    ? "Your watchlist starts in Radar"
-                    : "No matching reports nearby"}
-              </Text>
-              <Text style={s.emptyCopy}>
-                {!place
-                  ? "Pick a starting point. WeÃ¢â‚¬â„¢ll bring the nearby reports together for you."
-                  : result?.partial
-                    ? "The search is incomplete. Try again or narrow the bottle search."
-                    : "Try a wider radius, another bottle, or a longer time window."}
-              </Text>
-              {!place ? (
-                <Button
-                  label="Choose a location"
-                  selected
-                  onPress={() => setPlaceSheet(true)}
-                />
-              ) : (
-                <Button
-                  label="Request coverage here"
-                  onPress={() => router.push("/(app)/account/coverage")}
-                />
-              )}
-            </View>
-          ) : null
-        }
+      <NearbyMap
+        origin={place}
+        radius={radius}
+        stores={stores}
+        selected={selected}
+        onSelect={(id) => {
+          setSelected(id);
+          setListMode(false);
+        }}
+        onSearchArea={(point) => {
+          setPlace({ ...point, label: "Map area" });
+          setSelected(null);
+        }}
+        bottomInset={selectedStore ? 300 : 100}
       />
+      <View style={s.mapControls}>
+        <View style={s.mapSearchRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Change search location"
+            onPress={() => {
+              setDraft(place?.label || "");
+              setPlaceError("");
+              setPlaceSheet(true);
+            }}
+            style={s.mapPlace}
+          >
+            <Icon name="map-marker-outline" size={20} color={c.accent} />
+            <Text numberOfLines={1} style={s.mapPlaceName}>
+              {place?.label || "Choose location"}
+            </Text>
+            <Icon name="chevron-down" size={18} color={c.muted} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Filter nearby reports"
+            onPress={() => setFilters(true)}
+            style={s.filterButton}
+          >
+            <Icon
+              name="tune-variant"
+              size={22}
+              color={activeFilters ? c.accent : c.text}
+            />
+          </Pressable>
+        </View>
+        <View style={s.mapSearchRow}>
+          <View style={s.search}>
+            <Icon name="magnify" size={20} color={c.muted} />
+            <TextInput
+              accessibilityLabel="Search bottles or stores"
+              placeholder="Bottles or stores"
+              placeholderTextColor={c.muted}
+              value={search}
+              onChangeText={setSearch}
+              style={s.searchInput}
+              returnKeyType="search"
+              onSubmitEditing={() => Keyboard.dismiss()}
+            />
+            {search ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Clear search"
+                onPress={() => {
+                  setSearch("");
+                  setQuery("");
+                }}
+                style={s.clear}
+              >
+                <Icon name="close" size={18} color={c.muted} />
+              </Pressable>
+            ) : null}
+          </View>
+          <Button label={`${radius} mi`} onPress={() => setFilters(true)} />
+        </View>
+      </View>
+      <View style={[s.mapBottom, selectedStore && { maxHeight: "45%" }]}>
+        {selectedStore ? (
+          <>
+            <View style={s.sheetHeading}>
+              <Text style={s.small}>STORE REPORTS</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close store details"
+                onPress={() => setSelected(null)}
+                style={s.clear}
+              >
+                <Icon name="close" size={21} color={c.text} />
+              </Pressable>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled">
+              <StoreCard key={selectedStore.id} store={selectedStore} />
+            </ScrollView>
+          </>
+        ) : (
+          <View style={s.mapSummary}>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={s.section}>
+                {busy
+                  ? "Finding nearby reports"
+                  : !place
+                    ? "Where are you looking?"
+                    : `${stores.length} nearby ${stores.length === 1 ? "store" : "stores"}`}
+              </Text>
+              <Text style={s.small}>
+                {error ||
+                  (!place
+                    ? "Choose a location to start exploring."
+                    : result?.partial
+                      ? "Partial results. Narrow your search or try again."
+                      : stores.length
+                        ? "Tap a pin to see bottles. Distances are straight-line."
+                        : "Try widening the radius or changing filters.")}
+              </Text>
+            </View>
+            {busy ? (
+              <ActivityIndicator color={c.accent} />
+            ) : (
+              <Button
+                label={!place ? "Choose" : error ? "Retry" : "List"}
+                onPress={() => {
+                  if (!place) setPlaceSheet(true);
+                  else if (error) setRetry((n) => n + 1);
+                  else setListMode(true);
+                }}
+              />
+            )}
+          </View>
+        )}
+      </View>
+      <Modal
+        visible={listMode}
+        animationType="slide"
+        onRequestClose={() => setListMode(false)}
+      >
+        <View
+          style={[s.screen, { paddingTop: Platform.OS === "ios" ? 55 : 16 }]}
+        >
+          <View style={s.listHeading}>
+            <Text style={s.section}>Nearby stores</Text>
+            <Button label="Back to map" onPress={() => setListMode(false)} />
+          </View>
+          <FlatList
+            data={stores}
+            keyExtractor={(store) => store.id}
+            renderItem={({ item }) => (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Show ${item.name} on map`}
+                onPress={() => {
+                  setSelected(item.id);
+                  setListMode(false);
+                }}
+                style={s.listStore}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={s.storeName}>{item.name}</Text>
+                  <Text style={s.copy}>
+                    {item.signals.length} bottle reports
+                  </Text>
+                </View>
+                <Text style={s.distanceNumber}>
+                  {item.distance.toFixed(1)} mi
+                </Text>
+                <Icon name="chevron-right" size={22} color={c.muted} />
+              </Pressable>
+            )}
+            contentContainerStyle={s.list}
+            ListEmptyComponent={
+              <Text style={s.emptyCopy}>
+                No matching reports. Try a wider radius or different filters.
+              </Text>
+            }
+          />
+        </View>
+      </Modal>
       <Modal
         visible={placeSheet}
         transparent
@@ -539,7 +556,14 @@ export default function Nearby() {
               </Text>
               <Button label="Close" onPress={() => setPlaceSheet(false)} />
             </View>
-            <Text style={s.intro}>Enter a ZIP code or a city and state.</Text>
+            <Button
+              label={locating ? "Locating..." : "Use my location"}
+              disabled={locating}
+              onPress={() => void useCurrentLocation()}
+            />
+            <Text style={s.intro}>
+              Or enter a ZIP code or a city and state.
+            </Text>
             <TextInput
               autoFocus
               accessibilityLabel="City and state or ZIP code"
@@ -557,15 +581,14 @@ export default function Nearby() {
               </Text>
             ) : null}
             <Button
-              label={
-                locating ? "Finding your locationÃ¢â‚¬Â¦" : "Explore this area"
-              }
+              label={locating ? "Finding your location…" : "Explore this area"}
               selected
               disabled={locating || !draft.trim()}
               onPress={() => void findPlace()}
             />
             <Text style={s.small}>
-              Uses the approximate city or ZIP center. No GPS permission needed.
+              City and ZIP searches use an approximate center. Location access
+              is optional.
             </Text>
           </View>
         </KeyboardAvoidingView>
@@ -585,6 +608,17 @@ export default function Nearby() {
             <View style={s.row}>
               <Text style={[s.section, { flex: 1 }]}>Make it your hunt</Text>
               <Button label="Done" onPress={() => setFilters(false)} />
+            </View>
+            <Text style={s.eyebrow}>DISTANCE</Text>
+            <View style={s.wrap}>
+              {[10, 25, 50, 100].map((n) => (
+                <Button
+                  key={n}
+                  label={`${n} mi`}
+                  selected={radius === n}
+                  onPress={() => setRadius(n)}
+                />
+              ))}
             </View>
             <Text style={s.eyebrow}>BOTTLES</Text>
             <View style={s.wrap}>
@@ -648,6 +682,63 @@ export default function Nearby() {
 }
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: c.background },
+  mapControls: { position: "absolute", top: 12, left: 16, right: 16, gap: 8 },
+  mapSearchRow: { flexDirection: "row", gap: 8, alignItems: "center" },
+  mapPlace: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: c.surface,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  mapPlaceName: { flex: 1, color: c.text, fontSize: 16, fontWeight: "600" },
+  mapBottom: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: c.background,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderWidth: 1,
+    borderColor: c.border,
+    paddingBottom: Platform.OS === "ios" ? 28 : 12,
+  },
+  mapSummary: {
+    padding: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  sheetHeading: {
+    height: 40,
+    paddingLeft: 20,
+    paddingRight: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  listHeading: {
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  listStore: {
+    padding: 16,
+    borderRadius: 14,
+    backgroundColor: c.surface,
+    borderWidth: 1,
+    borderColor: c.border,
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+  },
   list: { paddingHorizontal: 20, paddingBottom: 40, gap: 16 },
   header: { gap: 12, paddingTop: 18, paddingBottom: 2 },
   eyebrow: {

@@ -14,7 +14,7 @@ Lean Expo SDK 57 development client for the first native product slice.
 - Resized, metadata-stripped JPEG upload with retry against the already-saved Signal
 - Pure lazy-permission policy with a manual posting without-photo fallback
 
-Camera and selected-photo permissions are never requested at launch; each appears only after the matching member action. Optional sighting evidence may appear publicly with its Signal. Barcode matching, native billing, editable profiles, badges, and social mechanics remain intentionally deferred. Microphone and all location permissions are disabled.
+Camera and selected-photo permissions are never requested at launch; each appears only after the matching member action. Optional sighting evidence may appear publicly with its Signal. Barcode matching, native billing, editable profiles, badges, and social mechanics remain intentionally deferred. Background location and microphone permissions remain disabled. Foreground location is requested only after Use my location in Nearby.
 
 ## Local configuration
 
@@ -57,3 +57,5 @@ The app IDs are `com.bourbonsignal.app` on Android and iOS. EAS `development`, `
 The version-controlled `store/` directory contains App Store copy, conservative privacy answers, review notes, a real-device screenshot specification, and the post-enrollment release checklist. Run `npm run verify:release-readiness` to validate the machine-checkable parts of that package. App Store Connect IDs, reviewer credentials, Apple signing material, and real TestFlight screenshots are intentionally absent until the organization account is approved.
 
 The app never stores user IDs, email addresses, or database identifiers in its own persistence. Clerk tokens use the official Expo secure token cache. The sign-in flow completes password, email/phone code, TOTP, backup-code, and Device Trust challenges; the production Clerk instance must keep `email_code` or another supported code factor enabled.
+
+Native Nearby embeds Apple Maps on iOS. Tap a pin to view bottle reports inside the app. Only Directions opens external navigation. Foreground location is optional and requested only from Use my location.
