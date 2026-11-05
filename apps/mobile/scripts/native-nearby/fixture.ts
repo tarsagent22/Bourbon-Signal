@@ -1,8 +1,21 @@
 const signal = (id: string, name: string, price: number) => ({
   id,
   contractVersion: "bourbon-signal/signal@1",
-  bottle: { name },
-  availability: { label: "Retailer reported", price },
+  kind: "availability",
+  source: { type: "trusted_source", label: "Fixture retailer" },
+  bottle: { name, rarity: "allocated" },
+  location: { scope: "exact_store", label: "Gilbert, AZ" },
+  evidence: {
+    photo: false,
+    corroborationCount: 0,
+    helpfulCount: 0,
+    retailerReported: true,
+    sourceBacked: true,
+  },
+  strength: "best",
+  alertEligibility: { inventory: true, watch: true },
+  actions: [],
+  availability: { status: "reported", label: "Retailer reported", price },
   timing: { displayAt: "2026-11-05T02:00:00Z" },
 });
 const stores = [
