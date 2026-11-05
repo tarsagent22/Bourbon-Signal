@@ -34,12 +34,33 @@ jobs:
           cache-dependency-path: apps/mobile/package-lock.json
       - run: npm ci --no-audit --no-fund
       - run: npm run test:ios-recovery
+      - uses: actions/cache/restore@v4
+        id: native-shell
+        with:
+          path: apps/mobile/native-evidence/native-shell.zip
+          key: native-nearby-ios-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('apps/mobile/app.json', 'apps/mobile/package-lock.json', 'apps/mobile/modules/**', 'apps/mobile/plugins/**', 'apps/mobile/patches/**', 'apps/mobile/scripts/prepare-native-plist.cjs') }}
       - run: npx expo prebuild --platform ios --no-install
+        if: steps.native-shell.outputs.cache-hit != 'true'
       - run: pod install --project-directory=ios
+        if: steps.native-shell.outputs.cache-hit != 'true'
       - name: Compile Release native shell
+        if: steps.native-shell.outputs.cache-hit != 'true'
         run: |
           mkdir -p native-evidence
           xcodebuild -workspace ios/BourbonSignal.xcworkspace -scheme BourbonSignal -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath native-evidence/build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES ARCHS="$(uname -m)" -quiet > native-evidence/xcodebuild.log 2>&1
+      - name: Preserve the verified native shell for layout-only iterations
+        if: steps.native-shell.outputs.cache-hit != 'true'
+        run: ditto -c -k --keepParent native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app native-evidence/native-shell.zip
+      - uses: actions/cache/save@v4
+        if: steps.native-shell.outputs.cache-hit != 'true'
+        with:
+          path: apps/mobile/native-evidence/native-shell.zip
+          key: ${{ steps.native-shell.outputs.cache-primary-key }}
+      - name: Restore the compiled simulator app
+        if: steps.native-shell.outputs.cache-hit == 'true'
+        run: |
+          mkdir -p native-evidence/build/Build/Products/Release-iphonesimulator
+          unzip -q -o native-evidence/native-shell.zip -d native-evidence/build/Build/Products/Release-iphonesimulator
       - name: Bundle native Nearby fixture with explicit seams
         run: |
           cp metro.config.js native-evidence/production-metro.config.js
