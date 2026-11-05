@@ -211,7 +211,7 @@ export default function Nearby() {
         if (active) setRestoringPlace(false);
       });
     api
-      .getMemberPreferences({ fresh: true })
+      .getMemberPreferences()
       .then((p) => {
         if (active) setWatched(p.bottleAlertPreferences.bottleNames);
       })
@@ -520,7 +520,8 @@ export default function Nearby() {
           <>
             {(error || result?.partial) && (
               <Text accessibilityRole="alert" style={s.notice}>
-                {error || "Partial results · narrow your search"}
+                {error ||
+                  "Some reports are still loading. Tap refresh to try again."}
               </Text>
             )}
             <FlatList
@@ -578,7 +579,11 @@ export default function Nearby() {
                   ? "Your next find starts here"
                   : busy
                     ? "Looking around you"
-                    : "No matching bottles yet"}
+                    : error || result?.partial
+                      ? "Reports are still catching up"
+                      : result?.previewLocked
+                        ? "More reports need membership access"
+                        : "No matching bottles yet"}
             </Text>
             <Text style={s.copy}>
               {error ||
@@ -588,14 +593,18 @@ export default function Nearby() {
                     ? "Use your location or choose a city to explore."
                     : busy
                       ? "The map is ready. Reports are on their way."
-                      : "Widen your radius or try another bottle.")}
+                      : result?.partial
+                        ? "The search could not finish. Try again to load nearby reports."
+                        : result?.previewLocked
+                          ? "Open the feed to review your membership access."
+                          : "Widen your radius or try another bottle.")}
             </Text>
             {!busy && !restoringPlace && (
               <Button
                 label={
                   !place
                     ? "Choose location"
-                    : error
+                    : error || result?.partial
                       ? "Try again"
                       : "Adjust filters"
                 }
@@ -603,7 +612,7 @@ export default function Nearby() {
                 onPress={() =>
                   !place
                     ? setPlaceSheet(true)
-                    : error
+                    : error || result?.partial
                       ? setRetry((n) => n + 1)
                       : openFilters()
                 }

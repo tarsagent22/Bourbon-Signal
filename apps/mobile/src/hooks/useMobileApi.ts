@@ -11,7 +11,7 @@ function useAccountMobileApi() {
   const [membershipRevision, setMembershipRevision] = useState(0);
   const current = useRef({ identity, getToken });
   current.current = { identity, getToken };
-  const api = useMemo(() => ({ ...createMobileApi({ rewardPlatform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web", getToken: async () => {
+  const api = useMemo(() => ({ ...createMobileApi({ readCooldownMs: 30_000, rewardPlatform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web", getToken: async () => {
     if (current.current.identity !== identity) throw new MobileApiError('The account changed. Please retry.', 401, 'SESSION_CHANGED');
     const token = await current.current.getToken();
     if (current.current.identity !== identity) throw new MobileApiError('The account changed. Please retry.', 401, 'SESSION_CHANGED');

@@ -1,3 +1,4 @@
+import { nearbyFeedPageLimit } from "../nearby-feed-scope.ts";
 import {
   buildCanonicalSignalFeed,
   normalizeDropSignal,
@@ -193,7 +194,7 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
 
     const rawLimit = url.searchParams.get("limit") || "40";
     const parsedLimit = Number(rawLimit);
-    if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+    if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > nearbyFeedPageLimit(100)) {
       return Response.json({ error: "limit must be an integer from 1 to 100" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
     }
 

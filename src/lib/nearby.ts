@@ -1,3 +1,4 @@
+import reviewedCoordinates from "../data/reviewed-store-coordinates.json";
 import { normalizeMapStore } from "./store-map.ts";
 import { sightingStoreAddressKey } from "./sighting-store-directory-core.ts";
 import {
@@ -7,12 +8,30 @@ import {
   type Point,
 } from "../../shared/nearby.ts";
 import type { Signal } from "../../apps/mobile/src/api/types.ts";
+const reviewedById = new Map(
+  reviewedCoordinates.stores.map((store) => [store.id, store]),
+);
 export function nearbyStoreIndex(raw: Record<string, unknown>[]) {
   const index = new Map<string, ReturnType<typeof normalizeMapStore>>(),
     conflicts = new Set<string>();
   for (const row of raw) {
-    const s = normalizeMapStore(row),
-      point = { latitude: s.lat!, longitude: s.lng! };
+    const normalized = normalizeMapStore(row);
+    const proof = reviewedById.get(normalized.id);
+    const needsCoordinates =
+      !Number.isFinite(normalized.lat) ||
+      !Number.isFinite(normalized.lng) ||
+      (normalized.lat === 0 && normalized.lng === 0);
+    const exactProof =
+      proof &&
+      normalized.address &&
+      sightingStoreAddressKey(
+        normalized as { state: string; city: string; address: string },
+      ) === sightingStoreAddressKey(proof);
+    const s =
+      needsCoordinates && exactProof
+        ? { ...normalized, lat: proof.lat, lng: proof.lng, isMappable: true }
+        : normalized;
+    const point = { latitude: s.lat!, longitude: s.lng! };
     if (
       !s.isMappable ||
       s.precision !== "store" ||

@@ -1,3 +1,4 @@
+import { filterNearbyFeedDrops, nearbyFeedPageLimit } from "@/lib/nearby-feed-scope";
 import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
 import { unstable_cache } from "next/cache";
 import { packPublicFeed, unpackPublicFeed } from "@/lib/public-feed-pack";
@@ -38,7 +39,7 @@ import {
   type DropClassificationBottle,
 } from "@/lib/drop-classification";
 
-const preparedDropCache = createPreparedDropCache<ReturnType<typeof normalizeDropForSite>[]>();
+const preparedDropCache = createPreparedDropCache<ReturnType<typeof normalizeDropForSite>[]>(4, 300_000);
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set<string>(DROP_FEED_CLASSIFICATION_TIERS);
@@ -170,12 +171,16 @@ async function preparePublicFeedBase() {
   const degradedStates = degradedEngineStates(statsPayload);
   const eligible = normalizedDrops;
   const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
-  return { dropResult, exportPayload, statsPayload, classificationIndex, normalizedDrops, eligible, degradedStates, freshness };
+  return { dropResult, exportPayload, statsPayload, classificationIndex, normalizedDrops, eligible, degradedStates, freshness, cacheable: [dropResult, statsResult].every(result => result.source === "remote-snapshot" || result.source === "local-export") };
 }
 
 type PublicFeedBase = Awaited<ReturnType<typeof preparePublicFeedBase>>;
 const readPackedPublicFeed = unstable_cache(async (_identity: string, _classification: string) => {
   const prepared = await preparePublicFeedBase();
+  if (!prepared.cacheable || !prepared.exportPayload || !prepared.statsPayload) {
+    throw new Error("Incomplete feed preparation cannot enter the immutable cache");
+  }
+  if (_identity !== await readSiteExportIdentity()) throw new Error("Snapshot changed during preparation");
   // No durable source projection, runtime policy, or retailer submission is
   // persisted here. Those are read after both shared cache layers on every GET.
   const { drops: _rawDrops, ...exportMetadata } = prepared.exportPayload || {};
@@ -185,19 +190,21 @@ const readPackedPublicFeed = unstable_cache(async (_identity: string, _classific
     classificationIndex: { version: prepared.classificationIndex.version },
   };
   return packPublicFeed(prepared, metadata);
-}, ['public-feed-immutable-base-v3', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 15 });
+}, ['public-feed-immutable-base-v4', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 3600 });
 async function readSharedPublicPreparation(identity: string) {
   const classification = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]).version;
   try {
     const packed = await readPackedPublicFeed(identity, classification);
-    return { ...unpackPublicFeed<PublicFeedBase>(packed), packedBytes: Buffer.byteLength(packed) };
+    return { ...unpackPublicFeed<PublicFeedBase>(packed), cacheable: true, packedBytes: Buffer.byteLength(packed) };
   } catch {
     // Cache failure may reread the immutable base; it cannot bypass the fresh
     // source composition that follows this function on every normal request.
     return { ...await preparePublicFeedBase(), packedBytes: 0 };
   }
 }
-const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof readSharedPublicPreparation>>>();
+// Identity changes still miss immediately. Only the verified immutable base
+// stays warm; source heads, inventory expiry and entitlements run on every GET.
+const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof readSharedPublicPreparation>>>(300_000, Date.now, value => value.cacheable);
 
 async function preparePublicFeedSnapshot(base: PublicFeedBase) {
   const [sourceOverlay, retailerSubmissions] = await Promise.all([
@@ -246,7 +253,7 @@ export async function GET(request: Request) {
   const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
   const requestedSignalId = String(url.searchParams.get("signalId") || "").slice(0, 240);
   // A Free detail lookup can resolve only a card from the same global preview.
-  const limit = isFreeAccess && requestedSignalId ? previewLimit : resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit);
+  const limit = isFreeAccess && requestedSignalId ? previewLimit : resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit, nearbyFeedPageLimit(500));
   const offset = isFreeAccess ? 0 : Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
   const requestedCursor = isFreeAccess ? null : url.searchParams.get("cursor");
   const requestedSignalSource = String(url.searchParams.get("signalSource") || "");
@@ -488,6 +495,9 @@ export async function GET(request: Request) {
         });
       });
     }
+
+    // Narrow the authorized, policy-filtered feed before its page boundary.
+    drops = filterNearbyFeedDrops(drops);
 
     drops = canonicalSignalOrder
       ? drops

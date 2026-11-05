@@ -16,7 +16,7 @@ export function createPreparedDropCache<T>(maximumEntries = 4, ttlMs = 15_000) {
 
 // One public preparation per immutable snapshot, with concurrent requests sharing
 // the attempt. Expiry starts after preparation; errors never become cached success.
-export function createAsyncPreparedDropCache<T>(ttlMs = 15_000, now = Date.now) {
+export function createAsyncPreparedDropCache<T>(ttlMs = 15_000, now = Date.now, cacheable: (value: T) => boolean = () => true) {
   const entries = new Map<string, { promise: Promise<T>; expiresAt: number; pending: boolean }>();
   return {
     async get(key: string, prepare: () => Promise<T>) {
@@ -28,6 +28,7 @@ export function createAsyncPreparedDropCache<T>(ttlMs = 15_000, now = Date.now) 
       try {
         const value = await entry.promise;
         entry.pending = false; entry.expiresAt = now() + ttlMs;
+        if (!cacheable(value) && entries.get(key) === entry) entries.delete(key);
         return { value, hit: false };
       } catch (error) { if (entries.get(key) === entry) entries.delete(key); throw error; }
     },

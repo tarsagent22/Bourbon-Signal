@@ -12,3 +12,56 @@ test('placeholder coordinates and conflicting geocodes are excluded',()=>{assert
 test('ZIP and city lookup encode user text and require state',()=>{assert.equal(placeLookupPath('27601'),'/us/27601');assert.equal(placeLookupPath('Raleigh, NC'),'/us/nc/raleigh');assert.equal(placeLookupPath('Chapel Hill','NC'),'/us/nc/chapel%20hill');assert.throws(()=>placeLookupPath('Raleigh'));});
 test('ZIP and city responses produce a finite center and readable label',()=>{assert.deepEqual(parsePlace({'place name':'Raleigh','state abbreviation':'NC',places:[{latitude:'35',longitude:'-78'},{latitude:'37',longitude:'-80'}]}),{latitude:36,longitude:-79,label:'Raleigh, NC'});assert.throws(()=>parsePlace({places:[{latitude:'bad',longitude:'-78'}]}));});
 test('radius and watchlist filters operate on existing results without source changes',()=>{const store={id:'1',distance:15,signals:[signal,{...signal,id:'s2',bottle:{name:'Other'}}]} as NearbyStore;assert.equal(nearbyVisible([store],10,false,[]).length,0);assert.equal(nearbyVisible([store],25,true,['eagle rare 10 year'])[0].signals.length,1);assert.equal(store.signals.length,2);assert.match(storeMapUrl({address:'1 Main & 2nd',city:'Raleigh',state:'NC'},true),/destination=1%20Main%20%26%202nd/);});
+
+import { filterNearbyFeedDrops, withNearbyFeedScope, nearbyFeedPageLimit } from '../src/lib/nearby-feed-scope.ts';
+import { writeSourceConsumptionTrace } from '../src/lib/source-consumption-trace.ts';
+test('geographic selection precedes pagination even with thousands of newer national reports', async () => {
+ const local={id:'local',state:'NC',store_address:'123 Main Street',store_city:'Raleigh'};
+ const national=Array.from({length:5000},(_,i)=>({...local,id:String(i),state:'AZ'}));
+ const rows=[...national,local];
+ const result=await withNearbyFeedScope(nearbyStoreIndex([raw]),{latitude:35.78,longitude:-78.64},25,async()=>{await Promise.resolve();return filterNearbyFeedDrops(rows).slice(0,100);});
+ assert.deepEqual(result,[local]);assert.equal(filterNearbyFeedDrops(rows),rows);
+});
+test('concurrent map origins never narrow each other or an ordinary feed',async()=>{
+ const rows=[{id:'local',state:'NC',store_address:'123 Main St',store_city:'Raleigh'}];
+ const index=nearbyStoreIndex([raw]);
+ const results=await Promise.all([withNearbyFeedScope(index,{latitude:35.78,longitude:-78.64},25,async()=>{await new Promise(r=>setTimeout(r,10));return filterNearbyFeedDrops(rows);}),withNearbyFeedScope(index,{latitude:33,longitude:-112},25,async()=>filterNearbyFeedDrops(rows))]);
+ assert.equal(results[0].length,1);assert.equal(results[1].length,0);assert.equal(filterNearbyFeedDrops(rows),rows);
+});
+test('reviewed Gilbert coordinates bind exact identity and premise, never a changed address',()=>{
+ const premise={id:'safeway:1534',name:'Safeway #1534',address:'90 S Val Vista Dr, Gilbert, AZ 85296',city:'Gilbert',state:'AZ',lat:0,lng:0};
+ const index=nearbyStoreIndex([premise]);assert.equal(index.size,1);assert.ok([...index.values()][0].lat!>33);
+ assert.equal(nearbyStoreIndex([{...premise,address:'92 S Val Vista Dr'}]).size,0);
+ assert.equal(nearbyStoreIndex([{...premise,id:'different'}]).size,0);
+});
+test('feed consumption telemetry uses one database round trip with exact provider counts',async()=>{
+ const calls:Array<{query:string,params:unknown[]}>=[];
+ const executor=()=>({query:async(query:string,params:unknown[])=>{calls.push({query,params});}});
+ await writeSourceConsumptionTrace(executor,Array.from({length:1000},(_,i)=>({sourcePollId:'provider-'+(i%100)})),'feed_read','','2026-11-05T00:00:00Z');
+ assert.equal(calls.length,1);const counts=JSON.parse(calls[0].params[0] as string);assert.equal(counts.length,100);assert.ok(counts.every((c:{row_count:number})=>c.row_count===10));
+ await writeSourceConsumptionTrace(executor,[],'feed_read','','now');assert.equal(calls.length,1);
+ await writeSourceConsumptionTrace(()=>({query:async()=>{throw Error('offline')}}),[{sourcePollId:'a'}],'feed_read','','now');
+});
+
+import { resolveDropLimit } from '../src/lib/drop-feed-policy.ts';
+test('larger internal map reads never raise ordinary API limits or free preview limits',()=>{
+ assert.equal(nearbyFeedPageLimit(100),100);
+ assert.equal(resolveDropLimit('9999',false,7),500);
+ withNearbyFeedScope(nearbyStoreIndex([raw]),{latitude:35.78,longitude:-78.64},25,()=>{
+  assert.equal(nearbyFeedPageLimit(100),10000);
+  assert.equal(resolveDropLimit('9999',false,7,nearbyFeedPageLimit(500)),9999);
+  assert.equal(resolveDropLimit('9999',true,7,nearbyFeedPageLimit(500)),7);
+ });
+ assert.equal(nearbyFeedPageLimit(100),100);
+});
+
+import { createAsyncPreparedDropCache } from '../src/lib/prepared-drop-cache.ts';
+test('longer immutable reuse skips degraded results and switches immediately with snapshot identity',async()=>{
+ let now=0,calls=0;const cache=createAsyncPreparedDropCache<{ok:boolean}>(300000,()=>now,value=>value.ok);
+ const build=async()=>{calls++;return {ok:true}};
+ await cache.get('snapshot-a',build);now=60000;assert.equal((await cache.get('snapshot-a',build)).hit,true);assert.equal(calls,1);
+ await cache.get('snapshot-b',build);assert.equal(calls,2);
+ assert.equal((await cache.get('degraded',async()=>({ok:false}))).hit,false);
+ assert.equal((await cache.get('degraded',build)).hit,false);assert.equal(calls,3);
+ now=400000;assert.equal((await cache.get('snapshot-b',build)).hit,false);
+});

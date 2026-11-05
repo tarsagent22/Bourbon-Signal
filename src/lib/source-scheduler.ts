@@ -1,3 +1,4 @@
+import { writeSourceConsumptionTrace } from "./source-consumption-trace";
 import { randomUUID, createHash } from 'node:crypto';
 import { sourceAcceptanceHealth } from './source-acceptance-health';
 import { createProductionAlertQueueSqlExecutor } from './alert-queue/runtime';
@@ -217,10 +218,7 @@ export async function pollCandidatesValid(candidates: Row[]) {
   });
 }
 export async function tracePollCandidates(rows: Row[],stage: string,channel='',at=new Date().toISOString()) {
-  const sources=new Map<string,number>();
-  for(const row of rows) if(row.sourcePollId) sources.set(row.sourcePollId,(sources.get(row.sourcePollId)||0)+1);
-  if(!sources.size)return;
-  try {await Promise.all([...sources].map(([source,count])=>sql().query(`INSERT INTO source_poll_trace(source_id,stage,channel,last_at,row_count) VALUES($1,$2,$3,$4,$5) ON CONFLICT(source_id,stage,channel) DO UPDATE SET last_at=EXCLUDED.last_at,row_count=EXCLUDED.row_count`,[source,stage,channel,at,count])));} catch { /* Telemetry cannot suppress a valid feed. */ }
+  await writeSourceConsumptionTrace(sql, rows, stage, channel, at);
 }
 export async function sourceSchedulerHealth(writeMonitor=false) {
   const executor=sql(); const jobs=await pollJobs();
