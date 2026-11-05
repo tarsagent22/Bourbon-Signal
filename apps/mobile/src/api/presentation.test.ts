@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "./types";
 import { presentBottleIdentity, presentSignal, signalAccessibilityLabel, signalFeedCardAppearance, signalCardStatusLabel, signalMemberTagLabel, signalReporterAttribution } from "./presentation";
-import { signalRowBottleIdentity, signalRowFacts, signalRowTimeLabel, signalRowReportSummary } from "../components/signal-row-presentation";
+import { signalRowBottleIdentity, signalRowFacts, signalRowTimeLabel, signalRowReportSummary, signalRowReportTimestamp } from "../components/signal-row-presentation";
 
 function signal(overrides: Partial<Signal> = {}): Signal {
   return {
@@ -193,4 +193,12 @@ test("Limited badges read as silver across feeds with accessible text contrast",
     return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
   };
   assert.ok((luminance(limited.accent) + 0.05) / (luminance(limited.keyline) + 0.05) >= 4.5);
+});
+
+test("store preview timestamps never include an individual bottle quantity", () => {
+  const now = new Date("2026-11-05T18:00:00Z");
+  for (const quantity of [0, 1, 6]) {
+    const row = signal({ timing: {displayAt: "2026-11-05T12:00:00Z"}, availability: {status: "reported", quantity} });
+    assert.equal(signalRowReportTimestamp(row, now), "Reported 6h ago");
+  }
 });
