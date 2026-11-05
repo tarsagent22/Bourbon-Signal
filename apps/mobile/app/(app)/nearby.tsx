@@ -1,10 +1,9 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
-  Linking,
   Modal,
   Platform,
   Pressable,
@@ -22,9 +21,8 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { MapReportCard } from "../../src/nearby/MapReportCard";
+import { StoreSheet } from "../../src/nearby/StoreSheet";
 import {
-  mapFeedRows,
   readNearbyPreview,
   saveNearbyPreview,
   clearNearbyPreview,
@@ -38,16 +36,10 @@ import { useMobileApi } from "../../src/hooks/useMobileApi";
 import {
   nearbyVisible,
   currentPlaceWithCity,
-  appleStoreDirectionsUrl,
   parsePlace,
   placeLookupPath,
-  storeMapUrl,
 } from "../../src/signals/nearby";
-import type {
-  NearbyResult,
-  NearbyStore,
-  Point,
-} from "../../../../shared/nearby";
+import type { NearbyResult, Point } from "../../../../shared/nearby";
 type Place = Point & { label: string };
 const KEY = "nearby-manual-place-v1";
 function Button({
@@ -80,80 +72,10 @@ function Button({
     </Pressable>
   );
 }
-const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
-  const [expanded, setExpanded] = useState(false),
-    [error, setError] = useState("");
-  async function open(directions: boolean) {
-    try {
-      await Linking.openURL(
-        Platform.OS === "ios"
-          ? appleStoreDirectionsUrl(store)
-          : storeMapUrl(store, directions),
-      );
-    } catch {
-      setError("Maps could not open. Please try again.");
-    }
-  }
-  return (
-    <View style={s.card}>
-      <View style={s.row}>
-        <View style={s.storeIcon}>
-          <Icon name="storefront-outline" size={21} color={c.accent} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={s.storeName}>{store.name}</Text>
-          <Text style={s.copy}>
-            {store.city}, {store.state}
-          </Text>
-        </View>
-        <View style={s.distance}>
-          <Text style={s.distanceNumber}>
-            {store.approximateLocation ? "~" : ""}
-            {store.distance.toFixed(1)}
-          </Text>
-          <Text style={s.small}>MILES</Text>
-        </View>
-      </View>
-      <Text style={s.address}>{store.address}</Text>
-      {store.approximateLocation && (
-        <Text style={s.small}>Approximate address location</Text>
-      )}
-      {(expanded ? store.signals : store.signals.slice(0, 3)).map((signal) => (
-        <SignalCard
-          key={signal.id}
-          signal={signal}
-          onPress={() =>
-            router.push({
-              pathname: "/(app)/signal/[id]",
-              params: { id: signal.id },
-            })
-          }
-        />
-      ))}
-      {store.signals.length > 3 ? (
-        <Button
-          label={
-            expanded ? "Show less" : `See all ${store.signals.length} reports`
-          }
-          onPress={() => setExpanded((v) => !v)}
-        />
-      ) : null}
-      <View style={s.row}>
-        <View style={{ flex: 1 }}>
-          <Button label="Directions" selected onPress={() => void open(true)} />
-        </View>
-      </View>
-      {error ? (
-        <Text accessibilityRole="alert" style={s.error}>
-          {error}
-        </Text>
-      ) : null}
-    </View>
-  );
-});
 export default function Nearby() {
   const params = useLocalSearchParams<{
       store?: string;
+      expanded?: string;
       unlocated?: string;
       search?: string;
       view?: string;
@@ -181,13 +103,9 @@ export default function Nearby() {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0);
-  const { width } = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const cardWidth = Math.max(240, width - 48);
-  const carousel =
-    useRef<FlatList<ReturnType<typeof mapFeedRows>[number]>>(null);
-  const [cardIndex, setCardIndex] = useState(0);
-  const [detailOpen, setDetailOpen] = useState(false);
+  const [expanded, setExpanded] = useState(params.expanded === "1");
   const [unlocatedOpen, setUnlocatedOpen] = useState(params.unlocated === "1");
   const unlocated = useMemo(
     () =>
@@ -276,8 +194,7 @@ export default function Nearby() {
     }
     const key = q.toString();
     const preview = readNearbyPreview(api, key);
-    if (lastApi.current !== api || lastQuery.current !== key || preview)
-      setResult(preview);
+    if (lastApi.current !== api || preview) setResult(preview);
     lastApi.current = api;
     lastQuery.current = key;
     api
@@ -352,40 +269,24 @@ export default function Nearby() {
   useEffect(() => {
     if (params.store) setSelected(params.store);
   }, [params.store]);
-  const [listMode, setListMode] = useState(false);
-  const [sheetHeight, setSheetHeight] = useState(140);
   const selectedStore = stores.find((store) => store.id === selected);
-  const rows = useMemo(() => mapFeedRows(stores), [stores]);
-  const selectStore = useCallback(
-    (id: string) => {
-      Keyboard.dismiss();
-      setSelected(id);
-      const index = rows.findIndex((row) => row.store.id === id);
-      if (index >= 0) {
-        setCardIndex(index);
-        carousel.current?.scrollToOffset({
-          offset: index * (cardWidth + 10),
-          animated: true,
-        });
-      }
-    },
-    [rows, cardWidth],
-  );
+  const sheetHeight = (selectedStore ? 210 : 116) + Math.max(insets.bottom, 12);
+  const selectStore = useCallback((id: string) => {
+    Keyboard.dismiss();
+    setSelected(id);
+    setExpanded(false);
+  }, []);
   useEffect(() => {
-    const index = Math.max(
-      0,
-      rows.findIndex((row) => row.store.id === selected),
-    );
-    setCardIndex(index);
-    carousel.current?.scrollToOffset({
-      offset: index * (cardWidth + 10),
-      animated: false,
-    });
-    if (result && selected && !stores.some((store) => store.id === selected)) {
+    if (
+      !busy &&
+      result &&
+      selected &&
+      !stores.some((store) => store.id === selected)
+    ) {
       setSelected(null);
-      setDetailOpen(false);
+      setExpanded(false);
     }
-  }, [rows]);
+  }, [stores, selected, busy, result]);
   const openReport = (id: string) =>
     router.push({ pathname: "/(app)/signal/[id]", params: { id } });
   async function useCurrentLocation() {
@@ -480,15 +381,13 @@ export default function Nearby() {
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Filter nearby reports"
+            accessibilityLabel="Change radius and filters"
             onPress={openFilters}
-            style={s.filterButton}
+            style={{ minHeight: 40, justifyContent: "center" }}
           >
-            <Icon
-              name="tune-variant"
-              size={22}
-              color={activeFilters ? c.accent : c.text}
-            />
+            <Text style={s.small}>
+              {radius} mi · {activeFilters ? "Filtered" : "All bottles"}
+            </Text>
           </Pressable>
         </View>
         <View style={s.mapSearchRow}>
@@ -518,122 +417,42 @@ export default function Nearby() {
               </Pressable>
             ) : null}
           </View>
-          <Button label={`${radius} mi`} onPress={openFilters} />
-        </View>
-      </View>
-      <View
-        onLayout={(event) =>
-          setSheetHeight(Math.ceil(event.nativeEvent.layout.height))
-        }
-        style={[s.feedDock, { paddingBottom: Math.max(insets.bottom, 12) }]}
-        pointerEvents="box-none"
-      >
-        <View style={s.feedToolbar}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Refresh nearby reports"
-            disabled={busy || restoringPlace || !place}
-            onPress={() => setRetry((n) => n + 1)}
-            style={s.feedCount}
+            accessibilityLabel="Filter nearby reports"
+            onPress={openFilters}
+            style={s.filterButton}
           >
-            {busy || restoringPlace ? (
-              <ActivityIndicator size="small" color={c.accent} />
-            ) : (
-              <Icon name="glass-cocktail" size={15} color={c.accent} />
-            )}
-            <Text style={s.feedCountText}>
-              {rows.length
-                ? `${Math.min(cardIndex + 1, rows.length)} / ${rows.length} reports`
-                : busy || restoringPlace
-                  ? "Finding bottles…"
-                  : "Nearby bottles"}
-            </Text>
-          </Pressable>
-          {rows.length > 0 && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Open nearby report feed"
-              onPress={() => setListMode(true)}
-              style={s.feedCount}
-            >
-              <Icon name="format-list-bulleted" size={17} color={c.text} />
-              <Text style={s.feedCountText}>Feed</Text>
-            </Pressable>
-          )}
-        </View>
-        {(rows.length > 0 || error || result?.partial) &&
-          unlocated.length > 0 && (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setUnlocatedOpen(true)}
-              style={s.feedCount}
-            >
-              <Icon
-                name="map-marker-question-outline"
-                size={16}
-                color={c.accent}
-              />
-              <Text style={s.feedCountText}>
-                {unlocated.length}{" "}
-                {unlocated.length === 1 ? "report" : "reports"} without pins
-              </Text>
-            </Pressable>
-          )}
-        {rows.length ? (
-          <>
-            {(error || result?.partial) && (
-              <Text accessibilityRole="alert" style={s.notice}>
-                {error ||
-                  "Some reports are still loading. Tap refresh to try again."}
-              </Text>
-            )}
-            <FlatList
-              ref={carousel}
-              horizontal
-              data={rows}
-              keyExtractor={(row) => row.key}
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={cardWidth + 10}
-              decelerationRate="fast"
-              disableIntervalMomentum
-              initialNumToRender={2}
-              maxToRenderPerBatch={3}
-              windowSize={3}
-              contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
-              getItemLayout={(_, index) => ({
-                length: cardWidth + 10,
-                offset: index * (cardWidth + 10),
-                index,
-              })}
-              onScrollBeginDrag={() => Keyboard.dismiss()}
-              onMomentumScrollEnd={(event) => {
-                const index = Math.min(
-                  rows.length - 1,
-                  Math.max(
-                    0,
-                    Math.round(
-                      event.nativeEvent.contentOffset.x / (cardWidth + 10),
-                    ),
-                  ),
-                );
-                setCardIndex(index);
-                setSelected(rows[index].store.id);
-              }}
-              renderItem={({ item }) => (
-                <MapReportCard
-                  row={item}
-                  width={cardWidth}
-                  selected={item.store.id === selected}
-                  onOpen={() => openReport(item.signal.id)}
-                  onStore={() => {
-                    selectStore(item.store.id);
-                    setDetailOpen(true);
-                  }}
-                />
-              )}
+            <Icon
+              name="tune-variant"
+              size={22}
+              color={activeFilters ? c.accent : c.text}
             />
-          </>
-        ) : (
+          </Pressable>
+        </View>
+      </View>
+      {stores.length > 0 ? (
+        <StoreSheet
+          stores={stores}
+          selected={selected}
+          onSelect={setSelected}
+          expanded={expanded}
+          onExpand={setExpanded}
+          height={Math.max(300, Math.min(height * 0.72, height - 180))}
+          bottom={Math.max(insets.bottom, 12)}
+          busy={busy}
+          notice={
+            error || (result?.partial ? "Some reports could not load." : "")
+          }
+          unlocatedCount={unlocated.length}
+          onUnlocated={() => setUnlocatedOpen(true)}
+          onRefresh={() => setRetry((n) => n + 1)}
+          onOpen={openReport}
+        />
+      ) : (
+        <View
+          style={[s.feedDock, { paddingBottom: Math.max(insets.bottom, 12) }]}
+        >
           <View style={s.emptyCard}>
             <Text style={s.section}>
               {restoringPlace
@@ -690,84 +509,8 @@ export default function Nearby() {
               />
             )}
           </View>
-        )}
-      </View>
-      <Modal
-        visible={detailOpen && Boolean(selectedStore)}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setDetailOpen(false)}
-      >
-        <View style={s.overlay}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            accessibilityRole="button"
-            accessibilityLabel="Close store reports"
-            onPress={() => setDetailOpen(false)}
-          />
-          <View
-            style={[
-              s.sheet,
-              { maxHeight: "80%", paddingBottom: Math.max(insets.bottom, 16) },
-            ]}
-          >
-            <View style={s.row}>
-              <Text style={[s.section, { flex: 1 }]}>Store reports</Text>
-              <Button
-                label="Back to map"
-                onPress={() => setDetailOpen(false)}
-              />
-            </View>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              {selectedStore && (
-                <StoreCard key={selectedStore.id} store={selectedStore} />
-              )}
-            </ScrollView>
-          </View>
         </View>
-      </Modal>
-      <Modal
-        visible={listMode}
-        animationType="slide"
-        onRequestClose={() => setListMode(false)}
-      >
-        <View style={[s.screen, { paddingTop: Math.max(insets.top, 16) }]}>
-          <View style={s.listHeading}>
-            <Text style={s.section}>Nearby reports</Text>
-            <Button label="Map" onPress={() => setListMode(false)} />
-          </View>
-          <FlatList
-            data={rows}
-            keyExtractor={(row) => row.key}
-            initialNumToRender={4}
-            windowSize={5}
-            contentContainerStyle={[
-              s.list,
-              { paddingHorizontal: 16, paddingBottom: insets.bottom + 16 },
-            ]}
-            renderItem={({ item }) => (
-              <MapReportCard
-                row={item}
-                width={width - 32}
-                selected={item.store.id === selected}
-                onOpen={() => {
-                  setListMode(false);
-                  openReport(item.signal.id);
-                }}
-                onStore={() => {
-                  selectStore(item.store.id);
-                  setListMode(false);
-                }}
-              />
-            )}
-            ListEmptyComponent={
-              <Text style={s.emptyCopy}>
-                No matching reports. Try another location or filter.
-              </Text>
-            }
-          />
-        </View>
-      </Modal>
+      )}
       <Modal
         visible={unlocatedOpen}
         animationType="slide"
@@ -1036,14 +779,14 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    minHeight: 48,
-    paddingHorizontal: 14,
+    minHeight: 40,
+    paddingHorizontal: 10,
     borderRadius: 14,
     backgroundColor: c.surface,
     borderWidth: 1,
     borderColor: c.border,
   },
-  mapPlaceName: { flex: 1, color: c.text, fontSize: 16, fontWeight: "600" },
+  mapPlaceName: { flex: 1, color: c.text, fontSize: 14, fontWeight: "600" },
   mapBottom: {
     position: "absolute",
     bottom: 0,

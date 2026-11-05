@@ -22,9 +22,11 @@ export default function NearbyMap({
   const [iconsReady, setIconsReady] = useState(false);
   useEffect(() => {
     let active = true;
-    void Icon.loadFont().then(() => {
-      if (active) setIconsReady(true);
-    }).catch(() => {});
+    void Icon.loadFont()
+      .then(() => {
+        if (active) setIconsReady(true);
+      })
+      .catch(() => {});
     return () => {
       active = false;
     };
@@ -42,13 +44,6 @@ export default function NearbyMap({
       map.current?.animateToRegion(radiusRegion(origin, radius), 350);
   }, [ready, origin?.latitude, origin?.longitude, radius]);
   const selectedLocation = stores.find((row) => row.id === selected);
-  useEffect(() => {
-    if (ready && selectedLocation)
-      map.current?.animateToRegion(
-        radiusRegion(selectedLocation, Math.min(radius, 3)),
-        300,
-      );
-  }, [ready, selectedLocation?.latitude, selectedLocation?.longitude]);
   const clusters = useMemo(() => {
     const groups = clusterStores(
       stores.filter((store) => store.id !== selected),
@@ -71,7 +66,7 @@ export default function NearbyMap({
         style={StyleSheet.absoluteFill}
         initialRegion={region}
         userInterfaceStyle="dark"
-        mapType="mutedStandard"
+        mapType="standard"
         showsPointsOfInterests={false}
         showsBuildings={false}
         showsCompass={false}
@@ -82,7 +77,7 @@ export default function NearbyMap({
         rotateEnabled={false}
         pitchEnabled={false}
         toolbarEnabled={false}
-        mapPadding={{ top: 135, left: 16, right: 16, bottom: bottomInset }}
+        mapPadding={{ top: 112, left: 16, right: 16, bottom: bottomInset }}
         onMapReady={() => setReady(true)}
         onRegionChangeComplete={setRegion}
       >
@@ -138,17 +133,13 @@ export default function NearbyMap({
             >
               {group.stores.length > 1 ? (
                 <>
-                  <Icon
-                    name="storefront-outline"
-                    size={13}
-                    color={c.background}
-                  />
+                  <Icon name="storefront-outline" size={13} color={c.muted} />
                   <Text style={s.count}>{group.stores.length}</Text>
                 </>
               ) : (
                 <Icon
                   name="storefront-outline"
-                  size={19}
+                  size={17}
                   color={
                     group.stores[0].id === selected ? c.background : c.accent
                   }
@@ -158,6 +149,13 @@ export default function NearbyMap({
           </Marker>
         ))}
       </MapView>
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: "#211509", opacity: 0.1 },
+        ]}
+      />
       {moved ? (
         <Pressable
           accessibilityRole="button"
@@ -195,33 +193,33 @@ export default function NearbyMap({
 }
 const s = StyleSheet.create({
   pin: {
-    minWidth: 36,
-    height: 36,
+    minWidth: 32,
+    height: 32,
     flexDirection: "row",
     gap: 4,
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-    borderRadius: 18,
+    borderRadius: 16,
     paddingHorizontal: 9,
-    backgroundColor: c.accent,
-    borderWidth: 2,
-    borderColor: "#F4D19E",
+    backgroundColor: "#29241F",
+    borderWidth: 1,
+    borderColor: "#8A7C6B",
     alignItems: "center",
     justifyContent: "center",
   },
   singlePin: {
     backgroundColor: "#211A13",
-    borderColor: "#B38349",
-    borderWidth: 1.5,
+    borderColor: "#83715D",
+    borderWidth: 1,
   },
   selected: {
     backgroundColor: c.accent,
     borderColor: "#F4D19E",
     transform: [{ scale: 1.12 }],
   },
-  count: { color: c.background, fontSize: 14, fontWeight: "800" },
+  count: { color: c.text, fontSize: 14, fontWeight: "800" },
   origin: {
     width: 12,
     height: 12,
@@ -232,7 +230,7 @@ const s = StyleSheet.create({
   },
   search: {
     position: "absolute",
-    top: 126,
+    top: 116,
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
