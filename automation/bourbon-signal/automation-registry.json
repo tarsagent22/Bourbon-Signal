@@ -182,6 +182,37 @@
       "delivery": "github_only"
     },
     {
+      "id": "github-verify-engine-expansion-delivery",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/verify-engine-expansion-delivery.yml",
+      "active": true,
+      "ownerLayer": "sensor",
+      "executionClass": "script_only",
+      "frequency": "manual current-main baseline and post-refresh delivery verification",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_api",
+          "vercel_blob",
+          "customer_domain_http"
+        ],
+        "maxRequestsPerRun": 500
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": [
+        "out/engine-expansion-acceptance/baseline/",
+        "out/engine-expansion-acceptance/proof/"
+      ],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-native-label-reader",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/native-label-reader.yml",
