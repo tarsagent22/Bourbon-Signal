@@ -1,3 +1,4 @@
+import { COVERAGE_STATES } from "../../../../shared/coverage-states.ts";
 import type { Point, NearbyStore } from "../../../../shared/nearby";
 export function placeLookupPath(value: string, defaultState = "") {
   const input = value.trim();
@@ -64,4 +65,41 @@ export function nearbyVisible(
       ),
     }))
     .filter((s) => s.signals.length);
+}
+
+// Use the installed location module, bounded so a slow geocoder cannot hold the map.
+export async function currentPlaceWithCity(
+  point: Point,
+  reverse: (
+    point: Point,
+  ) => Promise<
+    Array<{
+      city?: string | null;
+      region?: string | null;
+      isoCountryCode?: string | null;
+    }>
+  >,
+  budgetMs = 1200,
+): Promise<Point & { label: string }> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const results = await Promise.race([
+      reverse(point),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), budgetMs);
+      }),
+    ]);
+    const address = results?.[0];
+    const region = address?.region?.trim().toLowerCase();
+    const state = COVERAGE_STATES.find(
+      (s) => s.code.toLowerCase() === region || s.name.toLowerCase() === region,
+    );
+    if (address?.isoCountryCode === "US" && address.city?.trim() && state)
+      return { ...point, label: `${address.city.trim()}, ${state.code}` };
+  } catch {
+    /* Coordinates remain useful when reverse geocoding is unavailable. */
+  } finally {
+    clearTimeout(timer);
+  }
+  return { ...point, label: "Current location" };
 }

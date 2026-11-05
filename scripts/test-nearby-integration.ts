@@ -127,3 +127,12 @@ test('every added address pin retains its matching geocoder evidence and approxi
   assert.equal(row[4].split(',').at(-2)?.trim(),proof.state);
  }
 });
+
+import { currentPlaceWithCity } from '../apps/mobile/src/signals/nearby.ts';
+test('GPS city context uses existing coordinates and a bounded reverse lookup',async()=>{
+ const point={latitude:33.35,longitude:-111.78};
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>[{city:'Gilbert',region:'Arizona',isoCountryCode:'US'}]),{...point,label:'Gilbert, AZ'});
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>[{city:'London',region:'Ontario',isoCountryCode:'CA'}]),{...point,label:'Current location'});
+ assert.deepEqual(await currentPlaceWithCity(point,async()=>{throw Error('unavailable')}),{...point,label:'Current location'});
+ assert.deepEqual(await currentPlaceWithCity(point,()=>new Promise(()=>{}),5),{...point,label:'Current location'});
+});

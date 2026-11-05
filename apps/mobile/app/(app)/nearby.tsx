@@ -33,6 +33,7 @@ import { colors as c, fonts } from "../../src/theme";
 import { useMobileApi } from "../../src/hooks/useMobileApi";
 import {
   nearbyVisible,
+  currentPlaceWithCity,
   parsePlace,
   placeLookupPath,
   storeMapUrl,
@@ -409,12 +410,16 @@ export default function Nearby() {
         }),
       ]);
       if (id !== placeSequence.current) return;
+      const resolvedPlace = await currentPlaceWithCity(
+        {
+          latitude: current.coords.latitude,
+          longitude: current.coords.longitude,
+        },
+        Location.reverseGeocodeAsync,
+      );
+      if (id !== placeSequence.current) return;
       touched.current = true;
-      setPlace({
-        latitude: current.coords.latitude,
-        longitude: current.coords.longitude,
-        label: "Current location",
-      });
+      setPlace(resolvedPlace);
       setSelected(null);
       setPlaceSheet(false);
     } catch {
