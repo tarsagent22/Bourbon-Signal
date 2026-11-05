@@ -131,7 +131,6 @@ export default function Nearby() {
     setFilterDraft({ radius, tiers, fresh, watchOnly });
     setFilters(true);
   };
-  const lastQuery = useRef("");
   const lastApi = useRef(api);
   const sequence = useRef(0),
     placeSequence = useRef(0),
@@ -196,7 +195,6 @@ export default function Nearby() {
     const preview = readNearbyPreview(api, key);
     if (lastApi.current !== api || preview) setResult(preview);
     lastApi.current = api;
-    lastQuery.current = key;
     api
       .nearby(q)
       .then((data) => {
@@ -270,7 +268,10 @@ export default function Nearby() {
     if (params.store) setSelected(params.store);
   }, [params.store]);
   const selectedStore = stores.find((store) => store.id === selected);
-  const sheetHeight = (selectedStore ? 210 : 116) + Math.max(insets.bottom, 12);
+  const sheetHeight =
+    (selectedStore ? 210 : 116) +
+    Math.max(insets.bottom, 12) +
+    (error || result?.partial ? 52 : 0);
   const selectStore = useCallback((id: string) => {
     Keyboard.dismiss();
     setSelected(id);

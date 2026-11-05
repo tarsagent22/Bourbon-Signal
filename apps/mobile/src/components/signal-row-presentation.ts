@@ -5,14 +5,17 @@ export function signalRowTimeLabel(signal: Signal, now = new Date()) {
   return reportAge(signal, now).label;
 }
 
+export function signalRowReportTimestamp(signal: Signal, now = new Date()) {
+  const age = reportAge(signal, now);
+  const time = age.value ? relativeSignalTime(age.value, now).replace(/^Now$/, "just now") : "Time unknown";
+  return !age.value ? "Time unknown" : `${signal.source.type === "trusted_source" && signal.timing.lastCheckedAt === age.value ? "Checked" : "Reported"} ${time}`;
+}
+
 export function signalRowReportSummary(signal: Signal, now = new Date()) {
   const quantity = presentSignal(signal).quantity;
   const counted = /^\d+ bottles?$/.test(quantity);
-  const age = reportAge(signal, now);
-  const time = age.value ? relativeSignalTime(age.value, now).replace(/^Now$/, "just now") : "Time unknown";
-  const timestamp = !age.value ? "Time unknown" : `${signal.source.type === "trusted_source" && signal.timing.lastCheckedAt === age.value ? "Checked" : "Reported"} ${time}`;
   return {
-    label: signal.kind === "availability" ? `${counted ? quantity + " · " : ""}${timestamp}` : age.label,
+    label: signal.kind === "availability" ? `${counted ? quantity + " · " : ""}${signalRowReportTimestamp(signal, now)}` : reportAge(signal, now).label,
     quantityInSummary: signal.kind === "availability" && counted,
   };
 }

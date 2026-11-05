@@ -15,8 +15,14 @@ import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import type { NearbyStore } from "../../../../shared/nearby";
 import type { Signal } from "../api/types";
 import { CellarBottleArtwork } from "../components/CellarBottleArtwork";
-import { signalRowReportSummary } from "../components/signal-row-presentation";
-import { signalFeedCardAppearance } from "../api/presentation";
+import {
+  signalRowReportTimestamp,
+  signalRowReportSummary,
+} from "../components/signal-row-presentation";
+import {
+  signalLastCheckedAt,
+  signalFeedCardAppearance,
+} from "../api/presentation";
 import { useReportClock } from "../hooks/useReportClock";
 import { appleStoreDirectionsUrl, storeMapUrl } from "../signals/nearby";
 import { colors as c, fonts } from "../theme";
@@ -99,7 +105,19 @@ export function StoreSheet({
 }) {
   const now = useReportClock();
   const store = stores.find((s) => s.id === selected);
-  const collapsed = (store ? 210 : 116) + bottom;
+  const freshest = store?.signals.reduce<Signal | undefined>(
+    (latest, signal) => {
+      const time = Date.parse(signalLastCheckedAt(signal) || "");
+      const previous = latest
+        ? Date.parse(signalLastCheckedAt(latest) || "")
+        : -Infinity;
+      return Number.isFinite(time) && time <= now.getTime() && time > previous
+        ? signal
+        : latest;
+    },
+    undefined,
+  );
+  const collapsed = (store ? 210 : 116) + bottom + (notice ? 52 : 0);
   const offset = useRef(new Animated.Value(height - collapsed)).current;
   const [directionsError, setDirectionsError] = useState("");
   useEffect(() => {
@@ -177,12 +195,17 @@ export function StoreSheet({
               onSelect(null);
               onExpand(true);
             }}
+            disabled={Boolean(store) && !expanded}
             style={s.headingTitle}
           >
-            {store && <Icon name="chevron-left" size={20} color={c.muted} />}
+            {store && expanded && (
+              <Icon name="chevron-left" size={20} color={c.muted} />
+            )}
             <Text style={s.headingText}>
               {store
-                ? "Nearby stores"
+                ? expanded
+                  ? "Nearby stores"
+                  : "Selected store"
                 : `${stores.length} nearby ${stores.length === 1 ? "store" : "stores"}`}
             </Text>
             {busy && <ActivityIndicator size="small" color={c.accent} />}
@@ -226,15 +249,10 @@ export function StoreSheet({
               </Text>
               <Text style={s.distance}>{distance(store)}</Text>
             </View>
-            <Text style={s.meta}>
+            <Text numberOfLines={1} style={s.meta}>
               {reports(store.signals.length)}
               {expanded ? ` · ${store.city}, ${store.state}` : ""}
             </Text>
-            {!expanded && store.signals[0] && (
-              <Text numberOfLines={1} style={s.meta}>
-                {signalRowReportSummary(store.signals[0], now).label}
-              </Text>
-            )}
             {!expanded && (
               <View style={s.thumbnails}>
                 <View style={s.thumbnailGroup} accessible={false}>
