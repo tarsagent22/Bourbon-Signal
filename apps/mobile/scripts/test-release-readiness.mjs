@@ -98,11 +98,13 @@ const resolvedNativeConfig = JSON.parse(configResult.stdout.slice(configStart, c
 const infoPlist = resolvedNativeConfig._internal?.modResults?.ios?.infoPlist || {};
 assert.equal(infoPlist.NSCameraUsageDescription, CAMERA_PERMISSION_MESSAGE);
 assert.equal(infoPlist.NSPhotoLibraryUsageDescription, PHOTO_LIBRARY_PERMISSION_MESSAGE);
+// Expo Location links CoreMotion even when the app never requests motion access.
+assert.equal(infoPlist.NSMotionUsageDescription, pluginOptions("expo-location").motionUsagePermission);
+assert.match(infoPlist.NSMotionUsageDescription, /does not request or collect your motion activity/);
 for (const forbiddenKey of [
   "NSMicrophoneUsageDescription",
   "NSLocationAlwaysAndWhenInUseUsageDescription",
   "NSLocationAlwaysUsageDescription",
-  "NSMotionUsageDescription",
 ]) assert.equal(forbiddenKey in infoPlist, false, `${forbiddenKey} must not be emitted`);
 assert.equal(infoPlist.UIBackgroundModes?.includes("location") || false, false, "iOS background location must stay disabled");
 

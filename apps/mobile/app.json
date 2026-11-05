@@ -90,7 +90,7 @@
           "isAndroidForegroundServiceEnabled": false,
           "locationAlwaysPermission": false,
           "locationAlwaysAndWhenInUsePermission": false,
-          "motionUsagePermission": false
+          "motionUsagePermission": "Bourbon Signal's location library includes motion support. Nearby uses foreground location to find bottle reports and does not request or collect your motion activity."
         }
       ]
     ],
