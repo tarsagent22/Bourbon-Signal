@@ -21,7 +21,7 @@ async function collect(fetchText,options={}){
   finally{await rm(cursorDir,{recursive:true,force:true});}
 }
 
-test('one captured Vons2111 transport failure can complete all521 premises without losing the original clock',async()=>{
+test('one captured Vons2111 transport failure can complete all568 premises without losing the original clock',async()=>{
   let attempts=0;
   const result=await collect(async url=>{
     const parsed=new URL(url);
@@ -30,8 +30,8 @@ test('one captured Vons2111 transport failure can complete all521 premises witho
     return success(url);
   });
   assert.equal(attempts,2);assert.equal(result.metadata.complete,true);
-  assert.equal(result.metadata.verifiedPremises.length,521);assert.equal(result.metadata.transientRetries,1);
-  assert.ok(result.metadata.requests.length<=1152);
+  assert.equal(result.metadata.verifiedPremises.length,568);assert.equal(result.metadata.transientRetries,1);
+  assert.ok(result.metadata.requests.length<=1262);
   const failed=result.metadata.requests.filter(request=>!request.ok);
   assert.equal(failed.length,1);assert.equal(failed[0].merchantId,'2111');
   for(const source of CALIFORNIA_GROCERY_SOURCES)for(const term of ['bourbon','whiskey'])assert.equal(result.metadata.requests.filter(request=>request.sourceId===source.id&&request.term===term&&request.ok).length,1);
@@ -41,7 +41,7 @@ test('one captured Vons2111 transport failure can complete all521 premises witho
 
 test('persistent transient errors stop after one retry per request and eight retries across the entire run',async()=>{
   const result=await collect(async()=>({ok:false,status:503,text:''}));
-  assert.equal(result.metadata.transientRetries,8);assert.equal(result.metadata.requests.length,102);
+  assert.equal(result.metadata.transientRetries,8);assert.equal(result.metadata.requests.length,118);
   assert.equal(result.metadata.complete,false);assert.deepEqual(result.signals,[]);
   const byUrl=new Map();for(const request of result.metadata.requests)byUrl.set(request.url,(byUrl.get(request.url)||0)+1);
   assert.ok([...byUrl.values()].every(count=>count<=2));
@@ -61,6 +61,6 @@ test('access denial on the retry persists immediately and is never retried again
 test('aborts, long Retry-After and successful malformed payloads do not enter a retry loop',async()=>{
   const controller=new AbortController();let calls=0;
   await assert.rejects(()=>collect(async()=>{calls++;controller.abort();return{ok:false,status:0,text:''};},{signal:controller.signal}),error=>error.name==='AbortError');assert.equal(calls,1);
-  const deferred=await collect(async()=>({ok:false,status:503,text:'',retryAfterSeconds:30}));assert.equal(deferred.metadata.transientRetries,0);assert.equal(deferred.metadata.requests.length,94);
-  const malformed=await collect(async()=>({ok:true,status:200,text:'not-json'}));assert.equal(malformed.metadata.transientRetries,0);assert.equal(malformed.metadata.requests.length,94);assert.equal(malformed.metadata.complete,false);
+  const deferred=await collect(async()=>({ok:false,status:503,text:'',retryAfterSeconds:30}));assert.equal(deferred.metadata.transientRetries,0);assert.equal(deferred.metadata.requests.length,110);
+  const malformed=await collect(async()=>({ok:true,status:200,text:'not-json'}));assert.equal(malformed.metadata.transientRetries,0);assert.equal(malformed.metadata.requests.length,110);assert.equal(malformed.metadata.complete,false);
 });

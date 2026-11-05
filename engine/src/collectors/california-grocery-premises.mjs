@@ -1,3 +1,4 @@
+import {ADDITIONAL_CALIFORNIA_GROCERY_SOURCES} from './additional-grocery-reviewed-premises.mjs';
 import {CALIFORNIA_REVIEWED_BREADTH_SOURCES} from './national-grocery-reviewed-premises.mjs';
 // Exact California first-party resolver and local-page captures reviewed 2026-10-30.
 export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
@@ -7363,4 +7364,5 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "resolverDomainName": "Vons"
   }
 ,...CALIFORNIA_REVIEWED_BREADTH_SOURCES
+,...ADDITIONAL_CALIFORNIA_GROCERY_SOURCES
 ].map(source=>Object.freeze(source)));

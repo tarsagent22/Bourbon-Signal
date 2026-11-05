@@ -23,7 +23,7 @@ const resolveStores=sources.map(row=>({locationId:row.merchantId,polarisBannerNa
 const empty=(id,term)=>({appCode:'GR204',response:{numFound:0,start:0,miscInfo:{query:term,
   filter:`(inventory(${id}, price) >0) AND (inventory(${id},attributes.custom_type_2) = 1)`}}});
 
-test('all 180 closed Illinois premises receive the core searches and bounded pagination without duplicate stock',async t=>{
+test('all 182 closed Illinois premises receive the core searches and bounded pagination without duplicate stock',async t=>{
   t.mock.timers.enable({apis:['Date'],now:Date.parse(fixture.capturedAt)+60000});
   const urls=[];let active=0,maximum=0;
   const result=await collectGroceryExpansion({id:'IL'},bible,{sleep:async()=>{},observedAt:fixture.capturedAt,
@@ -36,7 +36,7 @@ test('all 180 closed Illinois premises receive the core searches and bounded pag
     }});
   assert.equal(result.metadata.complete,true);
   assert.deepEqual(result.metadata.resolverEmptyZips,['62701']);
-  assert.equal(result.metadata.verifiedPremises.length,180);
+  assert.equal(result.metadata.verifiedPremises.length,182);
   assert.ok(maximum<=2);assert.ok(maximum>1);
   assert.ok(urls.length<=2700);
   assert.equal(result.signals.length,6);

@@ -150,9 +150,9 @@ export function selectArizonaXapiStores(input, { maxStores = ARIZONA_XAPI_DEFAUL
 // store and query positions in lockstep strands pairs whenever their sizes share
 // a factor (134 stores and 350 terms previously visited only half the pairs).
 export function arizonaXapiLibraryQueryAssignments(storeCount, { terms = [], poolSize, invocation, maximumStores = ARIZONA_XAPI_DEFAULT_STORES } = {}) {
-  // The shared assignment helper also serves California's reviewed521-store
+  // The shared assignment helper also serves California's reviewed568-store
   // cohort. Source admission and query budgets remain bounded by each caller.
-  if (!Number.isInteger(maximumStores) || maximumStores < 1 || maximumStores > 521
+  if (!Number.isInteger(maximumStores) || maximumStores < 1 || maximumStores > 568
     || !Number.isInteger(storeCount) || storeCount < 1 || storeCount > maximumStores
     || !Number.isSafeInteger(poolSize) || poolSize < terms.length || poolSize > Number.MAX_SAFE_INTEGER / storeCount
     || !Number.isSafeInteger(invocation) || invocation < 0
