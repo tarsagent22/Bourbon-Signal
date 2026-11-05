@@ -442,9 +442,7 @@ export default function Nearby() {
           onSelect={selectStore}
           onSearchArea={async (point) => {
             const id = ++placeSequence.current;
-            sequence.current++;
             touched.current = true;
-            setBusy(true);
             const resolved = await currentPlaceWithCity(
               point,
               Location.reverseGeocodeAsync,
