@@ -995,6 +995,34 @@
         "engine/out/bourbon-bible.json"
       ],
       "delivery": "github_only"
+    },
+    {
+      "id": "github-native-nearby",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/native-nearby.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "on Nearby map pull requests and manual workflow dispatch",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_actions"
+        ],
+        "maxRequestsPerRun": 0
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": [
+        "native-nearby-fixture"
+      ],
+      "delivery": "github_only"
     }
   ],
   "timezone": "America/New_York"
