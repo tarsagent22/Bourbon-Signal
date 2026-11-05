@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {nearbyStoreIndex,addNearbySignals} from '../src/lib/nearby.ts';
+import {nearbyVisible,parsePlace,placeLookupPath,storeMapUrl} from '../apps/mobile/src/signals/nearby.ts';
+import type {Signal} from '../apps/mobile/src/api/types.ts';
+import type {NearbyStore} from '../shared/nearby.ts';
+const raw={id:'1',name:'Store',address:'123 Main St',city:'Raleigh',state:'NC',lat:35.78,lng:-78.64,locationType:'store'};
+const signal={id:'signal1',location:{scope:'exact_store',store:{address:'123 Main Street',city:'Raleigh',state:'NC'}},bottle:{name:'Eagle Rare 10 Year'}} as Signal;
+test('only exact reports at confirmed coordinates become nearby results',()=>{const index=nearbyStoreIndex([raw]),found=new Map<string,NearbyStore>();assert.equal(found.size,0);assert.equal(addNearbySignals([signal,signal],index,{latitude:35.78,longitude:-78.64},10,found),0);assert.equal(found.size,1);assert.equal([...found.values()][0].signals.length,1);assert.equal([...found.values()][0].distance,0);});
+test('area reports and same address in another city cannot attach',()=>{const found=new Map<string,NearbyStore>();const area={...signal,location:{...signal.location,scope:'board'}} as Signal;const wrong={...signal,location:{...signal.location,store:{...signal.location.store,city:'Durham'}}} as Signal;assert.equal(addNearbySignals([area,wrong],nearbyStoreIndex([raw]),{latitude:35.78,longitude:-78.64},100,found),1);assert.equal(found.size,0);});
+test('placeholder coordinates and conflicting geocodes are excluded',()=>{assert.equal(nearbyStoreIndex([{...raw,lat:0,lng:0}]).size,0);assert.equal(nearbyStoreIndex([raw,{...raw,lat:36}]).size,0);});
+test('ZIP and city lookup encode user text and require state',()=>{assert.equal(placeLookupPath('27601'),'/us/27601');assert.equal(placeLookupPath('Raleigh, NC'),'/us/nc/raleigh');assert.equal(placeLookupPath('Chapel Hill','NC'),'/us/nc/chapel%20hill');assert.throws(()=>placeLookupPath('Raleigh'));});
+test('ZIP and city responses produce a finite center and readable label',()=>{assert.deepEqual(parsePlace({'place name':'Raleigh','state abbreviation':'NC',places:[{latitude:'35',longitude:'-78'},{latitude:'37',longitude:'-80'}]}),{latitude:36,longitude:-79,label:'Raleigh, NC'});assert.throws(()=>parsePlace({places:[{latitude:'bad',longitude:'-78'}]}));});
+test('radius and watchlist filters operate on existing results without source changes',()=>{const store={id:'1',distance:15,signals:[signal,{...signal,id:'s2',bottle:{name:'Other'}}]} as NearbyStore;assert.equal(nearbyVisible([store],10,false,[]).length,0);assert.equal(nearbyVisible([store],25,true,['eagle rare 10 year'])[0].signals.length,1);assert.equal(store.signals.length,2);assert.match(storeMapUrl({address:'1 Main & 2nd',city:'Raleigh',state:'NC'},true),/destination=1%20Main%20%26%202nd/);});

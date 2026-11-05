@@ -1,0 +1,36 @@
+import type { Signal } from "../apps/mobile/src/api/types";
+export type Point = { latitude: number; longitude: number };
+export type NearbyStore = Point & {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  distance: number;
+  signals: Signal[];
+};
+export type NearbyResult = {
+  stores: NearbyStore[];
+  partial: boolean;
+  unmapped: number;
+  previewLocked: boolean;
+};
+export function validPoint(p: Point) {
+  return (
+    Number.isFinite(p.latitude) &&
+    Number.isFinite(p.longitude) &&
+    Math.abs(p.latitude) <= 90 &&
+    Math.abs(p.longitude) <= 180
+  );
+}
+export function miles(a: Point, b: Point) {
+  const rad = Math.PI / 180;
+  const dlat = (b.latitude - a.latitude) * rad,
+    dlng = (b.longitude - a.longitude) * rad;
+  const h =
+    Math.sin(dlat / 2) ** 2 +
+    Math.cos(a.latitude * rad) *
+      Math.cos(b.latitude * rad) *
+      Math.sin(dlng / 2) ** 2;
+  return 3958.7613 * 2 * Math.asin(Math.sqrt(Math.min(1, Math.max(0, h))));
+}
