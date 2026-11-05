@@ -1,0 +1,87 @@
+name: Read-only national expansion acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Capture baseline before refresh, or verify delivered additions
+        required: true
+        type: choice
+        options: [baseline, verify]
+      expected_commit:
+        description: Exact current main commit (40 lowercase hex characters)
+        required: true
+        type: string
+      cohort:
+        required: true
+        type: choice
+        default: active-CA-NV-IL
+        options: [active-CA-NV, active-CA-NV-IL]
+      minimum_new_stores:
+        required: true
+        type: string
+        default: '100'
+      baseline_run_id:
+        description: Verify only - successful baseline run from this workflow and commit
+        required: false
+        type: string
+      refresh_run_id:
+        description: Verify only - successful subsequent production refresh run
+        required: false
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: read-only-engine-expansion-acceptance
+  cancel-in-progress: false
+jobs:
+  acceptance:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ACCEPTANCE_MODE: ${{ inputs.mode }}
+      ACCEPTANCE_EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+      ACCEPTANCE_COHORT: ${{ inputs.cohort }}
+      ACCEPTANCE_MINIMUM: ${{ inputs.minimum_new_stores }}
+      ACCEPTANCE_BASELINE_RUN: ${{ inputs.baseline_run_id }}
+      ACCEPTANCE_REFRESH_RUN: ${{ inputs.refresh_run_id }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+      BOURBON_SIGNAL_AUTO_DEPLOY: '0'
+      BOURBON_SIGNAL_ALERT_QUEUE_MODE: shadow
+      ALERT_DELIVERY_ENABLED: '0'
+      ALERT_ONSITE_DELIVERY_ENABLED: '0'
+      ALERT_EMAIL_DELIVERY_ENABLED: '0'
+      ALERT_SMS_DELIVERY_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install repository read-only verification dependencies
+        run: npm ci --ignore-scripts
+      - name: Verify immutable baseline or customer-visible delivery without publishing
+        run: node scripts/run-engine-expansion-acceptance.mjs
+      - name: Preserve successful immutable baseline
+        if: success() && inputs.mode == 'baseline'
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-expansion-baseline-${{ github.run_id }}
+          path: out/engine-expansion-acceptance/baseline/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Preserve verification evidence including unmet target
+        if: always() && inputs.mode == 'verify'
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-expansion-acceptance-${{ github.run_id }}
+          path: out/engine-expansion-acceptance/proof/
+          if-no-files-found: warn
+          retention-days: 30
