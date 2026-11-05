@@ -4,7 +4,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {reviewedActiveGroceryCohort,partitionCandidatePremises} from './engine-expansion-delivery-policy.mjs';
+import {reviewedActiveGroceryCohort,reviewedAdditionsWithinActiveCohort,partitionCandidatePremises} from './engine-expansion-delivery-policy.mjs';
 const arg=name=>process.argv.find(value=>value.startsWith('--'+name+'='))?.slice(name.length+3);
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=file=>readFile(file,'utf8').then(JSON.parse);
@@ -22,14 +22,17 @@ async function main(){
  const {isPublicDropFeedEligible,isCurrentInventoryEvidence,normalizePublicDropEvidenceInput,publicEvidenceAddressKey}=await module('src/lib/public-drop-evidence.ts');
  const {signEngineFeedVerification,ENGINE_FEED_VERIFICATION_HEADER}=await module('src/lib/engine-feed-verification.ts');
  const registry=await module('engine/src/collectors/national-grocery-reviewed-premises.mjs');
+ const additional=await module('engine/src/collectors/additional-grocery-reviewed-premises.mjs');
  const storage=new VercelBlobSnapshotStorage(),base='https://www.bourbonsignal.com';
  const keyFor=row=>{const r=normalizePublicDropEvidenceInput(row);return publicEvidenceAddressKey(r.state,r.storeAddress,r.city);};
  const cohort=arg('cohort')||'reviewed-additions';must(['reviewed-additions','active-CA-NV','active-CA-NV-IL'].includes(cohort),'Unreviewed cohort selection');
- const active=cohort.startsWith('active-');
- const ca=active?(await module('engine/src/collectors/california-grocery-premises.mjs')).CALIFORNIA_GROCERY_SOURCES:registry.CALIFORNIA_REVIEWED_BREADTH_SOURCES;
- const nv=active?(await module('engine/src/collectors/nevada-retailer-surfaces.mjs')).NEVADA_RETAILER_SOURCES.filter(source=>source.platform==='albertsons-xapi'&&source.inventoryEligible===true):registry.NEVADA_REVIEWED_BREADTH_SOURCES;
- const il=cohort==='active-CA-NV-IL'?(await module('engine/src/collectors/illinois-grocery-premises.mjs')).ILLINOIS_GROCERY_SOURCES:[];
- const expected=reviewedActiveGroceryCohort({california:ca,nevada:nv,illinois:il}),states=cohort==='active-CA-NV-IL'?['CA','NV','IL']:['CA','NV'];
+ const includeIllinois=cohort==='active-CA-NV-IL';
+ const ca=(await module('engine/src/collectors/california-grocery-premises.mjs')).CALIFORNIA_GROCERY_SOURCES;
+ const nv=(await module('engine/src/collectors/nevada-retailer-surfaces.mjs')).NEVADA_RETAILER_SOURCES.filter(source=>source.platform==='albertsons-xapi'&&source.inventoryEligible===true);
+ const il=includeIllinois?(await module('engine/src/collectors/illinois-grocery-premises.mjs')).ILLINOIS_GROCERY_SOURCES:[];
+ const active=reviewedActiveGroceryCohort({california:ca,nevada:nv,illinois:il});
+ const additions=reviewedActiveGroceryCohort({california:[...registry.CALIFORNIA_REVIEWED_BREADTH_SOURCES,...additional.ADDITIONAL_CALIFORNIA_GROCERY_SOURCES],nevada:registry.NEVADA_REVIEWED_BREADTH_SOURCES,illinois:includeIllinois?additional.ADDITIONAL_ILLINOIS_GROCERY_SOURCES:[]});
+ const expected=reviewedAdditionsWithinActiveCohort({active,additions}),states=includeIllinois?['CA','NV','IL']:['CA','NV'];
  must(expected.length&&new Set(expected.map(store=>keyFor({...store,storeAddress:store.address}))).size===expected.length,'Reviewed registry must contain distinct exact premises');
  const request=async(route,{body,customer=false,verification=false,allow503=false}={})=>{
   const url=new URL(route,base);url.searchParams.set('_bs_verify',`${Date.now()}-${randomBytes(6).toString('hex')}`);
@@ -109,7 +112,7 @@ async function main(){
   must(count.payload.total>=eligible.length,'Live canonical Feed count dropped published eligible inventory');stateCounts.push({state,liveFeedTotal:count.payload.total,eligiblePublishedRows:eligible.length,coverage:entry});
  }
  must((await storage.readPointer())?.active===snapshotId,'Active snapshot changed during acceptance; rerun against a stable publication');
- const result={stage:gained.length>=minimum?'production_delivery_verified':'production_delivery_target_not_met',verifiedAt:new Date().toISOString(),minimum,cohort,reviewedExpectedPremises:expected.length,productionNewStores:gained.length,productionNewListings:gained.reduce((sum,store)=>sum+store.rows,0),run,manifestHash,snapshotId,baselineSnapshotId:baseline.manifest.snapshotId,definition:'new relative to latest pre-release authoritative artifact, with fresh immutable inventory and live customer Feed/Coverage proof',feedProofMode:individualFeedProof?'individual_customer_store_filter_plus_canonical_counts':'immutable_default_feed_evidence_plus_signed_canonical_counts_and_live_shared_policy_coverage',health,stateCounts,gained,excluded};
+ const result={stage:gained.length>=minimum?'production_delivery_verified':'production_delivery_target_not_met',verifiedAt:new Date().toISOString(),minimum,cohort,reviewedExpectedPremises:expected.length,closedActiveCohortPremises:active.length,productionNewStores:gained.length,productionNewListings:gained.reduce((sum,store)=>sum+store.rows,0),run,manifestHash,snapshotId,baselineSnapshotId:baseline.manifest.snapshotId,definition:'explicit reviewed new engine additions only, absent from latest pre-release artifact, with fresh immutable inventory and live customer Feed/Coverage proof; restored preconfigured stores cannot count toward target',feedProofMode:individualFeedProof?'individual_customer_store_filter_plus_canonical_counts':'immutable_default_feed_evidence_plus_signed_canonical_counts_and_live_shared_policy_coverage',health,stateCounts,gained,excluded};
  await save(path.join(out,'post-refresh-capture.json'),capture);await save(path.join(out,'acceptance.json'),result);
  console.log(JSON.stringify({...result,gained:undefined,excluded:undefined,stateCounts:undefined}));must(gained.length>=minimum,`Only${gained.length} genuinely new customer-visible stores verified; minimum${minimum} not met`);
 }

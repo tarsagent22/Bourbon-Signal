@@ -29,3 +29,23 @@ export function partitionCandidatePremises(expected,{baselineRows,currentRows,pr
  }
  return{candidates,excluded};
 }
+
+// Active configuration is an admission boundary, not evidence of a new engine
+// addition. Only the explicit reviewed additions can contribute to the target.
+export function reviewedAdditionsWithinActiveCohort({active,additions}={}){
+ requireValue(Array.isArray(active)&&Array.isArray(additions)&&additions.length>0,'Explicit active and reviewed-addition cohorts required');
+ const fields=['state','storeId','sourceId','name','address','city','lat','lng'];
+ const bindings=new Map(),physical=new Set();
+ for(const store of active){
+  const key=store.state+'|'+store.storeId;
+  requireValue(!bindings.has(key),'Duplicate active store binding');bindings.set(key,store);
+ }
+ const selected=new Set();
+ for(const addition of additions){
+  const key=addition.state+'|'+addition.storeId,bound=bindings.get(key),premise=addressKey(addition);
+  requireValue(bound&&fields.every(field=>bound[field]===addition[field]),'Reviewed addition is not exactly bound to its closed active source');
+  requireValue(!selected.has(key)&&!physical.has(premise),'Duplicate reviewed addition binding or physical premise');
+  selected.add(key);physical.add(premise);
+ }
+ return additions;
+}
