@@ -312,6 +312,9 @@ export default function Nearby() {
   );
   const activeFilters = Boolean(tiers || fresh || watchOnly || query);
   const [selected, setSelected] = useState<string | null>(params.store || null);
+  useEffect(() => {
+    if (params.store) setSelected(params.store);
+  }, [params.store]);
   const [listMode, setListMode] = useState(false);
   const [sheetHeight, setSheetHeight] = useState(140);
   const selectedStore = stores.find((store) => store.id === selected);
