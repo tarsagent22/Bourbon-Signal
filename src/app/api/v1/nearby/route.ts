@@ -4,10 +4,10 @@ import {
 } from "@/lib/nearby-feed-scope";
 import { NextRequest, NextResponse } from "next/server";
 import { GET as feed } from "../signals/route";
-import { mergeStoreDirectoryPayloads } from "@/lib/store-directory";
 import {
   readSiteExportResults,
   readBundledSiteExport,
+  normalizeStoreForSite,
 } from "@/lib/site-engine-contract";
 import {
   nearbyStoreIndex,
@@ -41,9 +41,16 @@ export async function GET(request: NextRequest) {
     );
   try {
     const exports = await readSiteExportResults(["stores", "locations"]);
+    const directoryRows = (payloads: Array<Record<string, unknown> | null>) =>
+      payloads
+        .flatMap((payload) => [
+          ...(Array.isArray(payload?.locations) ? payload.locations : []),
+          ...(Array.isArray(payload?.stores) ? payload.stores : []),
+        ])
+        .map(normalizeStoreForSite);
     const byAddress = nearbyStoreIndex(
-      mergeStoreDirectoryPayloads([
-        ...exports.map((e) => e.payload),
+      directoryRows(exports.map((e) => e.payload)),
+      directoryRows([
         readBundledSiteExport("locations"),
         readBundledSiteExport("stores"),
       ]),

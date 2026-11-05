@@ -15,10 +15,17 @@ const reviewedByPremise = new Map(
     store,
   ]),
 );
-export function nearbyStoreIndex(raw: Record<string, unknown>[]) {
+export function nearbyStoreIndex(
+  raw: Record<string, unknown>[],
+  supplemental: Record<string, unknown>[] = [],
+) {
   const index = new Map<string, ReturnType<typeof normalizeMapStore>>(),
     conflicts = new Set<string>();
-  for (const row of raw) {
+  const priorityByKey = new Map<string, number>();
+  for (const { row, sourcePriority } of [
+    ...raw.map((row) => ({ row, sourcePriority: 2 })),
+    ...supplemental.map((row) => ({ row, sourcePriority: 1 })),
+  ]) {
     const original = normalizeMapStore(row);
     // These sources identify one physical destination even when their legacy
     // directory type says county_board. Keep broad board/warehouse rows excluded.
@@ -78,14 +85,23 @@ export function nearbyStoreIndex(raw: Record<string, unknown>[]) {
       city: s.city,
     });
     const previous = index.get(key);
-    if (
-      previous &&
-      miles(point, { latitude: previous.lat!, longitude: previous.lng! }) > 0.25
-    ) {
-      conflicts.add(key);
-      continue;
+    const priority = needsCoordinates && exactProof ? 0 : sourcePriority;
+    if (previous) {
+      if ((priorityByKey.get(key) ?? 0) < priority) {
+        // Current source positions win over bundled positions and address fallbacks.
+        conflicts.delete(key);
+      } else if ((priorityByKey.get(key) ?? 0) > priority) {
+        continue;
+      } else if (
+        miles(point, { latitude: previous.lat!, longitude: previous.lng! }) >
+        0.25
+      ) {
+        conflicts.add(key);
+        continue;
+      }
     }
     index.set(key, s);
+    priorityByKey.set(key, priority);
   }
   for (const key of conflicts) index.delete(key);
   return index;

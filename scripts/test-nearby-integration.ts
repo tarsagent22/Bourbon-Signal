@@ -136,3 +136,20 @@ test('GPS city context uses existing coordinates and a bounded reverse lookup',a
  assert.deepEqual(await currentPlaceWithCity(point,async()=>{throw Error('unavailable')}),{...point,label:'Current location'});
  assert.deepEqual(await currentPlaceWithCity(point,()=>new Promise(()=>{}),5),{...point,label:'Current location'});
 });
+
+test('current source coordinates win over address fallbacks across duplicate directory rows',()=>{
+ const base={id:'safeway:1534',name:'Safeway #1534',address:'90 S Val Vista Dr, Gilbert, AZ 85296',city:'Gilbert',state:'AZ'};
+ const fallback={...base,lat:0,lng:0};const current={...base,lat:33.5,lng:-111.8};
+ for(const rows of [[fallback,current],[current,fallback]]){
+  const values=[...nearbyStoreIndex(rows).values()];assert.equal(values.length,1);assert.equal(values[0].lat,33.5);
+ }
+ assert.equal(nearbyStoreIndex([current,{...current,lat:34},fallback]).size,0);
+});
+
+
+test('bundled directory positions cannot override current source coordinates',()=>{
+ const current={...raw,lat:35.78};const bundled={...raw,lat:36};
+ assert.equal([...nearbyStoreIndex([current],[bundled]).values()][0].lat,35.78);
+ assert.equal([...nearbyStoreIndex([{...current,lat:0,lng:0}],[bundled]).values()][0].lat,36);
+ assert.equal(nearbyStoreIndex([current,{...current,lat:35}],[bundled]).size,0);
+});
