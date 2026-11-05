@@ -23,3 +23,24 @@ test('secure locked plist parser handles Expo generated XML', () => {
   const xml = '\n<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict><key>ready</key><true/></dict></plist>';
   assert.equal(plist.parse(xml).ready, true);
 });
+
+test('generated iOS permissions retain metadata required by linked native SDKs', () => {
+  // A false expo-location motion option deletes the plist key, not CoreMotion.
+  // Apple rejected Build 27 despite the app never requesting motion activity.
+  const { execFileSync } = require('node:child_process');
+  const path = require('node:path');
+  const cli = path.join(path.dirname(require.resolve('expo/package.json')), 'bin/cli');
+  const config = JSON.parse(execFileSync(process.execPath,
+    [cli, 'config', '--type', 'introspect', '--json'],
+    { encoding: 'utf8', env: { ...process.env, EXPO_NO_DOTENV: '1' }, maxBuffer: 10 * 1024 * 1024 }));
+  const plist = config._internal.modResults.ios.infoPlist;
+  for (const key of ['NSMotionUsageDescription', 'NSLocationWhenInUseUsageDescription',
+    'NSCameraUsageDescription', 'NSPhotoLibraryUsageDescription']) {
+    assert.equal(typeof plist[key], 'string', `${key} must survive config plugins`);
+    assert.ok(plist[key].trim().length > 20, `${key} needs a meaningful description`);
+  }
+  assert.match(plist.NSMotionUsageDescription, /does not request or collect your motion activity/);
+  assert.equal(plist.NSLocationAlwaysUsageDescription, undefined);
+  assert.equal(plist.NSLocationAlwaysAndWhenInUseUsageDescription, undefined);
+  assert.ok(!(plist.UIBackgroundModes || []).includes('location'));
+});
