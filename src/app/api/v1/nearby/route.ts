@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         break;
       }
       const url = new URL("/api/v1/signals", request.url);
-      url.searchParams.set("limit", "100");
+      url.searchParams.set("limit", q.get("view") === "community" ? "100" : "9999");
       for (const key of [
         "view",
         "search",

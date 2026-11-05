@@ -40,3 +40,9 @@ export function filterNearbyFeedDrops<T extends Record<string, unknown>>(
     );
   });
 }
+
+// The map already bounded its scan to 10,000 rows. Read the geographically
+// narrowed retailer slice once instead of repeatedly rebuilding it per 100 rows.
+export function nearbyFeedPageLimit(ordinaryLimit: number) {
+  return scope.getStore() ? 10_000 : ordinaryLimit;
+}

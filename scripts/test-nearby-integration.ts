@@ -13,7 +13,7 @@ test('ZIP and city lookup encode user text and require state',()=>{assert.equal(
 test('ZIP and city responses produce a finite center and readable label',()=>{assert.deepEqual(parsePlace({'place name':'Raleigh','state abbreviation':'NC',places:[{latitude:'35',longitude:'-78'},{latitude:'37',longitude:'-80'}]}),{latitude:36,longitude:-79,label:'Raleigh, NC'});assert.throws(()=>parsePlace({places:[{latitude:'bad',longitude:'-78'}]}));});
 test('radius and watchlist filters operate on existing results without source changes',()=>{const store={id:'1',distance:15,signals:[signal,{...signal,id:'s2',bottle:{name:'Other'}}]} as NearbyStore;assert.equal(nearbyVisible([store],10,false,[]).length,0);assert.equal(nearbyVisible([store],25,true,['eagle rare 10 year'])[0].signals.length,1);assert.equal(store.signals.length,2);assert.match(storeMapUrl({address:'1 Main & 2nd',city:'Raleigh',state:'NC'},true),/destination=1%20Main%20%26%202nd/);});
 
-import { filterNearbyFeedDrops, withNearbyFeedScope } from '../src/lib/nearby-feed-scope.ts';
+import { filterNearbyFeedDrops, withNearbyFeedScope, nearbyFeedPageLimit } from '../src/lib/nearby-feed-scope.ts';
 import { writeSourceConsumptionTrace } from '../src/lib/source-consumption-trace.ts';
 test('geographic selection precedes pagination even with thousands of newer national reports', async () => {
  const local={id:'local',state:'NC',store_address:'123 Main Street',store_city:'Raleigh'};
@@ -41,4 +41,16 @@ test('feed consumption telemetry uses one database round trip with exact provide
  assert.equal(calls.length,1);const counts=JSON.parse(calls[0].params[0] as string);assert.equal(counts.length,100);assert.ok(counts.every((c:{row_count:number})=>c.row_count===10));
  await writeSourceConsumptionTrace(executor,[],'feed_read','','now');assert.equal(calls.length,1);
  await writeSourceConsumptionTrace(()=>({query:async()=>{throw Error('offline')}}),[{sourcePollId:'a'}],'feed_read','','now');
+});
+
+import { resolveDropLimit } from '../src/lib/drop-feed-policy.ts';
+test('larger internal map reads never raise ordinary API limits or free preview limits',()=>{
+ assert.equal(nearbyFeedPageLimit(100),100);
+ assert.equal(resolveDropLimit('9999',false,7),500);
+ withNearbyFeedScope(nearbyStoreIndex([raw]),{latitude:35.78,longitude:-78.64},25,()=>{
+  assert.equal(nearbyFeedPageLimit(100),10000);
+  assert.equal(resolveDropLimit('9999',false,7,nearbyFeedPageLimit(500)),9999);
+  assert.equal(resolveDropLimit('9999',true,7,nearbyFeedPageLimit(500)),7);
+ });
+ assert.equal(nearbyFeedPageLimit(100),100);
 });

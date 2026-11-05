@@ -18,9 +18,9 @@ function isInventorySignal(drop: Record<string, unknown>) {
     || type.includes("inventory_result");
 }
 
-export function resolveDropLimit(raw: string | null | undefined, isFreeAccess: boolean, previewLimit: number) {
+export function resolveDropLimit(raw: string | null | undefined, isFreeAccess: boolean, previewLimit: number, maximum = 500) {
   const parsed = Number(raw ?? "40") || 40;
-  const requested = Math.min(500, Math.max(0, parsed));
+  const requested = Math.min(maximum, Math.max(0, parsed));
   return isFreeAccess ? Math.min(requested, previewLimit) : requested;
 }
 

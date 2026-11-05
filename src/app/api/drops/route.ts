@@ -1,4 +1,4 @@
-import { filterNearbyFeedDrops } from "@/lib/nearby-feed-scope";
+import { filterNearbyFeedDrops, nearbyFeedPageLimit } from "@/lib/nearby-feed-scope";
 import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
 import { unstable_cache } from "next/cache";
 import { packPublicFeed, unpackPublicFeed } from "@/lib/public-feed-pack";
@@ -251,7 +251,7 @@ export async function GET(request: Request) {
   const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
   const requestedSignalId = String(url.searchParams.get("signalId") || "").slice(0, 240);
   // A Free detail lookup can resolve only a card from the same global preview.
-  const limit = isFreeAccess && requestedSignalId ? previewLimit : resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit);
+  const limit = isFreeAccess && requestedSignalId ? previewLimit : resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit, nearbyFeedPageLimit(500));
   const offset = isFreeAccess ? 0 : Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
   const requestedCursor = isFreeAccess ? null : url.searchParams.get("cursor");
   const requestedSignalSource = String(url.searchParams.get("signalSource") || "");
