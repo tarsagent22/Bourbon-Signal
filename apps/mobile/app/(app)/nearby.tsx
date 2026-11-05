@@ -17,7 +17,11 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { MapReportCard } from "../../src/nearby/MapReportCard";
 import {
   mapFeedRows,
@@ -570,7 +574,8 @@ export default function Nearby() {
                 color={c.accent}
               />
               <Text style={s.feedCountText}>
-                {unlocated.length} reports without pins
+                {unlocated.length}{" "}
+                {unlocated.length === 1 ? "report" : "reports"} without pins
               </Text>
             </Pressable>
           )}
@@ -768,43 +773,46 @@ export default function Nearby() {
         animationType="slide"
         onRequestClose={() => setUnlocatedOpen(false)}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: c.background,
-            paddingTop: insets.top + 16,
-          }}
-        >
-          <View style={[s.row, { paddingHorizontal: 20 }]}>
-            <Text style={[s.section, { flex: 1 }]}>Reports without pins</Text>
-            <Button label="Close" onPress={() => setUnlocatedOpen(false)} />
-          </View>
-          <Text
-            style={[s.copy, { paddingHorizontal: 20, paddingVertical: 12 }]}
-          >
-            Stores in the cities around your search. Distance and radius
-            inclusion are unverified until their map locations are available.
-          </Text>
-          <FlatList
-            data={unlocated}
-            keyExtractor={(signal) => signal.id}
-            initialNumToRender={5}
-            windowSize={5}
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              paddingBottom: insets.bottom + 20,
+        <SafeAreaProvider>
+          <SafeAreaView
+            edges={["top", "bottom"]}
+            style={{
+              flex: 1,
+              backgroundColor: c.background,
+              paddingTop: 16,
             }}
-            renderItem={({ item }) => (
-              <SignalCard
-                signal={item}
-                onPress={() => {
-                  setUnlocatedOpen(false);
-                  openReport(item.id);
-                }}
-              />
-            )}
-          />
-        </View>
+          >
+            <View style={[s.row, { paddingHorizontal: 20 }]}>
+              <Text style={[s.section, { flex: 1 }]}>Reports without pins</Text>
+              <Button label="Close" onPress={() => setUnlocatedOpen(false)} />
+            </View>
+            <Text
+              style={[s.copy, { paddingHorizontal: 20, paddingVertical: 12 }]}
+            >
+              Stores in the cities around your search. Distance and radius
+              inclusion are unverified until their map locations are available.
+            </Text>
+            <FlatList
+              data={unlocated}
+              keyExtractor={(signal) => signal.id}
+              initialNumToRender={5}
+              windowSize={5}
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingBottom: insets.bottom + 20,
+              }}
+              renderItem={({ item }) => (
+                <SignalCard
+                  signal={item}
+                  onPress={() => {
+                    setUnlocatedOpen(false);
+                    openReport(item.id);
+                  }}
+                />
+              )}
+            />
+          </SafeAreaView>
+        </SafeAreaProvider>
       </Modal>
       <Modal
         visible={placeSheet}
