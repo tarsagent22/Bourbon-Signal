@@ -23,6 +23,7 @@ jobs:
     env:
       CI: "1"
       EXPO_NO_TELEMETRY: "1"
+      KEEP_SIMULATOR_BOOTED: "1"
       EXPO_PUBLIC_API_URL: https://www.bourbonsignal.com
       EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NATIVE_SMOKE_CLERK_PUBLISHABLE_KEY }}
     steps:
@@ -74,7 +75,7 @@ jobs:
           assert '/scripts/native-nearby/fixture.ts' in sources
           assert '/src/hooks/useMobileApi.ts' not in sources
           assert '/app/(app)/nearby.tsx' in sources
-          assert any('expo-secure-store' in s for s in sources)
+          assert not any('expo-secure-store' in s for s in sources)
           assert any('react-native-maps' in s for s in sources)
           assert '/src/nearby/NearbyMap.ios.tsx' in sources
           assert any('react-navigation' in s for s in sources)

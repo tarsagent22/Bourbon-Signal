@@ -47,7 +47,8 @@ def main():
             shutil.copy2(report, evidence / report.name)
         (evidence / 'result.json').write_text(json.dumps({'device': device['name'], 'udid': udid, 'pid': pid, 'aliveAfter25Seconds': alive, 'launchExitCode': launched.returncode}, indent=2))
     finally:
-        run('xcrun', 'simctl', 'shutdown', udid, check=False)
+        if os.environ.get('KEEP_SIMULATOR_BOOTED') != '1':
+            run('xcrun', 'simctl', 'shutdown', udid, check=False)
     if not alive:
         raise RuntimeError('Native cold startup failed; inspect native-evidence logs')
     print('Native process survived cold startup; screenshot still requires UI inspection.')

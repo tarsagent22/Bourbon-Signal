@@ -146,11 +146,7 @@ const StoreCard = memo(function StoreCard({ store }: { store: NearbyStore }) {
       ) : null}
       <View style={s.row}>
         <View style={{ flex: 1 }}>
-          <Button
-            label="Directions"
-            selected
-            onPress={() => void open(true)}
-          />
+          <Button label="Directions" selected onPress={() => void open(true)} />
         </View>
       </View>
       {error ? (
@@ -317,6 +313,7 @@ export default function Nearby() {
   const activeFilters = Boolean(tiers || fresh || watchOnly || query);
   const [selected, setSelected] = useState<string | null>(params.store || null);
   const [listMode, setListMode] = useState(false);
+  const [sheetHeight, setSheetHeight] = useState(140);
   const selectedStore = stores.find((store) => store.id === selected);
   async function useCurrentLocation() {
     if (locating) return;
@@ -376,7 +373,7 @@ export default function Nearby() {
           setPlace({ ...point, label: "Map area" });
           setSelected(null);
         }}
-        bottomInset={selectedStore ? 300 : 100}
+        bottomInset={sheetHeight}
       />
       <View style={s.mapControls}>
         <View style={s.mapSearchRow}>
@@ -439,7 +436,12 @@ export default function Nearby() {
           <Button label={`${radius} mi`} onPress={() => setFilters(true)} />
         </View>
       </View>
-      <View style={[s.mapBottom, selectedStore && { maxHeight: "45%" }]}>
+      <View
+        onLayout={(event) =>
+          setSheetHeight(Math.ceil(event.nativeEvent.layout.height))
+        }
+        style={[s.mapBottom, selectedStore && { maxHeight: "45%" }]}
+      >
         {selectedStore ? (
           <>
             <View style={s.sheetHeading}>

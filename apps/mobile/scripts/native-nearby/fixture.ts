@@ -44,3 +44,12 @@ const api = {
   }),
 };
 export const useMobileApi = () => api;
+
+export async function getItemAsync() {
+  return JSON.stringify({
+    latitude: 33.3528,
+    longitude: -111.789,
+    label: "Gilbert, AZ",
+  });
+}
+export async function setItemAsync() {}

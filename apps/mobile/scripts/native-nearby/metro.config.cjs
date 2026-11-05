@@ -2,11 +2,14 @@ const path = require("node:path");
 const { getDefaultConfig } = require("expo/metro-config");
 const root = path.resolve(__dirname, "../..");
 const config = getDefaultConfig(root);
-config.watchFolders = [...config.watchFolders, path.resolve(root, "../../shared")];
+config.watchFolders = [
+  ...config.watchFolders,
+  path.resolve(root, "../../shared"),
+];
 const fixture = path.join(__dirname, "fixture.ts");
 const target = path.join(root, "src/hooks/useMobileApi.ts");
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (moduleName === "@clerk/expo")
+  if (moduleName === "@clerk/expo" || moduleName === "expo-secure-store")
     return { type: "sourceFile", filePath: fixture };
   const result = context.resolveRequest(context, moduleName, platform);
   if (
