@@ -5,7 +5,7 @@ import { buildDropFeedAreaRequest } from '../src/lib/feed-area-options.ts';
 import { CALIFORNIA_GROCERY_SOURCES } from '../engine/src/collectors/california-grocery-premises.mjs';
 
 assert.deepEqual(SUPPORTED_CALIFORNIA_AREAS, [...new Set(CALIFORNIA_GROCERY_SOURCES.map(source=>source.city))].sort());
-assert.equal(SUPPORTED_CALIFORNIA_AREAS.length, 238);
+assert.equal(SUPPORTED_CALIFORNIA_AREAS.length, 314);
 assert.deepEqual(normalizeCaliforniaAreas(['San Diego', 'Los Angeles', 'san diego']), ['Los Angeles', 'San Diego']);
 assert.equal(californiaAreaMatchesFields(['San Diego'], ['San Diego']), true);
 assert.equal(californiaAreaMatchesFields(['6090 Friars Road, San Diego, CA 92108'], ['San Diego']), true);

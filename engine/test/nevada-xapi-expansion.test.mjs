@@ -43,9 +43,9 @@ test('Nevada XAPI inventory rejects cross-store, unavailable, shipping-only, zer
   assert.equal(parse([{...product,channelInventory:{instore:'1',instoreItemQty:100}}])[0].inventorySemantics,'binary_retailer_orderable_no_exact_count');
 });
 
-test('33 added premises require current exact first-party address, banner, state, and merchant', async () => {
+test('45 added premises require current exact first-party address, banner, state, and merchant', async () => {
   const baseline=new Set(['albertsons:662','vons:2511','safeway:1210']);
-  assert.equal(NEVADA_RETAILER_SOURCES.filter(s=>s.platform==='albertsons-xapi'&&!baseline.has(s.store.id)).length,33);
+  assert.equal(NEVADA_RETAILER_SOURCES.filter(s=>s.platform==='albertsons-xapi'&&!baseline.has(s.store.id)).length,45);
   assert.ok(nevadaXapiPremiseMatches(fixture.source,fixture.store));
   for (const mutation of [{locationId:'662'},{domainName:'Safeway'},{polarisBannerName:'safeway'},
     {address:{...fixture.store.address,state:'CA'}},{address:{...fixture.store.address,line1:'999 Different Road'}}]) {
@@ -67,8 +67,8 @@ test('direct legacy matches also require exact XAPI product, UPC, strength, pack
     {name:product.name.replace('750 Ml','99 Proof - 750 Ml')}])assert.deepEqual(parse([{...product,...mutation}]),[]);
 });
 
-test('all36 Nevada grocery premises preserve independently matched first-party point coordinates',()=>{
+test('all48 Nevada grocery premises preserve independently matched first-party point coordinates',()=>{
   const grocery=NEVADA_RETAILER_SOURCES.filter(s=>s.platform==='albertsons-xapi');
-  assert.equal(grocery.length,36);
+  assert.equal(grocery.length,48);
   assert.ok(grocery.every(s=>s.store.lat>35&&s.store.lat<43&&s.store.lng< -113&&s.store.lng> -121));
 });

@@ -10,8 +10,8 @@ const DROP_TIERS = new Set(['limited','allocated','highly_allocated','unicorn'])
 export const GROCERY_EXPANSION_REQUEST_LIMIT = 127;
 export const CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT = 8;
 export const ILLINOIS_GROCERY_TRANSIENT_RETRY_LIMIT = 8;
-export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({IL:2700,WA:127,CA:914+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,NM:43});
-const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({IL:180,WA:58,CA:433,NM:16});
+export const GROCERY_EXPANSION_REQUEST_LIMITS = Object.freeze({IL:2700,WA:127,CA:1254+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,NM:43});
+const GROCERY_EXPANSION_STORE_LIMITS = Object.freeze({IL:182,WA:58,CA:568,NM:16});
 export const ILLINOIS_GROCERY_PRIORITY_TERMS=Object.freeze(['weller','eagle rare','e.h. taylor',"blanton's",'stagg',"michter's","booker's",'old fitzgerald']);
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
@@ -101,7 +101,10 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
   const retryLimit=config.id==='CA'?CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT:config.id==='IL'?ILLINOIS_GROCERY_TRANSIENT_RETRY_LIMIT:0;
   let transientRetries=0;
   const deep=config.id==='IL';
-  const gate=deep?pacedRequestGate({intervalMs:500,sleep,signal}):null;
+  // California's reviewed breadth uses the same two-worker limit and single
+  // request-start gate as Illinois. More premises do not increase the start rate.
+  const concurrent=deep||config.id==='CA';
+  const gate=concurrent?pacedRequestGate({intervalMs:500,sleep,signal}):null;
   for(const[key,value]of Object.entries(attempts))if(key.startsWith('host:')&&Date.parse(value.nextAllowedAt)>nowMs)blockedHosts.add(key.slice(5));
   const attemptRequest=async(url,kind,source=null,term=null)=>{
     signal?.throwIfAborted();const host=new URL(url).hostname;
@@ -181,8 +184,8 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     }
     if(!sourceComplete)complete=false;
     sourceAttempts[source.id]={lastAttemptAt:observedAt,status:sourceComplete?'success':'incomplete',inspected:true,positiveRows:seen.size};
-  },deep?2:1);
+  },concurrent?2:1);
   return {signals,roadblocks,metadata:{complete,sourceAttempts,requests,selectedStores:sources.map(source=>source.storeId),
     verifiedPremises:eligible.map(source=>source.storeId),resolverEmptyZips,resolverFailures,positiveStores:[...new Set(signals.map(row=>row.storeId))],
-    maxRequestCount:requestLimit,storeConcurrency:deep?2:1,broadPageLimit:deep?3:1,priorityTerms:deep?ILLINOIS_GROCERY_PRIORITY_TERMS:[],exhaustiveRetrievalVerified:false,transientRetries,maxTransientRetries:retryLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
+    maxRequestCount:requestLimit,storeConcurrency:concurrent?2:1,broadPageLimit:deep?3:1,priorityTerms:deep?ILLINOIS_GROCERY_PRIORITY_TERMS:[],exhaustiveRetrievalVerified:false,transientRetries,maxTransientRetries:retryLimit,librarySearchPlan:plan,observation:'live_local_preflight_not_production_activation'}};
 }

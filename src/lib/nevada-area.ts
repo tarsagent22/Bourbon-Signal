@@ -1,4 +1,4 @@
-export const SUPPORTED_NEVADA_AREAS = ["Las Vegas Valley", "Reno–Sparks"] as const;
+export const SUPPORTED_NEVADA_AREAS = ["Las Vegas Valley", "Reno–Sparks", "Boulder City", "Elko", "Fallon", "Hawthorne"] as const;
 export type NevadaArea = (typeof SUPPORTED_NEVADA_AREAS)[number];
 
 const CANONICAL_BY_TOKEN = new Map<string, NevadaArea>([
@@ -6,6 +6,10 @@ const CANONICAL_BY_TOKEN = new Map<string, NevadaArea>([
   ["las vegas", "Las Vegas Valley"],
   ["reno sparks", "Reno–Sparks"],
   ["reno-sparks", "Reno–Sparks"],
+  ["boulder city", "Boulder City"],
+  ["elko", "Elko"],
+  ["fallon", "Fallon"],
+  ["hawthorne", "Hawthorne"],
 ]);
 
 function normalize(value: string): string {
@@ -44,7 +48,11 @@ function fieldMatchesArea(field: string, area: NevadaArea): boolean {
   const token = normalize(field);
   if (!token) return false;
   if (area === "Las Vegas Valley") return /\b(?:las vegas|north las vegas|henderson|summerlin|enterprise|paradise|spring valley)\b/.test(token);
-  return /\b(?:reno|sparks)\b/.test(token);
+  if (area === "Reno–Sparks") return /\b(?:reno|sparks)\b/.test(token);
+  const city = normalize(area);
+  if (token === city) return true;
+  const locality = normalize(field.replace(/,?\s+(?:USA|United States(?: of America)?)\.?\s*$/i, "").split(",").slice(-2).join(" "));
+  return new RegExp(`^${city} (?:nv|nevada)(?: \\d{5}(?: \\d{4})?)?$`).test(locality);
 }
 
 export function nevadaAreaMatchesFields(fields: readonly unknown[], selectedAreas: readonly string[]): boolean {

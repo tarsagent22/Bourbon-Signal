@@ -39,7 +39,7 @@ const {normalizeDropForSite,normalizeStoreForSite}=interop(contractModule);
 // the public projection and authored routes. They do not establish live coverage.
 const fixture=JSON.parse(readFileSync('engine/test/fixtures/illinois-grocery/identity.json','utf8'));
 const bible=new BourbonBible(fixture.records),observedAt=new Date().toISOString();
-const sources=['Chicago','Naperville','Bloomington','Normal','Dekalb','Addison'].map(city=>ILLINOIS_GROCERY_SOURCES.find(source=>source.city===city)!);
+const sources=['Chicago','Naperville','Bloomington','Normal','Dekalb','Addison','Diamond','Bourbonnais'].map(city=>ILLINOIS_GROCERY_SOURCES.find(source=>source.city===city)!);
 const raw=sources.flatMap(source=>{
   const products=structuredClone(fixture.products);
   for(const product of products)product.storeId=source.merchantId;
@@ -84,7 +84,9 @@ const locationsRoute=loadWithMocks('src/app/api/locations/route.ts',{
     siteExportHeaders:()=>({}),listStates:()=>['IL'],normalizeStoreForSite,normalizeDropForSite},
 });
 const areaDirectory=buildSignalFeedAreaDirectory();
-assert.equal(areaOptionsForState(areaDirectory,'IL').length,126);
+assert.equal(areaOptionsForState(areaDirectory,'IL').length,128);
+const previousIllinoisCities=JSON.parse(readFileSync('src/config/state-lifecycle.json','utf8')).states.IL.areaOptions;
+for(const city of previousIllinoisCities)assert.ok(areaOptionsForState(areaDirectory,'IL').some(option=>option.value===city));
 assert.equal(prepareMobileOnboarding({displayName:'Illinois Hunter',age21Affirmed:true,homeState:'IL'}).publicMetadata.memberProfile.homeState,'IL');
 
 for(const source of sources){
@@ -120,4 +122,4 @@ for(const source of sources){
     }
   }
 }
-console.log('Six Illinois cities pass the real Feed/drop routes, mobile filters, city monitoring scopes, alert labels, welcome preview, store directory and nearby map; all 180 reviewed premises remain selectable. Synthetic route replay is not live coverage proof.');
+console.log('Eight Illinois cities pass the real Feed/drop routes, mobile filters, city monitoring scopes, alert labels, welcome preview, store directory and nearby map; all 182 reviewed premises remain selectable. Synthetic route replay is not live coverage proof.');

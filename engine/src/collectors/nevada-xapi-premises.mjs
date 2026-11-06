@@ -1,3 +1,4 @@
+import {NEVADA_REVIEWED_BREADTH_SOURCES} from './national-grocery-reviewed-premises.mjs';
 // Exact first-party resolver premises and local-page coordinates captured 2026-10-28.
 // Every run revalidates exact banner/store/address against the public resolver.
 export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
@@ -760,4 +761,5 @@ export const NEVADA_XAPI_ADDITIONAL_SOURCES = Object.freeze([
       "lng": -119.9436806558197
     }
   }
+,...NEVADA_REVIEWED_BREADTH_SOURCES
 ].map(source => Object.freeze({...source,store:Object.freeze(source.store)})));

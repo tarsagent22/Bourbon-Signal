@@ -4,6 +4,9 @@ import { canonicalNcAbcBoardPreference, NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferen
 import { locationLabelsMatch, locationMatchKeys, normalizeLocationText } from "./location-normalization.ts";
 import { geographyState, listMonitoringStates } from "./geography-directory.ts";
 import { ncBoardLocality } from "./nc-board-localities.ts";
+import { SUPPORTED_CALIFORNIA_AREAS } from "./california-area.ts";
+import { SUPPORTED_ILLINOIS_AREAS } from "./illinois-area.ts";
+import { SUPPORTED_NEVADA_AREAS } from "./nevada-area.ts";
 
 type AreaState = { areaOptions?: readonly string[]; customerLabel?: string };
 type AreaConfig = { activeStates: readonly string[]; states: Record<string, AreaState> };
@@ -27,6 +30,9 @@ export function formatNcAbcAreaMenuLabel(label: string) {
 export function getCoveredAreaOptionsForState(state?: string | null) {
   const stateCode = String(state || "").trim().toUpperCase();
   if (!stateCode) return [];
+  if (stateCode === "CA") return [...SUPPORTED_CALIFORNIA_AREAS];
+  if (stateCode === "IL") return [...SUPPORTED_ILLINOIS_AREAS];
+  if (stateCode === "NV") return [...SUPPORTED_NEVADA_AREAS];
   const states = STATE_LIFECYCLE_CONFIG.states as Record<string, AreaState>;
   const configured = states[stateCode]?.areaOptions ? [...states[stateCode].areaOptions] : [];
   return stateCode === "NC"
