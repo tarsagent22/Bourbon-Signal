@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {pacedRequestGate,forEachStoreBounded} from './paced-store-workers.mjs';
 import { arizonaXapiLibraryQueryAssignments } from './arizona-xapi.mjs';
 import { stableId } from '../core/text.mjs';
@@ -129,18 +130,42 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
       await persistAttempts(structuredClone(sourceAttempts));
     }
     if(!response.ok && response.status!==206)roadblocks.push({state:config.id,source:source?.sourceLabel || 'Grocery store resolver',url,status:response.status||0,error:response.error || `HTTP ${response.status}`});
-    return response;
+    return {response,receipt};
+  };
+  const assessCaliforniaShape=(attempt,url,kind,source,term)=>{
+    if(config.id!=='CA'||!attempt)return false;
+    const {response,receipt}=attempt;
+    signal?.throwIfAborted();
+    if((!response.ok&&response.status!==206)||[401,403,429,435].includes(Number(response.status)))return false;
+    receipt.httpOk=response.ok===true;
+    let payload,reason=null;
+    try{payload=JSON.parse(response.text);}catch{reason='invalid_json';}
+    if(!reason&&kind==='resolver'&&!Array.isArray(payload?.instore?.stores)
+      &&!isGroceryExpansionEmptyResolver(payload,config.id,new URL(url).searchParams.get('zipcode')))reason='invalid_instore_channel_shape';
+    if(!reason&&kind==='inventory'&&!Array.isArray(payload?.response?.docs)
+      &&!isGroceryExpansionEmptySearch(payload,source,term,{start:Number(new URL(url).searchParams.get('start'))}))reason='invalid_inventory_response_shape';
+    receipt.semanticValidation=reason?'invalid':'valid';
+    if(reason){
+      const bytes=Buffer.from(response.text||'');
+      Object.assign(receipt,{ok:false,semanticFailure:reason,responseBytes:bytes.length,responseSha256:createHash('sha256').update(bytes).digest('hex')});
+    }
+    return Boolean(reason);
   };
   const request=async(url,kind,source=null,term=null)=>{
-    const first=await attemptRequest(url,kind,source,term);
-    // One retry for a transient transport/server failure, with a shared cap.
-    // Denials, rate limits, schema failures and aborted runs never retry.
-    if(!first || first.ok || ![0,408,500,502,503,504].includes(Number(first.status))
+    const firstAttempt=await attemptRequest(url,kind,source,term),first=firstAttempt?.response||null;
+    const semanticFailure=assessCaliforniaShape(firstAttempt,url,kind,source,term);
+    // One total retry for transport OR CA semantic shape failure. Both share
+    // the existing eight-retry allowance, request ceiling and pacing gate.
+    // Unknown second shapes, denied hosts and aborted runs remain failures.
+    if(!first || [401,403,429,435].includes(Number(first.status))
+      ||!semanticFailure&&(first.ok||![0,408,500,502,503,504].includes(Number(first.status)))
       || transientRetries>=retryLimit || Number(first.retryAfterSeconds)>2)return first;
     signal?.throwIfAborted();
     transientRetries++;
     await sleep(Math.max(1000,(Number(first.retryAfterSeconds)||0)*1000));
-    return attemptRequest(url,kind,source,term);
+    const secondAttempt=await attemptRequest(url,kind,source,term);
+    assessCaliforniaShape(secondAttempt,url,kind,source,term);
+    return secondAttempt?.response||null;
   };
   const resolver=new Map(),conflicts=new Set(),resolverEmptyZips=[],resolverFailures=[];let resolverComplete=true;
   for(const zip of WESTERN_GROCERY_RESOLVER_ZIPS[config.id] || []){

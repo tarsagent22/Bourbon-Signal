@@ -58,9 +58,9 @@ test('access denial on the retry persists immediately and is never retried again
   }
 });
 
-test('aborts, long Retry-After and successful malformed payloads do not enter a retry loop',async()=>{
+test('aborts, long Retry-After and persistent malformed bodies remain bounded',async()=>{
   const controller=new AbortController();let calls=0;
   await assert.rejects(()=>collect(async()=>{calls++;controller.abort();return{ok:false,status:0,text:''};},{signal:controller.signal}),error=>error.name==='AbortError');assert.equal(calls,1);
   const deferred=await collect(async()=>({ok:false,status:503,text:'',retryAfterSeconds:30}));assert.equal(deferred.metadata.transientRetries,0);assert.equal(deferred.metadata.requests.length,110);
-  const malformed=await collect(async()=>({ok:true,status:200,text:'not-json'}));assert.equal(malformed.metadata.transientRetries,0);assert.equal(malformed.metadata.requests.length,110);assert.equal(malformed.metadata.complete,false);
+  const malformed=await collect(async()=>({ok:true,status:200,text:'not-json'}));assert.equal(malformed.metadata.transientRetries,8);assert.equal(malformed.metadata.requests.length,118);assert.equal(malformed.metadata.complete,false);
 });
