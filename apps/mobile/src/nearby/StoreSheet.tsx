@@ -77,10 +77,9 @@ const BottleRow = memo(function BottleRow({
             ? `${signal.shipment.quantity != null ? `${signal.shipment.quantity} ${signal.shipment.unit} shipped · ` : ""}${signal.shipment.reportedAt ? new Date(signal.shipment.reportedAt).toLocaleDateString() : "Date unreported"}`
             : signalRowReportSummary(signal, now).label}
         </Text>
-        {signal.shipment && (
-          <Text style={s.meta}>Receiving stores unconfirmed</Text>
+        {facts.showStatus && (!signal.shipment || signal.historical) && (
+          <Text style={s.meta}>{facts.status}</Text>
         )}
-        {facts.showStatus && <Text style={s.meta}>{facts.status}</Text>}
       </View>
       <Icon name="chevron-right" size={20} color={c.muted} />
     </Pressable>
@@ -121,6 +120,8 @@ export function StoreSheet({
 }) {
   const now = useReportClock();
   const store = stores.find((s) => s.id === selected);
+  const boardCount = stores.filter((s) => s.kind === "board").length;
+  const storeCount = stores.length - boardCount;
   const freshest = store?.signals.reduce<Signal | undefined>(
     (latest, signal) => {
       const time = Date.parse(signalLastCheckedAt(signal) || "");
@@ -230,7 +231,7 @@ export function StoreSheet({
                   : store.kind === "board"
                     ? "Board shipments"
                     : "Selected store"
-                : `${stores.filter((s) => s.kind !== "board").length} stores${stores.some((s) => s.kind === "board") ? ` · ${stores.filter((s) => s.kind === "board").length} boards` : " nearby"}`}
+                : `${storeCount} ${storeCount === 1 ? "store" : "stores"}${boardCount ? ` · ${boardCount} ${boardCount === 1 ? "board" : "boards"}` : " nearby"}`}
             </Text>
             {busy && <ActivityIndicator size="small" color={c.accent} />}
           </Pressable>
@@ -279,7 +280,7 @@ export function StoreSheet({
               {reports(store.signals.length)}
               {expanded
                 ? store.kind === "board"
-                  ? " · Board-level reports"
+                  ? ""
                   : ` · ${store.city}, ${store.state}`
                 : freshest
                   ? ` · ${signalRowReportTimestamp(freshest, now)}`

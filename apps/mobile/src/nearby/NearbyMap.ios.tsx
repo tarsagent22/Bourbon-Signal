@@ -138,6 +138,7 @@ export default function NearbyMap({
           <Marker
             key={`${group.id}:${group.stores.length}:${group.stores.some((s) => s.id === selected)}:${iconsReady}`}
             coordinate={group}
+            zIndex={group.stores.some((store) => store.id === selected) ? 20 : 1}
             tracksViewChanges={!iconsReady}
             accessibilityLabel={
               group.stores.length > 1

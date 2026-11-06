@@ -288,6 +288,7 @@ export default function Nearby() {
     (error || result?.partial ? 52 : 0);
   const selectStore = useCallback((id: string) => {
     Keyboard.dismiss();
+    setShowMembers(false);
     setSelected(id);
     setExpanded(false);
   }, []);
