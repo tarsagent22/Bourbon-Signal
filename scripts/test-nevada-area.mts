@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { nevadaAreaMatchesFields, normalizeNevadaAreas, parseNevadaAreaQuery, SUPPORTED_NEVADA_AREAS } from '../src/lib/nevada-area.ts';
+import { getCoveredAreaOptionsForState } from '../src/lib/feed-area-options.ts';
 
-assert.deepEqual(SUPPORTED_NEVADA_AREAS, ['Las Vegas Valley', 'Reno–Sparks']);
+assert.deepEqual(SUPPORTED_NEVADA_AREAS, ['Las Vegas Valley', 'Reno–Sparks', 'Boulder City', 'Elko', 'Fallon', 'Hawthorne']);
+assert.deepEqual(getCoveredAreaOptionsForState('NV'), [...SUPPORTED_NEVADA_AREAS]);
 assert.deepEqual(normalizeNevadaAreas(['Las Vegas Valley', 'Reno-Sparks', 'Reno–Sparks', 'Carson City']), ['Las Vegas Valley', 'Reno–Sparks']);
 assert.equal(nevadaAreaMatchesFields(['Las Vegas'], ['Las Vegas Valley']), true);
 assert.equal(nevadaAreaMatchesFields(['North Las Vegas, NV'], ['Las Vegas Valley']), true);
@@ -17,9 +19,16 @@ assert.deepEqual(parseNevadaAreaQuery(null), { requested: false, valid: true, ar
 assert.deepEqual(parseNevadaAreaQuery('Las Vegas Valley'), { requested: true, valid: true, areas: ['Las Vegas Valley'] });
 assert.deepEqual(parseNevadaAreaQuery('Reno-Sparks'), { requested: true, valid: true, areas: ['Reno–Sparks'] });
 assert.deepEqual(parseNevadaAreaQuery('Carson City'), { requested: true, valid: false, areas: [] });
+for (const city of ['Boulder City', 'Elko', 'Fallon', 'Hawthorne']) {
+  assert.deepEqual(parseNevadaAreaQuery(city), { requested: true, valid: true, areas: [city] });
+  assert.equal(nevadaAreaMatchesFields([`1 Main St, ${city}, NV 89000`], [city]), true);
+  assert.equal(nevadaAreaMatchesFields([`North ${city}, NV 89000`], [city]), false);
+  assert.equal(nevadaAreaMatchesFields([`${city} County`], [city]), false);
+  assert.equal(nevadaAreaMatchesFields([`${city}, CA 89000`], [city]), false);
+}
 
 const sourceContracts = [
-  ['src/components/sections/DropFeed.tsx', ['feedStateParam === "NV"', 'nevadaAreaMatchesFields(areaLabelsForDrop(drop), [wanted])']],
+  ['src/components/sections/DropFeed.tsx', ['drop.state === "NV"', 'nevadaAreaMatchesFields(areaLabelsForDrop(drop), [wanted])']],
   ['src/app/dashboard/page.tsx', ['nevadaAreaMatchesFields([', 'areaPrefs.nvAreas']],
   ['src/app/api/drops/route.ts', ['parseNevadaAreaQuery', 'nevadaAreaMatchesFields']],
   ['src/app/api/stores/route.ts', ['parseNevadaAreaQuery', 'nevadaAreaMatchesFields']],

@@ -39,7 +39,7 @@ const {normalizeDropForSite,normalizeStoreForSite}=interop(contractModule);
 // the public projection and authored routes. They do not establish live coverage.
 const fixture=JSON.parse(readFileSync('engine/test/fixtures/california-grocery-expansion/identity.json','utf8'));
 const bible=new BourbonBible(fixture.records),observedAt=new Date().toISOString();
-const sources=['Los Angeles','San Francisco','Sacramento','Fresno','Eureka','Redding'].map(city=>CALIFORNIA_GROCERY_SOURCES.find(source=>source.city===city)!);
+const sources=['Los Angeles','San Francisco','Sacramento','Fresno','Eureka','Redding','Lakeport','South San Francisco','Bishop'].map(city=>CALIFORNIA_GROCERY_SOURCES.find(source=>source.city===city)!);
 const raw=sources.flatMap(source=>{
   const products=structuredClone(fixture.products);
   for(const product of products)product.storeId=source.merchantId;
@@ -84,7 +84,7 @@ const locationsRoute=loadWithMocks('src/app/api/locations/route.ts',{
     siteExportHeaders:()=>({}),listStates:()=>['CA'],normalizeStoreForSite,normalizeDropForSite},
 });
 const areaDirectory=buildSignalFeedAreaDirectory();
-assert.equal(areaOptionsForState(areaDirectory,'CA').length,238);
+assert.equal(areaOptionsForState(areaDirectory,'CA').length,314);
 assert.equal(prepareMobileOnboarding({displayName:'California Hunter',age21Affirmed:true,homeState:'CA'}).publicMetadata.memberProfile.homeState,'CA');
 
 for(const source of sources){
@@ -124,4 +124,4 @@ for(const source of sources){
   }
 }
 assert.equal((await storesRoute.GET(new Request('https://example.test/api/stores?state=CA&area=ImaginaryBay'))).status,400);
-console.log('Six prior and expanded California cities pass source projection, onboarding, mobile Feed, real API routes, Radar scopes, alert labels, welcome preview and nearby ranking; all433 reviewed premises selectable, unknown/closed rows rejected.');
+console.log('Prior and expanded California cities pass source projection, onboarding, mobile Feed, real API routes, Radar scopes, alert labels, welcome preview and nearby ranking; all568 reviewed premises selectable, unknown/closed rows rejected.');
