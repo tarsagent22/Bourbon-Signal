@@ -17,6 +17,7 @@ import {
 
 import { validPoint, type NearbyStore } from "../../../../../shared/nearby";
 import type { SignalFeedPage } from "../../../../../apps/mobile/src/api/types";
+import { nearbyBoards, addBoardSignals } from "@/lib/nearby-boards";
 export const maxDuration = 60;
 const headers = {
   "Cache-Control": "private, no-store",
@@ -57,6 +58,9 @@ export async function GET(request: NextRequest) {
     );
     const started = Date.now();
     const found = new Map<string, NearbyStore>();
+    const candidates = nearbyBoards(origin, radius);
+    const boardNames = new Set(candidates.map((b) => b.name));
+    const boardResults = new Map<string, NearbyStore>();
     const unlocated = new Map<string, SignalFeedPage["signals"][number]>();
     const place = {
       state: (q.get("placeState") || "").toUpperCase(),
@@ -100,10 +104,12 @@ export async function GET(request: NextRequest) {
         radius,
         () => feed(new NextRequest(url, { headers: request.headers })),
         place,
+        boardNames,
       );
       if (!response.ok) return response;
       const data = (await response.json()) as SignalFeedPage;
       previewLocked = data.access.previewLocked;
+      addBoardSignals(data.signals, candidates, boardResults);
       for (const signal of unlocatedNearbySignals(
         data.signals,
         byAddress,
@@ -132,6 +138,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         stores: [...found.values()].sort((a, b) => a.distance - b.distance),
+        boards: [...boardResults.values()].sort(
+          (a, b) => a.distance - b.distance,
+        ),
         partial,
         unmapped,
         previewLocked,

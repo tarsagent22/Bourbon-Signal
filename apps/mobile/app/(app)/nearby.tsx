@@ -76,6 +76,7 @@ export default function Nearby() {
   const params = useLocalSearchParams<{
       store?: string;
       expanded?: string;
+      members?: string;
       unlocated?: string;
       search?: string;
       view?: string;
@@ -259,17 +260,30 @@ export default function Nearby() {
     }
   }
   const stores = useMemo(
-    () => nearbyVisible(result?.stores || [], radius, watchOnly, watched || []),
+    () =>
+      nearbyVisible(
+        [...(result?.stores || []), ...(result?.boards || [])].sort(
+          (a, b) => a.distance - b.distance,
+        ),
+        radius,
+        watchOnly,
+        watched || [],
+      ),
     [result, radius, watchOnly, watched],
   );
   const activeFilters = Boolean(tiers || fresh || watchOnly || query);
   const [selected, setSelected] = useState<string | null>(params.store || null);
+  const [showMembers, setShowMembers] = useState(params.members === "1");
+  useEffect(
+    () => setShowMembers(params.members === "1" && params.store === selected),
+    [selected, params.members, params.store],
+  );
   useEffect(() => {
     if (params.store) setSelected(params.store);
   }, [params.store]);
   const selectedStore = stores.find((store) => store.id === selected);
   const sheetHeight =
-    (selectedStore ? 210 : 116) +
+    (selectedStore?.kind === "board" ? 234 : selectedStore ? 210 : 116) +
     Math.max(insets.bottom, 12) +
     (error || result?.partial ? 52 : 0);
   const selectStore = useCallback((id: string) => {
@@ -345,6 +359,7 @@ export default function Nearby() {
           radius={radius}
           stores={stores}
           selected={selected}
+          showMembers={showMembers}
           onSelect={selectStore}
           onSearchArea={async (point) => {
             const id = ++placeSequence.current;
@@ -434,6 +449,8 @@ export default function Nearby() {
       </View>
       {stores.length > 0 ? (
         <StoreSheet
+          showMembers={showMembers}
+          onShowMembers={setShowMembers}
           stores={stores}
           selected={selected}
           onSelect={setSelected}

@@ -15,6 +15,7 @@ export default function NearbyMap({
   radius,
   stores,
   selected,
+  showMembers,
   onSelect,
   onSearchArea,
   bottomInset,
@@ -44,12 +45,44 @@ export default function NearbyMap({
       map.current?.animateToRegion(radiusRegion(origin, radius), 350);
   }, [ready, origin?.latitude, origin?.longitude, radius]);
   const selectedLocation = stores.find((row) => row.id === selected);
+  const memberPins = useMemo(
+    () =>
+      showMembers && selectedLocation?.kind === "board"
+        ? (selectedLocation.members || []).filter(
+            (m) =>
+              typeof m.latitude === "number" && typeof m.longitude === "number",
+          )
+        : [],
+    [showMembers, selectedLocation],
+  );
+  const framedBoard = useRef<string | null>(null);
+  useEffect(() => {
+    if (!showMembers) framedBoard.current = null;
+    if (ready && memberPins.length && framedBoard.current !== selected) {
+      framedBoard.current = selected;
+      map.current?.fitToCoordinates(
+        memberPins.map((m) => ({
+          latitude: m.latitude!,
+          longitude: m.longitude!,
+        })),
+        {
+          edgePadding: {
+            top: 150,
+            left: 45,
+            right: 45,
+            bottom: bottomInset + 35,
+          },
+          animated: true,
+        },
+      );
+    }
+  }, [ready, showMembers, selected, memberPins, bottomInset]);
   const clusters = useMemo(() => {
     const groups = clusterStores(
-      stores.filter((store) => store.id !== selected),
+      stores.filter((store) => store.id !== selected && store.kind !== "board"),
       region,
     );
-    if (selectedLocation)
+    if (selectedLocation && selectedLocation.kind !== "board")
       groups.push({
         id: `selected-${selectedLocation.id}`,
         stores: [selectedLocation],
@@ -148,6 +181,77 @@ export default function NearbyMap({
             </View>
           </Marker>
         ))}
+        {memberPins
+          .filter(
+            (member) =>
+              !stores.some(
+                (store) =>
+                  store.kind !== "board" &&
+                  miles(store, {
+                    latitude: member.latitude!,
+                    longitude: member.longitude!,
+                  }) < 0.03,
+              ),
+          )
+          .map((member) => (
+            <Marker
+              key={`member-${member.id}:${iconsReady}`}
+              coordinate={{
+                latitude: member.latitude!,
+                longitude: member.longitude!,
+              }}
+              tracksViewChanges={!iconsReady}
+              title={member.name}
+              description={`${member.address} · Receiving store unconfirmed`}
+              accessibilityLabel={`${member.name}, ${member.address}. Board member store; receipt unconfirmed`}
+            >
+              <View
+                style={[
+                  s.pin,
+                  {
+                    backgroundColor: "#29241F",
+                    borderColor: "#B9AA98",
+                    borderStyle: "dashed",
+                  },
+                ]}
+              >
+                <Icon name="storefront-outline" size={16} color={c.muted} />
+              </View>
+            </Marker>
+          ))}
+        {stores
+          .filter(
+            (store) =>
+              store.kind === "board" && !(showMembers && selected === store.id),
+          )
+          .map((board) => (
+            <Marker
+              key={`${board.id}:${selected === board.id}:${iconsReady}:${showMembers}`}
+              coordinate={board}
+              tracksViewChanges={!iconsReady}
+              accessibilityLabel={`${board.name}. Board shipments, store availability unconfirmed`}
+              onPress={() => onSelect(board.id)}
+              zIndex={selected === board.id ? 10 : 2}
+            >
+              <View
+                style={[
+                  s.pin,
+                  {
+                    borderRadius: 10,
+                    borderColor: "#C6A778",
+                    backgroundColor: "#30261D",
+                  },
+                  selected === board.id && s.selected,
+                ]}
+              >
+                <Icon
+                  name="package-variant-closed"
+                  size={18}
+                  color={selected === board.id ? c.background : c.accent}
+                />
+              </View>
+            </Marker>
+          ))}
       </MapView>
       <View
         pointerEvents="none"

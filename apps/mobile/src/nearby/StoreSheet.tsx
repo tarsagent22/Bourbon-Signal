@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
-import type { NearbyStore } from "../../../../shared/nearby";
+import type { NearbyStore, BoardMember } from "../../../../shared/nearby";
 import type { Signal } from "../api/types";
 import { CellarBottleArtwork } from "../components/CellarBottleArtwork";
 import {
@@ -25,11 +25,13 @@ import {
   signalFeedCardAppearance,
 } from "../api/presentation";
 import { useReportClock } from "../hooks/useReportClock";
-import { appleStoreDirectionsUrl, storeMapUrl } from "../signals/nearby";
+import { storeMapUrl } from "../signals/nearby";
 import { colors as c, fonts } from "../theme";
 
 const distance = (store: NearbyStore) =>
-  `${store.approximateLocation ? "~" : ""}${store.distance.toFixed(1)} mi`;
+  store.kind === "board"
+    ? "Board shipments"
+    : `${store.approximateLocation ? "~" : ""}${store.distance.toFixed(1)} mi`;
 const reports = (count: number) =>
   `${count} bottle ${count === 1 ? "report" : "reports"}`;
 function Artwork({ signal }: { signal: Signal }) {
@@ -70,7 +72,14 @@ const BottleRow = memo(function BottleRow({
             ? `$${signal.availability.price.toFixed(2)}`
             : "Price not reported"}
         </Text>
-        <Text style={s.meta}>{signalRowReportSummary(signal, now).label}</Text>
+        <Text style={s.meta}>
+          {signal.shipment
+            ? `${signal.shipment.quantity != null ? `${signal.shipment.quantity} ${signal.shipment.unit} shipped · ` : ""}${signal.shipment.reportedAt ? new Date(signal.shipment.reportedAt).toLocaleDateString() : "Date unreported"}`
+            : signalRowReportSummary(signal, now).label}
+        </Text>
+        {signal.shipment && (
+          <Text style={s.meta}>Receiving stores unconfirmed</Text>
+        )}
         {facts.showStatus && <Text style={s.meta}>{facts.status}</Text>}
       </View>
       <Icon name="chevron-right" size={20} color={c.muted} />
@@ -91,6 +100,8 @@ export function StoreSheet({
   onUnlocated,
   onRefresh,
   onOpen,
+  showMembers,
+  onShowMembers,
 }: {
   stores: NearbyStore[];
   selected: string | null;
@@ -105,6 +116,8 @@ export function StoreSheet({
   onUnlocated: () => void;
   onRefresh: () => void;
   onOpen: (id: string) => void;
+  showMembers: boolean;
+  onShowMembers: (value: boolean) => void;
 }) {
   const now = useReportClock();
   const store = stores.find((s) => s.id === selected);
@@ -120,7 +133,10 @@ export function StoreSheet({
     },
     undefined,
   );
-  const collapsed = (store ? 210 : 116) + bottom + (notice ? 52 : 0);
+  const collapsed =
+    (store?.kind === "board" ? 234 : store ? 210 : 116) +
+    bottom +
+    (notice ? 52 : 0);
   const offset = useRef(new Animated.Value(height - collapsed)).current;
   const [directionsError, setDirectionsError] = useState("");
   useEffect(() => {
@@ -160,13 +176,16 @@ export function StoreSheet({
       onPanResponderTerminate: () => settle(expanded),
     });
   }, [onExpand, expanded, height, collapsed, offset]);
-  async function directions() {
-    if (!store) return;
+  async function directions(
+    destination: NearbyStore | BoardMember | undefined = store,
+  ) {
+    if (!destination || ("kind" in destination && destination.kind === "board"))
+      return;
     try {
       await Linking.openURL(
         Platform.OS === "ios"
-          ? appleStoreDirectionsUrl(store)
-          : storeMapUrl(store, true),
+          ? `https://maps.apple.com/?daddr=${encodeURIComponent(`${destination.address}, ${destination.city}, ${destination.state}`)}&dirflg=d`
+          : storeMapUrl(destination, true),
       );
     } catch {
       setDirectionsError("Directions could not open. Please try again.");
@@ -207,9 +226,11 @@ export function StoreSheet({
             <Text style={s.headingText}>
               {store
                 ? expanded
-                  ? "Nearby stores"
-                  : "Selected store"
-                : `${stores.length} nearby ${stores.length === 1 ? "store" : "stores"}`}
+                  ? "Nearby reports"
+                  : store.kind === "board"
+                    ? "Board shipments"
+                    : "Selected store"
+                : `${stores.filter((s) => s.kind !== "board").length} stores${stores.some((s) => s.kind === "board") ? ` · ${stores.filter((s) => s.kind === "board").length} boards` : " nearby"}`}
             </Text>
             {busy && <ActivityIndicator size="small" color={c.accent} />}
           </Pressable>
@@ -250,16 +271,25 @@ export function StoreSheet({
               <Text numberOfLines={1} style={s.storeName}>
                 {store.name}
               </Text>
-              <Text style={s.distance}>{distance(store)}</Text>
+              {store.kind !== "board" && (
+                <Text style={s.distance}>{distance(store)}</Text>
+              )}
             </View>
             <Text numberOfLines={1} style={s.meta}>
               {reports(store.signals.length)}
               {expanded
-                ? ` · ${store.city}, ${store.state}`
+                ? store.kind === "board"
+                  ? " · Board-level reports"
+                  : ` · ${store.city}, ${store.state}`
                 : freshest
                   ? ` · ${signalRowReportTimestamp(freshest, now)}`
                   : ""}
             </Text>
+            {store.kind === "board" && (
+              <Text style={s.meta}>
+                Shipment reported · Receiving stores unconfirmed
+              </Text>
+            )}
             {!expanded && (
               <View style={s.thumbnails}>
                 <View style={s.thumbnailGroup} accessible={false}>
@@ -269,7 +299,13 @@ export function StoreSheet({
                     </View>
                   ))}
                 </View>
-                <Text style={s.viewBottles}>View bottles</Text>
+                <Text style={s.viewBottles}>
+                  {store.kind === "board"
+                    ? showMembers
+                      ? "Stores to check"
+                      : "View shipments"
+                    : "View bottles"}
+                </Text>
                 <Icon name="chevron-up" size={18} color={c.accent} />
               </View>
             )}
@@ -278,18 +314,41 @@ export function StoreSheet({
             <>
               <View style={s.addressRow}>
                 <View style={s.copy}>
-                  <Text style={s.meta}>{store.address}</Text>
+                  <Text style={s.meta}>
+                    {store.kind === "board"
+                      ? `${store.members?.length || 0} member stores. Check with the store before visiting.`
+                      : store.address}
+                  </Text>
                   {store.approximateLocation && (
                     <Text style={s.meta}>Approximate map location</Text>
                   )}
                 </View>
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => void directions()}
+                  onPress={() =>
+                    store.kind === "board"
+                      ? (onShowMembers(!showMembers),
+                        !showMembers && onExpand(false))
+                      : void directions()
+                  }
                   style={s.action}
                 >
-                  <Icon name="directions" size={18} color={c.accent} />
-                  <Text style={s.viewBottles}>Directions</Text>
+                  <Icon
+                    name={
+                      store.kind === "board"
+                        ? "storefront-outline"
+                        : "directions"
+                    }
+                    size={18}
+                    color={c.accent}
+                  />
+                  <Text style={s.viewBottles}>
+                    {store.kind === "board"
+                      ? showMembers
+                        ? "Shipments"
+                        : "Stores to check"
+                      : "Directions"}
+                  </Text>
                 </Pressable>
               </View>
               {directionsError ? (
@@ -297,16 +356,61 @@ export function StoreSheet({
                   {directionsError}
                 </Text>
               ) : null}
-              <FlatList
-                data={store.signals}
-                keyExtractor={(signal) => signal.id}
-                renderItem={({ item }) => (
-                  <BottleRow signal={item} onOpen={onOpen} />
-                )}
-                initialNumToRender={5}
-                windowSize={5}
-                contentContainerStyle={{ paddingBottom: bottom + 20 }}
-              />
+              {store.kind === "board" && showMembers ? (
+                <FlatList
+                  data={store.members || []}
+                  keyExtractor={(member) => member.id}
+                  initialNumToRender={6}
+                  windowSize={5}
+                  contentContainerStyle={{ paddingBottom: bottom + 20 }}
+                  ListHeaderComponent={
+                    <View style={s.unlocated}>
+                      <Text style={s.meta}>
+                        Outlined pins show member stores, not confirmed
+                        recipients. Some stores may hold bottles for later
+                        releases.
+                      </Text>
+                    </View>
+                  }
+                  renderItem={({ item }) => (
+                    <View style={s.storeRow}>
+                      <Icon
+                        name="storefront-outline"
+                        size={20}
+                        color={c.muted}
+                      />
+                      <View style={s.copy}>
+                        <Text style={s.listName}>{item.address}</Text>
+                        <Text style={s.meta}>
+                          {item.city}
+                          {item.distance != null
+                            ? ` · ${item.approximateLocation ? "~" : ""}${item.distance.toFixed(1)} mi`
+                            : " · No map pin"}
+                        </Text>
+                      </View>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={`Directions to ${item.address}`}
+                        style={s.action}
+                        onPress={() => void directions(item)}
+                      >
+                        <Icon name="directions" size={22} color={c.accent} />
+                      </Pressable>
+                    </View>
+                  )}
+                />
+              ) : (
+                <FlatList
+                  data={store.signals}
+                  keyExtractor={(signal) => signal.id}
+                  renderItem={({ item }) => (
+                    <BottleRow signal={item} onOpen={onOpen} />
+                  )}
+                  initialNumToRender={5}
+                  windowSize={5}
+                  contentContainerStyle={{ paddingBottom: bottom + 20 }}
+                />
+              )}
             </>
           )}
         </>
@@ -324,14 +428,27 @@ export function StoreSheet({
               onPress={() => onSelect(item.id)}
               style={s.storeRow}
             >
-              <Icon name="storefront-outline" size={22} color={c.accent} />
+              <Icon
+                name={
+                  item.kind === "board"
+                    ? "package-variant-closed"
+                    : "storefront-outline"
+                }
+                size={22}
+                color={c.accent}
+              />
               <View style={s.copy}>
                 <Text style={s.listName}>{item.name}</Text>
                 <Text style={s.meta}>
-                  {reports(item.signals.length)} · {item.city}
+                  {reports(item.signals.length)} ·{" "}
+                  {item.kind === "board"
+                    ? "Receiving stores unconfirmed"
+                    : item.city}
                 </Text>
               </View>
-              <Text style={s.distance}>{distance(item)}</Text>
+              {item.kind !== "board" && (
+                <Text style={s.distance}>{distance(item)}</Text>
+              )}
               <Icon name="chevron-right" size={18} color={c.muted} />
             </Pressable>
           )}
@@ -369,7 +486,7 @@ export function StoreSheet({
               ? "Some results could not refresh. Open List to retry."
               : unlocatedCount
                 ? "Swipe up for stores and reports without pins"
-                : "Tap a store pin or swipe up to browse"}
+                : "Tap a pin or swipe up to browse"}
           </Text>
         </Pressable>
       )}

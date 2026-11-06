@@ -73,6 +73,7 @@ export function signalListingPresentation(signal: Signal, now = new Date()) {
 }
 
 function normalizedQuantityLabel(signal: Signal) {
+  if (signal.shipment) return signal.shipment.quantity != null ? `${signal.shipment.quantity} ${signal.shipment.unit} shipped` : "Shipment quantity unreported";
   const raw = signal.availability?.quantityLabel?.trim() || "";
   if (signal.source.type === "member") {
     const shelfCount = raw.match(/^(\d+)(?:\s+bottles?)?$/i);
@@ -265,6 +266,7 @@ export function signalMemberTagLabel(signal: Signal) {
 
 export function signalCardStatusLabel(signal: Signal, now = new Date()) {
   if (signal.historical) return "Historical report";
+  if (signal.shipment) return "Board shipment · Store availability unconfirmed";
   if (signalReportIsStale(signal, now)) return "Availability unconfirmed";
   if (signal.source.type === "member") return "Community report";
   if (signal.kind === "release") return "Release";

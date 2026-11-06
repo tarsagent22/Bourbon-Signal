@@ -115,6 +115,7 @@ export function addNearbySignals(
 ) {
   let unmapped = 0;
   for (const signal of signals) {
+    if (signal.shipment) continue;
     if (signal.location.scope !== "exact_store") continue;
     const store = signal.location.store;
     if (!store?.address || !store.state || !store.city) {
@@ -158,6 +159,7 @@ export function unlocatedNearbySignals(
   cities: ReadonlySet<string>,
 ) {
   return signals.filter((signal) => {
+    if (signal.shipment) return false;
     if (signal.location.scope !== "exact_store") return false;
     const store = signal.location.store;
     return Boolean(

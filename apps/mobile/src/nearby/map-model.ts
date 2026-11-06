@@ -40,6 +40,7 @@ export interface NearbyMapProps {
   radius: number;
   stores: NearbyStore[];
   selected: string | null;
+  showMembers?: boolean;
   onSelect: (id: string) => void;
   onSearchArea: (point: Point) => void;
   bottomInset: number;
