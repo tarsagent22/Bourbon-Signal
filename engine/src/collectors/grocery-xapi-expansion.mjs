@@ -16,8 +16,12 @@ export const ILLINOIS_GROCERY_PRIORITY_TERMS=Object.freeze(['weller','eagle rare
 const publicStoreKey = '7bad9afbb87043b28519c4443106db06';
 const publicSearchKey = 'e914eec9448c4d5eb672debf5011cf8f';
 
-export function isGroceryExpansionEmptyResolver(payload,stateCode){
-  if(stateCode!=='IL')return false;
+export const CALIFORNIA_CONFIRMED_EMPTY_RESOLVER_ZIPS=Object.freeze(['96101']);
+export function isGroceryExpansionEmptyResolver(payload,stateCode,zip){
+  // First-party CA96101 capture2026-11-06 confirms this exact healthy-zero
+  // channel schema. It proves no premises or stock; all selected stores still
+  // require independent exact resolver bindings from the remaining ZIPs.
+  if(stateCode!=='IL'&&!(stateCode==='CA'&&CALIFORNIA_CONFIRMED_EMPTY_RESOLVER_ZIPS.includes(zip)))return false;
   const channel=payload?.instore,error=channel?.errors?.[0];
   return channel?.count===0&&channel.ack==='1'
     &&Object.keys(channel).sort().join('|')==='ack|count|errors'
@@ -144,7 +148,7 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     if(!response || (!response.ok && response.status!==206)){resolverComplete=false;continue;}
     let payload;try{payload=JSON.parse(response.text);}catch{resolverComplete=false;continue;}
     if(!Array.isArray(payload?.instore?.stores)){
-      if(isGroceryExpansionEmptyResolver(payload,config.id)){resolverEmptyZips.push(zip);continue;}
+      if(isGroceryExpansionEmptyResolver(payload,config.id,zip)){resolverEmptyZips.push(zip);continue;}
       resolverComplete=false;resolverFailures.push({zip,reason:'invalid_instore_channel_shape'});continue;
     }
     for(const store of payload.instore.stores){
