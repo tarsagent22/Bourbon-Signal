@@ -3,6 +3,7 @@ export interface Signal {
   id: string;
   availabilityEpisodeId?: string;
   historical?: boolean;
+  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units" };
   kind: "availability" | "release" | "event";
   source: {
     type: "member" | "retailer" | "trusted_source" | "release_source";

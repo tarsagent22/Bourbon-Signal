@@ -4,6 +4,7 @@ import { isScheduledReleaseSignal, scheduledReleaseDateValue, type ScheduledRele
 import { dropDisplayTime } from "../drop-feed-policy.ts";
 import { normalizeSignalRarityTier, type SignalRarityTier } from "./signal-feed-filters.ts";
 import { communityDisplayNameSeparateFromIdentity } from "../community-display-name.ts";
+import { NC_ABC_BOARDS, canonicalNcAbcBoardEvidence } from "../nc-abc-boards.ts";
 
 export const SIGNAL_CONTRACT_VERSION = "bourbon-signal/signal@1" as const;
 
@@ -19,6 +20,7 @@ export interface CanonicalSignal {
   availabilityEpisodeId?: string;
   listingChange?: "first_detection" | "restock" | "price_drop" | "price_change";
   historical?: boolean;
+  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units" };
   kind: SignalKind;
   source: {
     type: SignalSourceType;
@@ -276,6 +278,9 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
       : "Trusted source";
   const locationLabel = text(input.display_location, input.displayLocation, input.locationName, storeName, storeCity, state);
   const summary = text(input.evidence, input.summary);
+  const shipmentBoard = state === "NC" && text(input.type, input.event_type) === "nc_board_shipment_snapshot"
+    ? NC_ABC_BOARDS.find(b => b.filterLabel === canonicalNcAbcBoardEvidence(locationLabel)) : undefined;
+  const shipmentQuantity = finiteNumber(input.quantity_shipped, input.quantityShipped, input.quantity);
   const scheduledFor = kind === "release" ? scheduledReleaseDateValue(scheduledReleaseInput(input)) : undefined;
   const availabilityEpisodeId = text(input.availabilityEpisodeId, input.availability_episode_id);
 
@@ -285,6 +290,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     ...(availabilityEpisodeId ? { availabilityEpisodeId } : {}),
     ...(["first_detection", "restock", "price_drop", "price_change"].includes(String(input.listingChange || input.availabilityEpisodeKind || "")) ? { listingChange: String(input.listingChange || input.availabilityEpisodeKind) as CanonicalSignal["listingChange"] } : {}),
     kind,
+    ...(shipmentBoard ? { shipment: { boardId: shipmentBoard.id, reportedAt: text(input.event_at, input.eventAt, observedAt), ...(shipmentQuantity !== undefined ? { quantity: shipmentQuantity } : {}), unit: "units" as const } } : {}),
     source: { type, label },
     bottle: {
       ...(bottleId ? { id: bottleId } : {}),

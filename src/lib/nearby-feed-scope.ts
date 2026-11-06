@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { sightingStoreAddressKey } from "./sighting-store-directory-core.ts";
 import { miles, type Point } from "../../shared/nearby.ts";
 import type { nearbyStoreIndex } from "./nearby.ts";
+import { boardDropName } from "./nearby-boards.ts";
 
 // Server-only, request-local scope. Never supplied by a client header and never
 // changes membership, freshness, visibility, or source policy checks.
@@ -9,6 +10,7 @@ const scope = new AsyncLocalStorage<{
   keys: ReadonlySet<string>;
   mapped: ReadonlySet<string>;
   cities: ReadonlySet<string>;
+  boards: ReadonlySet<string>;
 }>();
 export const nearbyCityKey = (state: string, city: string) =>
   sightingStoreAddressKey({
@@ -22,6 +24,7 @@ export function withNearbyFeedScope<T>(
   radius: number,
   work: () => T,
   place?: { state: string; city: string },
+  boards: ReadonlySet<string> = new Set(),
 ): T {
   const keys = new Set<string>();
   const cities = new Set<string>();
@@ -40,7 +43,10 @@ export function withNearbyFeedScope<T>(
       cities.add(nearbyCityKey(store.state, store.city));
     }
   }
-  return scope.run({ keys, mapped: new Set(index.keys()), cities }, work);
+  return scope.run(
+    { keys, mapped: new Set(index.keys()), cities, boards },
+    work,
+  );
 }
 export function filterNearbyFeedDrops<T extends Record<string, unknown>>(
   drops: T[],
@@ -48,6 +54,8 @@ export function filterNearbyFeedDrops<T extends Record<string, unknown>>(
   const selection = scope.getStore();
   if (!selection) return drops;
   return drops.filter((drop) => {
+    const board = boardDropName(drop);
+    if (board) return selection.boards.has(board);
     const state = String(drop.state ?? drop.state_code ?? drop.region ?? "")
       .trim()
       .toUpperCase();

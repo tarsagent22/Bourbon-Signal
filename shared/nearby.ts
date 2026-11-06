@@ -1,6 +1,9 @@
 import type { Signal } from "../apps/mobile/src/api/types";
 export type Point = { latitude: number; longitude: number };
 export type NearbyStore = Point & {
+  kind?: "board";
+  members?: BoardMember[];
+  sourceUrl?: string;
   id: string;
   name: string;
   address: string;
@@ -10,8 +13,21 @@ export type NearbyStore = Point & {
   approximateLocation?: boolean;
   signals: Signal[];
 };
+export type BoardMember = {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  latitude?: number;
+  longitude?: number;
+  distance?: number;
+  approximateLocation?: boolean;
+};
 export type NearbyResult = {
   stores: NearbyStore[];
+  // Separate from exact-store results for older installed clients.
+  boards?: NearbyStore[];
   partial: boolean;
   unmapped: number;
   previewLocked: boolean;

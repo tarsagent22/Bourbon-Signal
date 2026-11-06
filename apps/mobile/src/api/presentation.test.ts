@@ -21,6 +21,12 @@ function signal(overrides: Partial<Signal> = {}): Signal {
     ...overrides,
   };
 }
+test("board shipment units never become bottles available at a member store", () => {
+  const row = signal({ shipment: {boardId: "board-1", quantity: 414, unit: "units"}, location: {scope: "board", state: "NC"}, availability: {status: "reported", quantity: 414} });
+  assert.equal(presentSignal(row).quantity, "414 units shipped");
+  assert.match(signalCardStatusLabel(row), /Store availability unconfirmed/);
+  assert.equal(signalRowReportSummary(row).quantityInSummary, false);
+});
 
 test("compact rows qualify counted reports without implying verified inventory", () => {
   const now = new Date("2026-08-23T13:00:00Z");

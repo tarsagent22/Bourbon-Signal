@@ -49,6 +49,10 @@ const stores = [
 const api = {
   nearby: async () => ({
     stores,
+    boards: [{id: "fixture-board", kind: "board", name: "Example ABC Board", address: "Shipment reported", city: "", state: "NC", latitude:33.37, longitude:-111.83, distance:3,
+      signals: [{...signal("shipment", "Henry McKenna 10 Year", 64.95), shipment: {boardId:"fixture-board", reportedAt:"2026-11-05T12:00:00Z", quantity:414, unit:"units"}, location:{scope:"board",state:"NC",label:"Example ABC Board"}}],
+      members: [{id:"member1",name:"Example ABC Store",address:"100 Example Road",city:"Example City",state:"NC",latitude:33.37,longitude:-111.83,distance:3},{id:"member2",name:"Example ABC Store",address:"200 Example Avenue",city:"Example City",state:"NC",latitude:33.39,longitude:-111.81,distance:4},{id:"member3",name:"Example ABC Store",address:"300 Example Street",city:"Example City",state:"NC"}]
+    }],
     partial: false,
     unmapped: 1,
     unlocated: [
