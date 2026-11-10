@@ -67,7 +67,7 @@
     "test:app-loading": "tsx scripts/test-app-loading.mts",
     "audit:app-library": "tsx scripts/audit-app-bottle-library.mts",
     "test:membership-month": "tsx scripts/test-membership-month.mts",
-    "test:signal-points": "npm run test:membership-month && tsx scripts/test-member-rewards-snapshot.mts && tsx scripts/test-quality-outcome-rewards.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points-membership-credit.mts && node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
+    "test:signal-points": "tsx --test scripts/test-review-readiness.ts && npm run test:membership-month && tsx scripts/test-member-rewards-snapshot.mts && tsx scripts/test-quality-outcome-rewards.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points-membership-credit.mts && node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
     "test:feed-location-search": "node --no-warnings --experimental-strip-types --test scripts/test-feed-location-search.mts && tsx --test scripts/test-feed-location-search-sql.ts",
     "test:signal-contract": "node --no-warnings --experimental-strip-types scripts/test-signal-contract.mts",
     "test:signal-mobile-api": "node --no-warnings --experimental-strip-types scripts/test-signal-mobile-api.mts",

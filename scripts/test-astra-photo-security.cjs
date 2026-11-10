@@ -27,6 +27,8 @@ test('F1 first attachment resolves configured-store pathname, never caller URL',
   const h = attachment({ existing: null });
   const result = await h.run();
   assert.equal(result.url, 'https://fixture.invalid/new.jpg');
+  assert.equal(result.status, 'pending');
+  assert.equal(result.publicUrl, null);
   assert.deepEqual(h.lookups, ['sighting-proofs/sighting_owned/3.jpg']);
 });
 test('F1 concurrent losing attachment preserves winner and every existing object', async () => {

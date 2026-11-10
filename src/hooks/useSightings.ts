@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { upload as uploadBlob } from "@vercel/blob/client";
+import { normalizeWebSightingPhoto } from "@/lib/sighting-photo-web";
 import type { MemberSighting, SignalReport, SightingVoteKind, SightingsPreferences } from "@/lib/sightings";
 import { EMPTY_SIGHTINGS_PREFERENCES } from "@/lib/sightings";
 import {
@@ -158,6 +159,7 @@ export function useSightings(
     try {
       if (file.size > MAX_SIGHTING_PHOTO_BYTES) throw new Error("Photo must be 10 MB or smaller.");
       if (file.type && !ALLOWED_SIGHTING_PHOTO_TYPES.includes(file.type.toLowerCase() as typeof ALLOWED_SIGHTING_PHOTO_TYPES[number])) throw new Error("Upload a JPEG, PNG, WebP, or HEIC image.");
+      file = await normalizeWebSightingPhoto(file);
       const pathname = buildSightingPhotoPath(sightingId, file.name, file.type);
       const blob = await uploadBlob(pathname, file, {
         access: "public",

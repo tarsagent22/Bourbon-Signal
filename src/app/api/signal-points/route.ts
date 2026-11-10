@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSignalPointsApiAccess } from "@/lib/owner-auth";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
+import { rewardMembershipMetadata } from "@/lib/reward-membership";
 import { readFounderShippingForUser } from "@/lib/founder-shipping-repository";
 import { membershipCreditCatalogForTier } from "@/lib/signal-points-membership-credit";
 
@@ -16,13 +17,13 @@ export async function GET(request: NextRequest) {
   try {
     const { user, userId } = access;
     const repository = createSignalPointsRepository();
-    let [summary, shipping, tier] = await Promise.all([repository.readMember(userId), readFounderShippingForUser(userId), resolveServerEffectiveMembershipTier(user.publicMetadata)]);
+    let [summary, shipping, tier] = await Promise.all([repository.readMember(userId), readFounderShippingForUser(userId), resolveServerEffectiveMembershipTier(rewardMembershipMetadata(user.publicMetadata, user.privateMetadata))]);
     const redemptions = await Promise.all(summary.redemptions.map(async item => ({ ...item, membershipMonth: item.itemKey.endsWith("membership_credit_month") ? await readMonthDelivery(userId,item.id) : null })));
     const grant = redemptions.find(item => item.membershipMonth?.provider === "earned_access" && Date.parse(item.membershipMonth.expiresAt || "") > Date.now());
     if (grant && user.publicMetadata.rewardMembershipRedemptionId !== grant.id) {
       const patch = {rewardMembershipRedemptionId:grant.id,rewardMembershipUserId:userId,rewardMembershipExpiresAt:grant.membershipMonth!.expiresAt};
       await (await (await import("@clerk/nextjs/server")).clerkClient()).users.updateUserMetadata(userId,{publicMetadata:patch});
-      tier = await resolveServerEffectiveMembershipTier({...user.publicMetadata,...patch});
+      tier = await resolveServerEffectiveMembershipTier(rewardMembershipMetadata({...user.publicMetadata,...patch}, user.privateMetadata));
     }
     const route = membershipMonthRoute(tier, user.publicMetadata as Record<string,unknown>, user.privateMetadata as Record<string,unknown>, request.nextUrl.searchParams.get("platform"));
     const monthReady = (await membershipMonthQuery().query("SELECT 1 FROM signal_point_migrations WHERE migration_key='signal_points_membership_month_v5_ready'")).length > 0;

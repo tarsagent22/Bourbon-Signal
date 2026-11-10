@@ -119,8 +119,8 @@ async function attachUploadedPhoto({
     url: completed.url,
     pathname: completed.pathname,
     uploadedAt: new Date().toISOString(),
-    status: "verified_public" as const,
-    publicUrl: uploaded.url,
+    status: "pending" as const,
+    publicUrl: null,
   };
   const mutation = await owned.repository.replacePhotoProof(sightingId, userId, null, photoProof);
   if (mutation) {
