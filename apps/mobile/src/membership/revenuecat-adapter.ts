@@ -128,9 +128,11 @@ export function createRevenueCatPurchaseAdapter(load: RevenueCatLoader = default
     },
     async getActiveSubscriptionProductIds() {
       const purchases = await module();
-      await confirmAccount(purchases);
-      await purchases.invalidateCustomerInfoCache?.();
-      return purchases.getCustomerInfo ? (await purchases.getCustomerInfo()).activeSubscriptions : [];
+      try {
+        await confirmAccount(purchases);
+        await purchases.invalidateCustomerInfoCache?.();
+        return purchases.getCustomerInfo ? (await purchases.getCustomerInfo()).activeSubscriptions : [];
+      } catch (caught) { throw providerError(purchases, caught, platform); }
     },
     async purchase(productId: AppleProductId,replacingProductId?:AppleProductId) {
       const purchases = await module();

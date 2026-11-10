@@ -140,6 +140,26 @@ test('concurrent Upgrade taps cause one store purchase', async () => {
   assert.equal(h.events.filter(e => e.startsWith('purchase:')).length, 1);
 });
 
+test('a pending store transaction is not purchased again on the next Upgrade tap', async () => {
+  const h = harness({ purchaseError: new PurchaseProviderError('pending', 'Approval pending') });
+  h.api.getMemberProfile = async () => profile('free');
+  const c = createPurchaseCoordinator({ ...h, platform: 'ios', publicIosApiKey: 'appl_public' });
+  const session = { isLoaded: true, isSignedIn: true, userId: 'member-A' };
+  await c.upgrade(session, APPLE_PRODUCT_IDS.barrel.monthly);
+  await c.upgrade(session, APPLE_PRODUCT_IDS.barrel.monthly);
+  assert.equal(h.events.filter(e => e.startsWith('purchase:')).length, 1);
+  assert.equal(c.getState().status, 'pending');
+  assert.equal(c.getState().profile?.membership.paid, false);
+});
+
+test('Restore is one action from an uninitialized purchase provider', async () => {
+  const h = harness();
+  const c = createPurchaseCoordinator({ ...h, platform: 'ios', publicIosApiKey: 'appl_public' });
+  await c.restoreWhenReady({ isLoaded: true, isSignedIn: true, userId: 'member-A' });
+  assert.equal(h.events.filter(e => e === 'restore').length, 1);
+  assert.equal(c.getState().profile?.membership.paid, true);
+});
+
 test("sign-in recognizes a verified subscription without offerings, purchase, or Restore", async () => {
   const h = harness();
   h.adapter.getActiveSubscriptionProductIds = async () => [APPLE_PRODUCT_IDS.barrel.monthly];
