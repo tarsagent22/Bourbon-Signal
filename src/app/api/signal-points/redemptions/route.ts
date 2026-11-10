@@ -10,6 +10,7 @@ import { canRedeemSignalPoints, normalizeRedemptionDetails, rewardCatalogItem } 
 import { applyMembershipCredit, isMembershipCreditRewardKey, membershipCreditEligibility } from "@/lib/signal-points-membership-credit";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
+import { rewardMembershipMetadata } from "@/lib/reward-membership";
 import { requireSignalPointsApiAccess } from "@/lib/owner-auth";
 
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json().catch(() => ({})) as Record<string, unknown>;
     const user = await (await clerkClient()).users.getUser(userId);
-    const tier = await resolveServerEffectiveMembershipTier(user.publicMetadata);
+    const tier = await resolveServerEffectiveMembershipTier(rewardMembershipMetadata(user.publicMetadata, user.privateMetadata));
     const item = rewardCatalogItem(payload.itemKey);
     if (!item) return NextResponse.json({ error: "Choose an available reward." }, { status: 400, headers: PRIVATE_HEADERS });
     if (!canRedeemSignalPoints(tier) && item.key !== "standard_membership_credit_month") return NextResponse.json({ error: "Membership is required for this reward. Free users can earn a month of Barrel Proof." }, { status: 403, headers: PRIVATE_HEADERS });

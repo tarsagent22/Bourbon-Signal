@@ -41,7 +41,11 @@ if (new Set(boards.map((board) => board.id)).size !== boards.length) throw new E
 if (new Set(boards.map((board) => board.label)).size !== boards.length) throw new Error("Official NC ABC board labels are not unique");
 
 const current = JSON.parse(await readFile(REGISTRY_PATH, "utf8"));
-const comparableCurrent = { sourceUrl: current.sourceUrl, boards: current.boards };
+// A directory omission does not establish closure. Keep reviewed historical IDs
+// available to saved preferences, while still checking every live source row.
+const retainedIds = new Set((current.retainedMissingBoards || []).map((item) => item.id));
+const retained = current.boards.filter((board) => retainedIds.has(board.id) && !boards.some((live) => live.id === board.id));
+const comparableCurrent = { sourceUrl: current.sourceUrl, boards: current.boards.filter((board) => !retained.includes(board)) };
 const comparableSource = { sourceUrl: SOURCE_URL, boards };
 const changed = JSON.stringify(comparableCurrent) !== JSON.stringify(comparableSource);
 
@@ -50,12 +54,13 @@ if (process.argv.includes("--write")) {
     contractVersion: "bourbon-signal-nc-abc-board-registry-v1",
     sourceUrl: SOURCE_URL,
     observedAt: new Date().toISOString().slice(0, 10),
-    boards,
+    retainedMissingBoards: current.retainedMissingBoards || [],
+    boards: [...boards, ...retained],
   };
   await writeFile(REGISTRY_PATH, `${JSON.stringify(next, null, 2)}\n`, "utf8");
   console.log(`Wrote ${boards.length} official NC ABC boards to ${REGISTRY_PATH}.`);
 } else if (changed) {
   throw new Error(`Canonical NC ABC board registry drifted from the official source (${current.boards?.length || 0} stored, ${boards.length} official). Run npm run update:nc-board-registry.`);
 } else {
-  console.log(`Canonical NC ABC board registry matches all ${boards.length} official board options.`);
+  console.log(`Canonical NC ABC board registry matches all ${boards.length} official board options; ${retained.length} reviewed missing board IDs retained for saved references.`);
 }
