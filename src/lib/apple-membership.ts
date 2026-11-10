@@ -57,6 +57,7 @@ export type AppleMembershipRecord = AppleMembershipSnapshot & {
 export type AppleMembershipApplyOutcome = "applied" | "duplicate" | "stale" | "ownership_mismatch" | "event_conflict";
 
 export interface AppleMembershipRepository {
+  reassignVerifiedOwner?(previous: AppleMembershipRecord, nextUserId: string, receivedAt: string): Promise<boolean>;
   applyTransition(input: AppleMembershipSnapshot & { providerEventId: string | null; receivedAt: string }): Promise<{
     outcome: AppleMembershipApplyOutcome;
     record: AppleMembershipRecord;
@@ -264,6 +265,7 @@ export function createAppleMembershipReconciler(dependencies: {
     expiresAt: string | null;
   }) => Promise<{ accepted: boolean }>;
   projectMembership: (record: AppleMembershipRecord) => Promise<MembershipTier>;
+  recoverVerifiedOwnership?: (previous: AppleMembershipRecord, incoming: AppleMembershipSnapshot) => Promise<boolean>;
   now?: () => string;
 }) {
   const now = dependencies.now || (() => new Date().toISOString());
@@ -282,7 +284,11 @@ export function createAppleMembershipReconciler(dependencies: {
       }
       assertSnapshot(current);
       const receivedAt = now();
-      const persisted = await dependencies.repository.applyTransition({ ...current, providerEventId: input.providerEventId, receivedAt });
+      let persisted = await dependencies.repository.applyTransition({ ...current, providerEventId: input.providerEventId, receivedAt });
+      if (persisted.outcome === 'ownership_mismatch' && dependencies.recoverVerifiedOwnership
+        && await dependencies.recoverVerifiedOwnership(persisted.record, current)) {
+        persisted = await dependencies.repository.applyTransition({ ...current, providerEventId: input.providerEventId, receivedAt });
+      }
       if (persisted.outcome === "ownership_mismatch") {
         throw new AppleMembershipError("PURCHASE_OWNED_BY_ANOTHER_ACCOUNT", "This Apple purchase belongs to a different Bourbon Signal account.");
       }

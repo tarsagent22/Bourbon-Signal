@@ -19,6 +19,10 @@ export function getGoogleMembershipRepository(): AppleMembershipRepository {
       throw error;
     }));
   repository = {
+    async reassignVerifiedOwner(...args) {
+      await ensure();
+      return base.reassignVerifiedOwner(...args);
+    },
     async applyTransition(input) {
       await ensure();
       return base.applyTransition(input);

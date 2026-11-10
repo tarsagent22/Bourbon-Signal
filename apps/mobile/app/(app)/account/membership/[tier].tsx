@@ -13,6 +13,7 @@ import {
 } from "../../../../src/membership/membership-plans";
 import { deriveMobileMembershipLifecycle } from "../../../../src/membership/membership-lifecycle";
 import { usePurchases } from "../../../../src/membership/PurchasesProvider";
+import { membershipDisplayPrice } from "../../../../src/membership/membership-price";
 import { productIdFor } from "../../../../src/membership/purchases";
 import { colors, typeScale, fonts } from "../../../../src/theme";
 
@@ -63,9 +64,9 @@ export default function MembershipPlanScreen() {
   const isCurrentOrIncluded = action?.kind === "current" || action?.kind === "included";
   const purchaseBusy = purchases.status === "purchasing" || purchases.status === "restoring" || purchases.status === "configuring";
   const canPurchase = !isFounder && !managementOnly && Boolean(management.provider && management.provider !== "stripe") && Platform.OS !== "web" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
-  const canRestore = Platform.OS !== "web" && purchases.status === "ready" && purchases.restoreAvailable && !isFree && !isFounder;
+  const canRestore = Platform.OS !== "web" && !purchaseBusy && Boolean(profile) && !managementOnly && !isFree && !isFounder;
   const loadingProducts = purchases.status === "configuring" || purchases.status === "signed_out";
-  const displayPrice = isFounder ? "Lifetime access" : isFree ? "$0" : managementOnly ? `Managed through ${billing.providerLabel}` : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
+  const displayPrice = isFounder ? "Lifetime access" : isFree ? "$0" : managementOnly ? `Managed through ${billing.providerLabel}` : (storeProduct ? membershipDisplayPrice(storeProduct.localizedPrice) : "") || (loadingProducts ? "Loading price…" : "Monthly membership");
   const displayPeriod = !isFounder && storeProduct ? `/${storeProduct.localizedPeriod}` : "";
   const billingDisclosure = isFounder ? "Founder access has no recurring membership charge. Previous subscriptions are managed separately." : billing.disclosure;
   const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership, store: Platform.OS === "android" ? "google" : "apple" }) : null;
@@ -82,11 +83,7 @@ export default function MembershipPlanScreen() {
     if (managementOnly) { await management.manage(); return; }
     if (!management.provider) return;
     setShowPurchaseStatus(true);
-    if (productId && !canPurchase && action?.kind === "upgrade" && !purchaseBusy) {
-      await purchases.refresh();
-      return;
-    }
-    if (!productId || !canPurchase) return;
+    if (!productId || action?.kind !== "upgrade" || purchaseBusy || Platform.OS === "web") return;
     setError("");
     try {
       await purchases.purchase(productId);
@@ -122,9 +119,9 @@ export default function MembershipPlanScreen() {
   const purchaseButtonLabel = billing.founder ? "Included for life" : purchases.status === "purchasing"
     ? "Completing purchase…"
     : isCurrentOrIncluded ? action?.label || "Included" : storeProduct && canPurchase
-        ? `Continue with ${plan.name} · ${storeProduct.localizedPrice}`
+        ? "Upgrade to Barrel Proof"
         : productId
-          ? "Check purchase options"
+          ? "Upgrade to Barrel Proof"
           : isFounder
             ? "Not sold in this app"
             : action?.label || "Unavailable";
@@ -205,7 +202,7 @@ const styles = StyleSheet.create({
 
   purchaseCard: { backgroundColor: colors.surface, borderColor: colors.accent, borderWidth: 1, borderRadius: 18, padding: 18, gap: 8 },
   priceRow: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap" },
-  price: { color: colors.text, fontSize: 34, lineHeight: 40, fontWeight: "900", fontVariant: ["tabular-nums"] },
+  price: { fontFamily: fonts.heading, color: colors.text, fontSize: 34, lineHeight: 40 },
   priceSuffix: { color: colors.muted, fontSize: typeScale.input, fontWeight: "700" },
   trial: { color: colors.accent, fontSize: typeScale.body, lineHeight: 20, fontWeight: "900" },
   renewal: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18 },

@@ -8,6 +8,7 @@ import {
   createGoogleSubscriberFetcher,
 } from "./google-membership";
 import { getGoogleMembershipRepository } from "./google-membership-repository";
+import { createVerifiedMembershipTransfer } from './apple-membership-transfer';
 export function configuredGoogleMembershipService(
   userId: string,
   env: NodeJS.ProcessEnv = process.env,
@@ -39,10 +40,19 @@ export function configuredGoogleMembershipService(
       (await clerkClient()).users.updateUserMetadata(id, metadata),
   });
   const repository = getGoogleMembershipRepository();
+  const recoverVerifiedOwnership = createVerifiedMembershipTransfer({
+    repository, fetchCurrentSubscriber, projectMembership,
+    identityExists: async id => {
+      try { await (await clerkClient()).users.getUser(id); return true; }
+      catch (error) { if (error && typeof error === 'object' && 'status' in error && error.status === 404) return false; throw error; }
+    },
+    reconcileRemaining: id => reconciler.reconcile({ clerkUserId: id, providerEventId: null }),
+  });
   const reconciler = createAppleMembershipReconciler({
     repository,
     fetchCurrentSubscriber,
     projectMembership,
+    recoverVerifiedOwnership,
     // Existing authoritative trials are honored; Google products/base plans and native option
     // selection disable all new introductory offers. No trial is initiated by this endpoint.
     claimAuthoritativeTrial: async () => ({ accepted: true }),

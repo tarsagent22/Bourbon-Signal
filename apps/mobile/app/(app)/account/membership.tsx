@@ -11,6 +11,7 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { MEMBERSHIP_PLANS, membershipActionFor, type MembershipTier } from "../../../src/membership/membership-plans";
 import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { deriveMobileMembershipLifecycle } from "../../../src/membership/membership-lifecycle";
+import { membershipDisplayPrice } from "../../../src/membership/membership-price";
 import { productIdFor } from "../../../src/membership/purchases";
 import { colors, typeScale, fonts } from "../../../src/theme";
 import { SignalMotionScreen } from '../../../src/components/SignalMotionBackdrop';
@@ -72,10 +73,6 @@ export default function MembershipScreen() {
     if (!management.provider || busy || !productId || action?.kind !== "upgrade" || Platform.OS === "web") return;
     setAttempted(true);
     await run(async () => {
-      if (purchases.status !== "ready" || !purchases.products.some(p => p.productId === productId) || !purchases.eligibleProductIds.includes(productId)) {
-        await refreshPurchases();
-        return;
-      }
       await purchases.purchase(productId);
     });
   }
@@ -83,7 +80,6 @@ export default function MembershipScreen() {
     if (busy || Platform.OS === "web") return;
     setAttempted(true);
     await run(async () => {
-      if (purchases.status !== "ready" || !purchases.restoreAvailable) { await refreshPurchases(); return; }
       await purchases.restore();
     });
   }
@@ -115,12 +111,12 @@ export default function MembershipScreen() {
           const included = action?.kind === "current" || action?.kind === "included";
           const disabled = founder || busy || management.busy || !management.provider || !profile || (!managementOnly && (included || Platform.OS === "web"));
           const ready = purchases.status === "ready" && Boolean(product && productId && purchases.eligibleProductIds.includes(productId));
-          const label = founder ? "Included for life" : managementOnly ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS !== "web" ? "Check purchase options" : "Available in the app";
+          const label = founder ? "Included for life" : managementOnly ? "Manage membership" : included ? action?.label : busy ? "Please wait…" : Platform.OS !== "web" ? "Upgrade to Barrel Proof" : "Available in the app";
           return <View key={card.tier} style={[styles.card, { width: cardWidth }, styles.premium]}
             >
             <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{founder ? "Founder" : card.name}</Text><MembershipTierIcon tier={card.tier} /></View>
             <Text style={styles.cardDescription}>{founder ? "Every Barrel Proof benefit is included with your Founder membership." : card.description}</Text>
-            <View style={styles.priceRow}>{founder ? <Text style={styles.pricePlaceholder}>Lifetime access</Text> : product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <><Text style={styles.price}>$6</Text><Text style={styles.period}>/mo</Text></>}</View>
+            <View style={styles.priceRow}>{founder ? <Text style={styles.pricePlaceholder}>Lifetime access</Text> : product ? <><Text style={styles.price}>{membershipDisplayPrice(product.localizedPrice)}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <><Text style={styles.price}>$6</Text><Text style={styles.period}>/mo</Text></>}</View>
             <Text style={styles.billing}>{billing.cardBilling}</Text>
             {!founder && profile?.membership.grandfatheredRate ? <Text style={styles.billing}>Your early-member billing rate: {profile.membership.grandfatheredRate}/month. Full access is included. Keep this rate while your subscription continues.</Text> : null}
             <View style={styles.divider} />
@@ -130,6 +126,7 @@ export default function MembershipScreen() {
               style={({ pressed }) => [styles.subscribe, styles.subscribeGold, disabled && styles.disabled, pressed && styles.pressed]}>
               <Text style={[styles.subscribeText, styles.subscribeGoldText]}>{label}</Text>
             </Pressable>
+            {statusText || error ? <Text accessibilityRole="alert" style={styles.status}>{error || statusText}</Text> : null}
           </View>;
         })}
       </View> : null}
@@ -142,8 +139,6 @@ export default function MembershipScreen() {
           <Pressable accessibilityRole="button" accessibilityLabel="Terms of Service" onPress={() => router.push("/(app)/account/terms")} style={styles.link}><Text style={styles.linkText}>Terms</Text></Pressable>
           <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/privacy")} style={styles.link}><Text style={styles.linkText}>Privacy</Text></Pressable>
         </View>
-        {!founder && statusText ? <Text accessibilityRole="alert" style={styles.status}>{statusText}</Text> : null}
-        {error ? <ErrorState message={error} onRetry={() => void run(async () => { await load(); await refreshPurchases(); })} /> : null}
         {showLifecycle ? <View style={styles.lifecycle}><Text style={styles.freeText}>{lifecycle.title}</Text><Text style={styles.status}>{lifecycle.detail}</Text></View> : null}
         <View style={styles.links}>
           {!founder && management.provider && management.provider !== "none" ? <Pressable accessibilityRole="button" disabled={busy || management.busy} onPress={() => void management.manage()} style={styles.link}><Text style={styles.linkText}>{management.busy ? "Opening…" : billing.managementLabel}</Text></Pressable> : null}
@@ -162,6 +157,6 @@ const styles = StyleSheet.create({
   hero:{paddingHorizontal:20,alignItems:"center",gap:8},title: {fontFamily: fonts.heading, fontSize: typeScale.title,lineHeight: 40,fontWeight: "700",letterSpacing:-1,color:colors.text,textAlign:"center"},subtitle:{fontSize: typeScale.small,lineHeight:20,color:colors.muted,textAlign:"center"},current:{fontSize: typeScale.caption,color:colors.muted,marginTop:2},
   tabs:{marginHorizontal:24,marginTop:15,marginBottom:16,padding:4,flexDirection:"row",gap:4,borderWidth:1,borderColor:colors.border,borderRadius:12,backgroundColor:"#12100e"},tab:{flex:1,minHeight:40,justifyContent:"center",alignItems:"center",borderRadius:8,padding:4},tabSelected:{backgroundColor:"#31281f"},tabText:{fontSize: typeScale.small,fontWeight:"600",color:colors.muted},tabTextSelected:{color:colors.text},
   track:{paddingHorizontal:20,paddingTop:20,paddingBottom:12},card:{borderRadius:22,borderWidth:1,borderColor:"#493b2f",padding:23,minHeight:416,backgroundColor:"#1c1713"},premium:{borderColor:colors.accent,backgroundColor:"#241c13"},cardHeading:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:8},cardTitle:{fontSize:23,lineHeight:29,fontWeight:"600",letterSpacing:-0.6,color:colors.text,flexShrink:1},medallion:{width:29,height:29,borderRadius:9,borderWidth:1,borderColor:"#62503a",alignItems:"center",justifyContent:"center"},glassBowl:{width:11,height:12,borderWidth:1,borderColor:colors.accent,borderBottomLeftRadius:6,borderBottomRightRadius:6},glassStem:{width:1,height:4,backgroundColor:colors.accent},glassFoot:{width:9,height:1,backgroundColor:colors.accent},cardDescription:{fontSize: typeScale.small,lineHeight:19,color:colors.muted,marginTop:10,marginBottom:12,minHeight:38},
-  priceRow:{flexDirection:"row",alignItems:"baseline",flexWrap:"wrap",minHeight:64},price:{fontSize:56,lineHeight:64,fontWeight:"600",letterSpacing:-2,color:colors.text},period:{fontSize: typeScale.small,color:colors.muted,marginLeft:6},pricePlaceholder:{fontSize:24,lineHeight:34,color:colors.text},billing:{fontSize: typeScale.caption,lineHeight:16,color:colors.muted,marginTop:7},divider:{height:1,backgroundColor:"#55443266",marginTop:14,marginBottom:14},features:{gap:10,marginBottom:18},featureRow:{flexDirection:"row",alignItems:"flex-start",gap:9},checkCircle:{height:16,width:16,borderRadius:8,backgroundColor:"#51443688",alignItems:"center",justifyContent:"center",marginTop:1},goldCheck:{backgroundColor:colors.accent},check:{fontSize: typeScale.caption,color:"#cfb89b"},goldCheckText:{color:"#1b130a"},feature:{flex:1,fontSize: typeScale.small,lineHeight:18,color:"#e4dace"},subscribe:{marginTop:"auto",minHeight:47,padding:10,borderWidth:1,borderColor:"#816342",borderRadius:12,backgroundColor:"#30261c",alignItems:"center",justifyContent:"center"},subscribeGold:{backgroundColor:colors.accent,borderColor:"#e1ad68"},subscribeText:{fontSize: typeScale.small,lineHeight:18,fontWeight:"600",color:colors.text,textAlign:"center"},subscribeGoldText:{color:"#21160a"},disabled:{opacity:0.5},pressed:{opacity:0.75},
+  priceRow:{flexDirection:"row",alignItems:"baseline",flexWrap:"wrap",minHeight:64},price:{fontFamily:fonts.heading,fontSize:56,lineHeight:64,letterSpacing:-2,color:colors.text},period:{fontSize: typeScale.small,color:colors.muted,marginLeft:6},pricePlaceholder:{fontSize:24,lineHeight:34,color:colors.text},billing:{fontSize: typeScale.caption,lineHeight:16,color:colors.muted,marginTop:7},divider:{height:1,backgroundColor:"#55443266",marginTop:14,marginBottom:14},features:{gap:10,marginBottom:18},featureRow:{flexDirection:"row",alignItems:"flex-start",gap:9},checkCircle:{height:16,width:16,borderRadius:8,backgroundColor:"#51443688",alignItems:"center",justifyContent:"center",marginTop:1},goldCheck:{backgroundColor:colors.accent},check:{fontSize: typeScale.caption,color:"#cfb89b"},goldCheckText:{color:"#1b130a"},feature:{flex:1,fontSize: typeScale.small,lineHeight:18,color:"#e4dace"},subscribe:{marginTop:"auto",minHeight:47,padding:10,borderWidth:1,borderColor:"#816342",borderRadius:12,backgroundColor:"#30261c",alignItems:"center",justifyContent:"center"},subscribeGold:{backgroundColor:colors.accent,borderColor:"#e1ad68"},subscribeText:{fontSize: typeScale.small,lineHeight:18,fontWeight:"600",color:colors.text,textAlign:"center"},subscribeGoldText:{color:"#21160a"},disabled:{opacity:0.5},pressed:{opacity:0.75},
   dots:{flexDirection:"row",justifyContent:"center",gap:6,paddingTop:1,paddingBottom:7},dot:{height:5,width:5,borderRadius:5,backgroundColor:"#5a4b3a"},dotSelected:{width:17,backgroundColor:colors.accent},footer:{paddingHorizontal:21,alignItems:"center"},freeButton:{minHeight:44,justifyContent:"center",paddingHorizontal:12},freeText:{fontSize: typeScale.small,fontWeight:"600",color:colors.text,textAlign:"center"},gold:{color:colors.accent},fine:{fontSize: typeScale.caption,lineHeight:16,color:colors.muted,textAlign:"center",marginTop:2,marginBottom:3},links:{flexDirection:"row",justifyContent:"center",flexWrap:"wrap",columnGap:19},link:{minHeight:44,justifyContent:"center"},linkText:{fontSize: typeScale.caption,color:"#bfa785",textAlign:"center"},status:{fontSize: typeScale.small,lineHeight:18,color:colors.muted,textAlign:"center",marginVertical:8},lifecycle:{padding:12,borderRadius:12,backgroundColor:colors.surfaceRaised},
 });
