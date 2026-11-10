@@ -357,8 +357,8 @@ test("documented RevenueCat store transaction IDs resolve to the same Apple orig
   assert.deepEqual(lookups, ["1000000000000001", "1000000000000002"]);
 });
 
-test("provider identity mismatches and non-Apple store records fail before Apple lookup", async () => {
-  for (const [owner, store] of [[USER_B, "app_store"], [USER_A, "promotional"]]) {
+test("missing provider identities and non-Apple store records fail before Apple lookup", async () => {
+  for (const [owner, store] of [["", "app_store"], [USER_A, "promotional"]]) {
     let lookups = 0;
     const fetcher = createRevenueCatSubscriberFetcher({ apiKey: "key",
       fetchImpl: async () => Response.json({ subscriber: { original_app_user_id: owner, subscriptions: { [APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0]]: { store, store_transaction_id: "1001", is_sandbox: true } } } }),

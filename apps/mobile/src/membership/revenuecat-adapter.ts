@@ -17,6 +17,7 @@ type RevenueCatSdk = {
   isConfigured?(): Promise<boolean>;
   getAppUserID?(): Promise<string>;
   getCustomerInfo?(): Promise<{ activeSubscriptions: string[] }>;
+  invalidateCustomerInfoCache?(): Promise<void>;
   logIn(appUserId: string): Promise<unknown>;
   getOfferings(): Promise<{ current: { availablePackages: RevenueCatPackage[] } | null }>;
   purchasePackage(item: RevenueCatPackage): Promise<unknown>;
@@ -127,8 +128,11 @@ export function createRevenueCatPurchaseAdapter(load: RevenueCatLoader = default
     },
     async getActiveSubscriptionProductIds() {
       const purchases = await module();
-      await confirmAccount(purchases);
-      return purchases.getCustomerInfo ? (await purchases.getCustomerInfo()).activeSubscriptions : [];
+      try {
+        await confirmAccount(purchases);
+        await purchases.invalidateCustomerInfoCache?.();
+        return purchases.getCustomerInfo ? (await purchases.getCustomerInfo()).activeSubscriptions : [];
+      } catch (caught) { throw providerError(purchases, caught, platform); }
     },
     async purchase(productId: AppleProductId,replacingProductId?:AppleProductId) {
       const purchases = await module();

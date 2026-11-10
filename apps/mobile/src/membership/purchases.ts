@@ -137,6 +137,7 @@ export function createPurchaseCoordinator({
   publicAndroidApiKey="",
   platform,
   onMembershipChanged,
+  waitForRetry = (milliseconds: number) => new Promise<void>(resolve => setTimeout(resolve, milliseconds)),
 }: {
   adapter: PurchaseAdapter;
   api: AppleMembershipApi;
@@ -144,6 +145,7 @@ export function createPurchaseCoordinator({
   publicAndroidApiKey?: string;
   platform: "ios" | "android" | "web";
   onMembershipChanged?: (userId: string) => void;
+  waitForRetry?: (milliseconds: number) => Promise<void>;
 }) {
   const purchaseLabel=platform==="android" ? "Google Play" : "Apple";
   const storeLabel=platform==="android" ? "Google Play" : "App Store";
@@ -155,6 +157,9 @@ export function createPurchaseCoordinator({
   let requestedUserId: string | null = null;
   let purchaseEpoch = 0;
   let sessionQueue: Promise<void> = Promise.resolve();
+  let upgradeInFlight = false;
+  let unconfirmedPurchase: { userId: string; productId: AppleProductId } | null = null;
+  let pendingPurchase: { userId: string; productId: AppleProductId } | null = null;
   const listeners = new Set<(next: PurchaseCoordinatorState) => void>();
 
   const publish = (patch: Partial<PurchaseCoordinatorState>) => {
@@ -242,6 +247,8 @@ export function createPurchaseCoordinator({
     if (requestedUserId === nextUserId) return;
     const hadAccount = configuringUserId !== null || configuredUserId !== null;
     requestedUserId = nextUserId;
+    unconfirmedPurchase = null;
+    pendingPurchase = null;
     configuredUserId = null;
     ++sessionRevision;
     publish({ ...EMPTY_STATE });
@@ -334,32 +341,49 @@ export function createPurchaseCoordinator({
     assertSameAccount(operation);
     let reconciliation: AppleMembershipReconciliationResponse;
     try {
-      reconciliation = await membershipApi.reconcile!(input);
-      assertSameAccount(operation);
-      const refreshed = await api.getMemberProfile({ fresh: true });
-      assertSameAccount(operation);
-      const tier = refreshed.profile.membership.tier;
-      const reconciled = reconciliation.status === "reconciled"
+      let refreshed!: MemberProfile;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          reconciliation = await membershipApi.reconcile!(input);
+          assertSameAccount(operation);
+          refreshed = await api.getMemberProfile({ fresh: true });
+          assertSameAccount(operation);
+          const tier = refreshed.profile.membership.tier;
+          const reconciled = reconciliation.status === "reconciled"
         && reconciliation.effectiveTier === tier
         && (tier === "free" || refreshed.profile.membership.paid)
         && (!expectedTier || rank(tier) >= rank(expectedTier));
-      if (!reconciled) throw new Error(`Authoritative membership did not match the ${purchaseLabel} purchase.`);
+          if (!reconciled) throw Object.assign(new Error(`Authoritative membership did not match the ${purchaseLabel} purchase.`), { retryable: true });
+          break;
+        } catch (error) {
+          assertSameAccount(operation);
+          const details = error && typeof error === 'object' ? error as { retryable?: boolean; code?: string } : {};
+          if (attempt === 3 || (!details.retryable && details.code !== 'NO_APPLE_SUBSCRIPTION' && details.code !== 'NO_GOOGLE_SUBSCRIPTION')) throw error;
+          await waitForRetry([300, 800, 1600][attempt]);
+          assertSameAccount(operation);
+        }
+      }
+      const tier = refreshed.profile.membership.tier;
       const membershipChanged = state.profile?.membership.tier !== refreshed.profile.membership.tier
         || state.profile?.membership.paid !== refreshed.profile.membership.paid;
       publish({
         status: "ready",
         profile: refreshed.profile,
-        membership: reconciliation.membership,
+        membership: reconciliation!.membership,
         message: tier === "free"
           ? `No active ${purchaseLabel} membership was found. Your server-confirmed Free access is unchanged.`
           : `${tier === "bottled-in-bond" ? "Founder" : tier === "barrel" ? "Barrel Proof" : "Standard"} access is confirmed.`,
       });
       if (membershipChanged) { try { onMembershipChanged?.(operation.userId); } catch { /* Screen refresh cannot invalidate confirmed access. */ } }
       return state;
-    } catch {
+    } catch (caught) {
       if (!isSameAccount(operation)) throw new Error("The signed-in account changed before the purchase could be confirmed.");
-      publish({ status: "error", message: "Bourbon Signal could not confirm this purchase with the server. Paid access has not changed; retry reconciliation before purchasing again." });
-      throw new Error("Bourbon Signal could not confirm the purchase with the server.");
+      const code = caught && typeof caught === 'object' && 'code' in caught ? String(caught.code) : '';
+      const message = code === 'PURCHASE_OWNED_BY_ANOTHER_ACCOUNT'
+        ? 'This purchase is linked to a previous Bourbon Signal sign-in. Membership support can recover it. Do not purchase again.'
+        : 'Your purchase could not be verified yet. Your access is unchanged. Try Restore purchases before buying again.';
+      publish({ status: "error", message });
+      throw new Error(message);
     }
   }
 
@@ -377,6 +401,7 @@ export function createPurchaseCoordinator({
         return state;
       }
       if (caught instanceof PurchaseProviderError && caught.code === "pending") {
+        pendingPurchase = { userId: operation.userId, productId };
         publish({ status: "pending", message: `The ${storeLabel} says this purchase is pending. Access will not change until Bourbon Signal confirms it.` });
         return state;
       }
@@ -385,7 +410,42 @@ export function createPurchaseCoordinator({
         : `The ${storeLabel} could not complete this purchase. No membership change was made.` });
       throw caught;
     }
-    return reconcile(operation, { action: "purchase", productId }, productIdentity(productId).tier);
+    unconfirmedPurchase = { userId: operation.userId, productId };
+    pendingPurchase = null;
+    const result = await reconcile(operation, { action: "purchase", productId }, productIdentity(productId).tier);
+    unconfirmedPurchase = null;
+    return result;
+  }
+
+  async function upgrade(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }, productId: AppleProductId) {
+    if (upgradeInFlight) return state;
+    upgradeInFlight = true;
+    try {
+      if (configuredUserId !== session.userId || state.status !== 'ready' || !state.products.some(p => p.productId === productId)) {
+        await syncSession(session);
+      }
+      const operation = assertReady(productId);
+      const active = await adapter.getActiveSubscriptionProductIds?.() || [];
+      assertSameAccount(operation);
+      if (pendingPurchase?.userId === operation.userId && pendingPurchase.productId === productId && !active.includes(productId)) {
+        publish({ status: 'pending', message: `${purchaseLabel} is still processing this purchase. Your access will update after it is confirmed.` });
+        return state;
+      }
+      if (unconfirmedPurchase?.userId === operation.userId && unconfirmedPurchase.productId === productId) {
+        const result = await reconcile(operation, { action: 'purchase', productId }, productIdentity(productId).tier);
+        unconfirmedPurchase = null;
+        return result;
+      }
+      if (active.includes(productId)) {
+        const result = await reconcile(operation, { action: 'sync' });
+        pendingPurchase = null;
+        if (result.profile && rank(result.profile.membership.tier) >= rank(productIdentity(productId).tier) && result.profile.membership.paid) return result;
+        const ended = result.membership && (['expired', 'refunded', 'revoked'].includes(result.membership.status)
+          || Date.parse(result.membership.expiresAt || '') <= Date.now());
+        if (!ended) throw new Error('Membership verification is incomplete. Try Restore purchases before buying again.');
+      }
+      return await purchase(productId);
+    } finally { upgradeInFlight = false; }
   }
 
   async function restore() {
@@ -405,6 +465,15 @@ export function createPurchaseCoordinator({
     return reconcile(operation, { action: "restore" });
   }
 
+  async function restoreWhenReady(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    if (upgradeInFlight) return state;
+    upgradeInFlight = true;
+    try {
+      if (configuredUserId !== session.userId || !state.restoreAvailable || !['ready', 'error', 'cancelled', 'pending'].includes(state.status)) await syncSession(session);
+      return await restore();
+    } finally { upgradeInFlight = false; }
+  }
+
   return {
     getState: () => state,
     subscribe(listener: (next: PurchaseCoordinatorState) => void) {
@@ -415,6 +484,8 @@ export function createPurchaseCoordinator({
     observeSession,
     recognizeSession,
     purchase,
+    upgrade,
     restore,
+    restoreWhenReady,
   };
 }

@@ -1,4 +1,5 @@
 import { createRuntimeNeonClient } from "./neon-runtime.ts";
+import { createHash } from 'node:crypto';
 import {
   appleMembershipStatusPriority,
   type AppleMembershipApplyOutcome,
@@ -224,6 +225,20 @@ export class PostgresAppleMembershipRepository implements AppleMembershipReposit
        WHERE original_transaction_id=$1 AND clerk_user_id=$2`,
       [originalTransactionId, clerkUserId, projectedAt],
     );
+  }
+
+  async reassignVerifiedOwner(previous: AppleMembershipRecord, nextUserId: string, receivedAt: string) {
+    const eventId = 'verified-transfer:' + createHash('sha256').update(JSON.stringify([previous.originalTransactionId, previous.clerkUserId, nextUserId, previous.updatedAt])).digest('hex');
+    const rows = await this.query(`WITH moved AS (
+      UPDATE apple_memberships SET clerk_user_id=$1, projected_at=NULL, updated_at=$2::timestamptz
+      WHERE original_transaction_id=$3 AND clerk_user_id=$4 AND updated_at=$5::timestamptz AND environment=$6
+      RETURNING *
+    ), audit AS (
+      INSERT INTO apple_membership_events (provider_event_id,clerk_user_id,original_transaction_id,environment,product_id,entitlement_status,expires_at,offer_state,ordered_event_at,received_at)
+      SELECT $7,$4,original_transaction_id,environment,product_id,'revoked',$2::timestamptz,offer_state,$2::timestamptz,$2::timestamptz FROM moved
+      ON CONFLICT (provider_event_id) DO NOTHING
+    ) SELECT original_transaction_id FROM moved`, [nextUserId,receivedAt,previous.originalTransactionId,previous.clerkUserId,previous.updatedAt,previous.environment,eventId]);
+    return rows.length === 1;
   }
 
   async readCurrentForUser(clerkUserId: string) {

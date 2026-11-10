@@ -172,7 +172,12 @@ export function createGoogleSubscriberFetcher(options: {
         "PROVIDER_UNAVAILABLE",
         "Google subscription verification is unavailable.",
       );
-    return normalizeGoogleRevenueCatSubscriber(userId, await response.json(), {
+    const payload = await response.json();
+    const subscriber = record(record(payload)?.subscriber);
+    // This authenticated provider GET resolves any aliases of the requested user.
+    const associated = subscriber && typeof subscriber.original_app_user_id === 'string' && subscriber.original_app_user_id
+      ? { ...record(payload), subscriber: { ...subscriber, original_app_user_id: userId } } : payload;
+    return normalizeGoogleRevenueCatSubscriber(userId, associated, {
       now: options.now?.(),
       allowSandbox: options.allowSandboxFor?.(userId),
     });

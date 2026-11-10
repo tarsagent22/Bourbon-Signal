@@ -183,7 +183,7 @@ export function createRevenueCatSubscriberFetcher(input: {
     const payload = await response.json().catch(() => null);
     const subscriber = record(record(payload)?.subscriber);
     if (subscriber && input.verifyAppleTransaction) {
-      if (stringValue(subscriber.original_app_user_id) !== clerkUserId) {
+      if (!stringValue(subscriber.original_app_user_id)) {
         throw new AppleMembershipError("PURCHASE_OWNED_BY_ANOTHER_ACCOUNT", "RevenueCat subscriber owner does not match the authenticated account.");
       }
       const subscriptions = record(subscriber.subscriptions);
@@ -208,7 +208,13 @@ export function createRevenueCatSubscriberFetcher(input: {
         if (verified.revokedAt !== undefined) subscription.revoked_at = new Date(verified.revokedAt).toISOString();
       }
     }
-    return normalizeRevenueCatSubscriber(clerkUserId, payload);
+    // The secret-key GET was made for the authenticated ID. RevenueCat resolves
+    // legitimate aliases to their original ID; that original is not a different
+    // account claim. Signed Apple verification above remains mandatory here.
+    const associatedPayload = subscriber && input.verifyAppleTransaction
+      ? { ...record(payload), subscriber: { ...subscriber, original_app_user_id: clerkUserId } }
+      : payload;
+    return normalizeRevenueCatSubscriber(clerkUserId, associatedPayload);
   };
 }
 
@@ -231,6 +237,16 @@ export function createRevenueCatWebhookHandler(input: {
     const body = record(await request.json().catch(() => null));
     const event = record(body?.event);
     if (event?.type === "TEST") return Response.json({ received: true, outcome: "test" });
+    if (event?.type === 'TRANSFER') {
+      if (event.store && event.store !== 'APP_STORE' && event.store !== 'PLAY_STORE') return Response.json({ error: 'Unsupported subscription store.' }, { status: 409 });
+      const id = stringValue(event.id);
+      const targets = Array.isArray(event.transferred_to) ? [...new Set(event.transferred_to.filter((x): x is string => typeof x === 'string' && /^user_[a-zA-Z0-9_-]{1,200}$/.test(x)))] : [];
+      if (!id || id.length > 240 || !Array.isArray(event.transferred_to) || targets.length > 20) return Response.json({ error: 'Invalid transfer event.' }, { status: 400 });
+      try {
+        for (const clerkUserId of targets) await input.reconcile({ clerkUserId, providerEventId: `${id}:transfer:${clerkUserId}`, ...(event.store ? { store: String(event.store) } : {}) });
+        return Response.json({ received: true, outcome: targets.length ? 'transfer_reconciled' : 'no_identified_receiver' });
+      } catch { return Response.json({ error: 'Purchase transfer reconciliation is temporarily unavailable.' }, { status: 503 }); }
+    }
     const providerEventId = stringValue(event?.id);
     const clerkUserId = stringValue(event?.app_user_id);
     if (!providerEventId || !clerkUserId || providerEventId.length > 500 || clerkUserId.length > 500) {

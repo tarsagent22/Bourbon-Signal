@@ -8,6 +8,7 @@ import { getAppleMembershipRepository } from "./apple-membership-repository.ts";
 import { getMembershipTrialRepository } from "./membership-trial-repository";
 import { createRevenueCatSubscriberFetcher, revenueCatConfiguration } from "./revenuecat.ts";
 import { createAppleTransactionVerifier } from "./apple-transaction-verifier.ts";
+import { createVerifiedMembershipTransfer } from './apple-membership-transfer.ts';
 
 export function configuredAppleMembershipService(env: NodeJS.ProcessEnv = process.env) {
   const configuration = revenueCatConfiguration(env);
@@ -21,11 +22,23 @@ export function configuredAppleMembershipService(env: NodeJS.ProcessEnv = proces
     },
     updateUserMetadata: async (userId, input) => (await clerkClient()).users.updateUserMetadata(userId, input),
   });
+  const recoverVerifiedOwnership = createVerifiedMembershipTransfer({
+    repository, fetchCurrentSubscriber, projectMembership,
+    identityExists: async userId => {
+      try { await (await clerkClient()).users.getUser(userId); return true; }
+      catch (error) {
+        if (error && typeof error === 'object' && 'status' in error && error.status === 404) return false;
+        throw error;
+      }
+    },
+    reconcileRemaining: userId => reconciler.reconcile({ clerkUserId: userId, providerEventId: null }),
+  });
   const reconciler = createAppleMembershipReconciler({
     repository,
     fetchCurrentSubscriber,
     claimAuthoritativeTrial: (input) => getMembershipTrialRepository().claimAuthoritativeAppleTrial(input),
     projectMembership,
+    recoverVerifiedOwnership,
   });
   return { ready: true, configuration, repository, fetchCurrentSubscriber, reconciler } as const;
 }

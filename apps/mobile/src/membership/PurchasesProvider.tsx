@@ -86,8 +86,8 @@ export function PurchasesProvider({ children, adapter: injectedAdapter }: PropsW
 
   const value = useMemo<PurchasesContextValue>(() => ({
     ...state,
-    async purchase(productId) { await coordinator.purchase(productId); },
-    async restore() { await coordinator.restore(); },
+    async purchase(productId) { await coordinator.upgrade(sessionRef.current, productId); },
+    async restore() { await coordinator.restoreWhenReady(sessionRef.current); },
     refresh,
   }), [coordinator, state, refresh]);
 
