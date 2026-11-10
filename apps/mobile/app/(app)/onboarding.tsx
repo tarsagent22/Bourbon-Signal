@@ -22,7 +22,8 @@ import { CoverageRequestSheet } from '../../src/onboarding/CoverageRequestSheet'
 import { Choice, FlavorChip, ExampleSighting, OnboardingButton, OnboardingFrame, s } from '../../src/onboarding/OnboardingUI';
 import { enableRadarPush, radarPushPermission, radarPushDeviceId } from '../../src/push/push-registration';
 import { bottleWatchMutation, watchedBottleCount } from '../../src/radar/radar-preferences';
-import { colors } from '../../src/theme';
+import { colors, fonts } from '../../src/theme';
+import { membershipDisplayPrice } from '../../src/membership/membership-price';
 
 export default function OnboardingScreen() {
   const { userId } = useAuth(); return userId ? <MemberOnboarding key={userId} owner={userId} /> : <BrandLoading />;
@@ -180,7 +181,6 @@ function MemberOnboarding({ owner }: { owner: string }) {
     await run(async () => {
       await persist(draft); const id = productIdFor(tier, 'monthly');
       if (!id) throw new Error('This membership could not load. Try again.');
-      if (purchases.status !== 'ready' || !purchases.products.some(product => product.productId === id) || !purchases.eligibleProductIds.includes(id)) { await purchases.refresh(); return; }
       await purchases.purchase(id); const latest = await refreshMember(); if (latest.member.membership.paid) await go(5);
     });
   }
@@ -239,7 +239,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
       footer={<>
         {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}{storageError ? <Text accessibilityRole="alert" style={s.error}>{storageError}</Text> : null}
         {draft.step === 7 ? <><OnboardingButton label="Enable notifications" busy={working} onPress={() => void enableNotifications()} /><OnboardingButton secondary label="Maybe later" disabled={working} onPress={() => void run(async () => { const status = await api.getPushDeviceStatus(await radarPushDeviceId(), { fresh: true }).catch(() => null); setPushReady(Boolean(status?.enabled && status.currentDeviceRegistered && !status.warning)); await go(8); })} /></> : draft.step === 4 && !paid ? <>
-          <OnboardingButton label={eligible && purchases.status === 'ready' ? `Get ${'Barrel Proof'} · ${product!.localizedPrice}/${product!.localizedPeriod}` : 'Check purchase options'} busy={working} disabled={purchases.status === 'unsupported'} onPress={() => void purchase(selectedPlan)} />
+          <OnboardingButton label={'Upgrade to Barrel Proof'} busy={working} disabled={purchases.status === 'unsupported'} onPress={() => void purchase(selectedPlan)} />
           <OnboardingButton secondary label="Continue without alerts →" disabled={working} onPress={() => void next()} />
         </> : <><OnboardingButton label={continueLabel} busy={working || discovering} disabled={(draft.step === 0 && !draft.displayName.trim()) || (draft.step === 1 && !draft.homeState)} onPress={() => void primary()} />
         {canSkip && !discovery ? <OnboardingButton secondary label={draft.step === 2 ? 'Skip for now' : 'Set up alerts later'} disabled={working} onPress={() => void run(async () => { if (draft.step === 2) await go(3); else await finish(); })} /> : null}</>}
@@ -292,7 +292,7 @@ function MemberOnboarding({ owner }: { owner: string }) {
           <ExampleSighting notification state={draft.homeState} />
           <View style={{ flexDirection: 'row', gap: 8 }}>{(['barrel'] as const).map(tier => {
             const planProduct = purchases.products.find(item => item.productId === productIdFor(tier, 'monthly'));
-            return <Pressable key={tier} accessibilityRole="radio" accessibilityLabel={'Barrel Proof membership'} accessibilityState={{ checked: selectedPlan === tier, disabled: working }} disabled={working} onPress={() => setSelectedPlan(tier)} style={[s.choice, { flex: 1, flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 6, padding: 12 }, selectedPlan === tier && s.choiceSelected]}><View style={[s.row, { width: '100%', gap: 4, justifyContent: 'space-between' }]}><Text style={[s.label, { fontSize: 13, flex: 1 }]}>{'Barrel Proof'}</Text><View accessible={false} style={[s.selection, selectedPlan === tier && s.selectionActive]}>{selectedPlan === tier ? <Text style={s.selectionCheck}>✓</Text> : null}</View></View><Text style={s.label}>{planProduct?.localizedPrice || 'See store price'}</Text><Text style={s.small}>{planProduct ? `per ${planProduct.localizedPeriod}` : 'Monthly'}</Text><Text style={s.small}>{'Unlimited areas and bottles'}</Text>{tier === 'barrel' ? <Text style={[s.link, { fontSize: 11 }]}>+ Community alerts</Text> : null}</Pressable>;
+            return <Pressable key={tier} accessibilityRole="radio" accessibilityLabel={'Barrel Proof membership'} accessibilityState={{ checked: selectedPlan === tier, disabled: working }} disabled={working} onPress={() => setSelectedPlan(tier)} style={[s.choice, { flex: 1, flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 6, padding: 12 }, selectedPlan === tier && s.choiceSelected]}><View style={[s.row, { width: '100%', gap: 4, justifyContent: 'space-between' }]}><Text style={[s.label, { fontSize: 13, flex: 1 }]}>{'Barrel Proof'}</Text><View accessible={false} style={[s.selection, selectedPlan === tier && s.selectionActive]}>{selectedPlan === tier ? <Text style={s.selectionCheck}>✓</Text> : null}</View></View><Text style={[s.label, { fontFamily: fonts.heading }]}>{planProduct ? membershipDisplayPrice(planProduct.localizedPrice) : 'See store price'}</Text><Text style={s.small}>{planProduct ? `per ${planProduct.localizedPeriod}` : 'Monthly'}</Text><Text style={s.small}>{'Unlimited areas and bottles'}</Text>{tier === 'barrel' ? <Text style={[s.link, { fontSize: 11 }]}>+ Community alerts</Text> : null}</Pressable>;
           })}</View>
           <View style={{ gap: 10 }}>
             {(['Unlimited alert areas and watched bottles', 'Community sighting alerts', 'Full Intel feed · Advanced filters', 'Unlimited My Shelf · Bourbon DNA and recommendations', 'Redeem Signal Points for rewards']).map(benefit => <View key={benefit} style={s.row}><Text style={s.link}>✓</Text><Text style={[s.small, { flex: 1, color: '#D8D3C5' }]}>{benefit}</Text></View>)}

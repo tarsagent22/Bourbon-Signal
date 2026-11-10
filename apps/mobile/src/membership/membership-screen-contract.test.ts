@@ -75,9 +75,9 @@ test("Store review paywall leads with benefits and groups localized price, renew
   assert.ok(purchaseCardStart >= 0, "the StoreKit offer card must exist");
   assert.ok(benefitsStart >= 0 && benefitsStart < purchaseCardStart && purchaseAction > purchaseCardStart,
     "benefits lead into the StoreKit offer card, which contains the purchase action");
-  assert.match(screen, /storeProduct\?\.localizedPrice/);
+  assert.match(screen, /membershipDisplayPrice\(storeProduct\.localizedPrice\)/);
   assert.match(screen, /Renews automatically unless canceled at least 24 hours before the current period ends/);
-  assert.match(screen, /`Continue with \$\{plan\.name\} · \$\{storeProduct\.localizedPrice\}`/);
+  assert.match(screen, /Upgrade to Barrel Proof/);
   assert.match(screen, /`Purchase \$\{plan\.name\} for \$\{storeProduct\.localizedPrice\} per \$\{storeProduct\.localizedPeriod\}`/);
   assert.match(screen, /accessibilityLabel=\{purchaseAccessibilityLabel\}/);
 });
