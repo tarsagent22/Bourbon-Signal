@@ -163,7 +163,9 @@ test("verification fetches only the authenticated subscriber from RevenueCat and
   });
   await assert.rejects(() => offline("member-A"), /unavailable/);
 });
-test("store projections preserve Founder/gift/earned and concurrent Apple/Stripe authority", () => {
+test("store projections preserve Founder/gift/earned and concurrent Apple/Stripe authority", (context) => {
+  // Purchase blockers use the current clock; keep it aligned with this dated fixture.
+  context.mock.timers.enable({ apis: ["Date"], now });
   const snapshot = normalizeGoogleRevenueCatSubscriber(
       "member-A",
       subscriber(),
