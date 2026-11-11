@@ -26,6 +26,7 @@ type PurchasesContextValue = PurchaseCoordinatorState & {
   purchase(productId: AppleProductId): Promise<void>;
   restore(): Promise<void>;
   refresh(): Promise<void>;
+  manageSubscriptions(): Promise<void>;
 };
 
 const PurchasesContext = createContext<PurchasesContextValue | null>(null);
@@ -88,6 +89,7 @@ export function PurchasesProvider({ children, adapter: injectedAdapter }: PropsW
     ...state,
     async purchase(productId) { await coordinator.upgrade(sessionRef.current, productId); },
     async restore() { await coordinator.restoreWhenReady(sessionRef.current); },
+    async manageSubscriptions() { await coordinator.manageSubscriptions(sessionRef.current); },
     refresh,
   }), [coordinator, state, refresh]);
 

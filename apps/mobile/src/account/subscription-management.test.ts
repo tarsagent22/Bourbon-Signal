@@ -3,6 +3,33 @@ import test from "node:test";
 import { appleSubscriptionCancellationGuidance, openAppleSubscriptionManagement, openMembershipManagement } from "./subscription-management";
 import { membershipBillingPresentation } from '../membership/membership-billing';
 
+test('known Apple members open the native sheet without a server or external-link dependency', async () => {
+ const calls:string[]=[];
+ await openMembershipManagement({openSubscriptionManagement:async()=>{throw Error('Server offline');}},async()=>{calls.push('link');},{platform:'ios',providerHint:'apple',showAppleSubscriptions:async()=>{calls.push('native');}});
+ assert.deepEqual(calls,['native']);
+});
+
+test('native management falls back to the secure Apple link only when presentation fails', async () => {
+ const calls:string[]=[];
+ const api={openSubscriptionManagement:async()=>({provider:'apple' as const,url:'https://apps.apple.com/account/subscriptions'})};
+ await openMembershipManagement(api,async url=>{calls.push(url);},{platform:'ios',showAppleSubscriptions:async()=>{calls.push('native');throw Error('No active window');}});
+ assert.deepEqual(calls,['native','https://apps.apple.com/account/subscriptions']);
+});
+
+test('failed Apple sheet and link provide the appropriate production or sandbox Settings path', async () => {
+ for(const sandbox of [false,true]){
+  await assert.rejects(openMembershipManagement({openSubscriptionManagement:async()=>{throw Error('Unused');}},async()=>{throw Error('URL rejected');},{platform:'ios',providerHint:'apple',sandbox,showAppleSubscriptions:async()=>{throw Error('Presentation failed');}}),error=>error instanceof Error&&(sandbox?error.message.includes('Developer → Sandbox Apple Account → Manage'):error.message.includes('your name → Subscriptions')));
+ }
+});
+
+test('non-Apple billing and invalid destinations never present an Apple management sheet', async () => {
+ let nativeCalls=0;
+ const native={platform:'ios',showAppleSubscriptions:async()=>{nativeCalls++;}};
+ await openMembershipManagement({openSubscriptionManagement:async()=>({provider:'stripe',url:'https://billing.stripe.com/p/session/fixture'})},async()=>{},native);
+ await assert.rejects(openMembershipManagement({openSubscriptionManagement:async()=>({provider:'apple',url:'https://evil.test/account/subscriptions'})},async()=>{},native));
+ assert.equal(nativeCalls,0);
+});
+
 test('Founder access remains lifetime even when an older subscription has a billing provider', () => {
  for(const provider of ['stripe','apple','google','none',null] as const){
   const view=membershipBillingPresentation('bottled-in-bond',provider,'ios');
