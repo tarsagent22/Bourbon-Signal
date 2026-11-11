@@ -5,7 +5,7 @@ const { readFileSync, readdirSync } = require('node:fs');
 const path = require('node:path');
 const { createRequire } = require('node:module');
 const forge = require('node-forge');
-const provenance = require('../security/node-forge-1.4.2.json');
+const provenance = require('../security/node-forge-1.4.3.json');
 const key = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const privateKey = forge.pki.privateKeyFromPem(key.privateKey.export({ type: 'pkcs1', format: 'pem' }));
 const publicKey = forge.pki.publicKeyFromPem(key.publicKey.export({ type: 'pkcs1', format: 'pem' }));
@@ -68,11 +68,21 @@ test('Expo CLI and certificate tooling resolve the published secure dependency a
   const certRequire = createRequire(require.resolve('@expo/code-signing-certificates/package.json'));
   for (const loader of [expoCliRequire, certRequire]) {
     assert.equal(require('node:fs').realpathSync(loader.resolve('node-forge/lib/rsa.js')), require('node:fs').realpathSync(require.resolve('node-forge/lib/rsa.js')));
-    assert.equal(loader('node-forge/package.json').version, '1.4.2');
+    assert.equal(loader('node-forge/package.json').version, provenance.version);
   }
   const certs = require('@expo/code-signing-certificates');
   const pair = { publicKey: forge.pki.setRsaPublicKey(publicKey.n, publicKey.e), privateKey };
   const certificate = certs.generateSelfSignedCodeSigningCertificate({ keyPair: pair, commonName: 'Security regression only', validityNotBefore: new Date('2020-01-01'), validityNotAfter: new Date('2040-01-01') });
   certs.validateSelfSignedCertificate(certificate, pair);
   assert.equal(certificate.verify(certificate), true);
+});
+
+test('Ed25519 rejects forged signatures under a small-order identity public key', () => {
+  const identity = Buffer.alloc(32); identity[0] = 1;
+  const signature = Buffer.alloc(64); signature[0] = 1;
+  assert.equal(forge.ed25519.verify({ message: Buffer.from('attacker-selected message'), signature, publicKey: identity }), false);
+  const pair = forge.ed25519.generateKeyPair({seed:Buffer.alloc(32,42)});
+  const message = Buffer.from('valid Ed25519 signing flow');
+  const valid = forge.ed25519.sign({message,privateKey:pair.privateKey});
+  assert.equal(forge.ed25519.verify({message,signature:valid,publicKey:pair.publicKey}),true);
 });
