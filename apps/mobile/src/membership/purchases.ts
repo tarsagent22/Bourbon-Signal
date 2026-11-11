@@ -53,6 +53,7 @@ export interface PurchaseAdapter {
   purchase(productId: AppleProductId, replacingProductId?: AppleProductId): Promise<void>;
   restore(): Promise<void>;
   getActiveSubscriptionProductIds?(): Promise<string[]>;
+  showManageSubscriptions?(): Promise<void>;
 }
 
 export interface AppleMembershipApi {
@@ -228,7 +229,7 @@ export function createPurchaseCoordinator({
       const eligibleProductIds = readiness.eligibleProductIds.filter(isAppleProductId);
       publish({
         status: "ready",
-        message: `${purchaseLabel} purchase options are ready. Paid access appears only after Bourbon Signal confirms it on the server.`,
+        message: profileResponse.profile.membership.paid ? `${profileResponse.profile.membership.label} access is confirmed.` : "",
         products: mapped.products,
         profile: profileResponse.profile,
         eligibleProductIds,
@@ -474,6 +475,28 @@ export function createPurchaseCoordinator({
     } finally { upgradeInFlight = false; }
   }
 
+  async function manageSubscriptions(session: { isLoaded: boolean; isSignedIn: boolean; userId: string | null }) {
+    observeSession(session);
+    const userId = session.userId;
+    if (platform !== 'ios' || !session.isLoaded || !session.isSignedIn || !userId || !publicIosApiKey.trim().startsWith('appl_')) {
+      throw new Error('Native Apple subscription management is unavailable.');
+    }
+    const revision = sessionRevision;
+    const run = sessionQueue.then(async () => {
+      if (revision !== sessionRevision || requestedUserId !== userId) throw new Error('The signed-in account changed.');
+      if (['purchasing', 'restoring'].includes(state.status)) throw new Error('Finish the current store request first.');
+      // Management must remain available even if prices or backend readiness cannot load.
+      await adapter.configure({ apiKey: publicIosApiKey.trim(), appUserId: userId });
+      if (revision !== sessionRevision || requestedUserId !== userId) throw new Error('The signed-in account changed.');
+      configuredUserId = userId;
+      if (!adapter.showManageSubscriptions) throw new Error('Native Apple subscription management is unavailable.');
+      await adapter.showManageSubscriptions();
+    });
+    sessionQueue = run.then(() => undefined, () => undefined);
+    await run;
+    if (revision === sessionRevision && requestedUserId === userId) await recognizeSession(session);
+  }
+
   return {
     getState: () => state,
     subscribe(listener: (next: PurchaseCoordinatorState) => void) {
@@ -487,5 +510,6 @@ export function createPurchaseCoordinator({
     upgrade,
     restore,
     restoreWhenReady,
+    manageSubscriptions,
   };
 }

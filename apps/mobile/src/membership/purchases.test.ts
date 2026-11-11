@@ -93,6 +93,39 @@ function harness(overrides: {
   return { adapter, api, events };
 }
 
+test('native management configures the signed-in member without depending on offerings or backend readiness',async()=>{
+ const h=harness({readinessError:Error('Server offline')});
+ h.api.getMemberProfile=async()=>{throw Error('Server offline');};
+ h.adapter.showManageSubscriptions=async()=>{h.events.push('manage');};
+ const coordinator=createPurchaseCoordinator({...h,platform:'ios',publicIosApiKey:'appl_public'});
+ await coordinator.manageSubscriptions({isLoaded:true,isSignedIn:true,userId:'member-A'});
+ assert.deepEqual(h.events.slice(0,2),['configure:member-A:appl_public','manage']);
+ assert.equal(h.events.some(x=>x==='offering'||x.startsWith('purchase:')),false);
+});
+
+test('closing native management refreshes canceled renewal state while retaining paid access through expiry',async()=>{
+ const h=harness({appleMembership:{productId:APPLE_PRODUCT_IDS.barrel.monthly,status:'canceled_period_end',environment:'sandbox',expiresAt:'2099-01-01T00:00:00Z',offerState:'none',updatedAt:'2026-11-11T03:00:00Z'}});
+ h.api.getMemberProfile=async()=>profile('barrel');
+ h.adapter.showManageSubscriptions=async()=>{h.events.push('manage');};
+ const coordinator=createPurchaseCoordinator({...h,platform:'ios',publicIosApiKey:'appl_public'});
+ await coordinator.manageSubscriptions({isLoaded:true,isSignedIn:true,userId:'member-A'});
+ assert.equal(coordinator.getState().membership?.status,'canceled_period_end');
+ assert.equal(coordinator.getState().profile?.membership.paid,true);
+ assert.ok(h.events.indexOf('manage')<h.events.indexOf('reconcile:sync:none'));
+});
+
+test('an account change during configuration cannot present management for the previous sign-in',async()=>{
+ const h=harness();let configured!:()=>void,release!:()=>void;
+ const started=new Promise<void>(resolve=>{configured=resolve;});
+ const delayed=new Promise<void>(resolve=>{release=resolve;});
+ h.adapter.configure=async()=>{configured();await delayed;};
+ h.adapter.showManageSubscriptions=async()=>{h.events.push('manage');};
+ const coordinator=createPurchaseCoordinator({...h,platform:'ios',publicIosApiKey:'appl_public'});
+ const opening=coordinator.manageSubscriptions({isLoaded:true,isSignedIn:true,userId:'member-A'});
+ await started;coordinator.observeSession({isLoaded:true,isSignedIn:true,userId:'member-B'});release();
+ await assert.rejects(opening,/account changed/);assert.equal(h.events.includes('manage'),false);
+});
+
 test('one Upgrade action loads products and completes a verified purchase', async () => {
   const h = harness();
   const c = createPurchaseCoordinator({ ...h, platform: 'ios', publicIosApiKey: 'appl_public' });

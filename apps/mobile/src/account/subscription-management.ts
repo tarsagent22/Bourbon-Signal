@@ -1,13 +1,32 @@
 export const appleSubscriptionCancellationGuidance = "Bourbon Signal cannot cancel an Apple subscription. Apple billing continues until you cancel it in the App Store.";
 const APPLE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
+type NativeManagement = {
+  platform: string;
+  showAppleSubscriptions(): Promise<void>;
+  sandbox?: boolean;
+  providerHint?: 'stripe' | 'apple' | 'google' | 'none' | null;
+};
 
 export async function openAppleSubscriptionManagement(
   opener: (url: string) => Promise<unknown>,
+  native?: NativeManagement,
 ) {
-  await opener(APPLE_SUBSCRIPTIONS_URL);
+  if (native?.platform === 'ios') {
+    try { await native.showAppleSubscriptions(); return; }
+    catch { /* Apple's account link remains available if StoreKit cannot present. */ }
+  }
+  try { await opener(APPLE_SUBSCRIPTIONS_URL); }
+  catch { throw new SubscriptionManagementError(native?.sandbox
+    ? 'Open iPhone Settings → Developer → Sandbox Apple Account → Manage to change this TestFlight subscription.'
+    : 'Open iPhone Settings → your name → Subscriptions to manage your Apple subscription.'); }
 }
 
-export async function openMembershipManagement(api: { openSubscriptionManagement: () => Promise<{provider:"stripe"|"apple"|"google";url:string}> }, opener: (url:string)=>Promise<unknown>) {
+export class SubscriptionManagementError extends Error {}
+
+export async function openMembershipManagement(api: { openSubscriptionManagement: () => Promise<{provider:"stripe"|"apple"|"google";url:string}> }, opener: (url:string)=>Promise<unknown>, native?: NativeManagement) {
+  // The provider hint comes from the authenticated billing lookup. A known Apple
+  // subscriber should not need another server request to reach cancellation.
+  if (native?.platform === 'ios' && native.providerHint === 'apple') return openAppleSubscriptionManagement(opener,native);
   const result = await api.openSubscriptionManagement();
   const url = new URL(result.url);
   const allowed = result.provider === "apple"
@@ -15,7 +34,13 @@ export async function openMembershipManagement(api: { openSubscriptionManagement
     : result.provider === "google" ? url.hostname === "play.google.com" && url.pathname === "/store/account/subscriptions" && url.searchParams.get("package") === "com.bourbonsignal.app"
     : url.hostname === "billing.stripe.com";
   if (url.protocol !== "https:" || url.username || url.password || !allowed) throw new Error("Membership management returned an invalid link.");
-  await opener(url.toString());
+  if (result.provider === 'apple') return openAppleSubscriptionManagement(opener,native);
+  try { await opener(url.toString()); }
+  catch {
+    throw new SubscriptionManagementError(result.provider === 'google'
+      ? 'Open Google Play → your profile → Payments & subscriptions → Subscriptions.'
+      : 'Membership management could not open. Please try again or contact support.');
+  }
 }
 
 export function membershipManagedOutsideStore(provider:"stripe"|"apple"|"google"|"none"|null,platform:string) {

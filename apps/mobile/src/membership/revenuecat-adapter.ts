@@ -23,6 +23,7 @@ type RevenueCatSdk = {
   purchasePackage(item: RevenueCatPackage): Promise<unknown>;
   purchaseSubscriptionOption?(option: SubscriptionOption,change?: {oldProductIdentifier:string}):Promise<unknown>;
   restorePurchases(): Promise<unknown>;
+  showManageSubscriptions?(): Promise<void>;
   PURCHASES_ERROR_CODE: {
     PURCHASE_CANCELLED_ERROR: string;
     PAYMENT_PENDING_ERROR: string;
@@ -148,6 +149,12 @@ export function createRevenueCatPurchaseAdapter(load: RevenueCatLoader = default
       } catch (caught) {
         throw providerError(purchases, caught,platform);
       }
+    },
+    async showManageSubscriptions() {
+      const purchases = await module();
+      await confirmAccount(purchases);
+      if (platform !== 'ios' || !purchases.showManageSubscriptions) throw new PurchaseProviderError('unavailable', 'Native Apple subscription management is unavailable.');
+      await purchases.showManageSubscriptions();
     },
     async restore() {
       const purchases = await module();

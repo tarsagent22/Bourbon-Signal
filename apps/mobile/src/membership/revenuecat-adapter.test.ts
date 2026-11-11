@@ -32,6 +32,15 @@ function sdkHarness(errorCode?: string) {
   return { sdk, calls };
 }
 
+test('subscription management verifies the app account and presents the existing native StoreKit bridge', async () => {
+ const {sdk,calls}=sdkHarness();let current='member-A';
+ const adapter=createRevenueCatPurchaseAdapter(async()=>({default:{...sdk,isConfigured:async()=>true,getAppUserID:async()=>current,logIn:async id=>{current=id;calls.push('login:'+id);},showManageSubscriptions:async()=>{calls.push('manage');}}}));
+ await adapter.configure({apiKey:'appl_public',appUserId:'member-A'});
+ current='previous-account';
+ await adapter.showManageSubscriptions?.();
+ assert.deepEqual(calls,['login:member-A','manage']);
+});
+
 test("a remounted adapter identifies the signed-in account in an already-configured native SDK", async () => {
   const { sdk, calls } = sdkHarness();
   let nativeUser = "previous-account";
