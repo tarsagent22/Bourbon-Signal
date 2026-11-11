@@ -3,6 +3,20 @@ import test from "node:test";
 import { appleSubscriptionCancellationGuidance, openAppleSubscriptionManagement, openMembershipManagement } from "./subscription-management";
 import { membershipBillingPresentation } from '../membership/membership-billing';
 
+test('native Linking keeps its receiver for Apple, Google and Stripe billing destinations', async () => {
+ class NativeLinking {
+  opened:string[]=[];
+  _validateURL(url:string){assert.match(url,/^https:\/\//);}
+  async openURL(url:string){this._validateURL(url);this.opened.push(url);}
+ }
+ for(const [provider,url]of [['apple','https://apps.apple.com/account/subscriptions'],['google','https://play.google.com/store/account/subscriptions?package=com.bourbonsignal.app'],['stripe','https://billing.stripe.com/p/session/fixture']]as const){
+  const linking=new NativeLinking(),api={openSubscriptionManagement:async()=>({provider,url})};
+  await assert.rejects(openMembershipManagement(api,linking.openURL));
+  await openMembershipManagement(api,linking);
+  assert.deepEqual(linking.opened,[url]);
+ }
+});
+
 test('known Apple members open the native sheet without a server or external-link dependency', async () => {
  const calls:string[]=[];
  await openMembershipManagement({openSubscriptionManagement:async()=>{throw Error('Server offline');}},async()=>{calls.push('link');},{platform:'ios',providerHint:'apple',showAppleSubscriptions:async()=>{calls.push('native');}});
