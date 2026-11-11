@@ -5,7 +5,7 @@ const path = require('node:path');
 async function main() {
   execFileSync(process.execPath, ['--test', path.join(__dirname, 'forge-security.test.cjs')], { stdio: 'inherit' });
   const version = require('node-forge/package.json').version;
-  assert.equal(version, '1.4.2');
+  assert.equal(version, '1.4.3');
   const response = await fetch('https://registry.npmjs.org/-/npm/v1/security/advisories/bulk', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ 'node-forge': [version] }),

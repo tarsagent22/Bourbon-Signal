@@ -1,0 +1,18 @@
+{
+  "version": "1.4.3",
+  "resolved": "https://registry.npmjs.org/node-forge/-/node-forge-1.4.3.tgz",
+  "integrity": "sha512-P6wzfh6t70avmV8FrVEAd/36sOPJQ+hkaJVX1Laap9J/77m7M0eyozDvc8SwnDf4P7MP94gwbAAo0rg3YVXT+g==",
+  "upstreamCommit": "936b24d939dc7261ee37982576f9cf2b410084ee",
+  "advisories": [
+    "https://github.com/advisories/GHSA-6889-vf6x-f3g5",
+    "https://github.com/advisories/GHSA-w4xr-hqv8-ch44",
+    "https://github.com/advisories/GHSA-6cv4-p8m7-4r25",
+    "https://github.com/advisories/GHSA-j8rw-jp99-435v"
+  ],
+  "sha256": {
+    "lib/rsa.js": "6632e195295ce76f6bb9131ee770dcd6cc1ee4ffac7906302208b00faf95a87f",
+    "lib/tls.js": "3250a1cc7d0017e7d3328d14c6f92945fcdc54480709c55ab418e64f90803e09",
+    "lib/ed25519.js": "1b2e4cf0cd4f89647f667dc2ab77912ea2e434e57f87cdd094420afbad5b0175",
+    "lib/http.js": "9d5ab17ac2735014373cb5dcec93a9ffc36f236843d4aff64969cff326de2b14"
+  }
+}

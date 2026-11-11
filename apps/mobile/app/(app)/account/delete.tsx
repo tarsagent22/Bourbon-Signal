@@ -28,8 +28,8 @@ export default function DeleteAccountScreen() {
     setError("");
     try {
       if(management.provider && management.provider!=="none")await management.manage();
-      else if(Platform.OS==="android")await openGoogleSubscriptionManagement(Linking.openURL);
-      else await openAppleSubscriptionManagement(Linking.openURL);
+      else if(Platform.OS==="android")await openGoogleSubscriptionManagement(url=>Linking.openURL(url));
+      else await openAppleSubscriptionManagement(url=>Linking.openURL(url));
     } catch {
       setError("Subscription settings could not be opened. Please try again or contact support.");
     } finally {

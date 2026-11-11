@@ -57,7 +57,7 @@
     "expo-updates": "~57.0.24",
     "minimatch": "file:vendor/minimatch",
     "minimatch-upstream": "npm:minimatch@11.0.3",
-    "node-forge": "1.4.2",
+    "node-forge": "1.4.3",
     "patch-package": "8.0.1",
     "query-string": "9.5.1",
     "react": "19.2.3",
