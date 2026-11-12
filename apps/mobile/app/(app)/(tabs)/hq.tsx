@@ -28,11 +28,12 @@ import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation"
 import { signOutWithRadarPushDisabled } from "../../../src/push/push-registration";
 import { rewardCatalogSummary } from "../../../src/interactions/member-interactions";
 import { RewardEmblem, rewardStyles as s } from "../../../src/rewards/RewardUI";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
 import { colors, typeScale } from "../../../src/theme";
 
 export default function AccountScreen() {
+  const insets = useSafeAreaInsets();
   const api = useMobileApi();
   const router = useRouter();
   const { signOut } = useAuth();
@@ -89,11 +90,9 @@ export default function AccountScreen() {
   const openRewards = (section = "rewards") =>
     router.push({ pathname: "/(app)/account/rewards", params: { section } });
   return (
-    <SafeAreaView edges={["top"]} style={memberScreenStyles.screen}>
     <ScrollView
-      contentInsetAdjustmentBehavior="never"
       style={memberScreenStyles.screen}
-      contentContainerStyle={[s.page, { paddingTop: 16 }]}
+      contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}
       refreshControl={
         <RefreshControl
           refreshing={pullRefreshing}
@@ -265,7 +264,6 @@ export default function AccountScreen() {
         </Text>
       </Pressable>
     </ScrollView>
-    </SafeAreaView>
   );
 }
 function AccountRow({

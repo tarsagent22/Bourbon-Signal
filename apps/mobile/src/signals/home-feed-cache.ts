@@ -4,8 +4,8 @@ import { validApiResponse } from '../api/response-validation';
 export interface FeedCacheStorage { read(owner: string): Promise<string | null>; write(owner: string, raw: string | null): Promise<void> }
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 type Entry = { scope: string; savedAt: number; page: SignalFeedPage };
-export function feedCacheScope(view: SignalFeedView, filters: SignalFeedFilters, timeline?: import("../../../../shared/report-timeline").TimelineRequest) {
-  return JSON.stringify(['listing-continuity-v1', view, filters.state, filters.area, filters.freshness, filters.bottle, [...filters.rarities].sort(), ...(timeline ? [timeline] : [])]);
+export function feedCacheScope(view: SignalFeedView, filters: SignalFeedFilters) {
+  return JSON.stringify(['listing-continuity-v1', view, filters.state, filters.area, filters.freshness, filters.bottle, [...filters.rarities].sort()]);
 }
 export function createHomeFeedCache(storage: FeedCacheStorage, now = Date.now) {
   const memory = new Map<string, Entry[]>();
@@ -43,11 +43,7 @@ export function createHomeFeedCache(storage: FeedCacheStorage, now = Date.now) {
       if (page.access.marketDetailsLocked) {
         generations.set(owner, (generations.get(owner) || 0) + 1);
         memory.delete(owner);
-        if (!page.marketSummaries.length) return persist(owner, null);
-        const safePreview = { ...page, signals: [], nextCursor: null, hasMore: false };
-        const entries = [{ scope, savedAt: now(), page: safePreview }];
-        memory.set(owner, entries);
-        return persist(owner, JSON.stringify({ version: 1, entries }));
+        return persist(owner, null);
       }
       const entry = { scope, savedAt: now(), page: { ...page, signals: page.signals.slice(0, 30) } };
       const previous = (memory.get(owner) || []).filter(item => item.scope !== scope && valid(item));

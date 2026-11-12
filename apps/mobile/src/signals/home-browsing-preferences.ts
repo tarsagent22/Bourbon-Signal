@@ -2,11 +2,8 @@ import { DEFAULT_SIGNAL_FILTERS, type SignalFeedFilters, type SignalFeedView, ty
 
 export interface HomeBrowsingPreferences {
   version: 1;
-  timelineBrowse?: boolean;
   view: SignalFeedView;
   filtersByView: Record<SignalFeedView, SignalFeedFilters>;
-  startupProfile?: { sessionId: string; tier: "free" | "standard" | "barrel" | "bottled-in-bond"; homeState?: string };
-  nationalByView?: Record<SignalFeedView, boolean>;
 }
 
 const rarityValues = new Set<SignalRarity>(["limited", "allocated", "unicorn"]);
@@ -40,12 +37,7 @@ export function parseHomeBrowsingPreferences(raw: string | null): HomeBrowsingPr
     const market = parseFilters(value.filtersByView?.market);
     const community = parseFilters(value.filtersByView?.community);
     if (value.version !== 1 || (value.view !== "market" && value.view !== "community") || !market || !community) return null;
-    const national = value.nationalByView;
-    const nationalByView = typeof national?.market === "boolean" && typeof national?.community === "boolean" ? national : undefined;
-    const candidate = value.startupProfile;
-    const startupProfile = candidate && typeof candidate.sessionId === "string" && ["free", "standard", "barrel", "bottled-in-bond"].includes(candidate.tier)
-      && (candidate.homeState === undefined || /^[A-Z]{2}$/.test(candidate.homeState)) ? candidate : undefined;
-    return { version: 1, ...(value.timelineBrowse ? { timelineBrowse: true } : {}), view: value.view, filtersByView: { market, community }, ...(nationalByView ? { nationalByView } : {}), ...(startupProfile ? { startupProfile } : {}) };
+    return { version: 1, view: value.view, filtersByView: { market, community } };
   } catch {
     return null;
   }

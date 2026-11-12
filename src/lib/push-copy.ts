@@ -1,8 +1,5 @@
-import { NC_SHIPMENT_EVENT } from "../../shared/feed-report-summary.ts";
-
 // Public report details only. Account identity and routing stay outside visible copy.
 export interface PushReportDetails {
-  eventType?: string;
   sourceType?: "engine" | "community";
   sourceLabel?: string;
   storeLabel?: string;
@@ -65,14 +62,6 @@ export function buildPushPreview(alertId: string, inputNames: unknown, details: 
   const area = pushLocalityText(details.matchedArea, 65);
   const location = [store, [city, state].filter(Boolean).join(", ")].filter(Boolean).join(" · ") || area;
   const quantity = quantityText(details);
-
-  if (details.eventType === NC_SHIPMENT_EVENT) {
-    const shipmentLocation = store.replace(/\s+ABC(?:\s+(?:Board|Commission))?$/i, "") || area || "your area";
-    return {
-      title: pushDisplayText("ABC shipment reported in " + shipmentLocation, 100),
-      body: pushDisplayText(names.join(", "), 155) + "\nReceiving stores unconfirmed.",
-    };
-  }
 
   if (details.sourceType === "community") {
     const price = typeof details.price === "number" && Number.isFinite(details.price) && details.price > 0

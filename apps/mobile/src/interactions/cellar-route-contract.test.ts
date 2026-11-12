@@ -29,7 +29,7 @@ test("Cellar add uses a dedicated native route, local indexed search, and duplic
 
 test("native add keeps the simple owned-or-tasted flow and progressive optional details", () => {
   const add = read("app/(app)/cellar/add.tsx");
-  for (const label of ["Search bourbon or whiskey", "Add a bottle", "Rate a whiskey", "Quantity", "Price paid", "Store", "Can.t find it\?", "Add this whiskey", "Near matches", "More cues"]) assert.match(add, new RegExp(label));
+  for (const label of ["Add to My Shelf", "Search bourbon or whiskey", "Add a bottle", "Rate a whiskey", "Quantity", "Price paid", "Store", "Can.t find it\?", "Add this whiskey", "Near matches", "More cues"]) assert.match(add, new RegExp(label));
   assert.doesNotMatch(add, /canonical (?:bottle|library|Radar)|Purchase date|purchaseDate/i);
   assert.match(add, /submitBottleContribution/);
   assert.match(add, /createCustomCollectionBottle/);

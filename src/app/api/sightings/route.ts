@@ -1,7 +1,3 @@
-import { sightingStoreAddressKey } from "@/lib/sighting-store-directory-core";
-import { readSightingStoreDirectory } from "@/lib/sighting-store-directory";
-import { nearbyMemberSightingFilter } from "@/lib/nearby-feed-scope";
-import { readTimelineRequest, savedTimelineScopes, savedTimelineMatchesSighting } from "@/lib/signals/report-timeline";
 import { readLegalAcceptance } from '@/lib/legal-acceptance';
 import { sightingFeedSearchMatches } from "@/lib/signals/feed-search";
 import { buildSightingRarityCatalog, sightingCatalogRarityPending } from "@/lib/sighting-bottle-rarity";
@@ -211,28 +207,15 @@ async function getRewardSightings(userId: string) {
 
 async function getAggregateSightings(
   currentUserId: string,
-  { includeOwned = false, requireLegacy = false, limit = 60, before = null, filters = {}, matches }: { includeOwned?: boolean; requireLegacy?: boolean; limit?: number; before?: { createdAt: string; id: string } | null; filters?: SightingFeedFilters; matches?: (sighting: MemberSighting) => boolean } = {},
+  { includeOwned = false, requireLegacy = false, limit = 60, before = null, filters = {} }: { includeOwned?: boolean; requireLegacy?: boolean; limit?: number; before?: { createdAt: string; id: string } | null; filters?: SightingFeedFilters } = {},
 ) {
   const repository = createCommunitySightingsRepository();
   const legacy = requireLegacy || !COMMUNITY_SIGHTINGS_DURABLE_CUTOVER.completed
     ? await readCachedLegacyCommunitySnapshot()
     : null;
   const legacyIds = [...new Set((legacy?.sightings || []).map((sighting) => sighting.id))];
-  const readFeed = async () => {
-    if (!matches) return repository.listSightingsFeed(currentUserId, limit, before, filters);
-    let boundary = before;
-    const sightings: MemberSighting[] = [];
-    while (sightings.length < limit) {
-      const batch = await repository.listSightingsFeed(currentUserId, 200, boundary, filters);
-      sightings.push(...batch.sightings.filter(matches));
-      const last = batch.sightings.at(-1);
-      if (batch.sightings.length < 200 || !last || last.id === boundary?.id) break;
-      boundary = { id: last.id, createdAt: last.createdAt };
-    }
-    return { sightings: sightings.slice(0, limit), totalSightings: sightings.length };
-  };
   const [durableFeed, durableOwned, durableLegacyOverlap] = await Promise.all([
-    readFeed(),
+    repository.listSightingsFeed(currentUserId, limit, before, filters),
     includeOwned ? repository.listSightingsForReporter(currentUserId) : Promise.resolve([]),
     repository.countSightingsByIds(legacyIds),
   ]);
@@ -259,7 +242,7 @@ async function getAggregateSightings(
       query: filterArea,
       fields: [sighting.storeName, sighting.storeAddress, sighting.storeCity],
     });
-    return (!matches || matches(sighting)) && beforeMatch && stateMatch && rarityMatch && bottleMatch && sinceMatch && areaMatch && sightingFeedSearchMatches(sighting, filterSearch);
+    return beforeMatch && stateMatch && rarityMatch && bottleMatch && sinceMatch && areaMatch && sightingFeedSearchMatches(sighting, filterSearch);
   });
   for (const sighting of eligibleLegacySightings) sightingsById.set(sighting.id, sighting);
   for (const sighting of durableFeed.sightings) sightingsById.set(sighting.id, sighting);
@@ -325,15 +308,6 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  let timeline: ReturnType<typeof readTimelineRequest>;
-  try { timeline = url.searchParams.has("timeline") ? readTimelineRequest(url) : undefined; }
-  catch { return NextResponse.json({ error: "Invalid timeline filters." }, { status: 400 }); }
-  if (timeline?.mode === "bottle" && !entitlements.canUseStateFilter) return NextResponse.json({ error: "Bottle reports require a paid membership." }, { status: 403 });
-  const scopes = entitlements.canUseStateFilter && timeline?.mode === "saved"
-    ? savedTimelineScopes(user.publicMetadata, entitlements.alertAreaLimit) : null;
-  const nearbySighting = nearbyMemberSightingFilter();
-  const verifiedPremises = scopes?.some(scope => scope.type === "county" || scope.type === "store")
-    ? new Map((await readSightingStoreDirectory().catch(() => [])).map(store => [sightingStoreAddressKey(store), store])) : null;
   const includeRewards = url.searchParams.get("rewards") !== "0";
   const requestedSightingId = String(url.searchParams.get("sightingId") || "").slice(0, 160);
   if (requestedSightingId) {
@@ -377,13 +351,11 @@ export async function GET(req: NextRequest) {
   const rarityCatalog = buildSightingRarityCatalog(await getBourbonBible());
   const feedFilters: SightingFeedFilters = {
     catalogRarityTiers: rarityCatalog.filterTiers,
-    states: requestedState ? [requestedState] : [...new Set(scopes?.map(scope => scope.state))],
+    states: requestedState ? [requestedState] : [],
     rarities: requestedRarities,
     bottle: requestedBottle || null,
     search: requestedSearch || null,
-    since: requestedSince || (entitlements.sightingsPreviewLimit === null && (nearbySighting || (timeline && timeline.mode !== "bottle" && !timeline.older))
-      ? new Date((Date.parse(url.searchParams.get("timelineAt") || "") || Date.now()) - 48 * 3_600_000).toISOString()
-      : null),
+    since: requestedSince || null,
     area: canonicalArea,
   };
   const beforeCreatedAt = url.searchParams.get("beforeCreatedAt");
@@ -406,16 +378,7 @@ export async function GET(req: NextRequest) {
   const [aggregate, rewardContext] = await Promise.all([
     summaryOnly
       ? getRewardSightings(userId).then(durableOwned => ({ sightings: [] as MemberSighting[], durableOwned, totalSightings: 0 }))
-      : scopes?.length === 0
-        ? Promise.resolve({ sightings: [] as MemberSighting[], durableOwned: [] as MemberSighting[], totalSightings: 0 })
-        : getAggregateSightings(userId, {
-          includeOwned: includeRewards, limit: feedLimit, before, filters: feedFilters,
-          ...(entitlements.sightingsPreviewLimit === null && (scopes || nearbySighting || timeline?.bottleId) ? { matches: (sighting: MemberSighting) =>
-            (!scopes || savedTimelineMatchesSighting(sighting, scopes, verifiedPremises?.get(sightingStoreAddressKey({
-              state: sighting.storeState || "", city: sighting.storeCity || "", address: sighting.storeAddress,
-            })))) && (!nearbySighting || nearbySighting(sighting))
-            && (!timeline?.bottleId || sighting.bottleId === timeline.bottleId) } : {}),
-        }),
+      : getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit, before, filters: feedFilters }),
     includeRewards ? Promise.all([
       getBourbonBible(),
       pointsRepository.readAchievementMetrics(userId).catch(() => ({available:false})),
@@ -426,8 +389,6 @@ export async function GET(req: NextRequest) {
   const allSightings = (await validatePublicLeaderBadges(createCommunityLeaderBadgeQuery(), aggregate.sightings)).filter(sighting=>communitySightingVisible(sighting, hidden.blocked, hidden.reported));
   const previewLimit = entitlements.sightingsPreviewLimit;
   const sightings = (previewLimit === null ? allSightings : allSightings.slice(0, previewLimit))
-    .filter(sighting => entitlements.sightingsPreviewLimit === null || (!nearbySighting || nearbySighting(sighting))
-      && (!timeline || timeline.older || Date.parse(sighting.createdAt) >= Date.now() - 48 * 3_600_000))
     .map(rarityCatalog.present)
     .map((sighting) => visibleSightingForRequester(sighting, ownerPointsPreview));
   let rewards: MemberRewardsSummary | null = null;

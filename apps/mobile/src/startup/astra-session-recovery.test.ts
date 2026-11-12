@@ -38,8 +38,6 @@ test('member navigation retains its key during logout and resets when another ac
     '@clerk/expo': { useAuth: () => identity },
     react: { useRef: () => retained },
     'expo-router': { Stack: Object.assign(() => null, { Screen: () => null }) },
-    'react-native': { Platform: { OS: 'ios' } },
-    '../../src/components/ProfileBackButton': { ProfileBackButton: () => null },
     '../../src/activity/useMobileActivity': { useMobileActivity() {} },
     '../../src/push/PushResponseHandler': { PushMaintenance: () => null },
   });

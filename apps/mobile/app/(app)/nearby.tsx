@@ -21,12 +21,9 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { loadNearbyPins, saveNearbyPins } from "../../src/nearby/persisted-preview";
-import { useReportClock } from "../../src/hooks/useReportClock";
 import { StoreSheet } from "../../src/nearby/StoreSheet";
 import {
   readNearbyPreview,
-  nearbyPinAge,
   saveNearbyPreview,
   clearNearbyPreview,
 } from "../../src/nearby/map-feed";
@@ -103,8 +100,6 @@ export default function Nearby() {
     [watchOnly, setWatchOnly] = useState(false),
     [watched, setWatched] = useState<string[] | null>(null),
     [filters, setFilters] = useState(false);
-  const [showOlderPins, setShowOlderPins] = useState(false);
-  const reportClock = useReportClock();
   const [result, setResult] = useState<NearbyResult | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -137,6 +132,7 @@ export default function Nearby() {
     setFilterDraft({ radius, tiers, fresh, watchOnly });
     setFilters(true);
   };
+  const lastApi = useRef(api);
   const sequence = useRef(0),
     placeSequence = useRef(0),
     touched = useRef(false);
@@ -183,7 +179,7 @@ export default function Nearby() {
       lat: String(place.latitude),
       lng: String(place.longitude),
       radius: String(radius),
-      view: params.view || "all",
+      view: params.view || "market",
     });
     for (const [k, v] of Object.entries({
       search: query,
@@ -197,35 +193,21 @@ export default function Nearby() {
       q.set("placeState", placeParts[2]);
     }
     const key = q.toString();
-    const previousKey = q.get("view") === "all" ? new URLSearchParams(q) : null;
-    previousKey?.set("view", "market");
-    const preview = readNearbyPreview(api, key) || (previousKey ? readNearbyPreview(api, previousKey.toString()) : null);
-    setResult(preview);
-    const cacheAccount = api.accountIdentity + ":" + api.membershipRevision;
-    let authoritative = false;
-    if (!preview) void loadNearbyPins(cacheAccount, key)
-      .then(cached => cached || (previousKey ? loadNearbyPins(cacheAccount, previousKey.toString()) : null)).then(cached => {
-      if (cached && !authoritative && id === sequence.current) {
-        saveNearbyPreview(api, key, cached);
-        setResult(cached);
-      }
-    }).catch(() => undefined);
+    const preview = readNearbyPreview(api, key);
+    if (lastApi.current !== api || preview) setResult(preview);
+    lastApi.current = api;
     api
       .nearby(q)
       .then((data) => {
         if (id === sequence.current) {
-          authoritative = true;
           saveNearbyPreview(api, key, data);
-          void saveNearbyPins(cacheAccount, key, data).catch(() => undefined);
           setResult(data);
         }
       })
       .catch((e) => {
         if (id === sequence.current) {
           if (e?.status === 401 || e?.status === 403) {
-            authoritative = true;
             clearNearbyPreview(api);
-            void saveNearbyPins(cacheAccount, key, null).catch(() => undefined);
             setResult(null);
           }
           setError(
@@ -289,7 +271,6 @@ export default function Nearby() {
       ),
     [result, radius, watchOnly, watched],
   );
-  const visiblePins = stores.filter(store => showOlderPins || nearbyPinAge(store, reportClock.getTime()) <= 7);
   const activeFilters = Boolean(tiers || fresh || watchOnly || query);
   const [selected, setSelected] = useState<string | null>(params.store || null);
   const [showMembers, setShowMembers] = useState(params.members === "1");
@@ -377,7 +358,7 @@ export default function Nearby() {
         <NearbyMap
           origin={place}
           radius={radius}
-          stores={visiblePins}
+          stores={stores}
           selected={selected}
           showMembers={showMembers}
           onSelect={selectStore}
@@ -514,7 +495,7 @@ export default function Nearby() {
                   : !place
                     ? "Use your location or choose a city to explore."
                     : busy
-                      ? "Checking stores and shipment reports near you."
+                      ? "The map is ready. Reports are on their way."
                       : result?.partial
                         ? "The search could not finish. Try again to load nearby reports."
                         : result?.previewLocked
@@ -731,8 +712,6 @@ export default function Nearby() {
                 Watchlist unavailable. Reopen Nearby to try again.
               </Text>
             ) : null}
-            <Text style={s.eyebrow}>MAP PINS</Text>
-            <Button label={showOlderPins ? "Hide pins older than 7 days" : "Show pins older than 7 days"} selected={showOlderPins} onPress={() => setShowOlderPins(value => !value)} />
             <Text style={s.eyebrow}>RARITY</Text>
             <View style={s.wrap}>
               {[

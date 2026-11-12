@@ -1,21 +1,13 @@
-import type { FeedReportSummary } from "../../../../shared/feed-report-summary";
-import type { BoardMember } from "../../../../shared/nearby";
-
-import type { ShipmentUpdate } from "../../../../shared/report-timeline";
-
 export interface Signal {
-  shipmentUpdate?: ShipmentUpdate;
-  groupSummary?: FeedReportSummary;
   contractVersion: "bourbon-signal/signal@1";
   id: string;
   availabilityEpisodeId?: string;
   historical?: boolean;
-  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units"; stores?: BoardMember[] };
+  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units" };
   kind: "availability" | "release" | "event";
   source: {
     type: "member" | "retailer" | "trusted_source" | "release_source";
     label: string;
-    url?: string;
     reportMode?: "seen_in_store" | "reported_online";
     actor?: { kind: "founder" | "member"; number: number; label: string; displayName?: string; badges?: string[] };
   };
@@ -24,7 +16,7 @@ export interface Signal {
     scope: "exact_store" | "area" | "board" | "state" | "online" | "unknown";
     label?: string;
     state?: string;
-    store?: { id?: string; name?: string; address?: string; city?: string; state?: string; zip?: string; phone?: string };
+    store?: { id?: string; name?: string; address?: string; city?: string; state?: string; zip?: string };
   };
   listingChange?: "first_detection" | "restock" | "price_drop" | "price_change";
   timing: { observedAt?: string; reportedAt?: string; displayAt: string; firstSpottedAt?: string; lastCheckedAt?: string; scheduledFor?: string; expiresAt?: string };
@@ -293,8 +285,6 @@ export interface MemberPreferencesPatch {
 
 export interface MemberAlert {
   id: string;
-  dedupeKey?: string;
-  underlyingStableKeys?: string[];
   signalId?: string;
   bottleName: string;
   bottleNames?: string[];

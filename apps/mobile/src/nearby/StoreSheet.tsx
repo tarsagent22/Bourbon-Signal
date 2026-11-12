@@ -67,7 +67,11 @@ const BottleRow = memo(function BottleRow({
           {appearance.rarityLabel}
         </Text>
         <Text style={s.bottleName}>{signal.bottle.name}</Text>
-        {signal.availability?.price != null ? <Text style={s.price}>{`$${signal.availability.price.toFixed(2)}`}</Text> : null}
+        <Text style={s.price}>
+          {signal.availability?.price != null
+            ? `$${signal.availability.price.toFixed(2)}`
+            : "Price not reported"}
+        </Text>
         <Text style={s.meta}>
           {signal.shipment
             ? `${signal.shipment.quantity != null ? `${signal.shipment.quantity} ${signal.shipment.unit} shipped · ` : ""}${signal.shipment.reportedAt ? new Date(signal.shipment.reportedAt).toLocaleDateString() : "Date unreported"}`
@@ -218,7 +222,7 @@ export function StoreSheet({
             style={s.headingTitle}
           >
             {store && expanded && (
-              <Icon name="chevron-left" size={20} color={c.accent} />
+              <Icon name="chevron-left" size={20} color={c.muted} />
             )}
             <Text style={s.headingText}>
               {store
@@ -227,7 +231,7 @@ export function StoreSheet({
                   : store.kind === "board"
                     ? "Board shipments"
                     : "Selected store"
-                : `${storeCount} ${storeCount === 1 ? "store" : "stores"}${boardCount ? ` · ${boardCount} ${boardCount === 1 ? "ABC area with shipments" : "ABC areas with shipments"}` : " nearby"}`}
+                : `${storeCount} ${storeCount === 1 ? "store" : "stores"}${boardCount ? ` · ${boardCount} ${boardCount === 1 ? "board" : "boards"}` : " nearby"}`}
             </Text>
             {busy && <ActivityIndicator size="small" color={c.accent} />}
           </Pressable>
@@ -313,7 +317,7 @@ export function StoreSheet({
                 <View style={s.copy}>
                   <Text style={s.meta}>
                     {store.kind === "board"
-                      ? `${store.members?.length || 0} stores in this ABC area`
+                      ? `${store.members?.length || 0} member stores. Check with the store before visiting.`
                       : store.address}
                   </Text>
                   {store.approximateLocation && (

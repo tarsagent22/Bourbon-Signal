@@ -1,5 +1,3 @@
-import { Platform } from "react-native";
-import { ProfileBackButton } from "../../src/components/ProfileBackButton";
 import { useAuth } from "@clerk/expo";
 import { Stack } from "expo-router";
 import { useRef } from "react";
@@ -15,10 +13,7 @@ export default function AppLayout() {
   // Root Stack.Protected removes the member routes and their history on logout.
   // Retain the last identity during dismissal, but reset for a new account.
   return (
-    <><PushMaintenance key={signedInIdentity.current} /><Stack key={signedInIdentity.current} screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.accent, headerTitleStyle: { color: colors.text }, headerShadowVisible: false, headerBackButtonDisplayMode: "minimal", headerBackVisible: false,
-      headerLeft: ({ canGoBack }) => canGoBack ? <ProfileBackButton /> : null,
-      unstable_headerLeftItems: Platform.OS === "ios" ? ({ canGoBack }) => canGoBack
-        ? [{ type: "custom", element: <ProfileBackButton />, hidesSharedBackground: true }] : [] : undefined }}>
+    <><PushMaintenance key={signedInIdentity.current} /><Stack key={signedInIdentity.current} screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false, headerBackButtonDisplayMode: "minimal" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="setup" options={{ title: "Getting started" }} />

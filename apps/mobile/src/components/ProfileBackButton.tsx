@@ -5,7 +5,7 @@ import { colors } from '../theme';
 
 export function ProfileBackButton() {
   const router = useRouter();
-  return <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
-    <MaterialCommunityIcons name="chevron-left" color={colors.accent} size={27} />
+  return <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
+    <MaterialCommunityIcons name="chevron-left" color={colors.text} size={27} />
   </Pressable>;
 }

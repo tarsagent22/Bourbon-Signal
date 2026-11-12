@@ -1,5 +1,5 @@
 import { CommunityTermsGate } from '../../../src/components/CommunityTermsGate';
-import { TERMS_URL } from '../../../../../shared/legal-acceptance';
+import { PHOTO_PERMISSION_REMINDER, TERMS_URL } from '../../../../../shared/legal-acceptance';
 import { parseRecentStores, recentStoresKey, rememberStore } from "../../../src/sightings/recent-stores";
 import { useFormDraft } from "../../../src/hooks/useFormDraft";
 import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
@@ -24,7 +24,7 @@ import { type SightingPhotoAsset } from "../../../src/sightings/sighting-photo";
 import { type PhotoJournalEntry } from "../../../src/sightings/photo-journal";
 import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, nativePhotoJournal, retainSightingPhoto, type SightingPhotoSource } from "../../../src/sightings/sighting-photo-native";
 import { colors, typeScale, fonts, layout, typography } from "../../../src/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COVERAGE_STATES } from "../../../../../shared/coverage-states";
 import { bottleHandoffParams, CLEAR_BOTTLE_HANDOFF, coverageContext, handoffPrice, parseBottleHandoff, supportContext, type BottleHandoffRoute } from '../../../src/continuity/bottle-handoff';
 import type { SignalPointsSummary, SightingSubmission } from '../../../src/api/types';
@@ -38,6 +38,7 @@ export default function PostScreen() {
 }
 
 function PostComposer({ userId }: { userId: string }) {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const api = useMobileApi();
   const journal = useMemo(() => nativePhotoJournal(userId), [userId]);
@@ -475,9 +476,8 @@ function PostComposer({ userId }: { userId: string }) {
   }
 
   return (
-    <SafeAreaView edges={["top"]} style={memberScreenStyles.screen}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={memberScreenStyles.screen}>
-      <ScrollView contentInsetAdjustmentBehavior="never" contentContainerStyle={[styles.content, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
         <PageHeading title="Post a Signal" decorated={false} description="Post the bottle and where you saw it." />
         <Pressable accessibilityRole="button" disabled={Boolean(pendingPhotoAttachment)} onPress={() => { Keyboard.dismiss(); router.push({ pathname: '/(app)/scan-post', params: { state: selectedStore?.state || storeSearchState, area: selectedStore?.city || referenceRegion.area, price } }); }} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
         {posted && success ? <View style={styles.composer} accessibilityLiveRegion="polite">
@@ -558,7 +558,9 @@ function PostComposer({ userId }: { userId: string }) {
               </View>}
               {photoBusy ? <ActivityIndicator color={colors.accent} size="small" /> : null}
               {photoMessage ? <Text accessibilityRole="alert" style={styles.photoMessage}>{photoMessage}</Text> : null}
-              <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(TERMS_URL).catch(() => setPhotoMessage('Terms could not open. Try again.'))} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={styles.photoDisclosure}>Only share photos you can post publicly. <Text style={{ color: colors.accent }}>Terms of Use</Text></Text></Pressable>
+              <Text style={styles.photoDisclosure}>{PHOTO_PERMISSION_REMINDER}</Text>
+              <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(TERMS_URL).catch(() => setPhotoMessage('Terms could not open. Try again.'))} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.accent }}>Terms of Use</Text></Pressable>
+              <Text style={styles.photoDisclosure}>Evidence may appear publicly with this sighting. Photos are resized, re-encoded, and stripped of embedded metadata before upload.</Text>
             </View>
           </ComposerSection> : null}
 
@@ -579,7 +581,6 @@ function PostComposer({ userId }: { userId: string }) {
         </Pressable>
       </View> : null}
     </KeyboardAvoidingView>
-    </SafeAreaView>
   );
 }
 

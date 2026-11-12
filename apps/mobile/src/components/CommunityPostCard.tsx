@@ -22,13 +22,11 @@ export function CommunityPostCard({
   signal,
   onPress,
   highlighted = false,
-  distance,
   now = new Date(),
 }: {
   signal: Signal;
   onPress: () => void;
   highlighted?: boolean;
-  distance?: number;
   now?: Date;
 }) {
   const age = reportAge(signal, now);
@@ -39,10 +37,11 @@ export function CommunityPostCard({
   const badges = communityBadges(signal);
   const presented = presentSignal(signal);
   const appearance = signalFeedCardAppearance(signal);
-  const nationalRarity = signal.bottle.scarcity?.nationalLabel;
-  const rarity = signal.bottle.rarityPending || nationalRarity === "Rarity pending"
-    ? ""
-    : nationalRarity || (signal.bottle.id ? appearance.rarityLabel : "");
+  const rarity =
+    signal.bottle.scarcity?.nationalLabel ||
+    (signal.bottle.rarityPending || !signal.bottle.id
+      ? "Rarity pending"
+      : appearance.rarityLabel);
   const local = signal.bottle.scarcity;
   const member = signalMemberTagLabel(signal) || "Member";
   const name = signal.source.actor?.displayName || member;
@@ -62,13 +61,11 @@ export function CommunityPostCard({
         onPress={onPress}
         style={({ pressed }) => [
           s.card,
-          s.sightingCard,
           age.older && { opacity: 0.78 },
           highlighted && s.highlighted,
           pressed && s.pressed,
         ]}
       >
-        <Text style={s.sightingLabel}>{signal.source.reportMode === "reported_online" ? "Member report · Online" : "Member sighting · Seen on shelf"}</Text>
         <View style={s.header}>
           <View style={s.identity}>
             <Text numberOfLines={1} style={s.name}>
@@ -111,7 +108,7 @@ export function CommunityPostCard({
         </View>
         {age.older ? <Text style={s.member}>Older sighting · Availability may have changed</Text> : null}
         <View style={s.bottleRow}>
-          {photoUrl && !failed || signal.bottle.id ? <View style={s.thumbnail}>
+          <View style={s.thumbnail}>
             {photoUrl && !failed ? (
               <Pressable
                 accessibilityRole="button"
@@ -148,13 +145,12 @@ export function CommunityPostCard({
                     bottleName: signal.bottle.name,
                   }}
                   size="feed"
-                  hidePlaceholderLabel
                 />
               </View>
             )}
-          </View> : null}
+          </View>
           <View style={s.bottleInfo}>
-            {rarity ? <View style={s.rarityLine}>
+            <View style={s.rarityLine}>
               <View
                 style={[s.rarityBadge, { backgroundColor: appearance.keyline }]}
               >
@@ -162,14 +158,17 @@ export function CommunityPostCard({
                   style={[
                     s.rarityText,
                     {
-                      color: appearance.accent,
+                      color:
+                        rarity === "Rarity pending"
+                          ? colors.muted
+                          : appearance.accent,
                     },
                   ]}
                 >
                   {rarity}
                 </Text>
               </View>
-            </View> : null}
+            </View>
             <Text style={s.bottle}>
               {signal.bottle.name}
             </Text>
@@ -202,7 +201,6 @@ export function CommunityPostCard({
             </Text>
           </View>
         ) : null}
-        {distance != null ? <Text style={s.locationText}>{Math.round(distance)} mi</Text> : null}
         <View style={s.footer}>
           {presented.price ? (
             <Text style={s.price}>{presented.price}</Text>
@@ -296,8 +294,6 @@ export function CommunityPostCard({
 }
 
 const s = StyleSheet.create({
-  sightingCard: { borderColor: colors.accent },
-  sightingLabel: { color: colors.accent, fontSize: 12, fontWeight: "700" },
   bottleRow: { flexDirection: "row", gap: 12, alignItems: "center" },
   bottleInfo: { flex: 1, minWidth: 0, gap: 6 },
   thumbnail: { width: 68, height: 104, alignItems: "center", justifyContent: "center", overflow: "hidden" },

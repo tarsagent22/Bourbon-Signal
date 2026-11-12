@@ -1,22 +1,11 @@
 import type { MemberAlert, MemberPreferences } from '../api/types';
 import { alertIsStale, watchedBottleCount } from './radar-preferences';
 
-export function radarAlertIdentity(alert: MemberAlert) {
-  const keys = [...new Set(alert.underlyingStableKeys || [])].filter(Boolean).sort();
-  const identity = keys.length ? keys : alert.dedupeKey || (alert.signalId && alert.signalAt ? [alert.signalId, alert.signalAt] : alert.id);
-  return JSON.stringify([alert.state, alert.sourceType || "engine", alert.storeLabel, alert.eventType,
-    [...new Set(alert.bottleNames?.length ? alert.bottleNames : [alert.bottleName])].sort(), identity]);
-}
-
 export function partitionRadarAlerts(alerts: MemberAlert[], now = new Date()) {
   const current: MemberAlert[] = [];
   const history: MemberAlert[] = [];
-  const seen = new Set<string>();
   for (const alert of alerts) {
     if (alert.archivedAt) continue;
-    const key = radarAlertIdentity(alert);
-    if (seen.has(key)) continue;
-    seen.add(key);
     (alertIsStale(alert, now) ? history : current).push(alert);
   }
   return { current, history };

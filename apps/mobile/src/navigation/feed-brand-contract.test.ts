@@ -15,10 +15,12 @@ test("Home header uses the Bourbon Signal brand font and a real alert-inbox acti
   assert.match(tabs, /router\.push\(\{ pathname: "\/\(app\)\/\(tabs\)\/radar", params: \{ section: "matches", request: Date\.now\(\)\.toString\(\) \} \}\)/);
 });
 
-test("Home uses the shared member background and labels the scanner", () => {
+test("Home uses a transparent header over the full portrait shelf backdrop", () => {
+  const asset = resolve(process.cwd(), "assets/home-shelf-background.jpg");
+  assert.equal(existsSync(asset), true);
+  assert.ok(statSync(asset).size < 500_000, "portrait shelf image should remain lightweight");
   assert.match(tabs, /headerTransparent: true/);
-  assert.match(tabs, /headerStyle: \{ backgroundColor: colors\.background \}/);
-  assert.match(tabs, /accessibilityLabel="Scan a bottle"/);
+  assert.match(tabs, /headerStyle: \{ backgroundColor: "transparent" \}/);
   assert.doesNotMatch(tabs, /HomeHeaderBackground|home-shelf-header\.jpg/);
   assert.doesNotMatch(tabs, /tagline|call.to.action|heroCta/i);
 });

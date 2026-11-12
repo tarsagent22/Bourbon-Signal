@@ -105,7 +105,7 @@ export function buildExpoPushMessages(tokens: string[], alert: PushReportDetails
   const bottleNames = notificationBottleNames(alert.bottleNames?.length ? alert.bottleNames : [alert.bottleName]);
   if (!bottleNames.length) bottleNames.push(...notificationBottleNames([alert.bottleName]));
   const reportDetails: PushReportDetails = {
-    eventType: alert.eventType, sourceType: alert.sourceType, sourceLabel: alert.sourceLabel,
+    sourceType: alert.sourceType, sourceLabel: alert.sourceLabel,
     storeLabel: alert.storeName || alert.storeLabel, storeCity: alert.storeCity, state: alert.state,
     matchedArea: alert.matchedArea, quantity: alert.quantity,
     quantityEstimate: alert.quantityEstimate, price: alert.price,

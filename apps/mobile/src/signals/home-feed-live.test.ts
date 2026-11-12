@@ -85,14 +85,3 @@ test("timestamp corrections and arrival queues preserve chronological order", ()
   assert.deepEqual(reconcileDisplayedSignals(current, [updated, current[0]], false).map(row => row.id), ["b", "a"]);
   assert.deepEqual(acceptQueuedSignals(current, [signal("c", "2026-10-07T14:00:00Z"), signal("d", "2026-10-07T15:00:00Z")]).map(row => row.id), ["d", "c", "a", "b"]);
 });
-
-
-test("a changed representative updates the same shipment while later updates stay separate", () => {
-  const checked = "2026-11-11T15:00:00Z";
-  const first = signal("first", checked, { shipmentUpdate: { key: "wake-day1", bottles: [] } });
-  const replacement = { ...first, id: "replacement" };
-  const next = signal("next", "2026-11-12T15:00:00Z", { shipmentUpdate: { key: "wake-day2", bottles: [] } });
-  assert.deepEqual(reconcileDisplayedSignals([first], [replacement, next], false).map(row => row.id), ["replacement"]);
-  assert.deepEqual(reconcileQueuedSignals([first], [], [replacement, next]).map(row => row.id), ["next"]);
-  assert.deepEqual(acceptQueuedSignals([first], [next, replacement]).map(row => row.id), ["next", "replacement"]);
-});
