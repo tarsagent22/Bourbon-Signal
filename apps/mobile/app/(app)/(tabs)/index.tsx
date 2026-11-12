@@ -15,12 +15,15 @@ import { MemberContinuity } from '../../../src/continuity/MemberContinuity';
 import { personalTasteNote } from '../../../src/continuity/taste-discovery';
 import { coverageContext, supportContext } from '../../../src/continuity/bottle-handoff';
 import { FeedSkeleton } from "../../../src/components/FeedSkeleton";
+import { groupFeedReports, reportGroupSummary, type FeedReportGroup } from "../../../src/signals/feed-report-groups";
+import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork";
+import { signalAvailabilityIsCurrent } from "../../../src/api/presentation";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, sortSignalTimeline } from "../../../src/signals/home-feed-live";
-import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences, resolveHomeStartup } from "../../../src/signals/home-browsing-preferences";
+import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences, resolveHomeStartup, type HomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
 import { colors, typeScale, layout, typography } from "../../../src/theme";
 import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibility";
 
@@ -58,7 +61,7 @@ function OptionChooser({
   const chooserRef = useRef<View>(null);
   const pendingReveal = useRef(false);
   const selectedOption = options.find((option) => option.value === value);
-  const selectedLabel = selectedOption?.displayName || selectedOption?.label || placeholder;
+  const selectedLabel = selectedOption?.displayName || selectedOption?.label || value || placeholder;
   const visibleOptions = value ? [{ value: "", label: clearLabel || placeholder }, ...options] : options;
   useEffect(() => { if (disabled) setExpanded(false); }, [disabled]);
   return <View ref={chooserRef} collapsable={false} onLayout={() => {
@@ -101,7 +104,7 @@ export default function SignalFeedScreen() {
   const api = useMobileApi();
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + 56;
-  const { userId } = useAuth();
+  const { userId, sessionId } = useAuth();
   const [tastePreferences, setTastePreferences] = useState<MemberPreferences | null>(null);
   const { view: requestedView } = useLocalSearchParams<{ view?: string }>();
   const browsingStorageKey = homeBrowsingStorageKey(userId);
@@ -127,6 +130,9 @@ export default function SignalFeedScreen() {
     market: { ...DEFAULT_SIGNAL_FILTERS },
     community: { ...DEFAULT_SIGNAL_FILTERS },
   });
+  const [showOlderSightings, setShowOlderSightings] = useState(false);
+  const [expandedGroup, setExpandedGroup] = useState("");
+  const [nationalByView, setNationalByView] = useState({ market: false, community: false });
   const [bottleQueries, setBottleQueries] = useState<Record<FeedView, string>>({ market: "", community: "" });
   const [remoteAreaState, setRemoteAreaState] = useState("");
   const [remoteAreaOptions, setRemoteAreaOptions] = useState<Array<{ value: string; label: string; displayName?: string; subtitle?: string }>>([]);
@@ -134,13 +140,23 @@ export default function SignalFeedScreen() {
   const [areaOptionsError, setAreaOptionsError] = useState("");
   const [loadedBrowsingStorageKey, setLoadedBrowsingStorageKey] = useState("");
   const browsingLoaded = Boolean(browsingStorageKey) && loadedBrowsingStorageKey === browsingStorageKey;
+  const [startupProfile, setStartupProfile] = useState<HomeBrowsingPreferences["startupProfile"]>();
+  const [radarState, setRadarState] = useState("");
+  const sameSessionProfile = startupProfile?.sessionId === sessionId ? startupProfile : undefined;
   const tier = profile?.membership.tier;
+  const filterTier = tier || sameSessionProfile?.tier;
+  const localState = profile?.homeState || radarState || sameSessionProfile?.homeState;
   const detailedFilters = canUseDetailedFeedFilters(tier);
   const filtersAllowed = Boolean(profile?.membership.paid);
-  const filters = useMemo(() => allowedFeedFilters(filtersByView[view], tier), [filtersByView, view, tier]);
+  const filters = useMemo(() => {
+    const saved = filtersByView[view];
+    const state = saved.state || (!nationalByView[view] ? localState || "" : "");
+    return allowedFeedFilters({ ...saved, state }, filterTier);
+  }, [filtersByView, nationalByView, localState, view, filterTier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
-  const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities]);
+  const feedGroups = useMemo(() => groupFeedReports(visibleSignals, view, showOlderSightings), [visibleSignals, view, showOlderSightings]);
+  const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities, filterTier]);
   const screenActive = screenFocused && appState === "active";
   const motionDisabled = reduceMotion || screenReaderEnabled;
   const cacheScope = feedCacheScope(view, requestFilters);
@@ -165,7 +181,7 @@ export default function SignalFeedScreen() {
   const browsingMutationSequence = useRef(0);
   const backgroundRequestSequence = useRef(0);
   const scopeKeyRef = useRef(scopeKey);
-  const listRef = useRef<FlatList<Signal>>(null);
+  const listRef = useRef<FlatList<FeedReportGroup>>(null);
   const viewportRef = useRef<View>(null);
   const [viewportHeight, setViewportHeight] = useState(480);
   const scrollOffset = useRef(0);
@@ -222,12 +238,31 @@ export default function SignalFeedScreen() {
     setProfileError("");
     try {
       const response = await api.getMemberProfile({ fresh });
-      if (requestId === profileRequestSequence.current) setProfile(response.profile);
+      if (requestId === profileRequestSequence.current) {
+        setProfile(response.profile);
+        if (sessionId) setStartupProfile({ sessionId, tier: response.profile.membership.tier, homeState: response.profile.homeState || undefined });
+        if (response.profile.membership.paid && !response.profile.homeState) {
+          void api.getMemberPreferences({ fresh }).then(prefs => {
+            if (requestId === profileRequestSequence.current) {
+              const state = prefs.monitoringScopes[0]?.state || "";
+              setRadarState(state);
+              if (sessionId) setStartupProfile({ sessionId, tier: response.profile.membership.tier, homeState: state || undefined });
+            }
+          }).catch(() => undefined);
+        }
+      }
       return response.profile;
-    } catch {
-      if (requestId === profileRequestSequence.current) setProfileError("Home filters are temporarily unavailable. Tap to retry.");
+    } catch (caught) {
+      if (requestId === profileRequestSequence.current) {
+        if (caught instanceof MobileApiError && (caught.status === 401 || caught.status === 403)) {
+          setStartupProfile(undefined);
+          setProfile(null);
+          handleError(caught);
+        }
+        setProfileError("Home filters are temporarily unavailable. Tap to retry.");
+      }
     }
-  }, [api]);
+  }, [api, handleError, sessionId]);
 
   const load = useCallback(async (refresh = false) => {
     const mode = refresh ? "refresh" : "page";
@@ -313,6 +348,12 @@ export default function SignalFeedScreen() {
     setLoading(false);
   }, [areaDirectory, view]);
 
+  const selectState = (state: string) => {
+    if (state === filters.state) return;
+    setNationalByView(current => ({ ...current, [view]: !state }));
+    applyFilters({ ...filters, state, area: "" });
+  };
+
   const applyRarityFilters = useCallback((next: SignalFeedFilters) => {
     browsingMutationSequence.current += 1;
     applyFilters(next);
@@ -339,6 +380,9 @@ export default function SignalFeedScreen() {
     setHasMore(true);
     setAccess(null);
     setProfile(null);
+    setStartupProfile(undefined);
+    setRadarState("");
+    setNationalByView({ market: false, community: false });
     setTastePreferences(null);
     setMarketSummaries([]);
     setProfileError("");
@@ -354,6 +398,8 @@ export default function SignalFeedScreen() {
       if (!current) return;
       if (saved && mutationAtStart === browsingMutationSequence.current) {
         setView(saved.view);
+        if (saved.startupProfile?.sessionId === sessionId) setStartupProfile(current => current ?? saved.startupProfile);
+        setNationalByView(saved.nationalByView ?? { market: false, community: false });
         setFiltersByView(saved.filtersByView);
         setBottleQueries({ market: saved.filtersByView.market.bottle, community: saved.filtersByView.community.bottle });
       } else if (!saved && homeState && mutationAtStart === browsingMutationSequence.current) {
@@ -368,15 +414,15 @@ export default function SignalFeedScreen() {
       backgroundRequestSequence.current += 1;
       profileRequestSequence.current += 1;
     };
-  }, [api, browsingStorageKey]);
+  }, [api, browsingStorageKey, sessionId, loadProfile]);
 
   useEffect(() => {
     if (!browsingLoaded || loadedBrowsingStorageKey !== browsingStorageKey) return;
     const timer = setTimeout(() => {
-      void saveHomeBrowsingPreferences(browsingStorageKey, { version: 1, view, filtersByView }).catch(() => undefined);
+      void saveHomeBrowsingPreferences(browsingStorageKey, { version: 1, view, filtersByView, nationalByView, startupProfile: sameSessionProfile }).catch(() => undefined);
     }, 150);
     return () => clearTimeout(timer);
-  }, [browsingLoaded, browsingStorageKey, filtersByView, loadedBrowsingStorageKey, view]);
+  }, [browsingLoaded, browsingStorageKey, filtersByView, loadedBrowsingStorageKey, nationalByView, sameSessionProfile, view]);
 
   useFocusEffect(useCallback(() => {
     setScreenFocused(true);
@@ -475,8 +521,9 @@ export default function SignalFeedScreen() {
   }, [browsingLoaded, requestedView, selectView]);
   useScreenRevalidation(() => { void loadProfile(false); if (browsingLoaded && (error || Date.now() - lastRefreshRef.current > 30_000)) void load(true); });
   useEffect(() => {
-    if (!browsingLoaded || loadedScopeRef.current === scopeKey) return;
+    if (!browsingLoaded || (!filterTier && !profileError) || loadedScopeRef.current === scopeKey) return;
     loadedScopeRef.current = scopeKey;
+    setExpandedGroup("");
     pendingOffset.current = savedOffsets.current.get(scopeKey) || 0;
     requestSequence.current += 1;
     requestInFlightRef.current = null;
@@ -487,7 +534,7 @@ export default function SignalFeedScreen() {
     setHasMore(true);
     setLoaded(false);
     const restore = (page: SignalFeedPage | null) => {
-      if (!page || loadedScopeRef.current !== scopeKey || scopeKeyRef.current !== scopeKey) return;
+      if (!page || (view === "market" && !page.access.marketDetailsLocked && !page.access.previewLocked && (!filterTier || filterTier === "free")) || loadedScopeRef.current !== scopeKey || scopeKeyRef.current !== scopeKey) return;
       setSignals(page.signals);
       setAccess(page.access);
       setMarketSummaries(page.marketSummaries);
@@ -504,7 +551,7 @@ export default function SignalFeedScreen() {
       if (requestSequence.current === beforeLoad && successfulRequestRef.current !== beforeLoad) restore(page);
     });
     void load(true);
-  }, [browsingLoaded, cacheScope, load, scopeKey, userId]);
+  }, [browsingLoaded, cacheScope, filterTier, load, profileError, scopeKey, userId, view]);
   useEffect(() => {
     if (tier === undefined) return;
     const normalizedBottle = bottleQuery.replace(/\s+/g, " ").trim().slice(0, 100);
@@ -534,6 +581,11 @@ export default function SignalFeedScreen() {
 
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
+  const liveLocalReport = view === "market" && filters.state && !marketLocked
+    ? visibleSignals.find(signal => !signal.shipment && signal.location.scope === "exact_store"
+      && (signal.location.store?.state || signal.location.state) === filters.state
+      && signal.alertEligibility.inventory && signalAvailabilityIsCurrent(signal))
+    : undefined;
 
   const header = (
     <View style={styles.header}>
@@ -558,6 +610,15 @@ export default function SignalFeedScreen() {
         </Pressable>
       </View>
 
+      {view === "market" ? <View style={styles.homeActions}>
+        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/bottle-check")} style={styles.homeAction}><MaterialCommunityIcons name="star-outline" color={colors.accent} size={17} /><Text style={styles.clearLocationText}>Signal Score</Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/nearby")} style={styles.homeAction}><MaterialCommunityIcons name="map-marker-outline" color={colors.accent} size={17} /><Text style={styles.clearLocationText}>Nearby</Text></Pressable>
+      </View> : null}
+      {liveLocalReport ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: liveLocalReport.id } })} style={styles.liveReport}>
+        <Text style={styles.clearLocationText}>Current store report · {filters.state}</Text>
+        <Text numberOfLines={2} style={styles.bottleGroupTitle}>{liveLocalReport.bottle.name}</Text>
+        <Text numberOfLines={1} style={styles.locationSelectionText}>{liveLocalReport.location.store?.name}</Text>
+      </Pressable> : null}
       <>
         <View accessibilityLabel="Signal geography filters" style={styles.geographyRow}>
           <OptionChooser
@@ -567,23 +628,23 @@ export default function SignalFeedScreen() {
             placeholder="All states"
             clearLabel="All states"
             options={stateOptions}
-            onChange={(state) => applyFilters({ ...filters, state, area: "" })}
+            onChange={selectState}
             onReveal={revealChooser}
             viewportHeight={viewportHeight}
             disabled={!filtersAllowed}
           />
-          <OptionChooser
+          {filters.state && detailedFilters ? <OptionChooser
             label={areaLabel}
             icon="map-marker-radius-outline"
             value={filters.area}
-            placeholder={filters.state ? "All areas" : "Select state first"}
+            placeholder="All areas"
             clearLabel={`Any ${areaLabel.toLowerCase()}`}
             options={areaOptions}
-            disabled={!filters.state || !detailedFilters}
+            disabled={!detailedFilters}
             onChange={(area) => applyFilters({ ...filters, area })}
             onReveal={revealChooser}
             viewportHeight={viewportHeight}
-          />
+          /> : null}
         </View>
 
         {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
@@ -640,7 +701,7 @@ export default function SignalFeedScreen() {
         </ScrollView>
         {filters.state ? <View style={styles.locationSelection}>
           <Text numberOfLines={2} style={styles.locationSelectionText}>{filters.area ? `${filters.state} · ${selectedAreaLabel}${filters.state === "NC" && selectedArea?.subtitle ? ` · ${filters.area}` : ""}` : `${filters.state} · All ${areaLabel === "City" ? "cities" : "areas"}`}</Text>
-          <Pressable accessibilityLabel="Clear Home location filters" accessibilityRole="button" onPress={() => applyFilters({ ...filters, state: "", area: "" })} style={styles.clearLocationButton}>
+          <Pressable accessibilityLabel="Clear Home location filters" accessibilityRole="button" onPress={() => selectState("")} style={styles.clearLocationButton}>
             <MaterialCommunityIcons color={colors.accent} name="close" size={17} />
             <Text style={styles.clearLocationText}>Clear</Text>
           </Pressable>
@@ -697,20 +758,36 @@ export default function SignalFeedScreen() {
       automaticallyAdjustContentInsets={false}
       ref={listRef}
       contentContainerStyle={styles.list}
-      data={visibleSignals}
+      data={feedGroups}
       keyboardShouldPersistTaps="handled"
       onScroll={(event) => { scrollOffset.current = event.nativeEvent.contentOffset.y; if (pendingOffset.current === null) { savedOffsets.current.delete(scopeKey); savedOffsets.current.set(scopeKey, scrollOffset.current); if (savedOffsets.current.size > 8) savedOffsets.current.delete(savedOffsets.current.keys().next().value!); } }}
       onContentSizeChange={(_width, height) => { listContentHeight.current = height; restoreScrollPosition(); }}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => index === visibleSignals.length - 1 ? <View><FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} personalNote={personalTasteNote(item.bottle, tastePreferences)} />{feedFooter}</View> : <FeedSignalRow highlighted={highlightedIds.includes(item.id)} signal={item} personalNote={personalTasteNote(item.bottle, tastePreferences)} />}
+      keyExtractor={(item) => item.key}
+      renderItem={({ item, index }) => {
+        const first = item.reports[0];
+        const expanded = expandedGroup === item.key;
+        const grouped = item.reports.length > 1;
+        return <View>
+          {grouped ? <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={() => setExpandedGroup(expanded ? "" : item.key)} style={styles.bottleGroup}>
+            <CellarBottleArtwork bottle={{ bottleId: first.bottle.id, bottleName: first.bottle.name }} size="list" />
+            <View style={styles.bottleGroupCopy}>
+              <Text style={styles.bottleGroupTitle}>{first.bottle.name}</Text>
+              <Text style={styles.locationSelectionText}>{reportGroupSummary(item.reports)}</Text>
+            </View>
+            <MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} color={colors.accent} size={22} />
+          </Pressable> : null}
+          {(!grouped || expanded) ? item.reports.map(signal => <FeedSignalRow key={signal.id} highlighted={highlightedIds.includes(signal.id)} signal={signal} personalNote={personalTasteNote(signal.bottle, tastePreferences)} />) : null}
+          {index === feedGroups.length - 1 ? feedFooter : null}
+        </View>;
+      }}
       ItemSeparatorComponent={() => <View style={[styles.separator, view === "community" && styles.communitySeparator]} />}
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}
       onEndReachedThreshold={0.5}
-      ListHeaderComponent={<>{header}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
-      ListEmptyComponent={!loaded && !error
+      ListHeaderComponent={<>{header}{view === "community" && loaded ? <Pressable accessibilityRole="button" onPress={() => setShowOlderSightings(value => !value)} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>{showOlderSightings ? "Show only this week" : "Show older sightings"}</Text></Pressable> : null}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
+      ListEmptyComponent={view === "community" && loaded && !error && visibleSignals.length ? <Text style={styles.loadingText}>No sightings this week. Post a find or browse older sightings.</Text> : !loaded && !error
         ? <FeedSkeleton community={view === "community"} />
         : error
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
@@ -734,7 +811,7 @@ export default function SignalFeedScreen() {
                   case "time": applyFilters({ ...filters, freshness: null }); break;
                   case "rarity": applyFilters({ ...filters, rarities: [] }); break;
                   case "area": applyFilters({ ...filters, area: "" }); break;
-                  case "state": applyFilters({ ...filters, state: "", area: "" }); break;
+                  case "state": selectState(""); break;
                   case "post": router.push("/(app)/(tabs)/post"); break;
                   case "community": selectView("community"); break;
                 }
@@ -784,6 +861,12 @@ const styles = StyleSheet.create({
   locationSelectionText: { flex: 1, color: colors.muted, ...typography.caption },
   clearLocationButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3, paddingHorizontal: 6 },
   clearLocationText: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800" },
+  homeActions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  homeAction: { flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface },
+  liveReport: { padding: 12, gap: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.accent, borderRadius: 12, backgroundColor: colors.surface },
+  bottleGroup: { minHeight: 84, flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 },
+  bottleGroupCopy: { flex: 1, gap: 4 },
+  bottleGroupTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "700" },
   filterChooser: { flex: 1, minWidth: 0 },
   filterChooserDisabled: { opacity: 0.72 },
   rarityRow: { flexGrow: 1, gap: 6, paddingRight: 2, paddingVertical: 3 },

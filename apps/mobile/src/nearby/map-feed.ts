@@ -20,7 +20,7 @@ export function readNearbyPreview(
   now = Date.now(),
 ) {
   const entry = previews.get(owner)?.get(key);
-  return entry && now - entry.at < 30_000 ? entry.result : null;
+  return entry && now - entry.at < 10 * 60_000 ? entry.result : null;
 }
 export function saveNearbyPreview(
   owner: object,

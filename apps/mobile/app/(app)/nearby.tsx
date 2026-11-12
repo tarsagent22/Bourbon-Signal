@@ -132,7 +132,6 @@ export default function Nearby() {
     setFilterDraft({ radius, tiers, fresh, watchOnly });
     setFilters(true);
   };
-  const lastApi = useRef(api);
   const sequence = useRef(0),
     placeSequence = useRef(0),
     touched = useRef(false);
@@ -194,8 +193,7 @@ export default function Nearby() {
     }
     const key = q.toString();
     const preview = readNearbyPreview(api, key);
-    if (lastApi.current !== api || preview) setResult(preview);
-    lastApi.current = api;
+    setResult(preview);
     api
       .nearby(q)
       .then((data) => {
@@ -495,7 +493,7 @@ export default function Nearby() {
                   : !place
                     ? "Use your location or choose a city to explore."
                     : busy
-                      ? "The map is ready. Reports are on their way."
+                      ? "Checking stores and shipment reports near you."
                       : result?.partial
                         ? "The search could not finish. Try again to load nearby reports."
                         : result?.previewLocked

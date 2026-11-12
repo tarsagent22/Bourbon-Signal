@@ -57,7 +57,7 @@ export default function BottleProfileScreen() {
     {identity ? <>
       <BottleProfileHero identity={identity} details={bottle} personal={personal}
         onShelf={preferences && (personal?.inCellar || preferences.collectionAccess.canAdd) ? () => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } }) : undefined}
-        onWatch={bottle && preferences && !saving ? () => void toggleWatch() : undefined} />
+        />
       <View style={s.actions}>
         <Action label={personal?.inCellar ? 'Edit your shelf' : preferences?.collectionAccess.canAdd === false ? 'Free shelf is full' : 'Add to My Shelf'} disabled={!preferences || (!personal?.inCellar && !preferences.collectionAccess.canAdd)} primary onPress={() => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } })} />
         {bottle ? <Action label={saving ? 'Saving…' : personal?.isWatched ? 'Remove from Radar' : 'Watch in Radar'} disabled={!preferences || saving} onPress={() => void toggleWatch()} /> : null}
@@ -65,9 +65,9 @@ export default function BottleProfileScreen() {
       </View>
       {memberError ? <Text accessibilityRole="alert" style={s.copy}>{memberError}</Text> : null}
       <BottlePriceCheck key={identity.id} msrp={bottle?.msrp ?? null} />
-      {bottle ? <View style={s.reports}><Text accessibilityRole="header" style={s.section}>Reported availability</Text><Text style={s.copy}>Source reports and member observations. Check with the store before driving.</Text>
+      {bottle ? <View style={s.reports}><Text accessibilityRole="header" style={s.section}>Reported availability</Text>
         {reports.map(report => <Pressable key={report.id} accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/signal/[id]', params: { id: report.id } })} style={s.report}><View style={{ flex: 1, gap: 4 }}><Text style={s.reportName}>{report.location.store?.name || report.location.label || report.source.label}</Text><Text style={s.note}>{[report.location.store?.city, report.location.state].filter(Boolean).join(', ')} · Reported {new Date(report.timing.displayAt).toLocaleDateString()}</Text></View><Text style={s.price}>{report.availability?.price != null ? `$${report.availability.price.toFixed(2)}` : 'View →'}</Text></Pressable>)}
-        {!reports.length ? <Text style={s.copy}>{reportError || 'No reports to show here. This does not establish whether the bottle is available locally.'}</Text> : null}
+        {!reports.length ? <Text style={s.copy}>{reportError || 'No recent reports for this bottle.'}</Text> : null}
       </View> : null}
       {!bottle ? <Text style={s.copy}>Catalog details aren’t available for this saved entry. Your shelf details remain editable.</Text> : null}
       <Action label="Get help with this bottle" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Bottle Profile', bottle: identity.name }) })} />

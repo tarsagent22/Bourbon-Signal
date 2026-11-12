@@ -33,6 +33,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
   const appearance = signalFeedCardAppearance(signal);
   const { quantity: metric, status, showStatus } = signalRowFacts(signal, now);
   const report = signalRowReportSummary(signal, now);
+  const price = presented.price === "Price unknown" ? "" : presented.price;
   if (signal.source.type === "member") return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} now={now} />;
   return <Pressable accessibilityHint="Opens Signal details" accessibilityLabel={signalAccessibilityLabel(signal, now)} accessibilityRole="button" onPress={onPress}
     style={({ pressed }) => [styles.card, age.older && styles.older, highlighted && styles.highlighted, pressed && styles.pressed]}>
@@ -52,8 +53,8 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
         {presented.geography ? <View style={styles.detailRow}><MaterialCommunityIcons color={colors.muted} name="map-marker-outline" size={14} /><Text style={styles.geography}>{presented.geography}</Text></View> : null}
       </View>
       <View style={styles.factsRow}>
-        {presented.price ? <Text style={signal.availability?.price == null ? styles.unpriced : styles.price}>{signal.availability?.price == null && presented.price === "Price unknown" ? "Price not reported" : presented.price}</Text> : null}
-        {presented.price && metric && !report.quantityInSummary ? <Text accessible={false} style={styles.metricDot}>·</Text> : null}
+        {price ? <Text style={styles.price}>{price}</Text> : null}
+        {price && metric && !report.quantityInSummary ? <Text accessible={false} style={styles.metricDot}>·</Text> : null}
         {metric && !report.quantityInSummary ? <Text style={styles.metricText}>{metric}</Text> : null}
       </View>
       {listing?.firstSpotted ? <Text style={styles.firstSpotted}>{listing.firstSpotted}</Text> : null}
@@ -84,7 +85,6 @@ const styles = StyleSheet.create({
   geography: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16, flex: 1 },
   factsRow: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 6, rowGap: 1 },
   price: { color: colors.text, fontSize: typeScale.small, lineHeight: 18, fontWeight: "700" },
-  unpriced: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 18 },
   metricDot: { color: colors.muted, fontSize: typeScale.small },
   metricText: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 17, flexShrink: 1 },
   status: { color: colors.muted, fontSize: typeScale.micro, lineHeight: 16 },

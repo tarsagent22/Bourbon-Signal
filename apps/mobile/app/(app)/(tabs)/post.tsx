@@ -24,7 +24,7 @@ import { type SightingPhotoAsset } from "../../../src/sightings/sighting-photo";
 import { type PhotoJournalEntry } from "../../../src/sightings/photo-journal";
 import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, nativePhotoJournal, retainSightingPhoto, type SightingPhotoSource } from "../../../src/sightings/sighting-photo-native";
 import { colors, typeScale, fonts, layout, typography } from "../../../src/theme";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { COVERAGE_STATES } from "../../../../../shared/coverage-states";
 import { bottleHandoffParams, CLEAR_BOTTLE_HANDOFF, coverageContext, handoffPrice, parseBottleHandoff, supportContext, type BottleHandoffRoute } from '../../../src/continuity/bottle-handoff';
 import type { SignalPointsSummary, SightingSubmission } from '../../../src/api/types';
@@ -38,7 +38,6 @@ export default function PostScreen() {
 }
 
 function PostComposer({ userId }: { userId: string }) {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const api = useMobileApi();
   const journal = useMemo(() => nativePhotoJournal(userId), [userId]);
@@ -476,8 +475,9 @@ function PostComposer({ userId }: { userId: string }) {
   }
 
   return (
+    <SafeAreaView edges={["top"]} style={memberScreenStyles.screen}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={memberScreenStyles.screen}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
+      <ScrollView contentInsetAdjustmentBehavior="never" contentContainerStyle={[styles.content, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled" style={styles.scroll}>
         <PageHeading title="Post a Signal" decorated={false} description="Post the bottle and where you saw it." />
         <Pressable accessibilityRole="button" disabled={Boolean(pendingPhotoAttachment)} onPress={() => { Keyboard.dismiss(); router.push({ pathname: '/(app)/scan-post', params: { state: selectedStore?.state || storeSearchState, area: selectedStore?.city || referenceRegion.area, price } }); }} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
         {posted && success ? <View style={styles.composer} accessibilityLiveRegion="polite">
@@ -581,6 +581,7 @@ function PostComposer({ userId }: { userId: string }) {
         </Pressable>
       </View> : null}
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

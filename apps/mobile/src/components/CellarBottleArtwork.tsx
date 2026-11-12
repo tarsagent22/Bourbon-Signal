@@ -7,8 +7,9 @@ import catalog from '../cellar/bottle-catalog-seed.json';
 import { LABELED_ARTWORK_ASSETS } from './labeled-artwork-assets';
 import { BottleArtworkImage } from './BottleArtworkImage';
 
-export function CellarBottleArtwork({ bottle, size = 'grid' }: {
+export function CellarBottleArtwork({ bottle, size = 'grid', hidePlaceholderLabel = false }: {
   bottle: CellarBottleIdentity;
+  hidePlaceholderLabel?: boolean;
   size?: 'grid' | 'list' | 'detail' | 'showcase' | 'feed';
 }) {
   const [failed, setFailed] = useState(false);
@@ -25,5 +26,5 @@ export function CellarBottleArtwork({ bottle, size = 'grid' }: {
     const height = size === 'detail' ? 270 : size === 'feed' ? 102 : size === 'showcase' ? 148 : size === 'grid' ? 116 : 62;
     return <Image source={{uri:`${(process.env.EXPO_PUBLIC_API_URL || 'https://www.bourbonsignal.com').replace(/\/$/, '')}/api/v1/bottle-artwork/${encodeURIComponent(bottle.bottleId)}`}} style={{width,height}} resizeMode="contain" accessibilityLabel={`Bottle illustration for ${bottle.bottleName || 'this bottle'}`} onError={() => setFailed(true)} />;
   }
-  return <CellarBottleSilhouette size={size} />;
+  return <CellarBottleSilhouette size={size} quiet={hidePlaceholderLabel} />;
 }

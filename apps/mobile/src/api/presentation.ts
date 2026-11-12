@@ -265,8 +265,8 @@ export function signalMemberTagLabel(signal: Signal) {
 }
 
 export function signalCardStatusLabel(signal: Signal, now = new Date()) {
+  if (signal.shipment) return "ABC shipment · Receiving stores unconfirmed";
   if (signal.historical) return "Historical report";
-  if (signal.shipment) return "Board shipment · Store availability unconfirmed";
   if (signalReportIsStale(signal, now)) return "Availability unconfirmed";
   if (signal.source.type === "member") return "Community report";
   if (signal.kind === "release") return "Release";

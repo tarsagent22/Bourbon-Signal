@@ -67,7 +67,7 @@ test("preference refreshes cannot overwrite a mutation that starts or finishes i
 
 test("phone recovery retains action-specific retry and removes ambiguous count badges", () => {
   const radar = readScreen("radar");
-  assert.match(radar, /Push notifications need attention/);
+  assert.match(radar, /Push setup on this phone/);
   assert.doesNotMatch(radar, /item\.key === "matches" && alerts\.unreadCount/);
   assert.doesNotMatch(radar, /ToggleRow label="Radar inbox"/);
   assert.match(radar, /onSite: \{ enabled: true \}/);
@@ -100,5 +100,5 @@ test("Radar main destinations have no promotional copy or stacked result tabs", 
   assert.doesNotMatch(radar, /Watching for your next find|Your bottles\. Your locations|YOUR RADAR|Changes save automatically|Choose what to watch/);
   assert.doesNotMatch(radar, /label=\{`Current|label=\{`History/);
   assert.match(radar, /setFocusNotifications\(true\); setView\("settings"\)/);
-  assert.match(radar, /view === "matches" && pushReadiness === "Setup needed"/);
+  assert.match(radar, /view === "matches" && !checkingPush && pushReadiness === "Setup needed"/);
 });

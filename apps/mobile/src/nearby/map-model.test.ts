@@ -57,7 +57,7 @@ test('nearby previews cannot cross accounts, membership revisions, query scopes,
   assert.equal(readNearbyPreview(account, 'lat=1&radius=25', 1001), result);
   for (const owner of [otherAccount, revisedMembership]) assert.equal(readNearbyPreview(owner, 'lat=1&radius=25', 1001), null);
   assert.equal(readNearbyPreview(account, 'lat=2&radius=25', 1001), null);
-  assert.equal(readNearbyPreview(account, 'lat=1&radius=25', 31000), null);
+  assert.equal(readNearbyPreview(account, 'lat=1&radius=25', 601000), null);
   clearNearbyPreview(account);
   assert.equal(readNearbyPreview(account, 'lat=1&radius=25', 1002), null);
 });

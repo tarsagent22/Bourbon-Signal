@@ -261,10 +261,12 @@ export default function RadarScreen() {
   if (!preferences) return null;
 
   const setupStatus=radarSetupStatus(preferences,pushReadiness);
-  return <ScrollView
+  const checkingPush = !pushStatus && !pushStatusLoadFailed && !pushError;
+  return <SafeAreaView edges={["top"]} style={memberScreenStyles.screen}><ScrollView
     ref={screenScroll}
+    contentInsetAdjustmentBehavior="never"
     automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
-    contentContainerStyle={[memberScreenStyles.content, { paddingTop: screenInsets.top + 16 }]}
+    contentContainerStyle={[memberScreenStyles.content, { paddingTop: 16 }]}
     keyboardDismissMode="on-drag"
     keyboardShouldPersistTaps="handled"
     refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); setPushLookupRetry(value => value + 1); void load(true).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} />}
@@ -273,10 +275,10 @@ export default function RadarScreen() {
     <PageHeading title="Radar" decorated={false} />
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setFocusNotifications(false); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {view === "matches" ? <Pressable accessibilityRole="button" accessibilityLabel={`Edit alert locations, ${radarLocationSummary(preferences)}`} onPress={() => { setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={styles.locationSummary}><Text numberOfLines={1} style={[styles.muted, styles.flex]}>{radarLocationSummary(preferences)}</Text><Text style={styles.textAction}>Edit →</Text></Pressable> : null}
-    {view === "settings" ? <View style={styles.setupSummary}><View style={styles.signalMarker} /><View style={styles.flex}><Text style={styles.cardTitle}>{setupStatus.title}</Text><Text style={styles.muted}>{setupStatus.detail}</Text></View></View> : null}
-    {view === "matches" && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
-      <Text style={[styles.noticeText, styles.flex]}>Push notifications need attention</Text>
-      <TextAction label="FIX" onPress={() => { setFocusNotifications(true); setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} />
+    {view === "settings" ? <View style={styles.setupSummary}><View style={styles.signalMarker} /><View style={styles.flex}><Text style={styles.cardTitle}>{checkingPush ? "Checking this phone…" : setupStatus.title}</Text>{!checkingPush ? <Text style={styles.muted}>{setupStatus.detail}</Text> : null}</View></View> : null}
+    {view === "matches" && !checkingPush && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
+      <Text style={[styles.noticeText, styles.flex]}>Push setup on this phone</Text>
+      <TextAction label="CHECK SETUP" onPress={() => { setFocusNotifications(true); setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} />
     </View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {sectionError ? <ErrorState message={sectionError} onRetry={() => void load(true)} /> : null}
@@ -294,7 +296,8 @@ export default function RadarScreen() {
     {view === "settings" ? <WatchlistView
       onNotificationsLayout={(y) => { if (focusNotifications) { screenScroll.current?.scrollTo({ y: preferencesY.current + y, animated: true }); setFocusNotifications(false); } }}
       pushRecoveryAction={pushRecoveryAction}
-      pushNeedsAttention={pushReadiness === "Setup needed"}
+      checkingPush={checkingPush}
+      pushNeedsAttention={!checkingPush && pushReadiness === "Setup needed"}
       onRecoverPush={() => { if (pushRecoveryAction === "settings") void Linking.openSettings().catch(() => setActionError("Open your phone Settings to allow notifications for Bourbon Signal.")); else if (pushRecoveryAction === "retry-status") void load(true); else if (pushRecoveryAction === "retry-disable") void togglePush(false); else void togglePush(true); }}
       onLayout={(y) => { preferencesY.current = y; }}
       catalog={searchResults}
@@ -319,7 +322,7 @@ export default function RadarScreen() {
       <TextAction label="Coverage requests & progress →" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: preferences.monitoringScopes[0]?.state || profile?.profile.homeState }) })} />
       <TextAction label="Get help with Radar →" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Radar', state: preferences.monitoringScopes[0]?.state || profile?.profile.homeState || '' }) })} />
     </View>
-  </ScrollView>;
+  </ScrollView></SafeAreaView>;
 }
 
 function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOpenWatchlist, onMute, isMuted }: { alerts: MemberAlert[]; saving: boolean; watchedNames: string[]; setupNeeded: boolean; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string | string[]) => Promise<void>; onOpenWatchlist: () => void; onMute: (name: string, muted: boolean) => Promise<boolean>; isMuted: (name: string) => boolean }) {
@@ -331,7 +334,10 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
     {current.some(alert => !alert.readAt) ? <TextAction label="MARK READ" disabled={saving} onPress={() => void onMutate("mark_read", current.filter(item => !item.readAt).map(item => item.id))} /> : null}
     {!current.length ? <View style={styles.emptyAlerts}>
       <Text style={styles.emptyTitle}>{setupNeeded ? "Set up your alerts" : "No recent alerts"}</Text>
-      {setupNeeded ? <SmallButton primary label="Choose preferences" onPress={onOpenWatchlist} /> : null}
+      <Text style={styles.muted}>{setupNeeded
+        ? "Choose where to look and which bottles to watch."
+        : "Radar shows fresh, eligible reports that match your locations and bottle preferences. Intel also shows shipments and other reports that may not qualify for an alert."}</Text>
+      <SmallButton primary={setupNeeded} label={setupNeeded ? "Choose preferences" : "Review match settings"} onPress={onOpenWatchlist} />
     </View> : null}
     {groupRadarReports(current).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />)}
     {past.length ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showPast }} onPress={() => setShowPast(value => !value)} style={styles.historyRow}>
@@ -382,7 +388,7 @@ function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, wat
   </View>;
 }
 
-function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, onLayout, onNotificationsLayout, catalog, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onQuery, onSave, onSetWatching, onTogglePush }: { pushNeedsAttention: boolean; pushRecoveryAction: PushRecoveryAction; onRecoverPush: () => void; onLayout: (y: number) => void; onNotificationsLayout: (y: number) => void; catalog: RadarBottleOption[]; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<boolean> }) {
+function WatchlistView({ checkingPush, pushNeedsAttention, pushRecoveryAction, onRecoverPush, onLayout, onNotificationsLayout, catalog, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onQuery, onSave, onSetWatching, onTogglePush }: { checkingPush: boolean; pushNeedsAttention: boolean; pushRecoveryAction: PushRecoveryAction; onRecoverPush: () => void; onLayout: (y: number) => void; onNotificationsLayout: (y: number) => void; catalog: RadarBottleOption[]; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<boolean> }) {
   const router = useRouter();
   const api = useMobileApi();
   const insets = useSafeAreaInsets();
@@ -434,11 +440,14 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     await Share.share({ message: `Bourbon Signal sources are still expanding in this area. Invite friends to boost community activity. ${link}` });
   }
 
-  const pushDetail = pushBusy ? pushStage : pushNeedsAttention
+  const registrationNeeded = pushRecoveryAction === "retry-enable" && pushStatus?.currentDeviceRegistered === false
+    && preferences.notificationPreferences.push.enabled && !pushError;
+  const pushDetail = pushBusy ? pushStage : checkingPush ? "Checking this phone…" : pushNeedsAttention
     ? pushRecoveryAction === "settings" ? "Permission blocked"
       : pushRecoveryAction === "retry-status" ? "Status unavailable"
         : pushStatus?.warning?.code === "PUSH_PREFERENCE_WRITE_FAILED" ? "Settings sync incomplete"
-          : pushRecoveryAction === "retry-disable" ? "Could not turn off" : "Connection failed"
+          : pushRecoveryAction === "retry-disable" ? "Could not turn off"
+            : registrationNeeded ? "Push is enabled in your preferences. This phone still needs to register." : "Couldn’t register this phone"
     : pushStatus?.enabled && pushPermission === "granted" ? "On" : "Off";
   const selectedInEditor = editorState ? scopesForState(draftScopes, editorState.code) : [];
   const editorHasChanges = Boolean(editorState && monitoringScopesChanged(preferences.monitoringScopes, selectedInEditor, editorState.code));
@@ -477,8 +486,8 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     <View onLayout={(event) => onNotificationsLayout(event.nativeEvent.layout.y)} style={styles.section}>
     <SectionTitle>Notifications</SectionTitle>
     <OpenSection>
-      {pushNeedsAttention ? <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>Push Notifications</Text><Text style={styles.muted}>{pushDetail}</Text></View><TextAction label={pushBusy ? "WORKING…" : pushRecoveryAction === "settings" ? "OPEN SETTINGS" : "RETRY"} disabled={saving || pushBusy} onPress={onRecoverPush} /></View>
-        : <ToggleRow label="Push Notifications" detail={pushDetail} disabled={saving || pushBusy} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={onTogglePush} />}
+      {pushNeedsAttention ? <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>Push Notifications</Text><Text style={styles.muted}>{pushDetail}</Text></View><TextAction label={pushBusy ? "WORKING…" : pushRecoveryAction === "settings" ? "OPEN SETTINGS" : registrationNeeded ? "REGISTER PHONE" : "RETRY"} disabled={saving || pushBusy} onPress={onRecoverPush} /></View>
+        : <ToggleRow label="Push Notifications" detail={pushDetail} disabled={saving || pushBusy || checkingPush} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={onTogglePush} />}
       <ToggleRow label="Community sightings" detail="Alerts when other members post in your area" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={async (enabled) => Boolean(await onSave({ notificationPreferences: { sightings: { enabled } } }))} />
     </OpenSection>
 
