@@ -1,4 +1,3 @@
-import { physicalStoreAddress } from "../../../../src/lib/sighting-store-directory-core";
 import type { Signal } from "../api/types";
 
 export function signalStoreContact(signal: Signal | null) {
@@ -22,12 +21,16 @@ export function signalStoreContact(signal: Signal | null) {
     unique.set(key, part);
   }
   const address = [...unique.values()].join(", ");
-  const street = (store.address || "").split(",")[0];
+  const street = parts[0] || "";
+  const hasStreet = !/^p\.?\s*o\.?\s*box\b/i.test(street)
+    && /[a-z]/i.test(street)
+    && (/\d/.test(street) || /\b(?:street|st|road|rd|highway|hwy|route|avenue|ave|drive|dr|boulevard|blvd|lane|ln)\b/i.test(street))
+    && !/^(?:[a-z .'-]+,?\s+)?[A-Z]{2}\s*(?:\d{5}(?:-\d{4})?)?$/i.test(street);
   const digits = store.phone?.replace(/\D/g, "") || "";
   const phone = /^(?:1)?[2-9]\d{9}$/.test(digits) ? digits : "";
   return {
     address,
-    destination: physicalStoreAddress(street) && (store.city || store.zip || /\d{5}/.test(address)) ? [store.name, address].filter(Boolean).join(", ") : "",
+    destination: hasStreet && (store.city || store.zip || /\d{5}/.test(address)) ? [store.name, address].filter(Boolean).join(", ") : "",
     phone,
   };
 }
