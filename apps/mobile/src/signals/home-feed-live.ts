@@ -1,7 +1,7 @@
 import type { Signal } from "../api/types";
 
 export const SIGNAL_RECENT_WINDOW_MS = 72 * 60 * 60 * 1_000;
-const listingKey = (signal: Signal) => signal.source.type !== "member" && signal.availabilityEpisodeId ? `episode:${signal.availabilityEpisodeId}` : signal.id;
+const listingKey = (signal: Signal) => signal.shipmentUpdate?.key || (signal.source.type !== "member" && signal.availabilityEpisodeId ? "episode:" + signal.availabilityEpisodeId : signal.id);
 
 export function sortSignalTimeline(signals: readonly Signal[]) {
   const listings = new Map<string, Signal>();

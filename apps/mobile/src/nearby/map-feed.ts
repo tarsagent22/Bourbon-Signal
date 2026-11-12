@@ -34,6 +34,21 @@ export function nearestMappedReport(owner: object, reports: NearbyStore["signals
   return distances.length ? Math.min(...distances) : undefined;
 }
 
+export function mappedBoardMemberDistance(owner: object, boardId: string | undefined, memberId: string) {
+  const entry = closestReports.get(owner);
+  if (!entry || Date.now() - entry.at >= 10 * 60_000) return undefined;
+  const member = entry.result.boards?.find(board => board.id === boardId)?.members?.find(row => row.id === memberId);
+  return member?.approximateLocation ? undefined : member?.distance;
+}
+
+export function nearestMappedBoardMember(owner: object, boardId: string | undefined) {
+  const entry = closestReports.get(owner);
+  if (!entry || Date.now() - entry.at >= 10 * 60_000) return undefined;
+  const distances = entry.result.boards?.find(board => board.id === boardId)?.members
+    ?.flatMap(member => !member.approximateLocation && member.distance != null ? [member.distance] : []) || [];
+  return distances.length ? Math.min(...distances) : undefined;
+}
+
 const previews = new WeakMap<
   object,
   Map<string, { at: number; result: NearbyResult }>

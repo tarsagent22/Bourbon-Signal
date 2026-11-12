@@ -135,17 +135,18 @@ export default function NearbyMap({
             <View style={s.origin} />
           </Marker>
         ) : null}
-        {clusters.map((group) => (
-          <Marker
+        {clusters.map((group) => {
+          const hasSighting = group.stores.some(store => store.signals.some(signal => signal.source.type === "member" && signal.source.reportMode !== "reported_online"));
+          return <Marker
             key={`${group.id}:${group.stores.length}:${group.stores.some((s) => s.id === selected)}:${iconsReady}`}
             coordinate={group}
             opacity={group.stores.every(store => nearbyPinAge(store) > 3) ? 0.48 : 1}
-            zIndex={group.stores.some((store) => store.id === selected) ? 20 : 1}
+            zIndex={group.stores.some((store) => store.id === selected) ? 20 : hasSighting ? 12 : 1}
             tracksViewChanges={!iconsReady}
             accessibilityLabel={
               group.stores.length > 1
                 ? `${group.stores.length} stores. Zoom in`
-                : group.stores[0].name + ". " + nearbyPinBottleCount(group.stores[0]) + " bottles"
+                : group.stores[0].name + ". " + (hasSighting ? "Member sighting" : nearbyPinBottleCount(group.stores[0]) + " bottles")
             }
             onPress={() => {
               if (group.stores.length === 1) onSelect(group.stores[0].id);
@@ -164,6 +165,7 @@ export default function NearbyMap({
               style={[
                 s.pin,
                 group.stores.length === 1 && s.singlePin,
+                hasSighting && s.sightingPin,
                 group.stores.some((s) => s.id === selected) && s.selected,
               ]}
             >
@@ -172,14 +174,16 @@ export default function NearbyMap({
                   <Icon name="storefront-outline" size={13} color={c.muted} />
                   <Text style={s.count}>{group.stores.length}</Text>
                 </>
+              ) : hasSighting ? (
+                <Icon name="eye-outline" size={17} color={group.stores[0].id === selected ? c.background : c.accent} />
               ) : (
                 <Text style={[s.count, { color: group.stores[0].id === selected ? c.background : c.accent }]}>
                   {nearbyPinBottleCount(group.stores[0])}
                 </Text>
               )}
             </View>
-          </Marker>
-        ))}
+          </Marker>;
+        })}
         {memberPins
           .filter(
             (member) =>
@@ -313,6 +317,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  sightingPin: { borderColor: c.accent, backgroundColor: "#76501f" },
   singlePin: {
     backgroundColor: "#211A13",
     borderColor: "#83715D",

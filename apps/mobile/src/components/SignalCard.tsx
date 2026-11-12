@@ -10,7 +10,7 @@ import { reportAge } from "../signals/report-age";
 import { useReportClock } from "../hooks/useReportClock";
 import { colors, typeScale, fonts } from "../theme";
 
-export function SignalCard({ signal, onPress, highlighted = false }: { signal: Signal; onPress: () => void; highlighted?: boolean }) {
+export function SignalCard({ signal, onPress, highlighted = false, distance }: { signal: Signal; onPress: () => void; highlighted?: boolean; distance?: number }) {
   const clock = useReportClock();
   const [boundaryNow, setNow] = useState(() => new Date());
   const now = clock.getTime() > boundaryNow.getTime() ? clock : boundaryNow;
@@ -34,7 +34,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
   const { quantity: metric, status, showStatus } = signalRowFacts(signal, now);
   const report = signalRowReportSummary(signal, now);
   const price = presented.price === "Price unknown" ? "" : presented.price;
-  if (signal.source.type === "member") return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} now={now} />;
+  if (signal.source.type === "member") return <CommunityPostCard signal={signal} onPress={onPress} highlighted={highlighted} distance={distance} now={now} />;
   return <Pressable accessibilityHint="Opens Signal details" accessibilityLabel={signalAccessibilityLabel(signal, now)} accessibilityRole="button" onPress={onPress}
     style={({ pressed }) => [styles.card, age.older && styles.older, highlighted && styles.highlighted, pressed && styles.pressed]}>
     <View accessible={false} importantForAccessibility="no-hide-descendants" style={styles.artwork}>
@@ -46,12 +46,14 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
         <View style={[styles.rarityBadge, { backgroundColor: appearance.keyline }]}><Text style={[styles.rarityLabel, { color: appearance.accent }]}>{appearance.rarityLabel}</Text></View>
         <Text style={styles.time}>{report.label}</Text>
       </View>
+      {signal.kind !== "availability" || signal.location.scope === "online" ? <Text style={styles.status}>{signal.kind === "release" ? "Release" : signal.kind === "event" ? "Event" : "Online report"}</Text> : null}
       <Text style={styles.bottle}>{bottleIdentity.title}</Text>
       {bottleIdentity.subtitle ? <Text style={styles.bottleSubtitle}>{bottleIdentity.subtitle}</Text> : null}
       <View style={styles.details}>
         {presented.storeName ? <View style={styles.detailRow}><MaterialCommunityIcons color={colors.muted} name="storefront-outline" size={14} /><Text style={styles.storeName}>{presented.storeName}</Text></View> : null}
         {presented.geography ? <View style={styles.detailRow}><MaterialCommunityIcons color={colors.muted} name="map-marker-outline" size={14} /><Text style={styles.geography}>{presented.geography}</Text></View> : null}
       </View>
+      {distance != null ? <Text style={styles.geography}>{Math.round(distance)} mi</Text> : null}
       <View style={styles.factsRow}>
         {price ? <Text style={styles.price}>{price}</Text> : null}
         {price && metric && !report.quantityInSummary ? <Text accessible={false} style={styles.metricDot}>·</Text> : null}

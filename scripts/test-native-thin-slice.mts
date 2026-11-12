@@ -337,12 +337,10 @@ assert.match(mobileApiClient, /recentReads\.get\(key\)/, "native GET requests mu
 const nativeSignalFeed = readFileSync("apps/mobile/app/(app)/(tabs)/index.tsx", "utf8");
 const dropRouteSource = readFileSync("src/app/api/drops/route.ts", "utf8");
 assert.match(dropRouteSource, /Date\.parse\(dropDisplayTime\(drop\)\) >= since/, "Signal freshness filters must use the same displayed timestamp as Signal ordering");
-assert.match(nativeSignalFeed, /radio-tower/);
-assert.match(nativeSignalFeed, /account-group-outline/);
-assert.match(nativeSignalFeed, />Intel</);
+assert.match(nativeSignalFeed, /accessibilityLabel="Report sources"/);
+assert.match(nativeSignalFeed, /"browse" : "saved"/, "Home defaults to the member’s saved areas");
+assert.match(nativeSignalFeed, /Find a bottle/);
 assert.doesNotMatch(nativeSignalFeed, />Market</);
-assert.match(nativeSignalFeed, /type FeedView = "market" \| "community";/, "the user-facing Intel rename must preserve the existing market API contract");
-assert.match(nativeSignalFeed, />Community</);
 assert.match(nativeSignalFeed, /requestInFlightRef\.current/, "feed requests need a synchronous in-flight guard so refresh and pagination cannot race");
 assert.doesNotMatch(nativeSignalFeed, /LIVE MEMBER INTELLIGENCE/);
 assert.doesNotMatch(nativeSignalFeed, /updatedLabel|styles\.updated/, "feed freshness belongs to each card, not a detached header label");
@@ -350,8 +348,8 @@ assert.doesNotMatch(nativeSignalFeed, /segmentSelected:\s*\{[^}]*borderColor/, "
 assert.doesNotMatch(nativeSignalFeed, /segment:\s*\{[^}]*borderColor:\s*"transparent"/, "segments should not reserve an inner border");
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
 assert.match(nativeSignalFeed, /rarityOptionsForView\(view\)/, "rarity filters must remain immediately visible and respect each source schema");
-assert.match(nativeSignalFeed, /groupFeedReports\(merged, view, showOlderSightings\)/, "group only the already filtered reports");
-assert.match(nativeSignalFeed, /data=\{feedGroups\}/, "render the groups derived from the filtered reports");
+assert.match(nativeSignalFeed, /item.shipmentUpdate/, "only explicit board shipment updates may group");
+assert.match(nativeSignalFeed, /data=\{visibleSignals\}/, "render the event timeline");
 assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "selected rarity is included in the server query");
 assert.match(nativeSignalFeed, /onPress=\{\(\) => applyRarityFilters\(toggleRarity\(filters, option\.value\)\)\}/, "rarity chips must use the non-destructive local transition path");
 assert.doesNotMatch(nativeSignalFeed, /onPress=\{\(\) => applyFilters\(toggleRarity/, "rarity chips must never clear the feed through the remote filter reset path");

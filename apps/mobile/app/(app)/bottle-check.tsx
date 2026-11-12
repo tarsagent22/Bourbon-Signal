@@ -40,9 +40,9 @@ function BottleCheckScreen() {
   const router = useRouter(); const api = useMobileApi(); const catalog = useBottleCatalog();
   const [showSources, setShowSources] = useState(false);
   const { userId } = useAuth();
-  const params = useLocalSearchParams<{ state?: string; area?: string }>();
+  const params = useLocalSearchParams<{ state?: string; area?: string; lookup?: string }>();
   const initialRegion = regionContext(params.state, params.area);
-  const [mode, setMode] = useState<'scan' | 'search'>('scan');
+  const [mode, setMode] = useState<'scan' | 'search'>(params.lookup === '1' ? 'search' : 'scan');
   const [query, setQuery] = useState(''); const [matches, setMatches] = useState<RadarBottleOption[]>([]);
   const [scanSession, setScanSession] = useState(0);
   const [focused, setFocused] = useState(false); const [help, setHelp] = useState(false);
@@ -108,6 +108,10 @@ function BottleCheckScreen() {
   };
   const selectBottle = (item: RadarBottleOption) => {
     Keyboard.dismiss();
+    if (params.lookup === '1') {
+      router.replace({ pathname: '/(app)/bottle/[id]', params: { id: item.id, name: item.name, tier: item.nationalTier || item.rarity || '' } });
+      return;
+    }
     setSelected(item); setMatches([]); setShowSources(false);
     requestAnimationFrame(() => list.current?.scrollToOffset({ offset: 0, animated: false }));
   };
