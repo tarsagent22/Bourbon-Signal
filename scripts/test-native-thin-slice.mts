@@ -350,7 +350,8 @@ assert.doesNotMatch(nativeSignalFeed, /segmentSelected:\s*\{[^}]*borderColor/, "
 assert.doesNotMatch(nativeSignalFeed, /segment:\s*\{[^}]*borderColor:\s*"transparent"/, "segments should not reserve an inner border");
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
 assert.match(nativeSignalFeed, /rarityOptionsForView\(view\)/, "rarity filters must remain immediately visible and respect each source schema");
-assert.match(nativeSignalFeed, /data=\{visibleSignals\}/, "rarity changes must synchronously filter the already-mounted Signal cache");
+assert.match(nativeSignalFeed, /groupFeedReports\(visibleSignals, view, showOlderSightings\)/, "group only the already filtered reports");
+assert.match(nativeSignalFeed, /data=\{feedGroups\}/, "render the groups derived from the filtered reports");
 assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "selected rarity is included in the server query");
 assert.match(nativeSignalFeed, /onPress=\{\(\) => applyRarityFilters\(toggleRarity\(filters, option\.value\)\)\}/, "rarity chips must use the non-destructive local transition path");
 assert.doesNotMatch(nativeSignalFeed, /onPress=\{\(\) => applyFilters\(toggleRarity/, "rarity chips must never clear the feed through the remote filter reset path");
@@ -363,8 +364,7 @@ assert.match(nativeSignalFeed, /actionLabel=\{emptyFeed\.actionLabel\}/, "empty 
 assert.match(nativeSignalFeed, /case "area": applyFilters\(\{ \.\.\.filters, area: "" \}\)/, "empty area results broaden the area while preserving the state and other filters");
 assert.match(nativeSignalFeed, /placeholder="Search bottles or locations"/, "feed search must stay directly on the feed");
 assert.match(nativeSignalFeed, /label="State"/, "state selection must stay directly on the feed");
-assert.match(nativeSignalFeed, /label=\{areaLabel\}/, "the dependent area control must keep stable side-by-side geometry");
-assert.match(nativeSignalFeed, /disabled=\{!filters\.state \|\| !detailedFilters\}/, "area selection requires a Home state and detailed-filter access");
+assert.match(nativeSignalFeed, /filters\.state && detailedFilters \? <OptionChooser\s+label=\{areaLabel\}/, "area selection is visible only with a Home state and detailed-filter access");
 assert.doesNotMatch(nativeSignalFeed, /Trip Mode|tripMode|trip-mode/, "Home must not restore the removed Trip Mode feature");
 assert.doesNotMatch(nativeSignalFeed, /Intel gathered from Bourbon Signal sources|Bottle sightings shared by Bourbon Signal members/, "the feed header must not spend vertical space on explanatory paragraphs");
 const nativeSignalCard = readFileSync("apps/mobile/src/components/SignalCard.tsx", "utf8");
