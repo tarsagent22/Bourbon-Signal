@@ -45,7 +45,7 @@ try {
   await page.getByRole('button', { name: 'Check Eagle Rare 10 Year' }).waitFor(); await capture('bottle-check-search');
   await page.getByRole('button', { name: 'Check Eagle Rare 10 Year' }).click();
   await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('40');
-  await page.getByText(/^(A good buy at this price|Near reference price)$/).waitFor();
+  await page.getByText('Good buy at this price', { exact: true }).waitFor();
   await open('owned=1&catalog=missing');
   await page.getByText('Catalog details aren’t available for this saved entry. Your shelf details remain editable.').waitFor();
   await page.getByRole('button', { name: 'Edit your shelf' }).click();
