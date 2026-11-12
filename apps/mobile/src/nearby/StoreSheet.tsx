@@ -218,7 +218,7 @@ export function StoreSheet({
             style={s.headingTitle}
           >
             {store && expanded && (
-              <Icon name="chevron-left" size={20} color={c.muted} />
+              <Icon name="chevron-left" size={20} color={c.accent} />
             )}
             <Text style={s.headingText}>
               {store
@@ -313,7 +313,7 @@ export function StoreSheet({
                 <View style={s.copy}>
                   <Text style={s.meta}>
                     {store.kind === "board"
-                      ? `${store.members?.length || 0} member stores. Check with the store before visiting.`
+                      ? `${store.members?.length || 0} stores in this ABC area`
                       : store.address}
                   </Text>
                   {store.approximateLocation && (

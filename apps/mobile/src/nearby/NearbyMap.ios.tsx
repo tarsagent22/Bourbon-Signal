@@ -258,7 +258,7 @@ export default function NearbyMap({
         pointerEvents="none"
         style={[
           StyleSheet.absoluteFill,
-          { backgroundColor: "#1C1510", opacity: 0.2 },
+          { backgroundColor: "#5F351D", opacity: 0.48 },
         ]}
       />
       {moved ? (
