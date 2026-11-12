@@ -1,3 +1,4 @@
+import { ncOfficialBoardSourceId } from './nc-official-board-directory.mjs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -44,7 +45,7 @@ if (missingCanonicalBoards.length || unexpectedOfficialBoards.length) {
 }
 for (const canonical of canonicalBoards) {
   const officialBoard = officialByLabel.get(canonical.label);
-  const sourceId = String(officialBoard?.notes || '').match(/option id\s+(\d+)/i)?.[1] || '';
+  const sourceId = ncOfficialBoardSourceId(officialBoard);
   if (sourceId !== canonical.sourceId || canonical.id !== `nc-abc-board-${canonical.sourceId}`) {
     fail(`canonical board ID mismatch for ${canonical.label}`);
   }

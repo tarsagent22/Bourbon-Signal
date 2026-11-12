@@ -1,3 +1,4 @@
+import { ncOfficialBoardSourceId, STANLEY_ABC_BOARD } from './nc-official-board-directory.mjs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -21,7 +22,8 @@ const siteBoards = (site.locations || [])
 const siteBoardNames = new Set(siteBoards.map((location) => location.name));
 const missing = boards.filter((board) => !siteBoardNames.has(board.label));
 if (missing.length) fail(`${missing.length} canonical boards are missing from the checked-in customer export: ${missing.slice(0, 5).map((board) => board.label).join(', ')}`);
-const officialSiteBoards = siteBoards.filter((location) => location.sourceUrl === registry.sourceUrl);
+const officialSiteBoards = siteBoards.filter((location) => location.sourceUrl === registry.sourceUrl
+  || location.sourceUrl === STANLEY_ABC_BOARD.sourceUrl);
 const canonicalByLabel = new Map(boards.map((board) => [board.label, board]));
 const unexpectedOfficialRows = officialSiteBoards.filter((row) => !canonicalByLabel.has(row.name));
 if (officialSiteBoards.length !== boards.length || unexpectedOfficialRows.length) {
@@ -29,7 +31,7 @@ if (officialSiteBoards.length !== boards.length || unexpectedOfficialRows.length
 }
 for (const row of officialSiteBoards) {
   const canonical = canonicalByLabel.get(row.name);
-  const sourceId = String(row.notes || '').match(/option id\s+(\d+)/i)?.[1] || '';
+  const sourceId = ncOfficialBoardSourceId(row);
   if (!canonical || canonical.sourceId !== sourceId || canonical.id !== `nc-abc-board-${sourceId}`) {
     fail(`checked-in official board ID drifted for ${row.name}`);
   }

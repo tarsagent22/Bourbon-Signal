@@ -1,3 +1,4 @@
+import { NC_STORE_LOCATOR_URL, STANLEY_ABC_BOARD, stanleyDirectoryHasNoRetailStores } from './nc-official-board-directory.mjs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { stableId } from './core/text.mjs';
@@ -61,7 +62,7 @@ const SOURCES = [
   }
 ];
 
-const NC_STORE_LOCATOR_URL = 'https://abc2.nc.gov/Search/ABCStoreLocator';
+
 const NC_STORE_SEARCH_URL = 'https://abc2.nc.gov/Search/StoreSearch';
 
 function clean(value) {
@@ -252,6 +253,22 @@ async function collectNorthCarolinaOfficialLocations() {
     notes: `Official NC ABC board option id ${board.value}. Store locator is available; public bottle inventory varies by board.`
   }));
 
+  if (!boards.some(board => board.value === STANLEY_ABC_BOARD.sourceId)) {
+    const page = await fetchText(STANLEY_ABC_BOARD.sourceUrl);
+    if (!stanleyDirectoryHasNoRetailStores(page)) throw new Error('Stanley ABC Board retail status needs fresh directory verification');
+    locations.push(makeLocation({
+      state: 'NC',
+      type: 'county_board',
+      name: STANLEY_ABC_BOARD.label,
+      source: 'NC ABC Commission board list',
+      sourceUrl: STANLEY_ABC_BOARD.sourceUrl,
+      inventoryCapability: 'official_directory_only',
+      precision: 'county_board',
+      notes: 'Official NC ABC board id 261. The official board page lists no retail stores.',
+    }));
+  }
+  const verifiedBoardCount = locations.length;
+
   let failures = 0;
   const batchSize = 12;
   for (let i = 0; i < boards.length; i += batchSize) {
@@ -269,7 +286,7 @@ async function collectNorthCarolinaOfficialLocations() {
     }
   }
 
-  return { locations, report: { id: 'NC_ABC_STORE_LOCATOR', state: 'NC', status: failures ? 'partial' : 'ok', count: locations.length, boards: boards.length, failures, sourceUrl: NC_STORE_LOCATOR_URL } };
+  return { locations, report: { id: 'NC_ABC_STORE_LOCATOR', state: 'NC', status: failures ? 'partial' : 'ok', count: locations.length, boards: verifiedBoardCount, locatorBoards: boards.length, failures, sourceUrl: NC_STORE_LOCATOR_URL } };
 }
 
 function parseMaineAgencies(html, source) {

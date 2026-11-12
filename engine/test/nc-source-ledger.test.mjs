@@ -1,3 +1,4 @@
+import { ncOfficialBoardSourceId, STANLEY_ABC_BOARD, stanleyDirectoryHasNoRetailStores } from '../src/nc-official-board-directory.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -171,4 +172,16 @@ test('single-store coverage is stable when a quiet shipment day changes current 
   }));
   assert.deepEqual(validateNcSingleStoreCoverage({ boards }, 75), []);
   assert.match(validateNcSingleStoreCoverage({ boards: boards.slice(0, 74) }, 75).join(' '), /official single-store board coverage below threshold/i);
+});
+
+test('Stanley can be verified as a directory-only board from its exact official detail page', () => {
+  const page = '<h2>ABC Board Directory</h2><h6><u>Stanley ABC Board</u></h6>'
+    + '<div><label for="RetailSalesDate">Date of First Retail Sales</label>:</div><div class="col-6"></div>';
+  assert.equal(stanleyDirectoryHasNoRetailStores(page), true);
+  assert.equal(stanleyDirectoryHasNoRetailStores(page + '<th>Store Address</th>'), false);
+  assert.equal(stanleyDirectoryHasNoRetailStores(page.replace('Stanley ABC Board', 'Unrelated Board')), false);
+  assert.equal(stanleyDirectoryHasNoRetailStores(page.replace('col-6"></div>', 'col-6">11/12/2026</div>')), false);
+  const row = { name: STANLEY_ABC_BOARD.label, sourceUrl: STANLEY_ABC_BOARD.sourceUrl, notes: 'Official NC ABC board id 261.' };
+  assert.equal(ncOfficialBoardSourceId(row), STANLEY_ABC_BOARD.sourceId);
+  assert.equal(ncOfficialBoardSourceId({ ...row, sourceUrl: 'https://example.com/Districts/Board/261' }), null);
 });
