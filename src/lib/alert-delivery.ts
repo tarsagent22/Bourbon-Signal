@@ -1,3 +1,4 @@
+import { NC_SHIPMENT_EVENT } from "../../shared/feed-report-summary.ts";
 import { standardBottleName } from "../../shared/standard-bottle-identity.ts";
 import { readOwnerBottleRecords } from "@/lib/owner-admin-repository";
 import { expandCorrectedWatchNames } from "@/lib/admin-watch-aliases";
@@ -691,7 +692,7 @@ function candidateLocationGroupKey(candidate: CandidateAlert) {
   const precision = candidateLocationPrecision(candidate);
   const locationId = asString(candidate.storeId) || asString(candidate.store_id) || asString(candidate.locationId) || asString(candidate.boardId);
   const locationLabel = candidateStoreLabel(candidate);
-  return [sourceType, state, precision, locationId || normalizeLocationLookupKey(locationLabel)].filter(Boolean).join("|");
+  return [sourceType, state, precision, asString(candidate.eventType) === NC_SHIPMENT_EVENT ? "shipment" : "", locationId || normalizeLocationLookupKey(locationLabel)].filter(Boolean).join("|");
 }
 
 export function groupCandidatesByLocation(candidates: CandidateAlert[], bottlePrefs?: BottleAlertPreferences) {
@@ -918,7 +919,8 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
   const candidateId = asString(candidate.id);
   const signalId = asString(candidate.sourceType) === "community"
     ? (candidateId.startsWith("community:") ? `member:${candidateId.slice("community:".length)}` : "")
-    : normalizeDropSignal(candidate).id;
+    : normalizeDropSignal(asString(candidate.eventType) === NC_SHIPMENT_EVENT && candidate.shipmentDropId
+      ? { ...candidate, type: NC_SHIPMENT_EVENT, id: candidate.shipmentDropId } : candidate).id;
   return {
     id: buildAlertId(userId, dedupeKey, createdAt),
     userId,

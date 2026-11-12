@@ -37,3 +37,11 @@ test("a failed local write does not poison later saves", async () => {
   await writeDraft(store, "draft", { ...defaults, notes: "retry" });
   assert.equal((await readDraft(store, "draft", defaults))?.notes, "retry");
 });
+
+test("a restored draft expires 24 hours after its last saved edit", () => {
+  const savedAt = Date.parse("2026-11-11T16:00:00Z");
+  const raw = JSON.stringify({ version: 1, savedAt, fields: defaults });
+  assert.deepEqual(parseDraft(raw, defaults, savedAt + 86_400_000 - 1), defaults);
+  assert.equal(parseDraft(raw, defaults, savedAt + 86_400_000), null);
+  assert.equal(parseDraft(JSON.stringify({ version: 1, fields: defaults }), defaults), null);
+});

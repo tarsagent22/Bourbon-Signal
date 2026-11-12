@@ -1,5 +1,5 @@
 import { CommunityTermsGate } from '../../../src/components/CommunityTermsGate';
-import { PHOTO_PERMISSION_REMINDER, TERMS_URL } from '../../../../../shared/legal-acceptance';
+import { TERMS_URL } from '../../../../../shared/legal-acceptance';
 import { parseRecentStores, recentStoresKey, rememberStore } from "../../../src/sightings/recent-stores";
 import { useFormDraft } from "../../../src/hooks/useFormDraft";
 import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
@@ -558,9 +558,7 @@ function PostComposer({ userId }: { userId: string }) {
               </View>}
               {photoBusy ? <ActivityIndicator color={colors.accent} size="small" /> : null}
               {photoMessage ? <Text accessibilityRole="alert" style={styles.photoMessage}>{photoMessage}</Text> : null}
-              <Text style={styles.photoDisclosure}>{PHOTO_PERMISSION_REMINDER}</Text>
-              <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(TERMS_URL).catch(() => setPhotoMessage('Terms could not open. Try again.'))} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.accent }}>Terms of Use</Text></Pressable>
-              <Text style={styles.photoDisclosure}>Evidence may appear publicly with this sighting. Photos are resized, re-encoded, and stripped of embedded metadata before upload.</Text>
+              <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(TERMS_URL).catch(() => setPhotoMessage('Terms could not open. Try again.'))} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={styles.photoDisclosure}>Only share photos you can post publicly. <Text style={{ color: colors.accent }}>Terms of Use</Text></Text></Pressable>
             </View>
           </ComposerSection> : null}
 

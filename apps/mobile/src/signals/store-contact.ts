@@ -2,9 +2,13 @@ import type { Signal } from "../api/types";
 
 export function signalStoreContact(signal: Signal | null) {
   const store = signal?.location.scope === "exact_store" && !signal.shipment ? signal.location.store : undefined;
+  return storeContact(store, signal?.location.state);
+}
+
+export function storeContact(store?: NonNullable<Signal["location"]["store"]>, state?: string) {
   if (!store) return { address: "", destination: "", phone: "" };
 
-  const parts = [store.address, store.city, store.state || signal?.location.state, store.zip]
+  const parts = [store.address, store.city, store.state || state, store.zip]
     .flatMap(part => (part || "").split(","))
     .map(part => part.trim()).filter(Boolean);
   const unique = new Map<string, string>();

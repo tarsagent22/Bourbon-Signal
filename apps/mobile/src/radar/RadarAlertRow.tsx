@@ -1,3 +1,4 @@
+import { NC_SHIPMENT_EVENT } from "../../../../shared/feed-report-summary";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
@@ -53,7 +54,7 @@ export function RadarAlertRow({ alert, saving, watchedNames, onMutate, onMute, i
         <Pressable accessibilityRole="button" accessibilityLabel={`${bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}, ${radarAlertLocation(alert)}, ${unread ? "unread, " : ""}View details`} accessibilityState={{ expanded }} accessibilityHint="Expands this alert. Swipe left for read and archive actions." onPress={() => { closeSwipe(); setExpanded(v => !v); }} style={s.copy}>
           <Text style={s.bottle}>{bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}</Text>
           <Text style={s.location}>{radarAlertLocation(alert)}</Text>
-          <View style={s.summaryFooter}><Text style={s.meta}>{stale ? "Past report" : alert.sourceType === "community" ? "Community sighting" : "Bottle report"} · {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text><MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} color={colors.muted} size={18} /></View>
+          <View style={s.summaryFooter}><Text style={s.meta}>{stale ? "Past report" : alert.eventType === NC_SHIPMENT_EVENT ? "ABC shipment" : alert.sourceType === "community" ? "Community sighting" : "Bottle report"} · {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text><MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} color={colors.muted} size={18} /></View>
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={`Actions for ${firstBottle}`} disabled={saving} onPress={() => { closeSwipe(); setMuteError(""); setChooseBottles(false); setMenu(true); }} style={s.menuButton}><MaterialCommunityIcons name="dots-horizontal" color={colors.muted} size={22} /></Pressable>
       </View>

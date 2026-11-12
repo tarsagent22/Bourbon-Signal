@@ -1,3 +1,4 @@
+import { NC_SHIPMENT_EVENT } from "../../../../shared/feed-report-summary";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -24,7 +25,7 @@ export function RadarAlertDetails({ alert, bottles, stale, onOpenReport }: {
         </View>;
       })}
     </View>
-    <View style={s.notice}><MaterialCommunityIcons name={stale ? 'clock-outline' : 'information-outline'} size={17} color={colors.muted} /><Text style={s.noticeText}>{stale ? 'Past report · availability unconfirmed' : 'Availability unconfirmed'}{ '\n' }Check with the store before making a trip.</Text></View>
+    <View style={s.notice}><MaterialCommunityIcons name={stale ? 'clock-outline' : 'information-outline'} size={17} color={colors.muted} /><Text style={s.noticeText}>{alert.eventType === NC_SHIPMENT_EVENT ? 'ABC shipment reported. Receiving stores are unconfirmed.' : stale ? 'Past report · availability unconfirmed' : 'Availability unconfirmed. Check with the store before making a trip.'}</Text></View>
     {address ? <View style={s.addressRow}><MaterialCommunityIcons name="map-marker-outline" size={19} color={colors.muted} /><Text selectable style={s.address}>{address}</Text></View> : null}
     <View style={s.actions}>
       {directionsUrl ? <Pressable accessibilityRole="button" accessibilityLabel={`Get directions to ${alert.storeLabel}`} onPress={() => { setDirectionsError(false); void Linking.openURL(directionsUrl).catch(() => setDirectionsError(true)); }} style={({ pressed }) => [s.primary, pressed && s.pressed]}><MaterialCommunityIcons name="directions" size={19} color={colors.background} /><Text style={s.primaryText}>Directions</Text></Pressable> : null}

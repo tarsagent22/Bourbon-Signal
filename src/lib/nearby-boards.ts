@@ -39,6 +39,10 @@ const boards = directory.boards.map((board) => ({
   }),
 }));
 
+export function boardMemberStores(boardId: string): BoardMember[] {
+  return boards.find(board => board.id === boardId)?.members ?? [];
+}
+
 export function nearbyBoards(origin: Point, radius: number): NearbyStore[] {
   return boards.flatMap((board) => {
     const members = board.members

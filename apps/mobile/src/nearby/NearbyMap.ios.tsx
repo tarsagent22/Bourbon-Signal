@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { nearbyPinAge, nearbyPinBottleCount } from "./map-feed";
 import MapView, { Circle, Marker } from "react-native-maps";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { colors as c } from "../theme";
@@ -138,12 +139,13 @@ export default function NearbyMap({
           <Marker
             key={`${group.id}:${group.stores.length}:${group.stores.some((s) => s.id === selected)}:${iconsReady}`}
             coordinate={group}
+            opacity={group.stores.every(store => nearbyPinAge(store) > 3) ? 0.48 : 1}
             zIndex={group.stores.some((store) => store.id === selected) ? 20 : 1}
             tracksViewChanges={!iconsReady}
             accessibilityLabel={
               group.stores.length > 1
                 ? `${group.stores.length} stores. Zoom in`
-                : group.stores[0].name
+                : group.stores[0].name + ". " + nearbyPinBottleCount(group.stores[0]) + " bottles"
             }
             onPress={() => {
               if (group.stores.length === 1) onSelect(group.stores[0].id);
@@ -171,13 +173,9 @@ export default function NearbyMap({
                   <Text style={s.count}>{group.stores.length}</Text>
                 </>
               ) : (
-                <Icon
-                  name="storefront-outline"
-                  size={17}
-                  color={
-                    group.stores[0].id === selected ? c.background : c.accent
-                  }
-                />
+                <Text style={[s.count, { color: group.stores[0].id === selected ? c.background : c.accent }]}>
+                  {nearbyPinBottleCount(group.stores[0])}
+                </Text>
               )}
             </View>
           </Marker>
@@ -229,6 +227,7 @@ export default function NearbyMap({
             <Marker
               key={`${board.id}:${selected === board.id}:${iconsReady}:${showMembers}`}
               coordinate={board}
+              opacity={nearbyPinAge(board) > 3 ? 0.48 : 1}
               tracksViewChanges={!iconsReady}
               accessibilityLabel={`${board.name}. Board shipments, store availability unconfirmed`}
               onPress={() => onSelect(board.id)}

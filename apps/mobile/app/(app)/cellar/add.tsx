@@ -326,8 +326,6 @@ function AccountAddBottle() {
   return <SafeAreaView edges={["bottom"]} style={styles.screen}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
       <ScrollView scrollEnabled={!ratingDragging} contentContainerStyle={styles.content} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
-        <Text style={styles.eyebrow}>MY SHELF</Text>
-        <Text accessibilityRole="header" style={styles.title}>Add to My Shelf</Text>
         <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
         <Pressable accessibilityRole="button" onPress={() => { Keyboard.dismiss(); router.push({ pathname: '/(app)/scan-shelf', params: { price: pricePaid, store } }); }} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:colors.accent,fontSize:14,fontWeight:"600"}}>Scan a bottle →</Text></Pressable>
         <DraftNotice hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} />
@@ -342,14 +340,13 @@ function AccountAddBottle() {
         }} /> : null}
         {!loading && preferences && preferences.entitlements?.canUseCollection !== true ? <EmptyState title="My Shelf is not included with this membership" detail="Return to Account to review the membership recognized by the app." /> : null}
         {!loading && preferences?.entitlements?.canUseCollection ? <>
-          <Field label="Whiskey"><TextInput
+          {!selected ? <Field label="Whiskey"><TextInput
             accessibilityLabel="Search bottles"
             autoCapitalize="none"
             autoFocus={!onboardingBottleId}
             clearButtonMode="while-editing"
             onChangeText={(value) => {
               setQuery(value);
-              if (selected && value !== selected.name) setSelected(null);
               if (custom) setCustom(false);
               setFormError("");
             }}
@@ -357,7 +354,7 @@ function AccountAddBottle() {
             placeholderTextColor={colors.muted}
             style={styles.input}
             value={query}
-          /></Field>
+          /></Field> : null}
 
 
           {!selected && !custom && !needle ? <View style={styles.recentSection}>

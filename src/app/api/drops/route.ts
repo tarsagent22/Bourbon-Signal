@@ -1,3 +1,4 @@
+import { summarizePagedBottleReports } from "@/lib/signals/feed-report-summary";
 import { filterNearbyFeedDrops, nearbyFeedPageLimit } from "@/lib/nearby-feed-scope";
 import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
 import { unstable_cache } from "next/cache";
@@ -525,6 +526,7 @@ export async function GET(request: Request) {
       {
         ...exportPayload,
         drops: pagedDrops,
+        ...(!isFreeAccess && canonicalSignalOrder && url.searchParams.get("reportGroups") === "1" ? { reportGroups: summarizePagedBottleReports(drops, pagedDrops) } : {}),
         total,
         limit,
         offset: page.offset,

@@ -7,7 +7,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, AppState, FlatList, Image, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, AppState, FlatList, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberPreferences, MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
@@ -15,9 +15,9 @@ import { MemberContinuity } from '../../../src/continuity/MemberContinuity';
 import { personalTasteNote } from '../../../src/continuity/taste-discovery';
 import { coverageContext, supportContext } from '../../../src/continuity/bottle-handoff';
 import { FeedSkeleton } from "../../../src/components/FeedSkeleton";
-import { groupFeedReports, reportGroupSummary, type FeedReportGroup } from "../../../src/signals/feed-report-groups";
-import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork";
-import { signalAvailabilityIsCurrent } from "../../../src/api/presentation";
+import { groupFeedReports, SIGHTING_WINDOW, type FeedReportGroup } from "../../../src/signals/feed-report-groups";
+import { GroupedSignalCard } from "../../../src/components/GroupedSignalCard";
+import { nearestMappedReport } from "../../../src/nearby/map-feed";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
@@ -130,6 +130,9 @@ export default function SignalFeedScreen() {
     market: { ...DEFAULT_SIGNAL_FILTERS },
     community: { ...DEFAULT_SIGNAL_FILTERS },
   });
+  const [recentSightings, setRecentSightings] = useState<Signal[]>([]);
+  const [updatedScope, setUpdatedScope] = useState("");
+  const restoredScope = useRef("");
   const [showOlderSightings, setShowOlderSightings] = useState(false);
   const [expandedGroup, setExpandedGroup] = useState("");
   const [nationalByView, setNationalByView] = useState({ market: false, community: false });
@@ -155,9 +158,28 @@ export default function SignalFeedScreen() {
   }, [filtersByView, nationalByView, localState, view, filterTier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
-  const feedGroups = useMemo(() => groupFeedReports(visibleSignals, view, showOlderSightings), [visibleSignals, view, showOlderSightings]);
+  const mergedSightings = useMemo(() => recentSightings.filter(signal => !filters.state || signal.location.state === filters.state), [filters.state, recentSightings]);
+  const hasCommunityVolume = new Set(mergedSightings.map(signal => signal.source.actor?.label || "")).size > 1;
+  const feedGroups = useMemo(() => {
+    const merged = view === "market" && !hasCommunityVolume ? sortSignalTimeline([...visibleSignals, ...mergedSightings]) : visibleSignals;
+    return groupFeedReports(merged, view, showOlderSightings);
+  }, [hasCommunityVolume, mergedSightings, visibleSignals, view, showOlderSightings]);
   const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities, filterTier]);
   const screenActive = screenFocused && appState === "active";
+  useEffect(() => {
+    if (!browsingLoaded || view !== "market") return;
+    let active = true;
+    setRecentSightings([]);
+    void api.listSignals({ view: "community", limit: 8, state: filters.state }).then(page => {
+      if (active) setRecentSightings(page.signals.filter(signal => Date.parse(signal.timing.displayAt) >= Date.now() - SIGHTING_WINDOW));
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [api, browsingLoaded, filters.state, view]);
+  useEffect(() => {
+    if (!updatedScope) return;
+    const timer = setTimeout(() => setUpdatedScope(""), 3500);
+    return () => clearTimeout(timer);
+  }, [updatedScope]);
   const motionDisabled = reduceMotion || screenReaderEnabled;
   const cacheScope = feedCacheScope(view, requestFilters);
   const areaDirectory = profile?.feedAreas;
@@ -292,6 +314,10 @@ export default function SignalFeedScreen() {
       setHasMore(page.hasMore);
       setAccess(page.access);
       if (refresh) {
+        if (!page.degraded && restoredScope.current === capturedScope) {
+          restoredScope.current = "";
+          setUpdatedScope(capturedScope);
+        }
         setMarketSummaries(page.marketSummaries);
         void homeFeedCache.save(userId || "", cacheScope, page).catch(() => undefined);
       }
@@ -399,7 +425,7 @@ export default function SignalFeedScreen() {
       if (saved && mutationAtStart === browsingMutationSequence.current) {
         setView(saved.view);
         if (saved.startupProfile?.sessionId === sessionId) setStartupProfile(current => current ?? saved.startupProfile);
-        setNationalByView(saved.nationalByView ?? { market: false, community: false });
+        setNationalByView({ market: saved.nationalByView?.market ?? false, community: false });
         setFiltersByView(saved.filtersByView);
         setBottleQueries({ market: saved.filtersByView.market.bottle, community: saved.filtersByView.community.bottle });
       } else if (!saved && homeState && mutationAtStart === browsingMutationSequence.current) {
@@ -470,6 +496,9 @@ export default function SignalFeedScreen() {
           latestDisplayedBaselineRef.current = scopedIncoming[0]?.timing.displayAt || "";
         } else {
           const displayed = signalsSnapshotRef.current;
+          const currentReports = new Map(displayed.map(report => [report.id, report.groupSummary]));
+          if (!page.degraded && scopedIncoming.some(report => currentReports.has(report.id)
+            && JSON.stringify(currentReports.get(report.id)) !== JSON.stringify(report.groupSummary))) setUpdatedScope(capturedScope);
           setSignals(reconcileDisplayedSignals(displayed, scopedIncoming, page.hasMore));
           setQueuedSignals((current) => reconcileQueuedSignals(displayed, current, scopedIncoming, latestDisplayedBaselineRef.current));
         }
@@ -523,6 +552,8 @@ export default function SignalFeedScreen() {
   useEffect(() => {
     if (!browsingLoaded || (!filterTier && !profileError) || loadedScopeRef.current === scopeKey) return;
     loadedScopeRef.current = scopeKey;
+    restoredScope.current = "";
+    setUpdatedScope("");
     setExpandedGroup("");
     pendingOffset.current = savedOffsets.current.get(scopeKey) || 0;
     requestSequence.current += 1;
@@ -535,6 +566,7 @@ export default function SignalFeedScreen() {
     setLoaded(false);
     const restore = (page: SignalFeedPage | null) => {
       if (!page || (view === "market" && !page.access.marketDetailsLocked && !page.access.previewLocked && (!filterTier || filterTier === "free")) || loadedScopeRef.current !== scopeKey || scopeKeyRef.current !== scopeKey) return;
+      restoredScope.current = scopeKey;
       setSignals(page.signals);
       setAccess(page.access);
       setMarketSummaries(page.marketSummaries);
@@ -581,15 +613,9 @@ export default function SignalFeedScreen() {
 
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
-  const liveLocalReport = view === "market" && filters.state && !marketLocked
-    ? visibleSignals.find(signal => !signal.shipment && signal.location.scope === "exact_store"
-      && (signal.location.store?.state || signal.location.state) === filters.state
-      && signal.alertEligibility.inventory && signalAvailabilityIsCurrent(signal))
-    : undefined;
-
   const header = (
     <View style={styles.header}>
-      <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
+      {view === "community" || hasCommunityVolume ? <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ selected: view === "market" }}
@@ -608,17 +634,9 @@ export default function SignalFeedScreen() {
           <MaterialCommunityIcons color={view === "community" ? colors.accent : colors.muted} name="account-group-outline" size={21} />
           <Text style={[styles.segmentLabel, view === "community" && styles.segmentLabelSelected]}>Community</Text>
         </Pressable>
-      </View>
-
-      {view === "market" ? <View style={styles.homeActions}>
-        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/bottle-check")} style={styles.homeAction}><MaterialCommunityIcons name="star-outline" color={colors.accent} size={17} /><Text style={styles.clearLocationText}>Signal Score</Text></Pressable>
-        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/nearby")} style={styles.homeAction}><MaterialCommunityIcons name="map-marker-outline" color={colors.accent} size={17} /><Text style={styles.clearLocationText}>Nearby</Text></Pressable>
       </View> : null}
-      {liveLocalReport ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: liveLocalReport.id } })} style={styles.liveReport}>
-        <Text style={styles.clearLocationText}>Current store report · {filters.state}</Text>
-        <Text numberOfLines={2} style={styles.bottleGroupTitle}>{liveLocalReport.bottle.name}</Text>
-        <Text numberOfLines={1} style={styles.locationSelectionText}>{liveLocalReport.location.store?.name}</Text>
-      </Pressable> : null}
+
+      {updatedScope === scopeKey ? <Text accessibilityLiveRegion="polite" style={styles.areaOptionNote}>Updated just now</Text> : null}
       <>
         <View accessibilityLabel="Signal geography filters" style={styles.geographyRow}>
           <OptionChooser
@@ -699,13 +717,6 @@ export default function SignalFeedScreen() {
             );
           })}
         </ScrollView>
-        {filters.state ? <View style={styles.locationSelection}>
-          <Text numberOfLines={2} style={styles.locationSelectionText}>{filters.area ? `${filters.state} · ${selectedAreaLabel}${filters.state === "NC" && selectedArea?.subtitle ? ` · ${filters.area}` : ""}` : `${filters.state} · All ${areaLabel === "City" ? "cities" : "areas"}`}</Text>
-          <Pressable accessibilityLabel="Clear Home location filters" accessibilityRole="button" onPress={() => selectState("")} style={styles.clearLocationButton}>
-            <MaterialCommunityIcons color={colors.accent} name="close" size={17} />
-            <Text style={styles.clearLocationText}>Clear</Text>
-          </Pressable>
-        </View> : null}
       </>
 
       {profileError ? (
@@ -735,19 +746,7 @@ export default function SignalFeedScreen() {
 
   return (
     <View style={styles.screen}>
-      <View pointerEvents="none" style={styles.homeBackdrop}>
-        <ImageBackground
-          accessibilityIgnoresInvertColors
-          resizeMode="cover"
-          source={require("../../../assets/home-shelf-background.jpg")}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
       <View ref={viewportRef} collapsable={false} onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} style={[styles.feedViewport, { marginTop: headerHeight }]}>
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <Image source={require("../../../assets/home-header-fade.png")} resizeMode="stretch" style={styles.feedFade} />
-        <View style={styles.feedShade} />
-      </View>
       <FlatList
       key={JSON.stringify([userId, view])}
       removeClippedSubviews={false}
@@ -768,17 +767,15 @@ export default function SignalFeedScreen() {
       renderItem={({ item, index }) => {
         const first = item.reports[0];
         const expanded = expandedGroup === item.key;
-        const grouped = item.reports.length > 1;
-        return <View>
-          {grouped ? <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={() => setExpandedGroup(expanded ? "" : item.key)} style={styles.bottleGroup}>
-            <CellarBottleArtwork bottle={{ bottleId: first.bottle.id, bottleName: first.bottle.name }} size="list" />
-            <View style={styles.bottleGroupCopy}>
-              <Text style={styles.bottleGroupTitle}>{first.bottle.name}</Text>
-              <Text style={styles.locationSelectionText}>{reportGroupSummary(item.reports)}</Text>
-            </View>
-            <MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} color={colors.accent} size={22} />
-          </Pressable> : null}
-          {(!grouped || expanded) ? item.reports.map(signal => <FeedSignalRow key={signal.id} highlighted={highlightedIds.includes(signal.id)} signal={signal} personalNote={personalTasteNote(signal.bottle, tastePreferences)} />) : null}
+        const openReport = (signal: Signal) => router.push({ pathname: "/(app)/signal/[id]", params: { id: signal.id } });
+        return <View style={highlightedIds.includes(first.id) ? styles.groupHighlighted : undefined}>
+          {first.source.type === "member"
+            ? <View>{view === "market" ? <Text style={styles.areaOptionNote}>Member sighting</Text> : null}
+                <FeedSignalRow signal={first} highlighted={highlightedIds.includes(first.id)} personalNote={personalTasteNote(first.bottle, tastePreferences)} />
+              </View>
+            : <GroupedSignalCard reports={item.reports} expanded={expanded}
+                nearest={nearestMappedReport(api, item.reports)}
+                onToggle={() => setExpandedGroup(expanded ? "" : item.key)} onOpen={openReport} />}
           {index === feedGroups.length - 1 ? feedFooter : null}
         </View>;
       }}
@@ -786,8 +783,8 @@ export default function SignalFeedScreen() {
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}
       onEndReachedThreshold={0.5}
-      ListHeaderComponent={<>{header}{view === "community" && loaded ? <Pressable accessibilityRole="button" onPress={() => setShowOlderSightings(value => !value)} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>{showOlderSightings ? "Show only this week" : "Show older sightings"}</Text></Pressable> : null}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
-      ListEmptyComponent={view === "community" && loaded && !error && visibleSignals.length ? <Text style={styles.loadingText}>No sightings this week. Post a find or browse older sightings.</Text> : !loaded && !error
+      ListHeaderComponent={<>{header}{view === "community" && loaded ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showOlderSightings }} onPress={() => setShowOlderSightings(value => !value)} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>{showOlderSightings ? "Hide older sightings" : "Older sightings"}</Text></Pressable> : null}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
+      ListEmptyComponent={view === "community" && loaded && !error && !showOlderSightings && visibleSignals.length ? <Text style={styles.loadingText}>No sightings in the last 48 hours.</Text> : !loaded && !error
         ? <FeedSkeleton community={view === "community"} />
         : error
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
@@ -817,7 +814,12 @@ export default function SignalFeedScreen() {
                 }
               }} />
               {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:coverageContext({state:filters.state || profile?.homeState,area:selectedAreaLabel})})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
-      ListFooterComponent={!visibleSignals.length ? feedFooter : null}
+      ListFooterComponent={<>
+        {!visibleSignals.length ? feedFooter : null}
+        {view === "market" && !hasCommunityVolume ? <>
+          {loaded ? <Pressable accessibilityRole="button" onPress={() => { selectView("community"); setShowOlderSightings(true); }} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Older sightings</Text></Pressable> : null}
+        </> : null}
+      </>}
     />
       </View>
       {queuedSignals.length ? <Pressable
@@ -839,10 +841,7 @@ const styles = StyleSheet.create({
   previewDetail: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21, marginTop: 6 },
   summaryCard: { alignSelf: "stretch", padding: 14, marginTop: 12, backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border },
   screen: { flex: 1, backgroundColor: colors.background },
-  homeBackdrop: StyleSheet.absoluteFill,
   feedViewport: { flex: 1, backgroundColor: "transparent" },
-  feedFade: { width: "100%", height: 120 },
-  feedShade: { flex: 1, backgroundColor: "rgba(8,6,4,0.64)" },
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20 },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: "rgba(210,184,145,0.12)", marginLeft: 78 },
   communitySeparator: { marginLeft: 0 },
@@ -857,16 +856,9 @@ const styles = StyleSheet.create({
   segmentLabel: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   segmentLabelSelected: { color: colors.accent },
   geographyRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 8 },
-  locationSelection: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingLeft: 4 },
-  locationSelectionText: { flex: 1, color: colors.muted, ...typography.caption },
   clearLocationButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3, paddingHorizontal: 6 },
   clearLocationText: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800" },
-  homeActions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  homeAction: { flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface },
-  liveReport: { padding: 12, gap: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.accent, borderRadius: 12, backgroundColor: colors.surface },
-  bottleGroup: { minHeight: 84, flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 },
-  bottleGroupCopy: { flex: 1, gap: 4 },
-  bottleGroupTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "700" },
+  groupHighlighted: { backgroundColor: "rgba(214,154,74,0.1)" },
   filterChooser: { flex: 1, minWidth: 0 },
   filterChooserDisabled: { opacity: 0.72 },
   rarityRow: { flexGrow: 1, gap: 6, paddingRight: 2, paddingVertical: 3 },

@@ -8,7 +8,7 @@ const nativePhoto = readFileSync(new URL("./sighting-photo-native.ts", import.me
 test("Post offers camera and library evidence with preview replacement and removal", () => {
   for (const label of ["Photo evidence", "Take photo", "Choose photo", "Replace photo", "Remove photo"]) assert.match(post, new RegExp(label));
   assert.match(post, /<Image[^>]+source=\{\{ uri: selectedPhoto\.uri \}\}/);
-  assert.match(post, /Evidence may appear publicly with this sighting/);
+  assert.match(post, /Only share photos you can post publicly/);
   assert.match(nativePhoto, /launchCameraAsync/);
   assert.match(nativePhoto, /launchImageLibraryAsync/);
   assert.match(nativePhoto, /exif: false/);

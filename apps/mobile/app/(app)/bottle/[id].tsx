@@ -5,7 +5,7 @@ import type { BottleProfile } from '../../../../../shared/bottle-profile';
 import type { MemberPreferences, Signal } from '../../../src/api/types';
 import { useMobileApi } from '../../../src/hooks/useMobileApi';
 import { useScreenRevalidation } from '../../../src/hooks/useScreenRevalidation';
-import { BottleProfileHero } from '../../../src/components/BottleProfileHero';
+import { BottleProfileHero, BottleProfileRating } from '../../../src/components/BottleProfileHero';
 import { ProfileBackButton } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { ErrorState } from '../../../src/components/MemberScreen';
@@ -55,24 +55,23 @@ export default function BottleProfileScreen() {
     {!identity && !error ? <ActivityIndicator color={colors.accent} /> : null}
     {error && !identity ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {identity ? <>
-      <BottleProfileHero identity={identity} details={bottle} personal={personal}
-        onShelf={preferences && (personal?.inCellar || preferences.collectionAccess.canAdd) ? () => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } }) : undefined}
-        />
-      <View style={s.actions}>
-        <Action label={personal?.inCellar ? 'Edit your shelf' : preferences?.collectionAccess.canAdd === false ? 'Free shelf is full' : 'Add to My Shelf'} disabled={!preferences || (!personal?.inCellar && !preferences.collectionAccess.canAdd)} primary onPress={() => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } })} />
-        {bottle ? <Action label={saving ? 'Saving…' : personal?.isWatched ? 'Remove from Radar' : 'Watch in Radar'} disabled={!preferences || saving} onPress={() => void toggleWatch()} /> : null}
-        {bottle ? <Action label="Post a Sighting" onPress={() => router.push({ pathname: '/(app)/(tabs)/post', params: { scanBottleId: identity.id } })} /> : null}
-      </View>
-      {memberError ? <Text accessibilityRole="alert" style={s.copy}>{memberError}</Text> : null}
-      <BottlePriceCheck key={identity.id} msrp={bottle?.msrp ?? null} />
+      <BottleProfileHero identity={identity} details={bottle} />
       {bottle ? <View style={s.reports}><Text accessibilityRole="header" style={s.section}>Reported availability</Text>
         {reports.map(report => <Pressable key={report.id} accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/signal/[id]', params: { id: report.id } })} style={s.report}><View style={{ flex: 1, gap: 4 }}><Text style={s.reportName}>{report.location.store?.name || report.location.label || report.source.label}</Text><Text style={s.note}>{[report.location.store?.city, report.location.state].filter(Boolean).join(', ')} · Reported {new Date(report.timing.displayAt).toLocaleDateString()}</Text></View><Text style={s.price}>{report.availability?.price != null ? `$${report.availability.price.toFixed(2)}` : 'View →'}</Text></Pressable>)}
         {!reports.length ? <Text style={s.copy}>{reportError || 'No recent reports for this bottle.'}</Text> : null}
       </View> : null}
+      <View style={s.actions}>
+        {bottle ? <Action primary={!personal?.isWatched} label={saving ? 'Saving…' : personal?.isWatched ? 'Remove from Radar' : 'Watch in Radar'} disabled={!preferences || saving} onPress={() => void toggleWatch()} /> : null}
+        <Action label={personal?.inCellar ? 'Edit your shelf' : preferences?.collectionAccess.canAdd === false ? 'Free shelf is full' : 'Add to My Shelf'} disabled={!preferences || (!personal?.inCellar && !preferences.collectionAccess.canAdd)} onPress={() => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } })} />
+        {bottle ? <Action label="Post a Sighting" onPress={() => router.push({ pathname: '/(app)/(tabs)/post', params: { scanBottleId: identity.id } })} /> : null}
+      </View>
+      {memberError ? <Text accessibilityRole="alert" style={s.copy}>{memberError}</Text> : null}
+      <BottlePriceCheck key={identity.id} msrp={bottle?.msrp ?? null} />
+      <BottleProfileRating personal={personal} onRate={preferences && (personal?.inCellar || preferences.collectionAccess.canAdd) ? () => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } }) : undefined} />
       {!bottle ? <Text style={s.copy}>Catalog details aren’t available for this saved entry. Your shelf details remain editable.</Text> : null}
-      <Action label="Get help with this bottle" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Bottle Profile', bottle: identity.name }) })} />
+      <Action footer label="Get help with this bottle" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Bottle Profile', bottle: identity.name }) })} />
     </> : null}
   </ScrollView>;
 }
-function Action({ label, onPress, primary = false, disabled = false }: { label: string; onPress: () => void; primary?: boolean; disabled?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={[s.action, primary && s.primary, disabled && { opacity: 0.45 }]}><Text style={[s.actionText, primary && { color: colors.background }]}>{label}</Text></Pressable>; }
-const s = StyleSheet.create({ page: { flex: 1, backgroundColor: colors.background }, content: { padding: 22, gap: 24, paddingBottom: 48 }, actions: { gap: 10 }, action: { minHeight: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 10, borderWidth: 1, borderColor: colors.border }, primary: { backgroundColor: colors.accent, borderColor: colors.accent }, actionText: { color: colors.accent, fontSize: 14, fontWeight: '700' }, copy: { color: colors.muted, fontSize: 14, lineHeight: 21 }, reports: { gap: 14, paddingTop: 20, borderTopWidth: 1, borderColor: colors.border }, section: { color: colors.text, fontFamily: fonts.heading, fontSize: 22 }, report: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderColor: colors.border }, reportName: { color: colors.text, fontSize: 15 }, note: { color: colors.muted, fontSize: 12, lineHeight: 18 }, price: { color: colors.accent, fontSize: 16 } });
+function Action({ label, onPress, primary = false, disabled = false, footer = false }: { footer?: boolean; label: string; onPress: () => void; primary?: boolean; disabled?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={[s.action, primary && s.primary, footer && s.footer, disabled && { opacity: 0.45 }]}><Text style={[s.actionText, primary && { color: colors.background }]}>{label}</Text></Pressable>; }
+const s = StyleSheet.create({ page: { flex: 1, backgroundColor: colors.background }, content: { padding: 22, gap: 24, paddingBottom: 48 }, actions: { gap: 10 }, action: { minHeight: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 10, borderWidth: 1, borderColor: colors.border }, footer: { borderWidth: 0, alignItems: "flex-start" }, primary: { backgroundColor: colors.accent, borderColor: colors.accent }, actionText: { color: colors.accent, fontSize: 14, fontWeight: '700' }, copy: { color: colors.muted, fontSize: 14, lineHeight: 21 }, reports: { gap: 14, paddingTop: 20, borderTopWidth: 1, borderColor: colors.border }, section: { color: colors.text, fontFamily: fonts.heading, fontSize: 22 }, report: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderColor: colors.border }, reportName: { color: colors.text, fontSize: 15 }, note: { color: colors.muted, fontSize: 12, lineHeight: 18 }, price: { color: colors.accent, fontSize: 16 } });

@@ -67,10 +67,10 @@ test("snapshot cursor expiry preserves reading position until explicit refresh",
   assert.doesNotMatch(block, /setSignals\(\[\]\)|setLoaded\(false\)/);
 });
 
-test("Home location controls say All states and expose one-tap location clearing", () => {
+test("Home location controls clear through the state dropdown", () => {
   assert.match(feed, /placeholder="All states"/);
   assert.match(feed, /clearLabel="All states"/);
-  assert.match(feed, /accessibilityLabel="Clear Home location filters"/);
+  assert.match(feed, /onChange=\{selectState\}/);
 });
 
 test("Area appears only after State is selected and area filtering is available", () => {
@@ -127,11 +127,8 @@ test("new-signal navigation honors motion and screen-reader preferences", () => 
   assert.match(feed, /scrollToOffset\(\{ offset: 0, animated: !motionDisabled \}\)/);
 });
 
-test("Home backdrop fills the viewport while the feed and new-signal action clear the native header", () => {
-  assert.match(feed, /require\("\.\.\/\.\.\/\.\.\/assets\/home-shelf-background\.jpg"\)/);
-  assert.match(feed, /homeBackdrop: StyleSheet\.absoluteFill/);
-  assert.match(feed, /pointerEvents="none"/);
-  assert.ok(position('style={styles.homeBackdrop}') < position('<FlatList\n'));
+test("Home shares the member background while feed actions clear the native header", () => {
+  assert.doesNotMatch(feed, /home-shelf-background/);
   assert.match(feed, /const headerHeight = insets\.top \+ 56/);
   assert.match(feed, /style=\{\[styles\.feedViewport, \{ marginTop: headerHeight \}\]\}/);
   assert.match(feed, /styles\.newSignalsPill, \{ top: headerHeight \+ 8 \}/);
