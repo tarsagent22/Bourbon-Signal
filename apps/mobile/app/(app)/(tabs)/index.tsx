@@ -61,7 +61,7 @@ function OptionChooser({
   const chooserRef = useRef<View>(null);
   const pendingReveal = useRef(false);
   const selectedOption = options.find((option) => option.value === value);
-  const selectedLabel = selectedOption?.displayName || selectedOption?.label || placeholder;
+  const selectedLabel = selectedOption?.displayName || selectedOption?.label || value || placeholder;
   const visibleOptions = value ? [{ value: "", label: clearLabel || placeholder }, ...options] : options;
   useEffect(() => { if (disabled) setExpanded(false); }, [disabled]);
   return <View ref={chooserRef} collapsable={false} onLayout={() => {

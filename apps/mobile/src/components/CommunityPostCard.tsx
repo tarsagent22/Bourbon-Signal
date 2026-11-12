@@ -37,11 +37,10 @@ export function CommunityPostCard({
   const badges = communityBadges(signal);
   const presented = presentSignal(signal);
   const appearance = signalFeedCardAppearance(signal);
-  const rarity =
-    signal.bottle.scarcity?.nationalLabel ||
-    (signal.bottle.rarityPending || !signal.bottle.id
-      ? ""
-      : appearance.rarityLabel);
+  const nationalRarity = signal.bottle.scarcity?.nationalLabel;
+  const rarity = signal.bottle.rarityPending || nationalRarity === "Rarity pending"
+    ? ""
+    : nationalRarity || (signal.bottle.id ? appearance.rarityLabel : "");
   const local = signal.bottle.scarcity;
   const member = signalMemberTagLabel(signal) || "Member";
   const name = signal.source.actor?.displayName || member;

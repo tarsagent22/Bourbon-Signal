@@ -440,11 +440,14 @@ function WatchlistView({ checkingPush, pushNeedsAttention, pushRecoveryAction, o
     await Share.share({ message: `Bourbon Signal sources are still expanding in this area. Invite friends to boost community activity. ${link}` });
   }
 
+  const registrationNeeded = pushRecoveryAction === "retry-enable" && pushStatus?.currentDeviceRegistered === false
+    && preferences.notificationPreferences.push.enabled && !pushError;
   const pushDetail = pushBusy ? pushStage : checkingPush ? "Checking this phone…" : pushNeedsAttention
     ? pushRecoveryAction === "settings" ? "Permission blocked"
       : pushRecoveryAction === "retry-status" ? "Status unavailable"
         : pushStatus?.warning?.code === "PUSH_PREFERENCE_WRITE_FAILED" ? "Settings sync incomplete"
-          : pushRecoveryAction === "retry-disable" ? "Could not turn off" : "Connection failed"
+          : pushRecoveryAction === "retry-disable" ? "Could not turn off"
+            : registrationNeeded ? "Push is enabled in your preferences. This phone still needs to register." : "Couldn’t register this phone"
     : pushStatus?.enabled && pushPermission === "granted" ? "On" : "Off";
   const selectedInEditor = editorState ? scopesForState(draftScopes, editorState.code) : [];
   const editorHasChanges = Boolean(editorState && monitoringScopesChanged(preferences.monitoringScopes, selectedInEditor, editorState.code));
@@ -483,7 +486,7 @@ function WatchlistView({ checkingPush, pushNeedsAttention, pushRecoveryAction, o
     <View onLayout={(event) => onNotificationsLayout(event.nativeEvent.layout.y)} style={styles.section}>
     <SectionTitle>Notifications</SectionTitle>
     <OpenSection>
-      {pushNeedsAttention ? <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>Push Notifications</Text><Text style={styles.muted}>{pushDetail}</Text></View><TextAction label={pushBusy ? "WORKING…" : pushRecoveryAction === "settings" ? "OPEN SETTINGS" : "RETRY"} disabled={saving || pushBusy} onPress={onRecoverPush} /></View>
+      {pushNeedsAttention ? <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>Push Notifications</Text><Text style={styles.muted}>{pushDetail}</Text></View><TextAction label={pushBusy ? "WORKING…" : pushRecoveryAction === "settings" ? "OPEN SETTINGS" : registrationNeeded ? "REGISTER PHONE" : "RETRY"} disabled={saving || pushBusy} onPress={onRecoverPush} /></View>
         : <ToggleRow label="Push Notifications" detail={pushDetail} disabled={saving || pushBusy || checkingPush} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={onTogglePush} />}
       <ToggleRow label="Community sightings" detail="Alerts when other members post in your area" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={async (enabled) => Boolean(await onSave({ notificationPreferences: { sightings: { enabled } } }))} />
     </OpenSection>
