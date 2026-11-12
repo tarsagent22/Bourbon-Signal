@@ -1,3 +1,5 @@
+import { relativeSignalTime } from "../../../src/api/presentation";
+import { useReportClock } from "../../../src/hooks/useReportClock";
 import { feedCacheScope, homeFeedCache } from "../../../src/signals/home-feed-cache";
 import { feedEmptyState } from "../../../src/signals/feed-empty-state";
 import { feedRetryAction } from "../../../src/signals/feed-recovery";
@@ -20,7 +22,7 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, sortSignalTimeline } from "../../../src/signals/home-feed-live";
-import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences, resolveHomeStartup } from "../../../src/signals/home-browsing-preferences";
+import { type HomeBrowsingPreferences, homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences, resolveHomeStartup } from "../../../src/signals/home-browsing-preferences";
 import { colors, typeScale, layout, typography } from "../../../src/theme";
 import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibility";
 
@@ -101,7 +103,12 @@ export default function SignalFeedScreen() {
   const api = useMobileApi();
   const insets = useSafeAreaInsets();
   const headerHeight = insets.top + 56;
-  const { userId } = useAuth();
+  const { userId, sessionId } = useAuth();
+  const now = useReportClock();
+  const [startupAccess, setStartupAccess] = useState<HomeBrowsingPreferences["startupAccess"]>();
+  const [cacheStatus, setCacheStatus] = useState<{ scope: string; savedAt: number; updated?: boolean } | null>(null);
+  const restoredScope = useRef("");
+  const displayedAccessScope = useRef("");
   const [tastePreferences, setTastePreferences] = useState<MemberPreferences | null>(null);
   const { view: requestedView } = useLocalSearchParams<{ view?: string }>();
   const browsingStorageKey = homeBrowsingStorageKey(userId);
@@ -134,16 +141,17 @@ export default function SignalFeedScreen() {
   const [areaOptionsError, setAreaOptionsError] = useState("");
   const [loadedBrowsingStorageKey, setLoadedBrowsingStorageKey] = useState("");
   const browsingLoaded = Boolean(browsingStorageKey) && loadedBrowsingStorageKey === browsingStorageKey;
-  const tier = profile?.membership.tier;
+  const tier = profile?.membership.tier ?? (sessionId && startupAccess?.sessionId === sessionId && api.membershipRevision === 0 ? startupAccess.tier : undefined);
   const detailedFilters = canUseDetailedFeedFilters(tier);
   const filtersAllowed = Boolean(profile?.membership.paid);
   const filters = useMemo(() => allowedFeedFilters(filtersByView[view], tier), [filtersByView, view, tier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
-  const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
-  const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities]);
+  const accessScope = JSON.stringify([userId, sessionId, api.membershipRevision, tier]);
+  const visibleSignals = displayedAccessScope.current === accessScope ? filterSignalsByRarity(signals, filters.rarities) : [];
+  const scopeKey = JSON.stringify([accessScope, view, requestFilters, filters.rarities]);
   const screenActive = screenFocused && appState === "active";
   const motionDisabled = reduceMotion || screenReaderEnabled;
-  const cacheScope = feedCacheScope(view, requestFilters);
+  const cacheScope = sessionId && tier ? feedCacheScope(view, requestFilters, { sessionId, tier }) : "";
   const areaDirectory = profile?.feedAreas;
   const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: state.label })) || [];
   const staticAreaOptions = areaOptionsForState(areaDirectory, filters.state);
@@ -202,6 +210,9 @@ export default function SignalFeedScreen() {
       requestSequence.current += 1;
       backgroundRequestSequence.current += 1;
       requestInFlightRef.current = null;
+      setStartupAccess(undefined);
+      setCacheStatus(null);
+      restoredScope.current = "";
       setSignals([]);
       setQueuedSignals([]);
       setHighlightedIds([]);
@@ -222,12 +233,19 @@ export default function SignalFeedScreen() {
     setProfileError("");
     try {
       const response = await api.getMemberProfile({ fresh });
-      if (requestId === profileRequestSequence.current) setProfile(response.profile);
+      if (requestId === profileRequestSequence.current) {
+        setProfile(response.profile);
+        setStartupAccess(sessionId ? { sessionId, tier: response.profile.membership.tier } : undefined);
+      }
       return response.profile;
-    } catch {
+    } catch (caught) {
+      if (requestId === profileRequestSequence.current && caught instanceof MobileApiError && (caught.status === 401 || caught.status === 403)) {
+        setProfile(null);
+        handleError(caught);
+      }
       if (requestId === profileRequestSequence.current) setProfileError("Home filters are temporarily unavailable. Tap to retry.");
     }
-  }, [api]);
+  }, [api, handleError, sessionId]);
 
   const load = useCallback(async (refresh = false) => {
     const mode = refresh ? "refresh" : "page";
@@ -246,7 +264,16 @@ export default function SignalFeedScreen() {
     try {
       const page = await api.listSignals({ view, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
       if (requestId !== requestSequence.current || capturedScope !== scopeKeyRef.current) return;
+      if (refresh && page.degraded && restoredScope.current === capturedScope && !page.access.marketDetailsLocked) {
+        setError("Could not refresh. Showing saved reports.");
+        return;
+      }
       successfulRequestRef.current = requestId;
+      displayedAccessScope.current = accessScope;
+      if (refresh && restoredScope.current === capturedScope) {
+        restoredScope.current = "";
+        setCacheStatus(page.degraded || page.access.marketDetailsLocked ? null : { scope: capturedScope, savedAt: Date.now(), updated: true });
+      }
       lastRefreshRef.current = Date.now();
       setSignals((current) => {
         const next = refresh ? page.signals : [...current, ...page.signals];
@@ -258,7 +285,7 @@ export default function SignalFeedScreen() {
       setAccess(page.access);
       if (refresh) {
         setMarketSummaries(page.marketSummaries);
-        void homeFeedCache.save(userId || "", cacheScope, page).catch(() => undefined);
+        if (cacheScope) void homeFeedCache.save(userId || "", cacheScope, page).catch(() => undefined);
       }
       if (refresh) setQueuedSignals([]);
       setLoaded(true);
@@ -276,7 +303,7 @@ export default function SignalFeedScreen() {
         setLoading(false);
       }
     }
-  }, [api, cacheScope, cursor, handleError, hasMore, requestFilters, scopeKey, userId, view]);
+  }, [accessScope, api, cacheScope, cursor, handleError, hasMore, requestFilters, scopeKey, userId, view]);
 
   const selectView = useCallback((next: FeedView) => {
     if (next === view) return;
@@ -326,6 +353,9 @@ export default function SignalFeedScreen() {
     profileRequestSequence.current += 1;
     requestInFlightRef.current = null;
     setLoadedBrowsingStorageKey("");
+    setStartupAccess(undefined);
+    setCacheStatus(null);
+    restoredScope.current = "";
     loadedScopeRef.current = "";
     savedOffsets.current.clear();
     pendingOffset.current = null;
@@ -353,6 +383,7 @@ export default function SignalFeedScreen() {
     void resolveHomeStartup(loadHomeBrowsingPreferences(browsingStorageKey), loadProfile().then(member => member?.homeState || undefined)).then(({ saved, homeState }) => {
       if (!current) return;
       if (saved && mutationAtStart === browsingMutationSequence.current) {
+        setStartupAccess(currentAccess => currentAccess || saved.startupAccess);
         setView(saved.view);
         setFiltersByView(saved.filtersByView);
         setBottleQueries({ market: saved.filtersByView.market.bottle, community: saved.filtersByView.community.bottle });
@@ -373,10 +404,10 @@ export default function SignalFeedScreen() {
   useEffect(() => {
     if (!browsingLoaded || loadedBrowsingStorageKey !== browsingStorageKey) return;
     const timer = setTimeout(() => {
-      void saveHomeBrowsingPreferences(browsingStorageKey, { version: 1, view, filtersByView }).catch(() => undefined);
+      void saveHomeBrowsingPreferences(browsingStorageKey, { version: 1, view, filtersByView, startupAccess }).catch(() => undefined);
     }, 150);
     return () => clearTimeout(timer);
-  }, [browsingLoaded, browsingStorageKey, filtersByView, loadedBrowsingStorageKey, view]);
+  }, [browsingLoaded, browsingStorageKey, filtersByView, loadedBrowsingStorageKey, startupAccess, view]);
 
   useFocusEffect(useCallback(() => {
     setScreenFocused(true);
@@ -406,6 +437,7 @@ export default function SignalFeedScreen() {
     let stopped = false;
     const capturedScope = scopeKey;
     const poll = async () => {
+      if (requestInFlightRef.current === "refresh") return;
       const requestId = ++backgroundRequestSequence.current;
       try {
         const page = await api.listSignals({ view, limit: 30, cursor: null, fresh: true, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
@@ -429,7 +461,7 @@ export default function SignalFeedScreen() {
         }
         lastRefreshRef.current = Date.now();
         setAccess(page.access);
-        void homeFeedCache.save(userId || "", cacheScope, page).catch(() => undefined);
+        if (cacheScope) void homeFeedCache.save(userId || "", cacheScope, page).catch(() => undefined);
       } catch (caught) {
         if (!stopped && requestId === backgroundRequestSequence.current && caught instanceof MobileApiError && (caught.status === 401 || caught.status === 403)) {
           setSignals([]);
@@ -476,6 +508,8 @@ export default function SignalFeedScreen() {
   useScreenRevalidation(() => { void loadProfile(false); if (browsingLoaded && (error || Date.now() - lastRefreshRef.current > 30_000)) void load(true); });
   useEffect(() => {
     if (!browsingLoaded || loadedScopeRef.current === scopeKey) return;
+    restoredScope.current = "";
+    setCacheStatus(null);
     loadedScopeRef.current = scopeKey;
     pendingOffset.current = savedOffsets.current.get(scopeKey) || 0;
     requestSequence.current += 1;
@@ -486,25 +520,29 @@ export default function SignalFeedScreen() {
     setCursor(null);
     setHasMore(true);
     setLoaded(false);
-    const restore = (page: SignalFeedPage | null) => {
-      if (!page || loadedScopeRef.current !== scopeKey || scopeKeyRef.current !== scopeKey) return;
+    const restore = (entry: ReturnType<typeof homeFeedCache.peekEntry>) => {
+      if (!entry || tier === undefined || loadedScopeRef.current !== scopeKey || scopeKeyRef.current !== scopeKey) return;
+      const { page, savedAt } = entry;
+      restoredScope.current = scopeKey;
+      displayedAccessScope.current = accessScope;
+      setCacheStatus({ scope: scopeKey, savedAt });
       setSignals(page.signals);
       setAccess(page.access);
       setMarketSummaries(page.marketSummaries);
-      setCursor(page.nextCursor);
-      setHasMore(page.hasMore);
+      setCursor(null);
+      setHasMore(false);
       setLoaded(true);
       latestDisplayedBaselineRef.current = page.signals[0]?.timing.displayAt || "";
     };
-    const cached = homeFeedCache.peek(userId || "", cacheScope);
+    const cached = homeFeedCache.peekEntry(userId || "", cacheScope);
     restore(cached);
     const beforeLoad = requestSequence.current + 1;
-    if (!cached) void homeFeedCache.load(userId || "", cacheScope).then(page => {
+    if (!cached && cacheScope) void homeFeedCache.loadEntry(userId || "", cacheScope).then(entry => {
       // A disk read can never overwrite a successful or superseding network result.
-      if (requestSequence.current === beforeLoad && successfulRequestRef.current !== beforeLoad) restore(page);
+      if (requestSequence.current === beforeLoad && successfulRequestRef.current !== beforeLoad) restore(entry);
     });
     void load(true);
-  }, [browsingLoaded, cacheScope, load, scopeKey, userId]);
+  }, [accessScope, browsingLoaded, cacheScope, load, scopeKey, tier, userId]);
   useEffect(() => {
     if (tier === undefined) return;
     const normalizedBottle = bottleQuery.replace(/\s+/g, " ").trim().slice(0, 100);
@@ -534,6 +572,12 @@ export default function SignalFeedScreen() {
 
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
+
+  useEffect(() => {
+    if (!cacheStatus?.updated) return;
+    const timer = setTimeout(() => setCacheStatus(current => current === cacheStatus ? null : current), 3500);
+    return () => clearTimeout(timer);
+  }, [cacheStatus]);
 
   const header = (
     <View style={styles.header}>
@@ -709,7 +753,7 @@ export default function SignalFeedScreen() {
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}
       onEndReachedThreshold={0.5}
-      ListHeaderComponent={<>{header}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
+      ListHeaderComponent={<>{header}{cacheStatus?.scope === scopeKey ? <Text accessibilityLiveRegion="polite" style={styles.loadingText}>{cacheStatus.updated ? "Updated just now" : "Last updated " + relativeSignalTime(new Date(cacheStatus.savedAt).toISOString(), now)}</Text> : null}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
       ListEmptyComponent={!loaded && !error
         ? <FeedSkeleton community={view === "community"} />
         : error

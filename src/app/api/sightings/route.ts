@@ -1,3 +1,4 @@
+import { nearbySightingSince } from "@/lib/nearby-feed-scope";
 import { readLegalAcceptance } from '@/lib/legal-acceptance';
 import { sightingFeedSearchMatches } from "@/lib/signals/feed-search";
 import { buildSightingRarityCatalog, sightingCatalogRarityPending } from "@/lib/sighting-bottle-rarity";
@@ -355,7 +356,7 @@ export async function GET(req: NextRequest) {
     rarities: requestedRarities,
     bottle: requestedBottle || null,
     search: requestedSearch || null,
-    since: requestedSince || null,
+    since: nearbySightingSince(requestedSince),
     area: canonicalArea,
   };
   const beforeCreatedAt = url.searchParams.get("beforeCreatedAt");

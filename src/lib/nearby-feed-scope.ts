@@ -11,6 +11,7 @@ const scope = new AsyncLocalStorage<{
   mapped: ReadonlySet<string>;
   cities: ReadonlySet<string>;
   boards: ReadonlySet<string>;
+  sightingSince?: string;
 }>();
 export const nearbyCityKey = (state: string, city: string) =>
   sightingStoreAddressKey({
@@ -25,6 +26,7 @@ export function withNearbyFeedScope<T>(
   work: () => T,
   place?: { state: string; city: string },
   boards: ReadonlySet<string> = new Set(),
+  sightingSince?: string,
 ): T {
   const keys = new Set<string>();
   const cities = new Set<string>();
@@ -44,9 +46,13 @@ export function withNearbyFeedScope<T>(
     }
   }
   return scope.run(
-    { keys, mapped: new Set(index.keys()), cities, boards },
+    { keys, mapped: new Set(index.keys()), cities, boards, sightingSince },
     work,
   );
+}
+export function nearbySightingSince(requested: string | null) {
+  const since = scope.getStore()?.sightingSince;
+  return since && (!requested || Date.parse(since) > Date.parse(requested)) ? since : requested;
 }
 export function filterNearbyFeedDrops<T extends Record<string, unknown>>(
   drops: T[],

@@ -1,7 +1,12 @@
 import { DEFAULT_SIGNAL_FILTERS, type SignalFeedFilters, type SignalFeedView, type SignalRarity } from "./feed-filters";
 
+import type { MembershipTier } from "../membership/membership-plans";
+
+const membershipTiers = new Set<MembershipTier>(["free", "standard", "barrel", "bottled-in-bond"]);
+
 export interface HomeBrowsingPreferences {
   version: 1;
+  startupAccess?: { sessionId: string; tier: MembershipTier };
   view: SignalFeedView;
   filtersByView: Record<SignalFeedView, SignalFeedFilters>;
 }
@@ -37,7 +42,9 @@ export function parseHomeBrowsingPreferences(raw: string | null): HomeBrowsingPr
     const market = parseFilters(value.filtersByView?.market);
     const community = parseFilters(value.filtersByView?.community);
     if (value.version !== 1 || (value.view !== "market" && value.view !== "community") || !market || !community) return null;
-    return { version: 1, view: value.view, filtersByView: { market, community } };
+    const access = value.startupAccess;
+    const startupAccess = typeof access?.sessionId === "string" && access.sessionId && membershipTiers.has(access.tier) ? access : undefined;
+    return { version: 1, view: value.view, filtersByView: { market, community }, ...(startupAccess ? { startupAccess } : {}) };
   } catch {
     return null;
   }

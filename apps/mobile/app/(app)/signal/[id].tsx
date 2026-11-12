@@ -10,7 +10,7 @@ import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import { presentSignal, signalMemberTagLabel, signalCardStatusLabel } from "../../../src/api/presentation";
+import { relativeSignalTime, presentSignal, signalMemberTagLabel, signalCardStatusLabel } from "../../../src/api/presentation";
 import type { HuntOutcome, MemberPreferences, Signal } from "../../../src/api/types";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { addSignalBottleToCollection } from "../../../src/interactions/member-interactions";
@@ -27,7 +27,7 @@ const HUNT_OUTCOMES: ReadonlyArray<{ value: HuntOutcome; label: string }> = [
 ];
 
 export default function SignalDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, fromSightingPin } = useLocalSearchParams<{ id: string; fromSightingPin?: string }>();
   const api = useMobileApi();
   const router = useRouter();
   const [signal, setSignal] = useState<Signal | null>(null);
@@ -191,7 +191,9 @@ export default function SignalDetailScreen() {
         {signal.location.store?.name ? <Text style={styles.storeName}>{signal.location.store.name}</Text> : null}
         <View style={styles.reportFigures}>{presented?.price ? <View style={styles.reportFigure}>{signal.availability?.price != null ? <Text style={styles.label}>Reported price</Text> : null}<Text style={signal.availability?.price == null ? styles.disclaimer : styles.reportPrice}>{signal.availability?.price == null && presented.price === "Price unknown" ? "Price not reported" : presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
         {signal.source.type === "member" ? <View style={styles.authorRow}>
-          {presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
+          {fromSightingPin === "1" && signal.source.reportMode === "seen_in_store"
+            ? <Text style={styles.reporter}>Seen by {presented?.reporter || "a member"} {relativeSignalTime(signal.timing.reportedAt || signal.timing.displayAt)}</Text>
+            : presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
           {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
           {!presented?.reporter && !memberTag ? <Text style={styles.source}>Community report</Text> : null}
           {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize: typeScale.small}}>{badge}</Text>)}</View>:null}

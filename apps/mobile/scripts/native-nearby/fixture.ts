@@ -46,9 +46,26 @@ const stores = [
     signals: [signal("c", "Eagle Rare 10 Year", 49.99)],
   },
 ];
+const sightingPins = [1, 3, 5].map((days, index) => {
+  const reportedAt = new Date(Date.now() - days * 86_400_000 - 1_000).toISOString();
+  return {
+    ...stores[0],
+    id: "fixture-sighting-store-" + days,
+    name: "Sighting fixture store " + days,
+    latitude: 33.43,
+    longitude: -111.94 + index * 0.14,
+    distance: 10,
+    signals: [{
+      ...signal("member:fixture-" + days, "Eagle Rare 10 Year", 49.99),
+      source: { type: "member", label: "Member", reportMode: "seen_in_store" },
+      timing: { displayAt: reportedAt, reportedAt },
+    }],
+  };
+});
 const api = {
   nearby: async () => ({
     stores,
+    sightingPins,
     boards: [{id: "fixture-board", kind: "board", name: "Example ABC Board", address: "Shipment reported", city: "", state: "NC", latitude:33.37, longitude:-111.83, distance:3,
       signals: [{...signal("shipment", "Henry McKenna 10 Year", 64.95), shipment: {boardId:"fixture-board", reportedAt:"2026-11-05T12:00:00Z", quantity:414, unit:"units"}, location:{scope:"board",state:"NC",label:"Example ABC Board"}}],
       members: [{id:"member1",name:"Example ABC Store",address:"100 Example Road",city:"Example City",state:"NC",latitude:33.37,longitude:-111.83,distance:3},{id:"member2",name:"Example ABC Store",address:"200 Example Avenue",city:"Example City",state:"NC",latitude:33.39,longitude:-111.81,distance:4},{id:"member3",name:"Example ABC Store",address:"300 Example Street",city:"Example City",state:"NC"}]
