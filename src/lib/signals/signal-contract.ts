@@ -20,11 +20,12 @@ export interface CanonicalSignal {
   availabilityEpisodeId?: string;
   listingChange?: "first_detection" | "restock" | "price_drop" | "price_change";
   historical?: boolean;
-  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units" };
+  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units"; stores?: import("../../../shared/nearby.ts").BoardMember[] };
   kind: SignalKind;
   source: {
     type: SignalSourceType;
     label: string;
+    url?: string;
     reportMode?: "seen_in_store" | "reported_online";
     actor?: {
       kind: "founder" | "member";
@@ -51,6 +52,7 @@ export interface CanonicalSignal {
       city?: string;
       state?: string;
       zip?: string;
+      phone?: string;
     };
   };
   timing: {
@@ -239,6 +241,13 @@ function dropSignalTiming(input: Record<string, unknown>, kind: SignalKind) {
   return { observedAt, reportedAt, displayAt };
 }
 
+function safeReportSourceUrl(raw: unknown) {
+  try {
+    const url = new URL(typeof raw === "string" ? raw : "");
+    if (url.protocol === "https:" && !url.username && !url.password) return url.href;
+  } catch { /* Only valid HTTPS URLs can be opened. */ }
+}
+
 export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSignal {
   const kind = signalKind(input);
   const type = sourceType(input, kind);
@@ -264,6 +273,8 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
   const storeName = text(input.store_name, input.storeName);
   const storeAddress = text(input.store_address, input.storeAddress);
   const storeCity = text(input.store_city, input.storeCity, input.city);
+  const url = safeReportSourceUrl(input.sourceUrl ?? input.source_url);
+  const phone = text(input.store_phone, input.storePhone);
   const storeZip = text(input.store_zip, input.storeZip, input.zip);
   const scope = locationScope(input);
   const { observedAt, reportedAt, displayAt } = dropSignalTiming(input, kind);
@@ -291,7 +302,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     ...(["first_detection", "restock", "price_drop", "price_change"].includes(String(input.listingChange || input.availabilityEpisodeKind || "")) ? { listingChange: String(input.listingChange || input.availabilityEpisodeKind) as CanonicalSignal["listingChange"] } : {}),
     kind,
     ...(shipmentBoard ? { shipment: { boardId: shipmentBoard.id, reportedAt: text(input.event_at, input.eventAt, observedAt), ...(shipmentQuantity !== undefined ? { quantity: shipmentQuantity } : {}), unit: "units" as const } } : {}),
-    source: { type, label },
+    source: { type, label, ...(url ? { url } : {}) },
     bottle: {
       ...(bottleId ? { id: bottleId } : {}),
       name: bottleName,
@@ -309,6 +320,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
           ...(storeCity ? { city: storeCity } : {}),
           ...(state ? { state } : {}),
           ...(storeZip ? { zip: storeZip } : {}),
+          ...(scope === "exact_store" && phone ? { phone } : {}),
         },
       } : {}),
     },

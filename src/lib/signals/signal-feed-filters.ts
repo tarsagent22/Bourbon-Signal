@@ -12,6 +12,7 @@ export interface SignalFeedFilters {
   freshness: SignalFreshnessWindow | null;
   bottle: string | null;
   search?: string;
+  bottleId?: string;
 }
 
 export const EMPTY_SIGNAL_FEED_FILTERS: SignalFeedFilters = {
@@ -35,6 +36,10 @@ export function normalizeSignalRarities(values: Iterable<string>): SignalRarityT
   return [...new Set(normalized as SignalRarityTier[])].sort((left, right) => SIGNAL_RARITY_TIERS.indexOf(left) - SIGNAL_RARITY_TIERS.indexOf(right));
 }
 
+export function validSignalBottleId(value: unknown): value is string {
+  return typeof value === "string" && /^[A-Za-z0-9._:-]{1,160}$/.test(value);
+}
+
 export function parseSignalFeedFilters(url: URL): SignalFeedFilters {
   const rawState = (url.searchParams.get("state") || "").trim().toUpperCase();
   if (rawState && !/^[A-Z]{2}$/.test(rawState)) throw new Error("state must be a two-letter code");
@@ -47,10 +52,13 @@ export function parseSignalFeedFilters(url: URL): SignalFeedFilters {
   if (rawFreshness && !freshnessSet.has(rawFreshness)) throw new Error("freshness must be 24h, 7d, or 30d");
   const rawBottle = (url.searchParams.get("bottle") || "").replace(/\s+/g, " ").trim();
   if (rawBottle.length > 100) throw new Error("bottle must be at most 100 characters");
+  const bottleId = url.searchParams.get("bottleId");
+  if (bottleId !== null && !validSignalBottleId(bottleId)) throw new Error("bottleId is invalid");
   const search = (url.searchParams.get("search") || "").replace(/\s+/g, " ").trim();
   if (search.length > 100 || /[\u0000-\u001F\u007F]/.test(search)) throw new Error("search must be at most 100 characters without control characters");
   return {
     ...(search ? { search } : {}),
+    ...(bottleId ? { bottleId } : {}),
     rarities: normalizeSignalRarities(url.searchParams.getAll("tiers")),
     state: rawState || null,
     area,

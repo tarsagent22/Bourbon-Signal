@@ -1,3 +1,4 @@
+import { validSignalBottleId } from "@/lib/signals/signal-feed-filters";
 import { filterNearbyFeedDrops, nearbyFeedPageLimit } from "@/lib/nearby-feed-scope";
 import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
 import { unstable_cache } from "next/cache";
@@ -247,7 +248,9 @@ export async function GET(request: Request) {
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
   const entitlements = isEngineVerification ? getEntitlements("standard") : await getServerEntitlements(user?.publicMetadata || null);
   const isFreeAccess = !isSignedIn || entitlements.tier === "free";
-  if (isFreeAccess && ["state", "tier", "tiers", "rarity", "area", "store", "search", "bottle", "since", "board", "city", "county"].some(key => url.searchParams.getAll(key).some(value => value.trim()))) {
+  const bottleId = url.searchParams.get("bottleId");
+  if (bottleId !== null && !validSignalBottleId(bottleId)) return NextResponse.json({ error: "Invalid bottle ID." }, { status: 400 });
+  if (isFreeAccess && ["bottleId", "state", "tier", "tiers", "rarity", "area", "store", "search", "bottle", "since", "board", "city", "county"].some(key => url.searchParams.getAll(key).some(value => value.trim()))) {
     return NextResponse.json({ error: "Feed filters require a paid membership." }, { status: 403 });
   }
   const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
@@ -498,6 +501,7 @@ export async function GET(request: Request) {
 
     // Narrow the authorized, policy-filtered feed before its page boundary.
     drops = filterNearbyFeedDrops(drops);
+    if (bottleId) drops = drops.filter(drop => (drop.bottle_id || drop.bottleId || drop.canonical_id || drop.canonicalId) === bottleId);
 
     drops = canonicalSignalOrder
       ? drops
@@ -505,7 +509,7 @@ export async function GET(request: Request) {
 
     const total = drops.length;
     const engineSnapshot = `${String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt))}:source:${sourceOverlay.version}`;
-    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerVersion}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}:listingOrder:1`;
+    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerVersion}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}:listingOrder:1${bottleId ? ":bottle:" + bottleId : ""}`;
     if(isPilotReceipt) return NextResponse.json(
       pilotReceiptPayload('feed',url.searchParams.get('source_receipt') || '',drops,engineSnapshot),
       {headers:{'Cache-Control':'private, no-store',Vary:'Cookie, Authorization, X-Bourbon-Signal-Pilot-Verification'}},

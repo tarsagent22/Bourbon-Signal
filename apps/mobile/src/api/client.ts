@@ -297,7 +297,7 @@ export function createMobileApi({
       return request<{ collectionVersion: number; value: CollectionValue; history: CollectionHistory }>('/api/v1/me/collection-history', { fresh: true });
     },
     nearby(params: URLSearchParams) { return request<import("../../../../shared/nearby").NearbyResult>(`/api/v1/nearby?${params}`, { fresh: true }); },
-    listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle, search }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string; search?: string } = {}) {
+    listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle, search, bottleId }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string; search?: string; bottleId?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (view && view !== "all") params.set("view", view);
       if (cursor) params.set("cursor", cursor);
@@ -312,6 +312,7 @@ export function createMobileApi({
       if (normalizedSearch) params.set("search", normalizedSearch);
       const normalizedBottle = bottle?.replace(/\s+/g, " ").trim();
       if (normalizedBottle) params.set("bottle", normalizedBottle);
+      if (bottleId) params.set("bottleId", bottleId);
       return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`, { fresh });
     },
     getSignal(id: string, { fresh = false }: { fresh?: boolean } = {}) {

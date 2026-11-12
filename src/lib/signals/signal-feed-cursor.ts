@@ -1,4 +1,4 @@
-import { EMPTY_SIGNAL_FEED_FILTERS, SIGNAL_FRESHNESS_WINDOWS, normalizeSignalRarities, type SignalFeedFilters } from "./signal-feed-filters.ts";
+import { EMPTY_SIGNAL_FEED_FILTERS, SIGNAL_FRESHNESS_WINDOWS, normalizeSignalRarities, validSignalBottleId, type SignalFeedFilters } from "./signal-feed-filters.ts";
 import { canonicalSignalFeedAreaSelection } from "../feed-area-options.ts";
 
 export type SignalFeedView = "all" | "market" | "community";
@@ -54,8 +54,10 @@ function normalizedCursorFilters(value: unknown, allowMissingArea = false): Sign
   if (!(filters.freshness === null || SIGNAL_FRESHNESS_WINDOWS.includes(filters.freshness as never))) return null;
   if (!(filters.bottle === null || (typeof filters.bottle === "string" && filters.bottle.length > 0 && filters.bottle.length <= 100))) return null;
   if (filters.search !== undefined && (typeof filters.search !== "string" || !filters.search.trim() || filters.search.length > 100 || /[\u0000-\u001F\u007F]/.test(filters.search))) return null;
+  if (filters.bottleId !== undefined && !validSignalBottleId(filters.bottleId)) return null;
   return {
     ...(filters.search ? { search: filters.search as string } : {}),
+    ...(typeof filters.bottleId === "string" ? { bottleId: filters.bottleId } : {}),
     rarities,
     state: state as string | null,
     area,
