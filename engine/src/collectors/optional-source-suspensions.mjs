@@ -17,6 +17,14 @@ function roadblock(route){
     nextRoute:'Keep this exact source suspended until a separate reviewed change supplies new access evidence. Healthy sibling sources continue.'};
 }
 export function optionalSuspensionSkip(state,sourceKey,url){const route=findRoute(state,sourceKey,url);return route?{signals:[],requestCount:0,roadblocks:[roadblock(route)]}:null;}
+export function isRecordedOptionalSuspension(state, block) {
+  if (block?.status !== 'source_policy_disabled' || block.attemptCount !== 0) return false;
+  const expected = optionalSuspensionSkip(state, block.sourceKey, block.url)?.roadblocks[0];
+  return Boolean(expected && block.policyId === expected.policyId
+    && block.sourceRuntimeId === expected.sourceRuntimeId
+    && block.historicalHttpStatus === expected.historicalHttpStatus
+    && block.checkedAt === expected.checkedAt);
+}
 export function optionalSuspendedFetch(state,url){
   const exact=exactUrl(url),route=exact&&captured.routes.find(row=>row.kind==='configured'&&row.state===state&&row.url===exact);
   if(!route)return null;const block=roadblock(route);
