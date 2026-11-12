@@ -12,7 +12,7 @@ export interface Signal {
     reportMode?: "seen_in_store" | "reported_online";
     actor?: { kind: "founder" | "member"; number: number; label: string; displayName?: string; badges?: string[] };
   };
-  bottle: { id?: string; name: string; rarity?: "limited" | "allocated" | "unicorn"; scarcity?: import("../../../../shared/sighting-bottle-rarity").SightingBottleRarity; rarityPending?: boolean };
+  bottle: { id?: string; catalogId?: string; name: string; rarity?: "limited" | "allocated" | "unicorn"; scarcity?: import("../../../../shared/sighting-bottle-rarity").SightingBottleRarity; rarityPending?: boolean };
   location: {
     scope: "exact_store" | "area" | "board" | "state" | "online" | "unknown";
     label?: string;

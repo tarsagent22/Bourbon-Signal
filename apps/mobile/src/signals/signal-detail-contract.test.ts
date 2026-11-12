@@ -7,7 +7,10 @@ const detail = readFileSync(resolve(process.cwd(), "app/(app)/signal/[id].tsx"),
 
 test("Signal detail is the unified Bottle Profile route", () => {
   assert.match(detail, /Stack\.Screen options=\{\{ title: "Bottle Profile"[, ]/);
-  assert.match(detail, /BottleProfileHero identity=\{signal.bottle\}/);
+  assert.match(detail, /<BottleProfileHero\s+identity=\{signal.bottle\}/);
+  assert.match(detail, /getBottleProfile\(catalogId/);
+  assert.match(detail, /bottleDetails\?\.msrp != null \? <BottlePriceCheck/);
+  assert.ok(detail.indexOf('styles.reportCard') < detail.indexOf('styles.bottleActions'));
   assert.match(detail, /BottlePriceCheck/);
   assert.match(detail, /Last reported availability/);
   assert.match(detail, /signalCardStatusLabel/);

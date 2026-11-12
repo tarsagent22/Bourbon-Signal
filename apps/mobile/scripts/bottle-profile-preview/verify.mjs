@@ -11,7 +11,7 @@ async function open(query) { await page.goto(`http://127.0.0.1:5198/?${query}`);
 async function capture(name) { await page.screenshot({ path: path.join(output, `${name}.png`), fullPage: true }); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false); }
 try {
   await open('owned=1'); await capture('owned-profile');
-  await page.getByRole('button', { name: 'Check a price' }).click();
+  await page.getByRole('button', { name: /Compare a shelf price with MSRP/ }).click();
   await page.getByRole('textbox', { name: 'Shelf price in US dollars' }).fill('47.97');
   await page.getByText('20% above MSRP', { exact: true }).waitFor(); await capture('price-check');
   await page.getByRole('button', { name: 'Edit your shelf' }).click();
@@ -20,13 +20,32 @@ try {
   assert.equal(await page.evaluate(() => window.lastRoute.params.scanBottleId), 'eagle-rare-10');
   await open('screen=report'); await page.getByText('Last reported availability', { exact: true }).waitFor();
   assert.equal(await page.getByText(/not alertable|stale retained evidence/i).count(), 0); await capture('feed-bottle-report');
+  for (const width of [393, 320]) {
+    await page.setViewportSize({ width, height: 852 });
+    await open('screen=report&retailer=1&owned=1');
+    await page.getByText('Albertsons #3129', { exact: true }).waitFor();
+    await page.getByText('$33.32', { exact: true }).waitFor();
+    await page.getByText(/Signal Score ·/).waitFor();
+    await page.getByText('MSRP $40.00', { exact: true }).waitFor();
+    assert.equal(await page.getByText('Quantity unknown', { exact: true }).count(), 0);
+    const directions = await page.getByRole('button', { name: 'Directions' }).boundingBox();
+    const watch = await page.getByRole('button', { name: 'Watch in Radar' }).boundingBox();
+    assert.ok(directions && watch && directions.y < watch.y);
+    await capture('albertsons-report-' + width);
+  }
+  await open('screen=report&retailer=1&catalog=unpriced');
+  await page.getByText(/Signal Score ·/).waitFor();
+  assert.equal(await page.getByRole('button', { name: /Compare a shelf price with MSRP/ }).count(), 0);
+  await open('screen=report&retailer=1&catalog=missing');
+  await page.getByRole('button', { name: 'Retry catalog details' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: /Compare a shelf price with MSRP/ }).count(), 0);
   await page.goto('http://127.0.0.1:5198/?screen=check');
   await page.getByRole('radio', { name: 'Search by name' }).click();
   await page.getByRole('textbox', { name: 'Search bottles' }).fill('Eagle Rare');
   await page.getByRole('button', { name: 'Check Eagle Rare 10 Year' }).waitFor(); await capture('bottle-check-search');
   await page.getByRole('button', { name: 'Check Eagle Rare 10 Year' }).click();
   await page.getByRole('textbox', { name: 'Bottle Check shelf price in US dollars' }).fill('40');
-  await page.getByText('A good buy at this price', { exact: true }).waitFor();
+  await page.getByText('Good buy at this price', { exact: true }).waitFor();
   await open('owned=1&catalog=missing');
   await page.getByText('Catalog details aren’t available for this saved entry. Your shelf details remain editable.').waitFor();
   await page.getByRole('button', { name: 'Edit your shelf' }).click();
