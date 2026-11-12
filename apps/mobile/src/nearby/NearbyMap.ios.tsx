@@ -9,17 +9,22 @@ import {
   type NearbyMapProps,
   type MapRegion,
 } from "./map-model";
-import { miles } from "../../../../shared/nearby";
+import { useReportClock } from "../hooks/useReportClock";
+import { relativeSignalTime } from "../api/presentation";
+import { miles, nearbySightingAge } from "../../../../shared/nearby";
 export default function NearbyMap({
   origin,
   radius,
   stores,
   selected,
+  sightingPins,
+  onSightingPress,
   showMembers,
   onSelect,
   onSearchArea,
   bottomInset,
 }: NearbyMapProps) {
+  const now = useReportClock();
   const [iconsReady, setIconsReady] = useState(false);
   useEffect(() => {
     let active = true;
@@ -253,6 +258,27 @@ export default function NearbyMap({
               </View>
             </Marker>
           ))}
+        {sightingPins?.map(pin => {
+          const sighting = pin.signals.find(signal => nearbySightingAge(signal, now.getTime()));
+          if (!sighting) return null;
+          const age = nearbySightingAge(sighting, now.getTime());
+          const label = "Seen by a member " + relativeSignalTime(sighting.timing.reportedAt || sighting.timing.displayAt, now);
+          return <Marker
+            key={"sighting:" + pin.id + ":" + age + ":" + iconsReady}
+            coordinate={pin}
+            zIndex={12}
+            centerOffset={{ x: stores.some(store => store.id === pin.id) ? 26 : 0, y: 0 }}
+            tracksViewChanges={!iconsReady}
+            accessible
+            accessibilityLabel={pin.name + ". " + label}
+            title={label}
+            onPress={() => onSightingPress?.(sighting.id)}
+          >
+            <View style={[s.pin, s.sighting, age === "older" && s.olderSighting]}>
+              <Icon name="eye-outline" size={18} color={c.accent} />
+            </View>
+          </Marker>;
+        })}
       </MapView>
       <View
         pointerEvents="none"
@@ -314,6 +340,8 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  sighting: { backgroundColor: "#30261D", borderColor: c.accent, borderRadius: 9 },
+  olderSighting: { opacity: 0.58 },
   singlePin: {
     backgroundColor: "#211A13",
     borderColor: "#83715D",

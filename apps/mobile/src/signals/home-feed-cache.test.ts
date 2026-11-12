@@ -63,3 +63,15 @@ test('an authoritative paid-access loss purges every cached filter scope', async
   await cache.save('user_A',scope,{...page,signals:[],access:{...page.access,marketDetailsLocked:true}});
   assert.equal(cache.peek('user_A','another'),null);assert.equal(disk.has('user_A'),false);
 });
+
+test('startup pages carry their original save time and are isolated by session and access tier', async () => {
+  const { storage } = setup();
+  const original = feedCacheScope('market', DEFAULT_SIGNAL_FILTERS, { sessionId: 'sess_A', tier: 'standard' });
+  const newSession = feedCacheScope('market', DEFAULT_SIGNAL_FILTERS, { sessionId: 'sess_B', tier: 'standard' });
+  const free = feedCacheScope('market', DEFAULT_SIGNAL_FILTERS, { sessionId: 'sess_A', tier: 'free' });
+  await createHomeFeedCache(storage, () => 100).save('user_A', original, page);
+  const relaunched = createHomeFeedCache(storage, () => 200);
+  assert.equal((await relaunched.loadEntry('user_A', original))?.savedAt, 100);
+  assert.equal(await relaunched.loadEntry('user_A', newSession), null);
+  assert.equal(await relaunched.loadEntry('user_A', free), null);
+});

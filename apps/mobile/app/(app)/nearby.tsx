@@ -28,6 +28,8 @@ import {
   clearNearbyPreview,
 } from "../../src/nearby/map-feed";
 import { SignalCard } from "../../src/components/SignalCard";
+import { useReportClock } from "../../src/hooks/useReportClock";
+import { nearbySightingAge } from "../../../../shared/nearby";
 import NearbyMap from "../../src/nearby/NearbyMap";
 import * as Location from "expo-location";
 import * as SecureStore from "expo-secure-store";
@@ -187,6 +189,7 @@ export default function Nearby() {
       freshness: fresh,
     }))
       if (v) q.set(k, v);
+    if (Platform.OS === "ios") q.set("memberPins", "1");
     const placeParts = place.label.match(/^(.+), ([A-Z]{2})$/);
     if (placeParts) {
       q.set("placeCity", placeParts[1]);
@@ -195,6 +198,7 @@ export default function Nearby() {
     const key = q.toString();
     const preview = readNearbyPreview(api, key);
     if (lastApi.current !== api || preview) setResult(preview);
+    else setResult(current => current?.sightingPins?.length ? { ...current, sightingPins: [] } : current);
     lastApi.current = api;
     api
       .nearby(q)
@@ -259,9 +263,15 @@ export default function Nearby() {
       if (id === placeSequence.current) setLocating(false);
     }
   }
+  const now = useReportClock();
+  const sightingPins = useMemo(() => nearbyVisible(result?.sightingPins || [], radius, watchOnly, watched || [])
+    .map(pin => ({ ...pin, signals: pin.signals.filter(signal => nearbySightingAge(signal, now.getTime())) }))
+    .filter(pin => pin.signals.length),
+  [result, radius, watchOnly, watched, now]);
+  const communityPinsOnly = params.view === "community" && result?.sightingPins !== undefined;
   const stores = useMemo(
     () =>
-      nearbyVisible(
+      communityPinsOnly ? sightingPins : nearbyVisible(
         [...(result?.stores || []), ...(result?.boards || [])].sort(
           (a, b) => a.distance - b.distance,
         ),
@@ -269,7 +279,7 @@ export default function Nearby() {
         watchOnly,
         watched || [],
       ),
-    [result, radius, watchOnly, watched],
+    [communityPinsOnly, sightingPins, result, radius, watchOnly, watched],
   );
   const activeFilters = Boolean(tiers || fresh || watchOnly || query);
   const [selected, setSelected] = useState<string | null>(params.store || null);
@@ -358,8 +368,10 @@ export default function Nearby() {
         <NearbyMap
           origin={place}
           radius={radius}
-          stores={stores}
+          stores={communityPinsOnly ? [] : stores}
           selected={selected}
+          sightingPins={sightingPins}
+          onSightingPress={(id) => router.push({ pathname: "/(app)/signal/[id]", params: { id, fromSightingPin: "1" } })}
           showMembers={showMembers}
           onSelect={selectStore}
           onSearchArea={async (point) => {
@@ -478,7 +490,9 @@ export default function Nearby() {
                 ? "Opening your map"
                 : !place
                   ? "Your next find starts here"
-                  : busy
+                  : sightingPins.length
+                    ? "Member sightings nearby"
+                    : busy
                     ? "Looking around you"
                     : error || result?.partial
                       ? "Reports are still catching up"
@@ -494,7 +508,9 @@ export default function Nearby() {
                   ? "Getting your saved location ready."
                   : !place
                     ? "Use your location or choose a city to explore."
-                    : busy
+                    : sightingPins.length
+                      ? "Tap an eye pin to open the member’s report."
+                      : busy
                       ? "The map is ready. Reports are on their way."
                       : result?.partial
                         ? "The search could not finish. Try again to load nearby reports."

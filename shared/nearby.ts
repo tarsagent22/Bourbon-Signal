@@ -28,12 +28,23 @@ export type NearbyResult = {
   stores: NearbyStore[];
   // Separate from exact-store results for older installed clients.
   boards?: NearbyStore[];
+  sightingPins?: NearbyStore[];
   partial: boolean;
   unmapped: number;
   previewLocked: boolean;
   // Same-city reports without verified coordinates; never pins or radius claims.
   unlocated?: Signal[];
 };
+const day = 86_400_000;
+export const NEARBY_SIGHTING_MAX_AGE_MS = 5 * day;
+
+export function nearbySightingAge(signal: Signal | undefined, now: number): "recent" | "older" | null {
+  if (signal?.source.type !== "member" || signal.source.reportMode !== "seen_in_store") return null;
+  const age = now - Date.parse(signal.timing.reportedAt || signal.timing.displayAt);
+  if (!Number.isFinite(age) || age < 0 || age >= NEARBY_SIGHTING_MAX_AGE_MS) return null;
+  return age >= 2 * day ? "older" : "recent";
+}
+
 export function validPoint(p: Point) {
   return (
     Number.isFinite(p.latitude) &&

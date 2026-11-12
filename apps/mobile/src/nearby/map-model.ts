@@ -40,6 +40,8 @@ export interface NearbyMapProps {
   radius: number;
   stores: NearbyStore[];
   selected: string | null;
+  sightingPins?: NearbyStore[];
+  onSightingPress?: (id: string) => void;
   showMembers?: boolean;
   onSelect: (id: string) => void;
   onSearchArea: (point: Point) => void;

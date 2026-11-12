@@ -3,7 +3,7 @@ import test from 'node:test';
 import {nearbyStoreIndex,addNearbySignals} from '../src/lib/nearby.ts';
 import {nearbyVisible,parsePlace,placeLookupPath,storeMapUrl} from '../apps/mobile/src/signals/nearby.ts';
 import type {Signal} from '../apps/mobile/src/api/types.ts';
-import type {NearbyStore} from '../shared/nearby.ts';
+import {nearbySightingAge, type NearbyStore} from '../shared/nearby.ts';
 const raw={id:'1',name:'Store',address:'123 Main St',city:'Raleigh',state:'NC',lat:35.78,lng:-78.64,locationType:'store'};
 const signal={id:'signal1',location:{scope:'exact_store',store:{address:'123 Main Street',city:'Raleigh',state:'NC'}},bottle:{name:'Eagle Rare 10 Year'}} as Signal;
 test('only exact reports at confirmed coordinates become nearby results',()=>{const index=nearbyStoreIndex([raw]),found=new Map<string,NearbyStore>();assert.equal(found.size,0);assert.equal(addNearbySignals([signal,signal],index,{latitude:35.78,longitude:-78.64},10,found),0);assert.equal(found.size,1);assert.equal([...found.values()][0].signals.length,1);assert.equal([...found.values()][0].distance,0);});
@@ -13,7 +13,7 @@ test('ZIP and city lookup encode user text and require state',()=>{assert.equal(
 test('ZIP and city responses produce a finite center and readable label',()=>{assert.deepEqual(parsePlace({'place name':'Raleigh','state abbreviation':'NC',places:[{latitude:'35',longitude:'-78'},{latitude:'37',longitude:'-80'}]}),{latitude:36,longitude:-79,label:'Raleigh, NC'});assert.throws(()=>parsePlace({places:[{latitude:'bad',longitude:'-78'}]}));});
 test('radius and watchlist filters operate on existing results without source changes',()=>{const store={id:'1',distance:15,signals:[signal,{...signal,id:'s2',bottle:{name:'Other'}}]} as NearbyStore;assert.equal(nearbyVisible([store],10,false,[]).length,0);assert.equal(nearbyVisible([store],25,true,['eagle rare 10 year'])[0].signals.length,1);assert.equal(store.signals.length,2);assert.match(storeMapUrl({address:'1 Main & 2nd',city:'Raleigh',state:'NC'},true),/destination=1%20Main%20%26%202nd/);});
 
-import { filterNearbyFeedDrops, withNearbyFeedScope, nearbyFeedPageLimit } from '../src/lib/nearby-feed-scope.ts';
+import { filterNearbyFeedDrops, withNearbyFeedScope, nearbyFeedPageLimit, nearbySightingSince } from '../src/lib/nearby-feed-scope.ts';
 import { writeSourceConsumptionTrace } from '../src/lib/source-consumption-trace.ts';
 test('geographic selection precedes pagination even with thousands of newer national reports', async () => {
  const local={id:'local',state:'NC',store_address:'123 Main Street',store_city:'Raleigh'};
@@ -177,4 +177,38 @@ test('panned map searches keep their center and an honest label if city lookup f
  const point={latitude:41.9,longitude:-87.6};
  assert.deepEqual(await currentPlaceWithCity(point,async()=>{throw Error('offline')},5,'Map area'),{...point,label:'Map area'});
  assert.deepEqual(await currentPlaceWithCity(point,async()=>[{city:'Chicago',region:'IL',isoCountryCode:'US'}],5,'Map area'),{...point,label:'Chicago, IL'});
+});
+
+test('member sighting pins fade after 48 hours, expire at five days, and require an exact store match', () => {
+  const now = Date.parse('2026-11-12T18:00:00Z');
+  const day = 86_400_000;
+  const sighting = (id: string, age: number, mode: 'seen_in_store' | 'reported_online' = 'seen_in_store'): Signal => ({
+    ...signal, id, source: { type: 'member', label: 'Member', reportMode: mode },
+    timing: { displayAt: new Date(now - age).toISOString() },
+  });
+  assert.equal(nearbySightingAge(sighting('new', 2 * day - 1), now), 'recent');
+  assert.equal(nearbySightingAge(sighting('old', 2 * day), now), 'older');
+  assert.equal(nearbySightingAge(sighting('almost', 5 * day - 1), now), 'older');
+  assert.equal(nearbySightingAge(sighting('expired', 5 * day), now), null);
+  assert.equal(nearbySightingAge(sighting('future', -1), now), null);
+  const online = sighting('online', day, 'reported_online');
+  const local = sighting('local', day);
+  const wrongCity: Signal = { ...local, id: 'wrong-city', location: { ...local.location, store: { ...local.location.store, city: 'Durham' } } };
+  const found = new Map<string, NearbyStore>();
+  const retailer: Signal = { ...local, id: 'retailer', source: { type: 'trusted_source', label: 'Retailer' } };
+  const input = [local, wrongCity, online, sighting('expired', 5 * day), retailer];
+  addNearbySignals(input.filter(report => nearbySightingAge(report, now)), nearbyStoreIndex([raw]), { latitude: 35.78, longitude: -78.64 }, 10, found);
+  assert.deepEqual([...found.values()].flatMap(pin => pin.signals.map(report => report.id)), ['local']);
+});
+
+test('the member pin request applies its age cutoff without changing other Community requests', () => {
+  const cutoff = '2026-11-07T18:00:00Z';
+  const narrower = '2026-11-11T18:00:00Z';
+  const check = () => {
+    assert.equal(nearbySightingSince(null), cutoff);
+    assert.equal(nearbySightingSince('2026-11-01T18:00:00Z'), cutoff);
+    assert.equal(nearbySightingSince(narrower), narrower);
+  };
+  withNearbyFeedScope(nearbyStoreIndex([raw]), { latitude: 35.78, longitude: -78.64 }, 25, check, undefined, new Set(), cutoff);
+  assert.equal(nearbySightingSince(null), null);
 });
