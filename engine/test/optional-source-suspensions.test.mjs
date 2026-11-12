@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {OPTIONAL_SOURCE_SUSPENSIONS as policy,optionalSuspensionSkip,optionalSuspendedFetch,optionalSuspendedConfiguredSourceSkip,retainSuspendedOptionalRows} from '../src/collectors/optional-source-suspensions.mjs';
+import {OPTIONAL_SOURCE_SUSPENSIONS as policy,optionalSuspensionSkip,isRecordedOptionalSuspension,optionalSuspendedFetch,optionalSuspendedConfiguredSourceSkip,retainSuspendedOptionalRows} from '../src/collectors/optional-source-suspensions.mjs';
 import {GEORGIA_GOTOLIQUOR_STORES} from '../src/collectors/georgia-retailer-surfaces.mjs';
 
 test('suspensions bind only original exact CO10 NC3 TN2 GA2 failures and immutable workflow archives',()=>{
@@ -82,4 +82,16 @@ for(const state of ['CO','NC','TN','GA'])test(`actual forced cold-cache ${state}
   if(state==='GA')assert.ok(output.calls.some(value=>String(value).startsWith('https://www.abcaugusta.com/')),'unobserved independent host remains eligible');
   if(state==='NC')assert.ok(output.calls.some(value=>String(value).startsWith('https://abc2.nc.gov/')),'healthy statewide source continues');
   if(state==='TN')assert.ok(output.calls.some(value=>String(value).includes('frugalmacdoogal.com')),'healthy retailer sibling continues');
+});
+
+test('only exact recorded NC suspensions are excluded from current failure counts', () => {
+  const route = policy.routes.find(row => row.state === 'NC' && row.kind === 'configured');
+  const [block] = optionalSuspensionSkip('NC', route.sourceKey, route.url).roadblocks;
+  assert.equal(isRecordedOptionalSuspension('NC', block), true);
+  for (const changes of [
+    { attemptCount: 1 }, { sourceRuntimeId: 'different-lane' }, { url: 'https://other.example/' },
+    { policyId: 'unreviewed' }, { historicalHttpStatus: 500 }, { status: 'source_failure' },
+  ]) {
+    assert.equal(isRecordedOptionalSuspension('NC', { ...block, ...changes }), false);
+  }
 });

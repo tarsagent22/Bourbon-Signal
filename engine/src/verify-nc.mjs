@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { validateNcSingleStoreCoverage, validateNcSourceLedgerContract } from './nc-source-ledger.mjs';
+import { isRecordedOptionalSuspension } from './collectors/optional-source-suspensions.mjs';
 import { hasHealthyLowerVolumeShipmentRun, hasSafeScheduledPartialShipmentFallback } from './nc-coverage-summary.mjs';
 
 const OUT = path.resolve('out');
@@ -65,7 +66,7 @@ async function main() {
   const actionableRoadblocks = (ncStateReport.roadblocks || []).filter((roadblock) => {
     const supersededHighPointShopifyProbe = /High Point ABC Shopify product suggestion API/i.test(String(roadblock.source || ''))
       && highPointPowerBiDrops.length >= 100;
-    return !supersededHighPointShopifyProbe;
+    return !supersededHighPointShopifyProbe && !isRecordedOptionalSuspension('NC', roadblock);
   });
   assert(actionableRoadblocks.length <= 5, `NC actionable roadblocks exceed threshold: ${actionableRoadblocks.length}`, actionableRoadblocks.slice(0, 10));
   assert(wakeDrops.length >= 100, 'Wake County ABC exact-store site drops below threshold', wakeDrops.length);
