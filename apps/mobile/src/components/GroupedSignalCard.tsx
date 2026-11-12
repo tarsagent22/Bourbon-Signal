@@ -7,8 +7,8 @@ import { loadedBottleReports, formatBottleReportCounts } from "../signals/feed-r
 import { colors, fonts } from "../theme";
 import { useReportClock } from "../hooks/useReportClock";
 
-export function GroupedSignalCard({ reports, expanded, onToggle, onOpen, nearest }: {
-  reports: Signal[]; expanded: boolean; onToggle: () => void; onOpen: (report: Signal) => void; nearest?: number;
+export function GroupedSignalCard({ reports, expanded, onToggle, onOpen, nearest, state, onMore }: {
+  reports: Signal[]; expanded: boolean; onToggle: () => void; onOpen: (report: Signal) => void; nearest?: number; state?: string; onMore?: () => void;
 }) {
   const now = useReportClock();
   const [first] = reports;
@@ -16,10 +16,12 @@ export function GroupedSignalCard({ reports, expanded, onToggle, onOpen, nearest
   const visible = loadedBottleReports(reports);
   const summary = reports.find(report => report.groupSummary)?.groupSummary;
   const shipment = Boolean(summary?.shipments || first.shipment);
-  const grouped = visible.length > 1 || (summary && summary.stores + summary.shipments + summary.otherReports > 1);
+  const total = summary ? summary.stores + summary.shipments + summary.otherReports : undefined;
+  const grouped = visible.length > 1 || (total != null && total > 1);
   const age = relativeSignalTime(summary?.latestAt || first.shipment?.reportedAt || first.timing.lastCheckedAt || first.timing.displayAt, now);
   const meta = [
     summary ? formatBottleReportCounts(summary) : first.shipment ? "ABC shipment" : first.location.store?.name || first.location.label,
+    state,
     nearest != null && summary?.stores ? "nearest mapped " + Math.round(nearest) + " mi" : "",
     !grouped && first.availability?.price != null ? "$" + first.availability.price.toFixed(2) : "",
     age,
@@ -49,6 +51,10 @@ export function GroupedSignalCard({ reports, expanded, onToggle, onOpen, nearest
           <Text style={styles.meta} numberOfLines={1}>{[name, count, age].filter(Boolean).join(" · ")}</Text>
         </Pressable>;
       })}
+      {total != null && visible.length < total ? <View style={styles.child}>
+        <Text style={styles.meta}>{visible.length} of {total} shown</Text>
+        {onMore ? <Pressable accessibilityRole="button" onPress={onMore} style={styles.child}><Text style={styles.more}>Load more reports</Text></Pressable> : null}
+      </View> : null}
     </View> : null}
   </View>;
 }
@@ -60,5 +66,6 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.heading, color: colors.text, fontSize: 20, lineHeight: 24 },
   meta: { color: colors.muted, fontSize: 13, lineHeight: 18 },
   children: { paddingLeft: 12, marginLeft: 68, borderLeftWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  more: { color: colors.accent, fontWeight: "700", fontSize: 13 },
   child: { minHeight: 44, justifyContent: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
 });

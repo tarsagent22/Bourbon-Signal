@@ -774,7 +774,8 @@ export default function SignalFeedScreen() {
                 <FeedSignalRow signal={first} highlighted={highlightedIds.includes(first.id)} personalNote={personalTasteNote(first.bottle, tastePreferences)} />
               </View>
             : <GroupedSignalCard reports={item.reports} expanded={expanded}
-                nearest={nearestMappedReport(api, item.reports)}
+                nearest={nearestMappedReport(api, item.reports)} state={filters.state}
+                onMore={hasMore ? () => void load(false) : undefined}
                 onToggle={() => setExpandedGroup(expanded ? "" : item.key)} onOpen={openReport} />}
           {index === feedGroups.length - 1 ? feedFooter : null}
         </View>;
