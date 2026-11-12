@@ -87,19 +87,3 @@ test('directions require an address and preserve the store number and locality',
   assert.equal(radarDirectionsUrl('Safeway — Gilbert, AZ'), null);
   assert.equal(radarDirectionsUrl('Safeway — District 12, AZ'), null);
 });
-
-test("Radar collapses only identical source episodes and preserves distinct stores and restocks", () => {
-  const createdAt = new Date().toISOString();
-  const entry: MemberAlert = {
-    id: "original", createdAt, signalAt: createdAt, storeLabel: "Store one", underlyingStableKeys: ["availability-episode:one"],
-    bottleName: "1792 Full Proof", state: "NC", matchedArea: "NC", eventType: "store_inventory_result",
-    rarityTier: "allocated", quantity: 1, score: 0, priorityClass: "standard", readAt: null, archivedAt: null,
-  };
-  const history = partitionRadarAlerts([
-    entry,
-    { ...entry, id: "second-copy", signalId: "new-report-id" },
-    { ...entry, id: "different-store", storeLabel: "Store two" },
-    { ...entry, id: "restock", underlyingStableKeys: ["availability-episode:two"] },
-  ]);
-  assert.deepEqual(history.current.map(item => item.id), ["original", "different-store", "restock"]);
-});

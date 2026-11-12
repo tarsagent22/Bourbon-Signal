@@ -1,10 +1,5 @@
-import * as Crypto from "expo-crypto";
-import { COMMUNITY_TERMS_VERSION } from "../../../../../shared/legal-acceptance";
-import { BoardStoreLinks } from "../../../src/components/BoardStoreLinks";
-import { CommunityTermsGate } from "../../../src/components/CommunityTermsGate";
-import { readReportPreview } from "../../../src/signals/report-preview";
 import type { BottleProfile } from '../../../../../shared/bottle-profile';
-import { BottleProfileHero, BottleProfileRating } from '../../../src/components/BottleProfileHero';
+import { BottleProfileHero } from '../../../src/components/BottleProfileHero';
 import { ProfileBackButton } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { reportAge } from "../../../src/signals/report-age";
@@ -12,8 +7,7 @@ import { ErrorState } from "../../../src/components/MemberScreen";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { reportDateTime, signalStoreContact } from "../../../src/signals/store-contact";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import { presentSignal, signalMemberTagLabel, signalCardStatusLabel } from "../../../src/api/presentation";
@@ -33,18 +27,16 @@ const HUNT_OUTCOMES: ReadonlyArray<{ value: HuntOutcome; label: string }> = [
 ];
 
 export default function SignalDetailScreen() {
-  const { id, update } = useLocalSearchParams<{ id: string; update?: string }>();
-  const showUpdate = update === "1";
+  const { id } = useLocalSearchParams<{ id: string }>();
   const api = useMobileApi();
   const router = useRouter();
-  const [signal, setSignal] = useState<Signal | null>(() => readReportPreview(api, id));
-  const [confirmedDetail, setConfirmedDetail] = useState(false);
+  const [signal, setSignal] = useState<Signal | null>(null);
   const [bottleDetails, setBottleDetails] = useState<BottleProfile | null>(null);
   useEffect(() => {
     setBottleDetails(null); let active = true;
-    if (!showUpdate && signal?.bottle.id) void api.getBottleProfile(signal.bottle.id).then(result => { if (active) setBottleDetails(result.bottle); }).catch(() => undefined);
+    if (signal?.bottle.id) void api.getBottleProfile(signal.bottle.id).then(result => { if (active) setBottleDetails(result.bottle); }).catch(() => undefined);
     return () => { active = false; };
-  }, [api, showUpdate, signal?.bottle.id]);
+  }, [api, signal?.bottle.id]);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [error, setError] = useState("");
   const [preferencesError, setPreferencesError] = useState("");
@@ -75,13 +67,6 @@ export default function SignalDetailScreen() {
   const [editingHuntOutcome, setEditingHuntOutcome] = useState(false);
   const [savingHuntOutcome, setSavingHuntOutcome] = useState(false);
   const [huntOutcomeError, setHuntOutcomeError] = useState("");
-  const [huntFoundAt, setHuntFoundAt] = useState("");
-  const [sharing, setSharing] = useState(false);
-  const shareInFlight = useRef(false);
-  const [shared, setShared] = useState(false);
-  const [showShareTerms, setShowShareTerms] = useState(false);
-  const [shareTermsAccepted, setShareTermsAccepted] = useState(false);
-  const [shareError, setShareError] = useState("");
 
   const sequence = useRef(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -90,13 +75,10 @@ export default function SignalDetailScreen() {
     const request = ++sequence.current;
     setRefreshing(true);setPhotoFailed(false);
     await Promise.allSettled([
-      api.getSignal(id, { fresh, update: showUpdate }).then(result => {
-        if (request === sequence.current) { setSignal(result.signal); setConfirmedDetail(true); setError(""); }
+      api.getSignal(id, { fresh }).then(result => {
+        if (request === sequence.current) { setSignal(result.signal); setError(""); }
       }).catch(caught => {
-        if (request === sequence.current) {
-          if (caught instanceof MobileApiError && [401, 403, 404].includes(caught.status)) { setSignal(null); setConfirmedDetail(false); }
-          setError(caught instanceof MobileApiError ? caught.message : "This Signal is temporarily unavailable.");
-        }
+        if (request === sequence.current) setError(caught instanceof MobileApiError ? caught.message : "This Signal is temporarily unavailable.");
       }),
       api.getMemberPreferences({ fresh }).then(result => {
         if (request === sequence.current) { setPreferences(result); setPreferencesError(""); }
@@ -105,13 +87,13 @@ export default function SignalDetailScreen() {
       }),
     ]);
     if (request === sequence.current) setRefreshing(false);
-  }, [api, id, showUpdate]);
-  useEffect(() => { setSignal(readReportPreview(api, id)); setConfirmedDetail(false); setShared(false); setShowShareTerms(false); setShareTermsAccepted(false); setShareError(""); setHuntOutcomeState(null); setHuntFoundAt(""); setHuntOutcomeVisible(false); setError(""); setHidden(false);setSafetyNotice('');setPhotoFailed(false);setFeedbackNotice('');void load(); return () => { sequence.current += 1; }; }, [api, id, load]);
+  }, [api, id]);
+  useEffect(() => { setSignal(null); setError(""); setHidden(false);setSafetyNotice('');setPhotoFailed(false);setFeedbackNotice('');void load(); return () => { sequence.current += 1; }; }, [load]);
   useScreenRevalidation(load);
 
   useEffect(() => {
     let active = true;
-    if (!id || !signal || !confirmedDetail || showUpdate) return;
+    if (!id || !signal) return;
     const promptSignal = { kind: signal.kind, displayAt: signal.timing.displayAt, expiresAt: signal.timing.expiresAt };
     const now = Date.now();
     if (!shouldOfferHuntOutcomePrompt({ signal: promptSignal, now, lastPromptedAt: null })) return;
@@ -119,7 +101,6 @@ export default function SignalDetailScreen() {
       if (!active) return;
       if (response.outcome) {
         setHuntOutcomeState(response.outcome.outcome);
-        setHuntFoundAt(response.outcome.updatedAt);
         setHuntOutcomeVisible(true);
         return;
       }
@@ -134,7 +115,7 @@ export default function SignalDetailScreen() {
       // A missing session or inaccessible historical Signal stays quiet.
     });
     return () => { active = false; };
-  }, [api, confirmedDetail, id, showUpdate, signal]);
+  }, [api, id, signal]);
 
   const presented = signal ? presentSignal(signal) : null;
   const memberTag = signal ? signalMemberTagLabel(signal) : "";
@@ -142,11 +123,12 @@ export default function SignalDetailScreen() {
   const inCellar = bottleProfile?.inCellar === true;
   const shelfEntry = signal && preferences ? collectionBottleForIdentity(signal.bottle, preferences.collectionPreferences.bottles) : null;
   const isWatched = bottleProfile?.isWatched === true;
-  const { address, destination, phone } = signalStoreContact(signal);
+  const address = signal ? [signal.location.store?.address, signal.location.store?.city, signal.location.store?.state, signal.location.store?.zip].filter(Boolean).join(", ") : "";
   const canWatch = Boolean(signal?.actions.includes("watch_bottle"));
   const collectionAccess = preferences?.collectionAccess;
   const canReadCellar = collectionAccess?.canRead === true;
   const canAddToCellar = collectionAccess?.canAdd === true;
+  const actionCount = useMemo(() => Number(canWatch) + Number(canReadCellar) + Number(Boolean(address)), [address, canReadCellar, canWatch]);
 
   async function toggleRadarWatch() {
     if (!signal || !preferences || saving) return;
@@ -171,9 +153,9 @@ export default function SignalDetailScreen() {
     } finally { setSaving(false); }
   }
 
-  async function openMaps(target = destination) {
-    if (!target) return;
-    const url = Platform.OS === "ios" ? `https://maps.apple.com/?daddr=${encodeURIComponent(target)}` : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(target)}`;
+  async function openMaps() {
+    if (!address) return;
+    const url = Platform.OS === "ios" ? `maps://?q=${encodeURIComponent(address)}` : `geo:0,0?q=${encodeURIComponent(address)}`;
     try { await Linking.openURL(url); }
     catch { setActionError("Maps could not be opened for this location."); }
   }
@@ -185,8 +167,6 @@ export default function SignalDetailScreen() {
     try {
       const response = await api.setHuntOutcome(id, outcome);
       setHuntOutcomeState(response.outcome?.outcome || outcome);
-      setHuntFoundAt(response.outcome?.updatedAt || new Date().toISOString());
-      setShared(false); setShareError("");
       setEditingHuntOutcome(false);
       if (response.reward) setHuntOutcomeError('pending' in response.reward ? 'Update saved. Reward processing is pending; reopen this Signal to retry.' : response.reward.points > 0 ? 'Update saved · 5 points credited for this availability episode. Repeated updates do not earn again.' : 'Update saved. Points apply to the first 3 qualifying retailer/source updates per day.');
     } catch (caught) {
@@ -196,95 +176,48 @@ export default function SignalDetailScreen() {
     }
   }
 
-  const shareStore = signal?.location.scope === "exact_store" && !signal.shipment ? signal.location.store : null;
-  const canShare = Boolean(confirmedDetail && signal?.bottle.id && shareStore?.id && shareStore.name
-    && shareStore.address && shareStore.city && shareStore.state && destination && huntOutcome === "found_it"
-    && Date.now() - Date.parse(huntFoundAt) < 48 * 3_600_000);
-  async function shareSighting() {
-    if (!canShare || !signal || !shareStore?.id || !shareStore.name || !shareStore.address || !shareStore.city || !shareStore.state || shareInFlight.current) return;
-    shareInFlight.current = true;
-    setSharing(true); setShareError("");
-    const request = sequence.current;
-    try {
-      if (!shareTermsAccepted) {
-        const legal = await api.getLegalAcceptance();
-        if (request !== sequence.current) return;
-        if (legal.acceptance?.termsVersion !== COMMUNITY_TERMS_VERSION) { setShowShareTerms(true); return; }
-      }
-      const key = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, "hunt:" + signal.id + ":" + huntFoundAt);
-      if (request !== sequence.current) return;
-      await api.submitSighting({
-        bottleName: signal.bottle.name, bottleId: signal.bottle.id, storeId: shareStore.id,
-        storeName: shareStore.name, storeAddress: shareStore.address, storeCity: shareStore.city,
-        storeState: shareStore.state, storeZip: shareStore.zip, sightingType: "seen_in_store",
-      }, key);
-      if (request === sequence.current) setShared(true);
-    } catch (caught) {
-      if (request === sequence.current) setShareError(caught instanceof Error ? caught.message : "This sighting couldn’t be shared.");
-    } finally { shareInFlight.current = false; setSharing(false); }
-  }
-
-  if (showUpdate && signal?.shipment && signal.shipmentUpdate && !hidden) {
-    return <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
-      <Stack.Screen options={{ title: "ABC shipment", headerLeft: () => <ProfileBackButton /> }} />
-      <Text style={styles.source}>ABC shipment update</Text>
-      <Text accessibilityRole="header" style={styles.storeName}>{signal.location.label}</Text>
-      <Text style={styles.disclaimer}>{[reportDateTime(signal.shipment.reportedAt), "Receiving stores unconfirmed"].filter(Boolean).join(" · ")}</Text>
-      {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
-      <Text accessibilityRole="header" style={styles.sectionTitle}>Reported bottles</Text>
-      {signal.shipmentUpdate.bottles.map(bottle => <Pressable key={bottle.signalId} accessibilityRole="button" onPress={() => bottle.id
-        ? router.push({ pathname: "/(app)/bottle/[id]", params: { id: bottle.id, name: bottle.name, tier: bottle.tier || "" } })
-        : router.push({ pathname: "/(app)/signal/[id]", params: { id: bottle.signalId } })} style={styles.shipmentBottle}>
-        <Text style={[styles.value, { flex: 1 }]}>{bottle.name}</Text>
-        <Text style={styles.disclaimer}>{[bottle.tier, bottle.quantity != null ? bottle.quantity + " units" : ""].filter(Boolean).join(" · ")}</Text>
-      </Pressable>)}
-      <BoardStoreLinks key={signal.shipment.boardId} stores={signal.shipment.stores || []} boardId={signal.shipment.boardId} owner={api} onDirections={destination => void openMaps(destination)} />
-    </ScrollView>;
-  }
-
   return <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing && Boolean(signal)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
     <Stack.Screen options={{ title: "Bottle Profile", headerLeft: () => <ProfileBackButton /> }} />
-    {!signal && !error ? <View style={styles.signalSection}><Text style={styles.disclaimer}>Loading bottle report…</Text><ActivityIndicator color={colors.accent} /></View> : null}
+    {!signal && !error ? <ActivityIndicator color={colors.accent} /> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {safetyNotice ? <Text accessibilityRole="alert" style={styles.disclaimer}>{safetyNotice}</Text> : null}
     {signal && !hidden ? <>
-      <BottleProfileHero identity={signal.bottle} details={bottleDetails} tier={signal.bottle.rarity} />
-      <View style={styles.actions}>
-        {canWatch ? <ActionButton primary={!isWatched} disabled={!preferences || saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
-        {canReadCellar ? <ActionButton disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
-        {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
-      </View>
+      <BottleProfileHero identity={signal.bottle} details={bottleDetails} personal={bottleProfile}
+        onShelf={canReadCellar && (inCellar || canAddToCellar) && !saving ? () => shelfEntry ? router.push({ pathname: "/(app)/(tabs)/cellar", params: { editBottleId: shelfEntry.bottleId } }) : signal.bottle.id ? router.push({ pathname: "/(app)/cellar/add", params: { bottleId: signal.bottle.id } }) : void addToCellar() : undefined}
+        onWatch={canWatch && preferences && !saving ? () => void toggleRadarWatch() : undefined} />
       <View style={styles.signalSection}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>{signal.shipment ? "ABC shipment" : signal.historical ? "Last reported availability" : signal.kind === "availability" ? "Store report" : signal.kind === "release" ? "Release details" : "Event details"}</Text>
-        {!signal.shipment ? <Text style={styles.source}>{signalCardStatusLabel(signal)}</Text> : null}
+        <Text accessibilityRole="header" style={styles.sectionTitle}>{signal.historical ? "Last reported availability" : signal.kind === "availability" ? "Store report" : signal.kind === "release" ? "Release details" : "Event details"}</Text>
+        <Text style={styles.source}>{signalCardStatusLabel(signal)}</Text>
         {signal.location.store?.name ? <Text style={styles.storeName}>{signal.location.store.name}</Text> : null}
-        {address ? <Text style={styles.value}>{address}</Text> : null}
-        {destination || phone ? <View style={styles.storeActions}>
-          {destination ? <ActionButton label="Directions" onPress={() => void openMaps()} /> : null}
-          {phone ? <ActionButton label="Call store" onPress={() => { void Linking.openURL("tel:" + phone).catch(() => setActionError("This phone could not open the dialer.")); }} /> : null}
-        </View> : null}
-        <View style={styles.reportFigures}>{presented?.price && presented.price !== "Price unknown" ? <View style={styles.reportFigure}>{signal.availability?.price != null ? <Text style={styles.label}>Reported price</Text> : null}<Text style={signal.availability?.price == null ? styles.disclaimer : styles.reportPrice}>{presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
+        <View style={styles.reportFigures}>{presented?.price ? <View style={styles.reportFigure}>{signal.availability?.price != null ? <Text style={styles.label}>Reported price</Text> : null}<Text style={signal.availability?.price == null ? styles.disclaimer : styles.reportPrice}>{signal.availability?.price == null && presented.price === "Price unknown" ? "Price not reported" : presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
         {signal.source.type === "member" ? <View style={styles.authorRow}>
           {presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
           {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
           {!presented?.reporter && !memberTag ? <Text style={styles.source}>Community report</Text> : null}
           {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize: typeScale.small}}>{badge}</Text>)}</View>:null}
-        </View> : null}
-        {signal.source.url && (signal.kind !== "availability" || signal.location.scope === "online") ? <ActionButton label="Open source report" onPress={() => { void Linking.openURL(signal.source.url!).catch(() => setActionError("The source could not open.")); }} /> : null}
-        {!address && !signal.shipment ? <Detail label="Location" value={presented?.location || signal.location.state || "Location not specified"} /> : null}
-        <Detail label={signal.kind === "availability" && signal.source.type === "trusted_source" ? "Last checked" : "Reported"} value={reportAge(signal).value ? reportDateTime(reportAge(signal).value || undefined) : "Time not available"} />
-        {signal.timing.firstSpottedAt && Date.parse(signal.timing.firstSpottedAt) !== Date.parse(reportAge(signal).value || "") ? <Detail label="First spotted" value={reportDateTime(signal.timing.firstSpottedAt)} /> : null}
+        </View> : <Text style={styles.source}>{signal.source.label}</Text>}
+        <Detail label="Location" value={address || presented?.location || signal.location.state || "Location not specified"} />
+        <Detail label={signal.kind === "availability" && signal.source.type === "trusted_source" ? "Last checked" : "Reported"} value={reportAge(signal).value ? new Date(reportAge(signal).value!).toLocaleString() : "Time not available"} />
+        {signal.timing.firstSpottedAt ? <Detail label="First spotted" value={new Date(signal.timing.firstSpottedAt).toLocaleString()} /> : null}
 
 
 
         {presented?.summary && (signal.source.type === "member" || signal.kind !== "availability") ? <Detail label="Note" value={presented.summary} /> : null}
         {signal.evidence.photoUrl ? photoFailed?<Text style={styles.disclaimer}>The approved photo could not load. Pull to refresh to try again.</Text>:<Image source={{uri:signal.evidence.photoUrl}} onError={()=>setPhotoFailed(true)} accessibilityLabel="Member sighting photo approved for public display" resizeMode="contain" style={{width:"100%",height:240,borderRadius:12}} /> : null}
-        {signal.shipment ? <>
-          <Text style={styles.disclaimer}>{signal.location.label ? signal.location.label + " reported this shipment. " : ""}Receiving stores are unconfirmed.</Text>
-          <BoardStoreLinks key={signal.shipment.boardId} stores={signal.shipment.stores || []} boardId={signal.shipment.boardId} owner={api} onDirections={destination => void openMaps(destination)} />
-        </> : presented?.caveat && !/stale|not alertable|last.known|before driving/i.test(presented.caveat) ? <Detail label="Source note" value={presented.caveat} /> : null}
+        <Text style={styles.disclaimer}>{signal.historical ? "This is an older report. Check with the store for current availability before driving." : "Reported availability can change. Check with the store before driving."}</Text>
+        {presented?.caveat && !/stale|not alertable|last.known|before driving/i.test(presented.caveat) ? <Detail label="Source note" value={presented.caveat} /> : null}
+        {signal.source.type === "member" ? <Text style={styles.disclaimer}>Member observations report what someone saw and are not verified retailer inventory.</Text> : null}
       </View>
       <BottlePriceCheck key={signal.id} msrp={bottleDetails?.msrp ?? null} initialPrice={signal.availability?.price?.toFixed(2) || ''} />
+      {actionCount ? <View style={styles.actions}>
+        <Text style={styles.actionsTitle}>Actions</Text>
+        {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
+        {canReadCellar ? <ActionButton disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
+        {address ? <ActionButton label="Open in Maps" onPress={() => void openMaps()} /> : null}
+        <ActionButton label="Request coverage for this area or store" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: signal.location.state, area: signal.location.store?.city, store: signal.location.store?.name, address: signal.location.store?.address }) })} />
+        <ActionButton label="Get help with this Signal" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Signal detail', bottle: signal.bottle.name, signalId: signal.id, state: signal.location.state, area: signal.location.store?.city }) })} />
+        {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
+      </View> : null}
       {signal.source.type === "member" ? <View style={styles.actions}>
         <Text style={styles.actionsTitle}>Community feedback</Text>
         {signal.actions.includes('helpful')?<ActionButton disabled={saving} label={`Helpful (${signal.evidence.helpfulCount})`} onPress={()=>void saveFeedback('helpful')}/>:null}
@@ -307,34 +240,19 @@ export default function SignalDetailScreen() {
           <View style={styles.huntOutcomeChoices}>{HUNT_OUTCOMES.map((item) => <Pressable accessibilityRole="button" disabled={savingHuntOutcome} key={item.value} onPress={() => void chooseHuntOutcome(item.value)} style={[styles.huntOutcomeChoice, huntOutcome === item.value && styles.huntOutcomeChoiceActive, savingHuntOutcome && styles.actionDisabled]}><Text style={styles.huntOutcomeChoiceText}>{item.label}</Text></Pressable>)}</View>
           {huntOutcomeError ? <Text accessibilityRole="alert" style={styles.error}>{huntOutcomeError}</Text> : null}
         </>}
-        {canShare && !editingHuntOutcome ? <View style={styles.actions}>
-          <Text style={styles.disclaimer}>{shared ? "Sighting shared with members." : "Share that you saw " + signal.bottle.name + " at " + shareStore?.name + "."}</Text>
-          {showShareTerms ? <CommunityTermsGate onAccepted={setShareTermsAccepted} /> : null}
-          {!shared ? <ActionButton label={sharing ? "Sharing…" : "Share sighting"} disabled={sharing || (showShareTerms && !shareTermsAccepted)} onPress={() => void shareSighting()} /> : null}
-          {shareError ? <Text accessibilityRole="alert" style={styles.error}>{shareError}</Text> : null}
-        </View> : null}
       </View> : null}
-      <BottleProfileRating personal={bottleProfile} onRate={canReadCellar && (inCellar || canAddToCellar) && !saving ? () => shelfEntry ? router.push({ pathname: "/(app)/(tabs)/cellar", params: { editBottleId: shelfEntry.bottleId } }) : signal.bottle.id ? router.push({ pathname: "/(app)/cellar/add", params: { bottleId: signal.bottle.id } }) : void addToCellar() : undefined} />
-      <View style={styles.actions}>
-        {!signal.shipment && signal.location.scope !== "exact_store" ? <ActionButton footer label="Request coverage for this area or store" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: signal.location.state, area: signal.location.store?.city, store: signal.location.store?.name, address: signal.location.store?.address }) })} /> : null}
-        <ActionButton footer label="Get help with this Signal" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Signal detail', bottle: signal.bottle.name, signalId: signal.id, state: signal.location.state, area: signal.location.store?.city }) })} />
-      </View>
       {preferencesError ? <ErrorState message={preferencesError} onRetry={() => void load(true)} /> : null}
     </> : null}
   </ScrollView>;
 }
 
-function ActionButton({ label, onPress, disabled = false, primary = false, footer = false }: { label: string; onPress: () => void; disabled?: boolean; primary?: boolean; footer?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.action, primary && styles.primary, footer && styles.footerAction, disabled && styles.actionDisabled, pressed && !disabled && styles.actionPressed]}><Text style={[styles.actionText, primary && { color: colors.background }, footer && { fontSize: typeScale.small }, disabled && styles.actionTextDisabled]}>{label}</Text></Pressable>; }
+function ActionButton({ label, onPress, disabled = false }: { label: string; onPress: () => void; disabled?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.action, disabled && styles.actionDisabled, pressed && !disabled && styles.actionPressed]}><Text style={[styles.actionText, disabled && styles.actionTextDisabled]}>{label}</Text></Pressable>; }
 function Detail({ label, value }: { label: string; value: string }) { return <View style={styles.detail}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value}</Text></View>; }
 function ProfileDetail({ label, value }: { label: string; value: string }) { return <View style={styles.profileDetail}><Text style={styles.profileLabel}>{label}</Text><Text numberOfLines={2} style={styles.profileValue}>{value}</Text></View>; }
 
 const styles = StyleSheet.create({
   storeName:{color:colors.text,fontFamily:fonts.heading,fontSize:24,lineHeight:30},reportFigures:{flexDirection:"row",flexWrap:"wrap",gap:28},reportFigure:{gap:6},reportPrice:{color:colors.accent,fontSize:32,fontWeight:"600"},reportQuantity:{color:colors.text,fontSize:24},
   container: { flexGrow: 1, padding: 22, paddingBottom: 42, gap: 18, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, authorRow: { minHeight: 28, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }, reporter: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, memberTagText: { color: colors.text, fontSize: typeScale.caption, lineHeight: 13, fontWeight: "800", letterSpacing: 0.4 }, title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" }, sectionTitle: { color: colors.text, fontSize: typeScale.subheading, lineHeight: 23, fontWeight: "800" }, profileCard: { gap: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: 15 }, profileGrid: { flexDirection: "row", flexWrap: "wrap", rowGap: 13 }, profileDetail: { width: "50%", gap: 3, paddingRight: 8 }, profileLabel: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }, profileValue: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, signalSection: { gap: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 18 }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: typeScale.small, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: typeScale.input, lineHeight: 23 }, error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18, marginTop: 4 },
-  shipmentBottle: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 44, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-  primary: { backgroundColor: colors.accent },
-  footerAction: { borderWidth: 0, backgroundColor: "transparent", alignItems: "flex-start" },
-  storeActions: { gap: 8 },
   actions: { gap: 10, marginTop: 4 }, actionsTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, action: { minHeight: 50, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }, actionPressed: { backgroundColor: colors.surfaceRaised }, actionDisabled: { borderColor: colors.border }, actionText: { color: colors.accent, fontSize: typeScale.body, fontWeight: "800" }, actionTextDisabled: { color: colors.muted },
   huntOutcome: { gap: 10, marginTop: 8, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 18 }, huntOutcomeTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, huntOutcomeDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18 }, huntOutcomeChoices: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, huntOutcomeChoice: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, backgroundColor: colors.surface, paddingHorizontal: 12 }, huntOutcomeChoiceActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised }, huntOutcomeChoiceText: { color: colors.text, fontSize: typeScale.small, fontWeight: "700" }, huntOutcomeSaved: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, huntOutcomeSavedText: { flex: 1, color: colors.muted, fontSize: typeScale.small }, huntOutcomeSavedValue: { color: colors.text, fontWeight: "800" }, huntOutcomeEdit: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 }, huntOutcomeEditText: { color: colors.accent, fontWeight: "800" },
 });

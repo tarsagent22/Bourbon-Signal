@@ -6,9 +6,9 @@ import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { applyNcBoardShipmentPolicy } from '../src/collectors/north-carolina-intelligence.mjs';
 import { isRetainedNotDueReport } from '../src/collectors/generic-state.mjs';
 import { hasHealthyLowerVolumeShipmentRun, hasSafeScheduledPartialShipmentFallback } from '../src/nc-coverage-summary.mjs';
-import { applyAlertPolicyToCandidate, bibleLookup, buildDrops, buildRegionalWatchAlertsFromDrops } from '../src/export-site-contract.mjs';
+import { bibleLookup, buildDrops } from '../src/export-site-contract.mjs';
 
-test('NC shipments without source proof cannot create watch alerts', () => {
+test('NC board shipment signals remain informational and cannot create watch alerts', () => {
   const result = confidenceForSignal({
     state: 'NC',
     eventType: 'nc_board_shipment_snapshot',
@@ -74,7 +74,6 @@ test('all six fresh Triad board shipments become explicit Drop Feed cards withou
   }));
 
   const drops = buildDrops(signals, bible, signals);
-  assert.ok(drops.some(drop => drop.ncShipmentAlertEligible), "a catalog-matched official shipment carries separate shipment alert proof");
   assert.equal(drops.length, 6, 'every exact August 12 Triad shipment must map through the checked-in Bourbon Bible');
   assert.deepEqual(new Set(drops.map((drop) => drop.id)), new Set(expected.map(([id]) => id)));
   for (const drop of drops) {
@@ -173,24 +172,4 @@ test('all NC release gates use the shared source-backed lower-volume policy', ()
     assert.match(source, /hasHealthyLowerVolumeShipmentRun\(/);
     assert.doesNotMatch(source, /function hasHealthyLowerVolumeNcShipmentRun/);
   }
-});
-
-test('fresh official county shipments become deduplicated inbox candidates without inventory, email or SMS claims', () => {
-  const now = Date.parse('2026-11-12T16:00:00Z');
-  const input = {
-    id: 'wake-report', canonicalId: 'stagg', bottleName: 'Stagg', tier: 'unicorn', state: 'NC',
-    type: 'nc_board_shipment_snapshot', locationPrecision: 'board_county', locationName: 'Wake County ABC Board',
-    eventAt: '2026-11-12T04:00:00Z', ncCode: '12345', boardShipmentQuantity: 18, ncShipmentAlertEligible: true,
-  };
-  const [shipment] = buildRegionalWatchAlertsFromDrops([input], now).map(applyAlertPolicyToCandidate);
-  assert.equal(shipment.quantity, 18);
-  assert.equal(shipment.county, 'Wake County');
-  assert.equal(shipment.shipmentDropId, 'wake-report');
-  assert.equal(shipment.eligibleForOnSite, true);
-  assert.equal(shipment.eligibleForDelivery, true);
-  assert.equal(shipment.eligibleForEmail, false);
-  assert.equal(shipment.eligibleForSms, false);
-  const [repoll] = buildRegionalWatchAlertsFromDrops([{ ...input, id: 'next-fetch', eventAt: '2026-11-12T05:00:00Z' }], now);
-  assert.equal(repoll.dedupeKey, shipment.dedupeKey);
-  assert.deepEqual(buildRegionalWatchAlertsFromDrops([{ ...input, ncShipmentAlertEligible: false }, { ...input, eventAt: '2026-11-08T00:00:00Z' }], now), []);
 });

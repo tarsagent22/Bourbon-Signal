@@ -41,7 +41,6 @@ import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-met
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
 import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergeHistoricalTimelineDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, mergePartialRefreshStores, mergeScheduledFallbackEvents, selectFreshRunDrops } from './partial-refresh-contract.mjs';
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
-import { ncShipmentWatchEligible } from './nc-shipment-policy.mjs';
 import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
 import { buildStateOperatingContract } from './state-operating-contract.mjs';
@@ -530,17 +529,6 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
         ? 'actionable_watch'
         : 'informational';
   const eventAt = freshness?.eventAt || null;
-  const ncShipmentAlertEligible = isNcBoardShipment && !staleFallback && Boolean(bibleRecord)
-    && bibleRecord.libraryAlertEligible !== false && lifecycleAllowsWatchAlert(signal.state)
-    && ncShipmentWatchEligible({
-      ...signal,
-      canonicalBottleId: canonicalId,
-      ...(signal.shipmentStoreEquivalent === true ? {
-        locationPrecision: 'board_county',
-        locationName: signal.boardName,
-        quantity: signal.boardShipmentQuantity,
-      } : {}),
-    });
   const firstSeenAt = freshness?.firstSeenAt || signal.observedAt || null;
   const lastConfirmedAt = freshness?.lastConfirmedAt || signal.observedAt || null;
   const displayAt = freshness?.listingChangedAt || eventAt || firstSeenAt || lastConfirmedAt;
@@ -609,7 +597,6 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     storeId: signal.storeId,
     permitNumber: signal.permitNumber || signal.raw?.permitNumber || null,
     storeAddress: signal.storeAddress,
-    ...(signal.locationPrecision === "store_level" && signal.storePhone ? { storePhone: signal.storePhone } : {}),
     storeUrl: signal.storeUrl || null,
     storePhone: signal.storePhone || null,
     storeHours: signal.storeHours || null,
@@ -671,7 +658,6 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
     policyMode: nonAlertingOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
-    ...(ncShipmentAlertEligible ? { ncShipmentAlertEligible: true } : {}),
     alertable: staleFallback || nonAlertingOnSiteInventory ? false : undefined,
     eligibleForOnSite: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
     eligibleForDropFeed: isNcBoardShipment || nonAlertingOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
@@ -2279,14 +2265,12 @@ export function buildAnnouncementAlerts(events, now = Date.now()) {
     }));
 }
 
-const isNcShipmentDrop = drop => drop.state === 'NC' && drop.type === 'nc_board_shipment_snapshot';
-
-export function buildRegionalWatchAlertsFromDrops(drops, now = Date.now()) {
+export function buildRegionalWatchAlertsFromDrops(drops) {
   return (drops || [])
-    .filter((drop) => drop && !drop.canAlertAsInventory && (isNcShipmentDrop(drop) ? drop.ncShipmentAlertEligible === true : drop.canAlertAsWatch))
-    .filter((drop) => isNcShipmentDrop(drop) || ['board_county', 'board_warehouse', 'store_aggregate'].includes(String(drop.locationPrecision || '')))
-    .filter((drop) => isNcShipmentDrop(drop) ? Date.parse(drop.eventAt) <= now && now - Date.parse(drop.eventAt) < 48 * 3_600_000 : dropAgeHours(drop) <= 168)
-    .filter((drop) => isNcShipmentDrop(drop) ? Number(drop.boardShipmentQuantity) > 0 && Boolean(drop.eventAt && drop.canonicalId && drop.locationName) : Number(drop.quantity || 0) + Number(drop.warehouseQty || 0) > 0)
+    .filter((drop) => drop && drop.canAlertAsWatch && !drop.canAlertAsInventory)
+    .filter((drop) => ['board_county', 'board_warehouse', 'store_aggregate'].includes(String(drop.locationPrecision || '')))
+    .filter((drop) => dropAgeHours(drop) <= 168)
+    .filter((drop) => Number(drop.quantity || 0) + Number(drop.warehouseQty || 0) > 0)
     .filter((drop) => ['unicorn', 'allocated', 'limited'].includes(String(drop.tier || '')))
     .filter((drop) => /shipment|warehouse|limited_release_store_drop/i.test(String(drop.type || drop.eventType || '')))
     .sort(alertDropSort)
@@ -2297,19 +2281,17 @@ export function buildRegionalWatchAlertsFromDrops(drops, now = Date.now()) {
       reliabilityScore: drop.tier === 'unicorn' ? 90 : drop.tier === 'allocated' ? 86 : 80,
       eligibleForDelivery: true,
       eligibleForOnSite: true,
-      eligibleForEmail: !isNcShipmentDrop(drop) && ['unicorn', 'allocated'].includes(String(drop.tier || '')),
-      eligibleForSms: !isNcShipmentDrop(drop) && String(drop.tier || '') === 'unicorn',
+      eligibleForEmail: ['unicorn', 'allocated'].includes(String(drop.tier || '')),
+      eligibleForSms: String(drop.tier || '') === 'unicorn',
       actionabilityClass: 'board_or_county_lead',
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'watch_candidate',
       sendRecommendation: 'send_to_matching_testers',
-      signalAt: isNcShipmentDrop(drop) ? drop.eventAt : dropSignalAt(drop),
-      freshnessHours: Number((isNcShipmentDrop(drop) ? (now - Date.parse(drop.eventAt)) / 3_600_000 : dropAgeHours(drop, now)).toFixed(2)),
+      signalAt: dropSignalAt(drop),
+      freshnessHours: Number(dropAgeHours(drop).toFixed(2)),
       bootstrap: false,
       changeType: 'current_regional_watch_signal',
-      dedupeKey: isNcShipmentDrop(drop)
-        ? stableId(['nc_abc_shipment', drop.canonicalId, drop.ncCode || '', drop.boardName || drop.locationName, drop.boardShipmentQuantity])
-        : stableId(['regional_watch_alert', drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName, drop.quantity || 0, drop.warehouseQty || 0]),
+      dedupeKey: stableId(['regional_watch_alert', drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName, drop.quantity || 0, drop.warehouseQty || 0]),
       matchKey: stableId([drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName || 'regional']),
       gates: ['current_public_drop', 'regional_watch', 'positive_quantity'],
       blockers: [],
@@ -2320,17 +2302,11 @@ export function buildRegionalWatchAlertsFromDrops(drops, now = Date.now()) {
       eventType: drop.type,
       source: drop.source,
       sourceUrl: drop.sourceUrl,
-      locationPrecision: isNcShipmentDrop(drop) ? 'board_county' : drop.locationPrecision,
-      locationName: isNcShipmentDrop(drop) ? drop.boardName || drop.locationName : drop.locationName,
-      ...(isNcShipmentDrop(drop) ? {
-        shipmentDropId: drop.id,
-        boardName: drop.boardName || drop.locationName,
-        county: /\bCounty\s+ABC\b/i.test(drop.boardName || drop.locationName) ? (drop.boardName || drop.locationName).replace(/\s+ABC\b.*$/i, '') : null,
-        opportunityExpiresAt: new Date(Date.parse(drop.eventAt) + 48 * 3_600_000).toISOString(),
-      } : {}),
-      storeName: isNcShipmentDrop(drop) ? null : drop.storeName,
-      storeAddress: isNcShipmentDrop(drop) ? null : drop.storeAddress,
-      quantity: isNcShipmentDrop(drop) ? Number(drop.boardShipmentQuantity) : drop.quantity || 0,
+      locationPrecision: drop.locationPrecision,
+      locationName: drop.locationName,
+      storeName: drop.storeName,
+      storeAddress: drop.storeAddress,
+      quantity: drop.quantity || 0,
       availabilityStatus: drop.availabilityStatus,
       availabilityLabel: drop.availabilityLabel,
       warehouseQty: drop.warehouseQty || 0,

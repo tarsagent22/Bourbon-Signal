@@ -39,18 +39,6 @@ const boards = directory.boards.map((board) => ({
   }),
 }));
 
-const boardByMemberAddress = new Map(boards.flatMap(board =>
-  board.members.map(member => [sightingStoreAddressKey(member), board] as const)
-));
-
-export function boardForExactMemberStore(store: { state: string; city: string; address: string }) {
-  return store.state === "NC" && store.city && store.address ? boardByMemberAddress.get(sightingStoreAddressKey(store)) : undefined;
-}
-
-export function boardMemberStores(boardId: string): BoardMember[] {
-  return boards.find(board => board.id === boardId)?.members ?? [];
-}
-
 export function nearbyBoards(origin: Point, radius: number): NearbyStore[] {
   return boards.flatMap((board) => {
     const members = board.members
@@ -109,11 +97,8 @@ export function addBoardSignals(
     const board = candidates.find((b) => b.id === signal.shipment!.boardId);
     if (!board) continue;
     const entry = found.get(board.id) || { ...board, signals: [] };
-    const duplicate = entry.signals.findIndex(previous => previous.id === signal.id ||
-      Boolean(signal.bottle.id && previous.bottle.id === signal.bottle.id && signal.shipment?.reportedAt
-        && previous.shipment?.reportedAt === signal.shipment.reportedAt));
-    if (duplicate < 0) entry.signals.push(signal);
-    else if (entry.signals[duplicate].availability?.price == null && signal.availability?.price != null) entry.signals[duplicate] = signal;
+    if (!entry.signals.some((s) => s.id === signal.id))
+      entry.signals.push(signal);
     found.set(board.id, entry);
   }
 }

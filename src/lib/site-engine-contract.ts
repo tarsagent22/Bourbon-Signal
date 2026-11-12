@@ -365,7 +365,6 @@ export function normalizeDropForSite(drop: JsonRecord) {
     tracked_brand_name: asString(drop.bottleName, "Unknown Bottle"),
     board_name: locationLabel || undefined,
     store_address: firstNonEmptyString(drop.storeAddress, drop.store_address) || undefined,
-    store_phone: locationPrecision === "store_level" ? firstNonEmptyString(drop.storePhone, drop.store_phone) || undefined : undefined,
     store_city: firstNonEmptyString(drop.city, drop.store_city) || undefined,
     store_county: firstNonEmptyString(drop.county, drop.store_county) || undefined,
     store_name: firstNonEmptyString(drop.storeName, drop.store_name) || undefined,

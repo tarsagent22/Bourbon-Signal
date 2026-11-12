@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
         "area",
       ]) {
         const v = q.get(key);
-        if (v && !(key === "view" && v === "all")) url.searchParams.set(key, v);
+        if (v) url.searchParams.set(key, v);
       }
       if (cursor) url.searchParams.set("cursor", cursor);
       const response = await withNearbyFeedScope(

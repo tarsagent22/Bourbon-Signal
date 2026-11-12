@@ -337,10 +337,12 @@ assert.match(mobileApiClient, /recentReads\.get\(key\)/, "native GET requests mu
 const nativeSignalFeed = readFileSync("apps/mobile/app/(app)/(tabs)/index.tsx", "utf8");
 const dropRouteSource = readFileSync("src/app/api/drops/route.ts", "utf8");
 assert.match(dropRouteSource, /Date\.parse\(dropDisplayTime\(drop\)\) >= since/, "Signal freshness filters must use the same displayed timestamp as Signal ordering");
-assert.match(nativeSignalFeed, /accessibilityLabel="Report sources"/);
-assert.match(nativeSignalFeed, /"browse" : "saved"/, "Home defaults to the member’s saved areas");
-assert.match(nativeSignalFeed, /Find a bottle/);
+assert.match(nativeSignalFeed, /radio-tower/);
+assert.match(nativeSignalFeed, /account-group-outline/);
+assert.match(nativeSignalFeed, />Intel</);
 assert.doesNotMatch(nativeSignalFeed, />Market</);
+assert.match(nativeSignalFeed, /type FeedView = "market" \| "community";/, "the user-facing Intel rename must preserve the existing market API contract");
+assert.match(nativeSignalFeed, />Community</);
 assert.match(nativeSignalFeed, /requestInFlightRef\.current/, "feed requests need a synchronous in-flight guard so refresh and pagination cannot race");
 assert.doesNotMatch(nativeSignalFeed, /LIVE MEMBER INTELLIGENCE/);
 assert.doesNotMatch(nativeSignalFeed, /updatedLabel|styles\.updated/, "feed freshness belongs to each card, not a detached header label");
@@ -348,8 +350,7 @@ assert.doesNotMatch(nativeSignalFeed, /segmentSelected:\s*\{[^}]*borderColor/, "
 assert.doesNotMatch(nativeSignalFeed, /segment:\s*\{[^}]*borderColor:\s*"transparent"/, "segments should not reserve an inner border");
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
 assert.match(nativeSignalFeed, /rarityOptionsForView\(view\)/, "rarity filters must remain immediately visible and respect each source schema");
-assert.match(nativeSignalFeed, /item.shipmentUpdate/, "only explicit board shipment updates may group");
-assert.match(nativeSignalFeed, /data=\{visibleSignals\}/, "render the event timeline");
+assert.match(nativeSignalFeed, /data=\{visibleSignals\}/, "rarity changes must synchronously filter the already-mounted Signal cache");
 assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "selected rarity is included in the server query");
 assert.match(nativeSignalFeed, /onPress=\{\(\) => applyRarityFilters\(toggleRarity\(filters, option\.value\)\)\}/, "rarity chips must use the non-destructive local transition path");
 assert.doesNotMatch(nativeSignalFeed, /onPress=\{\(\) => applyFilters\(toggleRarity/, "rarity chips must never clear the feed through the remote filter reset path");
@@ -362,7 +363,8 @@ assert.match(nativeSignalFeed, /actionLabel=\{emptyFeed\.actionLabel\}/, "empty 
 assert.match(nativeSignalFeed, /case "area": applyFilters\(\{ \.\.\.filters, area: "" \}\)/, "empty area results broaden the area while preserving the state and other filters");
 assert.match(nativeSignalFeed, /placeholder="Search bottles or locations"/, "feed search must stay directly on the feed");
 assert.match(nativeSignalFeed, /label="State"/, "state selection must stay directly on the feed");
-assert.match(nativeSignalFeed, /filters\.state && detailedFilters \? <OptionChooser\s+label=\{areaLabel\}/, "area selection is visible only with a Home state and detailed-filter access");
+assert.match(nativeSignalFeed, /label=\{areaLabel\}/, "the dependent area control must keep stable side-by-side geometry");
+assert.match(nativeSignalFeed, /disabled=\{!filters\.state \|\| !detailedFilters\}/, "area selection requires a Home state and detailed-filter access");
 assert.doesNotMatch(nativeSignalFeed, /Trip Mode|tripMode|trip-mode/, "Home must not restore the removed Trip Mode feature");
 assert.doesNotMatch(nativeSignalFeed, /Intel gathered from Bourbon Signal sources|Bottle sightings shared by Bourbon Signal members/, "the feed header must not spend vertical space on explanatory paragraphs");
 const nativeSignalCard = readFileSync("apps/mobile/src/components/SignalCard.tsx", "utf8");

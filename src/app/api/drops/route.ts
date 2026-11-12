@@ -1,5 +1,3 @@
-import { shipmentUpdatesForPage, stableTimelineScope, collapseTimelineShipments, readTimelineRequest, savedTimelineMatchesDrop, savedTimelineScopes, timelineIncludesDrop } from "@/lib/signals/report-timeline";
-import { summarizePagedBottleReports } from "@/lib/signals/feed-report-summary";
 import { filterNearbyFeedDrops, nearbyFeedPageLimit } from "@/lib/nearby-feed-scope";
 import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
 import { unstable_cache } from "next/cache";
@@ -249,12 +247,6 @@ export async function GET(request: Request) {
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
   const entitlements = isEngineVerification ? getEntitlements("standard") : await getServerEntitlements(user?.publicMetadata || null);
   const isFreeAccess = !isSignedIn || entitlements.tier === "free";
-  let timeline: ReturnType<typeof readTimelineRequest>;
-  try { timeline = !isEngineVerification && url.searchParams.has("timeline") ? readTimelineRequest(url) : undefined; }
-  catch { return NextResponse.json({ error: "Invalid timeline filters." }, { status: 400 }); }
-  if (isFreeAccess && timeline?.mode === "bottle") return NextResponse.json({ error: "Feed search requires a paid membership." }, { status: 403 });
-  const scopes = !isFreeAccess && timeline?.mode === "saved" ? savedTimelineScopes(user?.publicMetadata, entitlements.alertAreaLimit) : null;
-  const timelineAt = Date.parse(url.searchParams.get("timelineAt") || "") || Date.now();
   if (isFreeAccess && ["state", "tier", "tiers", "rarity", "area", "store", "search", "bottle", "since", "board", "city", "county"].some(key => url.searchParams.getAll(key).some(value => value.trim()))) {
     return NextResponse.json({ error: "Feed filters require a paid membership." }, { status: 403 });
   }
@@ -447,7 +439,7 @@ export async function GET(request: Request) {
     if (include !== "all" || historicalMode) {
       drops = applyPublicDropFilters(drops, { filterDegradedStates: true });
     }
-    if (requestedSignalId && !isFreeAccess && !timeline) {
+    if (requestedSignalId && !isFreeAccess) {
       drops = drops.filter((drop) => {
         const record = drop as unknown as Record<string, unknown>;
         const storedId = String(record.id ?? record.eventId ?? record.canonical_id ?? record.canonicalId ?? "");
@@ -506,19 +498,6 @@ export async function GET(request: Request) {
 
     // Narrow the authorized, policy-filtered feed before its page boundary.
     drops = filterNearbyFeedDrops(drops);
-    const unfilteredPreviewTotal = isFreeAccess ? drops.length : null;
-    if (timeline) {
-      if (isFreeAccess) drops = drops.slice(0, previewLimit);
-      drops = drops.filter(drop => timelineIncludesDrop(drop, timeline)
-        && (!scopes || savedTimelineMatchesDrop(drop, scopes))
-        && (timeline.older || timeline.mode === "bottle" || drop.scheduledRelease === true
-          || Date.parse(dropDisplayTime(drop)) >= timelineAt - 3 * 86_400_000));
-    }
-    const collapsed = timeline && timeline.mode !== "bottle" ? collapseTimelineShipments(drops, !isFreeAccess ? requestedSignalId : undefined) : null;
-    if (collapsed) drops = collapsed.drops;
-    if (requestedSignalId && timeline && !isFreeAccess) {
-      drops = drops.filter(drop => drop.id === requestedSignalId || drop.id === requestedSignalSource + ":" + requestedSignalId);
-    }
 
     drops = canonicalSignalOrder
       ? drops
@@ -526,8 +505,7 @@ export async function GET(request: Request) {
 
     const total = drops.length;
     const engineSnapshot = `${String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt))}:source:${sourceOverlay.version}`;
-    const timelineScope = timeline ? ":timeline:" + stableTimelineScope(timeline, scopes) + ":" + timelineAt : "";
-    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerVersion}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}:listingOrder:1${timelineScope}`;
+    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerVersion}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}:listingOrder:1`;
     if(isPilotReceipt) return NextResponse.json(
       pilotReceiptPayload('feed',url.searchParams.get('source_receipt') || '',drops,engineSnapshot),
       {headers:{'Cache-Control':'private, no-store',Vary:'Cookie, Authorization, X-Bourbon-Signal-Pilot-Verification'}},
@@ -547,8 +525,6 @@ export async function GET(request: Request) {
       {
         ...exportPayload,
         drops: pagedDrops,
-        ...(collapsed ? { shipmentUpdates: shipmentUpdatesForPage(collapsed.shipmentUpdates, pagedDrops) } : {}),
-        ...(!isFreeAccess && canonicalSignalOrder && url.searchParams.get("reportGroups") === "1" ? { reportGroups: summarizePagedBottleReports(drops, pagedDrops) } : {}),
         total,
         limit,
         offset: page.offset,
@@ -557,7 +533,7 @@ export async function GET(request: Request) {
         snapshot,
         hasMore: !isFreeAccess && page.hasMore,
         marketSummaries,
-        previewLocked: isFreeAccess && (unfilteredPreviewTotal ?? total) > pagedDrops.length,
+        previewLocked: isFreeAccess && total > pagedDrops.length,
         requiresAccountForFullFeed: isFreeAccess,
         marketDetailsLocked: false,
         lastUpdated: engineRunTimestamp(statsPayload, exportPayload?.generatedAt),

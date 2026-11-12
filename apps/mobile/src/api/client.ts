@@ -297,15 +297,9 @@ export function createMobileApi({
       return request<{ collectionVersion: number; value: CollectionValue; history: CollectionHistory }>('/api/v1/me/collection-history', { fresh: true });
     },
     nearby(params: URLSearchParams) { return request<import("../../../../shared/nearby").NearbyResult>(`/api/v1/nearby?${params}`, { fresh: true }); },
-    listSignals({ timeline, view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle, search }: { timeline?: import("../../../../shared/report-timeline").TimelineRequest; view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string; search?: string } = {}) {
+    listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle, search }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string; search?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (view && view !== "all") params.set("view", view);
-      if (timeline) {
-        params.set("timeline", timeline.mode);
-        if (timeline.source) params.set("source", timeline.source);
-        if (timeline.older) params.set("older", "1");
-        if (timeline.bottleId) params.set("bottleId", timeline.bottleId);
-      }
       if (cursor) params.set("cursor", cursor);
       const normalizedRarities = [...new Set(rarities)].sort();
       if (normalizedRarities.length) params.set("tiers", normalizedRarities.join(","));
@@ -320,8 +314,8 @@ export function createMobileApi({
       if (normalizedBottle) params.set("bottle", normalizedBottle);
       return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`, { fresh });
     },
-    getSignal(id: string, { fresh = false, update = false }: { fresh?: boolean; update?: boolean } = {}) {
-      return request<{ contractVersion: "bourbon-signal/mobile-api@1"; signal: Signal }>(`/api/v1/signals/${encodeURIComponent(id)}${update ? "?update=1" : ""}`, { fresh });
+    getSignal(id: string, { fresh = false }: { fresh?: boolean } = {}) {
+      return request<{ contractVersion: "bourbon-signal/mobile-api@1"; signal: Signal }>(`/api/v1/signals/${encodeURIComponent(id)}`, { fresh });
     },
     actOnSignal(id:string,action:'helpful'|'no_longer_there') {
       return request<{signal:Signal;action:{type:'helpful'|'no_longer_there';active:boolean}}>(`/api/v1/signals/${encodeURIComponent(id)}/actions`,{method:'POST',body:{action}});

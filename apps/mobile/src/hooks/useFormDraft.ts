@@ -13,25 +13,22 @@ export function useFormDraft<T extends DraftFields>({ owner, form, fields, defau
   const current = useRef({ fields, defaults, restore });
   current.current = { fields, defaults, restore };
   const skip = useRef<string | null>(null);
-  const restoredFields = useRef("");
   const serialized = JSON.stringify(fields);
   useEffect(() => {
     let active = true;
     setReady(false);
-    restoredFields.current = JSON.stringify(current.current.defaults);
     void readDraft(SecureStore, key, current.current.defaults).then(saved => {
-      if (active && saved) { restoredFields.current = JSON.stringify(saved); current.current.restore(saved); setNotice("Your unfinished draft was restored."); }
+      if (active && saved) { current.current.restore(saved); setNotice("Your unfinished draft was restored."); }
     }).catch(() => { if (active) setError("Draft storage is unavailable. Keep this screen open until you finish."); })
       .finally(() => { if (active) setReady(true); });
     return () => { active = false; };
   }, [key]);
   useEffect(() => {
-    if (!ready || skip.current === serialized || restoredFields.current === serialized) return;
+    if (!ready || skip.current === serialized) return;
     skip.current = null;
     const empty = serialized === JSON.stringify(current.current.defaults);
     const save = () => {
       if (skip.current === serialized) return;
-      restoredFields.current = serialized;
       void writeDraft(SecureStore, key, empty ? null : JSON.parse(serialized)).catch(() => setError("Your draft couldn’t be saved on this device. Keep this screen open until you finish."));
     };
     const timer = setTimeout(save, 300);
