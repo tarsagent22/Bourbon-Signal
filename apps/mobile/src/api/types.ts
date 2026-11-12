@@ -3,11 +3,12 @@ export interface Signal {
   id: string;
   availabilityEpisodeId?: string;
   historical?: boolean;
-  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units" };
+  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units"; stores?: import("../../../../shared/nearby").BoardMember[] };
   kind: "availability" | "release" | "event";
   source: {
     type: "member" | "retailer" | "trusted_source" | "release_source";
     label: string;
+    url?: string;
     reportMode?: "seen_in_store" | "reported_online";
     actor?: { kind: "founder" | "member"; number: number; label: string; displayName?: string; badges?: string[] };
   };
@@ -16,7 +17,7 @@ export interface Signal {
     scope: "exact_store" | "area" | "board" | "state" | "online" | "unknown";
     label?: string;
     state?: string;
-    store?: { id?: string; name?: string; address?: string; city?: string; state?: string; zip?: string };
+    store?: { id?: string; name?: string; address?: string; city?: string; state?: string; zip?: string; phone?: string };
   };
   listingChange?: "first_detection" | "restock" | "price_drop" | "price_change";
   timing: { observedAt?: string; reportedAt?: string; displayAt: string; firstSpottedAt?: string; lastCheckedAt?: string; scheduledFor?: string; expiresAt?: string };

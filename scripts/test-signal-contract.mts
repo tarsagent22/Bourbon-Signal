@@ -8,7 +8,7 @@ import {
   sortDropsByCanonicalSignalOrder,
 } from "../src/lib/signals/signal-contract.ts";
 import { createSignalFeedHandler } from "../src/lib/signals/signal-route.ts";
-import { SIGNAL_RARITY_TIERS, normalizeSignalRarities, parseSignalFeedFilters } from "../src/lib/signals/signal-feed-filters.ts";
+import { EMPTY_SIGNAL_FEED_FILTERS, SIGNAL_RARITY_TIERS, normalizeSignalRarities, parseSignalFeedFilters } from "../src/lib/signals/signal-feed-filters.ts";
 import { decodeSignalFeedCursor, encodeSignalFeedCursor } from "../src/lib/signals/signal-feed-cursor.ts";
 import { communityDisplayNameSeparateFromIdentity } from "../src/lib/community-display-name.ts";
 
@@ -373,3 +373,19 @@ const legacySorted = [...legacyListings.values()].map(drop => ({ drop, signal: n
     return Number.isFinite(difference) && difference !== 0 ? difference : left.signal.id.localeCompare(right.signal.id);
   }).map(({ drop }) => drop);
 assert.deepEqual(sortDropsByCanonicalSignalOrder(orderingRows), legacySorted, 'lightweight sorting exactly preserves full normalized-card ordering');
+
+const bottleUrl = new URL("https://www.bourbonsignal.com/api/v1/signals?bottleId=stagg");
+const exactBottleFilters = parseSignalFeedFilters(bottleUrl);
+assert.deepEqual(exactBottleFilters, { ...EMPTY_SIGNAL_FEED_FILTERS, bottleId: "stagg" });
+assert.throws(() => parseSignalFeedFilters(new URL(bottleUrl.href.replace("stagg", "stagg%20jr"))));
+filterCalls.length = 0;
+assert.equal((await filterHandler(new Request(bottleUrl))).status, 200);
+assert.equal(filterCalls.length, 2);
+for (const call of filterCalls) assert.equal(new URL(call).searchParams.get("bottleId"), "stagg");
+const exactBottleCursor = encodeSignalFeedCursor({
+  view: "all", dropsOffset: 0, dropSnapshot: null, memberBoundary: null,
+  filters: exactBottleFilters, asOf: new Date().toISOString(),
+});
+bottleUrl.searchParams.set("cursor", exactBottleCursor);
+bottleUrl.searchParams.set("bottleId", "stagg-jr");
+assert.equal((await filterHandler(new Request(bottleUrl))).status, 400, "a continuation cannot cross bottle identities");

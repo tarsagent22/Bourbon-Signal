@@ -417,7 +417,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void load(true).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} />}
-      renderItem={({ item }) => viewMode === "grid" ? <WhiskeyTile bottle={item} onPress={() => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId}})} width={tileWidth} /> : <WhiskeyListRow bottle={item} onPress={() => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId}})} />}
+      renderItem={({ item }) => viewMode === "grid" ? <WhiskeyTile bottle={item} onPress={() => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId,name:item.bottleName}})} width={tileWidth} /> : <WhiskeyListRow bottle={item} onPress={() => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId,name:item.bottleName}})} />}
       ItemSeparatorComponent={numColumns === 1 ? () => <View style={styles.gap} /> : undefined}
       ListHeaderComponent={<View style={styles.header}>
         <View style={styles.topRow}>
@@ -430,7 +430,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
           {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to My Shelf" : "Your free shelf is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
         {preferences ? <>
-          <ShelfCabinet bottles={sourceBottles} onBottle={item => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId}})} />
+          <ShelfCabinet bottles={sourceBottles} onBottle={item => item.bottleId.startsWith("local-") || item.pendingCanonicalMatch ? setSelected(item) : router.push({pathname:"/(app)/bottle/[id]",params:{id:item.bottleId,name:item.bottleName}})} />
           <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View collection value, history and personal collection insights" onPress={() => { if (!selected && !refineMode) setStatisticsOpen(true); }} style={({ pressed }) => [styles.statisticsButton, pressed && { opacity: 0.75 }]}>
             <MaterialCommunityIcons accessible={false} name="chart-bar" size={24} color={colors.accent} />
             <Text style={styles.statisticsLink}>Collection stats</Text>

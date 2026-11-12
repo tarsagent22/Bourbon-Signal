@@ -41,7 +41,7 @@ type LegacySightingsPayload = {
   previewLimit?: number | null;
 };
 
-const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "area", "freshness", "bottle", "search"]);
+const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "area", "freshness", "bottle", "search", "bottleId"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -119,6 +119,7 @@ function sourceRequest(request: Request, path: string, options: { limit: number;
     }
   }
   if (options.filters.search) url.searchParams.set("search", options.filters.search);
+  if (options.filters.bottleId) url.searchParams.set("bottleId", options.filters.bottleId);
   if (options.filters.bottle) url.searchParams.set("bottle", options.filters.bottle);
   if (options.since) url.searchParams.set("since", options.since);
   if (path === "/api/drops") url.searchParams.set("signalOrder", "canonical");
@@ -178,7 +179,7 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
       return Response.json({ error: error instanceof Error ? error.message : "Invalid Signal filters" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
     }
 
-    if (getFilterAccess && (filters.state || filters.rarities.length || filters.area || filters.bottle || filters.search || filters.freshness)) {
+    if (getFilterAccess && (filters.state || filters.rarities.length || filters.area || filters.bottle || filters.bottleId || filters.search || filters.freshness)) {
       try {
         const access = await getFilterAccess();
         if (access.canUseStateFilter === false) {

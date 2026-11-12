@@ -19,7 +19,23 @@ test("Bottle Profile keeps existing Signal actions and does not invent Bourbon D
   assert.match(detail, /const canWatch = Boolean\(signal\?\.actions\.includes\("watch_bottle"\)\);/);
   assert.doesNotMatch(detail, /const canWatch = .*alertEligibility/);
   assert.match(detail, /Add to My Shelf/);
-  assert.match(detail, /Open in Maps/);
+  assert.match(detail, /label="Directions"/);
+  assert.match(detail, /label="Call store"/);
+  assert.match(detail, /BoardStoreLinks/);
+  assert.match(detail, /Receiving stores are unconfirmed/);
+  assert.match(detail, /Share sighting/);
   assert.match(detail, /Hunt Outcome/);
   assert.doesNotMatch(detail, /Bourbon DNA|DNA compatibility|compatibility score/i);
+});
+
+test("store contact deduplicates addresses and only provides directions to street addresses", async () => {
+  const { storeContact } = await import("./store-contact");
+  const contact = storeContact({
+    name: "Example ABC", address: "123 Main St, Raleigh, NC 27601",
+    city: "Raleigh", state: "NC", zip: "27601", phone: "(919) 555-0101",
+  });
+  assert.equal(contact.address, "123 Main St, Raleigh, NC 27601");
+  assert.equal(contact.destination, "Example ABC, 123 Main St, Raleigh, NC 27601");
+  assert.equal(contact.phone, "9195550101");
+  assert.equal(storeContact({ address: "P.O. Box 123", city: "Raleigh", state: "NC" }).destination, "");
 });

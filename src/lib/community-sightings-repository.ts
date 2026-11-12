@@ -64,6 +64,7 @@ export interface SightingFeedFilters {
   bottle?: string | null;
   search?: string | null;
   since?: string | null;
+  bottleId?: string;
   area?: string | null;
 }
 
@@ -261,6 +262,7 @@ export class CommunitySightingsRepository {
                $13::jsonb->>TRIM(REGEXP_REPLACE(LOWER(payload->>'bottleName'), '[^a-z0-9]+', ' ', 'g')))
              WHEN payload->>'rarityTier' = 'highly_allocated' THEN 'unicorn'
              ELSE payload->>'rarityTier' END = ANY($5::text[]))
+           AND ($14::text IS NULL OR payload->>'bottleId' = $14::text)
            AND ($6::text IS NULL OR LOWER(payload->>'bottleName') LIKE '%' || $6::text || '%')
            AND ($10::text IS NULL OR UPPER(payload->>'storeState') = ANY($11::text[])
              OR (NOT $12::boolean AND STRPOS(LOWER(CONCAT_WS(' ', payload->>'bottleName', payload->>'storeName', payload->>'storeAddress', payload->>'storeCity', payload->>'storeZip')), $10::text) > 0))
@@ -278,7 +280,7 @@ export class CommunitySightingsRepository {
        SELECT recent.payload, totals.total_count
        FROM recent CROSS JOIN totals
        ORDER BY recent.created_at DESC, recent.id ASC`,
-      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns, currentUserId, search, searchStates, feedSearchIsStateCode(search || ""), filters.catalogRarityTiers ? JSON.stringify(filters.catalogRarityTiers) : null],
+      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns, currentUserId, search, searchStates, feedSearchIsStateCode(search || ""), filters.catalogRarityTiers ? JSON.stringify(filters.catalogRarityTiers) : null, filters.bottleId || null],
     ) as Array<{ payload: MemberSighting; total_count: number }>;
     return {
       sightings: rows.map((row) => row.payload),

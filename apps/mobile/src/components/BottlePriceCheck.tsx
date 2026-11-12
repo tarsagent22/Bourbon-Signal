@@ -8,8 +8,8 @@ export function BottlePriceCheck({ msrp, initialPrice = '' }: { msrp: number | n
   const [price, setPrice] = useState(initialPrice);
   const result = compareBottlePrice(price, msrp);
   return <View style={s.section}>
-    {msrp != null ? <View style={s.heading}><Text accessibilityRole="header" style={s.title}>Price context</Text><Text style={s.reference}>{`MSRP $${msrp.toFixed(2)}`}</Text></View> : null}
-    <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={() => setExpanded(value => !value)} style={s.trigger}><Text style={s.triggerText}>{expanded ? 'Close price check' : 'Check a price'} <Text> {expanded ? '−' : '+'}</Text></Text></Pressable>
+
+    <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={() => setExpanded(value => !value)} style={s.trigger}><Text style={s.triggerText}>{expanded ? 'Close price check' : 'Compare a shelf price with MSRP'} <Text> {expanded ? '−' : '+'}</Text></Text></Pressable>
     {expanded ? <View style={s.body}>
       <Text style={s.caption}>What’s the shelf price?</Text>
       <View style={s.inputRow}><Text style={s.currency}>$</Text><TextInput accessibilityLabel="Shelf price in US dollars" keyboardType="decimal-pad" value={price} onChangeText={setPrice} placeholder="0.00" placeholderTextColor={colors.muted} maxLength={12} style={s.input} /></View>

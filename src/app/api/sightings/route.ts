@@ -1,3 +1,4 @@
+import { validSignalBottleId } from "@/lib/signals/signal-feed-filters";
 import { nearbySightingSince } from "@/lib/nearby-feed-scope";
 import { readLegalAcceptance } from '@/lib/legal-acceptance';
 import { sightingFeedSearchMatches } from "@/lib/signals/feed-search";
@@ -236,7 +237,8 @@ async function getAggregateSightings(
     const rarityKey = String(sighting.bottleName || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
     const sightingRarity = filters.catalogRarityTiers ? filters.catalogRarityTiers[`${sighting.bottleId || ""}|${rarityKey}`] || filters.catalogRarityTiers[rarityKey] : String(sighting.rarityTier || "") === "highly_allocated" ? "unicorn" : String(sighting.rarityTier || "");
     const rarityMatch = !filterRarities.size || filterRarities.has(sightingRarity);
-    const bottleMatch = !filterBottle || String(sighting.bottleName || "").toLowerCase().includes(filterBottle);
+    const bottleMatch = (!filters.bottleId || sighting.bottleId === filters.bottleId)
+      && (!filterBottle || String(sighting.bottleName || "").toLowerCase().includes(filterBottle));
     const sinceMatch = !Number.isFinite(filterSince) || Date.parse(sighting.createdAt) >= filterSince;
     const areaMatch = !filterArea || dropFeedStoreQueryMatches({
       state: sighting.storeState,
@@ -329,12 +331,14 @@ export async function GET(req: NextRequest) {
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
   const requestedState = (url.searchParams.get("state") || "").trim().toUpperCase();
-  if (!entitlements.canUseStateFilter && ["state", "tiers", "area", "bottle", "search", "since"].some(key => url.searchParams.getAll(key).some(value => value.trim()))) {
+  if (!entitlements.canUseStateFilter && ["state", "tiers", "area", "bottle", "search", "since", "bottleId"].some(key => url.searchParams.getAll(key).some(value => value.trim()))) {
     return NextResponse.json({ error: "Feed filters require a paid membership." }, { status: 403 });
   }
   const requestedSearch = (url.searchParams.get("search") || "").replace(/\s+/g, " ").trim();
   if (requestedSearch.length > 100 || /[\u0000-\u001F\u007F]/.test(requestedSearch)) return NextResponse.json({ error: "Invalid feed search" }, { status: 400 });
   if (requestedSearch && !entitlements.canUseBottleSearch) return NextResponse.json({ error: "Feed search requires Barrel Proof or Founder membership." }, { status: 403 });
+  const bottleId = url.searchParams.get("bottleId");
+  if (bottleId !== null && !validSignalBottleId(bottleId)) return NextResponse.json({ error: "Invalid bottle ID." }, { status: 400 });
   const requestedBottle = (url.searchParams.get("bottle") || "").replace(/\s+/g, " ").trim();
   const requestedArea = (url.searchParams.get("area") || "").replace(/\s+/g, " ").trim();
   const requestedSince = url.searchParams.get("since");
@@ -355,6 +359,7 @@ export async function GET(req: NextRequest) {
     states: requestedState ? [requestedState] : [],
     rarities: requestedRarities,
     bottle: requestedBottle || null,
+    ...(bottleId ? { bottleId } : {}),
     search: requestedSearch || null,
     since: nearbySightingSince(requestedSince),
     area: canonicalArea,
