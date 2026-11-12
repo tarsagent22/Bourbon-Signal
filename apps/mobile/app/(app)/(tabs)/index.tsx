@@ -108,6 +108,7 @@ export default function SignalFeedScreen() {
   const [startupAccess, setStartupAccess] = useState<HomeBrowsingPreferences["startupAccess"]>();
   const [cacheStatus, setCacheStatus] = useState<{ scope: string; savedAt: number; updated?: boolean } | null>(null);
   const restoredScope = useRef("");
+  const displayedAccessScope = useRef("");
   const [tastePreferences, setTastePreferences] = useState<MemberPreferences | null>(null);
   const { view: requestedView } = useLocalSearchParams<{ view?: string }>();
   const browsingStorageKey = homeBrowsingStorageKey(userId);
@@ -145,8 +146,9 @@ export default function SignalFeedScreen() {
   const filtersAllowed = Boolean(profile?.membership.paid);
   const filters = useMemo(() => allowedFeedFilters(filtersByView[view], tier), [filtersByView, view, tier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
-  const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
-  const scopeKey = JSON.stringify([userId, sessionId, api.membershipRevision, tier, view, requestFilters, filters.rarities]);
+  const accessScope = JSON.stringify([userId, sessionId, api.membershipRevision, tier]);
+  const visibleSignals = displayedAccessScope.current === accessScope ? filterSignalsByRarity(signals, filters.rarities) : [];
+  const scopeKey = JSON.stringify([accessScope, view, requestFilters, filters.rarities]);
   const screenActive = screenFocused && appState === "active";
   const motionDisabled = reduceMotion || screenReaderEnabled;
   const cacheScope = sessionId && tier ? feedCacheScope(view, requestFilters, { sessionId, tier }) : "";
@@ -267,6 +269,7 @@ export default function SignalFeedScreen() {
         return;
       }
       successfulRequestRef.current = requestId;
+      displayedAccessScope.current = accessScope;
       if (refresh && restoredScope.current === capturedScope) {
         restoredScope.current = "";
         setCacheStatus(page.degraded || page.access.marketDetailsLocked ? null : { scope: capturedScope, savedAt: Date.now(), updated: true });
@@ -300,7 +303,7 @@ export default function SignalFeedScreen() {
         setLoading(false);
       }
     }
-  }, [api, cacheScope, cursor, handleError, hasMore, requestFilters, scopeKey, userId, view]);
+  }, [accessScope, api, cacheScope, cursor, handleError, hasMore, requestFilters, scopeKey, userId, view]);
 
   const selectView = useCallback((next: FeedView) => {
     if (next === view) return;
@@ -521,6 +524,7 @@ export default function SignalFeedScreen() {
       if (!entry || tier === undefined || loadedScopeRef.current !== scopeKey || scopeKeyRef.current !== scopeKey) return;
       const { page, savedAt } = entry;
       restoredScope.current = scopeKey;
+      displayedAccessScope.current = accessScope;
       setCacheStatus({ scope: scopeKey, savedAt });
       setSignals(page.signals);
       setAccess(page.access);
@@ -538,7 +542,7 @@ export default function SignalFeedScreen() {
       if (requestSequence.current === beforeLoad && successfulRequestRef.current !== beforeLoad) restore(entry);
     });
     void load(true);
-  }, [browsingLoaded, cacheScope, load, scopeKey, tier, userId]);
+  }, [accessScope, browsingLoaded, cacheScope, load, scopeKey, tier, userId]);
   useEffect(() => {
     if (tier === undefined) return;
     const normalizedBottle = bottleQuery.replace(/\s+/g, " ").trim().slice(0, 100);
@@ -737,7 +741,7 @@ export default function SignalFeedScreen() {
       automaticallyAdjustContentInsets={false}
       ref={listRef}
       contentContainerStyle={styles.list}
-      data={loadedScopeRef.current === scopeKey ? visibleSignals : []}
+      data={visibleSignals}
       keyboardShouldPersistTaps="handled"
       onScroll={(event) => { scrollOffset.current = event.nativeEvent.contentOffset.y; if (pendingOffset.current === null) { savedOffsets.current.delete(scopeKey); savedOffsets.current.set(scopeKey, scrollOffset.current); if (savedOffsets.current.size > 8) savedOffsets.current.delete(savedOffsets.current.keys().next().value!); } }}
       onContentSizeChange={(_width, height) => { listContentHeight.current = height; restoreScrollPosition(); }}
