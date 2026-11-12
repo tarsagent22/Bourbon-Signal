@@ -389,3 +389,14 @@ const exactBottleCursor = encodeSignalFeedCursor({
 bottleUrl.searchParams.set("cursor", exactBottleCursor);
 bottleUrl.searchParams.set("bottleId", "stagg-jr");
 assert.equal((await filterHandler(new Request(bottleUrl))).status, 400, "a continuation cannot cross bottle identities");
+
+const legacyAlbertsons = normalizeDropSignal({
+  id: "fixture-3129", bottle_id: "retailer-eagle-rare-legacy",
+  canonical_name: "Eagle Rare 10 Year Kentucky Straight Bourbon Whiskey",
+  store_name: "Albertsons #3129", store_address: "3500 Panama Ln", store_city: "Bakersfield", state: "CA",
+});
+assert.equal(legacyAlbertsons.bottle.id, "retailer-eagle-rare-legacy", "the catalog link must not replace the durable source bottle ID");
+assert.equal(legacyAlbertsons.bottle.catalogId, "eagle-rare-10");
+assert.equal(normalizeDropSignal({
+  id: "wrong-expression", bottle_id: "eagle-rare-17-year", canonical_name: "Eagle Rare 10 Year",
+}).bottle.catalogId, undefined, "conflicting known expressions cannot inherit another bottle's catalog link");

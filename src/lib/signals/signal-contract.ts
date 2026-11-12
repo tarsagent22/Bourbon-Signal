@@ -36,6 +36,7 @@ export interface CanonicalSignal {
   };
   bottle: {
     id?: string;
+    catalogId?: string;
     name: string;
     rarity?: SignalRarityTier;
     scarcity?: import("../../../shared/sighting-bottle-rarity").SightingBottleRarity;
@@ -305,6 +306,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     source: { type, label, ...(url ? { url } : {}) },
     bottle: {
       ...(bottleId ? { id: bottleId } : {}),
+      ...(standardBottle ? { catalogId: standardBottle.id } : {}),
       name: bottleName,
       ...(signalRarity(input.rarity_tier, input.tier, input.national_tier) ? { rarity: signalRarity(input.rarity_tier, input.tier, input.national_tier) } : {}),
     },

@@ -9,7 +9,7 @@ import type { MemberPreferences, Signal } from '../../../src/api/types';
 import { useMobileApi } from '../../../src/hooks/useMobileApi';
 import { useScreenRevalidation } from '../../../src/hooks/useScreenRevalidation';
 import { BottleProfileHero, BottleProfileRating } from '../../../src/components/BottleProfileHero';
-import { ProfileBackButton } from '../../../src/components/ProfileBackButton';
+import { ProfileHeader } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { ErrorState } from '../../../src/components/MemberScreen';
 import { bottleProfileState, collectionBottleForIdentity } from '../../../src/signals/bottle-profile';
@@ -78,7 +78,7 @@ export default function BottleProfileScreen() {
     finally { setSaving(false); }
   }
   return <ScrollView style={s.page} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing && Boolean(identity)} onRefresh={() => { void load(true); void loadReports(); }} tintColor={colors.accent} />}>
-    <Stack.Screen options={{ title: 'Bottle Profile', headerLeft: () => <ProfileBackButton /> }} />
+    <Stack.Screen options={{ title: 'Bottle Profile', header: () => <ProfileHeader /> }} />
     {!identity && !error ? <View style={s.reports}><Text style={s.note}>Loading bottle profile…</Text><ActivityIndicator color={colors.accent} /></View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {identity ? <>
@@ -109,7 +109,7 @@ export default function BottleProfileScreen() {
         {!allReports && (reportRows.length > 10 || reportCursor) ? <Action label="Show all reports" onPress={() => setAllReports(true)} /> : null}
         {allReports && reportCursor ? <Action disabled={reportsBusy} label={reportsBusy ? 'Loading reports…' : 'More reports'} onPress={() => void loadReports(reportCursor)} /> : null}
       </View>
-      <BottlePriceCheck key={identity.id} msrp={bottle?.msrp ?? null} />
+      {bottle?.msrp != null ? <BottlePriceCheck key={identity.id} msrp={bottle.msrp} /> : null}
       <BottleProfileRating personal={personal} onRate={preferences && (personal?.inCellar || preferences.collectionAccess.canAdd) ? () => personal?.inCellar ? router.push({ pathname: '/(app)/(tabs)/cellar', params: { editBottleId: shelfEntry?.bottleId || identity.id } }) : router.push({ pathname: '/(app)/cellar/add', params: { bottleId: identity.id } }) : undefined} />
       {!bottle ? <Text style={s.copy}>Catalog details aren’t available for this saved entry. Your shelf details remain editable.</Text> : null}
       <Action footer label="Get help with this bottle" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Bottle Profile', bottle: identity.name }) })} />

@@ -5,8 +5,8 @@ import { colors, fonts } from '../theme';
 import type { BottleProfile } from '../../../../shared/bottle-profile';
 import type { bottleProfileState } from '../signals/bottle-profile';
 
-export function BottleProfileHero({ identity, details, tier }: {
-  identity: { id?: string; name: string }; details?: BottleProfile | null; tier?: string;
+export function BottleProfileHero({ identity, details, tier, compact = false, catalogStatus }: {
+  identity: { id?: string; name: string }; details?: BottleProfile | null; tier?: string; compact?: boolean; catalogStatus?: string;
 }) {
   const assessment = details ? buyingScore({ bottle: details, askingPrice: '', reports: [], scope: { state: '', area: '' } }) : null;
   const score = assessment?.score ?? (assessment?.scoreRange ? assessment.scoreRange.low + '–' + assessment.scoreRange.high : null);
@@ -15,13 +15,16 @@ export function BottleProfileHero({ identity, details, tier }: {
   const rarityLabel = rarity?.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
   return <View accessibilityLabel="Bottle Profile" style={s.hero}>
     <View style={s.identity}>
-      <CellarBottleArtwork bottle={{ bottleId: identity.id, bottleName: identity.name }} size="feed" hidePlaceholderLabel />
+      <CellarBottleArtwork bottle={{ bottleId: identity.id, bottleName: identity.name }} size={compact ? "list" : "feed"} hidePlaceholderLabel />
       <View style={s.identityCopy}>
-        <Text accessibilityRole="header" style={s.name}>{identity.name}</Text>
+        <Text accessibilityRole="header" style={[s.name, compact && s.compactName]}>{identity.name}</Text>
         {rarityLabel ? <View style={s.tierBadge}><Text style={s.rarityText}>{rarityLabel}</Text></View> : null}
-        {score != null ? <Text style={s.score}>Signal Score · {score} / 100</Text> : details ? <Text style={s.facts}>Signal Score unavailable</Text> : null}
-        {details?.msrp != null ? <Text style={s.facts}>Reference price · ${details.msrp.toFixed(2)} MSRP</Text> : null}
-        {facts.length ? <Text style={s.facts}>{facts.join(' · ')}</Text> : null}
+        <View style={compact ? s.summary : undefined}>
+          {score != null ? <Text style={s.score}>Signal Score · {score} / 100</Text> : details ? <Text style={s.facts}>Signal Score unavailable</Text> : null}
+          {details?.msrp != null ? <Text style={s.facts}>{compact ? "MSRP $" + details.msrp.toFixed(2) : "Reference price · $" + details.msrp.toFixed(2) + " MSRP"}</Text> : null}
+        </View>
+        {catalogStatus ? <Text style={s.catalogStatus}>{catalogStatus}</Text> : null}
+        {!compact && facts.length ? <Text style={s.facts}>{facts.join(' · ')}</Text> : null}
       </View>
     </View>
   </View>;
@@ -45,6 +48,9 @@ const s = StyleSheet.create({
   glow: { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(214,154,74,0.055)', borderWidth: 1, borderColor: 'rgba(214,154,74,0.08)' },
   producer: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.8, textTransform: 'uppercase', textAlign: 'center' },
   name: { color: colors.text, fontFamily: fonts.heading, fontSize: 28, lineHeight: 34 },
+  compactName: { fontSize: 25, lineHeight: 29 },
+  summary: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", columnGap: 12, rowGap: 3 },
+  catalogStatus: { color: colors.muted, fontSize: 12 },
   tierBadge: { alignSelf: "flex-start", borderRadius: 8, backgroundColor: colors.surfaceRaised, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.accent, paddingHorizontal: 8, paddingVertical: 3 },
   score: { color: colors.accent, fontSize: 15, fontWeight: '700' },
   facts: { color: colors.muted, fontSize: 14, textTransform: 'capitalize' },
@@ -52,5 +58,5 @@ const s = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent }, rarityText: { color: colors.accent, fontSize: 13, fontWeight: '700' }, national: { color: colors.muted, fontSize: 11 },
   personal: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, paddingVertical: 10, marginTop: 6, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.border },
   metricAction: { backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
-  metric: { flex: 1, minWidth: 80, minHeight: 44, gap: 6 }, metricLabel: { color: colors.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }, metricValue: { color: colors.text, fontSize: 14, fontWeight: '600', lineHeight: 20 },
+  metric: { minHeight: 44, gap: 6 }, metricLabel: { color: colors.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }, metricValue: { color: colors.text, fontSize: 14, fontWeight: '600', lineHeight: 20 },
 });

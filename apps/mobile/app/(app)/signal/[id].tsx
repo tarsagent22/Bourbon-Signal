@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Crypto from "expo-crypto";
 import { COMMUNITY_TERMS_VERSION } from "../../../../../shared/legal-acceptance";
 import { BoardStoreLinks } from "../../../src/components/BoardStoreLinks";
@@ -5,7 +6,7 @@ import { CommunityTermsGate } from "../../../src/components/CommunityTermsGate";
 import { readReportPreview } from "../../../src/signals/report-preview";
 import type { BottleProfile } from '../../../../../shared/bottle-profile';
 import { BottleProfileHero, BottleProfileRating } from '../../../src/components/BottleProfileHero';
-import { ProfileBackButton } from '../../../src/components/ProfileBackButton';
+import { ProfileHeader } from '../../../src/components/ProfileBackButton';
 import { BottlePriceCheck } from '../../../src/components/BottlePriceCheck';
 import { reportAge } from "../../../src/signals/report-age";
 import { ErrorState } from "../../../src/components/MemberScreen";
@@ -38,12 +39,20 @@ export default function SignalDetailScreen() {
   const router = useRouter();
   const [signal, setSignal] = useState<Signal | null>(() => readReportPreview(api, id));
   const [confirmedDetail, setConfirmedDetail] = useState(false);
-  const [bottleDetails, setBottleDetails] = useState<BottleProfile | null>(null);
+  const catalogId = signal?.bottle.catalogId || signal?.bottle.id;
+  const [catalog, setCatalog] = useState<{ id: string; details?: BottleProfile; failed?: boolean } | null>(null);
+  const [catalogRetry, setCatalogRetry] = useState(0);
+  const currentCatalog = catalog?.id === catalogId ? catalog : null;
+  const bottleDetails = currentCatalog?.details ?? null;
   useEffect(() => {
-    setBottleDetails(null); let active = true;
-    if (signal?.bottle.id) void api.getBottleProfile(signal.bottle.id).then(result => { if (active) setBottleDetails(result.bottle); }).catch(() => undefined);
+    if (!catalogId) return;
+    let active = true;
+    setCatalog({ id: catalogId });
+    void api.getBottleProfile(catalogId, { fresh: catalogRetry > 0 })
+      .then(({ bottle }) => { if (active) setCatalog({ id: catalogId, details: bottle }); })
+      .catch(() => { if (active) setCatalog({ id: catalogId, failed: true }); });
     return () => { active = false; };
-  }, [api, signal?.bottle.id]);
+  }, [api, catalogId, catalogRetry]);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [error, setError] = useState("");
   const [preferencesError, setPreferencesError] = useState("");
@@ -136,6 +145,7 @@ export default function SignalDetailScreen() {
   }, [api, confirmedDetail, id, signal]);
 
   const presented = signal ? presentSignal(signal) : null;
+  const reportedAt = signal ? reportAge(signal).value : null;
   const memberTag = signal ? signalMemberTagLabel(signal) : "";
   const bottleProfile = signal && preferences ? bottleProfileState(signal.bottle, preferences) : null;
   const inCellar = bottleProfile?.inCellar === true;
@@ -225,27 +235,40 @@ export default function SignalDetailScreen() {
 
 
   return <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing && Boolean(signal)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
-    <Stack.Screen options={{ title: "Bottle Profile", headerLeft: () => <ProfileBackButton /> }} />
+    <Stack.Screen options={{ title: "Bottle Profile", header: () => <ProfileHeader /> }} />
     {!signal && !error ? <View style={styles.signalSection}><Text style={styles.disclaimer}>Loading bottle report…</Text><ActivityIndicator color={colors.accent} /></View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {safetyNotice ? <Text accessibilityRole="alert" style={styles.disclaimer}>{safetyNotice}</Text> : null}
     {signal && !hidden ? <>
-      <BottleProfileHero identity={signal.bottle} details={bottleDetails} tier={signal.bottle.rarity} />
-      <View style={styles.actions}>
-        {canWatch ? <ActionButton primary={!isWatched} disabled={!preferences || saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
-        {canReadCellar ? <ActionButton disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
-        {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
-      </View>
-      <View style={styles.signalSection}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>{signal.shipment ? "ABC shipment" : signal.historical ? "Last reported availability" : signal.kind === "availability" ? "Store report" : signal.kind === "release" ? "Release details" : "Event details"}</Text>
-        {!signal.shipment ? <Text style={styles.source}>{signalCardStatusLabel(signal)}</Text> : null}
-        {signal.location.store?.name ? <Text style={styles.storeName}>{signal.location.store.name}</Text> : null}
-        {address ? <Text style={styles.value}>{address}</Text> : null}
-        {destination || phone ? <View style={styles.storeActions}>
-          {destination ? <ActionButton label="Directions" onPress={() => void openMaps()} /> : null}
-          {phone ? <ActionButton label="Call store" onPress={() => { void Linking.openURL("tel:" + phone).catch(() => setActionError("This phone could not open the dialer.")); }} /> : null}
+      <BottleProfileHero
+        identity={signal.bottle}
+        details={bottleDetails}
+        tier={signal.bottle.rarity}
+        compact
+        catalogStatus={currentCatalog?.failed ? "Catalog details unavailable" : catalogId && !bottleDetails ? "Loading catalog details…" : undefined}
+      />
+      {currentCatalog?.failed ? <ActionButton quiet label="Retry catalog details" onPress={() => setCatalogRetry(value => value + 1)} /> : null}
+      <View style={styles.reportCard}>
+        <View style={styles.reportHeader}>
+          <Text accessibilityRole="header" style={styles.reportLabel}>{signal.shipment ? "ABC shipment" : signal.historical ? "Last reported availability" : signal.kind === "availability" ? "Store report" : signal.kind === "release" ? "Release" : "Event"}</Text>
+          {!signal.shipment && signal.source.type !== "member" && signal.kind === "availability" ? <Text style={styles.reportStatus}>{signalCardStatusLabel(signal)}</Text> : null}
+        </View>
+        <View style={styles.reportHeadline}>
+          <Text style={styles.storeName}>{signal.location.store?.name || signal.location.label || presented?.location || "Location not specified"}</Text>
+          {presented?.price && presented.price !== "Price unknown" ? <View style={styles.priceGroup}>
+            <Text style={styles.reportPrice}>{presented.price}</Text>
+            <Text style={styles.reportMeta}>Reported price</Text>
+          </View> : null}
+        </View>
+        {reportedAt ? <Text style={styles.reportMeta}>{signal.evidence.retailerReported || signal.source.type === "trusted_source" ? "Checked " : "Reported "}{reportDateTime(reportedAt)}</Text> : null}
+        {presented?.quantity && presented.quantity !== "Quantity unknown" ? <Text style={styles.reportMeta}>{presented.quantity}</Text> : null}
+        {address || destination || phone ? <View style={styles.contactRow}>
+          {address ? <Text style={styles.address}>{address}</Text> : null}
+          <View style={styles.storeActions}>
+            {destination ? <ContactAction label="Directions" icon="directions" onPress={() => void openMaps()} /> : null}
+            {phone ? <ContactAction label="Call store" icon="phone-outline" onPress={() => { void Linking.openURL("tel:" + phone).catch(() => setActionError("This phone could not open the dialer.")); }} /> : null}
+          </View>
         </View> : null}
-        <View style={styles.reportFigures}>{presented?.price && presented.price !== "Price unknown" ? <View style={styles.reportFigure}>{signal.availability?.price != null ? <Text style={styles.label}>Reported price</Text> : null}<Text style={signal.availability?.price == null ? styles.disclaimer : styles.reportPrice}>{presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
         {signal.source.type === "member" ? <View style={styles.authorRow}>
           {fromSightingPin === "1" && signal.source.reportMode === "seen_in_store"
             ? <Text style={styles.reporter}>Seen by {presented?.reporter || "a member"} {relativeSignalTime(signal.timing.reportedAt || signal.timing.displayAt)}</Text>
@@ -255,12 +278,7 @@ export default function SignalDetailScreen() {
           {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize: typeScale.small}}>{badge}</Text>)}</View>:null}
         </View> : null}
         {signal.source.url && (signal.kind !== "availability" || signal.location.scope === "online") ? <ActionButton label="Open source report" onPress={() => { void Linking.openURL(signal.source.url!).catch(() => setActionError("The source could not open.")); }} /> : null}
-        {!address && !signal.shipment ? <Detail label="Location" value={presented?.location || signal.location.state || "Location not specified"} /> : null}
-        <Detail label={signal.kind === "availability" && signal.source.type === "trusted_source" ? "Last checked" : "Reported"} value={reportAge(signal).value ? reportDateTime(reportAge(signal).value || undefined) : "Time not available"} />
-        {signal.timing.firstSpottedAt && Date.parse(signal.timing.firstSpottedAt) !== Date.parse(reportAge(signal).value || "") ? <Detail label="First spotted" value={reportDateTime(signal.timing.firstSpottedAt)} /> : null}
-
-
-
+        {signal.timing.firstSpottedAt && Date.parse(signal.timing.firstSpottedAt) !== Date.parse(reportedAt || "") ? <Text style={styles.reportMeta}>First spotted {reportDateTime(signal.timing.firstSpottedAt)}</Text> : null}
         {presented?.summary && (signal.source.type === "member" || signal.kind !== "availability") ? <Detail label="Note" value={presented.summary} /> : null}
         {signal.evidence.photoUrl ? photoFailed?<Text style={styles.disclaimer}>The approved photo could not load. Pull to refresh to try again.</Text>:<Image source={{uri:signal.evidence.photoUrl}} onError={()=>setPhotoFailed(true)} accessibilityLabel="Member sighting photo approved for public display" resizeMode="contain" style={{width:"100%",height:240,borderRadius:12}} /> : null}
         {signal.shipment ? <>
@@ -268,7 +286,12 @@ export default function SignalDetailScreen() {
           <BoardStoreLinks key={signal.shipment.boardId} stores={signal.shipment.stores || []} boardId={signal.shipment.boardId} owner={api} onDirections={destination => void openMaps(destination)} />
         </> : presented?.caveat && !/stale|not alertable|last.known|before driving/i.test(presented.caveat) ? <Detail label="Source note" value={presented.caveat} /> : null}
       </View>
-      <BottlePriceCheck key={signal.id} msrp={bottleDetails?.msrp ?? null} initialPrice={signal.availability?.price?.toFixed(2) || ''} />
+      <View style={styles.bottleActions}>
+        {canWatch ? <ActionButton compact primary={!isWatched} disabled={!preferences || saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
+        {canReadCellar ? <ActionButton quiet disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
+      </View>
+      {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
+      {bottleDetails?.msrp != null ? <BottlePriceCheck key={signal.id} msrp={bottleDetails.msrp} initialPrice={signal.availability?.price?.toFixed(2) || ''} /> : null}
       {signal.source.type === "member" ? <View style={styles.actions}>
         <Text style={styles.actionsTitle}>Community feedback</Text>
         {signal.actions.includes('helpful')?<ActionButton disabled={saving} label={`Helpful (${signal.evidence.helpfulCount})`} onPress={()=>void saveFeedback('helpful')}/>:null}
@@ -279,7 +302,6 @@ export default function SignalDetailScreen() {
         {reporting ? <View style={styles.actions}>{([{value:"spam",label:"Spam"},{value:"misleading",label:"Misleading availability"},{value:"harassment",label:"Harassment"},{value:"inappropriate",label:"Inappropriate content"},{value:"other",label:"Other concern"}] as const).map(reason=><ActionButton key={reason.value} disabled={saving} label={reason.label} onPress={()=>void saveSafety("report",reason.value)} />)}</View> : null}
         <ActionButton disabled={saving} label="Block this member" onPress={()=>Alert.alert("Block this member?","Their posts and future Community alerts will be hidden. You can unblock them from Account.",[{text:"Cancel",style:"cancel"},{text:"Block member",style:"destructive",onPress:()=>void saveSafety("block")}])} />
         <Text style={styles.disclaimer}>Need help? support@bourbonsignal.com</Text>
-        {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
       </View> : null}
       {huntOutcomeVisible ? <View accessibilityLabel="Hunt Outcome" style={styles.huntOutcome}>
         {huntOutcome && !editingHuntOutcome ? <View style={styles.huntOutcomeSaved}>
@@ -308,16 +330,37 @@ export default function SignalDetailScreen() {
   </ScrollView>;
 }
 
-function ActionButton({ label, onPress, disabled = false, primary = false, footer = false }: { label: string; onPress: () => void; disabled?: boolean; primary?: boolean; footer?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.action, primary && styles.primary, footer && styles.footerAction, disabled && styles.actionDisabled, pressed && !disabled && styles.actionPressed]}><Text style={[styles.actionText, primary && { color: colors.background }, footer && { fontSize: typeScale.small }, disabled && styles.actionTextDisabled]}>{label}</Text></Pressable>; }
+function ActionButton({ label, onPress, disabled = false, primary = false, footer = false, compact = false, quiet = false }: { label: string; onPress: () => void; disabled?: boolean; primary?: boolean; footer?: boolean; compact?: boolean; quiet?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.action, primary && styles.primary, footer && styles.footerAction, compact && styles.compactAction, quiet && styles.quietAction, disabled && styles.actionDisabled, pressed && !disabled && styles.actionPressed]}><Text style={[styles.actionText, primary && { color: colors.background }, footer && { fontSize: typeScale.small }, disabled && styles.actionTextDisabled]}>{label}</Text></Pressable>; }
 function Detail({ label, value }: { label: string; value: string }) { return <View style={styles.detail}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value}</Text></View>; }
-function ProfileDetail({ label, value }: { label: string; value: string }) { return <View style={styles.profileDetail}><Text style={styles.profileLabel}>{label}</Text><Text numberOfLines={2} style={styles.profileValue}>{value}</Text></View>; }
+function ContactAction({ label, icon, onPress }: { label: string; icon: "directions" | "phone-outline"; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress}
+    style={({ pressed }) => [styles.contactAction, pressed && styles.actionPressed]}>
+    <MaterialCommunityIcons name={icon} size={18} color={colors.accent} />
+    <Text style={styles.contactText}>{label}</Text>
+  </Pressable>;
+}
 
 const styles = StyleSheet.create({
-  storeName:{color:colors.text,fontFamily:fonts.heading,fontSize:24,lineHeight:30},reportFigures:{flexDirection:"row",flexWrap:"wrap",gap:28},reportFigure:{gap:6},reportPrice:{color:colors.accent,fontSize:32,fontWeight:"600"},reportQuantity:{color:colors.text,fontSize:24},
-  container: { flexGrow: 1, padding: 22, paddingBottom: 42, gap: 18, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, authorRow: { minHeight: 28, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }, reporter: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, memberTagText: { color: colors.text, fontSize: typeScale.caption, lineHeight: 13, fontWeight: "800", letterSpacing: 0.4 }, title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" }, sectionTitle: { color: colors.text, fontSize: typeScale.subheading, lineHeight: 23, fontWeight: "800" }, profileCard: { gap: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: 15 }, profileGrid: { flexDirection: "row", flexWrap: "wrap", rowGap: 13 }, profileDetail: { width: "50%", gap: 3, paddingRight: 8 }, profileLabel: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }, profileValue: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, signalSection: { gap: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 18 }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: typeScale.small, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: typeScale.input, lineHeight: 23 }, error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18, marginTop: 4 },
+  reportCard: { backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, borderRadius: 16, padding: 14, gap: 9 },
+  reportHeader: { flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 6 },
+  reportLabel: { color: colors.text, fontSize: 13, fontWeight: "800" },
+  reportStatus: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  reportHeadline: { flexDirection: "row", alignItems: "center", gap: 10 },
+  storeName: { flex: 1, minWidth: 0, color: colors.text, fontFamily: fonts.heading, fontSize: 22, lineHeight: 27 },
+  priceGroup: { alignItems: "flex-end" },
+  reportPrice: { color: colors.accent, fontSize: 27, lineHeight: 30, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  reportMeta: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  address: { flex: 1, minWidth: 116, color: colors.text, fontSize: 14, lineHeight: 20 },
+  contactRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 5 },
+  contactAction: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, minHeight: 44, paddingHorizontal: 9, borderRadius: 8 },
+  contactText: { color: colors.accent, fontSize: 13, fontWeight: "800" },
+  bottleActions: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 10 },
+  compactAction: { flexGrow: 1, paddingHorizontal: 13, minHeight: 46 },
+  quietAction: { minHeight: 44, backgroundColor: "transparent", borderWidth: 0, paddingHorizontal: 9, alignSelf: "flex-start" },
+  container: { flexGrow: 1, padding: 16, paddingBottom: 42, gap: 14, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, authorRow: { minHeight: 28, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }, reporter: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, memberTagText: { color: colors.text, fontSize: typeScale.caption, lineHeight: 13, fontWeight: "800", letterSpacing: 0.4 }, title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" }, sectionTitle: { color: colors.text, fontSize: typeScale.subheading, lineHeight: 23, fontWeight: "800" }, profileCard: { gap: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: 15 }, profileGrid: { flexDirection: "row", flexWrap: "wrap", rowGap: 13 }, profileDetail: { width: "50%", gap: 3, paddingRight: 8 }, profileLabel: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }, profileValue: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, signalSection: { gap: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 18 }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: typeScale.small, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: typeScale.input, lineHeight: 23 }, error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18, marginTop: 4 },
   primary: { backgroundColor: colors.accent },
   footerAction: { borderWidth: 0, backgroundColor: "transparent", alignItems: "flex-start" },
-  storeActions: { gap: 8 },
+  storeActions: { flexDirection: "row", flexWrap: "wrap", gap: 2 },
   actions: { gap: 10, marginTop: 4 }, actionsTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, action: { minHeight: 50, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }, actionPressed: { backgroundColor: colors.surfaceRaised }, actionDisabled: { borderColor: colors.border }, actionText: { color: colors.accent, fontSize: typeScale.body, fontWeight: "800" }, actionTextDisabled: { color: colors.muted },
   huntOutcome: { gap: 10, marginTop: 8, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 18 }, huntOutcomeTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, huntOutcomeDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18 }, huntOutcomeChoices: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, huntOutcomeChoice: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, backgroundColor: colors.surface, paddingHorizontal: 12 }, huntOutcomeChoiceActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised }, huntOutcomeChoiceText: { color: colors.text, fontSize: typeScale.small, fontWeight: "700" }, huntOutcomeSaved: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, huntOutcomeSavedText: { flex: 1, color: colors.muted, fontSize: typeScale.small }, huntOutcomeSavedValue: { color: colors.text, fontWeight: "800" }, huntOutcomeEdit: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 }, huntOutcomeEditText: { color: colors.accent, fontWeight: "800" },
 });

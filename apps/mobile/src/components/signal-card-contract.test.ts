@@ -37,8 +37,9 @@ test("Intel uses open illustrated rows with inline price and reported quantity",
   assert.match(styleBlock("bottle"), /fontSize: typeScale\.subheading/);
   assert.doesNotMatch(card, /signalCardSummary|styles\.note/);
   assert.doesNotMatch(card, /"Available now"/);
-  assert.match(detail, /\{address \? <Text style=\{styles\.value\}>\{address\}/);
-  assert.match(detail, /!address && !signal\.shipment \? <Detail label="Location"/);
+  assert.match(detail, /\{address \? <Text style=\{styles\.address\}>\{address\}/);
+  assert.match(detail, /styles\.contactRow[\s\S]*label="Directions"/);
+  assert.match(detail, /presented\.quantity !== "Quantity unknown"/);
 });
 
 test("Intel cards always state availability in text rather than relying on color", () => {
