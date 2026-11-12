@@ -373,3 +373,12 @@ const legacySorted = [...legacyListings.values()].map(drop => ({ drop, signal: n
     return Number.isFinite(difference) && difference !== 0 ? difference : left.signal.id.localeCompare(right.signal.id);
   }).map(({ drop }) => drop);
 assert.deepEqual(sortDropsByCanonicalSignalOrder(orderingRows), legacySorted, 'lightweight sorting exactly preserves full normalized-card ordering');
+
+const { summarizePagedBottleReports } = await import("../src/lib/signals/feed-report-summary.ts");
+const groupedStore = { state: "NC", bottle_id: "stagg", canonical_name: "Stagg", type: "store_inventory_result", locationPrecision: "store_level", store_id: "wake1", store_name: "ABC", store_address: "10 Main St", store_city: "Raleigh", timestamp: "2026-11-12T03:00:00Z" };
+const groupedShipment = { ...groupedStore, id: "shipment", type: "nc_board_shipment_snapshot", locationPrecision: "board_county", display_location: "Wake County ABC", event_at: "2026-11-12T04:00:00Z", quantity_shipped: 18 };
+const stableCountRows = [{ ...groupedStore, id: "first" }, { ...groupedStore, id: "confirmation" }, groupedShipment, { ...groupedShipment, id: "duplicate-shipment" }];
+const onePageCounts = summarizePagedBottleReports(stableCountRows, stableCountRows.slice(0, 1));
+const laterPageCounts = summarizePagedBottleReports(stableCountRows, stableCountRows.slice(3));
+assert.deepEqual(onePageCounts, laterPageCounts, "page boundaries never change snapshot counts");
+assert.deepEqual(onePageCounts.stagg, { stores: 1, shipments: 1, otherReports: 0, latestAt: "2026-11-12T04:00:00Z" });

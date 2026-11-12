@@ -51,6 +51,7 @@ export interface CanonicalSignal {
       city?: string;
       state?: string;
       zip?: string;
+      phone?: string;
     };
   };
   timing: {
@@ -265,6 +266,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
   const storeAddress = text(input.store_address, input.storeAddress);
   const storeCity = text(input.store_city, input.storeCity, input.city);
   const storeZip = text(input.store_zip, input.storeZip, input.zip);
+  const storePhone = text(input.store_phone, input.storePhone);
   const scope = locationScope(input);
   const { observedAt, reportedAt, displayAt } = dropSignalTiming(input, kind);
   const historical = input.historical === true;
@@ -309,6 +311,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
           ...(storeCity ? { city: storeCity } : {}),
           ...(state ? { state } : {}),
           ...(storeZip ? { zip: storeZip } : {}),
+          ...(storePhone ? { phone: storePhone } : {}),
         },
       } : {}),
     },

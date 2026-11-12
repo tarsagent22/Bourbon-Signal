@@ -86,7 +86,10 @@ export function createSignalCreateHandler({ createSighting }: { createSighting: 
   };
 }
 
-export function createSignalDetailHandler({ getDrops, getSightings }: { getDrops: RouteReader; getSightings: RouteReader }) {
+export function createSignalDetailHandler({ getDrops, getSightings, enrichSignal }: {
+  getDrops: RouteReader; getSightings: RouteReader;
+  enrichSignal?: (signal: ReturnType<typeof normalizeDropSignal>) => unknown;
+}) {
   return async function handleSignalDetail(request: Request, signalId: string) {
     const parts = signalIdParts(signalId);
     if (!parts) return apiError(400, "INVALID_REQUEST", "Signal ID is invalid.");
@@ -107,7 +110,7 @@ export function createSignalDetailHandler({ getDrops, getSightings }: { getDrops
         .map(normalizeDropSignal)
         .find((candidate) => candidate.id === signalId);
     if (!signal) return apiError(404, "SIGNAL_NOT_FOUND", "Signal not found.");
-    return Response.json({ contractVersion: SIGNAL_API_VERSION, signal }, { headers: PRIVATE_SIGNAL_API_HEADERS });
+    return Response.json({ contractVersion: SIGNAL_API_VERSION, signal: enrichSignal ? enrichSignal(signal) : signal }, { headers: PRIVATE_SIGNAL_API_HEADERS });
   };
 }
 

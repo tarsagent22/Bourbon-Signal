@@ -1,3 +1,4 @@
+import type { FeedReportSummary } from "../../../shared/feed-report-summary.ts";
 import { nearbyFeedPageLimit } from "../nearby-feed-scope.ts";
 import {
   buildCanonicalSignalFeed,
@@ -33,6 +34,7 @@ type LegacyDropsPayload = {
   hasMore?: boolean;
   resetCursor?: boolean;
   marketSummaries?: unknown;
+  reportGroups?: Record<string, FeedReportSummary>;
 };
 
 type LegacySightingsPayload = {
@@ -121,7 +123,10 @@ function sourceRequest(request: Request, path: string, options: { limit: number;
   if (options.filters.search) url.searchParams.set("search", options.filters.search);
   if (options.filters.bottle) url.searchParams.set("bottle", options.filters.bottle);
   if (options.since) url.searchParams.set("since", options.since);
-  if (path === "/api/drops") url.searchParams.set("signalOrder", "canonical");
+  if (path === "/api/drops") {
+    url.searchParams.set("signalOrder", "canonical");
+    url.searchParams.set("reportGroups", "1");
+  }
   if (path === "/api/sightings") {
     url.searchParams.set("rewards", "0");
     if (options.memberBoundary) {
@@ -235,7 +240,12 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
     const rawSightings = sightingsValid ? sightingsPayload.sightings! : [];
     const dropStatus = sourceStatus(dropsResponse, dropsValid);
     const memberStatus = sourceStatus(sightingsResponse, sightingsValid);
-    const drops = dropStatus === "ready" && dropsValid ? rawDrops.map(normalizeDropSignal) : [];
+    const drops = dropStatus === "ready" && dropsValid ? rawDrops.map(raw => {
+      const signal = normalizeDropSignal(raw);
+      const groupSummary = signal.bottle.id && Object.hasOwn(dropsPayload.reportGroups || {}, signal.bottle.id)
+        ? dropsPayload.reportGroups?.[signal.bottle.id] : undefined;
+      return groupSummary ? { ...signal, groupSummary } : signal;
+    }) : [];
     const visibleSightings = memberStatus === "ready" && sightingsValid ? rawSightings : [];
     const memberSignals = visibleSightings.map(normalizeMemberSightingSignal);
     const marketDetailsLocked = view !== "community" && (typeof dropsPayload.marketDetailsLocked === "boolean" ? dropsPayload.marketDetailsLocked : Boolean(dropsPayload.requiresAccountForFullFeed));

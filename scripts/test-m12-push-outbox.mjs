@@ -6,10 +6,11 @@ import vm from 'node:vm';
 import test from 'node:test';
 import ts from 'typescript';
 import { PGlite } from '@electric-sql/pglite';
-const require = createRequire(import.meta.url);
 function load(path, overrides = {}) {
   const exports = {};
-  vm.runInNewContext(ts.transpileModule(readFileSync(new URL(path, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
+  const url = new URL(path, import.meta.url);
+  const require = createRequire(url);
+  vm.runInNewContext(ts.transpileModule(readFileSync(url, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
     { exports, require: name => overrides[name] ?? require(name), Date, Set, Map, console, process, fetch: () => { throw Error('NO NETWORK'); } });
   return exports;
 }

@@ -350,7 +350,7 @@ assert.doesNotMatch(nativeSignalFeed, /segmentSelected:\s*\{[^}]*borderColor/, "
 assert.doesNotMatch(nativeSignalFeed, /segment:\s*\{[^}]*borderColor:\s*"transparent"/, "segments should not reserve an inner border");
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
 assert.match(nativeSignalFeed, /rarityOptionsForView\(view\)/, "rarity filters must remain immediately visible and respect each source schema");
-assert.match(nativeSignalFeed, /groupFeedReports\(visibleSignals, view, showOlderSightings\)/, "group only the already filtered reports");
+assert.match(nativeSignalFeed, /groupFeedReports\(merged, view, showOlderSightings\)/, "group only the already filtered reports");
 assert.match(nativeSignalFeed, /data=\{feedGroups\}/, "render the groups derived from the filtered reports");
 assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "selected rarity is included in the server query");
 assert.match(nativeSignalFeed, /onPress=\{\(\) => applyRarityFilters\(toggleRarity\(filters, option\.value\)\)\}/, "rarity chips must use the non-destructive local transition path");

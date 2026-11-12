@@ -1,9 +1,13 @@
+import type { FeedReportSummary } from "../../../../shared/feed-report-summary";
+import type { BoardMember } from "../../../../shared/nearby";
+
 export interface Signal {
+  groupSummary?: FeedReportSummary;
   contractVersion: "bourbon-signal/signal@1";
   id: string;
   availabilityEpisodeId?: string;
   historical?: boolean;
-  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units" };
+  shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units"; stores?: BoardMember[] };
   kind: "availability" | "release" | "event";
   source: {
     type: "member" | "retailer" | "trusted_source" | "release_source";

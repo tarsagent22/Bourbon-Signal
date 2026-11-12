@@ -6,7 +6,28 @@ export interface FeedReportGroup {
   reports: Signal[];
 }
 
-const SIGHTING_WINDOW = 7 * 24 * 60 * 60 * 1000;
+export const SIGHTING_WINDOW = 48 * 60 * 60 * 1000;
+
+export function loadedBottleReports(reports: Signal[]) {
+  const unique = new Map<string, Signal>();
+  for (const report of reports) {
+    const store = report.location.store;
+    const key = report.shipment
+      ? JSON.stringify(["shipment", report.shipment.boardId, report.shipment.reportedAt || report.timing.displayAt])
+      : report.location.scope === "exact_store" && store?.id
+        ? JSON.stringify(["store", store.state || report.location.state, store.id])
+        : report.id;
+    if (!unique.has(key)) unique.set(key, report);
+  }
+  return [...unique.values()];
+}
+
+export function formatBottleReportCounts(summary: NonNullable<Signal["groupSummary"]>) {
+  return [[summary.stores, "store"], [summary.shipments, "shipment"], [summary.otherReports, "other report"]]
+    .filter(([count]) => Number.isSafeInteger(count) && Number(count) > 0)
+    .map(([count, noun]) => String(count) + " " + noun + (count === 1 ? "" : "s"))
+    .join(" · ");
+}
 
 export function groupFeedReports(signals: Signal[], view: "market" | "community", showOlderSightings: boolean, now = Date.now()) {
   const groups = new Map<string, FeedReportGroup>();

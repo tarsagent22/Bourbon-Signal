@@ -262,9 +262,10 @@ export default function RadarScreen() {
 
   const setupStatus=radarSetupStatus(preferences,pushReadiness);
   const checkingPush = !pushStatus && !pushStatusLoadFailed && !pushError;
-  return <SafeAreaView edges={["top"]} style={memberScreenStyles.screen}><ScrollView
+  return <View style={[memberScreenStyles.screen, { paddingTop: screenInsets.top, overflow: "hidden" }]}><ScrollView
     ref={screenScroll}
     contentInsetAdjustmentBehavior="never"
+    automaticallyAdjustContentInsets={false}
     automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
     contentContainerStyle={[memberScreenStyles.content, { paddingTop: 16 }]}
     keyboardDismissMode="on-drag"
@@ -322,7 +323,7 @@ export default function RadarScreen() {
       <TextAction label="Coverage requests & progress →" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: preferences.monitoringScopes[0]?.state || profile?.profile.homeState }) })} />
       <TextAction label="Get help with Radar →" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Radar', state: preferences.monitoringScopes[0]?.state || profile?.profile.homeState || '' }) })} />
     </View>
-  </ScrollView></SafeAreaView>;
+  </ScrollView></View>;
 }
 
 function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOpenWatchlist, onMute, isMuted }: { alerts: MemberAlert[]; saving: boolean; watchedNames: string[]; setupNeeded: boolean; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string | string[]) => Promise<void>; onOpenWatchlist: () => void; onMute: (name: string, muted: boolean) => Promise<boolean>; isMuted: (name: string) => boolean }) {
@@ -336,7 +337,7 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
       <Text style={styles.emptyTitle}>{setupNeeded ? "Set up your alerts" : "No recent alerts"}</Text>
       <Text style={styles.muted}>{setupNeeded
         ? "Choose where to look and which bottles to watch."
-        : "Radar shows fresh, eligible reports that match your locations and bottle preferences. Intel also shows shipments and other reports that may not qualify for an alert."}</Text>
+        : "Fresh store reports and official ABC shipments can alert when they match your saved locations, rarity tiers, and bottle preferences."}</Text>
       <SmallButton primary={setupNeeded} label={setupNeeded ? "Choose preferences" : "Review match settings"} onPress={onOpenWatchlist} />
     </View> : null}
     {groupRadarReports(current).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />)}

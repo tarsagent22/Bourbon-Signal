@@ -1,5 +1,5 @@
 import type { NearbyResult } from "../../../../shared/nearby";
-import { mapFeedRows, readNearbyPreview, saveNearbyPreview, clearNearbyPreview } from "./map-feed";
+import { mapFeedRows, nearestMappedReport, readNearbyPreview, saveNearbyPreview, clearNearbyPreview } from "./map-feed";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
@@ -76,4 +76,18 @@ test('map feed retains each report and its exact store even when bottle reports 
   const rows = mapFeedRows(stores);
   assert.deepEqual(rows.map(row => row.key), ['a:shared', 'a:other', 'b:shared']);
   assert.equal(rows[2].store, stores[1]);
+});
+
+test("nearest mapped mileage uses only exact stores in the displayed bottle group", () => {
+  const owner = {};
+  const signal = (id: string) => ({ id, bottle: { id: "stagg" }, location: { state: "NC", scope: "exact_store" } }) as NearbyStore["signals"][number];
+  const inScope = signal("in-scope");
+  const outOfScope = signal("out-of-scope");
+  saveNearbyPreview(owner, "key", { ...result, stores: [
+    { ...store("other-area", 35, -80), distance: 2, signals: [outOfScope] },
+    { ...store("approximate", 35, -80), distance: 3, approximateLocation: true, signals: [inScope] },
+    { ...store("verified", 35, -80), distance: 8, signals: [inScope] },
+  ] });
+  assert.equal(nearestMappedReport(owner, [inScope]), 8);
+  assert.equal(nearestMappedReport(owner, []), undefined);
 });

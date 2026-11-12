@@ -21,9 +21,12 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { loadNearbyPins, saveNearbyPins } from "../../src/nearby/persisted-preview";
+import { useReportClock } from "../../src/hooks/useReportClock";
 import { StoreSheet } from "../../src/nearby/StoreSheet";
 import {
   readNearbyPreview,
+  nearbyPinAge,
   saveNearbyPreview,
   clearNearbyPreview,
 } from "../../src/nearby/map-feed";
@@ -100,6 +103,8 @@ export default function Nearby() {
     [watchOnly, setWatchOnly] = useState(false),
     [watched, setWatched] = useState<string[] | null>(null),
     [filters, setFilters] = useState(false);
+  const [showOlderPins, setShowOlderPins] = useState(false);
+  const reportClock = useReportClock();
   const [result, setResult] = useState<NearbyResult | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -194,18 +199,30 @@ export default function Nearby() {
     const key = q.toString();
     const preview = readNearbyPreview(api, key);
     setResult(preview);
+    const cacheAccount = api.accountIdentity + ":" + api.membershipRevision;
+    let authoritative = false;
+    if (!preview) void loadNearbyPins(cacheAccount, key).then(cached => {
+      if (cached && !authoritative && id === sequence.current) {
+        saveNearbyPreview(api, key, cached);
+        setResult(cached);
+      }
+    }).catch(() => undefined);
     api
       .nearby(q)
       .then((data) => {
         if (id === sequence.current) {
+          authoritative = true;
           saveNearbyPreview(api, key, data);
+          void saveNearbyPins(cacheAccount, key, data).catch(() => undefined);
           setResult(data);
         }
       })
       .catch((e) => {
         if (id === sequence.current) {
           if (e?.status === 401 || e?.status === 403) {
+            authoritative = true;
             clearNearbyPreview(api);
+            void saveNearbyPins(cacheAccount, key, null).catch(() => undefined);
             setResult(null);
           }
           setError(
@@ -269,6 +286,7 @@ export default function Nearby() {
       ),
     [result, radius, watchOnly, watched],
   );
+  const visiblePins = stores.filter(store => showOlderPins || nearbyPinAge(store, reportClock.getTime()) <= 7);
   const activeFilters = Boolean(tiers || fresh || watchOnly || query);
   const [selected, setSelected] = useState<string | null>(params.store || null);
   const [showMembers, setShowMembers] = useState(params.members === "1");
@@ -356,7 +374,7 @@ export default function Nearby() {
         <NearbyMap
           origin={place}
           radius={radius}
-          stores={stores}
+          stores={visiblePins}
           selected={selected}
           showMembers={showMembers}
           onSelect={selectStore}
@@ -710,6 +728,8 @@ export default function Nearby() {
                 Watchlist unavailable. Reopen Nearby to try again.
               </Text>
             ) : null}
+            <Text style={s.eyebrow}>MAP PINS</Text>
+            <Button label={showOlderPins ? "Hide pins older than 7 days" : "Show pins older than 7 days"} selected={showOlderPins} onPress={() => setShowOlderPins(value => !value)} />
             <Text style={s.eyebrow}>RARITY</Text>
             <View style={s.wrap}>
               {[

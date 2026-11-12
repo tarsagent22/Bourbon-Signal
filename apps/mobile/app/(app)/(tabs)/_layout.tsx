@@ -46,8 +46,9 @@ export function HomeHeaderActions() {
     <Pressable accessibilityRole="button" accessibilityLabel="Explore nearby on the map" accessibilityHint="Browse bottle reports around you" onPress={() => router.push("/(app)/nearby")} style={({ pressed }) => [styles.scanButton, pressed && styles.pressed]}>
       <MaterialCommunityIcons name="map-outline" size={22} color={colors.accent} />
     </Pressable>
-    <Pressable accessibilityRole="button" accessibilityLabel="Bottle Check: scan or search a bottle" onPress={() => router.push("/(app)/bottle-check")} style={({ pressed }) => [styles.scanButton, pressed && styles.pressed]}>
-      <MaterialCommunityIcons name="line-scan" size={23} color={colors.accent} />
+    <Pressable accessibilityRole="button" accessibilityLabel="Scan a bottle" onPress={() => router.push("/(app)/bottle-check")} style={({ pressed }) => [styles.scanWithLabel, pressed && styles.pressed]}>
+      <MaterialCommunityIcons name="line-scan" size={19} color={colors.accent} />
+      <Text style={styles.scanLabel}>Scan a bottle</Text>
     </Pressable>
     <AlertInboxButton />
   </View>;
@@ -71,7 +72,7 @@ export default function TabsLayout() {
         freezeOnBlur: true,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: HomeHeaderActions, headerTransparent: true, headerStyle: { backgroundColor: "transparent" }, tabBarIcon: icon("index") }} />
+      <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: HomeHeaderActions, headerTransparent: true, headerStyle: { backgroundColor: colors.background }, tabBarIcon: icon("index") }} />
       <Tabs.Screen name="radar" options={{ headerShown: false, title: "Radar", tabBarIcon: icon("radar") }} />
       <Tabs.Screen name="post" options={{ headerShown: false, title: "Post", tabBarIcon: icon("post"), tabBarButton: props => <PostTabButton {...props}/> }} />
       <Tabs.Screen name="cellar" options={{ title: "My Shelf", headerShown: false, tabBarIcon: icon("cellar") }} />
@@ -86,6 +87,8 @@ const styles = StyleSheet.create({
   postLabel: { color: colors.text, fontSize: 11, fontWeight: "700", marginTop: 2 },
   brandTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 26, lineHeight: 34, letterSpacing: -0.35 },
   headerActions: { flexDirection: "row", alignItems: "center" },
+  scanWithLabel: { minWidth: 70, height: 44, alignItems: "center", justifyContent: "center", gap: 2 },
+  scanLabel: { color: colors.accent, fontSize: 10, fontWeight: "700" },
   scanButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
   pressed: { opacity: 0.68 },
