@@ -130,7 +130,7 @@ export default function SignalFeedScreen() {
     market: { ...DEFAULT_SIGNAL_FILTERS },
     community: { ...DEFAULT_SIGNAL_FILTERS },
   });
-  const [recentSightings, setRecentSightings] = useState<Signal[]>([]);
+  const [recentSightings, setRecentSightings] = useState<{ scope: string; signals: Signal[] } | null>(null);
   const [updatedScope, setUpdatedScope] = useState("");
   const restoredScope = useRef("");
   const [showOlderSightings, setShowOlderSightings] = useState(false);
@@ -158,23 +158,22 @@ export default function SignalFeedScreen() {
   }, [filtersByView, nationalByView, localState, view, filterTier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
-  const mergedSightings = useMemo(() => recentSightings.filter(signal => !filters.state || signal.location.state === filters.state), [filters.state, recentSightings]);
+  const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities, filterTier]);
+  const mergedSightings = useMemo(() => recentSightings?.scope === scopeKey ? recentSightings.signals : [], [recentSightings, scopeKey]);
   const hasCommunityVolume = new Set(mergedSightings.map(signal => signal.source.actor?.label || "")).size > 1;
   const feedGroups = useMemo(() => {
     const merged = view === "market" && !hasCommunityVolume ? sortSignalTimeline([...visibleSignals, ...mergedSightings]) : visibleSignals;
     return groupFeedReports(merged, view, showOlderSightings);
   }, [hasCommunityVolume, mergedSightings, visibleSignals, view, showOlderSightings]);
-  const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities, filterTier]);
   const screenActive = screenFocused && appState === "active";
   useEffect(() => {
     if (!browsingLoaded || view !== "market") return;
     let active = true;
-    setRecentSightings([]);
-    void api.listSignals({ view: "community", limit: 8, state: filters.state }).then(page => {
-      if (active) setRecentSightings(page.signals.filter(signal => Date.parse(signal.timing.displayAt) >= Date.now() - SIGHTING_WINDOW));
+    void api.listSignals({ view: "community", limit: 8, ...requestFilters, bottle: undefined, search: requestFilters.bottle }).then(page => {
+      if (active) setRecentSightings({ scope: scopeKey, signals: page.signals.filter(signal => Date.parse(signal.timing.displayAt) >= Date.now() - SIGHTING_WINDOW) });
     }).catch(() => undefined);
     return () => { active = false; };
-  }, [api, browsingLoaded, filters.state, view]);
+  }, [api, browsingLoaded, requestFilters, scopeKey, view]);
   useEffect(() => {
     if (!updatedScope) return;
     const timer = setTimeout(() => setUpdatedScope(""), 3500);

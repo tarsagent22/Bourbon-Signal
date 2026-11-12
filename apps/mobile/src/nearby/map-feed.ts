@@ -25,11 +25,12 @@ export function mapFeedRows(stores: NearbyStore[]) {
 // A preview never replaces revalidation, and no coordinates are written to disk.
 const closestReports = new WeakMap<object, { at: number; result: NearbyResult }>();
 export function nearestMappedReport(owner: object, reports: NearbyStore["signals"]) {
-  const ids = new Set(reports.map(report => report.bottle.id).filter(Boolean));
+  const ids = new Set(reports.filter(report => report.location.scope === "exact_store" && !report.shipment).map(report => report.id));
   const entry = closestReports.get(owner);
-  const states = new Set(reports.map(report => report.location.state).filter(Boolean));
   const stores = entry && Date.now() - entry.at < 10 * 60_000 ? entry.result.stores : [];
-  const distances = stores.filter(store => (!states.size || states.has(store.state)) && !store.approximateLocation && store.signals.some(report => report.bottle.id && ids.has(report.bottle.id))).map(store => store.distance);
+  const distances = stores
+    .filter(store => !store.approximateLocation && store.signals.some(report => ids.has(report.id)))
+    .map(store => store.distance);
   return distances.length ? Math.min(...distances) : undefined;
 }
 

@@ -30,10 +30,10 @@ test("Home opens directly on fresh Intel and member sightings", () => {
   assert.match(feed, /showsVerticalScrollIndicator=\{false\}/);
 });
 
-test("Home searches bottles or locations on initial pages and background refresh", () => {
+test("Home searches bottles or locations on initial pages, background refresh and merged sightings", () => {
   assert.match(feed, /accessibilityLabel="Search bottles or locations"/);
   assert.match(feed, /accessibilityLabel="Clear feed search"/);
-  assert.equal((feed.match(/bottle: undefined, search: requestFilters\.bottle/g) || []).length, 2);
+  assert.equal((feed.match(/bottle: undefined, search: requestFilters\.bottle/g) || []).length, 3);
 });
 
 test("Home restores user-scoped browsing filters without touching Radar preferences", () => {
