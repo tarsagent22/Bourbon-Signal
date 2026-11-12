@@ -1,7 +1,10 @@
 import type { FeedReportSummary } from "../../../../shared/feed-report-summary";
 import type { BoardMember } from "../../../../shared/nearby";
 
+import type { ShipmentUpdate } from "../../../../shared/report-timeline";
+
 export interface Signal {
+  shipmentUpdate?: ShipmentUpdate;
   groupSummary?: FeedReportSummary;
   contractVersion: "bourbon-signal/signal@1";
   id: string;
@@ -12,6 +15,7 @@ export interface Signal {
   source: {
     type: "member" | "retailer" | "trusted_source" | "release_source";
     label: string;
+    url?: string;
     reportMode?: "seen_in_store" | "reported_online";
     actor?: { kind: "founder" | "member"; number: number; label: string; displayName?: string; badges?: string[] };
   };
@@ -289,6 +293,8 @@ export interface MemberPreferencesPatch {
 
 export interface MemberAlert {
   id: string;
+  dedupeKey?: string;
+  underlyingStableKeys?: string[];
   signalId?: string;
   bottleName: string;
   bottleNames?: string[];

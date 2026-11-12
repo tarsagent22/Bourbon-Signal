@@ -10,6 +10,7 @@ export interface SignalFeedCursorPayload {
   memberBoundary: { createdAt: string; id: string } | null;
   filters: SignalFeedFilters;
   asOf: string;
+  timelineKey?: string;
 }
 
 function safeView(value: unknown): value is SignalFeedView {
@@ -81,6 +82,7 @@ export function encodeSignalFeedCursor(payload: SignalFeedCursorPayload) {
     mb: payload.memberBoundary,
     f: payload.filters,
     at: payload.asOf,
+    ...(payload.timelineKey ? { tk: payload.timelineKey } : {}),
   }), "utf8").toString("base64url");
 }
 
@@ -93,7 +95,9 @@ export function decodeSignalFeedCursor(value: string | null | undefined): Signal
     const filters = legacy ? EMPTY_SIGNAL_FEED_FILTERS : normalizedCursorFilters(parsed.f, parsed.v === 4);
     const asOf = legacy ? new Date(0).toISOString() : parsed.at;
     if ((!legacy && parsed.v !== 4 && parsed.v !== 5) || !safeView(view) || !safeOffset(parsed.d) || !safeSnapshot(parsed.ds) || !safeMemberBoundary(parsed.mb) || !filters || !safeAsOf(asOf)) return null;
+    if (parsed.tk !== undefined && (typeof parsed.tk !== "string" || parsed.tk.length > 500)) return null;
     return {
+      ...(typeof parsed.tk === "string" ? { timelineKey: parsed.tk } : {}),
       view,
       dropsOffset: Number(parsed.d),
       dropSnapshot: parsed.ds as string | null,

@@ -9,6 +9,8 @@ import { NC_ABC_BOARDS, canonicalNcAbcBoardEvidence } from "../nc-abc-boards.ts"
 export const SIGNAL_CONTRACT_VERSION = "bourbon-signal/signal@1" as const;
 
 export type SignalSourceType = "member" | "retailer" | "trusted_source" | "release_source";
+import type { ShipmentUpdate } from "../../../shared/report-timeline.ts";
+
 export type SignalKind = "availability" | "release" | "event";
 export type SignalStrength = "best" | "more_activity";
 export type SignalLocationScope = "exact_store" | "area" | "board" | "state" | "online" | "unknown";
@@ -20,11 +22,13 @@ export interface CanonicalSignal {
   availabilityEpisodeId?: string;
   listingChange?: "first_detection" | "restock" | "price_drop" | "price_change";
   historical?: boolean;
+  shipmentUpdate?: ShipmentUpdate;
   shipment?: { boardId: string; reportedAt?: string; quantity?: number; unit: "units" };
   kind: SignalKind;
   source: {
     type: SignalSourceType;
     label: string;
+    url?: string;
     reportMode?: "seen_in_store" | "reported_online";
     actor?: {
       kind: "founder" | "member";
@@ -240,6 +244,14 @@ function dropSignalTiming(input: Record<string, unknown>, kind: SignalKind) {
   return { observedAt, reportedAt, displayAt };
 }
 
+function safeReportSourceUrl(raw: unknown) {
+  try {
+    const url = new URL(typeof raw === "string" ? raw : "");
+    if (url.protocol === "https:" && !url.username && !url.password) return { url: url.href };
+  } catch { /* Only a verified HTTPS source can be opened. */ }
+  return {};
+}
+
 export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSignal {
   const kind = signalKind(input);
   const type = sourceType(input, kind);
@@ -293,7 +305,7 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     ...(["first_detection", "restock", "price_drop", "price_change"].includes(String(input.listingChange || input.availabilityEpisodeKind || "")) ? { listingChange: String(input.listingChange || input.availabilityEpisodeKind) as CanonicalSignal["listingChange"] } : {}),
     kind,
     ...(shipmentBoard ? { shipment: { boardId: shipmentBoard.id, reportedAt: text(input.event_at, input.eventAt, observedAt), ...(shipmentQuantity !== undefined ? { quantity: shipmentQuantity } : {}), unit: "units" as const } } : {}),
-    source: { type, label },
+    source: { type, label, ...safeReportSourceUrl(input.sourceUrl ?? input.source_url) },
     bottle: {
       ...(bottleId ? { id: bottleId } : {}),
       name: bottleName,
@@ -422,6 +434,12 @@ export function compareCanonicalSignalsNewestFirst(left: CanonicalSignal, right:
   return Number.isFinite(difference) && difference !== 0 ? difference : left.id.localeCompare(right.id);
 }
 
+export function canonicalDropOrderKey(drop: Record<string, unknown>, displayAt?: string) {
+  const kind = signalKind(drop);
+  const id = prefixedId(sourceType(drop, kind), text(drop.id, drop.eventId, drop.canonical_id, drop.canonicalId) || "unknown");
+  return { id, time: Date.parse(displayAt || dropSignalTiming(drop, kind).displayAt) };
+}
+
 export function sortDropsByCanonicalSignalOrder<T extends Record<string, unknown>>(drops: T[]) {
   const listings = new Map<string, T>();
   for (const drop of drops) {
@@ -432,11 +450,7 @@ export function sortDropsByCanonicalSignalOrder<T extends Record<string, unknown
     if (!prior || observed(drop) >= observed(prior)) listings.set(key, drop);
   }
   return [...listings.values()]
-    .map((drop) => {
-      const kind = signalKind(drop);
-      const id = prefixedId(sourceType(drop, kind), text(drop.id, drop.eventId, drop.canonical_id, drop.canonicalId) || "unknown");
-      return { drop, id, time: Date.parse(dropSignalTiming(drop, kind).displayAt) };
-    })
+    .map(drop => ({ drop, ...canonicalDropOrderKey(drop) }))
     .sort((left, right) => {
       const difference = right.time - left.time;
       return Number.isFinite(difference) && difference !== 0 ? difference : left.id.localeCompare(right.id);

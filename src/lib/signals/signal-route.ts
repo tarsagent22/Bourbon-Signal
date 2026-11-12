@@ -1,3 +1,5 @@
+import type { ShipmentUpdate, TimelineRequest } from "../../../shared/report-timeline.ts";
+import { readTimelineRequest, writeTimelineRequest } from "./report-timeline.ts";
 import type { FeedReportSummary } from "../../../shared/feed-report-summary.ts";
 import { nearbyFeedPageLimit } from "../nearby-feed-scope.ts";
 import {
@@ -35,6 +37,7 @@ type LegacyDropsPayload = {
   resetCursor?: boolean;
   marketSummaries?: unknown;
   reportGroups?: Record<string, FeedReportSummary>;
+  shipmentUpdates?: Record<string, ShipmentUpdate>;
 };
 
 type LegacySightingsPayload = {
@@ -43,7 +46,7 @@ type LegacySightingsPayload = {
   previewLimit?: number | null;
 };
 
-const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "area", "freshness", "bottle", "search"]);
+const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "area", "freshness", "bottle", "search", "timeline", "source", "older", "bottleId"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -105,7 +108,7 @@ function unavailableResponse() {
   return new Response(null, { status: 503 });
 }
 
-function sourceRequest(request: Request, path: string, options: { limit: number; offset?: number; cursor?: string | null; memberBoundary?: { createdAt: string; id: string } | null; filters: SignalFeedFilters; since: string | null }) {
+function sourceRequest(request: Request, path: string, options: { limit: number; offset?: number; cursor?: string | null; memberBoundary?: { createdAt: string; id: string } | null; filters: SignalFeedFilters; since: string | null; timeline?: TimelineRequest; asOf?: string }) {
   const url = new URL(path, request.url);
   url.searchParams.set("limit", String(options.limit));
   if (options.cursor) url.searchParams.set("cursor", options.cursor);
@@ -123,9 +126,13 @@ function sourceRequest(request: Request, path: string, options: { limit: number;
   if (options.filters.search) url.searchParams.set("search", options.filters.search);
   if (options.filters.bottle) url.searchParams.set("bottle", options.filters.bottle);
   if (options.since) url.searchParams.set("since", options.since);
+  if (options.timeline) {
+    writeTimelineRequest(url, options.timeline);
+    if (options.asOf) url.searchParams.set("timelineAt", options.asOf);
+  }
   if (path === "/api/drops") {
     url.searchParams.set("signalOrder", "canonical");
-    url.searchParams.set("reportGroups", "1");
+    if (!options.timeline && nearbyFeedPageLimit(100) === 100) url.searchParams.set("reportGroups", "1");
   }
   if (path === "/api/sightings") {
     url.searchParams.set("rewards", "0");
@@ -175,13 +182,18 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
     if (requestedView && !(["market", "community"] as string[]).includes(requestedView)) {
       return Response.json({ error: "view must be market or community" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
     }
-    const view: SignalFeedView = requestedView === "market" || requestedView === "community" ? requestedView : "all";
+    let timeline: TimelineRequest | undefined;
     let filters: SignalFeedFilters;
     try {
+      timeline = readTimelineRequest(url);
       filters = parseSignalFeedFilters(url);
     } catch (error) {
       return Response.json({ error: error instanceof Error ? error.message : "Invalid Signal filters" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
     }
+
+    const view: SignalFeedView = timeline?.source === "sightings" ? "community"
+      : timeline?.source ? "market" : requestedView === "market" || requestedView === "community" ? requestedView : "all";
+    const timelineKey = timeline ? JSON.stringify(timeline) : undefined;
 
     if (getFilterAccess && (filters.state || filters.rarities.length || filters.area || filters.bottle || filters.search || filters.freshness)) {
       try {
@@ -206,6 +218,7 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
     const requestedCursor = url.searchParams.get("cursor");
     const cursor = requestedCursor ? decodeSignalFeedCursor(requestedCursor) : null;
     if (requestedCursor && !cursor) return cursorError(400, "INVALID_CURSOR", "Signal cursor is invalid.");
+    if (cursor && cursor.timelineKey !== timelineKey) return cursorError(400, "INVALID_CURSOR", "Signal cursor does not match this timeline.");
     if (cursor && cursor.view !== view) return cursorError(400, "INVALID_CURSOR", "Signal cursor does not match this feed view.");
     if (cursor && !sameSignalFeedFilters(cursor.filters, filters)) return cursorError(400, "INVALID_CURSOR", "Signal cursor does not match these feed filters.");
     const asOf = cursor?.asOf || new Date().toISOString();
@@ -219,10 +232,10 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
     const [dropsResult, sightingsResult] = await Promise.allSettled([
       view === "community"
         ? Promise.resolve(Response.json({ drops: [], total: 0, snapshot: "community-view", hasMore: false }))
-        : getDrops(sourceRequest(request, "/api/drops", { limit: sourcePageSize, offset: dropsOffset, cursor: dropCursor, filters, since })),
+        : getDrops(sourceRequest(request, "/api/drops", { limit: sourcePageSize, offset: dropsOffset, cursor: dropCursor, filters, since, timeline, asOf })),
       view === "market"
         ? Promise.resolve(Response.json({ sightings: [], totalSightings: 0, previewLimit: null }))
-        : getSightings(sourceRequest(request, "/api/sightings", { limit: sourcePageSize, memberBoundary: cursor?.memberBoundary || null, filters, since })),
+        : getSightings(sourceRequest(request, "/api/sightings", { limit: sourcePageSize, memberBoundary: cursor?.memberBoundary || null, filters, since, timeline, asOf })),
     ]);
     const dropsResponse = dropsResult.status === "fulfilled" ? dropsResult.value : unavailableResponse();
     const sightingsResponse = sightingsResult.status === "fulfilled" ? sightingsResult.value : unavailableResponse();
@@ -244,7 +257,11 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
       const signal = normalizeDropSignal(raw);
       const groupSummary = signal.bottle.id && Object.hasOwn(dropsPayload.reportGroups || {}, signal.bottle.id)
         ? dropsPayload.reportGroups?.[signal.bottle.id] : undefined;
-      return groupSummary ? { ...signal, groupSummary } : signal;
+      const shipmentUpdate = signal.shipment && Object.hasOwn(dropsPayload.shipmentUpdates || {}, signal.id)
+        ? dropsPayload.shipmentUpdates?.[signal.id] : undefined;
+      return { ...signal, ...(groupSummary ? { groupSummary } : {}), ...(shipmentUpdate ? {
+        shipmentUpdate, timing: { ...signal.timing, displayAt: signal.shipment?.reportedAt || signal.timing.displayAt },
+      } : {}) };
     }) : [];
     const visibleSightings = memberStatus === "ready" && sightingsValid ? rawSightings : [];
     const memberSignals = visibleSightings.map(normalizeMemberSightingSignal);
@@ -307,13 +324,14 @@ export function createSignalFeedHandler({ getDrops, getSightings, getFilterAcces
       memberBoundary: nextMemberBoundary,
       filters,
       asOf,
+      ...(timelineKey ? { timelineKey } : {}),
     }) : null;
 
     return Response.json({
       ...combined,
       view,
       signals,
-      marketSummaries: view === "market" && marketDetailsLocked ? sanitizedMarketSummaries(dropsPayload.marketSummaries) : [],
+      marketSummaries: view !== "community" && marketDetailsLocked ? sanitizedMarketSummaries(dropsPayload.marketSummaries) : [],
       total: signals.length,
       returnedBySource: consumed,
       nextCursor,

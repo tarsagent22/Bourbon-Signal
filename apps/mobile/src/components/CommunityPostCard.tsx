@@ -22,11 +22,13 @@ export function CommunityPostCard({
   signal,
   onPress,
   highlighted = false,
+  distance,
   now = new Date(),
 }: {
   signal: Signal;
   onPress: () => void;
   highlighted?: boolean;
+  distance?: number;
   now?: Date;
 }) {
   const age = reportAge(signal, now);
@@ -60,11 +62,13 @@ export function CommunityPostCard({
         onPress={onPress}
         style={({ pressed }) => [
           s.card,
+          s.sightingCard,
           age.older && { opacity: 0.78 },
           highlighted && s.highlighted,
           pressed && s.pressed,
         ]}
       >
+        <Text style={s.sightingLabel}>{signal.source.reportMode === "reported_online" ? "Member report · Online" : "Member sighting · Seen on shelf"}</Text>
         <View style={s.header}>
           <View style={s.identity}>
             <Text numberOfLines={1} style={s.name}>
@@ -198,6 +202,7 @@ export function CommunityPostCard({
             </Text>
           </View>
         ) : null}
+        {distance != null ? <Text style={s.locationText}>{Math.round(distance)} mi</Text> : null}
         <View style={s.footer}>
           {presented.price ? (
             <Text style={s.price}>{presented.price}</Text>
@@ -291,6 +296,8 @@ export function CommunityPostCard({
 }
 
 const s = StyleSheet.create({
+  sightingCard: { borderColor: colors.accent },
+  sightingLabel: { color: colors.accent, fontSize: 12, fontWeight: "700" },
   bottleRow: { flexDirection: "row", gap: 12, alignItems: "center" },
   bottleInfo: { flex: 1, minWidth: 0, gap: 6 },
   thumbnail: { width: 68, height: 104, alignItems: "center", justifyContent: "center", overflow: "hidden" },

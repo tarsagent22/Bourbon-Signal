@@ -48,6 +48,18 @@ export function withNearbyFeedScope<T>(
     work,
   );
 }
+export function nearbyMemberSightingFilter() {
+  const selection = scope.getStore();
+  if (!selection) return undefined;
+  return (sighting: import("./sightings.ts").MemberSighting) => {
+    if (sighting.sightingType === "online_social") return false;
+    const state = sighting.storeState?.trim().toUpperCase() || "";
+    const city = sighting.storeCity || "";
+    const address = sighting.storeAddress || "";
+    return Boolean(state && city && address && selection.keys.has(sightingStoreAddressKey({ state, city, address })));
+  };
+}
+
 export function filterNearbyFeedDrops<T extends Record<string, unknown>>(
   drops: T[],
 ): T[] {

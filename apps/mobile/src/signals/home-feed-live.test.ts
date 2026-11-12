@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { groupFeedReports, reportGroupSummary } from "./feed-report-groups";
 import type { Signal } from "../api/types";
 import { sortSignalTimeline, acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals, recentTickerSignals, tickerLocationLabel } from "./home-feed-live";
 
@@ -87,26 +86,13 @@ test("timestamp corrections and arrival queues preserve chronological order", ()
   assert.deepEqual(acceptQueuedSignals(current, [signal("c", "2026-10-07T14:00:00Z"), signal("d", "2026-10-07T15:00:00Z")]).map(row => row.id), ["d", "c", "a", "b"]);
 });
 
-test("groups exact bottle expressions and keeps ABC shipments outside store counts", () => {
-  const checked = "2026-11-11T15:00:00Z";
-  const first = signal("first", checked, {
-    bottle: { id: "expression-a", name: "Bottle A" },
-    location: { scope: "exact_store", state: "NC", store: { id: "store-1", city: "Raleigh" } },
-    availability: { status: "available_now", quantity: 6 },
-  });
-  const second = { ...first, id: "second", location: { ...first.location, store: { id: "store-2" } } };
-  const shipment: Signal = { ...first, id: "shipment", location: { scope: "board", state: "NC" }, shipment: { boardId: "board", unit: "units", quantity: 20 } };
-  const variant = { ...first, id: "variant", bottle: { ...first.bottle, id: "expression-b" } };
-  const groups = groupFeedReports([first, second, shipment, variant], "market", false);
-  assert.deepEqual(groups.map(group => group.reports.map(report => report.id)), [["first", "second", "shipment"], ["variant"]]);
-  assert.equal(reportGroupSummary(groups[0].reports, new Date("2026-11-11T16:00:00Z")), "2 NC stores · 6 reported at each · 1 other report");
-  assert.equal(reportGroupSummary(groups[0].reports, new Date("2026-11-15T16:00:00Z")), "2 NC stores · 1 other report");
-});
 
-test("older Community posts remain available on demand", () => {
-  const old = signal("old", "2026-11-01T15:00:00Z");
-  const recent = signal("recent", "2026-11-10T15:00:00Z");
-  const now = Date.parse("2026-11-11T15:00:00Z");
-  assert.deepEqual(groupFeedReports([recent, old], "community", false, now).map(group => group.reports[0].id), ["recent"]);
-  assert.equal(groupFeedReports([recent, old], "community", true, now).length, 2);
+test("a changed representative updates the same shipment while later updates stay separate", () => {
+  const checked = "2026-11-11T15:00:00Z";
+  const first = signal("first", checked, { shipmentUpdate: { key: "wake-day1", bottles: [] } });
+  const replacement = { ...first, id: "replacement" };
+  const next = signal("next", "2026-11-12T15:00:00Z", { shipmentUpdate: { key: "wake-day2", bottles: [] } });
+  assert.deepEqual(reconcileDisplayedSignals([first], [replacement, next], false).map(row => row.id), ["replacement"]);
+  assert.deepEqual(reconcileQueuedSignals([first], [], [replacement, next]).map(row => row.id), ["next"]);
+  assert.deepEqual(acceptQueuedSignals([first], [next, replacement]).map(row => row.id), ["next", "replacement"]);
 });

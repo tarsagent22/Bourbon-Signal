@@ -1,3 +1,4 @@
+import type { ShipmentUpdate } from "../../../shared/report-timeline.ts";
 import { normalizeDropSignal, normalizeMemberSightingSignal } from "./signal-contract.ts";
 import {
   SIGNAL_API_ERROR_VERSION,
@@ -94,9 +95,10 @@ export function createSignalDetailHandler({ getDrops, getSightings, enrichSignal
     const parts = signalIdParts(signalId);
     if (!parts) return apiError(400, "INVALID_REQUEST", "Signal ID is invalid.");
     const memberSource = parts.source === "member";
+    const update = new URL(request.url).searchParams.get("update") === "1";
     const path = memberSource
       ? `/api/sightings?sightingId=${encodeURIComponent(parts.rawId)}&rewards=0`
-      : `/api/drops?signalId=${encodeURIComponent(parts.rawId)}&signalSource=${encodeURIComponent(parts.source)}&limit=1&signalOrder=canonical`;
+      : `/api/drops?signalId=${encodeURIComponent(parts.rawId)}&signalSource=${encodeURIComponent(parts.source)}&limit=1&signalOrder=canonical${update ? "&timeline=browse&source=shipments&older=1" : ""}`;
     const sourceResponse = await (memberSource ? getSightings : getDrops)(forwardedRequest(request, path, "GET"));
     const sourcePayload = await payloadOf(sourceResponse);
     if (!sourceResponse.ok) return upstreamError(sourceResponse.status);
@@ -110,7 +112,10 @@ export function createSignalDetailHandler({ getDrops, getSightings, enrichSignal
         .map(normalizeDropSignal)
         .find((candidate) => candidate.id === signalId);
     if (!signal) return apiError(404, "SIGNAL_NOT_FOUND", "Signal not found.");
-    return Response.json({ contractVersion: SIGNAL_API_VERSION, signal: enrichSignal ? enrichSignal(signal) : signal }, { headers: PRIVATE_SIGNAL_API_HEADERS });
+    const updates = sourcePayload.shipmentUpdates as Record<string, ShipmentUpdate> | undefined;
+    const shipmentUpdate = update && signal.shipment && Object.hasOwn(updates || {}, signal.id) ? updates?.[signal.id] : undefined;
+    const detailed = shipmentUpdate ? { ...signal, shipmentUpdate } : signal;
+    return Response.json({ contractVersion: SIGNAL_API_VERSION, signal: enrichSignal ? enrichSignal(detailed) : detailed }, { headers: PRIVATE_SIGNAL_API_HEADERS });
   };
 }
 

@@ -183,7 +183,7 @@ export default function Nearby() {
       lat: String(place.latitude),
       lng: String(place.longitude),
       radius: String(radius),
-      view: params.view || "market",
+      view: params.view || "all",
     });
     for (const [k, v] of Object.entries({
       search: query,
@@ -197,11 +197,14 @@ export default function Nearby() {
       q.set("placeState", placeParts[2]);
     }
     const key = q.toString();
-    const preview = readNearbyPreview(api, key);
+    const previousKey = q.get("view") === "all" ? new URLSearchParams(q) : null;
+    previousKey?.set("view", "market");
+    const preview = readNearbyPreview(api, key) || (previousKey ? readNearbyPreview(api, previousKey.toString()) : null);
     setResult(preview);
     const cacheAccount = api.accountIdentity + ":" + api.membershipRevision;
     let authoritative = false;
-    if (!preview) void loadNearbyPins(cacheAccount, key).then(cached => {
+    if (!preview) void loadNearbyPins(cacheAccount, key)
+      .then(cached => cached || (previousKey ? loadNearbyPins(cacheAccount, previousKey.toString()) : null)).then(cached => {
       if (cached && !authoritative && id === sequence.current) {
         saveNearbyPreview(api, key, cached);
         setResult(cached);

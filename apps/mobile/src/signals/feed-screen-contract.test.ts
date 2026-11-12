@@ -11,15 +11,17 @@ function position(fragment: string) {
   return index;
 }
 
-test("Home opens directly on fresh Intel and member sightings", () => {
-  const toggle = position('accessibilityLabel="Signal feed view"');
+test("Home opens to the saved-area timeline and explicit source filters", () => {
+  const toggle = position('accessibilityLabel="Report sources"');
   const geography = position('accessibilityLabel="Signal geography filters"');
   const search = position('placeholder="Search bottles or locations"');
   const rarity = position('accessibilityLabel="Bottle rarity filters"');
 
   assert.ok(toggle < geography && geography < search && search < rarity);
-  assert.match(feed, />Intel<\/Text>/);
-  assert.match(feed, />Community<\/Text>/);
+  assert.match(feed, /"browse" : "saved"/);
+  assert.match(feed, /ShipmentUpdateCard/);
+  assert.match(feed, /"Sightings"[\s\S]*"Store reports"[\s\S]*"Shipments"/);
+  assert.match(feed, /showScope && timelineBrowse/);
   assert.match(feed, /feedEmptyState\(view, filters\)/);
   assert.match(readFileSync(resolve(process.cwd(), "src/signals/feed-empty-state.ts"), "utf8"), /No member sightings yet/);
   assert.doesNotMatch(feed, /Home overview|Your Bourbon Signal home|OPEN RADAR/);
@@ -30,10 +32,11 @@ test("Home opens directly on fresh Intel and member sightings", () => {
   assert.match(feed, /showsVerticalScrollIndicator=\{false\}/);
 });
 
-test("Home searches bottles or locations on initial pages, background refresh and merged sightings", () => {
+test("Home offers bottle lookup and sends the same timeline options on refresh", () => {
   assert.match(feed, /accessibilityLabel="Search bottles or locations"/);
   assert.match(feed, /accessibilityLabel="Clear feed search"/);
-  assert.equal((feed.match(/bottle: undefined, search: requestFilters\.bottle/g) || []).length, 3);
+  assert.match(feed, /Find a bottle/);
+  assert.equal((feed.match(/api\.listSignals\(\{ timeline, limit: 30/g) || []).length, 2);
 });
 
 test("Home restores user-scoped browsing filters without touching Radar preferences", () => {
@@ -42,7 +45,7 @@ test("Home restores user-scoped browsing filters without touching Radar preferen
   assert.match(feed, /saveHomeBrowsingPreferences/);
   assert.doesNotMatch(feed, /updateMemberPreferences|notificationPreferences/);
   assert.match(feed, /loadedBrowsingStorageKey === browsingStorageKey/);
-  const identityReset = feed.match(/useEffect\(\(\) => \{\s*let current = true;[\s\S]*?\}, \[api, browsingStorageKey, sessionId, loadProfile\]\);/)?.[0] || "";
+  const identityReset = feed.match(/useEffect\(\(\) => \{\s*let current = true;[\s\S]*?\}, \[api, browsingStorageKey, sessionId, loadProfile, userId\]\);/)?.[0] || "";
   assert.match(identityReset, /setSignals\(\[\]\)/, "one member's feed must not remain mounted for another identity");
   assert.match(identityReset, /requestSequence\.current \+= 1/);
   assert.match(identityReset, /profileRequestSequence\.current \+= 1/);
@@ -58,7 +61,7 @@ test("immediate rarity and bottle input invalidate pending Home restore", () => 
 test("auth failures fence overlapping feed requests and identity reloads profile", () => {
   assert.match(feed, /apiError\?\.status === 401 \|\| apiError\?\.status === 403\) \{\s*requestSequence\.current \+= 1;/);
   assert.match(feed, /if \(accessChanged\) \{\s*requestSequence\.current \+= 1;/);
-  assert.match(feed, /resolveHomeStartup\(loadHomeBrowsingPreferences\(browsingStorageKey\), loadProfile\(\)/);
+  assert.match(feed, /homeFeedCache\.load[\s\S]*void loadProfile\(\);\s*void resolveHomeStartup/);
 });
 
 test("snapshot cursor expiry preserves reading position until explicit refresh", () => {
@@ -84,7 +87,7 @@ test("Area appears only after State is selected and area filtering is available"
 
 test("Signal Feed keeps Intel terminology while preserving the internal market transport value", () => {
   assert.match(feed, /type FeedView = "market" \| "community"/);
-  assert.match(feed, />Intel<\/Text>/);
+  assert.match(feed, /All reports/);
   assert.doesNotMatch(feed, />Market<\/Text>|Market Signals|market intelligence/);
   assert.match(feed, /case "area": applyFilters\(\{ \.\.\.filters, area: "" \}\)/);
 });
@@ -99,7 +102,7 @@ test("inline filters stay mounted and receive the first tap while search is focu
 
 test("Home starts with feed controls without a duplicate rotating report strip", () => {
   assert.doesNotMatch(feed, /Recent reports|Show next recent report|tickerSignal|tickerOpacity|recentTickerSignals|Animated/);
-  assert.match(feed, /accessibilityLabel="Signal feed view"/);
+  assert.match(feed, /accessibilityLabel="Report sources"/);
 });
 
 test("background refresh queues scoped ids without resetting pagination", () => {

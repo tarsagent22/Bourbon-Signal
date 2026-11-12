@@ -4,8 +4,8 @@ import { validApiResponse } from '../api/response-validation';
 export interface FeedCacheStorage { read(owner: string): Promise<string | null>; write(owner: string, raw: string | null): Promise<void> }
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 type Entry = { scope: string; savedAt: number; page: SignalFeedPage };
-export function feedCacheScope(view: SignalFeedView, filters: SignalFeedFilters) {
-  return JSON.stringify(['listing-continuity-v1', view, filters.state, filters.area, filters.freshness, filters.bottle, [...filters.rarities].sort()]);
+export function feedCacheScope(view: SignalFeedView, filters: SignalFeedFilters, timeline?: import("../../../../shared/report-timeline").TimelineRequest) {
+  return JSON.stringify(['listing-continuity-v1', view, filters.state, filters.area, filters.freshness, filters.bottle, [...filters.rarities].sort(), ...(timeline ? [timeline] : [])]);
 }
 export function createHomeFeedCache(storage: FeedCacheStorage, now = Date.now) {
   const memory = new Map<string, Entry[]>();

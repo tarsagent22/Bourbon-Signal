@@ -15,8 +15,9 @@ import { MemberContinuity } from '../../../src/continuity/MemberContinuity';
 import { personalTasteNote } from '../../../src/continuity/taste-discovery';
 import { coverageContext, supportContext } from '../../../src/continuity/bottle-handoff';
 import { FeedSkeleton } from "../../../src/components/FeedSkeleton";
-import { groupFeedReports, SIGHTING_WINDOW, type FeedReportGroup } from "../../../src/signals/feed-report-groups";
-import { GroupedSignalCard } from "../../../src/components/GroupedSignalCard";
+import type { TimelineRequest, TimelineSource } from "../../../../../shared/report-timeline";
+import { ShipmentUpdateCard } from "../../../src/components/ShipmentUpdateCard";
+import { rememberReport } from "../../../src/signals/report-preview";
 import { nearestMappedReport } from "../../../src/nearby/map-feed";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -29,8 +30,8 @@ import { dropdownRevealOffset } from "../../../src/interactions/dropdown-visibil
 
 type FeedView = "market" | "community";
 
-const FeedSignalRow = memo(function FeedSignalRow({ signal, highlighted, personalNote }: { signal: Signal; highlighted: boolean; personalNote: string }) {
-  return <View><SignalCard highlighted={highlighted} signal={signal} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: signal.id } })} />{personalNote ? <Text style={{ color: colors.accent, fontSize: 12, lineHeight: 18, paddingBottom: 10, paddingLeft: 78 }}>{personalNote}</Text> : null}</View>;
+const FeedSignalRow = memo(function FeedSignalRow({ signal, highlighted, personalNote, owner }: { signal: Signal; highlighted: boolean; personalNote: string; owner: object }) {
+  return <View><SignalCard highlighted={highlighted} signal={signal} distance={nearestMappedReport(owner, [signal])} onPress={() => { rememberReport(owner, signal); router.push({ pathname: "/(app)/signal/[id]", params: { id: signal.id } }); }} />{personalNote ? <Text style={{ color: colors.accent, fontSize: 12, lineHeight: 18, paddingBottom: 10, paddingLeft: 78 }}>{personalNote}</Text> : null}</View>;
 });
 
 function OptionChooser({
@@ -130,11 +131,12 @@ export default function SignalFeedScreen() {
     market: { ...DEFAULT_SIGNAL_FILTERS },
     community: { ...DEFAULT_SIGNAL_FILTERS },
   });
-  const [recentSightings, setRecentSightings] = useState<{ scope: string; signals: Signal[] } | null>(null);
+  const [timelineBrowse, setTimelineBrowse] = useState(false);
+  const [marketSource, setMarketSource] = useState<Exclude<TimelineSource, "sightings">>();
+  const [showScope, setShowScope] = useState(false);
   const [updatedScope, setUpdatedScope] = useState("");
   const restoredScope = useRef("");
   const [showOlderSightings, setShowOlderSightings] = useState(false);
-  const [expandedGroup, setExpandedGroup] = useState("");
   const [nationalByView, setNationalByView] = useState({ market: false, community: false });
   const [bottleQueries, setBottleQueries] = useState<Record<FeedView, string>>({ market: "", community: "" });
   const [remoteAreaState, setRemoteAreaState] = useState("");
@@ -153,34 +155,27 @@ export default function SignalFeedScreen() {
   const filtersAllowed = Boolean(profile?.membership.paid);
   const filters = useMemo(() => {
     const saved = filtersByView[view];
-    const state = saved.state || (!nationalByView[view] ? localState || "" : "");
-    return allowedFeedFilters({ ...saved, state }, filterTier);
-  }, [filtersByView, nationalByView, localState, view, filterTier]);
+    const state = timelineBrowse ? saved.state || (!nationalByView[view] ? localState || "" : "") : "";
+    return allowedFeedFilters({ ...saved, state, area: timelineBrowse ? saved.area : "", bottle: timelineBrowse ? saved.bottle : "" }, filterTier);
+  }, [filtersByView, timelineBrowse, nationalByView, localState, view, filterTier]);
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
-  const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities, filterTier]);
-  const mergedSightings = useMemo(() => recentSightings?.scope === scopeKey ? recentSightings.signals : [], [recentSightings, scopeKey]);
-  const hasCommunityVolume = new Set(mergedSightings.map(signal => signal.source.actor?.label || "")).size > 1;
-  const feedGroups = useMemo(() => {
-    const merged = view === "market" && !hasCommunityVolume ? sortSignalTimeline([...visibleSignals, ...mergedSightings]) : visibleSignals;
-    return groupFeedReports(merged, view, showOlderSightings);
-  }, [hasCommunityVolume, mergedSightings, visibleSignals, view, showOlderSightings]);
+  const timeline = useMemo<TimelineRequest>(() => ({
+    mode: timelineBrowse ? "browse" : "saved",
+    source: view === "community" ? "sightings" : marketSource,
+    older: showOlderSightings,
+  }), [marketSource, showOlderSightings, timelineBrowse, view]);
+  const scopeKey = JSON.stringify([userId, sessionId, api.membershipRevision, requestFilters, timeline]);
   const screenActive = screenFocused && appState === "active";
-  useEffect(() => {
-    if (!browsingLoaded || view !== "market") return;
-    let active = true;
-    void api.listSignals({ view: "community", limit: 8, ...requestFilters, bottle: undefined, search: requestFilters.bottle }).then(page => {
-      if (active) setRecentSightings({ scope: scopeKey, signals: page.signals.filter(signal => Date.parse(signal.timing.displayAt) >= Date.now() - SIGHTING_WINDOW) });
-    }).catch(() => undefined);
-    return () => { active = false; };
-  }, [api, browsingLoaded, requestFilters, scopeKey, view]);
   useEffect(() => {
     if (!updatedScope) return;
     const timer = setTimeout(() => setUpdatedScope(""), 3500);
     return () => clearTimeout(timer);
   }, [updatedScope]);
   const motionDisabled = reduceMotion || screenReaderEnabled;
-  const cacheScope = feedCacheScope(view, requestFilters);
+  const cacheScope = feedCacheScope(view, requestFilters, timeline);
+  const cacheScopeRef = useRef(cacheScope);
+  cacheScopeRef.current = cacheScope;
   const areaDirectory = profile?.feedAreas;
   const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: state.label })) || [];
   const staticAreaOptions = areaOptionsForState(areaDirectory, filters.state);
@@ -202,7 +197,7 @@ export default function SignalFeedScreen() {
   const browsingMutationSequence = useRef(0);
   const backgroundRequestSequence = useRef(0);
   const scopeKeyRef = useRef(scopeKey);
-  const listRef = useRef<FlatList<FeedReportGroup>>(null);
+  const listRef = useRef<FlatList<Signal>>(null);
   const viewportRef = useRef<View>(null);
   const [viewportHeight, setViewportHeight] = useState(480);
   const scrollOffset = useRef(0);
@@ -300,7 +295,7 @@ export default function SignalFeedScreen() {
     setLoading(true);
     setError("");
     try {
-      const page = await api.listSignals({ view, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
+      const page = await api.listSignals({ timeline, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
       if (requestId !== requestSequence.current || capturedScope !== scopeKeyRef.current) return;
       successfulRequestRef.current = requestId;
       lastRefreshRef.current = Date.now();
@@ -336,7 +331,7 @@ export default function SignalFeedScreen() {
         setLoading(false);
       }
     }
-  }, [api, cacheScope, cursor, handleError, hasMore, requestFilters, scopeKey, userId, view]);
+  }, [api, cacheScope, cursor, handleError, hasMore, requestFilters, scopeKey, timeline, userId]);
 
   const selectView = useCallback((next: FeedView) => {
     if (next === view) return;
@@ -396,6 +391,9 @@ export default function SignalFeedScreen() {
     savedOffsets.current.clear();
     pendingOffset.current = null;
     setView("market");
+    setTimelineBrowse(false);
+    setMarketSource(undefined);
+    setShowOlderSightings(false);
     setFiltersByView({ market: { ...DEFAULT_SIGNAL_FILTERS }, community: { ...DEFAULT_SIGNAL_FILTERS } });
     setBottleQueries({ market: "", community: "" });
     setSignals([]);
@@ -419,10 +417,12 @@ export default function SignalFeedScreen() {
     setError("");
     setLoaded(false);
     setLoading(false);
-    void resolveHomeStartup(loadHomeBrowsingPreferences(browsingStorageKey), loadProfile().then(member => member?.homeState || undefined)).then(({ saved, homeState }) => {
+    void homeFeedCache.load(userId || "", cacheScopeRef.current).catch(() => undefined);
+    void loadProfile();
+    void resolveHomeStartup(loadHomeBrowsingPreferences(browsingStorageKey), Promise.resolve(undefined)).then(({ saved, homeState }) => {
       if (!current) return;
       if (saved && mutationAtStart === browsingMutationSequence.current) {
-        setView(saved.view);
+        setTimelineBrowse(saved.timelineBrowse === true);
         if (saved.startupProfile?.sessionId === sessionId) setStartupProfile(current => current ?? saved.startupProfile);
         setNationalByView({ market: saved.nationalByView?.market ?? false, community: false });
         setFiltersByView(saved.filtersByView);
@@ -439,15 +439,15 @@ export default function SignalFeedScreen() {
       backgroundRequestSequence.current += 1;
       profileRequestSequence.current += 1;
     };
-  }, [api, browsingStorageKey, sessionId, loadProfile]);
+  }, [api, browsingStorageKey, sessionId, loadProfile, userId]);
 
   useEffect(() => {
     if (!browsingLoaded || loadedBrowsingStorageKey !== browsingStorageKey) return;
     const timer = setTimeout(() => {
-      void saveHomeBrowsingPreferences(browsingStorageKey, { version: 1, view, filtersByView, nationalByView, startupProfile: sameSessionProfile }).catch(() => undefined);
+      void saveHomeBrowsingPreferences(browsingStorageKey, { version: 1, timelineBrowse, view, filtersByView, nationalByView, startupProfile: sameSessionProfile }).catch(() => undefined);
     }, 150);
     return () => clearTimeout(timer);
-  }, [browsingLoaded, browsingStorageKey, filtersByView, loadedBrowsingStorageKey, nationalByView, sameSessionProfile, view]);
+  }, [browsingLoaded, browsingStorageKey, filtersByView, loadedBrowsingStorageKey, nationalByView, sameSessionProfile, timelineBrowse, view]);
 
   useFocusEffect(useCallback(() => {
     setScreenFocused(true);
@@ -479,7 +479,7 @@ export default function SignalFeedScreen() {
     const poll = async () => {
       const requestId = ++backgroundRequestSequence.current;
       try {
-        const page = await api.listSignals({ view, limit: 30, cursor: null, fresh: true, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
+        const page = await api.listSignals({ timeline, limit: 30, cursor: null, fresh: true, ...requestFilters, bottle: undefined, search: requestFilters.bottle });
         if (stopped || requestId !== backgroundRequestSequence.current || capturedScope !== scopeKeyRef.current) return;
         const scopedIncoming = filterSignalsByRarity(page.signals, filters.rarities);
         const accessChanged = JSON.stringify(accessSnapshotRef.current) !== JSON.stringify(page.access);
@@ -495,9 +495,9 @@ export default function SignalFeedScreen() {
           latestDisplayedBaselineRef.current = scopedIncoming[0]?.timing.displayAt || "";
         } else {
           const displayed = signalsSnapshotRef.current;
-          const currentReports = new Map(displayed.map(report => [report.id, report.groupSummary]));
+          const currentReports = new Map(displayed.map(report => [report.id, report.shipmentUpdate]));
           if (!page.degraded && scopedIncoming.some(report => currentReports.has(report.id)
-            && JSON.stringify(currentReports.get(report.id)) !== JSON.stringify(report.groupSummary))) setUpdatedScope(capturedScope);
+            && JSON.stringify(currentReports.get(report.id)) !== JSON.stringify(report.shipmentUpdate))) setUpdatedScope(capturedScope);
           setSignals(reconcileDisplayedSignals(displayed, scopedIncoming, page.hasMore));
           setQueuedSignals((current) => reconcileQueuedSignals(displayed, current, scopedIncoming, latestDisplayedBaselineRef.current));
         }
@@ -524,7 +524,7 @@ export default function SignalFeedScreen() {
       backgroundRequestSequence.current += 1;
       clearInterval(timer);
     };
-  }, [api, browsingLoaded, error, filters.rarities, handleError, loaded, requestFilters, scopeKey, screenActive, cacheScope, userId, view]);
+  }, [api, browsingLoaded, error, filters.rarities, handleError, loaded, requestFilters, scopeKey, screenActive, cacheScope, timeline, userId]);
 
   useEffect(() => {
     if (!screenActive || !highlightedIds.length) return undefined;
@@ -549,11 +549,10 @@ export default function SignalFeedScreen() {
   }, [browsingLoaded, requestedView, selectView]);
   useScreenRevalidation(() => { void loadProfile(false); if (browsingLoaded && (error || Date.now() - lastRefreshRef.current > 30_000)) void load(true); });
   useEffect(() => {
-    if (!browsingLoaded || (!filterTier && !profileError) || loadedScopeRef.current === scopeKey) return;
+    if (!browsingLoaded || loadedScopeRef.current === scopeKey) return;
     loadedScopeRef.current = scopeKey;
     restoredScope.current = "";
     setUpdatedScope("");
-    setExpandedGroup("");
     pendingOffset.current = savedOffsets.current.get(scopeKey) || 0;
     requestSequence.current += 1;
     requestInFlightRef.current = null;
@@ -614,30 +613,37 @@ export default function SignalFeedScreen() {
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
   const header = (
     <View style={styles.header}>
-      {view === "community" || hasCommunityVolume ? <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ selected: view === "market" }}
-          onPress={() => selectView("market")}
-          style={({ pressed }) => [styles.segment, view === "market" && styles.segmentSelected, pressed && styles.segmentPressed]}
-        >
-          <MaterialCommunityIcons color={view === "market" ? colors.accent : colors.muted} name="radio-tower" size={20} />
-          <Text style={[styles.segmentLabel, view === "market" && styles.segmentLabelSelected]}>Intel</Text>
+      <View style={styles.timelineBar}>
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: showScope }} onPress={() => setShowScope(value => !value)} style={styles.timelineControl}>
+          <MaterialCommunityIcons name="map-marker-outline" color={colors.accent} size={18} />
+          <Text style={styles.segmentLabelSelected}>{timelineBrowse ? filters.state || "All states" : "Saved areas"}</Text>
+          <MaterialCommunityIcons name="chevron-down" color={colors.accent} size={17} />
         </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ selected: view === "community" }}
-          onPress={() => selectView("community")}
-          style={({ pressed }) => [styles.segment, view === "community" && styles.segmentSelected, pressed && styles.segmentPressed]}
-        >
-          <MaterialCommunityIcons color={view === "community" ? colors.accent : colors.muted} name="account-group-outline" size={21} />
-          <Text style={[styles.segmentLabel, view === "community" && styles.segmentLabelSelected]}>Community</Text>
+        <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: "/(app)/bottle-check", params: { lookup: "1" } })} style={styles.timelineControl}>
+          <MaterialCommunityIcons name="magnify" color={colors.accent} size={18} /><Text style={styles.segmentLabelSelected}>Find a bottle</Text>
         </Pressable>
-      </View> : null}
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rarityRow} accessibilityLabel="Report sources">
+        {([["all", "All reports"], ["sightings", "Sightings"], ["stores", "Store reports"], ["shipments", "Shipments"]] as const).map(([source, label]) => {
+          const selected = (timeline.source || "all") === source;
+          return <Pressable key={source} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => {
+            browsingMutationSequence.current += 1;
+            selectView(source === "sightings" ? "community" : "market");
+            setMarketSource(source === "stores" || source === "shipments" ? source : undefined);
+          }} style={[styles.rarityChip, selected && styles.rarityChipSelected]}>
+            <Text style={[styles.rarityChipText, selected && styles.rarityChipTextSelected]}>{label}</Text>
+          </Pressable>;
+        })}
+      </ScrollView>
 
       {updatedScope === scopeKey ? <Text accessibilityLiveRegion="polite" style={styles.areaOptionNote}>Updated just now</Text> : null}
       <>
-        <View accessibilityLabel="Signal geography filters" style={styles.geographyRow}>
+        {showScope ? <View style={styles.scopeMenu}>
+          <Pressable accessibilityRole="button" accessibilityState={{ selected: !timelineBrowse }} style={styles.timelineControl} onPress={() => { browsingMutationSequence.current += 1; setTimelineBrowse(false); setShowScope(false); }}><Text style={styles.segmentLabelSelected}>Saved areas</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityState={{ selected: timelineBrowse }} style={styles.timelineControl} onPress={() => { browsingMutationSequence.current += 1; setTimelineBrowse(true); }}><Text style={styles.segmentLabelSelected}>Browse statewide</Text></Pressable>
+          <Pressable accessibilityRole="button" style={styles.timelineControl} onPress={() => router.push({ pathname: "/(app)/(tabs)/radar", params: { section: "settings", request: String(Date.now()) } })}><Text style={styles.segmentLabelSelected}>Edit saved areas</Text></Pressable>
+        </View> : null}
+        {showScope && timelineBrowse ? <View accessibilityLabel="Signal geography filters" style={styles.geographyRow}>
           <OptionChooser
             label="State"
             icon="map-marker-outline"
@@ -662,14 +668,14 @@ export default function SignalFeedScreen() {
             onReveal={revealChooser}
             viewportHeight={viewportHeight}
           /> : null}
-        </View>
+        </View> : null}
 
-        {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
-        {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
+        {showScope && filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
+        {showScope && filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
 
         {!filtersAllowed && profile ? <><Text style={styles.areaOptionNote}>{view === "market" ? "Intel preview · Six recent signals · All states" : "Community sightings · All states"}</Text><Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>State filters and bottle alerts · Standard →</Text></Pressable></> : !detailedFilters && profile ? <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Local area filters and feed search · Barrel Proof →</Text></Pressable> : null}
-        {detailedFilters ? <View style={styles.filterInputShell}>
+        {showScope && timelineBrowse && detailedFilters ? <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
             autoCapitalize="words"
@@ -756,35 +762,32 @@ export default function SignalFeedScreen() {
       automaticallyAdjustContentInsets={false}
       ref={listRef}
       contentContainerStyle={styles.list}
-      data={feedGroups}
+      data={visibleSignals}
       keyboardShouldPersistTaps="handled"
       onScroll={(event) => { scrollOffset.current = event.nativeEvent.contentOffset.y; if (pendingOffset.current === null) { savedOffsets.current.delete(scopeKey); savedOffsets.current.set(scopeKey, scrollOffset.current); if (savedOffsets.current.size > 8) savedOffsets.current.delete(savedOffsets.current.keys().next().value!); } }}
       onContentSizeChange={(_width, height) => { listContentHeight.current = height; restoreScrollPosition(); }}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      keyExtractor={(item) => item.key}
+      keyExtractor={(item) => item.shipmentUpdate?.key || item.id}
       renderItem={({ item, index }) => {
-        const first = item.reports[0];
-        const expanded = expandedGroup === item.key;
-        const openReport = (signal: Signal) => router.push({ pathname: "/(app)/signal/[id]", params: { id: signal.id } });
-        return <View style={highlightedIds.includes(first.id) ? styles.groupHighlighted : undefined}>
-          {first.source.type === "member"
-            ? <View>{view === "market" ? <Text style={styles.areaOptionNote}>Member sighting</Text> : null}
-                <FeedSignalRow signal={first} highlighted={highlightedIds.includes(first.id)} personalNote={personalTasteNote(first.bottle, tastePreferences)} />
-              </View>
-            : <GroupedSignalCard reports={item.reports} expanded={expanded}
-                nearest={nearestMappedReport(api, item.reports)} state={filters.state}
-                onMore={hasMore ? () => void load(false) : undefined}
-                onToggle={() => setExpandedGroup(expanded ? "" : item.key)} onOpen={openReport} />}
-          {index === feedGroups.length - 1 ? feedFooter : null}
+        const highlighted = highlightedIds.includes(item.id);
+        const openReport = () => {
+          rememberReport(api, item);
+          router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id, ...(item.shipmentUpdate ? { update: "1" } : {}) } });
+        };
+        return <View style={highlighted ? styles.groupHighlighted : undefined}>
+          {item.shipmentUpdate
+            ? <ShipmentUpdateCard signal={item} owner={api} onPress={openReport} />
+            : <FeedSignalRow signal={item} highlighted={highlighted} personalNote={personalTasteNote(item.bottle, tastePreferences)} owner={api} />}
+          {index === visibleSignals.length - 1 ? feedFooter : null}
         </View>;
       }}
       ItemSeparatorComponent={() => <View style={[styles.separator, view === "community" && styles.communitySeparator]} />}
       refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={() => { setPullRefreshing(true); void Promise.all([load(true), loadProfile(true)]).finally(() => setPullRefreshing(false)); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length) void load(false); }}
       onEndReachedThreshold={0.5}
-      ListHeaderComponent={<>{header}{view === "community" && loaded ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showOlderSightings }} onPress={() => setShowOlderSightings(value => !value)} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>{showOlderSightings ? "Hide older sightings" : "Older sightings"}</Text></Pressable> : null}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
-      ListEmptyComponent={view === "community" && loaded && !error && !showOlderSightings && visibleSignals.length ? <Text style={styles.loadingText}>No sightings in the last 48 hours.</Text> : !loaded && !error
+      ListHeaderComponent={<>{header}<MemberContinuity key={userId || 'signed-out'} paid={Boolean(profile?.membership.paid)} onPreferences={setTastePreferences} /></>}
+      ListEmptyComponent={!loaded && !error
         ? <FeedSkeleton community={view === "community"} />
         : error
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
@@ -801,6 +804,7 @@ export default function SignalFeedScreen() {
                 <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/membership")} style={styles.retryTarget}><Text style={styles.retry}>View memberships →</Text></Pressable>
                 <Pressable accessibilityRole="button" onPress={() => selectView("community")} style={styles.retryTarget}><Text style={styles.retry}>Browse Community →</Text></Pressable>
               </View>
+            : view === "community" ? <EmptyState title="No sightings yet" detail={showOlderSightings ? "Share a bottle you saw in this area." : "No matching sightings in the last 48 hours."} actionLabel="Post a sighting" onAction={() => router.push("/(app)/(tabs)/post")} />
             : <View style={{gap:12}}><EmptyState title={emptyFeed.title} detail={emptyFeed.detail} actionLabel={emptyFeed.actionLabel}
               onAction={() => {
                 switch (emptyFeed.action) {
@@ -813,12 +817,10 @@ export default function SignalFeedScreen() {
                   case "community": selectView("community"); break;
                 }
               }} />
-              {view!=="community"?<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:coverageContext({state:filters.state || profile?.homeState,area:selectedAreaLabel})})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>:null}</View>}
+              {<Pressable accessibilityRole="button" onPress={()=>router.push({pathname:'/(app)/account/coverage',params:coverageContext({state:filters.state || profile?.homeState,area:selectedAreaLabel})})} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.accent,fontWeight:'700'}}>Request coverage here →</Text></Pressable>}</View>}
       ListFooterComponent={<>
         {!visibleSignals.length ? feedFooter : null}
-        {view === "market" && !hasCommunityVolume ? <>
-          {loaded ? <Pressable accessibilityRole="button" onPress={() => { selectView("community"); setShowOlderSightings(true); }} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>Older sightings</Text></Pressable> : null}
-        </> : null}
+        {loaded && !hasMore ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showOlderSightings }} onPress={() => setShowOlderSightings(value => !value)} style={styles.clearLocationButton}><Text style={styles.clearLocationText}>{showOlderSightings ? "Hide older reports" : view === "community" ? "Older sightings" : "Older reports"}</Text></Pressable> : null}
       </>}
     />
       </View>
@@ -837,6 +839,9 @@ export default function SignalFeedScreen() {
 }
 
 const styles = StyleSheet.create({
+  timelineBar: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
+  timelineControl: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44, paddingHorizontal: 6 },
+  scopeMenu: { flexDirection: "row", gap: 14, flexWrap: "wrap" },
   previewTitle: { color: colors.text, fontSize: typeScale.input, fontWeight: "700" },
   previewDetail: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21, marginTop: 6 },
   summaryCard: { alignSelf: "stretch", padding: 14, marginTop: 12, backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border },

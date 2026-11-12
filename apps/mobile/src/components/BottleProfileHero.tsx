@@ -12,13 +12,14 @@ export function BottleProfileHero({ identity, details, tier }: {
   const score = assessment?.score ?? (assessment?.scoreRange ? assessment.scoreRange.low + '–' + assessment.scoreRange.high : null);
   const facts = [details?.category, details?.proof ? `${details.proof} proof` : '', details?.age?.replace(/^0*(\d+)Y$/i, '$1 years')].filter(Boolean);
   const rarity = details && !details.rarity.pending ? details.rarity.label : tier;
+  const rarityLabel = rarity?.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
   return <View accessibilityLabel="Bottle Profile" style={s.hero}>
     <View style={s.identity}>
       <CellarBottleArtwork bottle={{ bottleId: identity.id, bottleName: identity.name }} size="feed" hidePlaceholderLabel />
       <View style={s.identityCopy}>
         <Text accessibilityRole="header" style={s.name}>{identity.name}</Text>
-        {rarity ? <Text style={s.rarityText}>{rarity}</Text> : null}
-        {score != null ? <Text style={s.score}>Signal Score · {score} / 100</Text> : null}
+        {rarityLabel ? <View style={s.tierBadge}><Text style={s.rarityText}>{rarityLabel}</Text></View> : null}
+        {score != null ? <Text style={s.score}>Signal Score · {score} / 100</Text> : details ? <Text style={s.facts}>Signal Score unavailable</Text> : null}
         {details?.msrp != null ? <Text style={s.facts}>Reference price · ${details.msrp.toFixed(2)} MSRP</Text> : null}
         {facts.length ? <Text style={s.facts}>{facts.join(' · ')}</Text> : null}
       </View>
@@ -44,6 +45,7 @@ const s = StyleSheet.create({
   glow: { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(214,154,74,0.055)', borderWidth: 1, borderColor: 'rgba(214,154,74,0.08)' },
   producer: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.8, textTransform: 'uppercase', textAlign: 'center' },
   name: { color: colors.text, fontFamily: fonts.heading, fontSize: 28, lineHeight: 34 },
+  tierBadge: { alignSelf: "flex-start", borderRadius: 8, backgroundColor: colors.surfaceRaised, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.accent, paddingHorizontal: 8, paddingVertical: 3 },
   score: { color: colors.accent, fontSize: 15, fontWeight: '700' },
   facts: { color: colors.muted, fontSize: 14, textTransform: 'capitalize' },
   rarity: { alignItems: 'center', justifyContent: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingVertical: 8 },

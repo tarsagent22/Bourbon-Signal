@@ -1,3 +1,4 @@
+import { radarAlertIdentity } from "../../../src/radar/radar-presentation";
 import { groupRadarReports } from "../../../src/radar/alert-location";
 import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
@@ -293,7 +294,7 @@ export default function RadarScreen() {
       <AlertCard alert={openedNotificationAlert} saving={saving} watchedNames={watchedNames} onMute={muteAlertBottle} isMuted={name => Boolean(mutedBottleForName(name))} />
     </View> : null}
 
-    {view === "matches" && (!alertsLoadFailed || activeAlerts.length > 0) ? <MatchesView alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} onMute={muteAlertBottle} isMuted={name => Boolean(mutedBottleForName(name))} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
+    {view === "matches" && (!alertsLoadFailed || activeAlerts.length > 0) ? <MatchesView hasOpenedAlert={Boolean(openedNotificationAlert)} alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} onMute={muteAlertBottle} isMuted={name => Boolean(mutedBottleForName(name))} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
     {view === "settings" ? <WatchlistView
       onNotificationsLayout={(y) => { if (focusNotifications) { screenScroll.current?.scrollTo({ y: preferencesY.current + y, animated: true }); setFocusNotifications(false); } }}
       pushRecoveryAction={pushRecoveryAction}
@@ -326,25 +327,31 @@ export default function RadarScreen() {
   </ScrollView></View>;
 }
 
-function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOpenWatchlist, onMute, isMuted }: { alerts: MemberAlert[]; saving: boolean; watchedNames: string[]; setupNeeded: boolean; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string | string[]) => Promise<void>; onOpenWatchlist: () => void; onMute: (name: string, muted: boolean) => Promise<boolean>; isMuted: (name: string) => boolean }) {
+function MatchesView({ hasOpenedAlert, alerts, saving, watchedNames, setupNeeded, onMutate, onOpenWatchlist, onMute, isMuted }: { hasOpenedAlert: boolean; alerts: MemberAlert[]; saving: boolean; watchedNames: string[]; setupNeeded: boolean; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string | string[]) => Promise<void>; onOpenWatchlist: () => void; onMute: (name: string, muted: boolean) => Promise<boolean>; isMuted: (name: string) => boolean }) {
   const [showPast, setShowPast] = useState(false);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(timer); }, []);
   const { current, history: past } = partitionRadarAlerts(alerts, now);
+  const mutate: typeof onMutate = (action, ids) => {
+    const selected = new Set(Array.isArray(ids) ? ids : ids ? [ids] : []);
+    const identities = new Set(alerts.filter(alert => selected.has(alert.id)).map(radarAlertIdentity));
+    const matching = alerts.filter(alert => identities.has(radarAlertIdentity(alert))).map(alert => alert.id);
+    return onMutate(action, matching.length ? matching : ids);
+  };
   return <View style={styles.section}>
-    {current.some(alert => !alert.readAt) ? <TextAction label="MARK READ" disabled={saving} onPress={() => void onMutate("mark_read", current.filter(item => !item.readAt).map(item => item.id))} /> : null}
-    {!current.length ? <View style={styles.emptyAlerts}>
+    {current.some(alert => !alert.readAt) ? <TextAction label="MARK READ" disabled={saving} onPress={() => void mutate("mark_read", current.filter(item => !item.readAt).map(item => item.id))} /> : null}
+    {!current.length && !past.length && !hasOpenedAlert ? <View style={styles.emptyAlerts}>
       <Text style={styles.emptyTitle}>{setupNeeded ? "Set up your alerts" : "No recent alerts"}</Text>
       <Text style={styles.muted}>{setupNeeded
         ? "Choose where to look and which bottles to watch."
         : "Fresh store reports and official ABC shipments can alert when they match your saved locations, rarity tiers, and bottle preferences."}</Text>
       <SmallButton primary={setupNeeded} label={setupNeeded ? "Choose preferences" : "Review match settings"} onPress={onOpenWatchlist} />
     </View> : null}
-    {groupRadarReports(current).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />)}
+    {groupRadarReports(current).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={mutate} onMute={onMute} isMuted={isMuted} />)}
     {past.length ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showPast }} onPress={() => setShowPast(value => !value)} style={styles.historyRow}>
-      <Text style={styles.listTitle}>Past alerts ({past.length})</Text><Text style={styles.chevron}>{showPast ? "−" : "+"}</Text>
+      <Text style={styles.listTitle}>Earlier reports ({past.length})</Text><Text style={styles.chevron}>{showPast ? "−" : "+"}</Text>
     </Pressable> : null}
-    {showPast ? groupRadarReports(past).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />) : null}
+    {showPast ? groupRadarReports(past).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={mutate} onMute={onMute} isMuted={isMuted} />) : null}
   </View>;
 }
 

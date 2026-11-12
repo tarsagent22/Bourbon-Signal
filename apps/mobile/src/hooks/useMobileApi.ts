@@ -17,7 +17,13 @@ function useAccountMobileApi() {
     if (current.current.identity !== identity) throw new MobileApiError('The account changed. Please retry.', 401, 'SESSION_CHANGED');
     return token;
   } }), pushAccountId: userId || "", accountIdentity: identity }), [identity]);
-  useEffect(() => () => { api.clearReadCache(); void homeFeedCache.clear(userId || "").catch(() => undefined); }, [api, userId]);
+  const previousIdentity = useRef({ identity, userId });
+  useEffect(() => {
+    const previous = previousIdentity.current;
+    if (previous.identity !== identity) void homeFeedCache.clear(previous.userId || "").catch(() => undefined);
+    previousIdentity.current = { identity, userId };
+    return () => api.clearReadCache();
+  }, [api, identity, userId]);
   useEffect(() => subscribeMembershipChanges(changedUserId => {
     if (changedUserId !== userId) return;
     api.clearReadCache();

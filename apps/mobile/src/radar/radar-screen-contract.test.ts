@@ -79,7 +79,8 @@ test("current and history stay separate with useful empty states", () => {
   const radar = readScreen("radar");
   assert.match(radar, /groupRadarReports\(current\)\.map/);
   assert.match(radar, /showPast \? groupRadarReports\(past\)\.map/);
-  assert.match(radar, /Past alerts \(\{past\.length\}\)/);
+  assert.match(radar, /Earlier reports \(\{past\.length\}\)/);
+  assert.match(radar, /!current\.length && !past\.length/);
   assert.match(radar, /No recent alerts/);
   assert.doesNotMatch(radar, /freshness-qualified|Updated \{lastUpdated\}/);
   const row = readFileSync(resolve(mobileRoot, "src/radar/RadarAlertRow.tsx"), "utf8");
