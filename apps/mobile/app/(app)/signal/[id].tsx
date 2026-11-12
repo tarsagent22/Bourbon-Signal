@@ -7,7 +7,8 @@ import { ErrorState } from "../../../src/components/MemberScreen";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { reportDateTime, signalStoreContact } from "../../../src/signals/store-contact";
 import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import { presentSignal, signalMemberTagLabel, signalCardStatusLabel } from "../../../src/api/presentation";
@@ -123,12 +124,11 @@ export default function SignalDetailScreen() {
   const inCellar = bottleProfile?.inCellar === true;
   const shelfEntry = signal && preferences ? collectionBottleForIdentity(signal.bottle, preferences.collectionPreferences.bottles) : null;
   const isWatched = bottleProfile?.isWatched === true;
-  const address = signal ? [signal.location.store?.address, signal.location.store?.city, signal.location.store?.state, signal.location.store?.zip].filter(Boolean).join(", ") : "";
+  const { address, destination, phone } = signalStoreContact(signal);
   const canWatch = Boolean(signal?.actions.includes("watch_bottle"));
   const collectionAccess = preferences?.collectionAccess;
   const canReadCellar = collectionAccess?.canRead === true;
   const canAddToCellar = collectionAccess?.canAdd === true;
-  const actionCount = useMemo(() => Number(canWatch) + Number(canReadCellar) + Number(Boolean(address)), [address, canReadCellar, canWatch]);
 
   async function toggleRadarWatch() {
     if (!signal || !preferences || saving) return;
@@ -154,8 +154,8 @@ export default function SignalDetailScreen() {
   }
 
   async function openMaps() {
-    if (!address) return;
-    const url = Platform.OS === "ios" ? `maps://?q=${encodeURIComponent(address)}` : `geo:0,0?q=${encodeURIComponent(address)}`;
+    if (!destination) return;
+    const url = Platform.OS === "ios" ? `https://maps.apple.com/?daddr=${encodeURIComponent(destination)}` : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
     try { await Linking.openURL(url); }
     catch { setActionError("Maps could not be opened for this location."); }
   }
@@ -184,40 +184,40 @@ export default function SignalDetailScreen() {
     {signal && !hidden ? <>
       <BottleProfileHero identity={signal.bottle} details={bottleDetails} personal={bottleProfile}
         onShelf={canReadCellar && (inCellar || canAddToCellar) && !saving ? () => shelfEntry ? router.push({ pathname: "/(app)/(tabs)/cellar", params: { editBottleId: shelfEntry.bottleId } }) : signal.bottle.id ? router.push({ pathname: "/(app)/cellar/add", params: { bottleId: signal.bottle.id } }) : void addToCellar() : undefined}
-        onWatch={canWatch && preferences && !saving ? () => void toggleRadarWatch() : undefined} />
+        />
       <View style={styles.signalSection}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>{signal.historical ? "Last reported availability" : signal.kind === "availability" ? "Store report" : signal.kind === "release" ? "Release details" : "Event details"}</Text>
         <Text style={styles.source}>{signalCardStatusLabel(signal)}</Text>
         {signal.location.store?.name ? <Text style={styles.storeName}>{signal.location.store.name}</Text> : null}
-        <View style={styles.reportFigures}>{presented?.price ? <View style={styles.reportFigure}>{signal.availability?.price != null ? <Text style={styles.label}>Reported price</Text> : null}<Text style={signal.availability?.price == null ? styles.disclaimer : styles.reportPrice}>{signal.availability?.price == null && presented.price === "Price unknown" ? "Price not reported" : presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
+        {destination || phone ? <View style={styles.storeActions}>
+          {destination ? <ActionButton label="Directions" onPress={() => void openMaps()} /> : null}
+          {phone ? <ActionButton label="Call store" onPress={() => { void Linking.openURL("tel:" + phone).catch(() => setActionError("This phone could not open the dialer.")); }} /> : null}
+        </View> : null}
+        <View style={styles.reportFigures}>{presented?.price && presented.price !== "Price unknown" ? <View style={styles.reportFigure}>{signal.availability?.price != null ? <Text style={styles.label}>Reported price</Text> : null}<Text style={signal.availability?.price == null ? styles.disclaimer : styles.reportPrice}>{presented.price}</Text></View> : null}{presented?.quantity ? <View style={styles.reportFigure}><Text style={styles.label}>Reported quantity</Text><Text style={styles.reportQuantity}>{presented.quantity}</Text></View> : null}</View>
         {signal.source.type === "member" ? <View style={styles.authorRow}>
           {presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
           {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
           {!presented?.reporter && !memberTag ? <Text style={styles.source}>Community report</Text> : null}
           {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize: typeScale.small}}>{badge}</Text>)}</View>:null}
-        </View> : <Text style={styles.source}>{signal.source.label}</Text>}
+        </View> : null}
         <Detail label="Location" value={address || presented?.location || signal.location.state || "Location not specified"} />
-        <Detail label={signal.kind === "availability" && signal.source.type === "trusted_source" ? "Last checked" : "Reported"} value={reportAge(signal).value ? new Date(reportAge(signal).value!).toLocaleString() : "Time not available"} />
-        {signal.timing.firstSpottedAt ? <Detail label="First spotted" value={new Date(signal.timing.firstSpottedAt).toLocaleString()} /> : null}
+        <Detail label={signal.kind === "availability" && signal.source.type === "trusted_source" ? "Last checked" : "Reported"} value={reportAge(signal).value ? reportDateTime(reportAge(signal).value || undefined) : "Time not available"} />
+        {signal.timing.firstSpottedAt ? <Detail label="First spotted" value={reportDateTime(signal.timing.firstSpottedAt)} /> : null}
 
 
 
         {presented?.summary && (signal.source.type === "member" || signal.kind !== "availability") ? <Detail label="Note" value={presented.summary} /> : null}
         {signal.evidence.photoUrl ? photoFailed?<Text style={styles.disclaimer}>The approved photo could not load. Pull to refresh to try again.</Text>:<Image source={{uri:signal.evidence.photoUrl}} onError={()=>setPhotoFailed(true)} accessibilityLabel="Member sighting photo approved for public display" resizeMode="contain" style={{width:"100%",height:240,borderRadius:12}} /> : null}
-        <Text style={styles.disclaimer}>{signal.historical ? "This is an older report. Check with the store for current availability before driving." : "Reported availability can change. Check with the store before driving."}</Text>
         {presented?.caveat && !/stale|not alertable|last.known|before driving/i.test(presented.caveat) ? <Detail label="Source note" value={presented.caveat} /> : null}
-        {signal.source.type === "member" ? <Text style={styles.disclaimer}>Member observations report what someone saw and are not verified retailer inventory.</Text> : null}
       </View>
       <BottlePriceCheck key={signal.id} msrp={bottleDetails?.msrp ?? null} initialPrice={signal.availability?.price?.toFixed(2) || ''} />
-      {actionCount ? <View style={styles.actions}>
-        <Text style={styles.actionsTitle}>Actions</Text>
+      <View style={styles.actions}>
         {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
         {canReadCellar ? <ActionButton disabled={(!inCellar && !canAddToCellar) || saving} label={inCellar ? "Edit your shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => shelfEntry ? router.push({pathname:"/(app)/(tabs)/cellar",params:{editBottleId:shelfEntry.bottleId}}) : signal.bottle.id ? router.push({pathname:"/(app)/cellar/add",params:{bottleId:signal.bottle.id}}) : void addToCellar()} /> : null}
-        {address ? <ActionButton label="Open in Maps" onPress={() => void openMaps()} /> : null}
         <ActionButton label="Request coverage for this area or store" onPress={() => router.push({ pathname: '/(app)/account/coverage', params: coverageContext({ state: signal.location.state, area: signal.location.store?.city, store: signal.location.store?.name, address: signal.location.store?.address }) })} />
         <ActionButton label="Get help with this Signal" onPress={() => router.push({ pathname: '/(app)/account/support', params: supportContext({ screen: 'Signal detail', bottle: signal.bottle.name, signalId: signal.id, state: signal.location.state, area: signal.location.store?.city }) })} />
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
-      </View> : null}
+      </View>
       {signal.source.type === "member" ? <View style={styles.actions}>
         <Text style={styles.actionsTitle}>Community feedback</Text>
         {signal.actions.includes('helpful')?<ActionButton disabled={saving} label={`Helpful (${signal.evidence.helpfulCount})`} onPress={()=>void saveFeedback('helpful')}/>:null}
@@ -253,6 +253,7 @@ function ProfileDetail({ label, value }: { label: string; value: string }) { ret
 const styles = StyleSheet.create({
   storeName:{color:colors.text,fontFamily:fonts.heading,fontSize:24,lineHeight:30},reportFigures:{flexDirection:"row",flexWrap:"wrap",gap:28},reportFigure:{gap:6},reportPrice:{color:colors.accent,fontSize:32,fontWeight:"600"},reportQuantity:{color:colors.text,fontSize:24},
   container: { flexGrow: 1, padding: 22, paddingBottom: 42, gap: 18, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, authorRow: { minHeight: 28, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }, reporter: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, memberTagText: { color: colors.text, fontSize: typeScale.caption, lineHeight: 13, fontWeight: "800", letterSpacing: 0.4 }, title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" }, sectionTitle: { color: colors.text, fontSize: typeScale.subheading, lineHeight: 23, fontWeight: "800" }, profileCard: { gap: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: 15 }, profileGrid: { flexDirection: "row", flexWrap: "wrap", rowGap: 13 }, profileDetail: { width: "50%", gap: 3, paddingRight: 8 }, profileLabel: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }, profileValue: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, signalSection: { gap: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 18 }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: typeScale.small, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: typeScale.input, lineHeight: 23 }, error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18, marginTop: 4 },
+  storeActions: { gap: 8 },
   actions: { gap: 10, marginTop: 4 }, actionsTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, action: { minHeight: 50, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }, actionPressed: { backgroundColor: colors.surfaceRaised }, actionDisabled: { borderColor: colors.border }, actionText: { color: colors.accent, fontSize: typeScale.body, fontWeight: "800" }, actionTextDisabled: { color: colors.muted },
   huntOutcome: { gap: 10, marginTop: 8, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 18 }, huntOutcomeTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, huntOutcomeDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18 }, huntOutcomeChoices: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, huntOutcomeChoice: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, backgroundColor: colors.surface, paddingHorizontal: 12 }, huntOutcomeChoiceActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised }, huntOutcomeChoiceText: { color: colors.text, fontSize: typeScale.small, fontWeight: "700" }, huntOutcomeSaved: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, huntOutcomeSavedText: { flex: 1, color: colors.muted, fontSize: typeScale.small }, huntOutcomeSavedValue: { color: colors.text, fontWeight: "800" }, huntOutcomeEdit: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 }, huntOutcomeEditText: { color: colors.accent, fontWeight: "800" },
 });

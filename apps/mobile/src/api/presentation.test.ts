@@ -24,7 +24,7 @@ function signal(overrides: Partial<Signal> = {}): Signal {
 test("board shipment units never become bottles available at a member store", () => {
   const row = signal({ shipment: {boardId: "board-1", quantity: 414, unit: "units"}, location: {scope: "board", state: "NC"}, availability: {status: "reported", quantity: 414} });
   assert.equal(presentSignal(row).quantity, "414 units shipped");
-  assert.match(signalCardStatusLabel(row), /Store availability unconfirmed/);
+  assert.match(signalCardStatusLabel(row), /Receiving stores unconfirmed/);
   assert.equal(signalRowReportSummary(row).quantityInSummary, false);
 });
 

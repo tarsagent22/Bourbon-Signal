@@ -24,7 +24,7 @@ test("Home opens directly on fresh Intel and member sightings", () => {
   assert.match(readFileSync(resolve(process.cwd(), "src/signals/feed-empty-state.ts"), "utf8"), /No member sightings yet/);
   assert.doesNotMatch(feed, /Home overview|Your Bourbon Signal home|OPEN RADAR/);
   assert.doesNotMatch(feed, /Trip Mode|tripMode|trip-mode/);
-  assert.doesNotMatch(feed, /getMemberPreferences|getMemberAlerts|radarWatchlistSummary|radarMonitoringSummary/);
+  assert.doesNotMatch(feed, /getMemberAlerts|radarWatchlistSummary|radarMonitoringSummary/);
   assert.doesNotMatch(feed, /Open Signal filters|Filter Signals|filterOpen|filterSheet/);
   assert.doesNotMatch(feed, /canUseFilters/);
   assert.match(feed, /showsVerticalScrollIndicator=\{false\}/);
@@ -40,9 +40,9 @@ test("Home restores user-scoped browsing filters without touching Radar preferen
   assert.match(feed, /homeBrowsingStorageKey\(userId\)/);
   assert.match(feed, /loadHomeBrowsingPreferences/);
   assert.match(feed, /saveHomeBrowsingPreferences/);
-  assert.doesNotMatch(feed, /getMemberPreferences|updateMemberPreferences|notificationPreferences|monitoringScopes/);
+  assert.doesNotMatch(feed, /updateMemberPreferences|notificationPreferences/);
   assert.match(feed, /loadedBrowsingStorageKey === browsingStorageKey/);
-  const identityReset = feed.match(/useEffect\(\(\) => \{\s*let current = true;[\s\S]*?\}, \[api, browsingStorageKey\]\);/)?.[0] || "";
+  const identityReset = feed.match(/useEffect\(\(\) => \{\s*let current = true;[\s\S]*?\}, \[api, browsingStorageKey, sessionId, loadProfile\]\);/)?.[0] || "";
   assert.match(identityReset, /setSignals\(\[\]\)/, "one member's feed must not remain mounted for another identity");
   assert.match(identityReset, /requestSequence\.current \+= 1/);
   assert.match(identityReset, /profileRequestSequence\.current \+= 1/);
@@ -73,10 +73,10 @@ test("Home location controls say All states and expose one-tap location clearing
   assert.match(feed, /accessibilityLabel="Clear Home location filters"/);
 });
 
-test("State and Area remain a stable pair while Area is disabled until State is selected", () => {
+test("Area appears only after State is selected and area filtering is available", () => {
   assert.match(feed, /label="State"[\s\S]*?icon="map-marker-outline"/);
-  assert.match(feed, /label=\{areaLabel\}[\s\S]*?disabled=\{!filters\.state \|\| !detailedFilters\}/);
-  assert.doesNotMatch(feed, /filters\.state \? <OptionChooser/);
+  assert.match(feed, /filters\.state && detailedFilters \? <OptionChooser[\s\S]*?label=\{areaLabel\}/);
+  assert.doesNotMatch(feed, /Select state first/);
   assert.doesNotMatch(feed, /geographySoloRow|filterChooserSolo/);
   assert.match(feed, /accessibilityState=\{\{ expanded, disabled \}\}/);
   assert.match(feed, /disabled=\{disabled\}/);

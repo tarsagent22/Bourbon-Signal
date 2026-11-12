@@ -40,7 +40,7 @@ export function CommunityPostCard({
   const rarity =
     signal.bottle.scarcity?.nationalLabel ||
     (signal.bottle.rarityPending || !signal.bottle.id
-      ? "Rarity pending"
+      ? ""
       : appearance.rarityLabel);
   const local = signal.bottle.scarcity;
   const member = signalMemberTagLabel(signal) || "Member";
@@ -108,7 +108,7 @@ export function CommunityPostCard({
         </View>
         {age.older ? <Text style={s.member}>Older sighting · Availability may have changed</Text> : null}
         <View style={s.bottleRow}>
-          <View style={s.thumbnail}>
+          {photoUrl && !failed || signal.bottle.id ? <View style={s.thumbnail}>
             {photoUrl && !failed ? (
               <Pressable
                 accessibilityRole="button"
@@ -145,12 +145,13 @@ export function CommunityPostCard({
                     bottleName: signal.bottle.name,
                   }}
                   size="feed"
+                  hidePlaceholderLabel
                 />
               </View>
             )}
-          </View>
+          </View> : null}
           <View style={s.bottleInfo}>
-            <View style={s.rarityLine}>
+            {rarity ? <View style={s.rarityLine}>
               <View
                 style={[s.rarityBadge, { backgroundColor: appearance.keyline }]}
               >
@@ -158,17 +159,14 @@ export function CommunityPostCard({
                   style={[
                     s.rarityText,
                     {
-                      color:
-                        rarity === "Rarity pending"
-                          ? colors.muted
-                          : appearance.accent,
+                      color: appearance.accent,
                     },
                   ]}
                 >
                   {rarity}
                 </Text>
               </View>
-            </View>
+            </View> : null}
             <Text style={s.bottle}>
               {signal.bottle.name}
             </Text>

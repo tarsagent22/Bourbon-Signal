@@ -70,11 +70,7 @@ export const MapReportCard = memo(function MapReportCard({
           <Text numberOfLines={2} style={s.title}>
             {identity.title}
           </Text>
-          <Text style={s.price}>
-            {signal.availability?.price != null
-              ? `$${signal.availability.price.toFixed(2)}`
-              : "Price not reported"}
-          </Text>
+          {signal.availability?.price != null ? <Text style={s.price}>{`$${signal.availability.price.toFixed(2)}`}</Text> : null}
           <Text numberOfLines={1} style={s.detail}>
             {signalRowReportSummary(signal, now).label}
           </Text>

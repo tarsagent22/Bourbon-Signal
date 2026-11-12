@@ -40,9 +40,10 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
   const accepting = useRef(false); accepting.current = enabled && !held;
   // A background catalog refresh must not restart a scan or erase its choices.
   // Pick up the latest library on the next scan or camera activation instead.
-  const snapshot = useRef<{ index: ReturnType<typeof createLabelIndex>; session: number; enabled: boolean } | null>(null);
-  if (!snapshot.current || snapshot.current.session !== session || (enabled && !snapshot.current.enabled)) {
-    snapshot.current = { index: createLabelIndex(catalog), session, enabled };
+  const lastMatch = useRef(false);
+  const snapshot = useRef<{ index: ReturnType<typeof createLabelIndex>; session: number; enabled: boolean; catalog: typeof catalog } | null>(null);
+  if (!snapshot.current || snapshot.current.session !== session || (enabled && (!snapshot.current.enabled || (!held && !lastMatch.current && snapshot.current.catalog !== catalog)))) {
+    snapshot.current = { index: createLabelIndex(catalog), session, enabled, catalog };
   } else snapshot.current.enabled = enabled;
   const index = snapshot.current.index;
   const tracker = useMemo(() => createLiveLabelSession(index, performance.now()), [index]);
@@ -50,6 +51,7 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
   const currentToken = useRef(token); currentToken.current = token;
   const lastFamily = useRef(''), lastList = useRef(''), failures = useRef(0);
   const publish = useCallback((matches: Parameters<ScannerProps['onMatches']>[0]) => {
+    lastMatch.current = matches.length > 0;
     const ids = matches.map(b => b.id).join('|');
     if (ids !== lastList.current) { lastList.current = ids; current.current.onMatches(matches); }
   }, []);

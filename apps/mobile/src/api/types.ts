@@ -16,7 +16,7 @@ export interface Signal {
     scope: "exact_store" | "area" | "board" | "state" | "online" | "unknown";
     label?: string;
     state?: string;
-    store?: { id?: string; name?: string; address?: string; city?: string; state?: string; zip?: string };
+    store?: { id?: string; name?: string; address?: string; city?: string; state?: string; zip?: string; phone?: string };
   };
   listingChange?: "first_detection" | "restock" | "price_drop" | "price_change";
   timing: { observedAt?: string; reportedAt?: string; displayAt: string; firstSpottedAt?: string; lastCheckedAt?: string; scheduledFor?: string; expiresAt?: string };

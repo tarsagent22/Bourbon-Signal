@@ -43,7 +43,11 @@ export function createHomeFeedCache(storage: FeedCacheStorage, now = Date.now) {
       if (page.access.marketDetailsLocked) {
         generations.set(owner, (generations.get(owner) || 0) + 1);
         memory.delete(owner);
-        return persist(owner, null);
+        if (!page.marketSummaries.length) return persist(owner, null);
+        const safePreview = { ...page, signals: [], nextCursor: null, hasMore: false };
+        const entries = [{ scope, savedAt: now(), page: safePreview }];
+        memory.set(owner, entries);
+        return persist(owner, JSON.stringify({ version: 1, entries }));
       }
       const entry = { scope, savedAt: now(), page: { ...page, signals: page.signals.slice(0, 30) } };
       const previous = (memory.get(owner) || []).filter(item => item.scope !== scope && valid(item));

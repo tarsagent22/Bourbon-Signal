@@ -99,7 +99,7 @@ export default function NearbyMap({
         style={StyleSheet.absoluteFill}
         initialRegion={region}
         userInterfaceStyle="dark"
-        mapType="standard"
+        mapType="mutedStandard"
         showsPointsOfInterests={false}
         showsBuildings={false}
         showsCompass={false}
