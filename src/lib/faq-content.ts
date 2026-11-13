@@ -30,6 +30,14 @@ function productFaqItems(): FaqItem[] {
 
   return [
     {
+      question: "Can I use my website membership in the app?",
+      answer: "Yes. Sign in with the same email and sign-in method to keep your membership, shelf, ratings, watches, contributions, and earned or gifted access.",
+    },
+    {
+      question: "Can I manage or cancel my membership in the app?",
+      answer: "Open Membership, then Manage membership. Manage website subscriptions through Stripe, iPhone subscriptions through Apple, and Android subscriptions through Google Play. When you cancel, paid access continues through the current billing period.",
+    },
+    {
       question: "What is Bourbon Signal?",
       answer:
         "Bourbon Signal helps bourbon hunters find actionable bottle availability without digging through dozens of retailer, control-board, warehouse, distillery, and community sources. It combines those signals into one feed, labels their freshness and precision, and alerts members when meaningful activity matches their markets or bottle watchlists.",

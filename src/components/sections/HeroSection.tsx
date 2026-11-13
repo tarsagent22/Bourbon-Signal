@@ -2,11 +2,11 @@
 
 import { useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import AppDownloadCTA from "../AppDownloadCTA";
 import ScrollReveal from "../ScrollReveal";
 import { useAuth } from "@/lib/auth";
 
-export default function HeroSection() {
+export default function HeroSection({ appFunnel = false }: { appFunnel?: boolean }) {
   const ref = useRef(null);
   const { isSignedIn } = useAuth();
 
@@ -136,7 +136,6 @@ export default function HeroSection() {
               "Live Drop Feed",
               "Drop Alerts",
               "Member Sightings",
-              "Bottle Check",
               "My Shelf",
               "Personalized Bottle Recommendations",
             ].map((item, index, arr) => (
@@ -177,7 +176,7 @@ export default function HeroSection() {
           </div>
         </ScrollReveal>
 
-        {!isSignedIn ? (
+        {appFunnel ? <ScrollReveal delay={150}><AppDownloadCTA /></ScrollReveal> : !isSignedIn ? (
           <ScrollReveal delay={150}>
             <div
               className="flex flex-col sm:flex-row items-center gap-4"
@@ -201,7 +200,7 @@ export default function HeroSection() {
                 }}
               >
                 Try free
-                <ArrowRight size={16} />
+                <span aria-hidden="true">→</span>
               </a>
             </div>
           </ScrollReveal>
