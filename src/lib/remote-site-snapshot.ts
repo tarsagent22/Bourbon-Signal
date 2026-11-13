@@ -3,7 +3,7 @@ import { gunzipSync } from "node:zlib";
 
 export interface RemoteSnapshotStorage {
   readPointer(): Promise<Record<string, unknown> | null>;
-  readObject(key: string): Promise<string | null>;
+  readObject(key: string, plaintextBytes?: number): Promise<string | null>;
 }
 
 interface FileDescriptor {
@@ -95,7 +95,7 @@ export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapsho
     const hit = options.cacheImmutable && payloads.get(key);
     if (hit) return structuredClone(await hit.promise);
     const attempt = (async () => {
-      const encrypted = await options.storage.readObject(`engine/snapshots/${snapshotId}/files/${filePath}.enc`);
+      const encrypted = await options.storage.readObject(`engine/snapshots/${snapshotId}/files/${filePath}.enc`, descriptor.bytes);
       if (!encrypted) throw new Error(`Engine snapshot file is missing: ${filePath}`);
       const plaintext = decryptObject(encrypted, options.encryptionKey, descriptor.bytes);
       if (Buffer.byteLength(plaintext) !== descriptor.bytes || sha256(plaintext) !== descriptor.sha256) {
@@ -103,7 +103,8 @@ export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapsho
       }
       return JSON.parse(plaintext) as Record<string, unknown>;
     })();
-    if (options.cacheImmutable && descriptor.bytes >= 0 && descriptor.bytes <= maximumBytes) {
+    const retained = options.cacheImmutable && descriptor.bytes >= 0 && descriptor.bytes <= maximumBytes;
+    if (retained) {
       payloads.set(key, { promise: attempt, bytes: descriptor.bytes });
       let bytes = [...payloads.values()].reduce((sum, entry) => sum + entry.bytes, 0);
       while (bytes > maximumBytes || payloads.size > 16) {
@@ -112,7 +113,10 @@ export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapsho
         payloads.delete(oldest);
       }
     }
-    try { return structuredClone(await attempt); }
+    try {
+      const payload = await attempt;
+      return retained ? structuredClone(payload) : payload;
+    }
     catch (error) { if (payloads.get(key)?.promise === attempt) payloads.delete(key); throw error; }
   }
   return {

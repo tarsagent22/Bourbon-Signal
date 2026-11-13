@@ -1,3 +1,4 @@
+import * as sourceProjection from '../src/lib/source-projection-reader.ts';
 import * as consumptionTrace from "../src/lib/source-consumption-trace.ts";
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -63,6 +64,11 @@ async function harness() {
   };
   const executor = { query: async (sql: string, args: any[] = []) => {
     if (sql.includes('SELECT * FROM source_poll_jobs')) return { rows: structuredClone([...state.jobs.values()]) };
+    if (sql.includes('AS current_jobs')) return { rows: [...state.jobs.values()].filter(row => args[2].includes(row.source_id)).map(row => {
+      const key = row.projection && row.accepted_at ? JSON.stringify([String(row.generation), row.accepted_at]) : null;
+      return structuredClone({ source_id: row.source_id, generation: row.generation, accepted_at: row.accepted_at, last_reason: row.last_reason,
+        projection_key: key, projection: !row.projection || (key !== null && JSON.parse(args[1])[row.source_id] === key) ? null : { [args[0]]: row.projection[args[0]] } });
+    }) };
     if (sql.includes('source_poll_acquire')) {
       state.writes.push('acquire');
       const job = state.jobs.get(args[0]) || { source_id: args[0], generation: 0, failures: 0, projection: null };
@@ -72,7 +78,7 @@ async function harness() {
     if (sql.includes('source_poll_finish')) {
       state.writes.push('finish');
       const failed = sql.includes('NULL,$4'), job = state.jobs.get(args[0])!;
-      Object.assign(job, { projection: failed ? job.projection : JSON.parse(args[3]), last_reason: args[failed ? 3 : 4] });
+      Object.assign(job, { projection: failed ? job.projection : JSON.parse(args[3]), accepted_at: failed ? job.accepted_at : iso(), last_reason: args[failed ? 3 : 4] });
       return { rows: [{ committed: true }] };
     }
     if (sql.includes('INSERT INTO source_poll_trace')) return { rows: [] }; // Existing consumption telemetry only.
@@ -96,6 +102,7 @@ async function harness() {
   class CountingBible extends BourbonBible { constructor(records: any[]) { super(records); state.bibles++; } }
   const dependencies = (name: string): any => {
     if (name === 'node:crypto') return crypto;
+    if (name === './source-projection-reader') return (sourceProjection as any).default || sourceProjection;
     if (name === './source-acceptance-health') return {};
     if (name === './alert-queue/runtime') return { createProductionAlertQueueSqlExecutor: () => executor };
     if (name === './site-engine-contract') return { readSiteExportResults: readExports };

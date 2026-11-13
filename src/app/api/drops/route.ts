@@ -1,15 +1,13 @@
 import { validSignalBottleId } from "@/lib/signals/signal-feed-filters";
 import { filterNearbyFeedDrops, nearbyFeedPageLimit } from "@/lib/nearby-feed-scope";
 import { dropFeedSearchMatches } from "@/lib/signals/feed-search";
-import { unstable_cache } from "next/cache";
-import { packPublicFeed, unpackPublicFeed } from "@/lib/public-feed-pack";
-import { createPreparedDropCache, createAsyncPreparedDropCache } from "@/lib/prepared-drop-cache";
+import { createAsyncPreparedDropCache } from "@/lib/prepared-drop-cache";
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { getEntitlements } from "@/lib/entitlements";
 import { authorizeEngineFeedVerification, ENGINE_FEED_VERIFICATION_HEADER, engineFeedCountPayload } from "@/lib/engine-feed-verification";
 import { authorizePilotReceipt, PILOT_RECEIPT_HEADER, pilotReceiptPayload } from '@/lib/nationwide-pilot-receipt';
-import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
-import { NextResponse } from "next/server";
+import { prepareRuntimeSourceDropOverlay, type RuntimeDropOverlay } from "@/lib/source-lane-runtime";
+import { after, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { normalizeDropForSite, readSiteExportResults, readSiteExportIdentity, siteExportHeaders } from "@/lib/site-engine-contract";
 import { normalizeStateCodeParam } from "@/lib/location-normalization";
@@ -39,8 +37,6 @@ import {
   classifyPublicDrop,
   type DropClassificationBottle,
 } from "@/lib/drop-classification";
-
-const preparedDropCache = createPreparedDropCache<ReturnType<typeof normalizeDropForSite>[]>(4, 300_000);
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set<string>(DROP_FEED_CLASSIFICATION_TIERS);
@@ -157,63 +153,34 @@ function normalizePublicFeedRow(drop: Record<string, unknown>, classificationInd
   return classifyPublicDrop(normalized, classificationIndex);
 }
 
-// Only immutable export rows and their generated classification enter the heavy
-// shared caches. Keep all rows: current source ownership must be applied before
-// eligibility, including an empty result or a veto of formerly positive stock.
-async function preparePublicFeedBase() {
-  const [dropResult, statsResult] = await readSiteExportResults(["drops", "stats"]);
-  const exportPayload = dropResult.payload;
+// Cache only normalized snapshot rows and their stable classification. The
+// published Blob already supplies shared compressed immutable storage. Repacking
+// the same export on the request path added a large synchronous encode and a
+// second full preparation whenever the packed result exceeded cache limits.
+async function preparePublicFeedBase(selection: Awaited<ReturnType<typeof readSiteExportIdentity>>) {
+  const [dropResult, statsResult] = await readSiteExportResults(["drops", "stats"], selection);
+  const { drops, ...exportPayload } = dropResult.payload || {};
   const statsPayload = statsResult.payload;
   const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
-  const preparationKey = JSON.stringify([dropResult.snapshotId || exportPayload?.generatedAt, classificationIndex.version]);
-  const normalizedDrops = preparedDropCache.get(preparationKey, () => sortDropsByCanonicalSignalOrder(
-    (Array.isArray(exportPayload?.drops) ? exportPayload.drops : []).map((drop) => normalizePublicFeedRow(drop as Record<string, unknown>, classificationIndex)),
-  ));
-  const degradedStates = degradedEngineStates(statsPayload);
-  const eligible = normalizedDrops;
-  const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
-  return { dropResult, exportPayload, statsPayload, classificationIndex, normalizedDrops, eligible, degradedStates, freshness, cacheable: [dropResult, statsResult].every(result => result.source === "remote-snapshot" || result.source === "local-export") };
+  const normalizedDrops = sortDropsByCanonicalSignalOrder(
+    (Array.isArray(drops) ? drops : []).map(drop => normalizePublicFeedRow(drop as Record<string, unknown>, classificationIndex)),
+  );
+  const cacheable = Boolean(dropResult.payload && statsPayload)
+    && [dropResult, statsResult].every(result => result.source === "remote-snapshot" || result.source === "local-export");
+  return { dropResult: { ...dropResult, payload: null }, exportPayload, statsPayload, classificationIndex, normalizedDrops,
+    immutableRows: new Set<object>(normalizedDrops), degradedStates: degradedEngineStates(statsPayload), cacheable };
 }
 
 type PublicFeedBase = Awaited<ReturnType<typeof preparePublicFeedBase>>;
-const readPackedPublicFeed = unstable_cache(async (_identity: string, _classification: string) => {
-  const prepared = await preparePublicFeedBase();
-  if (!prepared.cacheable || !prepared.exportPayload || !prepared.statsPayload) {
-    throw new Error("Incomplete feed preparation cannot enter the immutable cache");
-  }
-  if (_identity !== await readSiteExportIdentity()) throw new Error("Snapshot changed during preparation");
-  // No durable source projection, runtime policy, or retailer submission is
-  // persisted here. Those are read after both shared cache layers on every GET.
-  const { drops: _rawDrops, ...exportMetadata } = prepared.exportPayload || {};
-  const metadata = {
-    dropResult: { ...prepared.dropResult, payload: exportMetadata },
-    exportPayload: exportMetadata, statsPayload: prepared.statsPayload,
-    classificationIndex: { version: prepared.classificationIndex.version },
-  };
-  return packPublicFeed(prepared, metadata);
-}, ['public-feed-immutable-base-v4', process.env.VERCEL_GIT_COMMIT_SHA || 'local'], { revalidate: 3600 });
-async function readSharedPublicPreparation(identity: string) {
-  const classification = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]).version;
-  try {
-    const packed = await readPackedPublicFeed(identity, classification);
-    return { ...unpackPublicFeed<PublicFeedBase>(packed), cacheable: true, packedBytes: Buffer.byteLength(packed) };
-  } catch {
-    // Cache failure may reread the immutable base; it cannot bypass the fresh
-    // source composition that follows this function on every normal request.
-    return { ...await preparePublicFeedBase(), packedBytes: 0 };
-  }
-}
-// Identity changes still miss immediately. Only the verified immutable base
-// stays warm; source heads, inventory expiry and entitlements run on every GET.
-const publicFeedSnapshotCache = createAsyncPreparedDropCache<Awaited<ReturnType<typeof readSharedPublicPreparation>>>(300_000, Date.now, value => value.cacheable);
+const publicFeedSnapshotCache = createAsyncPreparedDropCache<PublicFeedBase>(Infinity, Date.now, value => value.cacheable);
 
-async function preparePublicFeedSnapshot(base: PublicFeedBase) {
-  const [sourceOverlay, retailerSubmissions] = await Promise.all([
-    readRuntimeSourceDropOverlay(base.normalizedDrops, base.dropResult.snapshotId),
-    publicRetailerSubmissions(),
-  ]);
-  const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
-  const immutableRows = new Set<object>(base.normalizedDrops);
+function preparePublicFeedSnapshot(
+  base: PublicFeedBase,
+  sourceOverlay: RuntimeDropOverlay,
+  retailerSubmissions: Awaited<ReturnType<typeof publicRetailerSubmissions>>,
+) {
+  const classificationIndex = base.classificationIndex;
+  const immutableRows = base.immutableRows;
   const runtimeDrops = sourceOverlay.drops.map((drop: Record<string, unknown>) => immutableRows.has(drop)
     ? drop as typeof base.normalizedDrops[number]
     : normalizePublicFeedRow(drop, classificationIndex));
@@ -230,8 +197,7 @@ async function preparePublicFeedSnapshot(base: PublicFeedBase) {
     degradedStateCodes: independentlyVerifiedIds.has(String((drop as Record<string, unknown>).id)) ? undefined : base.degradedStates,
     degradedStateReasons,
   }));
-  const freshness = new Map(normalizedDrops.map(drop => [drop, publicDropFreshnessWindow(drop)]));
-  return { ...base, sourceOverlay, classificationIndex, normalizedDrops, eligible, freshness,
+  return { ...base, sourceOverlay, classificationIndex, normalizedDrops, eligible,
     retailerVersion: retailerFeedSnapshot(retailerSubmissions), retailerCount: retailerSubmissions.length };
 }
 
@@ -334,11 +300,20 @@ export async function GET(request: Request) {
 
   try {
     const preparationStart = performance.now();
-    const identity = await readSiteExportIdentity();
-    const prepared = include === "all" && !historicalMode
-      ? { value: { ...await preparePublicFeedBase(), packedBytes: 0 }, hit: false }
-      : await publicFeedSnapshotCache.get(identity, () => readSharedPublicPreparation(identity));
-    const { dropResult, retailerVersion, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates, freshness } = await preparePublicFeedSnapshot(prepared.value);
+    const measure = async <T,>(read: Promise<T>) => {
+      const start = performance.now();
+      return read.then(value => ({ value, ms: performance.now() - start }));
+    };
+    const [base, runtime, retailers] = await Promise.all([
+      measure(readSiteExportIdentity().then(selection => publicFeedSnapshotCache.get(
+        selection.key, () => preparePublicFeedBase(selection),
+      ))),
+      measure(prepareRuntimeSourceDropOverlay(work => after(work))),
+      measure(publicRetailerSubmissions()),
+    ]);
+    const prepared = base.value;
+    const overlay = await runtime.value(prepared.value.normalizedDrops, prepared.value.dropResult.snapshotId);
+    const { dropResult, retailerVersion, exportPayload, statsPayload, sourceOverlay, classificationIndex, normalizedDrops, eligible, degradedStates } = preparePublicFeedSnapshot(prepared.value, overlay, retailers.value);
     const preparationMs = performance.now() - preparationStart;
     const filterStart = performance.now();
     let drops = [...normalizedDrops];
@@ -353,7 +328,7 @@ export async function GET(request: Request) {
 
     const requestTime = Date.now();
     const isFreshPreparedDrop = (drop: typeof drops[number]) => {
-      const window = freshness.get(drop)!;
+      const window = publicDropFreshnessWindow(drop);
       return requestTime >= window.startsAt && (window.inclusiveEnd ? requestTime <= window.endsAt : requestTime < window.endsAt);
     };
     const applyPublicDropFilters = (items: typeof drops, options: { filterDegradedStates: boolean }) => {
@@ -501,7 +476,7 @@ export async function GET(request: Request) {
 
     // Narrow the authorized, policy-filtered feed before its page boundary.
     drops = filterNearbyFeedDrops(drops);
-    if (bottleId) drops = drops.filter(drop => (drop.bottle_id || drop.bottleId || drop.canonical_id || drop.canonicalId) === bottleId);
+    if (bottleId) drops = drops.filter((drop: Record<string, unknown>) => (drop.bottle_id || drop.bottleId || drop.canonical_id || drop.canonicalId) === bottleId);
 
     drops = canonicalSignalOrder
       ? drops
@@ -553,8 +528,7 @@ export async function GET(request: Request) {
           // immutable base preparation is shared, never the composed response.
           "Cache-Control": "private, no-store",
           Vary: "Cookie, Authorization",
-          "X-Public-Feed-Cache-Bytes": String(prepared.value.packedBytes),
-          "Server-Timing": `prepare;dur=${preparationMs.toFixed(1)};desc="${prepared.hit ? "cache" : "build"}", filter;dur=${(performance.now() - filterStart).toFixed(1)}`,
+          "Server-Timing": `prepare;dur=${preparationMs.toFixed(1)};desc="${prepared.hit ? "cache" : "build"}", base;dur=${base.ms.toFixed(1)}, runtime;dur=${runtime.ms.toFixed(1)}, retailers;dur=${retailers.ms.toFixed(1)}, filter;dur=${(performance.now() - filterStart).toFixed(1)}`,
           "X-Drops-Source": dropResult.source,
           "X-Drops-Snapshot": snapshot,
         },

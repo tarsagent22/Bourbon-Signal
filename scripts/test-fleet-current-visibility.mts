@@ -86,8 +86,8 @@ try {
   '@clerk/nextjs/server':{auth:async()=>({userId:member?'fixture-member':null}),clerkClient:async()=>({users:{getUser:async()=>({publicMetadata:{}})}})},
   '@/lib/activeStates':{ACTIVE_ENGINE_STATE_NAMES:{CA:'California',ID:'Idaho',IA:'Iowa',WA:'Washington',WI:'Wisconsin',PA:'Pennsylvania'}},
   '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier:'barrel',feedPreviewLimit:null,canUseStateFilter:true,canUseAdvancedFilters:true,canUseBottleSearch:true,canUseDropFeedFilters:true})},
-  '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(rows:unknown[])=>({drops:rows,version:'fleet-fixture'})},
-  '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportIdentity:async()=> 'fleet-fixture',readSiteExportResults:async()=>[{payload,snapshotId:'fleet-fixture',source:'remote-snapshot'},{payload:{generatedAt:fixture.sourceGeneratedAt}}],siteExportHeaders:()=>({})},
+  '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay: async(rows:unknown[])=>({drops:rows,version:'fleet-fixture'}),prepareRuntimeSourceDropOverlay: async () => async(rows:unknown[])=>({drops:rows,version:'fleet-fixture'})},
+  '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportIdentity:async()=> ({ key: 'fleet-fixture' }),readSiteExportResults:async()=>[{payload,snapshotId:'fleet-fixture',source:'remote-snapshot'},{payload:{generatedAt:fixture.sourceGeneratedAt}}],siteExportHeaders:()=>({})},
   '@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},
  });
  const paid=route();for(const state of ['CA','ID','IA','WA','WI']){const response=await paid.GET(new Request('https://fixture.test/api/drops?state='+state));assert.equal(response.status,200);

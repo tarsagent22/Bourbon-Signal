@@ -1,3 +1,4 @@
+import { createSourceProjectionReader } from "./source-projection-reader";
 import { writeSourceConsumptionTrace } from "./source-consumption-trace";
 import { randomUUID, createHash } from 'node:crypto';
 import { sourceAcceptanceHealth } from './source-acceptance-health';
@@ -184,14 +185,33 @@ export function classifyPollError(error: unknown) {
   if (/5\d\d/.test(message)) return 'http_5xx';
   return 'transport_failure';
 }
+const readSourceProjection = createSourceProjectionReader();
+type DeferTrace = (work: () => Promise<void>) => void;
+
+export async function preparePollProjection(kind: 'drops'|'candidates', deferTrace?: DeferTrace) {
+  const registry = pollSourceRegistry();
+  if (!schedulerEnabled()) return async (rows: Row[]) => ({ rows: suppressDisabledPollSources(rows, registry, kind), version: 'off' });
+  const [jobs, ctx] = await Promise.all([
+    readSourceProjection(sql(), kind, registry.map(source => source.id)),
+    readPollPolicyContext(),
+  ]);
+  const version = createHash('sha256').update(JSON.stringify(jobs.map(j => [j.source_id, j.generation, j.accepted_at]))).digest('hex').slice(0,24);
+  return async (rows: Row[]) => {
+    const permitted = validatePollPolicy(jobs, registry, ctx.lookup, ctx.health, process.env.BOURBON_SIGNAL_QUARANTINED_STATES || '', ctx.snapshotId);
+    const merged = mergePollProjection(rows, permitted, registry, kind);
+    const traced = merged.filter((r: Row) => r.sourcePollId);
+    if (traced.length) {
+      const at = new Date().toISOString();
+      const trace = () => tracePollCandidates(traced, kind === 'drops' ? 'feed_read' : 'candidate_read', '', at);
+      if (deferTrace) {
+        try { deferTrace(trace); } catch { /* Telemetry cannot veto current inventory. */ }
+      } else await trace();
+    }
+    return { rows: merged, version };
+  };
+}
 export async function readPollProjection(rows: Row[], kind: 'drops'|'candidates') {
-  if (!schedulerEnabled()) return {rows:suppressDisabledPollSources(rows,pollSourceRegistry(),kind),version:'off'};
-  const [jobs,ctx]=await Promise.all([pollJobs(),readPollPolicyContext()]);
-  const registry=pollSourceRegistry();
-  const permitted=validatePollPolicy(jobs,registry,ctx.lookup,ctx.health,process.env.BOURBON_SIGNAL_QUARANTINED_STATES || '',ctx.snapshotId);
-  const merged=mergePollProjection(rows,permitted,registry,kind);
-  await tracePollCandidates(merged.filter((r: Row)=>r.sourcePollId),kind==='drops'?'feed_read':'candidate_read');
-  return {rows:merged,version:createHash('sha256').update(JSON.stringify(jobs.map(j=>[j.source_id,j.generation,j.accepted_at]))).digest('hex').slice(0,24)};
+  return (await preparePollProjection(kind))(rows);
 }
 export async function pollCandidatesValid(candidates: Row[]) {
   const registry=pollSourceRegistry();

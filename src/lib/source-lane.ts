@@ -199,7 +199,10 @@ export async function readSourceLaneCandidates(repository: SourceLaneRepository,
   return [...retained, ...opportunities];
 }
 export async function readSourceLaneDropOverlay(repository: SourceLaneRepository, drops: Row[], policy: LanePolicy, enabled: boolean, now = new Date().toISOString()) {
-  const state = await repository.state();
+  return applySourceLaneDropOverlay(await repository.state(), drops, policy, enabled, now);
+}
+
+export function applySourceLaneDropOverlay(state: Row[], drops: Row[], policy: LanePolicy, enabled: boolean, now = new Date().toISOString()) {
   const covered = new Set(state.map(r => (r.payload as Row).id));
   const retained = drops.filter(d => !covered.has(subjectFor(d)));
   const overlays = !enabled || !sourceLanePolicyAllows(policy, now) ? [] : state

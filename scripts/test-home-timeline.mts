@@ -15,8 +15,8 @@ const route=loadWithMocks('src/app/api/drops/route.ts',{
  'next/cache':{unstable_cache:(fn:Function)=>fn},
  '@clerk/nextjs/server':{auth:async()=>({userId:signedIn?'test':null}),clerkClient:async()=>({users:{getUser:async()=>({publicMetadata:{}})}})},
  '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier,feedPreviewLimit:tier==='free'?6:null,canUseAdvancedFilters:tier==='barrel',canUseBottleSearch:tier==='barrel',canUseDropFeedFilters:tier==='barrel'})},
- '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(drops:unknown[])=>({drops,version:'one'})},
- '@/lib/site-engine-contract':{normalizeDropForSite:(row:object)=>{normalizeCount++;return {...row};},readSiteExportIdentity:async()=>snapshot,readSiteExportResults:async()=>[{payload:{drops:rows,generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'},{payload:{generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'}],siteExportHeaders:()=>({})},
+ '@/lib/source-lane-runtime':{prepareRuntimeSourceDropOverlay: async () => async(drops:unknown[])=>({drops,version:'one'})},
+ '@/lib/site-engine-contract':{normalizeDropForSite:(row:object)=>{normalizeCount++;return {...row};},readSiteExportIdentity:async()=>({ key: snapshot }),readSiteExportResults:async()=>[{payload:{drops:rows,generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'},{payload:{generatedAt:new Date(now).toISOString()},snapshotId:snapshot,source:'remote-snapshot'}],siteExportHeaders:()=>({})},
  '@/lib/drop-classification':{DROP_FEED_CLASSIFICATION_TIERS:['limited','allocated','unicorn'],getDropClassificationIndex:()=>({version:'one'}),classifyPublicDrop:(drop:any)=>({...drop,rarity_tier:drop.tier,classification_source:'test'})},
  '@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},
 });
@@ -58,20 +58,6 @@ assert.equal((await asyncCache.get('snapshot-b',async()=>3)).value,3,'pointer re
 await assert.rejects(asyncCache.get('broken',async()=>{throw Error('failed');}));
 assert.equal((await asyncCache.get('broken',async()=>4)).value,4,'failed attempts can be retried immediately');
 console.log('Complete public preparation coalescing, TTL, pointer replacement and error recovery passed.');
-
-const packs = await import('../src/lib/public-feed-pack.ts');
-const {packPublicFeed,unpackPublicFeed} = ('default' in packs ? {...packs, ...(packs.default as object)} : packs) as typeof import('../src/lib/public-feed-pack.ts');
-const publicRows=[{id:'valid'},{id:'invalid'},{id:'retailer'}];
-const windows=new Map(publicRows.map((row,index)=>[row,{startsAt:index===2?-Infinity:1,endsAt:index===1?NaN:10,inclusiveEnd:index!==2}]));
-const packed=packPublicFeed({normalizedDrops:publicRows,eligible:[publicRows[0],publicRows[2]],freshness:windows,degradedStates:new Set(['SC'])},{snapshot:'one'});
-const restored=unpackPublicFeed(packed);
-assert.equal(restored.eligible[0],restored.normalizedDrops[0],'eligible rows retain reference identity');
-assert.equal(restored.freshness.get(restored.normalizedDrops[2]).startsAt,-Infinity,'retailer start bound survives encoding');
-assert.ok(Number.isNaN(restored.freshness.get(restored.normalizedDrops[1]).endsAt),'invalid dates remain invalid instead of becoming fresh');
-assert.deepEqual([...restored.degradedStates],['SC']);
-const corrupt=JSON.parse(packed);corrupt.hash='broken';assert.throws(()=>unpackPublicFeed(JSON.stringify(corrupt)),/integrity/);
-corrupt.bytes=1;assert.throws(()=>unpackPublicFeed(JSON.stringify(corrupt)),/larger than|limit|integrity/i,'Brotli expansion is bounded');
-console.log('Shared cache compression, integrity, exact time bounds and row identity passed.');
 
 const history = await import('../src/lib/drop-feed-history.ts');
 const {selectDropFeedHistory} = ('default' in history ? {...history, ...(history.default as object)} : history) as typeof import('../src/lib/drop-feed-history.ts');

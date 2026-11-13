@@ -60,7 +60,7 @@ const code = await build({ absWorkingDir: root, bundle: true, write: false, plat
       const contents = args.path === 'next/cache' ? 'export const unstable_cache=fn=>fn;'
         : args.path === 'server-only' ? 'export {};'
           : args.path === 'site' ? `export {normalizeDropForSite} from ${JSON.stringify(fileURLToPath(new URL('../src/lib/site-engine-contract.ts', import.meta.url)))}; export const readSiteExportResults=names=>globalThis.__readShopifyV2Exports(names);`
-            : args.path.includes('source-lane-runtime') ? 'export const readRuntimeSourceDropOverlay=async rows=>({drops:rows,version:"offline-real-policy-results"});'
+            : args.path.includes('source-lane-runtime') ? 'export const readRuntimeSourceDropOverlay=async rows=>({drops:rows,version:"offline-real-policy-results"}); export const prepareRuntimeSourceDropOverlay=async()=>readRuntimeSourceDropOverlay;'
               : args.path.includes('retailer-public-submissions') ? 'export const readCachedPublicRetailerSubmissions=()=>{throw new Error("Forbidden submission read")};'
                 : 'export class VercelBlobSnapshotStorage {readPointer(){throw new Error("Forbidden Blob read")}readObject(){throw new Error("Forbidden Blob read")}}';
       return { contents, loader: 'js', resolveDir: root };

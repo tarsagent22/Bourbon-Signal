@@ -24,7 +24,8 @@ export async function writeSourceConsumptionTrace(
       `INSERT INTO source_poll_trace(source_id,stage,channel,last_at,row_count)
       SELECT source_id,$2,$3,$4::timestamptz,row_count
       FROM jsonb_to_recordset($1::jsonb) AS counts(source_id text,row_count integer)
-      ON CONFLICT(source_id,stage,channel) DO UPDATE SET last_at=EXCLUDED.last_at,row_count=EXCLUDED.row_count`,
+      ON CONFLICT(source_id,stage,channel) DO UPDATE SET last_at=EXCLUDED.last_at,row_count=EXCLUDED.row_count
+      WHERE source_poll_trace.last_at <= EXCLUDED.last_at`,
       [JSON.stringify(counts), stage, channel, at],
     );
   } catch {

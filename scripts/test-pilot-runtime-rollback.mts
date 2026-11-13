@@ -26,6 +26,7 @@ async function runtime() {
   };
   const scheduler = await load('src/lib/source-scheduler.ts', name => {
     if (name === 'node:crypto') return crypto;
+    if (name === './source-projection-reader') return { createSourceProjectionReader: () => forbidden('projection') };
     if (name.endsWith('/sources/poll-policy.mjs')) return policy;
     if (name.endsWith('/sources/shopify-pickup-policy.mjs')) return shopifyPolicy;
     if (name.endsWith('/florida-jensens-runtime-source.mjs')) return { JENSENS_RUNTIME_SOURCE, collectJensensSource: forbidden('collector') };

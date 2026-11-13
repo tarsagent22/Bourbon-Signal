@@ -69,8 +69,8 @@ for(const state of ['WI','OK']){
       'next/server':{NextResponse:Response},'next/cache':{unstable_cache:(fn:Function)=>fn},
       '@clerk/nextjs/server':{auth:async()=>({userId:'synthetic-member'}),clerkClient:async()=>({users:{getUser:async()=>({publicMetadata:{}})}})},
       '@/lib/server-entitlements':{getServerEntitlements:async()=>({tier:'barrel',feedPreviewLimit:null,canUseStateFilter:true,canUseAdvancedFilters:true,canUseBottleSearch:true,canUseDropFeedFilters:true})},
-      '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(base:unknown[])=>({drops:base,version:'synthetic-production-only'})},
-      '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportIdentity:async()=> 'synthetic-production-only',readSiteExportResults:async()=>[
+      '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay: async(base:unknown[])=>({drops:base,version:'synthetic-production-only'}),prepareRuntimeSourceDropOverlay: async () => async(base:unknown[])=>({drops:base,version:'synthetic-production-only'})},
+      '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportIdentity:async()=> ({ key: 'synthetic-production-only' }),readSiteExportResults:async()=>[
         {payload:{drops,generatedAt:at},snapshotId:'synthetic-production-only',source:'remote-snapshot'},{payload:{generatedAt:at}}],siteExportHeaders:()=>({})},
       '@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},
     });
@@ -108,7 +108,7 @@ for(const state of ['WI','OK']){
       '@/lib/retailer-signal-feed':{retailerSubmissionToFeedCard:()=>null},'@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},
       '@/lib/public-drop-evidence':interop(evidenceModule),'@/lib/drop-classification':interop(classModule),
       '@/data/drop-feed-classification.generated.json':{records:JSON.parse(await readFile('src/data/drop-feed-classification.generated.json','utf8')).records},
-      './nationwide-pilot-receipt':interop(receiptModule),'@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(rows:unknown[])=>({drops:rows,version:'synthetic-production-only'})},
+      './nationwide-pilot-receipt':interop(receiptModule),'@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay: async(rows:unknown[])=>({drops:rows,version:'synthetic-production-only'})},
       '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportResults:async(names:string[])=>names.map(name=>({source:'remote-snapshot',snapshotId:'synthetic-production-only',payload:
         name==='drops'?{drops}:name==='stats'?{generatedAt:at,stateCoverage:{states:stateRows}}:name==='stores'?{stores}:{locations:stores}}))},
     });

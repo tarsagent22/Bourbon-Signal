@@ -1,11 +1,11 @@
 import { failClosedPollRows } from '../../engine/src/sources/poll-policy.mjs';
-import { readPollProjection, pollCandidatesValid, schedulerEnabled, POLL_SOURCES, tracePollCandidates } from './source-scheduler';
+import { readPollProjection, preparePollProjection, pollCandidatesValid, POLL_SOURCES, tracePollCandidates } from './source-scheduler';
 
 import { aggregateAreaWatchlistDemand, areaWatchlistPriority, type AreaWatchlistDemand } from './demand-intelligence';
 import { buildSourceLaneUsefulness } from '../../engine/src/optimization/source-usefulness-report.mjs';
 import { createProductionAlertQueueSqlExecutor, alertQueueDatabaseConfigured } from './alert-queue/runtime';
 import { readSiteExportResults, type SiteExportResult } from './site-engine-contract';
-import { SOURCE_LANES, SourceLaneRepository, pollSourceLane, readSourceLaneCandidates, readSourceLaneDropOverlay, sourceCandidatesStillValid, type LanePolicy } from './source-lane';
+import { SOURCE_LANES, SourceLaneRepository, pollSourceLane, readSourceLaneCandidates, applySourceLaneDropOverlay, sourceCandidatesStillValid, type LanePolicy } from './source-lane';
 type Row = Record<string, any>;
 const storageEnabled = () => process.env.SOURCE_LANE_STORAGE_ENABLED === '1';
 const promotionEnabled = () => storageEnabled() && process.env.SOURCE_LANE_POLL_ENABLED === '1';
@@ -56,20 +56,43 @@ export async function runtimeSourceCandidatesStillValid(candidates: Row[]) {
   try { const { policy } = await readRuntimeLaneContext(); return await sourceCandidatesStillValid(repository(), candidates, policy, promotionEnabled()); }
   catch { return false; }
 }
-async function readUncachedSourceDropOverlay(drops: Row[], snapshotId: string | null) {
-  if (!storageEnabled()) return { drops, version: 'off' };
+async function prepareSourceLaneOverlay() {
+  if (!storageEnabled()) return (drops: Row[]) => ({ drops, version: 'off' });
   try {
-    const repo = repository(), context = await readRuntimeLaneContext();
-    return await readSourceLaneDropOverlay(repo, drops, context.policy, context.alerts.snapshotId === snapshotId && promotionEnabled());
-  } catch { return { drops: drops.filter(d => !inRegisteredScope(d)), version: 'unavailable' }; }
+    const [state, context] = await Promise.all([repository().state(), readRuntimeLaneContext()]);
+    return (drops: Row[], snapshotId: string | null) => applySourceLaneDropOverlay(
+      state, drops, context.policy, context.alerts.snapshotId === snapshotId && promotionEnabled(),
+    );
+  } catch {
+    return (drops: Row[]) => ({ drops: drops.filter(d => !inRegisteredScope(d)), version: 'unavailable' });
+  }
+}
+
+export type RuntimeDropOverlay = { drops: Row[]; version: string };
+
+export async function prepareRuntimeSourceDropOverlay(deferTrace?: (work: () => Promise<void>) => void) {
+  // Read independent live heads while the immutable base loads. Apply them in
+  // the same order, retaining partition ownership, policy and expiry checks.
+  const [lane, poll] = await Promise.all([
+    prepareSourceLaneOverlay(),
+    preparePollProjection('drops', deferTrace).catch(() => null),
+  ]);
+  return async (drops: Row[], snapshotId: string | null) => {
+    let original: RuntimeDropOverlay;
+    try { original = lane(drops, snapshotId); }
+    catch { original = { drops: drops.filter(d => !inRegisteredScope(d)), version: 'unavailable' }; }
+    try {
+      if (poll) {
+        const result = await poll(original.drops);
+        return { drops: result.rows, version: original.version + ':' + result.version };
+      }
+    } catch { /* Fail closed for owned rows. */ }
+    return { drops: failClosedPollRows(original.drops, POLL_SOURCES, 'drops'), version: original.version + ':poll-unavailable' };
+  };
 }
 
 export async function readRuntimeSourceDropOverlay(drops: Row[], snapshotId: string | null) {
-  // Source heads, failures and expiry are mutable independently of the broad
-  // snapshot. Read them for every request; only the immutable base is cached.
-  const original = await readUncachedSourceDropOverlay(drops, snapshotId);
-  try { const poll=await readPollProjection(original.drops, 'drops');return {drops:poll.rows,version:original.version+':'+poll.version}; }
-  catch { return {drops:failClosedPollRows(original.drops,POLL_SOURCES,'drops'),version:original.version+':poll-unavailable'}; }
+  return (await prepareRuntimeSourceDropOverlay())(drops, snapshotId);
 }
 
 async function readRuntimeSourceDemand(): Promise<AreaWatchlistDemand | null> {

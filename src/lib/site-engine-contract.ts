@@ -68,15 +68,26 @@ const readActivePointer = unstable_cache(
   ["engine-active-snapshot-pointer-v2"],
   { revalidate: 15 },
 );
-const readImmutableObject = unstable_cache(
-  async (key: string) => blobStorage.readObject(key),
-  ["engine-immutable-snapshot-object-v1"],
+const readCachedImmutableObject = unstable_cache(
+  async (key: string) => {
+    const value = await blobStorage.readObject(key);
+    if (value === null) throw new Error("Immutable engine snapshot object is unavailable");
+    return value;
+  },
+  ["engine-immutable-snapshot-object-v2"],
   { revalidate: 31_536_000 },
 );
 const remoteReader = createRemoteSiteSnapshotReader({
   cacheImmutable: true,
   encryptionKey: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || "",
-  storage: { readPointer: readActivePointer, readObject: readImmutableObject },
+  storage: {
+    readPointer: readActivePointer,
+    // Above 1 MiB plaintext, encryption and serialization can exceed the
+    // shared cache entry limit. Immutable Blob URLs already have CDN caching.
+    readObject: (key, bytes) => bytes !== undefined && bytes > 1_048_576
+      ? blobStorage.readObject(key)
+      : readCachedImmutableObject(key),
+  },
 });
 
 function payloadHash(payload: JsonRecord | null) {
@@ -110,20 +121,28 @@ function remoteExportResult(name: SiteExportName, remote: Awaited<ReturnType<typ
   };
 }
 
-// Cheap identity lookup lets public feed consumers avoid repeatedly loading,
-// decrypting and parsing immutable exports for every filter/page request.
+// Pin both identity and reads to one pointer. The pointer revision is part of
+// the key, including activation or rollback to a previously used snapshot.
 export async function readSiteExportIdentity() {
   const mode = String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
-  if (mode !== "off") return `${mode}:${payloadHash(await readActivePointer())}`;
+  if (mode !== "off") {
+    // Keep bundled fallback available if the pointer service is unreachable.
+    try {
+      const pointer = await readActivePointer();
+      return { key: `${mode}:${payloadHash(pointer)}`, mode, pointer };
+    } catch {
+      return { key: `${mode}:pointer-unavailable`, mode, pointer: null };
+    }
+  }
   const versions = ["drops", "stats"].map(name => {
     try { const stat = statSync(join(SITE_EXPORT_DIR, `${name}.json`)); return [stat.mtimeMs, stat.size]; }
     catch { return null; }
   });
-  return `local:${JSON.stringify(versions)}`;
+  return { key: `local:${JSON.stringify(versions)}`, mode, pointer: null };
 }
 
-export async function readSiteExportResults(names: SiteExportName[]): Promise<SiteExportResult[]> {
-  const mode = String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
+export async function readSiteExportResults(names: SiteExportName[], selection?: Awaited<ReturnType<typeof readSiteExportIdentity>>): Promise<SiteExportResult[]> {
+  const mode = selection?.mode ?? String(process.env.ENGINE_SNAPSHOT_READ_MODE || "off").toLowerCase();
   const bundled = names.map((name) => mode === "off" || mode === "shadow" ? readBundledSiteExport(name) : null);
   if (mode === "off") {
     return bundled.map((payload) => ({
@@ -134,7 +153,7 @@ export async function readSiteExportResults(names: SiteExportName[]): Promise<Si
     }));
   }
   try {
-    const pointer = await readActivePointer();
+    const pointer = selection ? selection.pointer : await readActivePointer();
     // Reuse verified immutable files across pinned bundles; pointer selection and
     // mutable source policy are still evaluated for each consumer request.
     const remote = await Promise.all(names.map((name) => remoteReader.read(name, pointer)));
