@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { MemberAlert } from "../api/types";
+import { CellarBottleArtwork } from "../components/CellarBottleArtwork";
 import { relativeSignalTime } from "../api/presentation";
 import { signalRouteForRequestedAlert } from "../push/push-navigation";
 import { alertIsStale, memberAlertBottleNames } from "./radar-preferences";
@@ -42,18 +43,31 @@ export function RadarAlertRow({ alert, saving, watchedNames, onMutate, onMute, i
   }), [onMutate, saving, x]);
   async function mutate(action: "mark_read" | "archive") { setMenu(false); closeSwipe(); await onMutate?.(action, alert.id); }
   async function mute(name: string) { setMuteError(""); if (await onMute(name, !isMuted(name))) { setMenu(false); setChooseBottles(false); } else setMuteError("This bottle preference couldn’t save. Try again."); }
-  return <View style={s.shell}>
+  return <View style={[s.shell, unread && s.unreadShell]}>
     {onMutate ? <View aria-hidden={!revealed} pointerEvents={revealed ? "auto" : "none"} importantForAccessibility={revealed ? "auto" : "no-hide-descendants"} accessibilityElementsHidden={!revealed} style={s.swipeActions}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Mark ${bottles[0]} read`} disabled={saving || !!alert.readAt} onPress={() => void mutate("mark_read")} style={s.swipeAction}><MaterialCommunityIcons name="check" color={colors.text} size={20} /><Text style={s.actionCaption}>Read</Text></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={`Archive ${bottles[0]} alert`} disabled={saving} onPress={() => void mutate("archive")} style={[s.swipeAction, s.archive]}><MaterialCommunityIcons name="archive-outline" color={colors.text} size={20} /><Text style={s.actionCaption}>Archive</Text></Pressable>
     </View> : null}
     <Animated.View style={[s.foreground, { transform: [{ translateX: x }] }]}>
       <View style={s.row} {...responder.panHandlers}>
-        <View style={[s.dot, unread && s.unread]} />
-        <Pressable accessibilityRole="button" accessibilityLabel={`${bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}, ${radarAlertLocation(alert)}, ${unread ? "unread, " : ""}View details`} accessibilityState={{ expanded }} accessibilityHint="Expands this alert. Swipe left for read and archive actions." onPress={() => { closeSwipe(); setExpanded(v => !v); }} style={s.copy}>
-          <Text style={s.bottle}>{bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}</Text>
-          <Text style={s.location}>{radarAlertLocation(alert)}</Text>
-          <View style={s.summaryFooter}><Text style={s.meta}>{stale ? "Past report" : alert.sourceType === "community" ? "Community sighting" : "Bottle report"} · {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text><MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} color={colors.muted} size={18} /></View>
+        <Pressable accessibilityRole="button" accessibilityLabel={`${bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}, ${radarAlertLocation(alert)}, ${unread ? "unread, " : ""}View details`} accessibilityState={{ expanded }} accessibilityHint="Expands this alert. Swipe left for read and archive actions." onPress={() => { closeSwipe(); setExpanded(v => !v); }} style={({ pressed }) => [s.summary, pressed && s.pressed]}>
+          <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={s.artwork}>
+            <CellarBottleArtwork bottle={{ bottleName: firstBottle }} size="list" hidePlaceholderLabel />
+            {bottles.length > 1 ? <View style={s.artCount}><Text style={s.artCountText}>+{bottles.length - 1}</Text></View> : null}
+          </View>
+          <View style={s.copy}>
+            <View style={s.summaryFooter}>
+              {unread ? <View style={s.unreadDot} /> : null}
+              <Text style={[s.meta, unread && s.unreadMeta]}>{stale ? "Past report" : alert.sourceType === "community" ? "Community sighting" : "Bottle report"}</Text>
+              <Text style={s.meta}>· {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text>
+            </View>
+            <Text style={s.bottle}>{bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}</Text>
+            <View style={s.locationLine}>
+              <MaterialCommunityIcons name="map-marker-outline" color={colors.muted} size={15} />
+              <Text style={s.location}>{radarAlertLocation(alert)}</Text>
+              <MaterialCommunityIcons name={expanded ? "chevron-up" : "chevron-down"} color={colors.muted} size={17} />
+            </View>
+          </View>
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={`Actions for ${firstBottle}`} disabled={saving} onPress={() => { closeSwipe(); setMuteError(""); setChooseBottles(false); setMenu(true); }} style={s.menuButton}><MaterialCommunityIcons name="dots-horizontal" color={colors.muted} size={22} /></Pressable>
       </View>
@@ -79,13 +93,22 @@ export function RadarAlertRow({ alert, saving, watchedNames, onMutate, onMute, i
   </View>;
 }
 const s = StyleSheet.create({
-  shell: { overflow: "hidden", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  foreground: { backgroundColor: colors.background }, row: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 13 },
-  copy: { flex: 1, minWidth: 0, gap: 4 }, bottle: { color: colors.text, fontFamily: fonts.bottle, fontSize: typeScale.subheading, lineHeight: 23 },
-  location: { color: colors.text, fontSize: typeScale.small, lineHeight: 18 }, meta: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "transparent" }, unread: { backgroundColor: colors.accent },
+  shell: { overflow: "hidden", borderWidth: 1, borderColor: colors.border, borderRadius: 16 },
+  unreadShell: { borderColor: "#6A4A2A" },
+  foreground: { backgroundColor: colors.surface }, row: { flexDirection: "row", alignItems: "center", paddingRight: 4 },
+  summary: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, paddingLeft: 12 },
+  artwork: { width: 56, minHeight: 72, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surfaceRaised, alignItems: "center", justifyContent: "center" },
+  artCount: { position: "absolute", right: -3, bottom: -3, borderRadius: 7, backgroundColor: colors.accent, paddingHorizontal: 5, paddingVertical: 2 },
+  artCountText: { color: colors.background, fontSize: 11, fontWeight: "800" },
+  copy: { flex: 1, minWidth: 0, gap: 5 }, bottle: { color: colors.text, fontFamily: fonts.bottle, fontSize: typeScale.subheading, lineHeight: 23 },
+  locationLine: { flexDirection: "row", alignItems: "flex-start", gap: 4 },
+  location: { flex: 1, color: colors.muted, fontSize: typeScale.small, lineHeight: 18 },
+  meta: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
+  unreadDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
+  unreadMeta: { color: colors.accent },
   menuButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
-  summaryFooter: { flexDirection: "row", alignItems: "center", gap: 8 },
+  summaryFooter: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 5, rowGap: 1 },
+  pressed: { opacity: 0.72 },
   swipeActions: { position: "absolute", right: 0, top: 0, bottom: 0, flexDirection: "row", width: 144 }, swipeAction: { width: 72, backgroundColor: colors.surfaceRaised, alignItems: "center", justifyContent: "center", gap: 5 }, archive: { backgroundColor: "#35281C" }, actionCaption: { color: colors.text, fontSize: typeScale.caption },
   backdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.6)" }, sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 18 },
   sheetTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.section, marginBottom: 10 }, menuItem: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }, itemLabel: { flex: 1, color: colors.text, fontSize: typeScale.body, lineHeight: 20 }, action: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700" },

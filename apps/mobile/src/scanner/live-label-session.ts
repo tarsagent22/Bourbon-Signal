@@ -32,7 +32,7 @@ export function visibleLabelBlocks(frame: LabelFrame, view: { width: number; hei
 /** Bounded evidence from the current scene; a new scan/blur never inherits label text. */
 export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex>, startedAt = 0) {
   let start = startedAt, lastAt = -Infinity, lastSequence = -1;
-  let history: { text: string; at: number; scene: number[]; family?: Reading['family'] }[] = [];
+  let history: { text: string; at: number; scene: number[]; family?: Reading['family']; explicitFamily: boolean }[] = [];
   let shown: RadarBottleOption[] = [], lastSignature = '', lastSpecific = '', agreement = 0, blankSince: number | null = null;
   let held = false, processingTotal = 0;
   let shownFamily: Reading['family'], lastIdentityAt = -Infinity, sceneMismatchAt: number | null = null;
@@ -76,7 +76,7 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
       const confirmedScene = changedScene && (frame.scene.length !== 36 || now - sceneMismatchAt! >= 150);
       const changedFamily = direct.family && history.some(item => item.family && item.family.identity !== direct.family!.identity)
         || direct.canHold && shownFamily && !shownFamily.bottles.some(bottle => bottle.id === direct.matches[0]?.id);
-      const mixedBrands = index.families.filter(f => (` ${text.toLowerCase()} `).includes(` ${f.identity} `)).length > 1;
+      const mixedBrands = direct.conflictingBrands;
       const staleIdentity = shown.length > 0 && now - lastIdentityAt > HISTORY_MS;
       if (expired || confirmedScene || changedFamily || mixedBrands || staleIdentity) { clearEvidence(); metrics.resets += Number(metrics.frames > 1); }
 
@@ -85,25 +85,27 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
       // Prefer explicit current-frame expressions. Otherwise carry only the recent
       // brand into a new fragment first, replacing an earlier expression rather
       // than combining competing expressions from similar bottles.
-      const context = changedScene ? undefined : history.findLast(item => item.family)?.family;
+      const context = changedScene ? undefined : history.findLast(item => item.explicitFamily)?.family;
       if (!direct.canHold && context && text && !mixedBrands) {
         const recent = read(`${context.name}\n${text}`);
         if (recent.canHold && recent.family?.identity === context.identity) { reading = recent; freshSpecific = true; }
-        else {
-          const combined = read([...history.map(item => item.text), text].join('\n'));
-          if (combined.family?.identity === context.identity) reading = combined;
-        }
+      }
+      if (!reading.explicitFamily && !reading.canHold && history.length && text && !changedScene && !mixedBrands && !changedFamily && frame.scene.length === 36) {
+        // Different frames sometimes capture different lines of the same label.
+        // This can surface choices early, but never counts toward auto-pause.
+        const combined = read([...new Set([...history.map(item => item.text), text])].join('\n'));
+        if (combined.explicitFamily && !combined.conflictingBrands && (!context || combined.family?.identity === context.identity)) reading = combined;
       }
       if (text && !mixedBrands && frame.scene.length === 36 && (!changedScene || confirmedScene)) {
-        history.push({ text, at: now, scene: frame.scene, family: reading.family });
+        history.push({ text, at: now, scene: frame.scene, family: direct.family, explicitFamily: direct.explicitFamily });
         history = history.slice(-4);
       }
       if (!text) blankSince ??= now; else blankSince = null;
       if (blankSince != null && now - blankSince >= 700) { clearEvidence(); metrics.resets += 1; reading = direct; }
-      const specific = reading.canHold && freshSpecific ? reading.matches[0]?.id || '' : '';
+      const specific = !mixedBrands && reading.canHold && freshSpecific ? reading.matches[0]?.id || '' : '';
       // A clear brand cannot lend its OCR confidence to an uncertain expression.
       const strongText = blocks.filter(block => block.confidence >= 0.6).map(block => block.text).join('\n');
-      const strong = specific ? read(strongText) : null;
+      const strong = specific ? strongText === text ? direct : read(strongText) : null;
       const strongWithBrand = specific && context ? read(`${context.name}\n${strongText}`) : strong;
       const expressionConfident = (!changedScene || confirmedScene) && [strong, strongWithBrand].some(result => result?.canHold && result.matches[0]?.id === reading.matches[0]?.id);
       if (!specific) { pendingPromotion = ''; promotionReads = 0; }
@@ -129,7 +131,7 @@ export function createLiveLabelSession(index: ReturnType<typeof createLabelIndex
         metrics.firstSuggestionMs ??= Math.max(0, now - start);
         if (reading.family) shownFamily = reading.family;
         else if (shownFamily && !shown.some(bottle => shownFamily!.bottles.some(member => member.id === bottle.id))) shownFamily = undefined;
-        if (direct.family || freshSpecific) lastIdentityAt = now;
+        if (direct.family || freshSpecific || lastIdentityAt === -Infinity) lastIdentityAt = now;
       }
       agreement = specific && specific === lastSpecific ? agreement + 1 : specific ? 1 : 0;
       lastSpecific = specific;
