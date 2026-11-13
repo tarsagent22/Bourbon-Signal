@@ -4,9 +4,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { transform } from 'esbuild';
 import * as policy from '../engine/src/sources/poll-policy.mjs';
-import * as packModule from '../src/lib/public-feed-pack.ts';
 import * as receiptModule from '../src/lib/nationwide-pilot-receipt.ts';
-const pack = ((packModule as any).default || packModule) as typeof import('../src/lib/public-feed-pack.ts');
 const receipt = ((receiptModule as any).default || receiptModule) as typeof import('../src/lib/nationwide-pilot-receipt.ts');
 type Row = Record<string, any>;
 const key = 'fixture-only-source-freshness-key-1234567890';
@@ -75,11 +73,11 @@ async function harness() {
   };
   const wrapper = await load('src/lib/source-lane-runtime.ts', name => {
     if (name.endsWith('/sources/poll-policy.mjs')) return policy;
-    if (name === './source-scheduler') return { readPollProjection: policyRead, POLL_SOURCES: [definition], schedulerEnabled: () => state.env.SOURCE_SCHEDULER_ENABLED === '1' };
+    if (name === './source-scheduler') return { readPollProjection: policyRead, preparePollProjection: async (kind: 'drops' | 'candidates') => (rows: Row[]) => policyRead(rows, kind), POLL_SOURCES: [definition], schedulerEnabled: () => state.env.SOURCE_SCHEDULER_ENABLED === '1' };
     if (name === 'next/cache') return { unstable_cache: unstable };
     if (name === './alert-queue/runtime') return { createProductionAlertQueueSqlExecutor: () => ({ query: forbidden('SQL') }), alertQueueDatabaseConfigured: () => true };
-    if (name === './source-lane') return { SOURCE_LANES: [], SourceLaneRepository: class { sql: any; constructor(sql: any) { this.sql = sql; } },
-      readSourceLaneDropOverlay: async (_repo: unknown, rows: Row[]) => { counts.laneReads++; return { drops: [...rows, ...(state.laneRow ? [state.laneRow] : [])], version: `lane-${state.laneRow?.sourceLaneGeneration || 0}` }; } };
+    if (name === './source-lane') return { SOURCE_LANES: [], SourceLaneRepository: class { async state() { counts.laneReads++; return []; } },
+      applySourceLaneDropOverlay: (_state: unknown, rows: Row[]) => { return { drops: [...rows, ...(state.laneRow ? [state.laneRow] : [])], version: `lane-${state.laneRow?.sourceLaneGeneration || 0}` }; } };
     if (name === './site-engine-contract') return { readSiteExportResults: async (names: string[]) => names.map(name => ({ snapshotId: 'immutable-snapshot-1', source: 'remote-snapshot',
       generatedAt: new Date(started).toISOString(), payload: name === 'bottles' ? { bottles: [] } : { states: [{ state: 'SC', health: 'healthy' }] } })) };
     return unavailable;
@@ -90,14 +88,13 @@ async function harness() {
     if (name === 'next/cache') return { unstable_cache: unstable };
     if (name.includes('nearby-feed-scope')) return (nearbyScopeModule as any).default || nearbyScopeModule;
     if (name.includes('prepared-drop-cache')) return { createPreparedDropCache: memo, createAsyncPreparedDropCache: asyncMemo };
-    if (name.includes('public-feed-pack')) return pack;
     if (name.includes('source-lane-runtime')) return wrapper;
     if (name.includes('nationwide-pilot-receipt')) return { ...receipt, pilotReceiptPayload: (surface: any, source: string, rows: Row[], snapshot: string) => receipt.pilotReceiptPayload(surface, source, rows, snapshot, state.now) };
     if (name.includes('engine-feed-verification')) return { ENGINE_FEED_VERIFICATION_HEADER: 'x-bourbon-signal-engine-verification', authorizeEngineFeedVerification: () => false };
     if (name === '@clerk/nextjs/server') return { auth: async () => ({ userId: state.member ? 'fixture-paid-member' : null }), clerkClient: async () => ({ users: { getUser: async () => ({ publicMetadata: {} }) } }) };
     if (name.includes('server-entitlements')) return { getServerEntitlements: async () => ({ tier: state.member ? 'standard' : 'free', canUseAdvancedFilters: true, feedPreviewLimit: 7 }) };
     if (name === '@/lib/entitlements') return { getEntitlements: () => ({ tier: 'standard', canUseAdvancedFilters: true }) };
-    if (name.includes('site-engine-contract')) return { readSiteExportIdentity: async () => 'immutable-snapshot-1', normalizeDropForSite: (row: Row) => { bump(counts.normalized, row.id); return { ...row }; },
+    if (name.includes('site-engine-contract')) return { readSiteExportIdentity: async () => ({ key: 'immutable-snapshot-1' }), normalizeDropForSite: (row: Row) => { bump(counts.normalized, row.id); return { ...row }; },
       siteExportHeaders: () => ({}), readSiteExportResults: async () => { counts.snapshots++; return [
         { snapshotId: 'immutable-snapshot-1', source: 'remote-snapshot', payload: { generatedAt: new Date(started).toISOString(), drops: base } },
         { snapshotId: 'immutable-snapshot-1', source: 'remote-snapshot', payload: { generatedAt: new Date(started).toISOString(), engineGeneratedAt: new Date(started).toISOString(), refreshHealth: { degradedStates: [{ state: 'FL', status: 'degraded' }] } } },

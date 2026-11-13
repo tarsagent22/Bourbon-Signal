@@ -45,9 +45,10 @@ const stateRows=[{state:'CA',publicStatus:'active',coverageTier:'live_store_inve
 const stats={generatedAt:now,engineGeneratedAt:now,refreshHealth:{degradedStates:degraded},stateCoverage:{states:stateRows}};
 let revision=0,routeDrops=drops;
 const next={'next/server':{NextResponse:Response},'next/cache':{unstable_cache:(fn:Function)=>fn},'server-only':{}};
-const site={normalizeDropForSite,readSiteExportIdentity:async()=> `ca-degraded-fixture-${revision}`,siteExportHeaders:()=>({}),
+const site={normalizeDropForSite,readSiteExportIdentity:async()=> ({ key: `ca-degraded-fixture-${revision}` }),siteExportHeaders:()=>({}),
   readSiteExportResults:async(names:string[])=>names.map(name=>({source:'remote-snapshot',snapshotId:`ca-degraded-fixture-${revision}`,payload:name==='drops'?{drops:routeDrops,generatedAt:now}:name==='stats'?stats:name==='stores'?{stores}:{locations:[]}}))};
-const sourceOverlay={readRuntimeSourceDropOverlay:async(rows:unknown[])=>({drops:rows,version:'unchanged-fixture'})};
+const overlay=async(rows:unknown[])=>({drops:rows,version:'unchanged-fixture'});
+const sourceOverlay={readRuntimeSourceDropOverlay:overlay,prepareRuntimeSourceDropOverlay:async()=>overlay};
 const feed=loadWithMocks('src/app/api/drops/route.ts',{
   ...next,'@/lib/site-engine-contract':site,'@/lib/source-lane-runtime':sourceOverlay,
   '@clerk/nextjs/server':{auth:async()=>({userId:'fixture-member'}),clerkClient:async()=>({users:{getUser:async()=>({publicMetadata:{}})}})},

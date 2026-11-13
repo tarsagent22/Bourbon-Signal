@@ -81,7 +81,7 @@ try {
     '@/lib/retailer-signal-feed':{retailerSubmissionToFeedCard:()=>null},'@/lib/retailer-public-submissions':{readCachedPublicRetailerSubmissions:async()=>[]},
     '@/lib/public-drop-evidence':interop(evidenceModule),'@/lib/drop-classification':interop(classificationModule),
     '@/data/drop-feed-classification.generated.json':classification,'./nationwide-pilot-receipt':interop(receiptModule),
-    '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay:async(rows:unknown[])=>({drops:rows,version:'fixture'})},
+    '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay: async(rows:unknown[])=>({drops:rows,version:'fixture'})},
     '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportResults:async(names:string[])=>names.map(name=>({source:'remote-snapshot',snapshotId:'fixture',payload:
       name==='drops'?{drops}:name==='stats'?{generatedAt:at,stateCoverage:{states:[]}}:name==='stores'?{stores:[runtime]}:{locations:[runtime]}}))},
   });

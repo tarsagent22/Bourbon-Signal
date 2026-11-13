@@ -1,3 +1,4 @@
+import * as sourceProjection from '../src/lib/source-projection-reader.ts';
 import * as consumptionTrace from "../src/lib/source-consumption-trace.ts";
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -83,6 +84,11 @@ async function harness(config = configs.find((row: Row) => row.id === 'christies
     }
     if (sql.includes('INSERT INTO source_scheduler_heartbeat')) { state.heartbeatAt = iso(); return { rows: [] }; }
     if (sql.includes('SELECT * FROM source_poll_jobs')) return { rows: [...state.jobs.values()].map(row => structuredClone(row)) };
+    if (sql.includes('AS current_jobs')) return { rows: [...state.jobs.values()].filter(row => parameters[2].includes(row.source_id)).map(row => {
+      const key = row.projection && row.accepted_at ? JSON.stringify([String(row.generation), row.accepted_at]) : null;
+      return structuredClone({ source_id: row.source_id, generation: row.generation, accepted_at: row.accepted_at, last_reason: row.last_reason,
+        projection_key: key, projection: !row.projection || (key !== null && JSON.parse(parameters[1])[row.source_id] === key) ? null : { [parameters[0]]: row.projection[parameters[0]] } });
+    }) };
     if (sql.includes('FROM source_scheduler_heartbeat')) return { rows: [{ name: 'scheduler', checked_at: state.heartbeatAt || iso() }] };
     if (sql.includes('FROM source_poll_runs')) return { rows: state.runs.map(row => structuredClone(row)) };
     if (sql.includes('FROM source_poll_incidents') || sql.includes('FROM source_poll_trace')) return { rows: [] };
@@ -90,7 +96,7 @@ async function harness(config = configs.find((row: Row) => row.id === 'christies
     return forbidden(`unexpected SQL ${sql.slice(0, 90)}`)();
   } };
   const schedulerSource = await readFile(new URL('../src/lib/source-scheduler.ts', import.meta.url), 'utf8');
-  const modules = new Map<string, any>([["./source-consumption-trace", (consumptionTrace as any).default || consumptionTrace]]);
+  const modules = new Map<string, any>([["./source-projection-reader", (sourceProjection as any).default || sourceProjection],["./source-consumption-trace", (consumptionTrace as any).default || consumptionTrace]]);
   for (const match of schedulerSource.matchAll(/from\s+['"]([^'"]+\.mjs)['"]/g)) {
     if (match[1].includes('/collectors/') || match[1].includes('/core/fetcher')) continue;
     modules.set(match[1], await import(new URL(match[1], new URL('../src/lib/source-scheduler.ts', import.meta.url)).href));
@@ -156,7 +162,13 @@ async function harness(config = configs.find((row: Row) => row.id === 'christies
     if (name.includes('site-engine-contract')) return { ...site, readSiteExportResults: readExports };
     if (name.includes('public-drop-evidence')) return evidence;
     if (name.includes('nationwide-pilot-receipt')) return receipt;
-    if (name.includes('source-lane-runtime')) return { readRuntimeSourceDropOverlay: async (rows: Row[]) => { const result = await scheduler.readPollProjection(rows, 'drops'); return { drops: result.rows, version: result.version }; } };
+    if (name.includes('source-lane-runtime')) {
+      const overlay = async (rows: Row[]) => {
+        const result = await scheduler.readPollProjection(rows, 'drops');
+        return { drops: result.rows, version: result.version };
+      };
+      return { readRuntimeSourceDropOverlay: overlay, prepareRuntimeSourceDropOverlay: async () => overlay };
+    }
     if (name.includes('drop-classification')) return classification;
     if (name.includes('classification.generated.json')) return classificationData;
     return new Proxy({}, { get: (_target, key) => forbidden(`unexpected Coverage dependency ${name}:${String(key)}`) });

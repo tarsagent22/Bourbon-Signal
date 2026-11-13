@@ -98,7 +98,7 @@ async function actualCoverage(rows: Row[], clock = now) {
     if (name === '@/lib/drop-classification') return customer.classification;
     if (name === '@/data/drop-feed-classification.generated.json') return customer.classificationArtifact;
     if (name === './nationwide-pilot-receipt') return customer.receipt;
-    if (name === '@/lib/source-lane-runtime') return { readRuntimeSourceDropOverlay: async (base: Row[]) => ({ drops: base, version: 'offline-real-policy-output' }) };
+    if (name === '@/lib/source-lane-runtime') { const overlay = async (base: Row[]) => ({ drops: base, version: 'offline-real-policy-output' }); return { readRuntimeSourceDropOverlay: overlay, prepareRuntimeSourceDropOverlay: async () => overlay }; }
     if (name === '@/lib/site-engine-contract') return { normalizeDropForSite: customer.normalizeDropForSite,
       readSiteExportResults: async (names: string[]) => names.map(name => ({ source: 'remote-snapshot', snapshotId, payload:
         name === 'drops' ? { drops: rows } : name === 'stats' ? { generatedAt: new Date(clock).toISOString(), stateCoverage: { states: [] } }
