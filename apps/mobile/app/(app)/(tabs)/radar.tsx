@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { groupRadarReports } from "../../../src/radar/alert-location";
 import { CellarBottleArtwork } from '../../../src/components/CellarBottleArtwork';
 import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
@@ -272,7 +273,11 @@ export default function RadarScreen() {
   >
     <PageHeading title="Radar" decorated={false} />
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setFocusNotifications(false); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
-    {view === "matches" ? <Pressable accessibilityRole="button" accessibilityLabel={`Edit alert locations, ${radarLocationSummary(preferences)}`} onPress={() => { setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={styles.locationSummary}><Text numberOfLines={1} style={[styles.muted, styles.flex]}>{radarLocationSummary(preferences)}</Text><Text style={styles.textAction}>Edit →</Text></Pressable> : null}
+    {view === "matches" ? <Pressable accessibilityRole="button" accessibilityLabel={`Edit alert locations, ${radarLocationSummary(preferences)}`} onPress={() => { setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={({ pressed }) => [styles.watchSummary, pressed && styles.pressed]}>
+      <View style={styles.watchIcon}><MaterialCommunityIcons name="map-marker-radius-outline" size={21} color={colors.accent} /></View>
+      <View style={styles.flex}><Text style={styles.listTitle}>Watching areas</Text><Text style={styles.muted}>{radarLocationSummary(preferences)}</Text></View>
+      <Text style={styles.textAction}>Edit</Text><MaterialCommunityIcons name="chevron-right" size={17} color={colors.accent} />
+    </Pressable> : null}
     {view === "settings" ? <View style={styles.setupSummary}><View style={styles.signalMarker} /><View style={styles.flex}><Text style={styles.cardTitle}>{setupStatus.title}</Text><Text style={styles.muted}>{setupStatus.detail}</Text></View></View> : null}
     {view === "matches" && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
       <Text style={[styles.noticeText, styles.flex]}>Push notifications need attention</Text>
@@ -328,11 +333,17 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
   useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(timer); }, []);
   const { current, history: past } = partitionRadarAlerts(alerts, now);
   return <View style={styles.section}>
-    {current.some(alert => !alert.readAt) ? <TextAction label="MARK READ" disabled={saving} onPress={() => void onMutate("mark_read", current.filter(item => !item.readAt).map(item => item.id))} /> : null}
-    {!current.length ? <View style={styles.emptyAlerts}>
-      <Text style={styles.emptyTitle}>{setupNeeded ? "Set up your alerts" : "No recent alerts"}</Text>
-      {setupNeeded ? <SmallButton primary label="Choose preferences" onPress={onOpenWatchlist} /> : null}
-    </View> : null}
+    {current.length ? <View style={styles.headingRow}>
+      <Text accessibilityRole="header" style={styles.alertSectionTitle}>Recent alerts</Text>
+      {current.some(alert => !alert.readAt) ? <TextAction label="MARK READ" disabled={saving} onPress={() => void onMutate("mark_read", current.filter(item => !item.readAt).map(item => item.id))} /> : null}
+    </View> : <View style={styles.emptyAlerts}>
+      <View style={styles.emptyIcon}><MaterialCommunityIcons name={setupNeeded ? "tune-variant" : "bell-outline"} size={22} color={colors.accent} /></View>
+      <View style={styles.flex}>
+        <Text accessibilityRole="header" style={styles.emptyTitle}>{setupNeeded ? "Set up your alerts" : "No recent alerts"}</Text>
+        <Text style={styles.muted}>{setupNeeded ? "Pick the areas and bottles you want to watch." : "New reports that match your preferences will appear here."}</Text>
+        {setupNeeded ? <TextAction label="Choose preferences" onPress={onOpenWatchlist} /> : null}
+      </View>
+    </View>}
     {groupRadarReports(current).map(group => <ReportGroup key={group[0].id} reports={group} saving={saving} watchedNames={watchedNames} onMutate={onMutate} onMute={onMute} isMuted={isMuted} />)}
     {past.length ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showPast }} onPress={() => setShowPast(value => !value)} style={styles.historyRow}>
       <Text style={styles.listTitle}>Past alerts ({past.length})</Text><Text style={styles.chevron}>{showPast ? "−" : "+"}</Text>
@@ -343,7 +354,7 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
 
 function ReportGroup({ reports, ...props }: Omit<React.ComponentProps<typeof RadarAlertRow>, "alert"> & { reports: MemberAlert[] }) {
   const [expanded, setExpanded] = useState(false);
-  return <View>{(expanded ? reports : reports.slice(0, 1)).map(alert => <AlertCard key={alert.id} alert={alert} {...props} />)}{reports.length > 1 ? <TextAction expanded={expanded} label={expanded ? "Hide earlier reports" : `${reports.length - 1} earlier report${reports.length === 2 ? "" : "s"}`} onPress={() => setExpanded(value => !value)} /> : null}</View>;
+  return <View style={styles.stack}>{(expanded ? reports : reports.slice(0, 1)).map(alert => <AlertCard key={alert.id} alert={alert} {...props} />)}{reports.length > 1 ? <TextAction expanded={expanded} label={expanded ? "Hide earlier reports" : `${reports.length - 1} earlier report${reports.length === 2 ? "" : "s"}`} onPress={() => setExpanded(value => !value)} /> : null}</View>;
 }
 
 function AlertCard(props: React.ComponentProps<typeof RadarAlertRow>) {
@@ -537,9 +548,13 @@ const styles = StyleSheet.create({
   locationSummary: { minHeight: 64, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 },
   compactNotice: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.surface },
   noticeText: { color: colors.accent, fontSize: typeScale.small, lineHeight: 18 },
-  emptyAlerts: { minHeight: 60, alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 16 },
-  emptyTitle: { color: colors.muted, ...typography.section, fontWeight: "600", textAlign: "center" },
-  historyRow: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  watchSummary: { minHeight: 66, flexDirection: "row", alignItems: "center", padding: 12, gap: 9, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 14 },
+  watchIcon: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceRaised },
+  emptyAlerts: { minHeight: 98, flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 15, borderWidth: 1, borderColor: colors.border, borderRadius: 14 },
+  emptyIcon: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface },
+  emptyTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 19, lineHeight: 25 },
+  alertSectionTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 23, lineHeight: 29, flexShrink: 1 },
+  historyRow: { minHeight: 52, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   preferences: { gap: 28 },
   chevron: { color: colors.accent, fontSize: typeScale.title, fontFamily: fonts.heading },
   tabs: { flexDirection: "row", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, gap: 16 },

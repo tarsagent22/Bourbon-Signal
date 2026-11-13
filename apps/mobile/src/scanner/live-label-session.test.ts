@@ -157,3 +157,14 @@ test('uncertain expression text remains selectable without borrowing confidence 
   assert.equal(scan.observe(frame(4, 'PENELOPE\nRIVIERA'), view, 1000)!.phase, 'suggesting', 'one strong read after weak reads does not confirm');
   assert.equal(scan.observe(frame(5, 'PENELOPE\nRIVIERA'), view, 1250)!.phase, 'ready');
 });
+
+test('complementary Eagle Rare reads surface choices without confirming stale evidence', () => {
+  const scan = createLiveLabelSession(index);
+  assert.deepEqual(scan.observe(frame(1, 'EAGLE'), view, 100)!.matches, []);
+  const split = scan.observe(frame(2, 'RARE\nAGED TEN YEARS'), view, 350)!;
+  assert.equal(split.matches[0]?.id, 'eagle-rare-10');
+  assert.equal(split.phase, 'suggesting');
+  assert.equal(scan.observe(frame(3, 'RARE\nAGED TEN YEARS'), view, 600)!.phase, 'suggesting');
+  assert.equal(scan.observe(frame(4, 'EAGLERARE\nAGED TEN YEARS'), view, 850)!.phase, 'suggesting');
+  assert.equal(scan.observe(frame(5, 'EAGLERARE\nAGED TEN YEARS'), view, 1100)!.phase, 'ready');
+});
