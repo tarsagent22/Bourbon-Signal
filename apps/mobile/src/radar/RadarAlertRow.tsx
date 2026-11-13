@@ -59,7 +59,7 @@ export function RadarAlertRow({ alert, saving, watchedNames, onMutate, onMute, i
             <View style={s.summaryFooter}>
               {unread ? <View style={s.unreadDot} /> : null}
               <Text style={[s.meta, unread && s.unreadMeta]}>{stale ? "Past report" : alert.sourceType === "community" ? "Community sighting" : "Bottle report"}</Text>
-              <Text style={s.meta}>· {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text>
+              <Text style={s.meta}>Â· {relativeSignalTime(alert.signalAt || alert.createdAt)}</Text>
             </View>
             <Text style={s.bottle}>{bottles.length > 1 ? `${bottles.length} bottles reported` : firstBottle}</Text>
             <View style={s.locationLine}>
