@@ -1,0 +1,103 @@
+"use client";
+import { FeedRow } from "./DropFeed";
+import { dropFeedStyles } from "./drop-feed-styles";
+import type { GroupedDrop } from "@/lib/drops";
+import type { PublicMarketingDrop } from "@/lib/public-marketing-feed";
+export default function PublicDropFeed({
+  drops,
+  unavailable,
+}: {
+  drops: PublicMarketingDrop[];
+  unavailable: boolean;
+}) {
+  return (
+    <section
+      id="drops"
+      style={{
+        backgroundColor: "var(--color-bg-warm)",
+        scrollMarginTop: 88,
+        padding: "24px 0 64px",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        overflow: "hidden",
+      }}
+    >
+      <style>{dropFeedStyles}</style>
+      <div
+        className="dropfeed-shell"
+        style={{
+          width: "100%",
+          maxWidth: 680,
+          paddingInline: 16,
+          marginInline: "auto",
+          boxSizing: "border-box",
+        }}
+      >
+        <h2
+          className="dropfeed-title"
+          style={{
+            fontFamily: "var(--font-playfair)",
+            fontSize: 32,
+            lineHeight: 1.1,
+            fontWeight: 700,
+            color: "var(--color-cream)",
+            margin: 0,
+          }}
+        >
+          The Drop Feed
+        </h2>
+        <p
+          className="dropfeed-subcopy"
+          style={{
+            color: "rgba(245,237,214,.54)",
+            fontFamily: "var(--font-dm-sans)",
+            fontSize: 13,
+            lineHeight: 1.5,
+            margin: "7px 0 22px",
+          }}
+        >
+          Our system automatically updates the feed throughout the day.
+        </p>
+        <div style={{ display: "grid", gap: 12 }}>
+          {drops.map((drop, index) => (
+            <FeedRow
+              key={drop.id}
+              readOnly
+              isFreeUser
+              index={index}
+              isNew={false}
+              drop={
+                {
+                  id: drop.id,
+                  displayName: drop.bottle,
+                  state: drop.state,
+                  timestamp: drop.observedAt,
+                  lastConfirmedAt: drop.confirmedAt,
+                  event_type: drop.eventType,
+                  rarity_tier: drop.rarity,
+                  locations:
+                    drop.location === drop.state
+                      ? []
+                      : [{ label: drop.location }],
+                  counties: [],
+                } as GroupedDrop
+              }
+            />
+          ))}
+        </div>
+        {!drops.length ? (
+          <p
+            role="status"
+            style={{ color: "var(--color-text-secondary)", padding: "24px 0" }}
+          >
+            {unavailable
+              ? "The feed is temporarily unavailable. Please check back shortly."
+              : "No public drops to show right now."}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
