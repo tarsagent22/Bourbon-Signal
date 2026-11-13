@@ -153,7 +153,8 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
           <MaterialCommunityIcons name={torch ? 'flashlight' : 'flashlight-off'} color="#fff" size={22} />
         </Pressable>
       </View>
-      <View style={s.bottom}>
+    </View>
+    <View style={s.controls}>
         <Text accessibilityLiveRegion="polite" style={s.overlay}>{message}</Text>
         <Pressable accessibilityRole="button" accessibilityState={{ busy: phase === 'reading', disabled: phase === 'reading' || (!enabled && phase !== 'failed') }}
           disabled={phase === 'reading' || (!enabled && phase !== 'failed')}
@@ -166,7 +167,6 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
           style={[s.button, phase === 'reading' && s.busyButton]}>
           <Text style={s.buttonText}>{phase === 'failed' ? 'Try camera again' : phase === 'reading' ? 'Reading label…' : phase === 'finished' ? 'Read again' : 'Read label'}</Text>
         </Pressable>
-      </View>
     </View>
     {family ? <Pressable accessibilityRole="button" accessibilityLabel={`Show all ${family.name} expressions`} onPress={() => {
       setMessage('Choose your expression below.');
@@ -179,8 +179,8 @@ const s = StyleSheet.create({
   bracket: { position: 'absolute', borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', borderRadius: 18 },
   top: { position: 'absolute', top: 16, left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
   torch: { minWidth: 48, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 22, paddingHorizontal: 14 },
-  bottom: { position: 'absolute', bottom: 16, left: 16, right: 16, gap: 8 },
-  overlay: { color: '#fff', backgroundColor: 'rgba(0,0,0,0.7)', textAlign: 'center', textAlignVertical: 'center', minHeight: 44, fontSize: 13, lineHeight: 19, padding: 12, borderRadius: 12 },
+  controls: { gap: 6 },
+  overlay: { color: colors.muted, textAlign: 'center', fontSize: 13, lineHeight: 19, paddingHorizontal: 6, paddingVertical: 4 },
   fallback: { minHeight: 220, padding: 28, gap: 18, backgroundColor: colors.surface, borderRadius: 24, justifyContent: 'center' },
   copy: { color: colors.muted, fontSize: 15, lineHeight: 23, textAlign: 'center' },
   button: { minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: colors.accent },
