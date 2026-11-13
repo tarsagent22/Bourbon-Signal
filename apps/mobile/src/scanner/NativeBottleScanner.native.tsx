@@ -33,6 +33,7 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
   const [held, setHeld] = useState(false), [failed, setFailed] = useState(false), [torch, setTorch] = useState(false);
   const [retry, setRetry] = useState(0), [message, setMessage] = useState('Reading label…');
+  const lastPhase = useRef<keyof typeof phaseText>('reading');
   const [view, setView] = useState({ width: 320, height: 380 });
   const [family, setFamily] = useState<ReturnType<typeof createLabelIndex>['families'][number]>();
   const current = useRef({ onMatches, onMetrics, view }); current.current = { onMatches, onMetrics, view };
@@ -60,7 +61,7 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
     failures.current = 0;
     if ((result.family?.identity || '') !== lastFamily.current) { lastFamily.current = result.family?.identity || ''; setFamily(result.family); }
     if (result.changed) publish(result.matches);
-    setMessage(phaseText[result.phase]);
+    if (lastPhase.current !== result.phase) { lastPhase.current = result.phase; setMessage(phaseText[result.phase]); }
     if (result.phase === 'ready') {
       accepting.current = false; setHeld(true); setTorch(false); current.current.onMetrics?.(result.metrics);
       if (__DEV__) console.info('Bottle scan timings', result.metrics);
@@ -78,10 +79,10 @@ function LiveCamera({ active, catalog, onMatches, session = 0, onMetrics }: Scan
   }, []);
   useEffect(() => {
     tracker.reset(performance.now()); setHeld(false); setFailed(false); setTorch(false); setFamily(undefined);
-    publish([]); lastFamily.current = ''; failures.current = 0; setMessage('Reading label…');
+    publish([]); lastFamily.current = ''; failures.current = 0; lastPhase.current = 'reading'; setMessage('Reading label…');
   }, [session, tracker]);
   useEffect(() => {
-    if (enabled && !held) tracker.reset(performance.now());
+    if (enabled && !held) { tracker.reset(performance.now()); lastPhase.current = 'reading'; setMessage(phaseText.reading); }
     if (!enabled) {
       tracker.reset(performance.now()); setTorch(false);
       if (!held && !failed) { publish([]); setFamily(undefined); lastFamily.current = ''; }

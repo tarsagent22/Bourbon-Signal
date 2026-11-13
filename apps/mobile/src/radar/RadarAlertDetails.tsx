@@ -2,6 +2,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { MemberAlert } from '../api/types';
+import { CellarBottleArtwork } from '../components/CellarBottleArtwork';
 import { colors } from '../theme';
 import { radarBottleLabel, radarDirectionsUrl, radarStoreAddress } from './alert-detail-presentation';
 
@@ -19,7 +20,7 @@ export function RadarAlertDetails({ alert, bottles, stale, onOpenReport }: {
       {bottles.map((raw, index) => {
         const bottle = radarBottleLabel(raw);
         return <View key={raw} style={[s.bottleRow, index > 0 && s.divider]}>
-          <View style={s.bottleIcon}><MaterialCommunityIcons name="bottle-wine-outline" size={22} color={colors.accent} /></View>
+          <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants"><CellarBottleArtwork bottle={{ bottleName: bottle.name }} size="list" hidePlaceholderLabel /></View>
           <View style={s.bottleCopy}><Text style={s.bottleName}>{bottle.name}</Text>{bottle.size || bottle.proof ? <Text style={s.secondary}>{[bottle.size, bottle.proof].filter(Boolean).join(' · ')}</Text> : null}</View>
         </View>;
       })}
@@ -43,12 +44,12 @@ export function RadarAlertDetails({ alert, bottles, stale, onOpenReport }: {
 }
 
 const s = StyleSheet.create({
-  details: { marginLeft: 15, paddingBottom: 16, gap: 14 },
-  bottleList: { backgroundColor: colors.surface, borderRadius: 12, paddingHorizontal: 14, paddingTop: 14 },
+  details: { paddingHorizontal: 12, paddingBottom: 12, gap: 12 },
+  bottleList: { backgroundColor: colors.background, borderRadius: 12, paddingHorizontal: 14, paddingTop: 14 },
   eyebrow: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
   bottleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  bottleIcon: { width: 28, alignItems: 'center' }, bottleCopy: { flex: 1, minWidth: 0, gap: 4 },
+  bottleCopy: { flex: 1, minWidth: 0, gap: 4 },
   bottleName: { color: colors.text, fontSize: 15, lineHeight: 21, fontWeight: '600' },
   secondary: { color: colors.muted, fontSize: 12, lineHeight: 18 },
   notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },

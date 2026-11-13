@@ -93,6 +93,23 @@ test('incomplete labels expose alternatives instead of inventing an exact releas
 test('generic label text and unrelated words return no candidates', () => {
   for (const text of ['', 'KENTUCKY STRAIGHT BOURBON WHISKEY 100 PROOF', 'Handcrafted wooden table', 'EAGLE']) assert.deepEqual(matchBottleLabel(index, text), []);
 });
+test('Eagle Rare survives joined lettering, short OCR errors and spelled-out ages', () => {
+  const fullIndex = createLabelIndex(seed);
+  for (const [text, id] of [
+    ['EAGLERARE\nAGED TEN YEARS\n45.0% ALC/VOL', 'eagle-rare-10'],
+    ['EAGLE RARC\nTWELVE YEARS OLD', 'eagle-rare-12'],
+    ['EAGLE RARE\nSEVENTEEN YEARS\nKENTUCKY STRAIGHT BOURBON', 'eagle-rare-17-year'],
+    ['EAGLE RARE\nAGED TWENTY-FIVE YEARS', 'eagle-rare-25y'],
+    ['EALGE RARE\n10 YEARS', 'eagle-rare-10'],
+  ]) assert.equal(readBottleLabel(fullIndex, text).matches[0]?.id, id, text);
+  for (const text of ['EAGLE RARE', 'EAGLE RARE 101 PROOF', 'EAGLE RARE 12% ABV', 'EAGLE RARC TWELVE YEARS', 'EAGLE BOURBON']) {
+    const result = readBottleLabel(fullIndex, text);
+    assert.ok(result.matches.some(bottle => bottle.id.startsWith('eagle-rare-')), text);
+    assert.equal(result.canHold, false, text);
+  }
+  assert.deepEqual(readBottleLabel(fullIndex, 'EAGLE').matches, []);
+});
+
 test('barcodes require valid check digits and normalize UPC-A to EAN-13', () => {
   assert.equal(normalizeBarcode('036000291452'), '0036000291452');
   assert.equal(normalizeBarcode('0036000291452'), '0036000291452');
