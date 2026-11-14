@@ -1,4 +1,4 @@
-import { isOregonDailyProductionEvidence } from './collectors/oregon-daily-production.mjs';
+import { isOregonDailyProductionEvidence } from './oregon-daily-production-policy.mjs';
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;

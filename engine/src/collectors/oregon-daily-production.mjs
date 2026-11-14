@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
-import { collectOregonDailyInventory, OREGON_DAILY_INVENTORY_URL, OREGON_INVENTORY_MAX_AGE_MS, resolveOregonBourbonIdentity } from '../or-daily-inventory.mjs';
+import { collectOregonDailyInventory, OREGON_INVENTORY_MAX_AGE_MS, resolveOregonBourbonIdentity } from '../or-daily-inventory.mjs';
 import { stableId } from '../core/text.mjs';
 import { validateImmutablePromotionEvidence, evaluateStateControl } from '../reliability-policy.mjs';
+import { isOregonDailyProductionEvidence, OREGON_DAILY_INVENTORY_URL, OREGON_DAILY_PRODUCTION_COHORT_SHA256, OREGON_DAILY_PRODUCTION_RUNTIME_ID } from '../oregon-daily-production-policy.mjs';
+export { OREGON_DAILY_PRODUCTION_RUNTIME_ID };
 
-export const OREGON_DAILY_PRODUCTION_RUNTIME_ID = 'or:olcc-daily-inventory';
 export const OREGON_DAILY_PRODUCTION_CONFIG = Object.freeze({
   schemaVersion: 1,
   state: 'OR',
@@ -15,27 +16,17 @@ export const OREGON_DAILY_PRODUCTION_CONFIG = Object.freeze({
   observationClock: 'official-inventory-date-preserved',
   maxAgeMs: OREGON_INVENTORY_MAX_AGE_MS,
   alerts: false,
+  cohortSha256: OREGON_DAILY_PRODUCTION_COHORT_SHA256,
 });
-export const OREGON_DAILY_PRODUCTION_CONFIG_SHA256 = createHash('sha256')
-  .update(JSON.stringify(OREGON_DAILY_PRODUCTION_CONFIG)).digest('hex');
-
-const sha256 = /^[a-f0-9]{64}$/i;
-const dateMs = value => Date.parse(String(value || ''));
-
-export function isOregonDailyProductionEvidence(drop = {}) {
-  const binding = drop.sourceProductBinding && typeof drop.sourceProductBinding === 'object' ? drop.sourceProductBinding : {};
-  return drop.state === 'OR' && drop.sourceRuntimeId === OREGON_DAILY_PRODUCTION_RUNTIME_ID
-    && drop.previewOnly !== true && drop.sourceUrl === OREGON_DAILY_INVENTORY_URL
-    && drop.sourceAvailabilityVerified === true && drop.sourceStale !== true && drop.stale !== true
-    && drop.locationPrecision === 'store_level' && Boolean(String(drop.storeId || '').trim() && String(drop.storeAddress || '').trim())
-    && drop.quantityIsExact === true && Number.isSafeInteger(drop.quantity) && drop.quantity > 0
-    && drop.canonicalBottleId === binding.canonicalBottleId && drop.quantity === binding.sourceQuantity
-    && drop.observedAt === binding.observedAt && drop.lastConfirmedAt === binding.observedAt
-    && binding.source === 'olcc-daily-report' && binding.reportSha256 === drop.sourceReportSha256
-    && sha256.test(String(drop.sourceReportSha256 || '')) && Number.isFinite(dateMs(drop.sourceReportGeneratedAt))
-    && drop.canAlertAsInventory === false && drop.canAlertAsWatch === false && drop.alertable === false
-    && drop.eligibleForDelivery === false && drop.deliveryEligible === false && drop.eligibleForEmail === false && drop.eligibleForSms === false;
+export function oregonDailyProductionSourceConfigHash(manifest) {
+  if (!manifest || manifest.state !== 'OR') throw new Error('Unreviewed Oregon production manifest');
+  return createHash('sha256').update(JSON.stringify(Object.fromEntries(
+    ['lifecycle', 'collector', 'storeIdentity', 'sourceSemantics', 'customerPaths'].map(key => [key, manifest[key]])
+  ))).digest('hex');
 }
+
+const dateMs = value => Date.parse(String(value || ''));
+const sha256 = /^[a-f0-9]{64}$/i;
 
 /** Promotion requires a separately reviewed, immutable OR manifest and lifecycle entry. */
 export function oregonDailyProductionAllowed(config, manifest, { env = process.env } = {}) {
@@ -49,7 +40,8 @@ export function oregonDailyProductionAllowed(config, manifest, { env = process.e
     && manifest?.state === 'OR' && manifest.lifecycle?.publicStatus === 'active'
     && manifest.lifecycle?.refinementLevel === 'store'
     && JSON.stringify(manifest.collector?.sourceIds) === JSON.stringify([OREGON_DAILY_PRODUCTION_RUNTIME_ID])
-    && manifest.collector?.sourceConfigSha256 === OREGON_DAILY_PRODUCTION_CONFIG_SHA256
+    && manifest.collector?.cohortSha256 === OREGON_DAILY_PRODUCTION_COHORT_SHA256
+    && manifest.collector?.cohortSha256 === OREGON_DAILY_PRODUCTION_CONFIG.cohortSha256
     && manifest.storeIdentity?.addressRequired === true
     && manifest.sourceSemantics?.inventoryAlertable === false && manifest.sourceSemantics?.watchAlertable === false
     && Number(evidence?.shadowRuns) >= policy.minShadowRuns && Number(evidence?.canaryRuns) >= policy.minCanaryRuns
@@ -58,7 +50,8 @@ export function oregonDailyProductionAllowed(config, manifest, { env = process.e
     && evidence.fixtureContract === 'engine/data/state-fixtures/OR.json'
     && evaluateStateControl('OR', env).collect && evaluateStateControl('OR', env).publishCandidate
     && validateImmutablePromotionEvidence('OR', evidence, policy)
-    && manifest.evidence?.immutablePromotionEvidence?.sourceConfigHash === OREGON_DAILY_PRODUCTION_CONFIG_SHA256
+    && evidence.immutableEvidence.provenance.repository === 'tarsagent22/Bourbon-Signal'
+    && manifest.evidence?.immutablePromotionEvidence?.sourceConfigHash === oregonDailyProductionSourceConfigHash(manifest)
     && JSON.stringify(manifest.evidence?.immutablePromotionEvidence) === JSON.stringify(evidence.immutableEvidence));
 }
 
@@ -97,7 +90,8 @@ export function projectOregonDailyProduction(report, bible, { nowMs = Date.now()
         sourceLabel: 'Oregon OLCC Daily Store Inventory', sourceUrl: OREGON_DAILY_INVENTORY_URL,
         sourceReportSha256: report.sourceSha256, sourceReportGeneratedAt: report.generatedAt,
         sourceAvailabilityVerified: true, sourceStale: false, stale: false,
-        sourceProductBinding: { source: 'olcc-daily-report', itemCode: String(product.itemCode), newItemCode: String(product.newItemCode),
+        sourceProductBinding: { source: 'olcc-daily-report', cohortSha256: OREGON_DAILY_PRODUCTION_COHORT_SHA256,
+          itemCode: String(product.itemCode), newItemCode: String(product.newItemCode),
           canonicalBottleId: identity.match.record.id, size: product.size, proof: product.proof, reportSha256: report.sourceSha256,
           sourceQuantity: store.quantity, observedAt: store.inventoryObservedAt },
         type: 'store_inventory_result', event_type: 'store_inventory_result', eventType: 'store_inventory_result',
