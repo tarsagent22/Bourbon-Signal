@@ -1,0 +1,63 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "count": 3,
+  "locations": [
+    {
+      "id": "kings-liquor-olathe:6060f76259a44e1d9f41522d",
+      "storeId": "kings-liquor-olathe:6060f76259a44e1d9f41522d",
+      "state": "KS",
+      "name": "Kings Liquor",
+      "storeName": "Kings Liquor",
+      "address": "18589 W 151st St, Olathe, KS 66062, USA",
+      "storeAddress": "18589 W 151st St, Olathe, KS 66062, USA",
+      "city": "Olathe",
+      "zip": "66062",
+      "type": "store",
+      "locationType": "store",
+      "source": "Kings Liquor KS first-party pickup inventory",
+      "precision": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true
+    },
+    {
+      "id": "verns-liquor:61ae46168baad441363308b0",
+      "storeId": "verns-liquor:61ae46168baad441363308b0",
+      "state": "KS",
+      "name": "Vern's Retail Liquor",
+      "storeName": "Vern's Retail Liquor",
+      "address": "3700 SW Gage Blvd, Topeka, KS 66610, USA",
+      "storeAddress": "3700 SW Gage Blvd, Topeka, KS 66610, USA",
+      "city": "Topeka",
+      "zip": "66610",
+      "type": "store",
+      "locationType": "store",
+      "source": "Vern's Retail Liquor KS first-party pickup inventory",
+      "precision": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true
+    },
+    {
+      "id": "rj-liquor:6060f6496aaeeb555664ca4f",
+      "storeId": "rj-liquor:6060f6496aaeeb555664ca4f",
+      "state": "KS",
+      "name": "RJ Liquor",
+      "storeName": "RJ Liquor",
+      "address": "3015 E Douglas Ave, Wichita, KS 67211, USA",
+      "storeAddress": "3015 E Douglas Ave, Wichita, KS 67211, USA",
+      "city": "Wichita",
+      "zip": "67211",
+      "type": "store",
+      "locationType": "store",
+      "source": "RJ Liquor KS first-party pickup inventory",
+      "precision": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true
+    }
+  ],
+  "runId": "02d0492454370a30",
+  "generatedAt": "2026-11-14T12:03:44.065Z",
+  "engineGeneratedAt": "2026-11-14T11:58:29.554Z"
+}

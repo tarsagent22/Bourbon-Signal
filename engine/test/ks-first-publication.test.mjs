@@ -24,22 +24,22 @@ test('Kansas first-publication contract stays fail closed until a fresh producti
   assert.equal(STATE_LIFECYCLE_CONFIG.states.KS.promotionStage, 'active');
   assert.equal(STATE_LIFECYCLE_CONFIG.states.KS.inventoryAlertable, false);
   assert.equal(STATE_LIFECYCLE_CONFIG.reliabilityPolicy.stateExpectedRunMs.KS, 15_000);
-  assert.throws(() => verifyKansasFirstPublication({ status: 'not_promoted', stale: false }, { drops: [] }), /Kansas first publication/);
+  assert.equal(verifyKansasFirstPublication({report:{state:'KS',status:'not_promoted',stale:false},partition:{state:'KS',count:0,drops:[]}}).ok,false);
 });
 
 test('Kansas first-publication contract rejects incomplete or cached cohorts even with allocated rows', () => {
-  const report = { status: 'useful', stale: false, metadata: { allDeliveryDisabled: true,
+  const report = { state:'KS',status: 'useful', stale: false, metadata: { allDeliveryDisabled: true,
     cityhive: { complete: true, cacheReused: true, selectedStores: [], verifiedPremises: [] } } };
-  assert.throws(() => verifyKansasFirstPublication(report, { drops: [] }), /fresh closed three-store/);
+  assert.equal(verifyKansasFirstPublication({report,partition:{state:'KS',count:0,drops:[]},workflowRunId:'1'}).ok,false);
   report.metadata.cityhive.cacheReused = false;
   report.metadata.cityhive.complete = false;
-  assert.throws(() => verifyKansasFirstPublication(report, { drops: [] }), /fresh closed three-store/);
+  assert.equal(verifyKansasFirstPublication({report,partition:{state:'KS',count:0,drops:[]},workflowRunId:'1'}).ok,false);
 });
 
 test('Kansas first-publication verifier accepts only its reviewed silent three-city fixture projection', async t => {
   const directory = await mkdtemp(path.join(tmpdir(), 'ks-first-publish-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const nowMs = Date.parse('2026-11-14T14:00:00.000Z');
+  const nowMs = Date.now()-60_000;
   const root = new URL('./fixtures/ks-cityhive/', import.meta.url);
   const manifest = JSON.parse(await readFixture(new URL('receipts.json', root), 'utf8'));
   const captures = new Map(await Promise.all(manifest.captures.map(async receipt => [
@@ -57,13 +57,19 @@ test('Kansas first-publication verifier accepts only its reviewed silent three-c
       text: `<script type="application/json">${captures.get(fixtures.get(new URL(url).hostname))}</script>` }),
   });
   const drops = buildDrops(result.signals.map(row => canonicalizeSignal(row, bible)), bibleLookup(bible.records), result.signals);
-  const check = verifyKansasFirstPublication({ status: 'useful', stale: false,
-    metadata: { cityhive: result.metadata, allDeliveryDisabled: true } }, { drops }, { nowMs });
-  assert.equal(check.storeCount, 3);
-  assert.equal(check.cities.length, 3);
-  assert.equal(check.listingCount, 4);
+  const report={state:'KS',status:'useful',stale:false,startedAt:new Date(nowMs-1000).toISOString(),finishedAt:new Date(nowMs+1000).toISOString(),
+    lastGoodAt:result.metadata.sourceObservedAt,signals:result.signals,metadata:{cityhive:result.metadata,allDeliveryDisabled:true}};
+  const check = verifyKansasFirstPublication({report,partition:{state:'KS',count:drops.length,drops},nowMs,workflowRunId:'123456'});
+  assert.equal(check.ok,true,check.failures.join('; '));
+  assert.equal(check.receipt.publishedStores,3);assert.equal(check.receipt.cities.length,3);assert.equal(check.receipt.publishedRows,4);
+  const sparse=drops.filter(row=>row.storeId==='kings-liquor-olathe:6060f76259a44e1d9f41522d');
+  const sparseCheck=verifyKansasFirstPublication({report,partition:{state:'KS',count:sparse.length,drops:sparse},nowMs,workflowRunId:'123456'});
+  assert.equal(sparseCheck.ok,true,sparseCheck.failures.join('; '));assert.equal(sparseCheck.receipt.publishedStores,1);assert.equal(sparseCheck.receipt.allocatedRows,1);
   const unsafe = structuredClone(drops);
   unsafe[0].eligibleForDelivery = true;
-  assert.throws(() => verifyKansasFirstPublication({ status: 'useful', stale: false,
-    metadata: { cityhive: result.metadata, allDeliveryDisabled: true } }, { drops: unsafe }, { nowMs }), /fully disabled delivery/);
+  assert.equal(verifyKansasFirstPublication({report,partition:{state:'KS',count:unsafe.length,drops:unsafe},nowMs,workflowRunId:'123456'}).ok,false);
+  const noAllocated=structuredClone(sparse);noAllocated[0].tier='standard';
+  assert.equal(verifyKansasFirstPublication({report,partition:{state:'KS',count:noAllocated.length,drops:noAllocated},nowMs,workflowRunId:'123456'}).ok,false);
+  const incomplete=structuredClone(report);incomplete.metadata.cityhive.requests.pop();
+  assert.equal(verifyKansasFirstPublication({report:incomplete,partition:{state:'KS',count:sparse.length,drops:sparse},nowMs,workflowRunId:'123456'}).ok,false);
 });

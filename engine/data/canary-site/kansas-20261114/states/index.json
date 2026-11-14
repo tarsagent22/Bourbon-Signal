@@ -1,0 +1,15 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "generatedAt": "2026-11-14T12:03:44.065Z",
+  "totalCount": 17485,
+  "stateCount": 1,
+  "states": [
+    {
+      "state": "KS",
+      "file": "states/KS/drops.json",
+      "count": 4
+    }
+  ],
+  "runId": "02d0492454370a30",
+  "engineGeneratedAt": "2026-11-14T11:58:29.554Z"
+}

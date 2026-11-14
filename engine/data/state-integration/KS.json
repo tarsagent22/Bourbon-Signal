@@ -76,7 +76,15 @@
       "runs": 2,
       "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597645001",
       "siteArtifact": "engine/data/canary-site/kansas-20261114",
-      "allDeliveryChannelsDisabled": true
+      "allDeliveryChannelsDisabled": true,
+      "observations": [
+        {
+          "runId": "43597645001",
+          "status": "success",
+          "artifactHash": "a434595439a8a82a2180f0c8ef315fa82c5979f2a3ebe8035a4df91362ec530b",
+          "partitionSha256": "b9f521be232d2d94876294b857e8eee0591e4ff13d1ff2d4c07e58cff0f1aad1"
+        }
+      ]
     },
     "production": {
       "status": "awaiting_first_publication",

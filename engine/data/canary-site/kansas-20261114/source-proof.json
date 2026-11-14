@@ -1,0 +1,15 @@
+{
+  "mode": "reviewed_ci_only_canary_extract",
+  "originalPartitionBytesPreserved": true,
+  "productionSnapshotTouched": false,
+  "runs": [
+    {
+      "state": "KS",
+      "sourceRunId": "43597377388",
+      "canaryRunId": "43597645001",
+      "partitionFile": "states/KS/drops.json",
+      "partitionSha256": "b9f521be232d2d94876294b857e8eee0591e4ff13d1ff2d4c07e58cff0f1aad1",
+      "canaryArtifactSha256": "a434595439a8a82a2180f0c8ef315fa82c5979f2a3ebe8035a4df91362ec530b"
+    }
+  ]
+}

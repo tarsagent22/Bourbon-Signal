@@ -16,12 +16,14 @@ const REVIEWED_SITE='engine/data/canary-site/four-state-20261029';
 const LA_AK_SITE='engine/data/canary-site/alaska-louisiana-20261114';
 const RI_SITE='engine/data/canary-site/rhode-island-20261114';
 const MN_SITE='engine/data/canary-site/minnesota-20261114';
+const KS_SITE='engine/data/canary-site/kansas-20261114';
 const REVIEWED_SOURCE_SITES=new Map([
   ...[...REVIEWED_STATES].map(state=>[state,REVIEWED_SITE]),
   ['AK',LA_AK_SITE],
   ['LA',LA_AK_SITE],
   ['RI',RI_SITE],
   ['MN',MN_SITE],
+  ['KS',KS_SITE],
 ]);
 const array=value=>Array.isArray(value)?value:[];
 const readJson=async(file,fallback)=>{try{return JSON.parse(await readFile(file,'utf8'));}catch{return fallback;}};
@@ -52,7 +54,7 @@ export async function verifyActiveStateIntegrationForCi({root=DEFAULT_ROOT,state
     if(reviewedSite&&manifest?.evidence?.production?.status==='pending_release')throw Error(`${state}: pending_release would redirect the production verifier; it is not permitted for this admission`);
     if(reviewedSite&&manifest?.evidence?.production?.status==='awaiting_first_publication'){
       if(manifest.evidence.canary?.siteArtifact!==reviewedSite)throw Error(`${state}: CI artifact must be the exact reviewed canary path`);
-      const requiresPartitionProof=reviewedSite===LA_AK_SITE||reviewedSite===RI_SITE||reviewedSite===MN_SITE;
+      const requiresPartitionProof=reviewedSite===LA_AK_SITE||reviewedSite===RI_SITE||reviewedSite===MN_SITE||reviewedSite===KS_SITE;
       if(requiresPartitionProof){
         const proof=await readJson(path.join(root,reviewedSite,'source-proof.json'),null);
         const source=proof?.runs?.find(entry=>entry.state===state);
