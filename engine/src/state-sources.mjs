@@ -511,6 +511,7 @@ const BASE_STATE_SOURCES = [
 export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)&&!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS,...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS].map((source) => {
   if(NJ_MI_PRODUCTION_STATES.includes(source.id)||LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id))return source;
   if (source.id === 'MN' && CONFIG_CUSTOMER_ACTIVE_STATE_IDS.has('MN')) return MINNESOTA_CITYHIVE_PRODUCTION_CONFIG;
+  if (source.id === 'OR' && CONFIG_CUSTOMER_ACTIVE_STATE_IDS.has('OR')) return { ...source, active: true, disabledReason: null };
   const costcoSource = WESTERN_GROCERY_PRODUCTION_STATES.includes(source.id) ? null : costcoSourceForState(source.id);
   return costcoSource ? { ...source, sources: [...source.sources, costcoSource] } : source;
 });

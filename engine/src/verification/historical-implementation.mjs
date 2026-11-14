@@ -196,6 +196,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   let text = bytes.toString('utf8');
   if(name==='engine/src/state-sources.mjs'){
     text=replaceUnique(text,reviewedOregonStateSource,originalOregonStateSource,`${name}: exact dormant Oregon source block`);
+    const oregonRegistryOverlay = "  if (source.id === 'OR' && CONFIG_CUSTOMER_ACTIVE_STATE_IDS.has('OR')) return { ...source, active: true, disabledReason: null };\n";
+    if (text.includes(oregonRegistryOverlay)) {
+      text = replaceUnique(text, oregonRegistryOverlay, '', `${name}: exact Oregon production registry overlay`);
+    }
     const minnesotaImport = "import { MINNESOTA_CITYHIVE_PRODUCTION_CONFIG } from './minnesota-cityhive-production-config.mjs';\n";
     if (text.includes(minnesotaImport)) {
       text = replaceUnique(text, minnesotaImport, '', `${name}: MN registry import`);
