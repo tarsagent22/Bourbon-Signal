@@ -32,7 +32,7 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
     const input=item.input||{},source=[...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES].find(source=>source.state===payload.state&&source.id===input.sourceId);
     if(!source){failures.push(`${item.id}: no reviewed source for state and source ID.`);continue;}
     const fixture=await fixtureForSource(payload.state,source);
-    if(['MN','MO'].includes(payload.state)){
+    if(['MN','MO','WY'].includes(payload.state)){
       fixture.sourceId=source.id;
       for(const config of fixture.merchant_configs||[]){config.merchant.id=source.merchantId;config.merchant.name=source.name;config.merchant.address.full_address=source.address;config.merchant.address.location={type:'Point',coordinates:[source.lng,source.lat]};}
       for(const product of fixture.products||[])for(const merchant of product.merchants||[]){
