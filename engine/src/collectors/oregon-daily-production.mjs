@@ -93,7 +93,7 @@ export function projectOregonDailyProduction(report, bible, { nowMs = Date.now()
         sourceProductBinding: { source: 'olcc-daily-report', cohortSha256: OREGON_DAILY_PRODUCTION_COHORT_SHA256,
           itemCode: String(product.itemCode), newItemCode: String(product.newItemCode),
           canonicalBottleId: identity.match.record.id, size: product.size, proof: product.proof, reportSha256: report.sourceSha256,
-          sourceQuantity: store.quantity, observedAt: store.inventoryObservedAt },
+          reportGeneratedAt: report.generatedAt, sourceQuantity: store.quantity, observedAt: store.inventoryObservedAt },
         type: 'store_inventory_result', event_type: 'store_inventory_result', eventType: 'store_inventory_result',
         locationPrecision: 'store_level', locationName: `Oregon Liquor Store ${store.storeNo}`,
         storeName: String(store.storeName || `Oregon Liquor Store ${store.storeNo}`), storeId: String(store.storeNo),

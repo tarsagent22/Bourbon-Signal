@@ -5,6 +5,10 @@ import fixture from './fixtures/oregon-daily-production-replay.json' with { type
 import { collectOregonDailyProduction, OREGON_DAILY_PRODUCTION_CONFIG, OREGON_DAILY_PRODUCTION_RUNTIME_ID, oregonDailyProductionAllowed, oregonDailyProductionSourceConfigHash, projectOregonDailyProduction } from '../src/collectors/oregon-daily-production.mjs';
 import { OREGON_DAILY_PRODUCTION_COHORT_SHA256 } from '../src/oregon-daily-production-policy.mjs';
 import { OREGON_DAILY_INVENTORY_URL } from '../src/or-daily-inventory.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { buildDrops, bibleLookup } from '../src/export-site-contract.mjs';
+import { STATE_LIFECYCLE, CUSTOMER_ACTIVE_STATE_IDS } from '../src/state-lifecycle.mjs';
+import { isOregonDailyProductionEvidence } from '../src/oregon-daily-production-policy.mjs';
 
 const report = {
   schemaVersion: 'bourbon-signal-or-product-availability-v1', status: 'ready', sourceUrl: OREGON_DAILY_INVENTORY_URL,
@@ -28,6 +32,40 @@ test('retained OLCC report replay preserves exact allocation rows, source quanti
   assert.ok(rows.every(row => row.eligibleForOnSite && row.eligibleForDropFeed && !row.previewOnly));
   assert.ok(rows.every(row => !row.canAlertAsInventory && !row.canAlertAsWatch && !row.alertable
     && !row.eligibleForDelivery && !row.eligibleForEmail && !row.eligibleForSms));
+});
+
+test('canonicalization and public export retain the report proof while keeping Oregon non-alerting', () => {
+  const libraryRecord = { id: fixture.product.canonicalBottleId, canonical: fixture.product.canonicalName, tier: 'allocated' };
+  const fullBible = { records: [libraryRecord], match: candidate => [fixture.product.identityCandidate, fixture.product.canonicalName].includes(candidate)
+    ? { record: libraryRecord, method: 'exact-library-identity' } : null };
+  const replayReport = { ...report, bible: { ...report.bible,
+    recordsSha256: createHash('sha256').update(JSON.stringify(fullBible.records)).digest('hex') } };
+  const rows = projectOregonDailyProduction(replayReport, fullBible, { nowMs: originalCanaryMs });
+  const lifecycle = structuredClone(STATE_LIFECYCLE.OR);
+  const wasActive = CUSTOMER_ACTIVE_STATE_IDS.has('OR');
+  const realNow = Date.now;
+  try {
+    Date.now = () => originalCanaryMs;
+    Object.assign(STATE_LIFECYCLE.OR, { publicStatus: 'active', coverageTier: 'sparse_live_store_inventory', inventoryAlertable: false, watchAlertable: false });
+    CUSTOMER_ACTIVE_STATE_IDS.add('OR');
+    const operational = rows.map(row => canonicalizeSignal(row, fullBible));
+    assert.ok(operational.every(row => row.tier === 'allocated'
+      && row.sourceProductBinding.reportSha256 === fixture.provenance.sourceReportSha256
+      && row.sourceProductBinding.reportGeneratedAt === replayReport.generatedAt && row.observedAt === row.sourceProductBinding.observedAt));
+    const drops = buildDrops(operational, bibleLookup(fullBible.records), operational);
+    assert.equal(drops.length, rows.length);
+    assert.ok(drops.every(drop => isOregonDailyProductionEvidence(drop)
+      && drop.sourceProductBinding.reportSha256 === fixture.provenance.sourceReportSha256
+      && drop.sourceProductBinding.reportGeneratedAt === report.generatedAt
+      && drop.observedAt === drop.sourceProductBinding.observedAt
+      && drop.eligibleForOnSite === true && drop.eligibleForDropFeed === true && drop.eligibleForWatch === false
+      && drop.canAlertAsInventory === false && drop.canAlertAsWatch === false && drop.alertable === false
+      && drop.eligibleForDelivery === false && drop.eligibleForEmail === false && drop.eligibleForSms === false));
+  } finally {
+    Date.now = realNow;
+    Object.assign(STATE_LIFECYCLE.OR, lifecycle);
+    if (!wasActive) CUSTOMER_ACTIVE_STATE_IDS.delete('OR');
+  }
 });
 
 test('OR production stays denied until active lifecycle, exact adapter manifest, and immutable evidence agree', () => {

@@ -16,8 +16,9 @@ export function isOregonDailyProductionEvidence(drop = {}) {
     && drop.canonicalBottleId === binding.canonicalBottleId && drop.quantity === binding.sourceQuantity
     && drop.observedAt === binding.observedAt && drop.lastConfirmedAt === binding.observedAt
     && binding.source === 'olcc-daily-report' && binding.cohortSha256 === OREGON_DAILY_PRODUCTION_COHORT_SHA256
-    && binding.reportSha256 === drop.sourceReportSha256 && sha256.test(String(drop.sourceReportSha256 || ''))
-    && Number.isFinite(dateMs(drop.sourceReportGeneratedAt))
+    && sha256.test(String(binding.reportSha256 || ''))
+    && Number.isFinite(dateMs(binding.reportGeneratedAt))
     && drop.canAlertAsInventory === false && drop.canAlertAsWatch === false && drop.alertable === false
+    && drop.eligibleForOnSite === true && drop.eligibleForDropFeed === true && drop.eligibleForWatch === false
     && drop.eligibleForDelivery === false && drop.deliveryEligible === false && drop.eligibleForEmail === false && drop.eligibleForSms === false;
 }
