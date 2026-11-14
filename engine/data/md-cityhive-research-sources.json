@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "research_only",
-  "source": "Greenbelt Liquors first-party CityHive product detail capture, 2026-11-14; source evidence and compact test fixture retained in engine/test/fixtures/md-cityhive/.",
+  "source": "Reviewed first-party exact-address product and pickup observations in Greenbelt and Frederick on 2026-11-14.",
   "stores": [
     {
       "id": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
@@ -22,6 +22,50 @@
       "categoryUrl": "https://delivery.greenbeltliquors.com/shop/?subtype=Bourbon&merchant-id=6060f47c27f7c71989f0749c",
       "lat": 38.9995236,
       "lng": -76.9099301,
+      "evidenceDate": "2026-11-14"
+    },
+    {
+      "id": "frederick-wine-house:609a8f43046463546e953e9e",
+      "chainId": "frederick-wine-house",
+      "chainName": "Frederick Wine House",
+      "name": "Frederick Wine House",
+      "state": "MD",
+      "stateCode": "MD",
+      "platform": "cityhive",
+      "baseUrl": "https://frederickwinehouse.com",
+      "hostname": "frederickwinehouse.com",
+      "merchantId": "609a8f43046463546e953e9e",
+      "address": "30 Monocacy Blvd, Frederick, MD 21704, USA",
+      "city": "Frederick",
+      "zip": "21704",
+      "storeId": "frederick-wine-house:609a8f43046463546e953e9e",
+      "sourceLabel": "Frederick Wine House MD first-party pickup inventory",
+      "categoryUrl": "https://frederickwinehouse.com/shop/?subtype=Bourbon&merchant-id=609a8f43046463546e953e9e",
+      "lat": 39.402292,
+      "lng": -77.40530609999999,
+      "prioritySearchTerm": "barrel proof",
+      "evidenceDate": "2026-11-14"
+    },
+    {
+      "id": "ye-old-spirit-shop:66b394ae65806d296ede036c",
+      "chainId": "ye-old-spirit-shop",
+      "chainName": "Ye Old Spirit Shop",
+      "name": "Ye Old Spirit Shop",
+      "state": "MD",
+      "stateCode": "MD",
+      "platform": "cityhive",
+      "baseUrl": "https://yeoldspiritsshop.com",
+      "hostname": "yeoldspiritsshop.com",
+      "merchantId": "66b394ae65806d296ede036c",
+      "address": "1005 W 7th St, Frederick, MD 21701, USA",
+      "city": "Frederick",
+      "zip": "21701",
+      "storeId": "ye-old-spirit-shop:66b394ae65806d296ede036c",
+      "sourceLabel": "Ye Old Spirit Shop MD first-party pickup inventory",
+      "categoryUrl": "https://yeoldspiritsshop.com/shop/?subtype=Bourbon&merchant-id=66b394ae65806d296ede036c",
+      "lat": 39.4278158,
+      "lng": -77.41786019999999,
+      "prioritySearchTerm": "eagle rare",
       "evidenceDate": "2026-11-14"
     }
   ]
