@@ -115,7 +115,7 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now(),sourceIds}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
-  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA'].includes(config.id);
+  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT'].includes(config.id);
   const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
   if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
   const groups=Map.groupBy(allowed,s=>perStore?s.id:s.chainId||s.id);
