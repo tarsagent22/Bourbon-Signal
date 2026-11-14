@@ -16,6 +16,20 @@ test('WI/OK downloader requires actual successful source-equivalent shadow workf
   }
   const ahead={...base,currentHead:'c'.repeat(40),comparison:{status:'ahead',files:[{filename:'engine/data/state-integration/WI.json'}]}};
   assert.equal(validateCityHiveShadowWorkflowOrigin(ahead).sourceEquivalentPreparationChanges.length,1);
+  const ksRuntimeFiles=['.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
+    'engine/src/central-cityhive-production-config.mjs',
+    'engine/src/collectors/central-cityhive-production.mjs','engine/src/run.mjs','engine/test/central-cityhive-production.test.mjs',
+    'scripts/build-promotion-provenance.mjs','scripts/download-cityhive-shadow.mjs','engine/src/verify-ks-first-publication.mjs'];
+  assert.equal(validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'ahead',files:ksRuntimeFiles.map(filename=>({filename}))}})
+    .sourceEquivalentPreparationChanges.length,ksRuntimeFiles.length);
+  const budgetPatch={filename:'src/config/state-lifecycle.json',patch:'@@ -77,6 +77,7 @@\n       "WI": 30000,\n       "OK": 30000,\n+      "KS": 30000,\n       "KY": 180000,'};
+  assert.equal(validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'ahead',files:[budgetPatch]}})
+    .sourceEquivalentPreparationChanges[0],budgetPatch.filename);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'ahead',files:[{filename:budgetPatch.filename}]}}),/source changed/);
+  for(const patch of [budgetPatch.patch.replace('"KS": 30000','"KS": 300000'),
+    budgetPatch.patch.replace('+      "KS": 30000,','+      "KS": 30000,\n+      "TX": 30000,')]){
+    assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'ahead',files:[{...budgetPatch,patch}]}}),/source changed/);
+  }
   for(const filename of ['engine/src/research-cityhive-runtime.mjs','engine/src/collectors/central-cityhive-expansion.mjs','engine/src/core/bible.mjs','src/config/state-lifecycle.json']){
     assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'ahead',files:[{filename}]}}),/source changed/);
   }

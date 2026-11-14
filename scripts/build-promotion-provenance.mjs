@@ -145,7 +145,7 @@ if (['NJ','MI'].includes(state)) files.push(
   `engine/out/njmi-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
-if (['WI', 'OK', 'RI'].includes(state)) files.push(
+if (['WI', 'OK', 'RI', 'KS'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
   'engine/src/central-cityhive-production-config.mjs',
@@ -250,6 +250,10 @@ if (state === 'RI') files.push(
   'src/config/stateLifecycle.ts',
   '.github/workflows/state-expansion-shadow.yml',
   '.github/workflows/refresh-feed.yml',
+);
+if (state === 'KS') files.push(
+  'engine/src/verify-ks-first-publication.mjs',
+  'engine/test/ks-first-publication.test.mjs',
 );
 for (const file of files) {
   const content = await readFile(path.join(root, file));

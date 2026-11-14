@@ -8,12 +8,20 @@ export {decodeBoundedShadowArchive};
 const preparationOnly=file=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
   'engine/src/prepare-central-cityhive-canary.mjs','engine/src/central-cityhive-fixtures.mjs','engine/src/verify-state-fixtures.mjs','scripts/download-cityhive-shadow.mjs',
+  'engine/src/collectors/central-cityhive-production.mjs','engine/src/collectors/central-cityhive-transport.mjs','engine/src/central-cityhive-production-config.mjs','engine/src/collectors/central-cityhive-premises.mjs','engine/src/central-cityhive-policy.mjs','engine/src/run.mjs',
+  'engine/test/central-cityhive-production.test.mjs','engine/src/verify-ks-first-publication.mjs','engine/test/ks-first-publication.test.mjs',
   'engine/test/central-cityhive-canary.test.mjs','scripts/test-cityhive-shadow-download.mjs',
   'scripts/test-central-cityhive-public-canary.mjs','scripts/build-promotion-provenance.mjs','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
 ].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WI|OK|RI|KS|DE)\.json$/.test(file)
   ||file.startsWith('engine/test/fixtures/ks-de-cityhive/') || file==='engine/test/ks-de-cityhive-canary.test.mjs'
   ||/^engine\/test\/fixtures\/ri-cityhive\/[a-z0-9-]+\.json$/.test(file);
+const preparationOnlyChange=file=>file.filename==='src/config/state-lifecycle.json'
+  ?typeof file.patch==='string'&&file.patch.split(/\r?\n/).filter(line=>/^[+-](?![+-])/.test(line))
+    .every(line=>line==='+      "KS": 30000,')
+    &&file.patch.split(/\r?\n/).filter(line=>/^\+[^+]/.test(line)).length===1
+    &&file.patch.split(/\r?\n/).filter(line=>/^-([^-])/.test(line)).length===0
+  :preparationOnly(file.filename);
 
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
   if(!['WI','OK','RI','KS','DE'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
@@ -25,7 +33,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
     ||!(artifact.size_in_bytes>0&&artifact.size_in_bytes<=128*1024*1024))throw new Error('Missing, expired, oversized or unbound shadow artifact');
   const changes=run.head_sha===currentHead?[]:comparison?.files;
   if(run.head_sha!==currentHead&&(!['ahead','identical'].includes(comparison?.status)||!Array.isArray(changes)
-    ||changes.length>=300||changes.some(file=>!preparationOnly(file.filename))))throw new Error('Shadow collector source changed; issue new shadow runs before canary');
+    ||changes.length>=300||changes.some(file=>!preparationOnlyChange(file))))throw new Error('Shadow collector source changed; issue new shadow runs before canary');
   return {status:'verified_github_shadow_artifact',state,repository,workflowRunId:String(run.id),workflowRunUrl:run.html_url,
     headSha:run.head_sha,currentHead,sourceEquivalentPreparationChanges:changes.map(file=>file.filename),
     artifactId:String(artifact.id),artifactName:artifact.name,artifactDigest:artifact.digest.slice(7),verifiedAt:new Date().toISOString()};
