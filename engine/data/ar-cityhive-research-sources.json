@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "research_only",
+  "source": "Sodie's first-party CityHive product detail hydration capture; captured 2026-11-14T10:00:23.370Z; raw capture retained outside Git, SHA-256 D9F7E66AC79E7CAB01BF0B16C61BAD3A1E494D866DBB9881043270B711879F29.",
+  "stores": [
+    {
+      "id": "sodies-ar-fort-smith:594311b6c90f94622d026e1e",
+      "chainId": "sodies-ar-fort-smith",
+      "chainName": "Sodie's Wine & Spirits",
+      "name": "Sodie's Wine & Spirits",
+      "state": "AR",
+      "stateCode": "AR",
+      "platform": "cityhive",
+      "baseUrl": "https://shop.sodiesliquor.com",
+      "hostname": "shop.sodiesliquor.com",
+      "merchantId": "594311b6c90f94622d026e1e",
+      "address": "5401 Phoenix Ave, Fort Smith, AR 72903, USA",
+      "city": "Fort Smith",
+      "zip": "72903",
+      "storeId": "sodies-ar-fort-smith:594311b6c90f94622d026e1e",
+      "sourceLabel": "Sodie's Fort Smith AR first-party pickup inventory",
+      "categoryUrl": "https://shop.sodiesliquor.com/shop/?merchant-id=594311b6c90f94622d026e1e",
+      "lat": 35.3422806,
+      "lng": -94.37510259999999,
+      "evidenceDate": "2026-11-14",
+      "evidenceUrl": "https://shop.sodiesliquor.com/shop/product/little-book-chapter-all-the-wiser/6a03603df437b100019febf3?option-id=c4b6d71d9d8941ce0521d41f56e30cef46056aa805a9e38a896679e9b05c2c45",
+      "evidenceCapturedAt": "2026-11-14T10:00:23.370Z",
+      "evidenceCaptureSha256": "D9F7E66AC79E7CAB01BF0B16C61BAD3A1E494D866DBB9881043270B711879F29"
+    }
+  ]
+}

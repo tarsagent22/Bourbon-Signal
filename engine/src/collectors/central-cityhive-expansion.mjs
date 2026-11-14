@@ -3,14 +3,14 @@ import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
 import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
-import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
+import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES, ARKANSAS_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
 export { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES } from './central-cityhive-research-premises.mjs';
 import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 export {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
-const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES,...MARYLAND_CITYHIVE_RESEARCH_SOURCES]);
+const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES,...MARYLAND_CITYHIVE_RESEARCH_SOURCES,...ARKANSAS_CITYHIVE_RESEARCH_SOURCES]);
 
 export function centralCityHiveLibraryTier(signal,bible) {
  const source=ALL_SOURCES.find(s=>s.state===signal.state&&s.merchantId===signal.merchantId&&s.storeId===signal.storeId);
@@ -36,7 +36,10 @@ export function centralCityHiveLibraryTier(signal,bible) {
   const reviewed=(signal.productId==='6594472cd20b667b856eb419'&&signal.rawName==='R Michters Single Barrel Rye 10yr 750ml'&&identity==="Michter's 10 Year Rye")
     ||(signal.productId==='5e21e94d0320ad0f80403af4'&&signal.rawName==='Larceny Barrel Proof Brourbon'&&identity==='Larceny Barrel Proof')
     ||(signal.merchantId==='6060f6496aaeeb555664ca4f'&&signal.productId==='665932752999236a66c861b6'
-      &&signal.rawName==='WELLER MILLENIUM'&&identity==='Weller Millennium');
+      &&signal.rawName==='WELLER MILLENIUM'&&identity==='Weller Millennium')
+    ||(signal.merchantId==='594311b6c90f94622d026e1e'&&signal.productId==='6a03603df437b100019febf3'
+      &&variant==='c4b6d71d9d8941ce0521d41f56e30cef46056aa805a9e38a896679e9b05c2c45'
+      &&signal.rawName==='Little Book Chapter All The Wiser'&&identity==='Little Book Chapter 10');
   if(!reviewed)return null;
  }
  if(match.record?.id!==record.id||match.match?.confidence!==1)return null;
@@ -60,6 +63,14 @@ export function reviewedCentralCityHiveIdentity(option, product) {
   const data=option.option_display_data || {}, props=data.properties || {};
   const id=String(option.product_id || product.id || '');
   if(data.name!==product.name || Number(data.size?.quantity)!==750 || data.size?.measure!=='ml')return null;
+  const description=[product.description,data.description].join(' ').replace(/<[^>]*>/gu,' ').replace(/&nbsp;|\u00a0/giu,' ');
+  if(option.merchant_id==='594311b6c90f94622d026e1e' && id==='6a03603df437b100019febf3'
+    &&option.option_id==='c4b6d71d9d8941ce0521d41f56e30cef46056aa805a9e38a896679e9b05c2c45'
+    &&product.name==='Little Book Chapter All The Wiser' && data.name===product.name
+    &&props.brands?.length===1 && props.brands[0]==='Little Book'
+    &&data.basic_category?.includes('whiskey') && props.state==='Kentucky' && String(props.age)==='10'
+    &&/\bLittle Book Chapter 10\b[\s\S]{0,120}\bAll the Wiser\b/i.test(description)
+    &&/\b100%\s+bourbon\b/i.test(description))return 'Little Book Chapter 10';
   if(id==='6594472cd20b667b856eb419' && product.name==='R Michters Single Barrel Rye 10yr 750ml'
     && String(props.age)==='10' && props.brands?.length===1 && props.brands[0]==="Michter's"
     && data.basic_category?.includes('rye') && !data.basic_category?.includes('bourbon'))return "Michter's 10 Year Rye";
@@ -120,7 +131,7 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now(),sourceIds}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
-  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','DE','HI','MD','KS'].includes(config.id);
+  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','DE','HI','MD','KS','AR'].includes(config.id);
   const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
   if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
   const groups=Map.groupBy(allowed,s=>perStore?s.id:s.chainId||s.id);
