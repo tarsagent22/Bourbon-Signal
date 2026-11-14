@@ -11,7 +11,8 @@ const preparationOnly=(state,file)=>[
   'engine/test/central-cityhive-canary.test.mjs','engine/test/prepare-central-cityhive-canary-manifest.test.mjs','scripts/test-cityhive-shadow-download.mjs','scripts/test-promotion-provenance-runtime-bindings.mjs',
   'scripts/test-central-cityhive-public-canary.mjs','scripts/build-promotion-provenance.mjs','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
-].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WI|OK|RI|KS|MO)\.json$/.test(file)
+].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WI|OK|RI|KS|MO|DC)\.json$/.test(file)
+  ||(state==='DC'&&/^engine\/(?:data\/dc-cityhive-research-sources\.json|data\/state-fixtures\/DC\.json|data\/state-integration\/DC\.json|src\/(?:dc-pearsons-fixtures|prepare-dc-pearsons-canary)\.mjs|test\/(?:dc-first-publication|pearsons-dc-production|pearsons-dc-research)\.test\.mjs)$/.test(file))
   ||(state==='AR'&&/^engine\/data\/(?:state-fixtures|state-integration)\/AR(?:-canary)?\.json$/.test(file))
   ||(state==='MN'&&/^engine\/data\/(?:state-fixtures|state-integration)\/MN\.json$/.test(file))
   ||(state==='MO'&&file==='engine/test/fixtures/central-cityhive/barrel-blends-6226405682c4ff6dfe6d578a.json')
@@ -103,7 +104,7 @@ export function validateInactiveKansasShadowLifecycleTransition({candidateLifecy
 }
 
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
-  if(!['WI','OK','RI','MN','KS','AR','MO'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
+  if(!['WI','OK','RI','MN','KS','AR','MO','DC'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
   if(run?.conclusion!=='success'||run.status!=='completed'||run.repository?.full_name!==repository
     ||run.path!=='.github/workflows/state-expansion-shadow.yml'||!/^\d+$/.test(String(run.id))
     ||!/^[a-f0-9]{40}$/.test(run.head_sha||'')||!/^[a-f0-9]{40}$/.test(currentHead||''))throw new Error('Shadow run is not a successful repository-issued shadow workflow');
@@ -138,7 +139,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
 const argument=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);
 async function main(){
   const state=argument('--state'),runId=argument('--run'),output=argument('--out-dir');
-  if(!['WI','OK','RI','MN','KS','AR','MO'].includes(state)||!/^[0-9]+$/.test(runId||'')||!output)throw new Error('Use --state=WI|OK|RI|MN|KS|AR|MO --run=<actual successful workflow run> --out-dir=<new directory>');
+  if(!['WI','OK','RI','MN','KS','AR','MO','DC'].includes(state)||!/^[0-9]+$/.test(runId||'')||!output)throw new Error('Use --state=WI|OK|RI|MN|KS|AR|MO|DC --run=<actual successful workflow run> --out-dir=<new directory>');
   const repository='tarsagent22/Bourbon-Signal',gh=process.platform==='win32'?'gh.exe':'gh',out=path.resolve(output);
   const api=endpoint=>JSON.parse(execFileSync(gh,['api',`repos/${repository}/${endpoint}`],{encoding:'utf8',maxBuffer:8*1024*1024,windowsHide:true}));
   const run=api(`actions/runs/${runId}`),artifacts=api(`actions/runs/${runId}/artifacts?per_page=100`);

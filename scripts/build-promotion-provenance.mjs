@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO','DC'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -152,7 +152,7 @@ if (['NJ','MI'].includes(state)) files.push(
   `engine/out/njmi-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
-if (['WI', 'OK', 'RI', 'MN', 'KS', 'AR', 'MO'].includes(state)) files.push(
+if (['WI', 'OK', 'RI', 'MN', 'KS', 'AR', 'MO', 'DC'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
   'engine/src/central-cityhive-production-config.mjs',
@@ -193,6 +193,41 @@ if (['WI', 'OK', 'RI', 'MN', 'KS', 'AR', 'MO'].includes(state)) files.push(
   `engine/out/canary/${state}/site/states/index.json`,
   `engine/out/canary/${state}/site/alerts.json`,
   `engine/out/canary/${state}/site/manifest.json`,
+);
+if (state === 'DC') files.push(
+  'engine/src/collectors/generic-state.mjs',
+  'engine/src/state-sources.mjs',
+  'engine/src/central-cityhive-production-config.mjs',
+  'engine/src/central-cityhive-state-config.mjs',
+  'engine/src/collectors/central-cityhive-production.mjs',
+  'engine/src/collectors/central-cityhive-transport.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/src/collectors/central-cityhive-premises.mjs',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+  'engine/src/central-cityhive-policy.mjs',
+  'engine/src/research-state-registry.mjs',
+  'engine/src/research-cityhive-runtime.mjs',
+  'engine/src/run-expansion-shadow.mjs',
+  'engine/src/confidence-policy.mjs',
+  'engine/src/export-site-contract.mjs',
+  'engine/src/verify-state-fixtures.mjs',
+  'scripts/download-cityhive-shadow.mjs',
+  'scripts/test-cityhive-shadow-download.mjs',
+  'scripts/test-central-cityhive-public-canary.mjs',
+  '.github/workflows/refresh-feed.yml',
+  'src/lib/drop-feed-visibility.ts',
+  'engine/data/dc-cityhive-research-sources.json',
+  'engine/data/state-integration/DC.json',
+  'engine/data/state-fixtures/DC.json',
+  'engine/src/collectors/pearsons-dc-research.mjs',
+  'engine/src/collectors/pearsons-dc-production.mjs',
+  'engine/src/dc-pearsons-fixtures.mjs',
+  'engine/src/prepare-dc-pearsons-canary.mjs',
+  'engine/src/verify-dc-first-publication.mjs',
+  'engine/test/pearsons-dc-research.test.mjs',
+  'engine/test/pearsons-dc-production.test.mjs',
+  'engine/test/dc-first-publication.test.mjs',
+  '.github/workflows/refresh-feed.yml',
 );
 if (state === 'MN') files.push(
   'engine/data/minnesota-cityhive-expansion-sources.json',
