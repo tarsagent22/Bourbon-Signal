@@ -15,6 +15,7 @@ import {
 import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collectors/metro-retailer-surfaces.mjs';
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 import { CENTRAL_CITYHIVE_STATE_CONFIGS } from './central-cityhive-state-config.mjs';
+import { MINNESOTA_CITYHIVE_PRODUCTION_CONFIG } from './minnesota-cityhive-production-config.mjs';
 
 const GEORGIA_RETAILER_SOURCES = [
   ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
@@ -508,6 +509,7 @@ const BASE_STATE_SOURCES = [
 
 export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)&&!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS,...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS].map((source) => {
   if(NJ_MI_PRODUCTION_STATES.includes(source.id)||LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id))return source;
+  if (source.id === 'MN' && CONFIG_CUSTOMER_ACTIVE_STATE_IDS.has('MN')) return MINNESOTA_CITYHIVE_PRODUCTION_CONFIG;
   const costcoSource = WESTERN_GROCERY_PRODUCTION_STATES.includes(source.id) ? null : costcoSourceForState(source.id);
   return costcoSource ? { ...source, sources: [...source.sources, costcoSource] } : source;
 });
