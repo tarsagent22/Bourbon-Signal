@@ -57,6 +57,21 @@ test('Oregon downloader provenance binds both artifacts and the exact saved repo
     sourceReport:sourceReport(),shadowReport:shadowReport()}),/artifact/);
 });
 
+test('Oregon source-equivalent canary changes cannot include the inventory collector',()=>{
+  const run={id:123,conclusion:'success',status:'completed',repository:{full_name:'tarsagent22/Bourbon-Signal'},path:'.github/workflows/state-expansion-shadow.yml',head_sha:'b'.repeat(40)};
+  const artifact=(name,id,digest)=>({name,id:String(id),digest:`sha256:${digest}`,size_in_bytes:100,expired:false});
+  const common={run,sourceArtifact:artifact('oregon-inventory-source-123',456,'c'.repeat(64)),
+    shadowArtifact:artifact('state-expansion-shadow-123',789,'d'.repeat(64)),currentHead:'a'.repeat(40),
+    shadowSummary:shadowSummary(),sourceReport:sourceReport(),shadowReport:shadowReport()};
+  const allowed=validateOregonShadowOrigin({...common,comparison:{status:'ahead',files:[
+    {filename:'engine/src/oregon-daily-production-policy.mjs'},
+    {filename:'src/lib/drop-feed-visibility.ts'},
+    {filename:'engine/src/prepare-oregon-canary.mjs'}]}});
+  assert.equal(allowed.sourceEquivalentPreparationChanges.length,3);
+  assert.throws(()=>validateOregonShadowOrigin({...common,comparison:{status:'ahead',files:[
+    {filename:'engine/src/or-daily-inventory.mjs'}]}}),/collector\/source changed/);
+});
+
 test('Oregon fixture contract executes the source parser, identity, date, and alert semantics',async()=>{
   const fixture=JSON.parse(await readFile(new URL('../data/state-fixtures/OR.json',import.meta.url),'utf8'));
   assert.equal(validateStateFixtures(fixture).ok,true);assert.deepEqual(executeOregonResearchFixtures(fixture,{bible}),{ok:true,failures:[]});

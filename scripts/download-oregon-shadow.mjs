@@ -10,7 +10,7 @@ const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const preparationOnly=file=>[
   '.github/workflows/state-expansion-canary.yml','scripts/download-oregon-shadow.mjs','scripts/test-oregon-shadow-download.mjs',
   'scripts/test-oregon-public-canary.mjs','engine/src/prepare-oregon-canary.mjs','engine/src/oregon-research-fixtures.mjs',
-  'src/lib/public-drop-evidence.ts',
+  'engine/src/oregon-daily-production-policy.mjs','src/lib/public-drop-evidence.ts','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs',
   'engine/src/central-cityhive-policy.mjs','engine/src/export-site-contract.mjs',
   'engine/src/verify-state-fixtures.mjs','engine/test/oregon-canary.test.mjs','engine/test/or-daily-inventory.test.mjs',
