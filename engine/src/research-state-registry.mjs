@@ -109,16 +109,19 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   }) : null;
   let networkRequests = 0;
   let writes = Promise.resolve();
+  const locallyDeniedHosts = new Set();
   const fetchImpl = pairedSources ? async (url, requestOptions) => {
     const hostname = new URL(url).hostname.toLowerCase();
-    if (attempt.cooldownHosts[hostname]) {
-      throw Object.assign(new Error(`MA research host remains in cooldown until ${attempt.cooldownHosts[hostname].nextAllowedAt}`),
-        { code: 'MA_HOST_COOLDOWN', status: attempt.cooldownHosts[hostname].httpStatus });
+    if (attempt.cooldownHosts[hostname] || locallyDeniedHosts.has(hostname)) {
+      const incident = attempt.cooldownHosts[hostname];
+      throw Object.assign(new Error(`MA research host is skipped after a durable denial${incident ? ` until ${incident.nextAllowedAt}` : ''}`),
+        { code: 'MA_HOST_COOLDOWN', status: incident?.httpStatus || 403 });
     }
     networkRequests++;
     const response = await (options.fetchImpl || fetch)(url, requestOptions);
     const status = Number(response.status) || 0;
     if ([403, 429].includes(status) || status >= 200 && status < 300) {
+      if ([403, 429].includes(status)) locallyDeniedHosts.add(hostname);
       writes = writes.then(() => recordMassachusettsHostResponse({
         file: process.env.BOURBON_SIGNAL_MA_PAIRED_ATTEMPT_FILE || undefined,
         attemptAt: attempt.lastAttemptAt, hostname, status, retryAfterSeconds: retryAfterSeconds(response),
@@ -129,12 +132,13 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   } : options.fetchImpl;
   const fetchText = pairedSources ? async (url, requestOptions) => {
     const hostname = new URL(url).hostname.toLowerCase();
-    if (attempt.cooldownHosts[hostname]) return { ok: false, status: attempt.cooldownHosts[hostname].httpStatus,
-      url, text: '', retryAfterSeconds: attempt.cooldownHosts[hostname].retryAfterSeconds || 0 };
+    if (attempt.cooldownHosts[hostname] || locallyDeniedHosts.has(hostname)) return { ok: false, status: attempt.cooldownHosts[hostname]?.httpStatus || 403,
+      url, text: '', retryAfterSeconds: attempt.cooldownHosts[hostname]?.retryAfterSeconds || 0 };
     networkRequests++;
     const response = await (options.fetchText || fetchReviewedCityHiveText)(url, requestOptions);
     const status = Number(response.status) || 0;
     if ([403, 429].includes(status) || status >= 200 && status < 300) {
+      if ([403, 429].includes(status)) locallyDeniedHosts.add(hostname);
       writes = writes.then(() => recordMassachusettsHostResponse({
         file: process.env.BOURBON_SIGNAL_MA_PAIRED_ATTEMPT_FILE || undefined,
         attemptAt: attempt.lastAttemptAt, hostname, status, retryAfterSeconds: retryAfterSeconds(response),
