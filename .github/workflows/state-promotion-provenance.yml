@@ -19,6 +19,8 @@ on:
 permissions:
   contents: read
   actions: read
+  attestations: write
+  id-token: write
 
 env:
   ALERT_DELIVERY_ENABLED: "0"
@@ -159,6 +161,11 @@ jobs:
           STATE: ${{ steps.validate.outputs.state }}
           PROMOTION_CANDIDATE_DROPS: ${{ steps.validate.outputs.candidate_drops }}
         run: node scripts/build-promotion-provenance.mjs --state="$STATE"
+      - name: Attest Maryland replay evidence
+        if: steps.validate.outputs.state == 'MD'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: engine/out/promotion-provenance/MD.json
       - name: Upload immutable promotion provenance
         uses: actions/upload-artifact@v4
         with:
