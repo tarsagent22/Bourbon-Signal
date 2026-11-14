@@ -108,6 +108,13 @@ if (['WA', 'NM'].includes(state)) files.push(
   `engine/out/grocery-shadow-input/${state}/provenance.json`,
 );
 const fileDigests = {};
+if (state === 'AR') files.push(
+  'engine/data/ar-cityhive-research-sources.json',
+  'engine/src/central-cityhive-state-config.mjs',
+  'engine/src/location-bible.mjs',
+  'engine/src/verify-ar-first-publication.mjs',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+);
 if (['NJ','MI'].includes(state)) files.push(
   'engine/src/prepare-nj-mi-canary.mjs',
   'engine/src/nj-mi-research-runtime.mjs',
@@ -145,7 +152,7 @@ if (['NJ','MI'].includes(state)) files.push(
   `engine/out/njmi-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
-if (['WI', 'OK', 'RI', 'MN'].includes(state)) files.push(
+if (['WI', 'OK', 'RI', 'MN', 'AR'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
   'engine/src/central-cityhive-production-config.mjs',

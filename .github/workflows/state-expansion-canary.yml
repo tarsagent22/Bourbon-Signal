@@ -149,6 +149,12 @@ jobs:
         run: |
           manifest_args=()
           if [[ "$STATE" == "MN" ]]; then manifest_args+=("--manifest-dir=out/canary-preparation/MN/state-integration"); fi
+          if [[ "$STATE" == "AR" ]]; then
+            mkdir -p out/canary-preparation/AR/state-integration out/canary-preparation/AR/state-fixtures
+            cp data/state-integration/AR-canary.json out/canary-preparation/AR/state-integration/AR.json
+            cp data/state-fixtures/AR.json out/canary-preparation/AR/state-fixtures/AR.json
+            manifest_args+=("--manifest-dir=out/canary-preparation/AR/state-integration")
+          fi
           npm run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json" "${manifest_args[@]}"
 
       - name: Verify actual app projection and binary on-site isolation

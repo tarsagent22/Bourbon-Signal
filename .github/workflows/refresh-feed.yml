@@ -558,6 +558,11 @@ jobs:
         working-directory: engine
         run: node src/verify-mn-first-publication.mjs
 
+      - name: Verify the first Arkansas production cohort before publication
+        if: ${{ startsWith(inputs.incident_key, 'arkansas-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-ar-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs
@@ -777,6 +782,9 @@ jobs:
             engine/out/illinois-grocery-verification.json
             engine/out/pa-expansion-verification.json
             engine/out/verification/in-improvements.json
+            engine/out/states/AR.json
+            engine/out/site/states/AR/drops.json
+            engine/out/first-publication/AR.json
             engine/out/verification/library-coverage.json
             engine/out/verification/library-coverage.md
             engine/out/verification/production-engine-verification.log

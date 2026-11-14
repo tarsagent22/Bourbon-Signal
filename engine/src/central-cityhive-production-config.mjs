@@ -1,10 +1,11 @@
 import {createHash} from 'node:crypto';
 import {CENTRAL_CITYHIVE_PRODUCTION_SOURCES} from './collectors/central-cityhive-premises.mjs';
-export const CENTRAL_CITYHIVE_PRODUCTION_STATES=Object.freeze(['WI','OK','RI']);
+export const CENTRAL_CITYHIVE_PRODUCTION_STATES=Object.freeze(['WI','OK','RI','AR']);
 export const CENTRAL_CITYHIVE_PRODUCTION_BUDGETS=Object.freeze({
   WI:Object.freeze({sourceMs:90_000,stateMs:150_000,maxRequests:5}),
   OK:Object.freeze({sourceMs:180_000,stateMs:240_000,maxRequests:10}),
   RI:Object.freeze({sourceMs:90_000,stateMs:150_000,maxRequests:7}),
+  AR:Object.freeze({sourceMs:112_000,stateMs:125_000,maxRequests:10}),
 });
 export const centralCityHiveProductionRuntimeId=state=>`${state.toLowerCase()}:central-cityhive`;
 export function centralCityHiveProductionCohortKey(state){

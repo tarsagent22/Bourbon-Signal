@@ -1,18 +1,19 @@
 {
   "schemaVersion": 1,
   "state": "AR",
-  "scope": "isolated_preview_no_activation",
+  "scope": "dormant_production_adapter_candidate_no_activation",
   "lifecycle": {
     "customerLabel": "Arkansas",
-    "publicStatus": "active",
-    "coverageTier": "sparse_live_store_inventory",
+    "publicStatus": "research_only",
+    "coverageTier": "blocked",
     "refinementLevel": "store"
   },
   "collector": {
     "sourceIds": [
-      "research:ar:cityhive"
+      "ar:central-cityhive"
     ],
-    "registration": "Isolated state-scoped replay of registered merchant pickup responses."
+    "registration": "Ten bounded pickup searches across four reviewed Arkansas premises.",
+    "cohortSha256": "367dc29f27cb3dfe34ca968609fbd3164c1d98ea97e8536b595566e53e9455fb"
   },
   "storeIdentity": {
     "mode": "exact_reviewed_merchant_and_premises",

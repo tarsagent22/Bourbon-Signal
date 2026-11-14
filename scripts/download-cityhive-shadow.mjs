@@ -12,7 +12,7 @@ const preparationOnly=(state,file)=>[
   'scripts/test-central-cityhive-public-canary.mjs','scripts/build-promotion-provenance.mjs','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',
 ].includes(file)||/^engine\/data\/(?:state-fixtures|state-integration)\/(?:WI|OK|RI)\.json$/.test(file)
-  ||(state==='AR'&&/^engine\/data\/(?:state-fixtures|state-integration)\/AR\.json$/.test(file))
+  ||(state==='AR'&&/^engine\/data\/(?:state-fixtures|state-integration)\/AR(?:-canary)?\.json$/.test(file))
   ||(state==='MN'&&/^engine\/data\/(?:state-fixtures|state-integration)\/MN\.json$/.test(file))
   ||/^engine\/test\/fixtures\/ri-cityhive\/[a-z0-9-]+\.json$/.test(file);
 const minnesotaAdapterFiles=new Set([
