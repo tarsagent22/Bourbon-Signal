@@ -1,5 +1,10 @@
 import { markSignalStaleNonAlertable } from './stale-signal-policy.mjs';
-import { selectFleetDropBudget } from './fleet-drop-budget.mjs';
+import { MAX_CUSTOMER_DROP_CONTENT_BYTES, compactCustomerDrop, selectFleetDropBudget } from './fleet-drop-budget.mjs';
+import {
+  isCustomerInventoryDrop,
+  isWithinCustomerFreshnessWindow,
+  isVerifiedRetailerDropCurrentlyUsable,
+} from './customer-drop-freshness.mjs';
 
 function retainedDrop(drop, reason) {
   return {
@@ -297,10 +302,74 @@ export function mergeScheduledFallbackEvents({
 
 function capDropsPreservingFullFallbacks(rows, fallbackStates, requiredIds) {
   const stateOf = (drop) => String(drop?.state || drop?.state_code || '').toUpperCase();
-  return selectFleetDropBudget(rows, { isRequired: drop => fallbackStates.has(stateOf(drop)) || requiredIds.has(dropIdentity(drop)) });
+  const required = rows.filter(drop => requiredIds.has(dropIdentity(drop)));
+  let bytesRemaining = MAX_CUSTOMER_DROP_CONTENT_BYTES - 2 - required.reduce((total, drop) => total
+    + Buffer.byteLength(JSON.stringify(compactCustomerDrop(drop))) + 1, 0);
+  if (bytesRemaining < 0) {
+    return selectFleetDropBudget(rows, { isRequired: drop => requiredIds.has(dropIdentity(drop)) });
+  }
+
+  // A complete failed-state partition remains available when it fits, but it
+  // cannot displace current customer evidence. If one will not fit, omit that
+  // complete stale partition instead of truncating it or failing the refresh.
+  const fallbackGroups = new Map();
+  for (const drop of rows) {
+    const state = stateOf(drop);
+    if (!fallbackStates.has(state) || requiredIds.has(dropIdentity(drop))) continue;
+    if (!fallbackGroups.has(state)) fallbackGroups.set(state, []);
+    fallbackGroups.get(state).push(drop);
+  }
+  const newestEvidenceAt = group => Math.max(0, ...group.map(drop => Date.parse(drop?.sourceEventAt || drop?.lastConfirmedAt || drop?.observedAt || drop?.timestamp || '')).filter(Number.isFinite));
+  const omittedFallbackStates = new Set();
+  const retainedFallbackIds = new Set();
+  for (const [state, group] of [...fallbackGroups].sort((a, b) => newestEvidenceAt(b[1]) - newestEvidenceAt(a[1]) || a[0].localeCompare(b[0]))) {
+    const groupBytes = group.reduce((total, drop) => total + Buffer.byteLength(JSON.stringify(compactCustomerDrop(drop))) + 1, 0);
+    if (groupBytes <= bytesRemaining) {
+      bytesRemaining -= groupBytes;
+      for (const drop of group) retainedFallbackIds.add(dropIdentity(drop));
+    } else omittedFallbackStates.add(state);
+  }
+  if (!required.length && omittedFallbackStates.size === fallbackGroups.size && fallbackGroups.size > 0) {
+    return selectFleetDropBudget(rows, { isRequired: drop => requiredIds.has(dropIdentity(drop)) || fallbackStates.has(stateOf(drop)) });
+  }
+
+  const eligibleRows = rows.filter(drop => requiredIds.has(dropIdentity(drop)) || !omittedFallbackStates.has(stateOf(drop)));
+  const selected = selectFleetDropBudget(eligibleRows, {
+    isRequired: drop => requiredIds.has(dropIdentity(drop)) || retainedFallbackIds.has(dropIdentity(drop)),
+  });
+  Object.defineProperty(selected, 'budgetOmittedFallbackStateIds', {
+    value: [...omittedFallbackStates].sort(), enumerable: false, configurable: true,
+  });
+  return selected;
 }
 
-export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], currentSourceDrops = currentDrops, partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {
+export function enforceCustomerDropByteBudget(rows = [], { fallbackStateIds = [], omittedFallbackStateIds = [], now = Date.now() } = {}) {
+  const omittedBefore = new Set(omittedFallbackStateIds.map(state => String(state || '').toUpperCase()));
+  const eligibleRows = rows.filter(drop => !omittedBefore.has(String(drop?.state || drop?.state_code || '').toUpperCase())
+    || isCurrentCustomerDropEvidence(drop, now));
+  const requiredIds = new Set(eligibleRows.filter(drop => isCurrentCustomerDropEvidence(drop, now)).map(dropIdentity));
+  const selected = capDropsPreservingFullFallbacks(eligibleRows,
+    new Set(fallbackStateIds.map(state => String(state || '').toUpperCase())), requiredIds);
+  const omitted = [...new Set([...omittedBefore, ...(selected.budgetOmittedFallbackStateIds || [])])].sort();
+  Object.defineProperty(selected, 'budgetOmittedFallbackStateIds', { value: omitted, enumerable: false, configurable: true });
+  return selected;
+}
+
+export function isCurrentCustomerDropEvidence(drop, nowMs = Date.now()) {
+  if (drop?.sourceStale === true || drop?.source_stale === true || drop?.stale === true || drop?.raw?.staleFallback === true) return false;
+  if (drop?.source === 'verified-retailer' && drop?.retailerReported === true) {
+    return isVerifiedRetailerDropCurrentlyUsable(drop, nowMs);
+  }
+  if (isCustomerInventoryDrop(drop)) {
+    const state = String(drop?.state || drop?.state_code || '').toUpperCase();
+    // Ohio keeps its reviewed feed presentation window. Every other on-site
+    // inventory lane follows the same 1h/2h/48h window as Coverage currentness.
+    return isWithinCustomerFreshnessWindow(drop, nowMs, { currentInventory: state !== 'OH' });
+  }
+  return isWithinCustomerFreshnessWindow(drop, nowMs);
+}
+
+export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], currentSourceDrops = currentDrops, partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true, now = Date.now() } = {}) {
   const previousRows = Array.isArray(previousDrops) ? previousDrops : Array.isArray(previousDrops?.drops) ? previousDrops.drops : [];
   const currentRows = Array.isArray(currentDrops) ? currentDrops : Array.isArray(currentDrops?.drops) ? currentDrops.drops : [];
   const stateOf = (drop) => String(drop?.state || drop?.state_code || '').toUpperCase();
@@ -308,7 +377,7 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
   const partialPreserved = new Set(partialFallbackStateIds.map((state) => String(state).toUpperCase()));
   if (!partialRefresh && !preserved.size && !partialPreserved.size) {
     const requiredIds = new Set(rowsOf(currentSourceDrops).map(dropIdentity));
-    return selectFleetDropBudget(currentRows, { isRequired: row => requiredIds.has(dropIdentity(row)) });
+    return selectFleetDropBudget(currentRows, { isRequired: row => requiredIds.has(dropIdentity(row)) && isCurrentCustomerDropEvidence(row, now) });
   }
   const previousStates = new Set(previousRows.map(stateOf));
   const safeStaleRows = (rows) => rows.length > 0 && rows.every((drop) => drop?.sourceStale === true
@@ -327,8 +396,8 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
   const effectivePreserved = new Set([...preserved].filter((state) => !staleBootstrapStates.has(state)));
   const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()).filter((state) => !effectivePreserved.has(state)));
   const requiredIds = new Set([
-    ...rowsOf(currentSourceDrops),
-    ...previousRows.filter(drop => !attempted.has(stateOf(drop))),
+    ...rowsOf(currentSourceDrops).filter(drop => isCurrentCustomerDropEvidence(drop, now)),
+    ...previousRows.filter(drop => !attempted.has(stateOf(drop)) && isCurrentCustomerDropEvidence(drop, now)),
   ].map(dropIdentity));
   const partialRows = previousRows
     .filter((drop) => partialPreserved.has(stateOf(drop)) && isSafePartialRetainedRow(drop))

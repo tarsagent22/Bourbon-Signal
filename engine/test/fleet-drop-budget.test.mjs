@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { selectFleetDropBudget, compactCustomerDrop, MAX_CUSTOMER_DROP_BYTES } from '../src/fleet-drop-budget.mjs';
+import { selectFleetDropBudget, compactCustomerDrop, serializeCustomerDropPayload, MAX_CUSTOMER_DROP_BYTES, MAX_CUSTOMER_DROP_CONTENT_BYTES } from '../src/fleet-drop-budget.mjs';
 
 test('current evidence has no 10000-row ceiling while optional context stays bounded', () => {
   const current = Array.from({ length: 10_010 }, (_, i) => ({ id: `current-${i}`, state: 'CA', observedAt: '2026-10-29T16:05:57.931Z' }));
@@ -37,4 +37,13 @@ test('empty wire placeholders cannot crowd out real evidence; false, zero and ne
   assert.deepEqual(wire.aliases,[]);assert.deepEqual(wire.sourceProductBinding,before.sourceProductBinding);
   assert.throws(()=>selectFleetDropBudget([{...row,evidence:'required'.repeat(1000)}],{maxBytes:1000}),/no partition was truncated/);
   assert.equal(MAX_CUSTOMER_DROP_BYTES,60*1024*1024);
+  assert.equal(MAX_CUSTOMER_DROP_CONTENT_BYTES,MAX_CUSTOMER_DROP_BYTES-4*1024);
+});
+
+test('customer drops serialization enforces the exact minified payload byte limit', () => {
+  const payload = { contractVersion: 'fixture-v1', generatedAt: '2026-11-14T08:00:00.000Z', count: 1, drops: [{ id: 'fresh', state: 'CA' }] };
+  const serialized = serializeCustomerDropPayload(payload);
+  assert.equal(serialized, JSON.stringify(payload));
+  assert.equal(Buffer.byteLength(serialized), Buffer.byteLength(JSON.stringify(payload)));
+  assert.throws(() => serializeCustomerDropPayload({ ...payload, drops: [{ evidence: 'x'.repeat(MAX_CUSTOMER_DROP_BYTES) }] }), /60 MiB file budget/);
 });

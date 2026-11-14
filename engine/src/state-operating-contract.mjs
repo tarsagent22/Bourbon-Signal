@@ -116,15 +116,21 @@ function scheduledReason(state, scheduledVerification) {
 function fallbackFor(state, summary, stateSummary, scheduledVerification) {
   const full = new Set((summary?.fallbackStateIds || []).map((value) => String(value).toUpperCase()));
   const partial = new Set((summary?.partialFallbackStateIds || []).map((value) => String(value).toUpperCase()));
+  const budgetOmitted = new Set((summary?.budgetOmittedFallbackStateIds || []).map((value) => String(value).toUpperCase()));
   const scheduledStates = new Set((summary?.scheduledVerificationFailureStateIds || []).map((value) => String(value).toUpperCase()));
   const scheduled = scheduledStates.has(state) ? scheduledReason(state, scheduledVerification) : null;
+  const budgetReason = budgetOmitted.has(state)
+    ? 'Complete last-known rows were omitted from the customer drop payload to preserve current evidence within the snapshot byte budget.'
+    : null;
   if (partial.has(state)) return {
     status: 'partial',
-    reason: stateSummary?.staleReason || scheduled || 'Current evidence is combined with safe last-published context.',
+    reason: budgetReason || stateSummary?.staleReason || scheduled || 'Current evidence is combined with safe last-published context.',
+    ...(budgetOmitted.has(state) ? { evidenceOmittedForBudget: true } : {}),
   };
-  if (full.has(state) || scheduled || stateSummary?.stale === true) return {
+  if (full.has(state) || scheduled || stateSummary?.stale === true || budgetOmitted.has(state)) return {
     status: 'last_published',
-    reason: stateSummary?.staleReason || scheduled || 'Safe last-published context is retained.',
+    reason: budgetReason || stateSummary?.staleReason || scheduled || 'Safe last-published context is retained.',
+    ...(budgetOmitted.has(state) ? { evidenceOmittedForBudget: true } : {}),
   };
   return { status: 'none', reason: null };
 }
