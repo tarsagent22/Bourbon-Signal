@@ -343,12 +343,16 @@ async function runBrowserPreflightJob(job, results, { force = false, timeoutMs }
 
 async function runBrowserPreflight({ deferFwgs = false } = {}) {
   const results = [];
-  if (!BROWSER_PREFLIGHT_ENABLED) return { report: { generatedAt: new Date().toISOString(), enabled: false, results }, runFwgs: null };
+  if (!BROWSER_PREFLIGHT_ENABLED && !deferFwgs) {
+    return { report: { generatedAt: new Date().toISOString(), enabled: false, results }, runFwgs: null };
+  }
   await mkdir(path.join(OUT, 'browser'), { recursive: true });
   const fwgsJob = BROWSER_PREFLIGHT_JOBS.find(job => job.id === 'pa-fwgs');
-  for (const job of BROWSER_PREFLIGHT_JOBS) {
-    if (deferFwgs && job.id === 'pa-fwgs') continue;
-    await runBrowserPreflightJob(job, results);
+  if (BROWSER_PREFLIGHT_ENABLED) {
+    for (const job of BROWSER_PREFLIGHT_JOBS) {
+      if (deferFwgs && job.id === 'pa-fwgs') continue;
+      await runBrowserPreflightJob(job, results);
+    }
   }
   const report = { generatedAt: new Date().toISOString(), enabled: true, maxAgeMs: BROWSER_PREFLIGHT_MAX_AGE_MS, results };
   const saveReport = async () => {
