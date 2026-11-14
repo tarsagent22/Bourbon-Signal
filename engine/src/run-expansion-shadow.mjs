@@ -8,6 +8,7 @@ import {isCentralCityHiveResearchInventory} from './central-cityhive-policy.mjs'
 import {isNjMiResearchSourceInventory} from './nj-mi-research-policy.mjs';
 import { isLouisianaAlaskaGroceryShadowInventory } from './research-louisiana-alaska-grocery-runtime.mjs';
 import { isWyomingGroceryResearchInventory } from './research-wyoming-grocery-runtime.mjs';
+import { isDelawareEcwidShadowPickup } from './research-delaware-ecwid.mjs';
 import { isOregonDailyInventoryObservation, OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import { promisify } from 'node:util';
 
@@ -63,7 +64,8 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
     || (report.state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL)
     || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
       &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})
-        ||isLouisianaAlaskaGroceryShadowInventory(row)||isWyomingGroceryResearchInventory(row)))
+        ||isLouisianaAlaskaGroceryShadowInventory(row)||isWyomingGroceryResearchInventory(row)
+        ||report.state==='DE'&&isDelawareEcwidShadowPickup(row,{nowMs})))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
     && String(row?.storeId ?? '').trim()

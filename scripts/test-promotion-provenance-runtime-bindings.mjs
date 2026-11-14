@@ -12,7 +12,7 @@ const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const common=['engine/src/collectors/generic-state.mjs','engine/src/confidence-policy.mjs','engine/src/run.mjs',
   'engine/src/core/collection-http.mjs','engine/src/reliability-policy.mjs','.github/workflows/refresh-feed.yml',
   '.github/workflows/state-expansion-shadow.yml','engine/out/library-catalog.json','engine/out/bourbon-bible.json'];
-for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI'])test(`${state} issued bundle binds actual runtime files and refuses missing mandatory production code`,async t=>{
+for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI','MD','DE'])test(`${state} issued bundle binds actual runtime files and refuses missing mandatory production code`,async t=>{
   const directory=await mkdtemp(path.join(tmpdir(),'synthetic-promotion-hashes-'));
   assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));t.after(()=>rm(directory,{recursive:true,force:true}));
   // Synthetic replay bytes validate the issuer, never source or promotion truth.
@@ -36,7 +36,7 @@ for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI'])test
     env:{...process.env,PROMOTION_CANDIDATE_DROPS:`data/canary-inputs/${state}.json`,GITHUB_REPOSITORY:'synthetic/unit-only',GITHUB_RUN_ID:'unit-only',GITHUB_SHA:'unit-only'}});
   const first=run();assert.equal(first.status,0,first.stderr);
   const out=path.join(directory,`engine/out/promotion-provenance/${state}.json`),payload=JSON.parse(await readFile(out,'utf8'));
-  const central=['WI','OK','RI','MO'].includes(state),minnesota=state==='MN',njmi=['NJ','MI'].includes(state),laak=['AK','LA'].includes(state);
+  const central=['WI','OK','RI','MO','MD','DE'].includes(state),minnesota=state==='MN',njmi=['NJ','MI'].includes(state),laak=['AK','LA'].includes(state);
   const module=laak?'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':minnesota?'engine/src/collectors/minnesota-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
   const config=laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':minnesota?'engine/src/minnesota-cityhive-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
   const runtimeFiles=laak?[
@@ -61,7 +61,16 @@ for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI'])test
       'engine/data/canary-site/mo-active-candidate/drops.json',
       'engine/data/canary-site/mo-active-candidate/canary-preview-policy.json','engine/data/canary-site/mo-active-candidate/states/index.json',
       'engine/data/canary-site/mo-active-candidate/states/MO/drops.json']
-      :state==='RI'?[...common,'engine/src/verify-ri-first-publication.mjs']:common;
+      :state==='RI'?[...common,'engine/src/verify-ri-first-publication.mjs']
+      :state==='DE'?[...common,'engine/src/collectors/central-cityhive-production.mjs','engine/src/central-cityhive-production-config.mjs',
+        'engine/src/collectors/central-cityhive-premises.mjs','engine/src/collectors/central-cityhive-research-premises.mjs',
+        'engine/src/collectors/central-cityhive-expansion.mjs','engine/src/collectors/central-cityhive-transport.mjs',
+        'engine/src/collectors/cityhive-surfaces.mjs','engine/src/collectors/central-cityhive-market-policy.mjs',
+        'engine/src/central-cityhive-policy.mjs','engine/src/delaware-ecwid-production-policy.mjs','engine/src/research-delaware-ecwid.mjs',
+        'engine/src/verify-de-first-publication.mjs','engine/src/customer-drop-freshness.mjs','engine/data/additional-cityhive-expansion-sources.json',
+        'engine/data/de-ecwid-research-source.json','engine/data/state-integration/DE.json','engine/test/de-production-adapter.test.mjs',
+        'engine/test/de-first-publication.test.mjs']
+      :common;
   for(const file of [...runtimeFiles,module,config])assert.equal(payload.fileDigests[file],sha(await readFile(path.join(directory,file))),file);
   await appendFile(path.join(directory,module),'\n// synthetic mutation\n');assert.equal(run().status,0);
   const changed=JSON.parse(await readFile(out,'utf8'));assert.notEqual(changed.bundleDigest,payload.bundleDigest);assert.notEqual(changed.fileDigests[module],payload.fileDigests[module]);

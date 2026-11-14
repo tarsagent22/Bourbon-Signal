@@ -26,10 +26,12 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
       'ye-old-spirit-shop:66b394ae65806d296ede036c':'frederick-eagle-rare-10.json',
       'west-o-bottle-shop:60e51c65666bdc65c3bcda63':'ocean-city-elijah-craig-bp.json',
       'euro-liquors-md:60456c4f88762f7bda9d7be0':'owings-mills-elijah-craig-bp.json',
+    }[source.id]):source.state==='DE'?({
+      'kreston-wines:618406f81a9efe0452444e07':'kreston-larceny-barrel-proof.json',
     }[source.id]):null;
     const fixturePath=source.state==='AR'&&source.id==='crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0'
       ? new URL('../test/fixtures/ar-cityhive/crossover-fayetteville-elijah-craig.json',import.meta.url) : researchFixture
-      ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='KS'?'ks-cityhive':source.state==='MD'?'md-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
+      ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='MD'?'md-cityhive':['KS','DE'].includes(source.state)?'ks-de-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
       : new URL(`../test/fixtures/central-cityhive/${source.state==='MO'?'barrel-blends-6226405682c4ff6dfe6d578a':source.id}.json`,import.meta.url);
     const contents=JSON.parse(await readFile(fixturePath,'utf8'));
     const fixture=contents.payloads?.[0]??contents;

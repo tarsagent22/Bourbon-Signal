@@ -7,7 +7,9 @@ import riManifest from '../../data/state-integration/RI.json' with {type:'json'}
 import ksManifest from '../../data/state-integration/KS.json' with {type:'json'};
 import arManifest from '../../data/state-integration/AR.json' with {type:'json'};
 import moManifest from '../../data/state-integration/MO.json' with {type:'json'};
+import deManifest from '../../data/state-integration/DE.json' with {type:'json'};
 import mdManifest from '../../data/state-integration/MD.json' with {type:'json'};
+import {collectDelawareEcwidResearch,delawareEcwidResearchSource,isDelawareEcwidShadowPickup} from '../research-delaware-ecwid.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../state-lifecycle.mjs';
 import {validateImmutablePromotionEvidence,evaluateStateControl} from '../reliability-policy.mjs';
 import {collectionSignal,writeCollectionFile} from '../core/collection-context.mjs';
@@ -22,7 +24,7 @@ import {isCentralCityHiveProductionOnSiteSignal} from '../central-cityhive-polic
 import {CENTRAL_CITYHIVE_PRODUCTION_STATES,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,centralCityHiveProductionCohortKey,centralCityHiveProductionRuntimeId} from '../central-cityhive-production-config.mjs';
 
 export const CENTRAL_CITYHIVE_CACHE_MAX_AGE_MS=30*60_000;
-const manifests={WI:wiManifest,OK:okManifest,RI:riManifest,KS:ksManifest,AR:arManifest,MO:moManifest,MD:mdManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
+const manifests={WI:wiManifest,OK:okManifest,RI:riManifest,KS:ksManifest,AR:arManifest,MO:moManifest,MD:mdManifest,DE:deManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
 const sha=value=>createHash('sha256').update(value).digest('hex');
 export function centralCityHiveSourceConfigHash(state,manifest=manifests[state]){
   if(!CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(state)||!manifest)throw new Error('Unreviewed production CityHive state');
@@ -37,7 +39,8 @@ export function centralCityHiveProductionAllowed(state,config=STATE_LIFECYCLE_CO
     &&manifest.sourceSemantics?.inventoryAlertable===false&&manifest.sourceSemantics.watchAlertable===false
     &&manifest.collector?.cohortSha256===centralCityHiveProductionCohortKey(state)
     &&manifest.collector.cohortSha256===CENTRAL_CITYHIVE_PRODUCTION_COHORTS[state]
-    &&JSON.stringify(manifest.collector.sourceIds)===JSON.stringify([centralCityHiveProductionRuntimeId(state)])
+    &&JSON.stringify(manifest.collector.sourceIds)===JSON.stringify(state==='DE'
+      ?[centralCityHiveProductionRuntimeId(state),'de:ecwid-pickup']:[centralCityHiveProductionRuntimeId(state)])
     &&Number(evidence?.shadowRuns)>=policy.minShadowRuns&&Number(evidence?.canaryRuns)>=policy.minCanaryRuns
     &&Number.isFinite(Date.parse(evidence?.verifiedAt||''))
     &&evidence.verticalSliceManifest===`engine/data/state-integration/${state}.json`&&evidence.fixtureContract===`engine/data/state-fixtures/${state}.json`
@@ -55,8 +58,9 @@ function completeCohort(metadata,state){
     &&metadata.requests?.length>=sources.length&&metadata.requests.length<=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests
     &&metadata.requests.every(row=>row.ok===true&&row.status===200);
   if(!complete)return false;
-  if(!['RI','KS','AR','MO','MD'].includes(state))return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
-  if(metadata.requests.length!==CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests
+  if(!['RI','KS','AR','MO','MD','DE'].includes(state))return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
+  const expectedRequestCount=state==='DE'?CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests-2:CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests;
+  if(metadata.requests.length!==expectedRequestCount
     ||new Set(metadata.requests.map(row=>row.url)).size!==metadata.requests.length)return false;
   return sources.every(source => {
     const requests = metadata.requests.filter(row => row.sourceId === source.id);
@@ -164,12 +168,39 @@ export async function collectCentralCityHiveProductionState(config,bible,options
     validate:value=>value?.metadata?.complete===true&&Array.isArray(value.signals)?true:'Incomplete reviewed CityHive cohort',recordCount:value=>value.metadata.verifiedPremises.length,
   })],{}, {...options.sourceRunnerOptions,previousResults:options.previousSourceResults,circuitBreaker:options.sourceCircuitBreaker,
     concurrency:1,perDomain:1,schedule:false,timeoutMs:Math.min(Number(options.sourceRunnerOptions?.timeoutMs)||budget,budget),maxAttempts:1});
-  const source=run.results[0],value=source.ok?source.value:null,finishedAt=new Date().toISOString();
+  const source=run.results[0],value=source.ok?source.value:null;
+  let ecwid=null,ecwidError=null;
+  if(state==='DE'&&source.ok){try{
+    const result=await collectDelawareEcwidResearch(delawareEcwidResearchSource('DE'),bible,{...options.ecwidOptions,
+      clocksFile:path.resolve('out/cache/central-cityhive-production/DE-ecwid-attempt.json'),
+      cacheFile:path.resolve('out/cache/central-cityhive-production/DE-ecwid.json'),
+      allowPromotedProduction:true,env:options.env||process.env,signal:options.signal});
+    ecwid=result;
+  }catch(error){ecwidError=error;}}
+  const finishedAt=new Date().toISOString();
+  const extraRows=[];
+  if(state==='DE'&&ecwid?.status==='useful')for(const row of ecwid.signals||[]){
+    if(!isDelawareEcwidShadowPickup(row,{nowMs:Date.parse(row.observedAt)}))continue;
+    const {shadowOnly:_shadowOnly,reportedQuantity:_reportedQuantity,...raw}=row.raw||{};
+    const cohort=centralCityHiveProductionCohortKey('DE');
+    extraRows.push({...row,sourceRuntimeId:'de:ecwid-pickup',raw:{...raw,productionOnSiteOnly:true},
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
+      sourceProductBinding:{...row.sourceProductBinding,productionOnSiteOnly:true,productionCohortSha256:cohort}});
+  }
+  const outputSignals=[...(value?.signals||[]),...extraRows];
+  const stateStatus=source.ok
+    ?(state==='DE'&&ecwid?.metadata?.complete!==true?(outputSignals.length?'partial_useful':'blocked'):(outputSignals.length?'useful':'monitored_no_current_inventory'))
+    :'blocked';
   return{state,label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,startedAt,finishedAt,lastGoodAt:value?.metadata.sourceObservedAt||null,
-    status:source.ok?(value.signals.length?'useful':'monitored_no_current_inventory'):'blocked',stale:false,signals:value?.signals||[],
+    status:stateStatus,stale:false,signals:outputSignals,
     sources:[{sourceRuntimeId:id,label,url:source.sourceUrl,ok:source.ok,status:source.error?.status||(source.ok?200:source.status),
-      signalType:'retailer_store_inventory_result',matchedBottleCount:value?.signals.length||0,error:source.error?.message||null}],
-    sourceResults:[{...summarizeSourceResult(source),lastGoodAt:value?.metadata.sourceObservedAt||null,alertable:false}],sourceCircuitState:run.circuitState,
-    roadblocks:source.ok?[]:[{state,source:label,sourceRuntimeId:id,url:source.sourceUrl,status:source.error?.status||source.status,error:source.error?.message||'CityHive observation failed'}],
-    metadata:{cityhive:value?.metadata||null,requestCount:value?.accounting?.requestCount??requests,allDeliveryDisabled:true}};
+      signalType:'retailer_store_inventory_result',matchedBottleCount:value?.signals.length||0,error:source.error?.message||null},
+      ...(state==='DE'?[{sourceRuntimeId:'de:ecwid-pickup',label:'Banks Wines & Spirits Millville first-party pickup',
+        url:'https://bankswinesandspirits.com/products/old-forester-bws-single-barrel-bourbon-barrel-strength-750ml',
+        ok:ecwid?.metadata?.complete===true,status:ecwidError?.status||(ecwid?.metadata?.complete?200:ecwid?.metadata?.requests?.at(-1)?.status||0),
+        signalType:'retailer_store_inventory_result',matchedBottleCount:extraRows.length,error:ecwidError?.message||null}]:[])],
+    sourceResults:[{...summarizeSourceResult(source),lastGoodAt:value?.metadata.sourceObservedAt||null,alertable:false},...(state==='DE'?[{sourceRuntimeId:'de:ecwid-pickup',label:'Banks Wines & Spirits Millville first-party pickup',ok:!!ecwid?.metadata?.complete,status:ecwid?.metadata?.complete?200:ecwidError?.status||0,alertable:false,lastGoodAt:ecwid?.metadata?.sourceObservedAt||null}]:[])],sourceCircuitState:run.circuitState,
+    roadblocks:[...(source.ok?[]:[{state,source:label,sourceRuntimeId:id,url:source.sourceUrl,status:source.error?.status||source.status,error:source.error?.message||'CityHive observation failed'}]),...(ecwidError?[{state,source:'Banks Wines & Spirits Millville first-party pickup',sourceRuntimeId:'de:ecwid-pickup',status:ecwidError.status||0,error:ecwidError.message}]:[])],
+    metadata:{cityhive:value?.metadata||null,ecwid:state==='DE'?ecwid?.metadata||{complete:false,error:ecwidError?.message||'not_due_or_unavailable'}:null,
+      requestCount:(value?.accounting?.requestCount??requests)+(state==='DE'?(ecwid?.metadata?.requests?.length||0):0),allDeliveryDisabled:true}};
 }
