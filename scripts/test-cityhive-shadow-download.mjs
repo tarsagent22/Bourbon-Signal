@@ -38,7 +38,7 @@ test('CityHive downloader requires actual successful source-equivalent shadow wo
   assert.equal(validateInactiveMinnesotaShadowLifecycleTransition({candidateLifecycle:activeLifecycle,shadowLifecycle:inactiveLifecycle,
     comparison:{...lifecycleComparison,ahead_by:2},commit:lifecycleCommit}),false);
   const activeKansas={activeStates:['RI','KS'],states:{RI:{publicStatus:'active'},KS:{customerLabel:'Kansas',publicStatus:'active',promotionStage:'active'}},reliabilityPolicy:{stateExpectedRunMs:{KS:15000}}};
-  const dormantKansas={activeStates:['RI'],states:{RI:{publicStatus:'active'}},reliabilityPolicy:{stateExpectedRunMs:{KS:30000}}};
+  const dormantKansas={activeStates:['RI'],states:{RI:{publicStatus:'active'},KS:{customerLabel:'Kansas',sourceLabel:'Kansas reviewed CityHive pickup inventory',publicStatus:'research_only',lifecycle:'retailer_inventory_research',customerSummary:'Research-only: a closed three-store Kansas CityHive pickup cohort is being evaluated. This entry does not enable production collection, customer visibility, alerts or delivery.'}},reliabilityPolicy:{stateExpectedRunMs:{KS:30000}}};
   const kansasComparison={status:'ahead',ahead_by:3,behind_by:0,runHeadSha:'a'.repeat(40),base_commit:{sha:'a'.repeat(40)},files:[
     {filename:'src/config/state-lifecycle.json'},{filename:'src/config/stateLifecycle.ts'},{filename:'engine/data/state-integration/KS.json'}]};
   assert.equal(validateInactiveKansasShadowLifecycleTransition({candidateLifecycle:activeKansas,shadowLifecycle:dormantKansas,comparison:kansasComparison}),true);
