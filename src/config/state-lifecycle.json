@@ -30,7 +30,8 @@
     "OK",
     "AK",
     "LA",
-    "RI"
+    "RI",
+    "MN"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -84,7 +85,8 @@
       "NV": 240000,
       "ID": 180000,
       "AZ": 900000,
-      "FL": 180000
+      "FL": 180000,
+      "MN": 30000
     }
   },
   "states": {
@@ -951,15 +953,113 @@
     },
     "MN": {
       "customerLabel": "Minnesota",
-      "sourceLabel": "Minnesota Costco warehouse bourbon watch",
-      "publicStatus": "research_only",
+      "sourceLabel": "Minnesota reviewed Top Ten Liquors pickup inventory",
+      "publicStatus": "active",
       "shadowEligible": true,
-      "lifecycle": "blocked_costco_inventory_research",
-      "coverageTier": "blocked",
-      "refinementLevel": "warehouse",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
       "inventoryAlertable": false,
       "watchAlertable": false,
-      "customerSummary": "Research-only: Minnesota has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+      "customerSummary": "Pickup availability from 16 reviewed Top Ten Liquors locations. Stores refresh in groups of seven. Verify availability with the store before driving.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "verticalSliceManifest": "engine/data/state-integration/MN.json",
+        "fixtureContract": "engine/data/state-fixtures/MN.json",
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-14T13:17:36.900Z",
+        "canaryPreviewUrl": "https://bourbonsignal-fqwn21q4z-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "MN",
+          "generatedAt": "2026-11-14T13:17:36.900Z",
+          "sourceConfigHash": "cb6abf8922de89eb540d7405b420e3f502e0df87ebab43ae215cbe8e2fe096b7",
+          "sourceRuntimeId": "mn:central-cityhive",
+          "cohortSha256": "f8966ff41632ffe3d8f9dc06136bcaa453c7e0177cd3bc991dbd96baae197c74",
+          "previewUrl": "https://bourbonsignal-fqwn21q4z-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43586205036",
+              "status": "success",
+              "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036",
+              "artifactHash": "33812069d1e141b2f491f0f40ad075fca4aa0ed16253cc8d1ea4787f3a973c5f",
+              "artifactId": "14110308404",
+              "artifactName": "state-expansion-shadow-43586205036",
+              "commitSha": "f417fa44dfad17880935107a8eef8445d8f205c2",
+              "observedAt": "2026-11-14T10:39:05.091Z",
+              "observedStores": 16,
+              "positiveListings": 7
+            },
+            {
+              "runId": "43594853292",
+              "status": "success",
+              "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594853292",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594853292",
+              "artifactHash": "ac6821fe5eb7c336d854c963b16d352324491a1aee5ef124e2ce333bc06dd150",
+              "artifactId": "14114150202",
+              "artifactName": "state-expansion-shadow-43594853292",
+              "commitSha": "9d95a07284f2ff2f0ca764eaafa8d9ee2a573cd4",
+              "observedAt": "2026-11-14T12:27:51.534Z",
+              "observedStores": 16,
+              "positiveListings": 7
+            },
+            {
+              "runId": "43597312582",
+              "status": "success",
+              "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597312582",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597312582",
+              "artifactHash": "848509632c81d2683833b652c82547422325c13a03144a2fee7c85839c8d6f83",
+              "artifactId": "14114457678",
+              "artifactName": "state-expansion-shadow-43597312582",
+              "commitSha": "0439ca15a03f3c72ff55b9dbf812e524f4c23bdc",
+              "observedAt": "2026-11-14T12:58:21.627Z",
+              "observedStores": 16,
+              "positiveListings": 13
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43594988302",
+              "status": "success",
+              "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594988302",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43594988302",
+              "artifactHash": "09585c0d3223fa64bb9ec0980dc04f763e14666faa1d63f15ae56a2be733f3bd",
+              "artifactId": "14114345265",
+              "artifactName": "state-expansion-canary-MN-43594988302",
+              "commitSha": "9d95a07284f2ff2f0ca764eaafa8d9ee2a573cd4",
+              "generatedAt": "2026-11-14T12:29:18.703Z",
+              "currentStores": 7,
+              "currentListings": 7
+            },
+            {
+              "runId": "43597461273",
+              "status": "success",
+              "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597461273",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597461273",
+              "artifactHash": "b0537198456e122bfbc9c4ed68d9b13c88446e12543d768160adfaec50494531",
+              "artifactId": "14115330046",
+              "artifactName": "state-expansion-canary-MN-43597461273",
+              "commitSha": "0439ca15a03f3c72ff55b9dbf812e524f4c23bdc",
+              "generatedAt": "2026-11-14T13:00:02.005Z",
+              "currentStores": 10,
+              "currentListings": 13
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43597417112",
+            "artifactId": "14114743578",
+            "commitSha": "0439ca15a03f3c72ff55b9dbf812e524f4c23bdc",
+            "artifactDigest": "d9005be9afe894cf8aa41fd70f44a5378848f15f57dac2b049a4965f4c7dc72f",
+            "bundleDigest": "5c8d2e4c404cac2011c49a6fa1ef2cfcc322af33a1fbddbbfd77970b305becf1",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43597417112",
+            "artifactName": "state-promotion-provenance-MN-43597417112"
+          }
+        }
+      }
     },
     "MO": {
       "customerLabel": "Missouri",
@@ -981,15 +1081,15 @@
       "coverageTier": "sparse_live_store_inventory",
       "refinementLevel": "region_city_store",
       "areaOptions": [
-        "Northwest / DeSoto\u2013Memphis fringe",
+        "Northwest / DeSoto–Memphis fringe",
         "North Central / Oxford",
-        "Northeast / Tupelo\u2013Golden Triangle",
-        "Delta / Greenville\u2013Clarksdale\u2013Greenwood",
-        "Central / Jackson\u2013Madison\u2013Rankin",
+        "Northeast / Tupelo–Golden Triangle",
+        "Delta / Greenville–Clarksdale–Greenwood",
+        "Central / Jackson–Madison–Rankin",
         "East Central / Meridian",
-        "Pine Belt / Hattiesburg\u2013Laurel",
-        "Gulf Coast / Gulfport\u2013Biloxi\u2013Pascagoula",
-        "Southwest / Natchez\u2013Brookhaven\u2013McComb\u2013Vicksburg"
+        "Pine Belt / Hattiesburg–Laurel",
+        "Gulf Coast / Gulfport–Biloxi–Pascagoula",
+        "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
       ],
       "promotionStage": "active",
       "shadowEligible": false,
@@ -1002,7 +1102,7 @@
         "live": 4,
         "alertGrade": 0
       },
-      "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
+      "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
       "promotionEvidence": {
         "shadowRuns": 3,
         "canaryRuns": 2,
@@ -1070,9 +1170,9 @@
       "refinementLevel": "area",
       "areaOptions": [
         "Las Vegas Valley",
-        "Reno\u2013Sparks"
+        "Reno–Sparks"
       ],
-      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
+      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
     },
     "NY": {
       "customerLabel": "New York",
