@@ -6,11 +6,17 @@ import okManifest from '../../data/state-integration/OK.json' with {type:'json'}
 import riManifest from '../../data/state-integration/RI.json' with {type:'json'};
 import {STATE_LIFECYCLE_CONFIG} from '../../src/state-lifecycle.mjs';
 import {centralCityHiveSourceConfigHash} from '../../src/collectors/central-cityhive-production.mjs';
+import {centralCityHiveProductionCohortKey} from '../../src/central-cityhive-production-config.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from '../../src/collectors/central-cityhive-premises.mjs';
 export const bibleFile=new URL('../../out/bourbon-bible.json',import.meta.url);
 const fixtures=new Map(await Promise.all(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(async source=>[source.hostname,await readFile(new URL(`../fixtures/central-cityhive/${source.id}.json`,import.meta.url),'utf8')])));
 export function syntheticCentralPromotion(state='WI'){
-  const lifecycle=structuredClone(STATE_LIFECYCLE_CONFIG),manifest=structuredClone({WI:wiManifest,OK:okManifest,RI:riManifest}[state]),hash='1'.repeat(64),url='https://synthetic-unit-only.invalid';
+  const lifecycle=structuredClone(STATE_LIFECYCLE_CONFIG),manifest=structuredClone({WI:wiManifest,OK:okManifest,RI:riManifest,KS:riManifest}[state]),hash='1'.repeat(64),url='https://synthetic-unit-only.invalid';
+  if(state==='KS'){
+    Object.assign(manifest,{state:'KS'});manifest.lifecycle.customerLabel='Kansas';
+    manifest.collector.sourceIds=['ks:central-cityhive'];manifest.collector.cohortSha256=centralCityHiveProductionCohortKey('KS');
+    manifest.storeIdentity.expectedKnownStores=3;
+  }
   const runs=count=>Array.from({length:count},(_,i)=>({runId:`synthetic-unit-${i}`,status:'success',artifactHash:hash}));
   const immutable={schemaVersion:1,state,generatedAt:new Date().toISOString(),sourceConfigHash:centralCityHiveSourceConfigHash(state,manifest),previewUrl:url,
     shadowRuns:runs(3),canaryRuns:runs(2),provenance:{status:'success',repository:'tarsagent22/Bourbon-Signal',workflowRunId:'1',artifactId:'1',commitSha:'a'.repeat(40),
