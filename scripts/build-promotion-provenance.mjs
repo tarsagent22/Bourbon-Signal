@@ -188,6 +188,7 @@ if (['WI', 'OK', 'RI', 'MN', 'CT'].includes(state)) files.push(
   `engine/out/canary/${state}/site/manifest.json`,
 );
 if (state === 'CT') files.push(
+  'engine/src/verify-ct-first-publication.mjs',
   'engine/data/state-integration/CT-canary.json',
   'engine/out/canary-preparation/CT/state-integration/CT.json',
   'engine/out/canary-preparation/CT/state-fixtures/CT.json',
