@@ -12,7 +12,7 @@
   },
   "researchOnly": true,
   "scheduled": false,
-  "dispatchEnabled": false,
+  "dispatchEnabled": true,
   "productionActivationAllowed": false,
   "customerDeliveryAllowed": false,
   "verifiedSourceReceipt": {
@@ -86,9 +86,18 @@
     "610b0409466a707ec29c26b1",
     "610af6d1268b32168dfb99e1"
   ],
-  "firstPassSearchTerms": [
-    "Blanton's"
+  "prioritySearchTerms": [
+    "barrel proof"
   ],
+  "firstHostedObservation": {
+    "workflowRunId": "43652825313",
+    "artifactId": "14136643145",
+    "observedAt": "2026-11-14T23:21:56.814Z",
+    "searchTerms": ["Blanton's", "Blanton's Gold"],
+    "verifiedPremises": 2,
+    "successfulRequests": 4,
+    "qualifiedListings": 0
+  },
   "collectionBounds": {
     "firstPassPremiseLimit": 2,
     "maxRequestsPerPremise": 2,
@@ -96,6 +105,6 @@
     "accessDenialHostBackoffMs": 86400000,
     "successPerPremiseBackoffMs": 1800000,
     "denialStopsRemainingHostRequests": true,
-    "searchPlan": "One fixed indexed term plus one rotating library term per selected store through the existing CityHive adapter."
+    "searchPlan": "One barrel-proof search and one rotating exact indexed term per selected store through the existing CityHive adapter."
   }
 }

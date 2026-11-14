@@ -19,7 +19,7 @@ export const MEGABEV_CITYHIVE_RESEARCH_SOURCES=Object.freeze(meBevResearch.store
   hostname:'megabev.com',merchantId:store.merchantId,address:store.address,city:store.city,zip:store.zip,
   lat:store.latitude,lng:store.longitude,storeId:`${store.id}:${store.merchantId}`,
   sourceLabel:`${store.name} first-party pickup inventory`,categoryUrl:`${MEGABEV_BASE_URL}/shop/`,
-  prioritySearchTerms:Object.freeze(meBevResearch.firstPassSearchTerms),
+  prioritySearchTerms:Object.freeze(meBevResearch.prioritySearchTerms),
 })));
 export const MEGABEV_CITYHIVE_INITIAL_RESEARCH_SOURCES=Object.freeze(MEGABEV_CITYHIVE_RESEARCH_SOURCES
   .filter(source=>meBevResearch.firstPassMerchantIds.includes(source.merchantId)));
