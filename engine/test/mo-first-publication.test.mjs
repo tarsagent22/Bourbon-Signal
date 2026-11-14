@@ -5,6 +5,7 @@ import { verifyMoFirstPublication } from '../src/verify-mo-first-publication.mjs
 import { CENTRAL_CITYHIVE_PRODUCTION_COHORTS } from '../src/collectors/central-cityhive-premises.mjs';
 import { CENTRAL_CITYHIVE_PRODUCTION_BUDGETS } from '../src/central-cityhive-production-config.mjs';
 import { CENTRAL_CITYHIVE_PRODUCTION_SOURCES } from '../src/collectors/central-cityhive-premises.mjs';
+import { buildLocationBible } from '../src/location-bible.mjs';
 
 // These rows are contract-only fixtures. They exercise the gate shape and do
 // not assert that Missouri production has run or published these observations.
@@ -84,6 +85,13 @@ test('Missouri first-publication gate accepts only the exact closed cohort and c
     state: 'MO', currentRows: 9, positiveStores: 9, positiveCities: 6,
     hasAllocatedOrUnicorn: true, allocatedRows: 1, allocatedSearchStores: stores.length, allDeliveryDisabled: true,
   });
+});
+
+test('Missouri Finder retains reviewed storefronts when searches have no current rows', () => {
+  const locations = buildLocationBible(report().signals).filter(location => location.state === 'MO' && location.type === 'store');
+  assert.deepEqual(locations.map(({id, address}) => [id, address]).sort(),
+    stores.map(({storeId, address}) => [storeId, address]).sort());
+  assert.equal(locations.filter(location => location.hasSignals).length, 9);
 });
 
 test('Missouri receipt binds exact report and partition bytes and oldest source clock', () => {
