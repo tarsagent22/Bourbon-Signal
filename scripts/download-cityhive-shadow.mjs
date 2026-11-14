@@ -20,7 +20,8 @@ const kansasActivationOnlyFiles=new Set([
   'engine/data/canary-site/kansas-20261114/locations.json','engine/data/canary-site/kansas-20261114/manifest.json',
   'engine/data/canary-site/kansas-20261114/source-proof.json','engine/data/canary-site/kansas-20261114/states/KS/drops.json',
   'engine/data/canary-site/kansas-20261114/states/index.json','engine/data/canary-site/kansas-20261114/stats.json',
-  'engine/src/verify-ks-first-publication.mjs','engine/test/helpers/synthetic-central-production.mjs',
+  'engine/src/verify-ks-first-publication.mjs','engine/src/verification/historical-implementation.mjs','engine/test/helpers/synthetic-central-production.mjs',
+  'scripts/test-central-cityhive-public-canary.mjs',
   'engine/test/central-cityhive-production.test.mjs','engine/test/ks-first-publication.test.mjs','engine/test/ks-hosted-preview-evidence.test.mjs',
   'engine/src/central-cityhive-fixtures.mjs','engine/src/central-cityhive-production-config.mjs','engine/src/central-cityhive-state-config.mjs',
   'engine/src/collectors/central-cityhive-expansion.mjs','engine/src/collectors/central-cityhive-premises.mjs','engine/src/collectors/central-cityhive-production.mjs',
@@ -28,7 +29,7 @@ const kansasActivationOnlyFiles=new Set([
   'engine/test/fixtures/ks-cityhive/hosted-coverage-receipt.json','engine/test/fixtures/ks-cityhive/hosted-deployment-receipt.json',
   'engine/test/fixtures/ks-cityhive/hosted-finder-feed-receipt.json','engine/test/fixtures/ks-cityhive/hosted-finder-feed.json',
   'engine/test/fixtures/ks-cityhive/hosted-public-protection-receipt.json','engine/test/fixtures/ks-cityhive/hosted-search-receipt.json',
-  'scripts/build-promotion-provenance.mjs','scripts/prepare-legacy-site-fixture-ci.mjs','scripts/sync-sighting-store-directory.mjs',
+  '.github/workflows/refresh-feed.yml','scripts/build-promotion-provenance.mjs','scripts/prepare-legacy-site-fixture-ci.mjs','scripts/sync-sighting-store-directory.mjs',
   'scripts/test-ms-bundle-boundary.mjs','scripts/test-sighting-store-directory.mts','scripts/verify-active-state-integration-ci.mjs',
   'src/config/state-lifecycle.json','src/config/stateLifecycle.ts','src/data/sighting-store-directory.generated.json',
   'engine/test/fixtures/ks-cityhive/receipts.json','engine/test/fixtures/ks-cityhive/kings-weller-special-reserve.json',
@@ -111,7 +112,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
     ||state==='KS'&&exactAdminMergeFiles.has(file.filename)&&adminMergeIsExact)):[];
   if(run.head_sha!==currentHead&&(!['ahead','identical'].includes(comparison?.status)||!Array.isArray(changes)
     ||changes.length>=300||unreviewedChanges.length>0))
-    throw new Error('Shadow collector source changed; issue new shadow runs before canary');
+    throw new Error(`Shadow collector source changed; issue new shadow runs before canary${unreviewedChanges.length?`: ${unreviewedChanges.map(file=>file.filename).join(', ')}`:''}`);
   return {status:'verified_github_shadow_artifact',state,repository,workflowRunId:String(run.id),workflowRunUrl:run.html_url,
     headSha:run.head_sha,currentHead,sourceEquivalentPreparationChanges:changes.map(file=>file.filename),
     inactiveMinnesotaShadowLifecycleTransition:inactiveMnShadowTransition,
