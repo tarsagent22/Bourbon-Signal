@@ -139,13 +139,13 @@ for(const state of ['MN','MO','MA','RI'])test(`${state} per-store CityHive artif
   const missing=structuredClone(report);missing.metadata.receipts.pop();missing.metadata.requests.pop();
   await assert.rejects(()=>prepareCentralCityHiveCanary({state,report:missing,reportDirectory:directory,bible,provenance}),/Incomplete|Partial per-store/);
   const wrongBible=structuredClone(report);wrongBible.metadata.bibleRecordsSha256='0'.repeat(64);
-  await assert.rejects(()=>prepareCentralCityHiveCanary({state,report:wrongBible,reportDirectory:directory,bible,provenance}),/library-mismatched/);
+  await assert.rejects(()=>prepareCentralCityHiveCanary({state,report:wrongBible,reportDirectory:directory,bible,provenance}),/library-mismatched|current-library replay changed/);
 });
 
-test('KS library drift is reclassified only when every current exact product identity, option and tier reproduces',async t=>{
-  const directory=await mkdtemp(path.join(tmpdir(),'cityhive-ks-library-recheck-'));
+test('MO library drift requires exact identity agreement between retained shadow rows and current raw replay',async t=>{
+  const directory=await mkdtemp(path.join(tmpdir(),'cityhive-mo-library-recheck-'));
   t.after(()=>rm(directory,{recursive:true,force:true}));
-  const {sources,report}=await makePerStoreReport('KS',directory);
+  const {sources,report}=await makePerStoreReport('MO',directory);
   const replayed=[];
   for(const receipt of report.metadata.receipts){
     const merchantId=new URL(receipt.url).searchParams.get('merchant-id');
@@ -155,14 +155,14 @@ test('KS library drift is reclassified only when every current exact product ide
   }
   assert.ok(replayed.length>0);
   report.signals=replayed;
-  const shadowHash=report.metadata.bibleRecordsSha256;report.metadata.bibleRecordsSha256='f'.repeat(64);
-  const provenance={status:'verified_github_shadow_artifact',state:'KS',repository:'tarsagent22/Bourbon-Signal',workflowRunId:'123',
+  report.metadata.bibleRecordsSha256='f'.repeat(64);
+  const provenance={status:'verified_github_shadow_artifact',state:'MO',repository:'tarsagent22/Bourbon-Signal',workflowRunId:'123',
     headSha:'a'.repeat(40),artifactId:'456',artifactDigest:'b'.repeat(64)};
-  const result=await prepareCentralCityHiveCanary({state:'KS',report,reportDirectory:directory,bible,provenance});
+  const result=await prepareCentralCityHiveCanary({state:'MO',report,reportDirectory:directory,bible,provenance});
   assert.equal(result.libraryReclassifiedFromShadow,true);
   assert.equal(result.shadowBibleRecordsSha256,'f'.repeat(64));
   assert.equal(result.bibleRecordsSha256,sha(Buffer.from(JSON.stringify(bible.records||[]))));
   assert.equal(result.drops.length>0,true);
   const identityChanged=structuredClone(report);identityChanged.signals[0].canonicalBottleId='different-library-identity';
-  await assert.rejects(()=>prepareCentralCityHiveCanary({state:'KS',report:identityChanged,reportDirectory:directory,bible,provenance}),/changed the shadow product identity/);
+  await assert.rejects(()=>prepareCentralCityHiveCanary({state:'MO',report:identityChanged,reportDirectory:directory,bible,provenance}),/MO current-library replay changed/);
 });
