@@ -8,13 +8,14 @@ import * as knownStoresModule from '../src/lib/coverage-known-stores.ts';
 import * as receiptModule from '../src/lib/nationwide-pilot-receipt.ts';
 import * as harness from '../apps/mobile/src/astra-test-harness.ts';
 import {isCentralCityHiveInventory} from '../engine/src/central-cityhive-policy.mjs';
+import {isNorthDakotaGroceryCanaryPreview} from '../engine/src/north-dakota-retail-policy.mjs';
 const {classifyPublicDrop,getDropClassificationIndex}=classificationModule.default||classificationModule;
 const {normalizePublicDropEvidenceInput,isPublicDropFeedEligible,isCurrentInventoryEvidence}=evidenceModule.default||evidenceModule;
 const {buildCoverageContract}=coverageModule.default||coverageModule;
 const {normalizeDropForSite}=contractModule.default||contractModule;
 const {loadWithMocks}=harness.default||harness;
 const state=process.argv.find(value=>value.startsWith('--state='))?.slice(8);
-assert.ok(['WI','OK','RI','MN','KS','AR','MO'].includes(state),'Use reviewed --state=WI|OK|RI|MN|KS|AR|MO');
+assert.ok(['WI','OK','RI','MN','KS','AR','MO','ND'].includes(state),'Use reviewed --state=WI|OK|RI|MN|KS|AR|MO|ND');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
@@ -23,16 +24,22 @@ const index=getDropClassificationIndex((await read('src/data/drop-feed-classific
 const classified=partition.drops.map(row=>normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite(row),index)));
 const accepted=classified.filter(row=>isPublicDropFeedEligible(row)&&isCurrentInventoryEvidence(row,clock));
 assert.ok(accepted.length>0,'Actual current app-eligible rows must survive the canary customer policy');
-assert.ok(accepted.every(row=>isCentralCityHiveInventory(row)&&row.previewOnly&&row.eligibleForOnSite
+const exactInventory=row=>isCentralCityHiveInventory(row)||(state==='ND'&&isNorthDakotaGroceryCanaryPreview(row));
+assert.ok(accepted.every(row=>exactInventory(row)&&row.previewOnly&&row.eligibleForOnSite
   &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.eligibleForDelivery===false
   &&row.eligibleForEmail===false&&row.eligibleForSms===false&&row.quantity===0&&row.quantityIsExact===false));
-const binary=accepted[0];
-for(const mutation of [{storeId:'unreviewed'},{productId:'unreviewed'},{quantity:1},{quantityIsExact:true},
-  {storeAddress:'999 Other Street'},{sourceStale:true}])assert.equal(isCentralCityHiveInventory({...binary,...mutation}),false);
-for(const mutation of [{canAlertAsInventory:true},{can_alert_as_inventory:true},{canAlertAsWatch:true},{alertable:true},
-  {eligibleForDelivery:true},{eligibleForEmail:true},{eligibleForSms:true},{eligibleForWatch:true},{eligibleForOnSite:false}]){
-  const changed=normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite({...partition.drops[0],...mutation}),index));
-  assert.equal(isPublicDropFeedEligible(changed),false,`Canary customer policy accepted ${JSON.stringify(mutation)}`);
+const reviewedExamples=state==='ND'?[accepted.find(row=>isCentralCityHiveInventory(row)),
+  accepted.find(row=>isNorthDakotaGroceryCanaryPreview(row))]:[accepted[0]];
+for(const binary of reviewedExamples){
+  assert.ok(binary,'Expected a current row for each reviewed inventory source family');
+  for(const mutation of [{storeId:'unreviewed'},{productId:'unreviewed'},{quantity:1},{quantityIsExact:true},
+    {storeAddress:'999 Other Street'},{sourceStale:true}])assert.equal(exactInventory({...binary,...mutation}),false);
+  const original=partition.drops.find(row=>row.id===binary.id);
+  for(const mutation of [{canAlertAsInventory:true},{can_alert_as_inventory:true},{canAlertAsWatch:true},{alertable:true},
+    {eligibleForDelivery:true},{eligibleForEmail:true},{eligibleForSms:true},{eligibleForWatch:true},{eligibleForOnSite:false}]){
+    const changed=normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite({...original,...mutation}),index));
+    assert.equal(isPublicDropFeedEligible(changed),false,`Canary customer policy accepted ${JSON.stringify(mutation)}`);
+  }
 }
 const coverage=buildCoverageContract({lifecycle,stateRows:stats.stateCoverage.states,locations,
   stores:(await read(root+'/stores.json')).stores,drops:classified,degradedStates:[],generatedAt:stats.generatedAt,asOf:clock,healthLimited:false})
