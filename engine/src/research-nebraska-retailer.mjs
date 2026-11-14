@@ -5,6 +5,7 @@ import { atomicWriteJson } from './fwgs-artifact-policy.mjs';
 import { stableId } from './core/text.mjs';
 import { fetchReviewedFirstPartyText, CITYHIVE_DENIAL_STATUSES } from './collectors/central-cityhive-transport.mjs';
 import { centralCityHiveRecordMarketTier } from './collectors/central-cityhive-market-policy.mjs';
+import { isOldVineNebraskaResearchRow, NE_OLD_VINE_RESEARCH_SOURCE, parseOldVineBladeAndBowResearchPage } from './research-ne-oldvine-runtime.mjs';
 
 const state = 'NE';
 const label = 'World Liquor NW Omaha first-party pickup';
@@ -25,9 +26,14 @@ const pickupProduct = Object.freeze({
 });
 const sourcePath = `/store/${slug}/p/${pickupProduct.id}`;
 const sourceUrl = origin + sourcePath;
+const oldVine = NE_OLD_VINE_RESEARCH_SOURCE;
+const oldVineRuntimeId = 'research:ne:old-vine-woocommerce';
 const config = Object.freeze({
   id: state, label, tier: 'B', active: false, strategy: 'retailer_store_inventory', cadence: 'shadow-only',
-  sources: Object.freeze([{kind: 'html', label, url: sourceUrl, precisionOnly: true}]),
+  sources: Object.freeze([
+    {kind: 'html', label, url: sourceUrl, precisionOnly: true},
+    {kind: 'html', label: oldVine.label, url: oldVine.productUrl, precisionOnly: true},
+  ]),
   apiCandidates: Object.freeze([]),
 });
 const silent = Object.freeze({
@@ -115,6 +121,11 @@ export function parseNebraskaPickup(capture, bible, observedAt) {
 }
 
 export function isNebraskaShadowPickup(row) {
+  if (row?.sourceRuntimeId === oldVineRuntimeId) {
+    return isOldVineNebraskaResearchRow(row) && row.sourceUrl === oldVine.productUrl
+      && row.sourceProductBinding?.observedAt === row.observedAt && row.sourceProductBinding?.shadowOnly === true
+      && row.raw?.shadowOnly === true && Object.keys(silent).every(flag => row[flag] === false);
+  }
   const proof = row?.sourceProductBinding;
   return Boolean(row?.state === state && row.sourceRuntimeId === runtimeId && row.sourceUrl === sourceUrl
     && row.storeId === storeId && row.storeAddress === address && row.city === city && row.postalCode === zip
@@ -132,7 +143,7 @@ export function isNebraskaShadowPickup(row) {
 
 export async function collectNebraskaRetailer(incoming, bible, {
   signal, env = process.env, fetchText = fetchReviewedFirstPartyText,
-  attemptsFile = path.resolve('out/research-source-attempts/nebraska-world-liquor.json'),
+  attemptsFile = path.resolve('out/research-source-attempts/nebraska-retailers.json'),
   reportDirectory = env.BOURBON_SIGNAL_STATE_OUT_FILE ? path.dirname(env.BOURBON_SIGNAL_STATE_OUT_FILE) : null,
 } = {}) {
   if (env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || incoming !== config) throw Error('Nebraska requires its registered shadow source.');
@@ -145,60 +156,77 @@ export async function collectNebraskaRetailer(incoming, bible, {
     if (error.code !== 'ENOENT') throw error;
     return null;
   });
-  const nextAllowedAt = Date.parse(prior?.nextAllowedAt);
-  if (prior && !Number.isFinite(nextAllowedAt)) throw Error('Invalid Nebraska source attempt clock.');
-  const allowedNow = !prior || nextAllowedAt <= now;
-  const persist = (at, delay) => atomicWriteJson(attemptsFile, {
-    schemaVersion: 1, lastAttemptAt: new Date(at).toISOString(), nextAllowedAt: new Date(at + delay).toISOString(),
-  });
-  const requests = [], signals = [], roadblocks = [];
-  let complete = false;
-  if (allowedNow) {
+  const attempts = prior?.sources ?? {};
+  if (prior && (prior.schemaVersion !== 1 || !prior.sources || Array.isArray(prior.sources)
+    || Object.values(attempts).some(clock => !Number.isFinite(Date.parse(clock?.nextAllowedAt))))) {
+    throw Error('Invalid Nebraska source attempt clocks.');
+  }
+  const persist = async (id, at, delay) => {
+    attempts[id] = {lastAttemptAt: new Date(at).toISOString(), nextAllowedAt: new Date(at + delay).toISOString()};
     await mkdir(path.dirname(attemptsFile), {recursive: true});
-    await persist(now, time);
-    const receipt = {url: sourceUrl};
+    await atomicWriteJson(attemptsFile, {schemaVersion: 1, sources: attempts});
+  };
+  const reviewed = [
+    {id: runtimeId, label, url: sourceUrl, storeId, file: 'world-liquor-product-2826.json',
+      parse(text, at) {
+        const capture = captureNebraskaPickup(text);
+        return {rows: parseNebraskaPickup(capture, bible, at), retained: JSON.stringify(capture)};
+      }},
+    {id: oldVineRuntimeId, label: oldVine.label, url: oldVine.productUrl, storeId: 'ne:retail-c:113941',
+      parse(text, at) {
+        const row = parseOldVineBladeAndBowResearchPage(text, bible, {observedAt: at});
+        if (!row) throw Error('Old Vine product lacks a verified currently orderable pickup offer.');
+        // The full WooCommerce document is held only for the original local review.
+        return {rows: [{...row, sourceRuntimeId: oldVineRuntimeId, ...silent}], retained: null};
+      }},
+  ];
+  const requests = [], signals = [], roadblocks = [], verifiedPremises = [], sources = [];
+  for (const source of reviewed) {
+    if (Date.parse(attempts[source.id]?.nextAllowedAt) > now) continue;
+    await persist(source.id, Date.now(), time);
+    const receipt = {url: source.url};
     requests.push(receipt);
     try {
-      const response = await fetchText(sourceUrl, {
-        signal, maxBytes: 2 * 1024 * 1024, isAllowedUrl: url => url.href === sourceUrl,
+      const response = await fetchText(source.url, {
+        signal, maxBytes: 2 * 1024 * 1024, isAllowedUrl: url => url.href === source.url,
         onResponse: metadata => {
           receipt.status = metadata.status;
           if (CITYHIVE_DENIAL_STATUSES.has(metadata.status)) {
-            return persist(Date.now(), Math.min(30 * 86_400_000,
+            return persist(source.id, Date.now(), Math.min(30 * 86_400_000,
               Math.max(86_400_000, (metadata.retryAfterSeconds || 0) * 1000)));
           }
         },
       });
       receipt.status = response.status;
       receipt.observedAt = new Date().toISOString();
-      if (response.status !== 200 || response.url !== sourceUrl) throw Error('BottleZoo product request did not verify.');
-      const sanitized = captureNebraskaPickup(response.text);
-      const rows = parseNebraskaPickup(sanitized, bible, receipt.observedAt);
+      if (response.status !== 200 || response.url !== source.url) throw Error('Nebraska product request did not verify.');
+      const {rows, retained} = source.parse(response.text, receipt.observedAt);
       receipt.sha256 = sha(response.text);
-      if (reportDirectory) {
-        const captureText = JSON.stringify(sanitized);
-        receipt.artifactPath = 'source-captures/world-liquor-product-2826.json';
-        receipt.retainedCaptureSha256 = sha(captureText);
+      if (reportDirectory && retained) {
+        receipt.artifactPath = 'source-captures/' + source.file;
+        receipt.retainedCaptureSha256 = sha(retained);
         await mkdir(path.join(reportDirectory, 'source-captures'), {recursive: true});
-        await writeFile(path.join(reportDirectory, receipt.artifactPath), captureText, {flag: 'wx', signal});
+        await writeFile(path.join(reportDirectory, receipt.artifactPath), retained, {flag: 'wx', signal});
       }
       signals.push(...rows);
       receipt.ok = true;
-      complete = true;
+      verifiedPremises.push(source.storeId);
     } catch (error) {
       signal?.throwIfAborted();
       receipt.ok = false;
-      roadblocks.push({state, source: label, status: receipt.status || 0, error: error.message});
+      roadblocks.push({state, source: source.label, status: receipt.status || 0, error: error.message});
     }
+    sources.push({sourceRuntimeId: source.id, label: source.label, url: source.url, status: receipt.status || 0,
+      ok: receipt.ok, alertable: false, inventoryAlertable: false, watchAlertable: false});
   }
-  const source = {sourceRuntimeId: runtimeId, label, url: sourceUrl, status: requests[0]?.status || 0,
-    ok: complete, alertable: false, inventoryAlertable: false, watchAlertable: false};
+  const complete = verifiedPremises.length === reviewed.length;
   const finishedAt = new Date().toISOString();
   return {
     state, label, tier: config.tier, strategy: config.strategy, cadence: config.cadence, startedAt, finishedAt,
-    lastGoodAt: complete ? finishedAt : null, status: signals.length ? 'useful' : allowedNow ? 'no_trusted_inventory' : 'not_due',
-    stale: false, signals, sources: [source], sourceResults: [source], roadblocks,
+    lastGoodAt: complete ? finishedAt : null, status: signals.length ? complete ? 'useful' : 'partial_useful'
+      : requests.length ? 'no_trusted_inventory' : 'not_due',
+    stale: false, signals, sources, sourceResults: sources, roadblocks,
     metadata: {complete, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
-      origin: fromHost, verifiedPremises: complete ? [storeId] : [], requests},
+      origin: fromHost, verifiedPremises, requests},
   };
 }

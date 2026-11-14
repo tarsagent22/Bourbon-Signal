@@ -42,11 +42,11 @@ function parseProductJsonLd(html) {
 function exactLibraryIdentity(bible) {
   const record = bible?.records?.find(item => item.id === BOTTLE_ID && item.canonical === CANONICAL);
   const identity = record?.libraryIdentities?.find(item => item.id === BOTTLE_ID
-    && item.canonicalName === CANONICAL && item.nationalTier === 'limited' && item.isAlertEligible === true);
+    && item.canonicalName === CANONICAL && item.nationalTier === 'limited' && item.isAlertEligible !== false);
   return record && identity ? record : null;
 }
 
-/** Offline-only exact replay parser. No collector or production source registry calls this function. */
+/** Verify the exact storefront offer from a bounded public response or retained fixture. */
 export function parseOldVineBladeAndBowResearchPage(html, bible, {
   finalUrl = PRODUCT_URL, observedAt, now = Date.now(),
 } = {}) {
