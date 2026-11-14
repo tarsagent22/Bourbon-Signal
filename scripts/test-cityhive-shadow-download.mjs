@@ -9,13 +9,20 @@ const base={state:'WI',repository:'tarsagent22/Bourbon-Signal',currentHead:'a'.r
   run:{id:123,status:'completed',conclusion:'success',head_sha:'a'.repeat(40),repository:{full_name:'tarsagent22/Bourbon-Signal'},path:'.github/workflows/state-expansion-shadow.yml'},
   artifact:{id:456,name:'state-expansion-shadow-123',digest:'sha256:'+'b'.repeat(64),size_in_bytes:100,expired:false}};
 test('CityHive downloader requires actual successful source-equivalent shadow workflow provenance',()=>{
-  for(const state of ['WI','OK','RI','MN','KS','MO'])assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state}).state,state);
+  for(const state of ['WI','OK','RI','MN','KS','MO','WY'])assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state}).state,state);
   for(const change of [{state:'TX'},{run:{...base.run,conclusion:'failure'}},{run:{...base.run,path:'.github/workflows/refresh-feed.yml'}},
     {artifact:{...base.artifact,expired:true}},{artifact:{...base.artifact,digest:null}},{repository:'foreign/repository'}]){
     assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...base,...change}));
   }
   const ahead={...base,currentHead:'c'.repeat(40),comparison:{status:'ahead',files:[{filename:'engine/data/state-integration/WI.json'}]}};
   assert.equal(validateCityHiveShadowWorkflowOrigin(ahead).sourceEquivalentPreparationChanges.length,1);
+  const laramiePrepAhead={...ahead,state:'WY',comparison:{status:'ahead',files:[
+    {filename:'engine/src/prepare-central-cityhive-canary.mjs'},
+    {filename:'engine/test/fixtures/central-cityhive/northridge-laramie-elijah-craig-barrel-proof.json'},
+  ]}};
+  assert.equal(validateCityHiveShadowWorkflowOrigin(laramiePrepAhead).sourceEquivalentPreparationChanges.length,2);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...laramiePrepAhead,comparison:{...laramiePrepAhead.comparison,
+    files:[...laramiePrepAhead.comparison.files,{filename:'engine/src/collectors/central-cityhive-expansion.mjs'}]}}),/source changed/);
   const minnesotaAdapterAhead={...ahead,state:'MN',comparison:{status:'ahead',files:[
     {filename:'engine/src/collectors/generic-state.mjs'},
     {filename:'engine/src/collectors/minnesota-cityhive-production.mjs'},

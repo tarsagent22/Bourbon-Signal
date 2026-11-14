@@ -1,0 +1,120 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "62b39ad7846bf750d15d5daf",
+        "name": "Northridge Liquor",
+        "address": {
+          "full_address": "1660 N 4th St, Laramie, WY 82072, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -105.5911323,
+              41.3274875
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "56c29217756275139dc70300",
+      "name": "Elijah Craig Barrel Proof",
+      "description": "Experience the Bourbon that Whisky Advocate's international reviewers consistently ranked #1 in a blind taste test against hundreds of whiskies from around the world in 2017. To sip our Barrel Proof Bourbon is to experience Bourbon in its purest form—uncut, straight from the barrel, and without chill filtering. Each bottle is hand labeled with its unique proof and batch number but the nose, taste, and finish of every sip is pure Elijah Craig. With Barrel Proof, you can enjoy Elijah Craig much the same way our Master Distillers do when they sample straight from the barrel in our Kentucky rickhouses.\nElijah Craig Barrel Proof has won countless awards from some of the most accredited spirits competitions, including Whisky Advocate's Whisky of the Year, #2 Whiskey by Wine Enthusiast, Double Gold from San Francisco World Spirits Competition, Double Gold at the Ultimate Spirits Challenge, and Double Gold at the International World Spirits Competition, among many other distinctions.\nThe aroma is caramel with toasted oak, fruit notes of apple and orange. The taste is rich vanilla, caramel, and butterscotch along with spices of black pepper and cinnamon at the back of the palate. And its finish is nicely layered showcasing all flavors, with a slow linger as it cools",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "additional_properties": {
+        "type": "spirits",
+        "subtype": "bourbon, whiskey",
+        "content": "59.1%",
+        "country": "United States",
+        "state": "Kentucky",
+        "basic_category": "Whiskey American",
+        "brands": "Elijah Craig"
+      },
+      "merchants": [
+        {
+          "merchant_id": "62b39ad7846bf750d15d5daf",
+          "merchant_name": "Northridge Liquor",
+          "full_address": "1660 N 4th St, Laramie, WY 82072, USA",
+          "address": {
+            "full_address": "1660 N 4th St, Laramie, WY 82072, USA",
+            "location": {
+              "type": "Point",
+              "coordinates": [
+                -105.5911323,
+                41.3274875
+              ]
+            }
+          },
+          "coordinates": [
+            -105.5911323,
+            41.3274875
+          ],
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "56c29217756275139dc70300",
+              "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://northridgediscountliquors.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+              "quantity": 11,
+              "price": 85.97,
+              "merchant_id": "62b39ad7846bf750d15d5daf",
+              "full_address": "1660 N 4th St, Laramie, WY 82072, USA",
+              "address": {
+                "full_address": "1660 N 4th St, Laramie, WY 82072, USA",
+                "location": {
+                  "type": "Point",
+                  "coordinates": [
+                    -105.5911323,
+                    41.3274875
+                  ]
+                }
+              },
+              "option_display_data": {
+                "name": "Elijah Craig Barrel Proof",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "properties": {
+                  "product_views": [
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Elijah Craig"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "59.1%"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

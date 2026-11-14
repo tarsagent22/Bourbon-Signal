@@ -142,6 +142,62 @@ for(const state of ['MN','MO','MA','RI'])test(`${state} per-store CityHive artif
   await assert.rejects(()=>prepareCentralCityHiveCanary({state,report:wrongBible,reportDirectory:directory,bible,provenance}),/library-mismatched|current-library replay changed/);
 });
 
+test('WY Laramie replays the retained Northridge limited bottle with its original source clock and exact pickup premise',async t=>{
+  const source=CENTRAL_CITYHIVE_RESEARCH_SOURCES.find(row=>row.state==='WY');
+  assert.ok(source);
+  const directory=await mkdtemp(path.join(tmpdir(),'cityhive-wy-laramie-'));
+  try{
+    const fixture=JSON.parse(await readFile(new URL('./fixtures/central-cityhive/northridge-laramie-elijah-craig-barrel-proof.json',import.meta.url),'utf8'));
+    const positiveBody=Buffer.from(`<script type="application/json">${JSON.stringify(fixture)}</script>`);
+    const emptyBody=Buffer.from(`<script type="application/json">${JSON.stringify({merchant_configs:fixture.merchant_configs,products:[]})}</script>`);
+    await mkdir(path.join(directory,'source-captures'),{recursive:true});
+    const firstUrl=source.categoryUrl;
+    const secondUrl=`${source.baseUrl}/shop/?ch-query=${encodeURIComponent("Blanton's Gold")}&merchant-id=${source.merchantId}`;
+    const requests=[{sourceId:source.id,url:firstUrl,status:200,ok:true},{sourceId:source.id,url:secondUrl,status:200,ok:true}];
+    const receipts=[
+      {url:firstUrl,finalUrl:firstUrl,status:200,observedAt:'2026-11-14T21:36:03.569Z',bytes:positiveBody.length,sha256:sha(positiveBody),artifactPath:'source-captures/001-laramie.html'},
+      {url:secondUrl,finalUrl:secondUrl,status:200,observedAt:'2026-11-14T21:36:05.102Z',bytes:emptyBody.length,sha256:sha(emptyBody),artifactPath:'source-captures/002-laramie.html'},
+    ];
+    await writeFile(path.join(directory,receipts[0].artifactPath),positiveBody);
+    await writeFile(path.join(directory,receipts[1].artifactPath),emptyBody);
+    const report={state:'WY',finishedAt:'2026-11-14T21:36:05.109Z',sources:[{sourceRuntimeId:'research:wy:northridge-liquor',
+      label:source.sourceLabel,url:source.categoryUrl,ok:true,status:200}],signals:[],metadata:{complete:true,shadowOnly:true,
+      productionActivationAllowed:false,customerDeliveryAllowed:false,requests,receipts,bibleRecordsSha256:sha(Buffer.from(JSON.stringify(bible.records||[]))),
+      origin:{kind:'github_actions',repository:'tarsagent22/Bourbon-Signal',workflowRunId:'43643646596',commitSha:'1f7008f7b92306eb11a4469a793f107393e909bb'}}};
+    const provenance={status:'verified_github_shadow_artifact',state:'WY',repository:'tarsagent22/Bourbon-Signal',workflowRunId:'43643646596',
+      headSha:'1f7008f7b92306eb11a4469a793f107393e909bb',artifactId:'43643646596',artifactDigest:'c'.repeat(64)};
+    const result=await prepareCentralCityHiveCanary({state:'WY',report,reportDirectory:directory,bible,provenance,nowMs:Date.parse('2026-11-14T21:36:10.000Z')});
+    assert.equal(result.locations.length,1);
+    assert.equal(result.locations[0].storeId,'northridge-liquor:62b39ad7846bf750d15d5daf');
+    assert.equal(result.locations[0].address,'1660 N 4th St, Laramie, WY 82072, USA');
+    assert.equal(result.drops.length,1);
+    assert.equal(result.drops[0].canonicalBottleId,'bb_be6a0afd4ba5f963');
+    assert.equal(result.drops[0].rawName,'Elijah Craig Barrel Proof');
+    assert.equal(result.drops[0].tier,'limited');
+    assert.equal(result.drops[0].productId,'56c29217756275139dc70300');
+    assert.equal(result.drops[0].variantId,'3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371');
+    assert.equal(result.drops[0].price,85.97);
+    assert.equal(result.drops[0].observedAt,'2026-11-14T21:36:03.569Z');
+    assert.equal(result.generatedAt,'2026-11-14T21:36:05.109Z');
+    assert.equal(result.drops[0].quantity,0);
+    assert.equal(result.drops[0].quantityIsExact,false);
+    assert.equal(result.drops[0].previewOnly,true);
+    assert.equal(result.drops[0].eligibleForOnSite,true);
+    assert.equal(result.drops[0].canAlertAsInventory,false);
+    assert.equal(result.drops[0].canAlertAsWatch,false);
+    assert.equal(result.drops[0].eligibleForDelivery,false);
+    assert.equal(buildCurrentInventoryAlertsFromDrops(result.drops).length,0);
+    await assert.rejects(()=>prepareCentralCityHiveCanary({state:'WY',report,reportDirectory:directory,bible,provenance,
+      nowMs:Date.parse('2026-11-14T23:37:00.000Z')}),/stale/);
+    const changed=structuredClone(fixture);changed.merchant_configs[0].merchant.address.full_address='999 Other Street, Laramie, WY';
+    const changedBody=Buffer.from(`<script type="application/json">${JSON.stringify(changed)}</script>`);
+    await writeFile(path.join(directory,receipts[0].artifactPath),changedBody);
+    const tampered=structuredClone(report);tampered.metadata.receipts[0].sha256=sha(changedBody);tampered.metadata.receipts[0].bytes=changedBody.length;
+    await assert.rejects(()=>prepareCentralCityHiveCanary({state:'WY',report:tampered,reportDirectory:directory,bible,provenance,
+      nowMs:Date.parse('2026-11-14T21:36:10.000Z')}),/exact registered premise/);
+  }finally{await rm(directory,{recursive:true,force:true});}
+});
+
 test('MO library drift requires exact identity agreement between retained shadow rows and current raw replay',async t=>{
   const directory=await mkdtemp(path.join(tmpdir(),'cityhive-mo-library-recheck-'));
   t.after(()=>rm(directory,{recursive:true,force:true}));

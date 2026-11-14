@@ -19,8 +19,8 @@ const replayIdentity=row=>JSON.stringify([row?.storeId,row?.merchantId,row?.prod
 const sameReplayIdentity=(shadowRows,replayedRows)=>Array.isArray(shadowRows)&&shadowRows.length===replayedRows.length
   &&JSON.stringify(shadowRows.map(replayIdentity).sort())===JSON.stringify(replayedRows.map(replayIdentity).sort());
 const ALL_CITYHIVE_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
-const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','KS','AR']);
-const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','KS','AR']);
+const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','KS','AR','WY']);
+const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','KS','AR','WY']);
 const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].map(source=>({
   id:source.id,state:source.state,storeId:source.storeId,chainId:source.chainId||null,name:source.name,chainName:source.chainName||null,
   platform:source.platform,merchantId:source.merchantId,hostname:source.hostname,
@@ -78,7 +78,9 @@ export async function prepareCentralCityHiveCanary({state,report,reportDirectory
     if(canonical(receipt.url)===canonical(source.categoryUrl))categorySources.add(source.id);
     else if([...url.searchParams].length!==2||!url.searchParams.has('ch-query')
       ||!url.searchParams.get('ch-query')?.trim()||url.searchParams.get('ch-query').length>120)throw new Error('Unreviewed CityHive search capture');
-    if(researchOnly&&canonical(receipt.url)===canonical(source.categoryUrl))throw new Error('Per-store research receipts must use the reviewed merchant-scoped query route');
+    if(researchOnly&&([...url.searchParams].length!==2||!url.searchParams.has('ch-query')
+      ||!url.searchParams.get('ch-query')?.trim()||url.searchParams.get('ch-query').length>120))
+      throw new Error('Per-store research receipts must use the reviewed merchant-scoped query route');
     const linkedRequest=requests.find(request=>canonical(request.url)===canonical(receipt.url));
     const expectedRequestId=PER_STORE_QUERY_STATES.has(state)?source.id:(source.chainId||source.id);
     if(!linkedRequest||linkedRequest.ok!==true||Number(linkedRequest.status)!==200||receipt.status!==linkedRequest.status
