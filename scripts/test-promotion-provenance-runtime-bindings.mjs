@@ -54,6 +54,7 @@ for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI'])test
     `engine/out/canary/${state}/site/locations.json`,`engine/out/canary/${state}/site/stores.json`,
     `engine/out/canary/${state}/site/drops.json`,`engine/out/canary/${state}/site/states/index.json`]
     :state==='MO'?[...common,'engine/src/collectors/central-cityhive-production.mjs','engine/src/central-cityhive-production-config.mjs',
+      'engine/src/library-query-plan.mjs','engine/src/library-search-runtime.mjs','engine/src/collectors/central-cityhive-market-policy.mjs',
       'engine/src/verify-mo-first-publication.mjs','engine/data/state-integration/MO.json',
       'engine/data/canary-site/mo-active-candidate/manifest.json','engine/data/canary-site/mo-active-candidate/stats.json',
       'engine/data/canary-site/mo-active-candidate/alerts.json','engine/data/canary-site/mo-active-candidate/locations.json',

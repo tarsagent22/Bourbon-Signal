@@ -8,7 +8,7 @@ import { CENTRAL_CITYHIVE_PRODUCTION_COHORTS, CENTRAL_CITYHIVE_PRODUCTION_SOURCE
 import { BourbonBible } from './core/bible.mjs';
 import { libraryIdentityKey } from './core/library-catalog.mjs';
 import { librarySearchPool } from './library-query-plan.mjs';
-import { centralCityHiveRecordMarketTier } from './collectors/central-cityhive-market-policy.mjs';
+import { centralCityHiveAllocatedQueryFilter } from './collectors/central-cityhive-market-policy.mjs';
 import { isWithinCustomerFreshnessWindow } from './customer-drop-freshness.mjs';
 
 const EXPECTED_STORES = CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source => source.state === 'MO').map(source => source.storeId);
@@ -17,14 +17,6 @@ const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const allocationTiers = new Set(['allocated', 'unicorn']);
 const identity = row => JSON.stringify([row?.storeId, row?.productId, row?.optionId || row?.variantId,
   row?.sourceProductBinding?.observedAt || row?.observedAt, row?.canonicalBottleId, row?.tier]);
-
-function allocatedSearchTerms(bible) {
-  const allocations = (bible?.records || [])
-    .filter(record => allocationTiers.has(centralCityHiveRecordMarketTier(record, 'MO')))
-    .map(record => libraryIdentityKey(record.canonical));
-  return new Set(librarySearchPool(bible || {records: []}).map(libraryIdentityKey)
-    .filter(term => allocations.some(name => name === term || name.startsWith(term + ' '))));
-}
 
 export function verifyMoFirstPublication({ report, partition, reportBytes, partitionBytes, bible, nowMs = Date.now(), workflowRunId = process.env.GITHUB_RUN_ID }) {
   const failures = [];
@@ -36,7 +28,8 @@ export function verifyMoFirstPublication({ report, partition, reportBytes, parti
   if (JSON.stringify(cohort?.selectedStores) !== JSON.stringify(EXPECTED_STORES)
     || JSON.stringify(cohort?.verifiedPremises) !== JSON.stringify(EXPECTED_STORES)) failures.push('MO report must verify the exact reviewed ten-store roster.');
   const requests = Array.isArray(cohort?.requests) ? cohort.requests : [];
-  const indexedTerms = allocatedSearchTerms(bible);
+  const allocatedFilter = centralCityHiveAllocatedQueryFilter(bible, 'MO');
+  const indexedTerms = new Set(librarySearchPool(bible || {records: []}).filter(allocatedFilter).map(libraryIdentityKey));
   const allocatedSearches = [];
   if (requests.length !== CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.MO.maxRequests
     || new Set(requests.map(request => request.url)).size !== requests.length

@@ -13,3 +13,15 @@ export function centralCityHiveRecordMarketTier(record,state) {
  const tier=overrides[0]?.tier||identity.nationalTier;
  return ({regular:'standard',common:'standard',standard:'standard',limited:'limited',allocated:'allocated',highly_allocated:'unicorn',unicorn:'unicorn'})[tier]||null;
 }
+
+// Keep the rotating search slot on approved allocated/unicorn names or
+// retrieval prefixes. A prefix never establishes the identity of a stock row.
+export function centralCityHiveAllocatedQueryFilter(bible, state) {
+  const names = (bible?.records || [])
+    .filter(record => ['allocated', 'unicorn'].includes(centralCityHiveRecordMarketTier(record, state)))
+    .map(record => libraryIdentityKey(record.canonical));
+  return term => {
+    const key = libraryIdentityKey(term);
+    return Boolean(key) && names.some(name => name === key || name.startsWith(key + ' '));
+  };
+}

@@ -259,6 +259,9 @@ if (state === 'KS') files.push(
   'engine/test/fixtures/ks-cityhive/hosted-public-protection-receipt.json',
 );
 if (state === 'MO') files.push(
+  'engine/src/library-query-plan.mjs',
+  'engine/src/library-search-runtime.mjs',
+  'engine/src/collectors/central-cityhive-market-policy.mjs',
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/central-cityhive-production-config.mjs',
   'engine/src/verify-mo-first-publication.mjs',

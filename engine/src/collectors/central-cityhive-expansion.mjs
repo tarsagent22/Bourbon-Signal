@@ -5,7 +5,7 @@ import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
 import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
 import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
 export { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES } from './central-cityhive-research-premises.mjs';
-import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
+import {centralCityHiveAllocatedQueryFilter,centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 export {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
@@ -132,13 +132,15 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
   if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
   const groups=Map.groupBy(allowed,s=>perStore?s.id:s.chainId||s.id);
+  const queryFilter=config.id==='MO'?centralCityHiveAllocatedQueryFilter(bible,config.id):undefined;
   for(const [groupId,sources] of groups){
     const source=sources[0];
     if(Date.parse(attempts[groupId]?.nextAllowedAt || '')>nowMs || Date.parse(sourceAttempts[source.hostname]?.nextAllowedAt||'')>nowMs)continue;
     const priorityTerms=perStore?(Array.isArray(source.prioritySearchTerms)&&source.prioritySearchTerms.length?source.prioritySearchTerms:[source.prioritySearchTerm||'barrel proof'])
       :config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'];
-    const terms=await librarySourceSearchTerms(bible,{sourceKey:`${config.id}:${groupId}`,budget:perStore?Math.max(2,priorityTerms.length+1):4,
-      priorityTerms,broadTerms:[],cursorDir});
+    const sourceKey=`${config.id}:${groupId}`;
+    const terms=await librarySourceSearchTerms(bible,{sourceKey,budget:perStore?Math.max(2,priorityTerms.length+1):4,
+      priorityTerms,broadTerms:[],cursorDir,queryFilter});
     const queryUrls=terms.map(term=>source.baseUrl+'/shop/?ch-query='+encodeURIComponent(term)+'&merchant-id='+source.merchantId);
     const urls=perStore?queryUrls:[source.categoryUrl,...queryUrls];
     const seen=new Set();let denied=false;

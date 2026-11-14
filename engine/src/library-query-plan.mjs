@@ -32,12 +32,12 @@ export function librarySearchPool(bible) {
   return [...pool.values()];
 }
 
-export function buildLibrarySourceSearchPlan(bible, { sourceKey, budget, broadTerms = [], priorityTerms = [], cursor = 0 } = {}) {
+export function buildLibrarySourceSearchPlan(bible, { sourceKey, budget, broadTerms = [], priorityTerms = [], cursor = 0, queryFilter } = {}) {
   if (!sourceKey || !Number.isInteger(budget) || budget < 1 || budget > 100) throw new Error('Invalid library search budget or source');
   const unique = terms => [...new Map(terms.map(term => [libraryIdentityKey(term), term]).filter(([key]) => key)).values()];
   const fixed = unique([...broadTerms, ...priorityTerms]);
   const fixedKeys = new Set(fixed.map(libraryIdentityKey));
-  const pool = librarySearchPool(bible).filter(term => !fixedKeys.has(libraryIdentityKey(term)));
+  const pool = librarySearchPool(bible).filter(term => !fixedKeys.has(libraryIdentityKey(term)) && (!queryFilter || queryFilter(term)));
   if (pool.length && fixed.length >= budget) throw new Error('Library rotation needs at least one search slot');
   const count = Math.min(pool.length, budget - fixed.length);
   const offset = pool.length ? Math.max(0, Number.isSafeInteger(cursor) ? cursor : 0) % pool.length : 0;
