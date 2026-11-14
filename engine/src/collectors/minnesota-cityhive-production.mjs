@@ -116,9 +116,9 @@ function reusableHistory(value,nowMs){
 
 export async function collectMinnesotaCityHiveProductionSource(config,bible,{lifecycleConfig=STATE_LIFECYCLE_CONFIG,promotionManifest=manifest,env=process.env,
   fetchText=fetchReviewedFirstPartyText,cacheFile=path.resolve('out/cache/minnesota-cityhive-production/MN.json'),
-  cursorFile=path.resolve('out/cursors/minnesota-cityhive-production/MN.json'),
-  incidentFile=path.resolve('out/research-source-attempts/central-cityhive-journals/MN.json'),signal,nowMs=Date.now(),sleep,
-  timeoutMs,persistIncidentJournal=persistCityHiveIncidentJournal,forceLive=false,onRequest=()=>{}}={}){
+  cursorFile=path.resolve('out/cache/minnesota-cityhive-production/MN.cursor.json'),
+  incidentFile=path.resolve('out/source-incidents/central-cityhive/MN.json'),signal,nowMs=Date.now(),sleep,
+  timeoutMs,persistIncidentJournal=persistCityHiveIncidentJournal,forceLive=process.env.BOURBON_SIGNAL_FORCE_SOURCE_RUN==='1',onRequest=()=>{}}={}){
   if(config?.id!=='MN')throw Error('Minnesota CityHive production collector requires MN');
   if(!minnesotaCityHiveProductionAllowed(lifecycleConfig,{promotionManifest,env}))return{signals:[],roadblocks:[],metadata:{complete:false,blockedByPromotion:true},
     accounting:{requestCount:0,bytes:0,elapsedMs:0,completeSnapshot:false}};

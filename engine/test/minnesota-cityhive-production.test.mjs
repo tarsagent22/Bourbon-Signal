@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import manifest from '../data/state-integration/MN.json' with {type:'json'};
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {MINNESOTA_CITYHIVE_PRODUCTION_COHORT_SHA256 as cohort,MINNESOTA_CITYHIVE_PRODUCTION_SOURCES as sources,
@@ -37,6 +38,24 @@ test('Minnesota stays promotion blocked and performs no source fetch without com
   assert.equal(report.metadata.blockedByPromotion,true);
   assert.equal(report.metadata.requestCount,0);
   assert.equal(calls,0);
+});
+
+test('Minnesota rotates under the restored collector cache and retains its denial journal independently',async()=>{
+  const runtime=await readFile(new URL('../src/collectors/minnesota-cityhive-production.mjs',import.meta.url),'utf8');
+  assert.match(runtime,/cursorFile=path\.resolve\('out\/cache\/minnesota-cityhive-production\/MN\.cursor\.json'\)/);
+  assert.match(runtime,/incidentFile=path\.resolve\('out\/source-incidents\/central-cityhive\/MN\.json'\)/);
+  assert.match(runtime,/forceLive=process\.env\.BOURBON_SIGNAL_FORCE_SOURCE_RUN==='1'/);
+  const workflow=await readFile(new URL('../../.github/workflows/refresh-feed.yml',import.meta.url),'utf8');
+  const steps=workflow.split(/\r?\n {6}- name:/),cursor='engine/out/cache/minnesota-cityhive-production/MN.cursor.json';
+  const restore=steps.find(step=>step.includes('actions/cache/restore@v4')&&step.includes(cursor));
+  const save=steps.find(step=>step.includes('actions/cache/save@v4')&&step.includes(cursor));
+  assert.ok(restore&&save,'Minnesota rotation cursor has a workflow cache restore and save');
+  assert.match(save,/if: always\(\)/);
+  assert.equal(save.match(/\bkey: (.+)/)[1],restore.match(/\bkey: (.+)/)[1]);
+  const journal='engine/out/source-incidents/central-cityhive';
+  const journalRestore=steps.find(step=>step.includes('actions/cache/restore@v4')&&step.includes(journal));
+  const journalSave=steps.find(step=>step.includes('actions/cache/save@v4')&&step.includes(journal));
+  assert.ok(journalRestore&&journalSave);assert.match(journalSave,/if: always\(\)/);
 });
 
 test('Minnesota on-site policy requires exact merchant binding and binary positive pickup proof',()=>{
