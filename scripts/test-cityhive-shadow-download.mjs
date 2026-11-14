@@ -4,12 +4,12 @@ import {zipSync,strToU8} from 'fflate';
 import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
-import {validateCityHiveShadowWorkflowOrigin,validateInactiveMinnesotaShadowLifecycleTransition,decodeBoundedShadowArchive} from './download-cityhive-shadow.mjs';
+import {validateCityHiveShadowWorkflowOrigin,validateInactiveMinnesotaShadowLifecycleTransition,validateInactiveKansasShadowLifecycleTransition,decodeBoundedShadowArchive} from './download-cityhive-shadow.mjs';
 const base={state:'WI',repository:'tarsagent22/Bourbon-Signal',currentHead:'a'.repeat(40),
   run:{id:123,status:'completed',conclusion:'success',head_sha:'a'.repeat(40),repository:{full_name:'tarsagent22/Bourbon-Signal'},path:'.github/workflows/state-expansion-shadow.yml'},
   artifact:{id:456,name:'state-expansion-shadow-123',digest:'sha256:'+'b'.repeat(64),size_in_bytes:100,expired:false}};
 test('CityHive downloader requires actual successful source-equivalent shadow workflow provenance',()=>{
-  for(const state of ['WI','OK','RI','MN'])assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state}).state,state);
+  for(const state of ['WI','OK','RI','MN','KS'])assert.equal(validateCityHiveShadowWorkflowOrigin({...base,state}).state,state);
   for(const change of [{state:'TX'},{run:{...base.run,conclusion:'failure'}},{run:{...base.run,path:'.github/workflows/refresh-feed.yml'}},
     {artifact:{...base.artifact,expired:true}},{artifact:{...base.artifact,digest:null}},{repository:'foreign/repository'}]){
     assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...base,...change}));
@@ -37,6 +37,23 @@ test('CityHive downloader requires actual successful source-equivalent shadow wo
     comparison:lifecycleComparison,commit:lifecycleCommit}),false);
   assert.equal(validateInactiveMinnesotaShadowLifecycleTransition({candidateLifecycle:activeLifecycle,shadowLifecycle:inactiveLifecycle,
     comparison:{...lifecycleComparison,ahead_by:2},commit:lifecycleCommit}),false);
+  const activeKansas={activeStates:['RI','KS'],states:{RI:{publicStatus:'active'},KS:{customerLabel:'Kansas',publicStatus:'active',promotionStage:'active'}},reliabilityPolicy:{stateExpectedRunMs:{KS:15000}}};
+  const dormantKansas={activeStates:['RI'],states:{RI:{publicStatus:'active'},KS:{customerLabel:'Kansas',sourceLabel:'Kansas reviewed CityHive pickup inventory',publicStatus:'research_only',lifecycle:'retailer_inventory_research',customerSummary:'Research-only: a closed three-store Kansas CityHive pickup cohort is being evaluated. This entry does not enable production collection, customer visibility, alerts or delivery.'}},reliabilityPolicy:{stateExpectedRunMs:{KS:30000}}};
+  const kansasComparison={status:'ahead',ahead_by:3,behind_by:0,runHeadSha:'a'.repeat(40),base_commit:{sha:'a'.repeat(40)},files:[
+    {filename:'src/config/state-lifecycle.json'},{filename:'src/config/stateLifecycle.ts'},{filename:'engine/data/state-integration/KS.json'}]};
+  assert.equal(validateInactiveKansasShadowLifecycleTransition({candidateLifecycle:activeKansas,shadowLifecycle:dormantKansas,comparison:kansasComparison}),true);
+  assert.equal(validateInactiveKansasShadowLifecycleTransition({candidateLifecycle:activeKansas,shadowLifecycle:dormantKansas,comparison:{...kansasComparison,ahead_by:14}}),true);
+  assert.equal(validateInactiveKansasShadowLifecycleTransition({candidateLifecycle:activeKansas,shadowLifecycle:{...dormantKansas,activeStates:['RI','KS']},comparison:kansasComparison}),false);
+  const sourceEquivalentKs={...base,state:'KS',currentHead:'c'.repeat(40),comparison:{...kansasComparison,ksShadowLifecycleProof:true,files:[
+    ...kansasComparison.files,...[...['.gitattributes','engine/data/state-fixtures/KS.json','engine/test/central-cityhive-production.test.mjs','engine/test/ks-first-publication.test.mjs','engine/test/ks-hosted-preview-evidence.test.mjs','scripts/build-promotion-provenance.mjs','scripts/download-cityhive-shadow.mjs','scripts/test-cityhive-shadow-download.mjs','src/config/stateLifecycle.ts','engine/src/collectors/central-cityhive-expansion.mjs','engine/src/collectors/central-cityhive-premises.mjs','engine/src/collectors/central-cityhive-transport.mjs']].map(filename=>({filename})),
+  ]}};
+  sourceEquivalentKs.comparison.files.push(
+    {filename:'scripts/test-owner-admin-api.cjs',sha:'4e8b2acba722c0e302cda721469b9f5a7142466f'},
+    {filename:'src/app/api/admin/catalog/route.ts',sha:'9faba372b40c774433bc558325b61f776d00436e'},
+  );
+  assert.equal(validateCityHiveShadowWorkflowOrigin(sourceEquivalentKs).inactiveKansasShadowLifecycleTransition,true);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...sourceEquivalentKs,comparison:{...sourceEquivalentKs.comparison,files:[...sourceEquivalentKs.comparison.files,{filename:'engine/src/collectors/unknown.mjs'}]}}),/source changed/);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...sourceEquivalentKs,comparison:{...sourceEquivalentKs.comparison,files:sourceEquivalentKs.comparison.files.map(file=>file.filename==='scripts/test-owner-admin-api.cjs'?{...file,sha:'0'.repeat(40)}:file)}}),/source changed/);
   const inactiveMnAhead={...ahead,state:'MN',comparison:{...lifecycleComparison,mnShadowLifecycleProof:true,files:[
     {filename:'src/config/state-lifecycle.json'},{filename:'scripts/download-cityhive-shadow.mjs'},
     {filename:'src/lib/public-drop-evidence.ts'},{filename:'scripts/test-laak-production-projection.mjs'},

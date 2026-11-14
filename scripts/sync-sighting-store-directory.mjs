@@ -55,6 +55,10 @@ const reviewed=await json('src/config/mississippi-known-stores.json');
 rows.push(...reviewed.stores);reports.push({label:reviewed.source.label,state:'MS',url:reviewed.source.url,count:reviewed.stores.length,checkedAt:reviewed.reviewedAt,sha256:reviewed.source.responseDigest});
 const wv=await json('engine/data/store-universe/WV.json');
 rows.push(...wv.stores);reports.push({label:'West Virginia ABCA licensed retail directory',state:'WV',url:'https://www.wvabca.com/licensesearch.aspx',count:wv.stores.length,checkedAt:wv.source?.capturedAt||'2026-07-26'});
+const ks=await json('engine/data/additional-cityhive-expansion-sources.json');
+const kansas=ks.stores.filter(r=>r.state==='KS').map(r=>({id:r.storeId,state:'KS',name:r.name,address:r.address,city:r.city,zip:r.zip,lat:r.lat,lng:r.lng,source:r.sourceLabel,sourceUrl:r.discoveryUrl}));
+if(kansas.length!==3)throw Error('Kansas selectable premise registry requires its exact reviewed three-store cohort');
+rows.push(...kansas);reports.push({label:'Kansas reviewed CityHive exact-store pickup cohort',state:'KS',url:'engine/data/additional-cityhive-expansion-sources.json',count:kansas.length,checkedAt:ks.stores.find(r=>r.state==='KS')?.capturedAt});
 const supplemental=process.argv.find(a=>a.startsWith('--supplement-dir='))?.split('=').slice(1).join('=');
 const licenseFiles=process.argv.find(a=>a.startsWith('--license-files-dir='))?.split('=').slice(1).join('=');
 if(licenseFiles){for(const state of ['CA','GA','TX','KY','FL','IL','SC','TN']){

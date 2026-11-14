@@ -94,20 +94,23 @@ test('maps one-store board shipments to the official store as non-inventory stor
   assert.equal(enriched.find((signal) => signal.id === 'wake-inventory').locationPrecision, 'store_level');
 });
 
-test('checked NC artifacts produce a complete 174-board ledger with qualified one-store shipment coverage', async () => {
+test('NC site artifacts produce a complete directory with one-store shipment coverage', async () => {
   const [locationPayload, intelligence] = await Promise.all([
     readFile(new URL('../out/site/locations.json', import.meta.url), 'utf8').then(JSON.parse),
     readFile(new URL('../out/site/nc-intelligence.json', import.meta.url), 'utf8').then(JSON.parse),
   ]);
   const ledger = buildNcSourceLedger(locationPayload.locations, intelligence);
-  assert.equal(ledger.boardCount, 174);
+  assert.deepEqual(validateNcSourceLedgerContract(ledger), []);
   const stanley = ledger.boards.find(board => board.boardName === 'Stanley ABC Board');
   assert.ok(stanley);
   assert.equal(stanley.canAlertAsInventory, false);
   assert.equal(stanley.officialStoreCount, 0);
   assert.equal(ledger.boards.every((board) => board.boardId && board.boardName && board.qualification && board.expectedCadence && board.health && board.nextAction), true);
-  assert.equal(ledger.boards.filter((board) => board.qualification === 'direct_inventory_monitored').length >= 3, true);
-  assert.equal(ledger.boards.filter((board) => board.officialStoreCount === 1).length >= 75, true);
+  for (const board of ledger.boards.filter((board) => board.qualification === 'direct_inventory_monitored')) {
+    assert.equal(board.health, 'monitored_unverified');
+    assert.equal(board.lastSuccessfulRetrievalAt, null);
+  }
+  assert.deepEqual(validateNcSingleStoreCoverage(ledger), []);
   assert.equal(ledger.boards.every((board) => board.canAlertAsInventory === false), true);
 });
 

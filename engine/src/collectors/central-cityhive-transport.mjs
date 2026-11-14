@@ -28,7 +28,7 @@ export async function fetchReviewedFirstPartyText(value,{signal,timeoutMs=10_000
 export function fetchReviewedCityHiveText(value,{reviewedSources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES,...options}={}){
   return fetchReviewedFirstPartyText(value,{...options,maxTimeoutMs:10_000,isAllowedUrl:url=>
     url.pathname==='/shop/' && reviewedSources.some(source=>source.baseUrl===url.origin
-      && (source.state!=='RI' || ([...url.searchParams].length===2
+      && (!['RI','KS'].includes(source.state) || ([...url.searchParams].length===2
         && url.searchParams.get('merchant-id')===source.merchantId
         && Boolean(url.searchParams.get('ch-query')?.trim())
         && url.searchParams.get('ch-query').length<=120)))});

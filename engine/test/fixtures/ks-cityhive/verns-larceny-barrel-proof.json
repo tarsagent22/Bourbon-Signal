@@ -1,0 +1,490 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "61ae46168baad441363308b0",
+        "name": "Vern's Retail Liquor",
+        "display_name": "Vern's Retail Liquor",
+        "address": {
+          "full_address": "3700 SW Gage Blvd, Topeka, KS 66610, USA",
+          "address_properties": {
+            "success": true,
+            "lat": 38.9998534,
+            "lng": -95.72944729999999,
+            "country_code": "US",
+            "city": "Topeka",
+            "state": "KS",
+            "zip": "66610",
+            "street_address": "3700 Southwest Gage Boulevard",
+            "province": "KS",
+            "district": "Shawnee County",
+            "provider": "google",
+            "full_address": "3700 SW Gage Blvd, Topeka, KS 66610, USA",
+            "is_us?": true,
+            "ll": "38.9998534,-95.72944729999999",
+            "precision": "building",
+            "street_number": "3700",
+            "state_full_name": "Kansas"
+          },
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -95.72944729999999,
+              38.9998534
+            ]
+          },
+          "district": "Shawnee County",
+          "province": "KS",
+          "street_address": "3700 Southwest Gage Boulevard",
+          "zipcode": "66610",
+          "state": "KS",
+          "city": "Topeka",
+          "country_code": "US",
+          "apt": null,
+          "id": "61ae46168baad441363308af",
+          "place_id": "ChIJW4QImVgdv4cRSAscBJAcvG8"
+        },
+        "email": "rosenowad@gmail.com",
+        "display_email": "aaronr@vernsliquor.com",
+        "phone_number": "+17852665880",
+        "accept_orders": true,
+        "onboarding_state": "active",
+        "delivery_area": {
+          "id": "61ae462c8baad441363308b3",
+          "type": "Polygon",
+          "delivery_fee_type": "fixed",
+          "minimum_delivery": 50,
+          "force_delivery_fee": false,
+          "min_to_leave_store": 25,
+          "delivery_fee": 2.99,
+          "base_fee": 0,
+          "max_delivery_time": 60,
+          "last_delivery_time_offset": 0,
+          "first_delivery_time_offset": 0,
+          "hour_step": 1,
+          "name": null,
+          "coordinates": [
+            [
+              [
+                -95.75844729999999,
+                38.970853399999996
+              ],
+              [
+                -95.75844729999999,
+                39.0288534
+              ],
+              [
+                -95.7004473,
+                39.0288534
+              ],
+              [
+                -95.7004473,
+                38.970853399999996
+              ],
+              [
+                -95.75844729999999,
+                38.970853399999996
+              ]
+            ]
+          ],
+          "delivery_hours": null
+        },
+        "merchant_type": "Beer, Wine, and Liquor Stores",
+        "premise_type": "Off Premise",
+        "inventory_owner": null,
+        "chain": null,
+        "aggregation_type": "single_store",
+        "max_delivery_time": 60,
+        "pickup": true,
+        "delivery": false,
+        "shipping": false,
+        "allow_delivery_tip": false,
+        "minimum_delivery": 50,
+        "work_hours": null,
+        "type": "Beer, Wine, and Liquor Stores",
+        "delivery_hours": {
+          "sun": {
+            "opening": null,
+            "closing": null
+          },
+          "mon": {
+            "opening": null,
+            "closing": null
+          },
+          "tue": {
+            "opening": null,
+            "closing": null
+          },
+          "wed": {
+            "opening": null,
+            "closing": null
+          },
+          "thu": {
+            "opening": null,
+            "closing": null
+          },
+          "fri": {
+            "opening": null,
+            "closing": null
+          },
+          "sat": {
+            "opening": null,
+            "closing": null
+          }
+        },
+        "business_hours": {
+          "sun": {
+            "opening": "12:00",
+            "closing": "20:00"
+          },
+          "mon": {
+            "opening": "09:00",
+            "closing": "22:00"
+          },
+          "tue": {
+            "opening": "09:00",
+            "closing": "22:00"
+          },
+          "wed": {
+            "opening": "09:00",
+            "closing": "22:00"
+          },
+          "thu": {
+            "opening": "09:00",
+            "closing": "22:00"
+          },
+          "fri": {
+            "opening": "09:00",
+            "closing": "23:00"
+          },
+          "sat": {
+            "opening": "09:00",
+            "closing": "23:00"
+          }
+        },
+        "app_info": null,
+        "assets": {
+          "email_logo": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/61ae46168baad441363308b0/image/6994bbf4e5512d0704692a4e.png?1771355124",
+          "campaign_logo_on_light_background": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/61ae46168baad441363308b0/image/6994bbf4e5512d0704692a50.png?1771355124",
+          "campaign_logo_on_dark_background": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/61ae46168baad441363308b0/image/6994bbf4e5512d0704692a52.png?1771355124",
+          "raw_logo": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/61ae46168baad441363308b0/image/698fa68b1dbe413e3761b8f5.png?1771021963",
+          "assets": []
+        },
+        "referral_program": {
+          "enabled": false,
+          "message": "Give your friends  off their first online order and get  in store credit!",
+          "title": "Like us? We like you!",
+          "amount": null,
+          "percentage": false
+        },
+        "last_inventory_upload": "2026-11-13T15:07:57.234-05:00",
+        "integrated": true,
+        "wine_club": {
+          "enabled": true,
+          "name": "Vern's Retail Liquor Subscription Clubs!",
+          "image": null,
+          "information": "<p><strong>How It Works</strong></p><p>Join one of our monthly subscriptions to start the following month.By enrolling, you are authorizing a recurring monthly charge to your credit card.You may cancel by contacting the store at <a target=\"_blank\" href=\"mailto:rosenowad@gmail.com\">rosenowad@gmail.com</a>.Wines purchased through our subscription services are not refundable.</p>",
+          "is_live": false
+        },
+        "is_d2c_connected": null,
+        "store_credit": {
+          "allow_store_credit_use": true,
+          "allow_store_credit_use_with_discount": true,
+          "store_credit_points_mode": true,
+          "store_credit_points_factor": 1,
+          "minimum_store_credit_amount": 0,
+          "maximum_store_credit_amount": 0,
+          "max_store_credit_to_apply_on_orders": 0,
+          "user_defined_store_credit": true
+        },
+        "current_payment_gateway_name": "adyen",
+        "secondary_payment_gateway_name": null,
+        "account_manager": {
+          "node_id": "694085bac2da4d0b56a5c803",
+          "node_type": "merchant_app_user"
+        },
+        "tip_config": {
+          "allow_delivery_tip": false,
+          "allow_pickup_tip": false,
+          "allow_shipping_tip": false,
+          "allow_custom_tip": false,
+          "allow_cash_tip": false,
+          "tip_levels": [
+            5,
+            10,
+            15
+          ],
+          "default_tip": "10",
+          "default_delivery_tip": "10",
+          "default_pickup_tip": "10",
+          "default_shipping_tip": "10",
+          "driver_tip_percentage": 1
+        },
+        "multi_store_parent": null,
+        "allow_future_orders": true,
+        "validate_date_of_birth_on_checkout": false,
+        "timezone": "America/Chicago",
+        "is_marketplace": null,
+        "reviews_services": {
+          "google_placeid": "ChIJed_QfKfivocR7NNDO3znOaA",
+          "facebook_pagename": "",
+          "yelp_pagename": null,
+          "google_map_url": "https://www.google.com/maps/place/?q=place_id:ChIJed_QfKfivocR7NNDO3znOaA"
+        },
+        "node_type": "merchant",
+        "node_id": "61ae46168baad441363308b0",
+        "allow_event_guest_checkout": false
+      },
+      "colors": {
+        "id": "6213b467ba4bd36071b37aa7",
+        "alt_back_color": "#222222",
+        "alt_color": "#444444",
+        "alt_header": "#FFFFFF",
+        "background_color": "#F6F6F6",
+        "discount_banner_alt": "#ffffff",
+        "main_color": "#000000",
+        "merch_name_color": "#777777"
+      },
+      "signup_message": ""
+    }
+  ],
+  "products": [
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "description": "Larceny Barrel Proof is the first line-extension of the Larceny Family and offers whiskey aficionados an opportunity to experience our Bourbon as our distillers do: straight out of the barrel. First released in January 2020, each release consists of f 6 to 8-year-old Bourbon bottled at barrel proof and non-chill filtered to showcase a deeper character, richness and depth of flavor. Like Small Batch, Larceny Barrel Proof is made with 25% more wheat than competitors for a smoother taste. It tastes of rich molasses that coats the tongue, with notes of fig and hazelnut. Its nuanced flavor fades into lingering warmth. Larceny Barrel Proof is the first Wheated Bourbon to ever be named Whisky Advocate's “Whisky of the Year” in 2020. In 2024, Larceny Barrel Proof was awarded Best of Class from the American Distilling Institute. Pick up a bottle today and unlock our wheated difference.",
+      "images": {
+        "primary": {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/original.png",
+          "large": "https://cityhive-production-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/thumbnail.png"
+        },
+        "more_images": [
+          {
+            "original": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/original.png",
+            "large": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/large.png",
+            "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/medium.png",
+            "small": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/small.png",
+            "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/thumbnail.png"
+          }
+        ]
+      },
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "tags": [
+        "larceny",
+        "larceny barrel proof",
+        "wheated",
+        "barrel proof",
+        "rare",
+        "wheated bourbon"
+      ],
+      "views": [
+        "alcohol",
+        "spirits"
+      ],
+      "customer_favorite": false,
+      "is_taxed": true,
+      "options": [],
+      "merchants": [
+        {
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://vernsliquor.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "product_url_path": "/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "original_option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "stock_components": [],
+              "units_of_measure": [],
+              "badge": {},
+              "product_badge_icons": [
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c899ee99fdb2bbce716c7",
+                  "group_name": "Products From Kentucky",
+                  "group_label": "",
+                  "group_name_slug": "products-from-kentucky",
+                  "group_tooltip": null
+                },
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c812cb1c8472bdc199722",
+                  "group_name": "Products From USA",
+                  "group_label": "",
+                  "group_name_slug": "products-from-usa",
+                  "group_tooltip": null
+                }
+              ],
+              "product_badges": [],
+              "store_credit_price": 0,
+              "quantity": 8,
+              "max_purchase_quantity": null,
+              "min_purchase_quantity": null,
+              "staff_pick": false,
+              "pinned_as_default": false,
+              "staff_pick_description": null,
+              "store_specific_description": "",
+              "staff_pick_recommender": null,
+              "product_modifiers": [],
+              "preorder_details": null,
+              "store_specific_tags": [
+                "liquor",
+                "whiskey"
+              ],
+              "allowed_offer_types": null,
+              "product_tags": [
+                "larceny",
+                "larceny barrel proof",
+                "wheated",
+                "barrel proof",
+                "rare",
+                "wheated bourbon"
+              ],
+              "product_lists_info": null,
+              "available_in_merchant_ids": null,
+              "past_purchase": false,
+              "rich_properties": [],
+              "cityhive_rank": 0,
+              "product_page_custom_content": [],
+              "product_stats": null,
+              "merchant_id": "61ae46168baad441363308b0",
+              "merchant_name": "Vern's Retail Liquor",
+              "coordinates": [
+                -95.72944729999999,
+                38.9998534
+              ],
+              "full_address": "3700 SW Gage Blvd, Topeka, KS 66610, USA",
+              "price": 68.99,
+              "original_price": 0,
+              "discount_value": null,
+              "discount_style": {},
+              "description": "",
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "description": "Larceny Barrel Proof is the first line-extension of the Larceny Family and offers whiskey aficionados an opportunity to experience our Bourbon as our distillers do: straight out of the barrel. First released in January 2020, each release consists of f 6 to 8-year-old Bourbon bottled at barrel proof and non-chill filtered to showcase a deeper character, richness and depth of flavor. Like Small Batch, Larceny Barrel Proof is made with 25% more wheat than competitors for a smoother taste. It tastes of rich molasses that coats the tongue, with notes of fig and hazelnut. Its nuanced flavor fades into lingering warmth. Larceny Barrel Proof is the first Wheated Bourbon to ever be named Whisky Advocate's “Whisky of the Year” in 2020. In 2024, Larceny Barrel Proof was awarded Best of Class from the American Distilling Institute. Pick up a bottle today and unlock our wheated difference.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/thumbnail.png"
+                  },
+                  "more_images": [
+                    {
+                      "original": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/original.png",
+                      "large": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/large.png",
+                      "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/medium.png",
+                      "small": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/small.png",
+                      "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/thumbnail.png"
+                    }
+                  ]
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "additional_properties": {
+                "type": "spirits",
+                "subtype": "bourbon, whiskey",
+                "content": "62.5%",
+                "country": "United States",
+                "state": "Kentucky",
+                "basic_category": "Whiskey American",
+                "brands": "Larceny"
+              },
+              "default_option": true
+            }
+          ],
+          "additional_properties": {},
+          "merchant_id": "61ae46168baad441363308b0",
+          "merchant_name": "Vern's Retail Liquor",
+          "coordinates": [
+            -95.72944729999999,
+            38.9998534
+          ],
+          "full_address": "3700 SW Gage Blvd, Topeka, KS 66610, USA"
+        }
+      ],
+      "product_rating": 4.1,
+      "number_of_product_ratings": 7,
+      "variations": null,
+      "product_modifiers": null,
+      "additional_properties": {
+        "type": "spirits",
+        "subtype": "bourbon, whiskey",
+        "content": "62.5%",
+        "country": "United States",
+        "state": "Kentucky",
+        "basic_category": "Whiskey American",
+        "brands": "Larceny"
+      },
+      "is_enriched": true,
+      "brand_action": null,
+      "rich_properties": null
+    }
+  ]
+}

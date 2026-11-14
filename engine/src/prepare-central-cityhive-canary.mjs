@@ -14,9 +14,13 @@ import {buildDrops,bibleLookup} from './export-site-contract.mjs';
 import {withResearchLifecycle} from './research-state-registry.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const canonical=value=>{const url=new URL(value);url.searchParams.sort();return url.href;};
+const replayIdentity=row=>JSON.stringify([row?.storeId,row?.merchantId,row?.productId,row?.optionId||row?.variantId,
+  row?.rawName,row?.canonicalName,row?.canonicalBottleId,row?.tier,row?.price,row?.sourceUrl]);
+const sameReplayIdentity=(shadowRows,replayedRows)=>Array.isArray(shadowRows)&&shadowRows.length===replayedRows.length
+  &&JSON.stringify(shadowRows.map(replayIdentity).sort())===JSON.stringify(replayedRows.map(replayIdentity).sort());
 const ALL_CITYHIVE_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
-const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI']);
-const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI']);
+const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','KS']);
+const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','KS']);
 const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].map(source=>({
   id:source.id,state:source.state,storeId:source.storeId,chainId:source.chainId||null,name:source.name,chainName:source.chainName||null,
   platform:source.platform,merchantId:source.merchantId,hostname:source.hostname,
@@ -51,9 +55,12 @@ export async function prepareCentralCityHiveCanary({state,report,reportDirectory
     ||origin?.kind!=='github_actions'||String(origin.workflowRunId)!==provenance.workflowRunId
     ||origin.repository!==provenance.repository||origin.commitSha!==provenance.headSha)throw new Error('Canary requires verified workflow-issued shadow provenance and ZIP digest');
   const finishedMs=Date.parse(report.finishedAt),receipts=report.metadata.receipts;
+  const currentBibleHash=sha(Buffer.from(JSON.stringify(bible.records||[])));
+  const shadowBibleHash=report.metadata.bibleRecordsSha256;
+  const libraryChanged=shadowBibleHash!==currentBibleHash;
   if(!Number.isFinite(finishedMs)||finishedMs>nowMs||nowMs-finishedMs>2*60*60_000
     ||!Array.isArray(receipts)||receipts.length<sources.length||receipts.length>sources.length*5
-    ||report.metadata.bibleRecordsSha256!==sha(Buffer.from(JSON.stringify(bible.records||[]))))throw new Error('Incomplete, stale or library-mismatched shadow receipt set');
+    ||!/^[a-f0-9]{64}$/.test(shadowBibleHash)||libraryChanged&&state!=='KS')throw new Error('Incomplete, stale or library-mismatched shadow receipt set');
   const categorySources=new Set(),capturedStores=new Set(),seenUrls=new Set(),seenPaths=new Set(),rows=new Map(),proofs=[];
   const requests=report.metadata.requests;
   if(!Array.isArray(requests)||requests.length!==receipts.length)throw new Error('Partial state: CityHive request and raw receipt sets do not link one-to-one');
@@ -99,13 +106,16 @@ export async function prepareCentralCityHiveCanary({state,report,reportDirectory
   if(researchOnly){
     if(capturedStores.size!==sources.length||sources.some(source=>!capturedStores.has(source.storeId)))throw new Error('Partial per-store cohort capture: exact merchant proof is missing');
   }else if(categorySources.size!==sources.length)throw new Error('Partial state source capture: exact merchant category proof is missing');
+  if(libraryChanged&&!sameReplayIdentity(report.signals,[...rows.values()]))
+    throw new Error('Kansas current-library replay changed the shadow product identity, size-bound option, tier or price');
   const operational=[...rows.values()].map(row=>canonicalizeSignal(row,bible));
   const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>({...row,previewOnly:true,
     canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
     eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false}));
   if(!drops.length)throw new Error('No qualified canary candidates survived current library and export policy');
   return{schemaVersion:1,state,generatedAt:report.finishedAt,scope:'isolated_canary_input_no_production_activation',
-    sourceFamily:'central_cityhive',sourceRegistrySha256:sourceRegistryDigest(sources),bibleRecordsSha256:report.metadata.bibleRecordsSha256,
+    sourceFamily:'central_cityhive',sourceRegistrySha256:sourceRegistryDigest(sources),bibleRecordsSha256:currentBibleHash,
+    shadowBibleRecordsSha256:shadowBibleHash,libraryReclassifiedFromShadow:libraryChanged,
     ...(state==='MA'?{excludedSourceFamilies:[{id:'julios-westborough',reason:'Separate source collector; excluded from central CityHive replay.'}]}:{}),
     originalSourceClockPreserved:true,workflowSource:provenance,sourceReceipts:proofs,
     locations:sources.map(source=>({id:source.storeId,storeId:source.storeId,state,name:source.name,storeName:source.name,

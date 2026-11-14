@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Offline production-adapter parser regression fixtures from workflow-issued exact-store shadow source captures; not live authority.",
+  "sourceArtifact": {
+    "repository": "tarsagent22/Bourbon-Signal",
+    "runId": "43587613750",
+    "runUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587613750",
+    "artifactDigest": "561b86527e45b5350ccf426c087ea242c026a0947d3e72587469b310dc70a85d",
+    "sourceHead": "15fd4bd54eb43330a548067e3aba2bd533f78be7",
+    "reportFinishedAt": "2026-11-14T10:57:01.935Z"
+  },
+  "captures": [
+    {
+      "fixture": "kings-weller-special-reserve.json",
+      "sourceCapture": "001-eba741ba228e.html",
+      "sourceUrl": "https://kingsliquorolathe.com/shop/",
+      "rawBytes": 447337,
+      "rawSha256": "eba741ba228e1912d3528ed6ad38f91c27ea013be3dc1c3ff786036ad97a14e0",
+      "fixtureBytes": 17928,
+      "fixtureSha256": "6aecde53e00612fe5a815adc9c7f59c313e7f5bab31f6836418a26f8540fe3c4",
+      "productIds": [
+        "5521cef86561310003da0200"
+      ]
+    },
+    {
+      "fixture": "verns-larceny-barrel-proof.json",
+      "sourceCapture": "003-9d8a37e219ce.html",
+      "sourceUrl": "https://vernsliquor.com/shop/",
+      "rawBytes": 447189,
+      "rawSha256": "9d8a37e219ce175b26d62083828b1e0ff19ea12c2e9eedabaf1f829caee90b41",
+      "fixtureBytes": 20550,
+      "fixtureSha256": "a4fcd6578c8b855452f28f28c4c1a7e17956871bf3c54a6c1e5bfe5d0c117b28",
+      "productIds": [
+        "5e21e94d0320ad0f80403af4"
+      ]
+    },
+    {
+      "fixture": "rj-elijah-and-larceny-barrel-proof.json",
+      "sourceCapture": "005-242f828b9a96.html",
+      "sourceUrl": "https://rjdiscountliquor.com/shop/",
+      "rawBytes": 397334,
+      "rawSha256": "242f828b9a96e120a5d4a256fc55eca700e41fa8af7ce4058f0077eec90169a1",
+      "fixtureBytes": 35699,
+      "fixtureSha256": "8c2f01c03eadc2b7d259ee856531e69243baef25a4e00bfe8916ff23c9e3c9ef",
+      "productIds": [
+        "56c29217756275139dc70300",
+        "5e21e94d0320ad0f80403af4"
+      ]
+    }
+  ]
+}

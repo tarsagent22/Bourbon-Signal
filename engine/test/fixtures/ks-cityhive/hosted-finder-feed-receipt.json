@@ -1,0 +1,56 @@
+{
+  "url": "https://bourbonsignal-2h76vtz8l-tarsagent22s-projects.vercel.app",
+  "startedAt": "2026-11-14T14:05:04.6834897Z",
+  "completedAt": "2026-11-14T14:05:06.6672953Z",
+  "generatedAt": "2026-11-14T12:03:44.065Z",
+  "rows": 4,
+  "total": 4,
+  "hasMore": false,
+  "ksRows": [
+    {
+      "bottle": "Larceny Barrel Proof",
+      "city": "Wichita",
+      "storeName": "RJ Liquor",
+      "storeAddress": "3015 E Douglas Ave, Wichita, KS 67211, USA",
+      "observedAt": "2026-11-14T12:59:05.225Z",
+      "canAlert": false,
+      "email": false,
+      "sms": false,
+      "delivery": false
+    },
+    {
+      "bottle": "Elijah Craig Barrel Proof",
+      "city": "Wichita",
+      "storeName": "RJ Liquor",
+      "storeAddress": "3015 E Douglas Ave, Wichita, KS 67211, USA",
+      "observedAt": "2026-11-14T12:59:05.225Z",
+      "canAlert": false,
+      "email": false,
+      "sms": false,
+      "delivery": false
+    },
+    {
+      "bottle": "Larceny Barrel Proof",
+      "city": "Topeka",
+      "storeName": "Vern's Retail Liquor",
+      "storeAddress": "3700 SW Gage Blvd, Topeka, KS 66610, USA",
+      "observedAt": "2026-11-14T12:59:02.571Z",
+      "canAlert": false,
+      "email": false,
+      "sms": false,
+      "delivery": false
+    },
+    {
+      "bottle": "Weller Special Reserve",
+      "city": "Olathe",
+      "storeName": "Kings Liquor",
+      "storeAddress": "18589 W 151st St, Olathe, KS 66062, USA",
+      "observedAt": "2026-11-14T12:59:00.163Z",
+      "canAlert": false,
+      "email": false,
+      "sms": false,
+      "delivery": false
+    }
+  ],
+  "sha256": "521A3AB246497F0D93F84D0890BFAE367E0497285FE1326284B6FC51D339448D"
+}
