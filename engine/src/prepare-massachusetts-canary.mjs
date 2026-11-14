@@ -12,7 +12,8 @@ import { prepareCentralCityHiveCanary } from './prepare-central-cityhive-canary.
 import { withResearchLifecycle } from './research-state-registry.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
-const BIBLE_SHA = 'a222d6990e2d248780c116eff1fafb142db9c7434644201f8443683e879f5f1d';
+const SOURCE_BIBLE_SHA = 'a222d6990e2d248780c116eff1fafb142db9c7434644201f8443683e879f5f1d';
+const CURRENT_BIBLE_SHA = 'd175443d4945c401e636e64fa9738ca09c2966b5e9e4b79038eec18a8b754460';
 const CITY_RUN = '43627853806';
 const ESPLANDA_RUN = '43624193800';
 
@@ -39,6 +40,21 @@ function verifyOrigin(provenance, state, expectedRun) {
   }
 }
 
+export function reconcileMassachusettsCityHiveBible(report, currentBibleSha) {
+  const sourceBibleSha = report?.metadata?.bibleRecordsSha256;
+  if (!/^[a-f0-9]{64}$/.test(sourceBibleSha || '') || !/^[a-f0-9]{64}$/.test(currentBibleSha || '')
+    || !((sourceBibleSha === SOURCE_BIBLE_SHA && currentBibleSha === CURRENT_BIBLE_SHA)
+      || sourceBibleSha === currentBibleSha && sourceBibleSha === CURRENT_BIBLE_SHA)) {
+    throw new Error('MA shadow evidence does not match the reviewed source/current Bible pair.');
+  }
+  // The only reviewed delta between these exact full-library digests is the
+  // NC Old Forester King Ranch tier override. All MA raw bodies are reparsed
+  // below against CURRENT_BIBLE_SHA; the source report remains immutable.
+  return { replayReport: sourceBibleSha === currentBibleSha ? report : {
+    ...report, metadata: { ...report.metadata, bibleRecordsSha256: currentBibleSha },
+  }, sourceBibleSha, currentBibleSha };
+}
+
 export async function prepareMassachusettsCanary({ cityArtifactDir, cityProvenance, esplandaArtifactDir,
   esplandaProvenance, bible, nowMs = Date.now() } = {}) {
   verifyOrigin(cityProvenance, 'MA', CITY_RUN);
@@ -49,10 +65,10 @@ export async function prepareMassachusettsCanary({ cityArtifactDir, cityProvenan
   const [cityMatch] = cityMatches;
   const cityReport = cityMatch.report;
   const currentBibleSha = sha(Buffer.from(JSON.stringify(bible.records || [])));
-  if (currentBibleSha !== BIBLE_SHA || cityReport.metadata?.bibleRecordsSha256 !== currentBibleSha
-    || cityReport.metadata?.origin?.commitSha !== cityProvenance.headSha
+  const bibleBinding = reconcileMassachusettsCityHiveBible(cityReport, currentBibleSha);
+  if (cityReport.metadata?.origin?.commitSha !== cityProvenance.headSha
     || cityReport.metadata?.origin?.workflowRunId !== CITY_RUN) throw new Error('MA shadow evidence is not bound to the reviewed source and current Bible.');
-  const city = await prepareCentralCityHiveCanary({ state: 'MA', report: cityReport, reportDirectory: cityMatch.directory,
+  const city = await prepareCentralCityHiveCanary({ state: 'MA', report: bibleBinding.replayReport, reportDirectory: cityMatch.directory,
     bible, provenance: cityProvenance, nowMs });
 
   const esplandaMatches = await findReport(esplandaArtifactDir, report => report.state === 'MA'
@@ -122,6 +138,7 @@ export async function prepareMassachusettsCanary({ cityArtifactDir, cityProvenan
     || row.eligibleForSms !== false || row.quantityIsExact !== false)) throw new Error('MA isolated preview must contain seven silent binary rows across five exact premises.');
   return { generatedAt: cityReport.finishedAt, drops, locations, sourceEvidence: {
     cityHiveRun: CITY_RUN, esplandaRun: ESPLANDA_RUN, currentBibleSha256: currentBibleSha,
+    cityHiveSourceBibleSha256: bibleBinding.sourceBibleSha,
     cityHiveArtifactSha256: cityProvenance.artifactDigest, esplandaArtifactSha256: esplandaProvenance.artifactDigest,
     cityHiveHeadSha: cityProvenance.headSha, cityHiveReportFinishedAt: cityReport.finishedAt,
     esplandaReportFinishedAt: report.finishedAt, originalSourceClocksPreserved: true,
