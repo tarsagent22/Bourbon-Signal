@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,parseCentralCityHiveInventory } from './collectors/central-cityhive-expansion.mjs';
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 import { isCentralCityHiveInventory } from './central-cityhive-policy.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
 import { bibleLookup,buildDrops,isActiveCustomerStateRow } from './export-site-contract.mjs';
@@ -7,9 +8,18 @@ import { bibleLookup,buildDrops,isActiveCustomerStateRow } from './export-site-c
 export async function executeCentralCityHiveFixtures(payload,{bible}={}){
   const failures=[];
   for(const item of payload.cases||[]){
-    const input=item.input||{},source=CENTRAL_CITYHIVE_EXPANSION_SOURCES.find(source=>source.state===payload.state&&source.id===input.sourceId);
+    const input=item.input||{},source=[...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES].find(source=>source.state===payload.state&&source.id===input.sourceId);
     if(!source){failures.push(`${item.id}: no reviewed source for state and source ID.`);continue;}
-    const fixture=JSON.parse(await readFile(new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url),'utf8'));
+    const fixtureId=['MN','MO'].includes(payload.state)?'liquorguys-wauwatosa':source.id;
+    const fixture=JSON.parse(await readFile(new URL(`../test/fixtures/central-cityhive/${fixtureId}.json`,import.meta.url),'utf8'));
+    if(['MN','MO'].includes(payload.state)){
+      fixture.sourceId=source.id;
+      for(const config of fixture.merchant_configs||[]){config.merchant.id=source.merchantId;config.merchant.name=source.name;config.merchant.address.full_address=source.address;config.merchant.address.location={type:'Point',coordinates:[source.lng,source.lat]};}
+      for(const product of fixture.products||[])for(const merchant of product.merchants||[]){
+        merchant.merchant_id=source.merchantId;merchant.full_address=source.address;
+        for(const option of merchant.product_options||[]){option.merchant_id=source.merchantId;option.full_address=source.address;option.product_url=option.product_url.replace('https://liquorguys.com',source.baseUrl);}
+      }
+    }
     for(const product of fixture.products||[]){
       if(input.rawName)product.name=input.rawName;
       for(const merchant of product.merchants||[]){
