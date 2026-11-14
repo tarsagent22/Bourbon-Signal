@@ -15,8 +15,8 @@ import {withResearchLifecycle} from './research-state-registry.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const canonical=value=>{const url=new URL(value);url.searchParams.sort();return url.href;};
 const ALL_CITYHIVE_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
-const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI']);
-const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI']);
+const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','DC']);
+const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','DC']);
 const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].map(source=>({
   id:source.id,state:source.state,storeId:source.storeId,chainId:source.chainId||null,name:source.name,chainName:source.chainName||null,
   platform:source.platform,merchantId:source.merchantId,hostname:source.hostname,
@@ -26,7 +26,8 @@ const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].
 
 // Only workflow-issued portable raw bodies can produce isolated canary input.
 // Report signals, prices, tiers and mutable absolute file paths are never read.
-export async function prepareCentralCityHiveCanary({state,report,reportDirectory,bible,provenance,nowMs=Date.now()}={}){
+export async function prepareCentralCityHiveCanary({state,report,reportDirectory,bible,provenance,nowMs=Date.now(),allowDcCityHiveSlice=false}={}){
+  if(state==='DC'&&!allowDcCityHiveSlice)throw new Error('DC canary preparation must replay the complete CityHive plus Pearson cohort');
   const researchOnly=PER_STORE_QUERY_STATES.has(state);
   const sources=(researchOnly?CENTRAL_CITYHIVE_RESEARCH_SOURCES:CENTRAL_CITYHIVE_EXPANSION_SOURCES).filter(source=>source.state===state);
   const reportSources=report?.sources||[];

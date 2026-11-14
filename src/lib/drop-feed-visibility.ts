@@ -75,6 +75,28 @@ export function isStoreDirectoryAnnotationSignal(drop: UserFacingDropSignal) {
   return isUserFacingDropSignal(drop);
 }
 
+function isPearsonsDcCanaryOnSiteSignal(drop: UserFacingDropSignal) {
+  const row = drop as Record<string, any>;
+  const binding = row.sourceProductBinding;
+  const observed = Date.parse(String(row.observedAt || ''));
+  const age = Date.now() - observed;
+  return row.state === 'DC' && (row.type??row.event_type??row.eventType) === 'retailer_store_inventory_result'
+    && row.storeId === 'pearsonswine.com:#store' && row.storeAddress === '2436 Wisconsin Avenue NW, Washington, DC 20007'
+    && row.merchantId === 'https://pearsonswine.com/#store'
+    && row.productId === 'https://pearsonswine.com/products/blantons-single-barrel-bourbon-750ml#product'
+    && row.variantId === '45949567795418' && row.canonicalName === "Blanton's Original Single Barrel" && row.tier === 'allocated'
+    && row.availabilityStatus === 'in_stock' && row.sourceAvailabilityVerified === true && row.pickupOfferVerified === true
+    && row.quantity == null && row.quantityIsExact === false && Number.isFinite(age) && age >= 0 && age <= 2 * 60 * 60_000
+    && binding?.source === 'pearsons-shopify-retained-page' && /^[a-f0-9]{64}$/.test(String(binding.sourcePageSha256 || ''))
+    && binding.storeGraphId === row.merchantId && binding.storeAddress === row.storeAddress
+    && binding.productGraphId === row.productId && binding.variantId === row.variantId
+    && binding.capturedAt === row.observedAt && binding.httpStatus === 200
+    && row.previewOnly === true && row.eligibleForOnSite === true && row.eligibleForDropFeed === true
+    && row.eligibleForWatch === false && row.canAlertAsInventory === false && row.can_alert_as_inventory !== true
+    && row.canAlertAsWatch === false && row.can_alert_as_watch !== true && row.alertable !== true
+    && row.eligibleForDelivery === false && row.deliveryEligible !== true && row.eligibleForEmail === false && row.eligibleForSms === false;
+}
+
 export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   const type = String(drop.type ?? drop.event_type ?? "").toLowerCase();
   const state = String(drop.state ?? drop.stateCode ?? drop.state_code ?? "").toUpperCase();
@@ -162,7 +184,8 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   if (isLaakCanaryPreview || isLaakProductionOnSite) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);
-  if (['WI','OK','RI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);
+  if (state==='DC'&&type==='retailer_store_inventory_result'&&drop.sourceProductBinding?.source==='pearsons-shopify-retained-page') return isPearsonsDcCanaryOnSiteSignal(drop);
+  if (['WI','OK','RI','DC'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);
   if (!type) return false;
   if (type === "wv_abca_retailer_recent_purchase_window") return isWestVirginiaRecentPurchase;
   if (isWestVirginiaOfficialBarrelSelection) return true;

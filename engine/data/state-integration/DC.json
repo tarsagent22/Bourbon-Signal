@@ -72,14 +72,15 @@
   },
   "sourceSemantics": {
     "watchAlertable": false,
-    "availability": "Binary retailer-published pickup availability; exact shelf quantity is not published.",
+    "availability": "CityHive binary pickup and Pearson's orderable storefront pickup offer; neither source publishes exact shelf quantity.",
     "inventoryAlertable": false
   },
   "collector": {
     "sourceIds": [
       "hop-cask-and-barrel:6054cf9d0168813b45dd1624",
-      "metro-wine-dc:5b8ede1211bc076567b49bd5"
+      "metro-wine-dc:5b8ede1211bc076567b49bd5",
+      "pearsons-wine-dc"
     ],
-    "registration": "Closed reviewed research-only CityHive premises; immutable source replay requires merchant and address proof."
+    "registration": "Closed reviewed CityHive and Pearson's first-party premises; immutable replay requires exact merchant, address, variant, and pickup proof."
   }
 }

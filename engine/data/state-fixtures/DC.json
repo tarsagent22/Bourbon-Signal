@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "state": "DC",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {"id":"dc-pearsons-positive","kind":"positive_bottle_match","input":{"sourceId":"pearsons-wine-dc"},"expected":{"sourceRows":1,"inventoryProofRows":1,"candidateCount":1,"canonicalNames":["Blanton's Original Single Barrel"]}},
+    {"id":"dc-pearsons-unidentified","kind":"ordinary_vs_rare_negative","input":{"sourceId":"pearsons-wine-dc","ordinary":true},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"dc-pearsons-cream","kind":"rye_cream_liqueur_rtd_exclusion","input":{"sourceId":"pearsons-wine-dc","cream":true},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"dc-pearsons-size","kind":"size_or_multipack_exclusion","input":{"sourceId":"pearsons-wine-dc","wrongSize":true},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"dc-pearsons-binary-pickup","kind":"availability_semantics","input":{"sourceId":"pearsons-wine-dc"},"expected":{"quantity":0,"quantityIsExact":false,"semantics":"storefront_orderable_pickup_offer_no_shelf_count","deliveryEligible":false}},
+    {"id":"dc-pearsons-premise","kind":"store_identity","input":{"sourceId":"pearsons-wine-dc","wrongPremise":true},"expected":{"sourceRows":0,"candidateCount":0}},
+    {"id":"dc-pearsons-stale","kind":"timestamp_freshness","input":{"sourceId":"pearsons-wine-dc","stale":true},"expected":{"sourceRows":1,"inventoryProofRows":0,"candidateCount":0,"preservesOriginalTimestamp":true}},
+    {"id":"dc-pearsons-variant-sentinel","kind":"source_specific_sentinel","input":{"sourceId":"pearsons-wine-dc","wrongVariant":true},"expected":{"sourceRows":0,"candidateCount":0}}
+  ]
+}

@@ -8,13 +8,14 @@ import * as knownStoresModule from '../src/lib/coverage-known-stores.ts';
 import * as receiptModule from '../src/lib/nationwide-pilot-receipt.ts';
 import * as harness from '../apps/mobile/src/astra-test-harness.ts';
 import {isCentralCityHiveInventory} from '../engine/src/central-cityhive-policy.mjs';
+import {isPearsonsDcResearchInventory,PEARSONS_DC_SOURCE} from '../engine/src/collectors/pearsons-dc-research.mjs';
 const {classifyPublicDrop,getDropClassificationIndex}=classificationModule.default||classificationModule;
 const {normalizePublicDropEvidenceInput,isPublicDropFeedEligible,isCurrentInventoryEvidence}=evidenceModule.default||evidenceModule;
 const {buildCoverageContract}=coverageModule.default||coverageModule;
 const {normalizeDropForSite}=contractModule.default||contractModule;
 const {loadWithMocks}=harness.default||harness;
 const state=process.argv.find(value=>value.startsWith('--state='))?.slice(8);
-assert.ok(['WI','OK','RI'].includes(state),'Use reviewed --state=WI|OK|RI');
+assert.ok(['WI','OK','RI','DC'].includes(state),'Use reviewed --state=WI|OK|RI|DC');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
@@ -23,9 +24,25 @@ const index=getDropClassificationIndex((await read('src/data/drop-feed-classific
 const classified=partition.drops.map(row=>normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite(row),index)));
 const accepted=classified.filter(row=>isPublicDropFeedEligible(row)&&isCurrentInventoryEvidence(row,clock));
 assert.ok(accepted.length>0,'Actual current app-eligible rows must survive the canary customer policy');
-assert.ok(accepted.every(row=>isCentralCityHiveInventory(row)&&row.previewOnly&&row.eligibleForOnSite
-  &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.eligibleForDelivery===false
-  &&row.eligibleForEmail===false&&row.eligibleForSms===false&&row.quantity===0&&row.quantityIsExact===false));
+assert.ok(accepted.every(row=>(isCentralCityHiveInventory(row)||state==='DC'&&isPearsonsDcResearchInventory(row,{nowMs:Date.parse(clock)}))
+  &&row.previewOnly&&row.eligibleForOnSite&&row.canAlertAsInventory===false&&row.canAlertAsWatch===false
+  &&row.eligibleForDelivery===false&&row.eligibleForEmail===false&&row.eligibleForSms===false
+  &&row.quantityIsExact===false&&(row.sourceProductBinding?.source==='pearsons-shopify-retained-page'?row.quantity==null:row.quantity===0)));
+if(state==='DC'){
+  const pearson=accepted.find(row=>row.sourceProductBinding?.source==='pearsons-shopify-retained-page');
+  assert.ok(pearson,'Pearson first-party pickup offer survives public projection');
+  assert.equal(pearson.storeId,PEARSONS_DC_SOURCE.storeId);assert.equal(pearson.storeAddress,PEARSONS_DC_SOURCE.storeAddress);
+  assert.equal(pearson.canonicalName,"Blanton's Original Single Barrel");
+  assert.ok(pearson.quantity==null,'No shelf quantity is invented for Pearson pickup availability');assert.equal(pearson.quantityIsExact,false);
+  assert.equal(pearson.sourceProductBinding?.sourcePageSha256,'19ae33c645f38f237d7e2c73e53cd684b0d9183ccf3892455ccc0a4419af8385');
+  assert.equal(pearson.observedAt,'2026-11-14T18:11:32.861Z');
+  const pearsonSource=partition.drops.find(row=>row.sourceProductBinding?.source==='pearsons-shopify-retained-page');
+  for(const mutation of [{previewOnly:false},{storeAddress:'999 Other Street, Washington, DC 20007'},
+    {quantity:1},{canAlertAsInventory:true},{eligibleForDelivery:true}]){
+    const changed=normalizePublicDropEvidenceInput(classifyPublicDrop(normalizeDropForSite({...pearsonSource,...mutation}),index));
+    assert.equal(isPublicDropFeedEligible(changed),false,`DC preview policy accepted ${JSON.stringify(mutation)}`);
+  }
+}
 const binary=accepted[0];
 for(const mutation of [{storeId:'unreviewed'},{productId:'unreviewed'},{quantity:1},{quantityIsExact:true},
   {storeAddress:'999 Other Street'},{sourceStale:true}])assert.equal(isCentralCityHiveInventory({...binary,...mutation}),false);
@@ -85,6 +102,18 @@ for(const location of candidateLocations){
 }
 const proof={state,evaluatedAt:clock,scope:'local_customer_projection_of_workflow_canary_not_live_preview',
   rawRows:partition.drops.length,publicCurrentRows:accepted.length,publicCurrentStores:coverage.scope.inventoryMonitoredStores,
-  searchableStores:coverage.scope.searchableStores,allDeliveryDisabled:true,binaryQuantityRemainsZero:true,
-  actualCoverageAndFinderServicesUnderFixture:true,liveAuthenticatedUiExercised:false};
+  searchableStores:coverage.scope.searchableStores,allDeliveryDisabled:true,noExactShelfQuantityInvented:true,
+  actualCoverageAndFinderServicesUnderFixture:true,liveAuthenticatedUiExercised:false,
+  ...(state==='DC'?{publicCurrentCities:new Set(accepted.map(row=>row.city)).size,
+    exactFinderStores:accepted.map(row=>({storeId:row.storeId,storeName:row.storeName,address:row.storeAddress,
+      city:row.city,sourceClock:row.observedAt,quantity:row.quantity??null,quantityIsExact:row.quantityIsExact,
+      sourceReceiptSha256:row.sourceProductBinding?.sourcePageSha256||null})).sort((a,b)=>a.storeId.localeCompare(b.storeId))}: {})};
+if(state==='DC'){
+  assert.equal(proof.publicCurrentStores,3);assert.equal(proof.publicCurrentCities,1);assert.equal(proof.exactFinderStores.length,3);
+  const prepared=await read('engine/data/canary-inputs/DC.json');
+  proof.workflowSource=prepared.workflowSource;
+  proof.sourceReceipts=prepared.sourceReceipts;
+  proof.shadowBibleRecordsSha256=prepared.shadowBibleRecordsSha256;
+  proof.bibleRecordsSha256=prepared.bibleRecordsSha256;
+}
 await writeFile(`engine/out/canary/${state}/public-projection.json`,JSON.stringify(proof,null,2)+'\n');console.log(JSON.stringify(proof));
