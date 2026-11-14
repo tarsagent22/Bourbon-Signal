@@ -5,13 +5,13 @@ import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {BourbonBible} from '../src/core/bible.mjs';
 import {collectState} from '../src/collectors/generic-state.mjs';
-import {ALL_STATE_SOURCES} from '../src/state-sources.mjs';
+import {ALL_STATE_SOURCES,STATE_SOURCES,DISABLED_STATE_SOURCES} from '../src/state-sources.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {evaluateCapacityBudget} from '../src/reliability-policy.mjs';
 import {stateTimeoutMs} from '../src/run.mjs';
 import {collectCentralCityHiveProductionSource,centralCityHiveProductionAllowed} from '../src/collectors/central-cityhive-production.mjs';
-import {centralCityHiveProductionCohortKey,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS} from '../src/central-cityhive-production-config.mjs';
-import {CENTRAL_CITYHIVE_PRODUCTION_COHORTS} from '../src/collectors/central-cityhive-premises.mjs';
+import {centralCityHiveProductionCohortKey,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,CENTRAL_CITYHIVE_PRODUCTION_STATES} from '../src/central-cityhive-production-config.mjs';
+import {CENTRAL_CITYHIVE_PRODUCTION_COHORTS,CENTRAL_CITYHIVE_PRODUCTION_SOURCES} from '../src/collectors/central-cityhive-premises.mjs';
 import {isCentralCityHiveProductionOnSiteSignal} from '../src/central-cityhive-policy.mjs';
 import {canonicalizeSignal} from '../src/operational-report.mjs';
 import {bibleLookup,buildDrops} from '../src/export-site-contract.mjs';
@@ -45,6 +45,36 @@ test('inactive, quarantined and altered semantic/cohort/provenance authority blo
     for(const env of [{BOURBON_SIGNAL_DISABLED_STATES:state},{BOURBON_SIGNAL_QUARANTINED_STATES:state}])assert.equal(centralCityHiveProductionAllowed(state,opts.lifecycleConfig,{manifest:opts.promotionManifest,env}),false);
   }
   assert.equal(requests,0);
+});
+
+test('Missouri has an exact ten-premise dormant route that fails closed before cache, journal, or HTTP access',async t=>{
+  const sources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state==='MO');
+  const moConfig=config('MO'),budget=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.MO;
+  let requests=0;
+  assert.equal(sources.length,10);
+  assert.ok(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes('MO'));
+  assert.equal(CENTRAL_CITYHIVE_PRODUCTION_COHORTS.MO,centralCityHiveProductionCohortKey('MO'));
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MO'),false);
+  assert.equal(STATE_SOURCES.some(source=>source.id==='MO'),false);
+  assert.equal(DISABLED_STATE_SOURCES.some(source=>source.id==='MO'),true);
+  assert.equal(moConfig.strategy,'retailer_store_inventory');
+  assert.ok(moConfig.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
+  assert.equal(centralCityHiveProductionAllowed('MO',STATE_LIFECYCLE_CONFIG),false);
+  assert.ok(budget.maxRequests>=sources.length&&budget.maxRequests<=sources.length*2);
+  assert.ok(budget.maxRequests*11_000<=budget.sourceMs);
+  assert.ok(budget.sourceMs<budget.stateMs&&budget.stateMs<=stateTimeoutMs(moConfig));
+  const directory=await mkdtemp(path.join(tmpdir(),'central-production-mo-dormant-'));
+  t.after(()=>rm(directory,{recursive:true,force:true}));
+  const report=await collectState(moConfig,bible,{lifecycleConfig:STATE_LIFECYCLE_CONFIG,cityHiveSourceOptions:{
+    cacheDir:path.join(directory,'cache'),incidentDir:path.join(directory,'incidents'),
+    fetchText:async()=>{requests++;throw Error('Dormant Missouri route must not issue HTTP');},
+  }});
+  assert.equal(report.status,'not_promoted');
+  assert.equal(report.metadata.blockedByPromotion,true);
+  assert.equal(report.metadata.requestCount,0);
+  assert.equal(requests,0);
+  await assert.rejects(()=>readFile(path.join(directory,'cache','MO.json')),{code:'ENOENT'});
+  await assert.rejects(()=>readFile(path.join(directory,'incidents','MO.json')),{code:'ENOENT'});
 });
 
 test('RI production requires seven bound queries and projects three exact binary pickup premises',async t=>{
