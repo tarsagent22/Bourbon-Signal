@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "state": "MN",
+  "lifecycle": {
+    "customerLabel": "Minnesota",
+    "publicStatus": "research_only",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": ["mn:central-cityhive"],
+    "registration": "A rotating, exact-merchant Top Ten Liquors cohort. Each bounded observation covers seven of sixteen reviewed premises; three successful rotations cover the full library.",
+    "cohortSha256": "f8966ff41632ffe3d8f9dc06136bcaa453c7e0177cd3bc991dbd96baae197c74"
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 16,
+    "proof": "Each selected observation must reparse the exact reviewed merchant, address, product option, positive pickup offer, and source clock."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability. Positive options do not create an exact shelf count; verify before driving.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {"status": "unverified", "assertion": "Minnesota remains research-only."},
+    "areaFilter": {"status": "unverified", "assertion": "Minnesota remains research-only."},
+    "preferences": {"status": "unverified", "assertion": "Minnesota remains research-only."},
+    "dashboard": {"status": "unverified", "assertion": "Minnesota remains research-only."},
+    "dropFeedApi": {"status": "unverified", "assertion": "Minnesota remains research-only."},
+    "finder": {"status": "unverified", "assertion": "Minnesota remains research-only."},
+    "alerts": {"status": "verified", "assertion": "All inventory and watch alert eligibility is false."},
+    "monitoring": {"status": "unverified", "assertion": "Minnesota remains research-only."},
+    "export": {"status": "unverified", "assertion": "Minnesota remains research-only."}
+  },
+  "evidence": {
+    "shadow": {"status": "research_only", "originalSourceClocksPreserved": true},
+    "canary": {"status": "not_run", "allDeliveryChannelsDisabled": true},
+    "production": {"status": "not_activated", "url": "https://www.bourbonsignal.com/api/drops?state=MN"}
+  }
+}
