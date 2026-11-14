@@ -943,3 +943,13 @@
     transition: none;
   }
 }
+
+.currentInventory {
+  margin: 12px 0 0;
+  color: rgba(245, 237, 214, 0.78);
+  font: 14px/1.5 var(--font-dm-sans);
+}
+
+.currentInventory strong {
+  color: #f5edd6;
+}
