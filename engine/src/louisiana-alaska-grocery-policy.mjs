@@ -73,6 +73,8 @@ export function louisianaAlaskaGroceryLibraryTier(row, bible) {
 // granting watch/notification authority or inventing an exact quantity.
 export function isLouisianaAlaskaGroceryOnSiteSignal(row) {
   if (!['LA', 'AK'].includes(row?.state) || row.previewOnly === true || row.researchOnly === true || row.customerVisible === false
+    || row.sourceRuntimeId !== `${row.state.toLowerCase()}:grocery-xapi`
+    || row.sourceProductBinding?.productionOnSite !== true
     || row.raw?.shadowOnly === true || row.sourceProductBinding?.shadowOnly === true
     || row.quarantined === true || row.raw?.sourceRuntimeNonAlertable === true || row.raw?.staleFallback === true
     || row.quantity !== 0 || row.quantityIsExact !== false
@@ -101,10 +103,11 @@ export function isLouisianaAlaskaGroceryOnSiteSignal(row) {
 
 export function toLouisianaAlaskaGroceryOnSiteSignal(row) {
   if (!isLouisianaAlaskaGroceryInventory(row)) return null;
-  const sourceProductBinding = { ...row.sourceProductBinding, inventorySemantics: 'binary_retailer_orderable_no_exact_count' };
+  const sourceProductBinding = { ...row.sourceProductBinding, productionOnSite: true, inventorySemantics: 'binary_retailer_orderable_no_exact_count' };
   const raw = { ...row.raw, inventorySemantics: 'binary_retailer_orderable_no_exact_count' };
   const projected = {
     ...row,
+    sourceRuntimeId: `${row.state.toLowerCase()}:grocery-xapi`,
     quantity: 0,
     quantityIsExact: false,
     inventorySemantics: 'binary_retailer_orderable_no_exact_count',

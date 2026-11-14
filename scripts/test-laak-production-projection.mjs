@@ -39,7 +39,9 @@ for (const state of ['AK', 'LA']) {
   assert.equal(normalized.sourceProductBinding.productSnapshot.channelInventory.instoreItemQty, '4');
   assert.equal(normalized.raw.product.channelInventory.instoreItemQty, '4');
   assert.equal(normalized.is_user_facing_drop, true);
-  for (const mutation of [{ quantity: 1 }, { storeId: 'unreviewed:1' }, { canAlertAsInventory: true }, { previewOnly: true }]) {
+  for (const mutation of [{ quantity: 1 }, { storeId: 'unreviewed:1' }, { canAlertAsInventory: true }, { previewOnly: true },
+    { sourceRuntimeId: `research:${state.toLowerCase()}:grocery-xapi` },
+    { sourceProductBinding: { ...row.sourceProductBinding, productionOnSite: false } }]) {
     const changed = { ...row, ...mutation };
     assert.equal(isSafePublicSignal(changed), false, `${state}: mutated source proof must not enter export`);
     assert.equal(isUserFacingDropSignal(changed), false, `${state}: mutated source proof must not be user-facing`);
