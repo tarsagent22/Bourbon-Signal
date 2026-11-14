@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "state": "MO",
+  "scope": "dormant_production_adapter_candidate_no_activation",
+  "lifecycle": {
+    "customerLabel": "Missouri",
+    "publicStatus": "research_only",
+    "coverageTier": "blocked",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": ["mo:central-cityhive"],
+    "cohortSha256": "5b3f88be5a779f0e9631bb68a1f054fd833ce6d098fa62b2f13ae710bcc1fe17",
+    "registration": "Dormant exact-premise CityHive candidate. Runtime collection remains blocked until separate Missouri source history, repeated current observations, immutable promotion evidence, and customer path proofs are reviewed."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 10,
+    "proof": "Requests and positive product options must bind to each reviewed Missouri merchant ID, full address, source host, product, and pickup option."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-reported pickup orderability; no exact shelf count is asserted.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."},
+    "areaFilter": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."},
+    "preferences": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."},
+    "dashboard": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."},
+    "dropFeedApi": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."},
+    "finder": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."},
+    "alerts": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."},
+    "monitoring": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."},
+    "export": {"status": "not_verified", "assertion": "No Missouri production or hosted preview path has been admitted."}
+  },
+  "evidence": {
+    "shadow": {"status": "stale", "runs": 1, "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036", "originalSourceClocksPreserved": true},
+    "canary": {"status": "not_run", "runs": 0, "artifact": null, "reason": "A fresh MO shadow and final-head isolated canary are required before any first-publication package."},
+    "production": {"status": "not_deployed", "url": null, "assertion": "No Missouri production source registration or customer publication is enabled."}
+  },
+  "rollback": {"disableSource": "Keep Missouri lifecycle research_only; production collection returns before cache, journal, or HTTP access until the full immutable promotion contract passes."}
+}

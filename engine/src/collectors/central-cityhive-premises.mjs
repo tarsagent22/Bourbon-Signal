@@ -1,4 +1,4 @@
-import { RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
+import { MIDWEST_CITYHIVE_EXPANSION_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
 
 function source(id,name,state,baseUrl,merchantId,address,city,zip){
   return Object.freeze({id,name,state,stateCode:state,platform:'cityhive',baseUrl,
@@ -21,6 +21,7 @@ export const CENTRAL_CITYHIVE_EXPANSION_SOURCES=Object.freeze([
 export const CENTRAL_CITYHIVE_PRODUCTION_SOURCES = Object.freeze([
   ...CENTRAL_CITYHIVE_EXPANSION_SOURCES,
   ...RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES,
+  ...MIDWEST_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state==='MO'),
 ]);
 
 // Reviewed cohort pins, recomputed by server-side admission and tested against
@@ -29,4 +30,6 @@ export const CENTRAL_CITYHIVE_PRODUCTION_COHORTS=Object.freeze({
   WI:'1da638a6f97c3a85778b304023bb800c88e65de06df54d7b7aef29f7a0ae5ba9',
   OK:'6dde5f60f9bca6e0450fa8509cbd5074899c1dc453f9e45b3f43fd9a46d790c1',
   RI:'09e296469e2067fcb39ecd501b2b2e43eecd41e54f400590d7cb4245e7539219',
+  // Dormant candidate. Lifecycle and immutable promotion gates still deny MO.
+  MO:'5b3f88be5a779f0e9631bb68a1f054fd833ce6d098fa62b2f13ae710bcc1fe17',
 });
