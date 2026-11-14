@@ -32,11 +32,11 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
   assert.equal(baseline.contractVersion, 'bourbon-signal/measured-runtime-forecast-ms-boundary@1');
   for (const [name, { reviewed, original }] of Object.entries(baseline.files)) {
     const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
-    const withMinnesota = map => map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n      "MN": 30000,\n');
-    const currentMap = withMinnesota(reviewed);
+    const withRecentStateBudgets = map => map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n      "AR": 30000,\n      "MN": 30000,\n');
+    const currentMap = withRecentStateBudgets(reviewed);
     assert.ok(current.includes(currentMap));
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
-    for (const mutation of [current.replace(currentMap, withMinnesota(original)), current.replace(currentMap, withMinnesota('    "stateExpectedRunMs": {\n    }')), current + '\n' + reviewed,
+    for (const mutation of [current.replace(currentMap, withRecentStateBudgets(original)), current.replace(currentMap, withRecentStateBudgets('    "stateExpectedRunMs": {\n    }')), current + '\n' + reviewed,
       ...reviewed.split('\n').slice(1, -1).map(line => current.replace(line, line.replace(/\d+/, value => String(Number(value) + 1)))),
     ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /measured runtime forecast .*exact historical verification hook/);
     const outside = current.replace('"refreshSafetyMarginMs": 300000', '"refreshSafetyMarginMs": 0');
@@ -62,7 +62,7 @@ test('actual four-state admission reverses only the exact active list and issued
         : [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed];
       for (const mutation of mutations) {
         assert.notEqual(mutation, current);
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN) active list tail).*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|AR) active list tail).*exact historical verification hook/);
       }
       if (key !== 'activeStates') for (const changed of [
         reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
