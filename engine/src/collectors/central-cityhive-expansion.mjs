@@ -36,7 +36,9 @@ export function centralCityHiveLibraryTier(signal,bible) {
   const reviewed=(signal.productId==='6594472cd20b667b856eb419'&&signal.rawName==='R Michters Single Barrel Rye 10yr 750ml'&&identity==="Michter's 10 Year Rye")
     ||(signal.productId==='5e21e94d0320ad0f80403af4'&&signal.rawName==='Larceny Barrel Proof Brourbon'&&identity==='Larceny Barrel Proof')
     ||(signal.merchantId==='6060f6496aaeeb555664ca4f'&&signal.productId==='665932752999236a66c861b6'
-      &&signal.rawName==='WELLER MILLENIUM'&&identity==='Weller Millennium');
+      &&signal.rawName==='WELLER MILLENIUM'&&identity==='Weller Millennium')
+    ||(signal.merchantId==='64f6226b7537422b95e04824'&&signal.productId==='56c28cb0756275139def0100'
+      &&signal.rawName==='Stagg Jr. Kentucky Straight Bourbon Whiskey'&&identity==='Stagg');
   if(!reviewed)return null;
  }
  if(match.record?.id!==record.id||match.match?.confidence!==1)return null;
