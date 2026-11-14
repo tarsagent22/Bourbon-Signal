@@ -16,10 +16,21 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
       'fifth-ward-liquor:546babb03932330002100300':'fifth-ward-eagle-rare-10.json',
       'california-liquors-ri:6114919961187149b8241cdd':'california-liquors-eagle-rare-10.json',
     }[source.id]):null;
+    const retainedCapture = {
+      'kings-liquor-olathe:6060f76259a44e1d9f41522d':'KS/001.html',
+      'verns-liquor:61ae46168baad441363308b0':'KS/003.html',
+      'rj-liquor:6060f6496aaeeb555664ca4f':'KS/005.html',
+      'kreston-wines:618406f81a9efe0452444e07':'DE/001.html',
+      'kreston-wines:6054cfaae7d3073507c4ee0b':'DE/003.html',
+    }[source.id];
     const fixturePath=researchFixture
       ? new URL(`../test/fixtures/ri-cityhive/${researchFixture}`,import.meta.url)
       : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
-    const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
+    const retainedPath = retainedCapture?.replace('/', '/source-captures/');
+    const rawFixture = await readFile(retainedPath
+      ? new URL('../test/fixtures/ks-de-cityhive/' + retainedPath, import.meta.url) : fixturePath, 'utf8');
+    const fixture = JSON.parse(retainedPath
+      ? rawFixture.match(/<script\b[^>]*type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/iu)?.[1] : rawFixture);
     const products=fixture.products|| (fixture.product?[fixture.product]:[]);
     for(const product of products){
       if(input.rawName)product.name=input.rawName;
