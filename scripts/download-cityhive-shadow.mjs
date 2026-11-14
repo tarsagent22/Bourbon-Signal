@@ -24,6 +24,15 @@ const minnesotaAdapterFiles=new Set([
   'engine/test/minnesota-cityhive-production.test.mjs',
   'engine/test/fixtures/central-cityhive/mn-top-ten-blaine.json',
 ]);
+const missouriCanarySiteFiles=new Set([
+  'engine/data/canary-site/mo-active-candidate/manifest.json',
+  'engine/data/canary-site/mo-active-candidate/stats.json',
+  'engine/data/canary-site/mo-active-candidate/alerts.json',
+  'engine/data/canary-site/mo-active-candidate/locations.json',
+  'engine/data/canary-site/mo-active-candidate/canary-preview-policy.json',
+  'engine/data/canary-site/mo-active-candidate/states/index.json',
+  'engine/data/canary-site/mo-active-candidate/states/MO/drops.json',
+]);
 
 export function validateInactiveMinnesotaShadowLifecycleTransition({candidateLifecycle,shadowLifecycle,comparison,commit}){
   const lifecyclePath='src/config/state-lifecycle.json';
@@ -51,6 +60,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
     &&comparison?.status==='ahead'&&Number(comparison.ahead_by)===1&&Number(comparison.behind_by)===0
     &&comparison?.mnShadowLifecycleProof===true;
   const unreviewedChanges=Array.isArray(changes)?changes.filter(file=>!(preparationOnly(state,file.filename)
+    ||state==='MO'&&missouriCanarySiteFiles.has(file.filename)
     ||state==='MN'&&minnesotaAdapterFiles.has(file.filename)
     ||state==='MN'&&['src/lib/public-drop-evidence.ts','scripts/test-laak-production-projection.mjs','.github/workflows/refresh-feed.yml','engine/test/engine-continuity.test.mjs'].includes(file.filename)
     ||state==='MN'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMnShadowTransition)):[];
