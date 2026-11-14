@@ -1,6 +1,7 @@
 import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
+import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
   ["retailer:ms:cityhive:68ba2980113a7a29c2076fc3", "029254"],
   ["retailer:ms:moonshine:323", "044411"],
@@ -79,6 +80,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   const quantity = asNumber(drop.quantity, asNumber(drop.quantity_in_stock, asNumber(drop.boardShipmentQuantity, asNumber(drop.quantity_shipped, asNumber(drop.storeQty, asNumber(drop.store_qty, asNumber(drop.warehouseQty, asNumber(drop.warehouse_qty))))))));
   const precision = String(drop.locationPrecision ?? drop.location_precision ?? "").toLowerCase();
   const canAlert = drop.canAlertAsInventory === true || drop.can_alert_as_inventory === true;
+  const isLaakCanaryPreview = isLouisianaAlaskaGroceryCanaryPreview(drop);
   const permitNumber = String(drop.permitNumber ?? "");
   const isMississippiSparseOnSiteInventory = state === "MS"
     && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)
@@ -152,6 +154,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && drop.inventorySemantics === "WVABCA reports that this retailer purchased the bottle within the last three months; this is a call-first purchase lead, not live shelf inventory."
     && !canAlert;
 
+  if (isLaakCanaryPreview) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);
   if (['WI','OK'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);

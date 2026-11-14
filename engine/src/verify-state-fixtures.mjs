@@ -21,6 +21,7 @@ import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-
 import { buildMississippiRetailerSignal } from './collectors/mississippi-retailer-collector.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import {executeOregonResearchFixtures} from './oregon-research-fixtures.mjs';
+import {executeLaakResearchFixtures} from './laak-research-fixtures.mjs';
 import { OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import {
   enrichWestVirginiaBarrelSelections,
@@ -488,6 +489,7 @@ export async function executeStateFixtures(payload, { bibleFile = path.resolve('
     const registeredHosts = new Set([new URL(OREGON_DAILY_INVENTORY_URL).hostname]);
     return executeOregonResearchFixtures(payload, { bible, registeredHosts });
   }
+  if(['AK','LA'].includes(payload.state))return executeLaakResearchFixtures(payload,{bible});
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
   if(['WA','NM'].includes(payload.state))return executeGroceryResearchFixtures(payload,{bible});
