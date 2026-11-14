@@ -14,6 +14,11 @@ on:
         description: "Maximum eligible states to collect"
         required: false
         default: "5"
+      ma_esplanda_only:
+        description: "On the dedicated Massachusetts research branch, collect only the three reviewed Esplanda product pages"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: state-expansion-shadow
@@ -82,6 +87,7 @@ jobs:
         env:
           RAW_STATES: ${{ inputs.states || '' }}
           RAW_LIMIT: ${{ inputs.limit || '5' }}
+          RAW_MA_ESPLANDA_ONLY: ${{ inputs.ma_esplanda_only || false }}
         run: |
           set -euo pipefail
           if [[ -n "$RAW_STATES" && ! "$RAW_STATES" =~ ^[A-Z]{2}(-[A-Z0-9]+)?(,[A-Z]{2}(-[A-Z0-9]+)?)*$ ]]; then
@@ -91,6 +97,15 @@ jobs:
           if [[ ! "$RAW_LIMIT" =~ ^[1-5]$ ]]; then
             echo "limit must be an integer from 1 through 5" >&2
             exit 1
+          fi
+          if [[ "$RAW_MA_ESPLANDA_ONLY" == "true" ]]; then
+            if [[ "$GITHUB_REF_NAME" != "research/massachusetts-esplanda-20261114" || "$RAW_STATES" != "MA" || "$RAW_LIMIT" != "1" ]]; then
+              echo "Esplanda-only collection is allowed solely for MA/limit=1 on its isolated research branch" >&2
+              exit 1
+            fi
+            echo "ma_esplanda_only=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "ma_esplanda_only=0" >> "$GITHUB_OUTPUT"
           fi
           echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
           echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
@@ -118,6 +133,7 @@ jobs:
           STATES: ${{ steps.plan.outputs.states }}
           LIMIT: ${{ steps.plan.outputs.limit }}
           SCHEDULED_AT: ${{ steps.plan.outputs.scheduled_at }}
+          BOURBON_SIGNAL_MA_ESPLANDA_ONLY: ${{ steps.validate.outputs.ma_esplanda_only }}
         run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT" --scheduled-at="$SCHEDULED_AT"
 
       - name: Preserve a new or Bible-reparsed Oregon source cache

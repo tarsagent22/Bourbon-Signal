@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 import { MA_ESPLANDA_PRODUCTS, parseMassachusettsEsplandaProduct } from '../src/collectors/massachusetts-esplanda.mjs';
 import { isMassachusettsResearchInventory } from '../src/massachusetts-research-policy.mjs';
 import { isActiveCustomerStateRow } from '../src/export-site-contract.mjs';
+import { collectResearchStateReport, researchSourceForState } from '../src/research-state-registry.mjs';
 
 const bible = { match(name) {
   if (name === 'Larceny Barrel Proof') return { confidence: 1, record: { id: 'bb_dec2c347ba378237', canonical: 'Larceny Barrel Proof' } };
@@ -66,4 +69,42 @@ test('the reviewed source policy rejects changed identity, premises, pickup, and
     { observedAt: '2026-11-14T17:04:06.000Z' }), null);
   assert.equal(parseMassachusettsEsplandaProduct(fixture(source, ({ product }) => { product.productID = 'wrong'; }), source, bible,
     { observedAt: '2026-11-14T17:04:06.000Z' }), null);
+});
+
+test('explicit isolated MA source mode collects Esplanda only and retains raw evidence under the shadow run', async () => {
+  const previousShadow = process.env.BOURBON_SIGNAL_SHADOW_MODE;
+  const previousEsplanda = process.env.BOURBON_SIGNAL_MA_ESPLANDA_ONLY;
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'ma-esplanda-'));
+  const requested = [];
+  const htmlById = new Map();
+  for (const source of MA_ESPLANDA_PRODUCTS) {
+    htmlById.set(source.requestUrl, await readFile(new URL(`./fixtures/massachusetts-esplanda/${source.id}.html`, import.meta.url), 'utf8'));
+  }
+  try {
+    process.env.BOURBON_SIGNAL_SHADOW_MODE = '1';
+    process.env.BOURBON_SIGNAL_MA_ESPLANDA_ONLY = '1';
+    const report = await collectResearchStateReport(researchSourceForState('MA'), bible, {
+      reportDirectory: directory,
+      includeCityHiveResearch: true,
+      fetchImpl: async url => {
+        requested.push(String(url));
+        return new Response(htmlById.get(String(url)), { headers: {
+          'content-type': 'text/html; charset=utf-8', date: 'Sat, 14 Nov 2026 17:04:06 GMT',
+        } });
+      },
+    });
+    assert.equal(report.metadata.sourceSet, 'massachusetts-esplanda-only');
+    assert.equal(report.metadata.complete, true);
+    assert.equal(report.signals.length, 3);
+    assert.equal(report.sources.length, 3);
+    assert.deepEqual(requested.sort(), MA_ESPLANDA_PRODUCTS.map(source => source.requestUrl).sort());
+    assert.ok(report.sources.every(source => source.receipt?.artifactPath && source.receipt.sha256));
+    assert.ok(report.signals.every(row => !isActiveCustomerStateRow(row)));
+  } finally {
+    if (previousShadow === undefined) delete process.env.BOURBON_SIGNAL_SHADOW_MODE;
+    else process.env.BOURBON_SIGNAL_SHADOW_MODE = previousShadow;
+    if (previousEsplanda === undefined) delete process.env.BOURBON_SIGNAL_MA_ESPLANDA_ONLY;
+    else process.env.BOURBON_SIGNAL_MA_ESPLANDA_ONLY = previousEsplanda;
+    await rm(directory, { recursive: true, force: true });
+  }
 });
