@@ -20,6 +20,7 @@ import type {
   MobileOnboardingRequest,
   MobileOnboardingResponse,
   MobileOnboardingStatusResponse,
+  MobileCoverageState,
   MembershipTrialEligibility,
   GeographySearchResponse,
   HuntOutcome,
@@ -345,7 +346,7 @@ export function createMobileApi({
       if (!currentLegalAcceptance(result.acceptance)) throw new MobileApiError('Your agreement could not be confirmed. Try again.', 502, 'INVALID_RESPONSE');
       return result;
     },
-    getCoverageSummary() { return request<{ states: import('../../../../shared/mobile-onboarding').OnboardingCoverageState[] }>('/api/coverage', { fresh: true }); },
+    getCoverageSummary() { return request<{ states: MobileCoverageState[] }>('/api/coverage', { fresh: true }); },
     submitCoverageRequest(body: Record<string,unknown>) { return request<{request: import('../../../../shared/coverage-requests').CoverageRequestItem}>('/api/coverage/requests',{method:'POST',body}); },
     getSubscriptionManagement() { return request<{provider: "stripe" | "apple" | "google" | "none"}>("/api/billing-portal", {fresh:true}); },
     openSubscriptionManagement() { return request<{provider: "stripe" | "apple" | "google"; url:string}>("/api/billing-portal", {method:"POST"}); },
