@@ -1,0 +1,541 @@
+{
+  "schemaVersion": 1,
+  "derivedFrom": {
+    "workflowRunId": "43586205036",
+    "artifactDigest": "33812069d1e141b2f491f0f40ad075fca4aa0ed16253cc8d1ea4787f3a973c5f",
+    "sourceCaptureSha256": "626ad7300b9b1a7700c61396c59f7314415f2582eef9a9a57d9da3688b499c8d",
+    "observedAt": "2026-11-14T10:38:28.761Z"
+  },
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "64640ae4a9a1022c2d6eba51",
+        "name": "Top Ten Liquors- Blaine",
+        "display_name": "Top Ten Liquors- Blaine",
+        "address": {
+          "full_address": "12513 Central Ave NE, Blaine, MN 55449, USA",
+          "address_properties": {
+            "success": true,
+            "lat": 45.19845189999999,
+            "lng": -93.2320845,
+            "country_code": "US",
+            "city": "Blaine",
+            "state": "MN",
+            "zip": "55449",
+            "street_address": "12513 Central Avenue Northeast",
+            "province": "MN",
+            "district": "Anoka County",
+            "provider": "google",
+            "full_address": "12513 Central Ave NE, Blaine, MN 55449, USA",
+            "is_us?": true,
+            "ll": "45.19845189999999,-93.2320845",
+            "precision": "building",
+            "street_number": "12513",
+            "state_full_name": "Minnesota"
+          },
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -93.2320845,
+              45.19845189999999
+            ]
+          },
+          "district": "Anoka County",
+          "province": "MN",
+          "street_address": "12513 Central Avenue Northeast",
+          "zipcode": "55449",
+          "state": "MN",
+          "city": "Blaine",
+          "country_code": "US",
+          "apt": null,
+          "id": "64640ae4a9a1022c2d6eba4d",
+          "place_id": "ChIJc2mSlr0js1IR63_fg8XxLag"
+        },
+        "email": "blaine@toptenliquors.com",
+        "display_email": "blaine@toptenliquors.com",
+        "phone_number": "+17637543231",
+        "accept_orders": true,
+        "onboarding_state": "active",
+        "delivery_area": {
+          "id": "654eb6b6d8313b05f20e7ec9",
+          "type": "Polygon",
+          "delivery_fee_type": "fixed",
+          "minimum_delivery": 0,
+          "force_delivery_fee": true,
+          "min_to_leave_store": 0,
+          "delivery_fee": 6.49,
+          "base_fee": 0,
+          "max_delivery_time": 60,
+          "last_delivery_time_offset": 45,
+          "first_delivery_time_offset": 0,
+          "hour_step": 1,
+          "name": "Blaine 5 Mile Zone",
+          "coordinates": [
+            [
+              [
+                -93.23414443652344,
+                45.2657692446378
+              ],
+              [
+                -93.18338883758578,
+                45.23934023748242
+              ],
+              [
+                -93.16321448724254,
+                45.225678347150975
+              ],
+              [
+                -93.15368276998879,
+                45.180679127136465
+              ],
+              [
+                -93.17575698496933,
+                45.16776869326351
+              ],
+              [
+                -93.19591378697842,
+                45.15334577699355
+              ],
+              [
+                -93.22393058459473,
+                45.13669947879166
+              ],
+              [
+                -93.22911844418095,
+                45.1335032115608
+              ],
+              [
+                -93.22932688884784,
+                45.132879134936125
+              ],
+              [
+                -93.23324269809127,
+                45.134329180182455
+              ],
+              [
+                -93.23352164782882,
+                45.13482113872508
+              ],
+              [
+                -93.23748927072101,
+                45.14055631306898
+              ],
+              [
+                -93.27346942734653,
+                45.15705304606203
+              ],
+              [
+                -93.31073299324058,
+                45.182683146853066
+              ],
+              [
+                -93.30608289639395,
+                45.21465235579622
+              ],
+              [
+                -93.27492221792569,
+                45.23319039842516
+              ],
+              [
+                -93.23414443652344,
+                45.2657692446378
+              ]
+            ]
+          ],
+          "delivery_hours": null
+        },
+        "merchant_type": "Beer, Wine, and Liquor Stores",
+        "premise_type": "Off Premise",
+        "inventory_owner": null,
+        "chain": {
+          "id": "6454d90a8a0a9526edc3e922",
+          "name": "Top Ten Liquors HQ"
+        },
+        "aggregation_type": "branch",
+        "max_delivery_time": 60,
+        "pickup": true,
+        "delivery": true,
+        "shipping": false,
+        "allow_delivery_tip": true,
+        "minimum_delivery": 0,
+        "work_hours": null,
+        "type": "Beer, Wine, and Liquor Stores",
+        "delivery_hours": {
+          "sun": {
+            "opening": "11:00",
+            "closing": "17:30"
+          },
+          "mon": {
+            "opening": "09:00",
+            "closing": "20:30"
+          },
+          "tue": {
+            "opening": "09:00",
+            "closing": "20:30"
+          },
+          "wed": {
+            "opening": "09:00",
+            "closing": "20:30"
+          },
+          "thu": {
+            "opening": "09:00",
+            "closing": "20:30"
+          },
+          "fri": {
+            "opening": "09:00",
+            "closing": "20:30"
+          },
+          "sat": {
+            "opening": "09:00",
+            "closing": "20:30"
+          }
+        },
+        "business_hours": {
+          "sun": {
+            "opening": "11:00",
+            "closing": "18:00"
+          },
+          "mon": {
+            "opening": "09:00",
+            "closing": "21:00"
+          },
+          "tue": {
+            "opening": "09:00",
+            "closing": "21:00"
+          },
+          "wed": {
+            "opening": "09:00",
+            "closing": "21:00"
+          },
+          "thu": {
+            "opening": "09:00",
+            "closing": "21:00"
+          },
+          "fri": {
+            "opening": "09:00",
+            "closing": "21:00"
+          },
+          "sat": {
+            "opening": "09:00",
+            "closing": "21:00"
+          }
+        },
+        "app_info": null,
+        "assets": {
+          "email_logo": null,
+          "campaign_logo_on_light_background": null,
+          "campaign_logo_on_dark_background": null,
+          "raw_logo": null,
+          "assets": []
+        },
+        "referral_program": {
+          "enabled": true,
+          "message": "Give your friends $10.00 off their first online order and get $10.00 in store credit!",
+          "title": "Like us? We like you!",
+          "amount": 10,
+          "percentage": false
+        },
+        "last_inventory_upload": "2026-11-13T18:53:10.257-05:00",
+        "integrated": true,
+        "wine_club": {
+          "enabled": true,
+          "name": "Yayin Gadol, LLC Subscription Clubs!",
+          "image": null,
+          "information": "<p><strong>How It Works</strong></p><p>Join one of our monthly subscriptions to start the following month.By enrolling, you are authorizing a recurring monthly charge to your credit card.You may cancel by contacting the store at <a target=\"_blank\" href=\"mailto:JHalper@toptenliquors.com\">JHalper@toptenliquors.com</a>.Wines purchased through our subscription services are not refundable.</p>",
+          "is_live": false
+        },
+        "is_d2c_connected": null,
+        "store_credit": {
+          "allow_store_credit_use": false,
+          "allow_store_credit_use_with_discount": true,
+          "store_credit_points_mode": true,
+          "store_credit_points_factor": 1,
+          "minimum_store_credit_amount": 0,
+          "maximum_store_credit_amount": 0,
+          "max_store_credit_to_apply_on_orders": 0,
+          "user_defined_store_credit": true
+        },
+        "current_payment_gateway_name": "adyen",
+        "secondary_payment_gateway_name": "jupico",
+        "account_manager": {
+          "node_id": "694062ce781c6422661422b3",
+          "node_type": "merchant_app_user"
+        },
+        "tip_config": {
+          "allow_delivery_tip": true,
+          "allow_pickup_tip": false,
+          "allow_shipping_tip": false,
+          "allow_custom_tip": true,
+          "allow_cash_tip": true,
+          "tip_levels": [
+            5,
+            10,
+            15
+          ],
+          "default_tip": "10",
+          "default_delivery_tip": "10",
+          "default_pickup_tip": "10",
+          "default_shipping_tip": "10",
+          "driver_tip_percentage": 1
+        },
+        "multi_store_parent": {
+          "id": "6454d90a8a0a9526edc3e922",
+          "name": "Top Ten Liquors HQ"
+        },
+        "allow_future_orders": true,
+        "validate_date_of_birth_on_checkout": false,
+        "timezone": "America/Chicago",
+        "is_marketplace": null,
+        "reviews_services": {
+          "google_placeid": "",
+          "facebook_pagename": "",
+          "yelp_pagename": null,
+          "google_map_url": null
+        },
+        "node_type": "merchant",
+        "node_id": "64640ae4a9a1022c2d6eba51",
+        "allow_event_guest_checkout": false
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "5e21e94d0320ad0f80403af4",
+      "name": "Larceny Barrel Proof Brourbon",
+      "basic_category": [
+        "bourbon",
+        "whiskey"
+      ],
+      "description": "Larceny Barrel Proof is the first line-extension of the Larceny Family and offers whiskey aficionados an opportunity to experience our Bourbon as our distillers do: straight out of the barrel. First released in January 2020, each release consists of f 6 to 8-year-old Bourbon bottled at barrel proof and non-chill filtered to showcase a deeper character, richness and depth of flavor. Like Small Batch, Larceny Barrel Proof is made with 25% more wheat than competitors for a smoother taste. It tastes of rich molasses that coats the tongue, with notes of fig and hazelnut. Its nuanced flavor fades into lingering warmth. Larceny Barrel Proof is the first Wheated Bourbon to ever be named Whisky Advocate's “Whisky of the Year” in 2020. In 2024, Larceny Barrel Proof was awarded Best of Class from the American Distilling Institute. Pick up a bottle today and unlock our wheated difference.",
+      "images": {
+        "primary": {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/original.png",
+          "large": "https://cityhive-production-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/thumbnail.png"
+        },
+        "more_images": [
+          {
+            "original": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/original.png",
+            "large": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/large.png",
+            "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/medium.png",
+            "small": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/small.png",
+            "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/thumbnail.png"
+          }
+        ]
+      },
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "tags": [
+        "larceny",
+        "larceny barrel proof",
+        "wheated",
+        "barrel proof",
+        "rare",
+        "wheated bourbon"
+      ],
+      "views": [
+        "alcohol",
+        "spirits"
+      ],
+      "customer_favorite": false,
+      "is_taxed": true,
+      "options": [],
+      "merchants": [
+        {
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "product_options": [
+            {
+              "product_id": "5e21e94d0320ad0f80403af4",
+              "option_id": "f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://toptenliquors.com/shop/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "product_url_path": "/product/larceny-barrel-proof-brourbon/5e21e94d0320ad0f80403af4?option-id=f7d916d860bc19fb3f5b76ba1490b98851104085bb9b3b7e9497c33d120bee85",
+              "original_option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "stock_components": [],
+              "units_of_measure": [],
+              "badge": {},
+              "product_badge_icons": [
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c899ee99fdb2bbce716c7",
+                  "group_name": "Products From Kentucky",
+                  "group_label": "",
+                  "group_name_slug": "products-from-kentucky",
+                  "group_tooltip": null
+                },
+                {
+                  "type": "group_badge_icon",
+                  "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                  "description": null,
+                  "group_id": "659c812cb1c8472bdc199722",
+                  "group_name": "Products From USA",
+                  "group_label": "",
+                  "group_name_slug": "products-from-usa",
+                  "group_tooltip": null
+                }
+              ],
+              "product_badges": [],
+              "store_credit_price": 0,
+              "quantity": 6,
+              "max_purchase_quantity": null,
+              "min_purchase_quantity": null,
+              "staff_pick": false,
+              "pinned_as_default": false,
+              "staff_pick_description": null,
+              "store_specific_description": "",
+              "staff_pick_recommender": null,
+              "product_modifiers": [],
+              "preorder_details": null,
+              "store_specific_tags": [
+                "whisky/whiskey",
+                "spirits",
+                "bourbon"
+              ],
+              "allowed_offer_types": null,
+              "product_tags": [
+                "larceny",
+                "larceny barrel proof",
+                "wheated",
+                "barrel proof",
+                "rare",
+                "wheated bourbon"
+              ],
+              "product_lists_info": null,
+              "available_in_merchant_ids": null,
+              "past_purchase": false,
+              "rich_properties": [],
+              "cityhive_rank": 0,
+              "product_page_custom_content": [],
+              "product_stats": null,
+              "merchant_id": "64640ae4a9a1022c2d6eba51",
+              "merchant_name": "Top Ten Liquors- Blaine",
+              "coordinates": [
+                -93.2320845,
+                45.19845189999999
+              ],
+              "full_address": "12513 Central Ave NE, Blaine, MN 55449, USA",
+              "price": 59.95,
+              "original_price": 0,
+              "discount_value": null,
+              "discount_style": {},
+              "description": "",
+              "option_display_data": {
+                "name": "Larceny Barrel Proof Brourbon",
+                "description": "Larceny Barrel Proof is the first line-extension of the Larceny Family and offers whiskey aficionados an opportunity to experience our Bourbon as our distillers do: straight out of the barrel. First released in January 2020, each release consists of f 6 to 8-year-old Bourbon bottled at barrel proof and non-chill filtered to showcase a deeper character, richness and depth of flavor. Like Small Batch, Larceny Barrel Proof is made with 25% more wheat than competitors for a smoother taste. It tastes of rich molasses that coats the tongue, with notes of fig and hazelnut. Its nuanced flavor fades into lingering warmth. Larceny Barrel Proof is the first Wheated Bourbon to ever be named Whisky Advocate's “Whisky of the Year” in 2020. In 2024, Larceny Barrel Proof was awarded Best of Class from the American Distilling Institute. Pick up a bottle today and unlock our wheated difference.",
+                "images": {
+                  "primary": {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/original.png",
+                    "large": "https://cityhive-production-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c78eca319e0f014e05e5/thumbnail.png"
+                  },
+                  "more_images": [
+                    {
+                      "original": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/original.png",
+                      "large": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/large.png",
+                      "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/medium.png",
+                      "small": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/small.png",
+                      "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efa56f18df820d60098e6/thumbnail.png"
+                    }
+                  ]
+                },
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "subtitle": null,
+                "views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "basic_category": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "properties": {
+                  "product_views": [
+                    "alcohol",
+                    "spirits"
+                  ],
+                  "product_basic_categories": [
+                    "bourbon",
+                    "whiskey"
+                  ],
+                  "basic_category": "Whiskey American",
+                  "brands": [
+                    "Larceny"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "content": "62.5%"
+                },
+                "product_group_product_subtitle": {
+                  "product_subtitle": null,
+                  "show_product_subtitle_on_app_and_website": null,
+                  "override_individual_product_subtitle": null
+                }
+              },
+              "additional_properties": {
+                "type": "spirits",
+                "subtype": "bourbon, whiskey",
+                "content": "62.5%",
+                "country": "United States",
+                "state": "Kentucky",
+                "basic_category": "Whiskey American",
+                "brands": "Larceny"
+              },
+              "default_option": true
+            }
+          ],
+          "additional_properties": {},
+          "merchant_id": "64640ae4a9a1022c2d6eba51",
+          "merchant_name": "Top Ten Liquors- Blaine",
+          "coordinates": [
+            -93.2320845,
+            45.19845189999999
+          ],
+          "full_address": "12513 Central Ave NE, Blaine, MN 55449, USA"
+        }
+      ],
+      "product_rating": 4.1,
+      "number_of_product_ratings": 7,
+      "variations": null,
+      "product_modifiers": null,
+      "additional_properties": {
+        "type": "spirits",
+        "subtype": "bourbon, whiskey",
+        "content": "62.5%",
+        "country": "United States",
+        "state": "Kentucky",
+        "basic_category": "Whiskey American",
+        "brands": "Larceny"
+      },
+      "is_enriched": true,
+      "brand_action": null,
+      "rich_properties": null
+    }
+  ]
+}
