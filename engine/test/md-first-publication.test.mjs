@@ -22,7 +22,7 @@ const fixtureByStore=new Map([
 ]);
 const bible=await BourbonBible.load(new URL('../out/bourbon-bible.json',import.meta.url));
 
-test('Maryland runtime stays dormant and has a closed four-premise eight-request budget',async()=>{
+test('Maryland admits the reviewed four-premise eight-request cohort through its immutable evidence',async()=>{
   const sources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state==='MD');
   assert.ok(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes('MD'));
   assert.equal(sources.length,4);
@@ -32,10 +32,14 @@ test('Maryland runtime stays dormant and has a closed four-premise eight-request
     'west-o-bottle-shop:60e51c65666bdc65c3bcda63','euro-liquors-md:60456c4f88762f7bda9d7be0',
   ]);
   assert.deepEqual(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.MD,{sourceMs:50_000,stateMs:60_000,maxRequests:8,requestTimeoutMs:4_000});
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MD'),false);
-  assert.equal(centralCityHiveProductionAllowed('MD',STATE_LIFECYCLE_CONFIG),false);
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MD'),true);
+  assert.equal(centralCityHiveProductionAllowed('MD',STATE_LIFECYCLE_CONFIG),true);
+  const unverified=structuredClone(STATE_LIFECYCLE_CONFIG);
+  delete unverified.states.MD.promotionEvidence;
+  assert.equal(centralCityHiveProductionAllowed('MD',unverified),false);
   let requests=0;
-  const result=await collectCentralCityHiveProductionSource({id:'MD'},bible,{fetchText:async()=>{requests++;throw Error('inactive Maryland must not perform HTTP');}});
+  const result=await collectCentralCityHiveProductionSource({id:'MD'},bible,{lifecycleConfig:unverified,
+    fetchText:async()=>{requests++;throw Error('unverified Maryland must not perform HTTP');}});
   assert.equal(result.metadata.blockedByPromotion,true);
   assert.equal(requests,0);
 });

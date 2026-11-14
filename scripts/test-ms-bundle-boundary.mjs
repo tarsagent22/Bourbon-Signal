@@ -33,7 +33,10 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
   for (const [name, { reviewed, original }] of Object.entries(baseline.files)) {
     const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
     const withKansas = map => map.replace('      "OK": 30000,\n', '      "OK": 30000,\n      "KS": 15000,\n');
-    const withRecentStateBudgets = map => withKansas(map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n      "AR": 30000,\n      "MN": 30000,\n'));
+    const marylandBudget = JSON.parse(name.endsWith('.json') ? current : current.slice(current.indexOf('{'), current.lastIndexOf('} as const') + 1))
+      .reliabilityPolicy.stateExpectedRunMs.MD;
+    const recentBudgets = (marylandBudget ? '      "MD": 15000,\n' : '') + '      "AR": 30000,\n      "MN": 30000,\n';
+    const withRecentStateBudgets = map => withKansas(map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n' + recentBudgets));
     const currentMap = withRecentStateBudgets(reviewed);
     assert.ok(current.includes(currentMap));
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
@@ -63,7 +66,7 @@ test('actual four-state admission reverses only the exact active list and issued
         : [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed];
       for (const mutation of mutations) {
         assert.notEqual(mutation, current);
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail).*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|KS|AR) active list tail|exact MD active list head).*exact historical verification hook/);
       }
       if (key !== 'activeStates') for (const changed of [
         reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),

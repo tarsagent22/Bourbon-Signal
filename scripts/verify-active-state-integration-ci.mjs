@@ -60,7 +60,8 @@ export async function verifyActiveStateIntegrationForCi({root=DEFAULT_ROOT,state
     if(reviewedSite&&manifest?.evidence?.production?.status==='pending_release')throw Error(`${state}: pending_release would redirect the production verifier; it is not permitted for this admission`);
     if(reviewedSite&&manifest?.evidence?.production?.status==='awaiting_first_publication'){
       if(manifest.evidence.canary?.siteArtifact!==reviewedSite)throw Error(`${state}: CI artifact must be the exact reviewed canary path`);
-      const requiresPartitionProof=[LA_AK_SITE,RI_SITE,MN_SITE,KS_SITE,AR_SITE,MO_SITE,MD_SITE].includes(reviewedSite);
+      const requiresPartitionProof=reviewedSite===LA_AK_SITE||reviewedSite===RI_SITE||reviewedSite===MN_SITE
+        ||reviewedSite===KS_SITE||reviewedSite===AR_SITE||reviewedSite===MO_SITE||reviewedSite===MD_SITE;
       if(requiresPartitionProof){
         const proof=await readJson(path.join(root,reviewedSite,'source-proof.json'),null);
         const source=proof?.runs?.find(entry=>entry.state===state);

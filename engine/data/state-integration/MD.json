@@ -3,7 +3,7 @@
   "state": "MD",
   "lifecycle": {
     "customerLabel": "Maryland",
-    "publicStatus": "research_only",
+    "publicStatus": "active",
     "coverageTier": "sparse_live_store_inventory",
     "refinementLevel": "store"
   },
@@ -11,7 +11,7 @@
     "sourceIds": [
       "md:central-cityhive"
     ],
-    "registration": "Dormant four-premise Maryland CityHive pickup cohort; eight merchant-scoped queries are capped at 50 seconds. Montgomery County ABS remains an independent MD-MONTGOMERY aggregate source and is not included in Maryland retailer inventory.",
+    "registration": "Four reviewed Maryland CityHive pickup premises. The recurring source makes at most eight merchant-scoped queries, including one rotating indexed allocated search per premise. Montgomery County ABS remains independently registered.",
     "cohortSha256": "b6c1273f7613d5a66d3c12f6856f7ae3542168fe1d3ca742296cdd2c6f1d86e2"
   },
   "storeIdentity": {
@@ -66,20 +66,130 @@
   "evidence": {
     "shadow": {
       "status": "verified",
-      "runs": 1,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43626153633",
-      "originalSourceClocksPreserved": true
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43638986891",
+      "originalSourceClocksPreserved": true,
+      "observations": [
+        {
+          "runId": "43626153633",
+          "status": "success",
+          "artifactId": "14126391054",
+          "artifactHash": "098c665f2e69d9975cb6af54be53687ea3c0eb3012e492bcacfd559e08c3c63f",
+          "commitSha": "e96d1180a33a9459e5b31bd688960dbaef9102e3",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43626153633"
+        },
+        {
+          "runId": "43636028937",
+          "status": "success",
+          "artifactId": "14129978110",
+          "artifactHash": "604db8aec936ce52d16862a5fe160ddac7dc7d2d2488ebc70ea9be5be7257320",
+          "commitSha": "caa38417716942dec295ea884e02c8ffbfcbc2dc",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43636028937"
+        },
+        {
+          "runId": "43638986891",
+          "status": "success",
+          "artifactId": "14131615949",
+          "artifactHash": "c2d94ee1acb6ed3d14d59db7f638e402ddbf41e06a29053a03d25d0a6a7d3ae7",
+          "commitSha": "dd20468c02ebcd490a88626b33d075503ae5df8c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43638986891"
+        }
+      ]
     },
     "canary": {
       "status": "verified",
-      "runs": 1,
-      "artifact": "https://bourbonsignal-f4d8cwfln-tarsagent22s-projects.vercel.app",
-      "allDeliveryChannelsDisabled": true
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43639058550",
+      "siteArtifact": "engine/data/canary-site/md-active-candidate",
+      "previewUrl": "https://bourbonsignal-mhdm9qvqj-tarsagent22s-projects.vercel.app",
+      "allDeliveryChannelsDisabled": true,
+      "observations": [
+        {
+          "runId": "43636224115",
+          "status": "success",
+          "artifactId": "14129633199",
+          "artifactHash": "e5ddea56c29874565e34d1fa919ec478defd8e2d26084ef0e633b7a5b62dee75",
+          "commitSha": "caa38417716942dec295ea884e02c8ffbfcbc2dc",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43636224115"
+        },
+        {
+          "runId": "43639058550",
+          "status": "success",
+          "artifactId": "14131437968",
+          "artifactHash": "994a8b095a7a352ec93a8b2f6a93beedadd650d7a3dcfd3e0cf498a82e7d7990",
+          "commitSha": "dd20468c02ebcd490a88626b33d075503ae5df8c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43639058550"
+        }
+      ]
     },
     "production": {
       "status": "awaiting_first_publication",
       "url": "https://www.bourbonsignal.com/api/coverage",
       "assertion": "Verify independent MD exact-store and MD-MONTGOMERY aggregate partition counts, current source clocks, and the source-bound immutable first-publication receipt before admission."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "MD",
+      "generatedAt": "2026-11-14T20:45:38.672Z",
+      "sourceConfigHash": "254a6aec1468543fa865e4b9c8cb56630edda04b1476c439b998c001cb1b39a5",
+      "sourceRuntimeId": "md:central-cityhive",
+      "cohortSha256": "b6c1273f7613d5a66d3c12f6856f7ae3542168fe1d3ca742296cdd2c6f1d86e2",
+      "previewUrl": "https://bourbonsignal-mhdm9qvqj-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "43626153633",
+          "status": "success",
+          "artifactId": "14126391054",
+          "artifactHash": "098c665f2e69d9975cb6af54be53687ea3c0eb3012e492bcacfd559e08c3c63f",
+          "commitSha": "e96d1180a33a9459e5b31bd688960dbaef9102e3",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43626153633"
+        },
+        {
+          "runId": "43636028937",
+          "status": "success",
+          "artifactId": "14129978110",
+          "artifactHash": "604db8aec936ce52d16862a5fe160ddac7dc7d2d2488ebc70ea9be5be7257320",
+          "commitSha": "caa38417716942dec295ea884e02c8ffbfcbc2dc",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43636028937"
+        },
+        {
+          "runId": "43638986891",
+          "status": "success",
+          "artifactId": "14131615949",
+          "artifactHash": "c2d94ee1acb6ed3d14d59db7f638e402ddbf41e06a29053a03d25d0a6a7d3ae7",
+          "commitSha": "dd20468c02ebcd490a88626b33d075503ae5df8c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43638986891"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43636224115",
+          "status": "success",
+          "artifactId": "14129633199",
+          "artifactHash": "e5ddea56c29874565e34d1fa919ec478defd8e2d26084ef0e633b7a5b62dee75",
+          "commitSha": "caa38417716942dec295ea884e02c8ffbfcbc2dc",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43636224115"
+        },
+        {
+          "runId": "43639058550",
+          "status": "success",
+          "artifactId": "14131437968",
+          "artifactHash": "994a8b095a7a352ec93a8b2f6a93beedadd650d7a3dcfd3e0cf498a82e7d7990",
+          "commitSha": "dd20468c02ebcd490a88626b33d075503ae5df8c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43639058550"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43639060734",
+        "artifactId": "14131187340",
+        "commitSha": "dd20468c02ebcd490a88626b33d075503ae5df8c",
+        "artifactDigest": "b1a24b5243e4f813c657b78ff1fb6bb2e820594f1821f27ac8180f935e698d79",
+        "bundleDigest": "d5dc907b111ead839e91c3d3f43b45c36da6299eb946ce052bd4b450b9f819c6",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43639060734",
+        "artifactName": "state-promotion-provenance-MD-43639060734"
+      }
     }
   }
 }

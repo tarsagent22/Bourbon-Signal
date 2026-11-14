@@ -127,7 +127,8 @@ test('all-state audit separates unsupported, source observations, freshness, pub
   assert.equal(az.exactMatch, true); assert.equal(az.freshSourceRows, 1); assert.equal(az.freshPublicRows, 0);
   assert.equal(az.searchedExactExpressionThisRun, true); assert.equal(az.status, 'no_fresh_public_evidence');
   assert.equal(audit.cells.find(row => row.state === 'NH').status, 'unsupported');
-  assert.equal(audit.cells.find(row => row.state === 'MD').evidenceClass, 'montgomery_county_only_separate_row');
+  assert.equal(audit.cells.find(row => row.state === 'MD').evidenceClass, 'sparse_live_store_inventory');
+  assert.equal(audit.cells.find(row => row.state === 'MD-MONTGOMERY').evidenceClass, 'aggregate_inventory_watch');
   assert.equal(audit.cells.find(row => row.state === 'IA').stateInventoryAlertsPermitted, false);
   const stale = buildLibraryCoverageAudit({ bible, catalog, reports, nowMs: nowMs + 3 * 3_600_000 });
   assert.equal(stale.cells.find(row => row.state === 'AZ').freshSourceRows, 0);
