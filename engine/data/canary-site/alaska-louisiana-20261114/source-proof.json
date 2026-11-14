@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "mode": "reviewed_ci_only_canary_extract",
+  "runs": [
+    {
+      "state": "AK",
+      "canaryRunId": "43573427082",
+      "partitionSha256": "3d804d14a3d0759db1e02584aa53a732146485ab4777b0429dc88780ac60c982"
+    },
+    {
+      "state": "LA",
+      "canaryRunId": "43573428800",
+      "partitionSha256": "a687f10259fc010eaec4bacb8be668bd5eef96f7dd9e6f6fa1bbf1ed40024aa8"
+    }
+  ],
+  "originalPartitionBytesPreserved": true,
+  "productionSnapshotTouched": false
+}

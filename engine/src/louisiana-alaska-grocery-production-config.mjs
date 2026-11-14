@@ -1,7 +1,18 @@
 import {createHash} from 'node:crypto';
 import {LOUISIANA_ALASKA_GROCERY_SOURCES,LOUISIANA_ALASKA_RESOLVER_ZIPS} from './collectors/louisiana-alaska-grocery-premises.mjs';
+import {STATE_LIFECYCLE_CONFIG} from './state-lifecycle.mjs';
 
 export const LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES=Object.freeze(['LA','AK']);
+export function louisianaAlaskaLifecycleAdmitted(state){
+  if(!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(state))return false;
+  const entry=STATE_LIFECYCLE_CONFIG.states?.[state];
+  return STATE_LIFECYCLE_CONFIG.activeStates?.includes(state)===true
+    &&entry?.publicStatus==='active'&&entry?.lifecycle==='retailer_store_inventory'
+    &&entry?.coverageTier==='sparse_live_store_inventory'&&entry?.inventoryAlertable===false
+    &&entry?.watchAlertable===false&&entry?.promotionStage==='active'
+    &&entry?.productionAdapter==='louisiana_alaska_grocery_onsite_v1'
+    &&entry?.promotionEvidence?.immutableEvidence?.state===state;
+}
 export const LOUISIANA_ALASKA_GROCERY_REQUEST_TIMEOUT_MS=5_000;
 export const LOUISIANA_ALASKA_GROCERY_BUDGETS=Object.freeze({
   LA:Object.freeze({sourceMs:240_000,stateMs:360_000,maxRequests:43,requestTimeoutMs:LOUISIANA_ALASKA_GROCERY_REQUEST_TIMEOUT_MS,interRequestDelayMs:400}),

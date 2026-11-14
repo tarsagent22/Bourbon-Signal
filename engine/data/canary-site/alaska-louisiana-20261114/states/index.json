@@ -1,0 +1,17 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "states": [
+    {
+      "state": "AK",
+      "file": "states/AK/drops.json",
+      "count": 28
+    },
+    {
+      "state": "LA",
+      "file": "states/LA/drops.json",
+      "count": 56
+    }
+  ],
+  "stateCount": 2,
+  "totalCount": 84
+}

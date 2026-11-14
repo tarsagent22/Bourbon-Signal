@@ -1,0 +1,36 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "stateCount": 2,
+  "stateCoverage": {
+    "states": [
+      {
+        "state": "AK",
+        "status": "canary_preview",
+        "signalCount": 28,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Alaska",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Alaska exact-store grocery research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      },
+      {
+        "state": "LA",
+        "status": "canary_preview",
+        "signalCount": 56,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Louisiana",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Louisiana exact-store grocery research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      }
+    ]
+  }
+}

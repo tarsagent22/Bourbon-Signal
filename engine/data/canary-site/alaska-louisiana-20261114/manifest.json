@@ -1,0 +1,6 @@
+{
+  "contractVersion": "bourbon-signal-site-v0.1",
+  "files": {
+    "stateDrops": "states/index.json"
+  }
+}

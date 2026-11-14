@@ -27,7 +27,9 @@
     "WA",
     "NM",
     "WI",
-    "OK"
+    "OK",
+    "AK",
+    "LA"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -1618,6 +1620,188 @@
       "inventoryAlertable": false,
       "watchAlertable": false,
       "customerSummary": "Inactive research at 4 reviewed New Jersey stores; production coverage and all alerts remain blocked pending promotion."
+    },
+    "AK": {
+      "customerLabel": "Alaska",
+      "sourceLabel": "Alaska reviewed exact-store grocery inventory",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "productionAdapter": "louisiana_alaska_grocery_onsite_v1",
+      "customerSummary": "First-party in-store availability at selected Carrs and Safeway locations. Exact shelf counts are not published. Verify before driving.",
+      "shadowEligible": false,
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-14T09:45:20.199Z",
+        "shadowArtifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+        "canaryArtifact": "https://bourbonsignal-1v7r2zl89-tarsagent22s-projects.vercel.app",
+        "canaryPreviewUrl": "https://bourbonsignal-1v7r2zl89-tarsagent22s-projects.vercel.app",
+        "verticalSliceManifest": "engine/data/state-integration/AK.json",
+        "fixtureContract": "engine/data/state-fixtures/AK.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "AK",
+          "generatedAt": "2026-11-14T09:45:20.199Z",
+          "sourceConfigHash": "b94ea22c3dfb479663fed2609755c49e190f5c44d1f5f9ab8b4a5aa6e3b997c1",
+          "previewUrl": "https://bourbonsignal-1v7r2zl89-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43565682813",
+              "status": "success",
+              "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
+              "artifactId": "14101879455",
+              "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+              "artifactName": "state-expansion-shadow-43565682813"
+            },
+            {
+              "runId": "43573194351",
+              "status": "success",
+              "artifactHash": "4e8794f5ccf0f34bbc3640f9a8347ddf5932bd1e26ebcd6b8f10d3bfee9b98b8",
+              "artifactId": "14105063250",
+              "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573194351",
+              "artifactName": "state-expansion-shadow-43573194351"
+            },
+            {
+              "runId": "43575218820",
+              "status": "success",
+              "artifactHash": "1a12bce4a50ec32329c56e335844587308b6fbc9a439aae95a7b77463e8882be",
+              "artifactId": "14105613292",
+              "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+              "artifactName": "state-expansion-shadow-43575218820"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43572883679",
+              "status": "success",
+              "artifactHash": "ac90ff1c8a460e3dfe86977365db81bf8854def51ee0e2c25dcf730ca8182b02",
+              "artifactId": "14105097468",
+              "commitSha": "4ed1f2314a4821163699af5272bcf2c22d8b6f39",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43572883679",
+              "artifactName": "state-expansion-canary-AK-43572883679"
+            },
+            {
+              "runId": "43573427082",
+              "status": "success",
+              "artifactHash": "6d3f467be41ea9a1545c211bdcd89f38fc9bfca49f31808ad1bc48bfbb16a4f9",
+              "artifactId": "14105700389",
+              "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573427082",
+              "artifactName": "state-expansion-canary-AK-43573427082"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43581977198",
+            "artifactId": "14108976653",
+            "commitSha": "201eb2b9d6326495a27f20934e3b85f77e84b3a0",
+            "artifactDigest": "367902427956afcd162dc0fea52c0dbdfe7d2f9818f7b8d21df6a7e19aa0767d",
+            "bundleDigest": "9632ee260a74877dc723fcc36334c6576a502220924d1cd6dcd71495b1a37d83",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581977198",
+            "artifactName": "state-promotion-provenance-AK-43581977198"
+          }
+        }
+      }
+    },
+    "LA": {
+      "customerLabel": "Louisiana",
+      "sourceLabel": "Louisiana reviewed exact-store grocery inventory",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "productionAdapter": "louisiana_alaska_grocery_onsite_v1",
+      "customerSummary": "First-party in-store availability at selected Albertsons locations. Exact shelf counts are not published. Verify before driving.",
+      "shadowEligible": false,
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-14T09:45:28.591Z",
+        "shadowArtifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+        "canaryArtifact": "https://bourbonsignal-3drkx2fps-tarsagent22s-projects.vercel.app",
+        "canaryPreviewUrl": "https://bourbonsignal-3drkx2fps-tarsagent22s-projects.vercel.app",
+        "verticalSliceManifest": "engine/data/state-integration/LA.json",
+        "fixtureContract": "engine/data/state-fixtures/LA.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "LA",
+          "generatedAt": "2026-11-14T09:45:28.591Z",
+          "sourceConfigHash": "b23b935869485dd129e9df7b9d75c47f2898fdbb1cdb7108988772925a373bab",
+          "previewUrl": "https://bourbonsignal-3drkx2fps-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43565682813",
+              "status": "success",
+              "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
+              "artifactId": "14101879455",
+              "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+              "artifactName": "state-expansion-shadow-43565682813"
+            },
+            {
+              "runId": "43573194351",
+              "status": "success",
+              "artifactHash": "4e8794f5ccf0f34bbc3640f9a8347ddf5932bd1e26ebcd6b8f10d3bfee9b98b8",
+              "artifactId": "14105063250",
+              "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573194351",
+              "artifactName": "state-expansion-shadow-43573194351"
+            },
+            {
+              "runId": "43575218820",
+              "status": "success",
+              "artifactHash": "1a12bce4a50ec32329c56e335844587308b6fbc9a439aae95a7b77463e8882be",
+              "artifactId": "14105613292",
+              "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+              "artifactName": "state-expansion-shadow-43575218820"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43572885476",
+              "status": "success",
+              "artifactHash": "0679e6d5e9d2c8676e1cfd544670863fbd9dab0ebf78a9524fa30ddeea0fa88f",
+              "artifactId": "14104842945",
+              "commitSha": "4ed1f2314a4821163699af5272bcf2c22d8b6f39",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43572885476",
+              "artifactName": "state-expansion-canary-LA-43572885476"
+            },
+            {
+              "runId": "43573428800",
+              "status": "success",
+              "artifactHash": "3dce40633c5e15316333e8c309b55b9a836c485f3ccf70dc95d0300585f9fc7a",
+              "artifactId": "14105835112",
+              "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573428800",
+              "artifactName": "state-expansion-canary-LA-43573428800"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43581978875",
+            "artifactId": "14108812012",
+            "commitSha": "201eb2b9d6326495a27f20934e3b85f77e84b3a0",
+            "artifactDigest": "9a78b9fd2f34dc822df80a724b66854369e9b012a6a62f814452acc724ee7c48",
+            "bundleDigest": "c9325438be2cff42186b693c3b14e674dc314da50ef6d14e8e0f79af04b37d75",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581978875",
+            "artifactName": "state-promotion-provenance-LA-43581978875"
+          }
+        }
+      }
     }
   }
 }

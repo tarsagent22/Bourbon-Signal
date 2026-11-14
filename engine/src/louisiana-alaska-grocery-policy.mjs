@@ -72,14 +72,59 @@ export function louisianaAlaskaGroceryLibraryTier(row, bible) {
 // Closed first-party on-site evidence may show binary availability without
 // granting watch/notification authority or inventing an exact quantity.
 export function isLouisianaAlaskaGroceryOnSiteSignal(row) {
-  return ['LA', 'AK'].includes(row?.state) && isLouisianaAlaskaGroceryInventory(row)
-    && row.previewOnly !== true && row.researchOnly !== true && row.customerVisible !== false
-    && row.raw?.shadowOnly !== true && row.sourceProductBinding?.shadowOnly !== true
-    && row.quarantined !== true && row.raw?.sourceRuntimeNonAlertable !== true && row.raw?.staleFallback !== true
-    && row.inventorySemantics === row.sourceProductBinding.inventorySemantics
-    && row.eligibleForOnSite === true && row.eligibleForDropFeed === true
-    && row.alertable === false && row.canAlertAsInventory === false && row.canAlertAsWatch === false
-    && row.can_alert_as_inventory !== true && row.can_alert_as_watch !== true && row.deliveryEligible !== true
-    && row.eligibleForWatch === false && row.eligibleForDelivery === false
-    && row.eligibleForEmail === false && row.eligibleForSms === false;
+  if (!['LA', 'AK'].includes(row?.state) || row.previewOnly === true || row.researchOnly === true || row.customerVisible === false
+    || row.sourceRuntimeId !== `${row.state.toLowerCase()}:grocery-xapi`
+    || row.sourceProductBinding?.productionOnSite !== true
+    || row.raw?.shadowOnly === true || row.sourceProductBinding?.shadowOnly === true
+    || row.quarantined === true || row.raw?.sourceRuntimeNonAlertable === true || row.raw?.staleFallback === true
+    || row.quantity !== 0 || row.quantityIsExact !== false
+    || row.inventorySemantics !== 'binary_retailer_orderable_no_exact_count'
+    || row.sourceProductBinding?.inventorySemantics !== 'binary_retailer_orderable_no_exact_count'
+    || row.eligibleForOnSite !== true || row.eligibleForDropFeed !== true
+    || row.alertable !== false || row.canAlertAsInventory !== false || row.canAlertAsWatch !== false
+    || row.can_alert_as_inventory === true || row.can_alert_as_watch === true || row.deliveryEligible === true
+    || row.eligibleForWatch !== false || row.eligibleForDelivery !== false
+    || row.eligibleForEmail !== false || row.eligibleForSms !== false) return false;
+
+  const product = row.raw?.product || row.sourceProductBinding?.productSnapshot;
+  const quantity = product?.channelInventory?.instoreItemQty ?? product?.channelInventory?.inStoreItemQty;
+  const exact = quantity != null && Number.isInteger(Number(quantity)) && Number(quantity) < 100;
+  const sourceSemantics = exact ? 'exact_retailer_quantity' : 'binary_retailer_orderable_no_exact_count';
+  const sourceRow = {
+    ...row,
+    quantity: exact ? Number(quantity) : 0,
+    quantityIsExact: exact,
+    inventorySemantics: sourceSemantics,
+    sourceProductBinding: { ...row.sourceProductBinding, inventorySemantics: sourceSemantics },
+    raw: { ...row.raw, inventorySemantics: sourceSemantics },
+  };
+  return isLouisianaAlaskaGroceryInventory(sourceRow);
+}
+
+export function toLouisianaAlaskaGroceryOnSiteSignal(row) {
+  if (!isLouisianaAlaskaGroceryInventory(row)) return null;
+  const sourceProductBinding = { ...row.sourceProductBinding, productionOnSite: true, inventorySemantics: 'binary_retailer_orderable_no_exact_count' };
+  const raw = { ...row.raw, inventorySemantics: 'binary_retailer_orderable_no_exact_count' };
+  const projected = {
+    ...row,
+    sourceRuntimeId: `${row.state.toLowerCase()}:grocery-xapi`,
+    quantity: 0,
+    quantityIsExact: false,
+    inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+    availabilityLabel: 'Retailer reports in-store availability',
+    evidence: `${row.storeName} reports ${row.rawName} available at ${row.storeAddress}.`,
+    sourceProductBinding,
+    raw,
+    eligibleForOnSite: true,
+    eligibleForDropFeed: true,
+    alertable: false,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    eligibleForWatch: false,
+    eligibleForDelivery: false,
+    deliveryEligible: false,
+    eligibleForEmail: false,
+    eligibleForSms: false,
+  };
+  return isLouisianaAlaskaGroceryOnSiteSignal(projected) ? projected : null;
 }
