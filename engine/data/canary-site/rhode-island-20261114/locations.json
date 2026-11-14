@@ -1,0 +1,58 @@
+{
+  "locations": [
+    {
+      "id": "rhode-island-liquor-delivery:64f6226b7537422b95e04824",
+      "storeId": "rhode-island-liquor-delivery:64f6226b7537422b95e04824",
+      "state": "RI",
+      "name": "Rhode Island Liquor Delivery",
+      "storeName": "Rhode Island Liquor Delivery",
+      "address": "342 Broad St, Providence, RI 02907, USA",
+      "storeAddress": "342 Broad St, Providence, RI 02907, USA",
+      "city": "Providence",
+      "zip": "02907",
+      "type": "store",
+      "locationType": "store",
+      "source": "Rhode Island Liquor Delivery RI first-party pickup inventory",
+      "precision": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true
+    },
+    {
+      "id": "fifth-ward-liquor:546babb03932330002100300",
+      "storeId": "fifth-ward-liquor:546babb03932330002100300",
+      "state": "RI",
+      "name": "Fifth Ward Liquor",
+      "storeName": "Fifth Ward Liquor",
+      "address": "695 Thames St, Newport, RI 02840, USA",
+      "storeAddress": "695 Thames St, Newport, RI 02840, USA",
+      "city": "Newport",
+      "zip": "02840",
+      "type": "store",
+      "locationType": "store",
+      "source": "Fifth Ward Liquor RI first-party pickup inventory",
+      "precision": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true
+    },
+    {
+      "id": "california-liquors-ri:6114919961187149b8241cdd",
+      "storeId": "california-liquors-ri:6114919961187149b8241cdd",
+      "state": "RI",
+      "name": "California Liquors",
+      "storeName": "California Liquors",
+      "address": "84 Union Ave, Providence, RI 02909, USA",
+      "storeAddress": "84 Union Ave, Providence, RI 02909, USA",
+      "city": "Providence",
+      "zip": "02909",
+      "type": "store",
+      "locationType": "store",
+      "source": "California Liquors RI first-party pickup inventory",
+      "precision": "store_level",
+      "searchable": true,
+      "collectorAttached": true,
+      "hasSignals": true
+    }
+  ]
+}
