@@ -1,0 +1,471 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "6060f47c27f7c71989f0749c",
+        "name": "Greenbelt Liquors",
+        "display_name": "Greenbelt Liquors",
+        "address": {
+          "full_address": "6000 Greenbelt Rd #168, Greenbelt, MD 20770, USA",
+          "address_properties": {
+            "success": true,
+            "lat": 38.9995236,
+            "lng": -76.9099301,
+            "country_code": "US",
+            "city": "Greenbelt",
+            "state": "MD",
+            "zip": "20770",
+            "street_address": "6000 Greenbelt Road",
+            "province": "MD",
+            "district": "Prince George's County",
+            "provider": "google",
+            "full_address": "6000 Greenbelt Rd #168, Greenbelt, MD 20770, USA",
+            "is_us?": true,
+            "ll": "38.9995236,-76.9099301",
+            "precision": "building",
+            "sub_premise": "168",
+            "street_number": "6000",
+            "state_full_name": "Maryland"
+          },
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -76.9099301,
+              38.9995236
+            ]
+          },
+          "district": "Prince George's County",
+          "province": "MD",
+          "street_address": "6000 Greenbelt Road",
+          "zipcode": "20770",
+          "state": "MD",
+          "city": "Greenbelt",
+          "country_code": "US",
+          "apt": null,
+          "id": "6060f47c27f7c71989f0749b",
+          "place_id": "EjA2MDAwIEdyZWVuYmVsdCBSZCAjMTY4LCBHcmVlbmJlbHQsIE1EIDIwNzcwLCBVU0EiHxodChYKFAoSCeHM2Wr8w7eJEb8FneAyGFttEgMxNjg"
+        },
+        "email": "gbelt2020@gmail.com",
+        "display_email": "gbelt2020@gmail.com",
+        "phone_number": "+13014741890",
+        "accept_orders": true,
+        "onboarding_state": "active",
+        "delivery_area": {
+          "id": "6060f48127f7c71989f0749e",
+          "type": "Polygon",
+          "delivery_fee_type": "fixed",
+          "minimum_delivery": 60,
+          "force_delivery_fee": false,
+          "min_to_leave_store": 29.99,
+          "delivery_fee": 5.99,
+          "base_fee": 0,
+          "max_delivery_time": 60,
+          "last_delivery_time_offset": 0,
+          "first_delivery_time_offset": 0,
+          "hour_step": 1,
+          "name": "greenbelt",
+          "coordinates": [
+            [
+              [
+                -76.88373064473875,
+                39.067264746019205
+              ],
+              [
+                -76.87487899259337,
+                39.06416300998726
+              ],
+              [
+                -76.86716532186277,
+                39.037865092714235
+              ],
+              [
+                -76.84021480120016,
+                39.0399675544425
+              ],
+              [
+                -76.84034250692137,
+                39.03219814826543
+              ],
+              [
+                -76.86428926900632,
+                38.96423162661225
+              ],
+              [
+                -76.97084879354246,
+                38.9763099359044
+              ],
+              [
+                -76.96561312154539,
+                39.01333279380254
+              ],
+              [
+                -76.93042253927,
+                39.03873727201731
+              ],
+              [
+                -76.90535997823484,
+                39.05233591657516
+              ],
+              [
+                -76.88373064473875,
+                39.067264746019205
+              ]
+            ]
+          ],
+          "delivery_hours": null
+        },
+        "merchant_type": "Beer, Wine, and Liquor Stores",
+        "premise_type": "Off Premise",
+        "inventory_owner": null,
+        "chain": null,
+        "aggregation_type": "single_store",
+        "max_delivery_time": 60,
+        "pickup": true,
+        "delivery": true,
+        "shipping": null,
+        "allow_delivery_tip": true,
+        "minimum_delivery": 60,
+        "work_hours": null,
+        "type": "Beer, Wine, and Liquor Stores",
+        "delivery_hours": {
+          "sun": {
+            "opening": "10:00",
+            "closing": "18:00"
+          },
+          "mon": {
+            "opening": "09:30",
+            "closing": "20:30"
+          },
+          "tue": {
+            "opening": "09:30",
+            "closing": "20:30"
+          },
+          "wed": {
+            "opening": "09:30",
+            "closing": "21:00"
+          },
+          "thu": {
+            "opening": "09:30",
+            "closing": "20:30"
+          },
+          "fri": {
+            "opening": "09:30",
+            "closing": "21:30"
+          },
+          "sat": {
+            "opening": "09:30",
+            "closing": "21:30"
+          }
+        },
+        "business_hours": {
+          "sun": {
+            "opening": "09:30",
+            "closing": "19:00"
+          },
+          "mon": {
+            "opening": "09:30",
+            "closing": "22:00"
+          },
+          "tue": {
+            "opening": "09:30",
+            "closing": "22:00"
+          },
+          "wed": {
+            "opening": "09:30",
+            "closing": "22:00"
+          },
+          "thu": {
+            "opening": "09:30",
+            "closing": "22:00"
+          },
+          "fri": {
+            "opening": "09:30",
+            "closing": "23:00"
+          },
+          "sat": {
+            "opening": "09:30",
+            "closing": "23:00"
+          }
+        },
+        "app_info": null,
+        "assets": {
+          "email_logo": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/6060f47c27f7c71989f0749c/image/6678ec377112db2950dbb674.png?1719200823",
+          "campaign_logo_on_light_background": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/6060f47c27f7c71989f0749c/image/6678ec377112db2950dbb676.png?1719200823",
+          "campaign_logo_on_dark_background": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/6060f47c27f7c71989f0749c/image/6678ec377112db2950dbb678.png?1719200823",
+          "raw_logo": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/6060f47c27f7c71989f0749c/image/6675c7e9483e882949df2595.png?1718994921",
+          "assets": []
+        },
+        "referral_program": {
+          "enabled": false,
+          "message": "Give your friends  off their first online order and get  in store credit!",
+          "title": "Give , Get ",
+          "amount": null,
+          "percentage": false
+        },
+        "last_inventory_upload": "2026-11-13T15:45:32.934-05:00",
+        "integrated": true,
+        "wine_club": {
+          "enabled": true,
+          "name": "Greenbelt Liquors Subscription Clubs!",
+          "image": null,
+          "information": "<p><strong>How It Works</strong></p><p>Join one of our monthly subscriptions to start the following month.By enrolling, you are authorizing a recurring monthly charge to your credit card.You may cancel by contacting the store at <a target=\"_blank\" href=\"mailto:gbelt2020@gmail.com\">gbelt2020@gmail.com</a>.Wines purchased through our subscription services are not refundable.</p>",
+          "is_live": false
+        },
+        "is_d2c_connected": null,
+        "store_credit": {
+          "allow_store_credit_use": true,
+          "allow_store_credit_use_with_discount": true,
+          "store_credit_points_mode": false,
+          "store_credit_points_factor": 1,
+          "minimum_store_credit_amount": 0,
+          "maximum_store_credit_amount": 0,
+          "max_store_credit_to_apply_on_orders": 0,
+          "user_defined_store_credit": true
+        },
+        "current_payment_gateway_name": "adyen",
+        "secondary_payment_gateway_name": null,
+        "account_manager": {
+          "node_id": "694062ce781c6422661422b3",
+          "node_type": "merchant_app_user"
+        },
+        "tip_config": {
+          "allow_delivery_tip": true,
+          "allow_pickup_tip": false,
+          "allow_shipping_tip": false,
+          "allow_custom_tip": true,
+          "allow_cash_tip": true,
+          "tip_levels": [
+            5,
+            10,
+            15
+          ],
+          "default_tip": "5",
+          "default_delivery_tip": "5",
+          "default_pickup_tip": "5",
+          "default_shipping_tip": "10",
+          "driver_tip_percentage": 1
+        },
+        "multi_store_parent": null,
+        "allow_future_orders": true,
+        "validate_date_of_birth_on_checkout": false,
+        "timezone": "America/New_York",
+        "is_marketplace": null,
+        "reviews_services": {
+          "google_placeid": null,
+          "facebook_pagename": null,
+          "yelp_pagename": null,
+          "google_map_url": null
+        },
+        "node_type": "merchant",
+        "node_id": "6060f47c27f7c71989f0749c",
+        "allow_event_guest_checkout": false
+      },
+      "colors": {
+        "id": "6675c66a30bb6b6308551996",
+        "alt_back_color": "#4A583C",
+        "alt_color": "#4A583C",
+        "alt_header": "#F6F6F6",
+        "background_color": "#FFFFFF",
+        "discount_banner_alt": "#FFFFFF",
+        "main_color": "#000000",
+        "merch_name_color": "#777777"
+      },
+      "signup_message": ""
+    }
+  ],
+  "product": {
+    "id": "666cfab3d1f713224b485df5",
+    "name": "Blantons Single Barrel Bourbon",
+    "basic_category": [
+      "bourbon",
+      "whiskey"
+    ],
+    "description": null,
+    "images": {
+      "primary": {
+        "original": "https://cityhive-prod-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/original.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c",
+        "large": "https://cityhive-production-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/large.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c",
+        "medium": "https://cityhive-prod-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/medium.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c",
+        "small": "https://cityhive-prod-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/small.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c",
+        "thumbnail": "https://cityhive-prod-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/thumbnail.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c"
+      },
+      "more_images": []
+    },
+    "size": {
+      "measure": "ml",
+      "quantity": "750"
+    },
+    "tags": [],
+    "views": [
+      "alcohol",
+      "spirits"
+    ],
+    "customer_favorite": false,
+    "is_taxed": true,
+    "options": [],
+    "merchants": [
+      {
+        "offer_types": [
+          "pick_up",
+          "delivery",
+          "shipping"
+        ],
+        "product_options": [
+          {
+            "product_id": "666cfab3d1f713224b485df5",
+            "option_id": "e1ef63f9f129b277e63339a88a9f511c854a8e36dd94e6d983a1b880f5bc9e05",
+            "option_params": {
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              }
+            },
+            "product_url": "https://delivery.greenbeltliquors.com/shop/product/blantons-single-barrel-bourbon/666cfab3d1f713224b485df5?option-id=e1ef63f9f129b277e63339a88a9f511c854a8e36dd94e6d983a1b880f5bc9e05",
+            "product_url_path": "/product/blantons-single-barrel-bourbon/666cfab3d1f713224b485df5?option-id=e1ef63f9f129b277e63339a88a9f511c854a8e36dd94e6d983a1b880f5bc9e05",
+            "original_option_params": {
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              }
+            },
+            "stock_components": [],
+            "units_of_measure": [],
+            "badge": {
+              "value": "all products",
+              "label": null,
+              "style": null,
+              "tooltip": null
+            },
+            "product_badge_icons": [
+              {
+                "type": "group_badge_icon",
+                "badge_html": "<img height=\"24\" width=\"24\" src=\"https://assets.cityhive.net/icon-badges/icon_badge_medal.png\" alt=\"\" aria-hidden=\"true\">",
+                "mini_badge_html": "<img height=\"24\" width=\"24\" src=\"https://assets.cityhive.net/icon-badges/icon_badge_medal.png\" alt=\"\" aria-hidden=\"true\">",
+                "description": null,
+                "group_id": "65806b4ab9cd602bf9cc7ced",
+                "group_name": "Best Sellers",
+                "group_label": "",
+                "group_name_slug": "best-sellers",
+                "group_tooltip": null
+              }
+            ],
+            "product_badges": [],
+            "store_credit_price": 0,
+            "quantity": 15,
+            "max_purchase_quantity": null,
+            "min_purchase_quantity": null,
+            "staff_pick": true,
+            "pinned_as_default": false,
+            "staff_pick_description": "Discover the unique, handcrafted taste of Blanton's Single Barrel Bourbon.  An exceptional whiskey to add to your collection.",
+            "store_specific_description": "",
+            "staff_pick_recommender": "Lakshit Gaint ",
+            "product_modifiers": [],
+            "preorder_details": null,
+            "store_specific_tags": [
+              "whiskey",
+              "bourbon"
+            ],
+            "allowed_offer_types": null,
+            "product_tags": [],
+            "product_lists_info": null,
+            "available_in_merchant_ids": null,
+            "past_purchase": false,
+            "rich_properties": [],
+            "cityhive_rank": 0,
+            "product_page_custom_content": [],
+            "product_stats": null,
+            "merchant_id": "6060f47c27f7c71989f0749c",
+            "merchant_name": "Greenbelt Liquors",
+            "coordinates": [
+              -76.9099301,
+              38.9995236
+            ],
+            "full_address": "6000 Greenbelt Rd #168, Greenbelt, MD 20770, USA",
+            "price": 79.99,
+            "original_price": 94.48,
+            "discount_value": null,
+            "discount_style": {},
+            "description": "",
+            "option_display_data": {
+              "name": "Blantons Single Barrel Bourbon",
+              "description": null,
+              "images": {
+                "primary": {
+                  "original": "https://cityhive-prod-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/original.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c",
+                  "large": "https://cityhive-production-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/large.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c",
+                  "medium": "https://cityhive-prod-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/medium.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c",
+                  "small": "https://cityhive-prod-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/small.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c",
+                  "thumbnail": "https://cityhive-prod-cdn.cityhive.net/product_details/69542ec085fb444e3345e4b2/primary_image/thumbnail.png?sig=e2b6799f563da59471af3a69051a9d3673fc318158fd6d78851957315a3d8e7c"
+                },
+                "more_images": []
+              },
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              },
+              "subtitle": null,
+              "views": [
+                "alcohol",
+                "spirits"
+              ],
+              "basic_category": [
+                "bourbon",
+                "whiskey"
+              ],
+              "properties": {
+                "product_views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "product_basic_categories": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "brands": [
+                  "Blanton's"
+                ]
+              },
+              "product_group_product_subtitle": {
+                "product_subtitle": null,
+                "show_product_subtitle_on_app_and_website": null,
+                "override_individual_product_subtitle": null
+              }
+            },
+            "additional_properties": {
+              "type": "spirits",
+              "subtype": "bourbon, whiskey",
+              "brands": "Blanton's"
+            },
+            "default_option": true
+          }
+        ],
+        "additional_properties": {
+          "brand": "Blantons",
+          "brands": [
+            "Blantons"
+          ]
+        },
+        "merchant_id": "6060f47c27f7c71989f0749c",
+        "merchant_name": "Greenbelt Liquors",
+        "coordinates": [
+          -76.9099301,
+          38.9995236
+        ],
+        "full_address": "6000 Greenbelt Rd #168, Greenbelt, MD 20770, USA"
+      }
+    ],
+    "product_rating": 0,
+    "number_of_product_ratings": 0,
+    "variations": null,
+    "product_modifiers": null,
+    "additional_properties": {
+      "brand": "Blantons",
+      "type": "spirits",
+      "subtype": "bourbon, whiskey",
+      "brands": "Blantons"
+    },
+    "is_enriched": false,
+    "brand_action": null,
+    "rich_properties": null
+  }
+}

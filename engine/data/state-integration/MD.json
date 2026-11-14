@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "state": "MD",
+  "lifecycle": {
+    "customerLabel": "Maryland",
+    "publicStatus": "research_only",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": ["md:central-cityhive"],
+    "registration": "Dormant four-premise Maryland CityHive pickup cohort; eight merchant-scoped queries are capped at 50 seconds. Montgomery County ABS remains an independent MD-MONTGOMERY aggregate source and is not included in Maryland retailer inventory.",
+    "cohortSha256": "b6c1273f7613d5a66d3c12f6856f7ae3542168fe1d3ca742296cdd2c6f1d86e2"
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 4,
+    "proof": "Each source response must reparse its exact merchant configuration, physical address, city and coordinates. Only current exact 750 mL library identities with a positive first-party pickup option qualify; reported stock remains binary, and every alert and delivery channel is disabled."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability at the four reviewed premises. Positive options do not establish exact shelf counts.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": { "status": "pending_first_publication", "assertion": "Maryland-wide exact-store coverage remains dormant until the source-scoped first-publication receipt is verified." },
+    "finder": { "status": "pending_first_publication", "assertion": "The four exact Maryland premises must be returned by public Finder without absorbing Montgomery County aggregate data." },
+    "monitoring": { "status": "pending_first_publication", "assertion": "MD retailer inventory and MD-MONTGOMERY aggregate rows are measured and published as separate partitions." },
+    "alerts": { "status": "verified_disabled", "assertion": "Retailer pickup rows remain informational and all inventory, watch, email, SMS, and delivery channels remain disabled." }
+  },
+  "evidence": {
+    "shadow": { "status": "not_started", "runs": 0, "originalSourceClocksPreserved": true },
+    "canary": { "status": "not_started", "runs": 0, "allDeliveryChannelsDisabled": true },
+    "production": { "status": "awaiting_first_publication", "url": "https://www.bourbonsignal.com/api/coverage", "assertion": "Verify independent MD exact-store and MD-MONTGOMERY aggregate partition counts, current source clocks, and the source-bound immutable first-publication receipt before admission." }
+  }
+}
