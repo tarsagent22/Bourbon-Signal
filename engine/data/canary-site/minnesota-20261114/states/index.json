@@ -1,0 +1,11 @@
+{
+  "runId": "02d0492454370a30",
+  "stateCount": 1,
+  "states": [
+    {
+      "state": "MN",
+      "file": "states/MN/drops.json",
+      "count": 7
+    }
+  ]
+}

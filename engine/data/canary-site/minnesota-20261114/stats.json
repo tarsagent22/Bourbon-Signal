@@ -1,0 +1,20 @@
+{
+  "stateCoverage": {
+    "states": [
+      {
+        "state": "MN",
+        "status": "canary_preview",
+        "signalCount": 7,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Minnesota",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Minnesota first-party retailer research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      }
+    ]
+  }
+}
