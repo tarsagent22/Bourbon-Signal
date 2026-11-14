@@ -1,6 +1,6 @@
 import { CENTRAL_CITYHIVE_PRODUCTION_SOURCES } from './collectors/central-cityhive-premises.mjs';
 
-const names=Object.freeze({WI:'Wisconsin',OK:'Oklahoma',RI:'Rhode Island'});
+const names=Object.freeze({WI:'Wisconsin',OK:'Oklahoma',RI:'Rhode Island',CT:'Connecticut'});
 export const CENTRAL_CITYHIVE_STATE_CONFIGS=Object.freeze(Object.entries(names).map(([id,name])=>{
   const sources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state===id);
   return Object.freeze({id,label:`Selected ${name} first-party retailer inventory`,tier:'B',
