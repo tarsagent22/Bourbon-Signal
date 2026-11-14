@@ -77,6 +77,11 @@ assert.ok(generatedCatalog.records.length >= 1_000, "the generated Drop Feed art
 assert.ok(generatedIndex.byId.size >= 1_000, "the generated classification index must retain canonical bottle identity");
 assert.ok(generatedIndexMs < 250, `the generated classification index must remain fast enough for a cold request (received ${generatedIndexMs.toFixed(1)}ms)`);
 
+const kingRanch = { canonicalId: "bb_a3e109c627a8eb46", bottleName: "Old Forester King Ranch", tier: "limited" };
+assert.equal(resolveDropClassification({ ...kingRanch, state: "NC" }, generatedIndex).tier, "allocated");
+assert.equal(resolveDropClassification({ ...kingRanch, state: "TX" }, generatedIndex).tier, "limited");
+assert.equal(resolveDropClassification({ bottleName: "Old Forester", state: "NC", tier: "limited" }, generatedIndex).tier, "regular");
+
 const westVirginiaEzra = resolveDropClassification({
   bottle_id: "bb_1799afb0fab6e7bd",
   bottle_name: "Ezra Brooks Stave Finish Spice & Clove",

@@ -26,6 +26,10 @@ import { readLatestOhlqWorkerEnvelope } from './ohlq-worker-artifact-store';
 
 type Row = Record<string, any>;
 type PollSource = Row & { id:string;state:string;kind:string;expiryHours:number };
+const dropClassification = () => getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
+// NC publishes one statewide extract for many boards. Leave room for revised
+// classifications and new board releases alongside already pending candidates.
+const NC_SHIPMENT_CANDIDATE_LIMIT = 400;
 export const POLL_SOURCES: PollSource[] = [
   ...SHOPIFY_PICKUP_SOURCES,
   {id:'nc:board-shipments',state:'NC',kind:'nc-shipments',cadence:1800,expiryHours:168},
@@ -51,7 +55,7 @@ function policyContextFromExports(bottles: SiteExportResult, health: SiteExportR
     || health.payload?.quarantine || health.payload?.bootstrap || alerts.payload?.quarantine || alerts.payload?.bootstrap || alerts.payload?.manualRefresh) throw new Error('policy_snapshot_unavailable');
   const records:Row[]=(Array.isArray(bottles.payload?.bottles) ? bottles.payload.bottles as Row[] : []).map((b: Row)=>({ ...b,id:b.canonical_id || b.id,canonical:b.canonical_name || b.name, normalizedKey:fingerprintName(b.canonical_name || b.name),aliases:b.aliases || [] }));
   const lookup=bibleLookup(records);
-  const classificationIndex=getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
+  const classificationIndex = dropClassification();
   const byState=Object.fromEntries([...new Set(SHOPIFY_PICKUP_SOURCES.map((source:Row)=>source.state))].map(state=>[state,
     bibleLookup(records.map(record=>({...record,tier:resolveDropClassification({state,canonical_id:record.id,canonical_name:record.canonical,tier:record.tier},classificationIndex).tier})))]));
   return {records,lookup:{...lookup,byState},snapshotId:bottles.snapshotId,health:health.payload};
@@ -137,12 +141,18 @@ export async function runSourceScheduler({trigger='unspecified'}:{trigger?:strin
       }
       const signals=(result.signals || []).filter((s: Row)=>!s.stale && !s.raw?.cacheFallback && s.canonicalBottleId && sourceScopeMatches(source,s));
       const previous=lease.projection?.drops || ctx.drops.filter((d: Row)=>sourceScopeMatches(source,d));
-      const drops=buildDrops(signals,ctx.lookup,signals,previous,signals);
+      const ncShipments = source.kind === 'nc-shipments';
+      const sourceDrops = buildDrops(signals, ctx.lookup, signals, previous, signals);
+      const classificationIndex = dropClassification();
+      const drops = ncShipments ? sourceDrops.map((drop: Row) => {
+        const classification = resolveDropClassification(drop, classificationIndex);
+        return classification.source === 'state_override' ? { ...drop, tier: classification.tier } : drop;
+      }) : sourceDrops;
       const priorCandidates=new Map<string,Row>((lease.projection?.candidates || []).map((c: Row)=>[c.dedupeKey,c]));
       const candidates=[...buildCurrentInventoryAlertsFromDrops(drops),...buildRegionalWatchAlertsFromDrops(drops)]
         .map(applyAlertPolicyToCandidate).filter((c: Row)=>c.eligibleForDelivery && (c.actionabilityClass==='store_inventory'?lifecycleAllowsInventoryAlert(source.state):lifecycleAllowsWatchAlert(source.state)))
-        .filter((c: Row)=>Boolean(lease.projection) && (priorCandidates.has(c.dedupeKey) || !previous.some((d: Row)=>(d.availabilityEpisodeId && d.availabilityEpisodeId===c.availabilityEpisodeId) || (source.kind==='nc-shipments' && d.bottleName===c.bottle && d.locationName===c.locationName && d.quantity===c.quantity))))
-        .sort((a: Row,b: Row)=>Number(b.reliabilityScore)-Number(a.reliabilityScore)).slice(0,200)
+        .filter((c: Row)=>Boolean(lease.projection) && (priorCandidates.has(c.dedupeKey) || !previous.some((d: Row)=>(d.availabilityEpisodeId && d.availabilityEpisodeId===c.availabilityEpisodeId) || (ncShipments && d.bottleName===c.bottle && d.locationName===c.locationName && d.quantity===c.quantity && d.tier===c.tier))))
+        .sort((a: Row,b: Row)=>Number(b.reliabilityScore)-Number(a.reliabilityScore)).slice(0,ncShipments ? NC_SHIPMENT_CANDIDATE_LIMIT : 200)
         .map((c: Row)=>({...c,sourcePollId:source.id,sourcePollRun:owner,sourcePollGeneration:Number(lease.generation),sourcePolicySnapshotId:ctx.snapshotId}));
       const projection={drops:drops.map((d: Row)=>({...d,sourcePollId:source.id,sourcePollRun:owner,sourcePollGeneration:Number(lease.generation)})),candidates,acceptedAt:new Date().toISOString(),policyId:ctx.snapshotId};
       const pilot=source.id==='fl:jensens-miami' || source.id==='ca:mission-trails-wine-spirits';
