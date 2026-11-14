@@ -48,6 +48,21 @@ export function validateInactiveMinnesotaShadowLifecycleTransition({candidateLif
   return JSON.stringify(expectedShadow)===JSON.stringify(shadowLifecycle);
 }
 
+export function validateInactiveMissouriShadowLifecycleTransition({candidateLifecycle,shadowLifecycle,comparison,shadowHeadSha}){
+  const lifecyclePath='src/config/state-lifecycle.json';
+  if(comparison?.status!=='ahead'||comparison?.base_commit?.sha!==shadowHeadSha
+    ||!Array.isArray(comparison?.files)||comparison.files.filter(file=>file.filename===lifecyclePath).length!==1
+    ||!Array.isArray(candidateLifecycle?.activeStates)||!candidateLifecycle.activeStates.includes('MO')
+    ||candidateLifecycle.states?.MO?.publicStatus!=='active')return false;
+  const expectedShadow=structuredClone(candidateLifecycle);
+  expectedShadow.activeStates=expectedShadow.activeStates.filter(id=>id!=='MO');
+  expectedShadow.states.MO={customerLabel:'Missouri',sourceLabel:'Missouri Costco warehouse bourbon watch',
+    publicStatus:'research_only',shadowEligible:true,lifecycle:'blocked_costco_inventory_research',coverageTier:'blocked',
+    refinementLevel:'warehouse',inventoryAlertable:false,watchAlertable:false,
+    customerSummary:'Research-only: Missouri has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.'};
+  return JSON.stringify(expectedShadow)===JSON.stringify(shadowLifecycle);
+}
+
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
   if(!['WI','OK','RI','MN','MO'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
   if(run?.conclusion!=='success'||run.status!=='completed'||run.repository?.full_name!==repository
@@ -60,8 +75,12 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
   const inactiveMnShadowTransition=state==='MN'&&changes?.filter(file=>file.filename==='src/config/state-lifecycle.json').length===1
     &&comparison?.status==='ahead'&&Number(comparison.ahead_by)===1&&Number(comparison.behind_by)===0
     &&comparison?.mnShadowLifecycleProof===true;
+  const inactiveMoShadowTransition=state==='MO'&&changes?.filter(file=>file.filename==='src/config/state-lifecycle.json').length===1
+    &&comparison?.status==='ahead'&&comparison?.moShadowLifecycleProof===true;
   const unreviewedChanges=Array.isArray(changes)?changes.filter(file=>!(preparationOnly(state,file.filename)
     ||state==='MO'&&missouriCanarySiteFiles.has(file.filename)
+    ||state==='MO'&&['engine/src/verification/historical-implementation.mjs','scripts/test-ms-bundle-boundary.mjs'].includes(file.filename)
+    ||state==='MO'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMoShadowTransition
     ||state==='MN'&&minnesotaAdapterFiles.has(file.filename)
     ||state==='MN'&&['src/lib/public-drop-evidence.ts','scripts/test-laak-production-projection.mjs','.github/workflows/refresh-feed.yml','engine/test/engine-continuity.test.mjs'].includes(file.filename)
     ||state==='MN'&&file.filename==='src/config/state-lifecycle.json'&&inactiveMnShadowTransition)):[];
@@ -71,6 +90,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
   return {status:'verified_github_shadow_artifact',state,repository,workflowRunId:String(run.id),workflowRunUrl:run.html_url,
     headSha:run.head_sha,currentHead,sourceEquivalentPreparationChanges:changes.map(file=>file.filename),
     inactiveMinnesotaShadowLifecycleTransition:inactiveMnShadowTransition,
+    inactiveMissouriShadowLifecycleTransition:inactiveMoShadowTransition,
     artifactId:String(artifact.id),artifactName:artifact.name,artifactDigest:artifact.digest.slice(7),verifiedAt:new Date().toISOString()};
 }
 const argument=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);
@@ -93,6 +113,13 @@ async function main(){
       const commit=api(`commits/${currentHead}`);
       comparison.mnShadowLifecycleProof=run.head_sha===comparison.base_commit?.sha
         &&validateInactiveMinnesotaShadowLifecycleTransition({candidateLifecycle,shadowLifecycle,comparison,commit});
+    }
+    if(state==='MO'&&comparison.status==='ahead'){
+      const lifecyclePath='src/config/state-lifecycle.json';
+      const runLifecycle=api(`contents/${lifecyclePath}?ref=${run.head_sha}`);
+      const candidateLifecycle=JSON.parse(execFileSync('git',['show',`${currentHead}:${lifecyclePath}`],{encoding:'utf8',maxBuffer:2*1024*1024}));
+      const shadowLifecycle=JSON.parse(Buffer.from(runLifecycle.content,'base64').toString('utf8'));
+      comparison.moShadowLifecycleProof=validateInactiveMissouriShadowLifecycleTransition({candidateLifecycle,shadowLifecycle,comparison,shadowHeadSha:run.head_sha});
     }
   }
   const provenance=validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison});

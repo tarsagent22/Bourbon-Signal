@@ -4,7 +4,7 @@ import {zipSync,strToU8} from 'fflate';
 import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
-import {validateCityHiveShadowWorkflowOrigin,validateInactiveMinnesotaShadowLifecycleTransition,decodeBoundedShadowArchive} from './download-cityhive-shadow.mjs';
+import {validateCityHiveShadowWorkflowOrigin,validateInactiveMinnesotaShadowLifecycleTransition,validateInactiveMissouriShadowLifecycleTransition,decodeBoundedShadowArchive} from './download-cityhive-shadow.mjs';
 const base={state:'WI',repository:'tarsagent22/Bourbon-Signal',currentHead:'a'.repeat(40),
   run:{id:123,status:'completed',conclusion:'success',head_sha:'a'.repeat(40),repository:{full_name:'tarsagent22/Bourbon-Signal'},path:'.github/workflows/state-expansion-shadow.yml'},
   artifact:{id:456,name:'state-expansion-shadow-123',digest:'sha256:'+'b'.repeat(64),size_in_bytes:100,expired:false}};
@@ -53,6 +53,25 @@ test('CityHive downloader requires actual successful source-equivalent shadow wo
     comparison:lifecycleComparison,commit:lifecycleCommit}),false);
   assert.equal(validateInactiveMinnesotaShadowLifecycleTransition({candidateLifecycle:activeLifecycle,shadowLifecycle:inactiveLifecycle,
     comparison:{...lifecycleComparison,ahead_by:2},commit:lifecycleCommit}),false);
+  const activeMissouri={activeStates:['RI','MN','MO'],states:{RI:{publicStatus:'active'},MN:{publicStatus:'active'},
+    MO:{customerLabel:'Missouri',sourceLabel:'Missouri reviewed CityHive pickup inventory',publicStatus:'active',shadowEligible:false,
+      lifecycle:'retailer_store_inventory',coverageTier:'sparse_live_store_inventory',refinementLevel:'store',inventoryAlertable:false,
+      watchAlertable:false,promotionStage:'active',promotionEvidence:{shadowRuns:4,canaryRuns:4,immutableEvidence:{bundleDigest:'verified'}}}}};
+  const dormantMissouri=structuredClone(activeMissouri);dormantMissouri.activeStates=['RI','MN'];
+  dormantMissouri.states.MO={customerLabel:'Missouri',sourceLabel:'Missouri Costco warehouse bourbon watch',publicStatus:'research_only',shadowEligible:true,
+    lifecycle:'blocked_costco_inventory_research',coverageTier:'blocked',refinementLevel:'warehouse',inventoryAlertable:false,
+    watchAlertable:false,customerSummary:'Research-only: Missouri has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked.'};
+  const moLifecycleComparison={status:'ahead',base_commit:{sha:'d'.repeat(40)},files:[{filename:'src/config/state-lifecycle.json'}]};
+  assert.equal(validateInactiveMissouriShadowLifecycleTransition({candidateLifecycle:activeMissouri,shadowLifecycle:dormantMissouri,
+    comparison:moLifecycleComparison,shadowHeadSha:'d'.repeat(40)}),true);
+  assert.equal(validateInactiveMissouriShadowLifecycleTransition({candidateLifecycle:activeMissouri,shadowLifecycle:dormantMissouri,
+    comparison:moLifecycleComparison,shadowHeadSha:'e'.repeat(40)}),false);
+  const inactiveMoAhead={...ahead,state:'MO',comparison:{...moLifecycleComparison,moShadowLifecycleProof:true,files:[
+    ...moCanaryFiles.map(filename=>({filename})),{filename:'src/config/state-lifecycle.json'},
+    {filename:'engine/src/verification/historical-implementation.mjs'},
+  ]}};
+  assert.equal(validateCityHiveShadowWorkflowOrigin(inactiveMoAhead).inactiveMissouriShadowLifecycleTransition,true);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...inactiveMoAhead,comparison:{...inactiveMoAhead.comparison,moShadowLifecycleProof:false}}),/source changed/);
   const inactiveMnAhead={...ahead,state:'MN',comparison:{...lifecycleComparison,mnShadowLifecycleProof:true,files:[
     {filename:'src/config/state-lifecycle.json'},{filename:'scripts/download-cityhive-shadow.mjs'},
     {filename:'src/lib/public-drop-evidence.ts'},{filename:'scripts/test-laak-production-projection.mjs'},

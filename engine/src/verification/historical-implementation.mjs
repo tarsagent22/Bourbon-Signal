@@ -184,7 +184,9 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     const msStart = text.indexOf(`    ${quote}MS${quote}: {`, moStart);
     const moEnd = msStart > moStart ? text.lastIndexOf('    },', msStart) : -1;
     const activeMissouri = moEnd > moStart ? text.slice(moStart, moEnd + 6) : '';
-    if (activeMissouri && createHash('sha256').update(activeMissouri).digest('hex') === '4903f307402d6bda0a655772a81cde6f39408d2ec08a7c667cf4bd9ca872fbc0') {
+    if (activeMissouri && ['4903f307402d6bda0a655772a81cde6f39408d2ec08a7c667cf4bd9ca872fbc0',
+      '4cbb1b6701d454a0c276f096d87e5e0df5ac1e2149af47e6f134582001cca400']
+      .includes(createHash('sha256').update(activeMissouri).digest('hex'))) {
       const dormantMissouri = `    "MO": {
       "customerLabel": "Missouri",
       "sourceLabel": "Missouri Costco warehouse bourbon watch",
