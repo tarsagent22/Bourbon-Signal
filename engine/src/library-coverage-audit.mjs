@@ -52,7 +52,7 @@ function verifiedStateQueries(report, state, nowMs, maxAgeMs) {
       return request.status === 200 && request.ok && url?.protocol === 'https:'
         && url.pathname === '/shop/' && term?.trim() ? [{ term }] : [];
     }) : [];
-  const grocery = ['AK', 'LA'].includes(state) && ['closed_profile_verified', 'positive_only_verified'].includes(metadata?.productionAdmission?.status)
+  const grocery = ['AK', 'LA'].includes(state) && ['closed_profile_verified', 'positive_evidence_only'].includes(metadata?.productionAdmission?.status)
     ? rowsOf(metadata.requests).filter(request => request.kind === 'inventory'
       && request.ok && current(request.observedAt)) : [];
   return [...precision, ...cityHiveQueries, ...grocery];
