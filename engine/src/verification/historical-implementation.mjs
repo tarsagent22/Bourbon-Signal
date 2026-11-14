@@ -151,7 +151,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
     const activeKansasTail=/^    \},\n    "KS": \{[\s\S]+?^    \}\n  \}/mu.exec(text)?.[0];
-    if(activeKansasTail&&createHash('sha256').update(activeKansasTail).digest('hex')==='0e8a294761ca13a95935327cafb950cffffbebbabeb66eb5f45f388a06858186'){
+    const kansasTailSha=name==='src/config/state-lifecycle.json'
+      ?'ab07bde386e3fcee408aa05e554bec283973906cb0bae65c228217cd56a44534'
+      :'0e8a294761ca13a95935327cafb950cffffbebbabeb66eb5f45f388a06858186';
+    if(activeKansasTail&&createHash('sha256').update(activeKansasTail).digest('hex')===kansasTailSha){
       text=replaceUnique(text,activeKansasTail,'    }\n  }',`${name}: exact attested KS lifecycle tail`);
       text=replaceUnique(text,'    "MN",\n    "KS"\n  ],\n  "reliabilityPolicy"','    "MN"\n  ],\n  "reliabilityPolicy"',`${name}: exact KS active list tail`);
       text=replaceUnique(text,'      "KS": 15000,\n','',`${name}: exact KS expected runtime`);
@@ -193,8 +196,6 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       text=replaceUnique(text,akLaLifecycle,'    }\n  }',`${name}: AK/LA inactive lifecycle entries`);
     }
   }
-  if(name==='src/config/state-lifecycle.json'&&(text.match(/–/g)||[]).length===15)
-    text=text.replaceAll('–','\\u2013');
   assert.equal(phoenixIllinoisBaseline.contractVersion,'bourbon-signal/phoenix-illinois-shared-metadata-ms-boundary@1');
   // Reverse only the literal reviewed AZ source addition and IL source/city
   // metadata. All original MS full-file hashes and older boundaries stay pinned.

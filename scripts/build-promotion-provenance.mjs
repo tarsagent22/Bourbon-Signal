@@ -277,6 +277,7 @@ if (['AK', 'LA'].includes(state)) files.push(
   'engine/src/operational-report.mjs',
   'engine/src/run.mjs',
   'engine/src/verification/historical-implementation.mjs',
+  'scripts/test-ms-bundle-boundary.mjs',
   'engine/src/collectors/grocery-xapi-expansion.mjs',
   'engine/src/collectors/grocery-xapi-identity.mjs',
   'engine/src/prepare-laak-canary.mjs',
