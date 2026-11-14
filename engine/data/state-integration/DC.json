@@ -6,26 +6,82 @@
       "assertion": "No production snapshot or delivery state was changed.",
       "url": null
     },
+    "admission": {
+      "status": "blocked",
+      "productionLifecycleActive": false,
+      "deliveryEnabled": false,
+      "requiredDistinctShadowRuns": 3,
+      "observedDistinctShadowRuns": 2,
+      "requiredCanaryRuns": 2,
+      "observedCanaryRuns": 2,
+      "reason": "One distinct scheduled shadow observation and the reviewed immutable admission evidence are still required; the current private preview does not change production."
+    },
     "canary": {
-      "runs": 1,
+      "runs": 2,
       "status": "verified",
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43628703889",
-      "artifactId": "14127049262",
-      "artifactDigest": "sha256:2d5a0772ca9eef9d1118d13ee93c0b1c6d41675fdef0d8e1b6bd3de3d0fc1a35",
-      "reason": "Source-free replay of the immutable DC shadow artifact passed the exact three-store Coverage and Finder canary; all delivery remained disabled."
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43633116314",
+      "artifactId": "14128917768",
+      "artifactDigest": "sha256:13ac4c125b0b6f8925d022382973a1f92014d538c30169977ef2e4e6235dc3b8",
+      "reason": "Two source-free canaries passed on immutable DC shadow captures; the latest exact-head replay verified all three stores through Coverage and Finder, with delivery disabled.",
+      "observations": [
+        {
+          "runId": "43628703889",
+          "artifactId": "14127049262",
+          "artifactDigest": "sha256:2d5a0772ca9eef9d1118d13ee93c0b1c6d41675fdef0d8e1b6bd3de3d0fc1a35",
+          "positiveRows": 3,
+          "positiveStores": 3,
+          "deliveryDisabled": true
+        },
+        {
+          "runId": "43633116314",
+          "artifactId": "14128917768",
+          "artifactDigest": "sha256:13ac4c125b0b6f8925d022382973a1f92014d538c30169977ef2e4e6235dc3b8",
+          "publicProjectionSha256": "c42f80db9259170a86bebd13a601ec1ea135a11b66ef38f3e0a7ac8a1e363be5",
+          "partitionSha256": "9f39895c0c9951080d8c49f04c39421b234aa0e335e101d8003476b13c82c360",
+          "positiveRows": 3,
+          "positiveStores": 3,
+          "positiveCities": 1,
+          "deliveryDisabled": true
+        }
+      ]
     },
     "shadow": {
-      "runs": 1,
+      "runs": 2,
       "status": "verified",
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43625123885",
-      "artifactId": "14125618291",
-      "artifactDigest": "sha256:dcf9e94e122d10aedca46b097798d32a935d234c8e9a7b842a576214e07f0f3c",
-      "reportSha256": "dd6ba0ad03383912a9e8900271b5d09da3c4e3d8f9c3e2fbde2836042a87450f",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43632730214",
+      "artifactId": "14128198912",
+      "artifactDigest": "sha256:70f83c912ed4c7fb6b223305788da80dfad3e6f39868eb9346f171ee7089b6ad",
+      "reportSha256": "32e1f64994f5d207ea563808906cc1081cdfad96cc232f06c5465dfe7fef466f",
       "originalSourceClocksPreserved": true,
       "verifiedCityHivePremises": 2,
       "cityHiveRequests": 4,
       "cityHiveAllHttp200": true,
-      "pearsonsPickupOfferBound": true
+      "pearsonsPickupOfferBound": true,
+      "observations": [
+        {
+          "runId": "43625123885",
+          "artifactId": "14125618291",
+          "artifactDigest": "sha256:dcf9e94e122d10aedca46b097798d32a935d234c8e9a7b842a576214e07f0f3c",
+          "reportSha256": "dd6ba0ad03383912a9e8900271b5d09da3c4e3d8f9c3e2fbde2836042a87450f",
+          "positiveRows": 3,
+          "positiveStores": 3,
+          "deliveryDisabled": true
+        },
+        {
+          "runId": "43632730214",
+          "artifactId": "14128198912",
+          "artifactDigest": "sha256:70f83c912ed4c7fb6b223305788da80dfad3e6f39868eb9346f171ee7089b6ad",
+          "reportSha256": "32e1f64994f5d207ea563808906cc1081cdfad96cc232f06c5465dfe7fef466f",
+          "sourceClockStart": "2026-11-14T19:33:43.929Z",
+          "sourceClockEnd": "2026-11-14T19:33:49.719Z",
+          "cityHiveRequests": 4,
+          "pearsonsRequests": 1,
+          "allHttp200": true,
+          "positiveRows": 3,
+          "positiveStores": 3,
+          "deliveryDisabled": true
+        }
+      ]
     }
   },
   "lifecycle": {
