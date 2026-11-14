@@ -150,6 +150,16 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedConnecticut = /^    "CT": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (releasedConnecticut || text.includes('    "CT"\n  ],\n  "reliabilityPolicy"')) {
+      assert.equal(createHash('sha256').update(releasedConnecticut || '').digest('hex'),
+        'a35e86108fa7eab0396f3e6fb854674db698f6e0ef7862a3879a5553bf049a21', `${name}: exact attested CT lifecycle entry`);
+      text = replaceUnique(text, releasedConnecticut, '', `${name}: exact attested CT lifecycle entry`);
+      text = replaceUnique(text, '    "MN",\n    "CT"\n  ],\n  "reliabilityPolicy"',
+        '    "MN"\n  ],\n  "reliabilityPolicy"', `${name}: exact CT active list tail`);
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "CT": 45000,\n',
+        '    "stateExpectedRunMs": {\n', `${name}: exact CT expected runtime`);
+    }
     const releasedMinnesota = /^    "MN": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if (text.includes('    "MN"\n  ],\n  "reliabilityPolicy"') || releasedMinnesota?.includes('      "publicStatus": "active"')) {
       assert.equal(createHash('sha256').update(releasedMinnesota || '').digest('hex'),

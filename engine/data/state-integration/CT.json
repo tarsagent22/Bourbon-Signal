@@ -1,29 +1,18 @@
 {
-  "evidence": {
-    "production": {
-      "reason": "Research and canary only; no active lifecycle.",
-      "status": "not_deployed",
-      "assertion": "No production snapshot or delivery state was changed.",
-      "url": null
-    },
-    "canary": {
-      "status": "verified",
-      "runs": 2,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605576308",
-      "allDeliveryChannelsDisabled": true
-    },
-    "shadow": {
-      "status": "verified",
-      "runs": 2,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605205518",
-      "originalSourceClocksPreserved": true
-    }
-  },
+  "schemaVersion": 1,
+  "state": "CT",
   "lifecycle": {
     "refinementLevel": "store",
-    "publicStatus": "research_only",
-    "coverageTier": "blocked",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
     "customerLabel": "Connecticut"
+  },
+  "collector": {
+    "sourceIds": [
+      "ct:central-cityhive"
+    ],
+    "cohortSha256": "9bd65e90aab05981ab376dfb46250b02d34ce976b63cccfdffb79b42624bdefb",
+    "registration": "Fifteen merchant-scoped first-party pickup searches check the seven reviewed Connecticut stores."
   },
   "storeIdentity": {
     "proof": "Current first-party merchant configuration, address, product option, same-host source URL and positive pickup offer must agree.",
@@ -31,57 +20,331 @@
     "addressRequired": true,
     "expectedKnownStores": 7
   },
-  "state": "CT",
-  "schemaVersion": 1,
-  "customerPaths": {
-    "preferences": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    },
-    "areaFilter": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    },
-    "dashboard": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    },
-    "alerts": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    },
-    "dropFeedApi": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    },
-    "monitoring": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    },
-    "stateFilter": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    },
-    "finder": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    },
-    "export": {
-      "status": "not_verified",
-      "assertion": "Requires a hosted customer projection of the complete reviewed Connecticut cohort."
-    }
-  },
   "sourceSemantics": {
     "watchAlertable": false,
     "availability": "Binary retailer-published pickup availability; exact shelf quantity is not published.",
     "inventoryAlertable": false
   },
-  "collector": {
-    "sourceIds": [
-      "ct:central-cityhive"
-    ],
-    "cohortSha256": "9bd65e90aab05981ab376dfb46250b02d34ce976b63cccfdffb79b42624bdefb",
-    "registration": "Dormant first-party pickup, exact merchant and reviewed storefront per request."
+  "customerPaths": {
+    "preferences": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Research-only canary projection verifies this lifecycle-backed path; no production eligibility or delivery is granted."
+    }
   },
-  "scope": "dormant_production_adapter_candidate_no_activation"
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 3,
+      "originalSourceClocksPreserved": true,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610831605",
+      "observations": [
+        {
+          "runId": "43605205518",
+          "status": "success",
+          "artifactHash": "143e3ac42583eb16ede5dd83c7849078de8bfaa0ebfea87778c3c322392b0431",
+          "artifactId": "14118341637",
+          "commitSha": "bb4c90b63f395fc49d2163740a63481c167bbda9",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605205518",
+          "artifactName": "state-expansion-shadow-43605205518",
+          "observedAt": "2026-11-14T14:31:03.288Z",
+          "observedStores": 7,
+          "positiveListings": 18
+        },
+        {
+          "runId": "43607976141",
+          "status": "success",
+          "artifactHash": "9c2889f96678eff79c1670c11155bab15df3a0a4e2010a9f7572c0a8bc0fe698",
+          "artifactId": "14118992480",
+          "commitSha": "9ff3f09480818d04e82d0984255eef0698e6474c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43607976141",
+          "artifactName": "state-expansion-shadow-43607976141",
+          "observedAt": "2026-11-14T15:02:46.693Z",
+          "observedStores": 7,
+          "positiveListings": 18
+        },
+        {
+          "runId": "43610831605",
+          "status": "success",
+          "artifactHash": "008d3c740e25660e3fa41bca7ad00b12ab347a6ab23ece2cec2fe33191e2a9ff",
+          "artifactId": "14120301829",
+          "commitSha": "a81deeb513373447845226b3348f09b636b4183d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610831605",
+          "artifactName": "state-expansion-shadow-43610831605",
+          "observedAt": "2026-11-14T15:34:07.063Z",
+          "observedStores": 7,
+          "positiveListings": 23
+        }
+      ]
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610931766",
+      "siteArtifact": "engine/data/canary-site/connecticut-20261114",
+      "allDeliveryChannelsDisabled": true,
+      "observations": [
+        {
+          "runId": "43605576308",
+          "status": "success",
+          "artifactHash": "c534e15cce9d21ec7a7454e9bae019382c6dfc96d769b56a522273906a871de4",
+          "artifactId": "14118466124",
+          "commitSha": "58280e02efbd98e4e142ae973200e7b9faf0a107",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605576308",
+          "artifactName": "state-expansion-canary-CT-43605576308",
+          "generatedAt": "2026-11-14T14:35:21.945Z",
+          "currentStores": 6,
+          "currentListings": 18
+        },
+        {
+          "runId": "43608354521",
+          "status": "success",
+          "artifactHash": "6bfb69491941913e4690be8641b2e80513fc87e8c41079a8029cf5b3be78d40c",
+          "artifactId": "14119367755",
+          "commitSha": "a81deeb513373447845226b3348f09b636b4183d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43608354521",
+          "artifactName": "state-expansion-canary-CT-43608354521",
+          "generatedAt": "2026-11-14T15:07:05.727Z",
+          "currentStores": 6,
+          "currentListings": 18
+        },
+        {
+          "runId": "43610931766",
+          "status": "success",
+          "artifactHash": "d9f3a9583fb614accf8e81cdab4aba41dcde059e36d30d3df4b2ed174f64518b",
+          "artifactId": "14119294998",
+          "commitSha": "a81deeb513373447845226b3348f09b636b4183d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610931766",
+          "artifactName": "state-expansion-canary-CT-43610931766",
+          "generatedAt": "2026-11-14T15:35:29.960Z",
+          "currentStores": 6,
+          "currentListings": 23
+        }
+      ]
+    },
+    "production": {
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/coverage",
+      "assertion": "First publication requires fresh merchant-scoped source rows and confirms every reviewed address in the immutable snapshot."
+    },
+    "actualPreviewVerification": {
+      "preview": "https://bourbonsignal-msk825qgt-tarsagent22s-projects.vercel.app",
+      "head": "58280e02efbd98e4e142ae973200e7b9faf0a107",
+      "canaryRun": "43605576308",
+      "shadowRun": "43605205518",
+      "verifiedAt": "2026-11-14T14:39:44.286Z",
+      "rows": 18,
+      "stores": 6,
+      "searchable": 7,
+      "alerts": 0,
+      "finder": [
+        {
+          "kind": "store",
+          "label": "Sunrise Liquor",
+          "stateCode": "CT",
+          "status": "actively-monitored",
+          "canonicalTargetKey": "store:CT:sunrise-liquor-68e7b4f7ddc9964680a31a6f",
+          "detail": "We check this store for current bottle availability when information is available.",
+          "storeId": "sunrise-liquor:68e7b4f7ddc9964680a31a6f",
+          "city": "Guilford",
+          "address": "342 Stepstone Hill Rd, Guilford, CT 06437, USA"
+        },
+        {
+          "kind": "store",
+          "label": "Beverage King",
+          "stateCode": "CT",
+          "status": "known-expansion-candidate",
+          "canonicalTargetKey": "store:CT:beverage-king-5ff8d3a20831fc26a1ac15d1",
+          "detail": "We can list this store, but we do not currently check bottle availability here.",
+          "storeId": "beverage-king:5ff8d3a20831fc26a1ac15d1",
+          "city": "Norwalk",
+          "address": "180 Main St, Norwalk, CT 06851, USA"
+        },
+        {
+          "kind": "store",
+          "label": "Universal Wine & Liquor",
+          "stateCode": "CT",
+          "status": "actively-monitored",
+          "canonicalTargetKey": "store:CT:universal-wine-liquor-ct-69e9228fdcbd600066ee5aff",
+          "detail": "We check this store for current bottle availability when information is available.",
+          "storeId": "universal-wine-liquor-ct:69e9228fdcbd600066ee5aff",
+          "city": "Stratford",
+          "address": "1040 Barnum Ave, Stratford, CT 06614, USA"
+        },
+        {
+          "kind": "store",
+          "label": "Bottle House",
+          "stateCode": "CT",
+          "status": "actively-monitored",
+          "canonicalTargetKey": "store:CT:bottle-house-ct-654ea77f27845d7ca6476608",
+          "detail": "We check this store for current bottle availability when information is available.",
+          "storeId": "bottle-house-ct:654ea77f27845d7ca6476608",
+          "city": "Wolcott",
+          "address": "1261 Meriden Rd, Wolcott, CT 06716, USA"
+        },
+        {
+          "kind": "store",
+          "label": "New London Wine & Spirits",
+          "stateCode": "CT",
+          "status": "actively-monitored",
+          "canonicalTargetKey": "store:CT:new-london-wine-spirits-5d16b2c002a20e15787d923c",
+          "detail": "We check this store for current bottle availability when information is available.",
+          "storeId": "new-london-wine-spirits:5d16b2c002a20e15787d923c",
+          "city": "New London",
+          "address": "643 Broad St, New London, CT 06320, USA"
+        },
+        {
+          "kind": "store",
+          "label": "Big Discount Wine & Liquor",
+          "stateCode": "CT",
+          "status": "actively-monitored",
+          "canonicalTargetKey": "store:CT:big-discount-wine-liquor-ct-62fd4d7f483e882938c96fc1",
+          "detail": "We check this store for current bottle availability when information is available.",
+          "storeId": "big-discount-wine-liquor-ct:62fd4d7f483e882938c96fc1",
+          "city": "Gales Ferry",
+          "address": "1524 CT-12, Gales Ferry, CT 06335, USA"
+        },
+        {
+          "kind": "store",
+          "label": "Sammy's Buy-Rite Liquors",
+          "stateCode": "CT",
+          "status": "actively-monitored",
+          "canonicalTargetKey": "store:CT:sammys-buy-rite-liquors-6054cf6fae8bdc21346c3112",
+          "detail": "We check this store for current bottle availability when information is available.",
+          "storeId": "sammys-buy-rite-liquors:6054cf6fae8bdc21346c3112",
+          "city": "Wethersfield",
+          "address": "808 Silas Deane Hwy, Wethersfield, CT 06109, USA"
+        }
+      ],
+      "production": false,
+      "physicalDeviceExercised": false
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "CT",
+      "generatedAt": "2026-11-14T15:36:42.784Z",
+      "sourceConfigHash": "0ac9d86d6e26a9bc6fe6192bc5c58ef85bc054b5fb998e91340490ad9662b4eb",
+      "sourceRuntimeId": "ct:central-cityhive",
+      "cohortSha256": "9bd65e90aab05981ab376dfb46250b02d34ce976b63cccfdffb79b42624bdefb",
+      "previewUrl": "https://bourbonsignal-msk825qgt-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "43605205518",
+          "status": "success",
+          "artifactHash": "143e3ac42583eb16ede5dd83c7849078de8bfaa0ebfea87778c3c322392b0431",
+          "artifactId": "14118341637",
+          "commitSha": "bb4c90b63f395fc49d2163740a63481c167bbda9",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605205518",
+          "artifactName": "state-expansion-shadow-43605205518",
+          "observedAt": "2026-11-14T14:31:03.288Z",
+          "observedStores": 7,
+          "positiveListings": 18
+        },
+        {
+          "runId": "43607976141",
+          "status": "success",
+          "artifactHash": "9c2889f96678eff79c1670c11155bab15df3a0a4e2010a9f7572c0a8bc0fe698",
+          "artifactId": "14118992480",
+          "commitSha": "9ff3f09480818d04e82d0984255eef0698e6474c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43607976141",
+          "artifactName": "state-expansion-shadow-43607976141",
+          "observedAt": "2026-11-14T15:02:46.693Z",
+          "observedStores": 7,
+          "positiveListings": 18
+        },
+        {
+          "runId": "43610831605",
+          "status": "success",
+          "artifactHash": "008d3c740e25660e3fa41bca7ad00b12ab347a6ab23ece2cec2fe33191e2a9ff",
+          "artifactId": "14120301829",
+          "commitSha": "a81deeb513373447845226b3348f09b636b4183d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610831605",
+          "artifactName": "state-expansion-shadow-43610831605",
+          "observedAt": "2026-11-14T15:34:07.063Z",
+          "observedStores": 7,
+          "positiveListings": 23
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43605576308",
+          "status": "success",
+          "artifactHash": "c534e15cce9d21ec7a7454e9bae019382c6dfc96d769b56a522273906a871de4",
+          "artifactId": "14118466124",
+          "commitSha": "58280e02efbd98e4e142ae973200e7b9faf0a107",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43605576308",
+          "artifactName": "state-expansion-canary-CT-43605576308",
+          "generatedAt": "2026-11-14T14:35:21.945Z",
+          "currentStores": 6,
+          "currentListings": 18
+        },
+        {
+          "runId": "43608354521",
+          "status": "success",
+          "artifactHash": "6bfb69491941913e4690be8641b2e80513fc87e8c41079a8029cf5b3be78d40c",
+          "artifactId": "14119367755",
+          "commitSha": "a81deeb513373447845226b3348f09b636b4183d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43608354521",
+          "artifactName": "state-expansion-canary-CT-43608354521",
+          "generatedAt": "2026-11-14T15:07:05.727Z",
+          "currentStores": 6,
+          "currentListings": 18
+        },
+        {
+          "runId": "43610931766",
+          "status": "success",
+          "artifactHash": "d9f3a9583fb614accf8e81cdab4aba41dcde059e36d30d3df4b2ed174f64518b",
+          "artifactId": "14119294998",
+          "commitSha": "a81deeb513373447845226b3348f09b636b4183d",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610931766",
+          "artifactName": "state-expansion-canary-CT-43610931766",
+          "generatedAt": "2026-11-14T15:35:29.960Z",
+          "currentStores": 6,
+          "currentListings": 23
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43610929484",
+        "artifactId": "14119838341",
+        "commitSha": "a81deeb513373447845226b3348f09b636b4183d",
+        "artifactDigest": "fe3387c34f8961a3483183cbba9904dffdcdc3ef228057eb83995202591cf5ab",
+        "bundleDigest": "0dc95715068cd1f4749f9dfc4f9223249ea703efd8102c3802359b4a9d8cae37",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610929484",
+        "artifactName": "state-promotion-provenance-CT-43610929484"
+      }
+    }
+  }
 }

@@ -18,15 +18,16 @@ import {bibleLookup,buildDrops} from '../src/export-site-contract.mjs';
 import {syntheticCentralPromotion,mockedCentralFetch,bibleFile} from './helpers/synthetic-central-production.mjs';
 const bible=await BourbonBible.load(bibleFile),config=state=>ALL_STATE_SOURCES.find(source=>source.id===state);
 
-test('Connecticut has a seven-merchant dormant production route with fifteen bounded requests', async () => {
+test('Connecticut has a gated seven-merchant production route with fifteen bounded requests', async () => {
   const stateConfig=config('CT');
   assert.equal(stateConfig.sources.length,7);
   assert.equal(CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.CT.maxRequests,15);
   assert.equal(centralCityHiveProductionCohortKey('CT'),CENTRAL_CITYHIVE_PRODUCTION_COHORTS.CT);
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
-  assert.equal(centralCityHiveProductionAllowed('CT'),false);
+  assert.equal(centralCityHiveProductionAllowed('CT'),STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'));
+  const inactive = structuredClone(STATE_LIFECYCLE_CONFIG);
+  inactive.activeStates = inactive.activeStates.filter(state => state !== 'CT');
   let attempted=0;
-  const result=await collectState(stateConfig,bible,{cityHiveSourceOptions:{fetchText:async()=>{attempted++;throw Error('Unexpected HTTP');},
+  const result=await collectState(stateConfig,bible,{lifecycleConfig:inactive,cityHiveSourceOptions:{fetchText:async()=>{attempted++;throw Error('Unexpected HTTP');},
     cacheDir:'NUL/forbidden',incidentDir:'NUL/forbidden'}});
   assert.equal(result.status,'not_promoted');
   assert.equal(result.metadata.requestCount,0);
