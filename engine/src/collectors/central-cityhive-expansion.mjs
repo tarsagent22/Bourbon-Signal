@@ -3,14 +3,14 @@ import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
 import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
-import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
+import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES, MARYLAND_CITYHIVE_RESEARCH_SOURCES, RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES } from './central-cityhive-research-premises.mjs';
 export { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES } from './central-cityhive-research-premises.mjs';
 import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 export {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
-const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES,...MARYLAND_CITYHIVE_RESEARCH_SOURCES]);
+const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES,...MARYLAND_CITYHIVE_RESEARCH_SOURCES,...RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES]);
 
 export function centralCityHiveLibraryTier(signal,bible) {
  const source=ALL_SOURCES.find(s=>s.state===signal.state&&s.merchantId===signal.merchantId&&s.storeId===signal.storeId);
@@ -36,7 +36,9 @@ export function centralCityHiveLibraryTier(signal,bible) {
   const reviewed=(signal.productId==='6594472cd20b667b856eb419'&&signal.rawName==='R Michters Single Barrel Rye 10yr 750ml'&&identity==="Michter's 10 Year Rye")
     ||(signal.productId==='5e21e94d0320ad0f80403af4'&&signal.rawName==='Larceny Barrel Proof Brourbon'&&identity==='Larceny Barrel Proof')
     ||(signal.merchantId==='6060f6496aaeeb555664ca4f'&&signal.productId==='665932752999236a66c861b6'
-      &&signal.rawName==='WELLER MILLENIUM'&&identity==='Weller Millennium');
+      &&signal.rawName==='WELLER MILLENIUM'&&identity==='Weller Millennium')
+    ||(signal.merchantId==='64f6226b7537422b95e04824'&&signal.productId==='56c28cb0756275139def0100'
+      &&signal.rawName==='Stagg Jr. Kentucky Straight Bourbon Whiskey'&&identity==='Stagg');
   if(!reviewed)return null;
  }
  if(match.record?.id!==record.id||match.match?.confidence!==1)return null;
@@ -70,6 +72,12 @@ export function reviewedCentralCityHiveIdentity(option, product) {
   if(option.merchant_id==='6060f6496aaeeb555664ca4f' && id==='665932752999236a66c861b6'
     && product.name==='WELLER MILLENIUM' && props.brands?.length===1 && props.brands[0]==='Weller Bourbon'
     && data.basic_category?.includes('bourbon') && props.state==='Kentucky')return 'Weller Millennium';
+  const categories=Array.isArray(product.basic_category)?product.basic_category.map(value=>String(value).toLowerCase()):[];
+  if(option.merchant_id==='64f6226b7537422b95e04824' && id==='56c28cb0756275139def0100'
+    && product.name==='Stagg Jr. Kentucky Straight Bourbon Whiskey'
+    && String(product.additional_properties?.brands)==='Stagg Bourbon'
+    && categories.includes('bourbon')&&!categories.includes('rye')
+    && Number.parseFloat(product.additional_properties?.content)>=50&&Number.parseFloat(product.additional_properties?.content)<=75)return 'Stagg';
   return null;
 }
 
@@ -120,15 +128,17 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now(),sourceIds}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
-  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','DE','HI','MD','KS'].includes(config.id);
+  const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA','CT','DE','HI','MD','KS','RI'].includes(config.id);
   const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
   if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
   const groups=Map.groupBy(allowed,s=>perStore?s.id:s.chainId||s.id);
   for(const [groupId,sources] of groups){
     const source=sources[0];
     if(Date.parse(attempts[groupId]?.nextAllowedAt || '')>nowMs || Date.parse(sourceAttempts[source.hostname]?.nextAllowedAt||'')>nowMs)continue;
-    const terms=await librarySourceSearchTerms(bible,{sourceKey:`${config.id}:${groupId}`,budget:perStore?2:4,
-      priorityTerms:perStore?[source.prioritySearchTerm||'barrel proof']:config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'],broadTerms:[],cursorDir});
+    const priorityTerms=perStore?(Array.isArray(source.prioritySearchTerms)&&source.prioritySearchTerms.length?source.prioritySearchTerms:[source.prioritySearchTerm||'barrel proof'])
+      :config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'];
+    const terms=await librarySourceSearchTerms(bible,{sourceKey:`${config.id}:${groupId}`,budget:perStore?Math.max(2,priorityTerms.length+1):4,
+      priorityTerms,broadTerms:[],cursorDir});
     const queryUrls=terms.map(term=>source.baseUrl+'/shop/?ch-query='+encodeURIComponent(term)+'&merchant-id='+source.merchantId);
     const urls=perStore?queryUrls:[source.categoryUrl,...queryUrls];
     const seen=new Set();let denied=false;

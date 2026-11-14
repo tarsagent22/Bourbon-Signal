@@ -540,6 +540,11 @@ jobs:
         working-directory: engine
         run: node src/verify-laak-first-publication.mjs
 
+      - name: Require current Rhode Island pickup inventory at first publication
+        if: ${{ startsWith(inputs.incident_key, 'rhode-island-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-ri-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs

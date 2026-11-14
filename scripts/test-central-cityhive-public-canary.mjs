@@ -14,7 +14,7 @@ const {buildCoverageContract}=coverageModule.default||coverageModule;
 const {normalizeDropForSite}=contractModule.default||contractModule;
 const {loadWithMocks}=harness.default||harness;
 const state=process.argv.find(value=>value.startsWith('--state='))?.slice(8);
-assert.ok(['WI','OK'].includes(state),'Use reviewed --state=WI|OK');
+assert.ok(['WI','OK','RI'].includes(state),'Use reviewed --state=WI|OK|RI');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
@@ -49,7 +49,7 @@ const coverageService=loadWithMocks('src/lib/coverage-server.ts',{
   '@/lib/public-drop-evidence':evidenceModule.default||evidenceModule,'@/lib/drop-classification':classificationModule.default||classificationModule,
   '@/data/drop-feed-classification.generated.json':await read('src/data/drop-feed-classification.generated.json'),
   './nationwide-pilot-receipt':receiptModule.default||receiptModule,
-  '@/lib/source-lane-runtime':{prepareRuntimeSourceDropOverlay: async () => async rows=>({drops:rows,version:'isolated-canary-fixture'})},
+  '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay: async rows=>({drops:rows,version:'isolated-canary-fixture'})},
   '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportResults:async names=>names.map(name=>({payload:payloads[name],source:'remote-snapshot',snapshotId:'isolated-canary-fixture'}))},
 });
 const coverageRoute=loadWithMocks('src/app/api/coverage/route.ts',{

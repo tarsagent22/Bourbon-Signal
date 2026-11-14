@@ -13,6 +13,8 @@ import {collectCentralCityHiveProductionSource,centralCityHiveProductionAllowed}
 import {centralCityHiveProductionCohortKey,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS} from '../src/central-cityhive-production-config.mjs';
 import {CENTRAL_CITYHIVE_PRODUCTION_COHORTS} from '../src/collectors/central-cityhive-premises.mjs';
 import {isCentralCityHiveProductionOnSiteSignal} from '../src/central-cityhive-policy.mjs';
+import {canonicalizeSignal} from '../src/operational-report.mjs';
+import {bibleLookup,buildDrops} from '../src/export-site-contract.mjs';
 import {syntheticCentralPromotion,mockedCentralFetch,bibleFile} from './helpers/synthetic-central-production.mjs';
 const bible=await BourbonBible.load(bibleFile),config=state=>ALL_STATE_SOURCES.find(source=>source.id===state);
 async function setup(t,state='WI'){
@@ -23,8 +25,10 @@ async function setup(t,state='WI'){
 
 test('inactive, quarantined and altered semantic/cohort/provenance authority blocks before HTTP or cache I/O',async t=>{
   let requests=0;const fetchText=async()=>{requests++;throw Error('Unauthorized HTTP');};
-  for(const state of ['WI','OK']){
-    const inactive=structuredClone(STATE_LIFECYCLE_CONFIG);inactive.activeStates=inactive.activeStates.filter(id=>id!==state);inactive.states[state].publicStatus='research_only';
+  for(const state of ['WI','OK','RI']){
+    const inactive=structuredClone(STATE_LIFECYCLE_CONFIG);
+    inactive.activeStates=inactive.activeStates.filter(id=>id!==state);
+    inactive.states[state]={...inactive.states[state],publicStatus:'research_only'};
     const opts=await setup(t,state),held=await collectState(config(state),bible,{lifecycleConfig:inactive,cityHiveSourceOptions:{fetchText,cacheDir:'NUL/forbidden',incidentDir:'NUL/forbidden'}});
     assert.equal(held.status,'not_promoted');assert.equal(held.metadata.requestCount,0);
     assert.equal(centralCityHiveProductionCohortKey(state),CENTRAL_CITYHIVE_PRODUCTION_COHORTS[state]);
@@ -41,6 +45,35 @@ test('inactive, quarantined and altered semantic/cohort/provenance authority blo
     for(const env of [{BOURBON_SIGNAL_DISABLED_STATES:state},{BOURBON_SIGNAL_QUARANTINED_STATES:state}])assert.equal(centralCityHiveProductionAllowed(state,opts.lifecycleConfig,{manifest:opts.promotionManifest,env}),false);
   }
   assert.equal(requests,0);
+});
+
+test('RI production requires seven bound queries and projects three exact binary pickup premises',async t=>{
+  const opts=await setup(t,'RI');
+  const captures={
+    riliquordelivery:'eagle-rare-10-year-kentucky-straight-bourbon.json',
+    fifthwardliquor:'fifth-ward-eagle-rare-10.json',
+    californialiquorsri:'california-liquors-eagle-rare-10.json',
+  };
+  const requests=[];
+  const rows=await collectCentralCityHiveProductionSource(config('RI'),bible,{
+    ...opts,
+    fetchText:async url=>{
+      const request=new URL(url);
+      requests.push(request);
+      const fixture=captures[request.hostname.split('.')[0]];
+      const product=await readFile(new URL('./fixtures/ri-cityhive/'+fixture,import.meta.url),'utf8');
+      return {ok:true,status:200,url,text:`<script type="application/json">${product}</script>`};
+    },
+  });
+  assert.equal(requests.length,7);
+  assert.ok(requests.every(request=>request.pathname==='/shop/'&&request.searchParams.has('merchant-id')&&request.searchParams.has('ch-query')));
+  assert.equal(new Set(rows.signals.map(row=>row.storeId)).size,3);
+  const canonical=rows.signals.map(row=>canonicalizeSignal(row,bible));
+  const drops=buildDrops(canonical,bibleLookup(bible.records),canonical);
+  assert.equal(drops.length,3);
+  assert.ok(drops.every(row=>row.quantity===0&&row.quantityIsExact===false&&row.eligibleForDropFeed===true
+    &&row.canAlertAsInventory===false&&row.canAlertAsWatch===false&&row.eligibleForDelivery===false
+    &&row.eligibleForEmail===false&&row.eligibleForSms===false&&row.sourceRuntimeId==='ri:central-cityhive'));
 });
 
 for(const state of ['WI','OK'])test(`${state} nonpreview production rows/cache preserve original clocks/current library and never enable delivery`,async t=>{

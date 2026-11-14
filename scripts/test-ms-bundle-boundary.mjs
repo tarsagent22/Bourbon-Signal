@@ -59,7 +59,7 @@ test('actual four-state admission reverses only the exact active list and issued
         : [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed];
       for (const mutation of mutations) {
         assert.notEqual(mutation, current);
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact AK\/LA active list tail).*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI) active list tail).*exact historical verification hook/);
       }
       if (key !== 'activeStates') for (const changed of [
         reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),

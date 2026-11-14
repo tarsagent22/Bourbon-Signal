@@ -145,6 +145,11 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedRi = /^    \},\n    "RI": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
+    if (releasedRi && createHash('sha256').update(releasedRi).digest('hex') === '630ee689b046da0c7c418c9254b2babadb06898921b1fc875b1dd903a4c90fe2') {
+      text=replaceUnique(text,releasedRi,'    }\n  }',`${name}: exact attested RI lifecycle entry`);
+      text=replaceUnique(text,'    "LA",\n    "RI"\n  ],\n  "reliabilityPolicy"','    "LA"\n  ],\n  "reliabilityPolicy"',`${name}: exact RI active list tail`);
+    }
     const releasedAkLa = /^    \},\n    "AK": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
     if (releasedAkLa && createHash('sha256').update(releasedAkLa).digest('hex') === '4983c20008f95b660d681eb74c6f2eaa9188af4873e6fcdc81bdc15f2c07c323') {
       text=replaceUnique(text,releasedAkLa,'    }\n  }',`${name}: exact attested AK/LA lifecycle entries`);

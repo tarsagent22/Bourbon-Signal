@@ -3,6 +3,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import path from 'node:path';
 import wiManifest from '../../data/state-integration/WI.json' with {type:'json'};
 import okManifest from '../../data/state-integration/OK.json' with {type:'json'};
+import riManifest from '../../data/state-integration/RI.json' with {type:'json'};
 import {STATE_LIFECYCLE_CONFIG} from '../state-lifecycle.mjs';
 import {validateImmutablePromotionEvidence,evaluateStateControl} from '../reliability-policy.mjs';
 import {collectionSignal,writeCollectionFile} from '../core/collection-context.mjs';
@@ -12,12 +13,12 @@ import {createSourceAdapter} from '../sources/source-adapter.mjs';
 import {runSourceAdapters} from '../sources/source-runner.mjs';
 import {summarizeSourceResult} from '../sources/source-result.mjs';
 import {collectCentralCityHiveExpansion,centralCityHiveLibraryTier} from './central-cityhive-expansion.mjs';
-import {CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS} from './central-cityhive-premises.mjs';
+import {CENTRAL_CITYHIVE_PRODUCTION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS} from './central-cityhive-premises.mjs';
 import {isCentralCityHiveProductionOnSiteSignal} from '../central-cityhive-policy.mjs';
 import {CENTRAL_CITYHIVE_PRODUCTION_STATES,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,centralCityHiveProductionCohortKey,centralCityHiveProductionRuntimeId} from '../central-cityhive-production-config.mjs';
 
 export const CENTRAL_CITYHIVE_CACHE_MAX_AGE_MS=30*60_000;
-const manifests={WI:wiManifest,OK:okManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
+const manifests={WI:wiManifest,OK:okManifest,RI:riManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
 const sha=value=>createHash('sha256').update(value).digest('hex');
 export function centralCityHiveSourceConfigHash(state,manifest=manifests[state]){
   if(!CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(state)||!manifest)throw new Error('Unreviewed production CityHive state');
@@ -44,12 +45,26 @@ export function centralCityHiveProductionAllowed(state,config=STATE_LIFECYCLE_CO
 }
 async function strictJson(file){try{const value=JSON.parse(await readFile(file,'utf8'));if(!value||typeof value!=='object'||Array.isArray(value))throw Error('State is not an object');return value;}catch(error){if(error.code==='ENOENT')return null;throw error;}}
 function completeCohort(metadata,state){
-  const sources=CENTRAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state===state),ids=sources.map(source=>source.storeId);
-  return metadata?.complete===true&&JSON.stringify(metadata.selectedStores)===JSON.stringify(ids)
+  const sources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state===state),ids=sources.map(source=>source.storeId);
+  const complete=metadata?.complete===true&&JSON.stringify(metadata.selectedStores)===JSON.stringify(ids)
     &&metadata.verifiedPremises?.length===ids.length&&ids.every(id=>metadata.verifiedPremises.includes(id))
     &&metadata.requests?.length>=sources.length&&metadata.requests.length<=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests
-    &&metadata.requests.every(row=>row.ok===true&&row.status===200)
-    &&sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
+    &&metadata.requests.every(row=>row.ok===true&&row.status===200);
+  if(!complete)return false;
+  if(state!=='RI')return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
+  if (metadata.requests.length !== CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.RI.maxRequests
+    || new Set(metadata.requests.map(row => row.url)).size !== metadata.requests.length) return false;
+  return sources.every(source => {
+    const requests = metadata.requests.filter(row => row.sourceId === source.id);
+    if (requests.length !== source.prioritySearchTerms.length + 1) return false;
+    const terms = requests.map(row => {
+      const url = URL.parse(row.url);
+      if (url?.origin !== source.baseUrl || url.pathname !== '/shop/' || url.hash || url.username || url.password
+        || [...url.searchParams].length !== 2 || url.searchParams.get('merchant-id') !== source.merchantId) return null;
+      return url.searchParams.get('ch-query');
+    });
+    return terms.every(Boolean) && source.prioritySearchTerms.every(term => terms.includes(term));
+  });
 }
 const silent=row=>({...row,canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
   eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false});
@@ -91,6 +106,9 @@ export async function collectCentralCityHiveProductionSource(config,bible,{lifec
   await persistIncidentJournal(incidentFile,journal);
   let lastDenied=null,denialPersisted=false,requestCount=0,bytes=0;const started=Date.now();
   const measured=async(url,options)=>{
+    if (requestCount >= CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests) {
+      throw Error('CityHive reached the reviewed request limit');
+    }
     const observeDenial=async response=>{
     if(DENIALS.has(Number(response.status))){
       const at=Math.max(nowMs,Date.now()),retry=Math.max(0,Number(response.retryAfterSeconds)||0),host=new URL(url).hostname;
@@ -132,7 +150,7 @@ export async function collectCentralCityHiveProductionState(config,bible,options
     state,label:config.label,startedAt,finishedAt:new Date().toISOString(),lastGoodAt:null,status:'not_promoted',stale:false,
     signals:[],sources:[],sourceResults:[],roadblocks:[],metadata:{blockedByPromotion:true,requestCount:0}};
   const budget=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].sourceMs;let requests=0;
-  const run=await runSourceAdapters([createSourceAdapter({id,label,url:CENTRAL_CITYHIVE_EXPANSION_SOURCES.find(source=>source.state===state).baseUrl,
+  const run=await runSourceAdapters([createSourceAdapter({id,label,url:CENTRAL_CITYHIVE_PRODUCTION_SOURCES.find(source=>source.state===state).baseUrl,
     metadata:{stateId:state,lane:'promoted_cityhive_onsite'},execute:(_context,{signal})=>collectCentralCityHiveProductionSource(config,bible,{...options,...options.cityHiveSourceOptions,
       signal:collectionSignal(options.signal?AbortSignal.any([options.signal,signal]):signal),onRequest:()=>{requests++;}}),
     validate:value=>value?.metadata?.complete===true&&Array.isArray(value.signals)?true:'Incomplete reviewed CityHive cohort',recordCount:value=>value.metadata.verifiedPremises.length,

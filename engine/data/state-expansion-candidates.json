@@ -1109,7 +1109,7 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "retailer_storefront",
         "public_platform_surface",
@@ -1127,7 +1127,7 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": ["src/config/state-lifecycle.json", "engine/data/state-integration/RI.json"]
     },
     {
       "state": "SC",

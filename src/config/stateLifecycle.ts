@@ -31,7 +31,8 @@ export const STATE_LIFECYCLE_CONFIG = {
     "WI",
     "OK",
     "AK",
-    "LA"
+    "LA",
+    "RI"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -1801,6 +1802,105 @@ export const STATE_LIFECYCLE_CONFIG = {
             "bundleDigest": "c9325438be2cff42186b693c3b14e674dc314da50ef6d14e8e0f79af04b37d75",
             "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581978875",
             "artifactName": "state-promotion-provenance-LA-43581978875"
+          }
+        }
+      }
+    },
+    "RI": {
+      "customerLabel": "Rhode Island",
+      "publicStatus": "active",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "sourceLabel": "Reviewed Rhode Island retailer pickup inventory",
+      "lifecycle": "retailer_store_inventory",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "shadowEligible": false,
+      "customerSummary": "Retailer-published pickup availability at selected Providence and Newport stores. Verify with the store before driving.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 4,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-11-14T09:43:59.660Z",
+        "shadowArtifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581735173",
+        "canaryArtifact": "https://bourbonsignal-3vk8eswjm-tarsagent22s-projects.vercel.app/coverage",
+        "canaryPreviewUrl": "https://bourbonsignal-3vk8eswjm-tarsagent22s-projects.vercel.app/coverage",
+        "verticalSliceManifest": "engine/data/state-integration/RI.json",
+        "fixtureContract": "engine/data/state-fixtures/RI.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "RI",
+          "generatedAt": "2026-11-14T09:43:59.660Z",
+          "sourceConfigHash": "45fb4d736c1a607c7aab6a7cebc91f8eb279caa191083ce19a817eee945696a2",
+          "previewUrl": "https://bourbonsignal-3vk8eswjm-tarsagent22s-projects.vercel.app/coverage",
+          "shadowRuns": [
+            {
+              "runId": "43576589345",
+              "status": "success",
+              "artifactHash": "5f3dcf56cdd5b0015c9682042e996c952068e10d9611da755eead2b14ba88a81",
+              "artifactId": "14106423783",
+              "commitSha": "ce41ac174e08733eebdadae4cddc4e8c7f550629",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43576589345",
+              "artifactName": "state-expansion-shadow-43576589345"
+            },
+            {
+              "runId": "43579052660",
+              "status": "success",
+              "artifactHash": "43c7115a6b7eacd6018a60519bb6a3852ebe5c3fd9db31aca09c5c597c6ceef1",
+              "artifactId": "14106898441",
+              "commitSha": "8cabbe4e6a446f577d54121f8e3d20d0ad63244f",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43579052660",
+              "artifactName": "state-expansion-shadow-43579052660"
+            },
+            {
+              "runId": "43580822799",
+              "status": "success",
+              "artifactHash": "947b7b20d7ba44979de3684a69d64832aa0b52bfaa388915c1aa69b809e06650",
+              "artifactId": "14107778902",
+              "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43580822799",
+              "artifactName": "state-expansion-shadow-43580822799"
+            },
+            {
+              "runId": "43581735173",
+              "status": "success",
+              "artifactHash": "f07a4c785f2854aab3e56a100700268b43bde40bb7076961215e734c6eaa985d",
+              "artifactId": "14108508704",
+              "commitSha": "5ed9f509d9b5db6c29146665966c88de23d5c2b1",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581735173",
+              "artifactName": "state-expansion-shadow-43581735173"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43579444059",
+              "status": "success",
+              "artifactHash": "04db9084147a16f6e9901ce61c49c902cd2b7d48400601c0d9529d2d621daff1",
+              "artifactId": "14107702662",
+              "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43579444059",
+              "artifactName": "state-expansion-canary-RI-43579444059"
+            },
+            {
+              "runId": "43580904309",
+              "status": "success",
+              "artifactHash": "22970ce8a73d3e82793f9ce47efd20922eca839cc5f5dfc12b4dbc4f71f25943",
+              "artifactId": "14108067896",
+              "commitSha": "cb04b7487b4781f0f953385b1843ed3641f41913",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43580904309",
+              "artifactName": "state-expansion-canary-RI-43580904309"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43587035036",
+            "artifactId": "14110389587",
+            "commitSha": "5ed9f509d9b5db6c29146665966c88de23d5c2b1",
+            "artifactDigest": "d1cde813f5b894616b821a4d494173ed66c676a53a9b45fe5e579dbfff52514c",
+            "bundleDigest": "408c576a3d3e3953877a3fcf8522c92314d040f4b5f65fd384da7092e2814825",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43587035036",
+            "artifactName": "state-promotion-provenance-RI-43587035036"
           }
         }
       }

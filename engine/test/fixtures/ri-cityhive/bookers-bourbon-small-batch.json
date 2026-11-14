@@ -1,0 +1,94 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "64f6226b7537422b95e04824",
+        "name": "Rhode Island Liquor Delivery",
+        "address": {
+          "full_address": "342 Broad St, Providence, RI 02907, USA",
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -71.4212627,
+              41.8138408
+            ]
+          }
+        },
+        "accept_orders": true
+      }
+    }
+  ],
+  "product": {
+    "id": "56c26ed975627570b05d0100",
+    "name": "Booker's Bourbon Small Batch",
+    "basic_category": [
+      "bourbon",
+      "whiskey"
+    ],
+    "size": {
+      "measure": "ml",
+      "quantity": "750"
+    },
+    "additional_properties": {
+      "brands": "Booker's Bourbon"
+    },
+    "merchants": [
+      {
+        "merchant_id": "64f6226b7537422b95e04824",
+        "offer_types": [
+          "pick_up",
+          "delivery",
+          "shipping"
+        ],
+        "product_options": [
+          {
+            "merchant_id": "64f6226b7537422b95e04824",
+            "merchant_name": "Rhode Island Liquor Delivery",
+            "full_address": "342 Broad St, Providence, RI 02907, USA",
+            "coordinates": [
+              -71.4212627,
+              41.8138408
+            ],
+            "product_id": "56c26ed975627570b05d0100",
+            "option_id": "c995b4fdc8ba7b69672fc35bb350ff04103268a32c642793b9fea3d47d307c95",
+            "option_params": {
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              }
+            },
+            "product_url": "https://riliquordelivery.com/shop/product/bookers-bourbon-small-batch/56c26ed975627570b05d0100?option-id=c995b4fdc8ba7b69672fc35bb350ff04103268a32c642793b9fea3d47d307c95",
+            "price": 99.99,
+            "quantity": 12,
+            "option_display_data": {
+              "name": "Booker's Bourbon Small Batch",
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              },
+              "properties": {
+                "product_views": [
+                  "alcohol",
+                  "spirits"
+                ],
+                "product_basic_categories": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "brands": [
+                  "Booker's Bourbon"
+                ],
+                "country": "United States",
+                "state": "Kentucky"
+              },
+              "basic_category": [
+                "bourbon",
+                "whiskey"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

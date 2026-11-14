@@ -1,0 +1,20 @@
+{
+  "stateCoverage": {
+    "states": [
+      {
+        "state": "RI",
+        "status": "canary_preview",
+        "signalCount": 10,
+        "previewOnly": true,
+        "publicStatus": "active",
+        "customerLabel": "Rhode Island",
+        "coverageTier": "sparse_live_store_inventory",
+        "refinementLevel": "store",
+        "sourceLabel": "Rhode Island first-party retailer research",
+        "lifecycle": "retailer_inventory_research",
+        "inventoryAlertable": false,
+        "watchAlertable": false
+      }
+    ]
+  }
+}
