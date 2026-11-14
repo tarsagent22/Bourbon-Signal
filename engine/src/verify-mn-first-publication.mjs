@@ -22,7 +22,22 @@ export function verifyMinnesotaFirstPublication({stateReport,partition,reportByt
   if(selected.length!==batchSize||new Set(selected).size!==batchSize||verified.length!==batchSize||new Set(verified).size!==batchSize
     ||selected.some(store=>!verified.includes(store)))failures.push('first source report must verify each of the seven selected premises exactly once');
   const requests=Array.isArray(meta?.requests)?meta.requests:[];
-  if(requests.length!==batchSize*2||requests.some(row=>row.ok!==true||Number(row.status)!==200))failures.push('first source report must contain exactly fourteen successful bounded requests');
+  const requestsMatchSelected=selected.length===batchSize&&requests.length===batchSize*2&&selected.every(storeId=>{
+    const source=sources.find(row=>row.storeId===storeId);
+    if(!source)return false;
+    const scoped=requests.filter(row=>row.sourceId===source.id);
+    if(scoped.length!==2)return false;
+    return scoped.every(row=>{
+      if(row.ok!==true||Number(row.status)!==200)return false;
+      try{
+        const url=new URL(row.url),params=[...url.searchParams];
+        return url.origin===source.baseUrl&&url.pathname==='/shop/'&&!url.hash&&!url.username&&!url.password
+          &&params.length===2&&url.searchParams.get('merchant-id')===source.merchantId
+          &&Boolean(url.searchParams.get('ch-query')?.trim())&&url.searchParams.get('ch-query').length<=120;
+      }catch{return false;}
+    });
+  });
+  if(!requestsMatchSelected)failures.push('first source report must contain exactly fourteen successful bounded requests scoped to the selected merchants');
   const sourceRows=Array.isArray(stateReport?.signals)?stateReport.signals:[];
   if(!sourceRows.length||sourceRows.some(row=>!isCentralCityHiveProductionOnSiteSignal(row,{nowMs})
     ||row.canAlertAsInventory!==false||row.canAlertAsWatch!==false||row.eligibleForDelivery!==false))failures.push('state report must contain current production-bound MN pickup rows with delivery disabled');
