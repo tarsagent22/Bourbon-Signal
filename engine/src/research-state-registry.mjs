@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { oregonResearchSourceForState, collectOregonResearchReport } from './research-oregon-runtime.mjs';
 import { groceryResearchSourceForState, groceryResearchLifecycleEntries, collectGroceryResearchReport } from './research-grocery-runtime.mjs';
 import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
@@ -8,6 +9,7 @@ import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResea
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
 import { plainsRetailResearchSourceForState, plainsRetailResearchLifecycleEntries, collectPlainsRetailResearchReport } from './research-plains-retail-runtime.mjs';
+import { collectPearsonsDcResearchReport } from './collectors/pearsons-dc-research.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -61,7 +63,10 @@ export async function collectResearchStateReport(config, bible, options = {}) {
   if(config&&config===groceryResearchSourceForState(config.id))return collectGroceryResearchReport(config,bible,options);
   if(config&&config===njMiResearchSourceForState(config.id))return collectNjMiResearchReport(config,bible,options);
   if(config&&config===plainsRetailResearchSourceForState(config.id))return collectPlainsRetailResearchReport(config,bible,options);
-  if (config && config === cityHiveResearchSourceForState(config.id)) return collectCityHiveResearchReport(config,bible,options);
+  if (config && config === cityHiveResearchSourceForState(config.id)) {
+    if (config.id !== 'DC') return collectCityHiveResearchReport(config,bible,options);
+    return collectDistrictOfColumbiaResearchReport(config,bible,options);
+  }
   if (process.env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || config !== MASSACHUSETTS) {
     throw new Error('Research reports require the registered isolated shadow source.');
   }
@@ -82,4 +87,42 @@ export async function collectResearchStateReport(config, bible, options = {}) {
     sourceResults: [...result.sourceResults, ...(cityHive?.sourceResults ?? [])], roadblocks: [...result.roadblocks, ...(cityHive?.roadblocks ?? [])],
     metadata: { ...cityHive?.metadata, complete: healthy, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false },
   };
+}
+
+async function collectDistrictOfColumbiaResearchReport(config,bible,options={}) {
+  const cityHive = await collectCityHiveResearchReport(config,bible,options);
+  const cityHiveDenied = (cityHive.sources || []).some(row => [401,403,429,435].includes(Number(row.status)));
+  let pearsons;
+  if (cityHiveDenied) {
+    const sourceRuntimeId='research:dc:pearsons-shopify', checkedAt=new Date().toISOString();
+    pearsons={signals:[],sources:[{sourceRuntimeId,label:"Pearson's Wine & Spirits DC first-party storefront pickup offer",
+      url:'https://pearsonswine.com/products/blantons-single-barrel-bourbon-750ml',ok:false,status:0,checkedAt,
+      error:'Skipped because a DC CityHive source returned a denial; strict stop prevented additional retailer requests.',
+      signalType:'retailer_store_inventory_result',matchedBottleCount:0}],
+      sourceResults:[{sourceId:sourceRuntimeId,sourceUrl:'https://pearsonswine.com/products/blantons-single-barrel-bourbon-750ml',
+        ok:false,status:'skipped_after_denial',checkedAt,alertable:false,inventoryAlertable:false,watchAlertable:false}],
+      roadblocks:[{state:'DC',source:'Pearson’s Wine & Spirits',status:'skipped_after_denial',
+        error:'A DC CityHive permission/rate denial stopped the remaining retailer collection for this run.'}],
+      metadata:{complete:false,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false}};
+  } else {
+    const env=options.env||process.env;
+    const reportDirectory=options.reportDirectory||(env.BOURBON_SIGNAL_STATE_OUT_FILE
+      ?path.dirname(env.BOURBON_SIGNAL_STATE_OUT_FILE):path.resolve('out','research-cityhive','DC'));
+    pearsons=await collectPearsonsDcResearchReport(config,bible,{...options,env:options.env||process.env,
+      reportDirectory,captureRoot:options.captureRoot||path.join(reportDirectory,'source-captures')});
+  }
+  const signals=[...(cityHive.signals||[]),...(pearsons.signals||[])];
+  const sources=[...(cityHive.sources||[]),...(pearsons.sources||[])];
+  const sourceResults=[...(cityHive.sourceResults||[]),...(pearsons.sourceResults||[])];
+  const roadblocks=[...(cityHive.roadblocks||[]),...(pearsons.roadblocks||[])];
+  const complete=cityHive.metadata?.complete===true&&pearsons.metadata?.complete===true&&sources.length===3&&sources.every(row=>row.ok===true);
+  const startedAt=[cityHive.startedAt,pearsons.startedAt].filter(Boolean).sort()[0]||new Date().toISOString();
+  const finishedAt=[cityHive.finishedAt,pearsons.finishedAt].filter(Boolean).sort().at(-1)||new Date().toISOString();
+  return{state:'DC',label:'District of Columbia first-party retailer research',tier:'B',strategy:'retailer_store_inventory',cadence:'shadow-only',
+    startedAt,finishedAt,lastGoodAt:complete?finishedAt:null,status:signals.length?(complete?'useful':'partial_useful'):'no_trusted_inventory',
+    stale:false,signals,sources,sourceResults,roadblocks,
+    metadata:{...cityHive.metadata,complete,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false,
+      sourceAttempts:{...(cityHive.metadata?.sourceAttempts||{}),...(pearsons.metadata?.sourceAttempts||{})},
+      receipts:[...(cityHive.metadata?.receipts||[]),...(pearsons.metadata?.receipts||[])],
+      pearsonsSourceClock:pearsons.metadata?.sourceClock||null,pearsonsNextDueAt:pearsons.metadata?.nextDueAt||null}};
 }
