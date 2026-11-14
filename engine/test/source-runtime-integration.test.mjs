@@ -91,6 +91,7 @@ test('Costco-only strategy invokes its collector even without a synthetic config
 });
 
 test('fresh exact Costco zero-stock evidence is monitored negative inventory, not parser deficiency', async () => {
+  const researchState = 'MO';
   const directory = await mkdtemp(path.join(tmpdir(), 'bs-costco-zero-integration-'));
   const watchlistPath = path.join(directory, 'watchlist.json');
   const observationsPath = path.join(directory, 'observations.json');
@@ -100,7 +101,7 @@ test('fresh exact Costco zero-stock evidence is monitored negative inventory, no
   await writeFile(observationsPath, JSON.stringify({ observations: [{
     itemNumber: '12345',
     productName: 'Fixture Bourbon',
-    state: 'MN',
+    state: researchState,
     storeNumber: '1001',
     storeName: 'Costco Fixture Warehouse',
     sourceSystem: 'costco_sameday',
@@ -113,7 +114,7 @@ test('fresh exact Costco zero-stock evidence is monitored negative inventory, no
 
   try {
     const report = await collectState({
-      id: 'MN',
+      id: researchState,
       label: 'Fixture Costco state',
       tier: 'test',
       strategy: 'costco_warehouse_inventory_watch',

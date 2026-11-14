@@ -153,7 +153,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     const releasedMinnesota = /^    "MN": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if (text.includes('    "MN"\n  ],\n  "reliabilityPolicy"') || releasedMinnesota?.includes('      "publicStatus": "active"')) {
       assert.equal(createHash('sha256').update(releasedMinnesota || '').digest('hex'),
-        'c5fed12c9eb64ff14b8b8937abca5d255109c990c5bdceb46afa0e3cae1a3de2', `${name}: exact attested MN lifecycle entry`);
+        '050087f01453792a57743042ce7fcb9cafba3c1e3eda372ac8f78e151e3b5f14', `${name}: exact attested MN lifecycle entry`);
       const inactiveMinnesota = `    "MN": {
       "customerLabel": "Minnesota",
       "sourceLabel": "Minnesota Costco warehouse bourbon watch",
