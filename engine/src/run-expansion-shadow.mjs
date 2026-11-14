@@ -7,6 +7,7 @@ import { withResearchLifecycle } from './research-state-registry.mjs';
 import {isCentralCityHiveResearchInventory} from './central-cityhive-policy.mjs';
 import {isNjMiResearchSourceInventory} from './nj-mi-research-policy.mjs';
 import { isLouisianaAlaskaGroceryShadowInventory } from './research-louisiana-alaska-grocery-runtime.mjs';
+import { isExactGroceryResearchInventory } from './research-grocery-runtime.mjs';
 import { isOregonDailyInventoryObservation, OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import { promisify } from 'node:util';
 
@@ -61,7 +62,7 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
   return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
     || (report.state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL)
     || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
-      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})||isLouisianaAlaskaGroceryShadowInventory(row)))
+      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})||isLouisianaAlaskaGroceryShadowInventory(row)||isExactGroceryResearchInventory(row)))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
     && String(row?.storeId ?? '').trim()
