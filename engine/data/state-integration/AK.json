@@ -145,7 +145,7 @@
     "immutablePromotionEvidence": {
       "schemaVersion": 1,
       "state": "AK",
-      "generatedAt": "2026-11-14T09:11:16.118Z",
+      "generatedAt": "2026-11-14T09:45:20.199Z",
       "sourceConfigHash": "b94ea22c3dfb479663fed2609755c49e190f5c44d1f5f9ab8b4a5aa6e3b997c1",
       "previewUrl": "https://bourbonsignal-1v7r2zl89-tarsagent22s-projects.vercel.app",
       "shadowRuns": [
@@ -200,13 +200,13 @@
       "provenance": {
         "status": "success",
         "repository": "tarsagent22/Bourbon-Signal",
-        "workflowRunId": "43579270895",
-        "artifactId": "14107173172",
-        "commitSha": "786270bf303e8b0d88a625b3f4a68f323a7d5747",
-        "artifactDigest": "30f5e42b648f2027c678e4cc396c9e18fecb017f423d734282ffe9f5dea9ac8a",
-        "bundleDigest": "08f68b3813645074ea4f12862943ab6dd6fe1032516d1b52bcf928edb5b54b9f",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43579270895",
-        "artifactName": "state-promotion-provenance-AK-43579270895"
+        "workflowRunId": "43581977198",
+        "artifactId": "14108976653",
+        "commitSha": "201eb2b9d6326495a27f20934e3b85f77e84b3a0",
+        "artifactDigest": "367902427956afcd162dc0fea52c0dbdfe7d2f9818f7b8d21df6a7e19aa0767d",
+        "bundleDigest": "9632ee260a74877dc723fcc36334c6576a502220924d1cd6dcd71495b1a37d83",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43581977198",
+        "artifactName": "state-promotion-provenance-AK-43581977198"
       }
     }
   },
