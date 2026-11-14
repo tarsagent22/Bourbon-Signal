@@ -14,7 +14,7 @@ const {buildCoverageContract}=coverageModule.default||coverageModule;
 const {normalizeDropForSite}=contractModule.default||contractModule;
 const {loadWithMocks}=harness.default||harness;
 const state=process.argv.find(value=>value.startsWith('--state='))?.slice(8);
-assert.ok(['WI','OK','WY'].includes(state),'Use reviewed --state=WI|OK|WY');
+assert.ok(['MN','MO','WI','OK','KS','DE'].includes(state),'Use reviewed --state=MN|MO|WI|OK|KS|DE');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
@@ -49,7 +49,7 @@ const coverageService=loadWithMocks('src/lib/coverage-server.ts',{
   '@/lib/public-drop-evidence':evidenceModule.default||evidenceModule,'@/lib/drop-classification':classificationModule.default||classificationModule,
   '@/data/drop-feed-classification.generated.json':await read('src/data/drop-feed-classification.generated.json'),
   './nationwide-pilot-receipt':receiptModule.default||receiptModule,
-  '@/lib/source-lane-runtime':{prepareRuntimeSourceDropOverlay: async () => async rows=>({drops:rows,version:'isolated-canary-fixture'}),readRuntimeSourceDropOverlay:async rows=>({drops:rows,version:'isolated-canary-fixture'})},
+  '@/lib/source-lane-runtime':{prepareRuntimeSourceDropOverlay: async () => async rows=>({drops:rows,version:'isolated-canary-fixture'})},
   '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportResults:async names=>names.map(name=>({payload:payloads[name],source:'remote-snapshot',snapshotId:'isolated-canary-fixture'}))},
 });
 const coverageRoute=loadWithMocks('src/app/api/coverage/route.ts',{
@@ -72,18 +72,16 @@ const locationRoute=loadWithMocks('src/app/api/locations/route.ts',{
   '@/lib/site-engine-contract':{readSiteExport:async name=>payloads[name],readBundledSiteExport:()=>null,siteExportHeaders:()=>({}),
     listStates:contractHelpers.listStates,normalizeStoreForSite:contractHelpers.normalizeStoreForSite,normalizeDropForSite},
 });
-for(const location of candidateLocations.filter(row=>row.hasSignals===true)){
+for(const location of candidateLocations){
   const searched=await coverageRoute.POST(new Request('https://fixture.test/api/coverage',{method:'POST',body:JSON.stringify({state,query:location.name})}));
   assert.equal(searched.status,200);const search=await searched.json();
-  const result=search.results.find(row=>row.kind==='store'&&row.storeId===location.id);
-  assert.ok(result,`Finder search must retain registered store ${location.id}`);
-  assert.equal(result.status,'actively-monitored');
-}
-for(const location of candidateLocations)assert.ok(directory.some(row=>row.state===state&&row.id===location.id));
-for(const route of [storeRoute,locationRoute]){
-  const response=await route.GET(new Request('https://fixture.test/api/stores?state='+state+'&limit=1000'));
-  assert.equal(response.status,200);const result=await response.json();
-  for(const location of candidateLocations)assert.ok(result.stores.some(row=>row.id===location.id),location.id);
+  assert.ok(search.results.some(row=>row.kind==='store'&&row.storeId===location.id&&row.status==='actively-monitored'));
+  assert.ok(directory.some(row=>row.state===state&&row.id===location.id));
+  for(const route of [storeRoute,locationRoute]){
+    const response=await route.GET(new Request('https://fixture.test/api/stores?state='+state+'&limit=1000'));
+    assert.equal(response.status,200);const result=await response.json();
+    assert.ok(result.stores.some(row=>row.id===location.id),location.id);
+  }
 }
 const proof={state,evaluatedAt:clock,scope:'local_customer_projection_of_workflow_canary_not_live_preview',
   rawRows:partition.drops.length,publicCurrentRows:accepted.length,publicCurrentStores:coverage.scope.inventoryMonitoredStores,

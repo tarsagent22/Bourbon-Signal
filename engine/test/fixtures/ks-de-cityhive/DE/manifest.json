@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "state": "DE",
+  "finishedAt": "2026-11-14T08:55:52.104Z",
+  "origin": {
+    "kind": "github_actions",
+    "repository": "tarsagent22/Bourbon-Signal",
+    "workflowRunId": "43578059597",
+    "commitSha": "3b101f7238ba1b33622b0e104315aa337e13132c",
+    "runAttempt": "1"
+  },
+  "bibleRecordsSha256": "6f0da7f5271dc0663d9c0fae241628b1c252ae2fbf7626808df3aceecfb65bbe",
+  "shadowOnly": true,
+  "productionActivationAllowed": false,
+  "customerDeliveryAllowed": false,
+  "originalReportSha256": "1b9eef261fcc50446863ef36b733dd4329c0e823f76cf528c74908b733b9a268",
+  "sources": [
+    {
+      "sourceRuntimeId": "research:de:kreston-wines:618406f81a9efe0452444e07",
+      "label": "Kreston Wine & Spirits - Wilmington DE first-party pickup inventory",
+      "url": "https://krestonwines.com/shop/?subtype=Bourbon&merchant-id=618406f81a9efe0452444e07",
+      "ok": true,
+      "status": 200,
+      "signalType": "retailer_store_inventory_result",
+      "matchedBottleCount": 2,
+      "error": null
+    },
+    {
+      "sourceRuntimeId": "research:de:kreston-wines:6054cfaae7d3073507c4ee0b",
+      "label": "Kreston Wine & Spirits - Middletown DE first-party pickup inventory",
+      "url": "https://krestonwines.com/shop/?subtype=Bourbon&merchant-id=6054cfaae7d3073507c4ee0b",
+      "ok": true,
+      "status": 200,
+      "signalType": "retailer_store_inventory_result",
+      "matchedBottleCount": 2,
+      "error": null
+    }
+  ],
+  "requests": [
+    {
+      "sourceId": "kreston-wines:618406f81a9efe0452444e07",
+      "url": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=618406f81a9efe0452444e07",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "sourceId": "kreston-wines:618406f81a9efe0452444e07",
+      "url": "https://krestonwines.com/shop/?ch-query=Blanton's%20Gold&merchant-id=618406f81a9efe0452444e07",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "sourceId": "kreston-wines:6054cfaae7d3073507c4ee0b",
+      "url": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=6054cfaae7d3073507c4ee0b",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "sourceId": "kreston-wines:6054cfaae7d3073507c4ee0b",
+      "url": "https://krestonwines.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6054cfaae7d3073507c4ee0b",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "receipts": [
+    {
+      "url": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=618406f81a9efe0452444e07",
+      "finalUrl": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=618406f81a9efe0452444e07",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:47.821Z",
+      "sha256": "c451f0eed42856d2a6e41b71890a0eb180bdb073c1f0518c123dd00aed936c78",
+      "bytes": 24798,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/DE/2026-11-14T08-55-42-168Z/source-captures/001-3d8d1ae64524.html",
+      "artifactPath": "source-captures/001.html"
+    },
+    {
+      "url": "https://krestonwines.com/shop/?ch-query=Blanton's%20Gold&merchant-id=618406f81a9efe0452444e07",
+      "finalUrl": "https://krestonwines.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=618406f81a9efe0452444e07",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:49.540Z",
+      "sha256": "08d59f239f368a4870fba838f1eb8b580a9f8d98e7194dd6c51eebfc662c3bc1",
+      "bytes": 5035,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/DE/2026-11-14T08-55-42-168Z/source-captures/002-f262151af926.html",
+      "artifactPath": "source-captures/002.html"
+    },
+    {
+      "url": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=6054cfaae7d3073507c4ee0b",
+      "finalUrl": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=6054cfaae7d3073507c4ee0b",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:50.354Z",
+      "sha256": "9565e5f1288d00c38a44684100591798d74a92e9e5b7d9af72e5627b7cdcffe1",
+      "bytes": 24438,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/DE/2026-11-14T08-55-42-168Z/source-captures/003-c2c42358411f.html",
+      "artifactPath": "source-captures/003.html"
+    },
+    {
+      "url": "https://krestonwines.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6054cfaae7d3073507c4ee0b",
+      "finalUrl": "https://krestonwines.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=6054cfaae7d3073507c4ee0b",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:52.086Z",
+      "sha256": "2505d7240beec9cc6d018fa58cfc3df19f84f16e267ece5da9cde462015304e8",
+      "bytes": 4715,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/DE/2026-11-14T08-55-42-168Z/source-captures/004-bf556dfe663c.html",
+      "artifactPath": "source-captures/004.html"
+    }
+  ],
+  "originalSourceReceipts": [
+    {
+      "url": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=618406f81a9efe0452444e07",
+      "finalUrl": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=618406f81a9efe0452444e07",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:47.821Z",
+      "sha256": "3d8d1ae6452427256d5eda1f2bac1c6ebc415989cc017f0a93b867ba92711e29",
+      "bytes": 399608,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/DE/2026-11-14T08-55-42-168Z/source-captures/001-3d8d1ae64524.html",
+      "artifactPath": "source-captures/001-3d8d1ae64524.html",
+      "verifiedLocalBytes": 399608,
+      "verifiedLocalSha256": "3d8d1ae6452427256d5eda1f2bac1c6ebc415989cc017f0a93b867ba92711e29"
+    },
+    {
+      "url": "https://krestonwines.com/shop/?ch-query=Blanton's%20Gold&merchant-id=618406f81a9efe0452444e07",
+      "finalUrl": "https://krestonwines.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=618406f81a9efe0452444e07",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:49.540Z",
+      "sha256": "f262151af926148986fd36f70ffe61c8ec133c12722ee0e4729de0292fb27107",
+      "bytes": 387859,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/DE/2026-11-14T08-55-42-168Z/source-captures/002-f262151af926.html",
+      "artifactPath": "source-captures/002-f262151af926.html",
+      "verifiedLocalBytes": 387859,
+      "verifiedLocalSha256": "f262151af926148986fd36f70ffe61c8ec133c12722ee0e4729de0292fb27107"
+    },
+    {
+      "url": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=6054cfaae7d3073507c4ee0b",
+      "finalUrl": "https://krestonwines.com/shop/?ch-query=barrel%20proof&merchant-id=6054cfaae7d3073507c4ee0b",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:50.354Z",
+      "sha256": "c2c42358411f8d815e09bce77a85666429e2694788221e9bec50188120298a46",
+      "bytes": 391533,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/DE/2026-11-14T08-55-42-168Z/source-captures/003-c2c42358411f.html",
+      "artifactPath": "source-captures/003-c2c42358411f.html",
+      "verifiedLocalBytes": 391533,
+      "verifiedLocalSha256": "c2c42358411f8d815e09bce77a85666429e2694788221e9bec50188120298a46"
+    },
+    {
+      "url": "https://krestonwines.com/shop/?ch-query=Blanton's%20Gold&merchant-id=6054cfaae7d3073507c4ee0b",
+      "finalUrl": "https://krestonwines.com/shop/?ch-query=Blanton%27s%20Gold&merchant-id=6054cfaae7d3073507c4ee0b",
+      "status": 200,
+      "observedAt": "2026-11-14T08:55:52.086Z",
+      "sha256": "bf556dfe663c58d0141b2dc8a7c063206283678f6767e7d9ca6a8baadbf59a68",
+      "bytes": 380689,
+      "file": "/home/runner/work/Bourbon-Signal/Bourbon-Signal/engine/out/shadow/DE/2026-11-14T08-55-42-168Z/source-captures/004-bf556dfe663c.html",
+      "artifactPath": "source-captures/004-bf556dfe663c.html",
+      "verifiedLocalBytes": 380689,
+      "verifiedLocalSha256": "bf556dfe663c58d0141b2dc8a7c063206283678f6767e7d9ca6a8baadbf59a68"
+    }
+  ]
+}
