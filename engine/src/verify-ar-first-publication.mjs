@@ -49,7 +49,12 @@ export function verifyArkansasFirstPublication({ report, partition, locations, r
   }
   const signals = report?.signals || [], drops = partition?.drops || [];
   const identities = new Set(signals.map(identity));
-  const accepts = row => row.state === 'AR' && isCentralCityHiveProductionOnSiteSignal(row, { nowMs });
+  const accepts = row => row.state === 'AR' && premiseIds.includes(row.storeId)
+    && isCentralCityHiveProductionOnSiteSignal(row, { nowMs });
+  const positiveStores = new Set(drops.map(row => row.storeId));
+  if (positiveStores.size < 3 || drops.length < 4) {
+    failures.push('Arkansas first publication requires at least four listings across three reviewed stores.');
+  }
   if (!signals.length || signals.some(row => !accepts(row) || row.observedAt !== metadata?.sourceObservedAt)
     || partition?.state !== 'AR' || partition.count !== drops.length || !drops.length
     || drops.some(row => !accepts(row) || !identities.has(identity(row)))) {
@@ -61,7 +66,7 @@ export function verifyArkansasFirstPublication({ report, partition, locations, r
   }
   if (failures.length) return { ok: false, failures };
   const receipt = { state: 'AR', workflowRunId, cohortSha256: cohort, observedAt: metadata.sourceObservedAt,
-    publishedRows: drops.length, publishedStores: new Set(drops.map(row => row.storeId)).size,
+    publishedRows: drops.length, publishedStores: positiveStores.size,
     verifiedPremises: verified, allDeliveryChannelsDisabled: true,
     reportSha256: hash(reportBytes || JSON.stringify(report)), partitionSha256: hash(partitionBytes || JSON.stringify(partition)) };
   return { ok: true, failures, receipt };
