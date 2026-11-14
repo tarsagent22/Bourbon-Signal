@@ -19,8 +19,8 @@ const replayIdentity=row=>JSON.stringify([row?.storeId,row?.merchantId,row?.prod
 const sameReplayIdentity=(shadowRows,replayedRows)=>Array.isArray(shadowRows)&&shadowRows.length===replayedRows.length
   &&JSON.stringify(shadowRows.map(replayIdentity).sort())===JSON.stringify(replayedRows.map(replayIdentity).sort());
 const ALL_CITYHIVE_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
-const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','KS']);
-const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','KS']);
+const CANARY_STATES=new Set(['WI','OK','MN','MO','MA','RI','KS','AR']);
+const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA','RI','KS','AR']);
 const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].map(source=>({
   id:source.id,state:source.state,storeId:source.storeId,chainId:source.chainId||null,name:source.name,chainName:source.chainName||null,
   platform:source.platform,merchantId:source.merchantId,hostname:source.hostname,
