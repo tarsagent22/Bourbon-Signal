@@ -306,6 +306,63 @@ assert.equal(degradedMaryland.capabilities.restockAlerts, false, "an explicit so
 assert.equal(degradedMaryland.freshness.currentInventoryStores, 0, "an internal Maryland degradation suppresses customer current-availability claims");
 assert.equal(degradedMaryland.health, "temporarily-limited", "an internal Maryland degradation remains visible in public health");
 
+// A retailer lane and the Montgomery County board feed share one public state.
+const marylandTwoLaneInput = {
+  lifecycle: {
+    activeStates: ["MD", "MD-MONTGOMERY"],
+    states: {
+      MD: { customerLabel: "Maryland", publicStatus: "active", coverageTier: "sparse_live_store_inventory" },
+      "MD-MONTGOMERY": {
+        customerLabel: "Maryland",
+        customerAreaLabel: "Montgomery County",
+        publicStatus: "active",
+        coverageTier: "aggregate_inventory_watch",
+      },
+    },
+  },
+  asOf: AS_OF,
+  stateRows: [
+    { state: "MD", publicStatus: "active", status: "useful", coverageTier: "sparse_live_store_inventory", signalCount: 1 },
+    { state: "MD-MONTGOMERY", publicStatus: "active", status: "useful", coverageTier: "aggregate_inventory_watch", signalCount: 1 },
+  ],
+  locations: [{
+    id: "frederick-1", state: "MD", city: "Frederick", name: "Frederick Retailer",
+    address: "12 Market Street, Frederick, MD 21701", type: "store",
+    source: "First-party retailer inventory", collectorAttached: true,
+  }],
+  drops: [{
+    ...exactStoreInventory({ state: "MD", storeId: "frederick-1", city: "Frederick", alertable: false }),
+    storeName: "Frederick Retailer",
+    storeAddress: "12 Market Street, Frederick, MD 21701",
+    retailerReported: true,
+    source: "verified-retailer",
+    expiresAt: "2026-08-03T14:00:00.000Z",
+  }, {
+    ...exactStoreInventory({ state: "MD-MONTGOMERY", storeId: "county-aggregate", city: "Bethesda", alertable: false }),
+    type: "county_inventory_aggregate",
+    eventType: "county_inventory_aggregate",
+    locationPrecision: "store_aggregate",
+    quantity: 3,
+    eligibleForWatch: true,
+    eligibleForDropFeed: true,
+  }],
+};
+const mdRetailAvailable = buildCoverageContract({
+  ...marylandTwoLaneInput,
+  degradedStates: [{ state: "MD-MONTGOMERY", status: "source_blocked" }],
+}).states.find((state) => state.code === "MD");
+assert.equal(mdRetailAvailable?.freshness.currentInventoryStores, 1);
+assert.equal(mdRetailAvailable?.freshness.freshPublicUpdates, 0);
+assert.ok(mdRetailAvailable?.areas.includes("Montgomery County"));
+const mdFinder = searchCoverageTargets({ ...marylandTwoLaneInput, stateCode: "MD", query: "Frederick Retailer" });
+assert.equal(mdFinder.find((result) => result.kind === "store")?.storeId, "frederick-1");
+const mdCountyAvailable = buildCoverageContract({
+  ...marylandTwoLaneInput,
+  degradedStates: [{ state: "MD", status: "source_blocked" }],
+}).states.find((state) => state.code === "MD");
+assert.equal(mdCountyAvailable?.freshness.currentInventoryStores, 0);
+assert.ok(mdCountyAvailable?.freshness.freshPublicUpdates);
+
 const blockedRowNcContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
