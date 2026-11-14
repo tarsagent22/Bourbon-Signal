@@ -61,6 +61,15 @@ export function browserCollectorScripts({rawStates = '', browserStarted = false,
     : ['src/ohlq-browser-collector.mjs', 'src/fwgs-browser-full.mjs'];
 }
 
+export function splitOverlappedBrowserScripts(scripts = [], { scheduledFleetRun = false } = {}) {
+  const fwgs = [], immediate = [];
+  for (const script of scripts) {
+    if (scheduledFleetRun && String(script).includes('fwgs-browser-full')) fwgs.push(script);
+    else immediate.push(script);
+  }
+  return { immediate, delegatedFwgs: fwgs };
+}
+
 
 // Scheduled fallback/isolation remains independent. An explicitly targeted PA
 // recovery cannot start the expensive pipeline with already-expiring evidence.

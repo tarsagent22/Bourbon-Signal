@@ -344,7 +344,7 @@ test('representative multi-source California lane and run-level SLO use shared r
   assert.match(stateRunner, /sourceRuntimeOptionsFromArtifacts/);
   assert.match(stateRunner, /source-run-history\.json/);
   const engineRunner = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');
-  assert.match(engineRunner, /runBoundedPool\(runnable/);
+  assert.match(engineRunner, /runStatePoolWithBrowserBarriers\(runnable/);
   assert.match(engineRunner, /attemptStartedAt:\s*poolResult\?\.startedAt/);
   assert.match(engineRunner, /attemptFinishedAt:\s*poolResult\?\.finishedAt/);
   assert.match(engineRunner, /source-slo-7d\.json/);

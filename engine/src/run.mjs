@@ -10,7 +10,7 @@ import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state
 import { ensureBrowserCdp, killBrowserCdp, DEFAULT_CDP_URL } from './core/browser-session.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
 import { atomicWriteJson, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
-import { runBoundedPool } from './optimization/worker-pool.mjs';
+import { runStatePoolWithBrowserBarriers } from './optimization/browser-state-barrier.mjs';
 import { prioritizeScheduledStateRuns, selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
 import { guardStateReport, stateReportContinuityStateIds, usesPartialSignalContinuity } from './state-report-guard.mjs';
 import { resolveAggregateStateReports } from './state-report-aggregation.mjs';
@@ -23,6 +23,8 @@ import {
   buildSevenDaySourceSloReport,
   sourceSloMarkdown,
 } from './sources/slo-report.mjs';
+import { fwgsPublicationFreshness } from './fwgs-publication-freshness.mjs';
+import { ohlqArtifactFreshEnough } from './ohlq-worker-artifact.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -105,6 +107,9 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   KY: Number(process.env.BOURBON_SIGNAL_KY_STATE_TIMEOUT_MS || 300_000)
 };
 const BROWSER_PREFLIGHT_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT_MAX_AGE_MS || 6 * 60 * 60_000);
+// Match the existing OHLQ source collector's 12h stale-after clock.
+const OHLQ_STATE_ARTIFACT_MAX_AGE_MS = Math.min(12 * 60 * 60_000,
+  Number(process.env.BOURBON_SIGNAL_OHLQ_PREFLIGHT_MAX_AGE_MS || 12 * 60 * 60_000));
 const BROWSER_PREFLIGHT_ENABLED = process.env.BOURBON_SIGNAL_BROWSER_PREFLIGHT !== '0' && !process.argv.includes('--skip-browser-preflight');
 const STATE_SCHEDULER_ENABLED = process.env.BOURBON_SIGNAL_STATE_SCHEDULER !== '0';
 const STATE_WORKER_CONCURRENCY = Math.max(1, Number(process.env.BOURBON_SIGNAL_STATE_WORKER_CONCURRENCY || 4));
@@ -123,7 +128,7 @@ const BROWSER_PREFLIGHT_JOBS = [
     command: ['../scripts/fetch-ohlq-worker-artifact.mjs'],
     outEnv: 'OHLQ_WORKER_DESTINATION',
     validateArtifact: validateOhlqArtifact,
-    maxAgeMs: Number(process.env.BOURBON_SIGNAL_OHLQ_PREFLIGHT_MAX_AGE_MS || 24 * 60 * 60_000)
+    maxAgeMs: OHLQ_STATE_ARTIFACT_MAX_AGE_MS
   },
   {
     id: 'pa-fwgs',
@@ -191,6 +196,26 @@ function validateOhlqArtifact(payload) {
     return { ok: false, reason: `OHLQ artifact has ${okProducts} successful products and ${inventoryRows} inventory rows; likely blocked by Cloudflare/session. Keeping previous artifact.` };
   }
   return { ok: true, reason: `OHLQ artifact accepted: ${okProducts} successful products, ${inventoryRows} inventory rows.` };
+}
+
+async function requireFwgsStateArtifact() {
+  const file = path.join(OUT, 'browser', 'fwgs-store-inventory.json');
+  const artifact = await readJson(file, null);
+  const validation = validateFwgsArtifact(artifact);
+  const freshness = fwgsPublicationFreshness(artifact);
+  if (!validation.ok || !freshness.ok) {
+    throw new Error(`PA collection is waiting for a valid FWGS artifact: ${[validation.reason, freshness.reason].filter(Boolean).join('; ')}`);
+  }
+}
+
+async function requireOhlqStateArtifact() {
+  const file = path.join(OUT, 'browser', 'ohlq-availability.json');
+  const artifact = await readJson(file, null);
+  const validation = validateOhlqArtifact(artifact);
+  const maxAgeMs = OHLQ_STATE_ARTIFACT_MAX_AGE_MS;
+  if (!validation.ok || !ohlqArtifactFreshEnough(artifact, maxAgeMs)) {
+    throw new Error(`OH collection is waiting for a valid current OHLQ artifact: ${validation.reason}`);
+  }
 }
 
 function terminateProcessTree(child) {
@@ -294,36 +319,64 @@ async function runGuardedBrowserPreflightJob(job) {
   }
 }
 
-async function runBrowserPreflight() {
+async function runBrowserPreflightJob(job, results, { force = false, timeoutMs } = {}) {
+  const artifact = path.relative(process.cwd(), job.artifact).replace(/\\/g, '/');
+  const cooldown = await activeCooldown(job.cooldownFile);
+  if (cooldown) {
+    const result = { id: job.id, label: job.label, artifact, status: 'cooldown_previous_artifact_reused',
+      cooldownUntil: cooldown.cooldownUntil, reason: cooldown.reason || null };
+    results.push(result);
+    return result;
+  }
+  const fresh = await fileFreshEnough(job.artifact, job.maxAgeMs || BROWSER_PREFLIGHT_MAX_AGE_MS);
+  const globalForce = process.env.BOURBON_SIGNAL_FORCE_BROWSER_PREFLIGHT === '1';
+  if (fresh && !force && !globalForce) {
+    const result = { id: job.id, label: job.label, artifact, status: 'fresh_artifact_reused' };
+    results.push(result);
+    return result;
+  }
+  console.log(`Browser preflight: ${job.label}`);
+  const result = await runGuardedBrowserPreflightJob(timeoutMs ? { ...job, timeoutMs } : job);
+  results.push(result);
+  return result;
+}
+
+async function runBrowserPreflight({ deferFwgs = false } = {}) {
   const results = [];
-  if (!BROWSER_PREFLIGHT_ENABLED) {
-    return { generatedAt: new Date().toISOString(), enabled: false, results };
-  }
+  if (!BROWSER_PREFLIGHT_ENABLED) return { report: { generatedAt: new Date().toISOString(), enabled: false, results }, runFwgs: null };
   await mkdir(path.join(OUT, 'browser'), { recursive: true });
+  const fwgsJob = BROWSER_PREFLIGHT_JOBS.find(job => job.id === 'pa-fwgs');
   for (const job of BROWSER_PREFLIGHT_JOBS) {
-    const cooldown = await activeCooldown(job.cooldownFile);
-    if (cooldown) {
-      results.push({
-        id: job.id,
-        label: job.label,
-        artifact: path.relative(process.cwd(), job.artifact).replace(/\\/g, '/'),
-        status: 'cooldown_previous_artifact_reused',
-        cooldownUntil: cooldown.cooldownUntil,
-        reason: cooldown.reason || null
-      });
-      continue;
-    }
-    const fresh = await fileFreshEnough(job.artifact, job.maxAgeMs || BROWSER_PREFLIGHT_MAX_AGE_MS);
-    if (fresh && process.env.BOURBON_SIGNAL_FORCE_BROWSER_PREFLIGHT !== '1') {
-      results.push({ id: job.id, label: job.label, artifact: path.relative(process.cwd(), job.artifact).replace(/\\/g, '/'), status: 'fresh_artifact_reused' });
-      continue;
-    }
-    console.log(`Browser preflight: ${job.label}`);
-    results.push(await runGuardedBrowserPreflightJob(job));
+    if (deferFwgs && job.id === 'pa-fwgs') continue;
+    await runBrowserPreflightJob(job, results);
   }
-  const payload = { generatedAt: new Date().toISOString(), enabled: true, maxAgeMs: BROWSER_PREFLIGHT_MAX_AGE_MS, results };
-  await writeFile(path.join(OUT, 'browser-refresh-status.json'), JSON.stringify(payload, null, 2));
-  return payload;
+  const report = { generatedAt: new Date().toISOString(), enabled: true, maxAgeMs: BROWSER_PREFLIGHT_MAX_AGE_MS, results };
+  const saveReport = async () => {
+    report.generatedAt = new Date().toISOString();
+    await writeFile(path.join(OUT, 'browser-refresh-status.json'), JSON.stringify(report, null, 2));
+    return report;
+  };
+  if (!deferFwgs) {
+    await saveReport();
+    return { report, runFwgs: null };
+  }
+  return {
+    report,
+    runFwgs: async () => {
+      try {
+        await runBrowserPreflightJob(fwgsJob, results, {
+          force: process.env.BOURBON_SIGNAL_FWGS_REFRESH_REQUIRED === '1',
+          timeoutMs: Number(process.env.BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS || 22 * 60_000),
+        });
+      } catch (error) {
+        results.push({ id: fwgsJob.id, label: fwgsJob.label,
+          artifact: path.relative(process.cwd(), fwgsJob.artifact).replace(/\\/g, '/'),
+          status: 'failed_non_blocking', ok: false, error: error.message });
+      } finally {
+        await saveReport();
+      }
+    },
+  };
 }
 
 function failedReport(config, reason) {
@@ -538,7 +591,10 @@ function buildSourceHealth(summary, reports, browserPreflight) {
 async function main() {
   sourceRefreshScope(); // Reject unsupported scopes before collecting or replacing any state artifacts.
   await mkdir(STATES_OUT, { recursive: true });
-  const browserPreflight = await runBrowserPreflight();
+  const overlapFwgs = process.env.BOURBON_SIGNAL_FWGS_STATE_OVERLAP === '1';
+  const browserPlan = await runBrowserPreflight({ deferFwgs: overlapFwgs });
+  const browserPreflight = browserPlan.report;
+  const fwgsRefreshPromise = browserPlan.runFwgs?.() || null;
   const allReports = [];
   const allSignals = [];
   const allRoadblocks = [];
@@ -589,7 +645,11 @@ async function main() {
     ? prioritizeScheduledStateRuns(dueConfigs, previousMetrics, Date.parse(scheduleOptions.now))
     : dueConfigs;
   console.log(`State scheduler selected ${runnable.length}/${selectedStateSources.length} states; worker concurrency=${STATE_WORKER_CONCURRENCY}.`);
-  const poolResults = await runBoundedPool(runnable, async (config) => {
+  const browserBarriers = overlapFwgs ? new Map([
+    ['PA', (fwgsRefreshPromise || Promise.resolve()).then(requireFwgsStateArtifact)],
+    ['OH', Promise.resolve().then(requireOhlqStateArtifact)],
+  ]) : new Map();
+  const poolResults = await runStatePoolWithBrowserBarriers(runnable, async (config) => {
     console.log(`Collecting ${config.id} — ${config.label}`);
     const report = await collectStateResilient(config);
     console.log(`  ${report.status}: ${report.signals.length} signals, ${report.roadblocks.length} roadblocks${report.stale ? ' (stale fallback)' : ''}`);
@@ -598,10 +658,12 @@ async function main() {
     concurrency: STATE_WORKER_CONCURRENCY,
     perDomain: 1,
     timeoutMs: Math.max(...runnable.map(stateTimeoutMs), STATE_TIMEOUT_MS) + 60_000,
+    barriers: browserBarriers,
     domainFor: (config) => Object.hasOwn(LOUISIANA_ALASKA_GROCERY_BUDGETS, config.id)
       ? 'louisiana-alaska-grocery'
       : config.id,
   });
+  if (fwgsRefreshPromise) await fwgsRefreshPromise;
   const poolResultsByState = new Map(poolResults.map((result) => [result.task.id, result]));
   const collected = new Map(poolResults.map((result) => [result.task.id, result.status === 'fulfilled' ? result.value : null]));
   let nextMetrics = previousMetrics;
