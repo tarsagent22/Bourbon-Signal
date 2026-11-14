@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "mode": "canary_preview",
+  "alertDeliveryEnabled": false,
+  "productionDeploymentEnabled": false,
+  "productionSnapshotPublicationEnabled": false
+}

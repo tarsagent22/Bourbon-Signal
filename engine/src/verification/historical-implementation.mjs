@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const sharedBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/metro-depth-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
 const arizonaBaseline = JSON.parse(readFileSync(new URL('../../data/source-evidence/arizona-expansion-20261022/shared-metadata-baseline.json', import.meta.url), 'utf8'));
@@ -72,6 +73,16 @@ function replaceUnique(text, current, original, label) {
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (name === 'engine/src/operational-report.mjs') {
+    let implementation = bytes.toString('utf8');
+    implementation=replaceUnique(implementation,"import {isLouisianaAlaskaGroceryOnSiteSignal} from './louisiana-alaska-grocery-policy.mjs';\n",'',`${name}: AK/LA production projection import`);
+    implementation=replaceUnique(implementation,`    ...(isLouisianaAlaskaGroceryOnSiteSignal(signal)?{
+      tier:signal.tier,inventorySemantics:signal.inventorySemantics,
+      canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
+      eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,deliveryEligible:false,eligibleForEmail:false,eligibleForSms:false,
+    }:{}),
+`,'',`${name}: AK/LA production projection`);
+    bytes = Buffer.from(implementation);
     bytes = Buffer.from(replaceUnique(bytes.toString('utf8'), "    raw: signal.state === 'SC' && signal.sourceChain === 'liquor-library' ? { chain: signal.raw?.chain, square: signal.raw?.square } : signal.state === 'MS' ? {\n", "    raw: signal.state === 'MS' ? {\n", `${name}: exact SC Square proof preservation`));
     // Reverse only this exact FL proof-preservation addition at its original
     // canonicalization boundary. The original MS full-file digest stays pinned.
@@ -126,6 +137,23 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (!sharedFiles.has(name)) return bytes;
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
+  if(name==='engine/src/state-sources.mjs'){
+    text=replaceUnique(text,"import {LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS,LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES} from './louisiana-alaska-grocery-production-config.mjs';\n",'',`${name}: AK/LA production config import`);
+    text=replaceUnique(text,
+      "export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)&&!LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS,...LOUISIANA_ALASKA_GROCERY_PRODUCTION_CONFIGS].map((source) => {\n  if(NJ_MI_PRODUCTION_STATES.includes(source.id)||LOUISIANA_ALASKA_GROCERY_PRODUCTION_STATES.includes(source.id))return source;",
+      "export const ALL_STATE_SOURCES = [...BASE_STATE_SOURCES.filter(source=>!NJ_MI_PRODUCTION_STATES.includes(source.id)),...NJ_MI_PRODUCTION_CONFIGS].map((source) => {\n  if(NJ_MI_PRODUCTION_STATES.includes(source.id))return source;",
+      `${name}: AK/LA dormant source registration`);
+  }
+  if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedAkLa = /^    \},\n    "AK": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
+    if (releasedAkLa && createHash('sha256').update(releasedAkLa).digest('hex') === '7b71ef26f902cb8a8f31049a54c0cb5b8f980c73172fe41343e6d5e9242037f4') {
+      text=replaceUnique(text,releasedAkLa,'    }\n  }',`${name}: exact attested AK/LA lifecycle entries`);
+      text=replaceUnique(text,'    "OK",\n    "AK",\n    "LA"\n  ],\n  "reliabilityPolicy"','    "OK"\n  ],\n  "reliabilityPolicy"',`${name}: exact AK/LA active list tail`);
+    } else {
+    const akLaLifecycle=`    },\n    "AK": {\n      "customerLabel": "Alaska",\n      "sourceLabel": "Alaska reviewed exact-store grocery inventory",\n      "publicStatus": "research_only",\n      "lifecycle": "retailer_inventory_research",\n      "coverageTier": "sparse_live_store_inventory",\n      "refinementLevel": "store",\n      "inventoryAlertable": false,\n      "watchAlertable": false,\n      "productionAdapter": "louisiana_alaska_grocery_onsite_v1",\n      "customerSummary": "Inactive Alaska grocery inventory research. Production collection, customer display, alerts, and delivery remain blocked pending admission."\n    },\n    "LA": {\n      "customerLabel": "Louisiana",\n      "sourceLabel": "Louisiana reviewed exact-store grocery inventory",\n      "publicStatus": "research_only",\n      "lifecycle": "retailer_inventory_research",\n      "coverageTier": "sparse_live_store_inventory",\n      "refinementLevel": "store",\n      "inventoryAlertable": false,\n      "watchAlertable": false,\n      "productionAdapter": "louisiana_alaska_grocery_onsite_v1",\n      "customerSummary": "Inactive Louisiana grocery inventory research. Production collection, customer display, alerts, and delivery remain blocked pending admission."\n    }\n  }`;
+      text=replaceUnique(text,akLaLifecycle,'    }\n  }',`${name}: AK/LA inactive lifecycle entries`);
+    }
+  }
   assert.equal(phoenixIllinoisBaseline.contractVersion,'bourbon-signal/phoenix-illinois-shared-metadata-ms-boundary@1');
   // Reverse only the literal reviewed AZ source addition and IL source/city
   // metadata. All original MS full-file hashes and older boundaries stay pinned.

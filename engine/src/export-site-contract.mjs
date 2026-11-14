@@ -5,6 +5,7 @@ import { selectFleetDropBudget, serializeCustomerDropPayload } from './fleet-dro
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
+import { isLouisianaAlaskaGroceryInventory, isLouisianaAlaskaGroceryOnSiteSignal } from './louisiana-alaska-grocery-policy.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -434,7 +435,7 @@ export function publicSignal(signal, bible, freshness = null, { shopifyPolicy } 
   const isGaRetailerInventory = isGeorgiaRetailerInventory(signal);
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
   const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
-  const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal);
+  const isGroceryOnSiteInventory = isReviewedResearchGrocery(signal) || isLouisianaAlaskaGroceryOnSiteSignal(signal);
   const isCentralOnSiteInventory=isCentralCityHiveProductionOnSiteSignal(signal)||isNjMiProductionOnSiteSignal(signal);
   const nonAlertingOnSiteInventory=isMsSparseOnSiteInventory||isCentralOnSiteInventory||isGroceryOnSiteInventory;
   const isMetroInventory = isMetroRetailerInventory(signal);
@@ -1356,8 +1357,11 @@ function aggregateLeadIdentity(signal) {
   ].map((value) => String(value).toLowerCase().replace(/\s+/g, ' ').trim()).join('|');
 }
 
-function isSafePublicSignal(signal, shopifyPolicy) {
+export function isSafePublicSignal(signal, shopifyPolicy) {
   if (['AK', 'DC', 'LA', 'OR'].includes(signal.state) && (signal.raw?.shadowOnly === true || signal.sourceProductBinding?.shadowOnly === true)) return false;
+  if (['AK', 'LA'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') {
+    return isLouisianaAlaskaGroceryInventory(signal) || isLouisianaAlaskaGroceryOnSiteSignal(signal);
+  }
   if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;

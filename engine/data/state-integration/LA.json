@@ -1,24 +1,216 @@
 {
   "schemaVersion": 1,
   "state": "LA",
-  "lifecycle": {"customerLabel":"Louisiana","publicStatus":"active","coverageTier":"sparse_live_store_inventory","refinementLevel":"store"},
-  "collector": {"sourceIds":["research:la:grocery-xapi"],"registration":"Isolated Louisiana shadow collector replays bounded exact-store Albertsons XAPI captures. Candidate preparation reparses all original resolver and inventory response bodies against the current Bible, preserving source observation timestamps and disabling every alert and delivery path."},
-  "storeIdentity": {"mode":"registered_first_party_store_id_and_resolver_address","addressRequired":true,"proof":"Exact Albertsons merchant IDs are matched to first-party resolver rows and to the immutable report's premise-bound product captures."},
-  "sourceSemantics": {"availability":"First-party in-store orderable binary availability; unknown quantity remains zero and is not presented as an exact shelf count.","inventoryAlertable":false,"watchAlertable":false},
+  "lifecycle": {
+    "customerLabel": "Louisiana",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "la:grocery-xapi"
+    ],
+    "cohortSha256": "ed22f8e04bbfd3968b864bad1e97584766d3c3272c81ac19ea5732338afc6c6b",
+    "registration": "The production adapter requires the authoritative active lifecycle, the exact reviewed cohort and immutable promotion evidence before sending requests. Current public rows use binary availability with all delivery channels disabled."
+  },
+  "storeIdentity": {
+    "mode": "registered_first_party_store_id_and_resolver_address",
+    "addressRequired": true,
+    "proof": "Albertsons merchant IDs are checked against the current official resolver and exact premises. Each qualifying result must preserve its matching product variant, exact store and in-store channel proof."
+  },
+  "sourceSemantics": {
+    "availability": "First-party in-store orderable binary availability; unknown quantity remains zero and is not presented as an exact shelf count.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
   "customerPaths": {
-    "stateFilter":{"status":"verified","assertion":"Isolated canary contains the LA state partition while authoritative Louisiana lifecycle stays research-only."},
-    "areaFilter":{"status":"verified","assertion":"Canary stores retain exact resolver-confirmed addresses and cities."},
-    "preferences":{"status":"verified","assertion":"Preview lifecycle derives from current configuration without modifying authoritative lifecycle."},
-    "dashboard":{"status":"verified","assertion":"Preview snapshot includes only captured exact-store LA positives and derived coverage."},
-    "dropFeedApi":{"status":"verified","assertion":"Preview rows keep source identity, binary quantity semantics, original receipt timestamps, and disabled alerts."},
-    "finder":{"status":"verified","assertion":"Searchable LA locations are limited to reviewed premises in the replayed source cohort."},
-    "alerts":{"status":"verified","assertion":"Candidate rows and preview lifecycle disable inventory, watch, email, SMS, and delivery alerts."},
-    "monitoring":{"status":"verified","assertion":"Canary output counts are isolated from production monitoring and publication."},
-    "export":{"status":"verified","assertion":"Candidate export requires full digest-bound source capture replay and current Bible identity revalidation."}
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Isolated canary contains the LA state partition while authoritative Louisiana lifecycle stays research-only."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Canary stores retain exact resolver-confirmed addresses and cities."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Preview lifecycle derives from current configuration without modifying authoritative lifecycle."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "The deployed isolated Coverage API independently confirmed 15 current stores across 7 cities."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The executable customer projection admitted 56 current listings. The default feed projection preserves binary availability and disables all alerts."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "15 exact reviewed premises are searchable in the isolated preview. A production-path query for Baton Rouge returned exact store results in the isolated deployment."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Candidate rows and preview lifecycle disable inventory, watch, email, SMS, and delivery alerts."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Canary output counts are isolated from production monitoring and publication."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Candidate export requires full digest-bound source capture replay and current Bible identity revalidation."
+    }
   },
   "evidence": {
-    "shadow":{"status":"verified","runs":1,"artifact":"https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813","assertion":"Saved successful shadow report contains 43 verified bounded requests, 15 exact resolver premises, 63 current positive signals across all 15 stores, and no publication or alert delivery."},
-    "canary":{"status":"not_run","runs":0,"artifact":null,"reason":"Local replay and preview rehearsal are not a hosted canary or deployed preview."},
-    "production":{"status":"not_deployed","url":null,"assertion":"No production inventory or customer alerts were activated by this research canary preparation.","reason":"Louisiana remains research-only pending separate activation review."}
+    "shadow": {
+      "status": "verified",
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+      "observations": [
+        {
+          "runId": "43565682813",
+          "status": "success",
+          "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
+          "artifactId": "14101879455",
+          "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+          "artifactName": "state-expansion-shadow-43565682813"
+        },
+        {
+          "runId": "43573194351",
+          "status": "success",
+          "artifactHash": "4e8794f5ccf0f34bbc3640f9a8347ddf5932bd1e26ebcd6b8f10d3bfee9b98b8",
+          "artifactId": "14105063250",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573194351",
+          "artifactName": "state-expansion-shadow-43573194351"
+        },
+        {
+          "runId": "43575218820",
+          "status": "success",
+          "artifactHash": "1a12bce4a50ec32329c56e335844587308b6fbc9a439aae95a7b77463e8882be",
+          "artifactId": "14105613292",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+          "artifactName": "state-expansion-shadow-43575218820"
+        }
+      ],
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://bourbonsignal-3drkx2fps-tarsagent22s-projects.vercel.app",
+      "observations": [
+        {
+          "runId": "43572885476",
+          "status": "success",
+          "artifactHash": "0679e6d5e9d2c8676e1cfd544670863fbd9dab0ebf78a9524fa30ddeea0fa88f",
+          "artifactId": "14104842945",
+          "commitSha": "4ed1f2314a4821163699af5272bcf2c22d8b6f39",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43572885476",
+          "artifactName": "state-expansion-canary-LA-43572885476"
+        },
+        {
+          "runId": "43573428800",
+          "status": "success",
+          "artifactHash": "3dce40633c5e15316333e8c309b55b9a836c485f3ccf70dc95d0300585f9fc7a",
+          "artifactId": "14105835112",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573428800",
+          "artifactName": "state-expansion-canary-LA-43573428800"
+        }
+      ],
+      "siteArtifact": "engine/data/canary-site/alaska-louisiana-20261114",
+      "allDeliveryChannelsDisabled": true
+    },
+    "production": {
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/drops?state=LA",
+      "assertion": "Current inventory must come from a fresh closed-cohort collection and be confirmed on the canonical coverage and store paths after immutable publication."
+    },
+    "actualPreviewVerification": {
+      "verifiedAt": "2026-11-14T08:24:26.557Z",
+      "currentPublicRows": 56,
+      "currentPublicStores": 15,
+      "currentCities": 7,
+      "coverageHttpStatus": 200,
+      "finderHttpStatus": 200,
+      "finderCity": "Baton Rouge",
+      "physicalDeviceExercised": false,
+      "allDeliveryChannelsDisabled": true,
+      "partitionSha256": "a687f10259fc010eaec4bacb8be668bd5eef96f7dd9e6f6fa1bbf1ed40024aa8"
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "LA",
+      "generatedAt": "2026-11-14T09:11:14.003Z",
+      "sourceConfigHash": "b23b935869485dd129e9df7b9d75c47f2898fdbb1cdb7108988772925a373bab",
+      "previewUrl": "https://bourbonsignal-3drkx2fps-tarsagent22s-projects.vercel.app",
+      "shadowRuns": [
+        {
+          "runId": "43565682813",
+          "status": "success",
+          "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
+          "artifactId": "14101879455",
+          "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+          "artifactName": "state-expansion-shadow-43565682813"
+        },
+        {
+          "runId": "43573194351",
+          "status": "success",
+          "artifactHash": "4e8794f5ccf0f34bbc3640f9a8347ddf5932bd1e26ebcd6b8f10d3bfee9b98b8",
+          "artifactId": "14105063250",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573194351",
+          "artifactName": "state-expansion-shadow-43573194351"
+        },
+        {
+          "runId": "43575218820",
+          "status": "success",
+          "artifactHash": "1a12bce4a50ec32329c56e335844587308b6fbc9a439aae95a7b77463e8882be",
+          "artifactId": "14105613292",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+          "artifactName": "state-expansion-shadow-43575218820"
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "43572885476",
+          "status": "success",
+          "artifactHash": "0679e6d5e9d2c8676e1cfd544670863fbd9dab0ebf78a9524fa30ddeea0fa88f",
+          "artifactId": "14104842945",
+          "commitSha": "4ed1f2314a4821163699af5272bcf2c22d8b6f39",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43572885476",
+          "artifactName": "state-expansion-canary-LA-43572885476"
+        },
+        {
+          "runId": "43573428800",
+          "status": "success",
+          "artifactHash": "3dce40633c5e15316333e8c309b55b9a836c485f3ccf70dc95d0300585f9fc7a",
+          "artifactId": "14105835112",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573428800",
+          "artifactName": "state-expansion-canary-LA-43573428800"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": "43579272946",
+        "artifactId": "14106664196",
+        "commitSha": "786270bf303e8b0d88a625b3f4a68f323a7d5747",
+        "artifactDigest": "be7576b4b7a146e6d590f081c535d2d5ee161047785eb456e909786de8054b50",
+        "bundleDigest": "bc7df093bee7e3be46eb81e400563a662cb4c193a6d983c374f35c9bd006a5bd",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43579272946",
+        "artifactName": "state-promotion-provenance-LA-43579272946"
+      }
+    }
+  },
+  "rollback": {
+    "disableSource": "Remove production admission for the state or use the guarded state disable control; technical source research remains isolated."
   }
 }

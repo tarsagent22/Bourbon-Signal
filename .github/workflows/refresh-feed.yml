@@ -170,6 +170,14 @@ jobs:
           restore-keys: |
             inventory-western-grocery-incidents-${{ runner.os }}-
 
+      - name: Restore AK/LA grocery denial journals independently of inventory publication
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/source-incidents/louisiana-alaska-grocery
+          key: inventory-louisiana-alaska-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-louisiana-alaska-grocery-incidents-${{ runner.os }}-
+
       - name: Restore NJ/MI CityHive incident journals independently of publication
         uses: actions/cache/restore@v4
         with:
@@ -657,6 +665,13 @@ jobs:
         with:
           path: engine/out/source-incidents/western-grocery
           key: inventory-western-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save AK/LA grocery denial journals even when collection or publication fails
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/source-incidents/louisiana-alaska-grocery
+          key: inventory-louisiana-alaska-grocery-incidents-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save NJ/MI CityHive incident journals independently of publication
         if: always()
