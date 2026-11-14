@@ -186,7 +186,7 @@ export async function collectPearsonsDcResearchReport(config, bible, options = {
       stale: false, signals, sources: [{...sourceReport,lastGoodAt:attempt.lastGoodAt||null}], sourceResults: [{ sourceId: sourceReport.sourceRuntimeId,
         sourceLabel: sourceReport.label, sourceUrl: source.productUrl, ok: !blocked, status: blocked?'source_blocked':'not_due', checkedAt: finishedAt,
         alertable: false, inventoryAlertable: false, watchAlertable: false }], roadblocks: blocked?[{state:'DC',source:source.sourceLabel,status,error}]:[],
-      metadata: { complete: !blocked, sourceClock: 'per-source-cadence', nextDueAt: attempt.nextAllowedAt,
+      metadata: { complete: !blocked, requestCount:0, sourceClock: 'per-source-cadence', nextDueAt: attempt.nextAllowedAt,
         shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
         sourceAttempts: { 'pearsons-wine-dc': { lastAttemptAt: attempt.lastAttemptAt, status: blocked?'source_blocked':'success',
           httpStatus: status, nextAllowedAt: attempt.nextAllowedAt } },
@@ -252,7 +252,7 @@ export async function collectPearsonsDcResearchReport(config, bible, options = {
         sourceUrl: source.productUrl, ok: false, status: status || 'failed', checkedAt: responseAt,
         alertable: false, inventoryAlertable: false, watchAlertable: false }],
       roadblocks: [{ state: 'DC', source: source.sourceLabel, status, error: errorText }],
-      metadata: { complete: false, sourceClock: 'per-source-cadence', nextDueAt: new Date(Date.parse(responseAt)
+      metadata: { complete: false, requestCount:1, sourceClock: 'per-source-cadence', nextDueAt: new Date(Date.parse(responseAt)
         + (DENIAL_STATUSES.has(status) ? PEARSONS_DC_BUDGETS.denialCooldownMs : PEARSONS_DC_BUDGETS.sourceCadenceMs)).toISOString(),
         shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
         sourceAttempts: { 'pearsons-wine-dc': { lastAttemptAt: responseAt, status: DENIAL_STATUSES.has(status) ? 'denied' : 'failed',
@@ -281,7 +281,7 @@ export async function collectPearsonsDcResearchReport(config, bible, options = {
     sourceResults: [{ sourceId: signal.sourceRuntimeId, sourceLabel: source.sourceLabel, sourceUrl: source.productUrl,
       ok: true, status: 'success', checkedAt: responseAt, lastGoodAt: responseAt,
       alertable: false, inventoryAlertable: false, watchAlertable: false }], roadblocks: [],
-    metadata: { complete: true, sourceClock: 'per-source-cadence', nextDueAt: completed.nextAllowedAt,
+    metadata: { complete: true, requestCount:1, sourceClock: 'per-source-cadence', nextDueAt: completed.nextAllowedAt,
       receipts: [capture], sourceAttempts: { 'pearsons-wine-dc': { lastAttemptAt: responseAt,
         status: 'success', httpStatus: 200, nextAllowedAt: completed.nextAllowedAt } },
       shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false } };

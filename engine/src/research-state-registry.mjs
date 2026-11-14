@@ -74,7 +74,7 @@ export async function collectResearchStateReport(config, bible, options = {}) {
       signals,sources:[...(city.sources||[]),...(pearson.sources||[])],sourceResults:[...(city.sourceResults||[]),...(pearson.sourceResults||[])],
       roadblocks:[...(city.roadblocks||[]),...(pearson.roadblocks||[])],
       metadata:{...city.metadata,cityhive:city.metadata,pearsons:pearson.metadata,complete,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false,
-        requestCount:Number(city.metadata?.requestCount||0)+Number(pearson.metadata?.requestCount||0),allDeliveryDisabled:true}};
+        requestCount:Number(city.metadata?.requestCount??city.metadata?.requests?.length??0)+Number(pearson.metadata?.requestCount||0),allDeliveryDisabled:true}};
   }
   if (process.env.BOURBON_SIGNAL_SHADOW_MODE !== '1' || config !== MASSACHUSETTS) {
     throw new Error('Research reports require the registered isolated shadow source.');

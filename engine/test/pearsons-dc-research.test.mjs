@@ -68,6 +68,7 @@ test('scheduled Pearson collector makes one bounded shadow request then honors i
     const first = await collectPearsonsDcResearchReport(PEARSONS_DC_RESEARCH_CONFIG, bible, options);
     assert.equal(calls.length, 1);
     assert.equal(first.metadata.complete, true);
+    assert.equal(first.metadata.requestCount,1);
     assert.equal(first.metadata.shadowOnly, true);
     assert.equal(first.metadata.productionActivationAllowed, false);
     assert.equal(first.metadata.customerDeliveryAllowed, false);
@@ -81,6 +82,7 @@ test('scheduled Pearson collector makes one bounded shadow request then honors i
     const second = await collectPearsonsDcResearchReport(PEARSONS_DC_RESEARCH_CONFIG, bible, options);
     assert.equal(calls.length, 1, 'a source inside its 30-minute cadence must not receive another request');
     assert.equal(second.sources[0].cadenceStatus, 'not_due');
+    assert.equal(second.metadata.requestCount,0);
     assert.equal(second.signals.length, 1);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
