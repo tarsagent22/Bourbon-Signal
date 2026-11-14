@@ -42,7 +42,6 @@ import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { MalformedSourceError, normalizeSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
 import { statusForSourceError, summarizeSourceResult } from '../sources/source-result.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
-import { OREGON_DAILY_INVENTORY_URL, resolveOregonBourbonIdentity } from '../or-daily-inventory.mjs';
 import { legacyPrecisionSourceId, runLegacyPrecisionSource } from '../sources/legacy-precision-runtime.mjs';
 import {
   FLORIDA_LUEKENS_STORES,
@@ -10191,32 +10190,17 @@ async function collectOregon(config, bible) {
   const browserOutPath = 'out/browser/OR-product-availability.json';
   try {
     const browserRun = JSON.parse(await readFile(browserOutPath, 'utf8'));
-    if (browserRun.sourceUrl !== OREGON_DAILY_INVENTORY_URL) throw new Error('An official OLCC daily inventory report is required.');
     for (const product of browserRun.products || []) {
       if (!Array.isArray(product.stores) || !product.stores.length) continue;
-      const identityCheck = resolveOregonBourbonIdentity(product, bible);
-      if (identityCheck.status !== 'verified_exact') {
-        roadblocks.push({ state: config.id, source: 'Oregon OLCC Daily Store Inventory', url: browserRun.sourceUrl || product.pageUrl || browserOutPath, status: identityCheck.status, error: `${product.name || product.itemCode}: standard bottle identity, size, proof, or exact match is not sufficiently verified.`, nextRoute: 'Review the exact OLCC product identity against the full bottle library; unresolved rows stay out of customer inventory.' });
-        continue;
-      }
-      const record = identityCheck.match.record;
+      const { base } = signalBase(config.id, 'Oregon Liquor Search browser-assisted product/location search', product.pageUrl || browserOutPath, product.name || product.itemCode, bible);
       for (const store of product.stores) {
         const quantity = trustedOregonStoreQuantity(store.quantity);
-        if (!quantity || !store.inventoryObservedAt || !store.storeNo || !store.address || !store.city || !store.zip) continue;
+        if (quantity == null) continue;
         const storeAddress = [store.address, store.city, 'OR', store.zip].filter(Boolean).join(', ');
         signals.push({
-          id: stableId([config.id, 'or-daily-store', record.id, product.size, product.proof, store.storeNo]),
-          state: config.id,
-          sourceLabel: 'Oregon OLCC Daily Store Inventory',
-          sourceUrl: OREGON_DAILY_INVENTORY_URL,
-          rawName: product.name,
-          canonicalBottleId: record.id,
-          canonicalName: record.canonical,
-          tier: product.rarityTier,
-          confidence: 1,
-          sourceMatchStatus: 'bottle_bible_match',
-          fetchedAt: browserRun.generatedAt,
-          eventType: 'store_inventory_result',
+          id: stableId([config.id, 'or-browser-store', product.itemCode, store.storeNo, quantity]),
+          ...base,
+          eventType: quantity > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock',
           locationPrecision: 'store_level',
           locationName: `Oregon Liquor Store ${store.storeNo}`,
           storeName: `Oregon Liquor Store ${store.storeNo}`,
@@ -10227,31 +10211,25 @@ async function collectOregon(config, bible) {
           postalCode: store.zip || null,
           quantity,
           price: product.bottlePrice ?? null,
-          observedAt: store.inventoryObservedAt,
+          observedAt: browserRun.generatedAt || base.fetchedAt,
           sourceAvailabilityVerified: true,
-          canAlertAsInventory: false,
-          canAlertAsWatch: false,
+          canAlertAsInventory: quantity > 0 && Boolean(base.canonicalBottleId && store.storeNo && storeAddress),
+          canAlertAsWatch: quantity > 0 && Boolean(base.canonicalBottleId && store.storeNo && storeAddress),
           dataLane: 'inventory',
-          inventorySemantics: 'Official OLCC store-reported bottle quantity in the statewide daily inventory report. Timestamp is the store inventory date, not a restock event; verify with the store before driving.',
-          evidence: `The OLCC daily inventory report lists ${store.quantity} bottle(s) of ${product.name || product.itemCode} at ${store.storeName || `store ${store.storeNo}`}, ${store.address}, ${store.city}, OR ${store.zip}. Store inventory date: ${store.inventoryDate}; verify with the store before driving.`,
-          alertable: false,
-          eligibleForOnSite: false,
-          eligibleForDelivery: false,
-          eligibleForEmail: false,
-          eligibleForSms: false,
-          raw: { itemCode: product.itemCode, proof: product.proof, size: product.size, inventoryDate: store.inventoryDate, sourceReportDate: browserRun.sourceReportDate, shadowOnly: true }
+          evidence: `Oregon Liquor Search reports ${store.quantity} bottle(s) of ${product.name || product.itemCode} at store ${store.storeNo} in ${store.city || 'Oregon'} within ${store.distanceMiles ?? '?'} miles of ${browserRun.zip}. Oregon notes quantities update daily and should be verified with the store.`,
+          raw: { product, store, caveat: 'Oregon Liquor Search quantity is not real-time; updated daily.' }
         });
       }
     }
     if (signals.length) {
       if (Array.isArray(browserRun.errors) && browserRun.errors.length) {
-        roadblocks.push({ state: config.id, source: 'Oregon OLCC Daily Store Inventory', url: browserRun.sourceUrl || 'https://www.oregonliquorsearch.com/', status: 'partial', error: `${browserRun.errors.length} tracked source check(s) failed while valid store evidence was retained.`, nextRoute: 'Inspect the source diagnostics and retry only failed checks.' });
+        roadblocks.push({ state: config.id, source: 'Oregon Liquor Search browser-assisted search', url: 'https://www.oregonliquorsearch.com/', status: 'partial', error: `${browserRun.errors.length} tracked search term(s) failed while sibling store evidence was retained.`, nextRoute: 'Inspect the per-term errors in the browser artifact and retry only the failed terms.' });
       }
       return { signals, roadblocks };
     }
-    roadblocks.push({ state: config.id, source: 'Oregon OLCC Daily Store Inventory', url: browserOutPath, status: 0, error: 'The daily report produced no exact store rows for the configured bottle queries.', nextRoute: 'Inspect source dates and selected product rows; retain unresolved or stale rows as research only.' });
+    roadblocks.push({ state: config.id, source: 'Oregon Liquor Search browser-assisted search', url: browserOutPath, status: 0, error: 'Browser collector output found but no store rows parsed.', nextRoute: 'Inspect current Oregon HTML table format and product code search flow.' });
   } catch (error) {
-    roadblocks.push({ state: config.id, source: 'Oregon OLCC Daily Store Inventory', url: browserOutPath, status: 0, error: error.message, nextRoute: 'Retry the bounded official daily inventory download after checking OLCC availability.' });
+    roadblocks.push({ state: config.id, source: 'Oregon Liquor Search browser-assisted search', url: browserOutPath, status: 0, error: error.message, nextRoute: 'Run npm run or after browser is available, then rerun npm run run.' });
   }
   return { signals, roadblocks };
 }
