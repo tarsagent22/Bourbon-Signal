@@ -1,0 +1,32 @@
+[
+  {
+    "name": "silverton-blantons-gold",
+    "requestedUrl": "https://silvertonbuyrite.com/shop/product/blantons-gold-edition-kentucky-straight-bourbon-whiskey/5f1c68a6000fd41220b23914?option-id=f29ab990289c7dae0914653ec867c18960c7485118d3c323fcc92751b37b9404",
+    "statusCode": 200,
+    "reasonPhrase": "OK",
+    "contentType": "text/html; charset=UTF-8",
+    "startedAtUtc": "2026-11-14T17:32:24.8622621-05:00",
+    "completedAtUtc": "2026-11-14T17:32:25.5033382-05:00",
+    "redirectLocation": null,
+    "bodyFile": "silverton-blantons-gold.body",
+    "bodyBytes": 329742,
+    "sha256": "2F7B62312B9BE893C6889211454DA2ADD05BB8EBD1E921F6A82DECA7DB6EC33D",
+    "finalUrl": "https://silvertonbuyrite.com/shop/product/blantons-gold-edition-kentucky-straight-bourbon-whiskey/5f1c68a6000fd41220b23914?option-id=f29ab990289c7dae0914653ec867c18960c7485118d3c323fcc92751b37b9404",
+    "redirected": false
+  },
+  {
+    "name": "centralave-old-weller-single-barrel",
+    "requestedUrl": "https://www.centralavewines.com/shop/product/old-weller-single-barrel/64dd2579f4281e416fcb1632?option-id=324a59df06a77d7ac98913304539a67f859fef373f7afee4ef153284c2e31379",
+    "statusCode": 200,
+    "reasonPhrase": "OK",
+    "contentType": "text/html; charset=UTF-8",
+    "startedAtUtc": "2026-11-14T17:32:25.5343251-05:00",
+    "completedAtUtc": "2026-11-14T17:32:26.1109093-05:00",
+    "redirectLocation": null,
+    "bodyFile": "centralave-old-weller-single-barrel.body",
+    "bodyBytes": 223618,
+    "sha256": "0FB641A2B6160F344F241E8D528582874167196C191C0EF9F7F926922CB36D34",
+    "finalUrl": "https://www.centralavewines.com/shop/product/old-weller-single-barrel/64dd2579f4281e416fcb1632?option-id=324a59df06a77d7ac98913304539a67f859fef373f7afee4ef153284c2e31379",
+    "redirected": false
+  }
+]
