@@ -23,9 +23,9 @@ export function verifyKansasFirstPublication({report,partition,reportBytes,parti
   const requestsMatch=selected.length===3&&requests.length===6&&sources.every(source=>{
     const scoped=requests.filter(row=>row.sourceId===source.id);if(scoped.length!==2)return false;
     const reviewed=ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.find(row=>row.storeId===source.storeId);
-    const terms=new Set(scoped.map(row=>{try{return new URL(row.url).searchParams.get('ch-query');}catch{return null;}}));
+    const terms=scoped.map(row=>{try{return new URL(row.url).searchParams.get('ch-query');}catch{return null;}});
     const priority=new URL(reviewed.discoveryUrl).searchParams.get('ch-query');
-    if(terms.size!==2||!terms.has(priority)||!terms.has("Blanton's Gold"))return false;
+    if(terms.length!==2||terms.some(term=>typeof term!=='string'||!term.trim())||new Set(terms).size!==2||!terms.includes(priority))return false;
     return scoped.every(row=>{if(row.ok!==true||Number(row.status)!==200)return false;try{
       const url=new URL(row.url);return url.origin===source.baseUrl&&url.pathname==='/shop/'&&!url.hash&&!url.username&&!url.password
         &&[...url.searchParams].length===2&&url.searchParams.get('merchant-id')===source.merchantId

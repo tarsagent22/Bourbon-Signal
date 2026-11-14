@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 import { collectCentralCityHiveProductionSource } from '../src/collectors/central-cityhive-production.mjs';
+import { ADDITIONAL_CITYHIVE_EXPANSION_SOURCES } from '../src/collectors/central-cityhive-research-premises.mjs';
 import { canonicalizeSignal } from '../src/operational-report.mjs';
 import { buildDrops, bibleLookup } from '../src/export-site-contract.mjs';
 import { syntheticCentralPromotion, bibleFile } from './helpers/synthetic-central-production.mjs';
@@ -61,6 +62,15 @@ test('Kansas first-publication verifier accepts only its reviewed silent three-c
     lastGoodAt:result.metadata.sourceObservedAt,signals:result.signals,metadata:{cityhive:result.metadata,allDeliveryDisabled:true}};
   const check = verifyKansasFirstPublication({report,partition:{state:'KS',count:drops.length,drops},nowMs,workflowRunId:'123456'});
   assert.equal(check.ok,true,check.failures.join('; '));
+  const rotated=structuredClone(report);
+  for(const sourceId of new Set(rotated.metadata.cityhive.requests.map(row=>row.sourceId))){
+    const scoped=rotated.metadata.cityhive.requests.filter(row=>row.sourceId===sourceId);
+    const priority=new URL(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.find(source=>source.id===sourceId).discoveryUrl).searchParams.get('ch-query');
+    const alternate=scoped.find(row=>new URL(row.url).searchParams.get('ch-query')!==priority);
+    const url=new URL(alternate.url);url.searchParams.set('ch-query','Buffalo Trace');alternate.url=url.toString();
+  }
+  const rotatedCheck=verifyKansasFirstPublication({report:rotated,partition:{state:'KS',count:drops.length,drops},nowMs,workflowRunId:'123456'});
+  assert.equal(rotatedCheck.ok,true,rotatedCheck.failures.join('; '));
   assert.equal(check.receipt.publishedStores,3);assert.equal(check.receipt.cities.length,3);assert.equal(check.receipt.publishedRows,4);
   const sparse=drops.filter(row=>row.storeId==='kings-liquor-olathe:6060f76259a44e1d9f41522d');
   const sparseCheck=verifyKansasFirstPublication({report,partition:{state:'KS',count:sparse.length,drops:sparse},nowMs,workflowRunId:'123456'});

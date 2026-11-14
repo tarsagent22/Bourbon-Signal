@@ -65,12 +65,20 @@ export function validateInactiveKansasShadowLifecycleTransition({candidateLifecy
     ||!Array.isArray(candidateLifecycle?.activeStates)||!candidateLifecycle.activeStates.includes('KS')
     ||candidateLifecycle.states?.KS?.publicStatus!=='active'||candidateLifecycle.states?.KS?.promotionStage!=='active'
     ||!Array.isArray(shadowLifecycle?.activeStates)||shadowLifecycle.activeStates.includes('KS')
-    ||Object.prototype.hasOwnProperty.call(shadowLifecycle.states||{},'KS'))return false;
+    ||shadowLifecycle.states?.KS?.publicStatus!=='research_only')return false;
   const expected=structuredClone(candidateLifecycle);
   expected.activeStates=expected.activeStates.filter(id=>id!=='KS');
-  delete expected.states.KS;
+  const researchKs=expected.states.KS;
+  researchKs.publicStatus='research_only';
+  researchKs.sourceLabel='Kansas reviewed CityHive pickup inventory';
+  researchKs.lifecycle='retailer_inventory_research';
+  researchKs.customerSummary='Research-only: a closed three-store Kansas CityHive pickup cohort is being evaluated. This entry does not enable production collection, customer visibility, alerts or delivery.';
+  delete researchKs.promotionStage;
+  delete researchKs.promotionEvidence;
   expected.reliabilityPolicy.stateExpectedRunMs.KS=shadowLifecycle.reliabilityPolicy.stateExpectedRunMs.KS;
-  return JSON.stringify(expected)===JSON.stringify(shadowLifecycle);
+  const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'
+    ?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+  return JSON.stringify(canonical(expected))===JSON.stringify(canonical(shadowLifecycle));
 }
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
   if(!['WI','OK','RI','MN','KS'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
