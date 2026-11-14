@@ -18,27 +18,10 @@
       "lng": -74.146237,
       "storeId": "buyrite-silverton-nj-research:5aafc248f4a661684fb284e9",
       "sourceLabel": "Super Buy Rite of Silverton first-party pickup inventory",
+      "prioritySearchTerms": ["Blanton's Gold", "E.H. Taylor Single Barrel"],
+      "maxQueries": 2,
       "categoryUrl": "https://silvertonbuyrite.com/shop/?subtype=Bourbon&merchant-id=5aafc248f4a661684fb284e9",
       "evidenceProductUrl": "https://silvertonbuyrite.com/shop/product/blantons-gold-edition-kentucky-straight-bourbon-whiskey/5f1c68a6000fd41220b23914?option-id=f29ab990289c7dae0914653ec867c18960c7485118d3c323fcc92751b37b9404"
-    },
-    {
-      "id": "central-avenue-liquors-jersey-city-nj-research",
-      "name": "Central Avenue Liquors",
-      "state": "NJ",
-      "stateCode": "NJ",
-      "platform": "cityhive",
-      "baseUrl": "https://www.centralavewines.com",
-      "hostname": "www.centralavewines.com",
-      "merchantId": "5bc4e8dfdc252127f06cba56",
-      "address": "210 Central Ave, Jersey City, NJ 07307, USA",
-      "city": "Jersey City",
-      "zip": "07307",
-      "lat": 40.7417512,
-      "lng": -74.0519973,
-      "storeId": "central-avenue-liquors-jersey-city-nj-research:5bc4e8dfdc252127f06cba56",
-      "sourceLabel": "Central Avenue Liquors first-party pickup inventory",
-      "categoryUrl": "https://www.centralavewines.com/shop/?subtype=Bourbon&merchant-id=5bc4e8dfdc252127f06cba56",
-      "evidenceProductUrl": "https://www.centralavewines.com/shop/product/old-weller-single-barrel/64dd2579f4281e416fcb1632?option-id=324a59df06a77d7ac98913304539a67f859fef373f7afee4ef153284c2e31379"
     }
   ]
 }

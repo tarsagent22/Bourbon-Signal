@@ -1,4 +1,4 @@
-import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES, NEW_JERSEY_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
@@ -8,13 +8,13 @@ import {fetchReviewedCityHiveText,readCityHiveIncidentJournal,validateCityHiveIn
 import {sourceErrorForHttp} from './sources/source-error.mjs';
 import {centralCityHiveProductionAllowed,collectCentralCityHiveProductionSource} from './collectors/central-cityhive-production.mjs';
 
-const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts', CT: 'Connecticut', DE: 'Delaware', HI: 'Hawaii', MD: 'Maryland', KS: 'Kansas', RI: 'Rhode Island', AR: 'Arkansas' });
-const sourcesByState = Map.groupBy([...CENTRAL_CITYHIVE_EXPANSION_SOURCES, ...CENTRAL_CITYHIVE_RESEARCH_SOURCES], source => source.state);
+const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts', CT: 'Connecticut', DE: 'Delaware', HI: 'Hawaii', MD: 'Maryland', KS: 'Kansas', RI: 'Rhode Island', AR: 'Arkansas', NJ: 'New Jersey' });
+const sourcesByState = Map.groupBy([...CENTRAL_CITYHIVE_EXPANSION_SOURCES, ...CENTRAL_CITYHIVE_RESEARCH_SOURCES, ...NEW_JERSEY_CITYHIVE_RESEARCH_SOURCES], source => source.state);
 const configurations = new Map(Object.entries(names).map(([state,name]) => [state,Object.freeze({
   id:state,label:`${name} first-party retailer research`,tier:'B',active:false,
   strategy:'retailer_store_inventory',cadence:'shadow-only',
   value:'Isolated exact-premises retailer pickup research; no customer activation.',
-  sources:Object.freeze(sourcesByState.get(state)
+  sources:Object.freeze((sourcesByState.get(state)||[])
     .map(source=>Object.freeze({kind:'html',label:source.sourceLabel,url:source.categoryUrl,precisionOnly:true}))),
   apiCandidates:Object.freeze([]),
 })]));

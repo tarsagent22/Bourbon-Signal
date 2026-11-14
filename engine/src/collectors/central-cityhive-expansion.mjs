@@ -150,7 +150,7 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
     const priorityTerms=perStore?(Array.isArray(source.prioritySearchTerms)&&source.prioritySearchTerms.length?source.prioritySearchTerms:[source.prioritySearchTerm||'barrel proof'])
       :config.id==='WI'?['michter','barrel proof']:['barrel proof','eagle rare','weller'];
     const sourceKey=`${config.id}:${groupId}`;
-    const terms=await librarySourceSearchTerms(bible,{sourceKey,budget:perStore?Math.max(2,priorityTerms.length+1):4,
+    const terms=await librarySourceSearchTerms(bible,{sourceKey,budget:perStore?Math.min(Number.isInteger(source.maxQueries)?source.maxQueries:Infinity,Math.max(2,priorityTerms.length+1)):4,
       priorityTerms,broadTerms:[],cursorDir,queryFilter});
     const queryUrls=terms.map(term=>source.baseUrl+'/shop/?ch-query='+encodeURIComponent(term)+'&merchant-id='+source.merchantId);
     const urls=perStore?queryUrls:[source.categoryUrl,...queryUrls];
