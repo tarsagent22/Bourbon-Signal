@@ -142,6 +142,16 @@ test('Oregon and AK/LA proof overlays normalize back to the pinned Mississippi i
   assert.doesNotMatch(normalized.toString('utf8'), /oregon-daily-production-policy\.mjs|louisiana-alaska-grocery-policy\.mjs/u);
 });
 
+test('pinned text evidence normalizes checkout line endings without changing non-text bytes', async () => {
+  const file='engine/data/bourbon-bible-additions.json';
+  const source=await readFile(new URL('../data/bourbon-bible-additions.json',import.meta.url));
+  const crlf=Buffer.from(source.toString('utf8').replace(/\r?\n/gu,'\r\n'));
+  const normalized=normalizeHistoricalImplementationBytes(file,crlf);
+  assert.equal(createHash('sha256').update(normalized).digest('hex'),msExtensionEvidence.implementationFilesSha256[file]);
+  assert.equal(normalizeHistoricalImplementationBytes('engine/data/mississippi-retailer-registry.json',Buffer.from('a\r\nb')).toString(),'a\nb');
+  assert.deepEqual(normalizeHistoricalImplementationBytes('engine/data/opaque.bin',Buffer.from([13,10,0])),Buffer.from([13,10,0]));
+});
+
 test('replay excludes stale, future, inexact, and identity-drifted source rows', () => {
   const stale = { ...report, generatedAt: '2026-11-10T00:00:00.000Z' };
   const future = { ...report, generatedAt: '2026-11-14T07:10:00.000Z' };

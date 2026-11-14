@@ -16,6 +16,45 @@ const sharedFiles = new Set(['engine/src/state-sources.mjs', 'src/config/state-l
 const verifierImport = "import { normalizeHistoricalImplementationBytes } from './verification/historical-implementation.mjs';\n";
 const originalVerifierRead = 'readFileSync(path.join(repositoryRoot, file))';
 const normalizedVerifierRead = `normalizeHistoricalImplementationBytes(file, ${originalVerifierRead})`;
+const originalVerifierSha256 = "  return createHash('sha256').update(readFileSync(new URL(relative, import.meta.url))).digest('hex');";
+const normalizedVerifierSha256 = "  const source = readFileSync(new URL(relative, import.meta.url)).toString('utf8').replace(/\\r\\n/gu, '\\n');\n  return createHash('sha256').update(source).digest('hex');";
+const originalVerifierCanaryInput = `  const inputBytes = readFileSync(inputPath);
+  assert.equal(createHash('sha256').update(inputBytes).digest('hex'), evidence.candidateInputSha256);
+  const input = JSON.parse(inputBytes.toString('utf8'));`;
+const normalizedVerifierCanaryInput = `  const inputBytes = readFileSync(inputPath).toString('utf8').replace(/\\r\\n/gu, '\\n');
+  assert.equal(createHash('sha256').update(inputBytes).digest('hex'), evidence.candidateInputSha256);
+  const input = JSON.parse(inputBytes);`;
+const reviewedOregonStateSource = `  {
+    id: 'OR', label: 'Oregon OLCC Daily Store Inventory', tier: 'A', strategy: 'inventory_locator', cadence: 'daily-report-conditional-check',
+    active: false,
+    disabledReason: 'Official daily store inventory is prepared behind the lifecycle and immutable-promotion gate; production stays inactive until a distinct current Pacific-date report passes shadow, canary, and first-publication checks.',
+    value: 'Official OLCC daily store-reported exact quantities with original inventory dates; not a restock event or shelf guarantee, and all customer alert delivery remains disabled.',
+    sources: [
+      { kind: 'csv', url: 'https://www.olcc.state.or.us/pdfs/DailyStoreInventory.csv', label: 'Official OLCC daily store inventory' },
+      { kind: 'html', url: 'https://www.oregonliquorsearch.com/', label: 'Oregon Liquor Search' },
+      { kind: 'html', url: 'https://www.oregon.gov/olcc/liquorstores/pages/current_month_productandpricing.aspx', label: 'Current month product/pricing' },
+      { kind: 'html', url: 'https://www.oregon.gov/olcc/LIQUORSTORES/pages/special_orders.aspx', label: 'Special orders / locator guidance' }
+    ],
+    // Legacy search-page/API probes are research-only; the dedicated daily CSV
+    // collector is independently promotion-gated and never raises alerts.
+    apiCandidates: []
+  },
+`;
+const originalOregonStateSource = `  {
+    id: 'OR', label: 'Oregon OLCC / Oregon Liquor Search', tier: 'A', strategy: 'inventory_locator', cadence: 'paused',
+    active: false,
+    disabledReason: 'Paused for production: Oregon Liquor Search/API currently times out and exports zero user-facing drops; keep as research-only until store-level rows are reliable again.',
+    value: 'Research-only for now. State liquor search and monthly product/price list exist, but current refresh does not produce useful user-facing drops.',
+    sources: [
+      { kind: 'html', url: 'https://www.oregonliquorsearch.com/', label: 'Oregon Liquor Search' },
+      { kind: 'html', url: 'https://www.oregon.gov/olcc/liquorstores/pages/current_month_productandpricing.aspx', label: 'Current month product/pricing' },
+      { kind: 'html', url: 'https://www.oregon.gov/olcc/LIQUORSTORES/pages/special_orders.aspx', label: 'Special orders / locator guidance' }
+    ],
+    // Guessed API routes were removed after repeated 404/500 results. The
+    // browser/session collector is the only proven current generation path.
+    apiCandidates: []
+  },
+`;
 const indianaCandidateProof = "    ...(sig.state === 'IN' ? { sourceProductBinding: sig.sourceProductBinding || null } : {}),\n";
 export const libraryAlertPolicyBoundary = `  const sourceAlertPolicy = { ...enforceArchivedSourceAlertPolicy(signal) };
   if (record?.libraryAlertEligible === false) {
@@ -79,6 +118,8 @@ function replaceUnique(text, current, original, label) {
 }
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
+  // Evidence digests are over Git's LF text blobs, including on CRLF checkouts.
+  if (/\.(?:mjs|js|ts|tsx|mts|json|html|yml|yaml)$/u.test(name)) bytes = Buffer.from(bytes.toString('utf8').replace(/\r\n/gu, '\n'));
   if (name === 'engine/src/operational-report.mjs') {
     // Normalize checkout line endings before exact historical proof reversals;
     // Git-hosted baseline bytes are LF even when a Windows checkout is CRLF.
@@ -143,12 +184,15 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     // byte, including the complete verification loop, retains its original SHA.
     let text = replaceUnique(bytes.toString('utf8'), verifierImport, '', `${name}: import`);
     text = replaceUnique(text, normalizedVerifierRead, originalVerifierRead, `${name}: read`);
+    text = replaceUnique(text, normalizedVerifierSha256, originalVerifierSha256, `${name}: evidence hash`);
+    text = replaceUnique(text, normalizedVerifierCanaryInput, originalVerifierCanaryInput, `${name}: canary JSON hash`);
     return Buffer.from(text);
   }
   if (!sharedFiles.has(name)) return bytes;
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
   if(name==='engine/src/state-sources.mjs'){
+    text=replaceUnique(text,reviewedOregonStateSource,originalOregonStateSource,`${name}: exact dormant Oregon source block`);
     const minnesotaImport = "import { MINNESOTA_CITYHIVE_PRODUCTION_CONFIG } from './minnesota-cityhive-production-config.mjs';\n";
     if (text.includes(minnesotaImport)) {
       text = replaceUnique(text, minnesotaImport, '', `${name}: MN registry import`);
@@ -161,6 +205,10 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    text=replaceUnique(text,
+      '      "customerSummary": "Research-only while the official daily store inventory source, immutable promotion evidence, and first publication remain behind the activation gate."',
+      '      "customerSummary": "Research-only until Oregon Liquor Search browser/session collection reliably produces current store rows."',
+      `${name}: exact dormant Oregon lifecycle summary`);
     const releasedMinnesota = /^    "MN": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if (text.includes('    "MN"\n  ],\n  "reliabilityPolicy"') || releasedMinnesota?.includes('      "publicStatus": "active"')) {
       assert.equal(createHash('sha256').update(releasedMinnesota || '').digest('hex'),
