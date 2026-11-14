@@ -1,0 +1,141 @@
+{
+  "capture": {
+    "url": "https://crossove7c7e7dcd.sites.cityhive.app/shop/?ch-query=elijah%20craig&merchant-id=5e73e18f355a61249a9dd7c0",
+    "capturedAt": "2026-11-14T15:50:12Z",
+    "sha256": "d15b352bffe1b482c62b54e93d27e0e151b4029746dbb7c3463e7ed971a1bd48"
+  },
+  "bibleRecord": {
+    "id": "bb_babb8d7d3e6be567",
+    "canonical": "Elijah Craig Straight Rye Whiskey",
+    "normalizedKey": "elijah craig rye",
+    "aliases": [
+      "Elijah Craig Ky Strt Rye Whsky",
+      "Elijah Craig Ky Strt Rye Whsky 1.75L",
+      "Elijah Craig Ky Strt Rye Whsky 750ml",
+      "Elijah Craig Straight Rye Whiskey"
+    ],
+    "tier": "standard",
+    "producer": "Heaven Hill",
+    "sources": [
+      "state:SC:dunes",
+      "state:SC"
+    ],
+    "libraryIdentities": [
+      {
+        "id": "bb_babb8d7d3e6be567",
+        "canonicalName": "Elijah Craig Straight Rye Whiskey",
+        "aliases": [
+          "Elijah Craig Ky Strt Rye Whsky",
+          "Elijah Craig Ky Strt Rye Whsky 1.75L",
+          "Elijah Craig Ky Strt Rye Whsky 750ml",
+          "Elijah Craig Straight Rye Whiskey"
+        ],
+        "nationalTier": "limited",
+        "stateOverrides": [],
+        "isAlertEligible": true
+      }
+    ]
+  },
+  "payloads": [
+    {
+      "merchant_configs": [
+        {
+          "merchant": {
+            "id": "5e73e18f355a61249a9dd7c0",
+            "name": "Crossover Liquor",
+            "pickup": true,
+            "last_inventory_upload": "2026-11-14T09:56:28.706-05:00",
+            "address": {
+              "full_address": "1890 N Crossover Rd, Fayetteville, AR 72701, USA",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  -94.1207147,
+                  36.0868459
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "products": [
+        {
+          "id": "5e5569e019112825aeaa81dc",
+          "name": "Elijah Craig Rye Whiskey",
+          "basic_category": [
+            "rye",
+            "whiskey"
+          ],
+          "size": {
+            "measure": "ml",
+            "quantity": "750"
+          },
+          "merchants": [
+            {
+              "merchant_id": "5e73e18f355a61249a9dd7c0",
+              "offer_types": [
+                "pick_up",
+                "delivery",
+                "shipping"
+              ],
+              "full_address": "1890 N Crossover Rd, Fayetteville, AR 72701, USA",
+              "coordinates": [
+                -94.1207147,
+                36.0868459
+              ],
+              "product_options": [
+                {
+                  "merchant_id": "5e73e18f355a61249a9dd7c0",
+                  "product_id": "5e5569e019112825aeaa81dc",
+                  "option_id": "44f14c1f505fbb595d109ef61f526d5ce8e8d9d076069eced1f75da29b7e2099",
+                  "option_params": {
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    }
+                  },
+                  "full_address": "1890 N Crossover Rd, Fayetteville, AR 72701, USA",
+                  "coordinates": [
+                    -94.1207147,
+                    36.0868459
+                  ],
+                  "product_url": "https://crossove7c7e7dcd.sites.cityhive.app/shop/product/elijah-craig-rye-whiskey/5e5569e019112825aeaa81dc?option-id=44f14c1f505fbb595d109ef61f526d5ce8e8d9d076069eced1f75da29b7e2099",
+                  "quantity": 8,
+                  "price": 27.99,
+                  "option_display_data": {
+                    "name": "Elijah Craig Rye Whiskey",
+                    "size": {
+                      "measure": "ml",
+                      "quantity": "750"
+                    },
+                    "basic_category": [
+                      "rye",
+                      "whiskey"
+                    ],
+                    "properties": {
+                      "product_views": [
+                        "alcohol",
+                        "spirits"
+                      ],
+                      "product_basic_categories": [
+                        "rye",
+                        "whiskey"
+                      ],
+                      "basic_category": "Whiskey American",
+                      "brands": [
+                        "Elijah Craig"
+                      ],
+                      "country": "United States",
+                      "state": "Kentucky",
+                      "content": "47%"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
