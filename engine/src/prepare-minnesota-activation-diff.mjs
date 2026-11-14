@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 import lifecycleConfig from '../../src/config/state-lifecycle.json' with {type:'json'};
 import promotionManifest from '../data/state-integration/MN.json' with {type:'json'};
 import {validateImmutablePromotionEvidence} from './reliability-policy.mjs';
@@ -48,16 +49,19 @@ export function buildMinnesotaActivationDiff({lifecycle=lifecycleConfig,manifest
   nextLifecycle.activeStates=[...new Set([...nextLifecycle.activeStates,'MN'])];
   nextLifecycle.states.MN={...current,sourceLabel:'Minnesota reviewed Top Ten Liquors pickup inventory',publicStatus:'active',
     lifecycle:'retailer_store_inventory',coverageTier:'sparse_live_store_inventory',refinementLevel:'store',inventoryAlertable:false,watchAlertable:false,
-    promotionStage:'active',promotionEvidence:packageEvidence};
+    promotionStage:'active',promotionEvidence:packageEvidence,
+    customerSummary:'Pickup availability from 16 reviewed Top Ten Liquors locations. Stores refresh in groups of seven. Verify availability with the store before driving.'};
   const nextManifest={...targetManifest,evidence:{...manifest.evidence,immutablePromotionEvidence:immutable,
-    shadow:{status:'verified',runs:immutable.shadowRuns.length},canary:{status:'verified',runs:immutable.canaryRuns.length,
+    shadow:{status:'verified',runs:immutable.shadowRuns.length,artifact:immutable.shadowRuns.at(-1).runUrl,originalSourceClocksPreserved:true},
+    canary:{status:'verified',runs:immutable.canaryRuns.length,artifact:immutable.canaryRuns.at(-1).runUrl,
       siteArtifact:'engine/data/canary-site/minnesota-20261114',observations:immutable.canaryRuns.map(({runId,status,artifactHash})=>({runId,status,artifactHash})),allDeliveryChannelsDisabled:true},
-    production:{status:'awaiting_first_publication',url:manifest.evidence?.production?.url}}};
+    production:{status:'awaiting_first_publication',url:manifest.evidence?.production?.url,
+      assertion:'The first production publication verifies a fresh seven-store collection, its public partition, and disabled alerts before activating the snapshot.'}}};
   return{ready:true,blockers:[],targetSourceConfigHash:targetSourceHash,diff:{'src/config/state-lifecycle.json':{activeStates:nextLifecycle.activeStates,state:nextLifecycle.states.MN},
     'engine/data/state-integration/MN.json':nextManifest},authoritativeFilesWritten:false};
 }
 
-if(import.meta.url===new URL(process.argv[1],`file://${process.cwd()}/`).href){
+if(import.meta.url===(process.argv[1]?pathToFileURL(path.resolve(process.argv[1])).href:'')){
   const evidenceFile=process.argv.find(value=>value.startsWith('--evidence='))?.slice('--evidence='.length);
   const output=process.argv.find(value=>value.startsWith('--out='))?.slice('--out='.length);
   if(!evidenceFile||!output)throw Error('Use --evidence=<complete reviewed MN evidence package.json> --out=<new candidate diff.json>');
