@@ -197,6 +197,7 @@ if (state === 'MN') files.push(
   'engine/data/state-fixtures/MN.json',
   'engine/src/collectors/central-cityhive-research-premises.mjs',
   'engine/src/collectors/minnesota-cityhive-production.mjs',
+  'engine/src/location-bible.mjs',
   'engine/src/minnesota-cityhive-production-config.mjs',
   'engine/src/central-cityhive-policy.mjs',
   'engine/src/collectors/generic-state.mjs',

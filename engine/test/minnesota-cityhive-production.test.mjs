@@ -26,15 +26,20 @@ test('Minnesota production cohort is exact and rotates all sixteen premises in t
   assert.ok(cursor>=0&&cursor<sources.length);
 });
 
-test('Minnesota stays promotion blocked and performs no source fetch without complete immutable admission evidence',async()=>{
-  assert.equal(manifest.lifecycle.publicStatus,'research_only');
+test('Minnesota uses pickup source-health labels and an explicit dormant overlay blocks fetches',async()=>{
+  assert.equal(manifest.lifecycle.publicStatus,'active');
   assert.equal(minnesotaCityHiveSourceConfigHash(manifest).length,64);
-  assert.equal(minnesotaCityHiveProductionAllowed(STATE_LIFECYCLE_CONFIG),false);
+  assert.equal(minnesotaCityHiveProductionAllowed(STATE_LIFECYCLE_CONFIG),true);
+  const dormantConfig={...STATE_LIFECYCLE_CONFIG,activeStates:STATE_LIFECYCLE_CONFIG.activeStates.filter(state=>state!=='MN')};
+  assert.equal(minnesotaCityHiveProductionAllowed(dormantConfig),false);
   let calls=0;
   const report=await collectMinnesotaCityHiveProductionState({id:'MN',label:'Minnesota',tier:'B',strategy:'retailer_store_inventory',cadence:'30m'}, {}, {
+    lifecycleConfig:dormantConfig,
     fetchText:async()=>{calls++;throw Error('source fetch must not run while dormant');},
   });
   assert.equal(report.status,'not_promoted');
+  assert.equal(report.label,'Minnesota reviewed first-party pickup availability');
+  assert.equal(report.strategy,'retailer_store_inventory');
   assert.equal(report.metadata.blockedByPromotion,true);
   assert.equal(report.metadata.requestCount,0);
   assert.equal(calls,0);
@@ -56,6 +61,8 @@ test('Minnesota rotates under the restored collector cache and retains its denia
   const journalRestore=steps.find(step=>step.includes('actions/cache/restore@v4')&&step.includes(journal));
   const journalSave=steps.find(step=>step.includes('actions/cache/save@v4')&&step.includes(journal));
   assert.ok(journalRestore&&journalSave);assert.match(journalSave,/if: always\(\)/);
+  const provenance=await readFile(new URL('../../scripts/build-promotion-provenance.mjs',import.meta.url),'utf8');
+  assert.match(provenance,/engine\/src\/location-bible\.mjs/,'MN provenance must bind the exact-store Finder location seeding code');
 });
 
 test('Minnesota on-site policy requires exact merchant binding and binary positive pickup proof',()=>{

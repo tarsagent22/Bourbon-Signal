@@ -194,7 +194,7 @@ export async function collectMinnesotaCityHiveProductionSource(config,bible,{lif
 export async function collectMinnesotaCityHiveProductionState(config,bible,options={}){
   const label='Minnesota reviewed first-party pickup availability',startedAt=new Date().toISOString();
   if(!minnesotaCityHiveProductionAllowed(options.lifecycleConfig||STATE_LIFECYCLE_CONFIG,{promotionManifest:options.promotionManifest||manifest,env:options.env||process.env}))return{
-    state:'MN',label:config.label,startedAt,finishedAt:new Date().toISOString(),lastGoodAt:null,status:'not_promoted',stale:false,
+    state:'MN',label,tier:config.tier,strategy:'retailer_store_inventory',cadence:'30m',startedAt,finishedAt:new Date().toISOString(),lastGoodAt:null,status:'not_promoted',stale:false,
     signals:[],sources:[],sourceResults:[],roadblocks:[],metadata:{blockedByPromotion:true,requestCount:0}};
   let requests=0;
   const run=await runSourceAdapters([createSourceAdapter({id:runtimeId,label,url:sources[0].baseUrl,
@@ -204,7 +204,7 @@ export async function collectMinnesotaCityHiveProductionState(config,bible,optio
     recordCount:value=>value.metadata.verifiedPremises.length})],{}, {...options.sourceRunnerOptions,previousResults:options.previousSourceResults,
       circuitBreaker:options.sourceCircuitBreaker,concurrency:1,perDomain:1,schedule:false,timeoutMs:Math.min(Number(options.sourceRunnerOptions?.timeoutMs)||budget.sourceMs,budget.sourceMs),maxAttempts:1});
   const source=run.results[0],value=source.ok?source.value:null,finishedAt=new Date().toISOString();
-  return{state:'MN',label:config.label,tier:config.tier,strategy:config.strategy,cadence:config.cadence,startedAt,finishedAt,
+  return{state:'MN',label,tier:config.tier,strategy:'retailer_store_inventory',cadence:'30m',startedAt,finishedAt,
     lastGoodAt:value?.metadata.sourceObservedAt||null,status:source.ok?(value.signals.length?'useful':'monitored_no_current_inventory'):'blocked',stale:false,
     signals:value?.signals||[],sources:[{sourceRuntimeId:runtimeId,label,url:source.sourceUrl,ok:source.ok,status:source.error?.status||(source.ok?200:source.status),
       signalType:'retailer_store_inventory_result',matchedBottleCount:value?.signals.length||0,error:source.error?.message||null}],
