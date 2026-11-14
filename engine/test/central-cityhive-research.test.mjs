@@ -20,10 +20,11 @@ for(const source of CENTRAL_CITYHIVE_EXPANSION_SOURCES)fixtures.set(source.hostn
 const html=fixture=>`<script type="application/json">${fixture}</script>`;
 const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
 
-test('scheduled shadow registers exact AR/CT/DE/HI/KS/MD/MN/MO/MA/RI candidates while production cohort remains WI/OK',()=>{
+test('scheduled shadow registers exact CityHive candidates while production cohort remains WI/OK',()=>{
   assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
-  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['AR','CT','DE','HI','KS','MA','MD','MN','MO','RI']);
-  for(const state of ['AR','CT','DE','HI','KS','MD','MN','MO','MA','RI']){
+  const states=['AR','CT','DE','HI','KS','MA','MD','MN','MO','ND','RI'];
+  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),states);
+  for(const state of states){
     const config=cityHiveResearchSourceForState(state);
     assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
     assert.ok(config.sources.length>0);
@@ -31,6 +32,10 @@ test('scheduled shadow registers exact AR/CT/DE/HI/KS/MD/MN/MO/MA/RI candidates 
   const ct=cityHiveResearchSourceForState('CT');
   assert.equal(ct.sources.length,2);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('ND'),false);
+  const nd=researchSourceForState('ND',{shadowMode:true});
+  assert.equal(nd.sources.length,3);
+  assert.equal(researchSourceForState('ND',{shadowMode:false}),null);
 });
 
 test('Rhode Island CityHive detail captures prove exact pickup variants and remain shadow only',async()=>{
