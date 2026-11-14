@@ -2056,6 +2056,18 @@ export const STATE_LIFECYCLE_CONFIG = {
           }
         }
       }
+    },
+    "KS": {
+      "customerLabel": "Kansas",
+      "sourceLabel": "Kansas reviewed CityHive pickup inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "retailer_inventory_research",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: a closed three-store Kansas CityHive pickup cohort is being evaluated. This entry does not enable production collection, customer visibility, alerts or delivery."
     }
   }
 } as const;
