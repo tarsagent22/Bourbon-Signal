@@ -8,6 +8,9 @@ import { researchSourceForState,withResearchLifecycle,collectResearchStateReport
 import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
 import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES } from '../src/collectors/central-cityhive-expansion.mjs';
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from '../src/collectors/central-cityhive-research-premises.mjs';
+import { CENTRAL_CITYHIVE_STATE_IDS } from '../src/central-cityhive-policy.mjs';
+import {cityHiveResearchSourceForState} from '../src/research-cityhive-runtime.mjs';
 import {persistCityHiveIncidentJournal} from '../src/collectors/central-cityhive-transport.mjs';
 
 const bible=await BourbonBible.load(new URL('../out/bourbon-bible.json',import.meta.url));
@@ -15,6 +18,16 @@ const fixtures=new Map();
 for(const source of CENTRAL_CITYHIVE_EXPANSION_SOURCES)fixtures.set(source.hostname,await readFile(new URL(`./fixtures/central-cityhive/${source.id}.json`,import.meta.url),'utf8'));
 const html=fixture=>`<script type="application/json">${fixture}</script>`;
 const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
+
+test('scheduled shadow registers exact MN/MO/MA candidates while production cohort remains WI/OK',()=>{
+  assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
+  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['MA','MN','MO']);
+  for(const state of ['MN','MO','MA']){
+    const config=cityHiveResearchSourceForState(state);
+    assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
+    assert.ok(config.sources.length>0);
+  }
+});
 
 test('WI and OK research registration cannot activate a source or mutate production lifecycle',()=>{
   assert.equal(researchSourceForState('WI',{shadowMode:false}),null);

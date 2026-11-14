@@ -1,11 +1,15 @@
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES,CENTRAL_CITYHIVE_PRODUCTION_COHORTS } from './collectors/central-cityhive-premises.mjs';
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 
 export const CENTRAL_CITYHIVE_STATE_IDS = new Set(CENTRAL_CITYHIVE_EXPANSION_SOURCES.map(source=>source.state));
+const ALL_RECOGNIZED_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
 export function isCentralCityHiveRetailerEvent(row){
-  return CENTRAL_CITYHIVE_STATE_IDS.has(row?.state)&&/^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(row?.eventType||row?.type||'');
+  return (CENTRAL_CITYHIVE_STATE_IDS.has(row?.state)
+    || (row?.sourceProductBinding?.source === 'central-cityhive' && Boolean(centralCityHiveSourceForSignal(row))))
+    && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(row?.eventType || row?.type || '');
 }
 export function centralCityHiveSourceForSignal(row){
-  return CENTRAL_CITYHIVE_EXPANSION_SOURCES.find(source=>source.state===row?.state&&source.id===(row?.sourceChain||row?.raw?.chain))||null;
+  return ALL_RECOGNIZED_SOURCES.find(source=>source.state===row?.state&&source.storeId===row?.storeId&&source.merchantId===row?.merchantId&&(source.chainId||source.id)===(row?.sourceChain||row?.raw?.chain))||null;
 }
 export function isCentralCityHiveSignalIdentity(row){
   const source=centralCityHiveSourceForSignal(row),proof=row?.sourceProductBinding;
@@ -24,7 +28,7 @@ export function isCentralCityHiveSignalIdentity(row){
     &&proof.productId===productId&&proof.optionId===optionId&&proof.rawName===row.rawName
     &&proof.canonicalBottleId===row.canonicalBottleId&&proof.canonicalName===row.canonicalName
     &&proof.price===row.price&&proof.observedAt===row.observedAt
-    &&(row.raw?.chain==null||row.raw.chain===source.id)&&(row.raw?.merchantId==null||row.raw.merchantId===source.merchantId)
+    &&(row.raw?.chain==null||row.raw.chain===(source.chainId||source.id))&&(row.raw?.merchantId==null||row.raw.merchantId===source.merchantId)
     &&(row.raw?.productId==null||row.raw.productId===productId)&&(row.raw?.optionId==null||row.raw.optionId===optionId);
 }
 export function isCentralCityHiveInventory(row,{nowMs=Date.now()}={}){

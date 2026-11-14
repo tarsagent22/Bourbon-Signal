@@ -3,17 +3,13 @@ import { cityHiveSafeBottleMatch } from './safe-bottle-match.mjs';
 import { stableId } from '../core/text.mjs';
 import { librarySourceSearchTerms } from '../library-search-runtime.mjs';
 import texasExpansion from '../../data/texas-cityhive-expansion-sources.json' with {type:'json'};
-import minnesotaExpansion from '../../data/minnesota-cityhive-expansion-sources.json' with {type:'json'};
-import midwestExpansion from '../../data/midwest-cityhive-expansion-sources.json' with {type:'json'};
-import additionalExpansion from '../../data/additional-cityhive-expansion-sources.json' with {type:'json'};
+import { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES } from './central-cityhive-research-premises.mjs';
+export { MINNESOTA_CITYHIVE_EXPANSION_SOURCES, MIDWEST_CITYHIVE_EXPANSION_SOURCES, ADDITIONAL_CITYHIVE_EXPANSION_SOURCES } from './central-cityhive-research-premises.mjs';
 import {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 export {centralCityHiveRecordMarketTier} from './central-cityhive-market-policy.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
 export const TEXAS_CITYHIVE_EXPANSION_SOURCES=Object.freeze(texasExpansion.stores.map(Object.freeze));
-export const MINNESOTA_CITYHIVE_EXPANSION_SOURCES=Object.freeze(minnesotaExpansion.stores.map(Object.freeze));
-export const MIDWEST_CITYHIVE_EXPANSION_SOURCES=Object.freeze(midwestExpansion.stores.map(Object.freeze));
-export const ADDITIONAL_CITYHIVE_EXPANSION_SOURCES=Object.freeze(additionalExpansion.stores.map(Object.freeze));
 const ALL_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...TEXAS_CITYHIVE_EXPANSION_SOURCES,...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,...MIDWEST_CITYHIVE_EXPANSION_SOURCES,...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES]);
 
 export function centralCityHiveLibraryTier(signal,bible) {
@@ -116,11 +112,13 @@ export function parseCentralCityHiveInventory(html, candidate, bible, {observedA
 }
 
 export async function collectCentralCityHiveExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal,
-  sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now()}={}) {
+  sleep=ms=>new Promise(r=>setTimeout(r,ms)),cursorDir,attempts={},nowMs=Date.now(),sourceIds}={}) {
   if(typeof fetchText!=='function')throw new Error('A bounded first-party fetchText function is required');
   const signals=[],roadblocks=[],requests=[],sourceAttempts={...attempts},verifiedPremises=new Set();
   const perStore=['TX','MN','MO','IL','NJ','LA','MI','MA'].includes(config.id);
-  const groups=Map.groupBy(ALL_SOURCES.filter(s=>s.state===config.id),s=>perStore?s.id:s.chainId||s.id);
+  const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
+  if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
+  const groups=Map.groupBy(allowed,s=>perStore?s.id:s.chainId||s.id);
   for(const [groupId,sources] of groups){
     const source=sources[0];
     if(Date.parse(attempts[groupId]?.nextAllowedAt || '')>nowMs || Date.parse(sourceAttempts[source.hostname]?.nextAllowedAt||'')>nowMs)continue;
@@ -143,7 +141,7 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
     }
     if(!denied)sourceAttempts[groupId]={lastAttemptAt:observedAt,status:seen.size?'success':'no_qualified_inventory',httpStatus:200,nextAllowedAt:new Date(nowMs+30*60_000).toISOString()};
   }
-  const selectedStores=ALL_SOURCES.filter(source=>source.state===config.id).map(source=>source.storeId);
+  const selectedStores=allowed.map(source=>source.storeId);
   return {signals,roadblocks,metadata:{requests,sourceAttempts,selectedStores,verifiedPremises:[...verifiedPremises],
     complete:requests.length>0&&requests.every(request=>request.ok)&&selectedStores.every(id=>verifiedPremises.has(id)),exhaustiveCatalogVerified:false}};
 }

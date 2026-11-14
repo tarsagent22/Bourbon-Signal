@@ -1,3 +1,4 @@
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
@@ -7,16 +8,16 @@ import {fetchReviewedCityHiveText,readCityHiveIncidentJournal,validateCityHiveIn
 import {sourceErrorForHttp} from './sources/source-error.mjs';
 import {centralCityHiveProductionAllowed,collectCentralCityHiveProductionSource} from './collectors/central-cityhive-production.mjs';
 
-const names = Object.freeze({ WI:'Wisconsin', OK:'Oklahoma' });
+const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts' });
+const sourcesByState = Map.groupBy([...CENTRAL_CITYHIVE_EXPANSION_SOURCES, ...CENTRAL_CITYHIVE_RESEARCH_SOURCES], source => source.state);
 const configurations = new Map(Object.entries(names).map(([state,name]) => [state,Object.freeze({
   id:state,label:`${name} first-party retailer research`,tier:'B',active:false,
   strategy:'retailer_store_inventory',cadence:'shadow-only',
   value:'Isolated exact-premises retailer pickup research; no customer activation.',
-  sources:Object.freeze(CENTRAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state===state)
+  sources:Object.freeze(sourcesByState.get(state)
     .map(source=>Object.freeze({kind:'html',label:source.sourceLabel,url:source.categoryUrl,precisionOnly:true}))),
   apiCandidates:Object.freeze([]),
 })]));
-
 export function cityHiveResearchSourceForState(state) { return configurations.get(state) || null; }
 
 function attemptFile(state){
@@ -68,7 +69,7 @@ async function collectCityHiveStateReport(config,bible,inputOptions={},shadowOnl
   reportDirectory=env.BOURBON_SIGNAL_STATE_OUT_FILE?path.dirname(env.BOURBON_SIGNAL_STATE_OUT_FILE):path.resolve('out','research-cityhive',config.id),
   captureRoot=shadowOnly?path.join(reportDirectory,'source-captures'):null,...options
   }=inputOptions;
-  const startedAt=new Date().toISOString(),sources=CENTRAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state===config.id);
+  const startedAt = new Date().toISOString(), sources = sourcesByState.get(config.id);
   // Successful research validation runs make new observations. Persisted
   // permission/rate denials remain authoritative across separate shadow runs.
   const previous=await readAttempts(config.id,sources,null);
@@ -122,17 +123,17 @@ async function collectCityHiveStateReport(config,bible,inputOptions={},shadowOnl
       throw error;
     }
   };
-  const result=await collectCentralCityHiveExpansion(config,bible,{...options,fetchText:boundedFetch,attempts:denied});
+  const result=await collectCentralCityHiveExpansion(config,bible,{...options,fetchText:boundedFetch,attempts:denied,sourceIds:sources.map(source=>source.id)});
   const finishedAt=new Date().toISOString();
   const sourceReports=sources.map(source=>{
     const attempted=result.metadata.requests.filter(request=>request.sourceId===source.id),ok=attempted.length>0&&attempted.every(request=>request.ok);
     return{sourceRuntimeId:`research:${config.id.toLowerCase()}:${source.id}`,label:source.sourceLabel,url:source.categoryUrl,
       ok,status:ok?200:attempted.find(request=>!request.ok)?.status||0,
-      signalType:'retailer_store_inventory_result',matchedBottleCount:result.signals.filter(row=>row.sourceChain===source.id).length,
+      signalType:'retailer_store_inventory_result',matchedBottleCount:result.signals.filter(row=>row.storeId===source.storeId).length,
       error:ok?null:attempted.length?'source_request_failed':'source_not_due_or_permission_cooldown'};
   });
   const healthy=result.metadata.complete===true&&sourceReports.length>0&&sourceReports.every(source=>source.ok);
-  const signals=result.signals.map(row=>shadowOnly?({...row,sourceRuntimeId:`research:${config.id.toLowerCase()}:${row.sourceChain}`,
+  const signals=result.signals.map(row=>shadowOnly?({...row,sourceRuntimeId:`research:${config.id.toLowerCase()}:${sources.find(source=>source.storeId===row.storeId)?.id||row.sourceChain}`,
     alertable:false,canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:false,eligibleForDropFeed:false,eligibleForWatch:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
     sourceProductBinding:{...row.sourceProductBinding,shadowOnly:true},
     raw:{...row.raw,shadowOnly:true}}):({...row,sourceRuntimeId:`precision:${config.id.toLowerCase()}`,raw:{...row.raw,shadowOnly:false}}));
@@ -145,6 +146,6 @@ async function collectCityHiveStateReport(config,bible,inputOptions={},shadowOnl
       origin:env.GITHUB_ACTIONS==='true'&&/^\d+$/.test(env.GITHUB_RUN_ID||'')&&/^[a-f0-9]{40}$/.test(env.GITHUB_SHA||'')
         ?{kind:'github_actions',repository:env.GITHUB_REPOSITORY,workflowRunId:env.GITHUB_RUN_ID,commitSha:env.GITHUB_SHA,runAttempt:env.GITHUB_RUN_ATTEMPT||'1'}
         :{kind:'local_shadow_not_workflow_issued'},
-      bibleRecordsSha256:createHash('sha256').update(JSON.stringify(bible.records)).digest('hex'),
+      bibleRecordsSha256:createHash('sha256').update(JSON.stringify(bible.records||[])).digest('hex'),
       shadowOnly,productionActivationAllowed:!shadowOnly,customerDeliveryAllowed:!shadowOnly}};
 }

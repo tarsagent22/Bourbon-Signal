@@ -1357,6 +1357,7 @@ function aggregateLeadIdentity(signal) {
 }
 
 function isSafePublicSignal(signal, shopifyPolicy) {
+  if (['AK', 'DC', 'LA', 'OR'].includes(signal.state) && (signal.raw?.shadowOnly === true || signal.sourceProductBinding?.shadowOnly === true)) return false;
   if (['WA', 'NM'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') return isReviewedResearchGrocery(signal);
   if(isNjMiRetailerEvent(signal))return isNjMiResearchInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;
   if(isCentralCityHiveRetailerEvent(signal))return isCentralCityHiveInventory(signal)&&signal.raw?.shadowOnly!==true&&signal.sourceProductBinding?.shadowOnly!==true;

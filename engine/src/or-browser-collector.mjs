@@ -1,6 +1,7 @@
 import { BrowserPage, DEFAULT_CDP_URL, ensureBrowserCdp, getOrCreateTarget, killBrowserCdp, sleep, writeJson } from './core/browser-session.mjs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { collectOregonDailyInventory } from './or-daily-inventory.mjs';
 
 const OUT_FILE = process.env.OR_OUT_FILE || 'out/browser/OR-product-availability.json';
 const ZIP = process.env.OR_SEARCH_ZIP || '97205';
@@ -140,7 +141,7 @@ async function submitSearch(page, product, zip = ZIP, directUrl = null) {
   return { ...extracted, structured };
 }
 
-export async function runOregonBrowserCollector() {
+async function runOregonBrowserCollectorLegacy() {
   const browser = await ensureBrowserCdp(DEFAULT_CDP_URL, {
     profileDir: process.env.OR_BROWSER_PROFILE_DIR || 'out/browser-profile/or-liquor-search',
     detached: false,
@@ -225,6 +226,14 @@ export async function runOregonBrowserCollector() {
   const payload = summarizeOregonCollection({ products, errors });
   await writeJson(OUT_FILE, payload);
   console.log(`Wrote ${OUT_FILE}: ${payload.productCount} products, ${payload.storeRowCount} store rows.`);
+  assertOregonCollectionComplete(payload);
+  return payload;
+}
+
+export async function runOregonBrowserCollector() {
+  const payload = await collectOregonDailyInventory({ terms: [] });
+  await writeJson(OUT_FILE, payload);
+  console.log(`Wrote ${OUT_FILE}: ${payload.productCount} products, ${payload.storeRowCount} store rows from OLCC report ${payload.sourceReportDate}.`);
   assertOregonCollectionComplete(payload);
   return payload;
 }

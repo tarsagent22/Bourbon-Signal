@@ -6,6 +6,8 @@ import { pathToFileURL } from 'node:url';
 import { withResearchLifecycle } from './research-state-registry.mjs';
 import {isCentralCityHiveResearchInventory} from './central-cityhive-policy.mjs';
 import {isNjMiResearchSourceInventory} from './nj-mi-research-policy.mjs';
+import { isLouisianaAlaskaGroceryShadowInventory } from './research-louisiana-alaska-grocery-runtime.mjs';
+import { isOregonDailyInventoryObservation, OREGON_DAILY_INVENTORY_URL } from './or-daily-inventory.mjs';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -15,15 +17,21 @@ const OREGON_PREREQUISITE_TIMEOUT_MS = 3 * 60_000;
 function stateId(value) { return String(value || '').trim().toUpperCase(); }
 function asArray(value) { return Array.isArray(value) ? value : []; }
 
-export function selectShadowCandidates(lifecycle, { states = [], limit = 5 } = {}) {
+export function selectShadowCandidates(lifecycle, { states = [], limit = 5, scheduledAt } = {}) {
   const active = new Set(asArray(lifecycle?.activeStates).map(stateId));
   const requested = new Set(asArray(states).map(stateId).filter(Boolean));
-  return Object.entries(lifecycle?.states || {})
+  const candidates = Object.entries(lifecycle?.states || {})
     .filter(([state, entry]) => !active.has(state) && entry?.publicStatus !== 'active' && entry?.shadowEligible === true)
     .map(([state]) => state)
     .filter((state) => requested.size === 0 || requested.has(state))
-    .sort()
-    .slice(0, Math.max(0, Number(limit) || 0));
+    .sort();
+  const count = Math.min(candidates.length, Math.max(0, Number(limit) || 0));
+  if (!requested.size && count > 0 && count < candidates.length && Number.isFinite(scheduledAt)) {
+    const window = Math.floor(scheduledAt / (4 * 60 * 60_000));
+    const batch = window % Math.ceil(candidates.length / count);
+    return candidates.slice(batch * count, (batch + 1) * count);
+  }
+  return candidates.slice(0, count);
 }
 
 export function validateShadowRunRequest(lifecycle, { requestedStates = [], candidates = [] } = {}) {
@@ -51,8 +59,9 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
   if (report?.stale === true) return [];
   const nowMs = Date.parse(String(now || ''));
   return asArray(report.signals).filter((row) => (row?.canAlertAsInventory === true
+    || (report.state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL)
     || report.metadata?.complete===true&&report.metadata.shadowOnly===true&&report.metadata.productionActivationAllowed===false
-      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})))
+      &&report.metadata.customerDeliveryAllowed===false&&(isCentralCityHiveResearchInventory(row,{nowMs})||isNjMiResearchSourceInventory(row,{nowMs})||isLouisianaAlaskaGroceryShadowInventory(row)))
     && row?.stale !== true
     && row?.locationPrecision === 'store_level'
     && String(row?.storeId ?? '').trim()
@@ -60,6 +69,7 @@ function trustedCurrentInventorySignals(report = {}, { now = new Date().toISOStr
     && (() => {
       const observedAt = Date.parse(String(row?.observedAt || row?.lastConfirmedAt || row?.eventAt || ''));
       const ageMs = nowMs - observedAt;
+      if (report.state === 'OR' && row.sourceUrl === OREGON_DAILY_INVENTORY_URL) return isOregonDailyInventoryObservation(row, nowMs);
       return Number.isFinite(nowMs) && Number.isFinite(observedAt) && ageMs >= 0 && ageMs <= maximumAgeMs;
     })());
 }
@@ -123,6 +133,7 @@ export function buildShadowEvidence(state, report, { now = new Date().toISOStrin
   const exactStore = signals.filter((row) => row?.storeId && row?.storeAddress);
   const nowMs = Date.parse(String(now || ''));
   const fresh = signals.filter((row) => {
+    if (state === 'OR' && row?.sourceUrl === OREGON_DAILY_INVENTORY_URL) return isOregonDailyInventoryObservation(row, nowMs);
     const observedAt = Date.parse(String(row?.observedAt || row?.lastConfirmedAt || row?.eventAt || ''));
     const ageMs = nowMs - observedAt;
     return Number.isFinite(nowMs) && Number.isFinite(observedAt) && ageMs >= 0 && ageMs <= SHADOW_INVENTORY_MAX_AGE_MS && row?.stale !== true;
@@ -196,8 +207,8 @@ async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
-export async function runExpansionShadow({ lifecycle, states, limit = 5, outDir = path.resolve('out', 'shadow'), cwd = process.cwd(), runCollector = runStateChild, prepareCandidate = runCandidatePrerequisite } = {}) {
-  const candidates = selectShadowCandidates(lifecycle, { states, limit });
+export async function runExpansionShadow({ lifecycle, states, limit = 5, scheduledAt, outDir = path.resolve('out', 'shadow'), cwd = process.cwd(), runCollector = runStateChild, prepareCandidate = runCandidatePrerequisite } = {}) {
+  const candidates = selectShadowCandidates(lifecycle, { states, limit, scheduledAt });
   const runId = new Date().toISOString().replace(/[:.]/g, '-');
   const results = [];
   for (const state of candidates) {
@@ -259,7 +270,8 @@ function argValue(flag) {
 async function main() {
   const lifecycle = withResearchLifecycle(await readJson(path.resolve('..', 'src', 'config', 'state-lifecycle.json'), null));
   const states = String(argValue('--states') || '').split(',').map(stateId).filter(Boolean);
-  const summary = await runExpansionShadow({ lifecycle, states, limit: Number(argValue('--limit') || 5) });
+  const scheduledAt = process.env.GITHUB_EVENT_NAME === 'schedule' ? Date.now() : undefined;
+  const summary = await runExpansionShadow({ lifecycle, states, limit: Number(argValue('--limit') || 5), scheduledAt });
   validateShadowRunRequest(lifecycle, { requestedStates: states, candidates: summary.candidates });
   console.log(JSON.stringify({ mode: summary.mode, candidates: summary.candidates, runId: summary.runId, productionSnapshotTouched: false, alertsDisabled: true }, null, 2));
   if (!summary.complete) {
