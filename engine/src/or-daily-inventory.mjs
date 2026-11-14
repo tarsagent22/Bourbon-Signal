@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { BourbonBible } from './core/bible.mjs';
+import { cityHiveUnsafeBottleMatchReason } from './collectors/safe-bottle-match.mjs';
 
 export const OREGON_DAILY_INVENTORY_URL = 'https://www.olcc.state.or.us/pdfs/DailyStoreInventory.csv';
 export const OREGON_INVENTORY_MAX_AGE_MS = 48 * 60 * 60_000;
@@ -27,6 +29,7 @@ const VERIFIED_VARIANTS = new Map([
   ['Eagle Rare 10 Year', { proof: 90, sizes: ['750 ML', '1.75 L'] }],
   ["Blanton's Gold", { proof: 103, sizes: ['750 ML'] }],
   ['Weller 12 Year', { proof: 90, sizes: ['750 ML'] }],
+  ['Weller Millennium', { proof: 99, sizes: ['750 ML'] }],
 ]);
 
 export function oregonIdentityCandidate(description) {
@@ -38,6 +41,13 @@ export function resolveOregonBourbonIdentity(product, bible) {
   const match = bible?.match?.(candidate);
   const exactMethods = new Set(['exact-normalized-alias', 'exact-library-identity', 'exact-key', 'reviewed-retailer-library-identity']);
   if (!match?.record || !exactMethods.has(match.method)) return { status: 'unresolved_or_ambiguous', candidate, match: match || null };
+  const identityMismatch = cityHiveUnsafeBottleMatchReason(candidate, match.record);
+  if (identityMismatch) {
+    const status = identityMismatch.startsWith('missing_age:') ? 'missing_age_modifier'
+      : identityMismatch.startsWith('missing_modifier:') ? 'missing_identity_modifier'
+        : 'identity_modifier_mismatch';
+    return { status, candidate, match, identityMismatch };
+  }
   const variant = VERIFIED_VARIANTS.get(match.record.canonical);
   const size = String(product?.size || '').replace(/\s+/g, ' ').trim();
   const proof = Number(product?.proof);
@@ -129,6 +139,12 @@ function createInventoryAccumulator({ terms, generatedAt, bible }) {
     if (!bottleMatch?.record || !exactMethods.includes(bottleMatch.method)) {
       unresolvedSourceRowCount += 1;
       noteUnresolved(sourceProductKey, { itemCode, name, identityCandidate, size, proof, matchMethod: bottleMatch?.method || null, closestCanonical: bottleMatch?.record?.canonical || null, status: 'non_exact_or_ambiguous_match' });
+      return;
+    }
+    const identityMismatch = cityHiveUnsafeBottleMatchReason(identityCandidate, bottleMatch.record);
+    if (identityMismatch) {
+      unresolvedSourceRowCount += 1;
+      noteUnresolved(sourceProductKey, { itemCode, name, identityCandidate, size, proof, matchMethod: bottleMatch.method, closestCanonical: bottleMatch.record.canonical, status: identityMismatch });
       return;
     }
     const variant = VERIFIED_VARIANTS.get(bottleMatch.record.canonical);
@@ -291,12 +307,14 @@ async function parseOregonDailyInventoryStream(stream, accumulator, maxBytes) {
   const parser = { row: [], field: '', quoted: false, pending: '', acceptRecord: accumulator.acceptRecord };
   let firstChunk = true;
   let bytes = 0;
+  const digest = createHash('sha256');
   try {
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
       bytes += value.byteLength;
       if (bytes > maxBytes) throw new Error(`Oregon OLCC inventory exceeded 150 MB limit (${bytes}).`);
+      digest.update(value);
       let text = decoder.decode(value, { stream: true });
       if (firstChunk) { text = text.replace(/^\uFEFF/, ''); firstChunk = false; }
       pushCsvChunk(parser, text);
@@ -308,18 +326,30 @@ async function parseOregonDailyInventoryStream(stream, accumulator, maxBytes) {
   } finally {
     reader.releaseLock();
   }
-  return bytes;
+  return { bytes, sha256: digest.digest('hex') };
 }
 
 async function loadFullAppBible() {
-  const pathName = path.resolve('out/bourbon-bible.json');
+  const pathName = path.resolve(process.env.OR_BIBLE_FILE || 'out/bourbon-bible.json');
   let data;
   try { data = JSON.parse(await readFile(pathName, 'utf8')); }
   catch { throw new Error('Full app Bible is unavailable. Run `npm run bible` before the Oregon inventory collector.'); }
-  return new BourbonBible(data.records || []);
+  if (data.libraryCatalog?.mode !== 'live') {
+    throw new Error('Oregon collection requires the full app Bible with a live library catalog; static/fallback Bible data cannot authorize inventory identities. Set OR_BIBLE_FILE to a current live Bible file.');
+  }
+  return {
+    bible: new BourbonBible(data.records || []),
+    metadata: {
+      mode: data.libraryCatalog.mode,
+      generatedAt: data.generatedAt || null,
+      canonicalRecordCount: data.records?.length || 0,
+      libraryIdentityCount: data.libraryCatalog.count || 0,
+    },
+  };
 }
 
 export async function collectOregonDailyInventory({ fetchImpl = fetch, terms = [], generatedAt = new Date().toISOString(), bible } = {}) {
+  const loaded = bible ? { bible, metadata: { mode: 'injected_test_fixture', generatedAt: null, canonicalRecordCount: null, libraryIdentityCount: null } } : await loadFullAppBible();
   const response = await fetchImpl(OREGON_DAILY_INVENTORY_URL, {
     headers: { accept: 'text/csv', 'user-agent': 'BourbonSignal/1.0 (+https://bourbonsignal.com)' },
     signal: AbortSignal.timeout(120_000),
@@ -329,12 +359,16 @@ export async function collectOregonDailyInventory({ fetchImpl = fetch, terms = [
   const declaredLength = Number(response.headers.get('content-length') || 0);
   if (declaredLength > 150_000_000) throw new Error(`Oregon OLCC inventory exceeded 150 MB limit (${declaredLength}).`);
   if (!response.body) throw new Error('Oregon OLCC daily inventory response had no readable stream.');
-  const fullBible = bible || await loadFullAppBible();
+  const fullBible = loaded.bible;
   const accumulator = createInventoryAccumulator({ terms, generatedAt, bible: fullBible });
-  const bytes = await parseOregonDailyInventoryStream(response.body, accumulator, 150_000_000);
+  const sourceFingerprint = await parseOregonDailyInventoryStream(response.body, accumulator, 150_000_000);
   const payload = accumulator.finish();
-  payload.sourceBytes = bytes;
-  payload.uniqueRecentPremiseCount = new Set(payload.products.flatMap((product) => product.stores.map((store) => store.storeNo))).size;
+  payload.sourceBytes = sourceFingerprint.bytes;
+  payload.sourceSha256 = sourceFingerprint.sha256;
+  payload.bible = loaded.metadata;
+  const positiveStoreRows = payload.products.flatMap((product) => product.stores.filter((store) => store.quantity > 0 && store.address && store.city && store.zip));
+  payload.positiveQuantityStoreRowCount = positiveStoreRows.length;
+  payload.uniqueRecentPremiseCount = new Set(positiveStoreRows.map((store) => store.storeNo)).size;
   payload.exactProductCountByRarity = Object.fromEntries([...new Set(payload.products.map((product) => product.rarityTier))]
     .map((tier) => [tier, payload.products.filter((product) => product.rarityTier === tier).length]));
   return payload;
