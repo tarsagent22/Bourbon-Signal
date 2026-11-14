@@ -1,6 +1,7 @@
 import { BrowserPage, DEFAULT_CDP_URL, ensureBrowserCdp, getOrCreateTarget, killBrowserCdp, sleep, writeJson } from './core/browser-session.mjs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { appendFile } from 'node:fs/promises';
 import { collectOregonDailyInventory } from './or-daily-inventory.mjs';
 
 const OUT_FILE = process.env.OR_OUT_FILE || 'out/browser/OR-product-availability.json';
@@ -231,9 +232,21 @@ async function runOregonBrowserCollectorLegacy() {
 }
 
 export async function runOregonBrowserCollector() {
-  const payload = await collectOregonDailyInventory({ terms: [] });
+  let payload;
+  try { payload = await collectOregonDailyInventory({ terms: [] }); }
+  catch (error) {
+    if (error?.oregonCacheReceipt) {
+      if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, 'or_cache_updated=false\nor_source_body_fetched=false\n', 'utf8');
+      await writeJson(path.join(path.dirname(OUT_FILE), 'OR-source-cache-receipt.json'), error.oregonCacheReceipt);
+    }
+    throw error;
+  }
+  if (process.env.GITHUB_OUTPUT) {
+    await appendFile(process.env.GITHUB_OUTPUT, `or_cache_updated=${payload.cacheUpdated === true}\nor_source_body_fetched=${payload.sourceBodyFetched === true}\n`, 'utf8');
+  }
   await writeJson(OUT_FILE, payload);
-  console.log(`Wrote ${OUT_FILE}: ${payload.productCount} products, ${payload.storeRowCount} store rows from OLCC report ${payload.sourceReportDate}.`);
+  if (payload.cacheReceipt) await writeJson(path.join(path.dirname(OUT_FILE), 'OR-source-cache-receipt.json'), payload.cacheReceipt);
+  console.log(`Wrote ${OUT_FILE}: ${payload.productCount} products, ${payload.storeRowCount} store rows from OLCC report ${payload.sourceReportDate} (source cache ${payload.cacheDisposition || 'disabled'}).`);
   assertOregonCollectionComplete(payload);
   return payload;
 }
