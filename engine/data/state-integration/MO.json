@@ -89,7 +89,7 @@
           "commitSha": "f417fa44dfad17880935107a8eef8445d8f205c2",
           "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43586205036",
           "sourceStartedAt": "2026-11-14T10:39:05.353Z",
-          "sourceFinishedAt": "2026-11-14T10:39:27.630Z",
+          "sourceFinishedAt": "2026-11-14T10:39:27.63Z",
           "currentRows": 14,
           "positiveStores": 9,
           "positiveCities": 6
@@ -125,8 +125,8 @@
     },
     "canary": {
       "status": "verified",
-      "runs": 3,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43613518791",
+      "runs": 4,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615283586",
       "siteArtifact": "engine/data/canary-site/mo-active-candidate",
       "observations": [
         {
@@ -168,6 +168,20 @@
           "searchableStores": 10,
           "allDeliveryDisabled": true,
           "publicProjectionSha256": "e7a4112a80e78a5fc13898a80e32afc2f669dbd15805aa73636f241540bbf032"
+        },
+        {
+          "runId": "43615283586",
+          "status": "success",
+          "artifactHash": "22e03035a95159827de0eb040bb74079241dd29068f020ddd33e51e2d504bbbf",
+          "artifactId": "14122410442",
+          "commitSha": "bb258e4ca7e08c86163d838c043716434aeed31c",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615283586",
+          "currentRows": 14,
+          "positiveStores": 9,
+          "positiveCities": 6,
+          "searchableStores": 10,
+          "allDeliveryDisabled": true,
+          "publicProjectionSha256": "30ae804fff816dc91ad599cb2199a6dd62a477a8da14b4ffa0eba725f4c77f11"
         }
       ],
       "preview": {
