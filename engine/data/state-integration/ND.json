@@ -66,8 +66,8 @@
   "evidence": {
     "shadow": {
       "status": "verified",
-      "runs": 1,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43647207025",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43649959646",
       "observations": [
         {
           "runId": "43647207025",
@@ -76,21 +76,53 @@
           "artifactHash": "7b418587f68eeb14e959c75cb2cd07ef23ec8ac911aead55d586b266909fd5b0",
           "commitSha": "a8795741bd6f3ada9bf88e0a7d8689699c35ab3b",
           "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43647207025"
+        },
+        {
+          "runId": "43649959646",
+          "status": "success",
+          "artifactId": "14136030724",
+          "artifactName": "state-expansion-shadow-43649959646",
+          "artifactHash": "c4ea0be7a1779cbeab9bdcbfc545ff19699f0e1341b9e4ddfbc86a5ab0c154ed",
+          "commitSha": "3210008811741e468da2840fb536bb4628468957",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43649959646"
         }
       ],
       "originalSourceClocksPreserved": true
     },
     "canary": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "Local production-route projection passed. Hosted replay has not run."
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43650063336",
+      "allDeliveryChannelsDisabled": true,
+      "observations": [
+        {
+          "runId": "43650063336",
+          "status": "success",
+          "commitSha": "3210008811741e468da2840fb536bb4628468957",
+          "artifactId": "14135872612",
+          "artifactName": "state-expansion-canary-ND-43650063336",
+          "artifactHash": "26ebc31845eaf475f5fd02167596f6e14b2eb3cd663a662d43a538791be3310f",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43650063336",
+          "observedStoreCount": 2,
+          "publicCurrentRows": 3,
+          "hostedPreviewDeployed": false
+        }
+      ]
     },
     "production": {
       "status": "not_deployed",
       "url": null,
       "assertion": "Publication must verify admitted exact stores and their availability on the canonical remote snapshot and shared Coverage API.",
       "reason": "Research lifecycle only."
+    },
+    "researchProvenance": {
+      "runId": "43650425901",
+      "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43650425901",
+      "commitSha": "f10b83025d61d5de2f9e3413c0fe79e3ec4c07ad",
+      "artifactId": "14135329687",
+      "artifactDigest": "sha256:a5e25b113f6f970ecdeb38d542cbb2d1e526def9cb0e424be50b2f2ad061c15e",
+      "bundleDigest": "8a454dde6aab51141c5e5bb484f66eaa74176cf719888536d6a2714b52d918a6",
+      "sourceRunId": "43649959646"
     }
   }
 }
