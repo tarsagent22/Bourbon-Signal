@@ -9,6 +9,7 @@ import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEn
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
 
 import { montanaRetailerSource, montanaRetailerLifecycle, collectMontanaRetailer } from './research-montana-ecwid.mjs';
+import { delawareEcwidResearchSource, collectDelawareEcwidResearch } from './research-delaware-ecwid.mjs';
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -55,6 +56,23 @@ export function withResearchLifecycle(production) {
 
 export async function collectResearchStateReport(config, bible, options = {}) {
   if (config && config === montanaRetailerSource(config.id)) return collectMontanaRetailer(config, bible, options);
+  if (config && config.id === 'DE' && config === cityHiveResearchSourceForState('DE')) {
+    const includeCityHive=options.includeCityHiveResearch!==false;
+    const [cityHive,banks]=await Promise.all([
+      includeCityHive?collectCityHiveResearchReport(config,bible,options):null,
+      collectDelawareEcwidResearch(delawareEcwidResearchSource('DE'),bible,options),
+    ]);
+    const complete=banks.metadata.complete===true&&(!includeCityHive||cityHive?.metadata.complete===true);
+    const signals=[...(cityHive?.signals||[]),...banks.signals];
+    const sources=[...(cityHive?.sources||[]),...banks.sources];
+    const sourceResults=[...(cityHive?.sourceResults||[]),...banks.sourceResults];
+    const roadblocks=[...(cityHive?.roadblocks||[]),...banks.roadblocks];
+    return{state:'DE',label:'Delaware first-party pickup research',tier:config.tier,strategy:config.strategy,cadence:config.cadence,
+      startedAt:cityHive?.startedAt||banks.startedAt,finishedAt:cityHive?.finishedAt||banks.finishedAt,
+      lastGoodAt:complete?cityHive?.lastGoodAt||banks.lastGoodAt:null,status:signals.length?(complete?'useful':'partial_useful'):'no_trusted_inventory',
+      stale:false,signals,sources,sourceResults,roadblocks,metadata:{complete,shadowOnly:true,productionActivationAllowed:false,
+        customerDeliveryAllowed:false,allDeliveryDisabled:true,cityHive:cityHive?.metadata||null,delawareEcwid:banks.metadata}};
+  }
   if (config && config === oregonResearchSourceForState(config.id)) return collectOregonResearchReport(config, bible, options);
   if(config&&config===michiganLiquorsResearchSourceForState(config.id))return collectMichiganLiquorsResearchReport(config,bible,options);
   if (config && config === louisianaAlaskaResearchSourceForState(config.id)) return collectLouisianaAlaskaResearchReport(config, bible, options);
