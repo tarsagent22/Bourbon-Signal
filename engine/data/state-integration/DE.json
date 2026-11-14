@@ -45,16 +45,17 @@
   "evidence": {
     "shadow": {
       "status": "verified",
-      "runs": 2,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43642999828#artifact-14133165988",
-      "artifactDigest": "89c9b729e2d7e01c98162d8e3d80e2b6296938490cd1fab18cf738c5c263f439",
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43645903085#artifact-14133781797",
+      "artifactDigest": "42ea8a6f2cd180e5aae27953af86a44ba17674deb8d47a2bb2ae5aa892c67e59",
       "originalSourceClocksPreserved": true
     },
     "canary": {
       "status": "verified",
-      "runs": 1,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43643844800#artifact-14132753175",
-      "artifactDigest": "44c151676317a2618d06e416aa76599cfcec96b0070f4dc5012365bc54c2e33c",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43646026417#artifact-14133876873",
+      "artifactDigest": "896b16fced2ad5841180f0757ac7260eac9b600338e94c9559e6b06ec3fae596",
+      "assertion": "The second source-replayed canary projected six current rows across three searchable stores, with two allocated rows and all alert and delivery flags disabled.",
       "allDeliveryChannelsDisabled": true,
       "productionSnapshotTouched": false
     },
