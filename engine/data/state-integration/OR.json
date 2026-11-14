@@ -8,51 +8,131 @@
     "refinementLevel": "store"
   },
   "collector": {
-    "sourceIds": ["precision:or"],
-    "registration": "Official OLCC daily parsed report; the isolated canary replays the workflow-saved report artifact and revalidates each exact product identity and store row against the current live app Bible. It makes no source request, production activation, alert, or publication."
+    "sourceIds": ["or:olcc-daily-inventory"],
+    "cohortSha256": "8c1a4bd03f5f5bd6ca3ed6259f4f16001adf191a27c7a8a547bc297d9ba9098d",
+    "registration": "Official OLCC daily store inventory. Hosted research and canary replay immutable workflow-issued report artifacts; production collector remains promotion-gated and makes no request until reviewed lifecycle evidence is complete."
   },
   "storeIdentity": {
     "mode": "official_olcc_store_number_and_reported_premises",
     "addressRequired": true,
-    "expectedKnownStores": 200,
+    "expectedKnownStores": 251,
     "proof": "Store number, store name, street address, city, and postal code come from the same official report row; no location is inferred or fabricated."
   },
   "sourceSemantics": {
-    "availability": "Official report quantity is exact as of each row's date; it is historical inventory context, not a restock event or shelf guarantee. Original Pacific-midnight date timestamps are preserved and rows older than 48 hours are excluded.",
+    "availability": "Official report quantity is exact as of the reported store inventory date; it is dated inventory context, not a restock event or shelf guarantee. Original America/Los_Angeles date timestamps are preserved and rows older than 48 hours are excluded.",
     "inventoryAlertable": false,
     "watchAlertable": false
   },
   "customerPaths": {
-    "stateFilter": {"status":"verified","assertion":"Canary snapshot contains the OR partition while authoritative lifecycle remains research-only."},
-    "areaFilter": {"status":"verified","assertion":"Store-level source rows retain their official city and address in the canary export."},
-    "preferences": {"status":"verified","assertion":"The isolated preview lifecycle is derived from current configuration and is not copied back to production."},
-    "dashboard": {"status":"verified","assertion":"The canary snapshot includes Oregon coverage and dated inventory rows."},
-    "dropFeedApi": {"status":"verified","assertion":"The canary partition carries official source URL, exact quantity, store identity, and original inventory date."},
-    "finder": {"status":"verified","assertion":"Finder locations are limited to official store rows represented by current canary signals."},
-    "alerts": {"status":"verified","assertion":"Oregon inventory and watch alerts remain disabled by both lifecycle and candidate row policy."},
-    "monitoring": {"status":"verified","assertion":"The isolated snapshot records Oregon partition counts without changing production monitoring state."},
-    "export": {"status":"verified","assertion":"The candidate partition is built from the saved parsed OLCC artifact; current source identities and date freshness are rechecked before export."}
+    "stateFilter": {"status":"verified","assertion":"Hosted canary run 43617826323 built and verified the isolated Oregon state partition; production lifecycle remains research-only."},
+    "areaFilter": {"status":"verified","assertion":"The partition preserves source-reported city and full street address on each exact store row."},
+    "preferences": {"status":"not_applicable","reason":"No Oregon production customer scope is active; the isolated research canary does not exercise or alter customer preferences.","assertion":"Production lifecycle remains research-only."},
+    "dashboard": {"status":"verified","assertion":"Hosted isolated canary generated the Oregon partition for the existing site projection; no customer publication occurred."},
+    "dropFeedApi": {"status":"verified","assertion":"The canary artifact contains an Oregon-only public state partition bound to source URL, quantity, exact store identity, and original inventory date."},
+    "finder": {"status":"verified","assertion":"Canary projection locations are limited to official store rows represented by current report signals."},
+    "alerts": {"status":"verified","assertion":"Canary alert-candidate count is zero; Oregon inventory, Watch, email, SMS, and delivery flags remain false."},
+    "monitoring": {"status":"verified","assertion":"Hosted shadow report is complete and useful with 4,179 exact store signals across the official report; the candidate is not in production monitoring."},
+    "export": {"status":"verified","assertion":"Hosted canary emitted the 1,595-row Oregon public partition from the saved OLCC report; exact source body and original inventory dates are retained."}
   },
   "evidence": {
     "shadow": {
       "status": "verified",
-      "runs": 1,
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565542444",
-      "sourceReportDate": "11/13/2026",
-      "sourceReportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775",
-      "assertion": "Successful hosted shadow run retained the parsed official OLCC report and a complete OR shadow summary. The report is dated 11/13/2026; original store observation clocks are preserved."
+      "runs": 3,
+      "distinctSourceReports": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43610935076",
+      "sourceReportDate": "11/14/2026",
+      "sourceReportSha256": "44f4aaa5e2358bf013bbd8eb71207660d58397d299f96c065d5ad07b43362985",
+      "sourceBytes": 95990899,
+      "sourceArtifactId": "14120401688",
+      "sourceArtifactDigest": "8d328b0eea446f23287340ff8cedc9dae0337eaf24db84c1656f533ec2f7b132",
+      "shadowArtifactId": "14119907634",
+      "shadowArtifactDigest": "a3c5ee73127e0305c1762072c8889059f711321eb91c323107f12a6a615702e7",
+      "observations": [
+        {
+          "runId": "43565542444",
+          "reportDate": "11/13/2026",
+          "reportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775",
+          "reportBytes": 95920909,
+          "sourceArtifactId": "14102705021",
+          "sourceArtifactDigest": "36a178ecd41e002dcd1a6a7ea13052f6fdc35da503f807edf05febaf1f73f7fc",
+          "shadowArtifactId": "14102525522",
+          "shadowArtifactDigest": "75b5443f590148473a6763612c9c245e577ab3ff688decba87c436b42ce21f9a",
+          "signals": 4236
+        },
+        {
+          "runId": "43569668241",
+          "reportDate": "11/13/2026",
+          "reportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775",
+          "reportBytes": 95920909,
+          "sourceArtifactId": "14104021710",
+          "sourceArtifactDigest": "daad6a4419930ad0e0aa75d55e21b08a9d821113ca7d99caf34866e9052fc083",
+          "shadowArtifactId": "14104146525",
+          "shadowArtifactDigest": "815bf9c220e8e67fb37da8c741de90edd94748629b7b786c0a4356d21c096f8a",
+          "signals": 4236
+        },
+        {
+          "runId": "43610935076",
+          "reportDate": "11/14/2026",
+          "reportSha256": "44f4aaa5e2358bf013bbd8eb71207660d58397d299f96c065d5ad07b43362985",
+          "reportBytes": 95990899,
+          "sourceArtifactId": "14120401688",
+          "sourceArtifactDigest": "8d328b0eea446f23287340ff8cedc9dae0337eaf24db84c1656f533ec2f7b132",
+          "shadowArtifactId": "14119907634",
+          "shadowArtifactDigest": "a3c5ee73127e0305c1762072c8889059f711321eb91c323107f12a6a615702e7",
+          "signals": 4179
+        }
+      ],
+      "previousSourceReportDate": "11/13/2026",
+      "previousSourceReportSha256": "7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775",
+      "assertion": "Three successful shadow runs are retained, but they cover only two distinct report bodies/date cycles: 11/13 (two runs over the same digest) and 11/14. The current report was fetched once by its hosted shadow workflow; canary replay used its immutable artifact and made no OLCC request."
     },
     "canary": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "Local isolated preparation and vertical-slice rehearsal are not a hosted canary workflow run or a deployed preview."
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43617826323",
+      "siteArtifact": "state-expansion-canary-OR-43617826323",
+      "artifactId": "14122163860",
+      "artifactDigest": "fd6e1ca0ee8d0eda78612e732a801bf3f6157366c2c25c918e72465d79dcba8f",
+      "priorCompatibleCanary": {
+        "runId": "43612380736",
+        "artifactId": "14120971145",
+        "artifactDigest": "a41d15c36f56da3a2776210455c7e6678d38e78a307bbfeed8e1be69fcd53c6d",
+        "headSha": "4b8bef0bbe7bb877de46b6b13ca641fc067d437c",
+        "sourceReportSha256": "44f4aaa5e2358bf013bbd8eb71207660d58397d299f96c065d5ad07b43362985",
+        "sourceArtifactId": "14120401688",
+        "sourceArtifactDigest": "8d328b0eea446f23287340ff8cedc9dae0337eaf24db84c1656f533ec2f7b132"
+      },
+      "headSha": "3a58a77dd0792219b02a825bccb2d84e49f5169a",
+      "sourceReportSha256": "44f4aaa5e2358bf013bbd8eb71207660d58397d299f96c065d5ad07b43362985",
+      "currentListings": 1595,
+      "currentStores": 267,
+      "currentCities": 170,
+      "allocatedRows": 757,
+      "unicornRows": 14,
+      "allDeliveryChannelsDisabled": true,
+      "previewUrl": null,
+      "previewDeploymentEnabled": false
     },
     "production": {
       "status": "not_deployed",
       "url": null,
-      "assertion": "No public production inventory or customer alerts are authorized by this canary preparation.",
-      "reason": "Oregon remains research-only pending separate evidence review and activation."
+      "assertion": "No public Oregon inventory or customer alerts are authorized by the research candidate.",
+      "reason": "Canonical Oregon lifecycle remains research-only. Promotion is blocked until the source-distinct shadow, canary, preview, and immutable-evidence requirements are met and separately reviewed."
+    },
+    "activationReadiness": {
+      "runtimeGate": "closed",
+      "canonicalLifecyclePublicStatus": "research_only",
+      "requiredShadowRuns": 3,
+      "verifiedSuccessfulShadowRuns": 3,
+      "verifiedDistinctSourceReports": 2,
+      "requiredCanaryRuns": 2,
+      "verifiedCanaryRuns": 2,
+      "requiredCanaryPreviewUrl": true,
+      "verifiedCanaryPreviewUrl": false,
+      "immutablePromotionEvidencePresent": false,
+      "sourceConfigHash": "bbd0aac5df4f7acfa074e8f195282869893bac4123ca0961f597c3ca250a9998",
+      "canonicalLifecycleConfigSha256": "1e42f70cc1f1c77e94582df3c462bd44a87d2bb69146989d273ee9305eb899a1",
+      "fixtureContractSha256": "312b7b199c85d7bb86fb2b8c707a00f8a0fcf16889f3a9557b75cafcf75a0cc0"
     }
   }
 }

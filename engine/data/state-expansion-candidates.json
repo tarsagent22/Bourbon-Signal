@@ -1051,27 +1051,31 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "canary",
       "sourceClassesSought": [
-        "official_control_board",
-        "official_catalog",
-        "official_release"
+        "official_daily_store_inventory"
       ],
       "currentBlockers": [
-        "Existing Oregon Liquor Search browser/session collection is research-only until it produces reliable current store rows."
+        "Three successful shadow runs cover only two distinct official report dates; retain another distinct daily report before promotion review.",
+        "Production lifecycle remains research-only; first production publication and immutable promotion evidence are not present.",
+        "A deployed isolated canary preview URL has not been produced."
       ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []
       },
       "lastDiscoveryAt": null,
-      "lastProbeAt": null,
+      "lastProbeAt": "2026-11-14T16:51:26.320Z",
       "nextEligibleAt": null,
       "requestBudget": {
-        "maxQueriesPerRun": 4,
-        "maxProbesPerRun": 8
+        "maxQueriesPerRun": 1,
+        "maxProbesPerRun": 0
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/OR.json",
+        "engine/data/state-fixtures/OR.json",
+        "engine/data/canary-inputs/OR.json"
+      ]
     },
     {
       "state": "PA",
