@@ -1,5 +1,6 @@
 import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
 import {isLouisianaAlaskaGroceryCanaryPreview} from '../../engine/src/laak-canary-preview-policy.mjs';
+import {isWyomingGroceryCanaryPreview} from '../../engine/src/wyoming-grocery-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
@@ -395,7 +396,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     quantity_shipped: shipmentQuantity || undefined,
     quantity: quantity || (isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveOnSiteSignal(drop)
       || isNjMiOnSiteSignal(drop) || isLouisianaAlaskaGroceryOnSiteSignal(drop)
-      || isLouisianaAlaskaGroceryCanaryPreview(drop) ? 0 : undefined),
+      || isLouisianaAlaskaGroceryCanaryPreview(drop) || isWyomingGroceryCanaryPreview(drop) ? 0 : undefined),
     rarity_tier: asString(drop.tier, "unknown"),
     retail_price: asNumber(drop.price) || null,
     state,

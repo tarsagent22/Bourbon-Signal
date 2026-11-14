@@ -1375,7 +1375,7 @@ function aggregateLeadIdentity(signal) {
 }
 
 export function isSafePublicSignal(signal, shopifyPolicy) {
-  if (['AK', 'DC', 'LA', 'OR'].includes(signal.state) && (signal.raw?.shadowOnly === true || signal.sourceProductBinding?.shadowOnly === true)) return false;
+  if (['AK', 'DC', 'LA', 'OR', 'WY'].includes(signal.state) && (signal.raw?.shadowOnly === true || signal.sourceProductBinding?.shadowOnly === true)) return false;
   if (['AK', 'LA'].includes(signal.state) && String(signal.eventType || signal.type) === 'retailer_store_inventory_result') {
     return isLouisianaAlaskaGroceryInventory(signal) || isLouisianaAlaskaGroceryOnSiteSignal(signal);
   }
