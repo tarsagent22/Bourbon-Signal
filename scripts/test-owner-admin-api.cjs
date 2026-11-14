@@ -52,6 +52,57 @@ test('owner catalog bypasses discovery cache and pairs definitions with their ex
  bible.clearBourbonBibleCache();
  const discovery=(await bible.getBourbonBible()).find(b=>b.id===old.id);assert.ok(discovery);assert.equal(discovery.canonicalName,'Reviewed Maker’s Mark 750 ml');assert.deepEqual(discovery.aliases,['Reviewed Maker’s Mark']);assert.equal('photoEvidenceUrl' in discovery,false);assert.equal('sourceUrl' in discovery,false);assert.doesNotMatch(JSON.stringify(await bible.searchBourbonBible('Reviewed Maker’s Mark')),/private[.]example/);
 });
+test("catalog edits save without a merge target version", async () => {
+  const db = new PGlite();
+  try {
+    await db.exec(`
+      CREATE FUNCTION pg_advisory_xact_lock(bigint) RETURNS VOID LANGUAGE SQL AS 'SELECT';
+      CREATE TABLE owner_workspace_audit(id BIGSERIAL PRIMARY KEY,actor_id TEXT,action TEXT,target_id TEXT,details JSONB,created_at TIMESTAMPTZ DEFAULT now());
+      SET check_function_bodies = off;
+    `);
+    for (const name of ["member-collection", "community-sightings", "owner-admin"]) {
+      await db.exec(fs.readFileSync(`${root}/src/lib/${name}-schema.sql`, "utf8"));
+    }
+    const coverageDatabase = () => ({ query: async (sql, params) => (await db.query(sql, params)).rows });
+    const repository = moduleFrom("src/lib/owner-admin-repository.ts", {
+      "./owner-workspace": { coverageDatabase },
+      "./neon-runtime": { runtimeNeonConnectionString: () => "test-db" },
+    });
+    const bottle = {
+      id: "old-forester-king-ranch",
+      canonicalName: "Old Forester King Ranch",
+      brand: "Old Forester",
+      category: "bourbon",
+      availability: "limited",
+      aliases: [],
+    };
+    const route = moduleFrom("src/app/api/admin/catalog/route.ts", {
+      "@/lib/owner-auth": { requireOwnerApiAccess: async () => ({ userId: "owner" }) },
+      "@/lib/bourbonBible": { getOwnerBourbonBible: async () => [bottle], clearBourbonBibleCache: () => {} },
+      "@/lib/owner-admin-repository": repository,
+      "@/lib/owner-workspace": { coverageDatabase },
+    });
+    const response = await route.PATCH(new Request("https://example.test/api/admin/catalog", {
+      method: "PATCH",
+      body: JSON.stringify({
+        id: bottle.id,
+        version: 0,
+        bottle: { ...bottle, availability: "unicorn" },
+        reason: "Allocation",
+      }),
+    }));
+    assert.equal(response.status, 200);
+    const saved = await response.json();
+    assert.equal(saved.bottle.version, 1);
+    assert.equal(saved.history[0].action, "bottle_edit");
+    const [record] = await repository.readOwnerBottleRecords();
+    assert.equal(record.bottle_id, bottle.id);
+    assert.equal(record.patch.availability, "unicorn");
+    assert.equal(record.redirect_id, null);
+  } finally {
+    await db.close();
+  }
+});
 test('standardized duplicate catalog entries preserve legacy public and owner detail links',async()=>{
  const redirects=JSON.parse(fs.readFileSync(`${root}/shared/standard-bottle-identity-redirects.json`,'utf8'));
  const bible=moduleFrom('src/lib/bourbonBible.ts',{
