@@ -60,7 +60,7 @@ test('Maryland first publication binds exact MD inventory and the separate Montg
     eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,eligibleForDelivery:false,deliveryEligible:false,
     eligibleForEmail:false,eligibleForSms:false,
     sourceProductBinding:{...row.sourceProductBinding,productionOnSiteOnly:true,productionCohortSha256:cohort}}));
-  const meta={...collected.metadata,cohortSha256:cohort,sourceObservedAt:observedAt,productionAlertDeliveryAllowed:false};
+  const meta={...collected.metadata,cohortKey:cohort,sourceObservedAt:observedAt,productionAlertDeliveryAllowed:false};
   const report={state:'MD',status:'useful',stale:false,startedAt:new Date(nowMs-1000).toISOString(),finishedAt:new Date(nowMs+1000).toISOString(),
     lastGoodAt:observedAt,signals,metadata:{cityhive:meta,allDeliveryDisabled:true}};
   const partition={state:'MD',count:signals.length,drops:signals};
@@ -68,10 +68,11 @@ test('Maryland first publication binds exact MD inventory and the separate Montg
     state:'MD-MONTGOMERY',type:'county_inventory_aggregate',locationPrecision:'store_aggregate',observedAt,
     canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:false,eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false,
   }]};
-  const check=verifyMarylandFirstPublication({report,partition,countyPartition,nowMs,workflowRunId:'43626153633'});
+  const check=verifyMarylandFirstPublication({bible,report,partition,countyPartition,nowMs,workflowRunId:'43626153633'});
   assert.equal(check.ok,true,check.failures.join('; '));
   assert.equal(check.receipt.publishedStores,4);
   assert.equal(check.receipt.allocatedRows>0,true);
+  assert.equal(check.receipt.allocatedSearches.length,4);
   assert.equal(check.receipt.countyPartition.rows,1);
   assert.equal(check.receipt.allDeliveryChannelsDisabled,true);
   assert.match(check.receipt.sourceReportSha256,/^[a-f0-9]{64}$/);
@@ -79,13 +80,13 @@ test('Maryland first publication binds exact MD inventory and the separate Montg
   assert.match(check.receipt.countyPartition.sha256,/^[a-f0-9]{64}$/);
 
   const countyMixed=structuredClone(partition);countyMixed.drops.push({...countyPartition.drops[0]});countyMixed.count++;
-  assert.equal(verifyMarylandFirstPublication({report,partition:countyMixed,countyPartition,nowMs,workflowRunId:'43626153633'}).ok,false);
+  assert.equal(verifyMarylandFirstPublication({bible,report,partition:countyMixed,countyPartition,nowMs,workflowRunId:'43626153633'}).ok,false);
   const countyIdentity=structuredClone(countyPartition);countyIdentity.drops[0].storeId='fake-exact-store';
-  assert.equal(verifyMarylandFirstPublication({report,partition,countyPartition:countyIdentity,nowMs,workflowRunId:'43626153633'}).ok,false);
+  assert.equal(verifyMarylandFirstPublication({bible,report,partition,countyPartition:countyIdentity,nowMs,workflowRunId:'43626153633'}).ok,false);
   const partial=structuredClone(partition);partial.drops=partial.drops.slice(0,2);partial.count=partial.drops.length;
-  assert.equal(verifyMarylandFirstPublication({report,partition:partial,countyPartition,nowMs,workflowRunId:'43626153633'}).ok,false);
+  assert.equal(verifyMarylandFirstPublication({bible,report,partition:partial,countyPartition,nowMs,workflowRunId:'43626153633'}).ok,false);
   const badQuery=structuredClone(report);badQuery.metadata.cityhive.requests[1].url=badQuery.metadata.cityhive.requests[0].url;
-  assert.equal(verifyMarylandFirstPublication({report:badQuery,partition,countyPartition,nowMs,workflowRunId:'43626153633'}).ok,false);
+  assert.equal(verifyMarylandFirstPublication({bible,report:badQuery,partition,countyPartition,nowMs,workflowRunId:'43626153633'}).ok,false);
   const enabled=structuredClone(report);enabled.signals[0].eligibleForDelivery=true;
-  assert.equal(verifyMarylandFirstPublication({report:enabled,partition,countyPartition,nowMs,workflowRunId:'43626153633'}).ok,false);
+  assert.equal(verifyMarylandFirstPublication({bible,report:enabled,partition,countyPartition,nowMs,workflowRunId:'43626153633'}).ok,false);
 });

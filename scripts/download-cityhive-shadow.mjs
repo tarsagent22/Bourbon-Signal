@@ -103,7 +103,7 @@ export function validateInactiveKansasShadowLifecycleTransition({candidateLifecy
 }
 
 export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artifact,currentHead,comparison}){
-  if(!['WI','OK','RI','MN','KS','AR','MO'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
+  if(!['WI','OK','RI','MN','KS','AR','MO','MD'].includes(state)||repository!=='tarsagent22/Bourbon-Signal')throw new Error('Unreviewed CityHive research state or repository');
   if(run?.conclusion!=='success'||run.status!=='completed'||run.repository?.full_name!==repository
     ||run.path!=='.github/workflows/state-expansion-shadow.yml'||!/^\d+$/.test(String(run.id))
     ||!/^[a-f0-9]{40}$/.test(run.head_sha||'')||!/^[a-f0-9]{40}$/.test(currentHead||''))throw new Error('Shadow run is not a successful repository-issued shadow workflow');
@@ -138,7 +138,7 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
 const argument=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);
 async function main(){
   const state=argument('--state'),runId=argument('--run'),output=argument('--out-dir');
-  if(!['WI','OK','RI','MN','KS','AR','MO'].includes(state)||!/^[0-9]+$/.test(runId||'')||!output)throw new Error('Use --state=WI|OK|RI|MN|KS|AR|MO --run=<actual successful workflow run> --out-dir=<new directory>');
+  if(!['WI','OK','RI','MN','KS','AR','MO','MD'].includes(state)||!/^[0-9]+$/.test(runId||'')||!output)throw new Error('Use --state=WI|OK|RI|MN|KS|AR|MO|MD --run=<actual successful workflow run> --out-dir=<new directory>');
   const repository='tarsagent22/Bourbon-Signal',gh=process.platform==='win32'?'gh.exe':'gh',out=path.resolve(output);
   const api=endpoint=>JSON.parse(execFileSync(gh,['api',`repos/${repository}/${endpoint}`],{encoding:'utf8',maxBuffer:8*1024*1024,windowsHide:true}));
   const run=api(`actions/runs/${runId}`),artifacts=api(`actions/runs/${runId}/artifacts?per_page=100`);

@@ -8,7 +8,9 @@
     "refinementLevel": "store"
   },
   "collector": {
-    "sourceIds": ["md:central-cityhive"],
+    "sourceIds": [
+      "md:central-cityhive"
+    ],
     "registration": "Dormant four-premise Maryland CityHive pickup cohort; eight merchant-scoped queries are capped at 50 seconds. Montgomery County ABS remains an independent MD-MONTGOMERY aggregate source and is not included in Maryland retailer inventory.",
     "cohortSha256": "b6c1273f7613d5a66d3c12f6856f7ae3542168fe1d3ca742296cdd2c6f1d86e2"
   },
@@ -24,14 +26,60 @@
     "watchAlertable": false
   },
   "customerPaths": {
-    "stateFilter": { "status": "pending_first_publication", "assertion": "Maryland-wide exact-store coverage remains dormant until the source-scoped first-publication receipt is verified." },
-    "finder": { "status": "pending_first_publication", "assertion": "The four exact Maryland premises must be returned by public Finder without absorbing Montgomery County aggregate data." },
-    "monitoring": { "status": "pending_first_publication", "assertion": "MD retailer inventory and MD-MONTGOMERY aggregate rows are measured and published as separate partitions." },
-    "alerts": { "status": "verified_disabled", "assertion": "Retailer pickup rows remain informational and all inventory, watch, email, SMS, and delivery channels remain disabled." }
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The protected Coverage route presents assigned exact Maryland retailer pickup inventory and separately typed Montgomery County updates."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Protected Finder returned four exact Maryland retailer addresses, and Montgomery aggregates were excluded from exact store results."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Retailer pickup and county aggregate coverage use independent state partitions and source health."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Pickup rows remain informational, with all watch, inventory, email, SMS, and other delivery channels disabled."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "The protected canary retained retailer pickup and county aggregate partitions with original clocks."
+    },
+    "areaFilter": {
+      "status": "not_applicable",
+      "reason": "This rollout verifies exact-address Finder and county aggregate scope."
+    },
+    "preferences": {
+      "status": "not_applicable",
+      "reason": "Account preference changes are outside this retailer source scope."
+    },
+    "dashboard": {
+      "status": "not_applicable",
+      "reason": "The protected scope covers canonical Coverage and Finder."
+    },
+    "dropFeedApi": {
+      "status": "not_applicable",
+      "reason": "Candidate rows were exercised through customer classification and Coverage; the authenticated production feed will follow first publication."
+    }
   },
   "evidence": {
-    "shadow": { "status": "not_started", "runs": 0, "originalSourceClocksPreserved": true },
-    "canary": { "status": "not_started", "runs": 0, "allDeliveryChannelsDisabled": true },
-    "production": { "status": "awaiting_first_publication", "url": "https://www.bourbonsignal.com/api/coverage", "assertion": "Verify independent MD exact-store and MD-MONTGOMERY aggregate partition counts, current source clocks, and the source-bound immutable first-publication receipt before admission." }
+    "shadow": {
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43626153633",
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://bourbonsignal-f4d8cwfln-tarsagent22s-projects.vercel.app",
+      "allDeliveryChannelsDisabled": true
+    },
+    "production": {
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/coverage",
+      "assertion": "Verify independent MD exact-store and MD-MONTGOMERY aggregate partition counts, current source clocks, and the source-bound immutable first-publication receipt before admission."
+    }
   }
 }

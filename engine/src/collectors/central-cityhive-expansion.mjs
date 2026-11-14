@@ -143,7 +143,7 @@ export async function collectCentralCityHiveExpansion(config,bible,{fetchText,ob
   const allowed=sourceIds===undefined?ALL_SOURCES.filter(s=>s.state===config.id):sourceIds.map(id=>ALL_SOURCES.find(s=>s.state===config.id&&s.id===id)).filter(Boolean);
   if(sourceIds!==undefined&&(allowed.length!==sourceIds.length||new Set(sourceIds).size!==sourceIds.length))throw new Error('CityHive source filter must contain unique reviewed premises for this state');
   const groups=Map.groupBy(allowed,s=>perStore?s.id:s.chainId||s.id);
-  const queryFilter=config.id==='MO'?centralCityHiveAllocatedQueryFilter(bible,config.id):undefined;
+  const queryFilter=['MO','MD'].includes(config.id)?centralCityHiveAllocatedQueryFilter(bible,config.id):undefined;
   for(const [groupId,sources] of groups){
     const source=sources[0];
     if(Date.parse(attempts[groupId]?.nextAllowedAt || '')>nowMs || Date.parse(sourceAttempts[source.hostname]?.nextAllowedAt||'')>nowMs)continue;
