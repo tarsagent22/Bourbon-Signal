@@ -58,14 +58,20 @@ export async function collectResearchStateReport(config, bible, options = {}) {
     throw new Error('Research reports require the registered isolated shadow source.');
   }
   const startedAt = new Date().toISOString();
-  const result = await collectMassachusettsJulios(config, bible, options);
+  const [result, cityHive] = await Promise.all([
+    collectMassachusettsJulios(config, bible, options),
+    options.includeCityHiveResearch === false ? null : collectCityHiveResearchReport(cityHiveResearchSourceForState('MA'), bible, options),
+  ]);
   const finishedAt = new Date().toISOString();
-  const healthy = result.sourceReports.length > 0 && result.sourceReports.every(source => source.ok);
+  const healthyJulios = result.sourceReports.length > 0 && result.sourceReports.every(source => source.ok);
+  const healthy = healthyJulios && (cityHive === null || cityHive.metadata.complete === true);
+  const signals = [...result.signals, ...(cityHive?.signals ?? [])];
   return {
     state: config.id, label: config.label, tier: config.tier, strategy: config.strategy, cadence: config.cadence,
     startedAt, finishedAt, lastGoodAt: healthy ? finishedAt : null,
-    status: result.signals.length ? healthy ? 'useful' : 'partial_useful' : 'no_trusted_inventory',
-    stale: false, signals: result.signals, sources: result.sourceReports,
-    sourceResults: result.sourceResults, roadblocks: result.roadblocks,
+    status: signals.length ? healthy ? 'useful' : 'partial_useful' : 'no_trusted_inventory',
+    stale: false, signals, sources: [...result.sourceReports, ...(cityHive?.sources ?? [])],
+    sourceResults: [...result.sourceResults, ...(cityHive?.sourceResults ?? [])], roadblocks: [...result.roadblocks, ...(cityHive?.roadblocks ?? [])],
+    metadata: { ...cityHive?.metadata, complete: healthy, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false },
   };
 }
