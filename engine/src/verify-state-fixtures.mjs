@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { BourbonBible } from './core/bible.mjs';
 import { executeMassachusettsResearchFixtures } from './massachusetts-research-fixtures.mjs';
 import { executeCentralCityHiveFixtures } from './central-cityhive-fixtures.mjs';
+import { executeNorthDakotaFixtures } from './north-dakota-fixtures.mjs';
 import { CENTRAL_CITYHIVE_STATE_IDS } from './central-cityhive-policy.mjs';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 import { ALL_STATE_SOURCES } from './state-sources.mjs';
@@ -494,6 +495,7 @@ export async function executeStateFixtures(payload, { bibleFile = path.resolve('
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
   if(['WA','NM'].includes(payload.state))return executeGroceryResearchFixtures(payload,{bible});
+  if(payload.state==='ND')return executeNorthDakotaFixtures(payload,{bible});
   if(CENTRAL_CITYHIVE_STATE_IDS.has(payload.state)||CENTRAL_CITYHIVE_RESEARCH_SOURCES.some(source=>source.state===payload.state))return executeCentralCityHiveFixtures(payload,{bible});
   const registeredHosts = registeredHostsForState(payload.state);
   for (const item of payload.cases || []) {

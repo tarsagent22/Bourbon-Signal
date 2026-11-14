@@ -21,7 +21,7 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
       'kings-liquor-olathe:6060f76259a44e1d9f41522d':'kings-weller-special-reserve.json',
       'verns-liquor:61ae46168baad441363308b0':'verns-larceny-barrel-proof.json',
       'rj-liquor:6060f6496aaeeb555664ca4f':'rj-elijah-and-larceny-barrel-proof.json',
-    }[source.id]):null;
+    }[source.id]):source.state==='ND'?source.id.replace(':','-')+'.json':null;
     const fixturePath=source.state==='AR'&&source.id==='crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0'
       ? new URL('../test/fixtures/ar-cityhive/crossover-fayetteville-elijah-craig.json',import.meta.url) : researchFixture
       ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='KS'?'ks-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
