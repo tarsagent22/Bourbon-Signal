@@ -44,6 +44,12 @@ function verifyLocalPickupPolicy(html){
   if(!quantityRegex.test(visible))throw Error('Banks public page no longer verifies the reviewed local pickup policy.');
 }
 
+export function parseDelawareEcwidCapture(homeHtml,productHtml,bible,observedAt){
+  verifyEcwidPickupPremise(homeHtml,merchant);verifyLocalPickupPolicy(homeHtml);
+  const offer=parseEcwidPickupOffer(productHtml,merchant,product);
+  return inventoryRow(offer,bible,observedAt);
+}
+
 function inventoryRow(offer,bible,observedAt){
   if(!offer)return null;
   const match=bible.match(product.canonical),record=match?.record;
