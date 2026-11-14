@@ -49,7 +49,7 @@ const coverageService=loadWithMocks('src/lib/coverage-server.ts',{
   '@/lib/public-drop-evidence':evidenceModule.default||evidenceModule,'@/lib/drop-classification':classificationModule.default||classificationModule,
   '@/data/drop-feed-classification.generated.json':await read('src/data/drop-feed-classification.generated.json'),
   './nationwide-pilot-receipt':receiptModule.default||receiptModule,
-  '@/lib/source-lane-runtime':{prepareRuntimeSourceDropOverlay: async () => async rows=>({drops:rows,version:'isolated-canary-fixture'})},
+  '@/lib/source-lane-runtime':{readRuntimeSourceDropOverlay: async rows=>({drops:rows,version:'isolated-canary-fixture'})},
   '@/lib/site-engine-contract':{normalizeDropForSite,readSiteExportResults:async names=>names.map(name=>({payload:payloads[name],source:'remote-snapshot',snapshotId:'isolated-canary-fixture'}))},
 });
 const coverageRoute=loadWithMocks('src/app/api/coverage/route.ts',{
