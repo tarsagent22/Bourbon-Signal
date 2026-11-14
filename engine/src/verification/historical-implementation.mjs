@@ -171,10 +171,33 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     },
 `;
       text = replaceUnique(text, releasedMinnesota, inactiveMinnesota, `${name}: exact attested MN lifecycle entry`);
-      text = replaceUnique(text, '    "RI",\n    "MN"\n  ],\n  "reliabilityPolicy"',
+      const activeStatesWithMo = '    "RI",\n    "MN",\n    "MO"\n  ],\n  "reliabilityPolicy"';
+      if (text.includes(activeStatesWithMo)) text = replaceUnique(text, activeStatesWithMo,
+        '    "RI"\n  ],\n  "reliabilityPolicy"', `${name}: exact MN/MO active list tail`);
+      else text = replaceUnique(text, '    "RI",\n    "MN"\n  ],\n  "reliabilityPolicy"',
         '    "RI"\n  ],\n  "reliabilityPolicy"', `${name}: exact MN active list tail`);
       text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "MN": 30000,\n',
         '    "stateExpectedRunMs": {\n', `${name}: exact MN expected runtime`);
+    }
+    const quote = String.fromCharCode(34);
+    const moStart = text.indexOf(`    ${quote}MO${quote}: {`);
+    const msStart = text.indexOf(`    ${quote}MS${quote}: {`, moStart);
+    const moEnd = msStart > moStart ? text.lastIndexOf('    },', msStart) : -1;
+    const activeMissouri = moEnd > moStart ? text.slice(moStart, moEnd + 6) : '';
+    if (activeMissouri && createHash('sha256').update(activeMissouri).digest('hex') === '4903f307402d6bda0a655772a81cde6f39408d2ec08a7c667cf4bd9ca872fbc0') {
+      const dormantMissouri = `    "MO": {
+      "customerLabel": "Missouri",
+      "sourceLabel": "Missouri Costco warehouse bourbon watch",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
+      "refinementLevel": "warehouse",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Missouri has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
+    },`;
+      text = replaceUnique(text, activeMissouri, dormantMissouri, `${name}: exact attested MO lifecycle entry`);
     }
     const releasedRi = /^    \},\n    "RI": \{[\s\S]+?^  \}/mu.exec(text)?.[0];
     if (releasedRi && createHash('sha256').update(releasedRi).digest('hex') === '630ee689b046da0c7c418c9254b2babadb06898921b1fc875b1dd903a4c90fe2') {

@@ -558,6 +558,11 @@ jobs:
         working-directory: engine
         run: node src/verify-mn-first-publication.mjs
 
+      - name: Require current Missouri pickup inventory at first publication
+        if: ${{ startsWith(inputs.incident_key, 'missouri-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-mo-first-publication.mjs
+
       - name: Audit every scarce library bottle across all states
         working-directory: engine
         run: node src/library-coverage-audit.mjs
