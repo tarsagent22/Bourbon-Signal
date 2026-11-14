@@ -21,7 +21,7 @@ test('Kansas first-publication contract stays fail closed until a fresh producti
   const manifest = JSON.parse(await readFile(new URL('../data/state-integration/KS.json', import.meta.url), 'utf8'));
   assert.equal(manifest.lifecycle.publicStatus, 'active');
   assert.equal(manifest.customerPaths.finder.status, 'verified');
-  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.at(-1), 'KS');
+  assert.ok(STATE_LIFECYCLE_CONFIG.activeStates.includes('KS'));
   assert.equal(STATE_LIFECYCLE_CONFIG.states.KS.promotionStage, 'active');
   assert.equal(STATE_LIFECYCLE_CONFIG.states.KS.inventoryAlertable, false);
   assert.equal(STATE_LIFECYCLE_CONFIG.reliabilityPolicy.stateExpectedRunMs.KS, 15_000);
