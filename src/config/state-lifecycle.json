@@ -32,7 +32,8 @@
     "LA",
     "RI",
     "MN",
-    "KS"
+    "KS",
+    "AR"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -70,6 +71,7 @@
       "MS"
     ],
     "stateExpectedRunMs": {
+      "AR": 30000,
       "MN": 30000,
       "TX": 90000,
       "VA": 1140000,
@@ -568,6 +570,123 @@
         "Rock Hill"
       ],
       "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."
+    },
+    "AR": {
+      "customerLabel": "Arkansas",
+      "sourceLabel": "Arkansas reviewed retailer pickup inventory",
+      "publicStatus": "active",
+      "shadowEligible": true,
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
+      "refinementLevel": "store",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Pickup availability at four reviewed Arkansas stores in Fayetteville, Fort Smith, and Little Rock.",
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "verticalSliceManifest": "engine/data/state-integration/AR.json",
+        "fixtureContract": "engine/data/state-fixtures/AR.json",
+        "shadowRuns": 3,
+        "canaryRuns": 3,
+        "verifiedAt": "2026-11-14T18:01:56.965Z",
+        "canaryPreviewUrl": "https://bourbonsignal-34g01tz9p-tarsagent22s-projects.vercel.app",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "AR",
+          "generatedAt": "2026-11-14T18:01:56.965Z",
+          "sourceConfigHash": "87d9554a6101a8a02aa254245ae9c16e1df45fefc390e5d54ab848d01adc2c94",
+          "sourceRuntimeId": "ar:central-cityhive",
+          "cohortSha256": "367dc29f27cb3dfe34ca968609fbd3164c1d98ea97e8536b595566e53e9455fb",
+          "previewUrl": "https://bourbonsignal-34g01tz9p-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "43615594504",
+              "status": "success",
+              "artifactHash": "1300d5c83e1e04dd6c13b53a2cc91b2b34ee1d1f88316e9fe71e60712df12ee0",
+              "artifactId": "14122022139",
+              "commitSha": "602dfecbbb74ad360fe9fbd8a644dfc10eeca820",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615594504",
+              "artifactName": "state-expansion-shadow-43615594504",
+              "observedAt": "2026-11-14T16:26:41.410Z",
+              "observedStores": 4,
+              "positiveListings": 6
+            },
+            {
+              "runId": "43618369279",
+              "status": "success",
+              "artifactHash": "4ffc8b9ff1e11c6c466194eac1d140f0dbd9256ff110f5083f66ac1f31925eaf",
+              "artifactId": "14122754917",
+              "commitSha": "db76b95cfd57b2c910ef1b55485e2373163614e5",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43618369279",
+              "artifactName": "state-expansion-shadow-43618369279",
+              "observedAt": "2026-11-14T16:57:21.301Z",
+              "observedStores": 4,
+              "positiveListings": 6
+            },
+            {
+              "runId": "43624047665",
+              "status": "success",
+              "artifactHash": "6c621f8e3fdd9a774d4cfd49f849377dd7817c92564de2f259464d084d77f992",
+              "artifactId": "14125014359",
+              "commitSha": "3575697fccad9cb8f1b26493f28bce2d48a259e0",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43624047665",
+              "artifactName": "state-expansion-shadow-43624047665",
+              "observedAt": "2026-11-14T17:59:40.505Z",
+              "observedStores": 4,
+              "positiveListings": 6
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "43615691037",
+              "status": "success",
+              "artifactHash": "23cb43b516979b2026cb603a8482396563c6c48183ff3b51bf11f58062516570",
+              "artifactId": "14122132146",
+              "commitSha": "602dfecbbb74ad360fe9fbd8a644dfc10eeca820",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43615691037",
+              "artifactName": "state-expansion-canary-AR-43615691037",
+              "generatedAt": "2026-11-14T16:28:23.389Z",
+              "currentStores": 4,
+              "currentListings": 6
+            },
+            {
+              "runId": "43618506004",
+              "status": "success",
+              "artifactHash": "29be57a527f2cd4af6a1cb0c5e81dcc7735d3105d4d4e6b5fcc613c78bc2b44c",
+              "artifactId": "14123390649",
+              "commitSha": "db76b95cfd57b2c910ef1b55485e2373163614e5",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43618506004",
+              "artifactName": "state-expansion-canary-AR-43618506004",
+              "generatedAt": "2026-11-14T16:59:34.703Z",
+              "currentStores": 4,
+              "currentListings": 6
+            },
+            {
+              "runId": "43624121506",
+              "status": "success",
+              "artifactHash": "b4845579270a8829f24e9e0d770dc7e6b8de3826408db55a47f4c47297bd1d08",
+              "artifactId": "14125227167",
+              "commitSha": "3575697fccad9cb8f1b26493f28bce2d48a259e0",
+              "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43624121506",
+              "artifactName": "state-expansion-canary-AR-43624121506",
+              "generatedAt": "2026-11-14T18:00:59.514Z",
+              "currentStores": 4,
+              "currentListings": 6
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "43624124307",
+            "artifactId": "14125821044",
+            "commitSha": "3575697fccad9cb8f1b26493f28bce2d48a259e0",
+            "artifactDigest": "6981722f54216f2e5573928be24e93bc323157b5cfef5716fda9f92806ba33ce",
+            "bundleDigest": "0b854f5a596dea3c3ab6993dc21242eb9539764364150f77128065643e9d5fe9",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43624124307",
+            "artifactName": "state-promotion-provenance-AR-43624124307"
+          }
+        }
+      }
     },
     "AZ": {
       "customerLabel": "Arizona",
