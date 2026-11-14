@@ -29,12 +29,13 @@ test('CityHive downloader requires actual successful source-equivalent shadow wo
     'engine/data/canary-site/mo-active-candidate/stats.json',
     'engine/data/canary-site/mo-active-candidate/alerts.json',
     'engine/data/canary-site/mo-active-candidate/locations.json',
+    'engine/data/canary-site/mo-active-candidate/drops.json',
     'engine/data/canary-site/mo-active-candidate/canary-preview-policy.json',
     'engine/data/canary-site/mo-active-candidate/states/index.json',
     'engine/data/canary-site/mo-active-candidate/states/MO/drops.json',
   ];
   const moCandidateAhead={...ahead,state:'MO',comparison:{status:'ahead',files:moCanaryFiles.map(filename=>({filename}))}};
-  assert.equal(validateCityHiveShadowWorkflowOrigin(moCandidateAhead).sourceEquivalentPreparationChanges.length,7);
+  assert.equal(validateCityHiveShadowWorkflowOrigin(moCandidateAhead).sourceEquivalentPreparationChanges.length,8);
   assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...moCandidateAhead,state:'RI'}),/source changed/);
   assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...ahead,state:'MO',comparison:{status:'ahead',files:[
     {filename:'engine/data/canary-site/mo-active-candidate/unreviewed.json'},

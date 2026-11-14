@@ -57,6 +57,7 @@ for(const state of ['WA','NM','WI','OK','MN','MO','NJ','MI','AK','LA','RI'])test
       'engine/src/verify-mo-first-publication.mjs','engine/data/state-integration/MO.json',
       'engine/data/canary-site/mo-active-candidate/manifest.json','engine/data/canary-site/mo-active-candidate/stats.json',
       'engine/data/canary-site/mo-active-candidate/alerts.json','engine/data/canary-site/mo-active-candidate/locations.json',
+      'engine/data/canary-site/mo-active-candidate/drops.json',
       'engine/data/canary-site/mo-active-candidate/canary-preview-policy.json','engine/data/canary-site/mo-active-candidate/states/index.json',
       'engine/data/canary-site/mo-active-candidate/states/MO/drops.json']
       :state==='RI'?[...common,'engine/src/verify-ri-first-publication.mjs']:common;

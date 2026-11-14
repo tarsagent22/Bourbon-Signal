@@ -248,6 +248,7 @@ if (state === 'MO') files.push(
   'engine/data/canary-site/mo-active-candidate/stats.json',
   'engine/data/canary-site/mo-active-candidate/alerts.json',
   'engine/data/canary-site/mo-active-candidate/locations.json',
+  'engine/data/canary-site/mo-active-candidate/drops.json',
   'engine/data/canary-site/mo-active-candidate/canary-preview-policy.json',
   'engine/data/canary-site/mo-active-candidate/states/index.json',
   'engine/data/canary-site/mo-active-candidate/states/MO/drops.json',
