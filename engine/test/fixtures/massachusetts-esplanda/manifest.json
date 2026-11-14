@@ -1,0 +1,42 @@
+{
+  "capturedOn": "2026-11-14",
+  "evidencePolicy": "The retained complete source bodies are outside this repository. Committed HTML contains only relevant visible metadata and JSON-LD Product, LiquorStore, and Store pickup nodes. SHA-256 values bind each minimized fixture to the separately retained original body; they are not hashes of the minimized files.",
+  "offers": [
+    {
+      "fixture": "cbc-westford-larceny-a125.html",
+      "requestUrl": "https://www.cbcliquors.com/product/batch-a125-barrel-proof-larceny/18744?format=51634138",
+      "httpStatus": 200,
+      "sourceDate": "2026-11-14T16:48:04.000Z",
+      "originalBytes": 287929,
+      "originalSha256": "9ab03bd60cbb18bf89bd3e72b2a121f90f250c8401e3300d390e2c0179026dc7",
+      "premise": "CBC Liquors, 142 Littleton Rd, Westford, MA 01886",
+      "product": "Larceny Batch A125 Barrel Proof Bourbon 750 ML",
+      "priceUsd": 49.99,
+      "inventory": "InStock with exact-storeside pickup service; no exact quantity"
+    },
+    {
+      "fixture": "wildduck-boston-larceny-a125.html",
+      "requestUrl": "https://www.wildduckliquors.com/product/batch-a125-barrel-proof-larceny/58473173?format=59718141",
+      "httpStatus": 200,
+      "sourceDate": "2026-11-14T17:03:24.000Z",
+      "originalBytes": 283979,
+      "originalSha256": "d7e3982ab895887c39e9cf1f4bff6e60e0e926e216a7423dfa3e26780d1bdeae",
+      "premise": "The Wild Duck Liquor Store, 86 Massachusetts Ave, Boston, MA 02117",
+      "product": "Larceny Batch A125 Barrel Proof Bourbon 750 ML",
+      "priceUsd": 59.99,
+      "inventory": "InStock with exact-storeside pickup service; no exact quantity"
+    },
+    {
+      "fixture": "wildduck-boston-eagle-rare-10.html",
+      "requestUrl": "https://www.wildduckliquors.com/product/10-year-bourbon-eagle-rare/58473338?format=59718348",
+      "httpStatus": 200,
+      "sourceDate": "2026-11-14T17:04:06.000Z",
+      "originalBytes": 280883,
+      "originalSha256": "b6611b57d947fedbaddf2beb1051dc28adb604b2933d00eaa93b159a43a9e572",
+      "premise": "The Wild Duck Liquor Store, 86 Massachusetts Ave, Boston, MA 02117",
+      "product": "Eagle Rare 10 Year Bourbon 750 ML",
+      "priceUsd": 74.99,
+      "inventory": "InStock with exact-storeside pickup service; no exact quantity"
+    }
+  ]
+}

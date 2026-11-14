@@ -2,6 +2,7 @@ import { oregonResearchSourceForState, collectOregonResearchReport } from './res
 import { groceryResearchSourceForState, groceryResearchLifecycleEntries, collectGroceryResearchReport } from './research-grocery-runtime.mjs';
 import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
 import { collectMassachusettsJulios } from './collectors/massachusetts-retailer-collector.mjs';
+import { MA_ESPLANDA_PRODUCTS, collectMassachusettsEsplanda } from './collectors/massachusetts-esplanda.mjs';
 import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, collectCityHiveResearchReport } from './research-cityhive-runtime.mjs';
 
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
@@ -14,7 +15,8 @@ const MASSACHUSETTS = Object.freeze({
   id: 'MA', label: 'Massachusetts retailer research', tier: 'B', active: false,
   strategy: 'retailer_store_inventory', cadence: 'shadow-only',
   value: "Isolated Julio's Westborough pickup research; no customer activation.",
-  sources: MA_JULIOS_PROBE_URLS.map(url => ({ kind: 'html', url, precisionOnly: true })),
+  sources: [...MA_JULIOS_PROBE_URLS.map(url => ({ kind: 'html', url, precisionOnly: true })),
+    ...MA_ESPLANDA_PRODUCTS.map(source => ({ kind: 'html', url: source.requestUrl, precisionOnly: true, optIn: 'includeEsplandaResearch' }))],
   apiCandidates: [],
 });
 
@@ -61,20 +63,23 @@ export async function collectResearchStateReport(config, bible, options = {}) {
     throw new Error('Research reports require the registered isolated shadow source.');
   }
   const startedAt = new Date().toISOString();
-  const [result, cityHive] = await Promise.all([
+  const [result, cityHive, esplanda] = await Promise.all([
     collectMassachusettsJulios(config, bible, options),
     options.includeCityHiveResearch === false ? null : collectCityHiveResearchReport(cityHiveResearchSourceForState('MA'), bible, options),
+    options.includeEsplandaResearch === true ? collectMassachusettsEsplanda(config, bible, options) : null,
   ]);
   const finishedAt = new Date().toISOString();
   const healthyJulios = result.sourceReports.length > 0 && result.sourceReports.every(source => source.ok);
-  const healthy = healthyJulios && (cityHive === null || cityHive.metadata.complete === true);
-  const signals = [...result.signals, ...(cityHive?.signals ?? [])];
+  const healthy = healthyJulios && (cityHive === null || cityHive.metadata.complete === true)
+    && (esplanda === null || esplanda.sourceReports.length === MA_ESPLANDA_PRODUCTS.length && esplanda.sourceReports.every(source => source.ok));
+  const signals = [...result.signals, ...(cityHive?.signals ?? []), ...(esplanda?.signals ?? [])];
   return {
     state: config.id, label: config.label, tier: config.tier, strategy: config.strategy, cadence: config.cadence,
     startedAt, finishedAt, lastGoodAt: healthy ? finishedAt : null,
     status: signals.length ? healthy ? 'useful' : 'partial_useful' : 'no_trusted_inventory',
-    stale: false, signals, sources: [...result.sourceReports, ...(cityHive?.sources ?? [])],
-    sourceResults: [...result.sourceResults, ...(cityHive?.sourceResults ?? [])], roadblocks: [...result.roadblocks, ...(cityHive?.roadblocks ?? [])],
+    stale: false, signals, sources: [...result.sourceReports, ...(cityHive?.sources ?? []), ...(esplanda?.sourceReports ?? [])],
+    sourceResults: [...result.sourceResults, ...(cityHive?.sourceResults ?? []), ...(esplanda?.sourceResults ?? [])],
+    roadblocks: [...result.roadblocks, ...(cityHive?.roadblocks ?? []), ...(esplanda?.roadblocks ?? [])],
     metadata: { ...cityHive?.metadata, complete: healthy, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false },
   };
 }

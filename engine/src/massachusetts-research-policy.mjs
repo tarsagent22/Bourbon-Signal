@@ -1,8 +1,32 @@
 import { MA_JULIOS_SOURCE as store } from './collectors/massachusetts-retailer-surfaces.mjs';
+import { MA_ESPLANDA_PRODUCTS } from './collectors/massachusetts-esplanda.mjs';
 
 // This admits an isolated research export only. It grants no state activation,
 // site publication or delivery authority.
 export function isMassachusettsResearchInventory(row, { nowMs = Date.now() } = {}) {
+  const esplanda = MA_ESPLANDA_PRODUCTS.find(source => source.id === row?.raw?.esplandaSourceId);
+  if (esplanda) {
+    if (row.state !== 'MA' || row.eventType !== 'retailer_store_inventory_result'
+      || row.sourceChain !== 'massachusetts-esplanda' || row.sourceRuntimeId !== `precision:ma:esplanda:${esplanda.id}`
+      || row.storeId !== esplanda.storeId || row.storeName !== esplanda.storeName || row.storeAddress !== esplanda.address
+      || row.city !== esplanda.city || row.county !== esplanda.county || row.locationPrecision !== 'store_level'
+      || row.merchantId !== esplanda.storeRef || row.productId !== esplanda.productId || row.variantId !== esplanda.formatId
+      || row.canonicalBottleId !== (esplanda.identity.canonicalBottleId) || row.confidence !== 1
+      || row.sourceAvailabilityVerified !== true || row.availabilityStatus !== 'orderable'
+      || row.inventorySemantics !== 'binary_retailer_orderable_no_exact_count'
+      || row.quantity !== 0 || row.quantityIsExact !== false || row.canAlertAsInventory !== true
+      || row.canAlertAsWatch !== false || row.raw?.shadowOnly !== true || row.raw?.premisesVerified !== true
+      || row.raw?.pickupOfferVerified !== true || row.raw?.sourceMatchStatus !== esplanda.identity.identityMethod
+      || row.stale !== false || row.sourceStale !== false || !Number.isFinite(row.price) || row.price <= 0
+      || ['alertable', 'eligibleForOnSite', 'eligibleForDelivery', 'eligibleForEmail', 'eligibleForSms'].some(key => row[key] !== false)) return false;
+    const observedMs = Date.parse(row.observedAt);
+    if (!Number.isFinite(nowMs) || !Number.isFinite(observedMs) || nowMs - observedMs > 2 * 60 * 60_000 || observedMs - nowMs > 5 * 60_000) return false;
+    try {
+      const url = new URL(row.sourceUrl);
+      return url.href === esplanda.requestUrl && url.protocol === 'https:' && url.hostname === esplanda.hostname
+        && !url.port && !url.username && !url.password && !url.hash;
+    } catch { return false; }
+  }
   if (!row || row.state !== 'MA' || row.eventType !== 'cityhive_store_inventory_result'
     || row.sourceChain !== store.id || row.merchantId !== store.merchantId
     || row.storeId !== store.storeId || row.storeAddress !== store.address
