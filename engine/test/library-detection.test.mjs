@@ -121,7 +121,8 @@ test('all-state audit separates unsupported, source observations, freshness, pub
   const audit = buildLibraryCoverageAudit({ bible, catalog, reports, nowMs });
   assert.equal(US_STATES.length, 50);
   assert.equal(new Set(US_STATES).size, 50);
-  assert.equal(audit.cells.length, 51);
+  assert.equal(audit.cells.length, 52);
+  assert.equal(audit.cells.find(row => row.state === 'DC').status, 'unsupported');
   const az = audit.cells.find(row => row.state === 'AZ');
   assert.equal(az.exactMatch, true); assert.equal(az.freshSourceRows, 1); assert.equal(az.freshPublicRows, 0);
   assert.equal(az.searchedExactExpressionThisRun, true); assert.equal(az.status, 'no_fresh_public_evidence');
@@ -135,6 +136,25 @@ test('all-state audit separates unsupported, source observations, freshness, pub
   assert.equal(buildLibraryCoverageAudit({ bible, catalog, reports, nowMs }).cells.find(row => row.state === 'AZ').freshSourceRows, 0);
   assert(audit.states.every(row => row.exhaustiveDetectionVerified === false));
   assert.throws(() => buildLibraryCoverageAudit({ bible, catalog: { ...catalog, digest: 'wrong' } }), /differs/);
+});
+
+test('fleet audit accounts for complete live CityHive queries but not cached or denied requests', () => {
+  const records = [bottle('example', 'Example 12 Year')];
+  const catalog = { records, digest: catalogDigest(records) };
+  const bible = { records: integrateLibraryCatalog([], catalog), libraryCatalog: { digest: catalog.digest, mode: 'live' } };
+  const at = new Date(nowMs).toISOString();
+  const report = { startedAt: at, finishedAt: at, metadata: { cityhive: {
+    complete: true, cacheReused: false, sourceObservedAt: at,
+    requests: [{ status: 200, ok: true, url: 'https://example.test/shop/?ch-query=Example%2012%20Year' }],
+  } } };
+  const searched = () => buildLibraryCoverageAudit({ bible, catalog, reports: { KS: report }, nowMs })
+    .cells.find(row => row.state === 'KS').searchedExactExpressionThisRun;
+  assert.equal(searched(), true);
+  report.metadata.cityhive.cacheReused = true;
+  assert.equal(searched(), false);
+  report.metadata.cityhive.cacheReused = false;
+  report.metadata.cityhive.requests[0].status = 403;
+  assert.equal(searched(), false);
 });
 
 test('audit traces source-named public rows to the same exact store/product, never another premise', () => {

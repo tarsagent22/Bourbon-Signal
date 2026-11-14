@@ -5885,23 +5885,6 @@ export const CALIFORNIA_GROCERY_SOURCES = Object.freeze([
     "resolverDomainName": "Safeway"
   },
   {
-    "id": "safeway-ca-767",
-    "name": "Safeway #767",
-    "stateCode": "CA",
-    "banner": "safeway",
-    "host": "www.safeway.com",
-    "merchantId": "767",
-    "storeId": "safeway:767",
-    "address": "6150 Bollinger Rd, San Jose, CA 95129",
-    "city": "San Jose",
-    "zip": "95129",
-    "lat": 37.30968383329732,
-    "lng": -122.01191488465577,
-    "sourceLabel": "Safeway California XAPI store inventory",
-    "premiseUrl": "https://local.safeway.com/safeway/ca/san-jose/6150-bollinger-rd.html",
-    "resolverDomainName": "Safeway"
-  },
-  {
     "id": "safeway-ca-929",
     "name": "Safeway #929",
     "stateCode": "CA",

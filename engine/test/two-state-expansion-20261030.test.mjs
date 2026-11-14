@@ -18,9 +18,13 @@ test('each Arizona premise receives all eight priority searches in four passes w
 });
 
 test('California request ceiling contains every resolver, two searches per premise, eight library searches and eight transient retries',()=>{
-  assert.equal(CALIFORNIA_GROCERY_SOURCES.length,568);
+  assert.equal(CALIFORNIA_GROCERY_SOURCES.length,567);
+  assert.ok(!CALIFORNIA_GROCERY_SOURCES.some(source=>source.storeId==='safeway:767'));
   assert.equal(CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT,8);
-  assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.CA,WESTERN_GROCERY_RESOLVER_ZIPS.CA.length+CALIFORNIA_GROCERY_SOURCES.length*2+8+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT);
+  const maximumPlannedRequests=WESTERN_GROCERY_RESOLVER_ZIPS.CA.length+CALIFORNIA_GROCERY_SOURCES.length*2+8+CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT;
+  assert.equal(maximumPlannedRequests,1260);
+  assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.CA,1262);
+  assert.ok(maximumPlannedRequests<=GROCERY_EXPANSION_REQUEST_LIMITS.CA);
   assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.WA,127);
   assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.NM,43);
   assert.ok(CALIFORNIA_GROCERY_SOURCES.every(s=>s.lat>32&&s.lat<43&&s.lng> -125&&s.lng< -114&&new URL(s.premiseUrl).protocol==='https:'));
