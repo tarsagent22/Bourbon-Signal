@@ -122,7 +122,7 @@ export async function PATCH(request: Request) {
       id,
       patch: { ...patch, _previous: existing || null },
       redirectId: target?.id,
-      targetVersion: Number(body.targetVersion),
+      targetVersion: target ? Number(body.targetVersion) : undefined,
       version: Number(body.version),
       actor: owner.userId,
       reason,
