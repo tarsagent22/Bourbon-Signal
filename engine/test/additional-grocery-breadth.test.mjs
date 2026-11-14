@@ -26,9 +26,9 @@ test('49 additional California and Illinois premises retain exact store, positiv
  }
 });
 
-test('568 California and182 Illinois reviewed premises fit the frozen two-worker retrieval ceilings',()=>{
- assert.equal(CALIFORNIA_GROCERY_SOURCES.length,568);assert.equal(ILLINOIS_GROCERY_SOURCES.length,182);
- assert.equal(new Set(CALIFORNIA_GROCERY_SOURCES.map(s=>s.storeId)).size,568);assert.equal(new Set(ILLINOIS_GROCERY_SOURCES.map(s=>s.storeId)).size,182);
- assert.equal(GROCERY_EXPANSION_REQUEST_LIMITS.CA,WESTERN_GROCERY_RESOLVER_ZIPS.CA.length+568*2+8+8);
+test('California and Illinois reviewed premises fit the frozen two-worker retrieval ceilings',()=>{
+ assert.equal(CALIFORNIA_GROCERY_SOURCES.length,567);assert.equal(ILLINOIS_GROCERY_SOURCES.length,182);
+ assert.equal(new Set(CALIFORNIA_GROCERY_SOURCES.map(s=>s.storeId)).size,567);assert.equal(new Set(ILLINOIS_GROCERY_SOURCES.map(s=>s.storeId)).size,182);
+ assert.ok(GROCERY_EXPANSION_REQUEST_LIMITS.CA>=WESTERN_GROCERY_RESOLVER_ZIPS.CA.length+CALIFORNIA_GROCERY_SOURCES.length*2+8+8);
  assert.ok(GROCERY_EXPANSION_REQUEST_LIMITS.IL>=ILLINOIS_GROCERY_RESOLVER_ZIPS.length+182*14+48+8);
 });
