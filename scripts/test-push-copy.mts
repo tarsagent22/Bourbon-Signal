@@ -61,6 +61,15 @@ test("physical quantities, release counts and allocated claims keep distinct mea
   }
 });
 
+test("NC board shipment notifications describe the shipment and receiving-store uncertainty", () => {
+  const [message] = buildExpoPushMessages(["ExpoPushToken[aaaaaaaaaaaaaaaa]"], {
+    id: "board-shipment", bottleName: "Eagle Rare 12 Year", eventType: "nc_board_shipment_snapshot",
+    matchedArea: "High Point ABC", storeName: "High Point ABC Board", quantity: 90,
+  });
+  assert.equal(message?.title, "NC ABC shipments · High Point ABC Board");
+  assert.equal(message?.body, "Eagle Rare 12 Year\nReceiving stores unconfirmed.");
+});
+
 test("Community uses the approved title and two body lines, preserving reported estimates and cents", () => {
   assert.deepEqual(buildPushPreview("sighting", ["E.H. Taylor Single Barrel"], {
     sourceType: "community", quantityEstimate: "4", price: 95,

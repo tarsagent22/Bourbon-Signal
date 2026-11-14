@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { recoveryPolicy, mergePollProjection, validatePollPolicy, failClosedPollRows } from '../src/sources/poll-policy.mjs';
 import { requiresStateAlertSuppression } from '../src/state-failure-isolation.mjs';
-import { buildAnnouncementAlerts, applyAlertPolicyToCandidate } from '../src/export-site-contract.mjs';
+import { bibleLookup, buildAnnouncementAlerts, buildRegionalWatchAlertsFromDrops, applyAlertPolicyToCandidate } from '../src/export-site-contract.mjs';
 
 test('partial coverage leaves healthy rows alertable; whole fallback and identity quarantine block',()=>{
   assert.equal(requiresStateAlertSuppression({health:'stale_useful',freshness:{status:'stale'},fallback:{status:'partial'}}),false);
@@ -55,6 +55,39 @@ test('current quarantine and catalog demotion revoke candidates without erasing 
   assert.equal(projected.candidates.length,0);assert.equal(projected.drops[0].canAlertAsInventory,false);
  }
 });
+test('published NC shipment candidates keep catalog authority across exporter versions', () => {
+  const now = Date.now();
+  const source = { id: 'nc:board-shipments', state: 'NC', kind: 'nc-shipments', expiryHours: 168 };
+  const drop = {
+    id: 'reported-shipment', state: 'NC', type: 'nc_board_shipment_snapshot',
+    locationPrecision: 'board_county', locationName: 'High Point ABC Board',
+    canonicalId: 'eagle-rare-12', canonicalBottleId: 'eagle-rare-12', bottleName: 'Eagle Rare 12 Year',
+    tier: 'unicorn', observedAt: new Date(now - 3_600_000).toISOString(), quantity: 12,
+    canAlertAsWatch: true, canAlertAsInventory: false,
+  };
+  const [exported] = buildRegionalWatchAlertsFromDrops([drop]);
+  assert.equal(exported.canonicalBottleId, drop.canonicalBottleId);
+  const current = { ...exported, sourcePollId: source.id };
+  const { canonicalBottleId: _missing, ...legacy } = current;
+  const record = { id: drop.canonicalId, canonical: drop.bottleName, tier: drop.tier };
+  const merged = (candidate, records = [record], health = { states: [] }, at = now) => {
+    const jobs = [{ source_id: source.id, projection: { candidates: [candidate] } }];
+    const authorized = validatePollPolicy(jobs, [source], bibleLookup(records), health);
+    return mergePollProjection([], authorized, [source], 'candidates', at);
+  };
+  assert.deepEqual(merged(current), [current]);
+  assert.deepEqual(merged(legacy), [legacy]);
+  assert.deepEqual(merged({ ...legacy, matchKey: 'missing-catalog-binding' }), []);
+  assert.deepEqual(merged({ ...legacy, sourcePollId: 'different-source' }), []);
+  assert.deepEqual(merged({ ...legacy, bottle: 'Eagle Rare' }), []);
+  assert.deepEqual(merged({ ...legacy, canonicalBottleId: 'revoked-id' }), []);
+  assert.deepEqual(merged(legacy, [{ ...record, id: 'reassigned-id' }]), []);
+  assert.deepEqual(merged(legacy, [record, { ...record, id: 'ambiguous-id' }]), []);
+  assert.deepEqual(merged(legacy, [{ ...record, tier: 'regular' }]), []);
+  assert.deepEqual(merged(legacy, [record], { states: [{ state: 'NC', health: 'blocked' }] }), []);
+  assert.deepEqual(merged(legacy, [record], { states: [] }, now + 169 * 3_600_000), []);
+});
+
 test('expired independently published drops remain visible as history',()=>{
  const now=Date.parse('2026-10-09T04:00Z');
  const row={id:'new',state:'FL',sourceChain:'abc',observedAt:'2026-10-09T01:00Z'};

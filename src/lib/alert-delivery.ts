@@ -246,7 +246,7 @@ export async function readAlertCandidateBatch(dryRun = true) {
       const name = asString(store.name);
       if (!address || !state || !city || !name) continue;
       for (const id of [asString(store.id)]) {
-        canonicalStores.set(canonicalCommunityStoreKey(state, id), { id, address, state, city, name });
+        canonicalStores.set(canonicalCommunityStoreKey(state, id), { id, address, state, city, name, board: store.board, county: store.county });
       }
     }
     const now = new Date();
@@ -280,10 +280,10 @@ export async function readAlertCandidateBatch(dryRun = true) {
 
 function candidateAreaLocationFields(candidate: CandidateAlert) {
   return [
-    asString(candidate.locationName),
     asString(candidate.boardName),
-    asString(candidate.location_name),
     asString(candidate.board_name),
+    asString(candidate.locationName),
+    asString(candidate.location_name),
     asString(candidate.displayLocation),
     asString(candidate.display_location),
     asString(candidate.storeName),
@@ -936,7 +936,9 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
     quantityEstimate: asString(candidate.quantityEstimate) || undefined,
     price: typeof candidate.price === "number" && Number.isFinite(candidate.price) ? candidate.price : null,
     storeCity: asString(candidate.storeCity) || undefined,
-    storeName: asString(candidate.boardName) || candidateSubjectLocationLabel(candidate),
+    storeName: asString(candidate.sourceType) === "community"
+      ? candidateSubjectLocationLabel(candidate)
+      : asString(candidate.boardName) || candidateSubjectLocationLabel(candidate),
     allBottlesAllocated: enumerateUnderlyingAlertChildren(candidate).every(child => normalizeAlertRarityTier(child.tier ?? child.rarityTier) === "allocated"),
     score: asNumber(candidate.reliabilityScore, asNumber(candidate.score)),
     priorityClass: candidate.priorityClass === "major" ? "major" : "standard",
@@ -1664,10 +1666,11 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             if (!selected) summary.skippedOnSiteDedupe += 1;
             return selected;
           })
-          .filter((candidate): candidate is CandidateAlert => Boolean(candidate))
-          .slice(0, Math.max(1, MAX_ONSITE_ALERTS_PER_USER));
+          .filter((candidate): candidate is CandidateAlert => Boolean(candidate));
 
         for (const candidate of draftOnSiteAlerts) {
+          // A deduped or baselined group does not spend the member's send limit.
+          if (newOnSiteAlerts.length >= Math.max(1, MAX_ONSITE_ALERTS_PER_USER)) break;
           const storeLabel = candidateStoreLabel(candidate);
           const reservation = await reserveQueuedGroup(userId, "onSite", candidate, (child) => ({
             bottle: asString(child.bottle, "Bottle signal"),

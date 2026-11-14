@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildCommunityAlertCandidates, qualifyCommunitySighting, type CommunityAlertSightingInput } from "../src/lib/community-alert-candidates.ts";
+import { candidateMatchesMonitoringScopes } from "../src/lib/monitoring-scope-matcher.ts";
+import { monitoringScopesFromPreferences } from "../src/lib/monitoring-scopes.ts";
 import type { MemberSighting } from "../src/lib/sightings.ts";
 
 const now = "2026-08-24T12:00:00.000Z";
@@ -39,6 +41,26 @@ test("qualified Community candidates retain the reported quantity, price and cit
   assert.equal(candidate?.quantityEstimate, "4");
   assert.equal(candidate?.price, 95);
   assert.equal(candidate?.storeCity, "Miami");
+});
+
+test("NC Community sightings match the verified store's board across city boundaries", () => {
+  const store = {
+    id: "nc-abc-store-464", name: "High Point ABC Store", address: "6023-A West Gate City Blvd",
+    city: "Greensboro", state: "NC", board: "High Point ABC Board", county: "Guilford County",
+  };
+  const directory = new Map([[`NC:${store.id}`, store]]);
+  const post = input(valid({
+    storeId: store.id, storeName: store.name, storeAddress: store.address,
+    storeCity: store.city, storeState: "NC",
+  }));
+  const [candidate] = buildCommunityAlertCandidates([post], now, directory);
+  assert.ok(candidate);
+  assert.equal(candidate.boardName, store.board);
+  assert.equal(candidate.storeName, store.name);
+  assert.equal(candidate.storeCounty, store.county);
+  const scopes = (board: string) => monitoringScopesFromPreferences({ states: ["NC"], ncBoards: [board] });
+  assert.equal(candidateMatchesMonitoringScopes(candidate, scopes("High Point ABC")), true);
+  assert.equal(candidateMatchesMonitoringScopes(candidate, scopes("Greensboro ABC")), false);
 });
 
 test("only strict current exact-store community sightings qualify", () => {

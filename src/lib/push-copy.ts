@@ -1,6 +1,7 @@
 // Public report details only. Account identity and routing stay outside visible copy.
 export interface PushReportDetails {
   sourceType?: "engine" | "community";
+  eventType?: string;
   sourceLabel?: string;
   storeLabel?: string;
   storeCity?: string;
@@ -69,6 +70,15 @@ export function buildPushPreview(alertId: string, inputNames: unknown, details: 
     return {
       title: "Community sighting",
       body: [[names[0], quantity, price].filter(Boolean).join(" · "), location].filter(Boolean).join("\n"),
+    };
+  }
+
+  if (details.eventType === "nc_board_shipment_snapshot") {
+    const board = store || area;
+    const bottles = names.length > 2 ? `${names.slice(0, 2).join(", ")} + ${names.length - 2} more` : names.join(" and ");
+    return {
+      title: pushDisplayText(board ? `NC ABC shipments · ${board}` : "NC ABC shipments", 100),
+      body: `${bottles}\nReceiving stores unconfirmed.`,
     };
   }
 
