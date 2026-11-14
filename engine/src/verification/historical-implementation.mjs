@@ -169,6 +169,16 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       `${name}: AK/LA dormant source registration`);
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const releasedWyoming = /^    "WY": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
+    if (releasedWyoming || text.includes('  "activeStates": [\n    "WY",\n')) {
+      assert.equal(createHash('sha256').update(releasedWyoming || '').digest('hex'),
+        'af5063c6bc3d8a818d4107490cd1d20b8a0b48da9562a5fe0cf692a8ecaaf719', name + ': exact attested WY entry');
+      text = replaceUnique(text, releasedWyoming, '', name + ': Wyoming retailer lifecycle entry');
+      text = replaceUnique(text, '  "activeStates": [\n    "WY",\n', '  "activeStates": [\n',
+        name + ': exact WY active list head');
+      text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "WY": 30000,\n', '    "stateExpectedRunMs": {\n',
+        name + ': exact WY measured runtime forecast');
+    }
     const releasedMd = /^    "MD": \{\n[\s\S]+?^    \},\n/mu.exec(text)?.[0];
     if (releasedMd || text.includes('  "activeStates": [\n    "MD",\n')) {
       assert.equal(createHash('sha256').update(releasedMd || '').digest('hex'),
