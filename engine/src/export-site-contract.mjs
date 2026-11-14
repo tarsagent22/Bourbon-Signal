@@ -1,7 +1,7 @@
 import {isNjMiRetailerEvent,isNjMiResearchInventory,isNjMiProductionOnSiteSignal} from './nj-mi-research-policy.mjs';
 import { isPhoenixCityHiveExpansionProof, phoenixExpansionLibraryTier } from './collectors/phoenix-cityhive-expansion.mjs';
 import { isTasteSignal, isTasteInventory } from './collectors/south-carolina-taste.mjs';
-import { selectFleetDropBudget } from './fleet-drop-budget.mjs';
+import { selectFleetDropBudget, serializeCustomerDropPayload } from './fleet-drop-budget.mjs';
 import { isMassachusettsResearchInventory } from './massachusetts-research-policy.mjs';
 import { isCentralCityHiveRetailerEvent, isCentralCityHiveInventory,isCentralCityHiveProductionOnSiteSignal } from './central-cityhive-policy.mjs';
 import { isGroceryExpansionInventory } from './grocery-xapi-policy.mjs';
@@ -39,7 +39,7 @@ import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verifica
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
-import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergeHistoricalTimelineDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, mergePartialRefreshStores, mergeScheduledFallbackEvents, selectFreshRunDrops } from './partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, enforceCustomerDropByteBudget, mergeHistoricalBoardShipmentDrops, mergeHistoricalTimelineDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, mergePartialRefreshStores, mergeScheduledFallbackEvents, selectFreshRunDrops } from './partial-refresh-contract.mjs';
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
 import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
@@ -2563,6 +2563,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
   summary.partialFallbackStateIds = partialFallbackStateIds;
   const fallbackStateIds = new Set(summary.fallbackStateIds);
   const freshRunDrops = selectFreshRunDrops({ drops: currentDrops, freshStateIds: summary.freshStateIds });
+  const customerEvidenceAsOf = Date.now();
   const refreshedDrops = mergePartialRefreshDrops({
     previousDrops,
     currentDrops: candidateDrops,
@@ -2571,9 +2572,11 @@ async function main({ rejectedQualityStates = [] } = {}) {
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds,
     partialFallbackStateIds: summary.partialFallbackStateIds,
+    now: customerEvidenceAsOf,
     isSafePartialRetainedRow: (drop) => String(drop.state || drop.state_code || '').toUpperCase() !== 'TN'
       || isTennesseeRetailerSignalIdentity(drop),
   });
+  let budgetOmittedFallbackStateIds = [...(refreshedDrops.budgetOmittedFallbackStateIds || [])];
   const locations = mergePartialRefreshLocations({
     previousLocations,
     currentLocations,
@@ -2590,13 +2593,25 @@ async function main({ rejectedQualityStates = [] } = {}) {
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds || [],
   }).filter((store) => isActiveCustomerStateRow(store, activeStateIds));
-  const drops = mergeHistoricalTimelineDrops({ previousDrops, historyDays: HISTORY_DAYS, currentDrops: mergeHistoricalBoardShipmentDrops({
+  const historicalBoardDrops = mergeHistoricalBoardShipmentDrops({
     currentDrops: refreshedDrops,
     currentSourceDrops: freshRunDrops,
     previousDrops,
     bootstrapDrops,
     historyDays: HISTORY_DAYS,
-  }) }).filter((drop) => isActiveCustomerStateRow(drop, activeStateIds));
+  });
+  const timelineDrops = mergeHistoricalTimelineDrops({ previousDrops, historyDays: HISTORY_DAYS, currentDrops: historicalBoardDrops })
+    .filter((drop) => isActiveCustomerStateRow(drop, activeStateIds));
+  const drops = enforceCustomerDropByteBudget(timelineDrops, {
+    fallbackStateIds: summary.fallbackStateIds || [],
+    omittedFallbackStateIds: budgetOmittedFallbackStateIds,
+    now: customerEvidenceAsOf,
+  });
+  budgetOmittedFallbackStateIds = [...(drops.budgetOmittedFallbackStateIds || [])];
+  summary.budgetOmittedFallbackStateIds = budgetOmittedFallbackStateIds;
+  if (budgetOmittedFallbackStateIds.length) {
+    console.warn(`Complete stale fallback drop partitions omitted to keep current evidence within the customer byte budget: ${budgetOmittedFallbackStateIds.join(', ')}.`);
+  }
   const events = mergeScheduledFallbackEvents({
     previousEvents,
     currentEvents: buildEvents(historicalSignals, bible),
@@ -2656,6 +2671,9 @@ async function main({ rejectedQualityStates = [] } = {}) {
   const qualityFallbackStateIds = [...new Set(summary.fallbackStateIds || [])].sort();
   const qualitySummary = { ...summary, fallbackStateIds: qualityFallbackStateIds };
   let stateQuality = mergePartialRefreshStateQuality(previousStateQuality, candidateStateQuality, qualitySummary);
+  if (budgetOmittedFallbackStateIds.length) {
+    stateQuality = { ...stateQuality, budgetOmittedFallbackStateIds };
+  }
   if (partialFallbackStateIds.length) {
     const currentByState = new Map((candidateStateQuality.states || []).map((state) => [String(state.state).toUpperCase(), state]));
     stateQuality = {
@@ -2781,6 +2799,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
       healthCounts: operatingHealthCounts,
       retryStateIds: stateOperating.summary.retryStateIds,
       blockedStateIds: stateOperating.summary.blockedStateIds,
+      budgetOmittedFallbackStateIds,
       states: stateOperating.states,
       degradedStates: operatingDegradedStates.map((state) => ({
         state: state.state,
@@ -2877,7 +2896,7 @@ async function main({ rejectedQualityStates = [] } = {}) {
   await writeFile(path.join(SITE_OUT, 'bottles.json'), JSON.stringify(artifactPayloads.bottles, null, 2));
   await writeFile(path.join(SITE_OUT, 'stores.json'), JSON.stringify(artifactPayloads.stores, null, 2));
   await writeFile(path.join(SITE_OUT, 'locations.json'), JSON.stringify(artifactPayloads.locations, null, 2));
-  await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify(artifactPayloads.drops));
+  await writeFile(path.join(SITE_OUT, 'drops.json'), serializeCustomerDropPayload(artifactPayloads.drops));
   await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify(artifactPayloads.events, null, 2));
   await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify(artifactPayloads.alerts, null, 2));
   await writeFile(path.join(SITE_OUT, 'state-health.json'), JSON.stringify(artifactPayloads.stateHealth, null, 2));
