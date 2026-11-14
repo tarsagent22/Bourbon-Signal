@@ -225,7 +225,9 @@ async function main(){
   if(!CANARY_STATES.has(state)||!artifact||!proofFile||out!==`data/canary-inputs/${state}.json`
     ||configOut!==`out/canary-preparation/${state}/lifecycle-research.json`)throw new Error('Use reviewed state, verified artifact/provenance and fixed state canary/config output paths');
   const provenance=JSON.parse(await readFile(proofFile,'utf8')),matching=[];
-  for(const file of await findReports(path.resolve(artifact))){const report=JSON.parse(await readFile(file,'utf8'));if(report.state===state&&String(report.metadata?.origin?.workflowRunId)===provenance.workflowRunId)matching.push({file,report});}
+  for(const file of await findReports(path.resolve(artifact))){const report=JSON.parse(await readFile(file,'utf8'));
+    const origin=state==='DE'?report.metadata?.cityHive?.origin:report.metadata?.origin;
+    if(report.state===state&&String(origin?.workflowRunId)===provenance.workflowRunId)matching.push({file,report});}
   if(matching.length!==1)throw new Error('Expected exactly one matching workflow-issued state report');
   const result=await prepareCentralCityHiveCanary({state,report:matching[0].report,reportDirectory:path.dirname(matching[0].file),bible:await BourbonBible.load(),provenance});
   const lifecycle=withResearchLifecycle(JSON.parse(await readFile('../src/config/state-lifecycle.json','utf8')));
