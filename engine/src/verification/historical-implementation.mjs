@@ -193,7 +193,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       text=replaceUnique(text,akLaLifecycle,'    }\n  }',`${name}: AK/LA inactive lifecycle entries`);
     }
   }
-  if((name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts')&&(text.match(/–/g)||[]).length===15)
+  if(name==='src/config/state-lifecycle.json'&&(text.match(/–/g)||[]).length===15)
     text=text.replaceAll('–','\\u2013');
   assert.equal(phoenixIllinoisBaseline.contractVersion,'bourbon-signal/phoenix-illinois-shared-metadata-ms-boundary@1');
   // Reverse only the literal reviewed AZ source addition and IL source/city
