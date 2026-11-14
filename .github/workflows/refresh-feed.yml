@@ -563,6 +563,16 @@ jobs:
         working-directory: engine
         run: node src/verify-md-first-publication.mjs
 
+      - name: Require current North Dakota inventory at first publication
+        if: ${{ startsWith(inputs.incident_key, 'north-dakota-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-nd-first-publication.mjs
+
+      - name: Require current North Dakota inventory at first publication
+        if: ${{ startsWith(inputs.incident_key, 'north-dakota-first-publication-') }}
+        working-directory: engine
+        run: node src/verify-nd-first-publication.mjs
+
       - name: Require current Missouri pickup inventory at first publication
         if: ${{ startsWith(inputs.incident_key, 'missouri-first-publication-') }}
         working-directory: engine
@@ -812,6 +822,9 @@ jobs:
             engine/out/first-publication/MD.json
             engine/out/site/states/MD/drops.json
             engine/out/site/states/MD-MONTGOMERY/drops.json
+            engine/out/first-publication/ND.json
+            engine/out/states/ND.json
+            engine/out/site/states/ND/drops.json
             engine/out/first-publication/WY.json
             engine/out/site/states/WY/drops.json
             engine/out/az-expansion-verification.json

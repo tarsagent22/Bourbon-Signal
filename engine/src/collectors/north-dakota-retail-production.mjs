@@ -315,6 +315,7 @@ export async function collectNorthDakotaRetailProductionState(config = NORTH_DAK
       allDeliveryDisabled: true, requestCount: successful.reduce((total, result) => total + Number(result.value?.metadata?.requests?.length
         ?? result.value?.metadata?.receipts?.length ?? 0), 0),
       sourceClocks: Object.fromEntries(results.map(result => [result.sourceId, result.value?.observedAt || result.lastGoodAt || null])),
+      sourceObservations: Object.fromEntries(successful.map(result => [result.sourceId, result.value.metadata])),
       sourceHealth: sourceRows.map(row => ({ sourceRuntimeId: row.sourceRuntimeId, ok: row.ok, stale: row.stale,
         status: row.status, matchedBottleCount: row.matchedBottleCount })) } };
 }

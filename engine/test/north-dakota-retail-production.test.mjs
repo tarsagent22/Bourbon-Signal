@@ -6,6 +6,7 @@ import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
+import { verifyNorthDakotaFirstPublication } from '../src/verify-nd-first-publication.mjs';
 import {
   NORTH_DAKOTA_CITYHIVE_RUNTIME,
   NORTH_DAKOTA_GROCERY_RUNTIME,
@@ -72,10 +73,10 @@ function groceryObservation() {
       storeId: 'albertsons:28', term };
   };
   const observedAt = grocerySignals[0].observedAt;
-  return { signals: structuredClone(grocerySignals), plan: { terms: ['heaven hill bottled in bond 7 year'] }, unconfirmedQueries: [],
+  return { signals: structuredClone(grocerySignals), plan: { terms: ["blanton's gold"] }, unconfirmedQueries: [],
     receipts: [{ url: 'https://local.albertsons.com/nd/williston/20-26th-st-e/Beer-Wine-Liquor.html',
       finalUrl: 'https://local.albertsons.com/nd/williston/20-26th-st-e/Beer-Wine-Liquor.html', status: 200, observedAt,
-      storeId: 'albertsons:28' }, receipt('bourbon', observedAt), receipt('heaven hill bottled in bond 7 year', observedAt)] };
+      storeId: 'albertsons:28', bytes: 100, sha256: 'f'.repeat(64) }, receipt('bourbon', observedAt), receipt("blanton's gold", observedAt)] };
 }
 
 test('North Dakota production admission remains closed without authoritative lifecycle and immutable evidence', async () => {
@@ -122,6 +123,17 @@ test('North Dakota keeps its two exact retail sources independently healthy and 
   assert.equal(result.lastGoodAt, '2026-11-14T22:16:44.262Z');
   assert.deepEqual(result.metadata.sourceHealth.map(row => row.sourceRuntimeId).sort(), [...NORTH_DAKOTA_RETAIL_SOURCE_IDS].sort());
   assert.equal(result.metadata.allDeliveryDisabled, true);
+  const published={...result,startedAt:'2026-11-14T22:16:43.000Z',finishedAt:held.reportFinishedAt};
+  const sample={state:'ND',count:result.signals.length,drops:result.signals};
+  const verified=verifyNorthDakotaFirstPublication(published,sample,bible,{nowMs});
+  assert.equal(verified.publishedStores,2);
+  assert.equal(verified.indexedSearches.length,2);
+  const altered=structuredClone(sample);
+  altered.drops[0].price+=1;
+  assert.throws(()=>verifyNorthDakotaFirstPublication(published,altered,bible,{nowMs}),/source time/);
+  const incomplete=structuredClone(published);
+  incomplete.metadata.sourceObservations[NORTH_DAKOTA_GROCERY_RUNTIME].receipts.pop();
+  assert.throws(()=>verifyNorthDakotaFirstPublication(incomplete,sample,bible,{nowMs}),/both complete/);
 });
 
 test('a failed North Dakota sibling preserves its own stale fallback without masking a fresh source', async t => {
