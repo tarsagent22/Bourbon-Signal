@@ -16,10 +16,21 @@ const RETAINED_KS_DE_CAPTURES=Object.freeze({
     'kreston-wines:6054cfaae7d3073507c4ee0b':'DE/source-captures/003.html',
   }),
 });
+const RETAINED_WY_CAPTURES=Object.freeze({
+  'albany-liquormart:611ed5dcf3ca65128b13fa1e':'WY/001.html',
+  'jackson-hole-marketplace:643effb50c08b32b92d54760':'WY/002.html',
+  'liquor-store-jackson-hole:5dd3011bbc3e38663aadcb3c':'WY/003.html',
+});
 
 async function fixtureForSource(state,source){
   const retained=RETAINED_KS_DE_CAPTURES[state]?.[source.storeId];
-  if(state==='WY')return JSON.parse(await readFile(new URL('../test/fixtures/central-cityhive/liquorguys-wauwatosa.json',import.meta.url),'utf8'));
+  const wy=state==='WY'?RETAINED_WY_CAPTURES[source.storeId]:null;
+  if(wy){
+    const html=await readFile(new URL(`../test/fixtures/wy-cityhive/${wy}`,import.meta.url),'utf8');
+    const embedded=html.match(/<script\b[^>]*type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/iu);
+    if(!embedded)throw new Error(`Retained WY CityHive fixture is missing its embedded product payload.`);
+    return JSON.parse(embedded[1]);
+  }
   if(!retained)return JSON.parse(await readFile(new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url),'utf8'));
   const html=await readFile(new URL(`../test/fixtures/ks-de-cityhive/${retained}`,import.meta.url),'utf8');
   const embedded=html.match(/<script\b[^>]*type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/iu);

@@ -74,10 +74,10 @@
       "reportSha256": "290b3116ecb5ec728380d461b6283e72e5d18d3a0a2ee47a51e6e09db2a4703f"
     },
     "canary": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "Local replay, canary snapshot, state integration and customer projection passed; isolated GitHub canary workflow has not yet run."
+      "status": "workflow_verified_not_deployed",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43588366736/artifacts/14110479530",
+      "reason": "Workflow 43588366736 completed all replay, snapshot, state fixture, integration and actual application projection checks. deploy_preview=false; no hosted customer preview or production deployment."
     },
     "production": {
       "status": "not_deployed",
