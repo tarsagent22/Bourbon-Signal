@@ -60,7 +60,7 @@ export async function prepareCentralCityHiveCanary({state,report,reportDirectory
   const libraryChanged=shadowBibleHash!==currentBibleHash;
   if(!Number.isFinite(finishedMs)||finishedMs>nowMs||nowMs-finishedMs>2*60*60_000
     ||!Array.isArray(receipts)||receipts.length<sources.length||receipts.length>sources.length*5
-    ||!/^[a-f0-9]{64}$/.test(shadowBibleHash)||libraryChanged&&state!=='KS')throw new Error('Incomplete, stale or library-mismatched shadow receipt set');
+    ||!/^[a-f0-9]{64}$/.test(shadowBibleHash)||libraryChanged&&!['MO','KS'].includes(state))throw new Error('Incomplete, stale or library-mismatched shadow receipt set');
   const categorySources=new Set(),capturedStores=new Set(),seenUrls=new Set(),seenPaths=new Set(),rows=new Map(),proofs=[];
   const requests=report.metadata.requests;
   if(!Array.isArray(requests)||requests.length!==receipts.length)throw new Error('Partial state: CityHive request and raw receipt sets do not link one-to-one');
@@ -107,7 +107,7 @@ export async function prepareCentralCityHiveCanary({state,report,reportDirectory
     if(capturedStores.size!==sources.length||sources.some(source=>!capturedStores.has(source.storeId)))throw new Error('Partial per-store cohort capture: exact merchant proof is missing');
   }else if(categorySources.size!==sources.length)throw new Error('Partial state source capture: exact merchant category proof is missing');
   if(libraryChanged&&!sameReplayIdentity(report.signals,[...rows.values()]))
-    throw new Error('Kansas current-library replay changed the shadow product identity, size-bound option, tier or price');
+    throw new Error(`${state} current-library replay changed the shadow product identity, size-bound option, tier or price`);
   const operational=[...rows.values()].map(row=>canonicalizeSignal(row,bible));
   const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>({...row,previewOnly:true,
     canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,

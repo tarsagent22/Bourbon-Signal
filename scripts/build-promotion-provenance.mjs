@@ -38,7 +38,7 @@ const files = [
 ];
 // These files control production admission, actual HTTP, host-denial durability
 // and public projection. Missing inputs must fail issuance, never be skipped.
-if (['WA','NM','WI','OK','NJ','MI','MN'].includes(state)) files.push(
+if (['WA','NM','WI','OK','NJ','MI','MN','KS','MO'].includes(state)) files.push(
   'engine/src/collectors/generic-state.mjs',
   'engine/src/collectors/north-carolina-intelligence.mjs',
   'engine/src/collectors/virginia-inventory-recovery.mjs',
@@ -145,7 +145,7 @@ if (['NJ','MI'].includes(state)) files.push(
   `engine/out/njmi-shadow-input/${state}/provenance.json`,
   `engine/out/canary/${state}/public-projection.json`,
 );
-if (['WI', 'OK', 'RI', 'MN', 'KS'].includes(state)) files.push(
+if (['WI', 'OK', 'RI', 'MN', 'KS', 'MO'].includes(state)) files.push(
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-transport.mjs',
   'engine/src/central-cityhive-production-config.mjs',
@@ -236,6 +236,50 @@ if (state === 'MN') files.push(
   'engine/data/canary-site/minnesota-20261114/states/MN/drops.json',
   'engine/data/canary-site/minnesota-20261114/source-proof.json',
 );
+if (state === 'KS') files.push(
+  'engine/src/verify-ks-first-publication.mjs',
+  'scripts/download-cityhive-shadow.mjs',
+  'scripts/test-cityhive-shadow-download.mjs',
+  'engine/src/prepare-central-cityhive-canary.mjs',
+  'engine/src/central-cityhive-fixtures.mjs',
+  'engine/test/ks-first-publication.test.mjs',
+  'engine/src/verification/historical-implementation.mjs',
+  'scripts/prepare-legacy-site-fixture-ci.mjs',
+  'scripts/verify-active-state-integration-ci.mjs',
+  'scripts/sync-sighting-store-directory.mjs',
+  'scripts/test-sighting-store-directory.mts',
+  'src/data/sighting-store-directory.generated.json',
+  'engine/data/canary-site/kansas-20261114/source-proof.json',
+  'engine/test/ks-hosted-preview-evidence.test.mjs',
+  'engine/test/fixtures/ks-cityhive/hosted-finder-feed.json',
+  'engine/test/fixtures/ks-cityhive/hosted-finder-feed-receipt.json',
+  'engine/test/fixtures/ks-cityhive/hosted-coverage-receipt.json',
+  'engine/test/fixtures/ks-cityhive/hosted-search-receipt.json',
+  'engine/test/fixtures/ks-cityhive/hosted-deployment-receipt.json',
+  'engine/test/fixtures/ks-cityhive/hosted-public-protection-receipt.json',
+);
+if (state === 'MO') files.push(
+  'engine/src/collectors/central-cityhive-production.mjs',
+  'engine/src/central-cityhive-production-config.mjs',
+  'engine/src/verify-mo-first-publication.mjs',
+  'engine/data/state-integration/MO.json',
+  'engine/data/state-fixtures/MO.json',
+  'src/config/state-lifecycle.json',
+  '.github/workflows/refresh-feed.yml',
+  'engine/data/canary-site/mo-active-candidate/manifest.json',
+  'engine/data/canary-site/mo-active-candidate/stats.json',
+  'engine/data/canary-site/mo-active-candidate/alerts.json',
+  'engine/data/canary-site/mo-active-candidate/locations.json',
+  'engine/data/canary-site/mo-active-candidate/drops.json',
+  'engine/data/canary-site/mo-active-candidate/canary-preview-policy.json',
+  'engine/data/canary-site/mo-active-candidate/states/index.json',
+  'engine/data/canary-site/mo-active-candidate/states/MO/drops.json',
+  'engine/src/collectors/central-cityhive-research-premises.mjs',
+  'engine/src/collectors/central-cityhive-expansion.mjs',
+  'engine/data/midwest-cityhive-expansion-sources.json',
+  'engine/test/fixtures/central-cityhive/barrel-blends-6226405682c4ff6dfe6d578a.json',
+  'engine/src/verification/historical-implementation.mjs',
+);
 if (['OR', 'AK', 'LA'].includes(state)) files.push(
   'engine/src/research-state-registry.mjs',
   'engine/src/run-expansion-shadow.mjs',
@@ -277,7 +321,6 @@ if (['AK', 'LA'].includes(state)) files.push(
   'engine/src/operational-report.mjs',
   'engine/src/run.mjs',
   'engine/src/verification/historical-implementation.mjs',
-  'scripts/test-ms-bundle-boundary.mjs',
   'engine/src/collectors/grocery-xapi-expansion.mjs',
   'engine/src/collectors/grocery-xapi-identity.mjs',
   'engine/src/prepare-laak-canary.mjs',
@@ -309,28 +352,6 @@ if (state === 'RI') files.push(
   'src/config/stateLifecycle.ts',
   '.github/workflows/state-expansion-shadow.yml',
   '.github/workflows/refresh-feed.yml',
-);
-if (state === 'KS') files.push(
-  'engine/src/verify-ks-first-publication.mjs',
-  'scripts/download-cityhive-shadow.mjs',
-  'scripts/test-cityhive-shadow-download.mjs',
-  'engine/src/prepare-central-cityhive-canary.mjs',
-  'engine/src/central-cityhive-fixtures.mjs',
-  'engine/test/ks-first-publication.test.mjs',
-  'engine/src/verification/historical-implementation.mjs',
-  'scripts/prepare-legacy-site-fixture-ci.mjs',
-  'scripts/verify-active-state-integration-ci.mjs',
-  'scripts/sync-sighting-store-directory.mjs',
-  'scripts/test-sighting-store-directory.mts',
-  'src/data/sighting-store-directory.generated.json',
-  'engine/data/canary-site/kansas-20261114/source-proof.json',
-  'engine/test/ks-hosted-preview-evidence.test.mjs',
-  'engine/test/fixtures/ks-cityhive/hosted-finder-feed.json',
-  'engine/test/fixtures/ks-cityhive/hosted-finder-feed-receipt.json',
-  'engine/test/fixtures/ks-cityhive/hosted-coverage-receipt.json',
-  'engine/test/fixtures/ks-cityhive/hosted-search-receipt.json',
-  'engine/test/fixtures/ks-cityhive/hosted-deployment-receipt.json',
-  'engine/test/fixtures/ks-cityhive/hosted-public-protection-receipt.json',
 );
 for (const file of files) {
   const content = await readFile(path.join(root, file));
