@@ -1172,8 +1172,12 @@ function buildState(args: {
     ? configuredPeakStrength
     : deriveCoverageStrength(coverageStatusValue, tier, scope);
   const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
-  if (countyEntry?.customerAreaLabel && !areas.includes(countyEntry.customerAreaLabel)) {
-    areas.push(countyEntry.customerAreaLabel);
+  const countyLabel = countyEntry?.customerAreaLabel;
+  if (countyLabel && !areas.includes(countyLabel)) {
+    const countyToken = coverageTargetToken(countyLabel).replace(/-county$/, "");
+    const abbreviatedArea = areas.findIndex((area) => coverageTargetToken(area).replace(/-county$/, "") === countyToken);
+    if (abbreviatedArea < 0) areas.push(countyLabel);
+    else areas[abbreviatedArea] = countyLabel;
     areas.sort((left, right) => left.localeCompare(right));
   }
   const precisions = coverageStatusValue === "not-available" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
