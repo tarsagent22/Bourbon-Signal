@@ -3,6 +3,7 @@ import {isLouisianaAlaskaGroceryCanaryPreview} from '../../engine/src/laak-canar
 import {isWyomingGroceryCanaryPreview,isWyomingGroceryProductionInventory} from '../../engine/src/wyoming-grocery-policy.mjs';
 import {isLouisianaAlaskaGroceryOnSiteSignal} from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
+import { isNorthDakotaGroceryCanaryPreview } from '../../engine/src/north-dakota-retail-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
@@ -395,6 +396,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
     quantity_shipped: shipmentQuantity || undefined,
     quantity: quantity || (isGroceryExpansionOnSiteSignal(drop) || isCentralCityHiveOnSiteSignal(drop)
+      || isNorthDakotaGroceryCanaryPreview(drop)
       || isNjMiOnSiteSignal(drop) || isLouisianaAlaskaGroceryOnSiteSignal(drop)
       || isLouisianaAlaskaGroceryCanaryPreview(drop) || isWyomingGroceryCanaryPreview(drop)
       || isWyomingGroceryProductionInventory(drop) ? 0 : undefined),
