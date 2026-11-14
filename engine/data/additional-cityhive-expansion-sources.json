@@ -531,6 +531,29 @@
       "lng": null,
       "capturedAt": "2026-11-14T06:49:51.238Z",
       "prioritySearchTerm": "barrel proof"
+    },
+    {
+      "id": "vintage-wine-cellar-honolulu",
+      "chainId": "vintage-wine-cellar",
+      "state": "HI",
+      "platform": "cityhive",
+      "hostname": "vintagewinecellarhawaii.com",
+      "baseUrl": "https://vintagewinecellarhawaii.com",
+      "categoryUrl": "https://vintagewinecellarhawaii.com/shop/?subtype=Bourbon&merchant-id=673686b65b160429019295ef",
+      "merchantId": "673686b65b160429019295ef",
+      "storeId": "vintage-wine-cellar:673686b65b160429019295ef",
+      "sourceLabel": "Vintage Wine Cellar HI first-party pickup inventory",
+      "name": "Vintage Wine Cellar",
+      "address": "1249 Wilder Ave, Honolulu, HI 96822, USA",
+      "city": "Honolulu",
+      "zip": "96822",
+      "lat": 21.3054318,
+      "lng": -157.8382095,
+      "prioritySearchTerm": "booker",
+      "stateCode": "HI",
+      "chainName": "Vintage Wine Cellar",
+      "discoveryUrl": "https://vintagewinecellarhawaii.com/shop/?ch-query=booker&merchant-id=673686b65b160429019295ef",
+      "capturedAt": "2026-11-14T07:14:00.000Z"
     }
   ],
   "excludedRetailers": [
