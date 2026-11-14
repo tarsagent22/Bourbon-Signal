@@ -1,6 +1,7 @@
 import { isGroceryExpansionInventory } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
+import { isCentralCityHiveProductionOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { currentInventoryMaxAgeMs, inventoryConfirmationTimestamp, publicDropMaxAgeMs } from '../../engine/src/customer-drop-freshness.mjs';
 import { dropFreshnessTime } from "./drop-feed-policy.ts";
 import { isUserFacingDropSignal } from "./drop-feed-visibility.ts";
@@ -301,7 +302,7 @@ function independentlyAcceptedSource(drop: PublicDropEvidenceInput) {
       || drop.canAlertAsWatch === true || drop.can_alert_as_watch === true);
 }
 
-function reviewedGroceryOverdueSiblingEvidence(drop: PublicDropEvidenceInput, options: PublicDropEligibilityOptions) {
+function reviewedRetailerOverdueSiblingEvidence(drop: PublicDropEvidenceInput, options: PublicDropEligibilityOptions) {
   const state = stateCode(drop);
   const reasons = options.degradedStateReasons?.get(state);
   if (reasons?.length !== 1 || reasons[0] !== "inventory_confirmation_overdue") return false;
@@ -312,7 +313,8 @@ function reviewedGroceryOverdueSiblingEvidence(drop: PublicDropEvidenceInput, op
   const proofInput = drop.quantity == null && drop.quantityIsExact === false
     && binding?.inventorySemantics === "binary_retailer_orderable_no_exact_count" ? { ...drop, quantity: 0 } : drop;
   const provenInventory = state === "CA" ? isGroceryExpansionInventory(proofInput)
-    : isLouisianaAlaskaGroceryOnSiteSignal(drop);
+    : isLouisianaAlaskaGroceryOnSiteSignal(drop)
+      || isCentralCityHiveProductionOnSiteSignal(drop, { nowMs: asTimestamp(options.asOf) });
   return provenInventory && !sourceStale(drop) && drop.quarantined !== true
     && raw?.sourceRuntimeNonAlertable !== true && raw?.staleFallback !== true
     && raw?.shadowOnly !== true && binding?.shadowOnly !== true
@@ -366,7 +368,7 @@ export function isPublicDropFeedEligible(
   const drop = normalizePublicDropEvidenceInput(input);
   const state = stateCode(drop);
   if (!state || options.degradedStateCodes?.has(state)
-    && !independentlyAcceptedSource(drop) && !reviewedGroceryOverdueSiblingEvidence(drop, options)) return false;
+    && !independentlyAcceptedSource(drop) && !reviewedRetailerOverdueSiblingEvidence(drop, options)) return false;
   if (['AK','LA'].includes(state) && drop.previewOnly === true && !isLouisianaAlaskaGroceryCanaryPreview(drop)) return false;
   if (['AK','LA'].includes(state) && isLouisianaAlaskaGroceryOnSiteSignal(drop)) return true;
   const retailer = isVerifiedRetailerDrop(drop);
@@ -702,7 +704,7 @@ export function derivePublicDropEvidence(
     const current = exactInventory ? isCurrentInventoryEvidence(drop, asOf) : fresh && !sourceStale(drop);
     if (current) bucket.freshPublicSignalCount += 1;
     else bucket.stalePublicSignalCount += 1;
-    if (current && (independentlyAcceptedSource(drop) || reviewedGroceryOverdueSiblingEvidence(drop, eligibilityOptions))) bucket.independentFreshPublicSignalCount += 1;
+    if (current && (independentlyAcceptedSource(drop) || reviewedRetailerOverdueSiblingEvidence(drop, eligibilityOptions))) bucket.independentFreshPublicSignalCount += 1;
 
     if (current && !exactInventory) addFreshPublicUpdateScope(bucket, drop);
     if (!exactInventory) continue;
