@@ -4,6 +4,7 @@ import path from 'node:path';
 import wiManifest from '../../data/state-integration/WI.json' with {type:'json'};
 import okManifest from '../../data/state-integration/OK.json' with {type:'json'};
 import riManifest from '../../data/state-integration/RI.json' with {type:'json'};
+import ksManifest from '../../data/state-integration/KS.json' with {type:'json'};
 import {STATE_LIFECYCLE_CONFIG} from '../state-lifecycle.mjs';
 import {validateImmutablePromotionEvidence,evaluateStateControl} from '../reliability-policy.mjs';
 import {collectionSignal,writeCollectionFile} from '../core/collection-context.mjs';
@@ -18,7 +19,7 @@ import {isCentralCityHiveProductionOnSiteSignal} from '../central-cityhive-polic
 import {CENTRAL_CITYHIVE_PRODUCTION_STATES,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,centralCityHiveProductionCohortKey,centralCityHiveProductionRuntimeId} from '../central-cityhive-production-config.mjs';
 
 export const CENTRAL_CITYHIVE_CACHE_MAX_AGE_MS=30*60_000;
-const manifests={WI:wiManifest,OK:okManifest,RI:riManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
+const manifests={WI:wiManifest,OK:okManifest,RI:riManifest,KS:ksManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
 const sha=value=>createHash('sha256').update(value).digest('hex');
 export function centralCityHiveSourceConfigHash(state,manifest=manifests[state]){
   if(!CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(state)||!manifest)throw new Error('Unreviewed production CityHive state');
@@ -51,19 +52,22 @@ function completeCohort(metadata,state){
     &&metadata.requests?.length>=sources.length&&metadata.requests.length<=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests
     &&metadata.requests.every(row=>row.ok===true&&row.status===200);
   if(!complete)return false;
-  if(state!=='RI')return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
-  if (metadata.requests.length !== CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.RI.maxRequests
-    || new Set(metadata.requests.map(row => row.url)).size !== metadata.requests.length) return false;
+  if(!['RI','KS'].includes(state))return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
+  if(metadata.requests.length!==CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests
+    ||new Set(metadata.requests.map(row=>row.url)).size!==metadata.requests.length)return false;
   return sources.every(source => {
     const requests = metadata.requests.filter(row => row.sourceId === source.id);
-    if (requests.length !== source.prioritySearchTerms.length + 1) return false;
+    const priorityTerms=Array.isArray(source.prioritySearchTerms)&&source.prioritySearchTerms.length
+      ?source.prioritySearchTerms:[source.prioritySearchTerm||'barrel proof'];
+    if(requests.length!==priorityTerms.length+1)return false;
     const terms = requests.map(row => {
       const url = URL.parse(row.url);
       if (url?.origin !== source.baseUrl || url.pathname !== '/shop/' || url.hash || url.username || url.password
-        || [...url.searchParams].length !== 2 || url.searchParams.get('merchant-id') !== source.merchantId) return null;
+        || [...url.searchParams].length !== 2 || url.searchParams.get('merchant-id') !== source.merchantId
+        || !url.searchParams.get('ch-query')?.trim() || url.searchParams.get('ch-query').length>120) return null;
       return url.searchParams.get('ch-query');
     });
-    return terms.every(Boolean) && source.prioritySearchTerms.every(term => terms.includes(term));
+    return terms.every(Boolean)&&priorityTerms.every(term=>terms.includes(term));
   });
 }
 const silent=row=>({...row,canAlertAsInventory:false,canAlertAsWatch:false,alertable:false,
