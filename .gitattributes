@@ -4,3 +4,4 @@ engine/test/fixtures/ks-cityhive/hosted-finder-feed.json -text
 engine/data/canary-site/alaska-louisiana-20261114/states/*/drops.json text eol=lf
 engine/data/canary-site/rhode-island-20261114/states/RI/drops.json text eol=lf
 engine/data/canary-site/minnesota-20261114/states/MN/drops.json text eol=lf
+engine/test/fixtures/ks-cityhive/hosted-finder-feed.json -diff
