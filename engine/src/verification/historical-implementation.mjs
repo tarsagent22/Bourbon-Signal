@@ -277,5 +277,19 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     text = replaceUnique(text, menu.reviewed, menu.original, `${name}: CA reviewed metadata city expansion`);
     text = replaceUnique(text, nationwide.reviewed, nationwide.original, `${name}: CA reviewed metadata`);
   }
+  if(name==='src/config/state-lifecycle.json')for(const [current,historical]of [
+    ['Northwest / DeSoto–Memphis fringe','Northwest / DeSoto\\u2013Memphis fringe'],
+    ['Northeast / Tupelo–Golden Triangle','Northeast / Tupelo\\u2013Golden Triangle'],
+    ['Delta / Greenville–Clarksdale–Greenwood','Delta / Greenville\\u2013Clarksdale\\u2013Greenwood'],
+    ['Central / Jackson–Madison–Rankin','Central / Jackson\\u2013Madison\\u2013Rankin'],
+    ['Pine Belt / Hattiesburg–Laurel','Pine Belt / Hattiesburg\\u2013Laurel'],
+    ['Gulf Coast / Gulfport–Biloxi–Pascagoula','Gulf Coast / Gulfport\\u2013Biloxi\\u2013Pascagoula'],
+    ['Southwest / Natchez–Brookhaven–McComb–Vicksburg','Southwest / Natchez\\u2013Brookhaven\\u2013McComb\\u2013Vicksburg'],
+    ['Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.',
+      'Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.'],
+    ['First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.',
+      'First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.'],
+  ])text=replaceUnique(text,current,historical,`${name}: exact historical JSON unicode escapes`);
+  if(name==='src/config/state-lifecycle.json')text=replaceUnique(text,'Reno–Sparks','Reno\\u2013Sparks',`${name}: exact Nevada area Unicode escape`);
   return Buffer.from(text);
 }

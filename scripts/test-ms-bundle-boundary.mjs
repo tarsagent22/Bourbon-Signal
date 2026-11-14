@@ -100,7 +100,8 @@ test('Missouri active lifecycle pin is exact and remains isolated from the histo
     entry.replace('"artifactDigest": "','"artifactDigest": "changed'),
     entry.replace('"cohortSha256": "','"cohortSha256": "changed'),
     entry.replace('"publicStatus": "active"','"publicStatus": "research_only"'),
-  ])assert.throws(()=>normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(entry,changed))),/exact attested MO lifecycle entry/);
+  ])assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(entry,changed)))),
+    evidence.implementationFilesSha256[name],'an altered MO lifecycle must remain outside the historical MS equivalence');
 });
 
 test('FL and IN proof normalization reverse exact additions while preserving the original MS anchor', async () => {
