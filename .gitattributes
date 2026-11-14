@@ -3,3 +3,4 @@ engine/test/fixtures/metro-expansion-20261022/*.html text eol=lf
 engine/data/canary-site/alaska-louisiana-20261114/states/*/drops.json text eol=lf
 engine/data/canary-site/rhode-island-20261114/states/RI/drops.json text eol=lf
 engine/data/canary-site/minnesota-20261114/states/MN/drops.json text eol=lf
+engine/data/canary-site/connecticut-20261114/states/CT/drops.json text eol=lf
