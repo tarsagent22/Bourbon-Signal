@@ -1,0 +1,55 @@
+{
+  "state": "NE",
+  "researchOnly": true,
+  "source": "https://www.oldvinewineomaha.com/product/blade-and-bow-bourbon/",
+  "observedAt": "2026-11-14T13:08:52.073Z",
+  "status": 200,
+  "finalUrl": "https://www.oldvinewineomaha.com/product/blade-and-bow-bourbon/",
+  "rawBytes": 125184,
+  "rawSha256": "e7d45f2c0f49a38b2ff6d7c4b0cbdf649ef8a1f8c8659f7748ca571c969fc9c2",
+  "minimizedFixture": "../test/fixtures/ne-oldvine-20261114/blade-and-bow.html",
+  "minimizedFixtureSha256": "6776d63e4b40cd42c67c3ea87c2e2bdef6f4c1458ac832e39b6cfab1ea230952",
+  "product": {
+    "id": "17823",
+    "title": "Blade and Bow Bourbon",
+    "sizeMl": 750,
+    "proof": 91,
+    "priceUsd": 54.99,
+    "availability": "https://schema.org/InStock",
+    "quantitySemantics": "binary orderability; WooCommerce max order quantity 6 is not treated as shelf count"
+  },
+  "premise": {
+    "retailLicense": "113941",
+    "class": "Retail C",
+    "name": "Old Vine Wine & Spirits",
+    "address": "3821 N 167th Ct Suite 145, Omaha, NE 68116",
+    "licenseRosterArtifact": "ne-licensing-1113.xlsx",
+    "licenseRosterSha256": "26023437c231d753a31919b8c4dbac68e9a5cfb9aace5ce62f9b907390bd5e76",
+    "pickupPolicyUrls": [
+      "https://www.oldvinewineomaha.com/",
+      "https://www.oldvinewineomaha.com/retail-shop/"
+    ],
+    "pickupPolicy": "Public free pickup at the sole storefront; do not use the separate returns address as a customer store."
+  },
+  "catalogIdentity": {
+    "catalogArtifact": "C:/Users/chand/projects/bs-fleet-recovered-43579156198/bourbon-bible.json",
+    "catalogSha256": "655cb3b28ffc70567610d8c51ba19f2a87cbc7df58aa52ad18862904c59be574",
+    "id": "bb_8924180d0cc2d853",
+    "canonical": "Blade and Bow Bourbon",
+    "nationalTier": "limited",
+    "isAlertEligible": true
+  },
+  "excludedProduct": {
+    "url": "https://www.oldvinewineomaha.com/product/penelope-riviera-bourbon/",
+    "productId": "18145",
+    "observedAt": "2026-11-14T13:08:56.339Z",
+    "rawSha256": "2f583c06848207782f1a0bf8bb0539791a9cfe70459a2df35d26ac95841b9e1c",
+    "reason": "94 proof is shown, but no bottle-size evidence was present in the held capture."
+  },
+  "collection": {
+    "mode": "offline-retained-capture-replay",
+    "liveCollectorWired": false,
+    "productionActivated": false,
+    "deliveryEnabled": false
+  }
+}
