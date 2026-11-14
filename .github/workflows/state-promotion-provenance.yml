@@ -129,7 +129,7 @@ jobs:
           npm --prefix engine run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site" "${config_args[@]}"
           manifest_args=()
           if [[ "$STATE" == "KS" ]]; then
-            node src/prepare-ks-canary-manifest.mjs --state=KS --out-dir=out/canary-preparation/KS
+            (cd engine && node src/prepare-ks-canary-manifest.mjs --state=KS --out-dir=out/canary-preparation/KS)
             manifest_args+=("--manifest-dir=out/canary-preparation/KS/manifests")
           fi
           npm --prefix engine run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json" "${manifest_args[@]}"
