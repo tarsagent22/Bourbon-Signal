@@ -92,7 +92,7 @@ export function buildLocationBible(signals = [], officialLocations = []) {
   }
 
   const registeredPickupStores = [...MINNESOTA_CITYHIVE_PRODUCTION_SOURCES,
-    ...CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source => ['AR', 'MO'].includes(source.state))];
+    ...CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source => ['AR', 'MO', 'MD'].includes(source.state))];
   for (const source of registeredPickupStores) {
     if (activeStateIds.has(source.state)) {
       locations.push(makeLocation({

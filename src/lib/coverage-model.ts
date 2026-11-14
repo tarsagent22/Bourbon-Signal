@@ -1,6 +1,7 @@
 import {
   derivePublicDropEvidence,
   publicDropDegradedStateReasons,
+  publicEvidenceHealthStateCode,
   publicEvidenceAddressKey,
   publicEvidenceSourceStoreIdKey,
   publicEvidenceStateCode,
@@ -293,8 +294,16 @@ function publicStateCode(value: unknown) {
 
 export function coverageInternalStateKey(stateCode: string, lifecycle: CoverageLifecycleInput) {
   const normalized = publicStateCode(stateCode);
-  if (normalized === "MD" && lifecycle.states["MD-MONTGOMERY"]) return "MD-MONTGOMERY";
+  if (normalized === "MD" && lifecycle.states.MD?.publicStatus !== "active"
+    && lifecycle.states["MD-MONTGOMERY"]) return "MD-MONTGOMERY";
   return normalized;
+}
+
+function coverageStateKeys(stateCode: string, lifecycle: CoverageLifecycleInput) {
+  const key = coverageInternalStateKey(stateCode, lifecycle);
+  return key === "MD" && lifecycle.states["MD-MONTGOMERY"]?.publicStatus === "active"
+    ? ["MD", "MD-MONTGOMERY"]
+    : [key];
 }
 
 function cleanText(value: unknown, maxLength = 240) {
@@ -386,10 +395,11 @@ function sourceCapabilities(source: string, collectorAttached: boolean) {
 }
 
 function stateStoreRecords(
-  internalStateKey: string,
+  stateKeys: readonly string[],
   locations: readonly CoverageLocationInput[],
   stores: readonly CoverageStoreInput[],
 ) {
+  const internalStateKey = stateKeys[0];
   const records = new Map<string, StoreRecord>();
   const identityKeys = new Map<string, string>();
   const identityFor = (name: unknown, address: unknown, city: unknown) => {
@@ -398,7 +408,7 @@ function stateStoreRecords(
     return `name:${coverageTargetToken(name, 180)}:city:${coverageTargetToken(city, 120)}`;
   };
   for (const location of locations) {
-    if (String(location.state || "").toUpperCase() !== internalStateKey || !isStoreLocation(location)) continue;
+    if (!stateKeys.includes(String(location.state || "").toUpperCase()) || !isStoreLocation(location)) continue;
     const id = cleanText(location.id, 160);
     const name = cleanText(location.name, 180);
     if (!id && !name) continue;
@@ -422,7 +432,7 @@ function stateStoreRecords(
     identityKeys.set(identityFor(name, location.address, location.city), key);
   }
   for (const store of stores) {
-    if (String(store.state || "").toUpperCase() !== internalStateKey) continue;
+    if (!stateKeys.includes(String(store.state || "").toUpperCase())) continue;
     const id = cleanText(store.id || store.sourceStoreId, 160);
     const name = cleanText(store.name, 180);
     if (!id && !name) continue;
@@ -466,8 +476,8 @@ function stateStoreRecords(
   return [...records.values()];
 }
 
-function stateLocations(internalStateKey: string, locations: readonly CoverageLocationInput[]) {
-  return locations.filter((location) => String(location.state || "").toUpperCase() === internalStateKey);
+function stateLocations(stateKeys: readonly string[], locations: readonly CoverageLocationInput[]) {
+  return locations.filter((location) => stateKeys.includes(String(location.state || "").toUpperCase()));
 }
 
 const HARD_SOURCE_BLOCK_STATUSES = new Set([
@@ -498,8 +508,9 @@ function rowSourceIsBlocked(row: CoverageStateRowInput | undefined) {
 }
 
 function stateSourceIsBlocked(stateCode: string, degradedStates: readonly Record<string, unknown>[]) {
-  const publicCode = publicStateCode(stateCode);
-  return degradedStates.some((entry) => publicStateCode(entry.state) === publicCode && sourceStatusIsBlocked(entry.status));
+  const healthCode = publicEvidenceHealthStateCode(stateCode);
+  return degradedStates.some((entry) =>
+    publicEvidenceHealthStateCode(entry.state) === healthCode && sourceStatusIsBlocked(entry.status));
 }
 
 function hasVerifiedCoverageSource(
@@ -968,9 +979,9 @@ const EMPTY_DROP_EVIDENCE: StatePublicDropEvidence = {
 };
 
 function isStateFeedDegraded(stateCode: string, degradedStates: readonly Record<string, unknown>[]) {
-  const publicCode = publicStateCode(stateCode);
+  const healthCode = publicEvidenceHealthStateCode(stateCode);
   return degradedStates.some((entry) => {
-    if (publicStateCode(entry.state) !== publicCode) return false;
+    if (publicEvidenceHealthStateCode(entry.state) !== healthCode) return false;
     // Retained useful rows remain visible in the feed, subject to row freshness.
     return !cleanText(entry.status, 120).toLowerCase().startsWith("stale_useful");
   });
@@ -980,7 +991,7 @@ function feedDegradedStateCodes(degradedStates: readonly Record<string, unknown>
   return new Set(
     degradedStates
       .filter((entry) => !cleanText(entry.status, 120).toLowerCase().startsWith("stale_useful"))
-      .map((entry) => publicStateCode(entry.state))
+      .map((entry) => publicEvidenceHealthStateCode(entry.state))
       .filter(Boolean),
   );
 }
@@ -1042,17 +1053,26 @@ function buildState(args: {
   healthLimited: boolean;
   ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null;
 }) {
-  const internalStateKey = coverageInternalStateKey(args.code, args.lifecycle);
+  const stateKeys = coverageStateKeys(args.code, args.lifecycle);
+  const [primaryKey, secondaryKey] = stateKeys;
+  const rowFor = (key: string) => args.stateRows.find((entry) => String(entry.state || "").toUpperCase() === key);
+  const primaryRow = rowFor(primaryKey);
+  const primaryBlocked = rowSourceIsBlocked(primaryRow) || stateSourceIsBlocked(primaryKey, args.degradedStates);
+  const countyEntry = secondaryKey ? args.lifecycle.states[secondaryKey] : undefined;
+  const countyRow = secondaryKey ? rowFor(secondaryKey) : undefined;
+  const useCountyFallback = Boolean(secondaryKey && countyRow?.publicStatus === "active" && !rowSourceIsBlocked(countyRow)
+    && !stateSourceIsBlocked(secondaryKey, args.degradedStates) && (primaryBlocked || primaryRow?.publicStatus !== "active"));
+  const internalStateKey = useCountyFallback ? secondaryKey : primaryKey;
   const lifecycleEntry = args.lifecycle.states[internalStateKey];
-  const row = args.stateRows.find((entry) => String(entry.state || "").toUpperCase() === internalStateKey);
-  const locations = stateLocations(internalStateKey, args.locations);
-  const storeRecords = stateStoreRecords(internalStateKey, args.locations, args.stores);
+  const row = useCountyFallback ? countyRow : primaryRow;
+  const locations = stateLocations(stateKeys, args.locations);
+  const storeRecords = stateStoreRecords(stateKeys, args.locations, args.stores);
   const tier = cleanText(row?.coverageTier || lifecycleEntry?.coverageTier, 80);
   const configuredLayers = lifecycleEntry?.coverageLayerCounts;
   const supportsDirectStoreAvailability = LIVE_TIERS.has(tier);
-  const sourceBlocked = rowSourceIsBlocked(row) || stateSourceIsBlocked(args.code, args.degradedStates);
+  const sourceBlocked = rowSourceIsBlocked(row) || stateSourceIsBlocked(internalStateKey, args.degradedStates);
   const hasVerifiedSource = !sourceBlocked && hasVerifiedCoverageSource(lifecycleEntry, row, locations, storeRecords);
-  const feedDegraded = isStateFeedDegraded(args.code, args.degradedStates)
+  const feedDegraded = isStateFeedDegraded(internalStateKey, args.degradedStates)
     && args.dropEvidence.independentFreshPublicSignalCount === 0;
   // Lifecycle/configuration tells us which evidence may be used; only current
   // default-feed output establishes that a customer can use it now.
@@ -1152,6 +1172,10 @@ function buildState(args: {
     ? configuredPeakStrength
     : deriveCoverageStrength(coverageStatusValue, tier, scope);
   const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
+  if (countyEntry?.customerAreaLabel && !areas.includes(countyEntry.customerAreaLabel)) {
+    areas.push(countyEntry.customerAreaLabel);
+    areas.sort((left, right) => left.localeCompare(right));
+  }
   const precisions = coverageStatusValue === "not-available" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
   const usableFreshPublicSignals = hasFreshPublicOutput ? args.dropEvidence.freshPublicSignalCount : 0;
   const usableFreshPublicUpdates = hasFreshUpdateOutput
@@ -1362,11 +1386,12 @@ export function searchCoverageTargets(args: {
   const queryToken = coverageTargetToken(query, 120);
   if (!queryToken) return [];
   const internalStateKey = coverageInternalStateKey(stateCode, args.lifecycle);
-  const records = stateStoreRecords(internalStateKey, args.locations || [], args.stores || []);
+  const stateKeys = coverageStateKeys(stateCode, args.lifecycle);
+  const records = stateStoreRecords(stateKeys, args.locations || [], args.stores || []);
   const searchableRecords = records.filter((record) => record.searchable);
   const row = (args.stateRows || []).find((entry) => String(entry.state || "").toUpperCase() === internalStateKey);
   const lifecycleEntry = args.lifecycle.states[internalStateKey];
-  const locations = stateLocations(internalStateKey, args.locations || []);
+  const locations = stateLocations(stateKeys, args.locations || []);
   const stateTier = cleanText(row?.coverageTier || lifecycleEntry?.coverageTier, 80);
   const evaluatedAt = cleanText(args.asOf, 80) || new Date().toISOString();
   const currentEvidence = derivePublicDropEvidence(args.drops || [], evaluatedAt, {
@@ -1412,7 +1437,7 @@ export function searchCoverageTargets(args: {
   const cityNames = new Set<string>();
   const searchableAreaLocations = locations.filter((location) => location.searchable !== false && !isStoreLocation(location));
   for (const value of [
-    ...(lifecycleEntry?.areaOptions || []),
+    ...stateKeys.flatMap((key) => args.lifecycle.states[key]?.areaOptions || []),
     ...searchableRecords.flatMap((record) => [record.city, record.county]),
     ...currentInventoryEvidence.map((evidence) => evidence.city),
     ...searchableAreaLocations.flatMap((location) => [
@@ -1527,7 +1552,7 @@ export function findCoverageStoreTarget(args: {
   healthLimited?: boolean;
 }): CoverageStoreMatch | null {
   const stateCode = publicStateCode(args.stateCode);
-  const internalStateKey = coverageInternalStateKey(stateCode, args.lifecycle);
+  const stateKeys = coverageStateKeys(stateCode, args.lifecycle);
   const requestedId = cleanText(args.storeId, 400);
   if (!requestedId) return null;
   const evidenceIdentity = requestedId.startsWith("evidence:") ? requestedId.slice("evidence:".length) : "";
@@ -1559,7 +1584,7 @@ export function findCoverageStoreTarget(args: {
     };
   }
 
-  const store = stateStoreRecords(internalStateKey, args.locations || [], args.stores || [])
+  const store = stateStoreRecords(stateKeys, args.locations || [], args.stores || [])
     .find((record) => record.searchable && record.id === requestedId);
   if (!store) return null;
   return {
