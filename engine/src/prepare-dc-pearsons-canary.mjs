@@ -25,7 +25,7 @@ export async function prepareDcPearsonsCanary({report,reportDirectory,bible,prov
   const pearsonSourceId='research:dc:pearsons-shopify';
   const sourceRow=report?.sources?.find(row=>row.sourceRuntimeId===pearsonSourceId);
   const receipt=receipts.find(row=>row.url===PEARSONS_DC_SOURCE.productUrl);
-  const pearsonRequest=report?.metadata?.sourceAttempts?.['pearsons-wine-dc'];
+  const pearsonRequest=report?.metadata?.pearsons?.sourceAttempts?.['pearsons-wine-dc'];
   const finished=Date.parse(report?.finishedAt||'');
   const sourceTime=Date.parse(receipt?.observedAt||'');
   if(report?.state!=='DC'||report.metadata?.complete!==true||report.metadata.shadowOnly!==true
