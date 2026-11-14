@@ -6,6 +6,7 @@ import okManifest from '../../data/state-integration/OK.json' with {type:'json'}
 import riManifest from '../../data/state-integration/RI.json' with {type:'json'};
 import ksManifest from '../../data/state-integration/KS.json' with {type:'json'};
 import arManifest from '../../data/state-integration/AR.json' with {type:'json'};
+import moManifest from '../../data/state-integration/MO.json' with {type:'json'};
 import {STATE_LIFECYCLE_CONFIG} from '../state-lifecycle.mjs';
 import {validateImmutablePromotionEvidence,evaluateStateControl} from '../reliability-policy.mjs';
 import {collectionSignal,writeCollectionFile} from '../core/collection-context.mjs';
@@ -20,7 +21,7 @@ import {isCentralCityHiveProductionOnSiteSignal} from '../central-cityhive-polic
 import {CENTRAL_CITYHIVE_PRODUCTION_STATES,CENTRAL_CITYHIVE_PRODUCTION_BUDGETS,centralCityHiveProductionCohortKey,centralCityHiveProductionRuntimeId} from '../central-cityhive-production-config.mjs';
 
 export const CENTRAL_CITYHIVE_CACHE_MAX_AGE_MS=30*60_000;
-const manifests={WI:wiManifest,OK:okManifest,RI:riManifest,KS:ksManifest,AR:arManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
+const manifests={WI:wiManifest,OK:okManifest,RI:riManifest,KS:ksManifest,AR:arManifest,MO:moManifest},DAY=86_400_000,DENIALS=new Set([401,403,429,435]);
 const sha=value=>createHash('sha256').update(value).digest('hex');
 export function centralCityHiveSourceConfigHash(state,manifest=manifests[state]){
   if(!CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(state)||!manifest)throw new Error('Unreviewed production CityHive state');
@@ -53,7 +54,7 @@ function completeCohort(metadata,state){
     &&metadata.requests?.length>=sources.length&&metadata.requests.length<=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests
     &&metadata.requests.every(row=>row.ok===true&&row.status===200);
   if(!complete)return false;
-  if(!['RI','KS','AR'].includes(state))return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
+  if(!['RI','KS','AR','MO'].includes(state))return sources.every(source=>metadata.requests.some(row=>row.url===source.categoryUrl));
   if(metadata.requests.length!==CENTRAL_CITYHIVE_PRODUCTION_BUDGETS[state].maxRequests
     ||new Set(metadata.requests.map(row=>row.url)).size!==metadata.requests.length)return false;
   return sources.every(source => {

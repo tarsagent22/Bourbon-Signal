@@ -25,7 +25,7 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
     const fixturePath=source.state==='AR'&&source.id==='crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0'
       ? new URL('../test/fixtures/ar-cityhive/crossover-fayetteville-elijah-craig.json',import.meta.url) : researchFixture
       ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':source.state==='KS'?'ks-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
-      : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
+      : new URL(`../test/fixtures/central-cityhive/${source.state==='MO'?'barrel-blends-6226405682c4ff6dfe6d578a':source.id}.json`,import.meta.url);
     const contents=JSON.parse(await readFile(fixturePath,'utf8'));
     const fixture=contents.payloads?.[0]??contents;
     const products=fixture.products|| (fixture.product?[fixture.product]:[]);

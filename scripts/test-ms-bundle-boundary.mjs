@@ -90,6 +90,30 @@ test('Minnesota admission reverses only its reviewed lifecycle, active list and 
   }
 });
 
+test('Missouri active lifecycle pin or dormant shadow entry is exact and remains isolated from the historical MS bundle', async () => {
+  const name='src/config/state-lifecycle.json';
+  const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
+  const entry=/^    "MO": \{\n[\s\S]+?^    \},\n/mu.exec(current)?.[0];
+  assert.ok(entry);
+  const status=JSON.parse(current).states.MO.publicStatus;
+  if(status==='active')assert.equal(digest(entry),'b3c0517b815c94279b4bc515258e09d3862042aae1c2783c64989da2e94e02a9');
+  else assert.equal(status,'research_only');
+  assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
+  const mutations=status==='active'?[entry.replace('"artifactDigest": "','"artifactDigest": "changed'),
+    entry.replace('"cohortSha256": "','"cohortSha256": "changed'),entry.replace('"publicStatus": "active"','"publicStatus": "research_only"')]
+    :[entry.replace('"sourceLabel": "Missouri Costco warehouse bourbon watch"','"sourceLabel": "unreviewed Missouri source"'),
+      entry.replace('"shadowEligible": true','"shadowEligible": false')];
+  for(const changed of mutations){
+    const candidate=Buffer.from(current.replace(entry,changed));
+    if(status==='active'){
+      assert.throws(()=>normalizeHistoricalImplementationBytes(name,candidate),/exact attested MO entry/);
+    }else{
+      assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,candidate)),
+        evidence.implementationFilesSha256[name],'an altered MO lifecycle must remain outside the historical MS equivalence');
+    }
+  }
+});
+
 test('FL and IN proof normalization reverse exact additions while preserving the original MS anchor', async () => {
   const name = 'engine/src/operational-report.mjs';
   const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
@@ -242,9 +266,13 @@ test('nationwide reversal accepts only exact reviewed CA metadata and inactive c
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const { reviewed, original } of reversals) {
       assert.notEqual(reviewed, original);
+      const hook = reviewed === entry.registration?.reviewed
+        ? reviewed.replace('...CENTRAL_CITYHIVE_STATE_CONFIGS,', "...CENTRAL_CITYHIVE_STATE_CONFIGS.filter(source=>source.id!=='MO'),")
+        : reviewed;
+      assert.equal(current.split(hook).length - 1, 1, name);
       const changed = reviewed.replace(name.endsWith('.mjs') ? 'CENTRAL_CITYHIVE_STATE_CONFIGS' : 'California', 'UNREVIEWED_METADATA');
       assert.notEqual(changed, reviewed);
-      for (const mutation of [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed]) {
+      for (const mutation of [current.replace(hook, original), current.replace(hook, changed), current + '\n' + hook]) {
         assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /exact historical verification hook/);
       }
     }

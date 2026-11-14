@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {BourbonBible} from '../src/core/bible.mjs';
 import {collectState} from '../src/collectors/generic-state.mjs';
-import {ALL_STATE_SOURCES} from '../src/state-sources.mjs';
+import {ALL_STATE_SOURCES,STATE_SOURCES,DISABLED_STATE_SOURCES} from '../src/state-sources.mjs';
 import {STATE_LIFECYCLE_CONFIG} from '../src/state-lifecycle.mjs';
 import {evaluateCapacityBudget} from '../src/reliability-policy.mjs';
 import {stateTimeoutMs} from '../src/run.mjs';
@@ -46,6 +46,40 @@ test('inactive, quarantined and altered semantic/cohort/provenance authority blo
     for(const env of [{BOURBON_SIGNAL_DISABLED_STATES:state},{BOURBON_SIGNAL_QUARANTINED_STATES:state}])assert.equal(centralCityHiveProductionAllowed(state,opts.lifecycleConfig,{manifest:opts.promotionManifest,env}),false);
   }
   assert.equal(requests,0);
+});
+
+test('Missouri production route is registered while an inactive lifecycle still fails closed before cache, journal, or HTTP access',async t=>{
+  const sources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES.filter(source=>source.state==='MO');
+  const moConfig=config('MO'),budget=CENTRAL_CITYHIVE_PRODUCTION_BUDGETS.MO;
+  const inactiveLifecycle=structuredClone(STATE_LIFECYCLE_CONFIG);
+  inactiveLifecycle.activeStates=inactiveLifecycle.activeStates.filter(state=>state!=='MO');
+  Object.assign(inactiveLifecycle.states.MO,{publicStatus:'research_only',promotionStage:undefined,promotionEvidence:undefined});
+  let requests=0;
+  assert.equal(sources.length,10);
+  assert.ok(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes('MO'));
+  assert.equal(CENTRAL_CITYHIVE_PRODUCTION_COHORTS.MO,centralCityHiveProductionCohortKey('MO'));
+  assert.ok(STATE_LIFECYCLE_CONFIG.activeStates.includes('MO'));
+  assert.ok(STATE_SOURCES.some(source=>source.id==='MO'));
+  assert.ok(!DISABLED_STATE_SOURCES.some(source=>source.id==='MO'));
+  assert.ok(centralCityHiveProductionAllowed('MO',STATE_LIFECYCLE_CONFIG));
+  assert.equal(moConfig.strategy,'retailer_store_inventory');
+  assert.ok(moConfig.sources.some(source=>source.precisionOnly===true&&source.kind!=='costco'));
+  assert.equal(centralCityHiveProductionAllowed('MO',inactiveLifecycle),false);
+  assert.ok(budget.maxRequests>=sources.length&&budget.maxRequests<=sources.length*2);
+  assert.ok(budget.maxRequests*11_000<=budget.sourceMs);
+  assert.ok(budget.sourceMs<budget.stateMs&&budget.stateMs<=stateTimeoutMs(moConfig));
+  const directory=await mkdtemp(path.join(tmpdir(),'central-production-mo-dormant-'));
+  t.after(()=>rm(directory,{recursive:true,force:true}));
+  const report=await collectState(moConfig,bible,{lifecycleConfig:inactiveLifecycle,cityHiveSourceOptions:{
+    cacheDir:path.join(directory,'cache'),incidentDir:path.join(directory,'incidents'),
+    fetchText:async()=>{requests++;throw Error('Dormant Missouri route must not issue HTTP');},
+  }});
+  assert.equal(report.status,'not_promoted');
+  assert.equal(report.metadata.blockedByPromotion,true);
+  assert.equal(report.metadata.requestCount,0);
+  assert.equal(requests,0);
+  await assert.rejects(()=>readFile(path.join(directory,'cache','MO.json')),{code:'ENOENT'});
+  await assert.rejects(()=>readFile(path.join(directory,'incidents','MO.json')),{code:'ENOENT'});
 });
 
 test('KS activation is exact, silent, and still blocks when disabled or lifecycle is removed',async t=>{
