@@ -7,7 +7,7 @@ import { BourbonBible } from '../src/core/bible.mjs';
 import { researchSourceForState,withResearchLifecycle,collectResearchStateReport } from '../src/research-state-registry.mjs';
 import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
 import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
-import { CENTRAL_CITYHIVE_EXPANSION_SOURCES } from '../src/collectors/central-cityhive-expansion.mjs';
+import { CENTRAL_CITYHIVE_EXPANSION_SOURCES, centralCityHiveLibraryTier, parseCentralCityHiveInventory } from '../src/collectors/central-cityhive-expansion.mjs';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from '../src/collectors/central-cityhive-research-premises.mjs';
 import { CENTRAL_CITYHIVE_STATE_IDS } from '../src/central-cityhive-policy.mjs';
 import {cityHiveResearchSourceForState,collectCityHiveResearchReport} from '../src/research-cityhive-runtime.mjs';
@@ -19,10 +19,10 @@ for(const source of CENTRAL_CITYHIVE_EXPANSION_SOURCES)fixtures.set(source.hostn
 const html=fixture=>`<script type="application/json">${fixture}</script>`;
 const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
 
-test('scheduled shadow registers exact CT/DE/HI/KS/MD/MN/MO/MA candidates while production cohort remains WI/OK',()=>{
+test('scheduled shadow registers exact retailer candidates while production cohort remains WI/OK',()=>{
   assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
-  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','DE','HI','KS','MA','MD','MN','MO']);
-  for(const state of ['CT','DE','HI','KS','MD','MN','MO','MA']){
+  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','DE','HI','KS','MA','MD','MN','MO','WY']);
+  for(const state of ['CT','DE','HI','KS','MD','MN','MO','MA','WY']){
     const config=cityHiveResearchSourceForState(state);
     assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
     assert.ok(config.sources.length>0);
@@ -30,6 +30,24 @@ test('scheduled shadow registers exact CT/DE/HI/KS/MD/MN/MO/MA candidates while 
   const ct=cityHiveResearchSourceForState('CT');
   assert.equal(ct.sources.length,2);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
+});
+
+test('Wyoming Weller identity requires the reviewed merchant, bottle, variant and proof', async () => {
+  const source = CENTRAL_CITYHIVE_RESEARCH_SOURCES.find(row => row.id === 'liquor-store-jackson-hole');
+  const fixture = JSON.parse(await readFile(new URL('./fixtures/wyoming-cityhive/jackson-weller.json', import.meta.url), 'utf8'));
+  const parse = body => parseCentralCityHiveInventory(html(JSON.stringify(body)), source, bible,
+    { observedAt: fixture.capture.observedAt });
+  const [row] = parse(fixture);
+  assert.equal(row.canonicalName, 'Weller Full Proof');
+  assert.equal(row.quantity, 0);
+  assert.equal(row.quantityIsExact, false);
+  assert.ok(['allocated', 'unicorn'].includes(centralCityHiveLibraryTier(row, bible)));
+
+  const wrongProof = structuredClone(fixture);
+  wrongProof.products[0].merchants[0].product_options[0].option_display_data.properties.content = '45%';
+  assert.deepEqual(parse(wrongProof), []);
+  assert.equal(centralCityHiveLibraryTier({ ...row, optionId: 'different-variant' }, bible), null);
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('WY'), false);
 });
 
 test('Greenbelt product detail is isolated Maryland research with exact identity and no delivery',async()=>{
