@@ -2,7 +2,7 @@ import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
-import { isWyomingGroceryCanaryPreview } from '../../engine/src/wyoming-grocery-policy.mjs';
+import { isWyomingGroceryCanaryPreview, isWyomingGroceryProductionInventory } from '../../engine/src/wyoming-grocery-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
   ["retailer:ms:cityhive:68ba2980113a7a29c2076fc3", "029254"],
@@ -161,7 +161,9 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && !canAlert;
 
   if (isLaakGroceryInventory) return isLaakCanaryPreview || isLaakProductionOnSite;
-  if (state === 'WY' && drop.previewOnly === true) return isWyomingGroceryCanaryPreview(drop);
+  if (state === 'WY' && type === 'retailer_store_inventory_result') {
+    return isWyomingGroceryCanaryPreview(drop) || isWyomingGroceryProductionInventory(drop);
+  }
   if (isLaakCanaryPreview || isLaakProductionOnSite) return true;
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);

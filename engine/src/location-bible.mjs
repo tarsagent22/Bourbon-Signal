@@ -3,6 +3,7 @@ import { STATE_SOURCES } from './state-sources.mjs';
 import { registeredDemandMetroLocations } from './demand-metro-registry.mjs';
 import { MINNESOTA_CITYHIVE_PRODUCTION_SOURCES } from './minnesota-cityhive-production-config.mjs';
 import { CENTRAL_CITYHIVE_PRODUCTION_SOURCES } from './collectors/central-cityhive-premises.mjs';
+import { WYOMING_GROCERY_LABEL, WYOMING_GROCERY_STORES } from './wyoming-grocery-policy.mjs';
 
 const NC_COUNTIES = [
   'Alamance','Alexander','Alleghany','Anson','Ashe','Avery','Beaufort','Bertie','Bladen','Brunswick','Buncombe','Burke','Cabarrus','Caldwell','Camden','Carteret','Caswell','Catawba','Chatham','Cherokee','Chowan','Clay','Cleveland','Columbus','Craven','Cumberland','Currituck','Dare','Davidson','Davie','Duplin','Durham','Edgecombe','Forsyth','Franklin','Gaston','Gates','Graham','Granville','Greene','Guilford','Halifax','Harnett','Haywood','Henderson','Hertford','Hoke','Hyde','Iredell','Jackson','Johnston','Jones','Lee','Lenoir','Lincoln','Macon','Madison','Martin','McDowell','Mecklenburg','Mitchell','Montgomery','Moore','Nash','New Hanover','Northampton','Onslow','Orange','Pamlico','Pasquotank','Pender','Perquimans','Person','Pitt','Polk','Randolph','Richmond','Robeson','Rockingham','Rowan','Rutherford','Sampson','Scotland','Stanly','Stokes','Surry','Swain','Transylvania','Tyrrell','Union','Vance','Wake','Warren','Washington','Watauga','Wayne','Wilkes','Wilson','Yadkin','Yancey'
@@ -99,6 +100,16 @@ export function buildLocationBible(signals = [], officialLocations = []) {
         id: source.storeId, state: source.state, type: 'store', name: source.name,
         address: source.address, city: source.city, zip: source.zip, lat: source.lat, lng: source.lng,
         source: source.sourceLabel, sourceUrl: source.categoryUrl, precision: 'store_level',
+        inventoryCapability: 'exact_store_source_registered', collectorAttached: true,
+      }));
+    }
+  }
+  if (activeStateIds.has('WY')) {
+    for (const store of WYOMING_GROCERY_STORES) {
+      locations.push(makeLocation({
+        id: store.storeId, state: 'WY', type: 'store', name: 'Albertsons ' + store.city,
+        address: store.address, city: store.city, zip: store.zip, lat: store.lat, lng: store.lng,
+        source: WYOMING_GROCERY_LABEL, sourceUrl: store.locator, precision: 'store_level',
         inventoryCapability: 'exact_store_source_registered', collectorAttached: true,
       }));
     }

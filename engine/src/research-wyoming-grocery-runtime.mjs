@@ -178,14 +178,21 @@ export async function replayWyomingGroceryReport(report, reportDirectory, bible,
   return replay;
 }
 
-export async function collectWyomingGroceryResearchReport(candidate, bible, {
+export async function collectWyomingGroceryResearchReport(candidate, bible, options = {}) {
+  if (candidate !== config || (options.env ?? process.env).BOURBON_SIGNAL_SHADOW_MODE !== '1') {
+    throw new Error('Wyoming requires its registered shadow collector');
+  }
+  return collectWyomingGroceryObservation(bible, options);
+}
+
+export async function collectWyomingGroceryObservation(bible, {
   fetchText = fetchReviewedFirstPartyText, env = process.env, signal,
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
   reportDirectory = process.env.BOURBON_SIGNAL_STATE_OUT_FILE ? path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE) : path.resolve('out/research-grocery/WY'),
   incidentFile = path.resolve('out/research-source-attempts/wy-albertsons.json'),
   cursorDir,
+  retainCaptureBodies = true,
 } = {}) {
-  if (candidate !== config || env.BOURBON_SIGNAL_SHADOW_MODE !== '1') throw Error('Wyoming requires its registered shadow collector');
   const reviewedHosts = [...stores, {state: 'WY', hostname: 'local.albertsons.com'}];
   let journal = await readCityHiveIncidentJournal(incidentFile, 'WY', reviewedHosts);
   const now = Date.now();
@@ -204,11 +211,13 @@ export async function collectWyomingGroceryResearchReport(candidate, bible, {
   if (indexedQueries.size !== stores.length) throw Error('Wyoming indexed queries must cover the reviewed roster');
   journal = {...journal, inFlight: {attemptId: randomUUID(), startedAt}};
   persistCityHiveIncidentJournal(incidentFile, journal);
+  let denialObserved = false;
   async function capture(url, store, term) {
     if (receipts.length) await sleep(1_500);
     bounded.throwIfAborted();
     const recordDenial = result => {
       if (!CITYHIVE_DENIAL_STATUSES.has(result.status)) return;
+      denialObserved = true;
       const attempted = Date.now();
       const host = new URL(url).hostname;
       journal = {...journal, inFlight: null, hosts: {...journal.hosts, [host]: {httpStatus: result.status,
@@ -224,31 +233,41 @@ export async function collectWyomingGroceryResearchReport(candidate, bible, {
     if (!result.ok || result.status !== 200 || result.url !== url) throw Error('Wyoming first-party response was not complete or redirected');
     const observedAt = result.observedAt || new Date().toISOString(), bytes = Buffer.from(result.text);
     const sha256 = digest(bytes), artifactPath = `source-captures/${receipts.length + 1}-${sha256.slice(0, 12)}.${term ? 'json' : 'html'}`;
-    await mkdir(path.dirname(path.join(reportDirectory, artifactPath)), {recursive: true});
-    await writeFile(path.join(reportDirectory, artifactPath), bytes, {signal: bounded});
+    if (retainCaptureBodies) {
+      await mkdir(path.dirname(path.join(reportDirectory, artifactPath)), {recursive: true});
+      await writeFile(path.join(reportDirectory, artifactPath), bytes, {signal: bounded});
+    }
     receipts.push({url, finalUrl: result.url, status: result.status, observedAt, sha256, bytes: bytes.length,
-      artifactPath, storeId: store.storeId, term});
+      ...(retainCaptureBodies ? { artifactPath } : {}), storeId: store.storeId, term});
     return {text: result.text, observedAt};
   }
-  for (const [storeIndex, store] of stores.entries()) {
-    const locator = await capture(store.locator, store, null);
-    if (!matchesLocator(locator.text, store)) throw Error('Wyoming first-party locator lost its address binding for ' + store.storeId);
-    verified.push(store.storeId);
-    for (const term of ['bourbon', indexedQueries.get(storeIndex)].filter(Boolean)) {
-      const url = new URL(endpoint);
-      url.search = new URLSearchParams({'request-id': String(Date.now()), url: url.origin, pageurl: url.origin,
-        pagename: 'search', rows: '100', start: '0', 'search-type': 'keyword', storeid: store.merchantId,
-        featured: 'true', 'search-uid': '', q: term, channel: 'instore', banner: 'albertsons'});
-      const captured = await capture(url.href, store, term);
-      const payload = JSON.parse(captured.text);
-      if (term !== 'bourbon' && isUnconfirmedEmptySearch(payload)) {
-        unconfirmedQueries.push({ storeId: store.storeId, term });
-        continue;
-      }
-      for (const row of parseWyomingGrocerySearch(payload, store, term, bible, captured.observedAt)) {
-        if (!collected.has(row.id)) collected.set(row.id, row);
+  try {
+    for (const [storeIndex, store] of stores.entries()) {
+      const locator = await capture(store.locator, store, null);
+      if (!matchesLocator(locator.text, store)) throw Error('Wyoming first-party locator lost its address binding for ' + store.storeId);
+      verified.push(store.storeId);
+      for (const term of ['bourbon', indexedQueries.get(storeIndex)]) {
+        const url = new URL(endpoint);
+        url.search = new URLSearchParams({'request-id': String(Date.now()), url: url.origin, pageurl: url.origin,
+          pagename: 'search', rows: '100', start: '0', 'search-type': 'keyword', storeid: store.merchantId,
+          featured: 'true', 'search-uid': '', q: term, channel: 'instore', banner: 'albertsons'});
+        const captured = await capture(url.href, store, term);
+        const payload = JSON.parse(captured.text);
+        if (term !== 'bourbon' && isUnconfirmedEmptySearch(payload)) {
+          unconfirmedQueries.push({ storeId: store.storeId, term });
+          continue;
+        }
+        for (const row of parseWyomingGrocerySearch(payload, store, term, bible, captured.observedAt)) {
+          if (!collected.has(row.id)) collected.set(row.id, row);
+        }
       }
     }
+    bounded.throwIfAborted();
+  } catch (error) {
+    // An HTTP denial clears the latch only after the cooldown has been written.
+    // If a denial write fails, retain the original on-disk latch.
+    if (!denialObserved) persistCityHiveIncidentJournal(incidentFile, { ...journal, inFlight: null });
+    throw error;
   }
   persistCityHiveIncidentJournal(incidentFile, {...journal, inFlight: null});
   const signals = [...collected.values()];

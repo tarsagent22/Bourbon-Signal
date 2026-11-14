@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {executeNjMiResearchFixtures} from './nj-mi-research-fixtures.mjs';
 import { executeGroceryResearchFixtures } from './grocery-research-fixtures.mjs';
+import { executeWyomingFixtures } from './wyoming-grocery-fixtures.mjs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -493,6 +494,7 @@ export async function executeStateFixtures(payload, { bibleFile = path.resolve('
   if(['AK','LA'].includes(payload.state))return executeLaakResearchFixtures(payload,{bible});
   if(['NJ','MI'].includes(payload.state))return executeNjMiResearchFixtures(payload,{bible});
   if (payload.state === 'MA') return executeMassachusettsResearchFixtures(payload, { bible });
+  if (payload.state === 'WY') return executeWyomingFixtures(payload, { bible });
   if(['WA','NM'].includes(payload.state))return executeGroceryResearchFixtures(payload,{bible});
   if(CENTRAL_CITYHIVE_STATE_IDS.has(payload.state)||CENTRAL_CITYHIVE_RESEARCH_SOURCES.some(source=>source.state===payload.state))return executeCentralCityHiveFixtures(payload,{bible});
   const registeredHosts = registeredHostsForState(payload.state);

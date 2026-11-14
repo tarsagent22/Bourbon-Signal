@@ -1,6 +1,7 @@
 import {collectNjMiCityHiveProductionState} from './nj-mi-cityhive-production.mjs';
 import {NJ_MI_PRODUCTION_STATES} from '../nj-mi-production-config.mjs';
 import {collectWesternGroceryProductionState} from './western-grocery-production.mjs';
+import { collectWyomingGroceryProductionState } from './wyoming-grocery-production.mjs';
 import {WESTERN_GROCERY_PRODUCTION_STATES} from '../western-grocery-production-config.mjs';
 import { findDocumentLinks, stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { fetchWithMeta, tryParseJson } from '../core/fetcher.mjs';
@@ -489,6 +490,7 @@ export async function collectState(config, bible, options = {}) {
     return collectLouisianaAlaskaGroceryProductionState(productionConfig,bible,{...options,timeoutMs:Math.min(Number(options.timeoutMs)||budget.stateMs,budget.stateMs)});
   }
   if (WESTERN_GROCERY_PRODUCTION_STATES.includes(config.id)) return collectWesternGroceryProductionState(config,bible,options);
+  if (config.id === 'WY') return collectWyomingGroceryProductionState(config,bible,options);
   if(NJ_MI_PRODUCTION_STATES.includes(config.id))return collectNjMiCityHiveProductionState(config,bible,options);
   if(CENTRAL_CITYHIVE_PRODUCTION_STATES.includes(config.id))return collectCentralCityHiveProductionState(config,bible,options);
   const startedAt = new Date().toISOString();

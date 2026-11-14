@@ -55,7 +55,11 @@ function verifiedStateQueries(report, state, nowMs, maxAgeMs) {
   const grocery = ['AK', 'LA'].includes(state) && ['closed_profile_verified', 'positive_evidence_only'].includes(metadata?.productionAdmission?.status)
     ? rowsOf(metadata.requests).filter(request => request.kind === 'inventory'
       && request.ok && current(request.observedAt)) : [];
-  return [...precision, ...cityHiveQueries, ...grocery];
+  const wyoming = state === 'WY' && metadata?.grocery?.complete === true
+    ? rowsOf(metadata.grocery.receipts).filter(request => request.status === 200 && request.term && current(request.observedAt)
+      && !rowsOf(metadata.grocery.unconfirmedQueries).some(item => item.storeId === request.storeId && item.term === request.term))
+    : [];
+  return [...precision, ...cityHiveQueries, ...grocery, ...wyoming];
 }
 
 export function buildLibraryCoverageAudit({ bible, catalog, reports = {}, drops = [], alerts = [], stats = {}, nowMs = Date.now(), maxAgeMs = 2 * 3_600_000 }) {

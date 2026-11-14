@@ -9,7 +9,7 @@ const {normalizePublicDropEvidenceInput,isPublicDropFeedEligible,isCurrentInvent
 const {buildCoverageContract}=coverageModule.default||coverageModule;
 const {normalizeDropForSite}=siteEngineModule.default||siteEngineModule;
 const state=process.argv.find(value=>value.startsWith('--state='))?.slice(8);
-assert.ok(['WA','NM'].includes(state),'Use reviewed --state=WA|NM');
+assert.ok(['WA','NM','WY'].includes(state),'Use reviewed --state=WA|NM|WY');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
@@ -23,7 +23,7 @@ assert.ok(accepted.every(row=>row.previewOnly&&row.canAlertAsInventory===false&&
 const binary=accepted.find(row=>row.quantityIsExact===false);
 assert.ok(binary,'Actual shadow capture must exercise binary availability without an invented count');
 assert.equal(binary.quantity,0);
-assert.equal(binary.inventorySemantics,'binary_retailer_orderable_no_exact_count');
+assert.equal(binary.inventorySemantics,state==='WY'?'binary_retailer_in_store_availability':'binary_retailer_orderable_no_exact_count');
 for(const mutation of [{storeId:'unreviewed'},{productId:'unreviewed'},{quantity:1},{inventorySemantics:'exact_retailer_quantity'},
   {eligibleForOnSite:false},{eligibleForDelivery:true},{sourceStale:true}]){
   const changed={...binary,...mutation};
@@ -36,6 +36,10 @@ assert.equal(coverage?.capabilities.currentBottleAvailability,true);
 assert.equal(coverage?.capabilities.restockAlerts,false);
 assert.ok(coverage.scope.searchableStores>0);
 assert.equal(coverage.scope.inventoryMonitoredStores,new Set(accepted.map(row=>row.storeId)).size);
+if (state === 'WY') {
+  assert.equal(coverage.scope.searchableStores,4);
+  assert.ok(accepted.every(row=>!isCurrentInventoryEvidence(row,Date.parse(row.observedAt)+2*60*60_000+1)));
+}
 const proof={state,evaluatedAt:clock,scope:'local_customer_projection_of_workflow_canary_not_live_preview',
   rawRows:partition.drops.length,publicCurrentRows:accepted.length,publicCurrentStores:coverage.scope.inventoryMonitoredStores,
   searchableStores:coverage.scope.searchableStores,allDeliveryDisabled:true,binaryQuantityRemainsZero:true};
