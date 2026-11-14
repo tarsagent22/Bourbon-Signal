@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "state": "DE",
+  "researchOnly": true,
+  "source": {
+    "retailer": "Banks Wines & Spirits",
+    "platform": "Ecwid storefront",
+    "storeId": "130511528",
+    "premise": {
+      "name": "Banks Wines & Spirits",
+      "address": "38014 Town Center Drive, Millville, DE 19967",
+      "city": "Millville",
+      "county": "Sussex",
+      "state": "DE",
+      "premiseSourceUrl": "https://bankswinesandspirits.com/",
+      "premiseObservedAt": "2026-11-14T16:36:54Z",
+      "pickupPolicy": "Convenient In-Store and Curbside Pickup available for all orders. Shipping is unavailable due to state regulations."
+    },
+    "productUrl": "https://bankswinesandspirits.com/products/old-forester-bws-single-barrel-bourbon-barrel-strength-750ml",
+    "productObservedAt": "2026-11-14T15:21:52Z",
+    "evidence": {
+      "premiseCapturePath": "C:/Users/chand/projects/bs-de-banks-evidence-20261114/home.html",
+      "premiseCaptureSha256": "ff542751cffdb8780e453e67f2463218664d3c5361dfc8de20a036511ef59307",
+      "premiseHeadersPath": "C:/Users/chand/projects/bs-de-banks-evidence-20261114/home.headers",
+      "productCapturePath": "C:/Users/chand/projects/bs-de-banks-evidence-20261114/old-forester.html",
+      "productCaptureSha256": "9ea494195dcba4825d20b9ca3ed0eaaba84d819ebc5e1b04e0b7e4350d81213f",
+      "productHeadersPath": "C:/Users/chand/projects/bs-de-banks-evidence-20261114/old-forester.headers.txt",
+      "productHeadersSha256": "943fc76154d3311c5d14b10f51326c8752eeb6df568b7e2a0eb825b5e00cf211",
+      "premiseHeadersSha256": "07a1e13397d0655f817bde531fa6cae88362ac293e289b53bb0472f9e3537790"
+    }
+  },
+  "product": {
+    "productId": "813956453",
+    "sku": "081128002664",
+    "title": "OLD FORESTER BWS SINGLE BARREL BOURBON BARREL STRENGTH 750ML",
+    "description": "BWS Old Forester Barrel Select Barrel Proof ‘Bank On It 2026’ (128.1 proof)",
+    "sizeMl": 750,
+    "priceUsd": 89,
+    "schemaAvailability": "https://schema.org/InStock",
+    "visibleAvailability": "In stock: 22 available",
+    "pickupWindow": "today, 12:30 PM–09:30 PM",
+    "addToBagVisible": true,
+    "reviewedLibraryMapping": {
+      "matchText": "Old Forester Single Barrel Barrel Strength Bourbon",
+      "canonicalId": "old-forester-single-barrel-barrel-proof",
+      "canonicalName": "Old Forester Single Barrel Barrel Proof",
+      "tier": "allocated",
+      "libraryMethod": "exact-library-identity",
+      "libraryRecordsSha256": "2f98c28c23a9f20f10e68777e158aff1539075e60a448d32700fdd574a46c0cc"
+    }
+  },
+  "reviewNotes": [
+    "Store identity is bound across the first-party home page's store ID, address, pickup policy, and the product page's Ecwid image/component path.",
+    "The body product ID is 813956453, visible in the Ecwid product-page component and product-image URL. 853683296 is only the footer gift-card link and is excluded.",
+    "The page's BWS barrel-select phrase names the shop's private barrel selection; the saved library match is explicit and scoped to the exact product title, SKU, and product ID. No global alias was added.",
+    "Availability is retained as binary evidence for customer projection; the source's count of 22 is evidence only and should not be published as a quantity."
+  ]
+}
