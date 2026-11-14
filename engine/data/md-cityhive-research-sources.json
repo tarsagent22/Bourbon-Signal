@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "status": "research_only",
+  "source": "Greenbelt Liquors first-party CityHive product detail capture, 2026-11-14; source evidence and compact test fixture retained in engine/test/fixtures/md-cityhive/.",
+  "stores": [
+    {
+      "id": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+      "chainId": "greenbelt-liquors-md",
+      "chainName": "Greenbelt Liquors",
+      "name": "Greenbelt Liquors",
+      "state": "MD",
+      "stateCode": "MD",
+      "platform": "cityhive",
+      "baseUrl": "https://delivery.greenbeltliquors.com",
+      "hostname": "delivery.greenbeltliquors.com",
+      "merchantId": "6060f47c27f7c71989f0749c",
+      "address": "6000 Greenbelt Rd #168, Greenbelt, MD 20770, USA",
+      "city": "Greenbelt",
+      "zip": "20770",
+      "storeId": "greenbelt-liquors-md:6060f47c27f7c71989f0749c",
+      "sourceLabel": "Greenbelt Liquors MD first-party pickup inventory",
+      "categoryUrl": "https://delivery.greenbeltliquors.com/shop/?subtype=Bourbon&merchant-id=6060f47c27f7c71989f0749c",
+      "lat": 38.9995236,
+      "lng": -76.9099301,
+      "evidenceDate": "2026-11-14"
+    }
+  ]
+}

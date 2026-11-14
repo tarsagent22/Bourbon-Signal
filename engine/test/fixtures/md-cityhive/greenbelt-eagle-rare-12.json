@@ -1,0 +1,46 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "6060f47c27f7c71989f0749c",
+        "address": {
+          "full_address": "6000 Greenbelt Rd #168, Greenbelt, MD 20770, USA",
+          "location": { "type": "Point", "coordinates": [-76.9099301, 38.9995236] }
+        },
+        "accept_orders": true,
+        "integrated": true,
+        "pickup_enabled": true,
+        "last_inventory_upload": "2026-11-13T20:45:32.934Z"
+      }
+    }
+  ],
+  "product": {
+    "id": "682fc772b2b09825a9bfa4d9",
+    "name": "Eagle Rare 12 Years Old Bourbon",
+    "basic_category": "bourbon",
+    "merchants": [
+      {
+        "merchant_id": "6060f47c27f7c71989f0749c",
+        "address": { "full_address": "6000 Greenbelt Rd #168, Greenbelt, MD 20770, USA" },
+        "offer_types": ["pick_up", "delivery", "shipping"],
+        "product_options": [
+          {
+            "merchant_id": "6060f47c27f7c71989f0749c",
+            "address": { "full_address": "6000 Greenbelt Rd #168, Greenbelt, MD 20770, USA" },
+            "product_id": "682fc772b2b09825a9bfa4d9",
+            "option_id": "8b2593031856f80d2e74abafdc940686302e1227092ce6bb69e52830f8768f42",
+            "product_url": "https://delivery.greenbeltliquors.com/shop/product/eagle-rare-12-years-old-bourbon/682fc772b2b09825a9bfa4d9?option-id=8b2593031856f80d2e74abafdc940686302e1227092ce6bb69e52830f8768f42",
+            "price": 104.98,
+            "quantity": 1,
+            "option_display_data": {
+              "name": "Eagle Rare 12 Years Old Bourbon 750ml",
+              "size": { "quantity": 750, "measure": "ml" },
+              "properties": { "age": "12", "brands": ["Eagle Rare"], "content": "45%" },
+              "basic_category": "bourbon"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
