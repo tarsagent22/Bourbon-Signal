@@ -364,7 +364,7 @@ if (state === 'RI') files.push(
   '.github/workflows/refresh-feed.yml',
 );
 if (state === 'MD') files.push(
-  'engine/data/md-cityhive-research-sources.json',
+  'engine/data/md-cityhive-reviewed-sources.json',
   'engine/src/collectors/central-cityhive-premises.mjs',
   'engine/src/collectors/central-cityhive-production.mjs',
   'engine/src/collectors/central-cityhive-expansion.mjs',
@@ -377,6 +377,7 @@ if (state === 'MD') files.push(
   'engine/test/md-first-publication.test.mjs',
   'engine/test/fixtures/md-cityhive/README.md',
   'engine/test/fixtures/md-cityhive/greenbelt-blantons-original.json',
+  'engine/test/fixtures/md-cityhive/greenbelt-eagle-rare-12.json',
   'engine/test/fixtures/md-cityhive/frederick-eagle-rare-10.json',
   'engine/test/fixtures/md-cityhive/ocean-city-elijah-craig-bp.json',
   'engine/test/fixtures/md-cityhive/owings-mills-elijah-craig-bp.json',
