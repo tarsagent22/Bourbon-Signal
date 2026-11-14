@@ -1,24 +1,149 @@
 {
   "schemaVersion": 1,
   "state": "AK",
-  "lifecycle": {"customerLabel":"Alaska","publicStatus":"active","coverageTier":"sparse_live_store_inventory","refinementLevel":"store"},
-  "collector": {"sourceIds":["research:ak:grocery-xapi"],"registration":"Isolated Alaska shadow collector replays bounded exact-store Carrs/Safeway XAPI captures. Candidate preparation reparses all original resolver and inventory response bodies against the current Bible, preserving source observation timestamps and disabling every alert and delivery path."},
-  "storeIdentity": {"mode":"registered_first_party_store_id_and_resolver_address","addressRequired":true,"proof":"Exact Carrs/Safeway merchant IDs are matched to first-party resolver rows and to the immutable report's premise-bound product captures."},
-  "sourceSemantics": {"availability":"First-party in-store orderable binary availability; unknown quantity remains zero and is not presented as an exact shelf count.","inventoryAlertable":false,"watchAlertable":false},
+  "lifecycle": {
+    "customerLabel": "Alaska",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "ak:grocery-xapi"
+    ],
+    "cohortSha256": "176f15c02a77737bf2e149d5916affd912cb83000d67f6788d68b1b2cbc64f61",
+    "registration": "The production adapter requires the authoritative active lifecycle, the exact reviewed cohort and immutable promotion evidence before sending requests. Current public rows use binary availability with all delivery channels disabled."
+  },
+  "storeIdentity": {
+    "mode": "registered_first_party_store_id_and_resolver_address",
+    "addressRequired": true,
+    "proof": "Carrs and Safeway merchant IDs are checked against the current official resolver and exact premises. Each qualifying result must preserve its matching product variant, exact store and in-store channel proof."
+  },
+  "sourceSemantics": {
+    "availability": "First-party in-store orderable binary availability; unknown quantity remains zero and is not presented as an exact shelf count.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
   "customerPaths": {
-    "stateFilter":{"status":"verified","assertion":"Isolated canary contains the AK state partition while authoritative Alaska lifecycle stays research-only."},
-    "areaFilter":{"status":"verified","assertion":"Canary stores retain exact resolver-confirmed addresses and cities."},
-    "preferences":{"status":"verified","assertion":"Preview lifecycle derives from current configuration without modifying authoritative lifecycle."},
-    "dashboard":{"status":"verified","assertion":"Preview snapshot includes only captured exact-store AK positives and derived coverage."},
-    "dropFeedApi":{"status":"verified","assertion":"Preview rows keep source identity, binary quantity semantics, original receipt timestamps, and disabled alerts."},
-    "finder":{"status":"verified","assertion":"Searchable AK locations are limited to reviewed premises in the replayed source cohort."},
-    "alerts":{"status":"verified","assertion":"Candidate rows and preview lifecycle disable inventory, watch, email, SMS, and delivery alerts."},
-    "monitoring":{"status":"verified","assertion":"Canary output counts are isolated from production monitoring and publication."},
-    "export":{"status":"verified","assertion":"Candidate export requires full digest-bound source capture replay and current Bible identity revalidation."}
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Isolated canary contains the AK state partition while authoritative Alaska lifecycle stays research-only."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Canary stores retain exact resolver-confirmed addresses and cities."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Preview lifecycle derives from current configuration without modifying authoritative lifecycle."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "The deployed isolated Coverage API independently confirmed 15 current stores across 10 cities."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The executable customer projection admitted 28 current listings. The default feed projection preserves binary availability and disables all alerts."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "19 exact reviewed premises are searchable in the isolated preview. A production-path query for Anchorage returned exact store results in the isolated deployment."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Candidate rows and preview lifecycle disable inventory, watch, email, SMS, and delivery alerts."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "Canary output counts are isolated from production monitoring and publication."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Candidate export requires full digest-bound source capture replay and current Bible identity revalidation."
+    }
   },
   "evidence": {
-    "shadow":{"status":"verified","runs":1,"artifact":"https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813","assertion":"Saved successful shadow report contains 53 verified bounded requests, 19 exact resolver premises, 29 current positive signals across 15 stores, and no publication or alert delivery."},
-    "canary":{"status":"not_run","runs":0,"artifact":null,"reason":"Local replay and preview rehearsal are not a hosted canary or deployed preview."},
-    "production":{"status":"not_deployed","url":null,"assertion":"No production inventory or customer alerts were activated by this research canary preparation.","reason":"Alaska remains research-only pending separate activation review."}
+    "shadow": {
+      "status": "verified",
+      "runs": 3,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+      "observations": [
+        {
+          "runId": "43565682813",
+          "status": "success",
+          "artifactHash": "be685c255dddd4d9010f5dd80fa1a0ceaba469c9c396178c33a5a58dcf320404",
+          "artifactId": "14101879455",
+          "commitSha": "e3fc259d5723af5034e240c2dc5ad1d112b67573",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43565682813",
+          "artifactName": "state-expansion-shadow-43565682813"
+        },
+        {
+          "runId": "43573194351",
+          "status": "success",
+          "artifactHash": "4e8794f5ccf0f34bbc3640f9a8347ddf5932bd1e26ebcd6b8f10d3bfee9b98b8",
+          "artifactId": "14105063250",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573194351",
+          "artifactName": "state-expansion-shadow-43573194351"
+        },
+        {
+          "runId": "43575218820",
+          "status": "success",
+          "artifactHash": "1a12bce4a50ec32329c56e335844587308b6fbc9a439aae95a7b77463e8882be",
+          "artifactId": "14105613292",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43575218820",
+          "artifactName": "state-expansion-shadow-43575218820"
+        }
+      ],
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 2,
+      "artifact": "https://bourbonsignal-1v7r2zl89-tarsagent22s-projects.vercel.app",
+      "observations": [
+        {
+          "runId": "43572883679",
+          "status": "success",
+          "artifactHash": "ac90ff1c8a460e3dfe86977365db81bf8854def51ee0e2c25dcf730ca8182b02",
+          "artifactId": "14105097468",
+          "commitSha": "4ed1f2314a4821163699af5272bcf2c22d8b6f39",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43572883679",
+          "artifactName": "state-expansion-canary-AK-43572883679"
+        },
+        {
+          "runId": "43573427082",
+          "status": "success",
+          "artifactHash": "6d3f467be41ea9a1545c211bdcd89f38fc9bfca49f31808ad1bc48bfbb16a4f9",
+          "artifactId": "14105700389",
+          "commitSha": "5179ccae0be79c716c5f6892ec9b745c4dee7a68",
+          "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43573427082",
+          "artifactName": "state-expansion-canary-AK-43573427082"
+        }
+      ],
+      "siteArtifact": "engine/data/canary-site/alaska-louisiana-20261114",
+      "allDeliveryChannelsDisabled": true
+    },
+    "production": {
+      "status": "awaiting_first_publication",
+      "url": "https://www.bourbonsignal.com/api/drops?state=AK",
+      "assertion": "Current inventory must come from a fresh closed-cohort collection and be confirmed on the canonical coverage and store paths after immutable publication."
+    },
+    "actualPreviewVerification": {
+      "verifiedAt": "2026-11-14T08:24:16.664Z",
+      "currentPublicRows": 28,
+      "currentPublicStores": 15,
+      "currentCities": 10,
+      "coverageHttpStatus": 200,
+      "finderHttpStatus": 200,
+      "finderCity": "Anchorage",
+      "physicalDeviceExercised": false,
+      "allDeliveryChannelsDisabled": true,
+      "partitionSha256": "3d804d14a3d0759db1e02584aa53a732146485ab4777b0429dc88780ac60c982"
+    }
+  },
+  "rollback": {
+    "disableSource": "Remove production admission for the state or use the guarded state disable control; technical source research remains isolated."
   }
 }
