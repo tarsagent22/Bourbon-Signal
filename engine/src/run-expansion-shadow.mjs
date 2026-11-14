@@ -15,15 +15,21 @@ const OREGON_PREREQUISITE_TIMEOUT_MS = 3 * 60_000;
 function stateId(value) { return String(value || '').trim().toUpperCase(); }
 function asArray(value) { return Array.isArray(value) ? value : []; }
 
-export function selectShadowCandidates(lifecycle, { states = [], limit = 5 } = {}) {
+export function selectShadowCandidates(lifecycle, { states = [], limit = 5, scheduledAt } = {}) {
   const active = new Set(asArray(lifecycle?.activeStates).map(stateId));
   const requested = new Set(asArray(states).map(stateId).filter(Boolean));
-  return Object.entries(lifecycle?.states || {})
+  const candidates = Object.entries(lifecycle?.states || {})
     .filter(([state, entry]) => !active.has(state) && entry?.publicStatus !== 'active' && entry?.shadowEligible === true)
     .map(([state]) => state)
     .filter((state) => requested.size === 0 || requested.has(state))
-    .sort()
-    .slice(0, Math.max(0, Number(limit) || 0));
+    .sort();
+  const count = Math.min(candidates.length, Math.max(0, Number(limit) || 0));
+  if (!requested.size && count > 0 && count < candidates.length && Number.isFinite(scheduledAt)) {
+    const window = Math.floor(scheduledAt / (4 * 60 * 60_000));
+    const batch = window % Math.ceil(candidates.length / count);
+    return candidates.slice(batch * count, (batch + 1) * count);
+  }
+  return candidates.slice(0, count);
 }
 
 export function validateShadowRunRequest(lifecycle, { requestedStates = [], candidates = [] } = {}) {
@@ -196,8 +202,8 @@ async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
-export async function runExpansionShadow({ lifecycle, states, limit = 5, outDir = path.resolve('out', 'shadow'), cwd = process.cwd(), runCollector = runStateChild, prepareCandidate = runCandidatePrerequisite } = {}) {
-  const candidates = selectShadowCandidates(lifecycle, { states, limit });
+export async function runExpansionShadow({ lifecycle, states, limit = 5, scheduledAt, outDir = path.resolve('out', 'shadow'), cwd = process.cwd(), runCollector = runStateChild, prepareCandidate = runCandidatePrerequisite } = {}) {
+  const candidates = selectShadowCandidates(lifecycle, { states, limit, scheduledAt });
   const runId = new Date().toISOString().replace(/[:.]/g, '-');
   const results = [];
   for (const state of candidates) {
@@ -259,7 +265,8 @@ function argValue(flag) {
 async function main() {
   const lifecycle = withResearchLifecycle(await readJson(path.resolve('..', 'src', 'config', 'state-lifecycle.json'), null));
   const states = String(argValue('--states') || '').split(',').map(stateId).filter(Boolean);
-  const summary = await runExpansionShadow({ lifecycle, states, limit: Number(argValue('--limit') || 5) });
+  const scheduledAt = process.env.GITHUB_EVENT_NAME === 'schedule' ? Date.now() : undefined;
+  const summary = await runExpansionShadow({ lifecycle, states, limit: Number(argValue('--limit') || 5), scheduledAt });
   validateShadowRunRequest(lifecycle, { requestedStates: states, candidates: summary.candidates });
   console.log(JSON.stringify({ mode: summary.mode, candidates: summary.candidates, runId: summary.runId, productionSnapshotTouched: false, alertsDisabled: true }, null, 2));
   if (!summary.complete) {
