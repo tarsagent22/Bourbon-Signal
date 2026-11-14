@@ -2341,7 +2341,7 @@ export function buildRegionalWatchAlertsFromDrops(drops) {
     }));
 }
 
-function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
+export function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
   const byKey = new Map();
   for (const signal of historicalSignals || []) {
     if (signal?.archivedSourceAlertBlocked === true || signal?.raw?.archivedSourceAlertBlocked === true) continue;
@@ -2374,14 +2374,16 @@ function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
   }
   return [...byKey.values()]
     .filter((trend) => trend.inventoryObservations + trend.watchObservations >= 2 || trend.positiveQuantities >= 2)
+    .sort((a, b) => b.positiveQuantities - a.positiveQuantities
+      || (b.inventoryObservations + b.watchObservations) - (a.inventoryObservations + a.watchObservations)
+      || String(b.lastObservedAt || '').localeCompare(String(a.lastObservedAt || '')))
+    .slice(0, 100)
     .map((trend) => ({
       ...trend,
       observationCount: trend.inventoryObservations + trend.watchObservations,
       current: (currentSignals || []).some((signal) => signal.state === trend.state && (signal.canonicalName === trend.bottleName || signal.rawName === trend.bottleName) && (signal.storeName || signal.locationName || signal.sourceLabel) === trend.source),
-      trendLabel: trend.inventoryObservations >= 2 ? 'repeated_inventory_or_shipment_signal' : 'repeated_release_watch_signal'
-    }))
-    .sort((a, b) => b.positiveQuantities - a.positiveQuantities || b.observationCount - a.observationCount || String(b.lastObservedAt || '').localeCompare(String(a.lastObservedAt || '')))
-    .slice(0, 100);
+      trendLabel: trend.inventoryObservations >= 2 ? 'repeated_inventory_or_shipment_signal' : 'repeated_release_watch_signal',
+    }));
 }
 
 function stateCoverageTier(state) {
