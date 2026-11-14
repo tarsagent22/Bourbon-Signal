@@ -11,18 +11,18 @@
       "productionLifecycleActive": false,
       "deliveryEnabled": false,
       "requiredDistinctShadowRuns": 3,
-      "observedDistinctShadowRuns": 3,
+      "observedDistinctShadowRuns": 4,
       "requiredCanaryRuns": 2,
-      "observedCanaryRuns": 3,
-      "reason": "Three distinct scheduled source observations and three source-free canaries are recorded on the research candidate. Production lifecycle remains inactive and all delivery stays disabled pending the guarded release lane."
+      "observedCanaryRuns": 4,
+      "reason": "Four distinct scheduled source observations and four source-free canaries are recorded on the research candidate. Production lifecycle remains inactive and all delivery stays disabled pending the guarded release lane."
     },
     "canary": {
-      "runs": 3,
+      "runs": 4,
       "status": "verified",
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43643361281",
-      "artifactId": "14133450915",
-      "artifactDigest": "sha256:5994fe93fe45fc95e35f16a165b4452e4cfb065b9f184e7a177ecdba3371f56b",
-      "reason": "Three source-free canaries passed on immutable DC shadow captures; the latest run verified all three exact stores through Coverage and Finder with delivery disabled.",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43645334772",
+      "artifactId": "14132874554",
+      "artifactDigest": "sha256:b070d7eeab55a5423ac4218aa5331625c224e78dcb85d4fdc8b1e6af0a8a00f8",
+      "reason": "Four source-free canaries passed on immutable DC shadow captures; the latest replay verified all three exact stores through Coverage and Finder with delivery disabled.",
       "observations": [
         {
           "runId": "43628703889",
@@ -53,16 +53,27 @@
           "positiveStores": 3,
           "positiveCities": 1,
           "deliveryDisabled": true
+        },
+        {
+          "runId": "43645334772",
+          "artifactId": "14132874554",
+          "artifactDigest": "sha256:b070d7eeab55a5423ac4218aa5331625c224e78dcb85d4fdc8b1e6af0a8a00f8",
+          "publicProjectionSha256": "8875630c78d941a25cf8f2bfeef7fd0d16e7fb90644fe2dedddc2bf88c4d514b",
+          "partitionSha256": "739b5af79105fcc3559958240338509e1b6075f1d63b24066e4aade2c82ad614",
+          "positiveRows": 3,
+          "positiveStores": 3,
+          "positiveCities": 1,
+          "deliveryDisabled": true
         }
       ]
     },
     "shadow": {
-      "runs": 3,
+      "runs": 4,
       "status": "verified",
-      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43641908407",
-      "artifactId": "14131614511",
-      "artifactDigest": "sha256:7d3fb93a60d1870109cc8cf7cd3a242fdf9d4b12eccf08bfb4fe9ed0473e4299",
-      "reportSha256": "a9b2cceec51e629a733efc77225eb82a1d0aa2d4019621bee2c3e0dd2988ac38",
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43644648422",
+      "artifactId": "14132994476",
+      "artifactDigest": "sha256:10666c823fc98410a1c50b26a29eb4c9e68f4c721b68e8dbe3e76d5cb686d3e6",
+      "reportSha256": "3fabff703dc92176df5df81dbcf633aac699caa3f74b4a285cc86e07ac4635ab",
       "originalSourceClocksPreserved": true,
       "verifiedCityHivePremises": 2,
       "cityHiveRequests": 4,
@@ -106,10 +117,25 @@
           "positiveStores": 3,
           "positiveCities": 1,
           "deliveryDisabled": true
+        },
+        {
+          "runId": "43644648422",
+          "artifactId": "14132994476",
+          "artifactDigest": "sha256:10666c823fc98410a1c50b26a29eb4c9e68f4c721b68e8dbe3e76d5cb686d3e6",
+          "reportSha256": "3fabff703dc92176df5df81dbcf633aac699caa3f74b4a285cc86e07ac4635ab",
+          "sourceClockStart": "2026-11-14T21:47:46.807Z",
+          "sourceClockEnd": "2026-11-14T21:47:52.501Z",
+          "cityHiveRequests": 4,
+          "pearsonsRequests": 1,
+          "allHttp200": true,
+          "positiveRows": 3,
+          "positiveStores": 3,
+          "positiveCities": 1,
+          "deliveryDisabled": true
         }
       ],
-      "sourceClockStart": "2026-11-14T21:16:32.992Z",
-      "sourceClockEnd": "2026-11-14T21:16:38.763Z"
+      "sourceClockStart": "2026-11-14T21:47:46.807Z",
+      "sourceClockEnd": "2026-11-14T21:47:52.501Z"
     }
   },
   "lifecycle": {
