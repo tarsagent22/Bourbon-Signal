@@ -141,10 +141,19 @@ export function parseCityHiveProducts(html, candidateSource, {
   });
   if (!exactConfig) return [];
   const payloads = nested(values, (value) => Array.isArray(value.products));
+  // CityHive category/search pages wrap product rows in `products`, while a
+  // first-party product detail page embeds the same product shape directly.
+  // Accept that detail shape too so exact store/variant/quantity checks below
+  // can be shared rather than weakening the inventory contract.
+  const productRows = payloads.flatMap((payload) => payload.products);
+  const wrappedProducts = new Set(productRows);
+  for (const product of nested(values, (value) => typeof value.name === 'string'
+    && (value.id || value._id) && Array.isArray(value.merchants))) {
+    if (!wrappedProducts.has(product)) productRows.push(product);
+  }
   const rows = [];
   const seen = new Set();
-  for (const payload of payloads) {
-    for (const product of payload.products) {
+  for (const product of productRows) {
       const merchants = [
         ...(Array.isArray(product?.merchants) ? product.merchants : []),
         ...(Array.isArray(product?.merchant_options) ? product.merchant_options : []),
@@ -194,7 +203,6 @@ export function parseCityHiveProducts(html, candidateSource, {
           });
         }
       }
-    }
   }
   return rows;
 }

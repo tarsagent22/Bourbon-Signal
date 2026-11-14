@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "state": "OR",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "olcc-exact-eagle-rare",
+      "kind": "positive_bottle_match",
+      "input": { "rawName": "EAGLE RARE S/B BOURBON", "category": "Domestic Whiskey", "size": "750 ML", "proof": 90, "quantity": 4 },
+      "expected": { "canonicalName": "Eagle Rare 10 Year", "tier": "allocated", "customerVisible": true }
+    },
+    {
+      "id": "ordinary-maker-mark-is-not-rare",
+      "kind": "ordinary_vs_rare_negative",
+      "input": { "rawName": "MAKERS MARK BOURBON", "category": "Domestic Whiskey", "size": "750 ML", "proof": 90 },
+      "expected": { "rareMatch": false }
+    },
+    {
+      "id": "rye-category-excluded",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": { "rawName": "OLD OVERHOLT RYE", "category": "Domestic Whiskey - Rye", "size": "750 ML", "proof": 86 },
+      "expected": { "qualifiedProduct": false }
+    },
+    {
+      "id": "bourbon-cream-category-excluded",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": { "rawName": "EVAN WILLIAMS BOURBON CREAM", "category": "Liqueurs", "size": "750 ML", "proof": 30 },
+      "expected": { "qualifiedProduct": false }
+    },
+    {
+      "id": "ready-to-drink-category-excluded",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": { "rawName": "BOURBON OLD FASHIONED COCKTAIL", "category": "Cocktails", "size": "750 ML", "proof": 30 },
+      "expected": { "qualifiedProduct": false }
+    },
+    {
+      "id": "multipack-size-excluded",
+      "kind": "size_or_multipack_exclusion",
+      "input": { "rawName": "EAGLE RARE S/B BOURBON", "category": "Domestic Whiskey", "size": "6 x 750 ML", "proof": 90 },
+      "expected": { "qualifiedProduct": false }
+    },
+    {
+      "id": "positive-exact-reported-quantity-is-context-only",
+      "kind": "availability_semantics",
+      "input": { "rawName": "EAGLE RARE S/B BOURBON", "category": "Domestic Whiskey", "size": "750 ML", "proof": 90, "quantity": 4 },
+      "expected": { "quantity": 4, "exactShelfQuantity": true, "canAlertAsInventory": false, "canAlertAsWatch": false }
+    },
+    {
+      "id": "olcc-store-number-and-address",
+      "kind": "store_identity",
+      "input": { "rawName": "EAGLE RARE S/B BOURBON", "category": "Domestic Whiskey", "size": "750 ML", "proof": 90, "storeNo": "1001", "address": "225 S Main Street", "city": "CONDON", "zip": "97823" },
+      "expected": { "storeId": "1001", "storeAddress": "225 S Main Street, CONDON, OR, 97823", "fabricateIdentity": false }
+    },
+    {
+      "id": "source-inventory-date-is-preserved",
+      "kind": "timestamp_freshness",
+      "input": { "rawName": "EAGLE RARE S/B BOURBON", "category": "Domestic Whiskey", "size": "750 ML", "proof": 90, "inventoryDate": "11/13/2026", "expectedObservedAt": "2026-11-13T08:00:00.000Z" },
+      "expected": { "preserveOriginalTimestamp": true, "futureTimestampAllowed": false, "staleRowsAlertable": false, "accepted": true }
+    },
+    {
+      "id": "only-official-olcc-host-is-registered",
+      "kind": "source_specific_sentinel",
+      "input": { "sourceUrl": "https://www.olcc.state.or.us/pdfs/DailyStoreInventory.csv" },
+      "expected": { "officialHost": true }
+    }
+  ]
+}

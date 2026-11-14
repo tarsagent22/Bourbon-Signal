@@ -11,4 +11,5 @@ export const CENTRAL_CITYHIVE_RESEARCH_SOURCES=Object.freeze([
   ...MINNESOTA_CITYHIVE_EXPANSION_SOURCES,
   ...MIDWEST_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state==='MO'),
   ...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state==='MA'),
+  ...ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state==='CT'),
 ]);

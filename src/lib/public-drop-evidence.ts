@@ -10,6 +10,8 @@ const MAX_INVENTORY_DROP_AGE_MS = 72 * HOUR_MS;
 // Retention keeps useful history; current inventory follows the engine's
 // two-hour confirmation policy. Publication never extends this clock.
 const CURRENT_INVENTORY_AGE_MS = 2 * HOUR_MS;
+const OREGON_DAILY_INVENTORY_SOURCE = "https://www.olcc.state.or.us/pdfs/DailyStoreInventory.csv";
+const OREGON_CANARY_INVENTORY_AGE_MS = 48 * HOUR_MS;
 const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
 const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
 const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
@@ -629,7 +631,12 @@ export function isCurrentInventoryEvidence(input: PublicDropEvidenceInput, asOf?
   const binding = drop.sourceProductBinding;
   const exactTexasPickup = stateCode(drop) === "TX" && binding && typeof binding === "object"
     && (binding as Record<string, unknown>).source === "texas-shopify-pickup";
-  const maxAge = exactTexasPickup ? HOUR_MS : CURRENT_INVENTORY_AGE_MS;
+  const exactOregonCanary = stateCode(drop) === "OR" && drop.previewOnly === true
+    && drop.sourceUrl === OREGON_DAILY_INVENTORY_SOURCE && drop.sourceAvailabilityVerified === true
+    && drop.canAlertAsInventory === false && drop.canAlertAsWatch === false
+    && drop.locationPrecision === "store_level" && Boolean(drop.storeId && drop.storeAddress && drop.canonicalBottleId)
+    && Number.isSafeInteger(drop.quantity) && Number(drop.quantity) > 0;
+  const maxAge = exactTexasPickup ? HOUR_MS : exactOregonCanary ? OREGON_CANARY_INVENTORY_AGE_MS : CURRENT_INVENTORY_AGE_MS;
   return Number.isFinite(age) && age >= -FUTURE_CLOCK_SKEW_MS && age <= maxAge;
 }
 

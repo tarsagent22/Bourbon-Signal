@@ -21,10 +21,31 @@ for(const state of Object.keys(fixtures))test(`${state} exact current first-part
 });
 
 test('additional cohorts exclude shipping premises and unproductive BottleKing candidates',()=>{
- assert.equal(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.length,21);
+ assert.equal(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.length,23);
  assert.equal(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.some(s=>/shipping/i.test(s.name)),false);
  assert.equal(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.some(s=>s.chainId==='bottle-king'),false);
  assert.ok(ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.every(s=>s.discoveryUrl&&s.capturedAt));
+});
+
+test('CT first-party product pages preserve exact pickup variants and full-library tiers',async()=>{
+ const observedAt='2026-11-14T06:49:51.238Z';
+ const cases=[
+  {id:'sunrise-liquor:68e7b4f7ddc9964680a31a6f',file:'sunrise',canonical:"Blanton's Original Single Barrel",tier:'allocated',price:109,merchantId:'68e7b4f7ddc9964680a31a6f',productId:'5521ceef6561310003530000',optionId:'f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307'},
+  {id:'beverage-king:5ff8d3a20831fc26a1ac15d1',file:'beverage-king',canonical:'Wild Turkey Rare Breed Straight Bourbon',tier:'limited',price:49.98,merchantId:'5ff8d3a20831fc26a1ac15d1',productId:'56553d8e69702d2923120000',optionId:'b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c'},
+ ];
+ for(const item of cases){
+  const source=ADDITIONAL_CITYHIVE_EXPANSION_SOURCES.find(s=>s.id===item.id);
+  const html=await readFile(new URL(`./fixtures/ct-cityhive-product-pages/${item.file}-product-page.html`,import.meta.url),'utf8');
+  const rows=parseCentralCityHiveInventory(html,source,bible,{observedAt});
+  assert.equal(rows.length,1);
+  const row=rows[0];
+  assert.equal(row.canonicalName,item.canonical);assert.equal(row.tier,item.tier);assert.equal(row.price,item.price);
+  assert.equal(row.merchantId,item.merchantId);assert.equal(row.productId,item.productId);assert.equal(row.optionId,item.optionId);
+  assert.equal(row.state,'CT');assert.equal(row.quantity,0);assert.equal(row.quantityIsExact,false);
+  assert.equal(row.availabilityStatus,'in_stock');assert.equal(row.sourceAvailabilityVerified,true);
+  assert.equal(row.sourceProductBinding.pickupOfferVerified,true);assert.equal(row.sourceProductBinding.reportedQuantity,1);
+  assert.equal(new URL(row.sourceUrl).hostname,source.hostname);
+ }
 });
 
 test('bounded additional-state collector carries original fresh timestamps and persists hostname denials',async()=>{

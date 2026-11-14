@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -8,6 +8,8 @@ import {BourbonBible} from '../src/core/bible.mjs';
 import {prepareCentralCityHiveCanary} from '../src/prepare-central-cityhive-canary.mjs';
 import {collectCityHiveResearchReport,cityHiveResearchSourceForState} from '../src/research-cityhive-runtime.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from '../src/collectors/central-cityhive-expansion.mjs';
+import {CENTRAL_CITYHIVE_RESEARCH_SOURCES} from '../src/collectors/central-cityhive-research-premises.mjs';
+import {MA_JULIOS_PROBE_URLS} from '../src/collectors/massachusetts-retailer-surfaces.mjs';
 import {buildCurrentInventoryAlertsFromDrops} from '../src/export-site-contract.mjs';
 const bible=await BourbonBible.load(new URL('../out/bourbon-bible.json',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -56,7 +58,8 @@ for(const state of ['WI','OK'])test(`${state} portable replay reparses raw merch
     const duplicate=structuredClone(report);duplicate.metadata.receipts.push(duplicate.metadata.receipts[0]);
     await assert.rejects(()=>prepareCentralCityHiveCanary({...options,report:duplicate}));
     const disabled=new BourbonBible(structuredClone(bible.records).map(record=>({...record,libraryAlertEligible:false})));
-    await assert.rejects(()=>prepareCentralCityHiveCanary({...options,bible:disabled}),/No qualified/);
+    const disabledReport=structuredClone(report);disabledReport.metadata.bibleRecordsSha256=sha(Buffer.from(JSON.stringify(disabled.records||[])));
+    await assert.rejects(()=>prepareCentralCityHiveCanary({...options,report:disabledReport,bible:disabled}),/No qualified/);
     // Tampering the raw exact premise still fails even if a local actor updates
     // its receipt hash. The outer actual ZIP digest is independently verified.
     const wrong=structuredClone(report);
@@ -67,4 +70,67 @@ for(const state of ['WI','OK'])test(`${state} portable replay reparses raw merch
     }
     await assert.rejects(()=>prepareCentralCityHiveCanary({...options,report:wrong}),/exact registered premise/);
   }finally{if(original===undefined)delete process.env.BOURBON_SIGNAL_SHADOW_MODE;else process.env.BOURBON_SIGNAL_SHADOW_MODE=original;await rm(directory,{recursive:true,force:true});}
+});
+
+function perStoreBody(source){
+  const fixture=JSON.parse(bodies.get('liquorguys.com').match(/<script type="application\/json">([\s\S]*?)<\/script>/)[1]);
+  fixture.merchant_configs[0].merchant.id=source.merchantId;
+  fixture.merchant_configs[0].merchant.name=source.name;
+  fixture.merchant_configs[0].merchant.address={full_address:source.address,location:{type:'Point',coordinates:[source.lng,source.lat]}};
+  for(const product of fixture.products)for(const merchant of product.merchants||[]){
+    merchant.merchant_id=source.merchantId;merchant.full_address=source.address;
+    merchant.address={full_address:source.address,location:{type:'Point',coordinates:[source.lng,source.lat]}};
+    for(const option of merchant.product_options||[]){
+      option.merchant_id=source.merchantId;option.full_address=source.address;
+      option.product_url=`${source.baseUrl}/shop/product/${product.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}/${option.product_id}?option-id=${option.option_id}`;
+    }
+  }
+  return `<script type="application/json">${JSON.stringify(fixture)}</script>`;
+}
+
+async function makePerStoreReport(state,directory){
+  const sources=CENTRAL_CITYHIVE_RESEARCH_SOURCES.filter(source=>source.state===state);
+  const receipts=[],requests=[];
+  await mkdir(path.join(directory,'source-captures'),{recursive:true});
+  const at=new Date().toISOString();
+  for(const [index,source] of sources.entries()){
+    const url=`${source.baseUrl}/shop/?ch-query=${encodeURIComponent('barrel proof')}&merchant-id=${source.merchantId}`;
+    const body=Buffer.from(perStoreBody(source));
+    const artifactPath=`source-captures/${String(index+1).padStart(3,'0')}.html`;
+    await writeFile(path.join(directory,artifactPath),body);
+    receipts.push({url,finalUrl:url,status:200,observedAt:at,bytes:body.length,sha256:sha(body),artifactPath});
+    requests.push({sourceId:source.id,url,status:200,ok:true});
+  }
+  const centralRows=sources.map(source=>({sourceRuntimeId:`research:${state.toLowerCase()}:${source.id}`,label:source.sourceLabel,url:source.categoryUrl,ok:true,status:200}));
+  const juliosRows=state==='MA'?MA_JULIOS_PROBE_URLS.map((url,index)=>({sourceRuntimeId:`precision:ma:julios-westborough:${index}`,label:"Julio's Liquors public pickup",url,ok:true,status:200})):[];
+  const report={state,finishedAt:at,sources:[...centralRows,...juliosRows],signals:state==='MA'?[{sourceRuntimeId:'precision:ma:julios-westborough:0',id:'ignored-julios-signal'}]:[],metadata:{
+    complete:true,shadowOnly:true,productionActivationAllowed:false,customerDeliveryAllowed:false,requests,receipts,
+    bibleRecordsSha256:sha(Buffer.from(JSON.stringify(bible.records||[]))),origin:{kind:'github_actions',repository:'tarsagent22/Bourbon-Signal',workflowRunId:'123',commitSha:'a'.repeat(40)},
+  }};
+  return{sources,report,at};
+}
+
+for(const state of ['MN','MO','MA'])test(`${state} per-store CityHive artifacts replay only complete exact-premise raw source receipts`,async t=>{
+  const directory=await mkdtemp(path.join(tmpdir(),`cityhive-${state.toLowerCase()}-canary-`));
+  t.after(()=>rm(directory,{recursive:true,force:true}));
+  const {sources,report}=await makePerStoreReport(state,directory);
+  const provenance={status:'verified_github_shadow_artifact',state,repository:'tarsagent22/Bourbon-Signal',workflowRunId:'123',
+    headSha:'a'.repeat(40),artifactId:'456',artifactDigest:'b'.repeat(64)};
+  const result=await prepareCentralCityHiveCanary({state,report,reportDirectory:directory,bible,provenance});
+  assert.equal(result.locations.length,sources.length);
+  assert.equal(result.sourceReceipts.length,sources.length);
+  assert.equal(result.sourceFamily,'central_cityhive');
+  assert.equal(result.sourceRegistrySha256.length,64);
+  assert.equal(result.bibleRecordsSha256,report.metadata.bibleRecordsSha256);
+  assert.ok(result.drops.length>0);
+  assert.ok(result.drops.every(row=>sources.some(source=>source.storeId===row.storeId)));
+  if(state==='MA'){
+    assert.deepEqual(result.excludedSourceFamilies,[{id:'julios-westborough',reason:'Separate source collector; excluded from central CityHive replay.'}]);
+    assert.ok(result.drops.every(row=>row.sourceRuntimeId!=='precision:ma:julios-westborough:0'));
+  }else assert.equal(result.excludedSourceFamilies,undefined);
+
+  const missing=structuredClone(report);missing.metadata.receipts.pop();missing.metadata.requests.pop();
+  await assert.rejects(()=>prepareCentralCityHiveCanary({state,report:missing,reportDirectory:directory,bible,provenance}),/Incomplete|Partial per-store/);
+  const wrongBible=structuredClone(report);wrongBible.metadata.bibleRecordsSha256='0'.repeat(64);
+  await assert.rejects(()=>prepareCentralCityHiveCanary({state,report:wrongBible,reportDirectory:directory,bible,provenance}),/library-mismatched/);
 });

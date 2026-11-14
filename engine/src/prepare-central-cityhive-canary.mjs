@@ -5,6 +5,8 @@ import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {BourbonBible} from './core/bible.mjs';
 import {CENTRAL_CITYHIVE_EXPANSION_SOURCES,parseCentralCityHiveInventory} from './collectors/central-cityhive-expansion.mjs';
+import {CENTRAL_CITYHIVE_RESEARCH_SOURCES} from './collectors/central-cityhive-research-premises.mjs';
+import {MA_JULIOS_PROBE_URLS} from './collectors/massachusetts-retailer-surfaces.mjs';
 import {isCentralCityHiveInventory} from './central-cityhive-policy.mjs';
 import {parseCityHiveProducts} from './collectors/cityhive-surfaces.mjs';
 import {canonicalizeSignal} from './operational-report.mjs';
@@ -12,16 +14,36 @@ import {buildDrops,bibleLookup} from './export-site-contract.mjs';
 import {withResearchLifecycle} from './research-state-registry.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const canonical=value=>{const url=new URL(value);url.searchParams.sort();return url.href;};
+const ALL_CITYHIVE_SOURCES=Object.freeze([...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]);
+const CANARY_STATES=new Set(['WI','OK','MN','MO','MA']);
+const PER_STORE_QUERY_STATES=new Set(['MN','MO','MA']);
+const sourceRegistryDigest=sources=>sha(Buffer.from(JSON.stringify([...sources].map(source=>({
+  id:source.id,state:source.state,storeId:source.storeId,chainId:source.chainId||null,name:source.name,chainName:source.chainName||null,
+  platform:source.platform,merchantId:source.merchantId,hostname:source.hostname,
+  baseUrl:source.baseUrl,address:source.address,city:source.city,zip:source.zip,lat:source.lat??null,lng:source.lng??null,
+  sourceLabel:source.sourceLabel,categoryUrl:source.categoryUrl,
+})).sort((a,b)=>a.id.localeCompare(b.id)))));
 
 // Only workflow-issued portable raw bodies can produce isolated canary input.
 // Report signals, prices, tiers and mutable absolute file paths are never read.
 export async function prepareCentralCityHiveCanary({state,report,reportDirectory,bible,provenance,nowMs=Date.now()}={}){
-  const sources=CENTRAL_CITYHIVE_EXPANSION_SOURCES.filter(source=>source.state===state);
-  if(!['WI','OK'].includes(state)||report?.state!==state||report.metadata?.complete!==true
+  const researchOnly=PER_STORE_QUERY_STATES.has(state);
+  const sources=(researchOnly?CENTRAL_CITYHIVE_RESEARCH_SOURCES:CENTRAL_CITYHIVE_EXPANSION_SOURCES).filter(source=>source.state===state);
+  const reportSources=report?.sources||[];
+  const cityHiveRuntimeId=source=>`research:${state.toLowerCase()}:${source.id}`;
+  const matchingSourceRows=reportSources.filter(row=>sources.some(source=>row.sourceRuntimeId===cityHiveRuntimeId(source)));
+  const extraMaRows=state==='MA'?reportSources.filter(row=>row.sourceRuntimeId?.startsWith('precision:ma:julios-westborough:')):[];
+  const expectedMaJulios=state==='MA'?MA_JULIOS_PROBE_URLS.map((url,index)=>({sourceRuntimeId:`precision:ma:julios-westborough:${index}`,url})):[];
+  if(!CANARY_STATES.has(state)||sources.length===0||report?.state!==state||report.metadata?.complete!==true
     ||report.metadata.shadowOnly!==true||report.metadata.productionActivationAllowed!==false
-    ||report.metadata.customerDeliveryAllowed!==false||report.sources?.length!==sources.length
-    ||!report.sources.every(row=>row.ok===true&&sources.some(source=>row.sourceRuntimeId===`research:${state.toLowerCase()}:${source.id}`
-      &&row.label===source.sourceLabel&&row.url===source.categoryUrl)))throw new Error('A complete matching isolated CityHive shadow report is required');
+    ||report.metadata.customerDeliveryAllowed!==false||matchingSourceRows.length!==sources.length
+    ||!matchingSourceRows.every(row=>row.ok===true&&Number(row.status)===200&&sources.some(source=>row.sourceRuntimeId===cityHiveRuntimeId(source)
+      &&row.label===source.sourceLabel&&row.url===source.categoryUrl))
+    ||reportSources.length!==sources.length+expectedMaJulios.length
+    ||(state==='MA'&&(!expectedMaJulios.every(expected=>extraMaRows.some(row=>row.sourceRuntimeId===expected.sourceRuntimeId
+      &&row.url===expected.url&&row.ok===true&&Number(row.status)===200&&row.label==="Julio's Liquors public pickup"))
+      ||extraMaRows.length!==expectedMaJulios.length)))
+    throw new Error('A complete matching isolated CityHive shadow report is required');
   const origin=report.metadata.origin;
   if(provenance?.status!=='verified_github_shadow_artifact'||provenance.state!==state
     ||provenance.repository!=='tarsagent22/Bourbon-Signal'||!/^\d+$/.test(provenance.artifactId||'')
@@ -30,20 +52,30 @@ export async function prepareCentralCityHiveCanary({state,report,reportDirectory
     ||origin.repository!==provenance.repository||origin.commitSha!==provenance.headSha)throw new Error('Canary requires verified workflow-issued shadow provenance and ZIP digest');
   const finishedMs=Date.parse(report.finishedAt),receipts=report.metadata.receipts;
   if(!Number.isFinite(finishedMs)||finishedMs>nowMs||nowMs-finishedMs>2*60*60_000
-    ||!Array.isArray(receipts)||receipts.length<sources.length||receipts.length>sources.length*5)throw new Error('Incomplete or stale shadow receipt set');
-  const categorySources=new Set(),seenUrls=new Set(),seenPaths=new Set(),rows=new Map(),proofs=[];
+    ||!Array.isArray(receipts)||receipts.length<sources.length||receipts.length>sources.length*5
+    ||report.metadata.bibleRecordsSha256!==sha(Buffer.from(JSON.stringify(bible.records||[]))))throw new Error('Incomplete, stale or library-mismatched shadow receipt set');
+  const categorySources=new Set(),capturedStores=new Set(),seenUrls=new Set(),seenPaths=new Set(),rows=new Map(),proofs=[];
+  const requests=report.metadata.requests;
+  if(!Array.isArray(requests)||requests.length!==receipts.length)throw new Error('Partial state: CityHive request and raw receipt sets do not link one-to-one');
+  const requestUrls=new Set(requests.map(request=>canonical(request.url)));
+  if(requestUrls.size!==requests.length)throw new Error('Duplicate CityHive request URLs cannot form a portable manifest');
   for(const receipt of receipts){
     const observedMs=Date.parse(receipt.observedAt),age=nowMs-observedMs;
     if(!Number.isFinite(age)||age<0||age>2*60*60_000||observedMs>finishedMs)throw new Error('Shadow source clock is stale or future-dated; collect again');
     if(receipt.status!==200||!Number.isSafeInteger(receipt.bytes)||receipt.bytes<1||receipt.bytes>2*1024*1024)throw new Error('Incomplete bounded shadow HTTP proof');
-    const url=new URL(receipt.url),source=sources.find(source=>source.hostname===url.hostname);
+    const url=new URL(receipt.url),source=sources.find(source=>source.hostname===url.hostname&&url.searchParams.get('merchant-id')===source.merchantId);
     if(!source||url.protocol!=='https:'||url.username||url.password||url.port||url.hash
-      ||url.pathname!=='/shop/'||url.searchParams.get('merchant-id')!==source.merchantId
+      ||url.pathname!=='/shop/'
       ||canonical(receipt.finalUrl)!==canonical(receipt.url)||seenUrls.has(canonical(receipt.url)))throw new Error('Foreign, redirected or duplicate source capture');
     seenUrls.add(canonical(receipt.url));
     if(canonical(receipt.url)===canonical(source.categoryUrl))categorySources.add(source.id);
     else if([...url.searchParams].length!==2||!url.searchParams.has('ch-query')
       ||!url.searchParams.get('ch-query')?.trim()||url.searchParams.get('ch-query').length>120)throw new Error('Unreviewed CityHive search capture');
+    if(researchOnly&&canonical(receipt.url)===canonical(source.categoryUrl))throw new Error('Per-store research receipts must use the reviewed merchant-scoped query route');
+    const linkedRequest=requests.find(request=>canonical(request.url)===canonical(receipt.url));
+    const expectedRequestId=PER_STORE_QUERY_STATES.has(state)?source.id:(source.chainId||source.id);
+    if(!linkedRequest||linkedRequest.ok!==true||Number(linkedRequest.status)!==200||receipt.status!==linkedRequest.status
+      ||linkedRequest.sourceId!==expectedRequestId)throw new Error('Raw receipt does not link to a successful registered-source request');
     const relative=receipt.artifactPath;
     if(typeof relative!=='string'||!/^source-captures\/[A-Za-z0-9._-]+\.html$/.test(relative)||seenPaths.has(relative))throw new Error('Source capture path must be portable, bounded and unique');
     seenPaths.add(relative);
@@ -52,22 +84,29 @@ export async function prepareCentralCityHiveCanary({state,report,reportDirectory
     let exactPremise=false;
     // The parser invokes this callback only after its exact registered merchant
     // ID and full premise-address checks, including for healthy zero stock.
-    parseCityHiveProducts(body.toString('utf8'),source,{sources:CENTRAL_CITYHIVE_EXPANSION_SOURCES,
+    parseCityHiveProducts(body.toString('utf8'),source,{sources:ALL_CITYHIVE_SOURCES,
       isAllowedMerchantConfiguration:()=>{exactPremise=true;return true;}});
     if(!exactPremise)throw new Error('Captured merchant configuration no longer proves the exact registered premise');
+    capturedStores.add(source.storeId);
     for(const row of parseCentralCityHiveInventory(body.toString('utf8'),source,bible,{observedAt:receipt.observedAt})){
       if(!isCentralCityHiveInventory(row,{nowMs}))throw new Error('Replayed candidate lacks current exact source proof');
       const prior=rows.get(row.id);if(!prior||Date.parse(prior.observedAt)<observedMs)rows.set(row.id,row);
     }
-    proofs.push({url:receipt.url,observedAt:receipt.observedAt,sha256:receipt.sha256,artifactPath:relative});
+    proofs.push({sourceId:source.id,storeId:source.storeId,merchantId:source.merchantId,url:receipt.url,
+      observedAt:receipt.observedAt,sha256:receipt.sha256,bytes:receipt.bytes,artifactPath:relative});
   }
-  if(categorySources.size!==sources.length)throw new Error('Partial state source capture: exact merchant category proof is missing');
+  if([...requestUrls].some(url=>!seenUrls.has(url)))throw new Error('A successful CityHive request is missing its raw receipt');
+  if(researchOnly){
+    if(capturedStores.size!==sources.length||sources.some(source=>!capturedStores.has(source.storeId)))throw new Error('Partial per-store cohort capture: exact merchant proof is missing');
+  }else if(categorySources.size!==sources.length)throw new Error('Partial state source capture: exact merchant category proof is missing');
   const operational=[...rows.values()].map(row=>canonicalizeSignal(row,bible));
   const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>({...row,previewOnly:true,
     canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
     eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false}));
   if(!drops.length)throw new Error('No qualified canary candidates survived current library and export policy');
   return{schemaVersion:1,state,generatedAt:report.finishedAt,scope:'isolated_canary_input_no_production_activation',
+    sourceFamily:'central_cityhive',sourceRegistrySha256:sourceRegistryDigest(sources),bibleRecordsSha256:report.metadata.bibleRecordsSha256,
+    ...(state==='MA'?{excludedSourceFamilies:[{id:'julios-westborough',reason:'Separate source collector; excluded from central CityHive replay.'}]}:{}),
     originalSourceClockPreserved:true,workflowSource:provenance,sourceReceipts:proofs,
     locations:sources.map(source=>({id:source.storeId,storeId:source.storeId,state,name:source.name,storeName:source.name,
       address:source.address,storeAddress:source.address,city:source.city,zip:source.zip,type:'store',locationType:'store',
@@ -78,7 +117,7 @@ async function findReports(directory){const files=[];for(const entry of await re
 const argument=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);
 async function main(){
   const state=argument('--state'),artifact=argument('--artifact-dir'),proofFile=argument('--provenance'),out=argument('--out'),configOut=argument('--config-out');
-  if(!['WI','OK'].includes(state)||!artifact||!proofFile||out!==`data/canary-inputs/${state}.json`
+  if(!CANARY_STATES.has(state)||!artifact||!proofFile||out!==`data/canary-inputs/${state}.json`
     ||configOut!==`out/canary-preparation/${state}/lifecycle-research.json`)throw new Error('Use reviewed state, verified artifact/provenance and fixed state canary/config output paths');
   const provenance=JSON.parse(await readFile(proofFile,'utf8')),matching=[];
   for(const file of await findReports(path.resolve(artifact))){const report=JSON.parse(await readFile(file,'utf8'));if(report.state===state&&String(report.metadata?.origin?.workflowRunId)===provenance.workflowRunId)matching.push({file,report});}
