@@ -20,8 +20,11 @@ const semanticRow=row=>[row.storeId,row.merchantId,row.productId,row.optionId,ro
 export function dedupeDcCityHiveReplayRows(rows){
   const unique=new Map();
   for(const row of rows){
-    const key=JSON.stringify(semanticRow(row)),prior=unique.get(key);
-    if(!prior||Date.parse(row.observedAt||'')>Date.parse(prior.observedAt||''))unique.set(key,row);
+    const key=JSON.stringify(semanticRow(row));
+    // The research collector uses a run-level observation clock and retains
+    // the first matching option. Keep that same first-seen rule on replay;
+    // each receipt clock remains independently bound and freshness checked.
+    if(!unique.has(key))unique.set(key,row);
   }
   return [...unique.values()];
 }

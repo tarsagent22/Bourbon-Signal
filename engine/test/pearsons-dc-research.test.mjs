@@ -16,14 +16,14 @@ const expectedId = 'blantons-original';
 const bible = { match: name => name === PEARSONS_DC_SOURCE.canonicalName
   ? { confidence: 1, record: { id: expectedId, canonical: PEARSONS_DC_SOURCE.canonicalName, tier: 'allocated' } } : null };
 
-test('DC canary deduplicates repeated same-option receipts and retains the newest receipt clock',()=>{
+test('DC canary deduplicates repeated same-option receipts using the original first-seen clock rule',()=>{
   const first={storeId:'store-1',merchantId:'merchant-1',productId:'product-1',optionId:'option-1',rawName:'Eagle Rare',
     canonicalName:'Eagle Rare 10 Year',canonicalBottleId:'bb-eagle-rare',tier:'allocated',price:59.99,
     sourceUrl:'https://example.test/eagle?option-id=1',observedAt:'2026-11-14T21:00:00.000Z'};
   const duplicate={...first,observedAt:'2026-11-14T21:01:00.000Z'};
   const distinct={...first,optionId:'option-2',sourceUrl:'https://example.test/eagle?option-id=2'};
   const result=dedupeDcCityHiveReplayRows([first,duplicate,distinct]);
-  assert.equal(result.length,2);assert.equal(result.find(row=>row.optionId==='option-1').observedAt,duplicate.observedAt);
+  assert.equal(result.length,2);assert.equal(result.find(row=>row.optionId==='option-1').observedAt,first.observedAt);
   assert.equal(result.find(row=>row.optionId==='option-2').observedAt,first.observedAt);
 });
 const parse = (bytes = fixture, options = {}) => parsePearsonsDcCapture(bytes, {
