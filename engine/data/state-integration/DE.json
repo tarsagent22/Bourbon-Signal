@@ -51,10 +51,12 @@
       "originalSourceClocksPreserved": true
     },
     "canary": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "Source-replayed DE canary workflow is being run against the current hosted shadow artifact."
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43643844800#artifact-14132753175",
+      "artifactDigest": "44c151676317a2618d06e416aa76599cfcec96b0070f4dc5012365bc54c2e33c",
+      "allDeliveryChannelsDisabled": true,
+      "productionSnapshotTouched": false
     },
     "production": {
       "status": "not_deployed",
