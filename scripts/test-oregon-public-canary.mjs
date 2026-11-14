@@ -30,7 +30,11 @@ for(const mutation of [{state:'WA'},{sourceUrl:'https://example.org/fake.csv'},{
 const canarySignal=partition.drops[0];assert.equal(isOregonDailyInventoryObservation(canarySignal,clock),true);
 const coverage=buildCoverageContract({lifecycle,stateRows:stats.stateCoverage.states,locations,stores:(await read(root+'/stores.json')).stores,
   drops:projected,degradedStates:[],generatedAt:stats.generatedAt,asOf:now,healthLimited:false}).states.find(row=>row.code==='OR');
-assert.ok(coverage.scope.searchableStores>0);assert.equal(coverage.capabilities.restockAlerts,false);
+const positiveStores = new Set(accepted.map(row => row.storeId));
+assert.equal(coverage.capabilities.currentBottleAvailability, true);
+assert.equal(coverage.freshness.currentInventoryStores, positiveStores.size);
+assert.ok(coverage.scope.searchableStores > 0);
+assert.equal(coverage.capabilities.restockAlerts, false);
 assert.equal(lifecycle.states.OR.publicStatus,'active');assert.equal(lifecycle.states.OR.inventoryAlertable,false);
 assert.equal(previewPolicy.alertDeliveryEnabled,false);assert.equal(previewPolicy.productionSnapshotPublicationEnabled,false);
 assert.equal(alerts.previewAlertDeliveryDisabled,true);assert.equal(alerts.alerts.some(row=>row.state==='OR'&&row.eligibleForDelivery===true),false);
