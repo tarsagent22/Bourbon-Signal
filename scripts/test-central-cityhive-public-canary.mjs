@@ -14,7 +14,7 @@ const {buildCoverageContract}=coverageModule.default||coverageModule;
 const {normalizeDropForSite}=contractModule.default||contractModule;
 const {loadWithMocks}=harness.default||harness;
 const state=process.argv.find(value=>value.startsWith('--state='))?.slice(8);
-assert.ok(['WI','OK','RI','MN'].includes(state),'Use reviewed --state=WI|OK|RI|MN');
+assert.ok(['WI','OK','RI','MN','AR'].includes(state),'Use reviewed --state=WI|OK|RI|MN|AR');
 const read=async file=>JSON.parse(await readFile(file,'utf8'));
 const root=`engine/out/canary/${state}/site`,clock=new Date().toISOString();
 const partition=await read(root+`/states/${state}/drops.json`),stats=await read(root+'/stats.json');
@@ -82,7 +82,7 @@ const locationRoute=loadWithMocks('src/app/api/locations/route.ts',{
 for(const location of candidateLocations){
   const searched=await coverageRoute.POST(new Request('https://fixture.test/api/coverage',{method:'POST',body:JSON.stringify({state,query:location.name})}));
   assert.equal(searched.status,200);const search=await searched.json();
-  const expectedStoreStatus=state==='MN'&&!location.hasSignals?'known-expansion-candidate':'actively-monitored';
+  const expectedStoreStatus=['MN','AR'].includes(state)&&!location.hasSignals?'known-expansion-candidate':'actively-monitored';
   assert.ok(search.results.some(row=>row.kind==='store'&&row.storeId===location.id&&row.status===expectedStoreStatus),JSON.stringify(search.results));
   assert.ok(directory.some(row=>row.state===state&&row.id===location.id));
   for(const route of [storeRoute,locationRoute]){

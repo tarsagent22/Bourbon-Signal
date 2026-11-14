@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "state": "AR",
+  "scope": "isolated_preview_no_activation",
+  "lifecycle": {
+    "customerLabel": "Arkansas",
+    "publicStatus": "active",
+    "coverageTier": "sparse_live_store_inventory",
+    "refinementLevel": "store"
+  },
+  "collector": {
+    "sourceIds": [
+      "research:ar:cityhive"
+    ],
+    "registration": "Isolated state-scoped replay of registered merchant pickup responses."
+  },
+  "storeIdentity": {
+    "mode": "exact_reviewed_merchant_and_premises",
+    "addressRequired": true,
+    "expectedKnownStores": 4,
+    "proof": "Exact registered merchant ID, pickup address, coordinates and bound product option."
+  },
+  "sourceSemantics": {
+    "availability": "Binary retailer-published pickup availability.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "The isolated Arkansas Coverage route returns the Arkansas candidate."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "The isolated Arkansas Finder returns all four exact reviewed pickup premises."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "The isolated snapshot disables every alert and delivery channel."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The preview counts fresh licensed pickup listings only."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "The Arkansas partition is built from exact bounded first-party capture bytes."
+    },
+    "preferences": {
+      "status": "not_applicable",
+      "reason": "Outside the isolated pickup Coverage and Finder replay."
+    },
+    "areaFilter": {
+      "status": "not_applicable",
+      "reason": "Outside the isolated pickup Coverage and Finder replay."
+    },
+    "dashboard": {
+      "status": "not_applicable",
+      "reason": "Outside the isolated pickup Coverage and Finder replay."
+    },
+    "dropFeedApi": {
+      "status": "not_applicable",
+      "reason": "Outside the isolated pickup Coverage and Finder replay."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/43612615150",
+      "originalSourceClocksPreserved": true
+    },
+    "canary": {
+      "status": "verified",
+      "runs": 1,
+      "artifact": "https://github.com/tarsagent22/Bourbon-Signal/actions/workflows/state-expansion-canary.yml",
+      "allDeliveryChannelsDisabled": true
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "Arkansas is isolated to a preview candidate.",
+      "reason": "Independent evidence and production admission are pending."
+    }
+  }
+}

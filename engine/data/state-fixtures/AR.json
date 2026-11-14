@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "state": "AR",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "ar-reviewed-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0"
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 1,
+        "candidateCount": 1,
+        "canonicalNames": [
+          "Elijah Craig Straight Rye Whiskey"
+        ]
+      }
+    },
+    {
+      "id": "ar-unidentified",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0",
+        "rawName": "Unknown Bourbon 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ar-cream",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0",
+        "rawName": "Bourbon Cream Liqueur 750ml"
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ar-miniature",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0",
+        "size": 50
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ar-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "semantics": "binary_retailer_orderable_no_exact_count"
+      }
+    },
+    {
+      "id": "ar-wrong-merchant",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0",
+        "wrongMerchant": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    },
+    {
+      "id": "ar-stale",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0",
+        "ageMinutes": 300
+      },
+      "expected": {
+        "sourceRows": 1,
+        "inventoryProofRows": 0,
+        "candidateCount": 0,
+        "preservesOriginalTimestamp": true
+      }
+    },
+    {
+      "id": "ar-foreign-source",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceId": "crossover-liquor-ar-fayetteville:5e73e18f355a61249a9dd7c0",
+        "wrongHost": true
+      },
+      "expected": {
+        "sourceRows": 0,
+        "candidateCount": 0
+      }
+    }
+  ]
+}
