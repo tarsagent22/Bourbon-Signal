@@ -98,33 +98,60 @@ test('Rhode Island CityHive detail captures prove exact pickup variants and rema
   }finally{if(original===undefined)delete process.env.BOURBON_SIGNAL_SHADOW_MODE;else process.env.BOURBON_SIGNAL_SHADOW_MODE=original;await rm(dir,{recursive:true,force:true});}
 });
 
-test('Greenbelt product detail is isolated Maryland research with exact identity and no delivery',async()=>{
+test('Maryland exact-store CityHive captures stay research-only and bind four distinct premises',async()=>{
   const original=process.env.BOURBON_SIGNAL_SHADOW_MODE,dir=await mkdtemp(path.join(tmpdir(),'md-greenbelt-shadow-'));
   try{
     process.env.BOURBON_SIGNAL_SHADOW_MODE='1';
-    const config=cityHiveResearchSourceForState('MD'),source=CENTRAL_CITYHIVE_RESEARCH_SOURCES.find(row=>row.state==='MD');
+    const config=cityHiveResearchSourceForState('MD'),sources=CENTRAL_CITYHIVE_RESEARCH_SOURCES.filter(row=>row.state==='MD');
+    const source=sources.find(row=>row.name==='Greenbelt Liquors');
     assert.ok(source);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
-    assert.equal(config.sources.length,1);assert.match(config.sources[0].url,/delivery\.greenbeltliquors\.com/);
+    assert.equal(config.sources.length,4);assert.equal(sources.length,4);
+    assert.deepEqual(sources.map(row=>row.city).sort(),['Frederick','Greenbelt','Ocean City','Owings Mills']);
+    assert.ok(config.sources.every(row=>row.precisionOnly&&row.url.includes('merchant-id=')));
     assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
     assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('MD'),false);
-    const fixture=JSON.parse(await readFile(new URL('./fixtures/md-cityhive/greenbelt-eagle-rare-12.json',import.meta.url),'utf8'));
-    const page=`<script type="application/json">${JSON.stringify(fixture)}</script>`;
+    const fixtureFiles=new Map([
+      [source.merchantId,'greenbelt-blantons-original.json'],
+      [sources.find(row=>row.city==='Frederick').merchantId,'frederick-eagle-rare-10.json'],
+      [sources.find(row=>row.city==='Ocean City').merchantId,'ocean-city-elijah-craig-bp.json'],
+      [sources.find(row=>row.city==='Owings Mills').merchantId,'owings-mills-elijah-craig-bp.json'],
+    ]);
+    const pages=new Map(await Promise.all([...fixtureFiles].map(async([merchantId,file])=>[
+      merchantId,`<script type="application/json">${JSON.stringify(JSON.parse(await readFile(new URL(`./fixtures/md-cityhive/${file}`,import.meta.url),'utf8')))}</script>`,
+    ])));
     const calls=[];
     const report=await collectCityHiveResearchReport(config,bible,{reportDirectory:dir,captureRoot:null,
       incidentFile:path.join(dir,'incidents.json'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},readAttempts:async()=>({}),writeAttempts:async()=>{},
-      fetchText:async url=>{calls.push(url);return{ok:true,status:200,url,text:page};}});
+      fetchText:async url=>{calls.push(url);return{ok:true,status:200,url,text:pages.get(new URL(url).searchParams.get('merchant-id'))};}});
     assert.ok(calls.length>0);assert.equal(report.metadata.complete,true,JSON.stringify({signals:report.signals.length,sources:report.sources,roadblocks:report.roadblocks,requests:report.metadata.requests}));assert.equal(report.metadata.shadowOnly,true);
-    const row=report.signals.find(item=>item.canonicalName==='Eagle Rare 12 Year');
-    assert.ok(row,JSON.stringify(report.signals.map(item=>({name:item.rawName,canonical:item.canonicalName,tier:item.tier}))));assert.equal(row.tier,'unicorn');
-    assert.equal(row.rawName,'Eagle Rare 12 Years Old Bourbon 750ml');
-    assert.equal(row.storeName,'Greenbelt Liquors');assert.equal(row.storeAddress,source.address);
-    assert.equal(row.sourceUrl,'https://delivery.greenbeltliquors.com/shop/product/eagle-rare-12-years-old-bourbon/682fc772b2b09825a9bfa4d9?option-id=8b2593031856f80d2e74abafdc940686302e1227092ce6bb69e52830f8768f42');
-    assert.equal(row.sourceAvailabilityVerified,true);assert.equal(row.sourceProductBinding.pickupOfferVerified,true);
-    assert.equal(row.sourceProductBinding.reportedQuantity,1);assert.equal(row.quantity,0);assert.equal(row.quantityIsExact,false);
-    for(const flag of ['alertable','canAlertAsInventory','canAlertAsWatch','eligibleForOnSite','eligibleForDropFeed','eligibleForWatch','eligibleForDelivery','eligibleForEmail','eligibleForSms'])assert.equal(row[flag],false);
+    const expected=[
+      ['Greenbelt',"Blanton's Original Single Barrel",'allocated'],
+      ['Frederick','Eagle Rare 10 Year','allocated'],
+      ['Ocean City','Elijah Craig Barrel Proof','limited'],
+      ['Owings Mills','Elijah Craig Barrel Proof','limited'],
+    ];
+    assert.equal(report.signals.length,4,JSON.stringify(report.signals.map(item=>({name:item.rawName,canonical:item.canonicalName,city:item.city}))));
+    for(const [city,name,tier] of expected){
+      const row=report.signals.find(item=>item.city===city&&item.canonicalName===name);
+      assert.ok(row,`${city} ${name} missing`);assert.equal(row.tier,tier);assert.equal(row.state,'MD');
+      assert.equal(row.storeAddress,sources.find(item=>item.city===city).address);assert.equal(row.sourceAvailabilityVerified,true);
+      assert.equal(row.sourceProductBinding.pickupOfferVerified,true);assert.ok(row.sourceProductBinding.reportedQuantity>0);
+      assert.equal(row.quantity,0);assert.equal(row.quantityIsExact,false);assert.equal(row.raw.shadowOnly,true);
+      assert.equal(row.sourceProductBinding.shadowOnly,true);
+      for(const flag of ['alertable','canAlertAsInventory','canAlertAsWatch','eligibleForOnSite','eligibleForDropFeed','eligibleForWatch','eligibleForDelivery','eligibleForEmail','eligibleForSms'])assert.equal(row[flag],false);
+    }
+    assert.equal(calls.some(url=>new URL(url).searchParams.get('merchant-id')===sources.find(row=>row.city==='Owings Mills').merchantId),true);
     assert.equal(report.metadata.customerDeliveryAllowed,false);assert.equal(report.metadata.productionActivationAllowed,false);
     assert.equal(JSON.stringify(STATE_LIFECYCLE_CONFIG),frozen);
   }finally{if(original===undefined)delete process.env.BOURBON_SIGNAL_SHADOW_MODE;else process.env.BOURBON_SIGNAL_SHADOW_MODE=original;await rm(dir,{recursive:true,force:true});}
+});
+
+test('Owings Mills source accepts only its documented platform address alias',async()=>{
+  const source=CENTRAL_CITYHIVE_RESEARCH_SOURCES.find(row=>row.city==='Owings Mills');
+  const fixture=JSON.parse(await readFile(new URL('./fixtures/md-cityhive/owings-mills-elijah-craig-bp.json',import.meta.url),'utf8'));
+  assert.ok(parseCentralCityHiveInventory(`<script type="application/json">${JSON.stringify(fixture)}</script>`,source,bible,{observedAt:'2026-11-14T17:51:19.077Z'}).length===1);
+  fixture.product.merchants[0].product_options[0].full_address='WE DELIVER, 44 Unreviewed Rd, Owings Mills, MD 21117, USA';
+  assert.deepEqual(parseCentralCityHiveInventory(`<script type="application/json">${JSON.stringify(fixture)}</script>`,source,bible,{observedAt:'2026-11-14T17:51:19.077Z'}),[]);
 });
 
 test('Connecticut product-page shadow stays isolated and disables customer delivery',async()=>{

@@ -1,0 +1,536 @@
+{
+  "merchant_configs": [
+    {
+      "merchant": {
+        "id": "60456c4f88762f7bda9d7be0",
+        "name": "Euro Liquors",
+        "display_name": "Euro Liquors",
+        "address": {
+          "full_address": "WE DELIVER, 10512 Reisterstown Rd, Owings Mills, MD 21117, USA",
+          "address_properties": {
+            "success": true,
+            "lat": 39.4200966,
+            "lng": -76.7815526,
+            "country_code": "US",
+            "city": "Owings Mills",
+            "state": "MD",
+            "zip": "21117",
+            "street_address": "10512 Reisterstown Road",
+            "province": "MD",
+            "district": "Baltimore County",
+            "provider": "google",
+            "full_address": "WE DELIVER, 10512 Reisterstown Rd, Owings Mills, MD 21117, USA",
+            "is_us?": true,
+            "ll": "39.4200966,-76.7815526",
+            "precision": "building",
+            "street_number": "10512",
+            "state_full_name": "Maryland"
+          },
+          "location": {
+            "type": "Point",
+            "coordinates": [
+              -76.7815526,
+              39.4200966
+            ]
+          },
+          "district": "Baltimore County",
+          "province": "MD",
+          "street_address": "10512 Reisterstown Road",
+          "zipcode": "21117",
+          "state": "MD",
+          "city": "Owings Mills",
+          "country_code": "US",
+          "apt": null,
+          "id": "60456c6292a8bd32e5ecd9cc",
+          "place_id": "ChIJ-bBobqgXyIkR4zUlaHh-Jgw"
+        },
+        "email": "euroliquors@gmail.com",
+        "display_email": "euroliqours@gmail.com",
+        "phone_number": "+14109989463",
+        "accept_orders": true,
+        "onboarding_state": "active",
+        "delivery_area": {
+          "id": "60537a7341117b139ebeb831",
+          "type": "Polygon",
+          "delivery_fee_type": "fixed",
+          "minimum_delivery": 0,
+          "force_delivery_fee": true,
+          "min_to_leave_store": 30,
+          "delivery_fee": 5.99,
+          "base_fee": 0,
+          "max_delivery_time": 90,
+          "last_delivery_time_offset": 0,
+          "first_delivery_time_offset": 0,
+          "hour_step": 1,
+          "name": null,
+          "coordinates": [
+            [
+              [
+                -76.72971087463755,
+                39.375642340241704
+              ],
+              [
+                -76.82642824946895,
+                39.3929582875103
+              ],
+              [
+                -76.85183413325801,
+                39.4237290593003
+              ],
+              [
+                -76.85193377502817,
+                39.452562904794085
+              ],
+              [
+                -76.82749960662626,
+                39.471337278968136
+              ],
+              [
+                -76.77703116180204,
+                39.486442091900564
+              ],
+              [
+                -76.73672315232187,
+                39.459068184331535
+              ],
+              [
+                -76.71185809143442,
+                39.41941789574257
+              ],
+              [
+                -76.72971087463755,
+                39.375642340241704
+              ]
+            ]
+          ],
+          "delivery_hours": null
+        },
+        "merchant_type": "Beer, Wine, and Liquor Stores",
+        "premise_type": "Off Premise",
+        "inventory_owner": null,
+        "chain": null,
+        "aggregation_type": "single_store",
+        "max_delivery_time": 90,
+        "pickup": true,
+        "delivery": true,
+        "shipping": false,
+        "allow_delivery_tip": true,
+        "minimum_delivery": 0,
+        "work_hours": null,
+        "type": "Beer, Wine, and Liquor Stores",
+        "delivery_hours": {
+          "sun": {
+            "opening": null,
+            "closing": null
+          },
+          "mon": {
+            "opening": "10:00",
+            "closing": "19:30"
+          },
+          "tue": {
+            "opening": "10:00",
+            "closing": "19:30"
+          },
+          "wed": {
+            "opening": "10:00",
+            "closing": "19:30"
+          },
+          "thu": {
+            "opening": "10:00",
+            "closing": "19:30"
+          },
+          "fri": {
+            "opening": "10:00",
+            "closing": "20:30"
+          },
+          "sat": {
+            "opening": "10:00",
+            "closing": "20:30"
+          }
+        },
+        "business_hours": {
+          "sun": {
+            "opening": null,
+            "closing": null
+          },
+          "mon": {
+            "opening": "10:00",
+            "closing": "22:50"
+          },
+          "tue": {
+            "opening": "10:00",
+            "closing": "22:50"
+          },
+          "wed": {
+            "opening": "10:00",
+            "closing": "22:50"
+          },
+          "thu": {
+            "opening": "10:00",
+            "closing": "22:50"
+          },
+          "fri": {
+            "opening": "10:00",
+            "closing": "23:50"
+          },
+          "sat": {
+            "opening": "10:00",
+            "closing": "23:50"
+          }
+        },
+        "app_info": null,
+        "assets": {
+          "email_logo": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/60456c4f88762f7bda9d7be0/image/63c68625417f943c83dbed66.png?1673954853",
+          "campaign_logo_on_light_background": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/60456c4f88762f7bda9d7be0/image/63c68625417f943c83dbed68.png?1673954853",
+          "campaign_logo_on_dark_background": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/60456c4f88762f7bda9d7be0/image/63c68626417f943c83dbed6a.png?1673954854",
+          "raw_logo": "https://cityhive-prod-cdn.cityhive.net/media_gallery/merchant/60456c4f88762f7bda9d7be0/image/63c68625417f943c83dbed64.png?1673954853",
+          "assets": []
+        },
+        "referral_program": {
+          "enabled": false,
+          "message": "Give your friends  off their first online order and get  in store credit!",
+          "title": "Like us? We like you!",
+          "amount": null,
+          "percentage": false
+        },
+        "last_inventory_upload": "2026-11-13T18:09:41.109-05:00",
+        "integrated": true,
+        "wine_club": {
+          "enabled": true,
+          "name": "Euro Liquors Subscription Clubs!",
+          "image": null,
+          "information": "<p><strong>How It Works</strong></p><p>Join one of our monthly subscriptions to start the following month.By enrolling, you are authorizing a recurring monthly charge to your credit card.You may cancel by contacting the store at <a target=\"_blank\" href=\"mailto:euroliquors@gmail.com\">euroliquors@gmail.com</a>.Wines purchased through our subscription services are not refundable.</p>",
+          "is_live": false
+        },
+        "is_d2c_connected": null,
+        "store_credit": {
+          "allow_store_credit_use": true,
+          "allow_store_credit_use_with_discount": true,
+          "store_credit_points_mode": false,
+          "store_credit_points_factor": 1,
+          "minimum_store_credit_amount": 0,
+          "maximum_store_credit_amount": 0,
+          "max_store_credit_to_apply_on_orders": 0,
+          "user_defined_store_credit": true
+        },
+        "current_payment_gateway_name": "adyen",
+        "secondary_payment_gateway_name": null,
+        "account_manager": {
+          "node_id": "694085bac2da4d0b56a5c803",
+          "node_type": "merchant_app_user"
+        },
+        "tip_config": {
+          "allow_delivery_tip": true,
+          "allow_pickup_tip": true,
+          "allow_shipping_tip": false,
+          "allow_custom_tip": true,
+          "allow_cash_tip": true,
+          "tip_levels": [
+            5,
+            10,
+            15
+          ],
+          "default_tip": "10",
+          "default_delivery_tip": "10",
+          "default_pickup_tip": "10",
+          "default_shipping_tip": "10",
+          "driver_tip_percentage": 1
+        },
+        "multi_store_parent": null,
+        "allow_future_orders": true,
+        "validate_date_of_birth_on_checkout": false,
+        "timezone": "America/New_York",
+        "is_marketplace": null,
+        "reviews_services": {
+          "google_placeid": "ChIJ-bBobqgXyIkR4zUlaHh-Jgw",
+          "facebook_pagename": null,
+          "yelp_pagename": null,
+          "google_map_url": "https://www.google.com/maps/place/?q=place_id:ChIJ-bBobqgXyIkR4zUlaHh-Jgw"
+        },
+        "node_type": "merchant",
+        "node_id": "60456c4f88762f7bda9d7be0",
+        "allow_event_guest_checkout": false
+      },
+      "colors": {
+        "id": "60456c554b52686411f45153",
+        "alt_back_color": "#222222",
+        "alt_color": "#7f2a3a",
+        "alt_header": "#F6F6F6",
+        "background_color": "#FFFFFF",
+        "discount_banner_alt": "#FFFFFF",
+        "main_color": "#000000",
+        "merch_name_color": "#777777"
+      },
+      "signup_message": ""
+    }
+  ],
+  "product": {
+    "id": "56c29217756275139dc70300",
+    "name": "Elijah Craig Barrel Proof",
+    "basic_category": [
+      "bourbon",
+      "whiskey"
+    ],
+    "description": "Experience the Bourbon that Whisky Advocate's international reviewers consistently ranked #1 in a blind taste test against hundreds of whiskies from around the world in 2017. To sip our Barrel Proof Bourbon is to experience Bourbon in its purest form—uncut, straight from the barrel, and without chill filtering. Each bottle is hand labeled with its unique proof and batch number but the nose, taste, and finish of every sip is pure Elijah Craig. With Barrel Proof, you can enjoy Elijah Craig much the same way our Master Distillers do when they sample straight from the barrel in our Kentucky rickhouses.\nElijah Craig Barrel Proof has won countless awards from some of the most accredited spirits competitions, including Whisky Advocate's Whisky of the Year, #2 Whiskey by Wine Enthusiast, Double Gold from San Francisco World Spirits Competition, Double Gold at the Ultimate Spirits Challenge, and Double Gold at the International World Spirits Competition, among many other distinctions.\nThe aroma is caramel with toasted oak, fruit notes of apple and orange. The taste is rich vanilla, caramel, and butterscotch along with spices of black pepper and cinnamon at the back of the palate. And its finish is nicely layered showcasing all flavors, with a slow linger as it cools",
+    "images": {
+      "primary": {
+        "original": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/original.png",
+        "large": "https://cityhive-production-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/large.png",
+        "medium": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/medium.png",
+        "small": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/small.png",
+        "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/thumbnail.png"
+      },
+      "more_images": [
+        {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/original.png",
+          "large": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/thumbnail.png"
+        },
+        {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/original.png",
+          "large": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/thumbnail.png"
+        },
+        {
+          "original": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/original.png",
+          "large": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/large.png",
+          "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/medium.png",
+          "small": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/small.png",
+          "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/thumbnail.png"
+        }
+      ]
+    },
+    "size": {
+      "measure": "ml",
+      "quantity": "750"
+    },
+    "tags": [
+      "rich",
+      "spicy",
+      "caramel",
+      "vanilla",
+      "butterscotch"
+    ],
+    "views": [
+      "spirits"
+    ],
+    "customer_favorite": false,
+    "is_taxed": true,
+    "options": [],
+    "merchants": [
+      {
+        "offer_types": [
+          "pick_up",
+          "delivery",
+          "shipping"
+        ],
+        "product_options": [
+          {
+            "product_id": "56c29217756275139dc70300",
+            "option_id": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+            "option_params": {
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              }
+            },
+            "product_url": "https://euroliq.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+            "product_url_path": "/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+            "original_option_params": {
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              }
+            },
+            "stock_components": [],
+            "units_of_measure": [],
+            "badge": {},
+            "product_badge_icons": [
+              {
+                "type": "group_badge_icon",
+                "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c898b6d73e12be0754778.png?1704757643\" alt=\"\" aria-hidden=\"true\">",
+                "description": null,
+                "group_id": "659c899ee99fdb2bbce716c7",
+                "group_name": "Products From Kentucky",
+                "group_label": "",
+                "group_name_slug": "products-from-kentucky",
+                "group_tooltip": null
+              },
+              {
+                "type": "group_badge_icon",
+                "badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                "mini_badge_html": "<img width=\"24\" height=\"24\" src=\"https://cityhive-production-cdn.cityhive.net/media_gallery/merchant/62e1b40ca6d57025cc5d8be8/image/659c81a817a53f2bf65f2da9.png?1704755624\" alt=\"\" aria-hidden=\"true\">",
+                "description": null,
+                "group_id": "659c812cb1c8472bdc199722",
+                "group_name": "Products From USA",
+                "group_label": "",
+                "group_name_slug": "products-from-usa",
+                "group_tooltip": null
+              }
+            ],
+            "product_badges": [],
+            "store_credit_price": 0,
+            "quantity": 8,
+            "max_purchase_quantity": null,
+            "min_purchase_quantity": null,
+            "staff_pick": false,
+            "pinned_as_default": false,
+            "staff_pick_description": null,
+            "store_specific_description": "",
+            "staff_pick_recommender": null,
+            "product_modifiers": [],
+            "preorder_details": null,
+            "store_specific_tags": [],
+            "allowed_offer_types": null,
+            "product_tags": [
+              "rich",
+              "spicy",
+              "caramel",
+              "vanilla",
+              "butterscotch"
+            ],
+            "product_lists_info": null,
+            "available_in_merchant_ids": null,
+            "past_purchase": false,
+            "rich_properties": [],
+            "cityhive_rank": 0,
+            "product_page_custom_content": [],
+            "product_stats": null,
+            "merchant_id": "60456c4f88762f7bda9d7be0",
+            "merchant_name": "Euro Liquors",
+            "coordinates": [
+              -76.7815526,
+              39.4200966
+            ],
+            "full_address": "WE DELIVER, 10512 Reisterstown Rd, Owings Mills, MD 21117, USA",
+            "price": 83.99,
+            "original_price": 0,
+            "discount_value": null,
+            "discount_style": {},
+            "description": "",
+            "option_display_data": {
+              "name": "Elijah Craig Barrel Proof",
+              "description": "Experience the Bourbon that Whisky Advocate's international reviewers consistently ranked #1 in a blind taste test against hundreds of whiskies from around the world in 2017. To sip our Barrel Proof Bourbon is to experience Bourbon in its purest form—uncut, straight from the barrel, and without chill filtering. Each bottle is hand labeled with its unique proof and batch number but the nose, taste, and finish of every sip is pure Elijah Craig. With Barrel Proof, you can enjoy Elijah Craig much the same way our Master Distillers do when they sample straight from the barrel in our Kentucky rickhouses.\nElijah Craig Barrel Proof has won countless awards from some of the most accredited spirits competitions, including Whisky Advocate's Whisky of the Year, #2 Whiskey by Wine Enthusiast, Double Gold from San Francisco World Spirits Competition, Double Gold at the Ultimate Spirits Challenge, and Double Gold at the International World Spirits Competition, among many other distinctions.\nThe aroma is caramel with toasted oak, fruit notes of apple and orange. The taste is rich vanilla, caramel, and butterscotch along with spices of black pepper and cinnamon at the back of the palate. And its finish is nicely layered showcasing all flavors, with a slow linger as it cools",
+              "images": {
+                "primary": {
+                  "original": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/original.png",
+                  "large": "https://cityhive-production-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/large.png",
+                  "medium": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/medium.png",
+                  "small": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/small.png",
+                  "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/6ae3c8e138b79bfb2fd41f06/thumbnail.png"
+                },
+                "more_images": [
+                  {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/original.png",
+                    "large": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efaaa27323d1c615b9bd2/thumbnail.png"
+                  },
+                  {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/original.png",
+                    "large": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efaae27323d1c615b9bd3/thumbnail.png"
+                  },
+                  {
+                    "original": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/original.png",
+                    "large": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/large.png",
+                    "medium": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/medium.png",
+                    "small": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/small.png",
+                    "thumbnail": "https://cityhive-prod-cdn.cityhive.net/products/686efab127323d1c615b9bd4/thumbnail.png"
+                  }
+                ]
+              },
+              "size": {
+                "measure": "ml",
+                "quantity": "750"
+              },
+              "subtitle": null,
+              "views": [
+                "spirits"
+              ],
+              "basic_category": [
+                "bourbon",
+                "whiskey"
+              ],
+              "properties": {
+                "product_views": [
+                  "spirits"
+                ],
+                "product_basic_categories": [
+                  "bourbon",
+                  "whiskey"
+                ],
+                "basic_category": "Whiskey American",
+                "brands": [
+                  "Elijah Craig"
+                ],
+                "country": "United States",
+                "state": "Kentucky",
+                "content": "59.1%"
+              },
+              "product_group_product_subtitle": {
+                "product_subtitle": null,
+                "show_product_subtitle_on_app_and_website": null,
+                "override_individual_product_subtitle": null
+              }
+            },
+            "additional_properties": {
+              "type": "spirits",
+              "subtype": "bourbon, whiskey",
+              "content": "59.1%",
+              "country": "United States",
+              "state": "Kentucky",
+              "basic_category": "Whiskey American",
+              "brands": "Elijah Craig"
+            },
+            "default_option": true
+          }
+        ],
+        "additional_properties": {},
+        "merchant_id": "60456c4f88762f7bda9d7be0",
+        "merchant_name": "Euro Liquors",
+        "coordinates": [
+          -76.7815526,
+          39.4200966
+        ],
+        "full_address": "WE DELIVER, 10512 Reisterstown Rd, Owings Mills, MD 21117, USA"
+      }
+    ],
+    "product_rating": 3.8,
+    "number_of_product_ratings": 52,
+    "variations": null,
+    "product_modifiers": null,
+    "additional_properties": {
+      "type": "spirits",
+      "subtype": "bourbon, whiskey",
+      "content": "59.1%",
+      "country": "United States",
+      "state": "Kentucky",
+      "basic_category": "Whiskey American",
+      "brands": "Elijah Craig"
+    },
+    "is_enriched": true,
+    "brand_action": {
+      "type": "openProducts",
+      "params": {
+        "title": "Elijah Craig",
+        "query_params": {
+          "additional_properties": {
+            "brands": [
+              "Elijah Craig"
+            ]
+          }
+        }
+      }
+    },
+    "rich_properties": null
+  }
+}
