@@ -10,7 +10,7 @@ import { buildShadowEvidence } from '../src/run-expansion-shadow.mjs';
 import { CENTRAL_CITYHIVE_EXPANSION_SOURCES } from '../src/collectors/central-cityhive-expansion.mjs';
 import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from '../src/collectors/central-cityhive-research-premises.mjs';
 import { CENTRAL_CITYHIVE_STATE_IDS } from '../src/central-cityhive-policy.mjs';
-import {cityHiveResearchSourceForState} from '../src/research-cityhive-runtime.mjs';
+import {cityHiveResearchSourceForState,collectCityHiveResearchReport} from '../src/research-cityhive-runtime.mjs';
 import {persistCityHiveIncidentJournal} from '../src/collectors/central-cityhive-transport.mjs';
 
 const bible=await BourbonBible.load(new URL('../out/bourbon-bible.json',import.meta.url));
@@ -19,14 +19,40 @@ for(const source of CENTRAL_CITYHIVE_EXPANSION_SOURCES)fixtures.set(source.hostn
 const html=fixture=>`<script type="application/json">${fixture}</script>`;
 const frozen=JSON.stringify(STATE_LIFECYCLE_CONFIG);
 
-test('scheduled shadow registers exact MN/MO/MA candidates while production cohort remains WI/OK',()=>{
+test('scheduled shadow registers exact CT/MN/MO/MA candidates while production cohort remains WI/OK',()=>{
   assert.deepEqual([...CENTRAL_CITYHIVE_STATE_IDS].sort(),['OK','WI']);
-  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['MA','MN','MO']);
-  for(const state of ['MN','MO','MA']){
+  assert.deepEqual([...new Set(CENTRAL_CITYHIVE_RESEARCH_SOURCES.map(source=>source.state))].sort(),['CT','MA','MN','MO']);
+  for(const state of ['CT','MN','MO','MA']){
     const config=cityHiveResearchSourceForState(state);
     assert.equal(config.id,state);assert.equal(config.active,false);assert.equal(config.cadence,'shadow-only');
     assert.ok(config.sources.length>0);
   }
+  const ct=cityHiveResearchSourceForState('CT');
+  assert.equal(ct.sources.length,2);assert.ok(ct.sources.every(source=>source.precisionOnly&&source.label.includes('CT first-party pickup inventory')));
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('CT'),false);
+});
+
+test('Connecticut product-page shadow stays isolated and disables customer delivery',async()=>{
+  const original=process.env.BOURBON_SIGNAL_SHADOW_MODE,dir=await mkdtemp(path.join(tmpdir(),'ct-cityhive-shadow-'));
+  try{
+    process.env.BOURBON_SIGNAL_SHADOW_MODE='1';
+    const pages=new Map([
+      ['shopsunriseliquor.com',await readFile(new URL('./fixtures/ct-cityhive-product-pages/sunrise-product-page.html',import.meta.url),'utf8')],
+      ['beveragekingct.com',await readFile(new URL('./fixtures/ct-cityhive-product-pages/beverage-king-product-page.html',import.meta.url),'utf8')],
+    ]);
+    const report=await collectCityHiveResearchReport(cityHiveResearchSourceForState('CT'),bible,{reportDirectory:dir,captureRoot:null,
+      incidentFile:path.join(dir,'incidents.json'),cursorDir:path.join(dir,'cursor'),sleep:async()=>{},readAttempts:async()=>({}),writeAttempts:async()=>{},
+      fetchText:async url=>({ok:true,status:200,url,text:pages.get(new URL(url).hostname)})});
+    assert.equal(report.status,'useful');assert.equal(report.metadata.complete,true);assert.equal(report.metadata.shadowOnly,true);
+    assert.deepEqual(report.signals.map(row=>row.canonicalName).sort(),["Blanton's Original Single Barrel",'Wild Turkey Rare Breed Straight Bourbon'].sort());
+    assert.equal(report.signals.find(row=>row.canonicalName==="Blanton's Original Single Barrel").tier,'allocated');
+    for(const row of report.signals){
+      assert.equal(row.state,'CT');assert.equal(row.raw.shadowOnly,true);assert.equal(row.sourceProductBinding.shadowOnly,true);
+      for(const flag of ['alertable','canAlertAsInventory','canAlertAsWatch','eligibleForOnSite','eligibleForDropFeed','eligibleForWatch','eligibleForDelivery','eligibleForEmail','eligibleForSms'])assert.equal(row[flag],false);
+    }
+    assert.equal(report.metadata.customerDeliveryAllowed,false);assert.equal(report.metadata.productionActivationAllowed,false);
+    assert.equal(JSON.stringify(STATE_LIFECYCLE_CONFIG),frozen);
+  }finally{if(original===undefined)delete process.env.BOURBON_SIGNAL_SHADOW_MODE;else process.env.BOURBON_SIGNAL_SHADOW_MODE=original;await rm(dir,{recursive:true,force:true});}
 });
 
 test('WI and OK research registration cannot activate a source or mutate production lifecycle',()=>{

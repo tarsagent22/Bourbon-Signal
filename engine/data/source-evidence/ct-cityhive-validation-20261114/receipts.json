@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "status": "research_only",
+  "retrievedAtUtc": "2026-11-14T06:49:51.238Z",
+  "method": "One direct GET per first-party CityHive product page from a plain unauthenticated Windows shell; no retries, browser automation, cart mutations, or checkout.",
+  "publicSourceEnabled": false,
+  "customerDeliveryEnabled": false,
+  "receipts": [
+    {
+      "retailer": "Sunrise Liquor",
+      "state": "CT",
+      "url": "https://shopsunriseliquor.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+      "httpStatus": 200,
+      "bodyBytes": 199881,
+      "sha256": "7F9D3DCBAB77B298B7146B65625AAB847672829F1A4721801D6346C061BD4FB1",
+      "merchantId": "68e7b4f7ddc9964680a31a6f",
+      "address": "342 Stepstone Hill Rd, Guilford, CT 06437, USA",
+      "productId": "5521ceef6561310003530000",
+      "optionId": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+      "rawTitle": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+      "sizeMl": 750,
+      "priceUsd": 109,
+      "reportedOrderableQuantity": 1,
+      "catalogCanonical": "Blanton's Original Single Barrel",
+      "catalogTier": "allocated",
+      "fixtureFile": "engine/test/fixtures/ct-cityhive-product-pages/sunrise-product-page.html"
+    },
+    {
+      "retailer": "Beverage King",
+      "state": "CT",
+      "url": "https://beveragekingct.com/shop/product/wild-turkey-rare-breed-bourbon/56553d8e69702d2923120000?option-id=b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c",
+      "httpStatus": 200,
+      "bodyBytes": 221006,
+      "sha256": "D29D308783AAD982DCD01FE4ACD3992ACD5BD8CB5C374E6D1A04B28043EFA245",
+      "merchantId": "5ff8d3a20831fc26a1ac15d1",
+      "address": "180 Main St, Norwalk, CT 06851, USA",
+      "productId": "56553d8e69702d2923120000",
+      "optionId": "b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c",
+      "rawTitle": "Wild Turkey Rare Breed Bourbon",
+      "sizeMl": 750,
+      "priceUsd": 49.98,
+      "reportedOrderableQuantity": 1,
+      "catalogCanonical": "Wild Turkey Rare Breed Straight Bourbon",
+      "catalogTier": "limited",
+      "fixtureFile": "engine/test/fixtures/ct-cityhive-product-pages/beverage-king-product-page.html"
+    }
+  ],
+  "rawResponseRetention": {
+    "retainedInCommit": "b10d1d19e06ca72c3f4fbcc717bc253a9a4d3467",
+    "note": "Full HTTP response bodies remain in the original local research commit/worktree and are excluded from this slim port commit."
+  }
+}
