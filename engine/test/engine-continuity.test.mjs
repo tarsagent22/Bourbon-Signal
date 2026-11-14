@@ -110,6 +110,7 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(diagnosticsStep, /engine\/out\/source-usefulness-roi\.md/);
   assert.match(diagnosticsStep, /engine\/out\/nc-board-intelligence\.json/, 'failed refresh artifacts must expose the exact NC board-intelligence input used by verification');
   assert.match(diagnosticsStep, /engine\/out\/site\/stats\.json/, 'failed refresh artifacts must expose the exact generated stats that failed verification');
+  assert.match(diagnosticsStep, /engine\/out\/site\/states\/MN\/drops\.json/, 'MN first-publication diagnostics must retain the exact production state partition');
   assert.match(refreshStep, /BOURBON_SIGNAL_FORCE_SOURCE_RUN:\s*\$\{\{ \(inputs\.states != '' \|\| inputs\.force_all_states == 'true' \|\| steps\.nc-intelligence-cache\.outputs\.cache-matched-key == ''\) && '1' \|\| '0' \}\}/, 'force-all recovery and a true NC intelligence cache miss must force source lanes instead of retaining not-due state without derived evidence');
   assert.doesNotMatch(refreshStep, /nc-intelligence-cache\.outputs\.cache-hit/, 'a restore-key fallback reports cache-hit false and must not force every scheduled source lane');
   const workflowTimeoutMinutes = Number(workflow.match(/timeout-minutes:\s*(\d+)/)?.[1] || 0);
