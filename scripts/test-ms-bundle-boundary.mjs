@@ -90,18 +90,20 @@ test('Minnesota admission reverses only its reviewed lifecycle, active list and 
   }
 });
 
-test('Missouri active lifecycle pin is exact and remains isolated from the historical MS bundle', async () => {
+test('Missouri active lifecycle pin or dormant shadow entry is exact and remains isolated from the historical MS bundle', async () => {
   const name='src/config/state-lifecycle.json';
   const current=await readFile(new URL('../'+name,import.meta.url),'utf8');
   const entry=/^    "MO": \{\n[\s\S]+?^    \},\n/mu.exec(current)?.[0];
   assert.ok(entry);
-  assert.equal(digest(entry.slice(0,-1)),'4cbb1b6701d454a0c276f096d87e5e0df5ac1e2149af47e6f134582001cca400');
+  const status=JSON.parse(current).states.MO.publicStatus;
+  if(status==='active')assert.equal(digest(entry.slice(0,-1)),'4cbb1b6701d454a0c276f096d87e5e0df5ac1e2149af47e6f134582001cca400');
+  else assert.equal(status,'research_only');
   assert.equal(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current))),evidence.implementationFilesSha256[name]);
-  for(const changed of [
-    entry.replace('"artifactDigest": "','"artifactDigest": "changed'),
-    entry.replace('"cohortSha256": "','"cohortSha256": "changed'),
-    entry.replace('"publicStatus": "active"','"publicStatus": "research_only"'),
-  ])assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(entry,changed)))),
+  const mutations=status==='active'?[entry.replace('"artifactDigest": "','"artifactDigest": "changed'),
+    entry.replace('"cohortSha256": "','"cohortSha256": "changed'),entry.replace('"publicStatus": "active"','"publicStatus": "research_only"')]
+    :[entry.replace('"sourceLabel": "Missouri Costco warehouse bourbon watch"','"sourceLabel": "unreviewed Missouri source"'),
+      entry.replace('"shadowEligible": true','"shadowEligible": false')];
+  for(const changed of mutations)assert.notEqual(digest(normalizeHistoricalImplementationBytes(name,Buffer.from(current.replace(entry,changed)))),
     evidence.implementationFilesSha256[name],'an altered MO lifecycle must remain outside the historical MS equivalence');
 });
 
