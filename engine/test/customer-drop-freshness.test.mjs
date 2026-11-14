@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createHash } from 'node:crypto';
 import {
   currentInventoryMaxAgeMs,
   isWithinCustomerFreshnessWindow,
@@ -7,6 +8,8 @@ import {
 import { enforceCustomerDropByteBudget, isCurrentCustomerDropEvidence, mergeHistoricalTimelineDrops, mergePartialRefreshDrops } from '../src/partial-refresh-contract.mjs';
 import { buildStateDropPartitions, verifyStateDropPartitions } from '../src/site-state-partitions.mjs';
 import { buildStateOperatingContract } from '../src/state-operating-contract.mjs';
+import replay from './fixtures/oregon-daily-production-replay.json' with { type: 'json' };
+import { projectOregonDailyProduction } from '../src/collectors/oregon-daily-production.mjs';
 
 const now = Date.parse('2026-11-14T08:00:00.000Z');
 const hoursAgo = hours => new Date(now - hours * 60 * 60 * 1000).toISOString();
@@ -28,6 +31,17 @@ test('shared current inventory ages retain TX and verified Oregon exceptions', (
   assert.equal(isWithinCustomerFreshnessWindow(texas, now, { currentInventory: true }), false);
   assert.equal(currentInventoryMaxAgeMs(oregon), 48 * 60 * 60 * 1000);
   assert.equal(isWithinCustomerFreshnessWindow(oregon, now, { currentInventory: true }), true);
+  const report = { schemaVersion: 'bourbon-signal-or-product-availability-v1', status: 'ready',
+    sourceUrl: 'https://www.olcc.state.or.us/pdfs/DailyStoreInventory.csv', sourceSha256: replay.provenance.sourceReportSha256,
+    sourceBytes: 1, generatedAt: replay.provenance.sourceReportGeneratedAt, sourceReportDate: replay.provenance.sourceReportDate,
+    bible: { mode: 'live', recordsSha256: createHash('sha256').update(JSON.stringify([{ id: replay.product.canonicalBottleId }])).digest('hex') },
+    products: [{ ...replay.product, stores: replay.stores }] };
+  const allocatedBible = { records: [{ id: replay.product.canonicalBottleId }], match: () => ({ record: { id: replay.product.canonicalBottleId,
+    canonical: replay.product.canonicalName, tier: 'allocated' }, method: 'exact-library-identity' }) };
+  const productionOregon = projectOregonDailyProduction(report, allocatedBible, { nowMs: Date.parse(replay.provenance.canaryGeneratedAt) })[0];
+  assert.equal(currentInventoryMaxAgeMs(productionOregon), 48 * 60 * 60 * 1000);
+  assert.equal(isWithinCustomerFreshnessWindow(productionOregon, Date.parse(replay.provenance.canaryGeneratedAt), { currentInventory: true }), true);
+  assert.equal(currentInventoryMaxAgeMs({ ...productionOregon, sourceProductBinding: {} }), 2 * 60 * 60 * 1000);
   assert.equal(isCurrentCustomerDropEvidence({ ...ordinary, lastConfirmedAt: new Date(now + 20 * 60 * 1000).toISOString() }, now), false);
   assert.equal(isCurrentCustomerDropEvidence({ ...ordinary, sourceStale: true }, now), false);
   assert.equal(isCurrentCustomerDropEvidence({ ...ordinary, state: 'OH', lastConfirmedAt: hoursAgo(36) }, now), true);

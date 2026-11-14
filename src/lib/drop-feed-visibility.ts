@@ -2,6 +2,7 @@ import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
+import { isOregonDailyProductionEvidence } from '../../engine/src/collectors/oregon-daily-production.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
   ["retailer:ms:cityhive:68ba2980113a7a29c2076fc3", "029254"],
   ["retailer:ms:moonshine:323", "044411"],
@@ -61,6 +62,12 @@ export type UserFacingDropSignal = {
   eligibleForSms?: boolean;
   previewOnly?: boolean;
   inventorySemantics?: string;
+  sourceReportSha256?: string;
+  sourceReportGeneratedAt?: string;
+  sourceProductBinding?: Record<string, unknown>;
+  observedAt?: string;
+  lastConfirmedAt?: string;
+  quantityIsExact?: boolean;
 };
 
 function asNumber(value: unknown, fallback = 0) {
@@ -184,6 +191,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   if (type === "retailer_store_inventory_result") return quantity > 0;
   if (type === "cityhive_store_inventory_result") return quantity > 0;
   if (type === "distillery_gift_shop_availability" && precision === "distillery") return true;
+  if (state === "OR" && type === "store_inventory_result") return isOregonDailyProductionEvidence(drop);
   if (type === "store_inventory_result") return quantity > 0;
 
   return false;
