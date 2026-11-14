@@ -151,7 +151,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   }
   if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
     const activeKansasTail=/^    \},\n    "KS": \{[\s\S]+?^    \}\n  \}/mu.exec(text)?.[0];
-    const kansasTailSha='0e8a294761ca13a95935327cafb950cffffbebbabeb66eb5f45f388a06858186';
+    const kansasTailSha='e58074869dfcb88cc8f7dce74e9e00a1c636559a05824c61cc3a3a4b6a3c3c8a';
     if(activeKansasTail&&createHash('sha256').update(activeKansasTail).digest('hex')===kansasTailSha){
       text=replaceUnique(text,activeKansasTail,'    }\n  }',`${name}: exact attested KS lifecycle tail`);
       text=replaceUnique(text,'    "MN",\n    "KS"\n  ],\n  "reliabilityPolicy"','    "MN"\n  ],\n  "reliabilityPolicy"',`${name}: exact KS active list tail`);
