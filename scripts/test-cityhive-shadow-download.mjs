@@ -27,6 +27,20 @@ test('CityHive downloader requires actual successful source-equivalent shadow wo
   for(const filename of ['engine/src/research-cityhive-runtime.mjs','engine/src/collectors/central-cityhive-expansion.mjs','engine/src/core/bible.mjs','src/config/state-lifecycle.json']){
     assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'ahead',files:[{filename}]}}),/source changed/);
   }
+  const inactiveMnPatch=`@@ -31,7 +31,6 @@
+    "RI",
+-    "MN"
+  ],
+@@ -954,7 +953,7 @@
+    "MN": {
+      "customerLabel": "Minnesota",
+-      "publicStatus": "active",
++      "publicStatus": "research_only",
+      "shadowEligible": true,`;
+  const inactiveMnAhead={...ahead,state:'MN',comparison:{status:'ahead',files:[{filename:'src/config/state-lifecycle.json',patch:inactiveMnPatch}]}};
+  const verifiedInactiveMn=validateCityHiveShadowWorkflowOrigin(inactiveMnAhead);
+  assert.equal(verifiedInactiveMn.inactiveMinnesotaShadowLifecycleTransition,true);
+  assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...inactiveMnAhead,comparison:{status:'ahead',files:[{filename:'src/config/state-lifecycle.json',patch:inactiveMnPatch.replace('"Minnesota"','"Minnesota Edited"')}]}}),/source changed/);
   assert.throws(()=>validateCityHiveShadowWorkflowOrigin({...ahead,comparison:{status:'diverged',files:[]}}),/source changed/);
 });
 test('WI/OK archive uses issued ZIP digest and existing bounded portable path decoder',()=>{
