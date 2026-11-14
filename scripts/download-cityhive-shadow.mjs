@@ -34,11 +34,24 @@ export function validateCityHiveShadowWorkflowOrigin({state,repository,run,artif
     ||!(artifact.size_in_bytes>0&&artifact.size_in_bytes<=128*1024*1024))throw new Error('Missing, expired, oversized or unbound shadow artifact');
   const changes=run.head_sha===currentHead?[]:comparison?.files;
   const unreviewedChange=file=>!(preparationOnly(state,file.filename)||(state==='MN'&&minnesotaAdapterFiles.has(file.filename)));
+  const inactiveMnShadowTransition=state==='MN'&&changes?.length===1
+    &&changes[0].filename==='src/config/state-lifecycle.json'
+    &&(()=>{
+      const patch=String(changes[0].patch||'');
+      const removed=patch.split('\n').filter(line=>line.startsWith('-')&&!line.startsWith('---')).map(line=>line.slice(1).trim());
+      const added=patch.split('\n').filter(line=>line.startsWith('+')&&!line.startsWith('+++')).map(line=>line.slice(1).trim());
+      return removed.length===2&&added.length===1
+        &&removed.includes('"MN"')&&removed.includes('"publicStatus": "active",')
+        &&added.includes('"publicStatus": "research_only",')
+        &&/"RI"[\s\S]*-\s+"MN"[\s\S]*\+\s+"publicStatus": "research_only"/.test(patch)
+        &&/"MN": \{[\s\S]*"customerLabel": "Minnesota"[\s\S]*-\s+"publicStatus": "active"/.test(patch);
+    })();
   if(run.head_sha!==currentHead&&(!['ahead','identical'].includes(comparison?.status)||!Array.isArray(changes)
-    ||changes.length>=300||changes.some(unreviewedChange)))
+    ||changes.length>=300||changes.some(unreviewedChange)&&!inactiveMnShadowTransition))
     throw new Error('Shadow collector source changed; issue new shadow runs before canary');
   return {status:'verified_github_shadow_artifact',state,repository,workflowRunId:String(run.id),workflowRunUrl:run.html_url,
     headSha:run.head_sha,currentHead,sourceEquivalentPreparationChanges:changes.map(file=>file.filename),
+    inactiveMinnesotaShadowLifecycleTransition:inactiveMnShadowTransition,
     artifactId:String(artifact.id),artifactName:artifact.name,artifactDigest:artifact.digest.slice(7),verifiedAt:new Date().toISOString()};
 }
 const argument=flag=>process.argv.find(value=>value.startsWith(flag+'='))?.slice(flag.length+1);
