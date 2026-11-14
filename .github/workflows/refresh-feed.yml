@@ -778,6 +778,8 @@ jobs:
             engine/out/site/states/IL/drops.json
             engine/out/site/states/MN/drops.json
             engine/out/first-publication/MN.json
+            engine/out/site/states/CT/drops.json
+            engine/out/first-publication/CT.json
             engine/out/az-expansion-verification.json
             engine/out/illinois-grocery-verification.json
             engine/out/pa-expansion-verification.json
