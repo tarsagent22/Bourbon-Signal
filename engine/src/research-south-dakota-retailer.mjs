@@ -5,57 +5,23 @@ import { fetchReviewedFirstPartyText, CITYHIVE_DENIAL_STATUSES } from './collect
 import { centralCityHiveRecordMarketTier } from './collectors/central-cityhive-market-policy.mjs';
 import { stableId } from './core/text.mjs';
 
-const origin = 'https://www.mrliquor.com';
-const batchPath = '/api/trpc/organization.get,ecomStore.fromStore,product.getAll';
-const sources = Object.freeze([
-  { id: 5187, publicId: '1lal4mjsoicy3', name: 'Mr. Liquor West', address: '3609 Sturgis Road', zip: '57702',
-    terms: ['Wild Turkey'], products: [
-      ['3iyhimjsprb11', '721059003872', 'Wild Turkey - 101 8 Year (Allocated)', 'Wild Turkey 101 8Y .75l'],
-    ] },
-  { id: 5220, publicId: 'dhut4mjstu0n3', name: 'Mr. Liquor South', address: '5312 Black Hills Blvd', zip: '57701',
-    terms: ['Heaven Hill', 'Larceny'], products: [
-      ['58g3imjsu2bs7', '096749002429', 'Heaven Hill - 7 Year Bourbon - 750ml', 'Heaven Hill Bottled-in-Bond 7 Year'],
-      ['6ydeimjsu2t72', '096749002658', 'Larceny Bourbon - Barrel Proof (Allocated)', 'Larceny Barrel Proof'],
-    ] },
-]);
+import {
+  batchPath, city, fullAddress, origin, silent, sourceId, sources, storeId, southDakotaRetailerRequest,
+} from './south-dakota-pickup-policy.mjs';
+export { isSouthDakotaShadowPickup, southDakotaRetailerRequest } from './south-dakota-pickup-policy.mjs';
+
 const label = 'Rapid City first-party pickup research';
 const config = Object.freeze({
   id: 'SD', label, tier: 'B', active: false, strategy: 'retailer_store_inventory', cadence: 'shadow-only',
   value: 'Closed set of reviewed pickup stores and indexed bottle expressions in Rapid City.',
   sources: [{kind: 'api', label, url: origin + batchPath, precisionOnly: true}], apiCandidates: [],
 });
-const silent = Object.freeze({
-  alertable: false, canAlertAsInventory: false, canAlertAsWatch: false, eligibleForOnSite: false,
-  eligibleForDropFeed: false, eligibleForWatch: false, eligibleForDelivery: false,
-  eligibleForEmail: false, eligibleForSms: false,
-});
-const city = 'Rapid City';
-const storeId = source => `sante:sd:mr-liquor:${source.id}`;
-const sourceId = source => `research:sd:mr-liquor:${source.id}`;
-const fullAddress = source => `${source.address}, ${city}, SD ${source.zip}`;
-
 export const southDakotaResearchSource = state => state === 'SD' ? config : null;
 export const southDakotaResearchLifecycle = () => ({
   SD: { customerLabel: 'South Dakota', sourceLabel: label, publicStatus: 'research_only', shadowEligible: true,
     lifecycle: 'retailer_inventory_research', coverageTier: 'sparse_live_store_inventory',
     refinementLevel: 'store', inventoryAlertable: false, watchAlertable: false },
 });
-
-export function southDakotaRetailerRequest(term) {
-  const nil = {json: null, meta: {values: ['undefined']}};
-  const filter = {
-    hasPromo: false, inStock: true, categories: null, collections: null, text: term, matchTypes: [],
-    tags: [], min_price: null, max_price: null, pagination: {pageIndex: 0, pageSize: 20},
-    sorting: {id: 'best_selling', desc: true},
-  };
-  const body = {0: nil, 1: nil, 2: {
-    json: filter, meta: {values: Object.fromEntries(['categories', 'collections', 'min_price', 'max_price']
-      .map(key => [key, ['undefined']]))},
-  }};
-  const url = new URL(batchPath, origin);
-  url.search = new URLSearchParams({batch: '1', input: JSON.stringify(body)});
-  return url.href;
-}
 
 function reviewedStore(payload, source) {
   if (!Array.isArray(payload) || payload.length !== 3) return null;
@@ -108,22 +74,6 @@ export function reviewSouthDakotaPickup(payload, store, bible, observedAt, query
     });
   }
   return {signals, availableCatalogCount: catalog.count};
-}
-
-export function isSouthDakotaShadowPickup(row) {
-  const source = sources.find(entry => storeId(entry) === row?.storeId);
-  const proof = row?.sourceProductBinding;
-  return Boolean(source && row.state === 'SD' && row.city === city && row.postalCode === source.zip
-    && row.storeAddress === fullAddress(source) && row.sourceRuntimeId === sourceId(source)
-    && source.terms.some(term => southDakotaRetailerRequest(term) === row.sourceUrl)
-    && proof?.source === 'mr-liquor-sante' && proof.shadowOnly === true && row.raw?.shadowOnly === true
-    && proof.premiseVerified === true && proof.pickupOfferVerified === true && proof.storeId === row.storeId
-    && proof.storeAddress === row.storeAddress && proof.productId === row.productId && proof.observedAt === row.observedAt
-    && proof.canonicalBottleId === row.canonicalBottleId && Number.isSafeInteger(proof.availableToOrder)
-    && proof.availableToOrder > 0 && row.sourceAvailabilityVerified === true && row.availabilityStatus === 'in_stock'
-    && row.quantity === 0 && row.quantityIsExact === false && source.products.some(([id,upc,title,name]) =>
-      id === row.productId && upc === proof.upc && title === row.rawName && name === row.canonicalName)
-    && Object.keys(silent).every(key => row[key] === false));
 }
 
 export async function collectSouthDakotaResearch(incoming, bible, {

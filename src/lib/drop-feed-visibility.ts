@@ -1,6 +1,7 @@
 import {isNjMiOnSiteSignal} from '../../engine/src/nj-mi-research-policy.mjs';
 import { isGroceryExpansionOnSiteSignal } from '../../engine/src/grocery-xapi-policy.mjs';
 import { isCentralCityHiveOnSiteSignal } from '../../engine/src/central-cityhive-policy.mjs';
+import { isSouthDakotaCanaryPickup } from '../../engine/src/south-dakota-pickup-policy.mjs';
 import { isLouisianaAlaskaGroceryCanaryPreview } from '../../engine/src/laak-canary-preview-policy.mjs';
 import { isLouisianaAlaskaGroceryOnSiteSignal } from '../../engine/src/louisiana-alaska-grocery-policy.mjs';
 export const MISSISSIPPI_ONSITE_SOURCE_PERMITS = new Map<string, string>([
@@ -163,6 +164,7 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   if (isGroceryExpansionOnSiteSignal(drop)) return true;
   if (['NJ','MI'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isNjMiOnSiteSignal(drop);
   if (['WI','OK','RI','MN'].includes(state) && /^(?:retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) return isCentralCityHiveOnSiteSignal(drop);
+  if (state === 'SD' && type === 'retailer_store_inventory_result' && drop.previewOnly === true) return isSouthDakotaCanaryPickup(drop);
   if (!type) return false;
   if (type === "wv_abca_retailer_recent_purchase_window") return isWestVirginiaRecentPurchase;
   if (isWestVirginiaOfficialBarrelSelection) return true;
