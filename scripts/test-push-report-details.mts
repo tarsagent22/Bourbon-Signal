@@ -6,7 +6,7 @@ const { candidateToMemberAlert, normalizeAlertInboxMetadata, groupCandidatesByLo
 const { buildExpoPushMessages } = (pushModule as any).default || pushModule;
 const token='ExpoPushToken[aaaaaaaaaaaaaaaa]';
 test('Community report fields survive candidate conversion, stored inbox and final provider preview',()=>{
-const candidate={id:'community:sighting-123',dedupeKey:'community-sighting:sighting-123',bottle:'E.H. Taylor Single Barrel',sourceType:'community',state:'NC',storeName:'Durham ABC',storeCity:'Durham',storeAddress:'123 Main St',locationName:'Durham ABC',locationPrecision:'store_level',eventType:'qualified_community_sighting',tier:'allocated',quantityEstimate:'4',price:95};
+const candidate={id:'community:sighting-123',dedupeKey:'community-sighting:sighting-123',bottle:'E.H. Taylor Single Barrel',sourceType:'community',state:'NC',storeName:'Durham ABC',boardName:'Durham County ABC Board',storeCity:'Durham',storeAddress:'123 Main St',locationName:'Durham ABC',locationPrecision:'store_level',eventType:'qualified_community_sighting',tier:'allocated',quantityEstimate:'4',price:95};
 const alert=candidateToMemberAlert('owner',candidate,'2026-10-19T12:00:00.000Z');
 const restored=normalizeAlertInboxMetadata({recent:[JSON.parse(JSON.stringify(alert))]}).recent[0]!;
 const [message]=buildExpoPushMessages([token],restored);

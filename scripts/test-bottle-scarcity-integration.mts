@@ -26,7 +26,8 @@ for (const [id, source] of Object.entries(BOTTLE_SCARCITY_SOURCE_REGISTRY)) {
 
 let overrideCount = 0;
 for (const [bottleId, overrides] of Object.entries(BOTTLE_STATE_SCARCITY_OVERRIDES)) {
-  assert.match(bottleId, /^[a-z0-9-]+$/, "state override keys must use canonical bottle IDs");
+  assert.match(bottleId, /^(?:[a-z0-9-]+|bb_[a-f0-9]{16})$/, "state override keys must use canonical bottle IDs");
+  assert.equal(canonicalBottleId(bottleId), bottleId);
   const validated = validateStateScarcityOverrides(overrides);
   assert.equal(validated.length, overrides.length);
   for (const override of validated) {

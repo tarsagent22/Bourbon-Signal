@@ -39,6 +39,16 @@ export const BOTTLE_SCARCITY_SOURCE_REGISTRY = {
     label: "Pennsylvania Limited Release Lottery Terms",
     url: "https://www.finewineandgoodspirits.com/retail-customer-limited-release-lottery-terms-and-conditions",
   },
+  "official-nc-abc-shipments": {
+    type: "official_state",
+    label: "North Carolina ABC Stock Shipped Data",
+    url: "https://abc2.nc.gov/Search/StockShippedData",
+  },
+  "official-nc-abc-warehouse-listing": {
+    type: "official_state",
+    label: "North Carolina ABC Warehouse Stock Status",
+    url: "https://abc2.nc.gov/StoresBoards/Stocks",
+  },
   "official-nc-quarterly-price-list": {
     type: "official_state",
     label: "North Carolina ABC Quarterly Price List",
@@ -123,6 +133,18 @@ export const ALABAMA_ALLOCATED_PRODUCT_MATCHES: Readonly<Record<string, string>>
 };
 
 export const BOTTLE_STATE_SCARCITY_OVERRIDES: Record<string, StateScarcityOverride[]> = {
+  "bb_a3e109c627a8eb46": [{
+    jurisdiction: "NC",
+    tier: "allocated",
+    confidence: "medium",
+    reason: "Bourbon Signal classifies Old Forester King Ranch as Allocated in North Carolina based on the board shipment release under NC code 17110. The commission's warehouse report lists the product as Limited.",
+    officialAllocationStatus: "unknown",
+    verifiedOpportunityCount: 122,
+    coverageDenominator: 172,
+    evidenceWindow: { start: "2026-11-13", end: "2026-11-14" },
+    sourceIds: ["official-nc-abc-shipments", "official-nc-abc-warehouse-listing"],
+    lastReviewedAt: "2026-11-14",
+  }],
   "ezra-brooks-stave-finish-spice-and-clove": [{
     jurisdiction: "WV",
     tier: "limited",

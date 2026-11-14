@@ -37,7 +37,7 @@ const snapshotId = 'synthetic-context-snapshot';
 const policyNames = ['bottles', 'state-health', 'alerts'];
 const collectionNames = ['bottles', 'drops', 'state-health', 'alerts'];
 
-async function harness() {
+async function harness(ncSignals: Row[] = []) {
   const plan = describeShopifyVariantSource(config, { collectorSha256: readiness.collectorSha256 });
   const canonical = new BourbonBible(catalog.records).match(config.products[0].canonicalName)!.record;
   // Synthetic approvals exercise the real predicate; they authorize no source.
@@ -112,7 +112,10 @@ async function harness() {
     if (name.endsWith('/shopify-pickup-policy.mjs')) return { ...pickupPolicy, SHOPIFY_PICKUP_SOURCES: [source] };
     if (name.endsWith('/shopify-variant-pickup.mjs')) return { collectShopifyVariantPickup: fixtureCollect };
     if (name.endsWith('/florida-jensens-runtime-source.mjs')) return { JENSENS_RUNTIME_SOURCE, collectJensensSource: forbidden('Jensen collection') };
-    if (name.endsWith('/california-san-diego-surfaces.mjs')) return { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES };
+    if (name.endsWith('/collectors/california-san-diego-surfaces.mjs')) return { CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES };
+    if (name.endsWith('/collectors/north-carolina-intelligence.mjs') && ncSignals.length) {
+      return { collectNorthCarolinaShipments: async () => ({ signals: ncSignals }) };
+    }
     if (name.includes('/collectors/') || name.includes('/core/fetcher')) return new Proxy({}, { get: (_t, key) => forbidden(`collector ${String(key)}`) });
     if (modules.has(name)) return modules.get(name);
     return new Proxy({}, { get: (_t, key) => forbidden(`${name}:${String(key)}`) });
@@ -125,7 +128,8 @@ async function harness() {
     return module.exports;
   };
   const scheduler = await load(sourceText, dependencies);
-  scheduler.POLL_SOURCES.splice(0, scheduler.POLL_SOURCES.length, source);
+  const nc = scheduler.POLL_SOURCES.find((entry: Row) => entry.id === 'nc:board-shipments');
+  scheduler.POLL_SOURCES.splice(0, scheduler.POLL_SOURCES.length, ncSignals.length ? nc : source);
   const wrapper = await load(await readFile(new URL('../src/lib/source-lane-runtime.ts', import.meta.url), 'utf8'), name => {
     if (name === './source-scheduler') return scheduler;
     if (name.endsWith('/sources/poll-policy.mjs')) return policy;
@@ -166,6 +170,42 @@ test('actual collection keeps one four-export bundle, matching Bible, broad hist
   const current = h.state.jobs.get(h.source.id)!.projection;
   assert.equal(current.drops[0].availabilityEpisodeId, episode, 'Broad fallback history preserves existing episode');
   assert.equal(current.candidates.length, 0, 'No prior source projection means bootstrap silence'); h.safe();
+});
+
+test('NC polls apply the revised King Ranch tier before selecting shipment alerts', async () => {
+  const canonicalId = 'bb_a3e109c627a8eb46';
+  const at = new Date(Date.now() - 60_000).toISOString();
+  const kingRanch = {
+    id: 'king-ranch-triad', state: 'NC', eventType: 'nc_board_shipment_snapshot',
+    sourceLabel: 'NC ABC Stock Shipped Data', sourceUrl: 'https://abc2.nc.gov/Search/StockShippedData',
+    locationPrecision: 'board_county', locationName: 'Triad Municipal ABC Board',
+    rawName: 'Old Forester King Ranch .75L', canonicalName: 'Old Forester King Ranch',
+    canonicalBottleId: canonicalId, tier: 'limited', observedAt: at, quantity: 180,
+    canAlertAsWatch: true, canAlertAsInventory: false, confidence: 0.9,
+  };
+  const h = await harness([kingRanch]);
+  h.state.tweak = (name, result) => {
+    if (name === 'bottles') result.payload.bottles.push({
+      id: canonicalId, canonical_id: canonicalId, canonical_name: 'Old Forester King Ranch', aliases: [], tier: 'limited',
+    });
+    return result;
+  };
+  const id = 'nc:board-shipments';
+  h.state.jobs.set(id, {
+    source_id: id, generation: 1, accepted_at: at, last_reason: 'accepted',
+    projection: { drops: [{ bottleName: kingRanch.canonicalName, locationName: kingRanch.locationName, quantity: kingRanch.quantity, tier: 'limited' }], candidates: [] },
+  });
+  assert.equal((await h.run()).results[0].status, 'accepted');
+  const projection = h.state.jobs.get(id)!.projection;
+  assert.equal(projection.drops[0].tier, 'allocated');
+  assert.equal(projection.drops[0].canAlertAsInventory, false);
+  const [candidate] = (await h.read('candidates')).rows;
+  assert.equal(candidate.canonicalBottleId, canonicalId);
+  assert.equal(candidate.tier, 'allocated');
+  assert.equal(candidate.signalAt, at);
+  assert.equal(await h.valid([candidate]), true);
+  assert.equal((await h.run()).results[0].status, 'accepted');
+  assert.equal((await h.read('candidates')).rows[0].dedupeKey, candidate.dedupeKey);
 });
 
 test('collection rejects a mismatched drops snapshot before Bible construction or collector access', async () => {

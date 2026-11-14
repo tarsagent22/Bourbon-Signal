@@ -11,6 +11,8 @@ export interface CanonicalCommunityStore {
   address: string;
   city: string;
   state: string;
+  board?: string;
+  county?: string;
 }
 
 export function canonicalCommunityStoreKey(state: string, storeId: string) {
@@ -99,6 +101,8 @@ export function buildCommunityAlertCandidates(inputs: CommunityAlertSightingInpu
       storeName: store.name,
       storeAddress: store.address,
       storeCity: store.city,
+      ...(store.board ? { boardName: store.board } : {}),
+      ...(store.county ? { storeCounty: store.county } : {}),
       quantityEstimate: sighting.quantityEstimate,
       price: sighting.price,
       locationName: store.name,

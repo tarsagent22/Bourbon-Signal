@@ -2320,6 +2320,7 @@ export function buildRegionalWatchAlertsFromDrops(drops) {
       cautions: ['regional_not_store_level', 'verify_before_driving'],
       state: drop.state,
       bottle: drop.bottleName || drop.canonicalName,
+      canonicalBottleId: drop.canonicalBottleId || drop.canonicalId || null,
       tier: drop.tier,
       eventType: drop.type,
       source: drop.source,

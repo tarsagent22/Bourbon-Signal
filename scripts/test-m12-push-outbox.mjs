@@ -236,6 +236,22 @@ test('actual caller: blocked and reported Community children cannot enter the in
   }
 });
 
+test('actual caller: an already delivered group leaves room for the next matching group', async () => {
+  const f = await callerFixture();
+  await f.run();
+  const next = { ...f.candidate, key: 'another-episode', dedupeKey: 'another-group' };
+  f.user.publicMetadata.notificationPreferences.push.enabled = false;
+  f.user.privateMetadata.alertInbox = { recent: [] };
+  f.context.readAlertCandidateBatch = async () => ({
+    candidates: [f.candidate, next],
+    snapshot: { snapshotId: 'test', generatedAt: new Date().toISOString() },
+  });
+  const second = await f.run();
+  assert.equal(second.onSiteAlertsCreated, 1);
+  assert.equal(second.queueDuplicatesSkipped, 1);
+  assert.equal(f.user.privateMetadata.alertInbox.recent[0].dedupeKey, next.dedupeKey);
+});
+
 test('actual caller: inbox succeeds, known rejection, second run sends only push with current devices',async()=>{
   const f=await callerFixture();const first=await f.run();assert.equal(first.onSiteAlertsCreated,1);assert.equal(f.inboxes,1);assert.equal(f.sends,1);
   assert.equal((await f.state()).status,'pending');f.user.privateMetadata.pushDevices=['live-v2'];await f.due();

@@ -1,3 +1,4 @@
+import { normalizeBottleName, stableId } from '../core/text.mjs';
 import { createShopifyPickupPolicy } from './shopify-pickup-policy.mjs';
 
 export function recoveryPolicy(reason, failures = 0, retryAfter = 0, source = {}) {
@@ -71,8 +72,18 @@ export function validatePollPolicy(jobs,registry,lookup,health,quarantined='',po
     const allowed=row=> {
       if(blocked.has(source.state))return false;
       if(source.kind==='shopify-variant-pickup')return shopifyPolicy.eligible(row);
-      const record=lookup.byId?.get?.(row.canonicalBottleId || row.canonicalId) || lookup.byId?.[row.canonicalBottleId || row.canonicalId];
-      return !!record && ['limited','allocated','unicorn'].includes(record.tier);
+      const canonicalId = row.canonicalBottleId || row.canonicalId;
+      const record = canonicalId
+        ? lookup.byId?.get?.(canonicalId) || lookup.byId?.[canonicalId]
+        // Already accepted NC projections omitted the ID from the regional candidate.
+        // Recover it only from an unambiguous exact match in the current catalog.
+        : source.kind === 'nc-shipments' && row.sourcePollId === source.id && sourceScopeMatches(source, row)
+          ? lookup.byExactName?.get(normalizeBottleName(row.bottle).toLowerCase())
+          : null;
+      if (!record || !['limited','allocated','unicorn'].includes(record.tier)) return false;
+      // The producer's stable key binds legacy rows to the same catalog ID even
+      // if an exact name or alias has since been reassigned.
+      return Boolean(canonicalId) || row.matchKey === stableId([row.state, record.id, row.locationPrecision, row.locationName || 'regional']);
     };
     return {...job,projection:{...job.projection,candidates:(job.projection.candidates || []).filter(allowed),
       drops:(job.projection.drops || []).map(row=>allowed(row)?row:{...row,stale:true,canAlertAsInventory:false,canAlertAsWatch:false})}};
