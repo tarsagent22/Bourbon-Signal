@@ -1,0 +1,26 @@
+name: FWGS state overlap offline rehearsal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run artifact-only rehearsal
+        working-directory: engine
+        run: node test/rehearse-fwgs-state-overlap.mjs > "$RUNNER_TEMP/fwgs-state-overlap-rehearsal.json"
+      - name: Retain offline rehearsal report
+        uses: actions/upload-artifact@v4
+        with:
+          name: fwgs-state-overlap-rehearsal-${{ github.run_id }}
+          path: ${{ runner.temp }}/fwgs-state-overlap-rehearsal.json
+          if-no-files-found: error

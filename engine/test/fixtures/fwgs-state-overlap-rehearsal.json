@@ -1,0 +1,68 @@
+{
+  "runId": "43594764881",
+  "observedAt": "2026-11-14T13:15:32.081Z",
+  "evidence": {
+    "refreshStatusSha256": "ea3ece3f9c7f581559b9d2e8c879bbd2b15c71dda3f54c381f88c705e60e4d57",
+    "stateRunMetricsSha256": "918658d06eaf0eeaba6d71b3e707eca138f9a89bbc24f7e440d322033f0b44af"
+  },
+  "timingSeconds": {
+    "fwgs": 1080.07,
+    "statePool": 1494.09,
+    "firstExport": 211.51,
+    "refreshTotal": 2854.04
+  },
+  "statePool": {
+    "dueStateCount": 29,
+    "concurrency": 4,
+    "perDomain": 1,
+    "workerMakespanSeconds": 1488,
+    "browserBoundStates": ["PA", "OH"],
+    "orderedRuns": [
+      {"id":"OH","durationMs":655}, {"id":"IA","durationMs":7158}, {"id":"UT","durationMs":11380},
+      {"id":"AL","durationMs":7967}, {"id":"VA","durationMs":783295}, {"id":"PA","durationMs":4385},
+      {"id":"ID","durationMs":137339}, {"id":"NC","durationMs":243958}, {"id":"IN","durationMs":110288},
+      {"id":"IL","durationMs":1487987}, {"id":"MD-MONTGOMERY","durationMs":44315}, {"id":"WV","durationMs":7437},
+      {"id":"MS","durationMs":31355}, {"id":"KY","durationMs":7802}, {"id":"TN","durationMs":56450},
+      {"id":"TX","durationMs":2619}, {"id":"AZ","durationMs":1081725}, {"id":"CA","durationMs":763542},
+      {"id":"NY","durationMs":15101}, {"id":"CO","durationMs":310}, {"id":"NV","durationMs":356},
+      {"id":"WA","durationMs":133777}, {"id":"NM","durationMs":43445}, {"id":"WI","durationMs":6971},
+      {"id":"OK","durationMs":13757}, {"id":"RI","durationMs":8011}, {"id":"FL","durationMs":12573},
+      {"id":"LA","durationMs":43649}, {"id":"AK","durationMs":52284}
+    ]
+  },
+  "expectedOverlap": {
+    "savedSeconds": 1080.07,
+    "projectedRefreshSeconds": 1773.97
+  },
+  "retainedOhioReport": {
+    "state": "OH",
+    "status": "stale_useful",
+    "signalCount": 1340,
+    "staleReason": "OHLQ browser artifact older than 12h"
+  },
+  "clock": "2026-11-14T13:20:00.000Z",
+  "artifacts": {
+    "fwgsFresh": {
+      "generatedAt": "2026-11-14T13:00:00.000Z",
+      "inventoryEndpoint": "/ccstorex/custom/v1/b2b/get-inventory",
+      "summary": {"positiveInventoryRowCount": 1, "locationCount": 1},
+      "locations": [{"locationId": "fixture-store", "latitude": 40, "longitude": -75}],
+      "inventoryRows": [{"product": {"sku": "fixture-sku"}, "location": {"locationId": "fixture-store"}, "quantity": 1}]
+    },
+    "fwgsStale": {
+      "generatedAt": "2026-11-14T12:40:00.000Z",
+      "inventoryEndpoint": "/ccstorex/custom/v1/b2b/get-inventory",
+      "summary": {"positiveInventoryRowCount": 1, "locationCount": 1},
+      "locations": [{"locationId": "fixture-store", "latitude": 40, "longitude": -75}],
+      "inventoryRows": [{"product": {"sku": "fixture-sku"}, "location": {"locationId": "fixture-store"}, "quantity": 1}]
+    },
+    "ohlqFresh": {
+      "generatedAt": "2026-11-14T12:00:00.000Z",
+      "summary": {"okProductCount": 1, "inventoryRowCount": 1}
+    },
+    "ohlqStale": {
+      "generatedAt": "2026-11-14T00:00:00.000Z",
+      "summary": {"okProductCount": 1, "inventoryRowCount": 1}
+    }
+  }
+}
