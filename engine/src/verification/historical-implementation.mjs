@@ -152,7 +152,7 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
     const wyomingImport = "import { WYOMING_GROCERY_CONFIG } from './collectors/wyoming-grocery-production.mjs';\n";
     if (text.includes(wyomingImport)) {
       text = replaceUnique(text, wyomingImport, '', `${name}: Wyoming source import`);
-      text = replaceUnique(text, '  WYOMING_GROCERY_CONFIG,\n', '', `${name}: Wyoming source registration`);
+      text = replaceUnique(text, "  if (source.id === 'WY') return WYOMING_GROCERY_CONFIG;\n", '', `${name}: Wyoming source registration`);
     }
     const minnesotaImport = "import { MINNESOTA_CITYHIVE_PRODUCTION_CONFIG } from './minnesota-cityhive-production-config.mjs';\n";
     if (text.includes(minnesotaImport)) {

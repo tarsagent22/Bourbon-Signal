@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildStateOperatingContract } from '../src/state-operating-contract.mjs';
+import { ALL_STATE_SOURCES, STATE_SOURCES } from '../src/state-sources.mjs';
 
 const generatedAt = '2026-08-13T12:00:00.000Z';
 
@@ -127,4 +128,12 @@ test('aggregate-information states are not degraded solely because they have no 
     assert.ok(!row.anomalyCodes.includes('unexpected_zero_customer_visible_output'));
     assert.equal(row.recoveryAction, 'none');
   }
+});
+
+test('targeted and scheduled refreshes use a single production configuration per state', () => {
+  const registeredIds = ALL_STATE_SOURCES.map(source => source.id);
+  assert.equal(new Set(registeredIds).size, registeredIds.length, 'Duplicate state IDs make exact refresh selection ambiguous');
+  const wyoming = STATE_SOURCES.filter(source => source.id === 'WY');
+  assert.equal(wyoming.length, 1);
+  assert.equal(wyoming[0].strategy, 'retailer_store_inventory');
 });
