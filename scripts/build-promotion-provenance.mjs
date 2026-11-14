@@ -206,7 +206,15 @@ if (state === 'OR') files.push(
 );
 if (['AK', 'LA'].includes(state)) files.push(
   'engine/src/research-louisiana-alaska-grocery-runtime.mjs',
+  'engine/src/louisiana-alaska-grocery-production-config.mjs',
+  'engine/src/louisiana-alaska-grocery-policy.mjs',
+  'engine/src/louisiana-alaska-grocery-positive-proof.mjs',
+  'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs',
+  'engine/src/collectors/louisiana-alaska-grocery-transport.mjs',
+  'engine/src/collectors/louisiana-alaska-grocery-expansion.mjs',
   'engine/src/collectors/louisiana-alaska-grocery-premises.mjs',
+  'engine/src/collectors/generic-state.mjs',
+  'engine/src/verification/historical-implementation.mjs',
   'engine/src/collectors/grocery-xapi-expansion.mjs',
   'engine/src/collectors/grocery-xapi-identity.mjs',
   'engine/src/prepare-laak-canary.mjs',
@@ -214,6 +222,15 @@ if (['AK', 'LA'].includes(state)) files.push(
   'engine/src/laak-canary-preview-policy.mjs',
   'scripts/download-laak-shadow.mjs',
   'scripts/test-laak-public-canary.mjs',
+  'scripts/test-laak-production-projection.mjs',
+  'scripts/verify-active-state-integration-ci.mjs',
+  'engine/data/canary-site/alaska-louisiana-20261114/source-proof.json',
+  `engine/data/canary-site/alaska-louisiana-20261114/states/${state}/drops.json`,
+  'src/config/stateLifecycle.ts',
+  'src/lib/sighting-store-directory.ts',
+  'src/app/api/stores/route.ts',
+  'src/app/api/locations/route.ts',
+  '.github/workflows/refresh-feed.yml',
   `engine/out/laak-shadow-input/${state}/provenance.json`,
 );
 for (const file of files) {
