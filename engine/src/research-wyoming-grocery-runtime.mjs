@@ -5,25 +5,15 @@ import { stableId } from './core/text.mjs';
 import { parseBoundGroceryXapiInventory } from './collectors/grocery-xapi-identity.mjs';
 import { groceryProductSnapshot, publicSearchKey } from './collectors/grocery-xapi-expansion.mjs';
 import { centralCityHiveRecordMarketTier } from './collectors/central-cityhive-market-policy.mjs';
+import { WYOMING_GROCERY_HOST as hostname, WYOMING_GROCERY_LABEL as label,
+  WYOMING_GROCERY_RESEARCH_RUNTIME as runtimeId, WYOMING_GROCERY_STORES as stores } from './wyoming-grocery-policy.mjs';
 import { fetchReviewedFirstPartyText, readCityHiveIncidentJournal, persistCityHiveIncidentJournal,
   CITYHIVE_DENIAL_STATUSES, CITYHIVE_DENIAL_MINIMUM_MS } from './collectors/central-cityhive-transport.mjs';
 
-const hostname = 'www.albertsons.com';
 const endpoint = 'https://' + hostname + '/abs/pub/xapi/search/substitute';
 const terms = ['bourbon', 'eagle rare'];
 const visibleTiers = new Set(['limited', 'allocated', 'unicorn']);
-const stores = [
-  ['62', '2625 E 2nd St', 'Casper', '82609', 42.848022, -106.292475, '2625-e-2nd-st'],
-  ['2061', '1825 17th St', 'Cody', '82414', 44.51785779999999, -109.055448, '1825-17th-st'],
-  ['67', '2610 S Douglas Hwy', 'Gillette', '82718', 44.270564, -105.495935, '2610-s-douglas-hwy'],
-  ['3435', '1005 W Coulter Ave', 'Powell', '82435', 44.748234, -108.771633, '1005-w-coulter-ave'],
-].map(([merchantId, street, city, zip, lat, lng, slug]) => Object.freeze({
-  state: 'WY', hostname, merchantId, street, city, zip, lat, lng, storeId: 'albertsons:' + merchantId,
-  address: `${street}, ${city}, WY ${zip}`,
-  locator: `https://local.albertsons.com/wy/${city.toLowerCase()}/${slug}/Beer-Wine-Liquor.html`,
-}));
 
-const label = 'Wyoming Albertsons in-store bourbon research';
 const config = Object.freeze({ id: 'WY', label, tier: 'B', active: false, strategy: 'retailer_store_inventory',
   cadence: 'shadow-only', sources: [{ kind: 'api', url: endpoint, precisionOnly: true }], apiCandidates: [] });
 export const wyomingGroceryResearchSourceForState = state => state === 'WY' ? config : null;
@@ -33,7 +23,6 @@ export const wyomingGroceryResearchLifecycle = {
     inventoryAlertable: false, watchAlertable: false },
 };
 
-const runtimeId = 'research:wy:albertsons-xapi';
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const bytesContain = (text, field, value) => text.includes(JSON.stringify(field) + ':' + JSON.stringify(value));
 
