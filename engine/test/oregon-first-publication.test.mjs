@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createHash } from 'node:crypto';
 import { OREGON_DAILY_PRODUCTION_COHORT_SHA256, OREGON_DAILY_PRODUCTION_RUNTIME_ID, OREGON_DAILY_INVENTORY_URL } from '../src/oregon-daily-production-policy.mjs';
 import { OREGON_FIRST_PUBLICATION_MINIMUMS, oregonPreviousSourceReportSha256, verifyOregonFirstPublication } from '../src/verify-oregon-first-publication.mjs';
 
@@ -27,16 +28,29 @@ function makeRows(count = OREGON_FIRST_PUBLICATION_MINIMUMS.rows) {
 
 function candidate() {
   const drops = makeRows();
-  return { stateReport: { state: 'OR', stale: false, status: 'useful', metadata: { oregonDailyInventory: {
+  const stateReport = { state: 'OR', stale: false, status: 'useful', startedAt: '2026-11-14T14:00:00.000Z',
+    finishedAt: '2026-11-14T16:00:00.000Z', lastGoodAt: '2026-11-14T15:32:00.000Z', signals: drops,
+    metadata: { oregonDailyInventory: {
     complete: true, productionAlertDeliveryAllowed: false, sourceUrl: OREGON_DAILY_INVENTORY_URL,
-    sourceReportDate: '11/14/2026', sourceReportSha256: currentSha, sourceObservedAt: '2026-11-14T15:32:00.000Z',
-  } } }, statePartition: { drops }, alerts: { alerts: [] }, previousSourceReportSha256: oldSha };
+    sourceReportDate: '11/14/2026', sourceReportSha256: currentSha, sourceObservedAt: '2026-11-14T15:32:00.000Z', sourceBytes: 95_990_899,
+  } } };
+  return { stateReport, statePartition: { state: 'OR', count: drops.length, drops }, alerts: { alerts: [] }, previousSourceReportSha256: oldSha,
+    workflowRunId: '43614008559', reportBytes: Buffer.from('normalized report'), partitionBytes: Buffer.from('public partition') };
 }
 
 test('first-publication verifier accepts only the fresh distinct report and 200+ store/city cohort with allocation', () => {
   const result = verifyOregonFirstPublication({ ...candidate(), nowMs });
   assert.equal(result.ok, true, result.failures.join('; '));
   assert.deepEqual([result.rows, result.stores, result.cities, result.allocatedRows], [1000, 1000, 1000, 1000]);
+  assert.equal(result.receipt.verification, 'first_production_publication');
+  assert.equal(result.receipt.workflowRunId, '43614008559');
+  assert.equal(result.receipt.sourceReportDate, '11/14/2026');
+  assert.equal(result.receipt.sourceReportSha256, currentSha);
+  assert.equal(result.receipt.sourceReportFileSha256, createHash('sha256').update('normalized report').digest('hex'));
+  assert.equal(result.receipt.partitionSha256, createHash('sha256').update('public partition').digest('hex'));
+  assert.deepEqual(result.receipt.rawNormalizedStats.currentProductionRows, { rows: 1000, stores: 1000, cities: 1000, allocatedRows: 1000, unicornRows: 0 });
+  assert.equal(result.receipt.productionAlertFlags.eligibleForDelivery, false);
+  assert.match(result.receipt.receiptSha256, /^[a-f0-9]{64}$/);
 });
 
 test('first-publication baseline remains the prior report when today’s shadow already used the current report', () => {
