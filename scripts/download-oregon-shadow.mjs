@@ -25,6 +25,7 @@ const preparationOnly=file=>[
   'engine/src/verify-oregon-distinct-report.mjs','engine/test/customer-drop-freshness.test.mjs',
   'engine/test/fixtures/oregon-daily-production-replay.json','engine/test/oregon-distinct-report.test.mjs',
   'scripts/build-promotion-provenance.mjs','scripts/test-promotion-provenance-runtime-bindings.mjs',
+  'scripts/test-ms-bundle-boundary.mjs',
   'src/config/state-lifecycle.json','src/config/stateLifecycle.ts',
   'engine/src/verify-state-fixtures.mjs','engine/test/oregon-canary.test.mjs','engine/test/oregon-daily-production.test.mjs',
   'engine/test/oregon-first-publication.test.mjs','engine/test/or-daily-inventory.test.mjs','engine/test/oregon-shadow-provenance.test.mjs',

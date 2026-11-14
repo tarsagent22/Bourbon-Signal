@@ -119,7 +119,10 @@ function replaceUnique(text, current, original, label) {
 
 export function normalizeHistoricalImplementationBytes(name, bytes) {
   // Evidence digests are over Git's LF text blobs, including on CRLF checkouts.
-  if (/\.(?:mjs|js|ts|tsx|mts|json|html|yml|yaml)$/u.test(name)) bytes = Buffer.from(bytes.toString('utf8').replace(/\r\n/gu, '\n'));
+  if (/\.(?:mjs|js|ts|tsx|mts|json|html|yml|yaml)$/u.test(name)) {
+    const text = bytes.toString('utf8'), normalized = text.replace(/\r\n/gu, '\n');
+    if (normalized !== text) bytes = Buffer.from(normalized);
+  }
   if (name === 'engine/src/operational-report.mjs') {
     // Normalize checkout line endings before exact historical proof reversals;
     // Git-hosted baseline bytes are LF even when a Windows checkout is CRLF.
