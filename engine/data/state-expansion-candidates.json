@@ -89,15 +89,15 @@
     {
       "state": "AR",
       "customerLabel": "Arkansas",
-      "marketClassification": "control",
+      "marketClassification": "private",
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
-        "official_control_board",
-        "official_catalog",
-        "official_release"
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
       ],
       "currentBlockers": [],
       "rankingInputs": {
@@ -111,7 +111,9 @@
         "maxQueriesPerRun": 4,
         "maxProbesPerRun": 8
       },
-      "promotionEvidenceRefs": []
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
     },
     {
       "state": "CA",

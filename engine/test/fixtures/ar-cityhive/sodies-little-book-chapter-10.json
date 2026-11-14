@@ -1,0 +1,109 @@
+{
+  "capture": {
+    "url": "https://shop.sodiesliquor.com/shop/product/little-book-chapter-all-the-wiser/6a03603df437b100019febf3?option-id=c4b6d71d9d8941ce0521d41f56e30cef46056aa805a9e38a896679e9b05c2c45",
+    "capturedAt": "2026-11-14T10:00:23.370Z",
+    "sha256": "D9F7E66AC79E7CAB01BF0B16C61BAD3A1E494D866DBB9881043270B711879F29",
+    "httpStatus": 200
+  },
+  "libraryIdentity": {
+    "id": "little-book-chapter-10",
+    "canonicalName": "Little Book Chapter 10",
+    "aliases": [
+      "Little Book Chapter 10"
+    ],
+    "nationalTier": "allocated",
+    "stateOverrides": [],
+    "isAlertEligible": true
+  },
+  "payloads": [
+    {
+      "merchant_configs": [
+        {
+          "merchant": {
+            "id": "594311b6c90f94622d026e1e",
+            "name": "Sodie's Wine & Spirits",
+            "address": {
+              "full_address": "5401 Phoenix Ave, Fort Smith, AR 72903, USA",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  -94.37510259999999,
+                  35.3422806
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "6a03603df437b100019febf3",
+      "name": "Little Book Chapter All The Wiser",
+      "basic_category": [
+        "whiskey"
+      ],
+      "description": "Little Book Chapter 10 \"All the Wiser\" is a blend of six bourbons. Chapter 10 is 100% bourbon.",
+      "size": {
+        "measure": "ml",
+        "quantity": "750"
+      },
+      "merchants": [
+        {
+          "offer_types": [
+            "pick_up",
+            "delivery",
+            "shipping"
+          ],
+          "merchant_id": "594311b6c90f94622d026e1e",
+          "merchant_name": "Sodie's Wine & Spirits",
+          "coordinates": [
+            -94.37510259999999,
+            35.3422806
+          ],
+          "full_address": "5401 Phoenix Ave, Fort Smith, AR 72903, USA",
+          "product_options": [
+            {
+              "product_id": "6a03603df437b100019febf3",
+              "option_id": "c4b6d71d9d8941ce0521d41f56e30cef46056aa805a9e38a896679e9b05c2c45",
+              "option_params": {
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                }
+              },
+              "product_url": "https://shop.sodiesliquor.com/shop/product/little-book-chapter-all-the-wiser/6a03603df437b100019febf3?option-id=c4b6d71d9d8941ce0521d41f56e30cef46056aa805a9e38a896679e9b05c2c45",
+              "quantity": 1,
+              "merchant_id": "594311b6c90f94622d026e1e",
+              "merchant_name": "Sodie's Wine & Spirits",
+              "coordinates": [
+                -94.37510259999999,
+                35.3422806
+              ],
+              "full_address": "5401 Phoenix Ave, Fort Smith, AR 72903, USA",
+              "price": 190,
+              "option_display_data": {
+                "name": "Little Book Chapter All The Wiser",
+                "description": "Little Book Chapter 10 \"All the Wiser\" is a blend of six bourbons. Chapter 10 is 100% bourbon.",
+                "size": {
+                  "measure": "ml",
+                  "quantity": "750"
+                },
+                "basic_category": [
+                  "whiskey"
+                ],
+                "properties": {
+                  "brands": [
+                    "Little Book"
+                  ],
+                  "country": "United States",
+                  "state": "Kentucky",
+                  "age": "10"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
