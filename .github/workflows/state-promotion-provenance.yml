@@ -127,7 +127,12 @@ jobs:
           config_args=()
           if [[ -n "$SHADOW_RUN" ]]; then config_args+=("--config=out/canary-preparation/$STATE/lifecycle-research.json"); fi
           npm --prefix engine run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site" "${config_args[@]}"
-          npm --prefix engine run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
+          manifest_args=()
+          if [[ "$STATE" == "KS" ]]; then
+            node src/prepare-ks-canary-manifest.mjs --state=KS --out-dir=out/canary-preparation/KS
+            manifest_args+=("--manifest-dir=out/canary-preparation/KS/manifests")
+          fi
+          npm --prefix engine run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json" "${manifest_args[@]}"
           npm --prefix engine run verify:reliability
       - name: Verify actual app projection and binary on-site isolation
         if: steps.validate.outputs.shadow_run != ''

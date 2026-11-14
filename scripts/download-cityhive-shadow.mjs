@@ -9,7 +9,7 @@ const preparationOnly=file=>[
   '.github/workflows/state-expansion-canary.yml','.github/workflows/state-promotion-provenance.yml',
   'engine/src/prepare-central-cityhive-canary.mjs','engine/src/central-cityhive-fixtures.mjs','engine/src/verify-state-fixtures.mjs','scripts/download-cityhive-shadow.mjs',
   'engine/src/collectors/central-cityhive-production.mjs','engine/src/collectors/central-cityhive-transport.mjs','engine/src/central-cityhive-production-config.mjs','engine/src/collectors/central-cityhive-premises.mjs','engine/src/central-cityhive-policy.mjs','engine/src/run.mjs',
-  'engine/test/central-cityhive-production.test.mjs','engine/src/verify-ks-first-publication.mjs','engine/test/ks-first-publication.test.mjs',
+  'engine/test/central-cityhive-production.test.mjs','engine/src/verify-ks-first-publication.mjs','engine/test/ks-first-publication.test.mjs','engine/src/prepare-ks-canary-manifest.mjs',
   'engine/test/central-cityhive-canary.test.mjs','scripts/test-cityhive-shadow-download.mjs',
   'scripts/test-central-cityhive-public-canary.mjs','scripts/build-promotion-provenance.mjs','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs','next.config.ts','src/lib/site-engine-contract.ts',

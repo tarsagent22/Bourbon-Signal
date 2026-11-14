@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { verifyKansasFirstPublication } from '../src/verify-ks-first-publication.mjs';
+import { buildKansasCanaryManifest } from '../src/prepare-ks-canary-manifest.mjs';
 import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
 import { readFile as readFixture } from 'node:fs/promises';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -23,6 +24,21 @@ test('Kansas first-publication contract stays fail closed until a fresh producti
   assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('KS'), false);
   assert.equal(STATE_LIFECYCLE_CONFIG.states.KS, undefined);
   assert.throws(() => verifyKansasFirstPublication({ status: 'not_promoted', stale: false }, { drops: [] }), /Kansas first publication/);
+});
+
+test('Kansas customer-path admission metadata is temporary and preview-only', async () => {
+  const base = JSON.parse(await readFile(new URL('../data/state-integration/KS.json', import.meta.url), 'utf8'));
+  const production = structuredClone(STATE_LIFECYCLE_CONFIG);
+  const preview = { activeStates: ['KS'], states: { KS: { publicStatus: 'active' } } };
+  const provenance = { status: 'verified_github_shadow_artifact', state: 'KS', workflowRunUrl: 'https://github.com/example/run/1' };
+  const candidate = buildKansasCanaryManifest(base, production, preview, provenance, { files: { stateDrops: 'states/index.json' } });
+  assert.equal(candidate.lifecycle.publicStatus, 'active');
+  assert.equal(candidate.customerPaths.finder.status, 'verified');
+  assert.equal(candidate.evidence.production.status, 'not_deployed');
+  assert.equal(STATE_LIFECYCLE_CONFIG.activeStates.includes('KS'), false);
+  assert.equal(STATE_LIFECYCLE_CONFIG.states.KS, undefined);
+  assert.throws(() => buildKansasCanaryManifest(base, { ...production, states: { ...production.states, KS: { publicStatus: 'active' } } },
+    preview, provenance, { files: { stateDrops: 'states/index.json' } }), /dormant production manifest/);
 });
 
 test('Kansas first-publication contract rejects incomplete or cached cohorts even with allocated rows', () => {

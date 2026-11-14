@@ -254,6 +254,8 @@ if (state === 'RI') files.push(
 if (state === 'KS') files.push(
   'engine/src/verify-ks-first-publication.mjs',
   'engine/test/ks-first-publication.test.mjs',
+  'engine/src/prepare-ks-canary-manifest.mjs',
+  `engine/out/canary-preparation/${state}/manifests/${state}.json`,
 );
 for (const file of files) {
   const content = await readFile(path.join(root, file));
