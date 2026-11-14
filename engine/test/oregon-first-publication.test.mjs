@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { OREGON_DAILY_PRODUCTION_COHORT_SHA256, OREGON_DAILY_PRODUCTION_RUNTIME_ID, OREGON_DAILY_INVENTORY_URL } from '../src/oregon-daily-production-policy.mjs';
-import { OREGON_FIRST_PUBLICATION_MINIMUMS, verifyOregonFirstPublication } from '../src/verify-oregon-first-publication.mjs';
+import { OREGON_FIRST_PUBLICATION_MINIMUMS, oregonPreviousSourceReportSha256, verifyOregonFirstPublication } from '../src/verify-oregon-first-publication.mjs';
 
 const nowMs = Date.parse('2026-11-14T16:00:00.000Z');
 const oldSha = '7f3358819f99f036fb3b7594a25f0c0ec331588d680aa16773d71f4084bd6775';
@@ -37,6 +37,11 @@ test('first-publication verifier accepts only the fresh distinct report and 200+
   const result = verifyOregonFirstPublication({ ...candidate(), nowMs });
   assert.equal(result.ok, true, result.failures.join('; '));
   assert.deepEqual([result.rows, result.stores, result.cities, result.allocatedRows], [1000, 1000, 1000, 1000]);
+});
+
+test('first-publication baseline remains the prior report when today’s shadow already used the current report', () => {
+  assert.equal(oregonPreviousSourceReportSha256({evidence:{shadow:{sourceReportSha256:currentSha,previousSourceReportSha256:oldSha},
+    firstPublication:{previousSourceReportSha256:oldSha}}}),oldSha);
 });
 
 test('first-publication verifier rejects repeated, stale-date, and alert-enabled reports', () => {

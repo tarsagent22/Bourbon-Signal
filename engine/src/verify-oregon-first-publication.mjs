@@ -14,6 +14,13 @@ function pacificDate(nowMs) {
   return `${value.month}/${value.day}/${value.year}`;
 }
 
+export function oregonPreviousSourceReportSha256(manifest) {
+  return manifest?.evidence?.firstPublication?.previousSourceReportSha256
+    || manifest?.evidence?.shadow?.previousSourceReportSha256
+    || manifest?.evidence?.shadow?.sourceReportSha256
+    || null;
+}
+
 /** Cold first-publication check over the actual state report and customer site partition. */
 export function verifyOregonFirstPublication({ stateReport, statePartition, alerts, previousSourceReportSha256, nowMs = Date.now() } = {}) {
   const failures = [];
@@ -60,7 +67,7 @@ if (process.argv[1]?.replaceAll('\\', '/').endsWith('/verify-oregon-first-public
     readJson('data/state-integration/OR.json'),
   ]);
   const result = verifyOregonFirstPublication({ stateReport, statePartition, alerts,
-    previousSourceReportSha256: manifest.evidence?.shadow?.sourceReportSha256 });
+    previousSourceReportSha256: oregonPreviousSourceReportSha256(manifest) });
   if (!result.ok) throw new Error(result.failures.join('\n'));
   console.log(`OR: ${result.rows} current listings across ${result.stores} stores in ${result.cities} cities; alert delivery disabled.`);
 }

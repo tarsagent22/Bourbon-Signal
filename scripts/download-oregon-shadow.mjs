@@ -8,7 +8,7 @@ import {unzipSync} from 'fflate';
 const REPOSITORY='tarsagent22/Bourbon-Signal';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const preparationOnly=file=>[
-  '.github/workflows/state-expansion-canary.yml','scripts/download-oregon-shadow.mjs','scripts/test-oregon-shadow-download.mjs',
+  '.github/workflows/state-expansion-canary.yml','.github/workflows/refresh-feed.yml','scripts/download-oregon-shadow.mjs','scripts/test-oregon-shadow-download.mjs',
   'scripts/test-oregon-public-canary.mjs','engine/src/prepare-oregon-canary.mjs','engine/src/oregon-research-fixtures.mjs',
   'engine/src/oregon-daily-production-policy.mjs','src/lib/public-drop-evidence.ts','src/lib/drop-feed-visibility.ts',
   'engine/src/build-state-canary-preview.mjs',

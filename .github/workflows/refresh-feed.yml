@@ -76,6 +76,7 @@ jobs:
       BOURBON_SIGNAL_REFRESH_SOURCES: ${{ inputs.sources || '' }}
       BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
       BOURBON_SIGNAL_LIBRARY_CATALOG_FILE: ${{ github.workspace }}/engine/out/library-catalog.json
+      OR_DAILY_CACHE_DIR: ${{ github.workspace }}/engine/out/cache/oregon-daily-inventory
     steps:
       - name: Reject superseded queued refresh before collection
         env:
