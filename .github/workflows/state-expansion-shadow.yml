@@ -100,6 +100,7 @@ jobs:
         env:
           STATES: ${{ steps.validate.outputs.states }}
           LIMIT: ${{ steps.validate.outputs.limit }}
+          BOURBON_SIGNAL_NE_WALL_TO_WALL_SHADOW: ${{ github.ref == 'refs/heads/research/ne-wall-to-wall-papillion-20261114' && inputs.states == 'NE' && '1' || '0' }}
         run: node src/run-expansion-shadow.mjs --plan-only --states="$STATES" --limit="$LIMIT"
 
       - uses: actions/cache/restore@v4
@@ -117,6 +118,7 @@ jobs:
           STATES: ${{ steps.plan.outputs.states }}
           LIMIT: ${{ steps.plan.outputs.limit }}
           SCHEDULED_AT: ${{ steps.plan.outputs.scheduled_at }}
+          BOURBON_SIGNAL_NE_WALL_TO_WALL_SHADOW: ${{ github.ref == 'refs/heads/research/ne-wall-to-wall-papillion-20261114' && steps.plan.outputs.states == 'NE' && '1' || '0' }}
         run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT" --scheduled-at="$SCHEDULED_AT"
 
       - name: Preserve a new or Bible-reparsed Oregon source cache

@@ -4,6 +4,7 @@ import additionalExpansion from '../../data/additional-cityhive-expansion-source
 import marylandResearch from '../../data/md-cityhive-reviewed-sources.json' with {type:'json'};
 import rhodeIslandResearch from '../../data/ri-cityhive-research-sources.json' with {type:'json'};
 import arkansasResearch from '../../data/ar-cityhive-research-sources.json' with {type:'json'};
+import nebraskaResearch from '../../data/ne-cityhive-research-sources.json' with {type:'json'};
 
 export const MINNESOTA_CITYHIVE_EXPANSION_SOURCES=Object.freeze(minnesotaExpansion.stores.map(Object.freeze));
 export const MIDWEST_CITYHIVE_EXPANSION_SOURCES=Object.freeze(midwestExpansion.stores.map(Object.freeze));
@@ -12,6 +13,7 @@ export const MARYLAND_CITYHIVE_REVIEWED_SOURCES=Object.freeze(marylandResearch.s
 export const MARYLAND_CITYHIVE_RESEARCH_SOURCES=MARYLAND_CITYHIVE_REVIEWED_SOURCES;
 export const RHODE_ISLAND_CITYHIVE_RESEARCH_SOURCES=Object.freeze(rhodeIslandResearch.stores.map(Object.freeze));
 export const ARKANSAS_CITYHIVE_RESEARCH_SOURCES=Object.freeze(arkansasResearch.stores.map(Object.freeze));
+export const NEBRASKA_CITYHIVE_RESEARCH_SOURCES=Object.freeze(nebraskaResearch.stores.map(Object.freeze));
 // Reviewed, research-only rows for unactivated state shadows. Keep
 // this list separate from the production registry and its pinned cohort.
 export const CENTRAL_CITYHIVE_RESEARCH_SOURCES=Object.freeze([

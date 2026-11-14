@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "status": "research_only",
+  "stores": [
+    {
+      "id": "wall-to-wall-papillion-ne-research",
+      "name": "Wall to Wall Wine And Spirits- Papillon",
+      "state": "NE",
+      "stateCode": "NE",
+      "platform": "cityhive",
+      "baseUrl": "https://www.walltowallwine.com",
+      "hostname": "www.walltowallwine.com",
+      "merchantId": "65df89008f34632ba609f7ee",
+      "address": "7651 Towne Center Pkwy, Papillion, NE 68046, USA",
+      "city": "Papillion",
+      "zip": "68046",
+      "lat": 41.1330158,
+      "lng": -96.0288807,
+      "storeId": "wall-to-wall-papillion-ne-research:65df89008f34632ba609f7ee",
+      "sourceLabel": "Wall to Wall Wine And Spirits Papillion first-party CityHive research",
+      "categoryUrl": "https://www.walltowallwine.com/shop/?subtype=whiskey&merchant-id=65df89008f34632ba609f7ee",
+      "prioritySearchTerms": ["barrel proof"],
+      "maxQueries": 2,
+      "pickupEnabledAtCapture": false,
+      "acceptOrdersAtCapture": false,
+      "observedDefaultMerchantId": "65a80eb730100c2ba2cdca72",
+      "observedDefaultMerchantAddress": "375 S Jordan Creek Pkwy, West Des Moines, IA 50266, USA"
+    }
+  ]
+}

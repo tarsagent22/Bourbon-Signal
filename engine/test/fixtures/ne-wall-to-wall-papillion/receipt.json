@@ -1,0 +1,11 @@
+{
+  "url": "https://www.walltowallwine.com/shop/?subtype=whiskey",
+  "status": 200,
+  "observedAt": "2026-11-14T23:47:02.4847150+00:00",
+  "headers": [
+    "Date: Sat, 14 Nov 2026 23:47:02 GMT"
+  ],
+  "sha256": "9e434e3b8eddb451189368031e77b668979c8ed9994bac4597b270596527df6a",
+  "bytes": 402809,
+  "permissionHoldUntil": null
+}

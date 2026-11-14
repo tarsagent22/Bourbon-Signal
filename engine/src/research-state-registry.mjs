@@ -22,6 +22,7 @@ const MASSACHUSETTS = Object.freeze({
 export function researchSourceForState(state, { shadowMode = process.env.BOURBON_SIGNAL_SHADOW_MODE === '1' } = {}) {
   if (!shadowMode) return null;
   if (state === 'MA') return MASSACHUSETTS;
+  if (state === 'NE') return process.env.BOURBON_SIGNAL_NE_WALL_TO_WALL_SHADOW === '1' ? cityHiveResearchSourceForState('NE') : null;
   return oregonResearchSourceForState(state)
     || michiganLiquorsResearchSourceForState(state)
     || louisianaAlaskaResearchSourceForState(state)

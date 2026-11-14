@@ -1,4 +1,4 @@
-import { CENTRAL_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
+import { CENTRAL_CITYHIVE_RESEARCH_SOURCES, NEBRASKA_CITYHIVE_RESEARCH_SOURCES } from './collectors/central-cityhive-research-premises.mjs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
@@ -8,8 +8,8 @@ import {fetchReviewedCityHiveText,readCityHiveIncidentJournal,validateCityHiveIn
 import {sourceErrorForHttp} from './sources/source-error.mjs';
 import {centralCityHiveProductionAllowed,collectCentralCityHiveProductionSource} from './collectors/central-cityhive-production.mjs';
 
-const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts', CT: 'Connecticut', DE: 'Delaware', HI: 'Hawaii', MD: 'Maryland', KS: 'Kansas', RI: 'Rhode Island', AR: 'Arkansas' });
-const sourcesByState = Map.groupBy([...CENTRAL_CITYHIVE_EXPANSION_SOURCES, ...CENTRAL_CITYHIVE_RESEARCH_SOURCES], source => source.state);
+const names = Object.freeze({ WI: 'Wisconsin', OK: 'Oklahoma', MN: 'Minnesota', MO: 'Missouri', MA: 'Massachusetts', CT: 'Connecticut', DE: 'Delaware', HI: 'Hawaii', MD: 'Maryland', KS: 'Kansas', RI: 'Rhode Island', AR: 'Arkansas', NE: 'Nebraska' });
+const sourcesByState = Map.groupBy([...CENTRAL_CITYHIVE_EXPANSION_SOURCES, ...CENTRAL_CITYHIVE_RESEARCH_SOURCES, ...NEBRASKA_CITYHIVE_RESEARCH_SOURCES], source => source.state);
 const configurations = new Map(Object.entries(names).map(([state,name]) => [state,Object.freeze({
   id:state,label:`${name} first-party retailer research`,tier:'B',active:false,
   strategy:'retailer_store_inventory',cadence:'shadow-only',
@@ -36,12 +36,14 @@ async function writeResearchAttempts(state,attempts,sources){
 }
 
 export function cityHiveResearchLifecycleEntries() {
-  return Object.fromEntries(Object.entries(names).map(([state,name]) => [state,{
+  const entries=Object.fromEntries(Object.entries(names).map(([state,name]) => [state,{
     customerLabel:name,sourceLabel:`${name} first-party retailer research`,publicStatus:'research_only',
     shadowEligible:true,lifecycle:'retailer_inventory_research',coverageTier:'sparse_live_store_inventory',
     refinementLevel:'store',inventoryAlertable:false,watchAlertable:false,
     customerSummary:'Research-only exact-store pickup observations; production activation and alerts remain blocked.',
   }]));
+  if(process.env.BOURBON_SIGNAL_NE_WALL_TO_WALL_SHADOW!=='1')delete entries.NE;
+  return entries;
 }
 
 // This adapter is deliberately reusable across research states. The reviewed
