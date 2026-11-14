@@ -3,7 +3,7 @@ import {mkdirSync,writeFileSync,renameSync,rmSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import path from 'node:path';
 import {readBoundedCollectionBody,requireHttpsCollectionUrl} from '../core/collection-http.mjs';
-import {CENTRAL_CITYHIVE_EXPANSION_SOURCES} from './central-cityhive-premises.mjs';
+import {CENTRAL_CITYHIVE_PRODUCTION_SOURCES} from './central-cityhive-premises.mjs';
 
 export const CITYHIVE_DENIAL_STATUSES=new Set([401,403,429,435]);
 export const CITYHIVE_DENIAL_MINIMUM_MS=86_400_000;
@@ -25,11 +25,16 @@ export async function fetchReviewedFirstPartyText(value,{signal,timeoutMs=10_000
   bounded.throwIfAborted();
   return{...metadata,text:(await readBoundedCollectionBody(response,{signal:bounded,maxBytes})).toString('utf8')};
 }
-export function fetchReviewedCityHiveText(value,{reviewedSources=CENTRAL_CITYHIVE_EXPANSION_SOURCES,...options}={}){
-  return fetchReviewedFirstPartyText(value,{...options,maxTimeoutMs:10_000,isAllowedUrl:url=>reviewedSources.some(source=>source.baseUrl===url.origin)&&url.pathname==='/shop/'});
+export function fetchReviewedCityHiveText(value,{reviewedSources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES,...options}={}){
+  return fetchReviewedFirstPartyText(value,{...options,maxTimeoutMs:10_000,isAllowedUrl:url=>
+    url.pathname==='/shop/' && reviewedSources.some(source=>source.baseUrl===url.origin
+      && (source.state!=='RI' || ([...url.searchParams].length===2
+        && url.searchParams.get('merchant-id')===source.merchantId
+        && Boolean(url.searchParams.get('ch-query')?.trim())
+        && url.searchParams.get('ch-query').length<=120)))});
 }
 
-export function validateCityHiveIncidentJournal(value,state,reviewedSources=CENTRAL_CITYHIVE_EXPANSION_SOURCES){
+export function validateCityHiveIncidentJournal(value,state,reviewedSources=CENTRAL_CITYHIVE_PRODUCTION_SOURCES){
   if(value===null)return{schemaVersion:1,state,hosts:{},inFlight:null};
   const hosts=new Set(reviewedSources.filter(source=>source.state===state).map(source=>source.hostname));
   if(value.schemaVersion!==1||value.state!==state||!value.hosts||typeof value.hosts!=='object'||Array.isArray(value.hosts)

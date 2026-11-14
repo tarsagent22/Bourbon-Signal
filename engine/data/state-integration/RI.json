@@ -9,11 +9,10 @@
   },
   "collector": {
     "sourceIds": [
-      "rhode-island-liquor-delivery:64f6226b7537422b95e04824",
-      "fifth-ward-liquor:546babb03932330002100300",
-      "california-liquors-ri:6114919961187149b8241cdd"
+      "ri:central-cityhive"
     ],
-    "registration": "Isolated CityHive canary replay from a verified workflow-issued RI shadow artifact; no production lifecycle or source activation."
+    "registration": "The closed three-store CityHive adapter requires exact premises, seven reviewed merchant-scoped search requests and immutable evidence before production admission.",
+    "cohortSha256": "09e296469e2067fcb39ecd501b2b2e43eecd41e54f400590d7cb4245e7539219"
   },
   "storeIdentity": {
     "mode": "exact_reviewed_merchant_and_premises",
