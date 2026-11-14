@@ -104,9 +104,14 @@ async function prepareDelawareCanary({report,reportDirectory,bible,provenance,no
   if(premises.size!==3||replayed.length!==reported.length||!sameReplayIdentity(reported,replayed)
     ||!replayed.some(row=>row.tier==='allocated'||row.tier==='unicorn'))throw Error('DE current source replay changed exact rows, three-store coverage or allocation evidence');
   const operational=replayed.map(row=>canonicalizeSignal(row,bible));
-  const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>({...row,previewOnly:true,
-    canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
-    eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false}));
+  const drops=buildDrops(operational,bibleLookup(bible.records),operational).map(row=>{
+    const ecwid=row.sourceRuntimeId===bankRuntimeId;
+    return{...row,previewOnly:true,
+      ...(ecwid?{premisesVerified:true,pickupOfferVerified:true,inventorySemantics:'binary_retailer_orderable_no_exact_count',
+        sourceInventorySemantics:'binary_retailer_orderable_no_exact_count',availabilityLabel:'Retailer reports pickup available'}:{}),
+      canAlertAsInventory:false,canAlertAsWatch:false,eligibleForOnSite:true,eligibleForDropFeed:true,eligibleForWatch:false,
+      eligibleForDelivery:false,eligibleForEmail:false,eligibleForSms:false};
+  });
   if(drops.length!==replayed.length||drops.some(row=>row.state!=='DE'||row.previewOnly!==true||row.canAlertAsInventory!==false
     ||row.canAlertAsWatch!==false||row.eligibleForDelivery!==false||row.eligibleForEmail!==false||row.eligibleForSms!==false))throw Error('DE candidate projection lost a verified row or enabled delivery');
   const locations=allSources.map(source=>({id:source.storeId,storeId:source.storeId,state:'DE',name:source.name,storeName:source.name,address:source.address,
