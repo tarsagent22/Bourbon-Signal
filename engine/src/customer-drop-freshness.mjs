@@ -38,12 +38,9 @@ export function customerDropTimestamp(drop = {}) {
 }
 
 export function inventoryConfirmationTimestamp(drop = {}) {
-  for (const value of [drop.lastConfirmedAt, drop.last_confirmed_at, drop.inventoryCheckedAt,
-    drop.inventory_checked_at, drop.observedAt, drop.observed_at]) {
-    const parsed = Date.parse(String(value ?? ''));
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return Number.NaN;
+  const value = drop.lastConfirmedAt ?? drop.last_confirmed_at ?? drop.inventoryCheckedAt
+    ?? drop.inventory_checked_at ?? drop.observedAt ?? drop.observed_at;
+  return typeof value === 'string' ? Date.parse(value) : Number.NaN;
 }
 
 export function publicDropMaxAgeMs(drop = {}) {
@@ -73,12 +70,11 @@ export function currentInventoryMaxAgeMs(drop = {}) {
 }
 
 export function isWithinCustomerFreshnessWindow(drop, now = Date.now(), { currentInventory = false } = {}) {
-  const timestamp = customerDropTimestamp(drop);
+  const useConfirmation = currentInventory && isCustomerInventoryDrop(drop);
+  const timestamp = useConfirmation ? inventoryConfirmationTimestamp(drop) : customerDropTimestamp(drop);
   if (!Number.isFinite(timestamp)) return false;
   const ageMs = Number(now) - timestamp;
-  const maxAge = currentInventory && isCustomerInventoryDrop(drop)
-    ? currentInventoryMaxAgeMs(drop)
-    : publicDropMaxAgeMs(drop);
+  const maxAge = useConfirmation ? currentInventoryMaxAgeMs(drop) : publicDropMaxAgeMs(drop);
   return ageMs >= -15 * 60 * 1000 && ageMs <= maxAge;
 }
 
