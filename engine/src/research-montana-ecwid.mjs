@@ -148,6 +148,6 @@ export async function collectMontanaRetailer(incoming, bible, {
     lastGoodAt: complete ? finishedAt : null, status: signals.length ? 'useful' : due ? 'no_trusted_inventory' : 'not_due',
     stale: false, signals, sources, sourceResults: sources, roadblocks,
     metadata: { complete, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
-      verifiedPremises: complete ? [merchant.storeId] : [], requests },
+      verifiedPremises: complete ? [merchant.storeId] : [], requests, bibleRecordsSha256: sha(JSON.stringify(bible.records)) },
   };
 }
