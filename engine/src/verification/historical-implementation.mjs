@@ -155,8 +155,8 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
       assert.equal(createHash('sha256').update(releasedConnecticut || '').digest('hex'),
         'a35e86108fa7eab0396f3e6fb854674db698f6e0ef7862a3879a5553bf049a21', `${name}: exact attested CT lifecycle entry`);
       text = replaceUnique(text, releasedConnecticut, '', `${name}: exact attested CT lifecycle entry`);
-      text = replaceUnique(text, '    "MN",\n    "CT"\n  ],\n  "reliabilityPolicy"',
-        '    "MN"\n  ],\n  "reliabilityPolicy"', `${name}: exact CT active list tail`);
+      text = replaceUnique(text, ',\n    "CT"\n  ],\n  "reliabilityPolicy"',
+        '\n  ],\n  "reliabilityPolicy"', `${name}: exact CT active list tail`);
       text = replaceUnique(text, '    "stateExpectedRunMs": {\n      "CT": 45000,\n',
         '    "stateExpectedRunMs": {\n', `${name}: exact CT expected runtime`);
     }

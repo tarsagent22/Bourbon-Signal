@@ -32,11 +32,11 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
   assert.equal(baseline.contractVersion, 'bourbon-signal/measured-runtime-forecast-ms-boundary@1');
   for (const [name, { reviewed, original }] of Object.entries(baseline.files)) {
     const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
-    const withMinnesota = map => map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n      "MN": 30000,\n');
-    const currentMap = withMinnesota(reviewed);
+    const withRecentStates = map => map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n      "CT": 45000,\n      "MN": 30000,\n');
+    const currentMap = withRecentStates(reviewed);
     assert.ok(current.includes(currentMap));
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
-    for (const mutation of [current.replace(currentMap, withMinnesota(original)), current.replace(currentMap, withMinnesota('    "stateExpectedRunMs": {\n    }')), current + '\n' + reviewed,
+    for (const mutation of [current.replace(currentMap, withRecentStates(original)), current.replace(currentMap, withRecentStates('    "stateExpectedRunMs": {\n    }')), current + '\n' + reviewed,
       ...reviewed.split('\n').slice(1, -1).map(line => current.replace(line, line.replace(/\d+/, value => String(Number(value) + 1)))),
     ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /measured runtime forecast .*exact historical verification hook/);
     const outside = current.replace('"refreshSafetyMarginMs": 300000', '"refreshSafetyMarginMs": 0');
@@ -62,7 +62,7 @@ test('actual four-state admission reverses only the exact active list and issued
         : [current.replace(reviewed, original), current.replace(reviewed, changed), current + '\n' + reviewed];
       for (const mutation of mutations) {
         assert.notEqual(mutation, current);
-        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN) active list tail).*exact historical verification hook/);
+        assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:four-state admission|exact (?:AK\/LA|RI|MN|CT) active list tail).*exact historical verification hook/);
       }
       if (key !== 'activeStates') for (const changed of [
         reviewed.replace('"watchAlertable": false', '"watchAlertable": true'),
@@ -73,6 +73,18 @@ test('actual four-state admission reverses only the exact active list and issued
     }
     const outside = current.replace('"customerLabel": "Mississippi"', '"customerLabel": "Unreviewed Mississippi"');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name], 'other-state bytes remain pinned');
+  }
+});
+
+test('Connecticut admission reverses only its reviewed lifecycle, active list and forecast', async () => {
+  for (const name of ['src/config/state-lifecycle.json', 'src/config/stateLifecycle.ts']) {
+    const current = await readFile(new URL('../' + name, import.meta.url), 'utf8');
+    const entry = /^    "CT": \{\n[\s\S]+?^    \},\n/mu.exec(current)[0];
+    assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace(entry,
+      entry.replace('"inventoryAlertable": false', '"inventoryAlertable": true')))), /exact attested CT lifecycle entry/);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace('    "MN",\n    "CT"', '    "CT",\n    "MN"'))), /exact CT active list tail/);
+    assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(current.replace('      "CT": 45000,\n', '      "CT": 44000,\n'))), /exact CT expected runtime/);
   }
 });
 
