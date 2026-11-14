@@ -53,8 +53,8 @@ export function groceryProductSnapshot(product) {
     ]));
 }
 
-export function isGroceryExpansionEmptySearch(payload,source,term,{start=0}={}){
-  if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source)||payload?.appCode!=='GR204'
+export function isGroceryExpansionEmptySearch(payload,source,term,{start=0,sourceRegistry=WESTERN_GROCERY_EXPANSION_SOURCES}={}){
+  if(!sourceRegistry.includes(source)||payload?.appCode!=='GR204'
     ||typeof term!=='string'||!term.trim()||!Number.isInteger(start)
     ||![0,...(source.stateCode==='IL'&&['bourbon','whiskey'].includes(term)?[100,200]:[])].includes(start))return false;
   // Captured Illinois responses sometimes omit the entire response object for
@@ -70,8 +70,8 @@ export function isGroceryExpansionEmptySearch(payload,source,term,{start=0}={}){
     &&filter.includes(`(inventory(${source.merchantId},attributes.custom_type_2) = 1)`);
 }
 
-export function parseGroceryExpansionInventory(payload, source, bible, {observedAt}={}) {
-  if(!WESTERN_GROCERY_EXPANSION_SOURCES.includes(source) || !Number.isFinite(Date.parse(observedAt)))return [];
+export function parseGroceryExpansionInventory(payload, source, bible, {observedAt,sourceRegistry=WESTERN_GROCERY_EXPANSION_SOURCES}={}) {
+  if(!sourceRegistry.includes(source) || !Number.isFinite(Date.parse(observedAt)))return [];
   return parseBoundGroceryXapiInventory(payload,source,bible).filter(row=>currentDropTarget(row.record,source.stateCode) && Number.isFinite(row.price) && row.price>0).map(row=>({
     id:stableId([source.stateCode,'grocery-xapi',source.merchantId,row.productId]),state:source.stateCode,stateCode:source.stateCode,
     sourceLabel:source.sourceLabel,sourceUrl:`https://${source.host}/shop/product-details.${row.productId}.html`,
@@ -99,9 +99,11 @@ export function parseGroceryExpansionInventory(payload, source, bible, {observed
 export async function collectGroceryExpansion(config,bible,{fetchText,observedAt=new Date().toISOString(),signal,
   sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),attempts={},nowMs=Date.now(),cursorDir,persistAttempts=async()=>{}}={}) {
   if(typeof fetchText!=='function')throw new Error('Bounded first-party fetchText is required');
-  const sources=WESTERN_GROCERY_EXPANSION_SOURCES.filter(source=>source.stateCode===config.id);
-  const requestLimit=GROCERY_EXPANSION_REQUEST_LIMITS[config.id];
-  if(!sources.length || !requestLimit || sources.length>GROCERY_EXPANSION_STORE_LIMITS[config.id])throw new Error('Grocery expansion exceeds reviewed state/store budget');
+  const sourceRegistry=config.sourceRegistry||WESTERN_GROCERY_EXPANSION_SOURCES;
+  const sources=sourceRegistry.filter(source=>source.stateCode===config.id);
+  const requestLimit=config.requestLimit||GROCERY_EXPANSION_REQUEST_LIMITS[config.id];
+  const storeLimit=config.storeLimit||GROCERY_EXPANSION_STORE_LIMITS[config.id];
+  if(!sources.length || !requestLimit || !storeLimit || sources.length>storeLimit)throw new Error('Grocery expansion exceeds reviewed state/store budget');
   const requests=[],signals=[],roadblocks=[],sourceAttempts={...attempts},blockedHosts=new Set();
   const retryLimit=config.id==='CA'?CALIFORNIA_GROCERY_TRANSIENT_RETRY_LIMIT:config.id==='IL'?ILLINOIS_GROCERY_TRANSIENT_RETRY_LIMIT:0;
   let transientRetries=0;
@@ -168,8 +170,8 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     return secondAttempt?.response||null;
   };
   const resolver=new Map(),conflicts=new Set(),resolverEmptyZips=[],resolverFailures=[];let resolverComplete=true;
-  for(const zip of WESTERN_GROCERY_RESOLVER_ZIPS[config.id] || []){
-    const response=await request(`https://www.safeway.com/abs/pub/xapi/storeresolver/v2/all?zipcode=${zip}&radius=50&size=100`,'resolver');
+  for(const zip of config.resolverZips||WESTERN_GROCERY_RESOLVER_ZIPS[config.id] || []){
+    const response=await request(`https://${config.resolverHost||'www.safeway.com'}/abs/pub/xapi/storeresolver/v2/all?zipcode=${zip}&radius=50&size=100`,'resolver');
     if(!response || (!response.ok && response.status!==206)){resolverComplete=false;continue;}
     let payload;try{payload=JSON.parse(response.text);}catch{resolverComplete=false;continue;}
     if(!Array.isArray(payload?.instore?.stores)){
@@ -183,15 +185,15 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
     }
   }
   const eligible=sources.filter(source=>groceryExpansionPremiseMatches(source,resolver.get(source.merchantId)?.store));
-  const plan=eligible.length?await librarySourceSearchPlan(bible,{sourceKey:`${config.id}:grocery-xapi-expansion`,budget:Math.min(deep?48:8,eligible.length),broadTerms:[],cursorDir}):null;
+  const plan=eligible.length&&!config.disableLibrarySearchPlan?await librarySourceSearchPlan(bible,{sourceKey:`${config.id}:grocery-xapi-expansion`,budget:Math.min(deep?48:8,eligible.length),broadTerms:[],cursorDir}):null;
   const extraTerms=new Map();
-  if(plan?.terms.length)for(const{storeIndex,term}of arizonaXapiLibraryQueryAssignments(eligible.length,{terms:plan.terms,poolSize:plan.poolSize,invocation:plan.invocation,maximumStores:GROCERY_EXPANSION_STORE_LIMITS[config.id]})){
+  if(plan?.terms.length)for(const{storeIndex,term}of arizonaXapiLibraryQueryAssignments(eligible.length,{terms:plan.terms,poolSize:plan.poolSize,invocation:plan.invocation,maximumStores:storeLimit})){
     extraTerms.set(storeIndex,[...(extraTerms.get(storeIndex)||[]),term]);
   }
   let complete=resolverComplete && eligible.length===sources.length;
   await forEachStoreBounded(eligible,async(source,index)=>{
     let sourceComplete=true;const seen=new Set();
-    const terms=[...new Set(['bourbon','whiskey',...(deep?ILLINOIS_GROCERY_PRIORITY_TERMS:[]),...(extraTerms.get(index)||[])])];
+    const terms=[...new Set(config.searchTerms||['bourbon','whiskey',...(deep?ILLINOIS_GROCERY_PRIORITY_TERMS:[]),...(extraTerms.get(index)||[])])];
     for(const term of terms){
       for(let page=0;page<(deep&&['bourbon','whiskey'].includes(term)?3:1);page++){
         const host=`https://${source.host}`;
@@ -200,13 +202,13 @@ export async function collectGroceryExpansion(config,bible,{fetchText,observedAt
         if(!response?.ok){sourceComplete=false;break;}
         let payload;try{payload=JSON.parse(response.text);}catch{sourceComplete=false;break;}
         if(!Array.isArray(payload?.response?.docs)){
-          if(isGroceryExpansionEmptySearch(payload,source,term,{start:page*100}))break;
+          if(isGroceryExpansionEmptySearch(payload,source,term,{start:page*100,sourceRegistry}))break;
           sourceComplete=false;break;
         }
-        if(deep&&(payload.response.start!==page*100||payload.response.miscInfo?.query!==term)){
+        if((deep||config.requireExactSearchEcho)&&(payload.response.start!==page*100||payload.response.miscInfo?.query!==term)){
           sourceComplete=false;break;
         }
-        for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt}))if(!seen.has(row.id)){seen.add(row.id);signals.push(row);}
+        for(const row of parseGroceryExpansionInventory(payload,source,bible,{observedAt,sourceRegistry}))if((!config.includeProduct||config.includeProduct(row,source))&&!seen.has(row.id)){seen.add(row.id);signals.push(row);}
         if(!payload.response.miscInfo?.nextPageToken)break;
       }
       if(!sourceComplete)break;
