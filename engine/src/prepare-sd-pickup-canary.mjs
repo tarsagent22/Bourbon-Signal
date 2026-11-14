@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile, readdir } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { BourbonBible } from './core/bible.mjs';
@@ -72,5 +72,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   const config = JSON.parse(await readFile('../src/config/state-lifecycle.json', 'utf8'));
   await buildStateCanaryPreview({state: 'SD', candidateDrops: candidate.drops, candidateLocations: candidate.locations,
     candidateGeneratedAt: candidate.generatedAt, lifecycleConfig: withResearchLifecycle(config), outDir: path.resolve('out/canary/SD/site')});
+  const candidatePath = path.resolve('data/canary-inputs/SD.json');
+  await mkdir(path.dirname(candidatePath), {recursive: true});
+  await writeFile(candidatePath, JSON.stringify({contractVersion: 'bourbon-signal/sd-canary-input@1',
+    scope: 'isolated_canary_input_no_production_activation', state: 'SD', generatedAt: candidate.generatedAt,
+    locations: candidate.locations, drops: candidate.drops}, null, 2) + '\n', {flag: 'wx'});
   console.log(JSON.stringify({state: 'SD', rows: candidate.drops.length, stores: candidate.locations.length, sourceRun: workflowRunId}));
 }

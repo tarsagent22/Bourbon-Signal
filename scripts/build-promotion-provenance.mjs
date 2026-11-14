@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const state = String(process.argv.find((value) => value.startsWith('--state='))?.split('=')[1] || '').toUpperCase();
@@ -10,8 +10,10 @@ if (!/^data\/canary-inputs\/[A-Za-z0-9._/-]+\.json$/.test(candidateDrops) || can
 const root = process.cwd();
 const files = [
   `engine/${candidateDrops}`,
-  `engine/data/state-integration/${state}.json`,
-  `engine/data/state-fixtures/${state}.json`,
+  ...(state === 'SD' ? [] : [
+    `engine/data/state-integration/${state}.json`,
+    `engine/data/state-fixtures/${state}.json`,
+  ]),
   'engine/src/state-sources.mjs',
   'engine/src/collectors/precision-probes.mjs',
   'engine/src/collectors/metro-retailer-surfaces.mjs',
@@ -363,6 +365,42 @@ if (state === 'RI') files.push(
   '.github/workflows/state-expansion-shadow.yml',
   '.github/workflows/refresh-feed.yml',
 );
+if (state === 'SD') files.push(
+  'engine/data/state-integration/SD.json',
+  'engine/src/research-south-dakota-retailer.mjs',
+  'engine/src/south-dakota-pickup-policy.mjs',
+  'engine/src/research-state-registry.mjs',
+  'engine/src/prepare-sd-pickup-canary.mjs',
+  'engine/src/collectors/south-dakota-production.mjs',
+  'engine/src/verify-sd-first-publication.mjs',
+  'scripts/download-south-dakota-shadow.mjs',
+  'scripts/test-sd-public-canary.mjs',
+  '.github/workflows/state-expansion-shadow.yml',
+  '.github/workflows/state-expansion-canary.yml',
+  '.github/workflows/state-promotion-provenance.yml',
+  'engine/out/sd-shadow-input/provenance.json',
+  `engine/out/canary/${state}/public-projection.json`,
+  'engine/data/state-expansion-candidates.json',
+  'src/config/state-lifecycle.json',
+  'src/lib/public-drop-evidence.ts',
+  'src/lib/drop-feed-visibility.ts',
+  'src/lib/site-engine-contract.ts',
+  'src/lib/sighting-store-directory.ts',
+  'src/app/api/coverage/route.ts',
+  'src/app/api/stores/route.ts',
+  'src/app/api/locations/route.ts',
+  'next.config.ts',
+);
+if (state === 'SD') {
+  const collect = async directory => {
+    for (const entry of await readdir(path.join(root, directory), {withFileTypes: true})) {
+      const relative = path.posix.join(directory.replaceAll('\\', '/'), entry.name);
+      if (entry.isDirectory()) await collect(relative);
+      else if (entry.isFile()) files.push(relative);
+    }
+  };
+  await collect('engine/out/sd-shadow-input');
+}
 for (const file of files) {
   const content = await readFile(path.join(root, file));
   fileDigests[file] = createHash('sha256').update(content).digest('hex');
