@@ -148,6 +148,18 @@ export function normalizeHistoricalImplementationBytes(name, bytes) {
   if (!sharedFiles.has(name)) return bytes;
   assert.equal(westernGroceryBaseline.contractVersion, 'bourbon-signal/western-grocery-production-shared-metadata-baseline@1');
   let text = bytes.toString('utf8');
+  if(name==='src/config/state-lifecycle.json'||name==='src/config/stateLifecycle.ts'){
+    const deStart=text.lastIndexOf('    "DE": {');
+    if(deStart>=0){
+      const deEnd=text.indexOf('\n    }\n  }',deStart);
+      const deBlock=deEnd>=0?text.slice(deStart,deEnd+6):'';
+      assert.equal(createHash('sha256').update(deBlock).digest('hex'),'37151a0e8e0947ca70134c0be309271ff12edda21969d18d0f08262526bac666',`${name}: exact Delaware lifecycle entry`);
+      text=replaceUnique(text,`,\n${deBlock}`,'',`${name}: exact Delaware lifecycle entry`);
+      text=replaceUnique(text,'    "KS",\n    "DE",\n    "AR",\n    "MO"\n  ],\n  "reliabilityPolicy"',
+        '    "KS",\n    "AR",\n    "MO"\n  ],\n  "reliabilityPolicy"',`${name}: four-state admission exact Delaware active list entry`);
+      text=replaceUnique(text,'      "FL": 180000,\n      "DE": 55000\n','      "FL": 180000\n',`${name}: four-state admission exact Delaware forecast entry`);
+    }
+  }
   if(name==='engine/src/state-sources.mjs'){
     const wyomingImport = "import { WYOMING_GROCERY_CONFIG } from './collectors/wyoming-grocery-production.mjs';\n";
     if (text.includes(wyomingImport)) {

@@ -20,6 +20,6 @@ test('the shared I/O worker policy defaults to five and preserves valid environm
     safetyMarginMs: policy.refreshSafetyMarginMs,
   });
   assert.equal(forecast.ok, true, forecast.reason);
-  assert.equal(forecast.projectedRunMs, 1_200_000);
+  assert.equal(forecast.projectedRunMs, 1_225_000);
   assert.equal(forecast.availableRunMs, 1_500_000);
 });

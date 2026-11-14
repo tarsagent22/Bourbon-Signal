@@ -50,12 +50,12 @@ test('measured forecast reversal accepts only the complete reviewed map and pres
     const wyoming = '      "WY": 30000,\n';
     const recentBudgets = (current.includes(wyoming) ? wyoming : '') + (marylandBudget ? '      "MD": 15000,\n' : '') + '      "AR": 30000,\n      "MN": 30000,\n';
     const withRecentStateBudgets = map => withKansas(map.replace('"stateExpectedRunMs": {\n', '"stateExpectedRunMs": {\n' + recentBudgets));
-    const currentMap = withRecentStateBudgets(reviewed);
+    const currentMap = withRecentStateBudgets(reviewed).replace('      "FL": 180000\n    }', '      "FL": 180000,\n      "DE": 55000\n    }');
     assert.ok(current.includes(currentMap));
     assert.equal(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(current))), evidence.implementationFilesSha256[name]);
     for (const mutation of [current.replace(currentMap, withRecentStateBudgets(original)), current.replace(currentMap, withRecentStateBudgets('    "stateExpectedRunMs": {\n    }')), current + '\n' + reviewed,
       ...reviewed.split('\n').slice(1, -1).map(line => current.replace(line, line.replace(/\d+/, value => String(Number(value) + 1)))),
-    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:measured runtime forecast|exact KS expected runtime).*exact historical verification hook/);
+    ]) assert.throws(() => normalizeHistoricalImplementationBytes(name, Buffer.from(mutation)), /(?:measured runtime forecast|exact KS expected runtime|four-state admission exact Delaware forecast entry).*exact historical verification hook/);
     const outside = current.replace('"refreshSafetyMarginMs": 300000', '"refreshSafetyMarginMs": 0');
     assert.notEqual(digest(normalizeHistoricalImplementationBytes(name, Buffer.from(outside))), evidence.implementationFilesSha256[name], 'the map exception cannot hide a reduced refresh reserve');
   }
