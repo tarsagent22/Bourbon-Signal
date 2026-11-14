@@ -12,13 +12,13 @@ const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const common=['engine/src/collectors/generic-state.mjs','engine/src/confidence-policy.mjs','engine/src/run.mjs',
   'engine/src/core/collection-http.mjs','engine/src/reliability-policy.mjs','.github/workflows/refresh-feed.yml',
   '.github/workflows/state-expansion-shadow.yml','engine/out/library-catalog.json','engine/out/bourbon-bible.json'];
-for(const state of ['WA','NM','WI','OK','NJ','MI','AK','LA','RI'])test(`${state} issued bundle binds actual runtime files and refuses missing mandatory production code`,async t=>{
+for(const state of ['WA','NM','WI','OK','MN','NJ','MI','AK','LA','RI'])test(`${state} issued bundle binds actual runtime files and refuses missing mandatory production code`,async t=>{
   const directory=await mkdtemp(path.join(tmpdir(),'synthetic-promotion-hashes-'));
   assert.ok(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));t.after(()=>rm(directory,{recursive:true,force:true}));
   // Synthetic replay bytes validate the issuer, never source or promotion truth.
   // Repository/run labels explicitly cannot pass immutable promotion validation.
   const candidates=[...source.matchAll(/['`]([^'`\n]+)['`]/g)].map(match=>match[1])
-    .filter(file=>/^(?:engine\/|src\/|scripts\/|\.github\/|next\.config\.ts$)/.test(file)&&!file.includes(' '))
+    .filter(file=>/^(?:engine\/|src\/|scripts\/|apps\/|\.github\/|next\.config\.ts$)/.test(file)&&!file.includes(' '))
     .map(file=>file.replaceAll('${candidateDrops}',`data/canary-inputs/${state}.json`).replaceAll('${state}',state));
   for(const file of new Set(candidates)){
     const destination=path.join(directory,file);await mkdir(path.dirname(destination),{recursive:true});
@@ -36,14 +36,24 @@ for(const state of ['WA','NM','WI','OK','NJ','MI','AK','LA','RI'])test(`${state}
     env:{...process.env,PROMOTION_CANDIDATE_DROPS:`data/canary-inputs/${state}.json`,GITHUB_REPOSITORY:'synthetic/unit-only',GITHUB_RUN_ID:'unit-only',GITHUB_SHA:'unit-only'}});
   const first=run();assert.equal(first.status,0,first.stderr);
   const out=path.join(directory,`engine/out/promotion-provenance/${state}.json`),payload=JSON.parse(await readFile(out,'utf8'));
-  const central=['WI','OK','RI'].includes(state),njmi=['NJ','MI'].includes(state),laak=['AK','LA'].includes(state);
-  const module=laak?'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
-  const config=laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
+  const central=['WI','OK','RI'].includes(state),minnesota=state==='MN',njmi=['NJ','MI'].includes(state),laak=['AK','LA'].includes(state);
+  const module=laak?'engine/src/collectors/louisiana-alaska-grocery-production-adapter.mjs':njmi?'engine/src/collectors/nj-mi-cityhive-production.mjs':minnesota?'engine/src/collectors/minnesota-cityhive-production.mjs':central?'engine/src/collectors/central-cityhive-production.mjs':'engine/src/collectors/western-grocery-production.mjs';
+  const config=laak?'engine/src/louisiana-alaska-grocery-production-config.mjs':njmi?'engine/src/nj-mi-production-config.mjs':minnesota?'engine/src/minnesota-cityhive-production-config.mjs':central?'engine/src/central-cityhive-production-config.mjs':'engine/src/western-grocery-production-config.mjs';
   const runtimeFiles=laak?[
     'engine/src/collectors/generic-state.mjs','engine/src/run.mjs','.github/workflows/refresh-feed.yml',
     'engine/src/verify-laak-first-publication.mjs','engine/src/operational-report.mjs',
     `engine/out/laak-shadow-input/${state}/provenance.json`,
-  ]:state==='RI'?[...common,'engine/src/verify-ri-first-publication.mjs']:common;
+  ]:minnesota?[...common,'engine/src/collectors/generic-state.mjs','engine/src/run.mjs','.github/workflows/refresh-feed.yml',
+    'engine/src/central-cityhive-policy.mjs','engine/src/collectors/minnesota-cityhive-production.mjs','engine/src/minnesota-cityhive-production-config.mjs',
+    'engine/data/state-integration/MN.json','engine/data/minnesota-cityhive-expansion-sources.json',
+    'engine/src/collectors/central-cityhive-research-premises.mjs','engine/src/collectors/central-cityhive-transport.mjs',
+    'engine/src/collectors/central-cityhive-expansion.mjs','engine/src/collectors/cityhive-surfaces.mjs',
+    'engine/src/prepare-central-cityhive-canary.mjs','engine/src/research-cityhive-runtime.mjs',
+    `engine/out/cityhive-shadow-input/${state}/provenance.json`,`engine/out/cityhive-shadow-input/${state}/artifact.zip`,
+    `engine/out/canary-preparation/${state}/lifecycle-research.json`,`engine/out/canary/${state}/site/stats.json`,
+    `engine/out/canary/${state}/site/locations.json`,`engine/out/canary/${state}/site/stores.json`,
+    `engine/out/canary/${state}/site/drops.json`,`engine/out/canary/${state}/site/states/index.json`]
+    :state==='RI'?[...common,'engine/src/verify-ri-first-publication.mjs']:common;
   for(const file of [...runtimeFiles,module,config])assert.equal(payload.fileDigests[file],sha(await readFile(path.join(directory,file))),file);
   await appendFile(path.join(directory,module),'\n// synthetic mutation\n');assert.equal(run().status,0);
   const changed=JSON.parse(await readFile(out,'utf8'));assert.notEqual(changed.bundleDigest,payload.bundleDigest);assert.notEqual(changed.fileDigests[module],payload.fileDigests[module]);

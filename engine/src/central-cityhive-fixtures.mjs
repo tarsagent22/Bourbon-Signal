@@ -11,13 +11,15 @@ export async function executeCentralCityHiveFixtures(payload,{bible}={}){
     const input=item.input||{},source=[...CENTRAL_CITYHIVE_EXPANSION_SOURCES,...CENTRAL_CITYHIVE_RESEARCH_SOURCES]
       .find(source=>source.state===payload.state&&source.id===input.sourceId);
     if(!source){failures.push(`${item.id}: no reviewed source for state and source ID.`);continue;}
-    const researchFixture=source.state==='RI'?({
+    const researchFixture=source.state==='MN'?({
+      'top-ten-liquors:64640ae4a9a1022c2d6eba51':'mn-top-ten-blaine.json',
+    }[source.id]):source.state==='RI'?({
       'rhode-island-liquor-delivery:64f6226b7537422b95e04824':'eagle-rare-10-year-kentucky-straight-bourbon.json',
       'fifth-ward-liquor:546babb03932330002100300':'fifth-ward-eagle-rare-10.json',
       'california-liquors-ri:6114919961187149b8241cdd':'california-liquors-eagle-rare-10.json',
     }[source.id]):null;
     const fixturePath=researchFixture
-      ? new URL(`../test/fixtures/ri-cityhive/${researchFixture}`,import.meta.url)
+      ? new URL(`../test/fixtures/${source.state==='RI'?'ri-cityhive':'central-cityhive'}/${researchFixture}`,import.meta.url)
       : new URL(`../test/fixtures/central-cityhive/${source.id}.json`,import.meta.url);
     const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
     const products=fixture.products|| (fixture.product?[fixture.product]:[]);
