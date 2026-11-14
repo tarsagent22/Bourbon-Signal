@@ -15,20 +15,21 @@ function source(runId) {
   };
 }
 
-test('MA canary accepts only the two reviewed hosted shadow artifacts', () => {
-  const city = source('43627853806');
+test('MA canary accepts paired current hosted source runs with immutable artifact provenance', () => {
+  const city = source('43700000001');
   const cityProvenance = validateCityHiveShadowWorkflowOrigin({ state: 'MA', repository, ...city, currentHead: head, comparison: null });
-  assert.equal(cityProvenance.workflowRunId, '43627853806');
-  const esplanda = source('43624193800');
+  assert.equal(cityProvenance.workflowRunId, '43700000001');
+  const esplanda = source('43700000002');
   const esplandaProvenance = validateMassachusettsEsplandaOrigin({ repository, ...esplanda, currentHead: head, comparison: null });
-  assert.equal(esplandaProvenance.workflowRunId, '43624193800');
-  assert.throws(() => validateMassachusettsEsplandaOrigin({ repository, ...source('43627853806'), currentHead: head, comparison: null }), /reviewed hosted artifact/);
+  assert.equal(esplandaProvenance.workflowRunId, '43700000002');
+  const paired = source('43700000003');
+  assert.equal(validateMassachusettsEsplandaOrigin({ repository, ...paired, currentHead: head, comparison: null }).workflowRunId, '43700000003');
 });
 
 test('MA canary fails closed on expired or mismatched source lineage', () => {
-  const expired = source('43624193800'); expired.artifact.expired = true;
+  const expired = source('43700000004'); expired.artifact.expired = true;
   assert.throws(() => validateMassachusettsEsplandaOrigin({ repository, ...expired, currentHead: head, comparison: null }), /reviewed hosted artifact/);
-  const changedSource = source('43624193800'); changedSource.run.head_sha = 'f'.repeat(40);
+  const changedSource = source('43700000005'); changedSource.run.head_sha = 'f'.repeat(40);
   assert.throws(() => validateMassachusettsEsplandaOrigin({ repository, ...changedSource, currentHead: head, comparison: { status: 'ahead', files: [{ filename: 'engine/src/collectors/massachusetts-esplanda.mjs' }] } }), /collector source changed/);
 });
 

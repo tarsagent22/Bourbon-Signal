@@ -1,5 +1,7 @@
 import { oregonResearchSourceForState, collectOregonResearchReport } from './research-oregon-runtime.mjs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { beginMassachusettsPairedSourceAttempt, finishMassachusettsPairedSourceAttempt } from './ma-paired-source-guard.mjs';
 import { groceryResearchSourceForState, groceryResearchLifecycleEntries, collectGroceryResearchReport } from './research-grocery-runtime.mjs';
 import { MA_JULIOS_PROBE_URLS } from './collectors/massachusetts-retailer-surfaces.mjs';
 import { collectMassachusettsJulios } from './collectors/massachusetts-retailer-collector.mjs';
@@ -9,6 +11,14 @@ import { cityHiveResearchSourceForState, cityHiveResearchLifecycleEntries, colle
 import {njMiResearchSourceForState,njMiResearchLifecycleEntries,collectNjMiResearchReport} from './nj-mi-research-runtime.mjs';
 import {michiganLiquorsResearchSourceForState,michiganLiquorsResearchLifecycleEntries,collectMichiganLiquorsResearchReport} from './research-michigan-liquors-runtime.mjs';
 import { louisianaAlaskaResearchSourceForState, louisianaAlaskaResearchLifecycleEntries, collectLouisianaAlaskaResearchReport } from './research-louisiana-alaska-grocery-runtime.mjs';
+
+function shadowWorkflowOrigin(env = process.env) {
+  return env.GITHUB_ACTIONS === 'true' && /^[0-9]+$/.test(env.GITHUB_RUN_ID || '')
+    && /^[a-f0-9]{40}$/.test(env.GITHUB_SHA || '')
+    ? { kind: 'github_actions', repository: env.GITHUB_REPOSITORY, workflowRunId: env.GITHUB_RUN_ID,
+      commitSha: env.GITHUB_SHA, runAttempt: env.GITHUB_RUN_ATTEMPT || '1' }
+    : { kind: 'local_research_not_workflow_issued' };
+}
 
 // Research registrations never rewrite production lifecycle/source files or
 // historical promotion evidence. Activation requires a separate reviewed change.
@@ -76,26 +86,51 @@ export async function collectResearchStateReport(config, bible, options = {}) {
       status: result.signals.length ? healthy ? 'useful' : 'partial_useful' : 'no_trusted_inventory',
       stale: false, signals: result.signals, sources: result.sourceReports, sourceResults: result.sourceResults,
       roadblocks: result.roadblocks, metadata: { complete: healthy, shadowOnly: true,
-        sourceSet: 'massachusetts-esplanda-only', productionActivationAllowed: false, customerDeliveryAllowed: false },
+        sourceSet: 'massachusetts-esplanda-only', origin: shadowWorkflowOrigin(),
+        productionActivationAllowed: false, customerDeliveryAllowed: false },
     };
   }
+  const pairedSources = process.env.BOURBON_SIGNAL_MA_PAIRED_SOURCE === '1';
+  const pairedRequestBudget = MA_JULIOS_PROBE_URLS.length
+    + (cityHiveResearchSourceForState('MA')?.sources?.length || 0) + MA_ESPLANDA_PRODUCTS.length;
+  if (pairedSources && pairedRequestBudget !== 7) {
+    throw new Error('MA paired collection is bounded to the reviewed two CityHive, two Julio, and three Esplanda requests.');
+  }
+  const attempt = pairedSources ? await beginMassachusettsPairedSourceAttempt({
+    file: process.env.BOURBON_SIGNAL_MA_PAIRED_ATTEMPT_FILE || undefined,
+  }) : null;
+  const reportDirectory = options.reportDirectory || (process.env.BOURBON_SIGNAL_STATE_OUT_FILE
+    ? path.dirname(process.env.BOURBON_SIGNAL_STATE_OUT_FILE) : undefined);
   const [result, cityHive, esplanda] = await Promise.all([
     collectMassachusettsJulios(config, bible, options),
-    options.includeCityHiveResearch === false ? null : collectCityHiveResearchReport(cityHiveResearchSourceForState('MA'), bible, options),
-    options.includeEsplandaResearch === true ? collectMassachusettsEsplanda(config, bible, options) : null,
+    options.includeCityHiveResearch === false && !pairedSources ? null : collectCityHiveResearchReport(cityHiveResearchSourceForState('MA'), bible, options),
+    options.includeEsplandaResearch === true || pairedSources
+      ? collectMassachusettsEsplanda(config, bible, { ...options, reportDirectory, shadowMode: true }) : null,
   ]);
   const finishedAt = new Date().toISOString();
   const healthyJulios = result.sourceReports.length > 0 && result.sourceReports.every(source => source.ok);
   const healthy = healthyJulios && (cityHive === null || cityHive.metadata.complete === true)
-    && (esplanda === null || esplanda.sourceReports.length === MA_ESPLANDA_PRODUCTS.length && esplanda.sourceReports.every(source => source.ok));
+    && (esplanda === null || esplanda.sourceReports.length === MA_ESPLANDA_PRODUCTS.length && esplanda.sourceReports.every(source => source.ok))
+    && (!pairedSources || result.sourceReports.length + (cityHive?.sources?.length || 0) + (esplanda?.sourceReports?.length || 0) === pairedRequestBudget);
   const signals = [...result.signals, ...(cityHive?.signals ?? []), ...(esplanda?.signals ?? [])];
-  return {
+  const report = {
     state: config.id, label: config.label, tier: config.tier, strategy: config.strategy, cadence: config.cadence,
     startedAt, finishedAt, lastGoodAt: healthy ? finishedAt : null,
     status: signals.length ? healthy ? 'useful' : 'partial_useful' : 'no_trusted_inventory',
     stale: false, signals, sources: [...result.sourceReports, ...(cityHive?.sources ?? []), ...(esplanda?.sourceReports ?? [])],
     sourceResults: [...result.sourceResults, ...(cityHive?.sourceResults ?? []), ...(esplanda?.sourceResults ?? [])],
     roadblocks: [...result.roadblocks, ...(cityHive?.roadblocks ?? []), ...(esplanda?.roadblocks ?? [])],
-    metadata: { ...cityHive?.metadata, complete: healthy, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false },
+    metadata: { ...cityHive?.metadata, complete: healthy, shadowOnly: true, productionActivationAllowed: false, customerDeliveryAllowed: false,
+    ...(pairedSources ? { sourceSet: 'massachusetts-paired-sources', pairedSourceMode: true,
+      pairedSourceAttemptAt: attempt.lastAttemptAt, requestBudget: { maxSourceRequests: pairedRequestBudget,
+        actualSourceRequests: [...result.sourceReports, ...(cityHive?.sources ?? []), ...(esplanda?.sourceReports ?? [])].length } } : {}) },
   };
+  if (attempt) {
+    const reportSha256 = createHash('sha256').update(JSON.stringify(report)).digest('hex');
+    await finishMassachusettsPairedSourceAttempt({
+      file: process.env.BOURBON_SIGNAL_MA_PAIRED_ATTEMPT_FILE || undefined,
+      attemptAt: attempt.lastAttemptAt, report, reportSha256,
+    });
+  }
+  return report;
 }

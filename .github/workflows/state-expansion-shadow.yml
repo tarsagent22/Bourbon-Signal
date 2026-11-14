@@ -19,6 +19,11 @@ on:
         required: false
         type: boolean
         default: false
+      ma_paired_sources:
+        description: "Collect the reviewed MA CityHive, Julio's, and Esplanda premises once as a paired silent shadow report"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: state-expansion-shadow
@@ -87,6 +92,7 @@ jobs:
           RAW_STATES: ${{ inputs.states || '' }}
           RAW_LIMIT: ${{ inputs.limit || '5' }}
           RAW_MA_ESPLANDA_ONLY: ${{ inputs.ma_esplanda_only || false }}
+          RAW_MA_PAIRED_SOURCES: ${{ inputs.ma_paired_sources || false }}
         run: |
           set -euo pipefail
           if [[ -n "$RAW_STATES" && ! "$RAW_STATES" =~ ^[A-Z]{2}(-[A-Z0-9]+)?(,[A-Z]{2}(-[A-Z0-9]+)?)*$ ]]; then
@@ -105,6 +111,15 @@ jobs:
             echo "ma_esplanda_only=1" >> "$GITHUB_OUTPUT"
           else
             echo "ma_esplanda_only=0" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ "$RAW_MA_PAIRED_SOURCES" == "true" ]]; then
+            if [[ "$GITHUB_REF_NAME" != "research/massachusetts-dual-source-production-prep-20261114" || "$RAW_STATES" != "MA" || "$RAW_LIMIT" != "1" || "$RAW_MA_ESPLANDA_ONLY" == "true" ]]; then
+              echo "Paired MA collection is allowed only as MA/limit=1 on the dedicated inactive research branch" >&2
+              exit 1
+            fi
+            echo "ma_paired_sources=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "ma_paired_sources=0" >> "$GITHUB_OUTPUT"
           fi
           echo "states=$RAW_STATES" >> "$GITHUB_OUTPUT"
           echo "limit=$RAW_LIMIT" >> "$GITHUB_OUTPUT"
@@ -133,6 +148,8 @@ jobs:
           LIMIT: ${{ steps.plan.outputs.limit }}
           SCHEDULED_AT: ${{ steps.plan.outputs.scheduled_at }}
           BOURBON_SIGNAL_MA_ESPLANDA_ONLY: ${{ steps.validate.outputs.ma_esplanda_only }}
+          BOURBON_SIGNAL_MA_PAIRED_SOURCE: ${{ steps.validate.outputs.ma_paired_sources }}
+          BOURBON_SIGNAL_MA_PAIRED_SOURCE_BOOTSTRAP_AT: "2026-11-14T18:40:29.363Z"
         run: npm run shadow:expansion -- --states="$STATES" --limit="$LIMIT" --scheduled-at="$SCHEDULED_AT"
 
       - name: Preserve a new or Bible-reparsed Oregon source cache

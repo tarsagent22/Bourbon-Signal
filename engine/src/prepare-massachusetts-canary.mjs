@@ -14,8 +14,6 @@ import { withResearchLifecycle } from './research-state-registry.mjs';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const SOURCE_BIBLE_SHA = 'a222d6990e2d248780c116eff1fafb142db9c7434644201f8443683e879f5f1d';
 const CURRENT_BIBLE_SHA = 'd175443d4945c401e636e64fa9738ca09c2966b5e9e4b79038eec18a8b754460';
-const CITY_RUN = '43627853806';
-const ESPLANDA_RUN = '43624193800';
 
 async function findReport(directory, predicate) {
   const matches = [];
@@ -30,13 +28,13 @@ async function findReport(directory, predicate) {
   return matches;
 }
 
-function verifyOrigin(provenance, state, expectedRun) {
+function verifyOrigin(provenance, state) {
   if (provenance?.status !== 'verified_github_shadow_artifact' || provenance.state !== state
-    || provenance.repository !== 'tarsagent22/Bourbon-Signal' || provenance.workflowRunId !== expectedRun
-    || provenance.artifactName !== `state-expansion-shadow-${expectedRun}`
+    || provenance.repository !== 'tarsagent22/Bourbon-Signal' || !/^\d+$/.test(String(provenance.workflowRunId || ''))
+    || provenance.artifactName !== `state-expansion-shadow-${provenance.workflowRunId}`
     || !/^[a-f0-9]{64}$/.test(provenance.artifactDigest || '')
     || !/^[a-f0-9]{40}$/.test(provenance.headSha || '')) {
-    throw new Error(`MA canary requires verified hosted ${expectedRun} shadow provenance.`);
+    throw new Error('MA canary requires verified hosted shadow provenance for the requested source run.');
   }
 }
 
@@ -57,28 +55,42 @@ export function reconcileMassachusettsCityHiveBible(report, currentBibleSha) {
 
 export async function prepareMassachusettsCanary({ cityArtifactDir, cityProvenance, esplandaArtifactDir,
   esplandaProvenance, bible, nowMs = Date.now() } = {}) {
-  verifyOrigin(cityProvenance, 'MA', CITY_RUN);
-  verifyOrigin(esplandaProvenance, 'MA', ESPLANDA_RUN);
+  verifyOrigin(cityProvenance, 'MA');
+  verifyOrigin(esplandaProvenance, 'MA');
+  const cityRun = String(cityProvenance.workflowRunId);
+  const esplandaRun = String(esplandaProvenance.workflowRunId);
   const cityMatches = await findReport(cityArtifactDir, report => report.state === 'MA'
-    && String(report.metadata?.origin?.workflowRunId) === CITY_RUN);
+    && String(report.metadata?.origin?.workflowRunId) === cityRun);
   if (cityMatches.length !== 1) throw new Error('Expected one exact CityHive/Julio report.');
   const [cityMatch] = cityMatches;
   const cityReport = cityMatch.report;
   const currentBibleSha = sha(Buffer.from(JSON.stringify(bible.records || [])));
   const bibleBinding = reconcileMassachusettsCityHiveBible(cityReport, currentBibleSha);
-  if (cityReport.metadata?.origin?.commitSha !== cityProvenance.headSha
-    || cityReport.metadata?.origin?.workflowRunId !== CITY_RUN) throw new Error('MA shadow evidence is not bound to the reviewed source and current Bible.');
+  if (cityReport.metadata?.origin?.kind !== 'github_actions'
+    || cityReport.metadata?.origin?.repository !== cityProvenance.repository
+    || cityReport.metadata?.origin?.commitSha !== cityProvenance.headSha
+    || String(cityReport.metadata?.origin?.workflowRunId) !== cityRun) throw new Error('MA shadow evidence is not bound to the reviewed source and current Bible.');
   const city = await prepareCentralCityHiveCanary({ state: 'MA', report: bibleBinding.replayReport, reportDirectory: cityMatch.directory,
     bible, provenance: cityProvenance, nowMs });
 
-  const esplandaMatches = await findReport(esplandaArtifactDir, report => report.state === 'MA'
-    && report.metadata?.sourceSet === 'massachusetts-esplanda-only');
+  if (cityProvenance.headSha !== esplandaProvenance.headSha) throw new Error('MA paired source reports must use the same reviewed collector revision.');
+  const esplandaMatches = await findReport(esplandaArtifactDir, report => {
+    const sourceSet = report.metadata?.sourceSet;
+    const reportRun = String(report.metadata?.origin?.workflowRunId || '');
+    const runMatches = reportRun ? reportRun === esplandaRun : sourceSet === 'massachusetts-esplanda-only';
+    return report.state === 'MA' && (sourceSet === 'massachusetts-esplanda-only' || report.metadata?.pairedSourceMode === true)
+      && runMatches;
+  });
   if (esplandaMatches.length !== 1) throw new Error('Expected one exact Esplanda-only report.');
   const { report, directory: esplandaDir } = esplandaMatches[0];
+  const esplandaReportOrigin = report.metadata?.origin;
   if (report.state !== 'MA' || report.metadata?.complete !== true || report.metadata?.shadowOnly !== true
     || report.metadata?.productionActivationAllowed !== false || report.metadata?.customerDeliveryAllowed !== false
-    || report.startedAt !== '2026-11-14T18:01:24.253Z' || report.finishedAt !== '2026-11-14T18:01:26.523Z'
-    || esplandaProvenance.headSha !== cityProvenance.headSha) throw new Error('MA Esplanda report is incomplete or not from the same reviewed source revision.');
+    || esplandaReportOrigin && (esplandaReportOrigin.kind !== 'github_actions' || esplandaReportOrigin.repository !== esplandaProvenance.repository
+      || esplandaReportOrigin.commitSha !== esplandaProvenance.headSha || String(esplandaReportOrigin.workflowRunId) !== esplandaRun)
+    || !esplandaReportOrigin && report.metadata?.sourceSet !== 'massachusetts-esplanda-only'
+    || !Number.isFinite(Date.parse(report.startedAt)) || !Number.isFinite(Date.parse(report.finishedAt))
+    || Date.parse(report.finishedAt) < Date.parse(report.startedAt)) throw new Error('MA Esplanda report is incomplete or not from the reviewed source run.');
   const esplandaRows = [];
   for (const source of MA_ESPLANDA_PRODUCTS) {
     const sourceReport = report.sources?.find(item => item.url === source.requestUrl);
@@ -137,7 +149,7 @@ export async function prepareMassachusettsCanary({ cityArtifactDir, cityProvenan
     || row.canAlertAsWatch !== false || row.eligibleForDelivery !== false || row.eligibleForEmail !== false
     || row.eligibleForSms !== false || row.quantityIsExact !== false)) throw new Error('MA isolated preview must contain seven silent binary rows across five exact premises.');
   return { generatedAt: cityReport.finishedAt, drops, locations, sourceEvidence: {
-    cityHiveRun: CITY_RUN, esplandaRun: ESPLANDA_RUN, currentBibleSha256: currentBibleSha,
+    cityHiveRun: cityRun, esplandaRun, pairedRun: cityRun === esplandaRun, currentBibleSha256: currentBibleSha,
     cityHiveSourceBibleSha256: bibleBinding.sourceBibleSha,
     cityHiveArtifactSha256: cityProvenance.artifactDigest, esplandaArtifactSha256: esplandaProvenance.artifactDigest,
     cityHiveHeadSha: cityProvenance.headSha, cityHiveReportFinishedAt: cityReport.finishedAt,
@@ -179,7 +191,7 @@ async function main() {
   await mkdir('out/canary/MA/source-evidence', { recursive: true });
   await writeFile('out/canary/MA/source-evidence/manifest.json', JSON.stringify(result.sourceEvidence, null, 2) + '\n');
   console.log(JSON.stringify({ state: 'MA', rows: result.drops.length, stores: result.locations.length,
-    sourceRuns: [CITY_RUN, ESPLANDA_RUN], productionActivationAllowed: false, alertsEnabled: false }));
+    sourceRuns: [result.sourceEvidence.cityHiveRun, result.sourceEvidence.esplandaRun], productionActivationAllowed: false, alertsEnabled: false }));
 }
 
 if (import.meta.url === (process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '')) main().catch(error => { console.error(error.stack || error.message); process.exit(1); });
