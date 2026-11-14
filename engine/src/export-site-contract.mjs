@@ -884,20 +884,44 @@ function seededAvailabilityEpisode(drop, subjectId) {
 export function buildAvailabilityEpisodeIndex(signals = [], { previousDrops = [] } = {}) {
   const index = new Map();
   const sourceSubjects = new Map();
-  for (const signal of signals) {
-    const key = availabilitySourceProductIdentity(signal);
-    const subject = availabilityEpisodeIdentity(signal);
-    const at = Date.parse(availabilityObservationAt(signal) || '');
-    if (!key || !subject || !Number.isFinite(at)) continue;
-    const prior = sourceSubjects.get(key);
-    if (!prior || at > prior.at) sourceSubjects.set(key, { subject, at });
-    else if (at === prior.at && prior.subject !== subject) sourceSubjects.set(key, { subject: null, at });
-  }
   const previousDropRows = Array.isArray(previousDrops)
     ? previousDrops
     : Array.isArray(previousDrops?.drops)
       ? previousDrops.drops
       : [];
+  const bridgeKeys = new Set(previousDropRows
+    .filter(drop => !drop.availabilityBottleId)
+    .map(availabilitySourceProductIdentity)
+    .filter(Boolean));
+  const observations = [];
+
+  for (const signal of signals) {
+    const state = explicitAvailabilityState(signal);
+    const sourceProduct = bridgeKeys.size ? availabilitySourceProductIdentity(signal) : '';
+    const isBridge = bridgeKeys.has(sourceProduct);
+    if (!state && !isBridge) continue;
+    const subjectId = availabilityEpisodeIdentity(signal);
+    if (!subjectId) continue;
+    const observedAt = availabilityObservationAt(signal);
+    if (!observedAt) continue;
+    const observedTime = Date.parse(observedAt);
+    if (isBridge) {
+      const prior = sourceSubjects.get(sourceProduct);
+      if (!prior || observedTime > prior.at) sourceSubjects.set(sourceProduct, { subject: subjectId, at: observedTime });
+      else if (observedTime === prior.at && prior.subject !== subjectId) sourceSubjects.set(sourceProduct, { subject: null, at: observedTime });
+    }
+    if (state) {
+      const price = Number(signal.price);
+      observations.push({
+        subjectId,
+        state,
+        observedAt,
+        observedTime,
+        price: Number.isFinite(price) && price > 0 ? price : null,
+      });
+    }
+  }
+
   for (const drop of previousDropRows) {
     const subjectId = drop.availabilityBottleId ? availabilityEpisodeIdentity(drop)
       : sourceSubjects.get(availabilitySourceProductIdentity(drop))?.subject || availabilityEpisodeIdentity(drop);
@@ -907,19 +931,11 @@ export function buildAvailabilityEpisodeIndex(signals = [], { previousDrops = []
     if (seed && (!existing || seed.checkpointAt > existing.checkpointAt)) index.set(subjectId, seed);
   }
 
-  const observations = (signals || [])
-    .map((signal, order) => ({
-      order,
-      subjectId: availabilityEpisodeIdentity(signal),
-      state: explicitAvailabilityState(signal),
-      observedAt: availabilityObservationAt(signal),
-      price: Number.isFinite(Number(signal.price)) && Number(signal.price) > 0 ? Number(signal.price) : null,
-    }))
-    .filter((entry) => entry.subjectId && entry.state && entry.observedAt)
-    .sort((left, right) => Date.parse(left.observedAt) - Date.parse(right.observedAt) || left.order - right.order);
+  // Stable Array.sort preserves input order for simultaneous observations.
+  observations.sort((left, right) => left.observedTime - right.observedTime);
 
   for (const observation of observations) {
-    const observedTime = Date.parse(observation.observedAt);
+    const { observedTime } = observation;
     const existing = index.get(observation.subjectId) || {
       available: false,
       id: null,
@@ -1013,7 +1029,7 @@ function sourceEventAt(signal) {
   return null;
 }
 
-function buildFreshnessIndex(historicalSignals = [], currentSignals = [], previousDrops = [], availabilityHistory = historicalSignals) {
+function buildFreshnessIndex(historicalSignals, currentSignals, availabilityEpisodes) {
   const index = new Map();
   for (const signal of [...historicalSignals, ...currentSignals]) {
     const key = signalFreshnessKey(signal);
@@ -1028,10 +1044,6 @@ function buildFreshnessIndex(historicalSignals = [], currentSignals = [], previo
     if (lastConfirmedAt && (!cur.lastConfirmedAt || lastConfirmedAt > cur.lastConfirmedAt)) cur.lastConfirmedAt = lastConfirmedAt;
     index.set(key, cur);
   }
-  const availabilityEpisodes = buildAvailabilityEpisodeIndex(
-    [...availabilityHistory, ...currentSignals],
-    { previousDrops },
-  );
   for (const signal of [...historicalSignals, ...currentSignals]) {
     const episode = availabilityEpisodes.get(availabilityEpisodeIdentity(signal));
     if (!episode) continue;
@@ -1441,7 +1453,7 @@ function publicDisplaySortTimestamp(signal, freshnessIndex) {
   return freshness?.eventAt || freshness?.firstSeenAt || signal.observedAt || signal.fetchedAt || freshness?.lastConfirmedAt || '';
 }
 
-export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy } = {}) {
+export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals, { shopifyPolicy, availabilityEpisodes } = {}) {
   const seenSourceIds = new Set();
   const seenProjectedIds = new Set();
   const currentObservationKeys = new Set(currentSignals.map(signal => `${signalFreshnessKey(signal)}|${signal.observedAt || signal.fetchedAt || ''}`));
@@ -1451,7 +1463,8 @@ export function buildDrops(signals, bible, currentSignals = [], previousDrops = 
   }
   const isCurrentObservation = signal => currentObservations.has(signal);
   const currentProjectedDrops = new Set();
-  const freshnessIndex = buildFreshnessIndex(signals, currentSignals, previousDrops, availabilityHistory);
+  const episodes = availabilityEpisodes ?? buildAvailabilityEpisodeIndex([...availabilityHistory, ...currentSignals], { previousDrops });
+  const freshnessIndex = buildFreshnessIndex(signals, currentSignals, episodes);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
   const arizonaInventory = s => s.state === 'AZ' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(s.eventType || s.type || ''));
   const currentArizonaKeys = new Set(currentSignals.filter(arizonaInventory).map(currentProjectionKey));
@@ -2551,8 +2564,9 @@ async function main({ rejectedQualityStates = [] } = {}) {
     .filter((location) => String(location?.state || location?.state_code || '').toUpperCase() === 'WV'
       && (location?.type === 'store' || location?.locationType === 'store'))
     .map((location) => String(location.id)));
-  const candidateDrops = buildDrops(historicalSignals, bible, signals, previousDrops);
-  const currentDrops = buildDrops(signals, bible, signals, previousDrops, historicalSignals);
+  const availabilityEpisodes = buildAvailabilityEpisodeIndex([...historicalSignals, ...signals], { previousDrops });
+  const candidateDrops = buildDrops(historicalSignals, bible, signals, previousDrops, historicalSignals, { availabilityEpisodes });
+  const currentDrops = buildDrops(signals, bible, signals, previousDrops, historicalSignals, { availabilityEpisodes });
   const previousLocations = await readJson(path.join(PREVIOUS_SITE_OUT, 'locations.json'), []);
   const previousStores = await readJson(path.join(PREVIOUS_SITE_OUT, 'stores.json'), []);
   const previousEvents = await readJson(path.join(PREVIOUS_SITE_OUT, 'events.json'), []);
